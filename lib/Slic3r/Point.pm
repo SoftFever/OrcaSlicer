@@ -35,6 +35,8 @@ sub coincides_with {
     my $self = shift;
     my ($point) = @_;
     
+    $point = Slic3r::Point->new(x => $point->[0], y => $point->[1]) #==
+        if ref $point eq 'ARRAY';
     return $self->x == $point->x && $self->y == $point->y; #=
 }
 

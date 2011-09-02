@@ -26,4 +26,16 @@ sub layer {
     return $self->layers->[$layer_id];
 }
 
+sub extrude_perimeters {
+    my $self = shift;
+    
+    my $perimeter_extruder = Slic3r::Perimeter->new;
+    
+    foreach my $layer (@{ $self->layers }) {
+        $perimeter_extruder->make_perimeter($layer);
+        printf "  generated paths: %s\n",
+            join '  ', map $_->id, @{ $layer->perimeters };
+    }
+}
+
 1;

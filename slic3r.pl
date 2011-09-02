@@ -14,6 +14,8 @@ use XXX;
 my $stl_parser = Slic3r::STL->new;
 my $print = $stl_parser->parse_file("testcube20mm.stl");
 
+$print->extrude_perimeters;
+
 #XXX $print;
 
 __END__

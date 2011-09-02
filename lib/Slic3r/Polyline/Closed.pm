@@ -58,4 +58,15 @@ sub encloses_point {
     return $side;
 }
 
+sub mgp_polygon {
+    my $self = shift;
+    
+    # we need a list of ordered points
+    my $points = $self->ordered_points;
+    
+    my $p = Math::Geometry::Planar->new;
+    $p->points($points);
+    return $p;
+}
+
 1;

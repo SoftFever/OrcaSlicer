@@ -1,6 +1,7 @@
 package Slic3r::Line;
 use Moose;
 
+use Moose::Util::TypeConstraints;
 use Scalar::Util qw(weaken);
 
 has 'a' => (
@@ -19,6 +20,11 @@ has 'polyline' => (
     is          => 'rw',
     isa         => 'Slic3r::Polyline',
     weak_ref    => 1,
+);
+
+has 'solid_side' => (
+    is      => 'rw',
+    isa     => enum([qw(left right)]),  # going from a to b
 );
 
 sub BUILD {
@@ -43,6 +49,12 @@ sub coincides_with {
     
     return ($self->a->coincides_with($line->a) && $self->b->coincides_with($line->b))
         || ($self->a->coincides_with($line->b) && $self->b->coincides_with($line->a));
+}
+
+sub has_endpoint {
+    my $self = shift;
+    my ($point) = @_;#printf "    %s has endpoint %s: %s\n", $self->id, $point->id, ($point eq $self->a || $point eq $self->b);
+    return $point->coincides_with($self->a) || $point->coincides_with($self->b);
 }
 
 sub slope {

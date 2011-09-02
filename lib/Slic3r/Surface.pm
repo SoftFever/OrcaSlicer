@@ -1,6 +1,7 @@
 package Slic3r::Surface;
 use Moose;
 
+use Math::Geometry::Planar;
 use Moose::Util::TypeConstraints;
 
 has 'contour' => (
@@ -53,6 +54,14 @@ sub encloses_point {
     return 0 if !$self->contour->encloses_point($point);
     return 0 if grep $_->encloses_point($point), @{ $self->holes };
     return 1;
+}
+
+sub mgp_polygon {
+    my $self = shift;
+    
+    my $p = Math::Geometry::Planar->new;
+    $p->polygons([ map $_->points, $self->contour->mgp_polygon, map($_->mgp_polygon, @{ $self->holes }) ]);
+    return $p;
 }
 
 1;

@@ -26,7 +26,7 @@ sub BUILD {
 
 sub id {
     my $self = shift;
-    return join '-', map($_->id, $self->points);
+    return join '-', map($_->id, $self->ordered_points(1));
 }
 
 sub new_from_points {
@@ -59,6 +59,46 @@ sub points {
     my %points = ();
     $points{$_} = $_ for map $_->points, @{ $self->lines };
     return values %points;
+}
+
+sub ordered_points {
+    my $self = shift;
+    my ($as_objects) = @_;
+    my $points = [];
+    
+    #printf "\n\n==> Number of lines: %d\n", scalar @{ $self->lines };
+    my @lines = @{ $self->lines };
+    while (@lines && @$points < @{ $self->lines }) {
+        #printf "\nNumber of points: %d\n", scalar @{ $points };
+        my @temp = @lines;
+        @lines = ();
+        foreach my $line (@temp) {
+            #printf "Line: %s\n", $line->id;
+            my $point;
+            if (!@$points) {
+                # make sure we start from a point not connected to another segment if any
+                push @$points, sort { @{$a->lines} <=> @{$b->lines} } $line->points;
+                next;
+            } elsif ($line->has_endpoint($points->[-1])) {
+                $point = +(grep $points->[-1] ne $_, $line->points)[0];
+            }
+            if (!$point) {
+                #printf "  no point found, retrying\n";
+                push @lines, $line;
+                next;
+            }
+            #printf "  adding point %s\n", $point->id;
+            push @$points, $point;
+        }
+    }
+    
+    pop @$points
+        if $self->isa('Slic3r::Polyline::Closed') && $points->[0]->coincides_with($points->[-1]);
+    
+    return @$points if $as_objects;
+    
+    $points = [ map [ $_->x, $_->y ], @$points ]; #]
+    return $points;
 }
 
 1;

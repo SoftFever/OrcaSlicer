@@ -32,6 +32,12 @@ has 'surfaces' => (
     default => sub { [] },
 );
 
+has 'perimeters' => (
+    is      => 'rw',
+    isa     => 'ArrayRef[Slic3r::Polyline]',
+    default => sub { [] },
+);
+
 sub z {
     my $self = shift;
     return $self->id * $Slic3r::layer_height / $Slic3r::resolution;
@@ -313,7 +319,7 @@ sub merge_contiguous_surfaces {
                 );
                 
                 printf "  merging into new surface %s\n", $new_surface->id;
-                push @{ $self->surfaces }, $surface;
+                push @{ $self->surfaces }, $new_surface;
                 
                 $self->remove_surface($_) for ($surface, $neighbor_surface);
             }

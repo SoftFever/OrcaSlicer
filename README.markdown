@@ -34,7 +34,7 @@ layers and representing internally the following features:
 This kind of abstraction will allow to implement particular logic and allow the
 user to specify custom options.
 
-I need to implement algorithms to produce perimeter outlines and surface fill.
+I need to implement algorithms to produce surface fill, while perimeter is done.
 
 Future goals include support material, options to control bridges, skirt, cool.
 
