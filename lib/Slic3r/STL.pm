@@ -7,6 +7,8 @@ use XXX;
 use constant X => 0;
 use constant Y => 1;
 use constant Z => 2;
+use constant MIN => 0;
+use constant MAX => 1;
 
 sub parse_file {
     my $self = shift;
@@ -23,15 +25,15 @@ sub parse_file {
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
             for (X,Y,Z) {
-                $extents[$_][0] = $vertex->[$_] if $vertex->[$_] < $extents[$_][0];
-                $extents[$_][1] = $vertex->[$_] if $vertex->[$_] > $extents[$_][0];
+                $extents[$_][MIN] = $vertex->[$_] if $vertex->[$_] < $extents[$_][MIN];
+                $extents[$_][MAX] = $vertex->[$_] if $vertex->[$_] > $extents[$_][MAX];
             }
         }
     }
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
-    my @shift = map 0 - $extents[$_][0], X,Y,Z;
+    my @shift = map 0 - $extents[$_][MIN], X,Y,Z;
     printf "shift = %d, %d, %d\n", @shift[X,Y,Z];
     
     # process facets
