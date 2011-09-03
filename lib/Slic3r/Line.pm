@@ -1,8 +1,10 @@
 package Slic3r::Line;
 use Moose;
-
 use Moose::Util::TypeConstraints;
 use Scalar::Util qw(weaken);
+
+subtype 'Slic3r::Line::Length', as 'Int';
+coerce 'Slic3r::Line::Length', from 'Num', via { sprintf '%.0f', $_ };
 
 has 'a' => (
     is          => 'ro',

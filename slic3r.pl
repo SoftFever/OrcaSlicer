@@ -16,6 +16,8 @@ my $print = $stl_parser->parse_file("testcube20mm.stl");
 
 $print->extrude_perimeters;
 
+$print->export_gcode("testcube20mm.gcode");
+
 #XXX $print;
 
 __END__

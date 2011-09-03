@@ -40,4 +40,11 @@ sub coincides_with {
     return $self->x == $point->x && $self->y == $point->y; #=
 }
 
+sub distance_to {
+    my $self = shift;
+    my ($point) = @_;
+    
+    return sqrt(($point->x - $self->x)**2 + ($point->y - $self->y)**2); #-
+}
+
 1;

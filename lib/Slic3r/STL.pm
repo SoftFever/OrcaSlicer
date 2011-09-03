@@ -14,8 +14,7 @@ sub parse_file {
     my $self = shift;
     my ($file) = @_;
     
-    my $print = Slic3r::Print->new;
-    
+    # open STL file
     my $stl = CAD::Format::STL->new->load($file);
     
     # we only want to work with positive coordinates, so let's 
@@ -30,6 +29,12 @@ sub parse_file {
             }
         }
     }
+    
+    # initialize print job
+    my $print = Slic3r::Print->new(
+        x_length => ($extents[X][MAX] - $extents[X][MIN]) / $Slic3r::resolution,
+        y_length => ($extents[Y][MAX] - $extents[Y][MIN]) / $Slic3r::resolution,
+    );
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
