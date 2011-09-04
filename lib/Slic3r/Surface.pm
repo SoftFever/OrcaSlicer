@@ -42,6 +42,20 @@ sub BUILD {
     $_->hole_of($self) for @{ $self->holes };
 }
 
+sub new_from_mgp {
+    my $self = shift;
+    my ($polygon) = @_;
+    
+    my ($contour_p, @holes_p) = @{ $polygon->polygons };
+    
+    return __PACKAGE__->new(
+        contour => Slic3r::Polyline::Closed->new_from_points(@$contour_p),
+        holes   => [
+            map Slic3r::Polyline::Closed->new_from_points(@$_), @holes_p
+        ],
+    );
+}
+
 sub id {
     my $self = shift;
     return $self->contour->id;

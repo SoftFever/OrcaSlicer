@@ -29,34 +29,22 @@ sub make_perimeter {
         
         # create other offsets
         for (my $loop = 1; $loop < $Slic3r::perimeter_offsets; $loop++) {
-            my ($contour_p, @holes_p) = map $self->_mgp_from_points_ref($_), @{ $perimeters[-1]->polygons };
             
-            # generate offsets
-            my $contour_offsets = $contour_p->offset_polygon($Slic3r::flow_width / $Slic3r::resolution);
-            my @hole_offsets = map @$_, map $_->offset_polygon(- $Slic3r::flow_width / $Slic3r::resolution), @holes_p;
+            # offsetting a polygon can result in one or many offset polygons
+            my @offsets = $self->offset_polygon($perimeters[-1]);
             
-            # now we subtract perimeter offsets from the contour offset polygon
-            # this will generate a single polygon with correct holes and also
-            # will take care of collisions between contour offset and holes
-            foreach my $contour_points (@$contour_offsets) {
-                my $tmp = $self->_mgp_from_points_ref($contour_points)->convert2gpc;
-                foreach my $hole_points (@hole_offsets) {
-                    $hole_points = $self->_mgp_from_points_ref($hole_points)->convert2gpc;
-                    $tmp = GpcClip('DIFFERENCE', $tmp, $hole_points);
-                }
+            foreach my $offset_polygon (@offsets) {
+                my ($contour_p, @holes_p) = @{ $offset_polygon->polygons };
                 
-                my ($result) = Gpc2Polygons($tmp);
-                # now we've got $result, which is a Math::Geometry::Planar
-                # representing the inner surface including hole perimeters
-                
-                my $result_polylines = $result->polygons;
-                
-                ($contour_p, @holes_p) = @$result_polylines;
                 push @{ $contours{$surface} }, $contour_p;
                 push @{ $holes{$surface} }, @holes_p;
-                push @perimeters, $result;
+                push @perimeters, $offset_polygon;
             }
         }
+        
+        # create one more offset to be used as boundary for fill
+        push @{ $layer->fill_surfaces }, 
+            map Slic3r::Surface->new_from_mgp($_), $self->offset_polygon($perimeters[-1]);
     }
     
     # generate paths for holes
@@ -82,8 +70,40 @@ sub make_perimeter {
             # away from it to avoid the extruder to get two times there
             push @path_points, @$points, $points->[0];
         }
-        push @{ $layer->perimeters }, Slic3r::Polyline->new_from_points(reverse @path_points);
+        push @{ $layer->perimeters }, Slic3r::ExtrusionPath->new_from_points(reverse @path_points);
     }
+}
+
+sub offset_polygon {
+    my $self = shift;
+    my ($polygon) = @_;
+    
+    # $polygon holds a Math::Geometry::Planar object representing 
+    # a polygon and its holes
+    my ($contour_p, @holes_p) = map $self->_mgp_from_points_ref($_), @{ $polygon->polygons };
+            
+    # generate offsets
+    my $contour_offsets = $contour_p->offset_polygon($Slic3r::flow_width / $Slic3r::resolution);
+    my @hole_offsets = map @$_, map $_->offset_polygon(- $Slic3r::flow_width / $Slic3r::resolution), @holes_p;
+    
+    # now we subtract perimeter offsets from the contour offset polygon
+    # this will generate a single polygon with correct holes and also
+    # will take care of collisions between contour offset and holes
+    my @resulting_offsets = ();
+    foreach my $contour_points (@$contour_offsets) {
+        my $tmp = $self->_mgp_from_points_ref($contour_points)->convert2gpc;
+        foreach my $hole_points (@hole_offsets) {
+            $hole_points = $self->_mgp_from_points_ref($hole_points)->convert2gpc;
+            $tmp = GpcClip('DIFFERENCE', $tmp, $hole_points);
+        }
+        
+        my ($result) = Gpc2Polygons($tmp);
+        # now we've got $result, which is a Math::Geometry::Planar
+        # representing the inner surface including hole perimeters
+        push @resulting_offsets, $result;
+    }
+    
+    return @resulting_offsets;
 }
 
 sub _mgp_from_points_ref {

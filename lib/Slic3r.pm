@@ -3,6 +3,7 @@ package Slic3r;
 use strict;
 use warnings;
 
+use Slic3r::ExtrusionPath;
 use Slic3r::Layer;
 use Slic3r::Line;
 use Slic3r::Perimeter;

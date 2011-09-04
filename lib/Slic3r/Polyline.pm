@@ -40,7 +40,7 @@ sub new_from_points {
             : $_
     } @points;
     
-    my $polyline = __PACKAGE__->new;
+    my $polyline = $class->new;
     my $previous_point;
     $previous_point = $points[-1] if $class eq 'Slic3r::Polyline::Closed';
     foreach my $point (@points) {
