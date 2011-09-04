@@ -9,8 +9,9 @@ sub make_perimeter {
     my ($layer) = @_;
     printf "Making perimeter for layer %d:\n", $layer->id;
     
-    # skip entire section if no perimeters are requested
-    return unless $Slic3r::perimeter_offsets > 0;
+    # at least one perimeter is required
+    die "Can't extrude object without any perimeter!\n"
+        if $Slic3r::perimeter_offsets == 0;
     
     my (@perimeters, %contours, %holes) = ();
     foreach my $surface (@{ $layer->surfaces }) {
