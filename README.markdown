@@ -11,14 +11,17 @@ like Enrique's Skeinforge or RevK's E3D.
 
 ## Why another one? Why Perl?
 
-The goal is to build something more maintainable and flexible than both
+The purpose is to build something more maintainable and flexible than both
 Skeinforge and E3D. The code makes extensive use of object-oriented 
 programming to achieve some level of abstraction instead of working with
 raw geometry and low-level data structures.
 This should help to maintain code, fix bugs and implement new and better
 algorithms in the future.
+I also aim at implementing better support for hollow objects, as Skeinforge
+isn't smart enough to generate internal support structures for horizontal
+facets.
 Of course, Perl's not that fast as C and usage of modules like Moose make
-everything quite memory-hungry, but I'm happy with it. My goal is a "rapid
+everything quite memory-hungry, but I'm happy with it. I want to build a "rapid
 prototyping" architecture for a slicer.
 
 Also, http://xkcd.com/224/
@@ -34,9 +37,15 @@ layers and representing internally the following features:
 This kind of abstraction will allow to implement particular logic and allow the
 user to specify custom options.
 
-I need to implement algorithms to produce surface fill, while perimeter is done.
+It is also able to generate perimeters and to produce working GCODE.
+To reach a minimum level of usability, I need to implement an algorithm to generate 
+surface fill.
 
 Future goals include support material, options to control bridges, skirt, cool.
+
+## Is it usable already?
+
+Not yet, as I need to finish the command line interface.
 
 ## Can I help?
 
