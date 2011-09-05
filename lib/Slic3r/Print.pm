@@ -1,6 +1,7 @@
 package Slic3r::Print;
 use Moose;
 
+use constant PI => 4 * atan2(1, 1);
 use constant X => 0;
 use constant Y => 1;
 
@@ -75,10 +76,10 @@ sub export_gcode {
     # calculate speed for gcode commands
     my $travel_feed_rate      = $Slic3r::travel_feed_rate * 60;  # mm/min
     my $print_feed_rate       = $Slic3r::print_feed_rate  * 60;  # mm/min
-    my $extrusion_speed_ratio = ($Slic3r::flow_rate / $Slic3r::print_feed_rate);
+    my $retract_speed         = $Slic3r::retract_speed    * 60;  # mm/min
     
     # calculate number of decimals
-    my $dec = length((1 / $Slic3r::resolution) - 1);
+    my $dec = length((1 / $Slic3r::resolution) - 1) + 1;
     
     # calculate X,Y shift to center print around specified origin
     my @shift = (
@@ -103,17 +104,33 @@ sub export_gcode {
     }
     
     # make up a subroutine to generate G1 commands
+    my $extrusion_distance = 0;
     my $G1 = sub {
-        my ($point, $z, $extrusion_distance, $comment) = @_;
-        printf $fh "G1 X%.${dec}f Y%.${dec}f Z%.${dec}f", 
-            ($point->x * $Slic3r::resolution) + $shift[X], 
-            ($point->y * $Slic3r::resolution) + $shift[Y], #**
-            $z;
-        my $speed_multiplier = $z == 0 ? $Slic3r::bottom_layer_speed_ratio : 1;
-        if ($extrusion_distance) {
-            printf $fh " F%.${dec}f E%.${dec}f", 
-                ($print_feed_rate * $speed_multiplier), 
-                ($extrusion_distance * $extrusion_speed_ratio * $Slic3r::resolution);
+        my ($point, $z, $e, $comment) = @_;
+        printf $fh "G1";
+        
+        if ($point) {
+            printf $fh " X%.${dec}f Y%.${dec}f", 
+                ($point->x * $Slic3r::resolution) + $shift[X], 
+                ($point->y * $Slic3r::resolution) + $shift[Y]; #**
+        }
+        if ($z) {
+            printf $fh " Z%.${dec}f", $z;
+        }
+        
+        # apply the speed reduction for print moves on bottom layer
+        my $speed_multiplier = defined $z && $z == 0 && $point 
+            ? $Slic3r::bottom_layer_speed_ratio 
+            : 1;
+
+        if ($e) {
+            $extrusion_distance = 0 if $Slic3r::use_relative_e_distances;
+            $extrusion_distance += $e;
+            printf $fh " F%.${dec}f E%.5f", 
+                $e < 0 
+                    ? $retract_speed
+                    : ($print_feed_rate * $speed_multiplier), 
+                $extrusion_distance;
         } else {
             printf $fh " F%.${dec}f", ($travel_feed_rate * $speed_multiplier);
         }
@@ -122,26 +139,41 @@ sub export_gcode {
     };
     
     my $z;
+    my $retracted = 0;
     my $Extrude = sub {
         my ($path, $description) = @_;
         
         # reset extrusion distance counter
-        my $extrusion_distance = 0;
         if (!$Slic3r::use_relative_e_distances) {
+            $extrusion_distance = 0;
             print $fh "G92 E0 ; reset extrusion distance\n";
         }
         
-        # go to first point (without extruding)
-        $G1->($path->lines->[0]->a, $z, 0, "move to first $description point");
+        # go to first point while compensating retraction
+        $G1->($path->lines->[0]->a, $z, 
+            $retracted 
+                ? ($Slic3r::retract_length + $Slic3r::retract_restart_extra)
+                : 0, 
+            "move to first $description point");
         
         # extrude while going to next points
         foreach my $line (@{ $path->lines }) {
-            $extrusion_distance = 0 if $Slic3r::use_relative_e_distances;
-            $extrusion_distance += $line->a->distance_to($line->b);
-            $G1->($line->b, $z, $extrusion_distance, $description);
+            # calculate how much filament to drive into the extruder
+            # to get the desired amount of extruded plastic
+            my $e = $line->a->distance_to($line->b) * $Slic3r::resolution
+                * $Slic3r::flow_width 
+                * $Slic3r::layer_height
+                / (($Slic3r::filament_diameter ** 2) * PI)
+                / $Slic3r::filament_packing_density;
+            
+            $G1->($line->b, $z, $e, $description);
         }
         
-        # TODO: retraction
+        # retract
+        if ($Slic3r::retract_length > 0) {
+            $G1->(undef, undef, -$Slic3r::retract_length, "retract");
+            $retracted = 1;
+        }
     };
     
     # write gcode commands layer by layer

@@ -33,6 +33,7 @@ Slic3r is able to:
 * read binary and ASCII STL files;
 * generate multiple perimeters (skins);
 * generate rectilinear fill (100% solid for external surfaces or with customizable less density for inner surfaces);
+* retraction;
 * use relative or absolute extrusion commands;
 * center print around bed center point;
 * use different speed for bottom layer;
@@ -42,10 +43,10 @@ Roadmap includes the following goals:
 
 * output some statistics;
 * allow the user to customize initial and final GCODE commands;
-* retraction;
 * option for filling multiple solid layers near external surfaces;
 * support material for internal perimeters;
 * ability to infill in the direction of bridges;
+* extra perimeters on alternate layers;
 * skirt;
 * cool;
 * nice packaging for cross-platform deployment.

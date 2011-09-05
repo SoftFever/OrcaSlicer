@@ -10,6 +10,7 @@ BEGIN {
 
 use Getopt::Long;
 use Slic3r;
+use Time::HiRes qw(gettimeofday tv_interval);
 use XXX;
 
 my %opt;
@@ -23,15 +24,16 @@ GetOptions(
     'resolution=f'          => \$Slic3r::resolution,
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
     'fill-density=f'        => \$Slic3r::fill_density,
+    'filament-diameter=f'   => \$Slic3r::filament_diameter,
     'flow-width=f'          => \$Slic3r::flow_width,
     'temperature=i'         => \$Slic3r::temperature,
-    'flow-rate=i'           => \$Slic3r::flow_rate,
     'print-feed-rate=i'     => \$Slic3r::print_feed_rate,
     'travel-feed-rate=i'    => \$Slic3r::travel_feed_rate,
     'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
     'use-relative-e-distances'      => \$Slic3r::use_relative_e_distances,
     'print-center=s'        => \$Slic3r::print_center,
-    '',
+    'retract-length=f'      => \$Slic3r::retract_length,
+    'retract-restart-extra=f' => \$Slic3r::retract_restart_extra,
 );
 
 # validate configuration
@@ -41,6 +43,10 @@ GetOptions(
         if $Slic3r::layer_height < 0;
     die "--layer-height must be a multiple of print resolution\n"
         if $Slic3r::layer_height / $Slic3r::resolution % 1 != 0;
+    
+    # --filament-diameter
+    die "Invalid value for --filament-diameter\n"
+        if $Slic3r::filament_diameter < 1;
     
     # --flow-width
     die "Invalid value for --flow-width\n"
@@ -72,6 +78,7 @@ if ($action eq 'skein') {
     die "Input file must have .stl extension\n" 
         if $input_file !~ /\.stl$/i;
     
+    my $t0 = [gettimeofday];
     my $print = $stl_parser->parse_file($input_file);
     $print->extrude_perimeters;
     $print->extrude_fills;
@@ -79,6 +86,10 @@ if ($action eq 'skein') {
     my $output_file = $input_file;
     $output_file =~ s/\.stl$/.gcode/i;
     $print->export_gcode($opt{output} || $output_file);
+    
+    my $processing_time = tv_interval($t0);
+    printf "Done. Process took %d minutes and %.3f seconds\n", 
+        int($processing_time/60), $processing_time - int($processing_time/60);
 }
 
 sub usage {
@@ -93,14 +104,22 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --perimeters        Number of perimeters/horizontal skins 
                         (range: 1+, default: $Slic3r::perimeter_offsets)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
+    --filament-diameter Diameter of your raw filament (default: $Slic3r::filament_diameter)
+    --filament-packing-density
+                        Ratio of the extruded volume over volume pushed into 
+                        the extruder (default: $Slic3r::filament_packing_density)
     --flow-width        Width of extruded flow in mm (default: $Slic3r::flow_width)
-    --flow-rate         Speed of extrusion in mm/sec; should be equal to 
-                        --print-feed-rate (default: $Slic3r::flow_rate)
     --print-feed-rate   Speed of print moves in mm/sec (default: $Slic3r::print_feed_rate)
     --travel-feed-rate  Speed of non-print moves in mm/sec (default: $Slic3r::travel_feed_rate)
     --bottom-layer-speed-ratio
                         Factor to increase/decrease speeds on bottom layer by 
                         (default: $Slic3r::bottom_layer_speed_ratio)
+    --retract-length    Length of retraction in mm when pausing extrusion 
+                        (default: $Slic3r::retract_length)
+    --retract-speed     Speed for retraction in mm/sec (default: $Slic3r::retract_speed)
+    --retract-restart-extra
+                        Additional amount of filament in mm to push after compensating
+                        retraction (default: $Slic3r::retract_restart_extra)
     --use-relative-e-distances
                         Use relative distances for extrusion in GCODE output
     --print-center      Coordinates of the point to center the print around 

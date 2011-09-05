@@ -19,7 +19,7 @@ sub make_fill {
     # let's alternate fill direction
     my @axes = $layer->id % 2 == 0 ? (0,1) : (1,0);
     
-    foreach my $surface (@{ $layer->fill_surfaces }) {
+    SURFACE: foreach my $surface (@{ $layer->fill_surfaces }) {
         Slic3r::debugf " Processing surface %s:\n", $surface->id;
         my $polygon = $surface->mgp_polygon;
         
@@ -30,6 +30,7 @@ sub make_fill {
         
         # force 100% density for external surfaces
         my $density = $surface->surface_type eq 'internal' ? $Slic3r::fill_density : 1;
+        next SURFACE unless $density > 0;
         my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $density;
         my $number_of_lines = ($axes[0] == 0 ? $print->x_length : $print->y_length) / $distance_between_lines;
         
@@ -96,7 +97,7 @@ sub make_fill {
         
             # loop through rows
             ROW: for (my $i = 0; $i < $number_of_lines; $i++) {
-                my $row = $points->[$i];
+                my $row = $points->[$i] or next ROW;
                 Slic3r::debugf "Processing row %d...\n", $i;
                 if (!@$row) {
                     Slic3r::debugf "  no points\n";
