@@ -45,6 +45,11 @@ sub id {
     return $self->a->id . "-" . $self->b->id;
 }
 
+sub coordinates {
+    my $self = shift;
+    return ($self->a->coordinates, $self->b->coordinates);
+}
+
 sub coincides_with {
     my $self = shift;
     my ($line) = @_;
@@ -55,7 +60,7 @@ sub coincides_with {
 
 sub has_endpoint {
     my $self = shift;
-    my ($point) = @_;#printf "    %s has endpoint %s: %s\n", $self->id, $point->id, ($point eq $self->a || $point eq $self->b);
+    my ($point) = @_;
     return $point->coincides_with($self->a) || $point->coincides_with($self->b);
 }
 

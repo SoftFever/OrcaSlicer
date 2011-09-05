@@ -28,20 +28,26 @@ Also, http://xkcd.com/224/
 
 ## What's its current status?
 
-Slic3r can now successfully parse and analyze an STL file by slicing it in
-layers and representing internally the following features:
+Slic3r is able to:
 
-* holes in surfaces;
-* external top/bottom surfaces.
+* read binary and ASCII STL files;
+* generate multiple perimeters (skins);
+* generate rectilinear feed (100% solid for external surfaces or with customizable less density for inner surfaces);
+* use relative or absolute extrusion commands;
+* center print around bed center point;
+* output relevant GCODE.
 
-This kind of abstraction will allow to implement particular logic and allow the
-user to specify custom options.
+Roadmap include the following goals:
 
-It is also able to generate perimeters and to produce working GCODE.
-To reach a minimum level of usability, I need to implement an algorithm to generate 
-surface fill.
-
-Future goals include support material, options to control bridges, skirt, cool.
+* set up a command line interface and hide debug messages;
+* output some statistics;
+* allow the user to customize initial and final GCODE commands;
+* option for filling multiple solid layers near external surfaces;
+* support material for internal perimeters;
+* ability to infill in the direction of bridges;
+* skirt;
+* cool;
+* nice packaging for cross-platform deployment.
 
 ## Is it usable already?
 

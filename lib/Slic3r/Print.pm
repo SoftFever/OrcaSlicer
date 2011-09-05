@@ -55,6 +55,19 @@ sub extrude_perimeters {
     }
 }
 
+sub extrude_fills {
+    my $self = shift;
+    
+    my $fill_extruder = Slic3r::Fill::Rectilinear->new;
+    
+    foreach my $layer (@{ $self->layers }) {
+        $fill_extruder->make_fill($self, $layer);
+        printf "  generated %d paths: %s\n",
+            scalar @{ $layer->fills },
+            join '  ', map $_->id, @{ $layer->fills };
+    }
+}
+
 sub export_gcode {
     my $self = shift;
     my ($file) = @_;
@@ -107,9 +120,32 @@ sub export_gcode {
         print  $fh "\n";
     };
     
+    my $z;
+    my $Extrude = sub {
+        my ($path, $description) = @_;
+        
+        # reset extrusion distance counter
+        my $extrusion_distance = 0;
+        if (!$Slic3r::use_relative_e_distances) {
+            print $fh "G92 E0 ; reset extrusion distance\n";
+        }
+        
+        # go to first point (without extruding)
+        $G1->($path->lines->[0]->a, $z, 0, "move to first $description point");
+        
+        # extrude while going to next points
+        foreach my $line (@{ $path->lines }) {
+            $extrusion_distance = 0 if $Slic3r::use_relative_e_distances;
+            $extrusion_distance += $line->a->distance_to($line->b);
+            $G1->($line->b, $z, $extrusion_distance, $description);
+        }
+        
+        # TODO: retraction
+    };
+    
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
-        my $z = ($layer->z * $Slic3r::resolution);
+        $z = ($layer->z * $Slic3r::resolution);
         
         # go to layer
         # TODO: retraction
@@ -117,24 +153,10 @@ sub export_gcode {
             $z, $travel_feed_rate;
         
         # extrude perimeters
-        foreach my $perimeter (@{ $layer->perimeters }) {
-            
-            # reset extrusion distance counter
-            my $extrusion_distance = 0;
-            if (!$Slic3r::use_relative_e_distances) {
-                print $fh "G92 E0 ; reset extrusion distance\n";
-            }
-            
-            # go to first point (without extruding)
-            $G1->($perimeter->lines->[0]->a, $z, 0, 'move to first perimeter point');
-            
-            # extrude while going to next points
-            foreach my $line (@{ $perimeter->lines }) {
-                $extrusion_distance = 0 if $Slic3r::use_relative_e_distances;
-                $extrusion_distance += $line->a->distance_to($line->b);
-                $G1->($line->b, $z, $extrusion_distance, 'perimeter');
-            }
-        }
+        $Extrude->($_, 'perimeter') for @{ $layer->perimeters };
+        
+        # extrude fills
+        $Extrude->($_, 'fill') for @{ $layer->fills };
     }
     
     # write end commands to file

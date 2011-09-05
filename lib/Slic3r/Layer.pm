@@ -55,6 +55,13 @@ has 'fill_surfaces' => (
     default => sub { [] },
 );
 
+# ordered collection of extrusion paths to fill surfaces
+has 'fills' => (
+    is      => 'rw',
+    isa     => 'ArrayRef[Slic3r::ExtrusionPath]',
+    default => sub { [] },
+);
+
 sub z {
     my $self = shift;
     return $self->id * $Slic3r::layer_height / $Slic3r::resolution;

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::ExtrusionPath;
+use Slic3r::Fill;
 use Slic3r::Layer;
 use Slic3r::Line;
 use Slic3r::Perimeter;
@@ -17,6 +18,7 @@ use Slic3r::Surface;
 our $layer_height       = 0.4;
 our $resolution         = 0.1;
 our $perimeter_offsets  = 3;
+our $fill_density       = 0.2;  # 1 = 100%
 our $flow_width         = 0.4;  # TODO: verify this is a multiple of $resolution
 our $temperature        = 195;
 

@@ -20,6 +20,8 @@ has 'holes' => (
     },
 );
 
+# TODO: to allow for multiple solid skins to be filled near external
+# surfaces, a new type should be defined: internal-solid
 has 'surface_type' => (
     is      => 'rw',
     isa     => enum([qw(internal bottom top)]),
@@ -44,7 +46,7 @@ sub BUILD {
 
 sub new_from_mgp {
     my $self = shift;
-    my ($polygon) = @_;
+    my ($polygon, %params) = @_;
     
     my ($contour_p, @holes_p) = @{ $polygon->polygons };
     
@@ -53,6 +55,7 @@ sub new_from_mgp {
         holes   => [
             map Slic3r::Polyline::Closed->new_from_points(@$_), @holes_p
         ],
+        %params,
     );
 }
 
@@ -76,6 +79,11 @@ sub mgp_polygon {
     my $p = Math::Geometry::Planar->new;
     $p->polygons([ map $_->points, $self->contour->mgp_polygon, map($_->mgp_polygon, @{ $self->holes }) ]);
     return $p;
+}
+
+sub lines {
+    my $self = shift;
+    return @{ $self->contour->lines }, map @{ $_->lines }, @{ $self->holes };
 }
 
 1;

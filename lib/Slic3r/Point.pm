@@ -31,6 +31,11 @@ sub id {
     return $self->x . "," . $self->y; #;;
 }
 
+sub coordinates {
+    my $self = shift;
+    return ($self->x, $self->y); #))
+}
+
 sub coincides_with {
     my $self = shift;
     my ($point) = @_;

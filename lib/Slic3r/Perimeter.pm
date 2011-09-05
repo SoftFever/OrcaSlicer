@@ -44,7 +44,8 @@ sub make_perimeter {
         
         # create one more offset to be used as boundary for fill
         push @{ $layer->fill_surfaces }, 
-            map Slic3r::Surface->new_from_mgp($_), $self->offset_polygon($perimeters[-1]);
+            map Slic3r::Surface->new_from_mgp($_, surface_type => $surface->surface_type), 
+                $self->offset_polygon($perimeters[-1]);
     }
     
     # generate paths for holes
