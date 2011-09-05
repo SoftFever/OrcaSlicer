@@ -35,6 +35,7 @@ Slic3r is able to:
 * generate rectilinear feed (100% solid for external surfaces or with customizable less density for inner surfaces);
 * use relative or absolute extrusion commands;
 * center print around bed center point;
+* use different speed for bottom layer;
 * output relevant GCODE.
 
 Roadmap include the following goals:

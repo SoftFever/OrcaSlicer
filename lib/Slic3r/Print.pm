@@ -109,12 +109,13 @@ sub export_gcode {
             ($point->x * $Slic3r::resolution) + $shift[X], 
             ($point->y * $Slic3r::resolution) + $shift[Y], #**
             $z;
+        my $speed_multiplier = $z == 0 ? $Slic3r::bottom_layer_speed_ratio : 1;
         if ($extrusion_distance) {
             printf $fh " F%.${dec}f E%.${dec}f", 
-                $print_feed_rate, 
+                ($print_feed_rate * $speed_multiplier), 
                 ($extrusion_distance * $extrusion_speed_ratio * $Slic3r::resolution);
         } else {
-            printf $fh " F%.${dec}f", $travel_feed_rate;
+            printf $fh " F%.${dec}f", ($travel_feed_rate * $speed_multiplier);
         }
         printf $fh " ; %s", $comment if $comment;
         print  $fh "\n";
