@@ -185,6 +185,9 @@ sub export_gcode {
         printf $fh "G1 Z%.${dec}f F%.${dec}f ; move to next layer\n", 
             $z, $travel_feed_rate;
         
+        # extrude skirts
+        $Extrude->($_, 'skirt') for @{ $layer->skirts };
+        
         # extrude perimeters
         $Extrude->($_, 'perimeter') for @{ $layer->perimeters };
         

@@ -73,6 +73,23 @@ sub make_perimeter {
         }
         push @{ $layer->perimeters }, Slic3r::ExtrusionPath->new_from_points(reverse @path_points);
     }
+    
+    # generate skirt on bottom layer
+    if ($layer->id == 0 && $Slic3r::skirts > 0) {
+        # find out convex hull
+        my $points = [ map { @{ $_->mgp_polygon->polygons->[0] } } @{ $layer->surfaces } ];
+        my $convex_hull = $self->_mgp_from_points_ref($points)->convexhull2;
+        my $convex_hull_polygon = $self->_mgp_from_points_ref($convex_hull);
+        
+        # draw outlines from outside to inside
+        for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
+            my $outline = $convex_hull_polygon->offset_polygon(
+                - ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution
+            );
+            push @{$outline->[0]}, $outline->[0][0]; # repeat first point as last to complete the loop
+            push @{ $layer->skirts }, Slic3r::ExtrusionPath->new_from_points(@{$outline->[0]});
+        }
+    }
 }
 
 sub offset_polygon {

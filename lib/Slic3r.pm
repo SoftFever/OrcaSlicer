@@ -38,6 +38,9 @@ our $retract_length         = 2;    # mm
 our $retract_restart_extra  = 0;    # mm
 our $retract_speed          = 40;   # mm/sec
 
+our $skirts             = 3;
+our $skirt_distance     = 6;    # mm
+
 our $use_relative_e_distances = 0;
 
 our $print_center       = [100,100];  # object will be centered around this point

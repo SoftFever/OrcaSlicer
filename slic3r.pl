@@ -29,6 +29,8 @@ GetOptions(
     'temperature=i'         => \$Slic3r::temperature,
     'print-feed-rate=i'     => \$Slic3r::print_feed_rate,
     'travel-feed-rate=i'    => \$Slic3r::travel_feed_rate,
+    'skirts=i'              => \$Slic3r::skirts,
+    'skirt-distance=i'              => \$Slic3r::skirt_distance,
     'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
     'use-relative-e-distances'      => \$Slic3r::use_relative_e_distances,
     'print-center=s'        => \$Slic3r::print_center,
@@ -120,6 +122,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --retract-restart-extra
                         Additional amount of filament in mm to push after compensating
                         retraction (default: $Slic3r::retract_restart_extra)
+    --skirts            Number of skirts to draw (default: $Slic3r::skirts)
+    --skirt-distance    Distance in mm between innermost skirt and object 
+                        (default: $Slic3r::skirt_distance)
     --use-relative-e-distances
                         Use relative distances for extrusion in GCODE output
     --print-center      Coordinates of the point to center the print around 
