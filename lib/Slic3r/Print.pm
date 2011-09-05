@@ -150,11 +150,13 @@ sub export_gcode {
         }
         
         # go to first point while compensating retraction
-        $G1->($path->lines->[0]->a, $z, 
-            $retracted 
-                ? ($Slic3r::retract_length + $Slic3r::retract_restart_extra)
-                : 0, 
-            "move to first $description point");
+        $G1->($path->lines->[0]->a, $z, 0, "move to first $description point");
+        
+        # compensate retraction
+        if ($retracted) {
+            $G1->(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
+                "compensate retraction");
+        }
         
         # extrude while going to next points
         foreach my $line (@{ $path->lines }) {

@@ -4,6 +4,9 @@ use Moose;
 use Math::Geometry::Planar;
 *Math::Geometry::Planar::OffsetPolygon = *Math::Geometry::Planar::Offset::OffsetPolygon;
 
+use constant X => 0;
+use constant Y => 1;
+
 sub make_perimeter {
     my $self = shift;
     my ($layer) = @_;
@@ -66,10 +69,13 @@ sub make_perimeter {
         my @path_points = ();
         foreach my $p (map $self->_mgp_from_points_ref($_), @$polylines) {
             my $points = $p->points;
-            # TODO: the initial $points->[0] should be replaced by the point of
+            # to avoid blobs, the first point is replaced by the point of
             # the segment which is $Slic3r::flow_width / $Slic3r::resolution 
             # away from it to avoid the extruder to get two times there
-            push @path_points, @$points, $points->[0];
+            push @$points, [ @{$points->[0]} ];
+            $points->[0] = $self->_get_point_along_line($points->[0], $points->[1], 
+                $Slic3r::flow_width * 1.2 / $Slic3r::resolution);
+            push @path_points, @$points;
         }
         push @{ $layer->perimeters }, Slic3r::ExtrusionPath->new_from_points(reverse @path_points);
     }
@@ -138,6 +144,22 @@ sub _mgp_from_polygons_ref {
     my $p = Math::Geometry::Planar->new;
     $p->polygons($polygons);
     return $p;
+}
+
+sub _get_point_along_line {
+    my $self = shift;
+    my ($p1, $p2, $distance) = @_;
+    
+    my $point = [ @$p1 ];
+    
+    my $line_length = sqrt( (($p2->[X] - $p1->[X])**2) + (($p2->[Y] - $p1->[Y])**2) );
+    for (X, Y) {
+        if ($p1->[$_] != $p2->[$_]) {
+            $point->[$_] = $p1->[$_] + ($p2->[$_] - $p1->[$_]) * $distance / $line_length;
+        }
+    }
+    
+    return $point;
 }
 
 1;
