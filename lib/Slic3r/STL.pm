@@ -39,7 +39,6 @@ sub parse_file {
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
     my @shift = map 0 - $extents[$_][MIN], X,Y,Z;
-    printf "shift = %d, %d, %d\n", @shift[X,Y,Z];
     
     # process facets
     foreach my $facet ($stl->part->facets) {
@@ -77,7 +76,8 @@ sub parse_file {
 sub _facet {
     my $self = shift;
     my ($print, $normal, @vertices) = @_;
-    printf "\n==> FACET (%s):\n", join('-', map join(',', @$_), @vertices);
+    Slic3r::debugf "\n==> FACET (%s):\n", join('-', map join(',', @$_), @vertices)
+        if $Slic3r::debug;
     
     # find the vertical extents of the facet
     my ($min_z, $max_z) = (99999999, -99999999);
@@ -85,15 +85,15 @@ sub _facet {
         $min_z = $vertex->[Z] if $vertex->[Z] < $min_z;
         $max_z = $vertex->[Z] if $vertex->[Z] > $max_z;
     }
-    printf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
+    Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
     
     # calculate the layer extents
     my ($min_layer, $max_layer) = map {$_ * $Slic3r::resolution / $Slic3r::layer_height} $min_z, $max_z;
-    printf "layers: min = %.0f, max = %.0f\n", $min_layer, $max_layer;
+    Slic3r::debugf "layers: min = %.0f, max = %.0f\n", $min_layer, $max_layer;
     
     # is the facet horizontal?
     if ($min_layer == $max_layer) {
-        printf "Facet is horizontal\n";
+        Slic3r::debugf "Facet is horizontal\n";
         my $layer = $print->layer($min_layer);
         my $surface = $layer->add_surface(@vertices);
         
@@ -151,7 +151,7 @@ sub _facet {
             
             # check whether the two points coincide due to resolution rounding
             if ($intersection_points[0]->coincides_with($intersection_points[1])) {
-                printf "Points coincide; removing\n";
+                Slic3r::debugf "Points coincide; removing\n";
                 $layer->remove_point($_) for @intersection_points;
                 next;
             }

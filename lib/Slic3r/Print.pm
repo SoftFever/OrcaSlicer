@@ -50,8 +50,8 @@ sub extrude_perimeters {
     
     foreach my $layer (@{ $self->layers }) {
         $perimeter_extruder->make_perimeter($layer);
-        printf "  generated paths: %s\n",
-            join '  ', map $_->id, @{ $layer->perimeters };
+        Slic3r::debugf "  generated paths: %s\n",
+            join '  ', map $_->id, @{ $layer->perimeters } if $Slic3r::debug;
     }
 }
 
@@ -62,9 +62,9 @@ sub extrude_fills {
     
     foreach my $layer (@{ $self->layers }) {
         $fill_extruder->make_fill($self, $layer);
-        printf "  generated %d paths: %s\n",
+        Slic3r::debugf "  generated %d paths: %s\n",
             scalar @{ $layer->fills },
-            join '  ', map $_->id, @{ $layer->fills };
+            join '  ', map $_->id, @{ $layer->fills } if $Slic3r::debug;
     }
 }
 

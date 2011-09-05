@@ -18,10 +18,9 @@ sub make_fill {
     
     # let's alternate fill direction
     my @axes = $layer->id % 2 == 0 ? (0,1) : (1,0);
-    printf "  primary axis: %d\n", $axes[0];
     
     foreach my $surface (@{ $layer->fill_surfaces }) {
-        printf " Processing surface %s:\n", $surface->id;
+        Slic3r::debugf " Processing surface %s:\n", $surface->id;
         my $polygon = $surface->mgp_polygon;
         
         # rotate surface as needed
@@ -34,10 +33,6 @@ sub make_fill {
         my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $density;
         my $number_of_lines = ($axes[0] == 0 ? $print->x_length : $print->y_length) / $distance_between_lines;
         
-        #printf "distance_between_lines = %f\n", $distance_between_lines;
-        #printf "number_of_lines = %d\n", $number_of_lines;
-        #printf "axes = %d, %d\n", @axes;
-        
         # this arrayref will hold intersection points of the fill grid with surface segments
         my $points = [ map [], 0..$number_of_lines-1 ];
         foreach my $line (map $self->_lines_from_mgp_points($_), @{ $polygon->polygons }) {
@@ -49,7 +44,7 @@ sub make_fill {
             
             # find out the coordinates
             my @coordinates = map @$_, @$line;
-            printf "Segment %d,%d - %d,%d\n", @coordinates;
+            Slic3r::debugf "Segment %d,%d - %d,%d\n", @coordinates;
             
             # get the extents of the segment along the primary axis
             my @line_c = sort ($coordinates[X1], $coordinates[X2]);
@@ -59,15 +54,15 @@ sub make_fill {
                 
                 # if the segment is parallel to our ray, there will be two intersection points
                 if ($line_c[0] == $line_c[1]) {
-                    printf "  Segment is parallel!\n";
+                    Slic3r::debugf "  Segment is parallel!\n";
                     push @{ $points->[$i] }, $coordinates[Y1], $coordinates[Y2];
-                    printf "   intersections at %f (%d) = %f, %f\n", $c, $i, $points->[$i][-2], $points->[$i][-1];
+                    Slic3r::debugf "   intersections at %f (%d) = %f, %f\n", $c, $i, $points->[$i][-2], $points->[$i][-1];
                 } else {
-                    printf "  Segment NOT parallel!\n";
+                    Slic3r::debugf "  Segment NOT parallel!\n";
                     # one point of intersection
                     push @{ $points->[$i] }, $coordinates[Y1] + ($coordinates[Y2] - $coordinates[Y1])
                         * ($c - $coordinates[X1]) / ($coordinates[X2] - $coordinates[X1]);
-                    printf "   intersection at %f (%d) = %f\n", $c, $i, $points->[$i][-1];
+                    Slic3r::debugf "   intersection at %f (%d) = %f\n", $c, $i, $points->[$i][-1];
                 }
             }
         }
@@ -102,13 +97,13 @@ sub make_fill {
             # loop through rows
             ROW: for (my $i = 0; $i < $number_of_lines; $i++) {
                 my $row = $points->[$i];
-                printf "Processing row %d...\n", $i;
+                Slic3r::debugf "Processing row %d...\n", $i;
                 if (!@$row) {
-                    printf "  no points\n";
+                    Slic3r::debugf "  no points\n";
                     $stop_path->();
                     next ROW;
                 }
-                printf "  points = %s\n", join ', ', @$row;
+                Slic3r::debugf "  points = %s\n", join ', ', @$row if $Slic3r::debug;
                 
                 # coordinate of current row
                 my $c = ($i + 1) * $distance_between_lines;
@@ -120,8 +115,8 @@ sub make_fill {
                 
                 my @connectable_points = $self->find_connectable_points($polygon, $path_points[-1], $c, $row);
                 @connectable_points = reverse @connectable_points if $direction == 1;
-                printf "  found %d connectable points = %s\n", scalar(@connectable_points),
-                    join ', ', @connectable_points;
+                Slic3r::debugf "  found %d connectable points = %s\n", scalar(@connectable_points),
+                    join ', ', @connectable_points if $Slic3r::debug;
                 
                 if (!@connectable_points && @path_points && $path_points[-1][0] != $c) {
                     # no connectable in this row

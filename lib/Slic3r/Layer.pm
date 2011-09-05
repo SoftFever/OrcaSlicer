@@ -181,8 +181,8 @@ sub merge_continuous_lines {
                     # create new line
                     my ($a, $b) = grep $_ ne $point, $line->points, $neighbor_line->points;
                     my $new_line = $self->add_line($a, $b);
-                    printf "Merging continuous lines %s and %s into %s\n", 
-                        $line->id, $neighbor_line->id, $new_line->id;
+                    Slic3r::debugf "Merging continuous lines %s and %s into %s\n", 
+                        $line->id, $neighbor_line->id, $new_line->id if $Slic3r::debug;
                     
                     # delete merged lines
                     $self->remove_line($_) for ($line, $neighbor_line);
@@ -226,8 +226,8 @@ sub make_polylines {
             $cur_line = $next_line;
         }
         
-        printf "Discovered polyline of %d lines (%s)\n", scalar keys %points,
-            join('-', map $_->id, values %visited_lines);
+        Slic3r::debugf "Discovered polyline of %d lines (%s)\n", scalar keys %points,
+            join('-', map $_->id, values %visited_lines) if $Slic3r::debug;
         push @$polylines, Slic3r::Polyline::Closed->new(lines => [values %visited_lines]);
     }
     
@@ -284,8 +284,9 @@ sub make_surfaces {
             $surface->surface_type('internal');
             push @{ $self->surfaces }, $surface;
             
-            printf "New surface: %s (holes: %s)\n", 
-                $surface->id, join(', ', map $_->id, @{$surface->holes}) || 'none';
+            Slic3r::debugf "New surface: %s (holes: %s)\n", 
+                $surface->id, join(', ', map $_->id, @{$surface->holes}) || 'none'
+                if $Slic3r::debug;
         }
     }
 }
@@ -310,13 +311,13 @@ sub merge_contiguous_surfaces {
                 
                 # defensive programming
                 if (@common_lines > 2) {
-                    printf "Surfaces %s and %s share %d lines! How's it possible?\n",
-                        $surface->id, $neighbor_surface->id, scalar @common_lines;
+                    Slic3r::debugf "Surfaces %s and %s share %d lines! How's it possible?\n",
+                        $surface->id, $neighbor_surface->id, scalar @common_lines if $Slic3r::debug;
                 }
                 
-                printf "Surfaces %s and %s share line/lines %s!\n",
+                Slic3r::debugf "Surfaces %s and %s share line/lines %s!\n",
                     $surface->id, $neighbor_surface->id,
-                    join(', ', map $_->id, @common_lines);
+                    join(', ', map $_->id, @common_lines) if $Slic3r::debug;
                 
                 # defensive programming
                 if ($surface->surface_type ne $neighbor_surface->surface_type) {
@@ -342,7 +343,7 @@ sub merge_contiguous_surfaces {
                     surface_type    => $surface->surface_type,
                 );
                 
-                printf "  merging into new surface %s\n", $new_surface->id;
+                Slic3r::debugf "  merging into new surface %s\n", $new_surface->id;
                 push @{ $self->surfaces }, $new_surface;
                 
                 $self->remove_surface($_) for ($surface, $neighbor_surface);
