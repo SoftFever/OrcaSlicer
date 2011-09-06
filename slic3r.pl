@@ -20,22 +20,35 @@ GetOptions(
     'debug'                 => \$Slic3r::debug,
     'o|output'              => \$opt{output},
     
+    # printer options
+    'nozzle-diameter=f'         => \$Slic3r::nozzle_diameter,
+    'print-center=s'            => \$Slic3r::print_center,
+    'use-relative-e-distances'  => \$Slic3r::use_relative_e_distances,
+    
+    # filament options
+    'filament-diameter=f'           => \$Slic3r::filament_diameter,
+    'filament-packing-density=f'    => \$Slic3r::filament_packing_density,
+    
+    # speed options
+    'print-feed-rate=i'             => \$Slic3r::print_feed_rate,
+    'travel-feed-rate=i'            => \$Slic3r::travel_feed_rate,
+    'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
+    
+    # accuracy options
     'layer-height=f'        => \$Slic3r::layer_height,
-    'resolution=f'          => \$Slic3r::resolution,
+    
+    # print options
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
     'fill-density=f'        => \$Slic3r::fill_density,
-    'filament-diameter=f'   => \$Slic3r::filament_diameter,
-    'flow-width=f'          => \$Slic3r::flow_width,
     'temperature=i'         => \$Slic3r::temperature,
-    'print-feed-rate=i'     => \$Slic3r::print_feed_rate,
-    'travel-feed-rate=i'    => \$Slic3r::travel_feed_rate,
+    
+    # retraction options
+    'retract-length=f'          => \$Slic3r::retract_length,
+    'retract-restart-extra=f'   => \$Slic3r::retract_restart_extra,
+    
+    # skirt options
     'skirts=i'              => \$Slic3r::skirts,
-    'skirt-distance=i'              => \$Slic3r::skirt_distance,
-    'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
-    'use-relative-e-distances'      => \$Slic3r::use_relative_e_distances,
-    'print-center=s'        => \$Slic3r::print_center,
-    'retract-length=f'      => \$Slic3r::retract_length,
-    'retract-restart-extra=f' => \$Slic3r::retract_restart_extra,
+    'skirt-distance=i'      => \$Slic3r::skirt_distance,
 );
 
 # validate configuration
@@ -50,11 +63,12 @@ GetOptions(
     die "Invalid value for --filament-diameter\n"
         if $Slic3r::filament_diameter < 1;
     
-    # --flow-width
-    die "Invalid value for --flow-width\n"
-        if $Slic3r::flow_width < 0;
-    die "--flow-width must be a multiple of print resolution\n"
-        if $Slic3r::flow_width / $Slic3r::resolution % 1 != 0;
+    # --nozzle-diameter
+    die "Invalid value for --nozzle-diameter\n"
+        if $Slic3r::nozzle_diameter < 0;
+    die "--layer-height can't be greater than --nozzle-diameter\n"
+        if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
+    $Slic3r::flow_width = $Slic3r::layer_height * ($Slic3r::nozzle_diameter**2);
     
     # --perimeters
     die "Invalid value for --perimeters\n"
@@ -101,35 +115,47 @@ sub usage {
 Usage: slic3r.pl [ OPTIONS ] file.stl
 
     --help              Output this usage screen and exit
-    --layer-height      Layer height in mm (default: $Slic3r::layer_height)
-    --resolution        Print resolution in mm (default: $Slic3r::resolution)
-    --perimeters        Number of perimeters/horizontal skins 
-                        (range: 1+, default: $Slic3r::perimeter_offsets)
-    --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
+    
+  Printer options:
+    --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
+    --print-center      Coordinates of the point to center the print around 
+                        (default: 100,100)
+    --use-relative-e-distances
+                        Use relative distances for extrusion in GCODE output
+    
+  Filament options:
     --filament-diameter Diameter of your raw filament (default: $Slic3r::filament_diameter)
     --filament-packing-density
-                        Ratio of the extruded volume over volume pushed into 
-                        the extruder (default: $Slic3r::filament_packing_density)
-    --flow-width        Width of extruded flow in mm (default: $Slic3r::flow_width)
+                        Ratio of the extruded volume over volume pushed 
+                        into the extruder (default: $Slic3r::filament_packing_density)
+    
+  Speed options:
     --print-feed-rate   Speed of print moves in mm/sec (default: $Slic3r::print_feed_rate)
     --travel-feed-rate  Speed of non-print moves in mm/sec (default: $Slic3r::travel_feed_rate)
     --bottom-layer-speed-ratio
-                        Factor to increase/decrease speeds on bottom layer by 
-                        (default: $Slic3r::bottom_layer_speed_ratio)
+                        Factor to increase/decrease speeds on bottom 
+                        layer by (default: $Slic3r::bottom_layer_speed_ratio)
+    
+  Accuracy options:
+    --layer-height      Layer height in mm (default: $Slic3r::layer_height)
+  
+  Print options:
+    --perimeters        Number of perimeters/horizontal skins (range: 1+, 
+                        default: $Slic3r::perimeter_offsets)
+    --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
+    --temperature       Extrusion temperature (default: $Slic3r::temperature)
+  
+  Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 
                         (default: $Slic3r::retract_length)
     --retract-speed     Speed for retraction in mm/sec (default: $Slic3r::retract_speed)
     --retract-restart-extra
-                        Additional amount of filament in mm to push after compensating
-                        retraction (default: $Slic3r::retract_restart_extra)
+                        Additional amount of filament in mm to push after
+                        compensating retraction (default: $Slic3r::retract_restart_extra)
+   Skirt options:
     --skirts            Number of skirts to draw (default: $Slic3r::skirts)
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $Slic3r::skirt_distance)
-    --use-relative-e-distances
-                        Use relative distances for extrusion in GCODE output
-    --print-center      Coordinates of the point to center the print around 
-                        (default: 100,100)
-    --temperature       Extrusion temperature (default: $Slic3r::temperature)
     -o, --output        File to output gcode to (default: <inputfile>.gcode)
     
 EOF

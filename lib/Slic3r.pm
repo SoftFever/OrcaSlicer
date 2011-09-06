@@ -20,29 +20,37 @@ use Slic3r::Print;
 use Slic3r::STL;
 use Slic3r::Surface;
 
+# printer options
+our $nozzle_diameter    = 0.45;
+our $print_center       = [100,100];  # object will be centered around this point
+our $use_relative_e_distances = 0;
 
-our $layer_height       = 0.4;
-our $resolution         = 0.1;
-our $perimeter_offsets  = 3;
-our $fill_density       = 0.4;  # 1 = 100%
+# filament options
 our $filament_diameter  = 3;    # mm
 our $filament_packing_density = 0.85;
-our $flow_width         = 0.50;
+
+# speed options
+our $print_feed_rate            = 60;   # mm/sec
+our $travel_feed_rate           = 80;   # mm/sec
+our $bottom_layer_speed_ratio   = 0.6;
+
+# accuracy options
+our $resolution         = 0.01;
+our $layer_height       = 0.4;
+our $flow_width;
+
+# print options
+our $perimeter_offsets  = 3;
+our $fill_density       = 0.4;  # 1 = 100%
 our $temperature        = 195;
 
-our $print_feed_rate    = 60;   # mm/sec
-our $travel_feed_rate   = 80;   # mm/sec
-our $bottom_layer_speed_ratio = 0.6;
-
+# retraction options
 our $retract_length         = 2;    # mm
 our $retract_restart_extra  = 0;    # mm
 our $retract_speed          = 40;   # mm/sec
 
+# skirt options
 our $skirts             = 3;
 our $skirt_distance     = 6;    # mm
-
-our $use_relative_e_distances = 0;
-
-our $print_center       = [100,100];  # object will be centered around this point
 
 1;
