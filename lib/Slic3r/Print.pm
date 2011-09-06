@@ -1,5 +1,5 @@
 package Slic3r::Print;
-use Moose;
+use Moo;
 
 use constant PI => 4 * atan2(1, 1);
 use constant X => 0;
@@ -7,37 +7,39 @@ use constant Y => 1;
 
 has 'x_length' => (
     is          => 'ro',
-    isa         => 'Slic3r::Line::Length',
+    #isa         => 'Slic3r::Line::Length',
     required    => 1,
-    coerce      => 1,
+    coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 has 'y_length' => (
     is          => 'ro',
-    isa         => 'Slic3r::Line::Length',
+    #isa         => 'Slic3r::Line::Length',
     required    => 1,
-    coerce      => 1,
+    coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 has 'layers' => (
     traits  => ['Array'],
     is      => 'rw',
-    isa     => 'ArrayRef[Slic3r::Layer]',
+    #isa     => 'ArrayRef[Slic3r::Layer]',
     default => sub { [] },
-    handles => {
-        layer_count => 'count',
-        add_layer   => 'push',
-    },
 );
+
+sub layer_count {
+    my $self = shift;
+    return scalar @{ $self->layers };
+}
 
 sub layer {
     my $self = shift;
     my ($layer_id) = @_;
     
     # extend our print by creating all necessary layers
+    
     if ($self->layer_count < $layer_id + 1) {
         for (my $i = $self->layer_count; $i <= $layer_id; $i++) {
-            $self->add_layer(Slic3r::Layer->new(id => $i));
+            push @{ $self->layers }, Slic3r::Layer->new(id => $i);
         }
     }
     

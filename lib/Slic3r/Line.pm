@@ -1,32 +1,28 @@
 package Slic3r::Line;
-use Moose;
-use Moose::Util::TypeConstraints;
+use Moo;
 use Scalar::Util qw(weaken);
-
-subtype 'Slic3r::Line::Length', as 'Int';
-coerce 'Slic3r::Line::Length', from 'Num', via { sprintf '%.0f', $_ };
 
 has 'a' => (
     is          => 'ro',
-    isa         => 'Slic3r::Point',
+    #isa         => 'Slic3r::Point',
     required    => 1,
 );
 
 has 'b' => (
     is          => 'ro',
-    isa         => 'Slic3r::Point',
+    #isa         => 'Slic3r::Point',
     required    => 1,
 );
 
 has 'polyline' => (
     is          => 'rw',
-    isa         => 'Slic3r::Polyline',
+    #isa         => 'Slic3r::Polyline',
     weak_ref    => 1,
 );
 
 has 'solid_side' => (
     is      => 'rw',
-    isa     => enum([qw(left right)]),  # going from a to b
+    #isa     => enum([qw(left right)]),  # going from a to b
 );
 
 sub BUILD {

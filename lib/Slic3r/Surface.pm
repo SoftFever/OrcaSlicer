@@ -1,39 +1,38 @@
 package Slic3r::Surface;
-use Moose;
+use Moo;
 
 use Math::Geometry::Planar;
-use Moose::Util::TypeConstraints;
 
 has 'contour' => (
     is          => 'ro',
-    isa         => 'Slic3r::Polyline::Closed',
+    #isa         => 'Slic3r::Polyline::Closed',
     required    => 1,
 );
 
 has 'holes' => (
     traits  => ['Array'],
     is      => 'rw',
-    isa     => 'ArrayRef[Slic3r::Polyline::Closed]',
+    #isa     => 'ArrayRef[Slic3r::Polyline::Closed]',
     default => sub { [] },
-    handles => {
-        'add_hole' => 'push',
-    },
 );
 
 # TODO: to allow for multiple solid skins to be filled near external
 # surfaces, a new type should be defined: internal-solid
 has 'surface_type' => (
     is      => 'rw',
-    isa     => enum([qw(internal bottom top)]),
+    #isa     => enum([qw(internal bottom top)]),
 );
 
-after 'add_hole' => sub {
+sub add_hole {
     my $self = shift;
+    my ($hole) = @_;
+    
+    push @{ $self->holes }, $hole;
     
     # add a weak reference to this surface in polyline objects
     # (avoid circular refs)
     $self->holes->[-1]->hole_of($self);
-};
+}
 
 sub BUILD {
     my $self = shift;

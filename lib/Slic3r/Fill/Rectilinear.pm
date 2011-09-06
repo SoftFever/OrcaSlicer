@@ -1,5 +1,5 @@
 package Slic3r::Fill::Rectilinear;
-use Moose;
+use Moo;
 
 use constant epsilon => 1E-10;
 use constant PI => 4 * atan2(1, 1);
@@ -45,10 +45,10 @@ sub make_fill {
             
             # find out the coordinates
             my @coordinates = map @$_, @$line;
-            Slic3r::debugf "Segment %d,%d - %d,%d\n", @coordinates;
             
             # get the extents of the segment along the primary axis
-            my @line_c = sort ($coordinates[X1], $coordinates[X2]);
+            my @line_c = sort { $a <=> $b } @coordinates[X1, X2];
+            Slic3r::debugf "Segment %d,%d - %d,%d (extents: %f, %f)\n", @coordinates, @line_c;
             
             for (my $c = $line_c[0]; $c <= $line_c[1]; $c += $distance_between_lines) {
                 my $i = sprintf('%.0f', $c / $distance_between_lines) - 1;

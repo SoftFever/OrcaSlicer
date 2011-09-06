@@ -1,5 +1,5 @@
 package Slic3r::Perimeter;
-use Moose;
+use Moo;
 
 use Math::Geometry::Planar;
 *Math::Geometry::Planar::OffsetPolygon = *Math::Geometry::Planar::Offset::OffsetPolygon;

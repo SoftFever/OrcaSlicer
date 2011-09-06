@@ -20,9 +20,6 @@ algorithms in the future.
 I also aim at implementing better support for hollow objects, as Skeinforge
 isn't smart enough to generate internal support structures for horizontal
 facets.
-Of course, Perl's not that fast as C and usage of modules like Moose make
-everything quite memory-hungry, but I'm happy with it. I want to build a "rapid
-prototyping" architecture for a slicer.
 
 Also, http://xkcd.com/224/
 

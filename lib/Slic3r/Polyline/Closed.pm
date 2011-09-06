@@ -1,30 +1,30 @@
 package Slic3r::Polyline::Closed;
-use Moose;
+use Moo;
 
 extends 'Slic3r::Polyline';
 
 has 'contour_of' => (
     is          => 'rw',
-    isa         => 'Slic3r::Surface',
+    #isa         => 'Slic3r::Surface',
     weak_ref    => 1,
 );
 
 has 'hole_of' => (
     is          => 'rw',
-    isa         => 'Slic3r::Surface',
+    #isa         => 'Slic3r::Surface',
     weak_ref    => 1,
 );
 
-override 'new_from_points' => sub {
+sub new_from_points {
     my $class = shift;
-    my $polyline = super();
+    my $polyline = $class->SUPER::new_from_points(@_);
     
     # polylines must be always closed, otherwise it means that our object is not manifold!
     die "Polylines must be closed! Object not manifold?\n"
         if ($polyline->lines->[0]->a != $polyline->lines->[-1]->b);
     
     return $polyline;
-};
+}
 
 sub encloses_point {
     my $self = shift;

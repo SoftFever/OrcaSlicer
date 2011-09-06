@@ -1,5 +1,5 @@
 package Slic3r::ExtrusionPath;
-use Moose;
+use Moo;
 
 extends 'Slic3r::Polyline';
 

@@ -1,23 +1,23 @@
 package Slic3r::Polyline;
-use Moose;
+use Moo;
 
 has 'lines' => (
     traits  => ['Array'],
     is      => 'rw',
-    isa     => 'ArrayRef[Slic3r::Line]',
+    #isa     => 'ArrayRef[Slic3r::Line]',
     default => sub { [] },
-    handles => {
-        add_line => 'push',
-    },
 );
 
-after 'add_line' => sub {
+sub add_line {
     my $self = shift;
+    my ($line) = @_;
+    
+    push @{ $self->lines }, $line;
     
     # add a weak reference to this polyline in line objects
     # (avoid circular refs)
     $self->lines->[-1]->polyline($self);
-};
+}
 
 sub BUILD {
     my $self = shift;

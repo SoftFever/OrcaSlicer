@@ -1,5 +1,5 @@
 package Slic3r::STL;
-use Moose;
+use Moo;
 
 use CAD::Format::STL;
 use XXX;

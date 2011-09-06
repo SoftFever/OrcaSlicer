@@ -1,5 +1,5 @@
 package Slic3r::Fill;
-use Moose;
+use Moo;
 
 use Slic3r::Fill::Rectilinear;
 

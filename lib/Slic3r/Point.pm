@@ -1,28 +1,24 @@
 package Slic3r::Point;
-use Moose;
-use Moose::Util::TypeConstraints;
-
-subtype 'Slic3r::Point::Coordinate', as 'Int';
-coerce 'Slic3r::Point::Coordinate', from 'Num', via { sprintf '%.0f', $_ };
+use Moo;
 
 has 'x' => (
     is          => 'ro',
-    isa         => 'Slic3r::Point::Coordinate',
+    #isa         => 'Slic3r::Point::Coordinate',
     required    => 1,
-    coerce      => 1,
+    coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 has 'y' => (
     is          => 'ro',
-    isa         => 'Slic3r::Point::Coordinate',
+    #isa         => 'Slic3r::Point::Coordinate',
     required    => 1,
-    coerce      => 1,
+    coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 # this array contains weak references, so it can contain undef's as well
 has 'lines' => (
     is      => 'rw',
-    isa     => 'ArrayRef[Slic3r::Line]',
+    #isa     => 'ArrayRef[Slic3r::Line]',
     default => sub { [] },
 );
 
