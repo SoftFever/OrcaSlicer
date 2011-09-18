@@ -68,7 +68,8 @@ GetOptions(
         if $Slic3r::nozzle_diameter < 0;
     die "--layer-height can't be greater than --nozzle-diameter\n"
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
-    $Slic3r::flow_width = $Slic3r::layer_height * ($Slic3r::nozzle_diameter**2);
+    $Slic3r::flow_width = 4 * (($Slic3r::nozzle_diameter/2)**2) / $Slic3r::layer_height;
+    Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"

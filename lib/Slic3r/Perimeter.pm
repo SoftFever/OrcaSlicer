@@ -1,8 +1,10 @@
 package Slic3r::Perimeter;
 use Moo;
 
+use Math::Clipper ':all';
 use Math::Geometry::Planar;
 *Math::Geometry::Planar::OffsetPolygon = *Math::Geometry::Planar::Offset::OffsetPolygon;
+use XXX;
 
 use constant X => 0;
 use constant Y => 1;
@@ -23,8 +25,8 @@ sub make_perimeter {
         
         # first perimeter
         {
-            my $polygon = $surface->mgp_polygon;
-            my ($contour_p, @holes_p) = @{ $polygon->polygons };
+            my $polygon = $surface->clipper_polygon;
+            my ($contour_p, @holes_p) = ($polygon->{outer}, @{$polygon->{holes}});
             push @{ $contours{$surface} }, $contour_p;
             push @{ $holes{$surface} }, @holes_p;
             push @perimeters, $polygon;
@@ -37,7 +39,7 @@ sub make_perimeter {
             my @offsets = $self->offset_polygon($perimeters[-1]);
             
             foreach my $offset_polygon (@offsets) {
-                my ($contour_p, @holes_p) = @{ $offset_polygon->polygons };
+                my ($contour_p, @holes_p) = ($offset_polygon->{outer}, @{$offset_polygon->{holes}});
                 
                 push @{ $contours{$surface} }, $contour_p;
                 push @{ $holes{$surface} }, @holes_p;
@@ -46,17 +48,29 @@ sub make_perimeter {
         }
         
         # create one more offset to be used as boundary for fill
-        push @{ $layer->fill_surfaces }, 
-            map Slic3r::Surface->new_from_mgp($_, surface_type => $surface->surface_type), 
-                $self->offset_polygon($perimeters[-1]);
+        push @{ $layer->fill_surfaces },
+            map Slic3r::Surface->new(
+                surface_type => $surface->surface_type,
+                contour      => Slic3r::Polyline::Closed->cast($_->{outer}),
+                holes        => [
+                    map Slic3r::Polyline::Closed->cast($_), @{$_->{holes}}
+                ],
+            ), $self->offset_polygon($perimeters[-1]),
     }
     
     # generate paths for holes
     # we start from innermost loops (that is, external ones), do them
     # for all holes, than go on with inner loop and do that for all
     # holes and so on
-    foreach my $p (map @$_, values %holes) {
-        push @{ $layer->perimeters }, Slic3r::Polyline->new_from_points(@{ $p->points });
+    foreach my $hole (map @$_, values %holes) {
+        my @points = @$hole;
+        push @points, [ @{$points[0]} ];
+        # to avoid blobs, the first point is replaced by the point of
+        # the segment which is $Slic3r::flow_width / $Slic3r::resolution 
+        # away from it to avoid the extruder to get two times there
+        $points[0] = $self->_get_point_along_line($points[0], $points[1], 
+            $Slic3r::flow_width / $Slic3r::resolution);
+        push @{ $layer->perimeters }, Slic3r::ExtrusionPath->cast([@points]);
     }
     
     # generate paths for contours
@@ -74,10 +88,10 @@ sub make_perimeter {
             # away from it to avoid the extruder to get two times there
             push @$points, [ @{$points->[0]} ];
             $points->[0] = $self->_get_point_along_line($points->[0], $points->[1], 
-                $Slic3r::flow_width * 1.2 / $Slic3r::resolution);
+                $Slic3r::flow_width / $Slic3r::resolution);
             push @path_points, @$points;
         }
-        push @{ $layer->perimeters }, Slic3r::ExtrusionPath->new_from_points(reverse @path_points);
+        push @{ $layer->perimeters }, Slic3r::ExtrusionPath->cast([ reverse @path_points ]);
     }
     
     # generate skirt on bottom layer
@@ -85,7 +99,9 @@ sub make_perimeter {
         # find out convex hull
         my $points = [ map { @{ $_->mgp_polygon->polygons->[0] } } @{ $layer->surfaces } ];
         my $convex_hull = $self->_mgp_from_points_ref($points)->convexhull2;
-        my $convex_hull_polygon = $self->_mgp_from_points_ref($convex_hull);
+        my $convex_hull_polygon = ref $convex_hull eq 'ARRAY' 
+            ? $self->_mgp_from_points_ref($convex_hull)
+            : $convex_hull;
         
         # draw outlines from outside to inside
         for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
@@ -93,7 +109,7 @@ sub make_perimeter {
                 - ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution
             );
             push @{$outline->[0]}, $outline->[0][0]; # repeat first point as last to complete the loop
-            push @{ $layer->skirts }, Slic3r::ExtrusionPath->new_from_points(@{$outline->[0]});
+            push @{ $layer->skirts }, Slic3r::ExtrusionPath->cast([ @{$outline->[0]} ]);
         }
     }
 }
@@ -102,32 +118,67 @@ sub offset_polygon {
     my $self = shift;
     my ($polygon) = @_;
     
-    # $polygon holds a Math::Geometry::Planar object representing 
-    # a polygon and its holes
-    my ($contour_p, @holes_p) = map $self->_mgp_from_points_ref($_), @{ $polygon->polygons };
-            
-    # generate offsets
-    my $contour_offsets = $contour_p->offset_polygon($Slic3r::flow_width / $Slic3r::resolution);
-    my @hole_offsets = map @$_, map $_->offset_polygon(- $Slic3r::flow_width / $Slic3r::resolution), @holes_p;
+    my $distance = $Slic3r::flow_width / $Slic3r::resolution;
     
-    # now we subtract perimeter offsets from the contour offset polygon
-    # this will generate a single polygon with correct holes and also
-    # will take care of collisions between contour offset and holes
-    my @resulting_offsets = ();
-    foreach my $contour_points (@$contour_offsets) {
-        my $tmp = $self->_mgp_from_points_ref($contour_points)->convert2gpc;
-        foreach my $hole_points (@hole_offsets) {
-            $hole_points = $self->_mgp_from_points_ref($hole_points)->convert2gpc;
-            $tmp = GpcClip('DIFFERENCE', $tmp, $hole_points);
+    # $polygon holds a Math::Clipper ExPolygon hashref representing 
+    # a polygon and its holes
+    my ($contour_p, @holes_p) = ($polygon->{outer}, @{$polygon->{holes}});
+    
+    # generate offsets
+    my $offsets = offset([ $contour_p, @holes_p ], -$distance, 1);
+    
+    # fix order of holes
+    @$offsets = map [ reverse @$_ ], @$offsets;
+    
+    # defensive programming
+    my (@contour_offsets, @hole_offsets) = ();
+    for (@$offsets) {
+        if (is_counter_clockwise($_)) {
+            push @contour_offsets, $_;
+        } else {
+            push @hole_offsets, $_;
         }
-        
-        my ($result) = Gpc2Polygons($tmp);
-        # now we've got $result, which is a Math::Geometry::Planar
-        # representing the inner surface including hole perimeters
-        push @resulting_offsets, $result;
     }
     
-    return @resulting_offsets;
+    # apply all holes to all contours;
+    # this is improper, but Math::Clipper handles it
+    return map {{
+        outer => $_,
+        holes => [ @hole_offsets ],
+    }} @contour_offsets;
+    
+    
+    # OLD CODE to be removed
+    if (0) {
+        #my $contour_offsets = $contour_p->offset_polygon($Slic3r::flow_width / $Slic3r::resolution);
+        #my @hole_offsets = map @$_, map $_->offset_polygon(- $Slic3r::flow_width / $Slic3r::resolution), @holes_p;
+        Slic3r::SVG::output_polygons($main::print, "holes.svg", [ @holes_p ]);
+        my $contour_offsets = offset([ $contour_p ], -$distance);
+        my @hole_offsets = map { ref $_ eq 'ARRAY' ? @$_ : () } map offset([ $_ ], -$distance), @holes_p;
+        
+        # defensive programming
+        if (@$contour_offsets > 1) {
+            die "Got more than one contour offset!";
+        }
+        
+        # now we subtract perimeter offsets from the contour offset polygon
+        # this will generate a single polygon with correct holes and also
+        # will take care of collisions between contour offset and holes
+        my $clipper = Math::Clipper->new;
+        my @resulting_offsets = ();
+        foreach my $contour_points (@$contour_offsets) {
+            $clipper->clear;
+            $clipper->add_subject_polygon($contour_points);
+            $clipper->add_clip_polygon($_) for @hole_offsets;
+            
+            my $result = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
+            # now we've got @$result, which is an array of Math::Clipper ExPolygons
+            # representing the inner surface including hole perimeters
+            push @resulting_offsets, @$result;
+        }
+        
+        return @resulting_offsets;
+    }
 }
 
 sub _mgp_from_points_ref {

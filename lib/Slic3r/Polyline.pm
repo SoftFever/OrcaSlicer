@@ -1,104 +1,85 @@
 package Slic3r::Polyline;
 use Moo;
 
-has 'lines' => (
-    traits  => ['Array'],
-    is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::Line]',
-    default => sub { [] },
+use Math::Clipper qw();
+use Sub::Quote;
+
+# arrayref of ordered points
+has 'points' => (
+    is          => 'rw',
+    required    => 1,
+    default     => sub { [] },
+    isa         => quote_sub q{ use Carp; confess "invalid points" if grep ref $_ ne 'Slic3r::Point', @{$_[0]} },
 );
-
-sub add_line {
-    my $self = shift;
-    my ($line) = @_;
-    
-    push @{ $self->lines }, $line;
-    
-    # add a weak reference to this polyline in line objects
-    # (avoid circular refs)
-    $self->lines->[-1]->polyline($self);
-}
-
-sub BUILD {
-    my $self = shift;
-    $_->polyline($self) for @{ $self->lines };
-}
 
 sub id {
     my $self = shift;
-    return join '-', map($_->id, $self->ordered_points(1));
+    return join ' - ', map $_->id, @{$self->points};
 }
 
-sub new_from_points {
-    my $class = shift;
-    my (@points) = @_;
+sub cast {
+    my $self = shift;
+    my ($points) = @_;
     
-    # we accept Point objects or arrayrefs with point coordinates
-    @points = map {
-        ref $_ eq 'ARRAY' 
-            ? Slic3r::Point->new('x' => $_->[0], 'y' => $_->[1])
-            : $_
-    } @points;
-    
-    my $polyline = $class->new;
+    @$points = map { ref $_ eq 'ARRAY' ? Slic3r::Point->cast($_) : $_ } @$points;
+    return __PACKAGE__->new(points => $points);
+}
+
+sub lines {
+    my $self = shift;
+    my @lines = ();
     my $previous_point;
-    $previous_point = $points[-1] if $class eq 'Slic3r::Polyline::Closed';
-    foreach my $point (@points) {
+    foreach my $point (@{ $self->points }) {
         if ($previous_point) {
-            my $line = Slic3r::Line->new(a => $previous_point, b => $point);
-            $polyline->add_line($line);
+            push @lines, Slic3r::Line->new(points => [ $previous_point, $point ]);
         }
         $previous_point = $point;
     }
-    
-    return $polyline;
+    return @lines;
 }
 
-sub points {
+sub p {
     my $self = shift;
-    my %points = ();
-    $points{$_} = $_ for map $_->points, @{ $self->lines };
-    return values %points;
+    return [ map $_->p, @{$self->points} ];
 }
 
-sub ordered_points {
+sub merge_continuous_lines {
     my $self = shift;
-    my ($as_objects) = @_;
-    my $points = [];
     
-    #printf "\n\n==> Number of lines: %d\n", scalar @{ $self->lines };
-    my @lines = @{ $self->lines };
-    while (@lines && @$points < @{ $self->lines }) {
-        #printf "\nNumber of points: %d\n", scalar @{ $points };
-        my @temp = @lines;
-        @lines = ();
-        foreach my $line (@temp) {
-            #printf "Line: %s\n", $line->id;
-            my $point;
-            if (!@$points) {
-                # make sure we start from a point not connected to another segment if any
-                push @$points, sort { @{$a->lines} <=> @{$b->lines} } $line->points;
-                next;
-            } elsif ($line->has_endpoint($points->[-1])) {
-                $point = +(grep $points->[-1] ne $_, $line->points)[0];
-            }
-            if (!$point) {
-                #printf "  no point found, retrying\n";
-                push @lines, $line;
-                next;
-            }
-            #printf "  adding point %s\n", $point->id;
-            push @$points, $point;
+    my $last_line;
+    foreach my $line ($self->lines) {
+        if (defined $last_line && $line->parallel_to($last_line)) {
+            # $line and $last_line are parallel and continuous,
+            # so we can remove their common point from our polyline
+            
+            # find common point
+            my ($common_point) = grep $_ eq $line->a || $_ eq $line->b, @{$last_line->points};
+            
+            # remove point from polyline
+            @{$self->points} = grep $_ ne $common_point, @{$self->points};
         }
+        $last_line = $line;
     }
-    
-    pop @$points
-        if $self->isa('Slic3r::Polyline::Closed') && $points->[0]->coincides_with($points->[-1]);
-    
-    return @$points if $as_objects;
-    
-    $points = [ map [ $_->x, $_->y ], @$points ]; #]
-    return $points;
+}
+
+sub reverse_points {
+    my $self = shift;
+    @{$self->points} = reverse @{$self->points};
+}
+
+sub is_counter_clockwise {
+    my $self = shift;
+    return Math::Clipper::is_counter_clockwise($self->p);
+}
+
+sub make_counter_clockwise {
+    my $self = shift;
+    $self->reverse_points if !$self->is_counter_clockwise;
+}
+
+sub make_clockwise {
+    my $self = shift;
+    $self->reverse_points if $self->is_counter_clockwise;
 }
 
 1;

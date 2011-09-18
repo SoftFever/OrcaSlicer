@@ -28,19 +28,6 @@ sub add_hole {
     my ($hole) = @_;
     
     push @{ $self->holes }, $hole;
-    
-    # add a weak reference to this surface in polyline objects
-    # (avoid circular refs)
-    $self->holes->[-1]->hole_of($self);
-}
-
-sub BUILD {
-    my $self = shift;
-    
-    # add a weak reference to this surface in polyline objects
-    # (avoid circular refs)
-    $self->contour->contour_of($self) if $self->contour;
-    $_->hole_of($self) for @{ $self->holes };
 }
 
 sub new_from_mgp {
@@ -50,9 +37,9 @@ sub new_from_mgp {
     my ($contour_p, @holes_p) = @{ $polygon->polygons };
     
     return __PACKAGE__->new(
-        contour => Slic3r::Polyline::Closed->new_from_points(@$contour_p),
+        contour => Slic3r::Polyline::Closed->cast($contour_p),
         holes   => [
-            map Slic3r::Polyline::Closed->new_from_points(@$_), @holes_p
+            map Slic3r::Polyline::Closed->cast($_), @holes_p
         ],
         %params,
     );
@@ -76,8 +63,19 @@ sub mgp_polygon {
     my $self = shift;
     
     my $p = Math::Geometry::Planar->new;
-    $p->polygons([ map $_->points, $self->contour->mgp_polygon, map($_->mgp_polygon, @{ $self->holes }) ]);
+    $p->polygons([ $self->contour->p, map($_->p, @{ $self->holes }) ]);
     return $p;
+}
+
+sub clipper_polygon {
+    my $self = shift;
+    
+    return {
+        outer => $self->contour->p,
+        holes => [
+            map $_->p, @{$self->holes}
+        ],
+    };
 }
 
 sub lines {

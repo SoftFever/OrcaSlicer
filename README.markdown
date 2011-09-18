@@ -43,6 +43,7 @@ Roadmap includes the following goals:
 * option for filling multiple solid layers near external surfaces;
 * support material for internal perimeters;
 * ability to infill in the direction of bridges;
+* input object transform (scale, rotate, multiply);
 * cool;
 * nice packaging for cross-platform deployment.
 

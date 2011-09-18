@@ -10,6 +10,7 @@ sub debugf {
 
 use Slic3r::ExtrusionPath;
 use Slic3r::Fill;
+use Slic3r::Geometry;
 use Slic3r::Layer;
 use Slic3r::Line;
 use Slic3r::Perimeter;
@@ -35,7 +36,7 @@ our $travel_feed_rate           = 80;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.6;
 
 # accuracy options
-our $resolution         = 0.01;
+our $resolution         = 0.001;
 our $layer_height       = 0.4;
 our $flow_width;
 

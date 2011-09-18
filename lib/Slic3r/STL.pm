@@ -38,7 +38,7 @@ sub parse_file {
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
-    my @shift = map 0 - $extents[$_][MIN], X,Y,Z;
+    my @shift = map -$extents[$_][MIN], X,Y,Z;
     
     # process facets
     foreach my $facet ($stl->part->facets) {
@@ -55,11 +55,8 @@ sub parse_file {
     
     print "\n==> PROCESSING SLICES:\n";
     foreach my $layer (@{ $print->layers }) {
-        printf "Processing layer %d:\n", $layer->id;
+        printf "\nProcessing layer %d:\n", $layer->id;
     
-        # merge parallel and continuous lines
-        $layer->merge_continuous_lines;
-        
         # build polylines of lines which do not already belong to a surface
         my $polylines = $layer->make_polylines;
         
@@ -76,7 +73,7 @@ sub parse_file {
 sub _facet {
     my $self = shift;
     my ($print, $normal, @vertices) = @_;
-    Slic3r::debugf "\n==> FACET (%s):\n", join('-', map join(',', @$_), @vertices)
+    Slic3r::debugf "\n==> FACET (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", map @$_, @vertices
         if $Slic3r::debug;
     
     # find the vertical extents of the facet
@@ -105,8 +102,10 @@ sub _facet {
                       - ($vertices[1]->[X] - $vertices[0]->[X]) * ($vertices[2]->[Y] - $vertices[0]->[Y]);
         
         # defensive programming and/or input check
-        if (($normal->[Z] > 0 && $clockwise < 0) || ($normal->[Z] < 0 && $clockwise > 0)) {
-            die "STL normal and right-hand rule computation differ!\n";
+        if (($normal->[Z] > 0 && $clockwise > 0) || ($normal->[Z] < 0 && $clockwise < 0)) {
+            YYY $normal;
+            die sprintf "STL normal (%.0f) and right-hand rule computation (%s) differ!\n",
+                $normal->[Z], $clockwise > 0 ? 'clockwise' : 'counter-clockwise';
         }
         if ($layer->id == 0 && $clockwise < 0) {
             die "Right-hand rule gives bad result for facets on base layer!\n";
@@ -138,7 +137,7 @@ sub _facet {
                 
             } elsif (($a->[Z] < $z && $b->[Z] > $z) || ($b->[Z] < $z && $a->[Z] > $z)) {
                 # edge intersects the current layer; calculate intersection
-                push @intersection_points, $layer->add_point([
+                push @intersection_points, Slic3r::Point->cast([
                     $b->[X] + ($a->[X] - $b->[X]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
                     $b->[Y] + ($a->[Y] - $b->[Y]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
                 ]);
@@ -152,7 +151,6 @@ sub _facet {
             # check whether the two points coincide due to resolution rounding
             if ($intersection_points[0]->coincides_with($intersection_points[1])) {
                 Slic3r::debugf "Points coincide; removing\n";
-                $layer->remove_point($_) for @intersection_points;
                 next;
             }
             

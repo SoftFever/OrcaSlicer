@@ -2,39 +2,26 @@ package Slic3r::Line;
 use Moo;
 use Scalar::Util qw(weaken);
 
-has 'a' => (
-    is          => 'ro',
-    #isa         => 'Slic3r::Point',
-    required    => 1,
-);
-
-has 'b' => (
-    is          => 'ro',
-    #isa         => 'Slic3r::Point',
-    required    => 1,
-);
-
-has 'polyline' => (
+# arrayref of points
+has 'points' => (
     is          => 'rw',
-    #isa         => 'Slic3r::Polyline',
-    weak_ref    => 1,
+    default     => sub { [] },
+    required    => 1,
 );
 
-has 'solid_side' => (
-    is      => 'rw',
-    #isa     => enum([qw(left right)]),  # going from a to b
-);
-
-sub BUILD {
-    my $self = shift;
-    
-    # add a weak reference to this line in point objects
-    # (avoid circular refs)
-    for ($self->a, $self->b) {
-        push @{ $_->lines }, $self;
-        weaken($_->lines->[-1]);
+sub cast {
+    my $class = shift;
+    my ($line) = @_;
+    if (ref $line eq 'ARRAY') {
+        @$line == 2 or die "Line needs two points!";
+        return Slic3r::Line->new(points => [ map Slic3r::Point->cast($_), @$line ]);
+    } else {
+        return $line;
     }
 }
+
+sub a { return $_[0]->points->[0] }
+sub b { return $_[0]->points->[1] }
 
 sub id {
     my $self = shift;
@@ -44,6 +31,11 @@ sub id {
 sub coordinates {
     my $self = shift;
     return ($self->a->coordinates, $self->b->coordinates);
+}
+
+sub p {
+    my $self = shift;
+    return [ $self->a->p, $self->b->p ];
 }
 
 sub coincides_with {
@@ -62,23 +54,13 @@ sub has_endpoint {
 
 sub slope {
     my $self = shift;
-    return undef if $self->b->x == $self->a->x;  # line is vertical
-    return ($self->b->y - $self->a->y) / ($self->b->x - $self->a->x); #)
+    return Slic3r::Geometry::slope($self->p);
 }
 
-sub neighbors {
+sub parallel_to {
     my $self = shift;
-    return grep $_ && $_ ne $self, map @{$_->lines}, $self->a, $self->b;
-}
-
-sub next {
-    my $self = shift;
-    return +(grep $_ && $_ ne $self, @{$self->b->lines})[0];
-}
-
-sub points {
-    my $self = shift;
-    return ($self->a, $self->b);
+    my ($line) = @_;
+    return Slic3r::Geometry::lines_parallel($self->p, $line->p);
 }
 
 1;

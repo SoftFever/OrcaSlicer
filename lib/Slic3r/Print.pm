@@ -7,14 +7,12 @@ use constant Y => 1;
 
 has 'x_length' => (
     is          => 'ro',
-    #isa         => 'Slic3r::Line::Length',
     required    => 1,
     coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 has 'y_length' => (
     is          => 'ro',
-    #isa         => 'Slic3r::Line::Length',
     required    => 1,
     coerce      => sub { sprintf '%.0f', $_[0] },
 );
@@ -29,6 +27,11 @@ has 'layers' => (
 sub layer_count {
     my $self = shift;
     return scalar @{ $self->layers };
+}
+
+sub max_length {
+    my $self = shift;
+    return ($self->x_length > $self->y_length) ? $self->x_length : $self->y_length;
 }
 
 sub layer {
@@ -152,7 +155,7 @@ sub export_gcode {
         }
         
         # go to first point while compensating retraction
-        $G1->($path->lines->[0]->a, $z, 0, "move to first $description point");
+        $G1->($path->points->[0], $z, 0, "move to first $description point");
         
         # compensate retraction
         if ($retracted) {
@@ -161,7 +164,7 @@ sub export_gcode {
         }
         
         # extrude while going to next points
-        foreach my $line (@{ $path->lines }) {
+        foreach my $line ($path->lines) {
             # calculate how much filament to drive into the extruder
             # to get the desired amount of extruded plastic
             my $e = $line->a->distance_to($line->b) * $Slic3r::resolution
