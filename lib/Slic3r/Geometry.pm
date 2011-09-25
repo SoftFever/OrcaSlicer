@@ -115,4 +115,33 @@ sub polygon_lines {
     return @lines;
 }
 
+sub nearest_point {
+    my ($point, $points) = @_;
+    
+    my ($nearest_point, $distance);
+    foreach my $p (@$points) {
+        my $d = distance_between_points($point, $p);
+        if (!defined $distance || $d < $distance) {
+            $nearest_point = $p;
+            $distance = $d;
+        }
+    }
+    return $nearest_point;
+}
+
+sub point_along_segment {
+    my ($p1, $p2, $distance) = @_;
+    
+    my $point = [ @$p1 ];
+    
+    my $line_length = sqrt( (($p2->[X] - $p1->[X])**2) + (($p2->[Y] - $p1->[Y])**2) );
+    for (X, Y) {
+        if ($p1->[$_] != $p2->[$_]) {
+            $point->[$_] = $p1->[$_] + ($p2->[$_] - $p1->[$_]) * $distance / $line_length;
+        }
+    }
+    
+    return $point;
+}
+
 1;

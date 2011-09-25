@@ -8,6 +8,7 @@ sub debugf {
     printf @_ if $debug;
 }
 
+use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
 use Slic3r::Fill;
 use Slic3r::Geometry;

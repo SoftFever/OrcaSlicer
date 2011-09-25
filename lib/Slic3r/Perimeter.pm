@@ -58,40 +58,18 @@ sub make_perimeter {
             ), $self->offset_polygon($perimeters[-1]),
     }
     
-    # generate paths for holes
+    # generate paths for holes:
     # we start from innermost loops (that is, external ones), do them
     # for all holes, than go on with inner loop and do that for all
-    # holes and so on
-    foreach my $hole (map @$_, values %holes) {
-        my @points = @$hole;
-        push @points, [ @{$points[0]} ];
-        # to avoid blobs, the first point is replaced by the point of
-        # the segment which is $Slic3r::flow_width / $Slic3r::resolution 
-        # away from it to avoid the extruder to get two times there
-        $points[0] = $self->_get_point_along_line($points[0], $points[1], 
-            $Slic3r::flow_width / $Slic3r::resolution);
-        push @{ $layer->perimeters }, Slic3r::ExtrusionPath->cast([@points]);
-    }
-    
-    # generate paths for contours
+    # holes and so on;
+    # then we generate paths for contours:
     # this time we do something different: we do contour loops for one
     # shape (that is, one original surface) at a time: we start from the
     # innermost loop (that is, internal one), then without interrupting 
     # our path we go onto the outer loop and continue; this should ensure
     # good surface quality
-    foreach my $polylines (values %contours) {
-        my @path_points = ();
-        foreach my $p (map $self->_mgp_from_points_ref($_), @$polylines) {
-            my $points = $p->points;
-            # to avoid blobs, the first point is replaced by the point of
-            # the segment which is $Slic3r::flow_width / $Slic3r::resolution 
-            # away from it to avoid the extruder to get two times there
-            push @$points, [ @{$points->[0]} ];
-            $points->[0] = $self->_get_point_along_line($points->[0], $points->[1], 
-                $Slic3r::flow_width / $Slic3r::resolution);
-            push @path_points, @$points;
-        }
-        push @{ $layer->perimeters }, Slic3r::ExtrusionPath->cast([ reverse @path_points ]);
+    foreach my $p (map @$_, values %holes, values %contours) {
+        push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($p);
     }
     
     # generate skirt on bottom layer
@@ -156,22 +134,6 @@ sub _mgp_from_polygons_ref {
     my $p = Math::Geometry::Planar->new;
     $p->polygons($polygons);
     return $p;
-}
-
-sub _get_point_along_line {
-    my $self = shift;
-    my ($p1, $p2, $distance) = @_;
-    
-    my $point = [ @$p1 ];
-    
-    my $line_length = sqrt( (($p2->[X] - $p1->[X])**2) + (($p2->[Y] - $p1->[Y])**2) );
-    for (X, Y) {
-        if ($p1->[$_] != $p2->[$_]) {
-            $point->[$_] = $p1->[$_] + ($p2->[$_] - $p1->[$_]) * $distance / $line_length;
-        }
-    }
-    
-    return $point;
 }
 
 1;

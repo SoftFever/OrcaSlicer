@@ -183,6 +183,7 @@ sub export_gcode {
     
     # make up a subroutine to generate G1 commands
     my $extrusion_distance = 0;
+    my $last_pos;  # on XY plane
     my $G1 = sub {
         my ($point, $z, $e, $comment) = @_;
         printf $fh "G1";
@@ -191,6 +192,7 @@ sub export_gcode {
             printf $fh " X%.${dec}f Y%.${dec}f", 
                 ($point->x * $Slic3r::resolution) + $shift[X], 
                 ($point->y * $Slic3r::resolution) + $shift[Y]; #**
+            $last_pos = $point->p;
         }
         if ($z) {
             printf $fh " Z%.${dec}f", $z;
@@ -269,7 +271,19 @@ sub export_gcode {
         $Extrude->($_, 'skirt') for @{ $layer->skirts };
         
         # extrude perimeters
-        $Extrude->($_, 'perimeter') for @{ $layer->perimeters };
+        for my $loop (@{ $layer->perimeters }) {
+            # find the point of the loop that is closest to the current extruder position
+            my $start_at = $last_pos ? $loop->nearest_point_to($last_pos) : $loop->points->[0];
+            
+            # split the loop at the starting point and make a path
+            my $extrusion_path = $loop->split_at($start_at);
+            
+            # clip the path to avoid the extruder to get exactly on the first point of the loop
+            $extrusion_path->clip_end($Slic3r::flow_width / $Slic3r::resolution);
+            
+            # extrude along the path
+            $Extrude->($extrusion_path, 'perimeter')
+        }
         
         # extrude fills
         $Extrude->($_, 'fill') for @{ $layer->fills };

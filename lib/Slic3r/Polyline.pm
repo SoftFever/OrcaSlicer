@@ -18,11 +18,11 @@ sub id {
 }
 
 sub cast {
-    my $self = shift;
+    my $class = shift;
     my ($points) = @_;
     
     @$points = map { ref $_ eq 'ARRAY' ? Slic3r::Point->cast($_) : $_ } @$points;
-    return __PACKAGE__->new(points => $points);
+    return $class->new(points => $points);
 }
 
 sub lines {
@@ -80,6 +80,17 @@ sub make_counter_clockwise {
 sub make_clockwise {
     my $self = shift;
     $self->reverse_points if $self->is_counter_clockwise;
+}
+
+sub nearest_point_to {
+    my $self = shift;
+    my ($point) = @_;
+    
+    # get point as arrayref
+    $point = ref $point eq 'ARRAY' ? $point : $point->p;
+    
+    $point = Slic3r::Geometry::nearest_point($point, $self->p);
+    return Slic3r::Point->cast($point);
 }
 
 1;
