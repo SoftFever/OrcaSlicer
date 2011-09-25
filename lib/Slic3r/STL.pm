@@ -67,6 +67,9 @@ sub parse_file {
         $layer->merge_contiguous_surfaces;
     }
     
+    # detect which surfaces are near external layers
+    $print->discover_horizontal_shells;
+        
     return $print;
 }
 

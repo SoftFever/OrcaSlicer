@@ -31,17 +31,18 @@ Slic3r current features are:
 * generate multiple perimeters (skins);
 * generate rectilinear fill (100% solid for external surfaces or with customizable less density for inner surfaces);
 * retraction;
-* skirt;
+* skirt (with rounded corners);
 * use relative or absolute extrusion commands;
 * center print around bed center point;
+* multiple solid layers near horizontal external surfaces;
 * use different speed for bottom layer.
 
 Roadmap includes the following goals:
 
 * output some statistics;
 * allow the user to customize initial and final GCODE commands;
-* option for filling multiple solid layers near external surfaces;
 * support material for internal perimeters;
+* travel path optimization;
 * ability to infill in the direction of bridges;
 * input object transform (scale, rotate, multiply);
 * cool;

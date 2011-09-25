@@ -8,7 +8,7 @@ use constant X => 0;
 use constant Y => 1;
 
 sub factor {
-    return $Slic3r::resolution * 10;
+    return $Slic3r::resolution * 100;
 }
 
 sub svg {
@@ -24,6 +24,7 @@ sub output_polygons {
     my $g = $svg->group(
         style => {
             'stroke-width' => 2,
+            'stroke' => 'black',
         },
     );
     foreach my $polygon (@$polygons) {

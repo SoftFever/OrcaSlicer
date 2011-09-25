@@ -39,6 +39,7 @@ GetOptions(
     
     # print options
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
+    'solid-layers=i'        => \$Slic3r::solid_layers,
     'fill-density=f'        => \$Slic3r::fill_density,
     'temperature=i'         => \$Slic3r::temperature,
     
@@ -74,6 +75,10 @@ GetOptions(
     # --perimeters
     die "Invalid value for --perimeters\n"
         if $Slic3r::perimeter_offsets < 1;
+    
+    # --solid-layers
+    die "Invalid value for --solid-layers\n"
+        if $Slic3r::solid_layers < 1;
     
     # --print-center
     die "Invalid value for --print-center\n"
@@ -143,6 +148,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 1+, 
                         default: $Slic3r::perimeter_offsets)
+    --solid-layers      Number of solid layers to do for top/bottom surfaces
+                        (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
     --temperature       Extrusion temperature (default: $Slic3r::temperature)
   

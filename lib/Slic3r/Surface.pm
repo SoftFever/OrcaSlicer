@@ -16,11 +16,9 @@ has 'holes' => (
     default => sub { [] },
 );
 
-# TODO: to allow for multiple solid skins to be filled near external
-# surfaces, a new type should be defined: internal-solid
 has 'surface_type' => (
     is      => 'rw',
-    #isa     => enum([qw(internal bottom top)]),
+    #isa     => enum([qw(internal internal-solid bottom top)]),
 );
 
 sub add_hole {
@@ -76,6 +74,11 @@ sub clipper_polygon {
             map $_->p, @{$self->holes}
         ],
     };
+}
+
+sub p {
+    my $self = shift;
+    return ($self->contour->p, map $_->p, @{$self->holes});
 }
 
 sub lines {

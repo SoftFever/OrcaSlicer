@@ -42,6 +42,7 @@ our $flow_width;
 
 # print options
 our $perimeter_offsets  = 3;
+our $solid_layers       = 3;
 our $fill_density       = 0.4;  # 1 = 100%
 our $temperature        = 195;
 
@@ -51,7 +52,7 @@ our $retract_restart_extra  = 0;    # mm
 our $retract_speed          = 40;   # mm/sec
 
 # skirt options
-our $skirts             = 3;
+our $skirts             = 1;
 our $skirt_distance     = 6;    # mm
 
 1;
