@@ -160,7 +160,7 @@ sub make_fill {
         
         # save into layer
         FINISH: push @{ $layer->fills }, map Slic3r::ExtrusionPath->cast([ @$_ ]), @paths;
-    }#exit if $layer->id == 1;
+    }
 }
 
 # this function will select the first contiguous block of 

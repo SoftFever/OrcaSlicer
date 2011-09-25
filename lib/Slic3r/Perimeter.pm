@@ -125,10 +125,7 @@ sub offset_polygon {
     my ($contour_p, @holes_p) = ($polygon->{outer}, @{$polygon->{holes}});
     
     # generate offsets
-    my $offsets = offset([ $contour_p, @holes_p ], -$distance, 1);
-    
-    # fix order of holes
-    @$offsets = map [ reverse @$_ ], @$offsets;
+    my $offsets = offset([ $contour_p, @holes_p ], -$distance, 100, JT_MITER, 2);
     
     # defensive programming
     my (@contour_offsets, @hole_offsets) = ();
