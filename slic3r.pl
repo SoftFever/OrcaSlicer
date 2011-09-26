@@ -55,6 +55,7 @@ GetOptions(
     
     # transform options
     'scale=i'               => \$Slic3r::scale,
+    'rotate=i'              => \$Slic3r::rotate,
 );
 
 # validate configuration
@@ -163,7 +164,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --solid-layers      Number of solid layers to do for top/bottom surfaces
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
-    --fill-angle        Infill angle (range: 0-90, default: $Slic3r::fill_angle)
+    --fill-angle        Infill angle in degrees (range: 0-90, default: $Slic3r::fill_angle)
     --temperature       Extrusion temperature (default: $Slic3r::temperature)
   
   Retraction options:
@@ -181,6 +182,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
    
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
+    --rotate            Rotation angle in degrees (0-360, default: $Slic3r::rotate)
     
 EOF
     exit ($exit_code || 0);

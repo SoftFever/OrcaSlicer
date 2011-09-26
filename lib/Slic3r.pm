@@ -63,5 +63,6 @@ our $skirt_distance     = 6;    # mm
 
 # transform options
 our $scale              = 1;
+our $rotate             = 0;
 
 1;

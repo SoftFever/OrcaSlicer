@@ -18,6 +18,16 @@ sub parse_file {
     # open STL file
     my $stl = CAD::Format::STL->new->load($file);
     
+    if ($Slic3r::rotate > 0) {
+        my $deg = Slic3r::Geometry::deg2rad($Slic3r::rotate);
+        foreach my $facet ($stl->part->facets) {
+            my ($normal, @vertices) = @$facet;
+            foreach my $vertex (@vertices) {
+                @$vertex = (@{ +(Slic3r::Geometry::rotate_points($deg, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
+            }
+        }
+    }
+    
     # we only want to work with positive coordinates, so let's 
     # find our object extents to calculate coordinate displacements
     my @extents = (map [99999999, -99999999], X,Y,Z);
