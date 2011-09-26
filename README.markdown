@@ -37,7 +37,7 @@ Slic3r current features are:
 * use relative or absolute extrusion commands;
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
-* ability to scale and rotate input object;
+* ability to scale, rotate and multiply input object;
 * use different speed for bottom layer.
 
 Roadmap includes the following goals:
@@ -46,7 +46,6 @@ Roadmap includes the following goals:
 * allow the user to customize initial and final GCODE commands;
 * support material for internal perimeters;
 * ability to infill in the direction of bridges;
-* multiply input object;
 * cool;
 * nice packaging for cross-platform deployment.
 

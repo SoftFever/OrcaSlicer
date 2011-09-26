@@ -47,6 +47,20 @@ sub parse_file {
         $extents[$_][MAX] *= $Slic3r::scale;
     }
     
+    # multiply object
+    my @multiply_offset = (
+        (($extents[X][MAX] - $extents[X][MIN]) + $Slic3r::multiply_distance),
+        (($extents[Y][MAX] - $extents[Y][MIN]) + $Slic3r::multiply_distance),
+    );
+    $extents[X][MAX] += $multiply_offset[X] * ($Slic3r::multiply_x-1);
+    $extents[Y][MAX] += $multiply_offset[Y] * ($Slic3r::multiply_y-1);
+    my @copies = ();
+    for (my $i = 0; $i < $Slic3r::multiply_x; $i++) {
+        for (my $j = 0; $j < $Slic3r::multiply_y; $j++) {
+            push @copies, [ $multiply_offset[X] * $i, $multiply_offset[Y] * $j ];
+        }
+    }
+    
     # initialize print job
     my $print = Slic3r::Print->new(
         x_length => ($extents[X][MAX] - $extents[X][MIN]) / $Slic3r::resolution,
@@ -67,7 +81,13 @@ sub parse_file {
                 for X,Y,Z;
         }
         
-        $self->_facet($print, @$facet);
+        foreach my $copy (@copies) {
+            my @copy_vertices = map [ @$_ ], @vertices;  # clone vertices
+            foreach my $vertex (@copy_vertices) {
+                $vertex->[$_] += $copy->[$_] / $Slic3r::resolution for X,Y;
+            }
+            $self->_facet($print, $normal, @copy_vertices);
+        }
     }
     
     print "\n==> PROCESSING SLICES:\n";

@@ -56,6 +56,9 @@ GetOptions(
     # transform options
     'scale=i'               => \$Slic3r::scale,
     'rotate=i'              => \$Slic3r::rotate,
+    'multiply-x=i'          => \$Slic3r::multiply_x,
+    'multiply-y=i'          => \$Slic3r::multiply_y,
+    'multiply-distance=i'   => \$Slic3r::multiply_distance,
 );
 
 # validate configuration
@@ -100,6 +103,18 @@ GetOptions(
     # --scale
     die "Invalid value for --scale\n"
         if $Slic3r::scale <= 0;
+    
+    # --multiply-x
+    die "Invalid value for --multiply-x\n"
+        if $Slic3r::multiply_x < 1;
+    
+    # --multiply-y
+    die "Invalid value for --multiply-y\n"
+        if $Slic3r::multiply_y < 1;
+    
+    # --multiply-distance
+    die "Invalid value for --multiply-distance\n"
+        if $Slic3r::multiply_distance < 1;
 }
 
 my $stl_parser = Slic3r::STL->new;
@@ -186,6 +201,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
     --rotate            Rotation angle in degrees (0-360, default: $Slic3r::rotate)
+    --multiply-x        Number of items along X axis (1+, default: $Slic3r::multiply_x)
+    --multiply-y        Number of items along Y axis (1+, default: $Slic3r::multiply_y)
+    --multiply-distance Distance in mm between copies (default: $Slic3r::multiply_distance)
     
 EOF
     exit ($exit_code || 0);
