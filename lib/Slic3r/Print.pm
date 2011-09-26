@@ -4,7 +4,6 @@ use Moo;
 use Math::Clipper ':all';
 use XXX;
 
-use constant PI => 4 * atan2(1, 1);
 use constant X => 0;
 use constant Y => 1;
 
@@ -151,20 +150,6 @@ sub export_gcode {
     my $self = shift;
     my ($file) = @_;
     
-    # calculate speed for gcode commands
-    my $travel_feed_rate      = $Slic3r::travel_feed_rate * 60;  # mm/min
-    my $print_feed_rate       = $Slic3r::print_feed_rate  * 60;  # mm/min
-    my $retract_speed         = $Slic3r::retract_speed    * 60;  # mm/min
-    
-    # calculate number of decimals
-    my $dec = length((1 / $Slic3r::resolution) - 1) + 1;
-    
-    # calculate X,Y shift to center print around specified origin
-    my @shift = (
-        $Slic3r::print_center->[X] - ($self->x_length * $Slic3r::resolution / 2),
-        $Slic3r::print_center->[Y] - ($self->y_length * $Slic3r::resolution / 2),
-    );
-    
     # open output gcode file
     open my $fh, ">", $file
         or die "Failed to open $file for writing\n";
@@ -182,113 +167,30 @@ sub export_gcode {
     }
     
     # make up a subroutine to generate G1 commands
-    my $extrusion_distance = 0;
-    my $last_pos;  # on XY plane
-    my $G1 = sub {
-        my ($point, $z, $e, $comment) = @_;
-        printf $fh "G1";
+    my $extruder = Slic3r::Extruder->new(
         
-        if ($point) {
-            printf $fh " X%.${dec}f Y%.${dec}f", 
-                ($point->x * $Slic3r::resolution) + $shift[X], 
-                ($point->y * $Slic3r::resolution) + $shift[Y]; #**
-            $last_pos = $point->p;
-        }
-        if ($z) {
-            printf $fh " Z%.${dec}f", $z;
-        }
+        # calculate X,Y shift to center print around specified origin
+        shift_x => $Slic3r::print_center->[X] - ($self->x_length * $Slic3r::resolution / 2),
+        shift_y => $Slic3r::print_center->[Y] - ($self->y_length * $Slic3r::resolution / 2),
         
-        # apply the speed reduction for print moves on bottom layer
-        my $speed_multiplier = defined $z && $z == 0 && $point 
-            ? $Slic3r::bottom_layer_speed_ratio 
-            : 1;
-
-        if ($e) {
-            $extrusion_distance = 0 if $Slic3r::use_relative_e_distances;
-            $extrusion_distance += $e;
-            printf $fh " F%.${dec}f E%.5f", 
-                $e < 0 
-                    ? $retract_speed
-                    : ($print_feed_rate * $speed_multiplier), 
-                $extrusion_distance;
-        } else {
-            printf $fh " F%.${dec}f", ($travel_feed_rate * $speed_multiplier);
-        }
-        printf $fh " ; %s", $comment if $comment;
-        print  $fh "\n";
-    };
-    
-    my $z;
-    my $retracted = 0;
-    my $Extrude = sub {
-        my ($path, $description) = @_;
-        
-        # reset extrusion distance counter
-        if (!$Slic3r::use_relative_e_distances) {
-            $extrusion_distance = 0;
-            print $fh "G92 E0 ; reset extrusion distance\n";
-        }
-        
-        # go to first point while compensating retraction
-        $G1->($path->points->[0], $z, 0, "move to first $description point");
-        
-        # compensate retraction
-        if ($retracted) {
-            $G1->(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
-                "compensate retraction");
-        }
-        
-        # extrude while going to next points
-        foreach my $line ($path->lines) {
-            # calculate how much filament to drive into the extruder
-            # to get the desired amount of extruded plastic
-            my $e = $line->a->distance_to($line->b) * $Slic3r::resolution
-                * $Slic3r::flow_width 
-                * $Slic3r::layer_height
-                / (($Slic3r::filament_diameter ** 2) * PI)
-                / $Slic3r::filament_packing_density;
-            
-            $G1->($line->b, $z, $e, $description);
-        }
-        
-        # retract
-        if ($Slic3r::retract_length > 0) {
-            $G1->(undef, undef, -$Slic3r::retract_length, "retract");
-            $retracted = 1;
-        }
-    };
+    );
     
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
-        $z = ($layer->z * $Slic3r::resolution);
         
         # go to layer
-        # TODO: retraction
-        printf $fh "G1 Z%.${dec}f F%.${dec}f ; move to next layer\n", 
-            $z, $travel_feed_rate;
+        printf $fh $extruder->move_z($layer->z * $Slic3r::resolution);
         
         # extrude skirts
-        $Extrude->($_, 'skirt') for @{ $layer->skirts };
+        printf $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
         # extrude perimeters
-        for my $loop (@{ $layer->perimeters }) {
-            # find the point of the loop that is closest to the current extruder position
-            my $start_at = $last_pos ? $loop->nearest_point_to($last_pos) : $loop->points->[0];
-            
-            # split the loop at the starting point and make a path
-            my $extrusion_path = $loop->split_at($start_at);
-            
-            # clip the path to avoid the extruder to get exactly on the first point of the loop
-            $extrusion_path->clip_end($Slic3r::flow_width / $Slic3r::resolution);
-            
-            # extrude along the path
-            $Extrude->($extrusion_path, 'perimeter')
-        }
+        printf $fh $extruder->extrude_loop($_, 'perimeter') for @{ $layer->perimeters };
         
         # extrude fills
         for my $fill (@{ $layer->fills }) {
-            my @paths = $fill->shortest_path($last_pos);
-            $Extrude->($_, 'fill') for @paths;
+            printf $fh $extruder->extrude($_, 'fill') 
+                for $fill->shortest_path($extruder->last_pos);
         }
     }
     
