@@ -121,16 +121,16 @@ sub _facet {
         my $clockwise = !is_counter_clockwise([@vertices]);
         
         # defensive programming and/or input check
-        if (($normal->[Z] > 0 && $clockwise > 0) || ($normal->[Z] < 0 && $clockwise < 0)) {
+        if (($normal->[Z] > 0 && $clockwise) || ($normal->[Z] < 0 && !$clockwise)) {
             YYY $normal;
             die sprintf "STL normal (%.0f) and right-hand rule computation (%s) differ!\n",
-                $normal->[Z], $clockwise > 0 ? 'clockwise' : 'counter-clockwise';
+                $normal->[Z], $clockwise ? 'clockwise' : 'counter-clockwise';
         }
-        if ($layer->id == 0 && $clockwise < 0) {
+        if ($layer->id == 0 && !$clockwise) {
             die "Right-hand rule gives bad result for facets on base layer!\n";
         }
         
-        $surface->surface_type($clockwise < 0 ? 'top' : 'bottom');
+        $surface->surface_type($clockwise ? 'bottom' : 'top');
         
         return;
     }
