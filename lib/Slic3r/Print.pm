@@ -174,13 +174,11 @@ sub export_gcode {
         print $fh "M82 ; use absolute distances for extrusion\n";
     }
     
-    # make up a subroutine to generate G1 commands
+    # set up our extruder object
     my $extruder = Slic3r::Extruder->new(
-        
         # calculate X,Y shift to center print around specified origin
         shift_x => $Slic3r::print_center->[X] - ($self->x_length * $Slic3r::resolution / 2),
         shift_y => $Slic3r::print_center->[Y] - ($self->y_length * $Slic3r::resolution / 2),
-        
     );
     
     # write gcode commands layer by layer

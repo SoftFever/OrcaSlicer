@@ -123,7 +123,7 @@ sub G1 {
     }
     
     # apply the speed reduction for print moves on bottom layer
-    my $speed_multiplier = $e 
+    my $speed_multiplier = $e && $self->z == $Slic3r::z_offset
         ? $Slic3r::bottom_layer_speed_ratio 
         : 1;
 

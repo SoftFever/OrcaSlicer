@@ -28,21 +28,6 @@ sub add_hole {
     push @{ $self->holes }, $hole;
 }
 
-sub new_from_mgp {
-    my $self = shift;
-    my ($polygon, %params) = @_;
-    
-    my ($contour_p, @holes_p) = @{ $polygon->polygons };
-    
-    return __PACKAGE__->new(
-        contour => Slic3r::Polyline::Closed->cast($contour_p),
-        holes   => [
-            map Slic3r::Polyline::Closed->cast($_), @holes_p
-        ],
-        %params,
-    );
-}
-
 sub id {
     my $self = shift;
     return $self->contour->id;

@@ -3,7 +3,6 @@ use Moo;
 
 use Math::Clipper ':all';
 use Math::Geometry::Planar;
-*Math::Geometry::Planar::OffsetPolygon = *Math::Geometry::Planar::Offset::OffsetPolygon;
 use XXX;
 
 use constant X => 0;
@@ -127,14 +126,6 @@ sub _mgp_from_points_ref {
     my ($points) = @_;
     my $p = Math::Geometry::Planar->new;
     $p->points($points);
-    return $p;
-}
-
-sub _mgp_from_polygons_ref {
-    my $self = shift;
-    my ($polygons) = @_;
-    my $p = Math::Geometry::Planar->new;
-    $p->polygons($polygons);
     return $p;
 }
 

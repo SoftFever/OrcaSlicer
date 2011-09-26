@@ -1,6 +1,5 @@
 package Slic3r::Line;
 use Moo;
-use Scalar::Util qw(weaken);
 
 # arrayref of points
 has 'points' => (
