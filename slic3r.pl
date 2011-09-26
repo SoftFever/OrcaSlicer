@@ -180,7 +180,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --scale             Factor for scaling input object (default: $Slic3r::scale)
     
 EOF
-    exit $exit_code || 0;
+    exit ($exit_code || 0);
 }
 
 __END__
