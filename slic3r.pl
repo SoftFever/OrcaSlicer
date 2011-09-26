@@ -103,6 +103,7 @@ if ($action eq 'skein') {
     my $t0 = [gettimeofday];
     my $print = $stl_parser->parse_file($input_file);
     $print->extrude_perimeters;
+    $print->remove_small_features;
     $print->extrude_fills;
     
     my $output_file = $input_file;

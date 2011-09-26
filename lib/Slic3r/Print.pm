@@ -91,8 +91,7 @@ sub discover_horizontal_shells {
                 $clipper->clear;
                 
                 # Note: due to floating point math we're going to get some very small
-                # polygons as $internal_polygons; they should be discarded, but a reliable
-                # way to detect them is needed, and they seem to be harmless so we keep them for now
+                # polygons as $internal_polygons; they will be removed by removed_small_features()
                 
                 # assign resulting inner surfaces to layer
                 $self->layers->[$n]->surfaces([]);
@@ -119,6 +118,13 @@ sub discover_horizontal_shells {
             }
         }
     }
+}
+
+# remove perimeters and fill surfaces which are too small to be extruded
+sub remove_small_features {
+    my $self = shift;
+    
+    $_->remove_small_features for @{$self->layers};
 }
 
 sub extrude_perimeters {

@@ -304,4 +304,23 @@ sub merge_contiguous_surfaces {
     }
 }
 
+sub remove_small_features {
+    my $self = shift;
+    
+    # for each perimeter, try to get an inwards offset
+    # for a distance equal to half of the extrusion width;
+    # if no offset is possible, then feature is not printable
+    my @good_perimeters = ();
+    foreach my $loop (@{$self->perimeters}) {
+        my $p = $loop->p;
+        @$p = reverse @$p if !is_counter_clockwise($p);
+        my $offsets = offset([$p], -($Slic3r::flow_width / 2 / $Slic3r::resolution), 100, JT_MITER, 2);
+        push @good_perimeters, $loop if @$offsets;
+    }
+    Slic3r::debugf "removed %d unprintable perimeters\n", (@{$self->perimeters} - @good_perimeters) 
+        if @good_perimeters != @{$self->perimeters};
+    
+    @{$self->perimeters} = @good_perimeters;
+}
+
 1;
