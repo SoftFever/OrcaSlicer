@@ -24,6 +24,7 @@ GetOptions(
     'nozzle-diameter=f'         => \$Slic3r::nozzle_diameter,
     'print-center=s'            => \$Slic3r::print_center,
     'use-relative-e-distances'  => \$Slic3r::use_relative_e_distances,
+    'z-offset=f'                => \$Slic3r::z_offset,
     
     # filament options
     'filament-diameter=f'           => \$Slic3r::filament_diameter,
@@ -137,6 +138,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (default: 100,100)
     --use-relative-e-distances
                         Use relative distances for extrusion in GCODE output
+    --z-offset          Additional height in mm to add to vertical coordinates
+                        (+/-, default: $Slic3r::z_offset)
     
   Filament options:
     --filament-diameter Diameter of your raw filament (default: $Slic3r::filament_diameter)

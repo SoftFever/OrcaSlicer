@@ -29,6 +29,7 @@ use Slic3r::Surface::Collection;
 our $nozzle_diameter    = 0.45;
 our $print_center       = [100,100];  # object will be centered around this point
 our $use_relative_e_distances = 0;
+our $z_offset = 0;
 
 # filament options
 our $filament_diameter  = 3;    # mm
