@@ -30,6 +30,12 @@ sub parse_file {
         }
     }
     
+    # scale extents
+    for (X,Y,Z) {
+        $extents[$_][MIN] *= $Slic3r::scale;
+        $extents[$_][MAX] *= $Slic3r::scale;
+    }
+    
     # initialize print job
     my $print = Slic3r::Print->new(
         x_length => ($extents[X][MAX] - $extents[X][MIN]) / $Slic3r::resolution,
@@ -46,7 +52,7 @@ sub parse_file {
         # transform vertex coordinates
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
-            $vertex->[$_] = sprintf('%.0f', ($vertex->[$_] + $shift[$_]) / $Slic3r::resolution) 
+            $vertex->[$_] = sprintf('%.0f', ($Slic3r::scale * $vertex->[$_] + $shift[$_]) / $Slic3r::resolution) 
                 for X,Y,Z;
         }
         

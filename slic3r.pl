@@ -50,6 +50,9 @@ GetOptions(
     # skirt options
     'skirts=i'              => \$Slic3r::skirts,
     'skirt-distance=i'      => \$Slic3r::skirt_distance,
+    
+    # transform options
+    'scale=i'               => \$Slic3r::scale,
 );
 
 # validate configuration
@@ -90,6 +93,10 @@ GetOptions(
     # --fill-density
     die "Invalid value for --fill-density\n"
         if $Slic3r::fill_density < 0 || $Slic3r::fill_density > 1;
+    
+    # --scale
+    die "Invalid value for --scale\n"
+        if $Slic3r::scale <= 0;
 }
 
 my $stl_parser = Slic3r::STL->new;
@@ -166,6 +173,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $Slic3r::skirt_distance)
     -o, --output        File to output gcode to (default: <inputfile>.gcode)
+   
+   Transform options:
+    --scale             Factor for scaling input object (default: $Slic3r::scale)
     
 EOF
     exit $exit_code || 0;

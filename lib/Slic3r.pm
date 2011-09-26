@@ -59,4 +59,7 @@ our $retract_speed          = 40;   # mm/sec
 our $skirts             = 1;
 our $skirt_distance     = 6;    # mm
 
+# transform options
+our $scale              = 1;
+
 1;
