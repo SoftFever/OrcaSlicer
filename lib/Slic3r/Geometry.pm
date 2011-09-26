@@ -124,6 +124,7 @@ sub nearest_point {
         if (!defined $distance || $d < $distance) {
             $nearest_point = $p;
             $distance = $d;
+            return $p if $distance < epsilon;
         }
     }
     return $nearest_point;

@@ -22,4 +22,16 @@ sub clip_end {
     }
 }
 
+sub endpoints {
+    my $self = shift;
+    my ($as_arrayref) = @_;
+    my @points = ($self->points->[0], $self->points->[-1]);
+    return $as_arrayref ? map($_->p, @points) : @points;
+}
+
+sub reverse {
+    my $self = shift;
+    @{$self->points} = reverse @{$self->points};
+}
+
 1;

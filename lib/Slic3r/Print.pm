@@ -143,7 +143,7 @@ sub extrude_fills {
         $fill_extruder->make_fill($self, $layer);
         Slic3r::debugf "  generated %d paths: %s\n",
             scalar @{ $layer->fills },
-            join '  ', map $_->id, @{ $layer->fills } if $Slic3r::debug;
+            join '  ', map $_->id, map @{$_->paths}, @{ $layer->fills } if $Slic3r::debug;
     }
 }
 
@@ -286,7 +286,10 @@ sub export_gcode {
         }
         
         # extrude fills
-        $Extrude->($_, 'fill') for @{ $layer->fills };
+        for my $fill (@{ $layer->fills }) {
+            my @paths = $fill->shortest_path($last_pos);
+            $Extrude->($_, 'fill') for @paths;
+        }
     }
     
     # write end commands to file

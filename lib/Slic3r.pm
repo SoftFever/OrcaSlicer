@@ -10,6 +10,7 @@ sub debugf {
 
 use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
+use Slic3r::ExtrusionPath::Collection;
 use Slic3r::Fill;
 use Slic3r::Geometry;
 use Slic3r::Layer;
@@ -21,6 +22,7 @@ use Slic3r::Polyline::Closed;
 use Slic3r::Print;
 use Slic3r::STL;
 use Slic3r::Surface;
+use Slic3r::Surface::Collection;
 
 # printer options
 our $nozzle_diameter    = 0.45;
@@ -33,7 +35,7 @@ our $filament_packing_density = 0.85;
 
 # speed options
 our $print_feed_rate            = 60;   # mm/sec
-our $travel_feed_rate           = 80;   # mm/sec
+our $travel_feed_rate           = 130;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.6;
 
 # accuracy options

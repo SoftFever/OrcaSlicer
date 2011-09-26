@@ -48,14 +48,17 @@ sub make_perimeter {
         }
         
         # create one more offset to be used as boundary for fill
-        push @{ $layer->fill_surfaces },
-            map Slic3r::Surface->new(
-                surface_type => $surface->surface_type,
-                contour      => Slic3r::Polyline::Closed->cast($_->{outer}),
-                holes        => [
-                    map Slic3r::Polyline::Closed->cast($_), @{$_->{holes}}
-                ],
-            ), $self->offset_polygon($perimeters[-1]),
+        push @{ $layer->fill_surfaces }, Slic3r::Surface::Collection->new(
+            surfaces => [
+                map Slic3r::Surface->new(
+                    surface_type => $surface->surface_type,
+                    contour      => Slic3r::Polyline::Closed->cast($_->{outer}),
+                    holes        => [
+                        map Slic3r::Polyline::Closed->cast($_), @{$_->{holes}}
+                    ],
+                ), $self->offset_polygon($perimeters[-1]),
+            ],
+        );
     }
     
     # generate paths for holes:

@@ -42,7 +42,6 @@ Roadmap includes the following goals:
 * output some statistics;
 * allow the user to customize initial and final GCODE commands;
 * support material for internal perimeters;
-* travel path optimization;
 * ability to infill in the direction of bridges;
 * input object transform (scale, rotate, multiply);
 * cool;
