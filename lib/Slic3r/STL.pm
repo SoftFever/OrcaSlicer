@@ -2,6 +2,7 @@ package Slic3r::STL;
 use Moo;
 
 use CAD::Format::STL;
+use Math::Clipper qw(is_counter_clockwise);
 use XXX;
 
 use constant X => 0;
@@ -107,8 +108,7 @@ sub _facet {
         # the normal using the right-hand rule
         # (this relies on the STL to be well-formed)
         # recompute the normal using the right-hand rule
-        my $clockwise = ($vertices[2]->[X] - $vertices[0]->[X]) * ($vertices[1]->[Y] - $vertices[0]->[Y])
-                      - ($vertices[1]->[X] - $vertices[0]->[X]) * ($vertices[2]->[Y] - $vertices[0]->[Y]);
+        my $clockwise = !is_counter_clockwise([@vertices]);
         
         # defensive programming and/or input check
         if (($normal->[Z] > 0 && $clockwise > 0) || ($normal->[Z] < 0 && $clockwise < 0)) {

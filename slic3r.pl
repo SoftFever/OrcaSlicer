@@ -119,7 +119,7 @@ if ($action eq 'skein') {
     
     my $processing_time = tv_interval($t0);
     printf "Done. Process took %d minutes and %.3f seconds\n", 
-        int($processing_time/60), $processing_time - int($processing_time/60);
+        int($processing_time/60), $processing_time - int($processing_time/60)*60;
 }
 
 sub usage {
