@@ -156,6 +156,8 @@ sub export_gcode {
     my $self = shift;
     my ($file) = @_;
     
+    printf "Exporting GCODE file...\n";
+    
     # open output gcode file
     open my $fh, ">", $file
         or die "Failed to open $file for writing\n";

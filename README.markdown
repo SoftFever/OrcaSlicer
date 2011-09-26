@@ -29,7 +29,9 @@ Slic3r current features are:
 
 * read binary and ASCII STL files;
 * generate multiple perimeters (skins);
-* generate rectilinear fill (100% solid for external surfaces or with customizable less density for inner surfaces);
+* generate rectilinear fill;
+* set 0% - 100% infill density;
+* set infill angle;
 * retraction;
 * skirt (with rounded corners);
 * use relative or absolute extrusion commands;

@@ -20,7 +20,7 @@ sub make_fill {
     my ($print, $layer) = @_;
     printf "Filling layer %d:\n", $layer->id;
     
-    my $max_print_dimension = $print->max_length;
+    my $max_print_dimension = $print->max_length * sqrt(2);
     
     my $n = 1;
     foreach my $surface_collection (@{ $layer->fill_surfaces }) {
@@ -30,18 +30,23 @@ sub make_fill {
             Slic3r::debugf " Processing surface %s:\n", $surface->id;
             my $polygon = $surface->mgp_polygon;
             
-            # alternate fill direction
+            # set infill angle
             my (@rotate, @shift);
+            $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle);
+            $rotate[1] = [ $print->x_length / 2, $print->y_length / 2 ];
+            $shift[X] = $max_print_dimension / 2;
+            $shift[Y] = $max_print_dimension / 2;
+            
+            # alternate fill direction
             if ($layer->id % 2) {
-                @rotate = ( PI/2, [ $print->x_length / 2, $print->y_length / 2 ] );
-                $shift[X] = $print->y_length / 2 - $print->x_length / 2;
-                $shift[Y] = -$shift[X];
+                $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle) + PI/2;
             }
             
             # TODO: here we should implement an "infill in direction of bridges" option
             
             # rotate surface as needed
-            $polygon = $polygon->rotate(@rotate)->move(@shift) if @rotate;
+            @shift = @{ +(Slic3r::Geometry::rotate_points(@rotate, \@shift))[0] };
+            $polygon = $polygon->rotate(@rotate)->move(@shift) if $rotate[0];
             
             # force 100% density for external surfaces
             my $density = $surface->surface_type eq 'internal' ? $Slic3r::fill_density : 1;
@@ -50,8 +55,8 @@ sub make_fill {
             my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $density;
             my $number_of_lines = ceil($max_print_dimension / $distance_between_lines);
     
-            printf "distance = %f\n", $distance_between_lines;
-            printf "number_of_lines = %d\n", $number_of_lines;
+            #printf "distance = %f\n", $distance_between_lines;
+            #printf "number_of_lines = %d\n", $number_of_lines;
             
             # this arrayref will hold intersection points of the fill grid with surface segments
             my $points = [ map [], 0..$number_of_lines-1 ];
@@ -68,7 +73,7 @@ sub make_fill {
                         $c <= $line_c[1]; $c += $distance_between_lines) {
                     next if $c < $line_c[0] || $c > $line_c[1];
                     my $i = sprintf('%.0f', $c / $distance_between_lines) - 1;
-                    printf "CURRENT \$i = %d, \$c = %f\n", $i, $c;
+                    #printf "CURRENT \$i = %d, \$c = %f\n", $i, $c;
                     
                     # if the segment is parallel to our ray, there will be two intersection points
                     if ($line_c[0] == $line_c[1]) {
@@ -157,9 +162,9 @@ sub make_fill {
             }
             
             # paths must be rotated back
-            if (@rotate) {
-                # TODO: this skips 2-points paths! we shouldn't create a mgp polygon
-                @paths = map $self->_mgp_from_points_ref($_)->move(map -$_, @shift)->rotate(-$rotate[0], $rotate[1])->points, @paths;
+            if ($rotate[0]) {
+                @paths = map [ Slic3r::Geometry::rotate_points(-$rotate[0], $rotate[1], @$_) ], 
+                    map [ Slic3r::Geometry::move_points([map -$_, @shift], @$_) ], @paths;
             }
             
             push @path_collection, @paths;
@@ -194,7 +199,7 @@ sub find_connectable_points {
 sub can_connect {
     my $self = shift;
     my ($polygon, $p1, $p2) = @_;
-    printf "  Checking connectability of point %d\n", $p2->[1];
+    #printf "  Checking connectability of point %d\n", $p2->[1];
     
     # there's room for optimization here
     

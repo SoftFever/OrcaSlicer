@@ -48,6 +48,7 @@ our $flow_width;
 our $perimeter_offsets  = 3;
 our $solid_layers       = 3;
 our $fill_density       = 0.4;  # 1 = 100%
+our $fill_angle         = 0;
 our $temperature        = 195;
 
 # retraction options

@@ -41,6 +41,7 @@ GetOptions(
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
     'solid-layers=i'        => \$Slic3r::solid_layers,
     'fill-density=f'        => \$Slic3r::fill_density,
+    'fill-angle=i'          => \$Slic3r::fill_angle,
     'temperature=i'         => \$Slic3r::temperature,
     
     # retraction options
@@ -159,6 +160,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --solid-layers      Number of solid layers to do for top/bottom surfaces
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
+    --fill-angle        Infill angle (range: 0-90, default: $Slic3r::fill_angle)
     --temperature       Extrusion temperature (default: $Slic3r::temperature)
   
   Retraction options:

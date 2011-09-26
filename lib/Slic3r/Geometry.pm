@@ -4,6 +4,7 @@ use warnings;
 
 use XXX;
 
+use constant PI => 4 * atan2(1, 1);
 use constant A => 0;
 use constant B => 1;
 use constant X => 0;
@@ -143,6 +144,27 @@ sub point_along_segment {
     }
     
     return $point;
+}
+
+sub deg2rad {
+    my ($degrees) = @_;
+    return PI() * $degrees / 180;
+}
+
+sub rotate_points {
+    my ($radians, $center, @points) = @_;
+    $center ||= [0,0];
+    return map {
+        [
+            $center->[X] + cos($radians) * ($_->[X] - $center->[X]) - sin($radians) * ($_->[Y] - $center->[Y]),
+            $center->[Y] + cos($radians) * ($_->[Y] - $center->[Y]) + sin($radians) * ($_->[X] - $center->[X]),
+        ]
+    } @points;
+}
+
+sub move_points {
+    my ($shift, @points) = @_;
+    return map [ $shift->[X] + $_->[X], $shift->[Y] + $_->[Y] ], @points;
 }
 
 1;
