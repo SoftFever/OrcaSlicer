@@ -136,7 +136,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
     --print-center      Coordinates of the point to center the print around 
-                        (default: 100,100)
+                        (default: $Slic3r::print_center->[0],$Slic3r::print_center->[1])
     --use-relative-e-distances
                         Use relative distances for extrusion in GCODE output
     --z-offset          Additional height in mm to add to vertical coordinates
