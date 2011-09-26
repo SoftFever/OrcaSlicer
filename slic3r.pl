@@ -129,6 +129,9 @@ sub usage {
     my ($exit_code) = @_;
     
     print <<"EOF";
+Slic3r is a STL-to-GCODE translator for RepRap 3D printers
+written by Alessandro Ranellucci <aar\@cpan.org>
+
 Usage: slic3r.pl [ OPTIONS ] file.stl
 
     --help              Output this usage screen and exit
