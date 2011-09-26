@@ -119,6 +119,28 @@ sub make_polylines {
     die "No point should be endpoint of less or more than 2 lines!"
         if grep @$_ != 2, values %pointmap;
     
+    if (0) {
+        # defensive programming
+        for (keys %pointmap) {
+            next if @{$pointmap{$_}} == 2;
+            
+            #use Slic3r::SVG;
+            #Slic3r::SVG::output_points($main::print, "points.svg", [ map [split /,/], keys %pointmap ], [ [split /,/, $_ ] ]);
+            
+            die sprintf "No point should be endpoint of less or more than 2 lines (%d)!", scalar(@{$pointmap{$_}});
+        }
+        
+        while (my @single_line_points = grep @{$pointmap{$_}} == 1, keys %pointmap) {
+            for my $point_id (@single_line_points) {
+                foreach my $lines (values %pointmap) {
+                    next unless $pointmap{$point_id}->[0];
+                    @$lines = grep $_ ne $pointmap{$point_id}->[0], @$lines;
+                }
+                delete $pointmap{$point_id};
+            }
+        }
+    }
+    
     # make a subroutine to remove lines from pointmap
     my $remove_line = sub {
         my $line = shift;
@@ -167,6 +189,9 @@ sub make_surfaces {
     my $self = shift;
     my ($polylines) = @_;
     
+    #use Slic3r::SVG;
+    #Slic3r::SVG::output_polygons($main::print, "polylines.svg", [ map $_->p, @$polylines ]);
+    
     # count how many other polylines enclose each polyline
     # even = contour; odd = hole
     my %enclosing_polylines = ();
@@ -178,6 +203,7 @@ sub make_surfaces {
         my $point = $polyline->points->[0];
         my $ordered_id = $polyline->id;
         
+        # find polylines contaning $point, and thus $polyline
         $enclosing_polylines{$polyline} = 
             [ grep $_->id ne $ordered_id && $_->encloses_point($point), @$polylines ];
         $enclosing_polylines_count{$polyline} = scalar @{ $enclosing_polylines{$polyline} };

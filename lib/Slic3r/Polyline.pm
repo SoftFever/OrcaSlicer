@@ -14,7 +14,7 @@ has 'points' => (
 
 sub id {
     my $self = shift;
-    return join ' - ', map $_->id, @{$self->points};
+    return join ' - ', sort map $_->id, @{$self->points};
 }
 
 sub cast {

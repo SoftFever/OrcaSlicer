@@ -94,7 +94,7 @@ sub _facet {
     Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
     
     # calculate the layer extents
-    my ($min_layer, $max_layer) = map {$_ * $Slic3r::resolution / $Slic3r::layer_height} $min_z, $max_z;
+    my ($min_layer, $max_layer) = map { sprintf '%.0f', $_ * $Slic3r::resolution / $Slic3r::layer_height } $min_z, $max_z;
     Slic3r::debugf "layers: min = %.0f, max = %.0f\n", $min_layer, $max_layer;
     
     # is the facet horizontal?
@@ -159,7 +159,7 @@ sub _facet {
             
             # check whether the two points coincide due to resolution rounding
             if ($intersection_points[0]->coincides_with($intersection_points[1])) {
-                Slic3r::debugf "Points coincide; removing\n";
+                Slic3r::debugf "Points coincide at layer %d; removing\n", $layer_id;
                 next;
             }
             

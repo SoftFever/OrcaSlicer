@@ -8,13 +8,51 @@ use constant X => 0;
 use constant Y => 1;
 
 sub factor {
-    return $Slic3r::resolution * 100;
+    return $Slic3r::resolution * 10;
 }
 
 sub svg {
     my ($print) = @_;
     
     return SVG->new(width => $print->max_length * factor(), height => $print->max_length * factor());
+}
+
+sub output_points {
+    my ($print, $filename, $points, $red_points) = @_;
+    $red_points ||= [];
+    
+    my $svg = svg($print);
+    my $g = $svg->group(
+        style => {
+            'stroke-width' => 2,
+            'stroke' => 'black',
+            'fill' => 'black',
+        },
+    );
+    foreach my $point (@$points) {
+        $g->circle(
+            cx      => $point->[X] * factor(),
+            cy      => $point->[Y] * factor(),
+            r       => 2,
+        );
+    }
+    
+    my $g2 = $svg->group(
+        style => {
+            'stroke-width' => 2,
+            'stroke' => 'red',
+            'fill' => 'red',
+        },
+    );
+    foreach my $point (@$red_points) {
+        $g2->circle(
+            cx      => $point->[X] * factor(),
+            cy      => $point->[Y] * factor(),
+            r       => 3,
+        );
+    }
+    
+    write_svg($svg, $filename);
 }
 
 sub output_polygons {
@@ -25,6 +63,7 @@ sub output_polygons {
         style => {
             'stroke-width' => 2,
             'stroke' => 'black',
+            'fill' => 'none',
         },
     );
     foreach my $polygon (@$polygons) {

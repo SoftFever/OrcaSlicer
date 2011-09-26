@@ -86,7 +86,7 @@ sub point_in_polygon {
     }
     
     # if point is not in polygon, let's check whether it belongs to the contour
-    if (!$side) {
+    if (!$side && 0) {
         foreach my $line (polygon_lines($polygon)) {
             # calculate the Y in line at X of the point
             if ($line->[A][X] == $line->[B][X]) {
