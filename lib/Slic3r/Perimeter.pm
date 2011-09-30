@@ -17,10 +17,11 @@ sub make_perimeter {
     die "Can't extrude object without any perimeter!\n"
         if $Slic3r::perimeter_offsets == 0;
     
-    my (@perimeters, %contours, %holes) = ();
+    my (%contours, %holes) = ();
     foreach my $surface (@{ $layer->surfaces }) {
         $contours{$surface} = [];
         $holes{$surface} = [];
+        my @last_offsets = ();
         
         # first perimeter
         {
@@ -28,21 +29,20 @@ sub make_perimeter {
             my ($contour_p, @holes_p) = ($polygon->{outer}, @{$polygon->{holes}});
             push @{ $contours{$surface} }, $contour_p;
             push @{ $holes{$surface} }, @holes_p;
-            push @perimeters, $polygon;
+            @last_offsets = ($polygon);
         }
         
         # create other offsets
         for (my $loop = 1; $loop < $Slic3r::perimeter_offsets; $loop++) {
             
             # offsetting a polygon can result in one or many offset polygons
-            my @offsets = $self->offset_polygon($perimeters[-1]);
+            @last_offsets = map $self->offset_polygon($_), @last_offsets;
             
-            foreach my $offset_polygon (@offsets) {
+            foreach my $offset_polygon (@last_offsets) {
                 my ($contour_p, @holes_p) = ($offset_polygon->{outer}, @{$offset_polygon->{holes}});
                 
                 push @{ $contours{$surface} }, $contour_p;
                 push @{ $holes{$surface} }, @holes_p;
-                push @perimeters, $offset_polygon;
             }
         }
         
@@ -55,7 +55,7 @@ sub make_perimeter {
                     holes        => [
                         map Slic3r::Polyline::Closed->cast($_), @{$_->{holes}}
                     ],
-                ), $self->offset_polygon($perimeters[-1]),
+                ), map $self->offset_polygon($_), @last_offsets
             ],
         );
     }

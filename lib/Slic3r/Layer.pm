@@ -180,6 +180,7 @@ sub make_polylines {
         
         # actually this is not needed, as Math::Clipper used in make_surfaces() also cleans contours
         $polylines->[-1]->merge_continuous_lines;
+        #$polylines->[-1]->cleanup;  # not proven to be actually useful
     }
     
     return $polylines;

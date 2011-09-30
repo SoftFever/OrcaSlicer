@@ -21,7 +21,7 @@ sub cast {
     my $class = shift;
     my ($points) = @_;
     
-    @$points = map { ref $_ eq 'ARRAY' ? Slic3r::Point->cast($_) : $_ } @$points;
+    $points = [ map { ref $_ eq 'ARRAY' ? Slic3r::Point->cast($_) : $_ } @$points ];
     return $class->new(points => $points);
 }
 
@@ -46,20 +46,32 @@ sub p {
 sub merge_continuous_lines {
     my $self = shift;
     
-    my $last_line;
-    foreach my $line ($self->lines) {
-        if (defined $last_line && $line->parallel_to($last_line)) {
-            # $line and $last_line are parallel and continuous,
-            # so we can remove their common point from our polyline
-            
-            # find common point
-            my ($common_point) = grep $_ eq $line->a || $_ eq $line->b, @{$last_line->points};
-            
-            # remove point from polyline
-            @{$self->points} = grep $_ ne $common_point, @{$self->points};
+    my $finished = 0;
+    CYCLE: while (!$finished) {
+        my $last_line;
+        foreach my $line ($self->lines) {
+            if (defined $last_line && $line->parallel_to($last_line)) {
+                # $line and $last_line are parallel and continuous,
+                # so we can remove their common point from our polyline
+                
+                # find common point
+                my ($common_point) = grep $_ eq $line->a || $_ eq $line->b, @{$last_line->points};
+                
+                # remove point from polyline
+                @{$self->points} = grep $_ ne $common_point, @{$self->points};
+                $finished = 0;
+            }
+            $last_line = $line;
         }
-        $last_line = $line;
+        $finished = 1;
     }
+}
+
+sub cleanup {
+    my $self = shift;
+    my $tolerance = shift || (1 / $Slic3r::resolution);
+    @{$self->points} = map Slic3r::Point->cast($_), 
+        Slic3r::Geometry::Douglas_Peucker($self->p, $tolerance);
 }
 
 sub reverse_points {

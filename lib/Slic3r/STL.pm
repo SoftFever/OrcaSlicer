@@ -69,7 +69,7 @@ sub parse_file {
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
-    my @shift = map -$extents[$_][MIN], X,Y,Z;
+    my @shift = map sprintf('%.0f', -$extents[$_][MIN] / $Slic3r::resolution), X,Y,Z;
     
     # process facets
     foreach my $facet ($stl->part->facets) {
@@ -77,7 +77,7 @@ sub parse_file {
         # transform vertex coordinates
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
-            $vertex->[$_] = sprintf('%.0f', ($Slic3r::scale * $vertex->[$_] + $shift[$_]) / $Slic3r::resolution) 
+            $vertex->[$_] = sprintf('%.0f', ($Slic3r::scale * $vertex->[$_] / $Slic3r::resolution) + $shift[$_]) 
                 for X,Y,Z;
         }
         

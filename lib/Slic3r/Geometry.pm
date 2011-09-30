@@ -2,6 +2,7 @@ package Slic3r::Geometry;
 use strict;
 use warnings;
 
+use Slic3r::Geometry::DouglasPeucker;
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -11,6 +12,7 @@ use constant X => 0;
 use constant Y => 1;
 use constant epsilon => 1E-8;
 use constant epsilon2 => epsilon**2;
+our $parallel_degrees_limit = abs(deg2rad(10));
 
 sub slope {
     my ($line) = @_;
@@ -18,14 +20,15 @@ sub slope {
     return ($line->[B][Y] - $line->[A][Y]) / ($line->[B][X] - $line->[A][X]);
 }
 
+sub line_atan {
+    my ($line) = @_;
+    return atan2($line->[B][Y] - $line->[A][Y], $line->[B][X] - $line->[A][X]);
+}
+
 sub lines_parallel {
     my ($line1, $line2) = @_;
     
-    my @slopes = map slope($_), $line1, $line2;
-    return 1 if !defined $slopes[0] && !defined $slopes[1];
-    return 0 if grep !defined, @slopes;
-    return 1 if abs($slopes[0] - $slopes[1]) < epsilon;
-    return 0;
+    return abs(line_atan($line1) - line_atan($line2)) < $parallel_degrees_limit;
 }
 
 # this subroutine checks whether a given point may belong to a given

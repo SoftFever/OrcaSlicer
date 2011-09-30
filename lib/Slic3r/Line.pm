@@ -51,11 +51,6 @@ sub has_endpoint {
     return $point->coincides_with($self->a) || $point->coincides_with($self->b);
 }
 
-sub slope {
-    my $self = shift;
-    return Slic3r::Geometry::slope($self->p);
-}
-
 sub parallel_to {
     my $self = shift;
     my ($line) = @_;

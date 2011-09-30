@@ -33,9 +33,8 @@ sub make_fill {
             # set infill angle
             my (@rotate, @shift);
             $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle);
-            $rotate[1] = [ $print->x_length / 2, $print->y_length / 2 ];
-            $shift[X] = $max_print_dimension / 2;
-            $shift[Y] = $max_print_dimension / 2;
+            $rotate[1] = [ $max_print_dimension / 2, $max_print_dimension / 2 ];
+            @shift = @{$rotate[1]};
             
             # alternate fill direction
             if ($layer->id % 2) {
