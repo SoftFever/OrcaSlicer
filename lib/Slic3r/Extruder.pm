@@ -87,10 +87,9 @@ sub extrude {
         # calculate how much filament to drive into the extruder
         # to get the desired amount of extruded plastic
         my $e = $line->a->distance_to($line->b) * $Slic3r::resolution
-            * $Slic3r::flow_width 
-            * $Slic3r::layer_height
-            / (($Slic3r::filament_diameter ** 2) * PI)
-            / $Slic3r::filament_packing_density;
+            * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
+            * $Slic3r::thickness_ratio 
+            * $Slic3r::filament_packing_density;
         
         $gcode .= $self->G1($line->b, undef, $e, $description);
     }

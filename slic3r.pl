@@ -13,6 +13,8 @@ use Slic3r;
 use Time::HiRes qw(gettimeofday tv_interval);
 use XXX;
 
+use constant PI => 4 * atan2(1, 1);
+
 my %opt;
 GetOptions(
     'help'                  => sub { usage() },
@@ -78,7 +80,8 @@ GetOptions(
         if $Slic3r::nozzle_diameter < 0;
     die "--layer-height can't be greater than --nozzle-diameter\n"
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
-    $Slic3r::flow_width = 4 * (($Slic3r::nozzle_diameter/2)**2) / $Slic3r::layer_height;
+    $Slic3r::flow_width = ($Slic3r::nozzle_diameter**2) 
+        * $Slic3r::thickness_ratio * PI / (4 * $Slic3r::layer_height);
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
     
     # --perimeters

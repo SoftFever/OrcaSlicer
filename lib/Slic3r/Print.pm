@@ -165,7 +165,7 @@ sub export_gcode {
     # write start commands to file
     # TODO: this must be customizable by user
     print  $fh "G28 ; home all axes\n";
-    printf $fh "M109 S%d ; wait for temperature to be reached\n", $Slic3r::temperature;
+    printf $fh "M104 S%d ; wait for temperature to be reached\n", $Slic3r::temperature;
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::use_relative_e_distances) {
