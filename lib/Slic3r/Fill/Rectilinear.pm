@@ -170,9 +170,10 @@ sub make_fill {
         }
         
         # save into layer
-        FINISH: push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
+        push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
             paths => [ map Slic3r::ExtrusionPath->cast([ @$_ ]), @path_collection ],
         );
+        $layer->fills->[-1]->cleanup;
     }
 }
 

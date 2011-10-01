@@ -8,12 +8,12 @@ use constant X => 0;
 use constant Y => 1;
 
 sub factor {
-    return $Slic3r::resolution * 10;
+    return $Slic3r::resolution * 100;
 }
 
 sub svg {
     my ($print) = @_;
-    
+    $print ||= Slic3r::Print->new(x_length => 200 / $Slic3r::resolution, y_length => 200 / $Slic3r::resolution);
     return SVG->new(width => $print->max_length * factor(), height => $print->max_length * factor());
 }
 
@@ -56,7 +56,8 @@ sub output_points {
 }
 
 sub output_polygons {
-    my ($print, $filename, $polygons) = @_;
+    my ($print, $filename, $polygons, $type) = @_;
+    $type ||= 'polygon';
     
     my $svg = svg($print);
     my $g = $svg->group(
@@ -72,12 +73,16 @@ sub output_polygons {
             'y' => [ map($_->[Y] * factor(), @$polygon) ],
             -type => 'polygon',
         );
-        $g->polygon(
+        $g->$type(
             %$path,
         );
     }
     
     write_svg($svg, $filename);
+}
+
+sub output_polylines {
+    return output_polygons(@_, 'polyline');
 }
 
 sub output_lines {

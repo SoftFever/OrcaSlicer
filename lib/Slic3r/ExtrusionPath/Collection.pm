@@ -52,4 +52,11 @@ sub shortest_path {
     return @paths;
 }
 
+sub cleanup {
+    my $self = shift;
+    
+    # split paths at angles that are too acute to be printed as they will cause blobs
+    @{$self->paths} = map $_->split_at_acute_angles, @{$self->paths};
+}
+
 1;
