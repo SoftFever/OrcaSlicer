@@ -26,7 +26,7 @@ use Slic3r::Surface;
 use Slic3r::Surface::Collection;
 
 # printer options
-our $nozzle_diameter    = 0.5;
+our $nozzle_diameter    = 0.55;
 our $print_center       = [100,100];  # object will be centered around this point
 our $use_relative_e_distances = 0;
 our $z_offset = 0;
@@ -38,6 +38,7 @@ our $filament_packing_density = 0.85;
 # speed options
 our $print_feed_rate            = 60;   # mm/sec
 our $travel_feed_rate           = 130;   # mm/sec
+our $perimeter_feed_rate        = 30;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.3;
 
 # accuracy options
@@ -57,6 +58,7 @@ our $temperature        = 200;
 our $retract_length         = 1;    # mm
 our $retract_restart_extra  = 0;    # mm
 our $retract_speed          = 40;   # mm/sec
+our $retract_before_travel  = 1;    # mm
 
 # skirt options
 our $skirts             = 1;

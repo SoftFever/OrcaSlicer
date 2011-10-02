@@ -26,6 +26,32 @@ has 'layers' => (
     default => sub { [] },
 );
 
+sub new_from_stl {
+    my $self = shift;
+    my ($stl_file) = @_;
+    
+    my $print = Slic3r::STL->new->parse_file($stl_file);
+    
+    print "\n==> PROCESSING SLICES:\n";
+    foreach my $layer (@{ $print->layers }) {
+        printf "\nProcessing layer %d:\n", $layer->id;
+    
+        # build polylines of lines which do not already belong to a surface
+        my $polylines = $layer->make_polylines;
+        
+        # build surfaces of polylines (distinguishing contours from holes)
+        $layer->make_surfaces($polylines);
+        
+        # merge surfaces having a common line
+        $layer->merge_contiguous_surfaces;
+    }
+    
+    # detect which surfaces are near external layers
+    $print->discover_horizontal_shells;
+    
+    return $print;
+}
+
 sub layer_count {
     my $self = shift;
     return scalar @{ $self->layers };

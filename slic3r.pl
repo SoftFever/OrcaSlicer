@@ -35,6 +35,7 @@ GetOptions(
     # speed options
     'print-feed-rate=i'             => \$Slic3r::print_feed_rate,
     'travel-feed-rate=i'            => \$Slic3r::travel_feed_rate,
+    'perimeter-feed-rate=i'         => \$Slic3r::perimeter_feed_rate,
     'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
     
     # accuracy options
@@ -49,7 +50,9 @@ GetOptions(
     
     # retraction options
     'retract-length=f'          => \$Slic3r::retract_length,
+    'retract-speed=i'           => \$Slic3r::retract_speed,
     'retract-restart-extra=f'   => \$Slic3r::retract_restart_extra,
+    'retract-before-travel=f'   => \$Slic3r::retract_before_travel,
     
     # skirt options
     'skirts=i'              => \$Slic3r::skirts,
@@ -82,6 +85,13 @@ GetOptions(
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
     $Slic3r::flow_width = ($Slic3r::nozzle_diameter**2) 
         * $Slic3r::thickness_ratio * PI / (4 * $Slic3r::layer_height);
+    
+    my $max_flow_width = $Slic3r::layer_height + $Slic3r::nozzle_diameter;
+    if ($Slic3r::flow_width > $max_flow_width) {
+        $Slic3r::thickness_ratio = $max_flow_width / $Slic3r::flow_width;
+        $Slic3r::flow_width = $max_flow_width;
+    }
+    
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
     
     # --perimeters
@@ -120,7 +130,6 @@ GetOptions(
         if $Slic3r::multiply_distance < 1;
 }
 
-my $stl_parser = Slic3r::STL->new;
 my $action = 'skein';
 
 if ($action eq 'skein') {
@@ -129,7 +138,7 @@ if ($action eq 'skein') {
         if $input_file !~ /\.stl$/i;
     
     my $t0 = [gettimeofday];
-    my $print = $stl_parser->parse_file($input_file);
+    my $print = Slic3r::Print->new_from_stl($input_file);
     $print->extrude_perimeters;
     $print->remove_small_features;
     $print->extrude_fills;
@@ -172,6 +181,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   Speed options:
     --print-feed-rate   Speed of print moves in mm/sec (default: $Slic3r::print_feed_rate)
     --travel-feed-rate  Speed of non-print moves in mm/sec (default: $Slic3r::travel_feed_rate)
+    --perimeter-feed-rate
+                        Speed of print moves for perimeters in mm/sec (default: $Slic3r::print_feed_rate)
     --bottom-layer-speed-ratio
                         Factor to increase/decrease speeds on bottom 
                         layer by (default: $Slic3r::bottom_layer_speed_ratio)
@@ -195,6 +206,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --retract-restart-extra
                         Additional amount of filament in mm to push after
                         compensating retraction (default: $Slic3r::retract_restart_extra)
+    --retract-before-travel
+                        Only retract before travel moves of this length (default: $Slic3r::retract_before_travel)
+   
    Skirt options:
     --skirts            Number of skirts to draw (default: $Slic3r::skirts)
     --skirt-distance    Distance in mm between innermost skirt and object 

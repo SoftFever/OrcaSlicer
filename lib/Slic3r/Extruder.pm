@@ -6,7 +6,7 @@ has 'shift_y'            => (is => 'ro', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
-has 'retracted'          => (is => 'rw', default => sub {0} );
+has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'last_pos'           => (is => 'rw', default => sub { [0,0] } );
 
 # calculate speeds
@@ -17,6 +17,10 @@ has 'travel_feed_rate' => (
 has 'print_feed_rate' => (
     is      => 'ro',
     default => sub { $Slic3r::print_feed_rate * 60 },  # mm/min
+);
+has 'perimeter_feed_rate' => (
+    is      => 'ro',
+    default => sub { $Slic3r::perimeter_feed_rate * 60 },  # mm/min
 );
 has 'retract_speed' => (
     is      => 'ro',
@@ -39,8 +43,12 @@ sub move_z {
     my $self = shift;
     my ($z) = @_;
     
-    # TODO: retraction
-    return $self->G1(undef, $z, 0, 'move to next layer');
+    my $gcode = "";
+    
+    $gcode .= $self->retract;
+    $gcode .= $self->G1(undef, $z, 0, 'move to next layer');
+    
+    return $gcode;
 }
 
 sub extrude_loop {
@@ -72,15 +80,17 @@ sub extrude {
         $gcode .= "G92 E0 ; reset extrusion distance\n";
     }
     
+    # retract
+    if (Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]->p) 
+        >= $Slic3r::retract_before_travel) {
+        $gcode .= $self->retract;
+    }
+    
     # go to first point of extrusion path
     $gcode .= $self->G1($path->points->[0], undef, 0, "move to first $description point");
     
     # compensate retraction
-    if ($self->retracted) {
-        $gcode .= $self->G1(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
-            "compensate retraction");
-        $self->retracted(0);
-    }
+    $gcode .= $self->unretract if $self->retracted;
     
     # extrude while going to next points
     foreach my $line ($path->lines) {
@@ -94,13 +104,24 @@ sub extrude {
         $gcode .= $self->G1($line->b, undef, $e, $description);
     }
     
-    # retract
-    if ($Slic3r::retract_length > 0) {
-        $gcode .= $self->G1(undef, undef, -$Slic3r::retract_length, "retract");
-        $self->retracted(1);
-    }
-    
     return $gcode;
+}
+
+sub retract {
+    my $self = shift;
+    return "" unless $Slic3r::retract_length > 0 
+        && $self->extrusion_distance > 0 
+        && !$self->retracted;
+    
+    $self->retracted(1);
+    return $self->G1(undef, undef, -$Slic3r::retract_length, "retract");
+}
+
+sub unretract {
+    my $self = shift;
+    $self->retracted(0);
+    return $self->G1(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
+        "compensate retraction");
 }
 
 sub G1 {
@@ -116,7 +137,7 @@ sub G1 {
             ($point->y * $Slic3r::resolution) + $self->shift_y; #**
         $self->last_pos($point->p);
     }
-    if ($z && $z != $self->z) {
+    if (defined $z && $z != $self->z) {
         $self->z($z);
         $gcode .= sprintf " Z%.${dec}f", $z;
     }
@@ -129,11 +150,12 @@ sub G1 {
     if ($e) {
         $self->extrusion_distance(0) if $Slic3r::use_relative_e_distances;
         $self->extrusion_distance($self->extrusion_distance + $e);
-        $gcode .= sprintf " F%.${dec}f E%.5f", 
-            $e < 0 
-                ? $self->retract_speed
-                : ($self->print_feed_rate * $speed_multiplier), 
-            $self->extrusion_distance;
+        my $speed = $self->print_feed_rate * $speed_multiplier;
+        $speed = $self->retract_speed if $comment =~ /retract/;
+        $speed = $self->perimeter_feed_rate * $speed_multiplier if $comment =~ /perimeter/;
+        
+        $gcode .= sprintf " F%.${dec}f E%.5f", $speed, $self->extrusion_distance;
+        
     } else {
         $gcode .= sprintf " F%.${dec}f", ($self->travel_feed_rate * $speed_multiplier);
     }

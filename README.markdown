@@ -73,7 +73,7 @@ The author is Alessandro Ranellucci (me).
         --help              Output this usage screen and exit
         
       Printer options:
-        --nozzle-diameter   Diameter of nozzle in mm (default: 0.45)
+        --nozzle-diameter   Diameter of nozzle in mm (default: 0.55)
         --print-center      Coordinates of the point to center the print around 
                             (default: 100,100)
         --use-relative-e-distances
@@ -90,9 +90,11 @@ The author is Alessandro Ranellucci (me).
       Speed options:
         --print-feed-rate   Speed of print moves in mm/sec (default: 60)
         --travel-feed-rate  Speed of non-print moves in mm/sec (default: 130)
+        --perimeter-feed-rate
+                            Speed of print moves for perimeters in mm/sec (default: 60)
         --bottom-layer-speed-ratio
                             Factor to increase/decrease speeds on bottom 
-                            layer by (default: 0.6)
+                            layer by (default: 0.3)
         
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.4)
@@ -104,15 +106,18 @@ The author is Alessandro Ranellucci (me).
                             (range: 1+, default: 3)
         --fill-density      Infill density (range: 0-1, default: 0.4)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 0)
-        --temperature       Extrusion temperature (default: 195)
+        --temperature       Extrusion temperature (default: 200)
       
       Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 
-                            (default: 2)
+                            (default: 1)
         --retract-speed     Speed for retraction in mm/sec (default: 40)
         --retract-restart-extra
                             Additional amount of filament in mm to push after
                             compensating retraction (default: 0)
+        --retract-before-travel
+                            Only retract before travel moves of this length (default: 1)
+       
        Skirt options:
         --skirts            Number of skirts to draw (default: 1)
         --skirt-distance    Distance in mm between innermost skirt and object 
@@ -125,3 +130,4 @@ The author is Alessandro Ranellucci (me).
         --multiply-x        Number of items along X axis (1+, default: 1)
         --multiply-y        Number of items along Y axis (1+, default: 1)
         --multiply-distance Distance in mm between copies (default: 6)
+        
