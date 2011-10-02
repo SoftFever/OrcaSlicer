@@ -27,6 +27,8 @@ Also, http://xkcd.com/224/
 
 Slic3r current features are:
 
+* multi-platform (Linux/Mac/Win);
+* easy configuration/calibration;
 * read binary and ASCII STL files;
 * generate multiple perimeters (skins);
 * generate rectilinear fill;
@@ -38,23 +40,33 @@ Slic3r current features are:
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and multiply input object;
-* use different speed for bottom layer.
+* use different speed for bottom layer and perimeters.
 
 Roadmap includes the following goals:
 
 * output some statistics;
 * allow the user to customize initial and final GCODE commands;
 * support material for internal perimeters;
-* ability to infill in the direction of bridges;
+* detect optimal infill direction for bridges;
 * cool;
 * other fill patterns;
 * nice packaging for cross-platform deployment.
 
 ## Is it usable already?
 
-Yes, although its extrusion math needs to be tested.
-I need to write a script to install dependencies and to package
+Yes! I need to write a script to install dependencies and to package
 dependency-free executables for main platforms.
+
+## How to install?
+
+Download the package, open a terminal and cd to its directory. Then type:
+
+    perl Build.PL
+
+This will install any required dependency. If you want to install slic3r.pl
+in your system path, type this as root:
+
+    ./Build install
 
 ## Can I help?
 

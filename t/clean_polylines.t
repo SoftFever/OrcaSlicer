@@ -49,10 +49,10 @@ my $gear = [
 ];
 $polyline = Slic3r::Polyline::Closed->cast($gear);
 $polyline->merge_continuous_lines;
-diag sprintf "original points: %d\nnew points: %d", scalar(@$gear), scalar(@{$polyline->points});
-ok (@{$polyline->points} < @$gear), 'gear was simplified using merge_continuous_lines';
+note sprintf "original points: %d\nnew points: %d", scalar(@$gear), scalar(@{$polyline->points});
+ok @{$polyline->points} < @$gear, 'gear was simplified using merge_continuous_lines';
 
 my $num_points = scalar @{$polyline->points};
 $polyline->cleanup;
-diag sprintf "original points: %d\nnew points: %d", $num_points, scalar(@{$polyline->points});
-ok (@{$polyline->points} < $num_points), 'gear was further simplified using Douglas-Peucker';
+note sprintf "original points: %d\nnew points: %d", $num_points, scalar(@{$polyline->points});
+ok @{$polyline->points} < $num_points, 'gear was further simplified using Douglas-Peucker';
