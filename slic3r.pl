@@ -89,7 +89,7 @@ sub usage {
     
     print <<"EOF";
 Slic3r is a STL-to-GCODE translator for RepRap 3D printers
-written by Alessandro Ranellucci <aar\@cpan.org>
+written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
 
 Usage: slic3r.pl [ OPTIONS ] file.stl
 

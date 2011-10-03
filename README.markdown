@@ -9,6 +9,9 @@ A: Yes.
 Slic3r is an STL-to-GCODE translator for RepRap 3D printers, 
 like Enrique's Skeinforge or RevK's E3D.
 
+See the [project homepage](http://slic3r.org/) at slic3r.org
+for more information.
+
 ## Why a new one? Why Perl?
 
 The purpose is to build something more maintainable and flexible than both
@@ -54,23 +57,12 @@ Roadmap includes the following goals:
 
 ## Is it usable already?
 
-Yes! I need to write a script to install dependencies and to package
-dependency-free executables for main platforms.
+Yes!
 
 ## How to install?
 
-Download the package, open a terminal and cd to its directory. Then type:
-
-    perl Build.PL
-
-This will install any required dependency. If you want the GUI, you should
-also install Wx using the following command (as root):
-
-    cpan Wx
-
-If you want to install slic3r.pl in your system path, type this as root:
-
-    ./Build install
+It's very easy. See the [project homepage](http://slic3r.org/)
+for instructions and links to the precompiled packages.
 
 ## Can I help?
 
@@ -82,7 +74,7 @@ find me in #reprap on FreeNode with the nickname _Sound_.
 Slic3r is dual-licensed under the _Perl Artistic License_ and the _AGPLv3_.
 The author is Alessandro Ranellucci (me).
 
-## How can I invoke slic3r.pl?
+## How can I invoke slic3r.pl using the command line?
 
     Usage: slic3r.pl [ OPTIONS ] file.stl
     
