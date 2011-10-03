@@ -1,6 +1,7 @@
 package Slic3r::GUI::SkeinPanel;
 use strict;
 use warnings;
+use utf8;
 
 use File::Basename qw(basename);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_ERROR wxID_OK wxFD_OPEN);
@@ -210,12 +211,13 @@ sub new {
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     foreach my $col (@cols) {
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $vertical_sizer->Add($panels{$_}, 0, wxEXPAND | wxRIGHT, 10) for @$col;
+        $vertical_sizer->Add($panels{$_}, 0, wxEXPAND | wxALL, 10) for @$col;
         $sizer->Add($vertical_sizer);
     }
     
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);
+    $self->Layout;
     
     return $self;
 }

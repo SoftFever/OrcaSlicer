@@ -25,10 +25,14 @@ sub OnInit {
     
     my $panel = Slic3r::GUI::SkeinPanel->new($frame);
     my $box = Wx::BoxSizer->new(wxVERTICAL);
-    $box->Add($panel, 0, wxALL, 20);
+    $box->Add($panel, 0);
     
-    $frame->SetSizerAndFit($box);
+    $box->SetSizeHints($frame);
+    $frame->SetSizer($box);
     $frame->Show;
+    $frame->Layout;
+    
+    return 1;
 }
 
 sub About {

@@ -12,6 +12,7 @@ my $build = Module::Build->new(
         'Getopt::Long'              => '0',
         'Math::Clipper'             => '1.01',
         'Math::Geometry::Planar'    => '0',
+        'Math::Geometry::Planar::Offset' => '0',
         'Moo'                       => '0',
         'Time::HiRes'               => '0',
         'XXX'                       => '0',
