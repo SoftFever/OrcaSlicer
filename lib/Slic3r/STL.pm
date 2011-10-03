@@ -2,7 +2,7 @@ package Slic3r::STL;
 use Moo;
 
 use CAD::Format::STL;
-use Math::Clipper qw(is_counter_clockwise);
+use Math::Clipper qw(integerize_coordinate_sets is_counter_clockwise);
 use XXX;
 
 use constant X => 0;
@@ -77,8 +77,11 @@ sub parse_file {
         # transform vertex coordinates
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
-            $vertex->[$_] = sprintf('%.0f', ($Slic3r::scale * $vertex->[$_] / $Slic3r::resolution) + $shift[$_]) 
+            $vertex->[$_] = ($Slic3r::scale * $vertex->[$_] / $Slic3r::resolution) + $shift[$_]
                 for X,Y,Z;
+            
+            # round Z coordinates; XY will be rounded automatically with coercion
+            $vertex->[Z] = sprintf('%.0f', $vertex->[Z]);
         }
         
         foreach my $copy (@copies) {
@@ -121,14 +124,22 @@ sub _facet {
         # the normal using the right-hand rule
         # (this relies on the STL to be well-formed)
         # recompute the normal using the right-hand rule
-        my $clockwise = !is_counter_clockwise([@vertices]);
+        my $vertices_p = [@vertices];
+        integerize_coordinate_sets($vertices_p);
+        my $clockwise = !is_counter_clockwise($vertices_p);
         
         # defensive programming and/or input check
-        if (($normal->[Z] > 0 && $clockwise) || ($normal->[Z] < 0 && !$clockwise)) {
-            YYY $normal;
-            die sprintf "STL normal (%.0f) and right-hand rule computation (%s) differ!\n",
-                $normal->[Z], $clockwise ? 'clockwise' : 'counter-clockwise';
+        if (abs($normal->[Z]) == 1) {
+            # while the vertices may belong to the same layer, it doesn't mean the facet
+            # was horizontal in the original model; so this check makes sense only 
+            # if the original normal is exactly 1 or -1
+            if (($normal->[Z] > 0 && $clockwise) || ($normal->[Z] < 0 && !$clockwise)) {
+                YYY $normal;
+                die sprintf "STL normal (%.0f) and right-hand rule computation (%s) differ!\n",
+                    $normal->[Z], $clockwise ? 'clockwise' : 'counter-clockwise';
+            }
         }
+        
         if ($layer->id == 0 && !$clockwise) {
             die "Right-hand rule gives bad result for facets on base layer!\n";
         }
