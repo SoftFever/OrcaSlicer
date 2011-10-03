@@ -46,25 +46,17 @@ sub p {
 sub merge_continuous_lines {
     my $self = shift;
     
-    my $finished = 0;
-    CYCLE: while (!$finished) {
-        my $last_line;
-        foreach my $line ($self->lines) {
-            if (defined $last_line && $line->parallel_to($last_line)) {
-                # $line and $last_line are parallel and continuous,
-                # so we can remove their common point from our polyline
-                
-                # find common point
-                my ($common_point) = grep $_ eq $line->a || $_ eq $line->b, @{$last_line->points};
-                
-                # remove point from polyline
-                @{$self->points} = grep $_ ne $common_point, @{$self->points};
-                $finished = 0;
-            }
-            $last_line = $line;
+    my @points = map $_->p, @{$self->points};
+    for (my $i = 2; $i <= $#points; $i++) {
+        if (Slic3r::Geometry::lines_parallel([$points[$i-2], $points[$i-1]], [$points[$i-1], $points[$i]])) {
+            # we can remove $points[$i-1]
+            splice @points, $i-1, 1;
+            
+            $i--;
         }
-        $finished = 1;
     }
+    
+    @{$self->points} = map Slic3r::Point->cast($_), @points;
 }
 
 sub cleanup {

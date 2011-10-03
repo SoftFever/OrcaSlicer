@@ -12,7 +12,7 @@ use constant X => 0;
 use constant Y => 1;
 use constant epsilon => 1E-8;
 use constant epsilon2 => epsilon**2;
-our $parallel_degrees_limit = abs(deg2rad(10));
+our $parallel_degrees_limit = abs(deg2rad(3));
 
 sub slope {
     my ($line) = @_;
