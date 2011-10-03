@@ -10,10 +10,7 @@ BEGIN {
 
 use Getopt::Long;
 use Slic3r;
-use Time::HiRes qw(gettimeofday tv_interval);
 use XXX;
-
-use constant PI => 4 * atan2(1, 1);
 
 my %opt;
 GetOptions(
@@ -59,7 +56,7 @@ GetOptions(
     'skirt-distance=i'      => \$Slic3r::skirt_distance,
     
     # transform options
-    'scale=i'               => \$Slic3r::scale,
+    'scale=f'               => \$Slic3r::scale,
     'rotate=i'              => \$Slic3r::rotate,
     'multiply-x=i'          => \$Slic3r::multiply_x,
     'multiply-y=i'          => \$Slic3r::multiply_y,
@@ -67,89 +64,24 @@ GetOptions(
 );
 
 # validate configuration
-{
-    # --layer-height
-    die "Invalid value for --layer-height\n"
-        if $Slic3r::layer_height < 0;
-    die "--layer-height must be a multiple of print resolution\n"
-        if $Slic3r::layer_height / $Slic3r::resolution % 1 != 0;
-    
-    # --filament-diameter
-    die "Invalid value for --filament-diameter\n"
-        if $Slic3r::filament_diameter < 1;
-    
-    # --nozzle-diameter
-    die "Invalid value for --nozzle-diameter\n"
-        if $Slic3r::nozzle_diameter < 0;
-    die "--layer-height can't be greater than --nozzle-diameter\n"
-        if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
-    $Slic3r::flow_width = ($Slic3r::nozzle_diameter**2) 
-        * $Slic3r::thickness_ratio * PI / (4 * $Slic3r::layer_height);
-    
-    my $max_flow_width = $Slic3r::layer_height + $Slic3r::nozzle_diameter;
-    if ($Slic3r::flow_width > $max_flow_width) {
-        $Slic3r::thickness_ratio = $max_flow_width / $Slic3r::flow_width;
-        $Slic3r::flow_width = $max_flow_width;
-    }
-    
-    Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
-    
-    # --perimeters
-    die "Invalid value for --perimeters\n"
-        if $Slic3r::perimeter_offsets < 1;
-    
-    # --solid-layers
-    die "Invalid value for --solid-layers\n"
-        if $Slic3r::solid_layers < 1;
-    
-    # --print-center
-    die "Invalid value for --print-center\n"
-        if !ref $Slic3r::print_center 
-            && (!$Slic3r::print_center || $Slic3r::print_center !~ /^\d+,\d+$/);
-    $Slic3r::print_center = [ split /,/, $Slic3r::print_center ]
-        if !ref $Slic3r::print_center;
-    
-    # --fill-density
-    die "Invalid value for --fill-density\n"
-        if $Slic3r::fill_density < 0 || $Slic3r::fill_density > 1;
-    
-    # --scale
-    die "Invalid value for --scale\n"
-        if $Slic3r::scale <= 0;
-    
-    # --multiply-x
-    die "Invalid value for --multiply-x\n"
-        if $Slic3r::multiply_x < 1;
-    
-    # --multiply-y
-    die "Invalid value for --multiply-y\n"
-        if $Slic3r::multiply_y < 1;
-    
-    # --multiply-distance
-    die "Invalid value for --multiply-distance\n"
-        if $Slic3r::multiply_distance < 1;
+Slic3r::Config->validate;
+
+# start GUI
+if (!@ARGV && eval "require Slic3r::GUI; 1") {
+    Slic3r::GUI->new->MainLoop;
+    exit;
 }
 
 my $action = 'skein';
 
 if ($action eq 'skein') {
     my $input_file = $ARGV[0] or usage(1);
-    die "Input file must have .stl extension\n" 
-        if $input_file !~ /\.stl$/i;
     
-    my $t0 = [gettimeofday];
-    my $print = Slic3r::Print->new_from_stl($input_file);
-    $print->extrude_perimeters;
-    $print->remove_small_features;
-    $print->extrude_fills;
-    
-    my $output_file = $input_file;
-    $output_file =~ s/\.stl$/.gcode/i;
-    $print->export_gcode($opt{output} || $output_file);
-    
-    my $processing_time = tv_interval($t0);
-    printf "Done. Process took %d minutes and %.3f seconds\n", 
-        int($processing_time/60), $processing_time - int($processing_time/60)*60;
+    my $skein = Slic3r::Skein->new(
+        input_file  => $input_file,
+        output_file => $opt{output},
+    );
+    $skein->go;
 }
 
 sub usage {

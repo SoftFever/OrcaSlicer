@@ -8,11 +8,13 @@ my $build = Module::Build->new(
     license         => 'perl',
     requires        => {
         'CAD::Format::STL'          => '0',
+        'File::Basename'            => '0',
         'Getopt::Long'              => '0',
-        'Math::Clipper'             => '1.00',
+        'Math::Clipper'             => '1.01',
         'Math::Geometry::Planar'    => '0',
         'Moo'                       => '0',
         'Time::HiRes'               => '0',
+        'XXX'                       => '0',
     },
     build_requires => {
         'Test::More' => '0.10',

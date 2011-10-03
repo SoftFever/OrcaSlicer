@@ -8,6 +8,7 @@ sub debugf {
     printf @_ if $debug;
 }
 
+use Slic3r::Config;
 use Slic3r::Extruder;
 use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
@@ -21,6 +22,7 @@ use Slic3r::Point;
 use Slic3r::Polyline;
 use Slic3r::Polyline::Closed;
 use Slic3r::Print;
+use Slic3r::Skein;
 use Slic3r::STL;
 use Slic3r::Surface;
 use Slic3r::Surface::Collection;

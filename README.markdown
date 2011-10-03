@@ -63,8 +63,12 @@ Download the package, open a terminal and cd to its directory. Then type:
 
     perl Build.PL
 
-This will install any required dependency. If you want to install slic3r.pl
-in your system path, type this as root:
+This will install any required dependency. If you want the GUI, you should
+also install Wx using the following command (as root):
+
+    cpan Wx
+
+If you want to install slic3r.pl in your system path, type this as root:
 
     ./Build install
 
