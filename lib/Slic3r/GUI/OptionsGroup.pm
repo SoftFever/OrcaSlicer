@@ -17,6 +17,7 @@ sub new {
     
     foreach my $opt (@{$p{options}}) {
         my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition, [180,-1]);
+        $label->Wrap(180);  # needed to avoid Linux/GTK bug
         my $field;
         if ($opt->{type} =~ /^(i|f)$/) {
             $field = Wx::TextCtrl->new($parent, -1, ${$opt->{value}});

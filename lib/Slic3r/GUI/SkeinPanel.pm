@@ -199,7 +199,6 @@ sub new {
     );
     
     $panels{slice} = Wx::BoxSizer->new(wxVERTICAL);
-    $panels{slice}->Add(-1, 20);  # empty space before button
     my $slice_button = Wx::Button->new($self, -1, "Slice...");
     $panels{slice}->Add($slice_button, 0, wxALIGN_CENTER);
     EVT_BUTTON($self, $slice_button, \&do_slice);
