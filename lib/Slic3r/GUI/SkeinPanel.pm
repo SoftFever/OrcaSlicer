@@ -225,6 +225,7 @@ sub new {
 sub do_slice {
     my $self = shift;
     
+    my $process_dialog;
     eval {
         # validate configuration
         Slic3r::Config->validate;
@@ -236,7 +237,7 @@ sub do_slice {
         my $input_file_basename = basename($input_file);
         
         # show processbar dialog
-        my $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
+        $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
             100, $self, wxPD_APP_MODAL);
         $process_dialog->Pulse;
         my $skein = Slic3r::Skein->new(
@@ -244,12 +245,14 @@ sub do_slice {
         );
         $skein->go;
         $process_dialog->Destroy;
+        undef $process_dialog;
         
         Wx::MessageDialog->new($self, "$input_file_basename was successfully sliced.", 'Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
     
     if (my $err = $@) {
+        $process_dialog->Destroy if $process_dialog;
         Wx::MessageDialog->new($self, $err, 'Error', wxOK | wxICON_ERROR)->ShowModal;
     }
 }
