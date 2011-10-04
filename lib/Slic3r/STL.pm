@@ -117,7 +117,9 @@ sub _facet {
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     # is the facet horizontal?
-    if ($min_layer == $max_layer) {
+    # (note that we can have $min_z == $max_z && $min_layer != $max_layer
+    # if $min_z % $layer_height != 0)
+    if ($min_z == $max_z) {
         Slic3r::debugf "Facet is horizontal\n";
         my $layer = $print->layer($min_layer);
         my $surface = $layer->add_surface(@vertices);
