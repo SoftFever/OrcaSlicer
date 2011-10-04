@@ -81,10 +81,9 @@ sub add_surface {
 
 sub add_line {
     my $self = shift;
-    my ($a, $b) = @_;
+    my ($line) = @_;
     
-    # we accept either a Line object or a couple of points
-    my $line = Slic3r::Line->cast([ $a, $b ]);
+    $line = Slic3r::Line->cast($line);
     
     push @{ $self->lines }, $line;
     return $line;
@@ -106,6 +105,13 @@ sub remove_surface {
 sub make_polylines {
     my $self = shift;
     
+    # remove line duplicates
+    {
+        my %lines_map = map { join(',', sort map $_->id, @{$_->points} ) => "$_" } @{ $self->lines };
+        %lines_map = reverse %lines_map;
+        @{ $self->lines } = grep $lines_map{"$_"}, @{ $self->lines };
+    }
+    
     # make a cache of line endpoints
     my %pointmap = ();
     foreach my $line (@{ $self->lines }) {
@@ -116,8 +122,8 @@ sub make_polylines {
     }
     
     # defensive programming
-    die "No point should be endpoint of less or more than 2 lines!"
-        if grep @$_ != 2, values %pointmap;
+    #die "No point should be endpoint of less or more than 2 lines!"
+    #    if grep @$_ != 2, values %pointmap;
     
     if (0) {
         # defensive programming
@@ -126,8 +132,11 @@ sub make_polylines {
             
             #use Slic3r::SVG;
             #Slic3r::SVG::output_points($main::print, "points.svg", [ map [split /,/], keys %pointmap ], [ [split /,/, $_ ] ]);
+            #Slic3r::SVG::output_lines($main::print, "lines.svg", [ map $_->p, @{$self->lines} ]);
             
-            die sprintf "No point should be endpoint of less or more than 2 lines (%d)!", scalar(@{$pointmap{$_}});
+            YYY $pointmap{$_};
+            
+            die sprintf "No point should be endpoint of less or more than 2 lines ($_ => %d)!", scalar(@{$pointmap{$_}});
         }
         
         while (my @single_line_points = grep @{$pointmap{$_}} == 1, keys %pointmap) {
@@ -172,7 +181,7 @@ sub make_polylines {
         # remove last point as it coincides with first one
         pop @$points;
         
-        die "Invalid polyline with only 2 points\n" if @$points == 2;
+        die sprintf "Invalid polyline with only %d points\n", scalar(@$points) if @$points < 3;
         
         Slic3r::debugf "Discovered polyline of %d points (%s)\n", scalar @$points,
             join ' - ', map $_->id, @$points;
@@ -341,7 +350,7 @@ sub remove_small_features {
     foreach my $loop (@{$self->perimeters}) {
         my $p = $loop->p;
         @$p = reverse @$p if !is_counter_clockwise($p);
-        my $offsets = offset([$p], -($Slic3r::flow_width / 2 / $Slic3r::resolution), 100, JT_MITER, 2);
+        my $offsets = offset([$p], -($Slic3r::flow_width / 2 / $Slic3r::resolution), $Slic3r::resolution * 100000, JT_MITER, 2);
         push @good_perimeters, $loop if @$offsets;
     }
     Slic3r::debugf "removed %d unprintable perimeters\n", (@{$self->perimeters} - @good_perimeters) 

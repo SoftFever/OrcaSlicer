@@ -30,7 +30,7 @@ sub parse_file {
     
     # we only want to work with positive coordinates, so let's 
     # find our object extents to calculate coordinate displacements
-    my @extents = (map [99999999, -99999999], X,Y,Z);
+    my @extents = (map [99999999999, -99999999999], X,Y,Z);
     foreach my $facet ($stl->part->facets) {
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
@@ -103,7 +103,7 @@ sub _facet {
         if $Slic3r::debug;
     
     # find the vertical extents of the facet
-    my ($min_z, $max_z) = (99999999, -99999999);
+    my ($min_z, $max_z) = (99999999999, -99999999999);
     foreach my $vertex (@vertices) {
         $min_z = $vertex->[Z] if $vertex->[Z] < $min_z;
         $max_z = $vertex->[Z] if $vertex->[Z] > $max_z;
@@ -111,8 +111,10 @@ sub _facet {
     Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
     
     # calculate the layer extents
-    my ($min_layer, $max_layer) = map { sprintf '%.0f', $_ * $Slic3r::resolution / $Slic3r::layer_height } $min_z, $max_z;
-    Slic3r::debugf "layers: min = %.0f, max = %.0f\n", $min_layer, $max_layer;
+    my $min_layer = int($min_z * $Slic3r::resolution / $Slic3r::layer_height);
+    my $max_layer = int(0.99999 + ($max_z * $Slic3r::resolution / $Slic3r::layer_height));
+    
+    Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     # is the facet horizontal?
     if ($min_layer == $max_layer) {
@@ -149,48 +151,72 @@ sub _facet {
         return;
     }
     
-    # build the three segments of the triangle facet
-    my @edges = (
-        [ $vertices[0], $vertices[1] ],
-        [ $vertices[1], $vertices[2] ],
-        [ $vertices[2], $vertices[0] ],
-    );
-    
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
         my $layer = $print->layer($layer_id);
-        my $z = $layer->z;
+        $layer->add_line($_) for $self->intersect_facet(\@vertices, $layer->z);
+    }
+}
+
+sub intersect_facet {
+    my $self = shift;
+    my ($vertices, $z) = @_;
+    
+    # build the three segments of the triangle facet
+    my @edges = (
+        [ $vertices->[0], $vertices->[1] ],
+        [ $vertices->[1], $vertices->[2] ],
+        [ $vertices->[2], $vertices->[0] ],
+    );
+    
+    my (@lines, @intersection_points) = ();
         
-        my @intersection_points = ();
+    foreach my $edge (@edges) {
+        my ($a, $b) = @$edge;
+        #printf "Az = %d, Bz = %d, z = %d\n", $a->[Z], $b->[Z], $z;
         
-        foreach my $edge (@edges) {
-            my ($a, $b) = @$edge;
-            if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
-                # edge is horizontal and belongs to the current layer
-                $layer->add_line([$a->[X], $a->[Y]], [$b->[X], $b->[Y]]);
-                
-            } elsif (($a->[Z] < $z && $b->[Z] > $z) || ($b->[Z] < $z && $a->[Z] > $z)) {
-                # edge intersects the current layer; calculate intersection
-                push @intersection_points, Slic3r::Point->cast([
-                    $b->[X] + ($a->[X] - $b->[X]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
-                    $b->[Y] + ($a->[Y] - $b->[Y]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
-                ]);
-            }
-        }
-        
-        if (@intersection_points) {
-            # defensive programming:
-            die "Facets must intersect each plane 0 or 2 times" if @intersection_points != 2;
+        if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
+            # edge is horizontal and belongs to the current layer
+            push @lines, [ [$a->[X], $a->[Y]], [$b->[X], $b->[Y]] ];
+            #print "Horizontal!\n";
             
-            # check whether the two points coincide due to resolution rounding
-            if ($intersection_points[0]->coincides_with($intersection_points[1])) {
-                Slic3r::debugf "Points coincide at layer %d; removing\n", $layer_id;
-                next;
-            }
+        } elsif (($a->[Z] < $z && $b->[Z] > $z) || ($b->[Z] < $z && $a->[Z] > $z)) {
+            # edge intersects the current layer; calculate intersection
+            push @intersection_points, [
+                $b->[X] + ($a->[X] - $b->[X]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
+                $b->[Y] + ($a->[Y] - $b->[Y]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
+            ];
+            #print "Intersects!\n";
             
-            # connect points:
-            $layer->add_line(@intersection_points);
+        } elsif ($a->[Z] == $z) {
+            #print "A point on plane!\n";
+            push @intersection_points, [ $a->[X], $a->[Y] ];
+            
+        } elsif ($b->[Z] == $z) {
+            #print "B point on plane!\n";
+            push @intersection_points, [ $b->[X], $b->[Y] ];
         }
     }
+    
+    Slic3r::Geometry::remove_coinciding_points(\@intersection_points);
+    
+    if (@intersection_points > 1 && !@lines) {
+        
+        # remove coinciding points
+        
+        # defensive programming:
+        die "Facets must intersect each plane 0 or 2 times" if @intersection_points != 2;
+        
+        # check whether the two points coincide due to resolution rounding
+        #if ($intersection_points[0]->coincides_with($intersection_points[1])) {
+        #    Slic3r::debugf "Points coincide; removing\n";
+        #    return;
+        #}
+        
+        # connect points:
+        push @lines, [ @intersection_points ];
+    }
+    
+    return @lines;
 }
 
 1;

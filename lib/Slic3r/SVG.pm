@@ -8,7 +8,7 @@ use constant X => 0;
 use constant Y => 1;
 
 sub factor {
-    return $Slic3r::resolution * 100;
+    return $Slic3r::resolution * 10;
 }
 
 sub svg {

@@ -10,7 +10,7 @@ use constant A => 0;
 use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
-use constant epsilon => 1E-8;
+use constant epsilon => 1E-6;
 use constant epsilon2 => epsilon**2;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
@@ -168,6 +168,15 @@ sub rotate_points {
 sub move_points {
     my ($shift, @points) = @_;
     return map [ $shift->[X] + $_->[X], $shift->[Y] + $_->[Y] ], @points;
+}
+
+# preserves order
+sub remove_coinciding_points {
+    my ($points) = @_;
+    
+    my %p = map { sprintf('%f,%f', @$_) => "$_" } @$points;
+    %p = reverse %p;
+    @$points = grep $p{"$_"}, @$points;
 }
 
 1;

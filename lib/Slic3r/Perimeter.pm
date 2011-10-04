@@ -75,7 +75,7 @@ sub make_perimeter {
     }
     
     # generate skirt on bottom layer
-    if ($layer->id == 0 && $Slic3r::skirts > 0) {
+    if ($layer->id == 0 && $Slic3r::skirts > 0 && @{ $layer->surfaces }) {
         # find out convex hull
         my $points = [ map { @{ $_->mgp_polygon->polygons->[0] } } @{ $layer->surfaces } ];
         my $convex_hull = $self->_mgp_from_points_ref($points)->convexhull2;  # maybe Math::ConvexHull is faster?
@@ -84,7 +84,7 @@ sub make_perimeter {
         # draw outlines from outside to inside
         for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
             my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
-            my $outline = offset([$convex_hull_points], $distance, 0.1, JT_ROUND);
+            my $outline = offset([$convex_hull_points], $distance, $Slic3r::resolution * 100000, JT_ROUND);
             push @{ $layer->skirts }, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ]);
         }
     }
@@ -101,7 +101,7 @@ sub offset_polygon {
     my ($contour_p, @holes_p) = ($polygon->{outer}, @{$polygon->{holes}});
     
     # generate offsets
-    my $offsets = offset([ $contour_p, @holes_p ], -$distance, 100, JT_MITER, 2);
+    my $offsets = offset([ $contour_p, @holes_p ], -$distance, $Slic3r::resolution * 100000, JT_MITER, 2);
     
     # defensive programming
     my (@contour_offsets, @hole_offsets) = ();

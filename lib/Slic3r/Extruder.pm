@@ -8,6 +8,7 @@ has 'z'                  => (is => 'rw', default => sub {0} );
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'last_pos'           => (is => 'rw', default => sub { [0,0] } );
+has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # calculate speeds
 has 'travel_feed_rate' => (
@@ -25,12 +26,6 @@ has 'perimeter_feed_rate' => (
 has 'retract_speed' => (
     is      => 'ro',
     default => sub { $Slic3r::retract_speed * 60 },  # mm/min
-);
-
-# calculate number of decimals
-has 'dec' => (
-    is      => 'ro',
-    default => sub { length((1 / $Slic3r::resolution) - 1) + 1 },
 );
 
 use XXX;
