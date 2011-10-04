@@ -230,7 +230,7 @@ sub do_slice {
         Slic3r::Config->validate;
         
         # select input file
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', "", "", "*.stl", wxFD_OPEN);
+        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', "", "", "STL files *.stl|*.stl;*.STL", wxFD_OPEN);
         return unless $dialog->ShowModal == wxID_OK;
         my ($input_file) = $dialog->GetPaths;
         my $input_file_basename = basename($input_file);
