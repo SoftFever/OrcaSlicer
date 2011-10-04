@@ -179,4 +179,75 @@ sub remove_coinciding_points {
     @$points = grep $p{"$_"}, @$points;
 }
 
+# implementation of Liang-Barsky algorithm
+# polygon must be convex and ccw
+sub clip_segment_polygon {
+    my ($line, $polygon) = @_;
+    
+    if (@$line == 1) {
+        # the segment is a point, check for inclusion
+        return point_in_polygon($line, $polygon);
+    }
+    
+    my @V = (@$polygon, $polygon->[0]);
+    my $tE = 0; # the maximum entering segment parameter
+    my $tL = 1; # the minimum entering segment parameter
+    my $dS = subtract_vectors($line->[B], $line->[A]); # the segment direction vector
+    
+    for (my $i = 0; $i < $#V; $i++) {   # process polygon edge V[i]V[Vi+1]
+        my $e = subtract_vectors($V[$i+1], $V[$i]);
+        my $N = perp($e, subtract_vectors($line->[A], $V[$i]));
+        my $D = -perp($e, $dS);
+        if (abs($D) < epsilon) {          # $line is nearly parallel to this edge
+            ($N < 0) ? return : next;     # P0 outside this edge ? $line is outside : $line cannot cross edge, thus ignoring
+        }
+        
+        my $t = $N / $D;
+        if ($D < 0) { # $line is entering across this edge
+            if ($t > $tE) {  # new max $tE
+                $tE = $t;
+                return if $tE > $tL;  # $line enters after leaving polygon?
+            }
+        } else { # $line is leaving across this edge
+            if ($t < $tL) {  # new min $tL
+                $tL = $t;
+                return if $tL < $tE;  # $line leaves before entering polygon?
+            }
+        }
+    }
+    
+    # $tE <= $tL implies that there is a valid intersection subsegment
+    return [
+        sum_vectors($line->[A], multiply_vector($dS, $tE)),  # = P(tE) = point where S enters polygon
+        sum_vectors($line->[A], multiply_vector($dS, $tL)),  # = P(tE) = point where S enters polygon
+    ];
+}
+
+sub sum_vectors {
+    my ($v1, $v2) = @_;
+    return [ $v1->[X] + $v2->[X], $v1->[Y] + $v2->[Y] ];
+}
+
+sub multiply_vector {
+    my ($line, $scalar) = @_;
+    return [ $line->[X] * $scalar, $line->[Y] * $scalar ];
+}
+
+sub subtract_vectors {
+    my ($line2, $line1) = @_;
+    return [ $line2->[X] - $line1->[X], $line2->[Y] - $line1->[Y] ];
+}
+
+# 2D dot product
+sub dot {
+    my ($u, $v) = @_;
+    return $u->[X] * $v->[X] + $u->[Y] * $v->[Y];
+}
+
+# 2D perp product
+sub perp {
+    my ($u, $v) = @_;
+    return $u->[X] * $v->[Y] - $u->[Y] * $v->[X];
+}
+
 1;
