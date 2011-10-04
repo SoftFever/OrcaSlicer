@@ -112,6 +112,24 @@ sub make_polylines {
         @{ $self->lines } = grep $lines_map{"$_"}, @{ $self->lines };
     }
     
+    # now remove lines that are already part of a surface
+    {
+        my @lines = @{ $self->lines };
+        @{ $self->lines } = ();
+        LINE: foreach my $line (@lines) {
+            if (!$line->isa('Slic3r::Line::FacetEdge')) {
+                push @{ $self->lines }, $line;
+                next LINE;
+            }
+            foreach my $surface (@{$self->surfaces}) {
+                if ($surface->surface_type eq $line->edge_type && $surface->contour->has_segment($line)) {
+                    next LINE;
+                }
+            }
+            push @{ $self->lines }, $line;
+        }
+    }
+    
     # make a cache of line endpoints
     my %pointmap = ();
     foreach my $line (@{ $self->lines }) {

@@ -176,7 +176,10 @@ sub intersect_facet {
         
         if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
             # edge is horizontal and belongs to the current layer
-            push @lines, [ [$a->[X], $a->[Y]], [$b->[X], $b->[Y]] ];
+            push @lines, Slic3r::Line::FacetEdge->cast(
+                [ [$a->[X], $a->[Y]], [$b->[X], $b->[Y]] ],
+                edge_type => (grep $_->[Z] > $z, @$vertices) ? 'bottom' : 'top',
+            );
             #print "Horizontal!\n";
             
         } elsif (($a->[Z] < $z && $b->[Z] > $z) || ($b->[Z] < $z && $a->[Z] > $z)) {
@@ -213,7 +216,7 @@ sub intersect_facet {
         #}
         
         # connect points:
-        push @lines, [ @intersection_points ];
+        push @lines, Slic3r::Line->cast([ @intersection_points ]);
     }
     
     return @lines;

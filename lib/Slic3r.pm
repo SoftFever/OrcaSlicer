@@ -17,6 +17,7 @@ use Slic3r::Fill;
 use Slic3r::Geometry;
 use Slic3r::Layer;
 use Slic3r::Line;
+use Slic3r::Line::FacetEdge;
 use Slic3r::Perimeter;
 use Slic3r::Point;
 use Slic3r::Polyline;

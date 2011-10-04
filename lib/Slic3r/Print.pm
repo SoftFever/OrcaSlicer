@@ -46,9 +46,6 @@ sub new_from_stl {
         $layer->merge_contiguous_surfaces;
     }
     
-    # detect which surfaces are near external layers
-    $print->discover_horizontal_shells;
-    
     return $print;
 }
 
@@ -88,7 +85,7 @@ sub discover_horizontal_shells {
         my $layer = $self->layers->[$i];
         foreach my $type (qw(top bottom)) {
             # find surfaces of current type for current layer
-            my @surfaces = grep $_->surface_type eq $type, @{$layer->surfaces} or next;
+            my @surfaces = grep $_->surface_type eq $type, map @{$_->surfaces}, @{$layer->fill_surfaces} or next;
             Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
                 $i, scalar(@surfaces), $type;
             
@@ -99,47 +96,51 @@ sub discover_horizontal_shells {
                 next if $n < 0 || $n >= $self->layer_count;
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                 
-                my $neighbor_polygons = [ map $_->p, grep $_->surface_type eq 'internal', @{$self->layers->[$n]->surfaces} ];
-                # find intersection between @surfaces and current layer's surfaces
-                $clipper->add_subject_polygons([ map $_->p, @surfaces ]);
-                $clipper->add_clip_polygons($neighbor_polygons);
-                
-                # intersections have contours and holes
-                my $intersections = $clipper->ex_execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
-                $clipper->clear;
-                next if @$intersections == 0;
-                Slic3r::debugf "    %d intersections found\n", scalar @$intersections;
-                
-                # subtract intersections from layer surfaces to get resulting inner surfaces
-                $clipper->add_subject_polygons($neighbor_polygons);
-                $clipper->add_clip_polygons([ map { $_->{outer}, @{$_->{holes}} } @$intersections ]);
-                my $internal_polygons = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-                $clipper->clear;
-                
-                # Note: due to floating point math we're going to get some very small
-                # polygons as $internal_polygons; they will be removed by removed_small_features()
-                
-                # assign resulting inner surfaces to layer
-                $self->layers->[$n]->surfaces([]);
-                foreach my $p (@$internal_polygons) {
-                    push @{$self->layers->[$n]->surfaces}, Slic3r::Surface->new(
-                        surface_type => 'internal',
-                        contour => Slic3r::Polyline::Closed->cast($p->{outer}),
-                        holes   => [
-                            map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
-                        ],
-                    );
-                }
-                
-                # assign new internal-solid surfaces to layer
-                foreach my $p (@$intersections) {
-                    push @{$self->layers->[$n]->surfaces}, Slic3r::Surface->new(
-                        surface_type => 'internal-solid',
-                        contour => Slic3r::Polyline::Closed->cast($p->{outer}),
-                        holes   => [
-                            map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
-                        ],
-                    );
+                foreach my $surf_coll (@{$self->layers->[$n]->fill_surfaces}) {
+                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type eq 'internal', @{$surf_coll->surfaces} ];
+                    
+                    # find intersection between @surfaces and current layer's surfaces
+                    $clipper->add_subject_polygons([ map $_->p, @surfaces ]);
+                    $clipper->add_clip_polygons($neighbor_polygons);
+                    
+                    # intersections have contours and holes
+                    my $intersections = $clipper->ex_execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
+                    $clipper->clear;
+                    
+                    next if @$intersections == 0;
+                    Slic3r::debugf "    %d intersections found\n", scalar @$intersections;
+                    
+                    # subtract intersections from layer surfaces to get resulting inner surfaces
+                    $clipper->add_subject_polygons($neighbor_polygons);
+                    $clipper->add_clip_polygons([ map { $_->{outer}, @{$_->{holes}} } @$intersections ]);
+                    my $internal_polygons = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
+                    $clipper->clear;
+                    
+                    # Note: due to floating point math we're going to get some very small
+                    # polygons as $internal_polygons; they will be removed by removed_small_features()
+                    
+                    # assign resulting inner surfaces to layer
+                    $surf_coll->surfaces([]);
+                    foreach my $p (@$internal_polygons) {
+                        push @{$surf_coll->surfaces}, Slic3r::Surface->new(
+                            surface_type => 'internal',
+                            contour => Slic3r::Polyline::Closed->cast($p->{outer}),
+                            holes   => [
+                                map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
+                            ],
+                        );
+                    }
+                    
+                    # assign new internal-solid surfaces to layer
+                    foreach my $p (@$intersections) {
+                        push @{$surf_coll->surfaces}, Slic3r::Surface->new(
+                            surface_type => 'internal-solid',
+                            contour => Slic3r::Polyline::Closed->cast($p->{outer}),
+                            holes   => [
+                                map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
+                            ],
+                        );
+                    }
                 }
             }
         }

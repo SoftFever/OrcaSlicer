@@ -113,12 +113,11 @@ sub offset_polygon {
         }
     }
     
-    # apply all holes to all contours;
-    # this is improper, but Math::Clipper handles it
-    return map {{
-        outer => $_,
-        holes => [ @hole_offsets ],
-    }} @contour_offsets;
+    # apply holes to the right contours
+    my $clipper = Math::Clipper->new;
+    $clipper->add_subject_polygons($offsets);
+    my $results = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
+    return @$results;
 }
 
 sub _mgp_from_points_ref {

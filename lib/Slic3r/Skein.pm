@@ -2,6 +2,7 @@ package Slic3r::Skein;
 use Moo;
 
 use Time::HiRes qw(gettimeofday tv_interval);
+use XXX;
 
 has 'input_file'    => (is => 'ro', required => 1);
 has 'output_file'   => (is => 'rw', required => 0);
@@ -16,6 +17,10 @@ sub go {
     my $print = Slic3r::Print->new_from_stl($self->input_file);
     $print->extrude_perimeters;
     $print->remove_small_features;
+    
+    # detect which surfaces are near external layers
+    $print->discover_horizontal_shells;
+    
     $print->extrude_fills;
     
     

@@ -11,7 +11,6 @@ use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
 use constant epsilon => 1E-6;
-use constant epsilon2 => epsilon**2;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
 sub slope {
@@ -92,18 +91,33 @@ sub point_in_polygon {
     # if point is not in polygon, let's check whether it belongs to the contour
     if (!$side && 0) {
         foreach my $line (polygon_lines($polygon)) {
-            # calculate the Y in line at X of the point
-            if ($line->[A][X] == $line->[B][X]) {
-                return 1 if abs($x - $line->[A][X]) < epsilon;
-                next;
-            }
-            my $y3 = $line->[A][Y] + ($line->[B][Y] - $line->[A][Y])
-                * ($x - $line->[A][X]) / ($line->[B][X] - $line->[A][X]);
-            return 1 if abs($y3 - $y) < epsilon2;
+            return 1 if point_in_segment($point, $line);
         }
     }
     
     return $side;
+}
+
+sub point_in_segment {
+    my ($point, $line) = @_;
+    
+    my ($x, $y) = @$point;
+    my @line_x = sort { $a <=> $b } $line->[A][X], $line->[B][X];
+    my @line_y = sort { $a <=> $b } $line->[A][Y], $line->[B][Y];
+    
+    # check whether the point is in the segment bounding box
+    return 0 unless $x >= ($line_x[0] - epsilon) && $x <= ($line_x[1] + epsilon)
+        && $y >= ($line_y[0] - epsilon) && $y <= ($line_y[1] + epsilon);
+    
+    # if line is vertical, check whether point's X is the same as the line
+    if ($line->[A][X] == $line->[B][X]) {
+        return 1 if abs($x - $line->[A][X]) < epsilon;
+    }
+    
+    # calculate the Y in line at X of the point
+    my $y3 = $line->[A][Y] + ($line->[B][Y] - $line->[A][Y])
+        * ($x - $line->[A][X]) / ($line->[B][X] - $line->[A][X]);
+    return abs($y3 - $y) < epsilon ? 1 : 0;
 }
 
 sub polygon_lines {

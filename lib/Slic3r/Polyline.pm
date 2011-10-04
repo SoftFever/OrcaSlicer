@@ -97,4 +97,14 @@ sub nearest_point_to {
     return Slic3r::Point->cast($point);
 }
 
+sub has_segment {
+    my $self = shift;
+    my ($line) = @_;
+    
+    for ($self->lines) {
+        return 1 if $_->has_segment($line);
+    }
+    return 0;
+}
+
 1;

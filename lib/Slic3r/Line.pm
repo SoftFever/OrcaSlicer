@@ -10,10 +10,10 @@ has 'points' => (
 
 sub cast {
     my $class = shift;
-    my ($line) = @_;
+    my ($line, %args) = @_;
     if (ref $line eq 'ARRAY') {
         @$line == 2 or die "Line needs two points!";
-        return Slic3r::Line->new(points => [ map Slic3r::Point->cast($_), @$line ]);
+        return $class->new(points => [ map Slic3r::Point->cast($_), @$line ], %args);
     } else {
         return $line;
     }
@@ -49,6 +49,17 @@ sub has_endpoint {
     my $self = shift;
     my ($point) = @_;
     return $point->coincides_with($self->a) || $point->coincides_with($self->b);
+}
+
+sub has_segment {
+    my $self = shift;
+    my ($line) = @_;
+    
+    $line = $line->p if $line->isa('Slic3r::Line');
+    
+    # a segment belongs to another segment if its points belong to it
+    return Slic3r::Geometry::point_in_segment($line->[0], $self->p)
+        && Slic3r::Geometry::point_in_segment($line->[1], $self->p);
 }
 
 sub parallel_to {
