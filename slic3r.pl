@@ -19,6 +19,9 @@ GetOptions(
     'debug'                 => \$Slic3r::debug,
     'o|output'              => \$opt{output},
     
+    'save=s'                    => \$opt{save},
+    'load=s'                    => \$opt{load},
+    
     # printer options
     'nozzle-diameter=f'         => \$Slic3r::nozzle_diameter,
     'print-center=s'            => \$Slic3r::print_center,
@@ -63,25 +66,37 @@ GetOptions(
     'multiply-distance=i'   => \$Slic3r::multiply_distance,
 );
 
+# load configuration
+if ($opt{load}) {
+    -e $opt{load} or die "Cannot find specified configuration file.\n";
+    Slic3r::Config->load($opt{load});
+}
+
 # validate configuration
 Slic3r::Config->validate;
 
+# save configuration
+Slic3r::Config->save($opt{save}) if $opt{save};
+
 # start GUI
-if (!@ARGV && eval "require Slic3r::GUI; 1") {
+if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     Slic3r::GUI->new->MainLoop;
     exit;
 }
 
-my $action = 'skein';
+if ($ARGV[0]) {
 
-if ($action eq 'skein') {
-    my $input_file = $ARGV[0] or usage(1);
+    # skein
+    my $input_file = $ARGV[0];
     
     my $skein = Slic3r::Skein->new(
         input_file  => $input_file,
         output_file => $opt{output},
     );
     $skein->go;
+    
+} else {
+    usage(1) unless $opt{save};
 }
 
 sub usage {
@@ -94,6 +109,8 @@ written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
 Usage: slic3r.pl [ OPTIONS ] file.stl
 
     --help              Output this usage screen and exit
+    --save <file>       Save configuration to the specified file
+    --load <file>       Load configuration from the specified file
     
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)

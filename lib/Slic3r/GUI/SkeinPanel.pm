@@ -4,7 +4,8 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_ERROR wxID_OK wxFD_OPEN);
+use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_ERROR wxID_OK wxFD_OPEN
+    wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
@@ -16,187 +17,38 @@ sub new {
     my %panels = (
         printer => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Printer',
-            options => [
-                {
-                    label   => 'Nozzle diameter',
-                    value   => \$Slic3r::nozzle_diameter,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Print center',
-                    value   => \$Slic3r::print_center,
-                    type    => 'point',
-                },
-                {
-                    label   => 'Use relative E distances',
-                    value   => \$Slic3r::use_relative_e_distances,
-                    type    => 'bool',
-                },
-                {
-                    label   => 'Z offset',
-                    value   => \$Slic3r::z_offset,
-                    type    => 'f',
-                },
-            ],
+            options => [qw(nozzle_diameter print_center use_relative_e_distances z_offset)],
         ),
-        
         filament => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Filament',
-            options => [
-                {
-                    label   => 'Diameter (mm)',
-                    value   => \$Slic3r::filament_diameter,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Packing density (mm)',
-                    value   => \$Slic3r::filament_packing_density,
-                    type    => 'f',
-                },
-            ],
+            options => [qw(filament_diameter filament_packing_density)],
         ),
-        
         speed => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Speed',
-            options => [
-                {
-                    label   => 'Print feed rate (mm/s)',
-                    value   => \$Slic3r::print_feed_rate,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Travel feed rate (mm/s)',
-                    value   => \$Slic3r::travel_feed_rate,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Perimeter feed rate (mm/s)',
-                    value   => \$Slic3r::perimeter_feed_rate,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Bottom layer ratio',
-                    value   => \$Slic3r::bottom_layer_speed_ratio,
-                    type    => 'f',
-                },
-            ],
+            options => [qw(print_feed_rate travel_feed_rate perimeter_feed_rate bottom_layer_speed_ratio)],
         ),
-        
         accuracy => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Accuracy',
-            options => [
-                {
-                    label   => 'Layer height (mm)',
-                    value   => \$Slic3r::layer_height,
-                    type    => 'f',
-                },
-            ],
+            options => [qw(layer_height)],
         ),
-        
         print => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Print settings',
-            options => [
-                {
-                    label   => 'Perimeters',
-                    value   => \$Slic3r::perimeter_offsets,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Solid layers',
-                    value   => \$Slic3r::solid_layers,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Fill density',
-                    value   => \$Slic3r::fill_density,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Fill angle (°)',
-                    value   => \$Slic3r::fill_angle,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Temperature (°C)',
-                    value   => \$Slic3r::temperature,
-                    type    => 'i',
-                },
-            ],
+            options => [qw(perimeter_offsets solid_layers fill_density fill_angle temperature)],
         ),
-        
         retract => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Retraction',
-            options => [
-                {
-                    label   => 'Length (mm)',
-                    value   => \$Slic3r::retract_length,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Speed (mm/s)',
-                    value   => \$Slic3r::retract_speed,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Extra length on restart (mm)',
-                    value   => \$Slic3r::retract_restart_extra,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Minimum travel after retraction (mm)',
-                    value   => \$Slic3r::retract_before_travel,
-                    type    => 'f',
-                },
-            ],
+            options => [qw(retract_length retract_speed retract_restart_extra retract_before_travel)],
         ),
-        
         skirt => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Skirt',
-            options => [
-                {
-                    label   => 'Loops',
-                    value   => \$Slic3r::skirts,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Distance from object (mm)',
-                    value   => \$Slic3r::skirt_distance,
-                    type    => 'i',
-                },
-            ],
+            options => [qw(skirts skirt_distance)],
         ),
-        
         transform => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Transform',
-            options => [
-                {
-                    label   => 'Scale',
-                    value   => \$Slic3r::scale,
-                    type    => 'f',
-                },
-                {
-                    label   => 'Rotate (°)',
-                    value   => \$Slic3r::rotate,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Multiply along X',
-                    value   => \$Slic3r::multiply_x,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Multiply along Y',
-                    value   => \$Slic3r::multiply_y,
-                    type    => 'i',
-                },
-                {
-                    label   => 'Multiply distance',
-                    value   => \$Slic3r::multiply_distance,
-                    type    => 'i',
-                },
-            ],
+            options => [qw(scale rotate multiply_x multiply_y multiply_distance)],
         ),
     );
+    $self->{panels} = \%panels;
     
     $panels{slice} = Wx::BoxSizer->new(wxVERTICAL);
     my $slice_button = Wx::Button->new($self, -1, "Slice...");
@@ -207,12 +59,34 @@ sub new {
         [qw(printer filament speed transform)], [qw(accuracy print retract skirt slice)],
     );
     
-    my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    my $config_buttons_sizer;
+    {
+        $config_buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        
+        my $save_button = Wx::Button->new($self, -1, "Save configuration...");
+        $config_buttons_sizer->Add($save_button, 0);
+        EVT_BUTTON($self, $save_button, \&save_config);
+        
+        my $load_button = Wx::Button->new($self, -1, "Load configuration...");
+        $config_buttons_sizer->Add($load_button, 0);
+        EVT_BUTTON($self, $load_button, \&load_config);
+        
+        my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);
+        my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
+        $text->SetFont($font);
+        $config_buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
+    }
+    
+    my $skein_options_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     foreach my $col (@cols) {
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $vertical_sizer->Add($panels{$_}, 0, wxEXPAND | wxALL, 10) for @$col;
-        $sizer->Add($vertical_sizer);
+        $skein_options_sizer->Add($vertical_sizer);
     }
+    
+    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $sizer->Add($config_buttons_sizer, 0, wxEXPAND | wxALL, 10);
+    $sizer->Add($skein_options_sizer);
     
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);
@@ -249,9 +123,40 @@ sub do_slice {
         Wx::MessageDialog->new($self, "$input_file_basename was successfully sliced.", 'Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
+    $self->catch_error(sub { $process_dialog->Destroy if $process_dialog });
+}
+
+my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
+
+sub save_config {
+    my $self = shift;
     
+    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', "", "config.ini", 
+        $ini_wildcard, wxFD_SAVE);
+    if ($dlg->ShowModal == wxID_OK) {
+        Slic3r::Config->save($dlg->GetPath);
+    }
+}
+
+sub load_config {
+    my $self = shift;
+    
+    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', "", "config.ini", 
+        $ini_wildcard, wxFD_OPEN);
+    if ($dlg->ShowModal == wxID_OK) {
+        my ($file) = $dlg->GetPaths;
+        eval {
+            Slic3r::Config->load($file);
+        };
+        $self->catch_error();
+        $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
+    }
+}
+
+sub catch_error {
+    my ($self, $cb) = @_;
     if (my $err = $@) {
-        $process_dialog->Destroy if $process_dialog;
+        $cb->() if $cb;
         Wx::MessageDialog->new($self, $err, 'Error', wxOK | wxICON_ERROR)->ShowModal;
     }
 }

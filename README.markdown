@@ -79,6 +79,9 @@ The author is Alessandro Ranellucci (me).
     Usage: slic3r.pl [ OPTIONS ] file.stl
     
         --help              Output this usage screen and exit
+        --save <file>       Save configuration to the specified file
+        --load <file>       Load configuration from the specified file
+
         
       Printer options:
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.55)

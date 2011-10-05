@@ -4,6 +4,176 @@ use warnings;
 
 use constant PI => 4 * atan2(1, 1);
 
+our $Options = {
+
+    # printer options
+    'nozzle_diameter' => {
+        label   => 'Nozzle diameter',
+        type    => 'f',
+    },
+    'print_center' => {
+        label   => 'Print center',
+        type    => 'point',
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
+    },
+    'use_relative_e_distances' => {
+        label   => 'Use relative E distances',
+        type    => 'bool',
+    },
+    'z_offset' => {
+        label   => 'Z offset',
+        type    => 'f',
+    },
+    
+    # filament options
+    'filament_diameter' => {
+        label   => 'Diameter (mm)',
+        type    => 'f',
+    },
+    'filament_packing_density' => {
+        label   => 'Packing density (mm)',
+        type    => 'f',
+    },
+    
+    # speed options
+    'print_feed_rate' => {
+        label   => 'Print feed rate (mm/s)',
+        type    => 'f',
+    },
+    'travel_feed_rate' => {
+        label   => 'Travel feed rate (mm/s)',
+        type    => 'f',
+    },
+    'perimeter_feed_rate' => {
+        label   => 'Perimeter feed rate (mm/s)',
+        type    => 'f',
+    },
+    'bottom_layer_speed_ratio' => {
+        label   => 'Bottom layer ratio',
+        type    => 'f',
+    },
+    
+    # accuracy options
+    'layer_height' => {
+        label   => 'Layer height (mm)',
+        type    => 'f',
+    },
+    
+    # print options
+    'perimeter_offsets' => {
+        label   => 'Perimeters',
+        type    => 'i',
+    },
+    'solid_layers' => {
+        label   => 'Solid layers',
+        type    => 'i',
+    },
+    'fill_density' => {
+        label   => 'Fill density',
+        type    => 'f',
+    },
+    'fill_angle' => {
+        label   => 'Fill angle (°)',
+        type    => 'i',
+    },
+    'temperature' => {
+        label   => 'Temperature (°C)',
+        type    => 'i',
+    },
+    
+    # retraction options
+    'retract_length' => {
+        label   => 'Length (mm)',
+        type    => 'f',
+    },
+    'retract_speed' => {
+        label   => 'Speed (mm/s)',
+        type    => 'i',
+    },
+    'retract_restart_extra' => {
+        label   => 'Extra length on restart (mm)',
+        type    => 'f',
+    },
+    'retract_before_travel' => {
+        label   => 'Minimum travel after retraction (mm)',
+        type    => 'f',
+    },
+    
+    # skirt options
+    'skirts' => {
+        label   => 'Loops',
+        type    => 'i',
+    },
+    'skirt_distance' => {
+        label   => 'Distance from object (mm)',
+        type    => 'i',
+    },
+    
+    # transform options
+    'scale' => {
+        label   => 'Scale',
+        type    => 'f',
+    },
+    'rotate' => {
+        label   => 'Rotate (°)',
+        type    => 'i',
+    },
+    'multiply_x' => {
+        label   => 'Multiply along X',
+        type    => 'i',
+    },
+    'multiply_y' => {
+        label   => 'Multiply along Y',
+        type    => 'i',
+    },
+    'multiply_distance' => {
+        label   => 'Multiply distance',
+        type    => 'i',
+    },
+};
+
+sub get {
+    my $class = @_ == 2 ? shift : undef;
+    my ($opt_key) = @_;
+    no strict 'refs';
+    return ${"Slic3r::$opt_key"};
+}
+
+sub set {
+    my $class = @_ == 3 ? shift : undef;
+    my ($opt_key, $value) = @_;
+    no strict 'refs';
+    ${"Slic3r::$opt_key"} = $value;
+}
+
+sub save {
+    my $class = shift;
+    my ($file) = @_;
+    
+    open my $fh, '>', $file;
+    foreach my $opt (sort keys %$Options) {
+        my $value = get($opt);
+        $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
+        printf $fh "%s = %s\n", $opt, $value;
+    }
+    close $fh;
+}
+
+sub load {
+    my $class = shift;
+    my ($file) = @_;
+    
+    open my $fh, '<', $file;
+    while (<$fh>) {
+        next if /^\s*#/;
+        /^(\w+) = (.+)/ or die "Unreadable configuration file (invalid data at line $.)\n";
+        my $opt = $Options->{$1} or die "Unknown option $1 at like $.\n";
+        set($1, $opt->{deserialize} ? $opt->{deserialize}->($2) : $2);
+    }
+    close $fh;
+}
+
 sub validate {
     my $class = shift;
 
