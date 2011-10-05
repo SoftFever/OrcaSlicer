@@ -84,7 +84,7 @@ sub make_perimeter {
         # draw outlines from outside to inside
         for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
             my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
-            my $outline = offset([$convex_hull_points], $distance, $Slic3r::resolution * 100000, JT_ROUND);
+            my $outline = offset([$convex_hull_points], $distance, $Slic3r::resolution * 100, JT_ROUND);
             push @{ $layer->skirts }, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ]);
         }
     }

@@ -76,7 +76,7 @@ sub extrude {
     }
     
     # retract
-    if (Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]->p) 
+    if (Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]->p) * $Slic3r::resolution
         >= $Slic3r::retract_before_travel) {
         $gcode .= $self->retract;
     }
@@ -105,7 +105,6 @@ sub extrude {
 sub retract {
     my $self = shift;
     return "" unless $Slic3r::retract_length > 0 
-        && $self->extrusion_distance > 0 
         && !$self->retracted;
     
     $self->retracted(1);

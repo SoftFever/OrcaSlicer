@@ -57,7 +57,7 @@ sub points_coincide {
 
 sub distance_between_points {
     my ($p1, $p2) = @_;
-    return sqrt(($p1->[X] - $p2->[X])**2 + ($p1->[Y] - $p2->[Y])**2);
+    return sqrt((($p1->[X] - $p2->[X])**2) + ($p1->[Y] - $p2->[Y])**2);
 }
 
 sub point_in_polygon {

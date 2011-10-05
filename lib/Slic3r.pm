@@ -29,14 +29,14 @@ use Slic3r::Surface;
 use Slic3r::Surface::Collection;
 
 # printer options
-our $nozzle_diameter    = 0.55;
+our $nozzle_diameter    = 0.5;
 our $print_center       = [100,100];  # object will be centered around this point
 our $use_relative_e_distances = 0;
 our $z_offset = 0;
 
 # filament options
 our $filament_diameter  = 3;    # mm
-our $filament_packing_density = 0.85;
+our $filament_packing_density = 1;
 
 # speed options
 our $print_feed_rate            = 60;   # mm/sec
