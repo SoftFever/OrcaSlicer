@@ -90,9 +90,7 @@ sub point_in_polygon {
     
     # if point is not in polygon, let's check whether it belongs to the contour
     if (!$side && 0) {
-        foreach my $line (polygon_lines($polygon)) {
-            return 1 if point_in_segment($point, $line);
-        }
+        return 1 if polygon_segment_having_point($polygon, $point);
     }
     
     return $side;
@@ -458,5 +456,22 @@ sub bounding_box_intersect {
     return 1;
 }
 
+sub clip_segment_complex_polygon {
+    my ($line, $polygons) = @_;
+    
+    my @intersections = grep $_, map line_intersection($line, $_, 1), 
+        map polygon_lines($_), @$polygons;
+    
+    @intersections = sort { "$a->[X],$a->[Y]" cmp "$b->[X],$b->[Y]" } @intersections;
+    
+    shift(@intersections) if !grep(point_in_polygon($intersections[0], $_), @$polygons)
+        && !grep(polygon_segment_having_point($_, $intersections[0]), @$polygons);
+    
+    my @lines = ();
+    while (@intersections) {
+        push @lines, [ shift(@intersections), shift(@intersections) ];
+    }
+    return [@lines];
+}
 
 1;
