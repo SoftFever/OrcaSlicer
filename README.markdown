@@ -40,6 +40,7 @@ Slic3r current features are:
 * retraction;
 * skirt (with rounded corners);
 * use relative or absolute extrusion commands;
+* high-res perimeters (like the "Skin" plugin for Skeinforge);
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and multiply input object;

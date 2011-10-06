@@ -211,6 +211,18 @@ sub export_gcode {
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
         
+        # with the --high-res-perimeters options enabled we extrude perimeters for
+        # each layer twice at half height
+        if ($Slic3r::high_res_perimeters && $layer->id > 0) {
+            # go to half-layer
+            printf $fh $extruder->move_z($Slic3r::z_offset + $layer->z * $Slic3r::resolution - $Slic3r::layer_height/2);
+            
+            # extrude perimeters
+            $extruder->flow_ratio(0.5);
+            printf $fh $extruder->extrude_loop($_, 'perimeter') for @{ $layer->perimeters };
+            $extruder->flow_ratio(1);
+        }
+        
         # go to layer
         printf $fh $extruder->move_z($Slic3r::z_offset + $layer->z * $Slic3r::resolution);
         

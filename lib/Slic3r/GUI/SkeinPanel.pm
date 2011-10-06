@@ -29,7 +29,7 @@ sub new {
         ),
         accuracy => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Accuracy',
-            options => [qw(layer_height)],
+            options => [qw(layer_height high_res_perimeters)],
         ),
         print => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Print settings',
