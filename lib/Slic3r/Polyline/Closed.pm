@@ -32,12 +32,4 @@ sub encloses_point {
     return Slic3r::Geometry::point_in_polygon($point->p, $self->p);
 }
 
-sub mgp_polygon {
-    my $self = shift;
-    
-    my $p = Math::Geometry::Planar->new;
-    $p->points($self->points);
-    return $p;
-}
-
 1;

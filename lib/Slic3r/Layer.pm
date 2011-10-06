@@ -2,7 +2,6 @@ package Slic3r::Layer;
 use Moo;
 
 use Math::Clipper ':all';
-use Math::Geometry::Planar;
 use XXX;
 
 # a sequential number of layer, starting at 0

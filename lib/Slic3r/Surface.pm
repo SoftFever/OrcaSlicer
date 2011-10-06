@@ -1,8 +1,6 @@
 package Slic3r::Surface;
 use Moo;
 
-use Math::Geometry::Planar;
-
 has 'contour' => (
     is          => 'ro',
     #isa         => 'Slic3r::Polyline::Closed',
@@ -40,14 +38,6 @@ sub encloses_point {
     return 0 if !$self->contour->encloses_point($point);
     return 0 if grep $_->encloses_point($point), @{ $self->holes };
     return 1;
-}
-
-sub mgp_polygon {
-    my $self = shift;
-    
-    my $p = Math::Geometry::Planar->new;
-    $p->polygons([ $self->contour->p, map($_->p, @{ $self->holes }) ]);
-    return $p;
 }
 
 sub clipper_polygon {

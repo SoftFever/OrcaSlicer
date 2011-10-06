@@ -11,7 +11,6 @@ use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
 
-use Math::Geometry::Planar;
 use POSIX qw(ceil);
 use XXX;
 
@@ -28,7 +27,7 @@ sub make_fill {
         
         SURFACE: foreach my $surface (@{ $surface_collection->surfaces }) {
             Slic3r::debugf " Processing surface %s:\n", $surface->id;
-            my $polygon = $surface->mgp_polygon;
+            my $polygons = [ $surface->p ];
             
             # set infill angle
             my (@rotate, @shift);
@@ -45,7 +44,8 @@ sub make_fill {
             
             # rotate surface as needed
             @shift = @{ +(Slic3r::Geometry::rotate_points(@rotate, \@shift))[0] };
-            $polygon = $polygon->rotate(@rotate)->move(@shift) if $rotate[0];
+            @$polygons = map [ Slic3r::Geometry::move_points(\@shift, @$_) ],
+                map [ Slic3r::Geometry::rotate_points(@rotate, @$_) ], @$polygons if $rotate[0];
             
             # force 100% density for external surfaces
             my $density = $surface->surface_type eq 'internal' ? $Slic3r::fill_density : 1;
@@ -59,7 +59,7 @@ sub make_fill {
             
             # this arrayref will hold intersection points of the fill grid with surface segments
             my $points = [ map [], 0..$number_of_lines-1 ];
-            foreach my $line (map $self->_lines_from_mgp_points($_), @{ $polygon->polygons }) {
+            foreach my $line (map Slic3r::Geometry::polygon_lines($_), @$polygons) {
                 
                 # find out the coordinates
                 my @coordinates = map @$_, @$line;
@@ -134,7 +134,7 @@ sub make_fill {
                     
                     my @search_points = @$row;
                     @search_points = reverse @search_points if $direction == 1;
-                    my @connectable_points = $self->find_connectable_points($polygon, $path_points[-1], $c, [@search_points]);
+                    my @connectable_points = $self->find_connectable_points($polygons, $path_points[-1], $c, [@search_points]);
                     Slic3r::debugf "  ==> found %d connectable points = %s\n", scalar(@connectable_points),
                         join ', ', @connectable_points if $Slic3r::debug;
                     
@@ -181,38 +181,17 @@ sub make_fill {
 # points connectable to a given one
 sub find_connectable_points {
     my $self = shift;
-    my ($polygon, $point, $c, $points) = @_;
+    my ($polygons, $point, $c, $points) = @_;
     
     my @connectable_points = ();
     foreach my $p (@$points) {
-        if (!Slic3r::Geometry::can_connect_points($point, [ $c, $p ], [ $polygon->get_polygons ])) {
+        if (!Slic3r::Geometry::can_connect_points($point, [ $c, $p ], $polygons)) {
              @connectable_points ? last : next;
         }
         push @connectable_points, $p;
         $point = [ $c, $p ] if $point->[0] != $c;
     }
     return @connectable_points;
-}
-
-sub _lines_from_mgp_points {
-    my $self = shift;
-    my ($points) = @_;
-    
-    my @lines = ();
-    my $last_point = $points->[-1];
-    foreach my $point (@$points) {
-        push @lines, [ $last_point, $point ];
-        $last_point = $point;
-    }
-    return @lines;
-}
-
-sub _mgp_from_points_ref {
-    my $self = shift;
-    my ($points) = @_;
-    my $p = Math::Geometry::Planar->new;
-    $p->points($points);
-    return $p;
 }
 
 1;

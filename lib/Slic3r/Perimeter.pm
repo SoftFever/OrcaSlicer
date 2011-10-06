@@ -2,7 +2,7 @@ package Slic3r::Perimeter;
 use Moo;
 
 use Math::Clipper ':all';
-use Math::Geometry::Planar;
+use Math::ConvexHull qw(convex_hull);
 use XXX;
 
 use constant X => 0;
@@ -77,14 +77,12 @@ sub make_perimeter {
     # generate skirt on bottom layer
     if ($layer->id == 0 && $Slic3r::skirts > 0 && @{ $layer->surfaces }) {
         # find out convex hull
-        my $points = [ map { @{ $_->mgp_polygon->polygons->[0] } } @{ $layer->surfaces } ];
-        my $convex_hull = $self->_mgp_from_points_ref($points)->convexhull2;  # maybe Math::ConvexHull is faster?
-        my $convex_hull_points = ref $convex_hull eq 'ARRAY' ? $convex_hull : $convex_hull->points;
+        my $convex_hull = convex_hull([ map @$_, map $_->p, @{ $layer->surfaces } ]);
         
         # draw outlines from outside to inside
         for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
             my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
-            my $outline = offset([$convex_hull_points], $distance, $Slic3r::resolution * 100, JT_ROUND);
+            my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
             push @{ $layer->skirts }, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ]);
         }
     }
@@ -118,14 +116,6 @@ sub offset_polygon {
     $clipper->add_subject_polygons($offsets);
     my $results = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
     return @$results;
-}
-
-sub _mgp_from_points_ref {
-    my $self = shift;
-    my ($points) = @_;
-    my $p = Math::Geometry::Planar->new;
-    $p->points($points);
-    return $p;
 }
 
 1;
