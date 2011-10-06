@@ -69,15 +69,11 @@ sub extrude {
     
     my $gcode = "";
     
-    # reset extrusion distance counter
-    if (!$Slic3r::use_relative_e_distances) {
-        $self->extrusion_distance(0);
-        $gcode .= "G92 E0 ; reset extrusion distance\n";
-    }
-    
-    # retract
-    if (Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]->p) * $Slic3r::resolution
-        >= $Slic3r::retract_before_travel) {
+    # retract if distance from previous position is greater or equal to the one
+    # specified by the user *and* to the maximum distance between infill lines
+    my $distance_from_last_pos = Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]->p) * $Slic3r::resolution;
+    if ($distance_from_last_pos >= $Slic3r::retract_before_travel
+        && $distance_from_last_pos >= $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2)) {
         $gcode .= $self->retract;
     }
     

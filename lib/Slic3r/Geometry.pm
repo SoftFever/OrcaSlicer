@@ -316,14 +316,9 @@ sub polygon_points_visibility {
     return 1;
 }
 
-my $i = 0;
 sub line_intersection {
     my ($line1, $line2, $require_crossing) = @_;
     $require_crossing ||= 0;
-    
-    Slic3r::SVG::output(undef, "line_intersection_" . $i++ . ".svg",
-        lines => [ $line1, $line2 ],
-    ) if 0;
     
     my $intersection = _line_intersection(map @$_, @$line1, @$line2);
     return (ref $intersection && $intersection->[1] == $require_crossing) 
@@ -460,16 +455,23 @@ sub clip_segment_complex_polygon {
     my ($line, $polygons) = @_;
     
     my @intersections = grep $_, map line_intersection($line, $_, 1), 
-        map polygon_lines($_), @$polygons;
+        map polygon_lines($_), @$polygons or return ();
     
-    @intersections = sort { "$a->[X],$a->[Y]" cmp "$b->[X],$b->[Y]" } @intersections;
+    # this is not very elegant, however it works
+    @intersections = sort { sprintf("%020f,%020f", @$a) cmp sprintf("%020f,%020f", @$b) } @intersections;
     
     shift(@intersections) if !grep(point_in_polygon($intersections[0], $_), @$polygons)
         && !grep(polygon_segment_having_point($_, $intersections[0]), @$polygons);
     
+    # defensive programming
+    die "Invalid intersections" if @intersections % 2 != 0;
+    
     my @lines = ();
     while (@intersections) {
-        push @lines, [ shift(@intersections), shift(@intersections) ];
+        # skip tangent points
+        my @points = map shift @intersections, 1..2;
+        next if points_coincide(@points);
+        push @lines, [ @points ];
     }
     return [@lines];
 }

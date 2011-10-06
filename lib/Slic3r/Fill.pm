@@ -3,12 +3,14 @@ use Moo;
 
 use Slic3r::Fill::Base;
 use Slic3r::Fill::Rectilinear;
+use Slic3r::Fill::Rectilinear2;
 
 has 'print'     => (is => 'ro', required => 1);
 has 'fillers'   => (is => 'rw', default => sub { {} });
 
 our %FillTypes = (
-    rectilinear => 'Slic3r::Fill::Rectilinear',
+    rectilinear  => 'Slic3r::Fill::Rectilinear',
+    rectilinear2 => 'Slic3r::Fill::Rectilinear2',
 );
 
 sub BUILD {
