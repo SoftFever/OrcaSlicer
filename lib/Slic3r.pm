@@ -45,9 +45,10 @@ our $perimeter_feed_rate        = 30;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.3;
 
 # accuracy options
-our $resolution         = 0.00000001;
-our $layer_height       = 0.4;
-our $thickness_ratio    = 1;
+our $resolution             = 0.00000001;
+our $layer_height           = 0.4;
+our $high_res_perimeters    = 0;
+our $thickness_ratio        = 1;
 our $flow_width;
 
 # print options

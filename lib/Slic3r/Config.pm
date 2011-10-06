@@ -59,6 +59,10 @@ our $Options = {
         label   => 'Layer height (mm)',
         type    => 'f',
     },
+    'high_res_perimeters' => {
+        label   => 'High-res perimeters',
+        type    => 'bool',
+    },
     
     # print options
     'perimeter_offsets' => {

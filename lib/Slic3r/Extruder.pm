@@ -4,6 +4,7 @@ use Moo;
 has 'shift_x'            => (is => 'ro', default => sub {0} );
 has 'shift_y'            => (is => 'ro', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
+has 'flow_ratio'         => (is => 'rw', default => sub {1});
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
@@ -90,6 +91,7 @@ sub extrude {
         my $e = $line->a->distance_to($line->b) * $Slic3r::resolution
             * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
             * $Slic3r::thickness_ratio 
+            * $self->flow_ratio
             * $Slic3r::filament_packing_density;
         
         $gcode .= $self->G1($line->b, undef, $e, $description);
