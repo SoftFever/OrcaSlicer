@@ -44,6 +44,7 @@ GetOptions(
     # print options
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
     'solid-layers=i'        => \$Slic3r::solid_layers,
+    'fill-type=s'           => \$Slic3r::fill_type,
     'fill-density=f'        => \$Slic3r::fill_density,
     'fill-angle=i'          => \$Slic3r::fill_angle,
     'temperature=i'         => \$Slic3r::temperature,

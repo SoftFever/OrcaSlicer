@@ -218,6 +218,10 @@ sub validate {
     $Slic3r::print_center = [ split /,/, $Slic3r::print_center ]
         if !ref $Slic3r::print_center;
     
+    # --fill-type
+    die "Invalid value for --fill-type\n"
+        if !exists $Slic3r::Fill::FillTypes{$Slic3r::fill_type};
+    
     # --fill-density
     die "Invalid value for --fill-density\n"
         if $Slic3r::fill_density < 0 || $Slic3r::fill_density > 1;
