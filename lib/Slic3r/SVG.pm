@@ -17,106 +17,97 @@ sub svg {
     return SVG->new(width => $print->max_length * factor(), height => $print->max_length * factor());
 }
 
-sub output_points {
-    my ($print, $filename, $points, $red_points) = @_;
-    $red_points ||= [];
+sub output {
+    my ($print, $filename, %things) = @_;
     
     my $svg = svg($print);
-    my $g = $svg->group(
-        style => {
-            'stroke-width' => 2,
-            'stroke' => 'black',
-            'fill' => 'black',
-        },
-    );
-    foreach my $point (@$points) {
-        $g->circle(
-            cx      => $point->[X] * factor(),
-            cy      => $point->[Y] * factor(),
-            r       => 2,
-        );
+    
+    foreach my $type (qw(polygons polylines)) {
+        if ($things{$type}) {
+            my $method = $type eq 'polygons' ? 'polygon' : 'polyline';
+            my $g = $svg->group(
+                style => {
+                    'stroke-width' => 2,
+                    'stroke' => 'black',
+                    'fill' => 'none',
+                },
+            );
+            foreach my $polygon (@{$things{$type}}) {
+                my $path = $svg->get_path(
+                    'x' => [ map($_->[X] * factor(), @$polygon) ],
+                    'y' => [ map($_->[Y] * factor(), @$polygon) ],
+                    -type => 'polygon',
+                );
+                $g->$method(
+                    %$path,
+                );
+            }
+        }
     }
     
-    my $g2 = $svg->group(
-        style => {
-            'stroke-width' => 2,
-            'stroke' => 'red',
-            'fill' => 'red',
-        },
-    );
-    foreach my $point (@$red_points) {
-        $g2->circle(
-            cx      => $point->[X] * factor(),
-            cy      => $point->[Y] * factor(),
-            r       => 3,
-        );
+    foreach my $type (qw(points red_points)) {
+        if ($things{$type}) {
+            my ($colour, $r) = $type eq 'points' ? ('black', 2) : ('red', 3);
+            my $g = $svg->group(
+                style => {
+                    'stroke-width' => 2,
+                    'stroke' => 'black',
+                    'fill' => $colour,
+                },
+            );
+            foreach my $point (@{$things{$type}}) {
+                $g->circle(
+                    cx      => $point->[X] * factor(),
+                    cy      => $point->[Y] * factor(),
+                    r       => $r,
+                );
+            }
+        }
+    }
+    
+    foreach my $type (qw(lines red_lines)) {
+        if ($things{$type}) {
+            my ($colour) = $type eq 'lines' ? ('black') : ('red');
+            my $g = $svg->group(
+                style => {
+                    'stroke-width' => 2,
+                },
+            );
+            foreach my $line (@{$things{$type}}) {
+                $g->line(
+                    x1 => $line->[0][X] * factor(),
+                    y1 => $line->[0][Y] * factor(),
+                    x2 => $line->[1][X] * factor(),
+                    y2 => $line->[1][Y] * factor(),
+                    style => {
+                        'stroke' => $colour,
+                    },
+                );
+            }
+        }
     }
     
     write_svg($svg, $filename);
+}
+
+sub output_points {
+    my ($print, $filename, $points, $red_points) = @_;
+    return output($print, $filename, points => $points, red_points => $red_points);
 }
 
 sub output_polygons {
-    my ($print, $filename, $polygons, $type) = @_;
-    $type ||= 'polygon';
-    
-    my $svg = svg($print);
-    my $g = $svg->group(
-        style => {
-            'stroke-width' => 2,
-            'stroke' => 'black',
-            'fill' => 'none',
-        },
-    );
-    foreach my $polygon (@$polygons) {
-        my $path = $svg->get_path(
-            'x' => [ map($_->[X] * factor(), @$polygon) ],
-            'y' => [ map($_->[Y] * factor(), @$polygon) ],
-            -type => 'polygon',
-        );
-        $g->$type(
-            %$path,
-        );
-    }
-    
-    write_svg($svg, $filename);
+    my ($print, $filename, $polygons) = @_;
+    return output($print, $filename, polygons => $polygons);
 }
 
 sub output_polylines {
-    return output_polygons(@_, 'polyline');
+    my ($print, $filename, $polylines) = @_;
+    return output($print, $filename, polylines => $polylines);
 }
 
 sub output_lines {
     my ($print, $filename, $lines) = @_;
-    
-    my $svg = svg($print);
-    my $g = $svg->group(
-        style => {
-            'stroke-width' => 2,
-        },
-    );
-    
-    my $color = 'red';
-    my $draw_line = sub {
-        my ($line) = @_;
-        $g->line(
-            x1 => $line->[0][X] * factor(),
-            y1 => $line->[0][Y] * factor(),
-            x2 => $line->[1][X] * factor(),
-            y2 => $line->[1][Y] * factor(),
-            style => {
-                'stroke' => $color,
-            },
-        );
-    };
-    
-    my $last = pop @$lines;
-    foreach my $line (@$lines) {
-        $draw_line->($line);
-    }
-    $color = 'black';
-    $draw_line->($last);
-    
-    write_svg($svg, $filename);
+    return output($print, $filename, lines => $lines);
 }
 
 sub write_svg {

@@ -10,7 +10,7 @@ use constant A => 0;
 use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
-use constant epsilon => 1E-6;
+use constant epsilon => 1E-4;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
 sub slope {
@@ -120,6 +120,13 @@ sub point_in_segment {
     return abs($y3 - $y) < epsilon ? 1 : 0;
 }
 
+sub point_is_on_left_of_segment {
+    my ($point, $line) = @_;
+    
+    return (($line->[B][X] - $line->[A][X])*($point->[Y] - $line->[A][Y]) 
+        - ($line->[B][Y] - $line->[A][Y])*($point->[X] - $line->[A][X])) > 0;
+}
+
 sub polygon_lines {
     my ($polygon) = @_;
     
@@ -148,6 +155,7 @@ sub nearest_point {
     return $nearest_point;
 }
 
+# given a segment $p1-$p2, get the point at $distance from $p1 along segment
 sub point_along_segment {
     my ($p1, $p2, $distance) = @_;
     
@@ -161,6 +169,39 @@ sub point_along_segment {
     }
     
     return $point;
+}
+
+# given a $polygon, return the (first) segment having $point
+sub polygon_segment_having_point {
+    my ($polygon, $point) = @_;
+    
+    foreach my $line (polygon_lines($polygon)) {
+        return $line if point_in_segment($point, $line);
+    }
+    return undef;
+}
+
+sub can_connect_points {
+    my ($p1, $p2, $polygons) = @_;
+    
+    # check that the two points are visible from each other
+    return 0 if grep !polygon_points_visibility($_, $p1, $p2), @$polygons;
+    
+    # get segment where $p1 lies
+    my $p1_segment;
+    for (@$polygons) {
+        $p1_segment = polygon_segment_having_point($_, $p1);
+        last if $p1_segment;
+    }
+    
+    # defensive programming, this shouldn't happen
+    if (!$p1_segment) {
+        die sprintf "Point %f,%f wasn't found in polygon contour or holes!", @$p1;
+    }
+    
+    # check whether $p2 is internal or external  (internal = on the left)
+    return point_is_on_left_of_segment($p2, $p1_segment)
+        || point_in_segment($p2, $p1_segment);
 }
 
 sub deg2rad {
@@ -263,5 +304,159 @@ sub perp {
     my ($u, $v) = @_;
     return $u->[X] * $v->[Y] - $u->[Y] * $v->[X];
 }
+
+sub polygon_points_visibility {
+    my ($polygon, $p1, $p2) = @_;
+    
+    my $our_line = [ $p1, $p2 ];
+    foreach my $line (polygon_lines($polygon)) {
+        my $intersection = line_intersection($our_line, $line, 1) or next;
+        next if grep points_coincide($intersection, $_), $p1, $p2;
+        return 0;
+    }
+    
+    return 1;
+}
+
+my $i = 0;
+sub line_intersection {
+    my ($line1, $line2, $require_crossing) = @_;
+    $require_crossing ||= 0;
+    
+    Slic3r::SVG::output(undef, "line_intersection_" . $i++ . ".svg",
+        lines => [ $line1, $line2 ],
+    ) if 0;
+    
+    my $intersection = _line_intersection(map @$_, @$line1, @$line2);
+    return (ref $intersection && $intersection->[1] == $require_crossing) 
+        ? $intersection->[0] 
+        : undef;
+}
+
+sub _line_intersection {
+  my ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 );
+
+  if ( @_ == 8 ) {
+    ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 ) = @_;
+
+    # The bounding boxes chop the lines into line segments.
+    # bounding_box() is defined later in this chapter.
+    my @box_a = bounding_box([ [$x0, $y0], [$x1, $y1] ]);
+    my @box_b = bounding_box([ [$x2, $y2], [$x3, $y3] ]);
+    
+    # Take this test away and the line segments are
+    # turned into lines going from infinite to another.
+    # bounding_box_intersect() defined later in this chapter.
+    return "out of bounding box" unless bounding_box_intersect( 2, @box_a, @box_b );
+  }
+  elsif ( @_ == 4 ) { # The parametric form.
+    $x0 = $x2 = 0;
+    ( $y0, $y2 ) = @_[ 1, 3 ];
+    # Need to multiply by 'enough' to get 'far enough'.
+    my $abs_y0 = abs $y0;
+    my $abs_y2 = abs $y2;
+    my $enough = 10 * ( $abs_y0 > $abs_y2 ? $abs_y0 : $abs_y2 );
+    $x1 = $x3 = $enough;
+    $y1 = $_[0] * $x1 + $y0;
+    $y3 = $_[2] * $x2 + $y2;
+  }
+
+  my ($x, $y);  # The as-yet-undetermined intersection point.
+
+  my $dy10 = $y1 - $y0; # dyPQ, dxPQ are the coordinate differences
+  my $dx10 = $x1 - $x0; # between the points P and Q.
+  my $dy32 = $y3 - $y2;
+  my $dx32 = $x3 - $x2;
+
+  my $dy10z = abs( $dy10 ) < epsilon; # Is the difference $dy10 "zero"?
+  my $dx10z = abs( $dx10 ) < epsilon;
+  my $dy32z = abs( $dy32 ) < epsilon;
+  my $dx32z = abs( $dx32 ) < epsilon;
+
+  my $dyx10;                            # The slopes.
+  my $dyx32;
+
+
+  $dyx10 = $dy10 / $dx10 unless $dx10z;
+  $dyx32 = $dy32 / $dx32 unless $dx32z;
+
+  # Now we know all differences and the slopes;
+  # we can detect horizontal/vertical special cases.
+  # E.g., slope = 0 means a horizontal line.
+
+  unless ( defined $dyx10 or defined $dyx32 ) {
+    return "parallel vertical";
+  }
+  elsif ( $dy10z and not $dy32z ) { # First line horizontal.
+    $y = $y0;
+    $x = $x2 + ( $y - $y2 ) * $dx32 / $dy32;
+  }
+  elsif ( not $dy10z and $dy32z ) { # Second line horizontal.
+    $y = $y2;
+    $x = $x0 + ( $y - $y0 ) * $dx10 / $dy10;
+  }
+  elsif ( $dx10z and not $dx32z ) { # First line vertical.
+    $x = $x0;
+    $y = $y2 + $dyx32 * ( $x - $x2 );
+  }
+  elsif ( not $dx10z and $dx32z ) { # Second line vertical.
+    $x = $x2;
+    $y = $y0 + $dyx10 * ( $x - $x0 );
+  }
+  elsif ( abs( $dyx10 - $dyx32 ) < epsilon ) {
+    # The slopes are suspiciously close to each other.
+    # Either we have parallel collinear or just parallel lines.
+
+    # The bounding box checks have already weeded the cases
+    # "parallel horizontal" and "parallel vertical" away.
+
+    my $ya = $y0 - $dyx10 * $x0;
+    my $yb = $y2 - $dyx32 * $x2;
+
+    return "parallel collinear" if abs( $ya - $yb ) < epsilon;
+    return "parallel";
+  }
+  else {
+    # None of the special cases matched.
+    # We have a "honest" line intersection.
+
+    $x = ($y2 - $y0 + $dyx10*$x0 - $dyx32*$x2)/($dyx10 - $dyx32);
+    $y = $y0 + $dyx10 * ($x - $x0);
+  }
+
+  my $h10 = $dx10 ? ($x - $x0) / $dx10 : ($dy10 ? ($y - $y0) / $dy10 : 1);
+  my $h32 = $dx32 ? ($x - $x2) / $dx32 : ($dy32 ? ($y - $y2) / $dy32 : 1);
+
+  return [[$x, $y], $h10 >= 0 && $h10 <= 1 && $h32 >= 0 && $h32 <= 1];
+}
+
+# 2D
+sub bounding_box {
+    my ($points) = @_;
+    
+    my @x = sort { $a <=> $b } map $_->[X], @$points;
+    my @y = sort { $a <=> $b } map $_->[Y], @$points;
+    
+    return ($x[0], $y[0], $x[-1], $y[-1]);
+}
+
+# bounding_box_intersect($d, @a, @b)
+#   Return true if the given bounding boxes @a and @b intersect
+#   in $d dimensions.  Used by line_intersection().
+sub bounding_box_intersect {
+    my ( $d, @bb ) = @_; # Number of dimensions and box coordinates.
+    my @aa = splice( @bb, 0, 2 * $d ); # The first box.
+    # (@bb is the second one.)
+    
+    # Must intersect in all dimensions.
+    for ( my $i_min = 0; $i_min < $d; $i_min++ ) {
+        my $i_max = $i_min + $d; # The index for the maximum.
+        return 0 if ( $aa[ $i_max ] + epsilon ) < $bb[ $i_min ];
+        return 0 if ( $bb[ $i_max ] + epsilon ) < $aa[ $i_min ];
+    }
+    
+    return 1;
+}
+
 
 1;

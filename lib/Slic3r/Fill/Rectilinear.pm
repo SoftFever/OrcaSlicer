@@ -185,115 +185,13 @@ sub find_connectable_points {
     
     my @connectable_points = ();
     foreach my $p (@$points) {
-        if (!$self->can_connect($polygon, $point, [ $c, $p ])) {
+        if (!Slic3r::Geometry::can_connect_points($point, [ $c, $p ], [ $polygon->get_polygons ])) {
              @connectable_points ? last : next;
         }
         push @connectable_points, $p;
         $point = [ $c, $p ] if $point->[0] != $c;
     }
     return @connectable_points;
-}
-
-# this subroutine tries to determine whether two points in a surface
-# are connectable without crossing contour or holes
-sub can_connect {
-    my $self = shift;
-    my ($polygon, $p1, $p2) = @_;
-    #printf "  Checking connectability of point %d\n", $p2->[1];
-    
-    # there's room for optimization here
-    
-    # this is not needed since we assume that $p1 and $p2 belong to $polygon
-    for ($p1, $p2) {
-        #return 0 unless $polygon->isinside($_);
-        
-        # TODO: re-enable this one after testing point_in_polygon() which
-        # doesn't detect well points on the contour of polygon
-        #return 0 unless Slic3r::Geometry::point_in_polygon($_, $polygon->points);
-    }
-    
-    # check whether the $p1-$p2 segment doesn't intersect any segment
-    # of the contour or of holes
-    my ($contour_p, @holes_p) = $polygon->get_polygons;
-    foreach my $points ($contour_p, @holes_p) {
-        foreach my $line ($self->_lines_from_mgp_points($points)) {
-            
-            # theoretically speaking, SegmentIntersection() would be the right tool for the 
-            # job; however floating point math often makes it not return any intersection
-            # point between our hypothetical extrusion segment and any other one, even 
-            # if, of course, the final point of the extrusion segment is taken from
-            # $point and thus it's a point that belongs for sure to a segment.
-            # then, let's calculate intersection considering extrusion segment as a ray
-            # instead of a segment, and then check whether the intersection point 
-            # belongs to the segment
-            my $point = SegmentRayIntersection([@$line, $p1, $p2]);
-            #printf "    intersecting ray %f,%f - %f,%f and segment %f,%f - %f,%f\n",
-            #    @$p1, @$p2, map @$_, @$line;
-            
-            if ($point && Slic3r::Geometry::line_point_belongs_to_segment($point, [$p1, $p2])) {
-                #printf "  ...point intersects!\n";
-                #YYY [ $point, $p1, $p2 ];
-                
-                # our $p1-$p2 line intersects $line
-                
-                # if the intersection point is an intermediate point of $p1-$p2
-                # it means that $p1-$p2 crosses $line, thus we're sure that 
-                # $p1 and $p2 are not connectible (one is inside polygon and one
-                # is outside), unless $p1-$p2 and $line coincide but we've got
-                # an intersection due to floating point math
-                my @points_not_belonging_to_line = grep !Slic3r::Geometry::points_coincide($point, $_), $p1, $p2;
-                if (@points_not_belonging_to_line == 2) {
-                
-                    # make sure $p1-$p2 and $line are two distinct lines; we do this
-                    # by checking their slopes
-                    if (!Slic3r::Geometry::lines_parallel([$p1, $p2], $line)) {
-                        #printf "  ...lines cross!\n";
-                        #Slic3r::SVG::output_lines($main::print, "lines" . $n++ . ".svg", [ @lines, [$p1, $p2] ]);
-                        return 0;
-                    }
-                    
-                }
-                
-                # defensive programming, this shouldn't happen
-                if (@points_not_belonging_to_line == 0) {
-                    die "SegmentIntersection is not expected to return an intersection point "
-                        . "if \$line coincides with \$p1-\$p2";
-                }
-                
-                # if we're here, then either $p1 or $p2 belong to $line
-                # so we have to check whether the other point falls inside
-                # the polygon or not
-                # we rely on Math::Geometry::Planar returning contour points
-                # in counter-clockwise order and hole points in clockwise
-                # order, so that if the point falls on the left of $line
-                # it's inside the polygon and viceversa
-                my $C = $points_not_belonging_to_line[0];
-                my $isInside = (($line->[B][X] - $line->[A][X])*($C->[Y] - $line->[A][Y]) 
-                    - ($line->[B][Y] - $line->[A][Y])*($C->[X] - $line->[A][X])) > 0;
-                
-                #printf "  \$line is inside polygon: %d\n", $isInside;
-                
-                
-                # if the line is outside the polygon then points are not connectable
-                return 0 if !$isInside;
-                #Slic3r::SVG::output_lines($main::print, "lines" . $n++ . ".svg", [ @lines, [$p1, $p2] ])
-                #    if !$isInside;
-            }
-        }
-    }
-
-    # even if no intersection is found, we should check whether both $p1 and $p2 are
-    # inside a hole; this may happen due to floating point path
-    #foreach my $hole_p (map $self->_mgp_from_points_ref($_), @holes_p) {
-    #    if ($hole_p->isinside($p1) || $hole_p->isinside($p2)) {
-    #        return 0;
-    #    }
-    #}
-    
-    #use Slic3r::SVG;
-    #Slic3r::SVG::output_lines($main::print, "lines" . $n++ . ".svg", [ @lines, [$p1, $p2] ]);
-    
-    return 1;
 }
 
 sub _lines_from_mgp_points {
