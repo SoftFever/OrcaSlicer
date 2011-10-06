@@ -169,10 +169,10 @@ sub extrude_perimeters {
 sub extrude_fills {
     my $self = shift;
     
-    my $fill_extruder = Slic3r::Fill::Rectilinear->new;
+    my $fill_extruder = Slic3r::Fill->new('print' => $self);
     
     foreach my $layer (@{ $self->layers }) {
-        $fill_extruder->make_fill($self, $layer);
+        $fill_extruder->make_fill($layer);
         Slic3r::debugf "  generated %d paths: %s\n",
             scalar @{ $layer->fills },
             join '  ', map $_->id, map @{$_->paths}, @{ $layer->fills } if $Slic3r::debug;
