@@ -16,7 +16,7 @@ sub fill_surface {
     
     # rotate polygons so that we can work with vertical lines here
     my $polygons = [ $surface->p ];
-    my $rotate_vector = $self->infill_direction($polygons);
+    my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($polygons, $rotate_vector);
     
     my $bounding_box = [ Slic3r::Geometry::bounding_box(map @$_, $polygons) ];

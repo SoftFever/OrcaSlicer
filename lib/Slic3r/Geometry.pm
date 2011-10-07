@@ -10,8 +10,10 @@ use constant A => 0;
 use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
-use constant epsilon => 1E-4;
 our $parallel_degrees_limit = abs(deg2rad(3));
+
+our $epsilon = 1E-4;
+sub epsilon () { $epsilon }
 
 sub slope {
     my ($line) = @_;
@@ -58,6 +60,16 @@ sub points_coincide {
 sub distance_between_points {
     my ($p1, $p2) = @_;
     return sqrt((($p1->[X] - $p2->[X])**2) + ($p1->[Y] - $p2->[Y])**2);
+}
+
+sub line_length {
+    my ($line) = @_;
+    return distance_between_points(@$line[A, B]);
+}
+
+sub midpoint {
+    my ($line) = @_;
+    return [ ($line->[B][X] + $line->[A][X]) / 2, ($line->[B][Y] + $line->[A][Y]) / 2 ];
 }
 
 sub point_in_polygon {
@@ -118,6 +130,13 @@ sub point_in_segment {
     return abs($y3 - $y) < epsilon ? 1 : 0;
 }
 
+sub segment_in_segment {
+    my ($needle, $haystack) = @_;
+    
+    # a segment is contained in another segment if its endpoints are contained
+    return point_in_segment($needle->[A], $haystack) && point_in_segment($needle->[B], $haystack);
+}
+
 sub point_is_on_left_of_segment {
     my ($point, $line) = @_;
     
@@ -125,17 +144,22 @@ sub point_is_on_left_of_segment {
         - ($line->[B][Y] - $line->[A][Y])*($point->[X] - $line->[A][X])) > 0;
 }
 
-sub polygon_lines {
+sub polyline_lines {
     my ($polygon) = @_;
     
     my @lines = ();
-    my $last_point = $polygon->[-1];
+    my $last_point;
     foreach my $point (@$polygon) {
-        push @lines, [ $last_point, $point ];
+        push @lines, [ $last_point, $point ] if $last_point;
         $last_point = $point;
     }
     
     return @lines;
+}
+
+sub polygon_lines {
+    my ($polygon) = @_;
+    return polyline_lines([ @$polygon, $polygon->[0] ]);
 }
 
 sub nearest_point {
@@ -179,6 +203,30 @@ sub polygon_segment_having_point {
     return undef;
 }
 
+# return true if the given segment is contained in any edge of the polygon
+sub polygon_has_subsegment {
+    my ($polygon, $segment) = @_;
+    foreach my $line (polygon_lines($polygon)) {
+        return 1 if segment_in_segment($segment, $line);
+    }
+    return 0;
+}
+
+sub polygon_has_vertex {
+    my ($polygon, $point) = @_;
+    foreach my $p (@$polygon) {
+        return 1 if points_coincide($p, $point);
+    }
+    return 0;
+}
+
+sub polyline_length {
+    my ($polyline) = @_;
+    my $length = 0;
+    $length += line_length($_) for polygon_lines($polyline);
+    return $length;
+}
+
 sub can_connect_points {
     my ($p1, $p2, $polygons) = @_;
     
@@ -205,6 +253,11 @@ sub can_connect_points {
 sub deg2rad {
     my ($degrees) = @_;
     return PI() * $degrees / 180;
+}
+
+sub rad2deg {
+    my ($rad) = @_;
+    return $rad / PI() * 180;
 }
 
 sub rotate_points {

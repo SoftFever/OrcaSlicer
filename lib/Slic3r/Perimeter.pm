@@ -18,7 +18,7 @@ sub make_perimeter {
         if $Slic3r::perimeter_offsets == 0;
     
     my (%contours, %holes) = ();
-    foreach my $surface (@{ $layer->surfaces }) {
+    foreach my $surface (@{ $layer->perimeter_surfaces }) {
         $contours{$surface} = [];
         $holes{$surface} = [];
         my @last_offsets = ();
@@ -47,17 +47,16 @@ sub make_perimeter {
         }
         
         # create one more offset to be used as boundary for fill
-        push @{ $layer->fill_surfaces }, Slic3r::Surface::Collection->new(
-            surfaces => [
-                map Slic3r::Surface->new(
-                    surface_type => $surface->surface_type,
-                    contour      => Slic3r::Polyline::Closed->cast($_->{outer}),
-                    holes        => [
-                        map Slic3r::Polyline::Closed->cast($_), @{$_->{holes}}
-                    ],
-                ), map $self->offset_polygon($_), @last_offsets
-            ],
-        );
+        {
+            my @fill_surfaces = map Slic3r::Surface->cast_from_expolygon(
+                $_,
+                surface_type => $surface->surface_type,
+            ), map $self->offset_polygon($_), @last_offsets;
+            
+            push @{ $layer->fill_surfaces }, Slic3r::Surface::Collection->new(
+                surfaces => [@fill_surfaces],
+            ) if @fill_surfaces;
+        }
     }
     
     # generate paths for holes:
@@ -91,15 +90,13 @@ sub make_perimeter {
 sub offset_polygon {
     my $self = shift;
     my ($polygon) = @_;
-    
-    my $distance = $Slic3r::flow_width / $Slic3r::resolution;
-    
     # $polygon holds a Math::Clipper ExPolygon hashref representing 
     # a polygon and its holes
-    my ($contour_p, @holes_p) = ($polygon->{outer}, @{$polygon->{holes}});
     
     # generate offsets
-    my $offsets = offset([ $contour_p, @holes_p ], -$distance, $Slic3r::resolution * 100000, JT_MITER, 2);
+    my $distance = $Slic3r::flow_width / $Slic3r::resolution;
+    my $offsets = offset([ $polygon->{outer}, @{$polygon->{holes}} ], -$distance, 
+        $Slic3r::resolution * 100000, JT_MITER, 2);
     
     # defensive programming
     my (@contour_offsets, @hole_offsets) = ();

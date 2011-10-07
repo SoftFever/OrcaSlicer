@@ -26,6 +26,7 @@ use Slic3r::Print;
 use Slic3r::Skein;
 use Slic3r::STL;
 use Slic3r::Surface;
+use Slic3r::Surface::Bridge;
 use Slic3r::Surface::Collection;
 
 # printer options

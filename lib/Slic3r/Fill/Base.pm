@@ -10,7 +10,7 @@ use constant PI => 4 * atan2(1, 1);
 
 sub infill_direction {
     my $self = shift;
-    my ($polygons) = @_;
+    my ($surface) = @_;
     
     # set infill angle
     my (@rotate, @shift);
@@ -23,7 +23,11 @@ sub infill_direction {
         $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle) + PI/2;
     }
     
-    # TODO: here we should implement an "infill in direction of bridges" option
+    # use bridge angle
+    if ($surface->isa('Slic3r::Surface::Bridge')) {
+        Slic3r::debugf "Filling bridge with angle %d\n", $surface->bridge_angle;
+        $rotate[0] = Slic3r::Geometry::deg2rad($surface->bridge_angle);
+    }
     
     @shift = @{ +(Slic3r::Geometry::rotate_points(@rotate, \@shift))[0] };
     return [\@rotate, \@shift];

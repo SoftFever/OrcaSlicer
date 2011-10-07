@@ -5,6 +5,8 @@ use Slic3r::Fill::Base;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Fill::Rectilinear2;
 
+use XXX;
+
 has 'print'     => (is => 'ro', required => 1);
 has 'fillers'   => (is => 'rw', default => sub { {} });
 

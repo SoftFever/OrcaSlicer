@@ -41,6 +41,8 @@ Slic3r current features are:
 * skirt (with rounded corners);
 * use relative or absolute extrusion commands;
 * high-res perimeters (like the "Skin" plugin for Skeinforge);
+* detect optimal infill direction for bridges;
+* save configuration profiles;
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and multiply input object;
@@ -51,10 +53,8 @@ Roadmap includes the following goals:
 * output some statistics;
 * allow the user to customize initial and final GCODE commands;
 * support material for internal perimeters;
-* detect optimal infill direction for bridges;
 * cool;
-* other fill patterns;
-* nice packaging for cross-platform deployment.
+* other fill patterns.
 
 ## Is it usable already?
 

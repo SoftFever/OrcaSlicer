@@ -21,7 +21,7 @@ sub fill_surface {
     my $polygons = [ $surface->p ];
     
     # rotate polygons so that we can work with vertical lines here
-    my $rotate_vector = $self->infill_direction($polygons);
+    my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($polygons, $rotate_vector);
     
     my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $params{density};

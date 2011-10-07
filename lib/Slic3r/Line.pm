@@ -27,6 +27,11 @@ sub id {
     return $self->a->id . "-" . $self->b->id;
 }
 
+sub ordered_id {
+    my $self = shift;
+    return join('-', sort map $_->id, @{$self->points});
+}
+
 sub coordinates {
     my $self = shift;
     return ($self->a->coordinates, $self->b->coordinates);

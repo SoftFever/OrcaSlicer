@@ -19,6 +19,29 @@ has 'surface_type' => (
     #isa     => enum([qw(internal internal-solid bottom top)]),
 );
 
+sub cast_from_polygon {
+    my $class = shift;
+    my ($polygon, %args) = @_;
+    
+    return $class->new(
+        contour      => Slic3r::Polyline::Closed->cast($polygon),
+        %args,
+    );
+}
+
+sub cast_from_expolygon {
+    my $class = shift;
+    my ($expolygon, %args) = @_;
+    
+    return $class->new(
+        contour      => Slic3r::Polyline::Closed->cast($expolygon->{outer}),
+        holes        => [
+            map Slic3r::Polyline::Closed->cast($_), @{$expolygon->{holes}}
+        ],
+        %args,
+    );
+}
+
 sub add_hole {
     my $self = shift;
     my ($hole) = @_;

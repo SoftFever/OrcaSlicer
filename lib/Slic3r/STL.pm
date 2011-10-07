@@ -80,8 +80,10 @@ sub parse_file {
             $vertex->[$_] = ($Slic3r::scale * $vertex->[$_] / $Slic3r::resolution) + $shift[$_]
                 for X,Y,Z;
             
-            # round Z coordinates; XY will be rounded automatically with coercion
-            $vertex->[Z] = sprintf('%.0f', $vertex->[Z]);
+            # round Z coordinates to the nearest multiple of layer height
+            # XY will be rounded automatically to integers with coercion
+            $vertex->[Z] = sprintf('%.0f', $vertex->[Z] * $Slic3r::resolution / $Slic3r::layer_height)
+                * $Slic3r::layer_height / $Slic3r::resolution;
         }
         
         foreach my $copy (@copies) {
@@ -92,7 +94,7 @@ sub parse_file {
             $self->_facet($print, $normal, @copy_vertices);
         }
     }
-        
+    
     return $print;
 }
 

@@ -35,7 +35,7 @@ sub new_from_stl {
     print "\n==> PROCESSING SLICES:\n";
     foreach my $layer (@{ $print->layers }) {
         printf "\nProcessing layer %d:\n", $layer->id;
-    
+        
         # build polylines of lines which do not already belong to a surface
         my $polylines = $layer->make_polylines;
         
@@ -147,11 +147,22 @@ sub discover_horizontal_shells {
     }
 }
 
-# remove perimeters and fill surfaces which are too small to be extruded
-sub remove_small_features {
+# remove surfaces which are too small to be extruded
+sub remove_small_surfaces {
     my $self = shift;
-    
-    $_->remove_small_features for @{$self->layers};
+    $_->remove_small_surfaces for @{$self->layers};
+}
+
+# remove perimeters which are too small to be extruded
+sub remove_small_perimeters {
+    my $self = shift;
+    $_->remove_small_perimeters for @{$self->layers};
+}
+
+# make bridges printable
+sub process_bridges {
+    my $self = shift;
+    $_->process_bridges for @{ $self->layers };
 }
 
 sub extrude_perimeters {
@@ -160,10 +171,17 @@ sub extrude_perimeters {
     my $perimeter_extruder = Slic3r::Perimeter->new;
     
     foreach my $layer (@{ $self->layers }) {
+        $layer->detect_perimeter_surfaces;
         $perimeter_extruder->make_perimeter($layer);
         Slic3r::debugf "  generated paths: %s\n",
             join '  ', map $_->id, @{ $layer->perimeters } if $Slic3r::debug;
     }
+}
+
+# splits fill_surfaces in internal and bridge surfaces
+sub split_bridges_fills {
+    my $self = shift;
+    $_->split_bridges_fills for @{$self->layers};
 }
 
 sub extrude_fills {

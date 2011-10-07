@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 5;
+plan tests => 6;
 
 BEGIN {
     use FindBin;
@@ -40,6 +40,12 @@ my $point = [2797980957.103410,3392691792.513960];
 is_deeply Slic3r::Geometry::polygon_segment_having_point($polyline, $point), 
     [ [2540810000, 2947261000], [2852739000, 3487535000] ],
     'polygon_segment_having_point';
+
+#==========================================================
+
+$point = [ 736310778.185108, 5017423926.8924 ];
+my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
+is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
 
 #==========================================================
 
