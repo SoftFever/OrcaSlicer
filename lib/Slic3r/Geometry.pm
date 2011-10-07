@@ -2,6 +2,21 @@ package Slic3r::Geometry;
 use strict;
 use warnings;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(
+    epsilon slope line_atan lines_parallel three_points_aligned
+    line_point_belongs_to_segment points_coincide distance_between_points 
+    line_length midpoint point_in_polygon point_in_segment segment_in_segment
+    point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
+    point_along_segment polygon_segment_having_point polygon_has_subsegment
+    polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
+    rotate_points move_points remove_coinciding_points clip_segment_polygon
+    sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
+    line_intersection bounding_box bounding_box_intersect 
+    clip_segment_complex_polygon longest_segment
+);
+
 use Slic3r::Geometry::DouglasPeucker;
 use XXX;
 
@@ -30,6 +45,11 @@ sub lines_parallel {
     my ($line1, $line2) = @_;
     
     return abs(line_atan($line1) - line_atan($line2)) < $parallel_degrees_limit;
+}
+
+sub three_points_aligned {
+    my ($p1, $p2, $p3) = @_;
+    return lines_parallel([$p1, $p2], [$p2, $p3]);
 }
 
 # this subroutine checks whether a given point may belong to a given
@@ -65,6 +85,20 @@ sub distance_between_points {
 sub line_length {
     my ($line) = @_;
     return distance_between_points(@$line[A, B]);
+}
+
+sub longest_segment {
+    my (@lines) = @_;
+    
+    my ($longest, $maxlength);
+    foreach my $line (@lines) {
+        my $line_length = line_length($line);
+        if (!defined $longest || $line_length > $maxlength) {
+            $longest = $line;
+            $maxlength = $line_length;
+        }
+    }
+    return $longest;
 }
 
 sub midpoint {
@@ -517,12 +551,13 @@ sub clip_segment_complex_polygon {
         && !grep(polygon_segment_having_point($_, $intersections[0]), @$polygons);
     
     # defensive programming
-    die "Invalid intersections" if @intersections % 2 != 0;
+    ###die "Invalid intersections" if @intersections % 2 != 0;
     
     my @lines = ();
     while (@intersections) {
         # skip tangent points
         my @points = map shift @intersections, 1..2;
+        next if !$points[1];
         next if points_coincide(@points);
         push @lines, [ @points ];
     }
