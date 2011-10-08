@@ -55,6 +55,7 @@ our $flow_width;
 # print options
 our $perimeter_offsets  = 3;
 our $solid_layers       = 3;
+our $bridge_overlap     = 2;    # mm
 our $fill_type          = 'rectilinear';
 our $fill_density       = 0.4;  # 1 = 100%
 our $fill_angle         = 0;

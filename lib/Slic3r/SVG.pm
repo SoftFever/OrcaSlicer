@@ -14,7 +14,24 @@ sub factor {
 sub svg {
     my ($print) = @_;
     $print ||= Slic3r::Print->new(x_length => 200 / $Slic3r::resolution, y_length => 200 / $Slic3r::resolution);
-    return SVG->new(width => $print->max_length * factor(), height => $print->max_length * factor());
+    my $svg = SVG->new(width => $print->max_length * factor(), height => $print->max_length * factor());
+    
+    my $marker_end = $svg->marker(
+        id => "endArrow",
+        viewBox => "0 0 10 10",
+        refX => "1",
+        refY => "5",
+        markerUnits => "strokeWidth",
+        orient => "auto",
+        markerWidth => "10",
+        markerHeight => "8",
+    );
+    $marker_end->polyline(
+        points => "0,0 10,5 0,10 1,5",
+        fill => "darkblue",
+    );
+    
+    return $svg;
 }
 
 sub output {
@@ -40,6 +57,7 @@ sub output {
                 );
                 $g->$method(
                     %$path,
+                    'marker-end' => "url(#endArrow)",
                 );
             }
         }
@@ -65,9 +83,9 @@ sub output {
         }
     }
     
-    foreach my $type (qw(lines red_lines)) {
+    foreach my $type (qw(lines red_lines green_lines)) {
         if ($things{$type}) {
-            my ($colour) = $type eq 'lines' ? ('black') : ('red');
+            my ($colour) = $type =~ /^(red|green)_/;
             my $g = $svg->group(
                 style => {
                     'stroke-width' => 2,
@@ -80,8 +98,9 @@ sub output {
                     x2 => $line->[1][X] * factor(),
                     y2 => $line->[1][Y] * factor(),
                     style => {
-                        'stroke' => $colour,
+                        'stroke' => $colour || 'black',
                     },
+                    'marker-end' => "url(#endArrow)",
                 );
             }
         }

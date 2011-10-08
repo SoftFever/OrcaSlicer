@@ -3,9 +3,12 @@ use Moo;
 
 use Math::Clipper ':all';
 use Math::ConvexHull qw(convex_hull);
+use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
+use constant A => 0;
+use constant B => 1;
 
 # a sequential number of layer, starting at 0
 has 'id' => (
@@ -100,6 +103,7 @@ sub add_line {
     my ($line) = @_;
     
     $line = Slic3r::Line->cast($line);
+    return if $line->a->coincides_with($line->b);
     
     push @{ $self->lines }, $line;
     return $line;
@@ -118,141 +122,78 @@ sub remove_surface {
 }
 
 # build polylines of lines which do not already belong to a surface
-# okay, this code is a mess.  will need some refactoring.  sorry.
 sub make_polylines {
     my $self = shift;
     
-    # remove line duplicates
-    if (0) {
-        # this removes any couple of coinciding Slic3r::Line::FacetEdge
-        my %lines_map = ();
-        foreach my $line (grep $_->isa('Slic3r::Line::FacetEdge'), @{ $self->lines }) {
-            my $ordered_id = $line->ordered_id;
-            if (exists $lines_map{$ordered_id}) {
-                delete $lines_map{$ordered_id};
-                next;
-            }
-            $lines_map{$ordered_id} = $line;
-        }
-        
-        @{ $self->lines } = (values(%lines_map), grep !$_->isa('Slic3r::Line::FacetEdge'), @{ $self->lines });
-    }
-    if (1) {
-        # this removes any duplicate, leaving one
-        my %lines_map = map { join(',', sort map $_->id, @{$_->points} ) => "$_" } @{ $self->lines };
-        %lines_map = reverse %lines_map;
-        @{ $self->lines } = grep $lines_map{"$_"}, @{ $self->lines };
-    }
+    my @lines = ();
+    push @lines, map $_->p, @{$self->lines};
     
-    # now remove lines that are already part of a surface
-    if (1) {
-        my @lines = @{ $self->lines };
-        @{ $self->lines } = ();
-        LINE: foreach my $line (@lines) {
-            if (!$line->isa('Slic3r::Line::FacetEdge')) {
-                push @{ $self->lines }, $line;
-                next LINE;
-            }
-            foreach my $surface (@{$self->surfaces}) {
-                if ($surface->surface_type eq $line->edge_type && $surface->contour->has_segment($line)) {
-                    next LINE;
-                }
-            }
-            push @{ $self->lines }, $line;
-        }
-    }
+    #use Slic3r::SVG;
+    #Slic3r::SVG::output(undef, "lines.svg",
+    #    lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+    #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+    #);
     
-    # make a cache of line endpoints
+    my $get_point_id = sub { sprintf "%d,%d", @{$_[0]} };
+    
     my (%pointmap) = ();
-    foreach my $line (@{ $self->lines }) {
-        for my $point (@{ $line->points }) {
-            $pointmap{$point->id} ||= [];
-            push @{ $pointmap{$point->id} }, $line;
-        }
-    }
-    foreach my $point_id (keys %pointmap) {
-        $pointmap{$point_id} = [
-            sort { $a->isa('Slic3r::Line::FacetEdge') <=> $b->isa('Slic3r::Line::FacetEdge') } 
-                @{$pointmap{$point_id}} ];
+    foreach my $line (@lines) {
+        my $point_id = $get_point_id->($line->[A]);
+        $pointmap{$point_id} ||= [];
+        push @{ $pointmap{$point_id} }, $line;
     }
     
-    if (0) {
-        # defensive programming
-        for (keys %pointmap) {
-            next if @{$pointmap{$_}} == 2;
-            
-            use Slic3r::SVG;
-            Slic3r::SVG::output(undef, "lines_and_points.svg",
-                lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-                red_lines   => [ map $_->p, grep $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-                points      => [ map [split /,/], keys %pointmap ],
-                red_points  => [ [split /,/, $_ ] ],
-            );
-            
-            YYY $pointmap{$_};
-            
-            die sprintf "No point should be endpoint of less or more than 2 lines ($_ => %d)!", scalar(@{$pointmap{$_}});
-        }
+    my $n = 0;
+    my @polylines = ();
+    while (my $first_line = shift @lines) {
+        my @points = @$first_line;
+        my %seen_points = map { $get_point_id->($points[$_]) => $_ } 0..1;
         
-        while (my @single_line_points = grep @{$pointmap{$_}} == 1, keys %pointmap) {
-            for my $point_id (@single_line_points) {
-                foreach my $lines (values %pointmap) {
-                    next unless $pointmap{$point_id}->[0];
-                    @$lines = grep $_ ne $pointmap{$point_id}->[0], @$lines;
-                }
-                delete $pointmap{$point_id};
+        CYCLE: while (1) {
+            my $next_lines = $pointmap{ $get_point_id->($points[-1]) }
+                or die sprintf "No lines start at point %d,%d. This shouldn't happen", @{$points[-1]};
+            last CYCLE if !@$next_lines;
+            
+            my @ordered_next_lines = sort 
+                { angle3points($points[-1], $points[-2], $next_lines->[$a][B]) <=> angle3points($points[-1], $points[-2], $next_lines->[$b][B]) } 
+                0..$#$next_lines;
+            
+            #if (@$next_lines > 1) {
+            #    Slic3r::SVG::output(undef, "next_line.svg",
+            #        lines        => $next_lines,
+            #        red_lines    => [ polyline_lines([@points]) ],
+            #        green_lines  => [ $next_lines->[ $ordered_next_lines[0] ] ],
+            #    );
+            #}
+            
+            my ($next_line) = splice @$next_lines, $ordered_next_lines[0], 1;
+            
+            
+            push @points, $next_line->[B];
+            
+            my $point_id = $get_point_id->($points[-1]);
+            if ($seen_points{$point_id}) {
+                splice @points, 0, $seen_points{$point_id};
+                last CYCLE;
             }
-        }
-    }
-    
-    # make a subroutine to remove lines from pointmap
-    my $remove_line = sub {
-        my $line = shift;
-        foreach my $lines ($pointmap{$line->a->id}, $pointmap{$line->b->id}) {
-            @$lines = grep $_ ne $line, @$lines;
-        }
-    };
-    
-    my $polylines = [];
-    
-    # loop while we have spare lines
-    while (my ($first_line) = map @$_, values %pointmap) {
-        # add first line to a new polyline
-        my $points = [ $first_line->a, $first_line->b ];
-        $remove_line->($first_line);
-        my $last_point = $first_line->b;
-        
-        # loop through connected lines until we return to the first point
-        while (my $next_line = $pointmap{$last_point->id}->[0]) {
             
-            # get next point
-            ($last_point) = grep $_->id ne $last_point->id, @{$next_line->points};
-            
-            # add point to polyline
-            push @$points, $last_point;
-            $remove_line->($next_line);
+            $seen_points{$point_id} = $#points;
         }
         
-        # remove last point as it coincides with first one
-        pop @$points;
-        
-        if (@$points == 1 && $first_line->isa('Slic3r::Line::FacetEdge')) {
-            Slic3r::debugf "Skipping spare facet edge";
+        if (@points < 4 || !points_coincide($points[0], $points[-1])) {
             next;
         }
         
-        die sprintf "Invalid polyline with only %d points\n", scalar(@$points) if @$points < 3;
-        
-        Slic3r::debugf "Discovered polyline of %d points (%s)\n", scalar @$points,
-            join ' - ', map $_->id, @$points;
-        push @$polylines, Slic3r::Polyline::Closed->new(points => $points);
-        
-        # actually this is not needed, as Math::Clipper used in make_surfaces() also cleans contours
-        $polylines->[-1]->merge_continuous_lines;
-        #$polylines->[-1]->cleanup;  # not proven to be actually useful
+        pop @points;
+        Slic3r::debugf "Discovered polyline of %d points\n", scalar(@points);
+        push @polylines, [@points];
     }
     
-    return $polylines;
+    #Slic3r::SVG::output(undef, "polylines.svg",
+    #    polylines => [ @polylines ],
+    #);
+    
+    return [ map Slic3r::Polyline::Closed->cast($_), @polylines ];
 }
 
 sub make_surfaces {
@@ -336,7 +277,7 @@ sub merge_contiguous_surfaces {
         Slic3r::debugf "Initial surfaces (%d):\n", scalar @{ $self->surfaces };
         Slic3r::debugf "  [%s] %s (%s with %d holes)\n", $_->surface_type, $_->id, 
             ($_->contour->is_counter_clockwise ? 'ccw' : 'cw'), scalar @{$_->holes} for @{ $self->surfaces };
-        #Slic3r::SVG::output_polygons($main::print, "polygons-before.svg", [ map $_->contour->p, @{$self->surfaces} ]);
+        #Slic3r::SVG::output_polygons(undef, "polygons-before.svg", [ map $_->contour->p, @{$self->surfaces} ]);
     }
     
     my %resulting_surfaces = ();
@@ -487,12 +428,13 @@ sub process_bridges {
         
         # now connect the first point to the last of each polyline
         @supported_polylines = map [ $_->[0]->[0], $_->[-1]->[-1] ], @supported_polylines;
+        # @supported_polylines becomes actually an array of lines
         
         # if we got more than two supports, get the longest two
         if (@supported_polylines > 2) {
-            my %lengths = map { "$_" => Slic3r::Geometry::line_length($_) }, @supported_polylines;
+            my %lengths = map { $_ => Slic3r::Geometry::line_length($_) } @supported_polylines;
             @supported_polylines = sort { $lengths{"$a"} <=> $lengths{"$b"} } @supported_polylines;
-            @supported_polylines = @supported_polylines[0,1];
+            @supported_polylines = @supported_polylines[-2,-1];
         }
         
         # connect the midpoints, that will give the the optimal infill direction
@@ -517,8 +459,8 @@ sub process_bridges {
         
         # now, extend our bridge by taking a portion of supporting surfaces
         {
-            # offset the bridge by 5mm
-            my $bridge_offset = ${ offset([$surface_p], 5 / $Slic3r::resolution, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
+            # offset the bridge by the specified amount of mm
+            my $bridge_offset = ${ offset([$surface_p], $Slic3r::bridge_overlap / $Slic3r::resolution, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
             
             # calculate the new bridge
             my $clipper = Math::Clipper->new;

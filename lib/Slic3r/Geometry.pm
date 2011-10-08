@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
-    epsilon slope line_atan lines_parallel three_points_aligned
+    PI epsilon slope line_atan lines_parallel three_points_aligned
     line_point_belongs_to_segment points_coincide distance_between_points 
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
@@ -14,10 +14,10 @@ our @EXPORT_OK = qw(
     rotate_points move_points remove_coinciding_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect 
-    clip_segment_complex_polygon longest_segment
+    clip_segment_complex_polygon longest_segment angle3points
 );
 
-use Slic3r::Geometry::DouglasPeucker;
+use Slic3r::Geometry::DouglasPeucker ();
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -562,6 +562,17 @@ sub clip_segment_complex_polygon {
         push @lines, [ @points ];
     }
     return [@lines];
+}
+
+sub angle3points {
+    my ($p1, $p2, $p3) = @_;
+    # p1 is the center
+    
+    my $angle = atan2($p2->[X] - $p1->[X], $p2->[Y] - $p1->[Y])
+              - atan2($p3->[X] - $p1->[X], $p3->[Y] - $p1->[Y]);
+    
+    # we only want to return only positive angles
+    return $angle <= 0 ? $angle + 2*PI() : $angle;
 }
 
 1;

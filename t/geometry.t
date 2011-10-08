@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 6;
+plan tests => 15;
 
 BEGIN {
     use FindBin;
@@ -10,6 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::Geometry qw(PI);
 
 #==========================================================
 
@@ -43,15 +44,19 @@ is_deeply Slic3r::Geometry::polygon_segment_having_point($polyline, $point),
 
 #==========================================================
 
-$point = [ 736310778.185108, 5017423926.8924 ];
-my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
-is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
+{
+    my $point = [ 736310778.185108, 5017423926.8924 ];
+    my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
+    is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
+}
 
 #==========================================================
 
-$point = [ 736310778.185108, 5017423926.8924 ];
-my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
-is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
+{
+    my $point = [ 736310778.185108, 5017423926.8924 ];
+    my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
+    is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
+}
 
 #==========================================================
 
@@ -79,5 +84,33 @@ my $points = [
 ];
 
 is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_points';
+
+#==========================================================
+
+{
+    my $p1 = [10, 10];
+    my $p2 = [10, 20];
+    my $p3 = [10, 30];
+    my $p4 = [20, 20];
+    my $p5 = [0,  20];
+    
+    is Slic3r::Geometry::angle3points($p2, $p3, $p1),  PI(),   'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p1, $p3),  PI(),   'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p3, $p4),  PI()/2*3, 'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p4, $p3),  PI()/2, 'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p1, $p4),  PI()/2, 'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p1, $p5),  PI()/2*3, 'angle3points';
+}
+
+{
+    my $p1 = [30, 30];
+    my $p2 = [20, 20];
+    my $p3 = [10, 10];
+    my $p4 = [30, 10];
+    
+    is Slic3r::Geometry::angle3points($p2, $p1, $p3), PI(),       'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p1, $p4), PI()/2*3,   'angle3points';
+    is Slic3r::Geometry::angle3points($p2, $p1, $p1), 2*PI(),     'angle3points';
+}
 
 #==========================================================

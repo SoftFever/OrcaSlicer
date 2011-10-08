@@ -3,6 +3,7 @@ use Moo;
 
 use CAD::Format::STL;
 use Math::Clipper qw(integerize_coordinate_sets is_counter_clockwise);
+use Slic3r::Geometry qw(three_points_aligned longest_segment);
 use XXX;
 
 use constant X => 0;
@@ -82,7 +83,7 @@ sub parse_file {
             
             # round Z coordinates to the nearest multiple of layer height
             # XY will be rounded automatically to integers with coercion
-            $vertex->[Z] = sprintf('%.0f', $vertex->[Z] * $Slic3r::resolution / $Slic3r::layer_height)
+            $vertex->[Z] = int($vertex->[Z] * $Slic3r::resolution / $Slic3r::layer_height)
                 * $Slic3r::layer_height / $Slic3r::resolution;
         }
         
@@ -118,12 +119,38 @@ sub _facet {
     
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
+    # reorder vertices so that the first one is the one with lowest Z
+    # this is needed to get all intersection lines in a consistent order
+    # (external on the right of the line)
+    {
+        my @z_order = sort { $vertices[$a][Z] <=> $vertices[$b][Z] } 0..2;
+        @vertices = (splice(@vertices, $z_order[0]), splice(@vertices, 0, $z_order[0]));
+    }
+    
     # is the facet horizontal?
     # (note that we can have $min_z == $max_z && $min_layer != $max_layer
     # if $min_z % $layer_height != 0)
     if ($min_z == $max_z) {
-        Slic3r::debugf "Facet is horizontal\n";
         my $layer = $print->layer($min_layer);
+        
+        # if all vertices are aligned, then facet is not horizontal but vertical
+        # with a height less than layer height: that's why it was squashed on a
+        # single layer
+        ##local $Slic3r::Geometry::parallel_degrees_limit = 1;
+        ##if (three_points_aligned(@vertices)) {
+        if (0 && abs($normal->[Z]) == 0) {
+            Slic3r::debugf "Facet is vertical with a height less than layer height\n";
+            
+            my ($p1, $p2, $p3) = @vertices;
+            $layer->add_line(Slic3r::Line::FacetEdge->cast(
+                $_,
+                edge_type => 'bottom',
+            )) for ([$p1, $p2], [$p2, $p3], [$p1, $p3], [$p2, $p1], [$p3, $p2], [$p3, $p1]);
+            
+            return;
+        }
+        
+        Slic3r::debugf "Facet is horizontal\n";
         my $surface = $layer->add_surface(@vertices);
         
         # to determine whether the surface is a top or bottom let's recompute
@@ -147,6 +174,7 @@ sub _facet {
         }
         
         if ($layer->id == 0 && !$clockwise) {
+            YYY $normal;
             die "Right-hand rule gives bad result for facets on base layer!\n";
         }
         
@@ -180,11 +208,13 @@ sub intersect_facet {
         
         if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
             # edge is horizontal and belongs to the current layer
+            my $edge_type = (grep $_->[Z] > $z, @$vertices) ? 'bottom' : 'top';
+            ($a, $b) = ($b, $a) if $edge_type eq 'bottom';
             push @lines, Slic3r::Line::FacetEdge->cast(
                 [ [$a->[X], $a->[Y]], [$b->[X], $b->[Y]] ],
-                edge_type => (grep $_->[Z] > $z, @$vertices) ? 'bottom' : 'top',
+                edge_type => $edge_type,
             );
-            #print "Horizontal!\n";
+            #print "Horizontal edge!\n";
             
         } elsif (($a->[Z] < $z && $b->[Z] > $z) || ($b->[Z] < $z && $a->[Z] > $z)) {
             # edge intersects the current layer; calculate intersection

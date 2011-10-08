@@ -160,7 +160,7 @@ sub angle3points					# Angle between three points in radians
  {
   my $p1	= shift ;
   my $p2	= shift ;
-  return( sprintf("%0.6f",atan2( (@$p2[1] - @$p1[1]),( @$p2[0] - @$p1[0] ))) ) ;
+  return atan2( (@$p2[1] - @$p1[1]),( @$p2[0] - @$p1[0] ));
  }
 }
 

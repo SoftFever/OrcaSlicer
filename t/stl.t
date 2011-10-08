@@ -21,12 +21,12 @@ is_deeply lines(20, 20, 20), [
     [ $points[2], $points[0] ],
 ], 'horizontal';
 
-is_deeply lines(22, 20, 20), [ [ $points[1], $points[2] ] ], 'lower edge on layer';
+is_deeply lines(22, 20, 20), [ [ $points[2], $points[1] ] ], 'lower edge on layer';
 is_deeply lines(20, 20, 10), [ [ $points[0], $points[1] ] ], 'upper edge on layer';
 is_deeply lines(20, 15, 10), [                            ], 'upper vertex on layer';
 is_deeply lines(28, 20, 30), [                            ], 'lower vertex on layer';
-is_deeply lines(24, 10, 16), [ [ [4, 4],     [2, 6]     ] ], 'two edges intersect';
-is_deeply lines(24, 10, 20), [ [ [4, 4],     [1, 9]     ] ], 'one vertex on plane and one edge intersects';
+is_deeply lines(24, 10, 16), [ [ [2, 6],     [4, 4]     ] ], 'two edges intersect';
+is_deeply lines(24, 10, 20), [ [ [1, 9],     [4, 4]     ] ], 'one vertex on plane and one edge intersects';
 
 my @lower = $stl->intersect_facet(vertices(22, 20, 20), $z, $dz);
 my @upper = $stl->intersect_facet(vertices(20, 20, 10), $z, $dz);
