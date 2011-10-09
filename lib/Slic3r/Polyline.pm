@@ -2,6 +2,8 @@ package Slic3r::Polyline;
 use Moo;
 
 use Math::Clipper qw();
+use Slic3r::Geometry qw(polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
+    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges);
 use Sub::Quote;
 use XXX;
 
@@ -46,18 +48,24 @@ sub p {
 
 sub merge_continuous_lines {
     my $self = shift;
-    
-    my @points = map $_->p, @{$self->points};
-    for (my $i = 2; $i <= $#points; $i++) {
-        if (Slic3r::Geometry::lines_parallel([$points[$i-2], $points[$i-1]], [$points[$i-1], $points[$i]])) {
-            # we can remove $points[$i-1]
-            splice @points, $i-1, 1;
-            
-            $i--;
-        }
+    my $points = $self->p;
+    if ($self->isa('Slic3r::Polyline::Closed')) {
+        polygon_remove_parallel_continuous_edges($points);
+    } else {
+        polyline_remove_parallel_continuous_edges($points);
     }
-    
-    @{$self->points} = map Slic3r::Point->cast($_), @points;
+    @{$self->points} = map Slic3r::Point->cast($_), @$points;
+}
+
+sub remove_acute_vertices {
+    my $self = shift;
+    my $points = $self->p;
+    if ($self->isa('Slic3r::Polyline::Closed')) {
+        polygon_remove_acute_vertices($points);
+    } else {
+        polyline_remove_acute_vertices($points);
+    }
+    @{$self->points} = map Slic3r::Point->cast($_), @$points;
 }
 
 sub cleanup {

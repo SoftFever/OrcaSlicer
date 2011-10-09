@@ -15,18 +15,6 @@ sub lines {
     return @lines;
 }
 
-# superclass doesn't check whether last line of our closed polyline
-# is parallel to first one, so let's do it here
-sub merge_continuous_lines {
-    my $self = shift;
-    $self->SUPER::merge_continuous_lines(@_);
-    
-    my @lines = $self->lines;
-    if ($lines[-1]->parallel_to($lines[0])) {
-        shift @{$self->points};
-    }
-}
-
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;

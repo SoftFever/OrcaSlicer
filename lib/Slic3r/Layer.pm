@@ -157,8 +157,21 @@ sub make_surfaces {
         my %seen_points = map { $get_point_id->($points[$_]) => $_ } 0..1;
         
         CYCLE: while (1) {
-            my $next_lines = $pointmap{ $get_point_id->($points[-1]) }
-                or die sprintf "No lines start at point %d,%d. This shouldn't happen", @{$points[-1]};
+            my $next_lines = $pointmap{ $get_point_id->($points[-1]) };
+            
+            # shouldn't we find the point, let's try with a slower algorithm
+            # as approximation may make the coordinates differ
+            if (!$next_lines) {
+                local $Slic3r::Geometry::epsilon = 1;
+                for (keys %pointmap) {
+                    $next_lines = $pointmap{$_} if points_coincide($points[-1], [ split /,/, $_ ]);
+                    last if $next_lines;
+                }
+            }
+            
+            $next_lines
+                or die sprintf "No lines start at point %s. This shouldn't happen", 
+                    $get_point_id->($points[-1]);
             last CYCLE if !@$next_lines;
             
             my @ordered_next_lines = sort 
@@ -255,6 +268,12 @@ sub process_bridges {
         # since we can't print concave bridges, we transform the surface
         # in a convex polygon; this will print thin membranes eventually
         my $surface_p = convex_hull($surface->contour->p);
+        
+            #use Slic3r::SVG;
+            #Slic3r::SVG::output(undef, "bridge.svg",
+            #    green_polygons  => [ map $_->p, @supporting_surfaces ],
+            #    red_polygons    => [ $surface_p ],
+            #);
         
         # find all supported edges (as polylines, thus keeping notion of 
         # consecutive supported edges)

@@ -65,7 +65,7 @@ sub output {
     
     foreach my $type (qw(points red_points)) {
         if ($things{$type}) {
-            my ($colour, $r) = $type eq 'points' ? ('black', 2) : ('red', 3);
+            my ($colour, $r) = $type eq 'points' ? ('black', 5) : ('red', 3);
             my $g = $svg->group(
                 style => {
                     'stroke-width' => 2,

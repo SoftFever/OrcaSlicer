@@ -120,6 +120,15 @@ sub detect_surfaces_type {
         # of current layer and lower one)
         if ($lower_layer) {
             @bottom = $surface_difference->($layer->surfaces, $lower_layer->surfaces, 'bottom');
+            for (@bottom) {
+                $_->contour->merge_continuous_lines;
+                $_->contour->remove_acute_vertices;
+        
+                # okay, this is an Ugly Hack(tm) to avoid floating point math problems
+                # with diagonal bridges. will find a nicer solution, promised.
+                my $offset = offset([$_->contour->p], 100, 100, JT_MITER, 2);
+                @{$_->contour->points} = map Slic3r::Point->cast($_), @{ $offset->[0] };
+            }
             
             #Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",
             #    green_polygons  => [ map $_->p, @{$layer->surfaces} ],
