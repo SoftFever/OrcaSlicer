@@ -82,6 +82,7 @@ The author is Alessandro Ranellucci (me).
         --help              Output this usage screen and exit
         --save <file>       Save configuration to the specified file
         --load <file>       Load configuration from the specified file
+        -o, --output        File to output gcode to (default: <inputfile>.gcode)
 
         
       Printer options:
@@ -98,6 +99,7 @@ The author is Alessandro Ranellucci (me).
         --filament-packing-density
                             Ratio of the extruded volume over volume pushed 
                             into the extruder (default: 0.85)
+        --temperature       Extrusion temperature (default: 200)
         
       Speed options:
         --print-feed-rate   Speed of print moves in mm/sec (default: 60)
@@ -118,7 +120,6 @@ The author is Alessandro Ranellucci (me).
                             (range: 1+, default: 3)
         --fill-density      Infill density (range: 0-1, default: 0.4)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 0)
-        --temperature       Extrusion temperature (default: 200)
       
       Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 
@@ -134,7 +135,6 @@ The author is Alessandro Ranellucci (me).
         --skirts            Number of skirts to draw (default: 1)
         --skirt-distance    Distance in mm between innermost skirt and object 
                             (default: 6)
-        -o, --output        File to output gcode to (default: <inputfile>.gcode)
        
        Transform options:
         --scale             Factor for scaling input object (default: 1)

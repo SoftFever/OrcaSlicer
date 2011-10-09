@@ -113,6 +113,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --help              Output this usage screen and exit
     --save <file>       Save configuration to the specified file
     --load <file>       Load configuration from the specified file
+    -o, --output        File to output gcode to (default: <inputfile>.gcode)
     
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
@@ -167,7 +168,6 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --skirts            Number of skirts to draw (default: $Slic3r::skirts)
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $Slic3r::skirt_distance)
-    -o, --output        File to output gcode to (default: <inputfile>.gcode)
    
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
