@@ -3,6 +3,7 @@ use Moo;
 
 use Math::Clipper qw();
 use Sub::Quote;
+use XXX;
 
 # arrayref of ordered points
 has 'points' => (
@@ -61,9 +62,14 @@ sub merge_continuous_lines {
 
 sub cleanup {
     my $self = shift;
-    my $tolerance = shift || (1 / $Slic3r::resolution);
-    @{$self->points} = map Slic3r::Point->cast($_), 
+    my $tolerance = shift || 10;
+    
+    my $points = $self->p;
+    push @$points, $points->[0] if $self->isa('Slic3r::Polyline::Closed');
+    my @clean_points = map Slic3r::Point->cast($_), 
         Slic3r::Geometry::Douglas_Peucker($self->p, $tolerance);
+    pop @clean_points if $self->isa('Slic3r::Polyline::Closed');
+    @{$self->points} = @clean_points;
 }
 
 sub reverse_points {

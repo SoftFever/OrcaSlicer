@@ -80,11 +80,6 @@ sub parse_file {
         foreach my $vertex (@vertices) {
             $vertex->[$_] = ($Slic3r::scale * $vertex->[$_] / $Slic3r::resolution) + $shift[$_]
                 for X,Y,Z;
-            
-            # round Z coordinates to the nearest multiple of layer height
-            # XY will be rounded automatically to integers with coercion
-            $vertex->[Z] = int($vertex->[Z] * $Slic3r::resolution / $Slic3r::layer_height)
-                * $Slic3r::layer_height / $Slic3r::resolution;
         }
         
         foreach my $copy (@copies) {
@@ -113,10 +108,14 @@ sub _facet {
     }
     Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
     
+    if ($min_z == $max_z) {
+        Slic3r::debugf "Facet is horizontal; ignoring\n";
+        return;
+    }
+    
     # calculate the layer extents
     my $min_layer = int($min_z * $Slic3r::resolution / $Slic3r::layer_height);
-    my $max_layer = int(0.99999 + ($max_z * $Slic3r::resolution / $Slic3r::layer_height));
-    
+    my $max_layer = int($max_z * $Slic3r::resolution / $Slic3r::layer_height);
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     # reorder vertices so that the first one is the one with lowest Z
@@ -125,62 +124,6 @@ sub _facet {
     {
         my @z_order = sort { $vertices[$a][Z] <=> $vertices[$b][Z] } 0..2;
         @vertices = (splice(@vertices, $z_order[0]), splice(@vertices, 0, $z_order[0]));
-    }
-    
-    # is the facet horizontal?
-    # (note that we can have $min_z == $max_z && $min_layer != $max_layer
-    # if $min_z % $layer_height != 0)
-    if ($min_z == $max_z) {
-        my $layer = $print->layer($min_layer);
-        
-        # if all vertices are aligned, then facet is not horizontal but vertical
-        # with a height less than layer height: that's why it was squashed on a
-        # single layer
-        ##local $Slic3r::Geometry::parallel_degrees_limit = 1;
-        ##if (three_points_aligned(@vertices)) {
-        if (0 && abs($normal->[Z]) == 0) {
-            Slic3r::debugf "Facet is vertical with a height less than layer height\n";
-            
-            my ($p1, $p2, $p3) = @vertices;
-            $layer->add_line(Slic3r::Line::FacetEdge->cast(
-                $_,
-                edge_type => 'bottom',
-            )) for ([$p1, $p2], [$p2, $p3], [$p1, $p3], [$p2, $p1], [$p3, $p2], [$p3, $p1]);
-            
-            return;
-        }
-        
-        Slic3r::debugf "Facet is horizontal\n";
-        my $surface = $layer->add_surface(@vertices);
-        
-        # to determine whether the surface is a top or bottom let's recompute
-        # the normal using the right-hand rule
-        # (this relies on the STL to be well-formed)
-        # recompute the normal using the right-hand rule
-        my $vertices_p = [@vertices];
-        integerize_coordinate_sets($vertices_p);
-        my $clockwise = !is_counter_clockwise($vertices_p);
-        
-        # defensive programming and/or input check
-        if (abs($normal->[Z]) == 1) {
-            # while the vertices may belong to the same layer, it doesn't mean the facet
-            # was horizontal in the original model; so this check makes sense only 
-            # if the original normal is exactly 1 or -1
-            if (($normal->[Z] > 0 && $clockwise) || ($normal->[Z] < 0 && !$clockwise)) {
-                YYY $normal;
-                die sprintf "STL normal (%.0f) and right-hand rule computation (%s) differ!\n",
-                    $normal->[Z], $clockwise ? 'clockwise' : 'counter-clockwise';
-            }
-        }
-        
-        if ($layer->id == 0 && !$clockwise) {
-            YYY $normal;
-            die "Right-hand rule gives bad result for facets on base layer!\n";
-        }
-        
-        $surface->surface_type($clockwise ? 'bottom' : 'top');
-        
-        return;
     }
     
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {

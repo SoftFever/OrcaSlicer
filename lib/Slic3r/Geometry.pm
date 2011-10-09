@@ -17,7 +17,7 @@ our @EXPORT_OK = qw(
     clip_segment_complex_polygon longest_segment angle3points
 );
 
-use Slic3r::Geometry::DouglasPeucker ();
+use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);

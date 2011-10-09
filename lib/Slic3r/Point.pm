@@ -4,13 +4,13 @@ use Moo;
 has 'x' => (
     is          => 'ro',
     required    => 1,
-    coerce      => sub { sprintf '%.0f', $_[0] },
+    #coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 has 'y' => (
     is          => 'ro',
     required    => 1,
-    coerce      => sub { sprintf '%.0f', $_[0] },
+    #coerce      => sub { sprintf '%.0f', $_[0] },
 );
 
 sub cast {

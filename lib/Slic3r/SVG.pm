@@ -39,14 +39,15 @@ sub output {
     
     my $svg = svg($print);
     
-    foreach my $type (qw(polygons polylines white_polygons red_polygons red_polylines)) {
+    foreach my $type (qw(polygons polylines white_polygons green_polygons red_polygons red_polylines)) {
         if ($things{$type}) {
             my $method = $type =~ /polygons/ ? 'polygon' : 'polyline';
+            my ($colour) = $type =~ /^(red|green)_/;
             my $g = $svg->group(
                 style => {
                     'stroke-width' => 2,
-                    'stroke' => $type =~ /red_/ ? 'red' : 'black',
-                    'fill' => ($type !~ /polygons/ ? 'none' : ($type =~ /red_/ ? 'red' : 'grey')),
+                    'stroke' => $colour || 'black',
+                    'fill' => ($type !~ /polygons/ ? 'none' : ($colour || 'grey')),
                 },
             );
             foreach my $polygon (@{$things{$type}}) {
@@ -57,7 +58,6 @@ sub output {
                 );
                 $g->$method(
                     %$path,
-                    'marker-end' => "url(#endArrow)",
                 );
             }
         }

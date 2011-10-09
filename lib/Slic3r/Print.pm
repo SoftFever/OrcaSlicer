@@ -34,16 +34,17 @@ sub new_from_stl {
     
     print "\n==> PROCESSING SLICES:\n";
     foreach my $layer (@{ $print->layers }) {
-        printf "\nProcessing layer %d:\n", $layer->id;
+        printf "Making surfaces for layer %d:\n", $layer->id;
         
-        # build polylines of lines which do not already belong to a surface
-        my $polylines = $layer->make_polylines;
+        # layer currently has many lines representing intersections of
+        # model facets with the layer plane. there may also be lines
+        # that we need to ignore (for example, when two non-horizontal
+        # facets share a common edge on our plane, we get a single line;
+        # however that line has no meaning for our layer as it's enclosed
+        # inside a closed polyline)
         
-        # build surfaces of polylines (distinguishing contours from holes)
-        $layer->make_surfaces($polylines);
-        
-        # merge surfaces having a common line
-        $layer->merge_contiguous_surfaces;
+        # build surfaces from sparse lines
+        $layer->make_surfaces;
     }
     
     return $print;
@@ -74,6 +75,82 @@ sub layer {
     return $self->layers->[$layer_id];
 }
 
+sub detect_surfaces_type {
+    my $self = shift;
+    
+    my $clipper = Math::Clipper->new;
+    
+    # prepare a reusable subroutine to make surface differences
+    my $surface_difference = sub {
+        my ($subject_surfaces, $clip_surfaces, $result_type) = @_;
+        $clipper->clear;
+        $clipper->add_subject_polygons([ map $_->p, @$subject_surfaces ]);
+        $clipper->add_clip_polygons([ map { ref $_ eq 'ARRAY' ? $_ : $_->p } @$clip_surfaces ]);
+        my $expolygons = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
+        return grep $_->contour->is_printable,
+            map Slic3r::Surface->cast_from_expolygon($_, surface_type => $result_type), 
+            @$expolygons;
+    };
+    
+    for (my $i = 0; $i < $self->layer_count; $i++) {
+        my $layer = $self->layers->[$i];
+        my $upper_layer = $self->layers->[$i+1];
+        my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
+        
+        my (@bottom, @top, @internal) = ();
+        
+        # find top surfaces (difference between current surfaces
+        # of current layer and upper one)
+        if ($upper_layer) {
+            # offset upper layer surfaces by extrusion_width * perimeters
+            my $upper_surfaces = offset(
+                [ map $_->p, @{$upper_layer->surfaces} ],
+                ($Slic3r::flow_width / $Slic3r::resolution * $Slic3r::perimeter_offsets),
+                $Slic3r::resolution * 100,
+                JT_MITER, 2,
+            );
+            @top = $surface_difference->($layer->surfaces, $upper_surfaces, 'top');
+        } else {
+            # if no upper layer, all surfaces of this one are solid
+            @top = @{$layer->surfaces};
+            $_->surface_type('top') for @top;
+        }
+        
+        # find bottom surfaces (difference between current surfaces
+        # of current layer and lower one)
+        if ($lower_layer) {
+            @bottom = $surface_difference->($layer->surfaces, $lower_layer->surfaces, 'bottom');
+            
+            #Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",
+            #    green_polygons  => [ map $_->p, @{$layer->surfaces} ],
+            #    red_polygons    => [ map $_->p, @{$lower_layer->surfaces} ],
+            #);
+            
+            
+        } else {
+            # if no lower layer, all surfaces of this one are solid
+            @bottom = @{$layer->surfaces};
+            $_->surface_type('bottom') for @bottom;
+        }
+        
+        # find internal surfaces (difference between top/bottom surfaces and others)
+        @internal = $surface_difference->($layer->surfaces, [@top, @bottom], 'internal');
+        
+        # save surfaces to layer
+        $layer->surfaces([ @bottom, @top, @internal ]);
+        
+        #use Slic3r::SVG;
+        #Slic3r::SVG::output(undef, "layer_" . $layer->id . ".svg",
+        #    white_polygons  => [ map $_->p, @internal ],
+        #    green_polygons  => [ map $_->p, @bottom ],
+        #    red_polygons    => [ map $_->p, @top ],
+        #);
+        
+        Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
+            $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
+    }
+}
+
 sub discover_horizontal_shells {
     my $self = shift;
     
@@ -97,7 +174,7 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                 
                 foreach my $surf_coll (@{$self->layers->[$n]->fill_surfaces}) {
-                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type eq 'internal', @{$surf_coll->surfaces} ];
+                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type =~ /internal/, @{$surf_coll->surfaces} ];
                     
                     # find intersection between @surfaces and current layer's surfaces
                     $clipper->add_subject_polygons([ map $_->p, @surfaces ]);

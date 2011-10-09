@@ -121,9 +121,16 @@ sub remove_surface {
     @{ $self->surfaces } = grep $_ ne $surface, @{ $self->surfaces };
 }
 
-# build polylines of lines which do not already belong to a surface
-sub make_polylines {
+# build polylines from lines
+sub make_surfaces {
     my $self = shift;
+    
+    # this algorithm can be further simplified:
+    # first remove all facetedges that are not connected to any other edge
+    # or that are connected to more than one edge: those are the edges
+    # tangent to our plane, that we don't care about;
+    # then we would have all points connecting two and only two lines,
+    # so a simple head-to-tail algorithm would work
     
     my @lines = ();
     push @lines, map $_->p, @{$self->lines};
@@ -134,7 +141,7 @@ sub make_polylines {
     #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
     #);
     
-    my $get_point_id = sub { sprintf "%d,%d", @{$_[0]} };
+    my $get_point_id = sub { sprintf "%.0f,%.0f", @{$_[0]} };
     
     my (%pointmap) = ();
     foreach my $line (@lines) {
@@ -193,166 +200,16 @@ sub make_polylines {
     #    polylines => [ @polylines ],
     #);
     
-    return [ map Slic3r::Polyline::Closed->cast($_), @polylines ];
-}
-
-sub make_surfaces {
-    my $self = shift;
-    my ($polylines) = @_;
+    #@polylines = map Slic3r::Polyline::Closed->cast($_), @polylines;
     
-    #use Slic3r::SVG;
-    #Slic3r::SVG::output_polygons($main::print, "polylines.svg", [ map $_->p, @$polylines ]);
-    
-    # count how many other polylines enclose each polyline
-    # even = contour; odd = hole
-    my %enclosing_polylines = ();
-    my %enclosing_polylines_count = ();
-    my $max_depth = 0;
-    foreach my $polyline (@$polylines) {
-        # a polyline encloses another one if any point of it is enclosed
-        # in the other
-        my $point = $polyline->points->[0];
-        my $ordered_id = $polyline->id;
-        
-        # find polylines contaning $point, and thus $polyline
-        $enclosing_polylines{$polyline} = 
-            [ grep $_->id ne $ordered_id && $_->encloses_point($point), @$polylines ];
-        $enclosing_polylines_count{$polyline} = scalar @{ $enclosing_polylines{$polyline} };
-        
-        $max_depth = $enclosing_polylines_count{$polyline}
-            if $enclosing_polylines_count{$polyline} > $max_depth;
-    }
-    
-    # make a cache for contours and surfaces
-    my %surfaces = ();   # contour => surface
-    
-    # start looking at most inner polylines
-    for (; $max_depth > -1; $max_depth--) {
-        foreach my $polyline (@$polylines) {
-            next unless $enclosing_polylines_count{$polyline} == $max_depth;
-            
-            my $surface;
-            if ($enclosing_polylines_count{$polyline} % 2 == 0) {
-                # this is a contour
-                $polyline->make_counter_clockwise;
-                $surface = Slic3r::Surface->new(contour => $polyline);
-            } else {
-                # this is a hole
-                $polyline->make_clockwise;
-                
-                # find the enclosing polyline having immediately close depth
-                my ($contour) = grep $enclosing_polylines_count{$_} == ($max_depth-1), 
-                    @{ $enclosing_polylines{$polyline} };
-                
-                if ($surfaces{$contour}) {
-                    $surface = $surfaces{$contour};
-                    $surface->add_hole($polyline);
-                } else {
-                    $surface = Slic3r::Surface->new(
-                        contour => $contour,
-                        holes   => [$polyline],
-                    );
-                    $surfaces{$contour} = $surface;
-                }
-            }
-            
-            # check whether we already have this surface
-            next if grep $_->id eq $surface->id, @{ $self->surfaces };
-            
-            $surface->surface_type('internal');
-            push @{ $self->surfaces }, $surface;
-            
-            Slic3r::debugf "New surface: %s (%d holes: %s)\n", 
-                $surface->id, scalar @{$surface->holes},
-                join(', ', map $_->id, @{$surface->holes}) || 'none'
-                if $Slic3r::debug;
-        }
-    }
-}
-
-sub merge_contiguous_surfaces {
-    my $self = shift;
-    
-    if ($Slic3r::debug) {
-        Slic3r::debugf "Initial surfaces (%d):\n", scalar @{ $self->surfaces };
-        Slic3r::debugf "  [%s] %s (%s with %d holes)\n", $_->surface_type, $_->id, 
-            ($_->contour->is_counter_clockwise ? 'ccw' : 'cw'), scalar @{$_->holes} for @{ $self->surfaces };
-        #Slic3r::SVG::output_polygons(undef, "polygons-before.svg", [ map $_->contour->p, @{$self->surfaces} ]);
-    }
-    
-    my %resulting_surfaces = ();
-    
-    # only merge surfaces with same type
-    foreach my $type (qw(bottom top internal)) {
+    {
         my $clipper = Math::Clipper->new;
-        my @surfaces = grep $_->surface_type eq $type, @{$self->surfaces}
-            or next;
+        $clipper->add_subject_polygons([ @polylines ]);
+        my $expolygons = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
         
-        #Slic3r::SVG::output_polygons($main::print, "polygons-$type-before.svg", [ map $_->contour->p, @surfaces ]);
-        $clipper->add_subject_polygons([ map $_->contour->p, @surfaces ]);
-        
-        my $result = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
-        $clipper->clear;
-        
-        my @extra_holes = map @{$_->{holes}}, @$result;
-        $result = [ map $_->{outer}, @$result ];
-        #Slic3r::SVG::output_polygons($main::print, "polygons-$type-union.svg", $result);
-        
-        # subtract bottom or top surfaces from internal
-        if ($type eq 'internal') {
-            $clipper->add_subject_polygons($result);
-            $clipper->add_clip_polygons([ map $_->{outer}, @{$resulting_surfaces{$_}} ])
-                for qw(bottom top);
-            $result = $clipper->execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-            $clipper->clear;
-        }
-        
-        # apply holes
-        $clipper->add_subject_polygons($result);
-        $result = $clipper->execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-        $clipper->clear;
-        
-        $clipper->add_subject_polygons($result);
-        $clipper->add_clip_polygons([ @extra_holes ]) if @extra_holes;
-        $clipper->add_clip_polygons([ map $_->p, map @{$_->holes}, @surfaces ]);
-        my $result2 = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-        
-        $resulting_surfaces{$type} = $result2;
-    }
-    
-    # remove overlapping surfaces
-    # (remove anything that is not internal from areas covered by internal surfaces)
-    # this may happen because of rounding of Z coordinates: the model could have
-    # features smaller than our layer height, so we'd get more things on a single
-    # layer
-    if (0) {  # not proven to be necessary until now
-        my $clipper = Math::Clipper->new;
-        foreach my $type (qw(bottom top)) {
-            $clipper->clear;
-            $clipper->add_subject_polygons([ map { $_->{outer}, @{$_->{holes}} } @{$resulting_surfaces{$type}} ]);
-            $clipper->add_clip_polygons([ map { $_->{outer}, @{$_->{holes}} } @{$resulting_surfaces{internal}} ]);
-            $resulting_surfaces{$type} = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-        }
-    }
-    
-    # save surfaces
-    @{ $self->surfaces } = ();
-    foreach my $type (keys %resulting_surfaces) {
-        foreach my $p (@{ $resulting_surfaces{$type} }) {
-            push @{ $self->surfaces }, Slic3r::Surface->new(
-                surface_type => $type,
-                contour => Slic3r::Polyline::Closed->cast($p->{outer}),
-                holes   => [
-                    map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
-                ],
-            );
-        }
-    }
-    
-    if ($Slic3r::debug) {
-        Slic3r::debugf "Final surfaces (%d):\n", scalar @{ $self->surfaces };
-        Slic3r::debugf "  [%s] %s (%s with %d holes)\n", $_->surface_type, $_->id, 
-            ($_->contour->is_counter_clockwise ? 'ccw' : 'cw'), scalar @{$_->holes} for @{ $self->surfaces };
+        Slic3r::debugf "  %d surface(s) detected from %d polylines\n",
+            scalar(@$expolygons), scalar(@polylines);
+        push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'internal'), @$expolygons;
     }
 }
 
@@ -360,6 +217,7 @@ sub remove_small_surfaces {
     my $self = shift;
     my @good_surfaces = ();
     
+    my $surface_count = scalar @{$self->surfaces};
     foreach my $surface (@{$self->surfaces}) {
         next if !$surface->contour->is_printable;
         @{$surface->holes} = grep $_->is_printable, @{$surface->holes};
@@ -367,12 +225,16 @@ sub remove_small_surfaces {
     }
     
     @{$self->surfaces} = @good_surfaces;
+    Slic3r::debugf "removed %d small surfaces at layer %d\n",
+        ($surface_count - @good_surfaces), $self->id 
+        if @good_surfaces != $surface_count;
 }
 
 sub remove_small_perimeters {
     my $self = shift;
     my @good_perimeters = grep $_->is_printable, @{$self->perimeters};
-    Slic3r::debugf "removed %d unprintable perimeters\n", (@{$self->perimeters} - @good_perimeters) 
+    Slic3r::debugf "removed %d unprintable perimeters at layer %d\n",
+        (@{$self->perimeters} - @good_perimeters), $self->id
         if @good_perimeters != @{$self->perimeters};
     
     @{$self->perimeters} = @good_perimeters;
@@ -400,9 +262,9 @@ sub process_bridges {
         {
             my @current_polyline = ();
             EDGE: foreach my $edge (Slic3r::Geometry::polygon_lines($surface_p)) {
-                for (@supporting_surfaces) {
+                for my $supporting_surface (@supporting_surfaces) {
                     local $Slic3r::Geometry::epsilon = 1E+7;
-                    if (Slic3r::Geometry::polygon_has_subsegment($_->contour->p, $edge)) {
+                    if (Slic3r::Geometry::polygon_has_subsegment($supporting_surface->contour->p, $edge)) {
                         push @current_polyline, $edge;
                         next EDGE;
                     }

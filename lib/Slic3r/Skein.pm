@@ -16,9 +16,12 @@ sub go {
     my $t0 = [gettimeofday];
     
     # skein the STL into layers
-    # each layer has surfaces with holes; surfaces are distinguished
-    # in top/bottom/internal
+    # each layer has surfaces with holes
     my $print = Slic3r::Print->new_from_stl($self->input_file);
+    
+    # this will detect the type of each surface (top/bottom/internal)
+    # by splitting them if necessary
+    $print->detect_surfaces_type;
     
     # this will remove unprintable surfaces
     # (those that are too tight for extrusion)
