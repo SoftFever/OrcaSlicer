@@ -31,6 +31,7 @@ GetOptions(
     # filament options
     'filament-diameter=f'           => \$Slic3r::filament_diameter,
     'filament-packing-density=f'    => \$Slic3r::filament_packing_density,
+    'temperature=i'         => \$Slic3r::temperature,
     
     # speed options
     'print-feed-rate=i'             => \$Slic3r::print_feed_rate,
@@ -48,7 +49,6 @@ GetOptions(
     'fill-type=s'           => \$Slic3r::fill_type,
     'fill-density=f'        => \$Slic3r::fill_density,
     'fill-angle=i'          => \$Slic3r::fill_angle,
-    'temperature=i'         => \$Slic3r::temperature,
     
     # retraction options
     'retract-length=f'          => \$Slic3r::retract_length,
@@ -128,6 +128,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --filament-packing-density
                         Ratio of the extruded volume over volume pushed 
                         into the extruder (default: $Slic3r::filament_packing_density)
+    --temperature       Extrusion temperature (default: $Slic3r::temperature)
     
   Speed options:
     --print-feed-rate   Speed of print moves in mm/sec (default: $Slic3r::print_feed_rate)
@@ -151,7 +152,6 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
     --fill-angle        Infill angle in degrees (range: 0-90, default: $Slic3r::fill_angle)
-    --temperature       Extrusion temperature (default: $Slic3r::temperature)
   
   Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 

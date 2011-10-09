@@ -1,6 +1,7 @@
 package Slic3r::Config;
 use strict;
 use warnings;
+use utf8;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -32,8 +33,12 @@ our $Options = {
         type    => 'f',
     },
     'filament_packing_density' => {
-        label   => 'Packing density (mm)',
+        label   => 'Packing density',
         type    => 'f',
+    },
+    'temperature' => {
+        label   => 'Temperature (°C)',
+        type    => 'i',
     },
     
     # speed options
@@ -79,10 +84,6 @@ our $Options = {
     },
     'fill_angle' => {
         label   => 'Fill angle (°)',
-        type    => 'i',
-    },
-    'temperature' => {
-        label   => 'Temperature (°C)',
         type    => 'i',
     },
     
