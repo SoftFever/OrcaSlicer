@@ -596,7 +596,6 @@ sub polygon_remove_parallel_continuous_edges {
 
 sub polyline_remove_acute_vertices {
     my ($points, $isPolygon) = @_;
-    
     for (my $i = $isPolygon ? -1 : 1; $i < $#$points; $i++) {
         my $angle = angle3points($points->[$i], $points->[$i-1], $points->[$i+1]);
         if ($angle < 0.01 || $angle >= 2*PI - 0.01) {

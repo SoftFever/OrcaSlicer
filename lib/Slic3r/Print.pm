@@ -134,8 +134,13 @@ sub detect_surfaces_type {
         if ($lower_layer) {
             @bottom = $surface_difference->($layer->surfaces, $lower_layer->surfaces, 'bottom');
             
+            $_->contour->merge_continuous_lines for @bottom;
+            
+            # merge_continuous_lines could return polylines with less than 3 points (thus invalid)
+            # actually, this shouldn't happen so it deserves further investigation
+            @bottom = grep $_->contour->is_valid, @bottom;
+            
             for (@bottom) {
-                $_->contour->merge_continuous_lines;
                 $_->contour->remove_acute_vertices;
         
                 # okay, this is an Ugly Hack(tm) to avoid floating point math problems

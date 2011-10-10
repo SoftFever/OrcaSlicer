@@ -35,4 +35,9 @@ sub is_printable {
     return @$offsets ? 1 : 0;
 }
 
+sub is_valid {
+    my $self = shift;
+    return @{$self->points} >= 3;
+}
+
 1;
