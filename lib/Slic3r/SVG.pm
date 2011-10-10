@@ -46,7 +46,7 @@ sub output {
             my $g = $svg->group(
                 style => {
                     'stroke-width' => 2,
-                    'stroke' => $colour || 'black',
+                    'stroke' => 'black' || $colour || 'black',
                     'fill' => ($type !~ /polygons/ ? 'none' : ($colour || 'grey')),
                 },
             );
@@ -58,6 +58,7 @@ sub output {
                 );
                 $g->$method(
                     %$path,
+                    'marker-end' => "url(#endArrow)",
                 );
             }
         }

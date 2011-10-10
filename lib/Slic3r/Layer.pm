@@ -4,6 +4,7 @@ use Moo;
 use Math::Clipper ':all';
 use Math::ConvexHull qw(convex_hull);
 use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines);
+use Slic3r::Geometry::Clipper qw(union_ex);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -77,7 +78,7 @@ has 'fills' => (
 
 sub z {
     my $self = shift;
-    return $self->id * $Slic3r::layer_height / $Slic3r::resolution;
+    return ($self->id * $Slic3r::layer_height + $Slic3r::layer_height/2) / $Slic3r::resolution;
 }
 
 sub add_surface {
@@ -209,21 +210,25 @@ sub make_surfaces {
         push @polylines, [@points];
     }
     
+    #use Slic3r::SVG;
     #Slic3r::SVG::output(undef, "polylines.svg",
     #    polylines => [ @polylines ],
     #);
-    
-    #@polylines = map Slic3r::Polyline::Closed->cast($_), @polylines;
+    #exit if $self->id == 30;
     
     {
-        my $clipper = Math::Clipper->new;
-        $clipper->add_subject_polygons([ @polylines ]);
-        my $expolygons = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
+        my $expolygons = union_ex([ @polylines ]);
         
         Slic3r::debugf "  %d surface(s) detected from %d polylines\n",
             scalar(@$expolygons), scalar(@polylines);
         push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'internal'), @$expolygons;
     }
+    
+    #use Slic3r::SVG;
+    #Slic3r::SVG::output(undef, "surfaces.svg",
+    #    polygons        => [ map $_->contour->p, @{$self->surfaces} ],
+    #    red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->surfaces} ],
+    #);
 }
 
 sub remove_small_surfaces {

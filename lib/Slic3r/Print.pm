@@ -2,6 +2,7 @@ package Slic3r::Print;
 use Moo;
 
 use Math::Clipper ':all';
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex);
 use XXX;
 
 use constant X => 0;
@@ -83,10 +84,10 @@ sub detect_surfaces_type {
     # prepare a reusable subroutine to make surface differences
     my $surface_difference = sub {
         my ($subject_surfaces, $clip_surfaces, $result_type) = @_;
-        $clipper->clear;
-        $clipper->add_subject_polygons([ map $_->p, @$subject_surfaces ]);
-        $clipper->add_clip_polygons([ map { ref $_ eq 'ARRAY' ? $_ : $_->p } @$clip_surfaces ]);
-        my $expolygons = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
+        my $expolygons = diff_ex(
+            [ map { ref $_ eq 'ARRAY' ? $_ : $_->p } @$subject_surfaces ],
+            [ map { ref $_ eq 'ARRAY' ? $_ : $_->p } @$clip_surfaces ],
+        );
         return grep $_->contour->is_printable,
             map Slic3r::Surface->cast_from_expolygon($_, surface_type => $result_type), 
             @$expolygons;
@@ -94,6 +95,7 @@ sub detect_surfaces_type {
     
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
+        Slic3r::debugf "Detecting solid surfaces for layer %d\n", $layer->id;
         my $upper_layer = $self->layers->[$i+1];
         my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
         
@@ -103,13 +105,24 @@ sub detect_surfaces_type {
         # of current layer and upper one)
         if ($upper_layer) {
             # offset upper layer surfaces by extrusion_width * perimeters
-            my $upper_surfaces = offset(
-                [ map $_->p, @{$upper_layer->surfaces} ],
-                ($Slic3r::flow_width / $Slic3r::resolution * $Slic3r::perimeter_offsets),
-                $Slic3r::resolution * 100,
-                JT_MITER, 2,
-            );
-            @top = $surface_difference->($layer->surfaces, $upper_surfaces, 'top');
+            @top = $surface_difference->($layer->surfaces, $upper_layer->surfaces, 'top');
+            
+            # now check whether each resulting top surfaces is large enough to have its
+            # own perimeters or whether it may be sufficient to use the lower layer's 
+            # perimeters
+            
+            # offset upper layer's surfaces
+            my $upper_surfaces_offsetted;
+            {
+                my $distance = $Slic3r::flow_width * ($Slic3r::perimeter_offsets + 1) / $Slic3r::resolution;
+                $upper_surfaces_offsetted = offset([ map $_->p, @{$upper_layer->surfaces} ], $distance, 100, JT_MITER, 2);
+            }
+            
+            @top = grep {
+                my $surface = $_;
+                my $diff = diff_ex([ map $_->p, $surface ], $upper_surfaces_offsetted);
+                @$diff;
+            } @top;
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->surfaces};
@@ -120,6 +133,7 @@ sub detect_surfaces_type {
         # of current layer and lower one)
         if ($lower_layer) {
             @bottom = $surface_difference->($layer->surfaces, $lower_layer->surfaces, 'bottom');
+            
             for (@bottom) {
                 $_->contour->merge_continuous_lines;
                 $_->contour->remove_acute_vertices;
@@ -135,6 +149,18 @@ sub detect_surfaces_type {
             #    red_polygons    => [ map $_->p, @{$lower_layer->surfaces} ],
             #);
             
+            # offset lower layer's surfaces
+            my $lower_surfaces_offsetted;
+            {
+                my $distance = $Slic3r::flow_width * ($Slic3r::perimeter_offsets + 1) / $Slic3r::resolution;
+                $lower_surfaces_offsetted = offset([ map $_->p, @{$lower_layer->surfaces} ], $distance, 100, JT_MITER, 2);
+            }
+            
+            @bottom = grep {
+                my $surface = $_;
+                my $diff = diff_ex([ map $_->p, $surface ], $lower_surfaces_offsetted);
+                @$diff;
+            } @bottom;
             
         } else {
             # if no lower layer, all surfaces of this one are solid
