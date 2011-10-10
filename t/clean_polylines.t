@@ -1,4 +1,6 @@
 use Test::More;
+use strict;
+use warnings;
 
 plan tests => 4;
 

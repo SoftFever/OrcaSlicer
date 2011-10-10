@@ -1,4 +1,6 @@
 use Test::More;
+use strict;
+use warnings;
 
 plan tests => 11;
 
@@ -28,8 +30,8 @@ is_deeply lines(28, 20, 30), [                            ], 'lower vertex on la
 is_deeply lines(24, 10, 16), [ [ [4, 4],     [2, 6]     ] ], 'two edges intersect';
 is_deeply lines(24, 10, 20), [ [ [4, 4],     [1, 9]     ] ], 'one vertex on plane and one edge intersects';
 
-my @lower = $stl->intersect_facet(vertices(22, 20, 20), $z, $dz);
-my @upper = $stl->intersect_facet(vertices(20, 20, 10), $z, $dz);
+my @lower = $stl->intersect_facet(vertices(22, 20, 20), $z);
+my @upper = $stl->intersect_facet(vertices(20, 20, 10), $z);
 isa_ok $lower[0], 'Slic3r::Line::FacetEdge', 'bottom edge on layer';
 isa_ok $upper[0], 'Slic3r::Line::FacetEdge', 'upper edge on layer';
 is $lower[0]->edge_type, 'bottom', 'lower edge is detected as bottom';
@@ -40,5 +42,5 @@ sub vertices {
 }
 
 sub lines {
-    [ map [ map ref $_ eq 'Slic3r::Point' ? $_->p : [ map sprintf('%.0f', $_), @$_ ], @$_ ], map $_->p, $stl->intersect_facet(vertices(@_), $z, $dz) ];
+    [ map [ map ref $_ eq 'Slic3r::Point' ? $_->p : [ map sprintf('%.0f', $_), @$_ ], @$_ ], map $_->p, $stl->intersect_facet(vertices(@_), $z) ];
 }

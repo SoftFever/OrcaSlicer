@@ -127,12 +127,6 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     polygon_remove_parallel_continuous_edges($polygon);
     polygon_remove_acute_vertices($polygon);
     is scalar(@$polygon), 4, 'polygon_remove_acute_vertices';
-    
-    use Slic3r::SVG;
-    #pop @$polygon;
-    Slic3r::SVG::output(undef, "vert.svg",
-        polylines => [$polygon],
-    );
 }
 
 #==========================================================
@@ -144,12 +138,6 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     ];
     polyline_remove_acute_vertices($polygon);
     is scalar(@$polygon), 6, 'polyline_remove_acute_vertices';
-    use Slic3r::SVG;
-    local $Slic3r::resolution = 0.1;
-    pop @$polygon;
-    Slic3r::SVG::output(undef, "vert2.svg",
-        polylines => [$polygon],
-    );
 }
 
 #==========================================================
