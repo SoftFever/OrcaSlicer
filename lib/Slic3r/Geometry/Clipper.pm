@@ -6,7 +6,7 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(diff_ex diff union_ex);
 
-use Math::Clipper ':all';
+use Math::Clipper 1.02 ':all';
 our $clipper = Math::Clipper->new;
 
 sub diff_ex {
