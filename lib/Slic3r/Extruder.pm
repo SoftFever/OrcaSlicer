@@ -107,7 +107,14 @@ sub retract {
         && !$self->retracted;
     
     $self->retracted(1);
-    return $self->G1(undef, undef, -$Slic3r::retract_length, "retract");
+    my $gcode = $self->G1(undef, undef, -$Slic3r::retract_length, "retract");
+    
+    # reset extrusion distance during retracts
+    # this makes sure we leave sufficient precision in the firmware
+    if (!$Slic3r::use_relative_e_distances) {
+        $gcode .= "G92 E0\n";
+        $self->extrusion_distance(0);
+    }
 }
 
 sub unretract {
@@ -159,10 +166,6 @@ sub G1 {
     if ($e) {
         $self->extrusion_distance(0) if $Slic3r::use_relative_e_distances;
         $self->extrusion_distance($self->extrusion_distance + $e);
-        if ($self->extrusion_distance > 65535) {
-            $gcode = "G92 E0\n" . $gcode;
-            $self->extrusion_distance($e);
-        }
         $gcode .= sprintf " E%.5f", $self->extrusion_distance;
     }
     
