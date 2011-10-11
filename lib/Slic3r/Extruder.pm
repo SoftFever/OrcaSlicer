@@ -9,6 +9,7 @@ has 'flow_ratio'         => (is => 'rw', default => sub {1});
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'last_pos'           => (is => 'rw', default => sub { [0,0] } );
+has 'last_f'             => (is => 'rw', default => sub {0});
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # calculate speeds
@@ -138,21 +139,34 @@ sub G1 {
     my $speed_multiplier = $e && $self->z == $Slic3r::z_offset
         ? $Slic3r::bottom_layer_speed_ratio 
         : 1;
-
+    
+    # determine speed
+    my $speed = $self->travel_feed_rate * $speed_multiplier;
+    if ($e) {
+        $speed = $self->print_feed_rate * $speed_multiplier;
+        $speed = $self->retract_speed if $comment =~ /retract/;
+        $speed = $self->perimeter_feed_rate * $speed_multiplier if $comment =~ /perimeter/;
+    }
+    
+    # output speed if it's different from last one used
+    # (goal: reduce gcode size)
+    if ($speed != $self->last_f) {
+        $gcode .= sprintf " F%.${dec}f", $speed;
+        $self->last_f($speed);
+    }
+    
+    # output extrusion distance
     if ($e) {
         $self->extrusion_distance(0) if $Slic3r::use_relative_e_distances;
         $self->extrusion_distance($self->extrusion_distance + $e);
-        my $speed = $self->print_feed_rate * $speed_multiplier;
-        $speed = $self->retract_speed if $comment =~ /retract/;
-        $speed = $self->perimeter_feed_rate * $speed_multiplier if $comment =~ /perimeter/;
-        
-        $gcode .= sprintf " F%.${dec}f E%.5f", $speed, $self->extrusion_distance;
-        
-    } else {
-        $gcode .= sprintf " F%.${dec}f", ($self->travel_feed_rate * $speed_multiplier);
+        if ($self->extrusion_distance > 65535) {
+            $gcode = "G92 E0\n" . $gcode;
+            $self->extrusion_distance($e);
+        }
+        $gcode .= sprintf " E%.5f", $self->extrusion_distance;
     }
-    $gcode .= sprintf " ; %s", $comment if $comment;
     
+    $gcode .= sprintf " ; %s", $comment if $comment;
     return "$gcode\n";
 }
 
