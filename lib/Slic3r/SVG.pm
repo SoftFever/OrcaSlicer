@@ -58,7 +58,7 @@ sub output {
                 );
                 $g->$method(
                     %$path,
-                    'marker-end' => "url(#endArrow)",
+                    'marker-end' => $things{no_arrows} ? "" : "url(#endArrow)",
                 );
             }
         }
@@ -101,7 +101,7 @@ sub output {
                     style => {
                         'stroke' => $colour || 'black',
                     },
-                    'marker-end' => "url(#endArrow)",
+                    'marker-end' => $things{no_arrows} ? "" : "url(#endArrow)",
                 );
             }
         }

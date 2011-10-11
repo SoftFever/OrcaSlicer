@@ -157,7 +157,7 @@ sub intersect_facet {
                 [ [$a->[X], $a->[Y]], [$b->[X], $b->[Y]] ],
                 edge_type => $edge_type,
             );
-            #print "Horizontal edge!\n";
+            #print "Horizontal edge at $z!\n";
             
         } elsif (($a->[Z] < $z && $b->[Z] > $z) || ($b->[Z] < $z && $a->[Z] > $z)) {
             # edge intersects the current layer; calculate intersection
@@ -165,14 +165,14 @@ sub intersect_facet {
                 $b->[X] + ($a->[X] - $b->[X]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
                 $b->[Y] + ($a->[Y] - $b->[Y]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
             ];
-            #print "Intersects!\n";
+            #print "Intersects at $z!\n";
             
         } elsif ($a->[Z] == $z) {
-            #print "A point on plane!\n";
+            #print "A point on plane $z!\n";
             push @intersection_points, [ $a->[X], $a->[Y] ];
             
         } elsif ($b->[Z] == $z) {
-            #print "B point on plane!\n";
+            #print "B point on plane $z!\n";
             push @intersection_points, [ $b->[X], $b->[Y] ];
         }
     }
@@ -194,6 +194,7 @@ sub intersect_facet {
         
         # connect points:
         push @lines, Slic3r::Line->cast([ @intersection_points ]);
+        #printf "  intersection points = %f,%f - %f,%f\n", map @$_, @intersection_points;
     }
     
     return @lines;

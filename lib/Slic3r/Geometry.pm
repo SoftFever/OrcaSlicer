@@ -201,7 +201,7 @@ sub polygon_lines {
 sub nearest_point {
     my ($point, $points) = @_;
     
-    my ($nearest_point, $distance);
+    my ($nearest_point, $distance) = ();
     foreach my $p (@$points) {
         my $d = distance_between_points($point, $p);
         if (!defined $distance || $d < $distance) {

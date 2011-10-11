@@ -3,7 +3,8 @@ use Moo;
 
 use Math::Clipper ':all';
 use Math::ConvexHull qw(convex_hull);
-use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines);
+use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines nearest_point
+    line_length);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use XXX;
 
@@ -135,6 +136,7 @@ sub make_surfaces {
     
     my @lines = ();
     push @lines, map $_->p, @{$self->lines};
+    #@lines = grep line_length($_) > xx, @lines;
     
     #use Slic3r::SVG;
     #Slic3r::SVG::output(undef, "lines.svg",
@@ -144,10 +146,13 @@ sub make_surfaces {
     
     my $get_point_id = sub { sprintf "%.0f,%.0f", @{$_[0]} };
     
-    my (%pointmap) = ();
+    my (%pointmap, @pointmap_keys) = ();
     foreach my $line (@lines) {
         my $point_id = $get_point_id->($line->[A]);
-        $pointmap{$point_id} ||= [];
+        if (!exists $pointmap{$point_id}) {
+            $pointmap{$point_id} = [];
+            push @pointmap_keys, $line->[A];
+        }
         push @{ $pointmap{$point_id} }, $line;
     }
     
@@ -163,16 +168,25 @@ sub make_surfaces {
             # shouldn't we find the point, let's try with a slower algorithm
             # as approximation may make the coordinates differ
             if (!$next_lines) {
-                local $Slic3r::Geometry::epsilon = 1;
-                for (keys %pointmap) {
-                    $next_lines = $pointmap{$_} if points_coincide($points[-1], [ split /,/, $_ ]);
-                    last if $next_lines;
+                my $nearest_point = nearest_point($points[-1], \@pointmap_keys);
+                #printf "  we have a nearest point: %f,%f (%s)\n", @$nearest_point, $get_point_id->($nearest_point);
+                
+                if ($nearest_point) {
+                    local $Slic3r::Geometry::epsilon = 1000000;
+                    $next_lines = $pointmap{$get_point_id->($nearest_point)}
+                        if points_coincide($points[-1], $nearest_point);
                 }
             }
             
+            #Slic3r::SVG::output(undef, "lines.svg",
+            #    lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+            #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+            #    points      => [ $points[-1] ],
+            #    no_arrows => 1,
+            #) if !$next_lines;
+            
             $next_lines
-                or die sprintf "No lines start at point %s. This shouldn't happen", 
-                    $get_point_id->($points[-1]);
+                or die sprintf("No lines start at point %s. This shouldn't happen", $get_point_id->($points[-1]));
             last CYCLE if !@$next_lines;
             
             my @ordered_next_lines = sort 
@@ -210,17 +224,11 @@ sub make_surfaces {
         push @polylines, [@points];
     }
     
-    #use Slic3r::SVG;
-    #Slic3r::SVG::output(undef, "polylines.svg",
-    #    polylines => [ @polylines ],
-    #);
-    #exit if $self->id == 30;
-    
     {
         my $expolygons = union_ex([ @polylines ]);
-        
         Slic3r::debugf "  %d surface(s) detected from %d polylines\n",
             scalar(@$expolygons), scalar(@polylines);
+        
         push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'internal'), @$expolygons;
     }
     
