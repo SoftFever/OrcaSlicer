@@ -146,7 +146,7 @@ sub detect_surfaces_type {
                 # okay, this is an Ugly Hack(tm) to avoid floating point math problems
                 # with diagonal bridges. will find a nicer solution, promised.
                 my $offset = offset([$_->contour->p], 100, 100, JT_MITER, 2);
-                @{$_->contour->points} = map Slic3r::Point->cast($_), @{ $offset->[0] };
+                @{$_->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
             }
             
             #Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",

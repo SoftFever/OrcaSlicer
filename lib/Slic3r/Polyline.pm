@@ -24,7 +24,7 @@ sub cast {
     my $class = shift;
     my ($points) = @_;
     
-    $points = [ map { ref $_ eq 'ARRAY' ? Slic3r::Point->cast($_) : $_ } @$points ];
+    $points = [ map { ref $_ eq 'ARRAY' ? Slic3r::Point->new($_) : $_ } @$points ];
     return $class->new(points => $points);
 }
 
@@ -43,7 +43,7 @@ sub lines {
 
 sub p {
     my $self = shift;
-    return [ map $_->p, @{$self->points} ];
+    return [ @{$self->points} ];
 }
 
 sub merge_continuous_lines {
@@ -54,7 +54,7 @@ sub merge_continuous_lines {
     } else {
         polyline_remove_parallel_continuous_edges($points);
     }
-    @{$self->points} = map Slic3r::Point->cast($_), @$points;
+    @{$self->points} = map Slic3r::Point->new($_), @$points;
 }
 
 sub remove_acute_vertices {
@@ -65,7 +65,7 @@ sub remove_acute_vertices {
     } else {
         polyline_remove_acute_vertices($points);
     }
-    @{$self->points} = map Slic3r::Point->cast($_), @$points;
+    @{$self->points} = map Slic3r::Point->new($_), @$points;
 }
 
 sub cleanup {
@@ -74,7 +74,7 @@ sub cleanup {
     
     my $points = $self->p;
     push @$points, $points->[0] if $self->isa('Slic3r::Polyline::Closed');
-    my @clean_points = map Slic3r::Point->cast($_), 
+    my @clean_points = map Slic3r::Point->new($_), 
         Slic3r::Geometry::Douglas_Peucker($self->p, $tolerance);
     pop @clean_points if $self->isa('Slic3r::Polyline::Closed');
     @{$self->points} = @clean_points;
@@ -104,11 +104,8 @@ sub nearest_point_to {
     my $self = shift;
     my ($point) = @_;
     
-    # get point as arrayref
-    $point = ref $point eq 'ARRAY' ? $point : $point->p;
-    
     $point = Slic3r::Geometry::nearest_point($point, $self->p);
-    return Slic3r::Point->cast($point);
+    return Slic3r::Point->new($point);
 }
 
 sub has_segment {

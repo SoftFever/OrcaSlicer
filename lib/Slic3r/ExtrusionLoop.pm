@@ -9,7 +9,7 @@ sub split_at {
     my $self = shift;
     my ($point) = @_;
     
-    $point = Slic3r::Point->cast($point);
+    $point = Slic3r::Point->new($point);
     
     # find index of point
     my $i = -1;

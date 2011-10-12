@@ -87,7 +87,7 @@ sub add_surface {
     my (@vertices) = @_;
     
     # convert arrayref points to Point objects
-    @vertices = map Slic3r::Point->cast($_), @vertices;
+    @vertices = map Slic3r::Point->new($_), @vertices;
     
     my $surface = Slic3r::Surface->new(
         contour => Slic3r::Polyline::Closed->new(points => \@vertices),

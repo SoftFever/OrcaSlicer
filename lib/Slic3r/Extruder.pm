@@ -73,7 +73,7 @@ sub extrude {
     
     # retract if distance from previous position is greater or equal to the one
     # specified by the user *and* to the maximum distance between infill lines
-    my $distance_from_last_pos = Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]->p) * $Slic3r::resolution;
+    my $distance_from_last_pos = Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]) * $Slic3r::resolution;
     if ($distance_from_last_pos >= $Slic3r::retract_before_travel
         && ($Slic3r::fill_density == 0 || $distance_from_last_pos >= $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2))) {
         $gcode .= $self->retract;
@@ -135,7 +135,7 @@ sub G1 {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * $Slic3r::resolution) + $self->shift_x, 
             ($point->y * $Slic3r::resolution) + $self->shift_y; #**
-        $self->last_pos($point->p);
+        $self->last_pos($point);
     }
     if (defined $z && $z != $self->z) {
         $self->z($z);

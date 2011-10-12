@@ -258,6 +258,9 @@ sub _read_ascii {
             }
         }
     }
+    if ($facet) {
+        die "STL file seems invalid\n";
+    }
 }
 
 sub _read_binary {

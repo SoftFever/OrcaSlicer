@@ -13,7 +13,7 @@ sub cast {
     my ($line, %args) = @_;
     if (ref $line eq 'ARRAY') {
         @$line == 2 or die "Line needs two points!";
-        return $class->new(points => [ map Slic3r::Point->cast($_), @$line ], %args);
+        return $class->new(points => [ map Slic3r::Point->new($_), @$line ], %args);
     } else {
         return $line;
     }
@@ -39,7 +39,7 @@ sub coordinates {
 
 sub p {
     my $self = shift;
-    return [ $self->a->p, $self->b->p ];
+    return [ $self->a, $self->b ];
 }
 
 sub coincides_with {

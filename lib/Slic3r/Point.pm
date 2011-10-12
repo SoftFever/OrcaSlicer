@@ -1,51 +1,46 @@
 package Slic3r::Point;
-use Moo;
+use strict;
+use warnings;
 
-has 'x' => (
-    is          => 'ro',
-    required    => 1,
-    #coerce      => sub { sprintf '%.0f', $_[0] },
-);
-
-has 'y' => (
-    is          => 'ro',
-    required    => 1,
-    #coerce      => sub { sprintf '%.0f', $_[0] },
-);
-
-sub cast {
+sub new {
     my $class = shift;
-    my ($point) = @_;
-    return ref $point eq 'ARRAY' 
-        ? Slic3r::Point->new(x => $point->[0], y => $point->[1])  # ==
-        : $point;
+    my $self;
+    if (@_ == 2) {
+        $self = [@_];
+    } elsif (ref $_[0] eq 'ARRAY') {
+        $self = [@{$_[0]}];
+    } elsif ($_[0]->isa(__PACKAGE__)) {
+        return $_[0];
+    } else {
+        die "Invalid arguments for ${class}->new";
+    }
+    bless $self, $class;
+    return $self;
 }
 
 sub id {
     my $self = shift;
-    return $self->x . "," . $self->y; #;;
+    return join ',', @$self;
 }
 
 sub coordinates {
     my $self = shift;
-    return ($self->x, $self->y); #))
-}
-
-sub p {
-    my $self = shift;
-    return [ $self->coordinates ];
+    return @$self;
 }
 
 sub coincides_with {
     my $self = shift;
     my ($point) = @_;
-    return Slic3r::Geometry::points_coincide($self->p, $point->p);
+    return Slic3r::Geometry::points_coincide($self, $point);
 }
 
 sub distance_to {
     my $self = shift;
     my ($point) = @_;
-    return Slic3r::Geometry::distance_between_points($self->p, $point->p);
+    return Slic3r::Geometry::distance_between_points($self, $point);
 }
+
+sub x { $_[0]->[0] }
+sub y { $_[0]->[1] }
 
 1;

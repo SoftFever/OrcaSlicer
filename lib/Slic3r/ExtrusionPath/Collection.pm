@@ -18,22 +18,18 @@ sub add {
 
 sub endpoints {
     my $self = shift;
-    my ($as_arrayref) = @_;
-    return map $_->endpoints($as_arrayref), @{$self->paths};
+    return map $_->endpoints, @{$self->paths};
 }
 
 sub shortest_path {
     my $self = shift;
     my ($start_near) = @_;
     
-    # get point as arrayref
-    $start_near = $start_near->p if $start_near && ref $start_near ne 'ARRAY';
-    
     my @paths = ();
     my $start_at;
     CYCLE: while (@{$self->paths}) {
         # find nearest point
-        $start_at = Slic3r::Point->cast(Slic3r::Geometry::nearest_point($start_near, [ $self->endpoints(1) ]));
+        $start_at = Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, [ $self->endpoints ]));
         
         # loop through paths to find the one that starts or ends at the point found
         PATH: for (my $i = 0; $i <= $#{$self->paths}; $i++) {
@@ -45,7 +41,7 @@ sub shortest_path {
             } else {
                 next PATH;
             }
-            $start_near = $paths[-1]->points->[-1]->p;
+            $start_near = $paths[-1]->points->[-1];
             next CYCLE;
         }
     }

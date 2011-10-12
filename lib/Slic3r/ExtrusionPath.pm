@@ -18,17 +18,15 @@ sub clip_end {
             next;
         }
         
-        my $new_point = Slic3r::Geometry::point_along_segment($last_point->p, $self->points->[-1]->p, $distance);
-        push @{$self->points}, Slic3r::Point->cast($new_point);
+        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->points->[-1], $distance);
+        push @{$self->points}, Slic3r::Point->new($new_point);
         $distance = 0;
     }
 }
 
 sub endpoints {
     my $self = shift;
-    my ($as_arrayref) = @_;
-    my @points = ($self->points->[0], $self->points->[-1]);
-    return $as_arrayref ? map($_->p, @points) : @points;
+    return ($self->points->[0], $self->points->[-1]);
 }
 
 sub reverse {
