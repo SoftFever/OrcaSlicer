@@ -11,7 +11,7 @@ sub lines {
     
     # since this is a closed polyline, we just add a line at the end,
     # connecting the last and the first point
-    push @lines, Slic3r::Line->new(points => [$self->points->[-1], $self->points->[0]]);
+    push @lines, Slic3r::Line->new($self->points->[-1], $self->points->[0]);
     return @lines;
 }
 

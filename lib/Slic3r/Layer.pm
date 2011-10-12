@@ -104,7 +104,6 @@ sub add_line {
     my $self = shift;
     my ($line) = @_;
     
-    $line = Slic3r::Line->cast($line);
     return if $line->a->coincides_with($line->b);
     
     push @{ $self->lines }, $line;
@@ -135,7 +134,7 @@ sub make_surfaces {
     # so a simple head-to-tail algorithm would work
     
     my @lines = ();
-    push @lines, map $_->p, @{$self->lines};
+    push @lines, @{$self->lines};
     #@lines = grep line_length($_) > xx, @lines;
     
     #use Slic3r::SVG;

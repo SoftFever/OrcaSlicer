@@ -34,7 +34,7 @@ sub lines {
     my $previous_point;
     foreach my $point (@{ $self->points }) {
         if ($previous_point) {
-            push @lines, Slic3r::Line->new(points => [ $previous_point, $point ]);
+            push @lines, Slic3r::Line->new($previous_point, $point);
         }
         $previous_point = $point;
     }

@@ -3,6 +3,7 @@ use Moo;
 
 extends 'Slic3r::Line';
 
-has 'edge_type' => (is => 'ro');  # top/bottom
+use Slic3r::Line::FacetEdge::Bottom;
+use Slic3r::Line::FacetEdge::Top;
 
 1;

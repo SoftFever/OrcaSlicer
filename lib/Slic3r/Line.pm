@@ -1,26 +1,25 @@
 package Slic3r::Line;
-use Moo;
+use strict;
+use warnings;
 
-# arrayref of points
-has 'points' => (
-    is          => 'rw',
-    default     => sub { [] },
-    required    => 1,
-);
-
-sub cast {
+sub new {
     my $class = shift;
-    my ($line, %args) = @_;
-    if (ref $line eq 'ARRAY') {
-        @$line == 2 or die "Line needs two points!";
-        return $class->new(points => [ map Slic3r::Point->new($_), @$line ], %args);
+    my $self;
+    if (@_ == 2) {
+        $self = [ map Slic3r::Point->new($_), @_ ];
+    } elsif (ref $_[0] eq 'ARRAY') {
+        $self = [ map Slic3r::Point->new($_), @{$_[0]} ];
+    } elsif ($_[0]->isa(__PACKAGE__)) {
+        return $_[0];
     } else {
-        return $line;
+        die "Invalid argument for $class->new";
     }
+    bless $self, $class;
+    return $self;
 }
 
-sub a { return $_[0]->points->[0] }
-sub b { return $_[0]->points->[1] }
+sub a { $_[0][0] }
+sub b { $_[0][1] }
 
 sub id {
     my $self = shift;
@@ -29,17 +28,12 @@ sub id {
 
 sub ordered_id {
     my $self = shift;
-    return join('-', sort map $_->id, @{$self->points});
+    return join('-', sort map $_->id, @$self);
 }
 
 sub coordinates {
     my $self = shift;
     return ($self->a->coordinates, $self->b->coordinates);
-}
-
-sub p {
-    my $self = shift;
-    return [ $self->a, $self->b ];
 }
 
 sub coincides_with {
@@ -60,17 +54,15 @@ sub has_segment {
     my $self = shift;
     my ($line) = @_;
     
-    $line = $line->p if $line->isa('Slic3r::Line');
-    
     # a segment belongs to another segment if its points belong to it
-    return Slic3r::Geometry::point_in_segment($line->[0], $self->p)
-        && Slic3r::Geometry::point_in_segment($line->[1], $self->p);
+    return Slic3r::Geometry::point_in_segment($line->[0], $self)
+        && Slic3r::Geometry::point_in_segment($line->[1], $self);
 }
 
 sub parallel_to {
     my $self = shift;
     my ($line) = @_;
-    return Slic3r::Geometry::lines_parallel($self->p, $line->p);
+    return Slic3r::Geometry::lines_parallel($self, $line);
 }
 
 1;
