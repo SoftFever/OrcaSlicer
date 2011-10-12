@@ -7,7 +7,6 @@ my $build = Module::Build->new(
     dist_version    => '0.1',
     license         => 'perl',
     requires        => {
-        'CAD::Format::STL'          => '0',
         'File::Basename'            => '0',
         'Getopt::Long'              => '0',
         'Math::Clipper'             => '1.02',

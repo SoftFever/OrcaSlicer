@@ -1,7 +1,6 @@
 package Slic3r::STL;
 use Moo;
 
-use CAD::Format::STL;
 use Math::Clipper qw(integerize_coordinate_sets is_counter_clockwise);
 use Slic3r::Geometry qw(three_points_aligned longest_segment);
 use XXX;
@@ -17,11 +16,11 @@ sub parse_file {
     my ($file) = @_;
     
     # open STL file
-    my $stl = CAD::Format::STL->new->load($file);
+    my $facets = $self->read_file($file);
     
     if ($Slic3r::rotate > 0) {
         my $deg = Slic3r::Geometry::deg2rad($Slic3r::rotate);
-        foreach my $facet ($stl->part->facets) {
+        foreach my $facet (@$facets) {
             my ($normal, @vertices) = @$facet;
             foreach my $vertex (@vertices) {
                 @$vertex = (@{ +(Slic3r::Geometry::rotate_points($deg, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
@@ -32,7 +31,7 @@ sub parse_file {
     # we only want to work with positive coordinates, so let's 
     # find our object extents to calculate coordinate displacements
     my @extents = (map [99999999999, -99999999999], X,Y,Z);
-    foreach my $facet ($stl->part->facets) {
+    foreach my $facet (@$facets) {
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
             for (X,Y,Z) {
@@ -73,7 +72,7 @@ sub parse_file {
     my @shift = map sprintf('%.0f', -$extents[$_][MIN] / $Slic3r::resolution), X,Y,Z;
     
     # process facets
-    foreach my $facet ($stl->part->facets) {
+    foreach my $facet (@$facets) {
         
         # transform vertex coordinates
         my ($normal, @vertices) = @$facet;
@@ -198,6 +197,79 @@ sub intersect_facet {
     }
     
     return @lines;
+}
+
+sub read_file {
+    my $self = shift;
+    my ($file) = @_;
+    
+    open my $fh, '<', $file or die "Failed to open $file\n";
+    my $facets = [];
+    
+    # let's detect whether file is ASCII or binary
+    my $mode;
+    {
+        my $size = +(stat $fh)[7];
+        $mode = 'ascii' if $size < 80 + 4;
+        
+        # skip binary header
+        seek $fh, 80, 0;
+        read $fh, my $buf, 4;
+        my $triangle_count = unpack 'L', $buf;
+        my $expected_size =
+            + 80 # header
+            +  4 # count
+            + $triangle_count * (
+                + 4   # normal, pt,pt,pt (vectors)
+                  * 4   # bytes per value
+                  * 3   # values per vector
+                + 2 # the trailing 'short'
+            );
+        $mode = ($size == $expected_size) ? 'binary' : 'ascii';
+    }
+    
+    $mode eq 'ascii'
+        ? _read_ascii($fh, $facets)
+        : _read_binary($fh, $facets);
+    
+    close $fh;
+    return $facets;
+}
+
+sub _read_ascii {
+    my ($fh, $facets) = @_;
+    
+    my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)$/;
+    
+    my $facet;
+    seek $fh, 0, 0;
+    while (<$fh>) {
+        chomp;
+        if (!$facet) {
+            /^\s*facet\s+normal\s+$point_re/ or next;
+            $facet = [ [$1, $2, $3] ];
+        } else {
+            if (/^\s*endfacet/) {
+                push @$facets, $facet;
+                undef $facet;
+            } else {
+                /^\s*vertex\s+$point_re/ or next;
+                push @$facet, [$1, $2, $3];
+            }
+        }
+    }
+}
+
+sub _read_binary {
+    my ($fh, $facets) = @_;
+    
+    die "bigfloat" unless length(pack "f", 1) == 4;
+    
+    seek $fh, 80 + 4, 0;
+    while (read $fh, $_, 4*4*3+2) {
+        my @v = unpack '(f3)4';
+        push @$facets, [ [@v[0..2]], [@v[3..5]], [@v[6..8]], [@v[9..11]] ];
+    }
 }
 
 1;
