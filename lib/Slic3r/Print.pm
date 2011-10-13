@@ -140,13 +140,13 @@ sub detect_surfaces_type {
             # actually, this shouldn't happen so it deserves further investigation
             @bottom = grep $_->contour->is_valid, @bottom;
             
-            for (@bottom) {
-                $_->contour->remove_acute_vertices;
+            foreach my $surface (@bottom) {
+                $surface->contour->remove_acute_vertices;
         
                 # okay, this is an Ugly Hack(tm) to avoid floating point math problems
                 # with diagonal bridges. will find a nicer solution, promised.
-                my $offset = offset([$_->contour->p], 100, 100, JT_MITER, 2);
-                @{$_->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
+                my $offset = offset([$surface->contour->p], 100, 100, JT_MITER, 2);
+                @{$surface->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
             }
             
             #Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",

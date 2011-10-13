@@ -157,7 +157,7 @@ sub point_in_segment {
     
     # if line is vertical, check whether point's X is the same as the line
     if ($line->[A][X] == $line->[B][X]) {
-        return 1 if abs($x - $line->[A][X]) < epsilon;
+        return abs($x - $line->[A][X]) < epsilon ? 1 : 0;
     }
     
     # calculate the Y in line at X of the point

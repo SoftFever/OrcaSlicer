@@ -281,6 +281,14 @@ sub process_bridges {
         # in a convex polygon; this will print thin membranes eventually
         my $surface_p = convex_hull($surface->contour->p);
         
+        # offset the surface a bit to avoid approximation issues when doing the
+        # intersection below (this is to make sure we overlap with supporting
+        # surfaces, otherwise a little gap will result from intersection)
+        {
+            my $offset = offset([$surface_p], 100, 100, JT_MITER, 2);
+            $surface_p = $offset->[0];
+        }
+        
             #use Slic3r::SVG;
             #Slic3r::SVG::output(undef, "bridge.svg",
             #    green_polygons  => [ map $_->p, @supporting_surfaces ],
