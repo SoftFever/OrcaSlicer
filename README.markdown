@@ -46,12 +46,12 @@ Slic3r current features are:
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and multiply input object;
+* customizable initial and final GCODE (using command line only);
 * use different speed for bottom layer and perimeters.
 
 Roadmap includes the following goals:
 
 * output some statistics;
-* allow the user to customize initial and final GCODE commands;
 * support material for internal perimeters;
 * cool;
 * other fill patterns.
@@ -83,10 +83,9 @@ The author is Alessandro Ranellucci (me).
         --save <file>       Save configuration to the specified file
         --load <file>       Load configuration from the specified file
         -o, --output        File to output gcode to (default: <inputfile>.gcode)
-
         
       Printer options:
-        --nozzle-diameter   Diameter of nozzle in mm (default: 0.55)
+        --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)
         --print-center      Coordinates of the point to center the print around 
                             (default: 100,100)
         --use-relative-e-distances
@@ -98,7 +97,7 @@ The author is Alessandro Ranellucci (me).
         --filament-diameter Diameter of your raw filament (default: 3)
         --filament-packing-density
                             Ratio of the extruded volume over volume pushed 
-                            into the extruder (default: 0.85)
+                            into the extruder (default: 1)
         --temperature       Extrusion temperature (default: 200)
         
       Speed options:
@@ -112,6 +111,9 @@ The author is Alessandro Ranellucci (me).
         
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.4)
+        --high-res-perimeters
+                            Print perimeters at half layer height to get surface accuracy
+                            (default: disabled)
       
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 1+, 
@@ -120,6 +122,11 @@ The author is Alessandro Ranellucci (me).
                             (range: 1+, default: 3)
         --fill-density      Infill density (range: 0-1, default: 0.4)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 0)
+        --start-gcode       Load initial gcode from the supplied file. This will overwrite 
+                            the default command (home all axes [G28]).
+        --end-gcode         Load final gcode from the supplied file. This will overwrite 
+                            the default commands (turn off temperature [M104 S0],
+                            home X axis [G28 X], disable motors [M84]).
       
       Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 
@@ -129,7 +136,7 @@ The author is Alessandro Ranellucci (me).
                             Additional amount of filament in mm to push after
                             compensating retraction (default: 0)
         --retract-before-travel
-                            Only retract before travel moves of this length (default: 1)
+                            Only retract before travel moves of this length (default: 2)
        
        Skirt options:
         --skirts            Number of skirts to draw (default: 1)
@@ -143,3 +150,4 @@ The author is Alessandro Ranellucci (me).
         --multiply-y        Number of items along Y axis (1+, default: 1)
         --multiply-distance Distance in mm between copies (default: 6)
         
+

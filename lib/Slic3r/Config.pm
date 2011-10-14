@@ -86,6 +86,18 @@ our $Options = {
         label   => 'Fill angle (°)',
         type    => 'i',
     },
+    'start_gcode' => {
+        label   => 'Start GCODE',
+        type    => 's',
+        serialize   => sub { join '\n', split /\R+/, $_[0] },
+        deserialize => sub { join "\n", split /\\n/, $_[0] },
+    },
+    'end_gcode' => {
+        label   => 'End GCODE',
+        type    => 's',
+        serialize   => sub { join '\n', split /\R+/, $_[0] },
+        deserialize => sub { join "\n", split /\\n/, $_[0] },
+    },
     
     # retraction options
     'retract_length' => {
@@ -177,6 +189,25 @@ sub load {
         set($1, $opt->{deserialize} ? $opt->{deserialize}->($2) : $2);
     }
     close $fh;
+}
+
+sub validate_cli {
+    my $class = shift;
+    my ($opt) = @_;
+    
+    for (qw(start end)) {
+        if (defined $opt->{$_."_gcode"}) {
+            if ($opt->{$_."_gcode"} eq "") {
+                set($_."_gcode", "");
+            } else {
+                die "Invalid value for --${_}-gcode: file does not exist"
+                    if !-e $opt->{$_."_gcode"};
+                open my $fh, "<", $opt->{$_."_gcode"};
+                set($_."_gcode", do { local $/; <$fh> });
+                close $fh;
+            }
+        }
+    }
 }
 
 sub validate {

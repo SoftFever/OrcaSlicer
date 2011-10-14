@@ -38,6 +38,7 @@ our $z_offset = 0;
 # filament options
 our $filament_diameter  = 3;    # mm
 our $filament_packing_density = 1;
+our $temperature        = 200;
 
 # speed options
 our $print_feed_rate            = 60;   # mm/sec
@@ -59,7 +60,12 @@ our $bridge_overlap     = 3;    # mm
 our $fill_type          = 'rectilinear';
 our $fill_density       = 0.4;  # 1 = 100%
 our $fill_angle         = 0;
-our $temperature        = 200;
+our $start_gcode = "G28 ; home all axes";
+our $end_gcode = <<"END";
+M104 S0 ; turn off temperature
+G28 X0  ; home X axis
+M84     ; disable motors
+END
 
 # retraction options
 our $retract_length         = 1;    # mm

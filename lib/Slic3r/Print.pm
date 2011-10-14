@@ -325,9 +325,8 @@ sub export_gcode {
         or die "Failed to open $file for writing\n";
     
     # write start commands to file
-    # TODO: this must be customizable by user
-    print  $fh "G28 ; home all axes\n";
     printf $fh "M104 S%d ; wait for temperature to be reached\n", $Slic3r::temperature;
+    print  $fh "$Slic3r::start_gcode\n";
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::use_relative_e_distances) {
@@ -375,10 +374,7 @@ sub export_gcode {
     }
     
     # write end commands to file
-    # TODO: this must be customizable by user
-    print $fh "M104 S0 ; turn off temperature\n";
-    print $fh "G28 X0 ; home X axis\n";
-    print $fh "M84 ; disable motors\n";
+    print $fh "$Slic3r::end_gcode\n";
     
     # close our gcode file
     close $fh;

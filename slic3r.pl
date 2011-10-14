@@ -49,6 +49,8 @@ GetOptions(
     'fill-type=s'           => \$Slic3r::fill_type,
     'fill-density=f'        => \$Slic3r::fill_density,
     'fill-angle=i'          => \$Slic3r::fill_angle,
+    'start-gcode=s'         => \$opt{start_gcode},
+    'end-gcode=s'           => \$opt{end_gcode},
     
     # retraction options
     'retract-length=f'          => \$Slic3r::retract_length,
@@ -73,6 +75,9 @@ if ($opt{load}) {
     -e $opt{load} or die "Cannot find specified configuration file.\n";
     Slic3r::Config->load($opt{load});
 }
+
+# validate command line options
+Slic3r::Config->validate_cli(\%opt);
 
 # validate configuration
 Slic3r::Config->validate;
@@ -153,6 +158,11 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
     --fill-angle        Infill angle in degrees (range: 0-90, default: $Slic3r::fill_angle)
+    --start-gcode       Load initial gcode from the supplied file. This will overwrite
+                        the default command (home all axes [G28]).
+    --end-gcode         Load final gcode from the supplied file. This will overwrite 
+                        the default commands (turn off temperature [M104 S0],
+                        home X axis [G28 X], disable motors [M84]).
   
   Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 
