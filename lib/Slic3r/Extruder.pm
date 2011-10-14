@@ -115,6 +115,8 @@ sub retract {
         $gcode .= "G92 E0\n";
         $self->extrusion_distance(0);
     }
+    
+    return $gcode;
 }
 
 sub unretract {
