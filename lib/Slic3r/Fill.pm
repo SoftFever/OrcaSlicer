@@ -32,10 +32,10 @@ sub make_fill {
     }
     
     printf "Filling layer %d:\n", $layer->id;
-    foreach my $surface_collection (@{ $layer->fill_surfaces }) {
+    foreach my $surfaces (@{ $layer->fill_surfaces }) {
         my @path_collection = ();
         
-        SURFACE: foreach my $surface (@{ $surface_collection->surfaces }) {
+        SURFACE: foreach my $surface (@$surfaces) {
             Slic3r::debugf " Processing surface %s:\n", $surface->id;
             
             my $filler = $Slic3r::fill_type;

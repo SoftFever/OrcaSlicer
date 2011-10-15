@@ -55,14 +55,14 @@ sub split_at_acute_angles {
             # if the angle between $p[-2], $p[-1], $p3 is too acute
             # then consider $p3 only as a starting point of a new
             # path and stop the current one as it is
-            push @paths, __PACKAGE__->cast([@p]);
+            push @paths, (ref $self)->cast([@p]);
             @p = ($p3);
             push @p, grep $_, shift @points or last;
         } else {
             push @p, $p3;
         }
     }
-    push @paths, __PACKAGE__->cast([@p]) if @p > 1;
+    push @paths, (ref $self)->cast([@p]) if @p > 1;
     return @paths;
 }
 

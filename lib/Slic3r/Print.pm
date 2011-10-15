@@ -202,7 +202,7 @@ sub discover_horizontal_shells {
         my $layer = $self->layers->[$i];
         foreach my $type (qw(top bottom)) {
             # find surfaces of current type for current layer
-            my @surfaces = grep $_->surface_type eq $type, map @{$_->surfaces}, @{$layer->fill_surfaces} or next;
+            my @surfaces = grep $_->surface_type eq $type, map @$_, @{$layer->fill_surfaces} or next;
             Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
                 $i, scalar(@surfaces), $type;
             
@@ -213,8 +213,8 @@ sub discover_horizontal_shells {
                 next if $n < 0 || $n >= $self->layer_count;
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                 
-                foreach my $surf_coll (@{$self->layers->[$n]->fill_surfaces}) {
-                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type =~ /internal/, @{$surf_coll->surfaces} ];
+                foreach my $surfaces (@{$self->layers->[$n]->fill_surfaces}) {
+                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type =~ /internal/, @$surfaces ];
                     
                     # find intersection between @surfaces and current layer's surfaces
                     $clipper->add_subject_polygons([ map $_->p, @surfaces ]);
@@ -237,9 +237,9 @@ sub discover_horizontal_shells {
                     # polygons as $internal_polygons; they will be removed by removed_small_features()
                     
                     # assign resulting inner surfaces to layer
-                    $surf_coll->surfaces([]);
+                    @$surfaces = ();
                     foreach my $p (@$internal_polygons) {
-                        push @{$surf_coll->surfaces}, Slic3r::Surface->new(
+                        push @$surfaces, Slic3r::Surface->new(
                             surface_type => 'internal',
                             contour => Slic3r::Polyline::Closed->cast($p->{outer}),
                             holes   => [
@@ -250,7 +250,7 @@ sub discover_horizontal_shells {
                     
                     # assign new internal-solid surfaces to layer
                     foreach my $p (@$intersections) {
-                        push @{$surf_coll->surfaces}, Slic3r::Surface->new(
+                        push @$surfaces, Slic3r::Surface->new(
                             surface_type => 'internal-solid',
                             contour => Slic3r::Polyline::Closed->cast($p->{outer}),
                             holes   => [

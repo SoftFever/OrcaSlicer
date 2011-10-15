@@ -65,4 +65,9 @@ sub parallel_to {
     return Slic3r::Geometry::lines_parallel($self, $line);
 }
 
+sub length {
+    my $self = shift;
+    return Slic3r::Geometry::line_length($self);
+}
+
 1;

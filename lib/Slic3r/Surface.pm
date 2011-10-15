@@ -33,6 +33,10 @@ sub cast_from_expolygon {
     my $class = shift;
     my ($expolygon, %args) = @_;
     
+    if (ref $expolygon ne 'HASH') {
+        $expolygon = $expolygon->clipper_expolygon;
+    }
+    
     return $class->new(
         contour      => Slic3r::Polyline::Closed->cast($expolygon->{outer}),
         holes        => [
@@ -77,6 +81,11 @@ sub clipper_polygon {
 sub p {
     my $self = shift;
     return ($self->contour->p, map $_->p, @{$self->holes});
+}
+
+sub expolygon {
+    my $self = shift;
+    return Slic3r::ExPolygon->new($self->contour->p, map $_->p, @{$self->holes});
 }
 
 sub lines {
