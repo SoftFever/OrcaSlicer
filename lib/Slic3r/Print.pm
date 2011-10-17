@@ -329,6 +329,7 @@ sub export_gcode {
     print  $fh "$Slic3r::start_gcode\n";
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
+    print  $fh "G92 E0 ; reset extrusion distance\n";
     if ($Slic3r::use_relative_e_distances) {
         print $fh "M83 ; use relative distances for extrusion\n";
     } else {
