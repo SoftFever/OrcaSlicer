@@ -22,10 +22,10 @@ sub id {
 
 sub cast {
     my $class = shift;
-    my ($points) = @_;
+    my ($points, %args) = @_;
     
     $points = [ map { ref $_ eq 'ARRAY' ? Slic3r::Point->new($_) : $_ } @$points ];
-    return $class->new(points => $points);
+    return $class->new(points => $points, %args);
 }
 
 sub lines {

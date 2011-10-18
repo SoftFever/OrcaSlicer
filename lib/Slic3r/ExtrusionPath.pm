@@ -3,6 +3,10 @@ use Moo;
 
 extends 'Slic3r::Polyline';
 
+# this integer represents the vertical thickness of the extrusion
+# expressed in layers
+has 'depth_layers' => (is => 'ro', default => sub {1});
+
 use constant PI => 4 * atan2(1, 1);
 
 sub clip_end {

@@ -19,6 +19,9 @@ has 'surface_type' => (
     #isa     => enum([qw(internal internal-solid bottom top)]),
 );
 
+# this integer represents the thickness of the surface expressed in layers
+has 'depth_layers' => (is => 'ro', default => sub {1});
+
 sub cast_from_polygon {
     my $class = shift;
     my ($polygon, %args) = @_;
@@ -34,6 +37,7 @@ sub cast_from_expolygon {
     my ($expolygon, %args) = @_;
     
     if (ref $expolygon ne 'HASH') {
+        use XXX; ZZZ $expolygon if ref $expolygon eq 'ARRAY';
         $expolygon = $expolygon->clipper_expolygon;
     }
     

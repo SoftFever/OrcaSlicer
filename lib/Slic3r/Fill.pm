@@ -48,14 +48,20 @@ sub make_fill {
                 $filler = 'rectilinear';
             }
             
-            push @path_collection, $self->fillers->{$filler}->fill_surface($surface,
+            my @paths = $self->fillers->{$filler}->fill_surface(
+                $surface,
                 density => $density,
             );
+            
+            push @path_collection, map Slic3r::ExtrusionPath->cast(
+                [ @$_ ],
+                depth_layers => $surface->depth_layers,
+            ), @paths;
         }
         
         # save into layer
         push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
-            paths => [ map Slic3r::ExtrusionPath->cast([ @$_ ]), @path_collection ],
+            paths => [ @path_collection ],
         );
         $layer->fills->[-1]->cleanup;
     }

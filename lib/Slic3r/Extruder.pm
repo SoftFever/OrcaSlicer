@@ -84,7 +84,7 @@ sub extrude {
     
     # compensate retraction
     $gcode .= $self->unretract if $self->retracted;
-    
+    XXX "yes!\n" if $path->depth_layers > 1;
     # extrude while going to next points
     foreach my $line ($path->lines) {
         # calculate how much filament to drive into the extruder
@@ -93,7 +93,8 @@ sub extrude {
             * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
             * $Slic3r::thickness_ratio 
             * $self->flow_ratio
-            * $Slic3r::filament_packing_density;
+            * $Slic3r::filament_packing_density
+            * $path->depth_layers;
         
         $gcode .= $self->G1($line->b, undef, $e, $description);
     }

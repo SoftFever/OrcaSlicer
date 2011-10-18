@@ -41,7 +41,7 @@ GetOptions(
     
     # accuracy options
     'layer-height=f'        => \$Slic3r::layer_height,
-    'high-res-perimeters'   => \$Slic3r::high_res_perimeters,
+    'infill-every-layers=i' => \$Slic3r::infill_every_layers,
     
     # print options
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
@@ -147,9 +147,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     
   Accuracy options:
     --layer-height      Layer height in mm (default: $Slic3r::layer_height)
-    --high-res-perimeters
-                        Print perimeters at half layer height to get surface accuracy
-                        (default: disabled)
+    --infill-every-layers
+                        Infill every N layers (default: $Slic3r::infill_every_layers)
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 1+, 

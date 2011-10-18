@@ -47,6 +47,9 @@ sub go {
     # they will be split in internal and internal-solid surfaces
     $print->discover_horizontal_shells;
     
+    # combine fill surfaces to honor the "infill every N layers" option
+    $print->infill_every_layers;
+    
     # this will generate extrusion paths for each layer
     $print->extrude_fills;
     

@@ -2,7 +2,7 @@ package Slic3r::Print;
 use Moo;
 
 use Math::Clipper ':all';
-use Slic3r::Geometry::Clipper qw(diff_ex union_ex);
+use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex union_ex intersection_ex);
 use XXX;
 
 use constant X => 0;
@@ -145,7 +145,7 @@ sub detect_surfaces_type {
         
                 # okay, this is an Ugly Hack(tm) to avoid floating point math problems
                 # with diagonal bridges. will find a nicer solution, promised.
-                my $offset = offset([$surface->contour->p], 100, 100, JT_MITER, 2);
+                my $offset = safety_offset([$surface->contour->p]);
                 @{$surface->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
             }
             
@@ -301,6 +301,91 @@ sub split_bridges_fills {
     $_->split_bridges_fills for @{$self->layers};
 }
 
+# combine fill surfaces across layers
+sub infill_every_layers {
+    my $self = shift;
+    return unless $Slic3r::infill_every_layers > 1;
+    
+    printf "==> COMBINING INFILL\n";
+    
+    # start from bottom, skip first layer
+    for (my $i = 1; $i < $self->layer_count; $i++) {
+        my $layer = $self->layer($i);
+        
+        # skip layer if no internal fill surfaces
+        next if !grep $_->surface_type eq 'internal', map @$_, @{$layer->fill_surfaces};
+        
+        # for each possible depth, look for intersections with the lower layer
+        # we do this from the greater depth to the smaller
+        for (my $d = $Slic3r::infill_every_layers - 1; $d >= 1; $d--) {
+            next if ($i - $d) < 0;
+            my $lower_layer = $self->layer($i - 1);
+            
+            # select surfaces of the lower layer having the depth we're looking for
+            my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type eq 'internal',
+                map @$_, @{$lower_layer->fill_surfaces};
+            next if !@lower_surfaces;
+            # process each group of surfaces separately
+            foreach my $surfaces (@{$layer->fill_surfaces}) {
+                # calculate intersection between our surfaces and theirs
+                my $intersection = intersection_ex(
+                    [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
+                    [ map $_->p, grep $_->surface_type eq 'internal', @$surfaces ],
+                );
+                next if !@$intersection;
+                
+                # new fill surfaces of the current layer are:
+                # - any non-internal surface
+                # - intersections found (with a $d + 1 depth)
+                # - any internal surface not belonging to the intersection (with its original depth)
+                {
+                    my @new_surfaces = ();
+                    push @new_surfaces, grep $_->surface_type ne 'internal', @$surfaces;
+                    push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
+                        ($_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
+                    
+                    foreach my $depth (reverse $d..$Slic3r::infill_every_layers) {
+                        push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
+                            ($_, surface_type => 'internal', depth_layers => $depth),
+                            
+                            # difference between our internal layers with depth == $depth
+                            # and the intersection found
+                            @{diff_ex(
+                                [
+                                    map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
+                                        @$surfaces,
+                                ],
+                                safety_offset([ explode_expolygons($intersection) ]),
+                            )};
+                    }
+                    @$surfaces = @new_surfaces;
+                }
+                
+                # now we remove the intersections from lower layer
+                foreach my $lower_surfaces (@{$lower_layer->fill_surfaces}) {
+                    my @new_surfaces = ();
+                    push @new_surfaces, grep $_->surface_type ne 'internal', @$lower_surfaces;
+                    foreach my $depth (1..$Slic3r::infill_every_layers) {
+                        push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
+                            ($_, surface_type => 'internal', depth_layers => $depth),
+                            
+                            # difference between internal layers with depth == $depth
+                            # and the intersection found
+                            @{diff_ex(
+                                [
+                                    map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
+                                        @$lower_surfaces,
+                                ],
+                                safety_offset([ explode_expolygons($intersection) ]),
+                            )};
+                    }
+                    @$lower_surfaces = @new_surfaces;
+                }
+            }
+        }
+    }
+}
+
 sub extrude_fills {
     my $self = shift;
     
@@ -345,19 +430,6 @@ sub export_gcode {
     
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
-        
-        # with the --high-res-perimeters options enabled we extrude perimeters for
-        # each layer twice at half height
-        if ($Slic3r::high_res_perimeters && $layer->id > 0) {
-            # go to half-layer
-            printf $fh $extruder->move_z($Slic3r::z_offset + $layer->z * $Slic3r::resolution - $Slic3r::layer_height/2);
-            
-            # extrude perimeters
-            $extruder->flow_ratio(0.5);
-            printf $fh $extruder->extrude_loop($_, 'perimeter') for @{ $layer->perimeters };
-            $extruder->flow_ratio(1);
-        }
-        
         # go to layer
         printf $fh $extruder->move_z($Slic3r::z_offset + $layer->z * $Slic3r::resolution);
         

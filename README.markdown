@@ -40,7 +40,7 @@ Slic3r current features are:
 * retraction;
 * skirt (with rounded corners);
 * use relative or absolute extrusion commands;
-* high-res perimeters (like the "Skin" plugin for Skeinforge);
+* infill every N layers (like the "Skin" plugin for Skeinforge);
 * detect optimal infill direction for bridges;
 * save configuration profiles;
 * center print around bed center point;
@@ -53,6 +53,7 @@ Roadmap includes the following goals:
 
 * output some statistics;
 * support material for internal perimeters;
+* new and better GUI;
 * cool;
 * other fill patterns.
 
@@ -111,9 +112,8 @@ The author is Alessandro Ranellucci (me).
         
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.4)
-        --high-res-perimeters
-                            Print perimeters at half layer height to get surface accuracy
-                            (default: disabled)
+        --infill-every-layers
+                            Infill every N layers (default: 1)
       
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 1+, 

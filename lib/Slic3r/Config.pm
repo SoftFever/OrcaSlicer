@@ -64,9 +64,9 @@ our $Options = {
         label   => 'Layer height (mm)',
         type    => 'f',
     },
-    'high_res_perimeters' => {
-        label   => 'High-res perimeters',
-        type    => 'bool',
+    'infill_every_layers' => {
+        label   => 'Infill every N layers',
+        type    => 'i',
     },
     
     # print options
@@ -261,6 +261,12 @@ sub validate {
     # --fill-density
     die "Invalid value for --fill-density\n"
         if $Slic3r::fill_density < 0 || $Slic3r::fill_density > 1;
+    
+    # --infill-every-layers
+    die "Invalid value for --infill-every-layers\n"
+        if $Slic3r::infill_every_layers !~ /^\d+$/ || $Slic3r::infill_every_layers < 1;
+    die "Maximum infill thickness can't exceed nozzle diameter\n"
+        if $Slic3r::infill_every_layers * $Slic3r::layer_height > $Slic3r::nozzle_diameter;
     
     # --scale
     die "Invalid value for --scale\n"

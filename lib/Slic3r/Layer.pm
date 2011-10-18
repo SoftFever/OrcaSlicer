@@ -4,7 +4,7 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines nearest_point
     line_length);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -184,7 +184,7 @@ sub make_surfaces {
             #) if !$next_lines;
             
             $next_lines
-                or die sprintf("No lines start at point %s. This shouldn't happen", $get_point_id->($points[-1]));
+                or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.", $get_point_id->($points[-1]));
             last CYCLE if !@$next_lines;
             
             my @ordered_next_lines = sort 
@@ -284,10 +284,7 @@ sub process_bridges {
         # offset the surface a bit to avoid approximation issues when doing the
         # intersection below (this is to make sure we overlap with supporting
         # surfaces, otherwise a little gap will result from intersection)
-        {
-            my $offset = offset([$surface_p], 100, 100, JT_MITER, 2);
-            $surface_p = $offset->[0];
-        }
+        $surface_p = safety_offset([$surface_p])->[0];
         
             #use Slic3r::SVG;
             #Slic3r::SVG::output(undef, "bridge.svg",
