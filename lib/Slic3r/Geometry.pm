@@ -429,7 +429,7 @@ sub _line_intersection {
     # Take this test away and the line segments are
     # turned into lines going from infinite to another.
     # bounding_box_intersect() defined later in this chapter.
-    return "out of bounding box" unless bounding_box_intersect( 2, @box_a, @box_b );
+    ###return "out of bounding box" unless bounding_box_intersect( 2, @box_a, @box_b );
   }
   elsif ( @_ == 4 ) { # The parametric form.
     $x0 = $x2 = 0;
@@ -509,7 +509,7 @@ sub _line_intersection {
   my $h10 = $dx10 ? ($x - $x0) / $dx10 : ($dy10 ? ($y - $y0) / $dy10 : 1);
   my $h32 = $dx32 ? ($x - $x2) / $dx32 : ($dy32 ? ($y - $y2) / $dy32 : 1);
 
-  return [[$x, $y], $h10 >= 0 && $h10 <= 1 && $h32 >= 0 && $h32 <= 1];
+  return [Slic3r::Point->new($x, $y), $h10 >= 0 && $h10 <= 1 && $h32 >= 0 && $h32 <= 1];
 }
 
 # 2D

@@ -2,6 +2,11 @@ package Slic3r::Line;
 use strict;
 use warnings;
 
+use constant A => 0;
+use constant B => 1;
+use constant X => 0;
+use constant Y => 1;
+
 sub new {
     my $class = shift;
     my $self;
@@ -68,6 +73,31 @@ sub parallel_to {
 sub length {
     my $self = shift;
     return Slic3r::Geometry::line_length($self);
+}
+
+sub atan {
+    my $self = shift;
+    return Slic3r::Geometry::line_atan($self);
+}
+
+sub intersection {
+    my $self = shift;
+    my ($line, $require_crossing) = @_;
+    return Slic3r::Geometry::line_intersection($self, $line, $require_crossing);
+}
+
+sub point_on_left {
+    my $self = shift;
+    my ($point) = @_;
+    return Slic3r::Geometry::point_is_on_left_of_segment($point, $self);
+}
+
+sub midpoint {
+    my $self = shift;
+    return Slic3r::Point->new(
+        ($self->[A][X] + $self->[B][X]) / 2,
+        ($self->[A][Y] + $self->[B][Y]) / 2,
+    );
 }
 
 1;

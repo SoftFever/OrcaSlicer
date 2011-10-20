@@ -47,7 +47,8 @@ Slic3r current features are:
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and multiply input object;
 * customizable initial and final GCODE (using command line only);
-* use different speed for bottom layer and perimeters.
+* use different speed for bottom layer and perimeters;
+* experimental support for G2/G3 native arcs.
 
 Roadmap includes the following goals:
 

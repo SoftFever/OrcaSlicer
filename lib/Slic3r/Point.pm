@@ -4,7 +4,7 @@ use warnings;
 
 sub new {
     my $class = shift;
-    my $self;
+    my $self;use XXX; ZZZ if !defined $_[0];
     if (@_ == 2) {
         $self = [@_];
     } elsif (ref $_[0] eq 'ARRAY') {

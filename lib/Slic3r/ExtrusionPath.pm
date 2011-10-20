@@ -7,7 +7,11 @@ extends 'Slic3r::Polyline';
 # expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
 
-use constant PI => 4 * atan2(1, 1);
+use constant X => 0;
+use constant Y => 1;
+
+use Slic3r::Geometry qw(PI epsilon deg2rad rotate_points);
+use XXX;
 
 sub clip_end {
     my $self = shift;
@@ -67,6 +71,112 @@ sub split_at_acute_angles {
         }
     }
     push @paths, (ref $self)->cast([@p]) if @p > 1;
+    return @paths;
+}
+
+sub detect_arcs {
+    my $self = shift;
+    
+    my $max_angle = deg2rad(40);
+    my $len_epsilon = 1000000;
+    
+    my @points = @{$self->points};
+    my @paths = ();
+    
+    # we require at least 3 consecutive segments to form an arc
+    CYCLE: while (@points >= 4) {
+        for (my $i = 0; $i <= $#points - 3; $i++) {
+            my $s1 = Slic3r::Line->new($points[$i],   $points[$i+1]);
+            my $s2 = Slic3r::Line->new($points[$i+1], $points[$i+2]);
+            my $s3 = Slic3r::Line->new($points[$i+2], $points[$i+3]);
+            my $s1_len = $s1->length;
+            my $s2_len = $s2->length;
+            my $s3_len = $s3->length;
+            
+            # segments must have the same length
+            if (abs($s3_len - $s2_len) > $len_epsilon) {
+                # optimization: skip a cycle
+                $i++;
+                next;
+            }
+            next if abs($s2_len - $s1_len) > $len_epsilon;
+            
+            # segments must have the same relative angle
+            my $s1_angle = $s1->atan;
+            my $s2_angle = $s2->atan;
+            my $s3_angle = $s3->atan;
+            $s1_angle += 2*PI if $s1_angle < 0;
+            $s2_angle += 2*PI if $s2_angle < 0;
+            $s3_angle += 2*PI if $s3_angle < 0;
+            my $s1s2_angle = $s2_angle - $s1_angle;
+            my $s2s3_angle = $s3_angle - $s2_angle;
+            next if abs($s1s2_angle - $s2s3_angle) > $Slic3r::Geometry::parallel_degrees_limit;
+            next if $s1s2_angle < $Slic3r::Geometry::parallel_degrees_limit;     # ignore parallel lines
+            next if $s1s2_angle > $max_angle;  # ignore too sharp vertices
+            
+            # s1, s2, s3 form an arc
+            my $orientation = $s1->point_on_left($points[$i+2]) ? 'ccw' : 'cw';
+            
+            # to find the center, we intersect the perpendicular lines
+            # passing by midpoints of $s1 and $s3
+            my $arc_center;
+            {
+                my $s1_mid = $s1->midpoint;
+                my $s3_mid = $s2->midpoint;
+                my $rotation_angle = PI/2 * ($orientation eq 'ccw' ? -1 : 1);
+                my $ray1 = Slic3r::Line->new($s1_mid, rotate_points($rotation_angle, $s1_mid, $points[$i+1]));
+                my $ray3 = Slic3r::Line->new($s3_mid, rotate_points($rotation_angle, $s3_mid, $points[$i+3]));
+                $arc_center = $ray1->intersection($ray3, 0);
+            }
+            
+            my $arc = Slic3r::ExtrusionPath::Arc->new(
+                points      => [$points[$i], $points[$i+3]],  # first and last points
+                orientation => $orientation,
+                center      => $arc_center,
+                radius      => $arc_center->distance_to($points[$i]),
+            );
+            
+            # now look for more points
+            my $last_line_angle = $s3_angle;
+            my $last_j = $points[$i+3];
+            for (my $j = $i+3; $j < $#points; $j++) {
+                my $line = Slic3r::Line->new($points[$j], $points[$j+1]);
+                last if abs($line->length - $s1_len) > $len_epsilon;
+                my $line_angle = $line->atan;
+                $line_angle += 2*PI if $line_angle < 0;
+                my $anglediff = $line_angle - $last_line_angle;
+                last if abs($s1s2_angle - $anglediff) > $Slic3r::Geometry::parallel_degrees_limit;
+                
+                # point $j+1 belongs to the arc
+                $arc->points->[-1] = $points[$j+1];
+                $last_j = $j+1;
+                
+                $last_line_angle = $line_angle;
+            }
+            
+            # points 0..$i form a linear path
+            push @paths, (ref $self)->new(
+                points       => [ @points[0..$i] ],
+                depth_layers => $self->depth_layers,
+            ) if $i > 0;
+            
+            # add our arc
+            push @paths, $arc;
+            print "ARC DETECTED\n";
+            # remove arc points from path, leaving one
+            splice @points, 0, $last_j, ();
+            
+            next CYCLE;
+        }
+        last;
+    }
+    
+    # remaining points form a linear path
+    push @paths, (ref $self)->new(
+        points => [@points],
+        depth_layers => $self->depth_layers
+    ) if @points;
+    
     return @paths;
 }
 

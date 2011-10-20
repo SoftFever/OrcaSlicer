@@ -30,6 +30,7 @@ has 'retract_speed' => (
     default => sub { $Slic3r::retract_speed * 60 },  # mm/min
 );
 
+use Slic3r::Geometry qw(points_coincide);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -67,7 +68,13 @@ sub extrude_loop {
 
 sub extrude {
     my $self = shift;
-    my ($path, $description) = @_;
+    my ($path, $description, $recursive) = @_;
+    
+    if ($Slic3r::gcode_arcs && !$recursive) {
+        my $gcode = "";
+        $gcode .= $self->extrude($_, $description, 1) for $path->detect_arcs;
+        return $gcode;
+    }
     
     my $gcode = "";
     
@@ -80,23 +87,28 @@ sub extrude {
     }
     
     # go to first point of extrusion path
-    $gcode .= $self->G1($path->points->[0], undef, 0, "move to first $description point");
+    $gcode .= $self->G1($path->points->[0], undef, 0, "move to first $description point")
+        if !points_coincide($self->last_pos, $path->points->[0]);
     
     # compensate retraction
     $gcode .= $self->unretract if $self->retracted;
-    XXX "yes!\n" if $path->depth_layers > 1;
-    # extrude while going to next points
-    foreach my $line ($path->lines) {
-        # calculate how much filament to drive into the extruder
-        # to get the desired amount of extruded plastic
-        my $e = $line->a->distance_to($line->b) * $Slic3r::resolution
-            * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
-            * $Slic3r::thickness_ratio 
-            * $self->flow_ratio
-            * $Slic3r::filament_packing_density
-            * $path->depth_layers;
-        
-        $gcode .= $self->G1($line->b, undef, $e, $description);
+    
+    # calculate extrusion length per distance unit
+    my $e = $Slic3r::resolution
+        * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
+        * $Slic3r::thickness_ratio 
+        * $self->flow_ratio
+        * $Slic3r::filament_packing_density
+        * $path->depth_layers;
+    
+    # extrude arc or line
+    if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
+        $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
+            $path->center, $e * $path->length, $description);
+    } else {
+        foreach my $line ($path->lines) {
+            $gcode .= $self->G1($line->b, undef, $e * $line->length, $description);
+        }
     }
     
     return $gcode;
@@ -144,6 +156,34 @@ sub G1 {
         $self->z($z);
         $gcode .= sprintf " Z%.${dec}f", $z;
     }
+    
+    return $self->_Gx($gcode, $e, $comment);
+}
+
+sub G2_G3 {
+    my $self = shift;
+    my ($point, $orientation, $center, $e, $comment) = @_;
+    my $dec = $self->dec;
+    
+    my $gcode = $orientation eq 'cw' ? "G2" : "G3";
+    
+    $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
+        ($point->x * $Slic3r::resolution) + $self->shift_x, 
+        ($point->y * $Slic3r::resolution) + $self->shift_y; #**
+    $self->last_pos($point);
+    
+    # XY distance of the center from the start position
+    $gcode .= sprintf " I%.${dec}f J%.${dec}f",
+        ($point->[X] - $self->last_pos->[X]) * $Slic3r::resolution + $self->shift_x,
+        ($point->[Y] - $self->last_pos->[Y]) * $Slic3r::resolution + $self->shift_y;
+    
+    return $self->_Gx($gcode, $e, $comment);
+}
+
+sub _Gx {
+    my $self = shift;
+    my ($gcode, $e, $comment) = @_;
+    my $dec = $self->dec;
     
     # apply the speed reduction for print moves on bottom layer
     my $speed_multiplier = $e && $self->z == $Slic3r::z_offset

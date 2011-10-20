@@ -13,6 +13,7 @@ use Slic3r::ExPolygon;
 use Slic3r::Extruder;
 use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
+use Slic3r::ExtrusionPath::Arc;
 use Slic3r::ExtrusionPath::Collection;
 use Slic3r::Fill;
 use Slic3r::Geometry;
@@ -34,7 +35,8 @@ use Slic3r::Surface::Bridge;
 our $nozzle_diameter    = 0.5;
 our $print_center       = [100,100];  # object will be centered around this point
 our $use_relative_e_distances = 0;
-our $z_offset = 0;
+our $z_offset           = 0;
+our $gcode_arcs         = 0;
 
 # filament options
 our $filament_diameter  = 3;    # mm
