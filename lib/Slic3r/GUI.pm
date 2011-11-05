@@ -5,7 +5,7 @@ use warnings;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 
-use Wx qw(:sizer :frame wxID_EXIT wxID_ABOUT);
+use Wx 0.9901 qw(:sizer :frame wxID_EXIT wxID_ABOUT);
 use Wx::Event qw(EVT_MENU);
 use base 'Wx::App';
 

@@ -2,7 +2,7 @@ package Slic3r::Perimeter;
 use Moo;
 
 use Math::Clipper ':all';
-use Math::ConvexHull qw(convex_hull);
+use Math::ConvexHull 1.0.4 qw(convex_hull);
 use XXX;
 
 use constant X => 0;
