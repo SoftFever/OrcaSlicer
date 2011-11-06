@@ -170,13 +170,13 @@ sub G2_G3 {
     $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
         ($point->x * $Slic3r::resolution) + $self->shift_x, 
         ($point->y * $Slic3r::resolution) + $self->shift_y; #**
-    $self->last_pos($point);
     
     # XY distance of the center from the start position
     $gcode .= sprintf " I%.${dec}f J%.${dec}f",
         ($point->[X] - $self->last_pos->[X]) * $Slic3r::resolution + $self->shift_x,
         ($point->[Y] - $self->last_pos->[Y]) * $Slic3r::resolution + $self->shift_y;
     
+    $self->last_pos($point);
     return $self->_Gx($gcode, $e, $comment);
 }
 
