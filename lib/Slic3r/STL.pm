@@ -47,17 +47,17 @@ sub parse_file {
         $extents[$_][MAX] *= $Slic3r::scale;
     }
     
-    # multiply object
-    my @multiply_offset = (
-        (($extents[X][MAX] - $extents[X][MIN]) + $Slic3r::multiply_distance),
-        (($extents[Y][MAX] - $extents[Y][MIN]) + $Slic3r::multiply_distance),
+    # duplicate object
+    my @duplicate_offset = (
+        (($extents[X][MAX] - $extents[X][MIN]) + $Slic3r::duplicate_distance),
+        (($extents[Y][MAX] - $extents[Y][MIN]) + $Slic3r::duplicate_distance),
     );
-    $extents[X][MAX] += $multiply_offset[X] * ($Slic3r::multiply_x-1);
-    $extents[Y][MAX] += $multiply_offset[Y] * ($Slic3r::multiply_y-1);
+    $extents[X][MAX] += $duplicate_offset[X] * ($Slic3r::duplicate_x-1);
+    $extents[Y][MAX] += $duplicate_offset[Y] * ($Slic3r::duplicate_y-1);
     my @copies = ();
-    for (my $i = 0; $i < $Slic3r::multiply_x; $i++) {
-        for (my $j = 0; $j < $Slic3r::multiply_y; $j++) {
-            push @copies, [ $multiply_offset[X] * $i, $multiply_offset[Y] * $j ];
+    for (my $i = 0; $i < $Slic3r::duplicate_x; $i++) {
+        for (my $j = 0; $j < $Slic3r::duplicate_y; $j++) {
+            push @copies, [ $duplicate_offset[X] * $i, $duplicate_offset[Y] * $j ];
         }
     }
     

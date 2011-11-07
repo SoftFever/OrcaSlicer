@@ -83,8 +83,8 @@ our $skirt_distance     = 6;    # mm
 # transform options
 our $scale              = 1;
 our $rotate             = 0;
-our $multiply_x         = 1;
-our $multiply_y         = 1;
-our $multiply_distance  = 6;    # mm
+our $duplicate_x        = 1;
+our $duplicate_y        = 1;
+our $duplicate_distance = 6;    # mm
 
 1;

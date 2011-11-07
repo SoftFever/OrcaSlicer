@@ -45,7 +45,7 @@ Slic3r current features are:
 * save configuration profiles;
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
-* ability to scale, rotate and multiply input object;
+* ability to scale, rotate and duplicate input object;
 * customizable initial and final GCODE (using command line only);
 * use different speed for bottom layer and perimeters;
 * experimental support for G2/G3 native arcs.
@@ -147,8 +147,8 @@ The author is Alessandro Ranellucci (me).
        Transform options:
         --scale             Factor for scaling input object (default: 1)
         --rotate            Rotation angle in degrees (0-360, default: 0)
-        --multiply-x        Number of items along X axis (1+, default: 1)
-        --multiply-y        Number of items along Y axis (1+, default: 1)
-        --multiply-distance Distance in mm between copies (default: 6)
+        --duplicate-x       Number of items along X axis (1+, default: 1)
+        --duplicate-y       Number of items along Y axis (1+, default: 1)
+        --duplicate-distance Distance in mm between copies (default: 6)
         
 

@@ -45,7 +45,7 @@ sub new {
         ),
         transform => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Transform',
-            options => [qw(scale rotate multiply_x multiply_y multiply_distance)],
+            options => [qw(scale rotate duplicate_x duplicate_y duplicate_distance)],
         ),
     );
     $self->{panels} = \%panels;

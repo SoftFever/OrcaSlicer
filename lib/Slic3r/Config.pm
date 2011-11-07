@@ -136,16 +136,16 @@ our $Options = {
         label   => 'Rotate (°)',
         type    => 'i',
     },
-    'multiply_x' => {
-        label   => 'Multiply along X',
+    'duplicate_x' => {
+        label   => 'Copies along X',
         type    => 'i',
     },
-    'multiply_y' => {
-        label   => 'Multiply along Y',
+    'duplicate_y' => {
+        label   => 'Copies along Y',
         type    => 'i',
     },
-    'multiply_distance' => {
-        label   => 'Multiply distance',
+    'duplicate_distance' => {
+        label   => 'Distance between copies',
         type    => 'i',
     },
 };
@@ -272,17 +272,17 @@ sub validate {
     die "Invalid value for --scale\n"
         if $Slic3r::scale <= 0;
     
-    # --multiply-x
-    die "Invalid value for --multiply-x\n"
-        if $Slic3r::multiply_x < 1;
+    # --duplicate-x
+    die "Invalid value for --duplicate-x\n"
+        if $Slic3r::duplicate_x < 1;
     
-    # --multiply-y
-    die "Invalid value for --multiply-y\n"
-        if $Slic3r::multiply_y < 1;
+    # --duplicate-y
+    die "Invalid value for --duplicate-y\n"
+        if $Slic3r::duplicate_y < 1;
     
-    # --multiply-distance
-    die "Invalid value for --multiply-distance\n"
-        if $Slic3r::multiply_distance < 1;
+    # --duplicate-distance
+    die "Invalid value for --duplicate-distance\n"
+        if $Slic3r::duplicate_distance < 1;
 }
 
 1;

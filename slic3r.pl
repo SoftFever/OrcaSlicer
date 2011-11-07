@@ -66,9 +66,9 @@ GetOptions(
     # transform options
     'scale=f'               => \$Slic3r::scale,
     'rotate=i'              => \$Slic3r::rotate,
-    'multiply-x=i'          => \$Slic3r::multiply_x,
-    'multiply-y=i'          => \$Slic3r::multiply_y,
-    'multiply-distance=i'   => \$Slic3r::multiply_distance,
+    'duplicate-x=i'         => \$Slic3r::duplicate_x,
+    'duplicate-y=i'         => \$Slic3r::duplicate_y,
+    'duplicate-distance=i'  => \$Slic3r::duplicate_distance,
 );
 
 # load configuration
@@ -133,7 +133,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         by all firmwares)
     
   Filament options:
-    --filament-diameter Diameter of your raw filament (default: $Slic3r::filament_diameter)
+    --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)
     --filament-packing-density
                         Ratio of the extruded volume over volume pushed 
                         into the extruder (default: $Slic3r::filament_packing_density)
@@ -184,9 +184,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
     --rotate            Rotation angle in degrees (0-360, default: $Slic3r::rotate)
-    --multiply-x        Number of items along X axis (1+, default: $Slic3r::multiply_x)
-    --multiply-y        Number of items along Y axis (1+, default: $Slic3r::multiply_y)
-    --multiply-distance Distance in mm between copies (default: $Slic3r::multiply_distance)
+    --duplicate-x       Number of items along X axis (1+, default: $Slic3r::duplicate_x)
+    --duplicate-y       Number of items along Y axis (1+, default: $Slic3r::duplicate_y)
+    --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
     
 EOF
     exit ($exit_code || 0);
