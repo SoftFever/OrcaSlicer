@@ -20,12 +20,6 @@ use Slic3r;
         [86948.77,175149.09], [119825.35,100585],
     ]);
     
-    use Slic3r::SVG;
-    local $Slic3r::resolution = 0.0001;
-    Slic3r::SVG::output(undef, "arc.svg",
-        polylines => [ $path->points ],
-    );
-    
     my $collection = Slic3r::ExtrusionPath::Collection->new(paths => [$path]);
     $collection->detect_arcs(30);
     
