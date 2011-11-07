@@ -22,8 +22,8 @@ sub make_perimeter {
     # perimeters to outer); each item of this arrayref is an ExPolygon:
     # @perimeters = (
     #    [ # first object (identified by a single surface before offsetting)
-    #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #item 0: outer loop
-    #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #item 1: inner loop
+    #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #depth 0: outer loop
+    #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #depth 1: inner loop
     #    ],
     #    [ # second object
     #        ...
@@ -57,21 +57,17 @@ sub make_perimeter {
         }
     }
     
-    # first generate paths for all holes, starting from external (innermost) perimeters
-    foreach my $i (1..$Slic3r::perimeter_offsets) {
-        foreach my $hole (map $_->holes, map @{$_->[$i-1]}, @perimeters) {
+    # process one island (original surface) at time
+    foreach my $island (@perimeters) {
+        # do holes starting from innermost one
+        foreach my $hole (map $_->holes, map @$_, @$island) {
             push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($hole);
         }
-    }
-    
-    # then generate paths for contours
-    # this time we do something different: we do contour loops for one
-    # shape (that is, one original surface) at a time: we start from the
-    # innermost loop (that is, internal one), then without interrupting 
-    # our path we go onto the outer loop and continue; this should ensure
-    # good surface quality
-    foreach my $contour (map $_->contour, map @$_, map @$_, @perimeters) {
-        push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($contour);
+        
+        # do contours starting from innermost one
+        foreach my $contour (map $_->contour, map @$_, reverse @$island) {
+            push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($contour);
+        }
     }
     
     # generate skirt on bottom layer
