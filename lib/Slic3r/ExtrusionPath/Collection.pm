@@ -57,7 +57,7 @@ sub cleanup {
 
 sub detect_arcs {
     my $self = shift;
-    @{$self->paths} = map $_->detect_arcs, @{$self->paths};
+    @{$self->paths} = map $_->detect_arcs(@_), @{$self->paths};
 }
 
 1;

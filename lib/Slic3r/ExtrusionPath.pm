@@ -76,9 +76,10 @@ sub split_at_acute_angles {
 
 sub detect_arcs {
     my $self = shift;
+    my ($max_angle, $len_epsilon) = @_;
     
-    my $max_angle = deg2rad(40);
-    my $len_epsilon = 1000000;
+    $max_angle = deg2rad($max_angle || 15);
+    $len_epsilon ||= 10 / $Slic3r::resolution;
     
     my @points = @{$self->points};
     my @paths = ();
@@ -111,34 +112,13 @@ sub detect_arcs {
             my $s1s2_angle = $s2_angle - $s1_angle;
             my $s2s3_angle = $s3_angle - $s2_angle;
             next if abs($s1s2_angle - $s2s3_angle) > $Slic3r::Geometry::parallel_degrees_limit;
-            next if $s1s2_angle < $Slic3r::Geometry::parallel_degrees_limit;     # ignore parallel lines
+            next if abs($s1s2_angle) < $Slic3r::Geometry::parallel_degrees_limit;     # ignore parallel lines
             next if $s1s2_angle > $max_angle;  # ignore too sharp vertices
-            
-            # s1, s2, s3 form an arc
-            my $orientation = $s1->point_on_left($points[$i+2]) ? 'ccw' : 'cw';
-            
-            # to find the center, we intersect the perpendicular lines
-            # passing by midpoints of $s1 and $s3
-            my $arc_center;
-            {
-                my $s1_mid = $s1->midpoint;
-                my $s3_mid = $s2->midpoint;
-                my $rotation_angle = PI/2 * ($orientation eq 'ccw' ? -1 : 1);
-                my $ray1 = Slic3r::Line->new($s1_mid, rotate_points($rotation_angle, $s1_mid, $points[$i+1]));
-                my $ray3 = Slic3r::Line->new($s3_mid, rotate_points($rotation_angle, $s3_mid, $points[$i+3]));
-                $arc_center = $ray1->intersection($ray3, 0);
-            }
-            
-            my $arc = Slic3r::ExtrusionPath::Arc->new(
-                points      => [$points[$i], $points[$i+3]],  # first and last points
-                orientation => $orientation,
-                center      => $arc_center,
-                radius      => $arc_center->distance_to($points[$i]),
-            );
+            my @arc_points = ($points[$i], $points[$i+3]),  # first and last points
             
             # now look for more points
             my $last_line_angle = $s3_angle;
-            my $last_j = $points[$i+3];
+            my $last_j = $i+3;
             for (my $j = $i+3; $j < $#points; $j++) {
                 my $line = Slic3r::Line->new($points[$j], $points[$j+1]);
                 last if abs($line->length - $s1_len) > $len_epsilon;
@@ -148,11 +128,37 @@ sub detect_arcs {
                 last if abs($s1s2_angle - $anglediff) > $Slic3r::Geometry::parallel_degrees_limit;
                 
                 # point $j+1 belongs to the arc
-                $arc->points->[-1] = $points[$j+1];
+                $arc_points[-1] = $points[$j+1];
                 $last_j = $j+1;
                 
                 $last_line_angle = $line_angle;
             }
+            
+            # s1, s2, s3 form an arc
+            my $orientation = $s1->point_on_left($points[$i+2]) ? 'ccw' : 'cw';
+            
+            # to find the center, we intersect the perpendicular lines
+            # passing by midpoints of $s1 and last segment
+            # a better method would be to draw all the perpendicular lines
+            # and find the centroid of the enclosed polygon, or to
+            # intersect multiple lines and find the centroid of the convex hull
+            # around the intersections
+            my $arc_center;
+            {
+                my $s1_mid = $s1->midpoint;
+                my $last_mid = Slic3r::Line->new($points[$last_j-1], $points[$last_j])->midpoint;
+                my $rotation_angle = PI/2 * ($orientation eq 'ccw' ? -1 : 1);
+                my $ray1     = Slic3r::Line->new($s1_mid,   rotate_points($rotation_angle, $s1_mid,   $points[$i+1]));
+                my $last_ray = Slic3r::Line->new($last_mid, rotate_points($rotation_angle, $last_mid, $points[$last_j]));
+                $arc_center = $ray1->intersection($last_ray, 0);
+            }
+            
+            my $arc = Slic3r::ExtrusionPath::Arc->new(
+                points      => [@arc_points],
+                orientation => $orientation,
+                center      => $arc_center,
+                radius      => $arc_center->distance_to($points[$i]),
+            );
             
             # points 0..$i form a linear path
             push @paths, (ref $self)->new(
@@ -162,7 +168,8 @@ sub detect_arcs {
             
             # add our arc
             push @paths, $arc;
-            print "ARC DETECTED\n";
+            Slic3r::debugf "ARC DETECTED\n";
+            
             # remove arc points from path, leaving one
             splice @points, 0, $last_j, ();
             
@@ -175,7 +182,7 @@ sub detect_arcs {
     push @paths, (ref $self)->new(
         points => [@points],
         depth_layers => $self->depth_layers
-    ) if @points;
+    ) if @points > 1;
     
     return @paths;
 }

@@ -70,6 +70,9 @@ sub extrude {
     my $self = shift;
     my ($path, $description, $recursive) = @_;
     
+    $path->merge_continuous_lines;
+    
+    # detect arcs
     if ($Slic3r::gcode_arcs && !$recursive) {
         my $gcode = "";
         $gcode .= $self->extrude($_, $description, 1) for $path->detect_arcs;
@@ -173,8 +176,8 @@ sub G2_G3 {
     
     # XY distance of the center from the start position
     $gcode .= sprintf " I%.${dec}f J%.${dec}f",
-        ($point->[X] - $self->last_pos->[X]) * $Slic3r::resolution + $self->shift_x,
-        ($point->[Y] - $self->last_pos->[Y]) * $Slic3r::resolution + $self->shift_y;
+        ($center->[X] - $self->last_pos->[X]) * $Slic3r::resolution,
+        ($center->[Y] - $self->last_pos->[Y]) * $Slic3r::resolution;
     
     $self->last_pos($point);
     return $self->_Gx($gcode, $e, $comment);
