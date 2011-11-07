@@ -29,7 +29,9 @@ sub shortest_path {
     my $start_at;
     CYCLE: while (@{$self->paths}) {
         # find nearest point
-        $start_at = Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, [ $self->endpoints ]));
+        $start_at = $start_near
+            ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, [ $self->endpoints ]))
+            : $self->endpoints->[0];
         
         # loop through paths to find the one that starts or ends at the point found
         PATH: for (my $i = 0; $i <= $#{$self->paths}; $i++) {

@@ -3,6 +3,7 @@ use Moo;
 
 use Math::Clipper ':all';
 use Math::ConvexHull 1.0.4 qw(convex_hull);
+use Slic3r::Geometry qw(shortest_path);
 use XXX;
 
 use constant X => 0;
@@ -30,6 +31,11 @@ sub make_perimeter {
     #    ]
     # )
     my @perimeters = ();  # one item per depth; each item
+    
+    # organize $layer->perimeter_surfaces using a shortest path search
+    @{ $layer->perimeter_surfaces } = @{shortest_path([
+        map [ $_->contour->points->[0], $_ ], @{ $layer->perimeter_surfaces },
+    ])};
     
     foreach my $surface (@{ $layer->perimeter_surfaces }) {
         # the outer loop must be offsetted by half extrusion width inwards

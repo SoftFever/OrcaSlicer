@@ -17,6 +17,7 @@ our @EXPORT_OK = qw(
     clip_segment_complex_polygon longest_segment angle3points
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
+    shortest_path
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -609,6 +610,31 @@ sub polyline_remove_acute_vertices {
 sub polygon_remove_acute_vertices {
     my ($points) = @_;
     return polyline_remove_acute_vertices($points, 1);
+}
+
+# accepts an arrayref; each item should be an arrayref whose first
+# item is the point to be used for the shortest path, and the second
+# one is the value to be returned in output (if the second item
+# is not provided, the point will be returned)
+sub shortest_path {
+    my ($items, $start_near) = @_;
+    
+    my %values = map +($_->[0] => $_->[1] || $_->[0]), @$items;
+    my @points = map $_->[0], @$items;
+    
+    my $result = [];
+    my $last_point;
+    if (!$start_near) {
+        $start_near = shift @points;
+        push @$result, $values{$start_near} if $start_near;
+    }
+    while (@points) {
+        $start_near = nearest_point($start_near, [@points]);
+        @points = grep $_ ne $start_near, @points;
+        push @$result, $values{$start_near};
+    }
+    
+    return $result;
 }
 
 1;
