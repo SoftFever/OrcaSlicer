@@ -143,14 +143,17 @@ our $Options = {
     'duplicate_x' => {
         label   => 'Copies along X',
         type    => 'i',
+        aliases => [qw(multiply_x)],
     },
     'duplicate_y' => {
         label   => 'Copies along Y',
         type    => 'i',
+        aliases => [qw(multiply_y)],
     },
     'duplicate_distance' => {
         label   => 'Distance between copies',
         type    => 'i',
+        aliases => [qw(multiply_distance)],
     },
 };
 
@@ -189,8 +192,13 @@ sub load {
     while (<$fh>) {
         next if /^\s*#/;
         /^(\w+) = (.+)/ or die "Unreadable configuration file (invalid data at line $.)\n";
-        my $opt = $Options->{$1} or die "Unknown option $1 at like $.\n";
-        set($1, $opt->{deserialize} ? $opt->{deserialize}->($2) : $2);
+        my $key = $1;
+        if (!exists $Options->{$key}) {
+            $key = +(grep { $Options->{$_}{aliases} && grep $_ eq $key, @{$Options->{$_}{aliases}} }
+                keys %$Options)[0] or die "Unknown option $1 at line $.\n";
+        }
+        my $opt = $Options->{$key};
+        set($key, $opt->{deserialize} ? $opt->{deserialize}->($2) : $2);
     }
     close $fh;
 }
