@@ -37,7 +37,7 @@ sub new {
         ),
         retract => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Retraction',
-            options => [qw(retract_length retract_speed retract_restart_extra retract_before_travel)],
+            options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
         ),
         skirt => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Skirt',

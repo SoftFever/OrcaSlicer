@@ -116,6 +116,10 @@ our $Options = {
         label   => 'Minimum travel after retraction (mm)',
         type    => 'f',
     },
+    'retract_lift' => {
+        label   => 'Lift Z (mm)',
+        type    => 'f',
+    },
     
     # skirt options
     'skirts' => {

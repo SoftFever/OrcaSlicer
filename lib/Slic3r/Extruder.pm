@@ -8,6 +8,7 @@ has 'flow_ratio'         => (is => 'rw', default => sub {1});
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
+has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { [0,0] } );
 has 'last_f'             => (is => 'rw', default => sub {0});
 has 'dec'                => (is => 'ro', default => sub { 3 } );
@@ -43,7 +44,7 @@ sub move_z {
     
     my $gcode = "";
     
-    $gcode .= $self->retract;
+    $gcode .= $self->retract(dont_lift => 1);
     $gcode .= $self->G1(undef, $z, 0, 'move to next layer');
     
     return $gcode;
@@ -119,11 +120,18 @@ sub extrude {
 
 sub retract {
     my $self = shift;
+    my %params = @_;
+    
     return "" unless $Slic3r::retract_length > 0 
         && !$self->retracted;
     
     $self->retracted(1);
     my $gcode = $self->G1(undef, undef, -$Slic3r::retract_length, "retract");
+    
+    unless ($params{dont_lift} || $Slic3r::retract_lift == 0) {
+        $gcode .= $self->G1(undef, $self->z + $Slic3r::retract_lift, 0, 'lift plate during retraction');
+        $self->lifted(1);
+    }
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
@@ -138,8 +146,17 @@ sub retract {
 sub unretract {
     my $self = shift;
     $self->retracted(0);
-    return $self->G1(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
+    my $gcode = "";
+    
+    if ($self->lifted) {
+        $gcode .= $self->G1(undef, $self->z - $Slic3r::retract_lift, 0, 'restore layer Z');
+        $self->lifted(0);
+    }
+    
+    $gcode .= $self->G1(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
         "compensate retraction");
+    
+    return $gcode;
 }
 
 sub G1 {

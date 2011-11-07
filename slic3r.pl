@@ -58,6 +58,7 @@ GetOptions(
     'retract-speed=i'           => \$Slic3r::retract_speed,
     'retract-restart-extra=f'   => \$Slic3r::retract_restart_extra,
     'retract-before-travel=f'   => \$Slic3r::retract_before_travel,
+    'retract-lift=f'            => \$Slic3r::retract_lift,
     
     # skirt options
     'skirts=i'              => \$Slic3r::skirts,
@@ -175,6 +176,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         compensating retraction (default: $Slic3r::retract_restart_extra)
     --retract-before-travel
                         Only retract before travel moves of this length (default: $Slic3r::retract_before_travel)
+    --retract-lift      Lift Z by the given distance in mm when retracting (default: $Slic3r::retract_lift)
    
    Skirt options:
     --skirts            Number of skirts to draw (default: $Slic3r::skirts)
