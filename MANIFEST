@@ -36,6 +36,7 @@ lib/Slic3r/SVG.pm
 MANIFEST			This list of files
 README.markdown
 slic3r.pl
+t/arcs.t
 t/clean_polylines.t
 t/clipper.t
 t/geometry.t
