@@ -127,7 +127,7 @@ sub _facet {
     
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
         my $layer = $print->layer($layer_id);
-        $layer->add_line($_) for $self->intersect_facet(\@vertices, $layer->z);
+        $layer->add_line($_) for $self->intersect_facet(\@vertices, $layer->slice_z);
     }
 }
 
