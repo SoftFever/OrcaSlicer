@@ -40,12 +40,13 @@ sub make_fill {
             
             my $filler = $Slic3r::fill_type;
             my $density = $Slic3r::fill_density;
-            next SURFACE unless $density > 0;
             
             # force 100% density and rectilinear fill for external surfaces
             if ($surface->surface_type ne 'internal') {
                 $density = 1;
                 $filler = 'rectilinear';
+            } else {
+                next SURFACE unless $density > 0;
             }
             
             my @paths = $self->fillers->{$filler}->fill_surface(
