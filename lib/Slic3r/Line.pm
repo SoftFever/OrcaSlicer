@@ -13,7 +13,7 @@ sub new {
     if (@_ == 2) {
         $self = [ map Slic3r::Point->new($_), @_ ];
     } elsif (ref $_[0] eq 'ARRAY') {
-        $self = [ map Slic3r::Point->new($_), @{$_[0]} ];
+        $self = [ map Slic3r::Point->new($_), $_[0][0], $_[0][1] ];
     } elsif ($_[0]->isa(__PACKAGE__)) {
         return $_[0];
     } else {

@@ -2,7 +2,7 @@ package Slic3r::Print;
 use Moo;
 
 use Math::Clipper ':all';
-use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex union_ex intersection_ex);
+use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex);
 use XXX;
 
 use constant X => 0;

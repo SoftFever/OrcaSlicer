@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(explode_expolygon explode_expolygons safety_offset
-    diff_ex diff union_ex intersection_ex);
+    diff_ex diff union_ex intersection_ex PFT_EVENODD);
 
 use Math::Clipper 1.02 ':all';
 our $clipper = Math::Clipper->new;
@@ -39,10 +39,14 @@ sub diff {
 }
 
 sub union_ex {
-    my ($polygons) = @_;
+    my ($polygons, $jointype) = @_;
+    $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
     $clipper->add_subject_polygons($polygons);
-    return $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
+    return [
+        map Slic3r::ExPolygon->new($_),
+            @{ $clipper->ex_execute(CT_UNION, $jointype, $jointype) },
+    ];
 }
 
 sub intersection_ex {

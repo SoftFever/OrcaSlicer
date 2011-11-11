@@ -24,7 +24,7 @@ sub cast {
     my $class = shift;
     my ($points, %args) = @_;
     
-    $points = [ map { ref $_ eq 'ARRAY' ? Slic3r::Point->new($_) : $_ } @$points ];
+    $points = [ map Slic3r::Point->cast($_), @$points ];
     return $class->new(points => $points, %args);
 }
 

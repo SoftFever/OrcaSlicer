@@ -4,20 +4,29 @@ use warnings;
 
 sub new {
     my $class = shift;
-    my $self;use XXX; ZZZ if !defined $_[0];
+    my $self;
     if (@_ == 2) {
         $self = [@_];
-    } elsif (ref $_[0] eq 'ARRAY') {
+    } elsif ((ref $_[0]) =~ 'ARRAY' || (ref $_[0]) =~ /Slic3r::Point/) {
         $self = [@{$_[0]}];
     } elsif ($_[0]->isa(__PACKAGE__)) {
         return $_[0];
     } else {
         use XXX;
-        ZZZ "test";
+        ZZZ \@_;
         die "Invalid arguments for ${class}->new";
     }
     bless $self, $class;
     return $self;
+}
+
+sub cast {
+    my $class = shift;
+    if (ref $_[0] eq 'Slic3r::Point') {
+        return $_[0];
+    } else {
+        return $class->new(@_);
+    }
 }
 
 sub id {

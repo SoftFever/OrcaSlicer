@@ -4,7 +4,7 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines nearest_point
     line_length);
-use Slic3r::Geometry::Clipper qw(safety_offset union_ex);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex PFT_EVENODD);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -132,13 +132,6 @@ sub remove_surface {
 sub make_surfaces {
     my $self = shift;
     
-    # this algorithm can be further simplified:
-    # first remove all facetedges that are not connected to any other edge
-    # or that are connected to more than one edge: those are the edges
-    # tangent to our plane, that we don't care about;
-    # then we would have all points connecting two and only two lines,
-    # so a simple head-to-tail algorithm would work
-    
     my @lines = ();
     push @lines, @{$self->lines};
     #@lines = grep line_length($_) > xx, @lines;
@@ -162,9 +155,12 @@ sub make_surfaces {
     }
     
     my $n = 0;
-    my @polygons = ();
+    my (@polygons, %visited_lines, @discarded_lines, @discarded_polylines) = ();
     while (my $first_line = shift @lines) {
+        next if $visited_lines{ $first_line->id };
         my @points = @$first_line;
+        
+        my @seen_lines = ($first_line);
         my %seen_points = map { $get_point_id->($points[$_]) => $_ } 0..1;
         
         CYCLE: while (1) {
@@ -207,7 +203,7 @@ sub make_surfaces {
             #}
             
             my ($next_line) = splice @$next_lines, $ordered_next_lines[0], 1;
-            
+            push @seen_lines, $next_line;
             
             push @points, $next_line->[B];
             
@@ -221,21 +217,60 @@ sub make_surfaces {
         }
         
         if (@points < 4 || !points_coincide($points[0], $points[-1])) {
+            # discarding polyline
+            if (@points == 2) {
+                push @discarded_lines, [@points];
+            } else {
+                push @discarded_polylines, [@points];
+            }
             next;
         }
         
+        $visited_lines{ $_->id } = 1 for @seen_lines;
         pop @points;
         Slic3r::debugf "Discovered polygon of %d points\n", scalar(@points);
         push @polygons, Slic3r::Polygon->new(@points);
         $polygons[-1]->cleanup;
     }
     
-    {
-        my $expolygons = union_ex([ @polygons ]);
-        Slic3r::debugf "  %d surface(s) detected from %d polylines\n",
-            scalar(@$expolygons), scalar(@polygons);
+    # Now, if we got a clean and manifold model then @polygons would contain everything
+    # we need to draw our layer. In real life, sadly, things are different and it is likely
+    # that the above algorithm wasn't able to detect every polygon. This may happen because
+    # of non-manifoldness or because of many close lines, often overlapping; both situations
+    # make a head-to-tail search difficult.
+    # On the other hand, we can safely assume that every polygon we detected is correct, as 
+    # the above algorithm is quite strict. We can take a brute force approach to connect any
+    # other line.
+    
+    # So, let's first check what lines were not detected as part of polygons.
+    if (@discarded_lines || @discarded_polylines) {
+        print "  Warning: errors while parsing this layer (dirty or non-manifold model)\n";
+        Slic3r::debugf "  %d lines out of %d were discarded and %d polylines were not closed\n",
+            scalar(@discarded_lines), scalar(@{$self->lines}), scalar(@discarded_polylines);
         
-        push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'internal'), @$expolygons;
+        if (0) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output(undef, "layer" . $self->id . "_detected.svg",
+                white_polygons => \@polygons,
+            );
+            Slic3r::SVG::output(undef, "layer" . $self->id . "_discarded_lines.svg",
+                red_lines   => \@discarded_lines,
+            );
+            Slic3r::SVG::output(undef, "layer" . $self->id . "_discarded_polylines.svg",
+                polylines   => \@discarded_polylines,
+            );
+            exit;
+        }
+    }
+    
+    {
+        my $expolygons = union_ex([ @polygons ], PFT_EVENODD);
+        Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
+            scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@polygons);
+        
+        push @{$self->surfaces},
+            map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'internal'),
+                @$expolygons;
     }
     
     #use Slic3r::SVG;

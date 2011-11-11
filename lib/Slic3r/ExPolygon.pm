@@ -18,7 +18,7 @@ sub new {
             map Slic3r::Polygon->new($_), @{$_[0]{holes}},
         ];
     } else {
-        $self = [@_];
+        $self = [ map Slic3r::Polygon->new($_), @_ ];
     }
     bless $self, $class;
     $self;
@@ -29,7 +29,7 @@ sub new {
 # right contours
 sub make {
     my $class = shift;
-    return map $class->new($_), @{ union_ex(\@_) };
+    return @{ union_ex(\@_) };
 }
 
 sub contour {

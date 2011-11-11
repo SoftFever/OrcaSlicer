@@ -7,7 +7,7 @@ use warnings;
 # as a Slic3r::Polyline::Closed you're right. I plan to
 # ditch the latter and port everything to this class.
 
-use Slic3r::Geometry qw(polygon_remove_parallel_continuous_edges);
+use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges);
 
 # the constructor accepts an array(ref) of points
 sub new {
@@ -18,8 +18,21 @@ sub new {
     } else {
         $self = [ @_ ];
     }
+    
+    @$self = map Slic3r::Point->cast($_), @$self;
     bless $self, $class;
     $self;
+}
+
+# legacy method, to be removed when we ditch Slic3r::Polyline::Closed
+sub closed_polyline {
+    my $self = shift;
+    return Slic3r::Polyline::Closed->cast($self);
+}
+
+sub lines {
+    my $self = shift;
+    return map Slic3r::Line->new($_), polygon_lines($self);
 }
 
 sub cleanup {
