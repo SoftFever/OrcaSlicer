@@ -3,13 +3,9 @@ use Moo;
 
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines nearest_point
-    line_length);
-use Slic3r::Geometry::Clipper qw(safety_offset union_ex PFT_EVENODD);
+    line_length collinear X Y A B PI);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex);
 use XXX;
-
-use constant PI => 4 * atan2(1, 1);
-use constant A => 0;
-use constant B => 1;
 
 # a sequential number of layer, starting at 0
 has 'id' => (
@@ -116,122 +112,149 @@ sub add_line {
     return $line;
 }
 
-sub remove_line {
+# merge overlapping lines
+sub cleanup_lines {
     my $self = shift;
-    my ($line) = @_;
-    @{ $self->lines } = grep $_ ne $line, @{ $self->lines };
-}
-
-sub remove_surface {
-    my $self = shift;
-    my ($surface) = @_;
-    @{ $self->surfaces } = grep $_ ne $surface, @{ $self->surfaces };
+    
+    my $lines = $self->lines;
+    my $line_count = @$lines;
+    
+    for (my $i = 0; $i <= $#$lines-1; $i++) {
+        for (my $j = $i+1; $j <= $#$lines; $j++) {
+            # lines are collinear and overlapping?
+            next unless collinear($lines->[$i], $lines->[$j], 1);
+            
+            # lines have same orientation?
+            next unless ($lines->[$i][A][X] <=> $lines->[$i][B][X]) == ($lines->[$j][A][X] <=> $lines->[$j][B][X])
+                && ($lines->[$i][A][Y] <=> $lines->[$i][B][Y]) == ($lines->[$j][A][Y] <=> $lines->[$j][B][Y]);
+            
+            # resulting line
+            my @x = sort { $a <=> $b } ($lines->[$i][A][X], $lines->[$i][B][X], $lines->[$j][A][X], $lines->[$j][B][X]);
+            my @y = sort { $a <=> $b } ($lines->[$i][A][Y], $lines->[$i][B][Y], $lines->[$j][A][Y], $lines->[$j][B][Y]);
+            my $new_line = Slic3r::Line->new([$x[0], $y[0]], [$x[-1], $y[-1]]);
+            for (X, Y) {
+                ($new_line->[A][$_], $new_line->[B][$_]) = ($new_line->[B][$_], $new_line->[A][$_])
+                    if $lines->[$i][A][$_] > $lines->[$i][B][$_];
+            }
+            
+            # save new line and remove found one
+            $lines->[$i] = $new_line;
+            splice @$lines, $j, 1;
+            $j--;
+        }
+    }
+    
+    Slic3r::debugf "  merging %d lines resulted in %d lines\n", $line_count, scalar(@$lines);
 }
 
 # build polylines from lines
 sub make_surfaces {
     my $self = shift;
     
-    my @lines = ();
-    push @lines, @{$self->lines};
-    #@lines = grep line_length($_) > xx, @lines;
-    
-    #use Slic3r::SVG;
-    #Slic3r::SVG::output(undef, "lines.svg",
-    #    lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-    #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-    #);
-    
-    my $get_point_id = sub { sprintf "%.0f,%.0f", @{$_[0]} };
-    
-    my (%pointmap, @pointmap_keys) = ();
-    foreach my $line (@lines) {
-        my $point_id = $get_point_id->($line->[A]);
-        if (!exists $pointmap{$point_id}) {
-            $pointmap{$point_id} = [];
-            push @pointmap_keys, $line->[A];
-        }
-        push @{ $pointmap{$point_id} }, $line;
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output(undef, "lines.svg",
+            lines       => [ grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+            red_lines   => [ grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+        );
     }
     
-    my $n = 0;
     my (@polygons, %visited_lines, @discarded_lines, @discarded_polylines) = ();
-    while (my $first_line = shift @lines) {
-        next if $visited_lines{ $first_line->id };
-        my @points = @$first_line;
+    
+    my $detect = sub {
+        my @lines = @{$self->lines};
+        (@polygons, %visited_lines, @discarded_lines, @discarded_polylines) = ();
+        my $get_point_id = sub { sprintf "%.0f,%.0f", @{$_[0]} };
         
-        my @seen_lines = ($first_line);
-        my %seen_points = map { $get_point_id->($points[$_]) => $_ } 0..1;
+        my (%pointmap, @pointmap_keys) = ();
+        foreach my $line (@lines) {
+            my $point_id = $get_point_id->($line->[A]);
+            if (!exists $pointmap{$point_id}) {
+                $pointmap{$point_id} = [];
+                push @pointmap_keys, $line->[A];
+            }
+            push @{ $pointmap{$point_id} }, $line;
+        }
         
-        CYCLE: while (1) {
-            my $next_lines = $pointmap{ $get_point_id->($points[-1]) };
+        my $n = 0;
+        while (my $first_line = shift @lines) {
+            next if $visited_lines{ $first_line->id };
+            my @points = @$first_line;
             
-            # shouldn't we find the point, let's try with a slower algorithm
-            # as approximation may make the coordinates differ
-            if (!$next_lines) {
-                my $nearest_point = nearest_point($points[-1], \@pointmap_keys);
-                #printf "  we have a nearest point: %f,%f (%s)\n", @$nearest_point, $get_point_id->($nearest_point);
+            my @seen_lines = ($first_line);
+            my %seen_points = map { $get_point_id->($points[$_]) => $_ } 0..1;
+            
+            CYCLE: while (1) {
+                my $next_lines = $pointmap{ $get_point_id->($points[-1]) };
                 
-                if ($nearest_point) {
-                    local $Slic3r::Geometry::epsilon = 1000000;
-                    $next_lines = $pointmap{$get_point_id->($nearest_point)}
-                        if points_coincide($points[-1], $nearest_point);
+                # shouldn't we find the point, let's try with a slower algorithm
+                # as approximation may make the coordinates differ
+                if (!$next_lines) {
+                    my $nearest_point = nearest_point($points[-1], \@pointmap_keys);
+                    #printf "  we have a nearest point: %f,%f (%s)\n", @$nearest_point, $get_point_id->($nearest_point);
+                    
+                    if ($nearest_point) {
+                        local $Slic3r::Geometry::epsilon = 1000000;
+                        $next_lines = $pointmap{$get_point_id->($nearest_point)}
+                            if points_coincide($points[-1], $nearest_point);
+                    }
                 }
+                
+                #Slic3r::SVG::output(undef, "lines.svg",
+                #    lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+                #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+                #    points      => [ $points[-1] ],
+                #    no_arrows => 1,
+                #) if !$next_lines;
+                
+                $next_lines
+                    or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.", $get_point_id->($points[-1]));
+                last CYCLE if !@$next_lines;
+                
+                my @ordered_next_lines = sort 
+                    { angle3points($points[-1], $points[-2], $next_lines->[$a][B]) <=> angle3points($points[-1], $points[-2], $next_lines->[$b][B]) } 
+                    0..$#$next_lines;
+                
+                #if (@$next_lines > 1) {
+                #    Slic3r::SVG::output(undef, "next_line.svg",
+                #        lines        => $next_lines,
+                #        red_lines    => [ polyline_lines([@points]) ],
+                #        green_lines  => [ $next_lines->[ $ordered_next_lines[0] ] ],
+                #    );
+                #}
+                
+                my ($next_line) = splice @$next_lines, $ordered_next_lines[0], 1;
+                push @seen_lines, $next_line;
+                
+                push @points, $next_line->[B];
+                
+                my $point_id = $get_point_id->($points[-1]);
+                if ($seen_points{$point_id}) {
+                    splice @points, 0, $seen_points{$point_id};
+                    last CYCLE;
+                }
+                
+                $seen_points{$point_id} = $#points;
             }
             
-            #Slic3r::SVG::output(undef, "lines.svg",
-            #    lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-            #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-            #    points      => [ $points[-1] ],
-            #    no_arrows => 1,
-            #) if !$next_lines;
-            
-            $next_lines
-                or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.", $get_point_id->($points[-1]));
-            last CYCLE if !@$next_lines;
-            
-            my @ordered_next_lines = sort 
-                { angle3points($points[-1], $points[-2], $next_lines->[$a][B]) <=> angle3points($points[-1], $points[-2], $next_lines->[$b][B]) } 
-                0..$#$next_lines;
-            
-            #if (@$next_lines > 1) {
-            #    Slic3r::SVG::output(undef, "next_line.svg",
-            #        lines        => $next_lines,
-            #        red_lines    => [ polyline_lines([@points]) ],
-            #        green_lines  => [ $next_lines->[ $ordered_next_lines[0] ] ],
-            #    );
-            #}
-            
-            my ($next_line) = splice @$next_lines, $ordered_next_lines[0], 1;
-            push @seen_lines, $next_line;
-            
-            push @points, $next_line->[B];
-            
-            my $point_id = $get_point_id->($points[-1]);
-            if ($seen_points{$point_id}) {
-                splice @points, 0, $seen_points{$point_id};
-                last CYCLE;
+            if (@points < 4 || !points_coincide($points[0], $points[-1])) {
+                # discarding polyline
+                push @discarded_lines, @seen_lines;
+                if (@points > 2) {
+                    push @discarded_polylines, [@points];
+                }
+                next;
             }
             
-            $seen_points{$point_id} = $#points;
+            $visited_lines{ $_->id } = 1 for @seen_lines;
+            pop @points;
+            Slic3r::debugf "Discovered polygon of %d points\n", scalar(@points);
+            push @polygons, Slic3r::Polygon->new(@points);
+            $polygons[-1]->cleanup;
         }
-        
-        if (@points < 4 || !points_coincide($points[0], $points[-1])) {
-            # discarding polyline
-            if (@points == 2) {
-                push @discarded_lines, [@points];
-            } else {
-                push @discarded_polylines, [@points];
-            }
-            next;
-        }
-        
-        $visited_lines{ $_->id } = 1 for @seen_lines;
-        pop @points;
-        Slic3r::debugf "Discovered polygon of %d points\n", scalar(@points);
-        push @polygons, Slic3r::Polygon->new(@points);
-        $polygons[-1]->cleanup;
-    }
+    };
+    
+    $detect->();
     
     # Now, if we got a clean and manifold model then @polygons would contain everything
     # we need to draw our layer. In real life, sadly, things are different and it is likely
@@ -243,10 +266,11 @@ sub make_surfaces {
     # other line.
     
     # So, let's first check what lines were not detected as part of polygons.
-    if (@discarded_lines || @discarded_polylines) {
-        print "  Warning: errors while parsing this layer (dirty or non-manifold model)\n";
+    if (@discarded_lines) {
         Slic3r::debugf "  %d lines out of %d were discarded and %d polylines were not closed\n",
             scalar(@discarded_lines), scalar(@{$self->lines}), scalar(@discarded_polylines);
+        print "  Warning: errors while parsing this layer (dirty or non-manifold model).\n";
+        print "  Retrying with slower algorithm.\n";
         
         if (0) {
             require "Slic3r/SVG.pm";
@@ -261,10 +285,17 @@ sub make_surfaces {
             );
             exit;
         }
+        
+        $self->cleanup_lines;
+        $detect->();
+        
+        if (@discarded_lines) {
+            print "  Warning: even slow detection algorithm throwed errors. Review the output before printing.\n";
+        }
     }
     
     {
-        my $expolygons = union_ex([ @polygons ], PFT_EVENODD);
+        my $expolygons = union_ex([ @polygons ]);
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@polygons);
         

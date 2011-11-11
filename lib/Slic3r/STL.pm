@@ -2,12 +2,9 @@ package Slic3r::STL;
 use Moo;
 
 use Math::Clipper qw(integerize_coordinate_sets is_counter_clockwise);
-use Slic3r::Geometry qw(three_points_aligned longest_segment);
+use Slic3r::Geometry qw(X Y Z three_points_aligned longest_segment);
 use XXX;
 
-use constant X => 0;
-use constant Y => 1;
-use constant Z => 2;
 use constant MIN => 0;
 use constant MAX => 1;
 

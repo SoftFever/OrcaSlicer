@@ -3,11 +3,8 @@ use Moo;
 
 use Math::Clipper ':all';
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(shortest_path);
+use Slic3r::Geometry qw(X Y shortest_path);
 use XXX;
-
-use constant X => 0;
-use constant Y => 1;
 
 sub make_perimeter {
     my $self = shift;

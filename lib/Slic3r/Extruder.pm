@@ -31,12 +31,8 @@ has 'retract_speed' => (
     default => sub { $Slic3r::retract_speed * 60 },  # mm/min
 );
 
-use Slic3r::Geometry qw(points_coincide);
+use Slic3r::Geometry qw(points_coincide PI X Y);
 use XXX;
-
-use constant PI => 4 * atan2(1, 1);
-use constant X => 0;
-use constant Y => 1;
 
 sub move_z {
     my $self = shift;

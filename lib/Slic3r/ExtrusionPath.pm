@@ -7,10 +7,7 @@ extends 'Slic3r::Polyline';
 # expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
 
-use constant X => 0;
-use constant Y => 1;
-
-use Slic3r::Geometry qw(PI epsilon deg2rad rotate_points);
+use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 use XXX;
 
 sub clip_end {

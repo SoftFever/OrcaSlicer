@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
-    PI epsilon slope line_atan lines_parallel three_points_aligned
+    PI X Y Z A B epsilon slope line_atan lines_parallel three_points_aligned
     line_point_belongs_to_segment points_coincide distance_between_points 
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
@@ -17,7 +17,7 @@ our @EXPORT_OK = qw(
     clip_segment_complex_polygon longest_segment angle3points
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
-    shortest_path
+    shortest_path collinear
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -28,6 +28,7 @@ use constant A => 0;
 use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
+use constant Z => 2;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
 our $epsilon = 1E-4;
@@ -416,6 +417,22 @@ sub line_intersection {
         : undef;
 }
 
+sub collinear {
+    my ($line1, $line2, $require_overlapping) = @_;
+    my $intersection = _line_intersection(map @$_, @$line1, @$line2);
+    return 0 unless !ref($intersection) 
+        && ($intersection eq 'parallel collinear'
+            || ($intersection eq 'parallel vertical' && abs($line1->[A][X] - $line2->[A][X]) < epsilon));
+    
+    if ($require_overlapping) {
+        my @box_a = bounding_box([ $line1->[0], $line1->[1] ]);
+        my @box_b = bounding_box([ $line2->[0], $line2->[1] ]);
+        return 0 unless bounding_box_intersect( 2, @box_a, @box_b );
+    }
+    
+    return 1;
+}
+
 sub _line_intersection {
   my ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 );
 
@@ -495,7 +512,7 @@ sub _line_intersection {
 
     my $ya = $y0 - $dyx10 * $x0;
     my $yb = $y2 - $dyx32 * $x2;
-
+    
     return "parallel collinear" if abs( $ya - $yb ) < epsilon;
     return "parallel";
   }

@@ -2,11 +2,9 @@ package Slic3r::Print;
 use Moo;
 
 use Math::Clipper ':all';
+use Slic3r::Geometry qw(X Y);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex);
 use XXX;
-
-use constant X => 0;
-use constant Y => 1;
 
 has 'x_length' => (
     is          => 'ro',

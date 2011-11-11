@@ -2,10 +2,7 @@ package Slic3r::Line;
 use strict;
 use warnings;
 
-use constant A => 0;
-use constant B => 1;
-use constant X => 0;
-use constant Y => 1;
+use Slic3r::Geometry qw(A B X Y);
 
 sub new {
     my $class = shift;
@@ -98,6 +95,11 @@ sub midpoint {
         ($self->[A][X] + $self->[B][X]) / 2,
         ($self->[A][Y] + $self->[B][Y]) / 2,
     );
+}
+
+sub reverse {
+    my $self = shift;
+    @$self = reverse @$self;
 }
 
 1;
