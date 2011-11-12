@@ -83,8 +83,8 @@ sub detect_surfaces_type {
     my $surface_difference = sub {
         my ($subject_surfaces, $clip_surfaces, $result_type) = @_;
         my $expolygons = diff_ex(
-            [ map { ref $_ eq 'ARRAY' ? $_ : $_->p } @$subject_surfaces ],
-            [ map { ref $_ eq 'ARRAY' ? $_ : $_->p } @$clip_surfaces ],
+            [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$subject_surfaces ],
+            [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
         );
         return grep $_->contour->is_printable,
             map Slic3r::Surface->cast_from_expolygon($_, surface_type => $result_type), 
@@ -169,6 +169,15 @@ sub detect_surfaces_type {
             # if no lower layer, all surfaces of this one are solid
             @bottom = @{$layer->surfaces};
             $_->surface_type('bottom') for @bottom;
+        }
+        
+        # now, if the object contained a thin membrane, we could have overlapping bottom
+        # and top surfaces; let's do an intersection to discover them and consider them
+        # as bottom surfaces (to allow for bridge detection)
+        if (@top && @bottom) {
+            my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
+            Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layer->id, scalar(@$overlapping);
+            @top = $surface_difference->([@top], $overlapping, 'top');
         }
         
         # find internal surfaces (difference between top/bottom surfaces and others)
@@ -353,7 +362,7 @@ sub infill_every_layers {
                                     map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                         @$surfaces,
                                 ],
-                                safety_offset([ explode_expolygons($intersection) ]),
+                                safety_offset($intersection),
                             )};
                     }
                     @$surfaces = @new_surfaces;
@@ -374,7 +383,7 @@ sub infill_every_layers {
                                     map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                         @$lower_surfaces,
                                 ],
-                                safety_offset([ explode_expolygons($intersection) ]),
+                                safety_offset($intersection),
                             )};
                     }
                     @$lower_surfaces = @new_surfaces;

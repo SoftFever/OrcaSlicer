@@ -50,12 +50,15 @@ sub union_ex {
 }
 
 sub intersection_ex {
-    my ($subject, $clip) = @_;
-    
+    my ($subject, $clip, $jointype) = @_;
+    $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
     $clipper->add_subject_polygons($subject);
     $clipper->add_clip_polygons($clip);
-    return $clipper->ex_execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
+    return [
+        map Slic3r::ExPolygon->new($_),
+            @{ $clipper->ex_execute(CT_INTERSECTION, $jointype, $jointype) },
+    ];
 }
 
 1;
