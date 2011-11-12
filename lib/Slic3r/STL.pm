@@ -264,9 +264,10 @@ sub _read_binary {
     
     die "bigfloat" unless length(pack "f", 1) == 4;
     
+    binmode $fh;
     seek $fh, 80 + 4, 0;
     while (read $fh, $_, 4*4*3+2) {
-        my @v = unpack '(f3)4';
+        my @v = unpack '(f<3)4';
         push @$facets, [ [@v[0..2]], [@v[3..5]], [@v[6..8]], [@v[9..11]] ];
     }
 }
