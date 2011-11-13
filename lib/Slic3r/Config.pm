@@ -107,12 +107,18 @@ our $Options = {
     'start_gcode' => {
         label   => 'Start GCODE',
         type    => 's',
+        multiline => 1,
+        width   => 350,
+        height  => 150,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
     'end_gcode' => {
         label   => 'End GCODE',
         type    => 's',
+        multiline => 1,
+        width   => 350,
+        height  => 150,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },

@@ -47,6 +47,10 @@ sub new {
             title => 'Transform',
             options => [qw(scale rotate duplicate_x duplicate_y duplicate_distance)],
         },
+        gcode => {
+            title => 'Custom GCODE',
+            options => [qw(start_gcode end_gcode)],
+        },
     );
     $self->{panels} = \%panels;
     
@@ -71,9 +75,11 @@ sub new {
     
     my $tab1 = $make_tab->([qw(printer filament)], [qw(speed)]);
     my $tab2 = $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]);
+    my $tab3 = $make_tab->([qw(gcode)]);
     
     $tabpanel->AddPage($tab1, "Printer and Filament");
     $tabpanel->AddPage($tab2, "Print Settings");
+    $tabpanel->AddPage($tab3, "Start/End GCODE");
         
     my $buttons_sizer;
     {

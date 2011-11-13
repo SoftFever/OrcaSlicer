@@ -23,8 +23,17 @@ sub new {
         my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition, [180,-1]);
         $label->Wrap(180);  # needed to avoid Linux/GTK bug
         my $field;
-        if ($opt->{type} =~ /^(i|f)$/) {
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->get($opt_key));
+        if ($opt->{type} =~ /^(i|f|s)$/) {
+            my $style = 0;
+            my $size = Wx::wxDefaultSize;
+            
+            if ($opt->{multiline}) {
+                $style = &Wx::wxTE_MULTILINE;
+                $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
+            }
+            
+            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->get($opt_key),
+                Wx::wxDefaultPosition, $size, $style);
             EVT_TEXT($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue) });
             push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->get($opt_key)) };
         } elsif ($opt->{type} eq 'bool') {
