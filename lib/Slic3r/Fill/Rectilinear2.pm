@@ -16,7 +16,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($polygons, $rotate_vector);
     
-    my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $params{density};
+    my $distance_between_lines = $params{flow_width} / $Slic3r::resolution / $params{density};
     my $number_of_lines = int(0.99999999 + $self->max_print_dimension / $distance_between_lines); # ceil
 
     #printf "distance = %f\n", $distance_between_lines;

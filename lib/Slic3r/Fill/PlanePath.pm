@@ -27,7 +27,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $params{density} * $self->multiplier;
+    my $distance_between_lines = $params{flow_width} / $Slic3r::resolution / $params{density} * $self->multiplier;
     my $bounding_box = [ bounding_box(map @$_, $expolygon) ];
     
     (ref $self) =~ /::([^:]+)$/;

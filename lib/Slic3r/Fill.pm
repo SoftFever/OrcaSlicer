@@ -46,22 +46,24 @@ sub make_fill {
         SURFACE: foreach my $surface (@$surfaces) {
             Slic3r::debugf " Processing surface %s:\n", $surface->id;
             
-            my $filler = $Slic3r::fill_pattern;
-            my $density = $Slic3r::fill_density;
+            my $filler      = $Slic3r::fill_pattern;
+            my $density     = $Slic3r::fill_density;
+            my $flow_width  = $Slic3r::flow_width;
             
             # force 100% density and rectilinear fill for external surfaces
             if ($surface->surface_type ne 'internal') {
+                my $is_bridge = $surface->isa('Slic3r::Surface::Bridge');
                 $density = 1;
-                $filler = $surface->isa('Slic3r::Surface::Bridge')
-                    ? 'rectilinear'
-                    : $Slic3r::solid_fill_pattern;
+                $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
+                $flow_width = $Slic3r::nozzle_diameter if $is_bridge;
             } else {
                 next SURFACE unless $density > 0;
             }
             
             my @paths = $self->fillers->{$filler}->fill_surface(
                 $surface,
-                density => $density,
+                density     => $density,
+                flow_width  => $flow_width,
             );
             
             push @path_collection, map Slic3r::ExtrusionPath->cast(

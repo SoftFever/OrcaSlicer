@@ -16,7 +16,7 @@ sub fill_surface {
     $self->rotate_points($expolygon, $rotate_vector);
     
     my $bounding_box = [ $expolygon->bounding_box ];
-    my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $params{density};
+    my $distance_between_lines = $params{flow_width} / $Slic3r::resolution / $params{density};
     
     my @paths = ();
     my $x = $bounding_box->[X1];
