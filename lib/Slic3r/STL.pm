@@ -138,7 +138,7 @@ sub _facet {
 sub intersect_facet {
     my $self = shift;
     my ($vertices, $z) = @_;
-    printf "Slicing at $z\n";
+    
     # build the three segments of the triangle facet
     my @edges = (
         [ $vertices->[0], $vertices->[1] ],
