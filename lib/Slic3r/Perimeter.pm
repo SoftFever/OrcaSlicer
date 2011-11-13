@@ -2,7 +2,6 @@ package Slic3r::Perimeter;
 use Moo;
 
 use Math::Clipper ':all';
-use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::Geometry qw(X Y shortest_path);
 use XXX;
 
@@ -70,19 +69,6 @@ sub make_perimeter {
         # do contours starting from innermost one
         foreach my $contour (map $_->contour, map @$_, reverse @$island) {
             push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($contour);
-        }
-    }
-    
-    # generate skirt on bottom layer
-    if ($layer->id == 0 && $Slic3r::skirts > 0 && @{ $layer->surfaces }) {
-        # find out convex hull
-        my $convex_hull = convex_hull([ map @$_, map $_->p, @{ $layer->surfaces } ]);
-        
-        # draw outlines from outside to inside
-        for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
-            my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
-            my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
-            push @{ $layer->skirts }, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ]);
         }
     }
 }

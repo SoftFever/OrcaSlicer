@@ -82,6 +82,7 @@ our $retract_lift           = 0;    # mm
 # skirt options
 our $skirts             = 1;
 our $skirt_distance     = 6;    # mm
+our $skirt_height       = 1;    # layers
 
 # transform options
 our $scale              = 1;

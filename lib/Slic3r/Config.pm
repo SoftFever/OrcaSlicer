@@ -144,6 +144,10 @@ our $Options = {
         label   => 'Distance from object (mm)',
         type    => 'i',
     },
+    'skirt_height' => {
+        label   => 'Skirt height (layers)',
+        type    => 'i',
+    },
     
     # transform options
     'scale' => {
@@ -313,6 +317,10 @@ sub validate {
     # --duplicate-distance
     die "Invalid value for --duplicate-distance\n"
         if $Slic3r::duplicate_distance < 1;
+    
+    # --skirt-height
+    die "Invalid value for --skirt-height\n"
+        if $Slic3r::skirt_height < 1;
 }
 
 1;

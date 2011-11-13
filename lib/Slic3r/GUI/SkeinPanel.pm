@@ -41,7 +41,7 @@ sub new {
         ),
         skirt => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Skirt',
-            options => [qw(skirts skirt_distance)],
+            options => [qw(skirts skirt_distance skirt_height)],
         ),
         transform => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Transform',

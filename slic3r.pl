@@ -65,6 +65,7 @@ GetOptions(
     # skirt options
     'skirts=i'              => \$Slic3r::skirts,
     'skirt-distance=i'      => \$Slic3r::skirt_distance,
+    'skirt-height=i'        => \$Slic3r::skirt_height,
     
     # transform options
     'scale=f'               => \$Slic3r::scale,
@@ -187,6 +188,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --skirts            Number of skirts to draw (default: $Slic3r::skirts)
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $Slic3r::skirt_distance)
+    --skirt-height      Height of skirts to draw (expressed in layers, default: $Slic3r::skirt_height)
    
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)

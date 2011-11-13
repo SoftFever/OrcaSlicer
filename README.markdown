@@ -149,6 +149,7 @@ The author is Alessandro Ranellucci (me).
         --skirts            Number of skirts to draw (default: 1)
         --skirt-distance    Distance in mm between innermost skirt and object 
                             (default: 6)
+        --skirt-height      Height of skirts to draw (expressed in layers, default: 1)
        
        Transform options:
         --scale             Factor for scaling input object (default: 1)

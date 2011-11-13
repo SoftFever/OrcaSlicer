@@ -31,6 +31,9 @@ sub go {
     # this will add a set of bridges to each layer
     $print->process_bridges;
     
+    # make skirt
+    $print->extrude_skirt;
+    
     # make perimeters
     # this will add a set of extrusion loops to each layer
     # as well as a set of surfaces to be filled

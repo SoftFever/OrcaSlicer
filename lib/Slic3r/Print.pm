@@ -2,6 +2,7 @@ package Slic3r::Print;
 use Moo;
 
 use Math::Clipper ':all';
+use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::Geometry qw(X Y);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex);
 use XXX;
@@ -287,6 +288,30 @@ sub remove_small_perimeters {
 sub process_bridges {
     my $self = shift;
     $_->process_bridges for @{ $self->layers };
+}
+
+sub extrude_skirt {
+    my $self = shift;
+    return unless $Slic3r::skirts > 0;
+    
+    # collect points from all layers contained in skirt height
+    my @points = ();
+    my @layers = map $self->layer($_), 0..($Slic3r::skirt_height-1);
+    push @points, map @$_, map $_->p, map @{ $_->surfaces }, @layers;
+    
+    # find out convex hull
+    my $convex_hull = convex_hull(\@points);
+    
+    # draw outlines from outside to inside
+    my @skirts = ();
+    for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
+        my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
+        my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
+        push @skirts, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ]);
+    }
+    
+    # apply skirts to all layers
+    push @{$_->skirts}, @skirts for @layers;
 }
 
 sub extrude_perimeters {
