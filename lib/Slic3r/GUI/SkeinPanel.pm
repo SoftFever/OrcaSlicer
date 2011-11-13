@@ -15,78 +15,91 @@ sub new {
     my $self = $class->SUPER::new($parent, -1);
     
     my %panels = (
-        printer => Slic3r::GUI::OptionsGroup->new($self,
+        printer => {
             title => 'Printer',
             options => [qw(nozzle_diameter print_center use_relative_e_distances no_extrusion z_offset)],
-        ),
-        filament => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        filament => {
             title => 'Filament',
             options => [qw(filament_diameter filament_packing_density temperature)],
-        ),
-        speed => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        speed => {
             title => 'Speed',
             options => [qw(print_feed_rate travel_feed_rate perimeter_feed_rate bottom_layer_speed_ratio)],
-        ),
-        accuracy => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        accuracy => {
             title => 'Accuracy',
             options => [qw(layer_height infill_every_layers)],
-        ),
-        print => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        print => {
             title => 'Print settings',
             options => [qw(perimeter_offsets solid_layers fill_density fill_angle fill_pattern solid_fill_pattern)],
-        ),
-        retract => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        retract => {
             title => 'Retraction',
             options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
-        ),
-        skirt => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        skirt => {
             title => 'Skirt',
             options => [qw(skirts skirt_distance skirt_height)],
-        ),
-        transform => Slic3r::GUI::OptionsGroup->new($self,
+        },
+        transform => {
             title => 'Transform',
             options => [qw(scale rotate duplicate_x duplicate_y duplicate_distance)],
-        ),
+        },
     );
     $self->{panels} = \%panels;
     
-    $panels{slice} = Wx::BoxSizer->new(wxVERTICAL);
-    my $slice_button = Wx::Button->new($self, -1, "Slice...");
-    $panels{slice}->Add($slice_button, 0, wxALIGN_CENTER);
-    EVT_BUTTON($self, $slice_button, \&do_slice);
+    my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
+    my $make_tab = sub {
+        my @cols = @_;
+        
+        my $tab = Wx::Panel->new($tabpanel, -1);
+        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        foreach my $col (@cols) {
+            my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
+            for my $optgroup (@$col) {
+                my $optpanel = Slic3r::GUI::OptionsGroup->new($tab, %{$panels{$optgroup}});
+                $vertical_sizer->Add($optpanel, 0, wxEXPAND | wxALL, 10);
+            }
+            $sizer->Add($vertical_sizer);
+        }
+        
+        $tab->SetSizer($sizer);
+        return $tab;
+    };
     
-    my @cols = (
-        [qw(printer filament speed transform)], [qw(accuracy print retract skirt slice)],
-    );
+    my $tab1 = $make_tab->([qw(printer filament)], [qw(speed)]);
+    my $tab2 = $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]);
     
-    my $config_buttons_sizer;
+    $tabpanel->AddPage($tab1, "Printer and Filament");
+    $tabpanel->AddPage($tab2, "Print Settings");
+        
+    my $buttons_sizer;
     {
-        $config_buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        
+        my $slice_button = Wx::Button->new($self, -1, "Slice...");
+        $buttons_sizer->Add($slice_button, 0);
+        EVT_BUTTON($self, $slice_button, \&do_slice);
         
         my $save_button = Wx::Button->new($self, -1, "Save configuration...");
-        $config_buttons_sizer->Add($save_button, 0);
+        $buttons_sizer->Add($save_button, 0);
         EVT_BUTTON($self, $save_button, \&save_config);
         
         my $load_button = Wx::Button->new($self, -1, "Load configuration...");
-        $config_buttons_sizer->Add($load_button, 0);
+        $buttons_sizer->Add($load_button, 0);
         EVT_BUTTON($self, $load_button, \&load_config);
         
         my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);
         my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
         $text->SetFont($font);
-        $config_buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
-    }
-    
-    my $skein_options_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-    foreach my $col (@cols) {
-        my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $vertical_sizer->Add($panels{$_}, 0, wxEXPAND | wxALL, 10) for @$col;
-        $skein_options_sizer->Add($vertical_sizer);
+        $buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
     }
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($config_buttons_sizer, 0, wxEXPAND | wxALL, 10);
-    $sizer->Add($skein_options_sizer);
+    $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, 10);
+    $sizer->Add($tabpanel);
     
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);
