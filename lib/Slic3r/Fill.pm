@@ -41,8 +41,6 @@ sub make_fill {
     
     printf "Filling layer %d:\n", $layer->id;
     foreach my $surfaces (@{ $layer->fill_surfaces }) {
-        my @path_collection = ();
-        
         SURFACE: foreach my $surface (@$surfaces) {
             Slic3r::debugf " Processing surface %s:\n", $surface->id;
             
@@ -66,17 +64,17 @@ sub make_fill {
                 flow_width  => $flow_width,
             );
             
-            push @path_collection, map Slic3r::ExtrusionPath->cast(
-                [ @$_ ],
-                depth_layers => $surface->depth_layers,
-            ), @paths;
+            # save into layer
+            push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
+                paths => [
+                    map Slic3r::ExtrusionPath->cast(
+                        [ @$_ ],
+                        depth_layers => $surface->depth_layers,
+                    ), @paths,
+                ],
+            );
+            $layer->fills->[-1]->cleanup;
         }
-        
-        # save into layer
-        push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
-            paths => [ @path_collection ],
-        );
-        $layer->fills->[-1]->cleanup;
     }
 }
 
