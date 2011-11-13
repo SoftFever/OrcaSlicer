@@ -3,6 +3,8 @@ package Slic3r;
 use strict;
 use warnings;
 
+our $VERSION = "0.0.5";
+
 our $debug = 0;
 sub debugf {
     printf @_ if $debug;
