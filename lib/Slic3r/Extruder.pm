@@ -222,7 +222,7 @@ sub _Gx {
     }
     
     # output extrusion distance
-    if ($e) {
+    if ($e && !$Slic3r::no_extrusion) {
         $self->extrusion_distance(0) if $Slic3r::use_relative_e_distances;
         $self->extrusion_distance($self->extrusion_distance + $e);
         $gcode .= sprintf " E%.5f", $self->extrusion_distance;

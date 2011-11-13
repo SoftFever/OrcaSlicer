@@ -17,7 +17,7 @@ sub new {
     my %panels = (
         printer => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Printer',
-            options => [qw(nozzle_diameter print_center use_relative_e_distances z_offset)],
+            options => [qw(nozzle_diameter print_center use_relative_e_distances no_extrusion z_offset)],
         ),
         filament => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Filament',

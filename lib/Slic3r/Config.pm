@@ -22,6 +22,10 @@ our $Options = {
         label   => 'Use relative E distances',
         type    => 'bool',
     },
+    'no_extrusion' => {
+        label   => 'No extrusion',
+        type    => 'bool',
+    },
     'z_offset' => {
         label   => 'Z offset',
         type    => 'f',
