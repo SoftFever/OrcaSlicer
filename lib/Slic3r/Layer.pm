@@ -75,13 +75,19 @@ has 'fills' => (
 # Z used for slicing
 sub slice_z {
     my $self = shift;
-    return ($self->id * $Slic3r::layer_height + $Slic3r::layer_height/2) / $Slic3r::resolution;
+    if ($self->id == 0) {
+        return ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) / 2 / $Slic3r::resolution;
+    }
+    return (($Slic3r::layer_height * $Slic3r::first_layer_height_ratio)
+        + (($self->id-1) * $Slic3r::layer_height)
+        + ($Slic3r::layer_height/2)) / $Slic3r::resolution;
 }
 
 # Z used for printing
 sub print_z {
     my $self = shift;
-    return ($self->id + 1) * $Slic3r::layer_height / $Slic3r::resolution;
+    return (($Slic3r::layer_height * $Slic3r::first_layer_height_ratio)
+        + ($self->id * $Slic3r::layer_height)) / $Slic3r::resolution;
 }
 
 sub add_surface {

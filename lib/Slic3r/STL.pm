@@ -87,6 +87,10 @@ sub parse_file {
         }
     }
     
+    # remove last layer if empty
+    # (we might have created it because of the $max_layer = ... + 1 code below)
+    pop @{$print->layers} if !@{$print->layers->[-1]->surfaces} && !@{$print->layers->[-1]->lines};
+    
     return $print;
 }
 
@@ -110,8 +114,11 @@ sub _facet {
     }
     
     # calculate the layer extents
-    my $min_layer = int($min_z * $Slic3r::resolution / $Slic3r::layer_height);
-    my $max_layer = int($max_z * $Slic3r::resolution / $Slic3r::layer_height);
+    # (the -1 and +1 here are used as a quick and dirty replacement for some
+    # complex calculation of the first layer height ratio logic)
+    my $min_layer = int($min_z * $Slic3r::resolution / $Slic3r::layer_height) - 1;
+    $min_layer = 0 if $min_layer < 0;
+    my $max_layer = int($max_z * $Slic3r::resolution / $Slic3r::layer_height) + 1;
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     # reorder vertices so that the first one is the one with lowest Z
@@ -131,7 +138,7 @@ sub _facet {
 sub intersect_facet {
     my $self = shift;
     my ($vertices, $z) = @_;
-    
+    printf "Slicing at $z\n";
     # build the three segments of the triangle facet
     my @edges = (
         [ $vertices->[0], $vertices->[1] ],

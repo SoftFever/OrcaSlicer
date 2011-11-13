@@ -43,6 +43,7 @@ GetOptions(
     
     # accuracy options
     'layer-height=f'        => \$Slic3r::layer_height,
+    'first-layer-height-ratio=f' => \$Slic3r::first_layer_height_ratio,
     'infill-every-layers=i' => \$Slic3r::infill_every_layers,
     
     # print options
@@ -155,6 +156,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     
   Accuracy options:
     --layer-height      Layer height in mm (default: $Slic3r::layer_height)
+    --first-layer-height-ratio
+                        Multiplication factor for the height to slice and print the first
+                        layer with (> 0, default: $Slic3r::first_layer_height_ratio)
     --infill-every-layers
                         Infill every N layers (default: $Slic3r::infill_every_layers)
   

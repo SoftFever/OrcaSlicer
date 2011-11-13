@@ -68,6 +68,10 @@ our $Options = {
         label   => 'Layer height (mm)',
         type    => 'f',
     },
+    'first_layer_height_ratio' => {
+        label   => 'First layer height ratio',
+        type    => 'f',
+    },
     'infill_every_layers' => {
         label   => 'Infill every N layers',
         type    => 'i',
@@ -249,6 +253,10 @@ sub validate {
     die "--layer-height must be a multiple of print resolution\n"
         if $Slic3r::layer_height / $Slic3r::resolution % 1 != 0;
     
+    # --first-layer-height-ratio
+    die "Invalid value for --first-layer-height-ratio\n"
+        if $Slic3r::first_layer_height_ratio < 0;
+    
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"
         if $Slic3r::filament_diameter < 1;
@@ -258,6 +266,8 @@ sub validate {
         if $Slic3r::nozzle_diameter < 0;
     die "--layer-height can't be greater than --nozzle-diameter\n"
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
+    die "First layer height can't be greater than --nozzle-diameter\n"
+        if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) > $Slic3r::nozzle_diameter;
     $Slic3r::flow_width = ($Slic3r::nozzle_diameter**2) 
         * $Slic3r::thickness_ratio * PI / (4 * $Slic3r::layer_height);
     

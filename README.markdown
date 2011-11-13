@@ -116,6 +116,9 @@ The author is Alessandro Ranellucci (me).
         
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.4)
+        --first-layer-height-ratio
+                            Multiplication factor for the height to slice and print the first
+                            layer with (> 0, default: 1)
         --infill-every-layers
                             Infill every N layers (default: 1)
       
