@@ -8,6 +8,7 @@ use Slic3r::Fill::HilbertCurve;
 use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Fill::Rectilinear2;
+use Slic3r::Geometry qw(shortest_path);
 
 use XXX;
 
@@ -40,7 +41,19 @@ sub make_fill {
     }
     
     printf "Filling layer %d:\n", $layer->id;
+    
+    # organize $layer->fill_surfaces using a shortest path search
+    @{ $layer->fill_surfaces } = @{shortest_path([
+        map [ $_->[0]->contour->points->[0], $_ ], grep @$_, @{ $layer->fill_surfaces },
+    ])};
+    
     foreach my $surfaces (@{ $layer->fill_surfaces }) {
+    
+        # organize $surfaces using a shortest path search
+        @$surfaces = @{shortest_path([
+            map [ $_->contour->points->[0], $_ ], @$surfaces,
+        ])};
+    
         SURFACE: foreach my $surface (@$surfaces) {
             Slic3r::debugf " Processing surface %s:\n", $surface->id;
             

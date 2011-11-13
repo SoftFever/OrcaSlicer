@@ -365,6 +365,7 @@ sub infill_every_layers {
                     [ map $_->p, grep $_->surface_type eq 'internal', @$surfaces ],
                 );
                 next if !@$intersection;
+                my $intersection_offsetted = safety_offset([ map @$_, @$intersection ]);
                 
                 # new fill surfaces of the current layer are:
                 # - any non-internal surface
@@ -387,7 +388,7 @@ sub infill_every_layers {
                                     map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                         @$surfaces,
                                 ],
-                                safety_offset($intersection),
+                                $intersection_offsetted,
                             )};
                     }
                     @$surfaces = @new_surfaces;
@@ -408,7 +409,7 @@ sub infill_every_layers {
                                     map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                         @$lower_surfaces,
                                 ],
-                                safety_offset($intersection),
+                                $intersection_offsetted,
                             )};
                     }
                     @$lower_surfaces = @new_surfaces;

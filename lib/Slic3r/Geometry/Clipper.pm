@@ -31,11 +31,14 @@ sub diff_ex {
     $clipper->clear;
     $clipper->add_subject_polygons($subject);
     $clipper->add_clip_polygons($clip);
-    return $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
+    return [
+        map Slic3r::ExPolygon->new($_),
+            @{ $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
+    ];
 }
 
 sub diff {
-    return [ map { $_->{outer}, $_->{holes} } diff_ex(@_) ];
+    return [ map @$_, diff_ex(@_) ];
 }
 
 sub union_ex {
