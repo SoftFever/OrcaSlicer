@@ -12,12 +12,13 @@ use Getopt::Long;
 use Slic3r;
 use XXX;
 
-my %opt;
+our %opt;
 GetOptions(
     'help'                  => sub { usage() },
 
     'debug'                 => \$Slic3r::debug,
-    'o|output'              => \$opt{output},
+    'o|output=s'            => \$opt{output},
+    'close-after-slicing'   => \$opt{close_after_slicing},
     
     'save=s'                    => \$opt{save},
     'load=s'                    => \$opt{load},

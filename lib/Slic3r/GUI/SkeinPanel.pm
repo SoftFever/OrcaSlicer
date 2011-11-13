@@ -115,13 +115,18 @@ sub do_slice {
         $process_dialog->Pulse;
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
+            output_file => $main::opt{output},
         );
         $skein->go;
         $process_dialog->Destroy;
         undef $process_dialog;
         
-        Wx::MessageDialog->new($self, "$input_file_basename was successfully sliced.", 'Done!', 
-            wxOK | wxICON_INFORMATION)->ShowModal;
+        if (!$main::opt{close_after_slicing}) {
+            Wx::MessageDialog->new($self, "$input_file_basename was successfully sliced.", 'Done!', 
+                wxOK | wxICON_INFORMATION)->ShowModal;
+        } else {
+            $self->GetParent->Destroy();  # quit
+        }
     };
     $self->catch_error(sub { $process_dialog->Destroy if $process_dialog });
 }
