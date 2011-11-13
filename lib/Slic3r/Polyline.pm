@@ -2,8 +2,8 @@ package Slic3r::Polyline;
 use Moo;
 
 use Math::Clipper qw();
-use Slic3r::Geometry qw(polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
-    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges);
+use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
+    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges move_points);
 use Sub::Quote;
 use XXX;
 
@@ -116,6 +116,51 @@ sub has_segment {
         return 1 if $_->has_segment($line);
     }
     return 0;
+}
+
+sub clip_with_expolygon {
+    my $self = shift;
+    my ($expolygon) = @_;
+    
+    my @polylines = ();
+    my $current_polyline = [];
+    foreach my $line ($self->lines) {
+        my ($first_line, @other_lines) = @{ $expolygon->clip_line($line) };
+        next unless $first_line;
+        
+        if (!@$current_polyline) {
+            push @$current_polyline, @$first_line;
+        } elsif ($first_line->[A]->coincides_with($current_polyline->[-1])) {
+            push @$current_polyline, $first_line->[B];
+        } else {
+            push @polylines, $current_polyline;
+            $current_polyline = [ @$first_line ];
+        }
+        
+        foreach my $other_line (@other_lines) {
+            if (@$current_polyline) {
+                push @polylines, $current_polyline;
+                $current_polyline = [];
+            }
+            push @polylines, [ @$other_line ];
+        }
+    }
+    if (@$current_polyline) {
+        push @polylines, $current_polyline;
+    }
+    
+    return map Slic3r::Polyline->cast($_), @polylines;
+}
+
+sub bounding_box {
+    my $self = shift;
+    return Slic3r::Geometry::bounding_box($self->points);
+}
+
+sub translate {
+    my $self = shift;
+    my ($x, $y) = @_;
+    @{$self->points} = move_points([$x, $y], @{$self->points});
 }
 
 1;

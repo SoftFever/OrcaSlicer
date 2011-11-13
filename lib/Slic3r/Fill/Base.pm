@@ -35,14 +35,15 @@ sub infill_direction {
 
 sub rotate_points {
     my $self = shift;
-    my ($polygons, $rotate_vector) = @_;
+    my ($expolygon, $rotate_vector) = @_;
     my @rotate = @{$rotate_vector->[0]};
     my @shift  = @{$rotate_vector->[1]};
     
-    # rotate surface as needed
-    @$polygons = map [ Slic3r::Geometry::move_points(\@shift, @$_) ],
-        map [ Slic3r::Geometry::rotate_points(@rotate, @$_) ], @$polygons if $rotate[0];
-    
+    # rotate points as needed
+    if ($rotate[0]) {
+        $expolygon->rotate(@rotate);
+        $expolygon->translate(@shift);
+    }
 }
 
 sub rotate_points_back {

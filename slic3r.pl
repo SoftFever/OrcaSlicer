@@ -47,7 +47,8 @@ GetOptions(
     # print options
     'perimeters=i'          => \$Slic3r::perimeter_offsets,
     'solid-layers=i'        => \$Slic3r::solid_layers,
-    'fill-type=s'           => \$Slic3r::fill_type,
+    'fill-pattern=s'        => \$Slic3r::fill_pattern,
+    'solid-fill-pattern=s'  => \$Slic3r::solid_fill_pattern,
     'fill-density=f'        => \$Slic3r::fill_density,
     'fill-angle=i'          => \$Slic3r::fill_angle,
     'start-gcode=s'         => \$opt{start_gcode},
@@ -161,6 +162,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
     --fill-angle        Infill angle in degrees (range: 0-90, default: $Slic3r::fill_angle)
+    --fill-pattern      Pattern to use to fill non-solid layers (default: $Slic3r::fill_pattern)
+    --solid-fill-pattern Pattern to use to fill solid layers (default: $Slic3r::solid_fill_pattern)
     --start-gcode       Load initial gcode from the supplied file. This will overwrite
                         the default command (home all axes [G28]).
     --end-gcode         Load final gcode from the supplied file. This will overwrite 

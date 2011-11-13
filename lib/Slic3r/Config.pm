@@ -78,6 +78,16 @@ our $Options = {
         label   => 'Solid layers',
         type    => 'i',
     },
+    'fill_pattern' => {
+        label   => 'Fill pattern',
+        type    => 'select',
+        values  => [qw(rectilinear hilbertcurve archimedeanchords octagramspiral)],
+    },
+    'solid_fill_pattern' => {
+        label   => 'Solid fill pattern',
+        type    => 'select',
+        values  => [qw(rectilinear hilbertcurve archimedeanchords octagramspiral)],
+    },
     'fill_density' => {
         label   => 'Fill density',
         type    => 'f',
@@ -266,9 +276,13 @@ sub validate {
     $Slic3r::print_center = [ split /,/, $Slic3r::print_center ]
         if !ref $Slic3r::print_center;
     
-    # --fill-type
-    die "Invalid value for --fill-type\n"
-        if !exists $Slic3r::Fill::FillTypes{$Slic3r::fill_type};
+    # --fill-pattern
+    die "Invalid value for --fill-pattern\n"
+        if !exists $Slic3r::Fill::FillTypes{$Slic3r::fill_pattern};
+    
+    # --solid-fill-pattern
+    die "Invalid value for --solid-fill-pattern\n"
+        if !exists $Slic3r::Fill::FillTypes{$Slic3r::solid_fill_pattern};
     
     # --fill-density
     die "Invalid value for --fill-density\n"

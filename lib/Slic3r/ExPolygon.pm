@@ -5,6 +5,7 @@ use warnings;
 # an ExPolygon is a polygon with holes
 
 use Math::Clipper qw(CT_UNION PFT_NONZERO JT_MITER);
+use Slic3r::Geometry qw(point_in_polygon X Y A B);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 # the constructor accepts an array of polygons 
@@ -22,14 +23,6 @@ sub new {
     }
     bless $self, $class;
     $self;
-}
-
-# this class method accepts an array of polygons and returns
-# an array of expolygons with the right holes applied to the 
-# right contours
-sub make {
-    my $class = shift;
-    return @{ union_ex(\@_) };
 }
 
 sub contour {
@@ -60,7 +53,73 @@ sub offset {
     my $offsets = Math::Clipper::offset($self, $distance, $scale, $joinType, $miterLimit);
     
     # apply holes to the right contours
-    return (ref $self)->make(@$offsets);
+    return @{ union_ex($offsets) };
+}
+
+sub encloses_point {
+    my $self = shift;
+    my ($point) = @_;
+    return $self->contour->encloses_point($point)
+        && (!grep($_->encloses_point($point), $self->holes)
+            || grep($_->point_on_segment($point), $self->holes));
+}
+
+sub point_on_segment {
+    my $self = shift;
+    my ($point) = @_;
+    for (@$self) {
+        my $line = $_->point_on_segment($point);
+        return $line if $line;
+    }
+    return undef;
+}
+
+sub bounding_box {
+    my $self = shift;
+    return Slic3r::Geometry::bounding_box($self->contour);
+}
+
+sub clip_line {
+    my $self = shift;
+    my ($line) = @_;
+    $line = Slic3r::Line->cast($line);
+    
+    my @intersections = grep $_, map $_->intersection($line, 1), map $_->lines, @$self;
+    my @dir = (
+        $line->[B][X] <=> $line->[A][X],
+        $line->[B][Y] <=> $line->[A][Y],
+    );
+    
+    @intersections = sort {
+        (($a->[X] <=> $b->[X]) == $dir[X]) && (($a->[Y] <=> $b->[Y]) == $dir[Y]) ? 1 : -1
+    } @intersections, @$line;
+    
+    shift @intersections if $intersections[0]->coincides_with($intersections[1]);
+    pop @intersections if $intersections[-1]->coincides_with($intersections[-2]);
+    
+    shift @intersections
+        if !$self->encloses_point($intersections[0])
+        && !$self->point_on_segment($intersections[0]);
+    
+    my @lines = ();
+    while (@intersections) {
+        # skip tangent points
+        my @points = splice @intersections, 0, 2;
+        next if !$points[1];
+        next if $points[0]->coincides_with($points[1]);
+        push @lines, [ @points ];
+    }
+    return [@lines];
+}
+
+sub translate {
+    my $self = shift;
+    $_->translate(@_) for @$self;
+}
+
+sub rotate {
+    my $self = shift;
+    $_->rotate(@_) for @$self;
 }
 
 1;

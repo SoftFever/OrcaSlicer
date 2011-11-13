@@ -8,16 +8,24 @@ sub new {
     my $class = shift;
     my $self;
     if (@_ == 2) {
-        $self = [ map Slic3r::Point->new($_), @_ ];
+        $self = [ @_ ];
     } elsif (ref $_[0] eq 'ARRAY') {
-        $self = [ map Slic3r::Point->new($_), $_[0][0], $_[0][1] ];
+        $self = [ $_[0][0], $_[0][1] ];
     } elsif ($_[0]->isa(__PACKAGE__)) {
         return $_[0];
     } else {
         die "Invalid argument for $class->new";
     }
     bless $self, $class;
+    bless $_, 'Slic3r::Point' for @$self;
     return $self;
+}
+
+sub cast {
+    my $class = shift;
+    my ($line) = @_;
+    return $line if ref $line eq __PACKAGE__;
+    return $class->new($line);
 }
 
 sub a { $_[0][0] }

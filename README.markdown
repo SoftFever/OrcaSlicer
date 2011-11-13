@@ -94,9 +94,11 @@ The author is Alessandro Ranellucci (me).
                             Use relative distances for extrusion in GCODE output
         --z-offset          Additional height in mm to add to vertical coordinates
                             (+/-, default: 0)
+        --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
+                            by all firmwares)
         
       Filament options:
-        --filament-diameter Diameter of your raw filament (default: 3)
+        --filament-diameter Diameter in mm of your raw filament (default: 3)
         --filament-packing-density
                             Ratio of the extruded volume over volume pushed 
                             into the extruder (default: 1)
@@ -123,7 +125,9 @@ The author is Alessandro Ranellucci (me).
                             (range: 1+, default: 3)
         --fill-density      Infill density (range: 0-1, default: 0.4)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 0)
-        --start-gcode       Load initial gcode from the supplied file. This will overwrite 
+        --fill-pattern      Pattern to use to fill non-solid layers (default: rectilinear)
+        --solid-fill-pattern Pattern to use to fill solid layers (default: rectilinear)
+        --start-gcode       Load initial gcode from the supplied file. This will overwrite
                             the default command (home all axes [G28]).
         --end-gcode         Load final gcode from the supplied file. This will overwrite 
                             the default commands (turn off temperature [M104 S0],
@@ -138,6 +142,7 @@ The author is Alessandro Ranellucci (me).
                             compensating retraction (default: 0)
         --retract-before-travel
                             Only retract before travel moves of this length (default: 2)
+        --retract-lift      Lift Z by the given distance in mm when retracting (default: 0)
        
        Skirt options:
         --skirts            Number of skirts to draw (default: 1)
@@ -150,5 +155,7 @@ The author is Alessandro Ranellucci (me).
         --duplicate-x       Number of items along X axis (1+, default: 1)
         --duplicate-y       Number of items along Y axis (1+, default: 1)
         --duplicate-distance Distance in mm between copies (default: 6)
+        
+
         
 

@@ -33,7 +33,7 @@ sub new {
         ),
         print => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Print settings',
-            options => [qw(perimeter_offsets solid_layers fill_density fill_angle)],
+            options => [qw(perimeter_offsets solid_layers fill_density fill_angle fill_pattern solid_fill_pattern)],
         ),
         retract => Slic3r::GUI::OptionsGroup->new($self,
             title => 'Retraction',

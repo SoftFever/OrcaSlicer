@@ -3,11 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use constant X1 => 0;
-use constant Y1 => 1;
-use constant X2 => 2;
-use constant Y2 => 3;
-
+use Slic3r::Geometry qw(X1 Y1 X2 Y2);
 use XXX;
 
 sub fill_surface {
@@ -15,21 +11,18 @@ sub fill_surface {
     my ($surface, %params) = @_;
     
     # rotate polygons so that we can work with vertical lines here
-    my $polygons = [ $surface->p ];
+    my $expolygon = $surface->expolygon;
     my $rotate_vector = $self->infill_direction($surface);
-    $self->rotate_points($polygons, $rotate_vector);
+    $self->rotate_points($expolygon, $rotate_vector);
     
-    my $bounding_box = [ Slic3r::Geometry::bounding_box(map @$_, $polygons) ];
-    my $surface_width  = $bounding_box->[X2] - $bounding_box->[X1];
-    my $surface_height = $bounding_box->[Y2] - $bounding_box->[Y1];
-    
+    my $bounding_box = [ $expolygon->bounding_box ];
     my $distance_between_lines = $Slic3r::flow_width / $Slic3r::resolution / $params{density};
     
     my @paths = ();
     my $x = $bounding_box->[X1];
     while ($x < $bounding_box->[X2]) {
         my $vertical_line = [ [$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]] ];
-        push @paths, @{ Slic3r::Geometry::clip_segment_complex_polygon($vertical_line, $polygons) };
+        push @paths, @{ $expolygon->clip_line($vertical_line) };
         $x += int($distance_between_lines);
     }
     

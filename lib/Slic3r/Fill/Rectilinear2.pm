@@ -3,15 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use constant X1 => 0;
-use constant Y1 => 1;
-use constant X2 => 2;
-use constant Y2 => 3;
-use constant A => 0;
-use constant B => 1;
-use constant X => 0;
-use constant Y => 1;
-
+use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y);
 use XXX;
 
 sub fill_surface {

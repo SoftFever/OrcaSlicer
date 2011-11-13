@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
-    PI X Y Z A B epsilon slope line_atan lines_parallel three_points_aligned
+    PI X Y Z A B X1 Y1 X2 Y2 epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
@@ -14,7 +14,7 @@ our @EXPORT_OK = qw(
     rotate_points move_points remove_coinciding_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect 
-    clip_segment_complex_polygon longest_segment angle3points
+    longest_segment angle3points three_points_aligned
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear
@@ -29,6 +29,10 @@ use constant B => 1;
 use constant X => 0;
 use constant Y => 1;
 use constant Z => 2;
+use constant X1 => 0;
+use constant Y1 => 1;
+use constant X2 => 2;
+use constant Y2 => 3;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
 our $epsilon = 1E-4;
@@ -110,6 +114,7 @@ sub midpoint {
     return [ ($line->[B][X] + $line->[A][X]) / 2, ($line->[B][Y] + $line->[A][Y]) / 2 ];
 }
 
+# this will check whether a point is in a polygon regardless of polygon orientation
 sub point_in_polygon {
     my ($point, $polygon) = @_;
     
@@ -311,7 +316,7 @@ sub rotate_points {
 
 sub move_points {
     my ($shift, @points) = @_;
-    return map [ $shift->[X] + $_->[X], $shift->[Y] + $_->[Y] ], @points;
+    return map Slic3r::Point->new($shift->[X] + $_->[X], $shift->[Y] + $_->[Y]), @points;
 }
 
 # preserves order
@@ -556,32 +561,6 @@ sub bounding_box_intersect {
     }
     
     return 1;
-}
-
-sub clip_segment_complex_polygon {
-    my ($line, $polygons) = @_;
-    
-    my @intersections = grep $_, map line_intersection($line, $_, 1), 
-        map polygon_lines($_), @$polygons or return ();
-    
-    # this is not very elegant, however it works
-    @intersections = sort { sprintf("%020f,%020f", @$a) cmp sprintf("%020f,%020f", @$b) } @intersections;
-    
-    shift(@intersections) if !grep(point_in_polygon($intersections[0], $_), @$polygons)
-        && !grep(polygon_segment_having_point($_, $intersections[0]), @$polygons);
-    
-    # defensive programming
-    ###die "Invalid intersections" if @intersections % 2 != 0;
-    
-    my @lines = ();
-    while (@intersections) {
-        # skip tangent points
-        my @points = map shift @intersections, 1..2;
-        next if !$points[1];
-        next if points_coincide(@points);
-        push @lines, [ @points ];
-    }
-    return [@lines];
 }
 
 sub angle3points {

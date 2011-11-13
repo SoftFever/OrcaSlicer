@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Wx qw(:sizer);
-use Wx::Event qw(EVT_TEXT EVT_CHECKBOX);
+use Wx::Event qw(EVT_TEXT EVT_CHECKBOX EVT_CHOICE);
 use base 'Wx::StaticBoxSizer';
 
 # not very elegant, but this solution is temporary waiting for a better GUI
@@ -55,6 +55,14 @@ sub new {
                 $x_field->SetValue($value->[0]);
                 $y_field->SetValue($value->[1]);
             };
+        } elsif ($opt->{type} eq 'select') {
+            $field = Wx::Choice->new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{values});
+            EVT_CHOICE($parent, $field, sub { Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]) });
+            push @reload_callbacks, sub {
+                my $value = Slic3r::Config->get($opt_key);
+                $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
+            };
+            $reload_callbacks[-1]->();
         } else {
             die "Unsupported option type: " . $opt->{type};
         }

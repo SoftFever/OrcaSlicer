@@ -11,6 +11,7 @@ my $build = Module::Build->new(
         'Getopt::Long'              => '0',
         'Math::Clipper'             => '1.02',
         'Math::ConvexHull'          => '1.0.4',
+        'Math::PlanePath'           => '53',
         'Moo'                       => '0',
         'Time::HiRes'               => '0',
         'XXX'                       => '0',
