@@ -40,8 +40,9 @@ sub move_z {
     
     my $gcode = "";
     
-    $gcode .= $self->retract(dont_lift => 1);
-    $gcode .= $self->G0(undef, $z, 0, 'move to next layer');
+    $gcode .= $self->retract(move_z => $z);
+    $gcode .= $self->G0(undef, $z, 0, 'move to next layer')
+        if $self->z != $z;
     
     return $gcode;
 }
@@ -123,7 +124,7 @@ sub retract {
     
     # prepare moves
     my $retract = [undef, undef, -$Slic3r::retract_length, "retract"];
-    my $lift    = ($params{dont_lift} || $Slic3r::retract_lift == 0)
+    my $lift    = ($Slic3r::retract_lift == 0)
         ? undef
         : [undef, $self->z + $Slic3r::retract_lift, 0, 'lift plate during retraction'];
     
@@ -138,6 +139,10 @@ sub retract {
             my $travel = [$params{travel_to}, undef, $retract->[2], 'travel and retract'];
             $gcode .= $self->G0(@$travel);
         }
+    } elsif ($Slic3r::g0 && defined $params{move_z}) {
+        # combine Z change and retraction
+        my $travel = [undef, $params{move_z}, $retract->[2], 'change layer and retract'];
+        $gcode .= $self->G0(@$travel);
     } else {
         $gcode .= $self->G1(@$retract);
         if ($lift) {
@@ -163,11 +168,11 @@ sub unretract {
     my $gcode = "";
     
     if ($self->lifted) {
-        $gcode .= $self->G1(undef, $self->z - $Slic3r::retract_lift, 0, 'restore layer Z');
+        $gcode .= $self->G0(undef, $self->z - $Slic3r::retract_lift, 0, 'restore layer Z');
         $self->lifted(0);
     }
     
-    $gcode .= $self->G1(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
+    $gcode .= $self->G0(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
         "compensate retraction");
     
     return $gcode;
