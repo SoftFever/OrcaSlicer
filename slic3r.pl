@@ -30,6 +30,7 @@ GetOptions(
     'no-extrusion'              => \$Slic3r::no_extrusion,
     'z-offset=f'                => \$Slic3r::z_offset,
     'gcode-arcs'                => \$Slic3r::gcode_arcs,
+    'g0'                        => \$Slic3r::g0,
     
     # filament options
     'filament-diameter=f'           => \$Slic3r::filament_diameter,
@@ -117,7 +118,7 @@ sub usage {
     my ($exit_code) = @_;
     
     print <<"EOF";
-Slic3r is a STL-to-GCODE translator for RepRap 3D printers
+Slic3r $Slic3r::VERSION is a STL-to-GCODE translator for RepRap 3D printers
 written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
 
 Usage: slic3r.pl [ OPTIONS ] file.stl
@@ -138,6 +139,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (+/-, default: $Slic3r::z_offset)
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
+    --g0                Use G0 commands for retraction (experimenta, not supported by all
+                        firmwares)
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)

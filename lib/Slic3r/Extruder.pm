@@ -41,7 +41,7 @@ sub move_z {
     my $gcode = "";
     
     $gcode .= $self->retract(dont_lift => 1);
-    $gcode .= $self->G1(undef, $z, 0, 'move to next layer');
+    $gcode .= $self->G0(undef, $z, 0, 'move to next layer');
     
     return $gcode;
 }
@@ -83,11 +83,11 @@ sub extrude {
     my $distance_from_last_pos = Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]) * $Slic3r::resolution;
     if ($distance_from_last_pos >= $Slic3r::retract_before_travel
         && ($Slic3r::fill_density == 0 || $distance_from_last_pos >= $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2))) {
-        $gcode .= $self->retract;
+        $gcode .= $self->retract(travel_to => $path->points->[0]);
     }
     
     # go to first point of extrusion path
-    $gcode .= $self->G1($path->points->[0], undef, 0, "move to first $description point")
+    $gcode .= $self->G0($path->points->[0], undef, 0, "move to first $description point")
         if !points_coincide($self->last_pos, $path->points->[0]);
     
     # compensate retraction
@@ -121,13 +121,31 @@ sub retract {
     return "" unless $Slic3r::retract_length > 0 
         && !$self->retracted;
     
-    $self->retracted(1);
-    my $gcode = $self->G1(undef, undef, -$Slic3r::retract_length, "retract");
+    # prepare moves
+    my $retract = [undef, undef, -$Slic3r::retract_length, "retract"];
+    my $lift    = ($params{dont_lift} || $Slic3r::retract_lift == 0)
+        ? undef
+        : [undef, $self->z + $Slic3r::retract_lift, 0, 'lift plate during retraction'];
     
-    unless ($params{dont_lift} || $Slic3r::retract_lift == 0) {
-        $gcode .= $self->G1(undef, $self->z + $Slic3r::retract_lift, 0, 'lift plate during retraction');
-        $self->lifted(1);
+    my $gcode = "";
+    if ($Slic3r::g0 && $params{travel_to}) {
+        if ($lift) {
+            # combine lift and retract
+            $lift->[2] = $retract->[2];
+            $gcode .= $self->G0(@$lift);
+        } else {
+            # combine travel and retract
+            my $travel = [$params{travel_to}, undef, $retract->[2], 'travel and retract'];
+            $gcode .= $self->G0(@$travel);
+        }
+    } else {
+        $gcode .= $self->G1(@$retract);
+        if ($lift) {
+            $gcode .= $self->G1(@$lift);
+        }
     }
+    $self->retracted(1);
+    $self->lifted(1) if $lift;
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
@@ -155,12 +173,23 @@ sub unretract {
     return $gcode;
 }
 
+sub G0 {
+    my $self = shift;
+    return $self->G1(@_) if !$Slic3r::g0;
+    return "G0" . $self->G0_G1(@_);
+}
+
 sub G1 {
+    my $self = shift;
+    return "G1" . $self->G0_G1(@_);
+}
+
+sub G0_G1 {
     my $self = shift;
     my ($point, $z, $e, $comment) = @_;
     my $dec = $self->dec;
     
-    my $gcode = "G1";
+    my $gcode = "";
     
     if ($point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 

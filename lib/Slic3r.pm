@@ -40,6 +40,7 @@ our $use_relative_e_distances = 0;
 our $no_extrusion       = 0;
 our $z_offset           = 0;
 our $gcode_arcs         = 0;
+our $g0                 = 0;
 
 # filament options
 our $filament_diameter  = 3;    # mm
