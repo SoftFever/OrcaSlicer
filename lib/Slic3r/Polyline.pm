@@ -118,6 +118,13 @@ sub has_segment {
     return 0;
 }
 
+sub clip_with_polygon {
+    my $self = shift;
+    my ($polygon) = @_;
+    
+    return $self->clip_with_expolygon(Slic3r::ExPolygon->new($polygon));
+}
+
 sub clip_with_expolygon {
     my $self = shift;
     my ($expolygon) = @_;

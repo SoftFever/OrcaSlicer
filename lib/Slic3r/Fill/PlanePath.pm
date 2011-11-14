@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(bounding_box);
+use Slic3r::Geometry qw(bounding_box X1 Y1 X2 Y2);
 use XXX;
 
 sub multiplier () { 1 }
@@ -29,6 +29,12 @@ sub fill_surface {
     
     my $distance_between_lines = $params{flow_width} / $Slic3r::resolution / $params{density} * $self->multiplier;
     my $bounding_box = [ bounding_box(map @$_, $expolygon) ];
+    my $bounding_box_polygon = Slic3r::Polygon->new([
+        [ $bounding_box->[X1], $bounding_box->[Y1] ],
+        [ $bounding_box->[X2], $bounding_box->[Y1] ],
+        [ $bounding_box->[X2], $bounding_box->[Y2] ],
+        [ $bounding_box->[X1], $bounding_box->[Y2] ],
+    ]);
     
     (ref $self) =~ /::([^:]+)$/;
     my $path = "Math::PlanePath::$1"->new;
@@ -41,7 +47,8 @@ sub fill_surface {
     
     $self->process_polyline($polyline, $bounding_box);
     
-    my @paths = ($polyline->clip_with_expolygon($expolygon));
+    my @paths = map $_->clip_with_expolygon($expolygon),
+        $polyline->clip_with_polygon($bounding_box_polygon);
     
     if (0) {
         require "Slic3r/SVG.pm";
