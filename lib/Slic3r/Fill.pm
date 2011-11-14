@@ -7,6 +7,7 @@ use Slic3r::Fill::Flowsnake;
 use Slic3r::Fill::HilbertCurve;
 use Slic3r::Fill::Line;
 use Slic3r::Fill::OctagramSpiral;
+use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Fill::Rectilinear2;
 use Slic3r::Geometry qw(shortest_path);
