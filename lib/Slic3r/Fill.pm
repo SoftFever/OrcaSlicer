@@ -5,6 +5,7 @@ use Slic3r::Fill::ArchimedeanChords;
 use Slic3r::Fill::Base;
 use Slic3r::Fill::Flowsnake;
 use Slic3r::Fill::HilbertCurve;
+use Slic3r::Fill::Line;
 use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Fill::Rectilinear2;
@@ -22,6 +23,7 @@ our %FillTypes = (
     flowsnake           => 'Slic3r::Fill::Flowsnake',
     octagramspiral      => 'Slic3r::Fill::OctagramSpiral',
     hilbertcurve        => 'Slic3r::Fill::HilbertCurve',
+    line                => 'Slic3r::Fill::Line',
 );
 
 sub BUILD {
