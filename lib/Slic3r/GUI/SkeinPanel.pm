@@ -73,12 +73,12 @@ sub new {
         return $tab;
     };
     
-    my $tab1 = $make_tab->([qw(printer filament)], [qw(speed)]);
-    my $tab2 = $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]);
+    my $tab1 = $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]);
+    my $tab2 = $make_tab->([qw(printer filament)], [qw(speed)]);
     my $tab3 = $make_tab->([qw(gcode)]);
     
-    $tabpanel->AddPage($tab1, "Printer and Filament");
-    $tabpanel->AddPage($tab2, "Print Settings");
+    $tabpanel->AddPage($tab1, "Print Settings");
+    $tabpanel->AddPage($tab2, "Printer and Filament");
     $tabpanel->AddPage($tab3, "Start/End GCODE");
         
     my $buttons_sizer;
