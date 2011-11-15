@@ -81,11 +81,6 @@ use Slic3r::Geometry qw(collinear);
     );
     is collinear($lines[0], $lines[1], 0), 0, 'not collinear';
     is collinear($lines[0], $lines[1], 1), 0, 'not collinear';
-    
-    use Slic3r::SVG;
-    Slic3r::SVG::output(undef, "collinear.svg",
-        lines => \@lines,
-    );
 }
 
 #==========================================================
