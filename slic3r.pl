@@ -147,7 +147,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --filament-packing-density
                         Ratio of the extruded volume over volume pushed 
                         into the extruder (default: $Slic3r::filament_packing_density)
-    --temperature       Extrusion temperature (default: $Slic3r::temperature)
+    --temperature       Extrusion temperature, set 0 to disable (default: $Slic3r::temperature)
     
   Speed options:
     --print-feed-rate   Speed of print moves in mm/sec (default: $Slic3r::print_feed_rate)
