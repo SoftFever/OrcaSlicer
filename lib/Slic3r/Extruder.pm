@@ -1,6 +1,7 @@
 package Slic3r::Extruder;
 use Moo;
 
+has 'layer'              => (is => 'rw');
 has 'shift_x'            => (is => 'ro', default => sub {0} );
 has 'shift_y'            => (is => 'ro', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
@@ -34,9 +35,12 @@ has 'retract_speed' => (
 use Slic3r::Geometry qw(points_coincide PI X Y);
 use XXX;
 
-sub move_z {
+sub change_layer {
     my $self = shift;
-    my ($z) = @_;
+    my ($layer) = @_;
+    
+    $self->layer($layer);
+    my $z = $Slic3r::z_offset + $layer->print_z * $Slic3r::resolution;
     
     my $gcode = "";
     
@@ -236,7 +240,7 @@ sub _Gx {
     my $dec = $self->dec;
     
     # apply the speed reduction for print moves on bottom layer
-    my $speed_multiplier = $e && $self->z == $Slic3r::z_offset
+    my $speed_multiplier = $e && $self->layer->id == 0
         ? $Slic3r::bottom_layer_speed_ratio 
         : 1;
     

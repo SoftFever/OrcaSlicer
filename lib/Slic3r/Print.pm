@@ -464,7 +464,7 @@ sub export_gcode {
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
         # go to layer
-        printf $fh $extruder->move_z($Slic3r::z_offset + $layer->print_z * $Slic3r::resolution);
+        printf $fh $extruder->change_layer($layer);
         
         # extrude skirts
         printf $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
