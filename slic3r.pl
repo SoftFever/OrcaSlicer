@@ -76,7 +76,7 @@ GetOptions(
     'duplicate-x=i'         => \$Slic3r::duplicate_x,
     'duplicate-y=i'         => \$Slic3r::duplicate_y,
     'duplicate-distance=i'  => \$Slic3r::duplicate_distance,
-);
+) or usage(1);
 
 # load configuration
 if ($opt{load}) {
