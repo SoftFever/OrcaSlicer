@@ -87,6 +87,8 @@ sub parse_file {
         }
     }
     
+    die "Invalid input file\n" if !@{$print->layers};
+    
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code below)
     pop @{$print->layers} if !@{$print->layers->[-1]->surfaces} && !@{$print->layers->[-1]->lines};
