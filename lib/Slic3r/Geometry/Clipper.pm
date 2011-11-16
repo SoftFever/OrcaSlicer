@@ -4,8 +4,8 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(explode_expolygon explode_expolygons safety_offset
-    diff_ex diff union_ex intersection_ex PFT_EVENODD);
+our @EXPORT_OK = qw(explode_expolygon explode_expolygons safety_offset offset
+    diff_ex diff union_ex intersection_ex PFT_EVENODD JT_MITER JT_ROUND);
 
 use Math::Clipper 1.02 ':all';
 our $clipper = Math::Clipper->new;

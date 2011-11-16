@@ -1,10 +1,10 @@
 package Slic3r::Print;
 use Moo;
 
-use Math::Clipper ':all';
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::Geometry qw(X Y);
-use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex);
+use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
+    offset JT_ROUND JT_MITER);
 use XXX;
 
 has 'x_length' => (
@@ -78,8 +78,6 @@ sub layer {
 sub detect_surfaces_type {
     my $self = shift;
     
-    my $clipper = Math::Clipper->new;
-    
     # prepare a reusable subroutine to make surface differences
     my $surface_difference = sub {
         my ($subject_surfaces, $clip_surfaces, $result_type) = @_;
@@ -148,10 +146,11 @@ sub detect_surfaces_type {
                 @{$surface->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
             }
             
-            #Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",
-            #    green_polygons  => [ map $_->p, @{$layer->surfaces} ],
-            #    red_polygons    => [ map $_->p, @{$lower_layer->surfaces} ],
-            #);
+            use Slic3r::SVG;
+            Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",
+                green_polygons  => [ map $_->p, @{$layer->surfaces} ],
+                red_polygons    => [ map $_->p, @{$lower_layer->surfaces} ],
+            );exit if $layer->id == 3;
             
             # offset lower layer's surfaces
             my $lower_surfaces_offsetted;
@@ -204,8 +203,6 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
-    my $clipper = Math::Clipper->new;
-    
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
         foreach my $type (qw(top bottom)) {
@@ -225,21 +222,14 @@ sub discover_horizontal_shells {
                     my $neighbor_polygons = [ map $_->p, grep $_->surface_type =~ /internal/, @$surfaces ];
                     
                     # find intersection between @surfaces and current layer's surfaces
-                    $clipper->add_subject_polygons([ map $_->p, @surfaces ]);
-                    $clipper->add_clip_polygons($neighbor_polygons);
-                    
                     # intersections have contours and holes
-                    my $intersections = $clipper->ex_execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
-                    $clipper->clear;
+                    my $intersections = intersection_ex([ map $_->p, @surfaces ], $neighbor_polygons);
                     
                     next if @$intersections == 0;
                     Slic3r::debugf "    %d intersections found\n", scalar @$intersections;
                     
                     # subtract intersections from layer surfaces to get resulting inner surfaces
-                    $clipper->add_subject_polygons($neighbor_polygons);
-                    $clipper->add_clip_polygons([ map { $_->{outer}, @{$_->{holes}} } @$intersections ]);
-                    my $internal_polygons = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-                    $clipper->clear;
+                    my $internal_polygons = diff_ex($neighbor_polygons, [ map @$_, @$intersections ]);
                     
                     # Note: due to floating point math we're going to get some very small
                     # polygons as $internal_polygons; they will be removed by removed_small_features()
@@ -249,9 +239,9 @@ sub discover_horizontal_shells {
                     foreach my $p (@$internal_polygons) {
                         push @$surfaces, Slic3r::Surface->new(
                             surface_type => 'internal',
-                            contour => Slic3r::Polyline::Closed->cast($p->{outer}),
+                            contour => $p->contour->closed_polyline,
                             holes   => [
-                                map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
+                                map $_->closed_polyline, $p->holes,
                             ],
                         );
                     }
@@ -260,9 +250,9 @@ sub discover_horizontal_shells {
                     foreach my $p (@$intersections) {
                         push @$surfaces, Slic3r::Surface->new(
                             surface_type => 'internal-solid',
-                            contour => Slic3r::Polyline::Closed->cast($p->{outer}),
+                            contour => $p->contour->closed_polyline,
                             holes   => [
-                                map Slic3r::Polyline::Closed->cast($_), @{$p->{holes}}
+                                map $_->closed_polyline, $p->holes,
                             ],
                         );
                     }
@@ -270,24 +260,6 @@ sub discover_horizontal_shells {
             }
         }
     }
-}
-
-# remove surfaces which are too small to be extruded
-sub remove_small_surfaces {
-    my $self = shift;
-    $_->remove_small_surfaces for @{$self->layers};
-}
-
-# remove perimeters which are too small to be extruded
-sub remove_small_perimeters {
-    my $self = shift;
-    $_->remove_small_perimeters for @{$self->layers};
-}
-
-# make bridges printable
-sub process_bridges {
-    my $self = shift;
-    $_->process_bridges for @{ $self->layers };
 }
 
 sub extrude_skirt {
@@ -325,12 +297,6 @@ sub extrude_perimeters {
         Slic3r::debugf "  generated paths: %s\n",
             join '  ', map $_->id, @{ $layer->perimeters } if $Slic3r::debug;
     }
-}
-
-# splits fill_surfaces in internal and bridge surfaces
-sub split_bridges_fills {
-    my $self = shift;
-    $_->split_bridges_fills for @{$self->layers};
 }
 
 # combine fill surfaces across layers

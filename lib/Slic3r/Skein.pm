@@ -25,11 +25,11 @@ sub go {
     
     # this will remove unprintable surfaces
     # (those that are too tight for extrusion)
-    $print->remove_small_surfaces;
+    $_->remove_small_surfaces for @{$print->layers};
     
     # make bridges printable
     # this will add a set of bridges to each layer
-    $print->process_bridges;
+    $_->process_bridges for @{$print->layers};
     
     # make skirt
     $print->extrude_skirt;
@@ -41,10 +41,10 @@ sub go {
     
     # this will remove unprintable perimeter loops
     # (those that are too tight for extrusion)
-    $print->remove_small_perimeters;
+    $_->remove_small_perimeters for @{$print->layers};
     
     # split fill_surfaces in internal and bridge surfaces
-    $print->split_bridges_fills;
+    $_->split_bridges_fills for @{$print->layers};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
