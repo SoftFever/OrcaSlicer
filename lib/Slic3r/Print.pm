@@ -103,23 +103,6 @@ sub detect_surfaces_type {
         if ($upper_layer) {
             # offset upper layer surfaces by extrusion_width * perimeters
             @top = $surface_difference->($layer->surfaces, $upper_layer->surfaces, 'top');
-            
-            # now check whether each resulting top surfaces is large enough to have its
-            # own perimeters or whether it may be sufficient to use the lower layer's 
-            # perimeters
-            
-            # offset upper layer's surfaces
-            my $upper_surfaces_offsetted;
-            {
-                my $distance = $Slic3r::flow_width * ($Slic3r::perimeter_offsets + 1) / $Slic3r::resolution;
-                $upper_surfaces_offsetted = offset([ map $_->p, @{$upper_layer->surfaces} ], $distance, 100, JT_MITER, 2);
-            }
-            
-            @top = grep {
-                my $surface = $_;
-                my $diff = diff_ex([ map $_->p, $surface ], $upper_surfaces_offsetted);
-                @$diff;
-            } @top;
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->surfaces};
@@ -146,24 +129,17 @@ sub detect_surfaces_type {
                 @{$surface->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
             }
             
-            use Slic3r::SVG;
-            Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",
-                green_polygons  => [ map $_->p, @{$layer->surfaces} ],
-                red_polygons    => [ map $_->p, @{$lower_layer->surfaces} ],
-            );exit if $layer->id == 3;
-            
-            # offset lower layer's surfaces
-            my $lower_surfaces_offsetted;
-            {
-                my $distance = $Slic3r::flow_width * ($Slic3r::perimeter_offsets + 1) / $Slic3r::resolution;
-                $lower_surfaces_offsetted = offset([ map $_->p, @{$lower_layer->surfaces} ], $distance, 100, JT_MITER, 2);
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(undef, "layer_" . $layer->id . "_surfaces.svg",
+                    green_polygons  => [ map $_->p, @{$layer->surfaces} ],
+                    red_polygons    => [ map $_->p, @{$lower_layer->surfaces} ],
+                );
+                Slic3r::SVG::output(undef, "layer_" . $layer->id . "_diff.svg",
+                    red_polygons    => [ map $_->p, @bottom ],
+                );
+                exit if $layer->id == 3;
             }
-            
-            @bottom = grep {
-                my $surface = $_;
-                my $diff = diff_ex([ map $_->p, $surface ], $lower_surfaces_offsetted);
-                @$diff;
-            } @bottom;
             
         } else {
             # if no lower layer, all surfaces of this one are solid

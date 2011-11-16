@@ -4,7 +4,7 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines nearest_point
     line_length collinear X Y A B PI);
-use Slic3r::Geometry::Clipper qw(safety_offset union_ex);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex PFT_EVENODD);
 use XXX;
 
 # a sequential number of layer, starting at 0
@@ -301,7 +301,7 @@ sub make_surfaces {
     }
     
     {
-        my $expolygons = union_ex([ @polygons ]);
+        my $expolygons = union_ex([ @polygons ], PFT_EVENODD);
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@polygons);
         
