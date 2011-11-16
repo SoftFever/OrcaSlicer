@@ -42,7 +42,7 @@ sub make_perimeter {
         push @perimeters, [];
         for (my $loop = 0; $loop < $Slic3r::perimeter_offsets; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
-            @last_offsets = map $_->offset(-$distance), @last_offsets;
+            @last_offsets = map $_->offset_ex(-$distance), @last_offsets;
             push @{ $perimeters[-1] }, [@last_offsets];
             
             # offset distance for inner loops
@@ -54,7 +54,7 @@ sub make_perimeter {
             $distance -= $Slic3r::flow_width * $Slic3r::perimeter_infill_overlap_ratio / $Slic3r::resolution;
             my @fill_surfaces = map Slic3r::Surface->cast_from_expolygon
                 ($_, surface_type => $surface->surface_type),
-                map $_->offset(-$distance), @last_offsets;
+                map $_->offset_ex(-$distance), @last_offsets;
             
             push @{ $layer->fill_surfaces }, [@fill_surfaces] if @fill_surfaces;
         }

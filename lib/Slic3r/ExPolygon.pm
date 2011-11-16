@@ -51,9 +51,15 @@ sub offset {
     $miterLimit ||= 2;
     
     my $offsets = Math::Clipper::offset($self, $distance, $scale, $joinType, $miterLimit);
+    return @$offsets;
+}
+
+sub offset_ex {
+    my $self = shift;
+    my @offsets = $self->offset(@_);
     
     # apply holes to the right contours
-    return @{ union_ex($offsets) };
+    return @{ union_ex(\@offsets) };
 }
 
 sub encloses_point {

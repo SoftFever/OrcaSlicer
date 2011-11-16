@@ -2,7 +2,7 @@ package Slic3r::Print;
 use Moo;
 
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(X Y);
+use Slic3r::Geometry qw(X Y PI);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
     offset JT_ROUND JT_MITER);
 use XXX;
@@ -101,8 +101,14 @@ sub detect_surfaces_type {
         # find top surfaces (difference between current surfaces
         # of current layer and upper one)
         if ($upper_layer) {
-            # offset upper layer surfaces by extrusion_width * perimeters
-            @top = $surface_difference->($layer->surfaces, $upper_layer->surfaces, 'top');
+            # only consider those upper surfaces that are not small
+            # (if they're too small, the interface with them can be treated
+            # like a continuous solid surface instead of cutting a little
+            # internal surface in it)
+            my $min_area = ((7 * $Slic3r::flow_width / $Slic3r::resolution)**2) * PI;
+            my $upper_surfaces = [ grep { $_->expolygon->contour->area > $min_area } @{$upper_layer->surfaces} ];
+            
+            @top = $surface_difference->($layer->surfaces, $upper_surfaces, 'top');
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->surfaces};
@@ -195,7 +201,7 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                 
                 foreach my $surfaces (@{$self->layers->[$n]->fill_surfaces}) {
-                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type =~ /internal/, @$surfaces ];
+                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type eq 'internal', @$surfaces ];
                     
                     # find intersection between @surfaces and current layer's surfaces
                     # intersections have contours and holes

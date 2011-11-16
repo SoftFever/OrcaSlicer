@@ -65,4 +65,9 @@ sub rotate {
     @$self = rotate_points($angle, $center, @$self);
 }
 
+sub area {
+    my $self = shift;
+    return Slic3r::Geometry::Clipper::area($self);
+}
+
 1;
