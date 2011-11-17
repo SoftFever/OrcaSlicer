@@ -4,7 +4,7 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(polygon_lines points_coincide angle3points polyline_lines nearest_point
     line_length collinear X Y A B PI);
-use Slic3r::Geometry::Clipper qw(safety_offset union_ex PFT_EVENODD);
+use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex PFT_EVENODD);
 use XXX;
 
 # a sequential number of layer, starting at 0
@@ -347,28 +347,29 @@ sub remove_small_perimeters {
 # make bridges printable
 sub process_bridges {
     my $self = shift;
-    return if $self->id == 0;
     
     # a bottom surface on a layer > 0 is either a bridge or a overhang 
-    # or a combination of both
+    # or a combination of both; any top surface is a candidate for
+    # reverse bridge processing
     
-    my @bottom_surfaces     = grep $_->surface_type eq 'bottom',   @{$self->surfaces} or return;
+    my @solid_surfaces = grep {
+        ($_->surface_type eq 'bottom' && $self->id > 0) || $_->surface_type eq 'top'
+    } @{$self->surfaces} or return;
+    
     my @supporting_surfaces = grep $_->surface_type =~ /internal/, @{$self->surfaces};
     
-    SURFACE: foreach my $surface (@bottom_surfaces) {
-        # since we can't print concave bridges, we transform the surface
-        # in a convex polygon; this will print thin membranes eventually
-        my $surface_p = $surface->contour->p;
-        
+    SURFACE: foreach my $surface (@solid_surfaces) {
+        # ignore holes in bridges;
         # offset the surface a bit to avoid approximation issues when doing the
         # intersection below (this is to make sure we overlap with supporting
         # surfaces, otherwise a little gap will result from intersection)
-        $surface_p = safety_offset([$surface_p])->[0];
+        my $contour = $surface->expolygon->contour->safety_offset;
+        my $description = $surface->surface_type eq 'bottom' ? 'bridge/overhang' : 'reverse bridge';
         
             #use Slic3r::SVG;
             #Slic3r::SVG::output(undef, "bridge.svg",
             #    green_polygons  => [ map $_->p, @supporting_surfaces ],
-            #    red_polygons    => [ $surface_p ],
+            #    red_polygons    => [ $contour ],
             #);
         
         # find all supported edges (as polylines, thus keeping notion of 
@@ -376,7 +377,7 @@ sub process_bridges {
         my @supported_polylines = ();
         {
             my @current_polyline = ();
-            EDGE: foreach my $edge (Slic3r::Geometry::polygon_lines($surface_p)) {
+            EDGE: foreach my $edge ($contour->lines) {
                 for my $supporting_surface (@supporting_surfaces) {
                     local $Slic3r::Geometry::epsilon = 1E+7;
                     if (Slic3r::Geometry::polygon_has_subsegment($supporting_surface->contour->p, $edge)) {
@@ -394,12 +395,12 @@ sub process_bridges {
         
         # defensive programming, this shouldn't happen
         if (@supported_polylines == 0) {
-            Slic3r::debugf "Found bridge/overhang with no supports on layer %d; ignoring\n", $self->id;
+            Slic3r::debugf "Found $description with no supports on layer %d; ignoring\n", $self->id;
             next SURFACE;
         }
         
         if (@supported_polylines == 1) {
-            Slic3r::debugf "Found bridge/overhang with only one support on layer %d; ignoring\n", $self->id;
+            Slic3r::debugf "Found $description with only one support on layer %d; ignoring\n", $self->id;
             next SURFACE;
         }
         
@@ -437,17 +438,15 @@ sub process_bridges {
         # now, extend our bridge by taking a portion of supporting surfaces
         {
             # offset the bridge by the specified amount of mm
-            my $bridge_offset = ${ offset([$surface_p], $Slic3r::bridge_overlap / $Slic3r::resolution, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
+            my $bridge_offset = ${ offset([$contour], $Slic3r::bridge_overlap / $Slic3r::resolution, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
             
             # calculate the new bridge
-            my $clipper = Math::Clipper->new;
-            $clipper->add_subject_polygon($surface_p);
-            $clipper->add_subject_polygons([ map $_->p, @supporting_neighbor_surfaces ]);
-            $clipper->add_clip_polygon($bridge_offset);
-            my $intersection = $clipper->execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
-            
-            push @{$self->bridges}, map Slic3r::Surface::Bridge->cast_from_polygon($_,
-                surface_type => 'bottom',
+            my $intersection = intersection_ex(
+                [ $contour, map $_->p, @supporting_neighbor_surfaces ],
+                [ $bridge_offset ],
+             );
+            push @{$self->bridges}, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
+                surface_type => $surface->surface_type,
                 bridge_angle => $bridge_angle,
             ), @$intersection;
         }
@@ -463,18 +462,26 @@ sub detect_perimeter_surfaces {
     if (!@{$self->bridges}) {
         push @{$self->perimeter_surfaces}, @{$self->surfaces};
     } else {
-        my $clipper = Math::Clipper->new;
-        $clipper->add_subject_polygons([ map $_->p, grep $_->surface_type =~ /internal/, @{$self->surfaces} ]);
-        $clipper->add_clip_polygons([ map $_->p, @{$self->bridges} ]);
-        my $union = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
+        my $union = union_ex([
+            (map $_->p, grep $_->surface_type =~ /internal/, @{$self->surfaces}),
+            (map $_->p, @{$self->bridges}),
+        ]);
         
+        # schedule perimeters for internal surfaces merged with bridges
         push @{$self->perimeter_surfaces}, 
             map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'internal'), 
             @$union;
         
-        push @{$self->perimeter_surfaces}, 
-            grep $_->surface_type !~ /internal/ && ($_->surface_type ne 'bottom' || $self->id == 0), 
-            @{$self->surfaces};
+        # schedule perimeters for the remaining surfaces
+        foreach my $type (qw(top bottom)) {
+            my $diff = diff_ex(
+                [ map $_->p, grep $_->surface_type eq $type, @{$self->surfaces} ],
+                [ map @$_, @$union ],
+            );
+            push @{$self->perimeter_surfaces}, 
+                map Slic3r::Surface->cast_from_expolygon($_, surface_type => $type), 
+                @$diff;
+        }
     }
 }
 
@@ -482,29 +489,25 @@ sub detect_perimeter_surfaces {
 sub split_bridges_fills {
     my $self = shift;
     
-    my $clipper = Math::Clipper->new;
     foreach my $surfaces (@{$self->fill_surfaces}) {
         my @surfaces = @$surfaces;
         @$surfaces = ();
         
         # intersect fill_surfaces with bridges to get actual bridges
         foreach my $bridge (@{$self->bridges}) {
-            $clipper->clear;
-            $clipper->add_subject_polygons([ map $_->p, @surfaces ]);
-            $clipper->add_clip_polygon($bridge->contour->p);
-            my $intersection = $clipper->ex_execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
+            my $intersection = intersection_ex(
+                [ map $_->p, @surfaces ],
+                [ $bridge->contour->p ],
+            );
             push @$surfaces, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
-                surface_type => 'bottom',
+                surface_type => $bridge->surface_type,
                 bridge_angle => $bridge->bridge_angle,
             ), @$intersection;
         }
         
         # difference between fill_surfaces and bridges are the other surfaces
         foreach my $surface (@surfaces) {
-            $clipper->clear;
-            $clipper->add_subject_polygons([ $surface->p ]);
-            $clipper->add_clip_polygons([ map $_->contour->p, @{$self->bridges} ]);
-            my $difference = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
+            my $difference = diff_ex([ $surface->p ], [ map $_->contour->p, @{$self->bridges} ]);
             push @$surfaces, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $surface->surface_type), @$difference;
         }
