@@ -438,7 +438,8 @@ sub process_bridges {
         # now, extend our bridge by taking a portion of supporting surfaces
         {
             # offset the bridge by the specified amount of mm
-            my $bridge_offset = ${ offset([$contour], $Slic3r::bridge_overlap / $Slic3r::resolution, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
+            my $bridge_overlap = 2 * $Slic3r::perimeters * $Slic3r::flow_width / $Slic3r::resolution;
+            my $bridge_offset = ${ offset([$contour], $bridge_overlap, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
             
             # calculate the new bridge
             my $intersection = intersection_ex(

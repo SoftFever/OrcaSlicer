@@ -64,7 +64,6 @@ our $flow_width;
 # print options
 our $perimeters         = 3;
 our $solid_layers       = 3;
-our $bridge_overlap     = 3;    # mm
 our $perimeter_infill_overlap_ratio = 0.15;   # factor for flow width
 our $fill_pattern       = 'rectilinear';
 our $solid_fill_pattern = 'rectilinear';
