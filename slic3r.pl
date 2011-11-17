@@ -49,7 +49,7 @@ GetOptions(
     'infill-every-layers=i' => \$Slic3r::infill_every_layers,
     
     # print options
-    'perimeters=i'          => \$Slic3r::perimeter_offsets,
+    'perimeters=i'          => \$Slic3r::perimeters,
     'solid-layers=i'        => \$Slic3r::solid_layers,
     'fill-pattern=s'        => \$Slic3r::fill_pattern,
     'solid-fill-pattern=s'  => \$Slic3r::solid_fill_pattern,
@@ -168,7 +168,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 1+, 
-                        default: $Slic3r::perimeter_offsets)
+                        default: $Slic3r::perimeters)
     --solid-layers      Number of solid layers to do for top/bottom surfaces
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)

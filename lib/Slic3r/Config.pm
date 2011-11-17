@@ -78,9 +78,10 @@ our $Options = {
     },
     
     # print options
-    'perimeter_offsets' => {
+    'perimeters' => {
         label   => 'Perimeters',
         type    => 'i',
+        aliases => [qw(perimeter_offsets)],
     },
     'solid_layers' => {
         label   => 'Solid layers',
@@ -287,7 +288,7 @@ sub validate {
     
     # --perimeters
     die "Invalid value for --perimeters\n"
-        if $Slic3r::perimeter_offsets < 1;
+        if $Slic3r::perimeters < 1;
     
     # --solid-layers
     die "Invalid value for --solid-layers\n"

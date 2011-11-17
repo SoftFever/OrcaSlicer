@@ -33,7 +33,7 @@ sub new {
         },
         print => {
             title => 'Print settings',
-            options => [qw(perimeter_offsets solid_layers fill_density fill_angle fill_pattern solid_fill_pattern)],
+            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern)],
         },
         retract => {
             title => 'Retraction',
