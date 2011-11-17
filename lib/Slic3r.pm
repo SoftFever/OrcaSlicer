@@ -62,7 +62,7 @@ our $thickness_ratio        = 1;
 our $flow_width;
 
 # print options
-our $perimeter_offsets  = 3;
+our $perimeters         = 3;
 our $solid_layers       = 3;
 our $bridge_overlap     = 3;    # mm
 our $perimeter_infill_overlap_ratio = 0.15;   # factor for flow width

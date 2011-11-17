@@ -12,7 +12,7 @@ sub make_perimeter {
     
     # at least one perimeter is required
     die "Can't slice object with no perimeters!\n"
-        if $Slic3r::perimeter_offsets == 0;
+        if $Slic3r::perimeters == 0;
     
     # this array will hold one arrayref per original surface;
     # each item of this arrayref is an arrayref representing a depth (from inner
@@ -40,7 +40,7 @@ sub make_perimeter {
         
         # create other offsets
         push @perimeters, [];
-        for (my $loop = 0; $loop < $Slic3r::perimeter_offsets; $loop++) {
+        for (my $loop = 0; $loop < $Slic3r::perimeters; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
             @last_offsets = map $_->offset_ex(-$distance), @last_offsets;
             push @{ $perimeters[-1] }, [@last_offsets];
