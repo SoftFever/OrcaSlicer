@@ -58,8 +58,6 @@ sub make_fill {
         ])};
     
         SURFACE: foreach my $surface (@$surfaces) {
-            Slic3r::debugf " Processing surface %s:\n", $surface->id;
-            
             my $filler      = $Slic3r::fill_pattern;
             my $density     = $Slic3r::fill_density;
             my $flow_width  = $Slic3r::flow_width;

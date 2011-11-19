@@ -356,15 +356,23 @@ sub process_bridges {
         ($_->surface_type eq 'bottom' && $self->id > 0) || $_->surface_type eq 'top'
     } @{$self->surfaces} or return;
     
-    my @supporting_surfaces = grep $_->surface_type =~ /internal/, @{$self->surfaces};
+    my @internal_surfaces = grep $_->surface_type =~ /internal/, @{$self->surfaces};
     
     SURFACE: foreach my $surface (@solid_surfaces) {
-        # ignore holes in bridges;
-        # offset the surface a bit to avoid approximation issues when doing the
-        # intersection below (this is to make sure we overlap with supporting
-        # surfaces, otherwise a little gap will result from intersection)
+        # ignore holes in bridges
         my $contour = $surface->expolygon->contour->safety_offset;
         my $description = $surface->surface_type eq 'bottom' ? 'bridge/overhang' : 'reverse bridge';
+        
+        # offset the contour and intersect it with the internal surfaces to discover 
+        # which of them has contact with our bridge
+        my @supporting_surfaces = ();
+        my ($contour_offset) = $contour->offset($Slic3r::flow_width / $Slic3r::resolution);
+        foreach my $internal_surface (@internal_surfaces) {
+            my $intersection = intersection_ex([$contour_offset], [$internal_surface->contour->p]);
+            if (@$intersection) {
+                push @supporting_surfaces, $internal_surface;
+            }
+        }
         
             #use Slic3r::SVG;
             #Slic3r::SVG::output(undef, "bridge.svg",
@@ -372,67 +380,44 @@ sub process_bridges {
             #    red_polygons    => [ $contour ],
             #);
         
-        # find all supported edges (as polylines, thus keeping notion of 
-        # consecutive supported edges)
-        my @supported_polylines = ();
-        {
-            my @current_polyline = ();
-            EDGE: foreach my $edge ($contour->lines) {
-                for my $supporting_surface (@supporting_surfaces) {
-                    local $Slic3r::Geometry::epsilon = 1E+7;
-                    if (Slic3r::Geometry::polygon_has_subsegment($supporting_surface->contour->p, $edge)) {
-                        push @current_polyline, $edge;
-                        next EDGE;
+        next SURFACE unless @supporting_surfaces;
+        Slic3r::debugf "  Found $description on layer %d with %d support(s)\n", 
+            $self->id, scalar(@supporting_surfaces);
+        
+        my $bridge_angle = undef;
+        if ($surface->surface_type eq 'bottom') {
+            # detect optimal bridge angle
+            
+            my $bridge_over_hole = 0;
+            my @edges = ();  # edges are POLYLINES
+            foreach my $supporting_surface (@supporting_surfaces) {
+                my @surface_edges = $supporting_surface->contour->clip_with_polygon($contour_offset);
+                if (@surface_edges == 1 && @{$supporting_surface->contour->p} == @{$surface_edges[0]->p}) {
+                    $bridge_over_hole = 1;
+                } else {
+                    foreach my $edge (@surface_edges) {
+                        shift @{$edge->points};
+                        pop @{$edge->points};
                     }
                 }
-                if (@current_polyline) {
-                    push @supported_polylines, [@current_polyline];
-                    @current_polyline = ();
-                }
+                push @edges, @surface_edges;
             }
-            push @supported_polylines, [@current_polyline] if @current_polyline;
-        }
-        
-        # defensive programming, this shouldn't happen
-        if (@supported_polylines == 0) {
-            Slic3r::debugf "Found $description with no supports on layer %d; ignoring\n", $self->id;
-            next SURFACE;
-        }
-        
-        if (@supported_polylines == 1) {
-            Slic3r::debugf "Found $description with only one support on layer %d; ignoring\n", $self->id;
-            next SURFACE;
-        }
-        
-        # now connect the first point to the last of each polyline
-        @supported_polylines = map [ $_->[0]->[0], $_->[-1]->[-1] ], @supported_polylines;
-        # @supported_polylines becomes actually an array of lines
-        
-        # if we got more than two supports, get the longest two
-        if (@supported_polylines > 2) {
-            my %lengths = map { $_ => Slic3r::Geometry::line_length($_) } @supported_polylines;
-            @supported_polylines = sort { $lengths{"$a"} <=> $lengths{"$b"} } @supported_polylines;
-            @supported_polylines = @supported_polylines[-2,-1];
-        }
-        
-        # connect the midpoints, that will give the the optimal infill direction
-        my @midpoints = map Slic3r::Geometry::midpoint($_), @supported_polylines;
-        my $bridge_angle = -Slic3r::Geometry::rad2deg(Slic3r::Geometry::line_atan(\@midpoints) + PI/2);
-        Slic3r::debugf "Optimal infill angle of bridge on layer %d is %d degrees\n", $self->id, $bridge_angle;
-        
-        # detect which neighbor surfaces are now supporting our bridge
-        my @supporting_neighbor_surfaces = ();
-        foreach my $supporting_surface (@supporting_surfaces) {
-            local $Slic3r::Geometry::epsilon = 1E+7;
-            push @supporting_neighbor_surfaces, $supporting_surface 
-                if grep Slic3r::Geometry::polygon_has_vertex($supporting_surface->contour->p, $_), 
-                    map $_->[0], @supported_polylines;
-        }
-        
-        # defensive programming, this shouldn't happen
-        if (@supporting_neighbor_surfaces == 0) {
-            Slic3r::debugf "Couldn't find supporting surfaces on layer %d; ignoring\n", $self->id;
-            next SURFACE;
+            Slic3r::debugf "    Bridge is supported on %d edge(s)\n", scalar(@edges);
+            Slic3r::debugf "    and covers a hole\n" if $bridge_over_hole;
+            
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(undef, "bridge.svg",
+                    polylines       => [ map $_->p, @edges ],
+                );
+            }
+            
+            if (@edges == 2) {
+                my @chords = map Slic3r::Line->new($_->points->[0], $_->points->[-1]), @edges;
+                my @midpoints = map $_->midpoint, @chords;
+                $bridge_angle = -Slic3r::Geometry::rad2deg(Slic3r::Geometry::line_atan(\@midpoints) + PI/2);
+                Slic3r::debugf "Optimal infill angle of bridge on layer %d is %d degrees\n", $self->id, $bridge_angle;
+            }
         }
         
         # now, extend our bridge by taking a portion of supporting surfaces
@@ -443,7 +428,7 @@ sub process_bridges {
             
             # calculate the new bridge
             my $intersection = intersection_ex(
-                [ $contour, map $_->p, @supporting_neighbor_surfaces ],
+                [ $contour, map $_->p, @supporting_surfaces ],
                 [ $bridge_offset ],
              );
             push @{$self->bridges}, map Slic3r::Surface::Bridge->cast_from_expolygon($_,

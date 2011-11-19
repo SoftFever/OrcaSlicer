@@ -4,9 +4,8 @@ use warnings;
 
 # an ExPolygon is a polygon with holes
 
-use Math::Clipper qw(CT_UNION PFT_NONZERO JT_MITER);
 use Slic3r::Geometry qw(point_in_polygon X Y A B);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
 # or a Math::Clipper ExPolygon (hashref)

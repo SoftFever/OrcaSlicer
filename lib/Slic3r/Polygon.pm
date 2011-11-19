@@ -9,6 +9,7 @@ use warnings;
 
 use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
     polygon_segment_having_point point_in_polygon move_points rotate_points);
+use Slic3r::Geometry::Clipper qw(JT_MITER);
 
 # the constructor accepts an array(ref) of points
 sub new {
@@ -73,6 +74,17 @@ sub area {
 sub safety_offset {
     my $self = shift;
     return (ref $self)->new(Slic3r::Geometry::Clipper::safety_offset([$self])->[0]);
+}
+
+sub offset {
+    my $self = shift;
+    my ($distance, $scale, $joinType, $miterLimit) = @_;
+    $scale      ||= $Slic3r::resolution * 1000000;
+    $joinType   = JT_MITER if !defined $joinType;
+    $miterLimit ||= 2;
+    
+    my $offsets = Math::Clipper::offset([$self], $distance, $scale, $joinType, $miterLimit);
+    return @$offsets;
 }
 
 1;
