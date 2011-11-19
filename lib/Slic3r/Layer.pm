@@ -399,6 +399,7 @@ sub process_bridges {
                         shift @{$edge->points};
                         pop @{$edge->points};
                     }
+                    @surface_edges = grep { @{$_->points} } @surface_edges;
                 }
                 push @edges, @surface_edges;
             }
