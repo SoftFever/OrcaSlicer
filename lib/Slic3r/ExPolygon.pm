@@ -53,6 +53,13 @@ sub offset {
     return @$offsets;
 }
 
+sub safety_offset {
+    my $self = shift;
+    return (ref $self)->new(
+        @{ Slic3r::Geometry::Clipper::safety_offset([@$self]) },
+    );
+}
+
 sub offset_ex {
     my $self = shift;
     my @offsets = $self->offset(@_);

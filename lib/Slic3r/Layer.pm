@@ -359,14 +359,13 @@ sub process_bridges {
     my @internal_surfaces = grep $_->surface_type =~ /internal/, @{$self->surfaces};
     
     SURFACE: foreach my $surface (@solid_surfaces) {
-        # ignore holes in bridges
-        my $contour = $surface->expolygon->contour->safety_offset;
+        my $expolygon = $surface->expolygon->safety_offset;
         my $description = $surface->surface_type eq 'bottom' ? 'bridge/overhang' : 'reverse bridge';
         
         # offset the contour and intersect it with the internal surfaces to discover 
         # which of them has contact with our bridge
         my @supporting_surfaces = ();
-        my ($contour_offset) = $contour->offset($Slic3r::flow_width / $Slic3r::resolution);
+        my ($contour_offset) = $expolygon->contour->offset($Slic3r::flow_width / $Slic3r::resolution);
         foreach my $internal_surface (@internal_surfaces) {
             my $intersection = intersection_ex([$contour_offset], [$internal_surface->contour->p]);
             if (@$intersection) {
@@ -377,7 +376,7 @@ sub process_bridges {
             #use Slic3r::SVG;
             #Slic3r::SVG::output(undef, "bridge.svg",
             #    green_polygons  => [ map $_->p, @supporting_surfaces ],
-            #    red_polygons    => [ $contour ],
+            #    red_polygons    => [ @$expolygon ],
             #);
         
         next SURFACE unless @supporting_surfaces;
@@ -425,13 +424,14 @@ sub process_bridges {
         {
             # offset the bridge by the specified amount of mm
             my $bridge_overlap = 2 * $Slic3r::perimeters * $Slic3r::flow_width / $Slic3r::resolution;
-            my $bridge_offset = ${ offset([$contour], $bridge_overlap, $Slic3r::resolution * 100, JT_MITER, 2) }[0];
+            my ($bridge_offset) = $expolygon->contour->offset($bridge_overlap, $Slic3r::resolution * 100, JT_MITER, 2);
             
             # calculate the new bridge
             my $intersection = intersection_ex(
-                [ $contour, map $_->p, @supporting_surfaces ],
+                [ @$expolygon, map $_->p, @supporting_surfaces ],
                 [ $bridge_offset ],
-             );
+            );
+            
             push @{$self->bridges}, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
                 surface_type => $surface->surface_type,
                 bridge_angle => $bridge_angle,
@@ -484,8 +484,9 @@ sub split_bridges_fills {
         foreach my $bridge (@{$self->bridges}) {
             my $intersection = intersection_ex(
                 [ map $_->p, @surfaces ],
-                [ $bridge->contour->p ],
+                [ $bridge->p ],
             );
+            
             push @$surfaces, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
                 surface_type => $bridge->surface_type,
                 bridge_angle => $bridge->bridge_angle,
@@ -494,7 +495,7 @@ sub split_bridges_fills {
         
         # difference between fill_surfaces and bridges are the other surfaces
         foreach my $surface (@surfaces) {
-            my $difference = diff_ex([ $surface->p ], [ map $_->contour->p, @{$self->bridges} ]);
+            my $difference = diff_ex([ $surface->p ], [ map $_->p, @{$self->bridges} ]);
             push @$surfaces, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $surface->surface_type), @$difference;
         }
