@@ -218,7 +218,7 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                 
                 foreach my $surfaces (@{$self->layers->[$n]->fill_surfaces}) {
-                    my $neighbor_polygons = [ map $_->p, grep $_->surface_type eq 'internal', @$surfaces ];
+                    my $neighbor_polygons = [ map $_->p, @$surfaces ];
                     
                     # find intersection between @surfaces and current layer's surfaces
                     # intersections have contours and holes
@@ -235,26 +235,14 @@ sub discover_horizontal_shells {
                     
                     # assign resulting inner surfaces to layer
                     @$surfaces = ();
-                    foreach my $p (@$internal_polygons) {
-                        push @$surfaces, Slic3r::Surface->new(
-                            surface_type => 'internal',
-                            contour => $p->contour->closed_polyline,
-                            holes   => [
-                                map $_->closed_polyline, $p->holes,
-                            ],
-                        );
-                    }
+                    push @$surfaces, Slic3r::Surface->cast_from_expolygon
+                        ($_, surface_type => 'internal')
+                        for @$internal_polygons;
                     
                     # assign new internal-solid surfaces to layer
-                    foreach my $p (@$intersections) {
-                        push @$surfaces, Slic3r::Surface->new(
-                            surface_type => 'internal-solid',
-                            contour => $p->contour->closed_polyline,
-                            holes   => [
-                                map $_->closed_polyline, $p->holes,
-                            ],
-                        );
-                    }
+                    push @$surfaces, Slic3r::Surface->cast_from_expolygon
+                        ($_, surface_type => 'internal-solid')
+                        for @$intersections;
                 }
             }
         }

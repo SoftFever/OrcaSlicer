@@ -218,7 +218,7 @@ sub make_surfaces {
                 }
                 
                 $next_lines
-                    or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.", $get_point_id->($points[-1]));
+                    or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.\n", $get_point_id->($points[-1]));
                 last CYCLE if !@$next_lines;
                 
                 my @ordered_next_lines = sort 
@@ -300,7 +300,7 @@ sub make_surfaces {
         warn $@ if $@;
         
         if (@discarded_lines) {
-            print "  Warning: even slow detection algorithm throwed errors. Review the output before printing.\n";
+            print "  Warning: even slow detection algorithm threw errors. Review the output before printing.\n";
         }
     }
     
@@ -449,7 +449,8 @@ sub process_bridges {
         my $unique_type = sub { $_[0]->surface_type . "_" . ($_[0]->bridge_angle || '') };
         my @unique_types = ();
         foreach my $bridge (@{$self->bridges}) {
-            push @unique_types, $unique_type->($bridge);
+            my $type = $unique_type->($bridge);
+            push @unique_types, $type unless grep $_ eq $type, @unique_types;
         }
         
         # merge bridges of the same type, removing any of the bridges already merged;
