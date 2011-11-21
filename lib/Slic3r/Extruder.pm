@@ -8,6 +8,7 @@ has 'z'                  => (is => 'rw', default => sub {0} );
 has 'flow_ratio'         => (is => 'rw', default => sub {1});
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
+has 'enable_retraction'  => (is => 'rw', default => sub {1} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { [0,0] } );
@@ -123,7 +124,8 @@ sub retract {
     my $self = shift;
     my %params = @_;
     
-    return "" unless $Slic3r::retract_length > 0 
+    return "" unless $self->enable_retraction 
+        && $Slic3r::retract_length > 0 
         && !$self->retracted;
     
     # prepare moves
