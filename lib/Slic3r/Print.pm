@@ -109,6 +109,23 @@ sub detect_surfaces_type {
             my $upper_surfaces = [ grep { $_->expolygon->contour->area > $min_area } @{$upper_layer->surfaces} ];
             
             @top = $surface_difference->($layer->surfaces, $upper_surfaces, 'top');
+            
+            # now check whether each resulting top surfaces is large enough to have its
+            # own perimeters or whether it may be sufficient to use the lower layer's 
+            # perimeters	  	
+            # offset upper layer's surfaces
+            my $upper_surfaces_offsetted;
+            {
+                my $distance = $Slic3r::flow_width * ($Slic3r::perimeters) / $Slic3r::resolution;
+                $upper_surfaces_offsetted = offset([ map $_->p, @{$upper_layer->surfaces} ], $distance, 100, JT_MITER, 2);
+            }
+            
+            @top = grep {
+                my $surface = $_;
+                my $diff = diff_ex([ map $_->p, $surface ], $upper_surfaces_offsetted);
+                @$diff;
+            } @top;
+            
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->surfaces};
@@ -276,8 +293,6 @@ sub extrude_perimeters {
     foreach my $layer (@{ $self->layers }) {
         $layer->detect_perimeter_surfaces;
         $perimeter_extruder->make_perimeter($layer);
-        Slic3r::debugf "  generated paths: %s\n",
-            join '  ', map $_->id, @{ $layer->perimeters } if $Slic3r::debug;
     }
 }
 
@@ -374,9 +389,6 @@ sub extrude_fills {
     
     foreach my $layer (@{ $self->layers }) {
         $fill_extruder->make_fill($layer);
-        Slic3r::debugf "  generated %d paths: %s\n",
-            scalar @{ $layer->fills },
-            join '  ', map $_->id, map @{$_->paths}, @{ $layer->fills } if $Slic3r::debug;
     }
 }
 

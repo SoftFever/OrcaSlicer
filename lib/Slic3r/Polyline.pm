@@ -156,6 +156,11 @@ sub clip_with_expolygon {
         push @polylines, $current_polyline;
     }
     
+    if (@polylines > 1 && scalar(@{$polylines[-1]}) == 2 && $polylines[-1][-1] eq $polylines[0][0]) {
+        unshift @{$polylines[0]}, $polylines[-1][0];
+        pop @polylines;
+    }
+    
     return map Slic3r::Polyline->cast($_), @polylines;
 }
 

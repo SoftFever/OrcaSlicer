@@ -58,15 +58,14 @@ sub make_fill {
         ])};
     
         SURFACE: foreach my $surface (@$surfaces) {
-            Slic3r::debugf " Processing surface %s:\n", $surface->id;
-            
             my $filler      = $Slic3r::fill_pattern;
             my $density     = $Slic3r::fill_density;
             my $flow_width  = $Slic3r::flow_width;
             
             # force 100% density and rectilinear fill for external surfaces
             if ($surface->surface_type ne 'internal') {
-                my $is_bridge = $surface->isa('Slic3r::Surface::Bridge');
+                my $is_bridge = $surface->isa('Slic3r::Surface::Bridge')
+                    && $surface->surface_type eq 'bottom';
                 $density = 1;
                 $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
                 $flow_width = $Slic3r::nozzle_diameter if $is_bridge;

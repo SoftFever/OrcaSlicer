@@ -4,9 +4,8 @@ use warnings;
 
 # an ExPolygon is a polygon with holes
 
-use Math::Clipper qw(CT_UNION PFT_NONZERO JT_MITER);
 use Slic3r::Geometry qw(point_in_polygon X Y A B);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
 # or a Math::Clipper ExPolygon (hashref)
@@ -52,6 +51,13 @@ sub offset {
     
     my $offsets = Math::Clipper::offset($self, $distance, $scale, $joinType, $miterLimit);
     return @$offsets;
+}
+
+sub safety_offset {
+    my $self = shift;
+    return (ref $self)->new(
+        @{ Slic3r::Geometry::Clipper::safety_offset([@$self]) },
+    );
 }
 
 sub offset_ex {
