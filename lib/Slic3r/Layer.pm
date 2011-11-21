@@ -297,6 +297,7 @@ sub make_surfaces {
         
         $self->cleanup_lines;
         eval { $detect->(); };
+        warn $@ if $@;
         
         if (@discarded_lines) {
             print "  Warning: even slow detection algorithm throwed errors. Review the output before printing.\n";
@@ -440,6 +441,36 @@ sub process_bridges {
                 bridge_angle => $bridge_angle,
             ), @$intersection;
         }
+    }
+    
+    # now we need to merge bridges to avoid overlapping
+    {
+        # build a list of unique bridge types
+        my $unique_type = sub { $_[0]->surface_type . "_" . ($_[0]->bridge_angle || '') };
+        my @unique_types = ();
+        foreach my $bridge (@{$self->bridges}) {
+            push @unique_types, $unique_type->($bridge);
+        }
+        
+        # merge bridges of the same type, removing any of the bridges already merged;
+        # the order of @unique_types determines the priority between bridges having 
+        # different surface_type or bridge_angle
+        my @bridges = ();
+        foreach my $type (@unique_types) {
+            my @surfaces = grep { $unique_type->($_) eq $type } @{$self->bridges};
+            my $union = union_ex([ map $_->p, @surfaces ]);
+            my $diff = diff_ex(
+                [ map @$_, @$union ],
+                [ map $_->p, @bridges ],
+            );
+            
+            push @bridges, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
+                surface_type => $surfaces[0]->surface_type,
+                bridge_angle => $surfaces[0]->bridge_angle,
+            ), @$union;
+        }
+        
+        @{$self->bridges} = @bridges;
     }
 }
 
