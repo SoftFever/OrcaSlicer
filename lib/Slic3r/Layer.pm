@@ -158,6 +158,7 @@ sub make_surfaces {
     my $self = shift;
     
     if (0) {
+        printf "Layer was sliced at z = %f\n", $self->slice_z * $Slic3r::resolution;
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output(undef, "lines.svg",
             lines       => [ grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
@@ -206,12 +207,15 @@ sub make_surfaces {
                     }
                 }
                 
-                #Slic3r::SVG::output(undef, "lines.svg",
-                #    lines       => [ map $_->p, grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-                #    red_lines   => [ map $_->p, grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
-                #    points      => [ $points[-1] ],
-                #    no_arrows => 1,
-                #) if !$next_lines;
+                if (0 && !$next_lines) {
+                    require "Slic3r/SVG.pm";
+                    Slic3r::SVG::output(undef, "no_lines.svg",
+                        lines       => [ grep !$_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+                        red_lines   => [ grep  $_->isa('Slic3r::Line::FacetEdge'), @{$self->lines} ],
+                        points      => [ $points[-1] ],
+                        no_arrows => 1,
+                    );
+                }
                 
                 $next_lines
                     or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.", $get_point_id->($points[-1]));
@@ -289,11 +293,10 @@ sub make_surfaces {
             Slic3r::SVG::output(undef, "layer" . $self->id . "_discarded_polylines.svg",
                 polylines   => \@discarded_polylines,
             );
-            exit;
         }
         
         $self->cleanup_lines;
-        $detect->();
+        eval { $detect->(); };
         
         if (@discarded_lines) {
             print "  Warning: even slow detection algorithm throwed errors. Review the output before printing.\n";
