@@ -15,7 +15,7 @@ sub infill_direction {
     # set infill angle
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle);
-    $rotate[1] = [ $self->max_print_dimension / 2, $self->max_print_dimension / 2 ];
+    $rotate[1] = [ $self->max_print_dimension * sqrt(2) / 2, $self->max_print_dimension * sqrt(2) / 2 ];
     @shift = @{$rotate[1]};
     
     # alternate fill direction
