@@ -19,32 +19,33 @@ sub go {
     # each layer has surfaces with holes
     my $print = Slic3r::Print->new_from_stl($self->input_file);
     
-    # this will detect the type of each surface (top/bottom/internal)
-    # by splitting them if necessary
+    # make skirt
+    $print->extrude_skirt;
+    
+    # make perimeters
+    # this will add a set of extrusion loops to each layer
+    # as well as generate infill boundaries
+    {
+        my $perimeter_maker = Slic3r::Perimeter->new;
+        $perimeter_maker->make_perimeter($_) for @{$print->layers};
+    }
+    
+    # this will prepare surfaces for perimeters by merging all
+    # surfaces in each layer; it will also clip $layer->surfaces 
+    # to infill boundaries and split them in top/bottom/internal surfaces
     $print->detect_surfaces_type;
     
     # this will remove unprintable surfaces
     # (those that are too tight for extrusion)
     $_->remove_small_surfaces for @{$print->layers};
     
-    # make bridges printable
-    # this will add a set of bridges to each layer
+    # this will detect bridges and reverse bridges
+    # and rearrange top/bottom/internal surfaces
     $_->process_bridges for @{$print->layers};
-    
-    # make skirt
-    $print->extrude_skirt;
-    
-    # make perimeters
-    # this will add a set of extrusion loops to each layer
-    # as well as a set of surfaces to be filled
-    $print->extrude_perimeters;
     
     # this will remove unprintable perimeter loops
     # (those that are too tight for extrusion)
     $_->remove_small_perimeters for @{$print->layers};
-    
-    # split fill_surfaces in internal and bridge surfaces
-    $_->split_bridges_fills for @{$print->layers};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
@@ -54,7 +55,10 @@ sub go {
     $print->infill_every_layers;
     
     # this will generate extrusion paths for each layer
-    $print->extrude_fills;
+    {
+        my $fill_maker = Slic3r::Fill->new('print' => $print);
+        $fill_maker->make_fill($_) for @{$print->layers};
+    }
     
     # output everything to a GCODE file
     if (!$self->output_file) {

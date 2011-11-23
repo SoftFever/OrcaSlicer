@@ -11,6 +11,7 @@ use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Fill::Rectilinear2;
 use Slic3r::Geometry qw(shortest_path);
+use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
 use XXX;
 
@@ -45,50 +46,64 @@ sub make_fill {
     
     printf "Filling layer %d:\n", $layer->id;
     
-    # organize $layer->fill_surfaces using a shortest path search
-    @{ $layer->fill_surfaces } = @{shortest_path([
-        map [ $_->[0]->contour->points->[0], $_ ], grep @$_, @{ $layer->fill_surfaces },
-    ])};
-    
-    foreach my $surfaces (@{ $layer->fill_surfaces }) {
-    
-        # organize $surfaces using a shortest path search
-        @$surfaces = @{shortest_path([
-            map [ $_->contour->points->[0], $_ ], @$surfaces,
-        ])};
-    
-        SURFACE: foreach my $surface (@$surfaces) {
-            my $filler      = $Slic3r::fill_pattern;
-            my $density     = $Slic3r::fill_density;
-            my $flow_width  = $Slic3r::flow_width;
+    # merge overlapping surfaces
+    my @surfaces = ();
+    {
+        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layer->surfaces};
+        foreach my $group (Slic3r::Surface->group({merge_solid => 1}, @{$layer->surfaces})) {
+            my $union = union_ex([ map $_->p, @$group ]);
             
-            # force 100% density and rectilinear fill for external surfaces
-            if ($surface->surface_type ne 'internal') {
-                my $is_bridge = $layer->id > 0 && $surface->surface_type eq 'bottom';
-                $density = 1;
-                $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
-                $flow_width = $Slic3r::nozzle_diameter if $is_bridge;
-            } else {
-                next SURFACE unless $density > 0;
+            # subtract surfaces having a defined bridge_angle from any other
+            if (@surfaces_with_bridge_angle && !defined $group->[0]->bridge_angle) {
+                $union = diff_ex(
+                    [ map @$_, @$union ],
+                    [ map $_->p, @surfaces_with_bridge_angle ],
+                );
             }
             
-            my @paths = $self->fillers->{$filler}->fill_surface(
-                $surface,
-                density     => $density,
-                flow_width  => $flow_width,
-            );
-            
-            # save into layer
-            push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
-                paths => [
-                    map Slic3r::ExtrusionPath->cast(
-                        [ @$_ ],
-                        depth_layers => $surface->depth_layers,
-                    ), @paths,
-                ],
-            );
-            $layer->fills->[-1]->cleanup;
+            push @surfaces, map Slic3r::Surface->cast_from_expolygon($_,
+                surface_type => $group->[0]->surface_type,
+                bridge_angle => $group->[0]->bridge_angle,
+            ), @$union;
         }
+    }
+    
+    # organize infill surfaces using a shortest path search
+    @surfaces = @{shortest_path([
+        map [ $_->contour->points->[0], $_ ], @surfaces,
+    ])};
+    
+    SURFACE: foreach my $surface (@surfaces) {
+        my $filler      = $Slic3r::fill_pattern;
+        my $density     = $Slic3r::fill_density;
+        my $flow_width  = $Slic3r::flow_width;
+        
+        # force 100% density and rectilinear fill for external surfaces
+        if ($surface->surface_type ne 'internal') {
+            my $is_bridge = $layer->id > 0 && $surface->surface_type eq 'bottom';
+            $density = 1;
+            $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
+            $flow_width = $Slic3r::nozzle_diameter if $is_bridge;
+        } else {
+            next SURFACE unless $density > 0;
+        }
+        
+        my @paths = $self->fillers->{$filler}->fill_surface(
+            $surface,
+            density     => $density,
+            flow_width  => $flow_width,
+        );
+        
+        # save into layer
+        push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
+            paths => [
+                map Slic3r::ExtrusionPath->cast(
+                    [ @$_ ],
+                    depth_layers => $surface->depth_layers,
+                ), @paths,
+            ],
+        );
+        $layer->fills->[-1]->cleanup;
     }
 }
 

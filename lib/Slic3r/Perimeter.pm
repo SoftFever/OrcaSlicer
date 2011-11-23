@@ -28,12 +28,12 @@ sub make_perimeter {
     # )
     my @perimeters = ();  # one item per depth; each item
     
-    # organize $layer->perimeter_surfaces using a shortest path search
-    @{ $layer->perimeter_surfaces } = @{shortest_path([
-        map [ $_->contour->points->[0], $_ ], @{ $layer->perimeter_surfaces },
+    # organize perimeter surfaces using a shortest path search
+    my @surfaces = @{shortest_path([
+        map [ $_->contour->points->[0], $_ ], @{$layer->surfaces},
     ])};
     
-    foreach my $surface (@{ $layer->perimeter_surfaces }) {
+    foreach my $surface (@surfaces) {
         # the outer loop must be offsetted by half extrusion width inwards
         my @last_offsets = ($surface->expolygon);
         my $distance = $Slic3r::flow_width / 2 / $Slic3r::resolution;
@@ -52,11 +52,11 @@ sub make_perimeter {
         # create one more offset to be used as boundary for fill
         {
             $distance -= $Slic3r::flow_width * $Slic3r::perimeter_infill_overlap_ratio / $Slic3r::resolution;
-            my @fill_surfaces = map Slic3r::Surface->cast_from_expolygon
+            my @fill_boundaries = map Slic3r::Surface->cast_from_expolygon
                 ($_, surface_type => $surface->surface_type),
                 map $_->offset_ex(-$distance), @last_offsets;
             
-            push @{ $layer->fill_surfaces }, [@fill_surfaces] if @fill_surfaces;
+            push @{ $layer->fill_boundaries }, @fill_boundaries if @fill_boundaries;
         }
     }
     
