@@ -4,7 +4,7 @@ use Moo;
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::Geometry qw(X Y PI);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
-    offset JT_ROUND JT_MITER);
+    union_ex offset JT_ROUND JT_MITER);
 use XXX;
 
 has 'x_length' => (
@@ -220,27 +220,32 @@ sub discover_horizontal_shells {
                 
                 foreach my $surfaces (@{$self->layers->[$n]->fill_surfaces}) {
                     my @neighbor = @$surfaces;
-                    my $neighbor_p = [ map $_->p, @neighbor ];
                     
                     # find intersection between @surfaces and current layer's surfaces
                     # intersections have contours and holes
-                    my $intersections = intersection_ex($surfaces_p, $neighbor_p);
+                    my $new_internal_solid = intersection_ex(
+                        $surfaces_p,
+                        [ map $_->p, grep $_->surface_type =~ /internal/, @neighbor ],
+                    );
+                    next if !@$new_internal_solid;
                     
-                    next if @$intersections == 0;
+                    # internal-solid are the union of the existing internal-solid surfaces
+                    # and new ones
+                    my $internal_solid = union_ex([
+                        ( map $_->p, grep $_->surface_type eq 'internal-solid', @neighbor ),
+                        ( map @$_, @$new_internal_solid ),
+                    ]);
                     
                     # subtract intersections from layer surfaces to get resulting inner surfaces
                     my $internal = diff_ex(
-                        $neighbor_p,
-                        [
-                            (map @$_, @$intersections),
-                            (map $_->p, grep $_->surface_type !~ /internal/, @neighbor),
-                        ],
+                        [ map $_->p, grep $_->surface_type eq 'internal', @neighbor ],
+                        [ map @$_, @$internal_solid ],
                     );
                     Slic3r::debugf "    %d internal-solid and %d internal surfaces found\n",
-                        scalar(@$intersections), scalar(@$internal);
+                        scalar(@$internal_solid), scalar(@$internal);
                     
                     # Note: due to floating point math we're going to get some very small
-                    # polygons as $internal_polygons; they will be removed by removed_small_features()
+                    # polygons as $internal; they will be removed by removed_small_features()
                     
                     # assign resulting inner surfaces to layer
                     @$surfaces = ();
@@ -251,15 +256,16 @@ sub discover_horizontal_shells {
                     # assign new internal-solid surfaces to layer
                     push @$surfaces, Slic3r::Surface->cast_from_expolygon
                         ($_, surface_type => 'internal-solid')
-                        for @$intersections;
+                        for @$internal_solid;
                     
-                    for my $neigh_type (qw(top bottom)) {
+                    # assign top and bottom surfaces to layer
+                    foreach my $s (Slic3r::Surface->group(grep $_->surface_type =~ /top|bottom/, @neighbor)) {
                         my $solid_surfaces = diff_ex(
-                            [ map $_->p, grep $_->surface_type eq $neigh_type, @neighbor ],
-                            [ map @$_, @$intersections, @$internal ],
+                            [ map $_->p, @$s ],
+                            [ map @$_, @$internal_solid, @$internal ],
                         );
                         push @$surfaces, Slic3r::Surface->cast_from_expolygon
-                            ($_, surface_type => $neigh_type)
+                            ($_, surface_type => $s->[0]->surface_type, bridge_angle => $s->[0]->bridge_angle)
                             for @$solid_surfaces;
                     }
                 }

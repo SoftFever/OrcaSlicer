@@ -32,7 +32,7 @@ has 'surfaces' => (
 # collection of surfaces representing bridges
 has 'bridges' => (
     is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::Surface::Bridge]',
+    #isa     => 'ArrayRef[Slic3r::Surface]',
     default => sub { [] },
 );
 
@@ -436,7 +436,7 @@ sub process_bridges {
                 [ $bridge_offset ],
             );
             
-            push @{$self->bridges}, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
+            push @{$self->bridges}, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $surface->surface_type,
                 bridge_angle => $bridge_angle,
             ), @$intersection;
@@ -446,32 +446,24 @@ sub process_bridges {
     # now we need to merge bridges to avoid overlapping
     {
         # build a list of unique bridge types
-        my $unique_type = sub { $_[0]->surface_type . "_" . ($_[0]->bridge_angle || '') };
-        my @unique_types = ();
-        foreach my $bridge (@{$self->bridges}) {
-            my $type = $unique_type->($bridge);
-            push @unique_types, $type unless grep $_ eq $type, @unique_types;
-        }
+        my @surface_groups = Slic3r::Surface->group(@{$self->bridges});
         
         # merge bridges of the same type, removing any of the bridges already merged;
-        # the order of @unique_types determines the priority between bridges having 
+        # the order of @surface_groups determines the priority between bridges having 
         # different surface_type or bridge_angle
-        my @bridges = ();
-        foreach my $type (@unique_types) {
-            my @surfaces = grep { $unique_type->($_) eq $type } @{$self->bridges};
-            my $union = union_ex([ map $_->p, @surfaces ]);
+        @{$self->bridges} = ();
+        foreach my $surfaces (@surface_groups) {
+            my $union = union_ex([ map $_->p, @$surfaces ]);
             my $diff = diff_ex(
                 [ map @$_, @$union ],
-                [ map $_->p, @bridges ],
+                [ map $_->p, @{$self->bridges} ],
             );
             
-            push @bridges, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
-                surface_type => $surfaces[0]->surface_type,
-                bridge_angle => $surfaces[0]->bridge_angle,
+            push @{$self->bridges}, map Slic3r::Surface->cast_from_expolygon($_,
+                surface_type => $surfaces->[0]->surface_type,
+                bridge_angle => $surfaces->[0]->bridge_angle,
             ), @$union;
         }
-        
-        @{$self->bridges} = @bridges;
     }
 }
 
@@ -522,17 +514,18 @@ sub split_bridges_fills {
                 [ $bridge->p ],
             );
             
-            push @$surfaces, map Slic3r::Surface::Bridge->cast_from_expolygon($_,
+            push @$surfaces, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $bridge->surface_type,
                 bridge_angle => $bridge->bridge_angle,
             ), @$intersection;
         }
         
         # difference between fill_surfaces and bridges are the other surfaces
-        foreach my $surface (@surfaces) {
-            my $difference = diff_ex([ $surface->p ], [ map $_->p, @{$self->bridges} ]);
+        foreach my $type (qw(top bottom internal internal-solid)) {
+            my @my_surfaces = grep $_->surface_type eq $type, @surfaces;
+            my $difference = diff_ex([ map $_->p, @my_surfaces ], [ map $_->p, @{$self->bridges} ]);
             push @$surfaces, map Slic3r::Surface->cast_from_expolygon($_,
-                surface_type => $surface->surface_type), @$difference;
+                surface_type => $type), @$difference;
         }
     }
 }

@@ -22,6 +22,8 @@ has 'surface_type' => (
 # this integer represents the thickness of the surface expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
 
+has 'bridge_angle' => (is => 'ro');
+
 sub cast_from_polygon {
     my $class = shift;
     my ($polygon, %args) = @_;
@@ -45,6 +47,25 @@ sub cast_from_expolygon {
         holes   => [ map $_->closed_polyline, $expolygon->holes ],
         %args,
     );
+}
+
+# static method to group surfaces having same surface_type and bridge_angle
+sub group {
+    my $class = shift;
+    my (@surfaces) = @_;
+    
+    my $unique_type = sub { $_[0]->surface_type . "_" . ($_[0]->bridge_angle || '') };
+    my @unique_types = ();
+    foreach my $surface (@surfaces) {
+        my $type = $unique_type->($surface);
+        push @unique_types, $type unless grep $_ eq $type, @unique_types;
+    }
+    
+    my @groups = ();
+    foreach my $type (@unique_types) {
+        push @groups, [ grep { $unique_type->($_) eq $type } @surfaces ];
+    }
+    return @groups;
 }
 
 sub add_hole {
