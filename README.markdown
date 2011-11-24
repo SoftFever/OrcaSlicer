@@ -6,49 +6,42 @@ A: Yes.
 
 ## What's it?
 
-Slic3r is an STL-to-GCODE translator for RepRap 3D printers, 
-like Enrique's Skeinforge or RevK's E3D.
+Slic3r is an STL-to-GCODE translator for RepRap 3D printers, aiming to
+be a modern and fast alternative to Skeinforge.
 
 See the [project homepage](http://slic3r.org/) at slic3r.org
 for more information.
 
-## Why a new one? Why Perl?
+## What language is it written in?
 
-The purpose is to build something more maintainable and flexible than both
-Skeinforge and E3D. The code makes extensive use of object-oriented 
-programming to achieve some level of abstraction instead of working with
-raw geometry and low-level data structures.
-This should help to maintain code, fix bugs and implement new and better
-algorithms in the future.
-I also aim at implementing better support for hollow objects, as Skeinforge
-isn't smart enough to generate internal support structures for horizontal
-facets.
-
-Also, http://xkcd.com/224/
+Proudly Perl, with some parts in C++.
+If you're wondering why Perl, see http://xkcd.com/224/
 
 ## What's its current status?
 
-Slic3r current features are:
+Slic3r current key features are:
 
-* multi-platform (Linux/Mac/Win);
+* multi-platform (Linux/Mac/Win) and packaged as standalone-app with no dependencies required;
 * easy configuration/calibration;
 * read binary and ASCII STL files;
-* generate multiple perimeters (skins);
-* generate rectilinear fill;
-* set 0% - 100% infill density;
-* set infill angle;
+* powerful command line interface;
+* easy GUI
+* multiple infill patterns, with customizable density and angle;
 * retraction;
-* skirt (with rounded corners);
-* use relative or absolute extrusion commands;
+* skirt;
 * infill every N layers (like the "Skin" plugin for Skeinforge);
 * detect optimal infill direction for bridges;
 * save configuration profiles;
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and duplicate input object;
-* customizable initial and final GCODE (using command line only);
-* use different speed for bottom layer and perimeters;
-* experimental support for G2/G3 native arcs.
+* customizable initial and final GCODE;
+* use different speed for bottom layer and perimeters.
+
+Experimental features include:
+
+* generation of G2/G3 commands for native arcs;
+* G0 commands for fast retraction.
 
 Roadmap includes the following goals:
 
@@ -58,9 +51,13 @@ Roadmap includes the following goals:
 * cool;
 * other fill patterns.
 
-## Is it usable already?
+## Is it usable already? Any known limitation?
 
-Yes!
+Sure, it's very usable. Remember that:
+
+* it doesn't currently support single-walled parts (such as thin calibration objects);
+* it doesn't generate support material;
+* it only works well with manifold models (check them with Meshlab or Netfabb or http://cloud.netfabb.com/).
 
 ## How to install?
 
@@ -160,7 +157,14 @@ The author is Alessandro Ranellucci (me).
         --duplicate-x       Number of items along X axis (1+, default: 1)
         --duplicate-y       Number of items along Y axis (1+, default: 1)
         --duplicate-distance Distance in mm between copies (default: 6)
-        
+
+If you want to change a preset file, just do
+
+    slic3r.pl --load config.ini --layer-height 0.25 --save config.ini
+
+If you want to slice a file overriding an option contained in your preset file:
+
+    slic3r.pl --load config.ini --layer-height 0.25 file.stl
 
         
 
