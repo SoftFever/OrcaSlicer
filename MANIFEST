@@ -8,7 +8,13 @@ lib/Slic3r/ExtrusionPath.pm
 lib/Slic3r/ExtrusionPath/Arc.pm
 lib/Slic3r/ExtrusionPath/Collection.pm
 lib/Slic3r/Fill.pm
+lib/Slic3r/Fill/ArchimedeanChords.pm
 lib/Slic3r/Fill/Base.pm
+lib/Slic3r/Fill/Flowsnake.pm
+lib/Slic3r/Fill/HilbertCurve.pm
+lib/Slic3r/Fill/Line.pm
+lib/Slic3r/Fill/OctagramSpiral.pm
+lib/Slic3r/Fill/PlanePath.pm
 lib/Slic3r/Fill/Rectilinear.pm
 lib/Slic3r/Fill/Rectilinear2.pm
 lib/Slic3r/Geometry.pm
@@ -31,7 +37,6 @@ lib/Slic3r/Print.pm
 lib/Slic3r/Skein.pm
 lib/Slic3r/STL.pm
 lib/Slic3r/Surface.pm
-lib/Slic3r/Surface/Bridge.pm
 lib/Slic3r/SVG.pm
 MANIFEST			This list of files
 README.markdown
