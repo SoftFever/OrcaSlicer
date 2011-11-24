@@ -402,11 +402,8 @@ sub export_gcode {
         
         # extrude fills
         for my $fill (@{ $layer->fills }) {
-            for ($fill->shortest_path($extruder->last_pos)) {
-                printf $fh $extruder->extrude($_, 'fill');
-                $extruder->enable_retraction(0);
-            }
-            $extruder->enable_retraction(1);
+            printf $fh $extruder->extrude($_, 'fill') 
+                for $fill->shortest_path($extruder->last_pos);
         }
     }
     
