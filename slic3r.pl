@@ -35,7 +35,7 @@ GetOptions(
     # filament options
     'filament-diameter=f'           => \$Slic3r::filament_diameter,
     'filament-packing-density=f'    => \$Slic3r::filament_packing_density,
-    'temperature=i'         => \$Slic3r::temperature,
+    'temperature=i'                 => \$Slic3r::temperature,
     
     # speed options
     'print-feed-rate=i'             => \$Slic3r::print_feed_rate,
@@ -44,9 +44,10 @@ GetOptions(
     'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
     
     # accuracy options
-    'layer-height=f'        => \$Slic3r::layer_height,
-    'first-layer-height-ratio=f' => \$Slic3r::first_layer_height_ratio,
-    'infill-every-layers=i' => \$Slic3r::infill_every_layers,
+    'layer-height=f'                => \$Slic3r::layer_height,
+    'extrusion-width-ratio=f'       => \$Slic3r::extrusion_width_ratio,
+    'first-layer-height-ratio=f'    => \$Slic3r::first_layer_height_ratio,
+    'infill-every-layers=i'         => \$Slic3r::infill_every_layers,
     
     # print options
     'perimeters=i'          => \$Slic3r::perimeters,
@@ -165,6 +166,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         layer with (> 0, default: $Slic3r::first_layer_height_ratio)
     --infill-every-layers
                         Infill every N layers (default: $Slic3r::infill_every_layers)
+    --extrusion-width-ratio
+                        Calculate the extrusion width as the layer height multiplied by
+                        this value (> 0, default: calculated automatically)
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 1+, 

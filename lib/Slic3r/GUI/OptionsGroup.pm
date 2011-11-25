@@ -32,7 +32,7 @@ sub new {
                 $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             }
             
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->get($opt_key),
+            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->get($opt_key) || '',
                 Wx::wxDefaultPosition, $size, $style);
             EVT_TEXT($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue) });
             push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->get($opt_key)) };

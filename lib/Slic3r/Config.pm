@@ -68,6 +68,10 @@ our $Options = {
         label   => 'Layer height (mm)',
         type    => 'f',
     },
+    'extrusion_width_ratio' => {
+        label   => 'Extrusion width (ratio over layer height; leave empty to calculate automatically)',
+        type    => 'f',
+    },
     'first_layer_height_ratio' => {
         label   => 'First layer height ratio',
         type    => 'f',
@@ -276,15 +280,21 @@ sub validate {
     die "First layer height can't be greater than --nozzle-diameter\n"
         if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) > $Slic3r::nozzle_diameter;
     $Slic3r::flow_width = ($Slic3r::nozzle_diameter**2) 
-        * $Slic3r::thickness_ratio * PI / (4 * $Slic3r::layer_height);
+        * $Slic3r::flow_speed_ratio * PI / (4 * $Slic3r::layer_height);
     
     my $max_flow_width = $Slic3r::layer_height + $Slic3r::nozzle_diameter;
     if ($Slic3r::flow_width > $max_flow_width) {
-        $Slic3r::thickness_ratio = $max_flow_width / $Slic3r::flow_width;
+        $Slic3r::flow_speed_ratio = $max_flow_width / $Slic3r::flow_width;
         $Slic3r::flow_width = $max_flow_width;
+    }
+    if ($Slic3r::extrusion_width_ratio) {
+        my $flow_width = $Slic3r::layer_height * $Slic3r::extrusion_width_ratio;
+        $Slic3r::flow_speed_ratio = $flow_width / $Slic3r::flow_width;
+        $Slic3r::flow_width = $flow_width;
     }
     
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
+    Slic3r::debugf "Flow speed ratio = $Slic3r::flow_speed_ratio\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"

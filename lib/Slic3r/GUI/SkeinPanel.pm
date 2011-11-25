@@ -51,6 +51,10 @@ sub new {
             title => 'Custom GCODE',
             options => [qw(start_gcode end_gcode)],
         },
+        extrusion => {
+            title => 'Extrusion',
+            options => [qw(extrusion_width_ratio)],
+        },
     );
     $self->{panels} = \%panels;
     
@@ -73,13 +77,17 @@ sub new {
         return $tab;
     };
     
-    my $tab1 = $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]);
-    my $tab2 = $make_tab->([qw(printer filament)], [qw(speed)]);
-    my $tab3 = $make_tab->([qw(gcode)]);
+    my @tabs = (
+        $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]),
+        $make_tab->([qw(printer filament)], [qw(speed)]),
+        $make_tab->([qw(gcode)]),
+        $make_tab->([qw(extrusion)]),
+    );
     
-    $tabpanel->AddPage($tab1, "Print Settings");
-    $tabpanel->AddPage($tab2, "Printer and Filament");
-    $tabpanel->AddPage($tab3, "Start/End GCODE");
+    $tabpanel->AddPage($tabs[0], "Print Settings");
+    $tabpanel->AddPage($tabs[1], "Printer and Filament");
+    $tabpanel->AddPage($tabs[2], "Start/End GCODE");
+    $tabpanel->AddPage($tabs[3], "Advanced");
         
     my $buttons_sizer;
     {
