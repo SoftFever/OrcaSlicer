@@ -34,7 +34,7 @@ GetOptions(
     
     # filament options
     'filament-diameter=f'           => \$Slic3r::filament_diameter,
-    'filament-packing-density=f'    => \$Slic3r::filament_packing_density,
+    'extrusion-multiplier=f'        => \$Slic3r::extrusion_multiplier,
     'temperature=i'                 => \$Slic3r::temperature,
     
     # speed options
@@ -145,9 +145,10 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)
-    --filament-packing-density
-                        Ratio of the extruded volume over volume pushed 
-                        into the extruder (default: $Slic3r::filament_packing_density)
+    --extrusion-multiplier
+                        Change this to alter the amount of plastic extruded. There should be very little
+                        need to change this value, which is only useful to compensate for
+                        filament packing (default: $Slic3r::extrusion_multiplier)
     --temperature       Extrusion temperature, set 0 to disable (default: $Slic3r::temperature)
     
   Speed options:

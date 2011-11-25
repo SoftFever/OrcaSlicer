@@ -43,7 +43,7 @@ our $g0                 = 0;
 
 # filament options
 our $filament_diameter  = 3;    # mm
-our $filament_packing_density = 1;
+our $extrusion_multiplier = 1;
 our $temperature        = 200;
 
 # speed options

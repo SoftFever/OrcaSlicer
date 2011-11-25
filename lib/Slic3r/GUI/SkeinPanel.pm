@@ -21,7 +21,7 @@ sub new {
         },
         filament => {
             title => 'Filament',
-            options => [qw(filament_diameter filament_packing_density temperature)],
+            options => [qw(filament_diameter extrusion_multiplier temperature)],
         },
         speed => {
             title => 'Speed',

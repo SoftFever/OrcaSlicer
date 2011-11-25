@@ -103,7 +103,7 @@ sub extrude {
         * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
         * $Slic3r::flow_speed_ratio 
         * $self->flow_ratio
-        * $Slic3r::filament_packing_density
+        * $Slic3r::extrusion_multiplier
         * $path->depth_layers;
     
     # extrude arc or line

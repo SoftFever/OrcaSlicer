@@ -36,9 +36,10 @@ our $Options = {
         label   => 'Diameter (mm)',
         type    => 'f',
     },
-    'filament_packing_density' => {
-        label   => 'Packing density',
+    'extrusion_multiplier' => {
+        label   => 'Extrusion multiplier',
         type    => 'f',
+        aliases => [qw(filament_packing_density)],
     },
     'temperature' => {
         label   => 'Temperature (°C)',
