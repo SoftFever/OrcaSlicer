@@ -285,7 +285,7 @@ sub infill_every_layers {
         my $layer = $self->layer($i);
         
         # skip layer if no internal fill surfaces
-        next if !grep $_->surface_type eq 'internal', map @$_, @{$layer->surfaces};
+        next if !grep $_->surface_type eq 'internal', @{$layer->surfaces};
         
         # for each possible depth, look for intersections with the lower layer
         # we do this from the greater depth to the smaller
@@ -295,65 +295,63 @@ sub infill_every_layers {
             
             # select surfaces of the lower layer having the depth we're looking for
             my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type eq 'internal',
-                map @$_, @{$lower_layer->surfaces};
+                @{$lower_layer->surfaces};
             next if !@lower_surfaces;
-            # process each group of surfaces separately
-            foreach my $surfaces (@{$layer->surfaces}) {
-                # calculate intersection between our surfaces and theirs
-                my $intersection = intersection_ex(
-                    [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
-                    [ map $_->p, grep $_->surface_type eq 'internal', @$surfaces ],
-                );
-                next if !@$intersection;
-                my $intersection_offsetted = safety_offset([ map @$_, @$intersection ]);
+            
+            # calculate intersection between our surfaces and theirs
+            my $intersection = intersection_ex(
+                [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
+                [ map $_->p, grep $_->surface_type eq 'internal', @{$layer->surfaces} ],
+            );
+            next if !@$intersection;
+            my $intersection_offsetted = safety_offset([ map @$_, @$intersection ]);
+            
+            # new fill surfaces of the current layer are:
+            # - any non-internal surface
+            # - intersections found (with a $d + 1 depth)
+            # - any internal surface not belonging to the intersection (with its original depth)
+            {
+                my @new_surfaces = ();
+                push @new_surfaces, grep $_->surface_type ne 'internal', @{$layer->surfaces};
+                push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
+                    ($_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
                 
-                # new fill surfaces of the current layer are:
-                # - any non-internal surface
-                # - intersections found (with a $d + 1 depth)
-                # - any internal surface not belonging to the intersection (with its original depth)
-                {
-                    my @new_surfaces = ();
-                    push @new_surfaces, grep $_->surface_type ne 'internal', @$surfaces;
+                foreach my $depth (reverse $d..$Slic3r::infill_every_layers) {
                     push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
-                        ($_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
-                    
-                    foreach my $depth (reverse $d..$Slic3r::infill_every_layers) {
-                        push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
-                            ($_, surface_type => 'internal', depth_layers => $depth),
-                            
-                            # difference between our internal layers with depth == $depth
-                            # and the intersection found
-                            @{diff_ex(
-                                [
-                                    map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
-                                        @$surfaces,
-                                ],
-                                $intersection_offsetted,
-                            )};
-                    }
-                    @$surfaces = @new_surfaces;
+                        ($_, surface_type => 'internal', depth_layers => $depth),
+                        
+                        # difference between our internal layers with depth == $depth
+                        # and the intersection found
+                        @{diff_ex(
+                            [
+                                map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
+                                    @{$layer->surfaces},
+                            ],
+                            $intersection_offsetted,
+                        )};
                 }
-                
-                # now we remove the intersections from lower layer
-                foreach my $lower_surfaces (@{$lower_layer->surfaces}) {
-                    my @new_surfaces = ();
-                    push @new_surfaces, grep $_->surface_type ne 'internal', @$lower_surfaces;
-                    foreach my $depth (1..$Slic3r::infill_every_layers) {
-                        push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
-                            ($_, surface_type => 'internal', depth_layers => $depth),
-                            
-                            # difference between internal layers with depth == $depth
-                            # and the intersection found
-                            @{diff_ex(
-                                [
-                                    map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
-                                        @$lower_surfaces,
-                                ],
-                                $intersection_offsetted,
-                            )};
-                    }
-                    @$lower_surfaces = @new_surfaces;
+                @{$layer->surfaces} = @new_surfaces;
+            }
+            
+            # now we remove the intersections from lower layer
+            {
+                my @new_surfaces = ();
+                push @new_surfaces, grep $_->surface_type ne 'internal', @{$lower_layer->surfaces};
+                foreach my $depth (1..$Slic3r::infill_every_layers) {
+                    push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
+                        ($_, surface_type => 'internal', depth_layers => $depth),
+                        
+                        # difference between internal layers with depth == $depth
+                        # and the intersection found
+                        @{diff_ex(
+                            [
+                                map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
+                                    @{$lower_layer->surfaces},
+                            ],
+                            $intersection_offsetted,
+                        )};
                 }
+                @{$lower_layer->surfaces} = @new_surfaces;
             }
         }
     }
