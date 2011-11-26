@@ -3,7 +3,7 @@ package Slic3r;
 use strict;
 use warnings;
 
-our $VERSION = "0.5.2beta";
+our $VERSION = "0.5.2";
 
 our $debug = 0;
 sub debugf {
