@@ -95,12 +95,12 @@ our $Options = {
     'fill_pattern' => {
         label   => 'Fill pattern',
         type    => 'select',
-        values  => [qw(rectilinear line hilbertcurve archimedeanchords octagramspiral)],
+        values  => [qw(rectilinear line concentric hilbertcurve archimedeanchords octagramspiral)],
     },
     'solid_fill_pattern' => {
         label   => 'Solid fill pattern',
         type    => 'select',
-        values  => [qw(rectilinear hilbertcurve archimedeanchords octagramspiral)],
+        values  => [qw(rectilinear concentric hilbertcurve archimedeanchords octagramspiral)],
     },
     'fill_density' => {
         label   => 'Fill density',

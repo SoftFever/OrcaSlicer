@@ -3,6 +3,7 @@ use Moo;
 
 use Slic3r::Fill::ArchimedeanChords;
 use Slic3r::Fill::Base;
+use Slic3r::Fill::Concentric;
 use Slic3r::Fill::Flowsnake;
 use Slic3r::Fill::HilbertCurve;
 use Slic3r::Fill::Line;
@@ -26,6 +27,7 @@ our %FillTypes = (
     octagramspiral      => 'Slic3r::Fill::OctagramSpiral',
     hilbertcurve        => 'Slic3r::Fill::HilbertCurve',
     line                => 'Slic3r::Fill::Line',
+    concentric          => 'Slic3r::Fill::Concentric',
 );
 
 sub BUILD {
