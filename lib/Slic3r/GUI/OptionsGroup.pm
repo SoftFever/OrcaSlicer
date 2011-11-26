@@ -65,7 +65,7 @@ sub new {
                 $y_field->SetValue($value->[1]);
             };
         } elsif ($opt->{type} eq 'select') {
-            $field = Wx::Choice->new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{values});
+            $field = Wx::Choice->new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values});
             EVT_CHOICE($parent, $field, sub { Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]) });
             push @reload_callbacks, sub {
                 my $value = Slic3r::Config->get($opt_key);

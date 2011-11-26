@@ -96,11 +96,13 @@ our $Options = {
         label   => 'Fill pattern',
         type    => 'select',
         values  => [qw(rectilinear line concentric hilbertcurve archimedeanchords octagramspiral)],
+        labels  => [qw(rectilinear line concentric), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
     },
     'solid_fill_pattern' => {
         label   => 'Solid fill pattern',
         type    => 'select',
         values  => [qw(rectilinear concentric hilbertcurve archimedeanchords octagramspiral)],
+        labels  => [qw(rectilinear concentric), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
     },
     'fill_density' => {
         label   => 'Fill density',
