@@ -143,13 +143,20 @@ sub do_slice {
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
             output_file => $main::opt{output},
+            status_cb   => sub {
+                my ($percent, $message) = @_;
+                $process_dialog->Update($percent, $message);
+            },
         );
         $skein->go;
         $process_dialog->Destroy;
         undef $process_dialog;
         
         if (!$main::opt{close_after_slicing}) {
-            Wx::MessageDialog->new($self, "$input_file_basename was successfully sliced.", 'Done!', 
+            my $message = sprintf "%s was successfully sliced in %d minutes and %.3f seconds.",
+                $input_file_basename, int($skein->processing_time/60),
+                $skein->processing_time - int($skein->processing_time/60)*60;
+            Wx::MessageDialog->new($self, $message, 'Done!', 
                 wxOK | wxICON_INFORMATION)->ShowModal;
         } else {
             $self->GetParent->Destroy();  # quit
