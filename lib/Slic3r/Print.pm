@@ -368,9 +368,9 @@ sub export_gcode {
         or die "Failed to open $file for writing\n";
     
     # write start commands to file
-    printf $fh "M104 S%d ; set temperature\n", $Slic3r::temperature unless $Slic3r::temperature;
+    printf $fh "M104 S%d ; set temperature\n", $Slic3r::temperature if $Slic3r::temperature;
     print  $fh "$Slic3r::start_gcode\n";
-    printf $fh "M109 S%d ; wait for temperature to be reached\n", $Slic3r::temperature unless $Slic3r::temperature;
+    printf $fh "M109 S%d ; wait for temperature to be reached\n", $Slic3r::temperature if $Slic3r::temperature;
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     print  $fh "G92 E0 ; reset extrusion distance\n" if !$Slic3r::no_extrusion;
