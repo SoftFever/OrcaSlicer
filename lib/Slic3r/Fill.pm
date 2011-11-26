@@ -66,6 +66,7 @@ sub make_fill {
             push @surfaces, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $group->[0]->surface_type,
                 bridge_angle => $group->[0]->bridge_angle,
+                depth_layers => $group->[0]->depth_layers,
             ), @$union;
         }
     }

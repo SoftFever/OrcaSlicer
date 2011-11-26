@@ -49,7 +49,7 @@ sub cast_from_expolygon {
     );
 }
 
-# static method to group surfaces having same surface_type and bridge_angle
+# static method to group surfaces having same surface_type, bridge_angle and depth_layers
 sub group {
     my $class = shift;
     my $params = ref $_[0] eq 'HASH' ? shift(@_) : {};
@@ -57,7 +57,8 @@ sub group {
     
     my $unique_type = sub {
         ($params->{merge_solid} && $_[0]->surface_type =~ /top|bottom|solid/
-            ? 'solid' : $_[0]->surface_type) . "_" . ($_[0]->bridge_angle || '');
+            ? 'solid' : $_[0]->surface_type) . "_" . ($_[0]->bridge_angle || '')
+            . "_" . $_[0]->depth_layers;
     };
     my @unique_types = ();
     foreach my $surface (@surfaces) {
