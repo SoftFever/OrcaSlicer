@@ -58,7 +58,7 @@ our $layer_height           = 0.4;
 our $first_layer_height_ratio = 1;
 our $infill_every_layers    = 1;
 our $extrusion_width_ratio  = undef;
-our $flow_speed_ratio       = 1.2;
+our $flow_speed_ratio       = 1.1;
 our $flow_width;
 
 # print options

@@ -10,7 +10,7 @@ has 'flow_ratio'         => (is => 'rw', default => sub {1});
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'lifted'             => (is => 'rw', default => sub {0} );
-has 'last_pos'           => (is => 'rw', default => sub { [0,0] } );
+has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_f'             => (is => 'rw', default => sub {0});
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
@@ -85,10 +85,15 @@ sub extrude {
     
     # retract if distance from previous position is greater or equal to the one
     # specified by the user *and* to the maximum distance between infill lines
-    my $distance_from_last_pos = Slic3r::Geometry::distance_between_points($self->last_pos, $path->points->[0]) * $Slic3r::resolution;
-    if ($distance_from_last_pos >= $Slic3r::retract_before_travel
-        && ($Slic3r::fill_density == 0 || $distance_from_last_pos >= $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2))) {
-        $gcode .= $self->retract(travel_to => $path->points->[0]);
+    {
+        my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * $Slic3r::resolution;
+        my $distance_threshold = $Slic3r::retract_before_travel;
+        $distance_threshold = 2 * $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2)
+            if $description =~ /fill/;
+    
+        if ($distance_from_last_pos >= $distance_threshold) {
+            $gcode .= $self->retract(travel_to => $path->points->[0]);
+        }
     }
     
     # go to first point of extrusion path
