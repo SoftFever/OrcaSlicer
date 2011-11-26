@@ -140,12 +140,15 @@ sub do_slice {
         $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
             100, $self, wxPD_APP_MODAL);
         $process_dialog->Pulse;
+        
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
             output_file => $main::opt{output},
             status_cb   => sub {
                 my ($percent, $message) = @_;
-                $process_dialog->Update($percent, $message);
+                if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
+                    $process_dialog->Update($percent, $message);
+                }
             },
         );
         $skein->go;
