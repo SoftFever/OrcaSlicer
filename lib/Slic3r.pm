@@ -3,7 +3,7 @@ package Slic3r;
 use strict;
 use warnings;
 
-our $VERSION = "0.5.2";
+our $VERSION = "0.5.3beta";
 
 our $debug = 0;
 sub debugf {
@@ -57,7 +57,7 @@ our $resolution             = 0.00000001;
 our $layer_height           = 0.4;
 our $first_layer_height_ratio = 1;
 our $infill_every_layers    = 1;
-our $extrusion_width_ratio  = undef;
+our $extrusion_width_ratio  = 0;
 our $flow_speed_ratio       = 1.1;
 our $flow_width;
 

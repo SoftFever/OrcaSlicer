@@ -70,7 +70,7 @@ our $Options = {
         type    => 'f',
     },
     'extrusion_width_ratio' => {
-        label   => 'Extrusion width (ratio over layer height; leave empty to calculate automatically)',
+        label   => 'Extrusion width (ratio over layer height; leave zero to calculate automatically)',
         type    => 'f',
     },
     'first_layer_height_ratio' => {
