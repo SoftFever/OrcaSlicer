@@ -35,9 +35,9 @@ sub go {
         $perimeter_maker->make_perimeter($_) for @{$print->layers};
     }
     
-    # this will prepare surfaces for perimeters by merging all
-    # surfaces in each layer; it will also clip $layer->surfaces 
-    # to the infill boundaries and split them in top/bottom/internal surfaces
+    # this will clip $layer->surfaces to the infill boundaries 
+    # and split them in top/bottom/internal surfaces;
+    # if fill density is null, it will delete all internal surfaces
     $self->status_cb->(30, "Detecting solid surfaces...");
     $print->detect_surfaces_type;
     

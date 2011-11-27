@@ -311,17 +311,28 @@ sub remove_small_surfaces {
     my $self = shift;
     my @good_surfaces = ();
     
-    my $surface_count = scalar @{$self->surfaces};
-    foreach my $surface (@{$self->surfaces}) {
-        next if !$surface->contour->is_printable;
-        @{$surface->holes} = grep $_->is_printable, @{$surface->holes};
-        push @good_surfaces, $surface;
+    my $distance = ($Slic3r::flow_width / 2 / $Slic3r::resolution);
+    
+    my @surfaces = @{$self->surfaces};
+    @{$self->surfaces} = ();
+    foreach my $surface (@surfaces) {
+        # offset inwards
+        my @offsets = $surface->expolygon->offset_ex(-$distance);
+        
+        # offset the results outwards again and merge the results
+        @offsets = map $_->offset_ex($distance), @offsets;
+        @offsets = @{ union_ex([ map @$_, @offsets ]) };
+        
+        # the difference between $surface->expolygon and @offsets 
+        # is what we can't print since it's too small
+        
+        push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
+            surface_type => $surface->surface_type), @offsets;
     }
     
-    @{$self->surfaces} = @good_surfaces;
     Slic3r::debugf "removed %d small surfaces at layer %d\n",
-        ($surface_count - @good_surfaces), $self->id 
-        if @good_surfaces != $surface_count;
+        (@surfaces - @{$self->surfaces}), $self->id 
+        if @{$self->surfaces} != @surfaces;
 }
 
 sub remove_small_perimeters {

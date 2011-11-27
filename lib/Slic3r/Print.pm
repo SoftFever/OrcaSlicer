@@ -171,6 +171,13 @@ sub detect_surfaces_type {
         Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
             $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
     }
+    
+    # remove internal surfaces if no infill is requested
+    if ($Slic3r::fill_density == 0) {
+        foreach my $layer (@{$self->layers}) {
+            @{$layer->surfaces} = grep $_->surface_type ne 'internal', @{$layer->surfaces};
+        }
+    }
 }
 
 sub discover_horizontal_shells {

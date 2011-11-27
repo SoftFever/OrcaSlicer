@@ -89,7 +89,7 @@ sub extrude {
         my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * $Slic3r::resolution;
         my $distance_threshold = $Slic3r::retract_before_travel;
         $distance_threshold = 2 * $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2)
-            if $description =~ /fill/;
+            if $Slic3r::fill_density > 0 && $description =~ /fill/;
     
         if ($distance_from_last_pos >= $distance_threshold) {
             $gcode .= $self->retract(travel_to => $path->points->[0]);
