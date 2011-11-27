@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_ERROR wxID_OK wxFD_OPEN
+use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxID_OK wxFD_OPEN
     wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
@@ -155,7 +155,14 @@ sub do_slice {
                 }
             },
         );
-        $skein->go;
+        {
+            local $SIG{__WARN__} = sub {
+                my $message = shift;
+                Wx::MessageDialog->new($self, $message, 'Non-manifold object', 
+                    wxOK | wxICON_WARNING)->ShowModal;
+            };
+            $skein->go;
+        }
         $process_dialog->Destroy;
         undef $process_dialog;
         

@@ -46,7 +46,7 @@ sub output {
             my $g = $svg->group(
                 style => {
                     'stroke-width' => 2,
-                    'stroke' => 'black' || $colour || 'black',
+                    'stroke' => $colour || 'black',
                     'fill' => ($type !~ /polygons/ ? 'none' : ($colour || 'grey')),
                 },
             );

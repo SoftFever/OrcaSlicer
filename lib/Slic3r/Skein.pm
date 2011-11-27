@@ -20,7 +20,12 @@ sub go {
     # skein the STL into layers
     # each layer has surfaces with holes
     $self->status_cb->(10, "Processing triangulated mesh...");
-    my $print = Slic3r::Print->new_from_stl($self->input_file);
+    my $print;
+    {
+        my $mesh = Slic3r::STL->read_file($self->input_file);
+        $mesh->check_manifoldness;
+        $print = Slic3r::Print->new_from_mesh($mesh);
+    }
     
     # make skirt
     $self->status_cb->(15, "Generating skirt...");

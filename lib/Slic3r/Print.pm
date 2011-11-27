@@ -2,10 +2,13 @@ package Slic3r::Print;
 use Moo;
 
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(X Y PI);
+use Slic3r::Geometry qw(X Y Z PI scale);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
     union_ex offset JT_ROUND JT_MITER);
 use XXX;
+
+use constant MIN => 0;
+use constant MAX => 1;
 
 has 'x_length' => (
     is          => 'ro',
@@ -26,11 +29,59 @@ has 'layers' => (
     default => sub { [] },
 );
 
-sub new_from_stl {
-    my $self = shift;
-    my ($stl_file) = @_;
+sub new_from_mesh {
+    my $class = shift;
+    my ($mesh) = @_;
     
-    my $print = Slic3r::STL->new->parse_file($stl_file);
+    $mesh->rotate($Slic3r::rotate);
+    $mesh->scale($Slic3r::scale / $Slic3r::resolution);
+    
+    # calculate the displacements needed to 
+    # have lowest value for each axis at coordinate 0
+    {
+        my @extents = $mesh->bounding_box;
+        my @shift = map -$extents[$_][MIN], X,Y,Z;
+        $mesh->move(@shift);
+    }
+    
+    # duplicate object
+    {
+        my @size = $mesh->size;
+        my @duplicate_offset = (
+            ($size[X] + scale $Slic3r::duplicate_distance),
+            ($size[Y] + scale $Slic3r::duplicate_distance),
+        );
+        for (my $i = 2; $i <= $Slic3r::duplicate_x; $i++) {
+            $mesh->duplicate($duplicate_offset[X] * ($i-1), 0);
+        }
+        for (my $i = 2; $i <= $Slic3r::duplicate_y; $i++) {
+            $mesh->duplicate(0, $duplicate_offset[Y] * ($i-1));
+        }
+    }
+    
+    # initialize print job
+    my @size = $mesh->size;
+    my $print = $class->new(
+        x_length => $size[X],
+        y_length => $size[Y],
+    );
+    
+    $mesh->make_edge_table;
+        
+    # process facets
+    for (my $i = 0; $i <= $#{$mesh->facets}; $i++) {
+        my $facet = $mesh->facets->[$i];
+        
+        # transform vertex coordinates
+        my ($normal, @vertices) = @$facet;
+        $mesh->_facet($print, $i, $normal, @vertices);
+    }
+    
+    die "Invalid input file\n" if !@{$print->layers};
+    
+    # remove last layer if empty
+    # (we might have created it because of the $max_layer = ... + 1 code below)
+    pop @{$print->layers} if !@{$print->layers->[-1]->surfaces} && !@{$print->layers->[-1]->lines};
     
     print "\n==> PROCESSING SLICES:\n";
     foreach my $layer (@{ $print->layers }) {
@@ -44,7 +95,7 @@ sub new_from_stl {
         # inside a closed polyline)
         
         # build surfaces from sparse lines
-        $layer->make_surfaces;
+        $layer->make_surfaces($mesh->make_loops($layer));
     }
     
     return $print;

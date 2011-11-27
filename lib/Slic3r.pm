@@ -3,7 +3,7 @@ package Slic3r;
 use strict;
 use warnings;
 
-our $VERSION = "0.5.3";
+our $VERSION = "0.5.4beta";
 
 our $debug = 0;
 sub debugf {
@@ -21,7 +21,6 @@ use Slic3r::Fill;
 use Slic3r::Geometry;
 use Slic3r::Layer;
 use Slic3r::Line;
-use Slic3r::Line::FacetEdge;
 use Slic3r::Perimeter;
 use Slic3r::Point;
 use Slic3r::Polygon;
@@ -31,6 +30,8 @@ use Slic3r::Print;
 use Slic3r::Skein;
 use Slic3r::STL;
 use Slic3r::Surface;
+use Slic3r::TriangleMesh;
+use Slic3r::TriangleMesh::IntersectionLine;
 
 # printer options
 our $nozzle_diameter    = 0.5;
@@ -60,7 +61,7 @@ our $layer_height           = 0.4;
 our $first_layer_height_ratio = 1;
 our $infill_every_layers    = 1;
 our $extrusion_width_ratio  = 0;
-our $flow_speed_ratio       = 1.1;
+our $flow_speed_ratio       = 1;
 our $flow_width;
 
 # print options

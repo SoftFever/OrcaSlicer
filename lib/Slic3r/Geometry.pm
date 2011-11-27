@@ -13,11 +13,11 @@ our @EXPORT_OK = qw(
     polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
     rotate_points move_points remove_coinciding_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
-    line_intersection bounding_box bounding_box_intersect 
+    line_intersection bounding_box bounding_box_intersect same_point
     longest_segment angle3points three_points_aligned
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
-    shortest_path collinear
+    shortest_path collinear scale unscale merge_collinear_lines
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -35,8 +35,11 @@ use constant X2 => 2;
 use constant Y2 => 3;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
-our $epsilon = 1E-4;
+our $epsilon = 1E-6;
 sub epsilon () { $epsilon }
+
+sub scale   ($) { $_[0] / $Slic3r::resolution }
+sub unscale ($) { $_[0] * $Slic3r::resolution }
 
 sub slope {
     my ($line) = @_;
@@ -83,6 +86,11 @@ sub points_coincide {
     my ($p1, $p2) = @_;
     return 1 if abs($p2->[X] - $p1->[X]) < epsilon && abs($p2->[Y] - $p1->[Y]) < epsilon;
     return 0;
+}
+
+sub same_point {
+    my ($p1, $p2) = @_;
+    return $p1->[X] == $p2->[X] && $p1->[Y] == $p2->[Y];
 }
 
 sub distance_between_points {
@@ -436,6 +444,40 @@ sub collinear {
     }
     
     return 1;
+}
+
+sub merge_collinear_lines {
+    my ($lines) = @_;
+    my $line_count = @$lines;
+    
+    for (my $i = 0; $i <= $#$lines-1; $i++) {
+        for (my $j = $i+1; $j <= $#$lines; $j++) {
+            # lines are collinear and overlapping?
+            next unless collinear($lines->[$i], $lines->[$j], 1);
+            
+            # lines have same orientation?
+            next unless ($lines->[$i][A][X] <=> $lines->[$i][B][X]) == ($lines->[$j][A][X] <=> $lines->[$j][B][X])
+                && ($lines->[$i][A][Y] <=> $lines->[$i][B][Y]) == ($lines->[$j][A][Y] <=> $lines->[$j][B][Y]);
+            
+            # resulting line
+            my @x = sort { $a <=> $b } ($lines->[$i][A][X], $lines->[$i][B][X], $lines->[$j][A][X], $lines->[$j][B][X]);
+            my @y = sort { $a <=> $b } ($lines->[$i][A][Y], $lines->[$i][B][Y], $lines->[$j][A][Y], $lines->[$j][B][Y]);
+            my $new_line = Slic3r::Line->new([$x[0], $y[0]], [$x[-1], $y[-1]]);
+            for (X, Y) {
+                ($new_line->[A][$_], $new_line->[B][$_]) = ($new_line->[B][$_], $new_line->[A][$_])
+                    if $lines->[$i][A][$_] > $lines->[$i][B][$_];
+            }
+            
+            # save new line and remove found one
+            $lines->[$i] = $new_line;
+            splice @$lines, $j, 1;
+            $j--;
+        }
+    }
+    
+    Slic3r::debugf "  merging %d lines resulted in %d lines\n", $line_count, scalar(@$lines);
+    
+    return $lines;
 }
 
 sub _line_intersection {

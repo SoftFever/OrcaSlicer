@@ -10,8 +10,10 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::Geometry qw(X Y Z);
+use XXX;
 
-my $stl = Slic3r::STL->new;
+my $mesh = Slic3r::TriangleMesh->new;
 
 my @lines;
 my $z = 20;
@@ -30,15 +32,20 @@ is_deeply lines(28, 20, 30), [                            ], 'lower vertex on la
 is_deeply lines(24, 10, 16), [ [ [4, 4],     [2, 6]     ] ], 'two edges intersect';
 is_deeply lines(24, 10, 20), [ [ [4, 4],     [1, 9]     ] ], 'one vertex on plane and one edge intersects';
 
-my @lower = $stl->intersect_facet(vertices(22, 20, 20), $z);
-my @upper = $stl->intersect_facet(vertices(20, 20, 10), $z);
-isa_ok $lower[0], 'Slic3r::Line::FacetEdge::Bottom', 'bottom edge on layer';
-isa_ok $upper[0], 'Slic3r::Line::FacetEdge::Top', 'upper edge on layer';
+my @lower = $mesh->intersect_facet(0, vertices(22, 20, 20), $z);
+my @upper = $mesh->intersect_facet(0, vertices(20, 20, 10), $z);
+is $lower[0]->facet_edge, 'bottom', 'bottom edge on layer';
+is $upper[0]->facet_edge, 'top', 'upper edge on layer';
 
 sub vertices {
-    [ map [ @{$points[$_]}, $_[$_] ], 0..2 ]
+    [ map [ @{$points[$_]}, $_[$_] ], X,Y,Z ]
 }
 
 sub lines {
-    [ map [ map [ map sprintf('%.0f', $_), @$_ ], @$_ ], $stl->intersect_facet(vertices(@_), $z) ];
+    my @lines = $mesh->intersect_facet(0, vertices(@_), $z);
+    $_->a->[X] = sprintf('%.0f', $_->a->[X]) for @lines;
+    $_->a->[Y] = sprintf('%.0f', $_->a->[Y]) for @lines;
+    $_->b->[X] = sprintf('%.0f', $_->b->[X]) for @lines;
+    $_->b->[Y] = sprintf('%.0f', $_->b->[Y]) for @lines;
+    return [ map $_->points, @lines ];
 }
