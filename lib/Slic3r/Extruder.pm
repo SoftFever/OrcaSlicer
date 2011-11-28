@@ -150,7 +150,7 @@ sub retract {
     # prepare moves
     $self->print_feed_rate($self->retract_speed);
     my $retract = [undef, undef, -$Slic3r::retract_length, "retract"];
-    my $lift    = ($Slic3r::retract_lift == 0)
+    my $lift    = ($Slic3r::retract_lift == 0 || defined $params{move_z})
         ? undef
         : [undef, $self->z + $Slic3r::retract_lift, 0, 'lift plate during retraction'];
     
