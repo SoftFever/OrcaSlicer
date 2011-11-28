@@ -64,12 +64,12 @@ sub make_perimeter {
     foreach my $island (@perimeters) {
         # do holes starting from innermost one
         foreach my $hole (map $_->holes, map @$_, @$island) {
-            push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($hole);
+            push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($hole, role => 'perimeter');
         }
         
         # do contours starting from innermost one
         foreach my $contour (map $_->contour, map @$_, reverse @$island) {
-            push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($contour);
+            push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($contour, role => 'perimeter');
         }
     }
 }

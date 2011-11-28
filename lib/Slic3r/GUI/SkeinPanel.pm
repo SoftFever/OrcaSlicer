@@ -25,7 +25,7 @@ sub new {
         },
         speed => {
             title => 'Speed',
-            options => [qw(print_feed_rate travel_feed_rate perimeter_feed_rate bottom_layer_speed_ratio)],
+            options => [qw(travel_feed_rate print_feed_rate perimeter_feed_rate bridge_feed_rate bottom_layer_speed_ratio)],
         },
         accuracy => {
             title => 'Accuracy',

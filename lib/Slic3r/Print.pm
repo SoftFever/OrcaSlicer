@@ -273,7 +273,7 @@ sub extrude_skirt {
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
         my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
         my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
-        push @skirts, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ]);
+        push @skirts, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ], role => 'skirt');
     }
     
     # apply skirts to all layers

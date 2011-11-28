@@ -35,7 +35,7 @@ sub fill_surface {
     # make paths
     my @paths = ();
     my $cur_pos = Slic3r::Point->new(0,0);
-    foreach my $loop (map Slic3r::ExtrusionLoop->cast($_), @loops) {
+    foreach my $loop (map Slic3r::ExtrusionLoop->cast($_, role => 'fill'), @loops) {
         # find the point of the loop that is closest to the current extruder position
         $cur_pos = $loop->nearest_point_to($cur_pos);
         

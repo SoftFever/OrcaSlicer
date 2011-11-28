@@ -7,6 +7,9 @@ extends 'Slic3r::Polyline';
 # expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
 
+# perimeter/fill/bridge/skirt
+has 'role'         => (is => 'ro', required => 1);
+
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 use XXX;
 
@@ -67,7 +70,12 @@ sub split_at_acute_angles {
             push @p, $p3;
         }
     }
-    push @paths, (ref $self)->cast([@p]) if @p > 1;
+    push @paths, (ref $self)->cast(
+        [@p],
+        role => $self->role,
+        depth_layers => $self->depth_layers,
+    ) if @p > 1;
+    
     return @paths;
 }
 
@@ -152,6 +160,7 @@ sub detect_arcs {
             
             my $arc = Slic3r::ExtrusionPath::Arc->new(
                 points      => [@arc_points],
+                role        => $self->role,
                 orientation => $orientation,
                 center      => $arc_center,
                 radius      => $arc_center->distance_to($points[$i]),

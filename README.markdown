@@ -94,19 +94,23 @@ The author is Alessandro Ranellucci (me).
                             (+/-, default: 0)
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                             by all firmwares)
+        --g0                Use G0 commands for retraction (experimenta, not supported by all
+                            firmwares)
         
       Filament options:
         --filament-diameter Diameter in mm of your raw filament (default: 3)
-        --filament-packing-density
-                            Ratio of the extruded volume over volume pushed 
-                            into the extruder (default: 1)
-        --temperature       Extrusion temperature (default: 200)
+        --extrusion-multiplier
+                            Change this to alter the amount of plastic extruded. There should be 
+                            very little need to change this value, which is only useful to 
+                            compensate for filament packing (default: 1)
+        --temperature       Extrusion temperature, set 0 to disable (default: 200)
         
       Speed options:
         --print-feed-rate   Speed of print moves in mm/sec (default: 60)
         --travel-feed-rate  Speed of non-print moves in mm/sec (default: 130)
         --perimeter-feed-rate
                             Speed of print moves for perimeters in mm/sec (default: 60)
+        --bridge-feed-rate  Speed of bridge print moves in mm/sec (default: 60)
         --bottom-layer-speed-ratio
                             Factor to increase/decrease speeds on bottom 
                             layer by (default: 0.3)
@@ -118,6 +122,9 @@ The author is Alessandro Ranellucci (me).
                             layer with (> 0, default: 1)
         --infill-every-layers
                             Infill every N layers (default: 1)
+        --extrusion-width-ratio
+                            Calculate the extrusion width as the layer height multiplied by
+                            this value (> 0, default: calculated automatically)
       
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 1+, 

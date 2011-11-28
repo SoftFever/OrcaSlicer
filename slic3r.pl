@@ -42,6 +42,7 @@ GetOptions(
     'print-feed-rate=i'             => \$Slic3r::print_feed_rate,
     'travel-feed-rate=i'            => \$Slic3r::travel_feed_rate,
     'perimeter-feed-rate=i'         => \$Slic3r::perimeter_feed_rate,
+    'bridge-feed-rate=i'            => \$Slic3r::bridge_feed_rate,
     'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
     
     # accuracy options
@@ -147,9 +148,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)
     --extrusion-multiplier
-                        Change this to alter the amount of plastic extruded. There should be very little
-                        need to change this value, which is only useful to compensate for
-                        filament packing (default: $Slic3r::extrusion_multiplier)
+                        Change this to alter the amount of plastic extruded. There should be
+                        very little need to change this value, which is only useful to 
+                        compensate for filament packing (default: $Slic3r::extrusion_multiplier)
     --temperature       Extrusion temperature, set 0 to disable (default: $Slic3r::temperature)
     
   Speed options:
@@ -157,6 +158,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --travel-feed-rate  Speed of non-print moves in mm/sec (default: $Slic3r::travel_feed_rate)
     --perimeter-feed-rate
                         Speed of print moves for perimeters in mm/sec (default: $Slic3r::print_feed_rate)
+    --bridge-feed-rate  Speed of bridge print moves in mm/sec (default: $Slic3r::bridge_feed_rate)
     --bottom-layer-speed-ratio
                         Factor to increase/decrease speeds on bottom 
                         layer by (default: $Slic3r::bottom_layer_speed_ratio)

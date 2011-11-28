@@ -50,6 +50,7 @@ our $temperature        = 200;
 our $print_feed_rate            = 60;   # mm/sec
 our $travel_feed_rate           = 130;   # mm/sec
 our $perimeter_feed_rate        = 30;   # mm/sec
+our $bridge_feed_rate           = 60;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.3;
 
 # accuracy options

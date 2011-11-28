@@ -5,6 +5,9 @@ use XXX;
 
 extends 'Slic3r::Polyline::Closed';
 
+# perimeter/fill/bridge/skirt
+has 'role'         => (is => 'ro', required => 1);
+
 sub split_at {
     my $self = shift;
     my ($point) = @_;
@@ -25,7 +28,7 @@ sub split_at {
     push @new_points, @{$self->points}[$i .. $#{$self->points}];
     push @new_points, @{$self->points}[0 .. $i];
     
-    return Slic3r::ExtrusionPath->new(points => [@new_points]);
+    return Slic3r::ExtrusionPath->new(points => [@new_points], role => $self->role);
 }
 
 1;

@@ -59,6 +59,10 @@ our $Options = {
         label   => 'Perimeter feed rate (mm/s)',
         type    => 'f',
     },
+    'bridge_feed_rate' => {
+        label   => 'Bridge feed rate (mm/s)',
+        type    => 'f',
+    },
     'bottom_layer_speed_ratio' => {
         label   => 'Bottom layer ratio',
         type    => 'f',
@@ -351,6 +355,9 @@ sub validate {
     # --skirt-height
     die "Invalid value for --skirt-height\n"
         if $Slic3r::skirt_height < 1;
+    
+    # legacy with existing config files
+    $Slic3r::bridge_feed_rate ||= $Slic3r::print_feed_rate;
 }
 
 1;
