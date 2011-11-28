@@ -19,6 +19,7 @@ sub clip_end {
     
     while ($distance > 0) {
         my $last_point = pop @{$self->points};
+        last if !@{$self->points};
         
         my $last_segment_length = $last_point->distance_to($self->points->[-1]);
         if ($last_segment_length <= $distance) {
@@ -63,7 +64,11 @@ sub split_at_acute_angles {
             # if the angle between $p[-2], $p[-1], $p3 is too acute
             # then consider $p3 only as a starting point of a new
             # path and stop the current one as it is
-            push @paths, (ref $self)->cast([@p]);
+            push @paths, (ref $self)->cast(
+                [@p],
+                role => $self->role,
+                depth_layers => $self->depth_layers,
+             );
             @p = ($p3);
             push @p, grep $_, shift @points or last;
         } else {
@@ -169,6 +174,7 @@ sub detect_arcs {
             # points 0..$i form a linear path
             push @paths, (ref $self)->new(
                 points       => [ @points[0..$i] ],
+                role => $self->role,
                 depth_layers => $self->depth_layers,
             ) if $i > 0;
             
@@ -187,7 +193,8 @@ sub detect_arcs {
     # remaining points form a linear path
     push @paths, (ref $self)->new(
         points => [@points],
-        depth_layers => $self->depth_layers
+        role => $self->role,
+        depth_layers => $self->depth_layers,
     ) if @points > 1;
     
     return @paths;

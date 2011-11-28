@@ -41,7 +41,7 @@ sub fill_surface {
         
         # split the loop at the starting point and make a path
         my $path = $loop->split_at($cur_pos);
-    
+        
         # clip the path to avoid the extruder to get exactly on the first point of the loop
         $path->clip_end($Slic3r::flow_width / $Slic3r::resolution);
         
