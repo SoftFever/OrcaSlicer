@@ -12,6 +12,7 @@ use Getopt::Long;
 use Slic3r;
 use XXX;
 
+$|++;
 our %opt;
 GetOptions(
     'help'                  => sub { usage() },
