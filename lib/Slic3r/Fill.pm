@@ -81,6 +81,7 @@ sub make_fill {
         my $density     = $Slic3r::fill_density;
         my $flow_width  = $Slic3r::flow_width;
         my $is_bridge = $layer->id > 0 && $surface->surface_type eq 'bottom';
+        my $is_solid = $surface->surface_type =~ /^(top|bottom)$/;
         
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type ne 'internal') {
@@ -102,7 +103,7 @@ sub make_fill {
             paths => [
                 map Slic3r::ExtrusionPath->cast(
                     [ @$_ ],
-                    role => ($is_bridge ? 'bridge' : 'fill'),
+                    role => ($is_bridge ? 'bridge' : $is_solid ? 'solid-fill' : 'fill'),
                     depth_layers => $surface->depth_layers,
                 ), @paths,
             ],

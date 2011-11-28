@@ -23,9 +23,13 @@ sub new {
             title => 'Filament',
             options => [qw(filament_diameter extrusion_multiplier temperature)],
         },
+        print_speed => {
+            title => 'Print speed',
+            options => [qw(perimeter_feed_rate infill_feed_rate solid_infill_feed_rate bridge_feed_rate)],
+        },
         speed => {
-            title => 'Speed',
-            options => [qw(travel_feed_rate print_feed_rate perimeter_feed_rate bridge_feed_rate bottom_layer_speed_ratio)],
+            title => 'Other speed settings',
+            options => [qw(travel_feed_rate bottom_layer_speed_ratio)],
         },
         accuracy => {
             title => 'Accuracy',
@@ -79,7 +83,7 @@ sub new {
     
     my @tabs = (
         $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]),
-        $make_tab->([qw(printer filament)], [qw(speed)]),
+        $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
         $make_tab->([qw(extrusion)]),
     );

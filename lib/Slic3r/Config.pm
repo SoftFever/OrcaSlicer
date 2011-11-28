@@ -47,24 +47,29 @@ our $Options = {
     },
     
     # speed options
-    'print_feed_rate' => {
-        label   => 'Print feed rate (mm/s)',
-        type    => 'f',
-    },
     'travel_feed_rate' => {
-        label   => 'Travel feed rate (mm/s)',
+        label   => 'Travel (mm/s)',
         type    => 'f',
     },
     'perimeter_feed_rate' => {
-        label   => 'Perimeter feed rate (mm/s)',
+        label   => 'Perimeters (mm/s)',
+        type    => 'f',
+    },
+    'infill_feed_rate' => {
+        label   => 'Infill (mm/s)',
+        type    => 'f',
+        aliases => [qw(print_feed_rate)],
+    },
+    'solid_infill_feed_rate' => {
+        label   => 'Solid infill (mm/s)',
         type    => 'f',
     },
     'bridge_feed_rate' => {
-        label   => 'Bridge feed rate (mm/s)',
+        label   => 'Bridges (mm/s)',
         type    => 'f',
     },
     'bottom_layer_speed_ratio' => {
-        label   => 'Bottom layer ratio',
+        label   => 'Bottom layer speed ratio',
         type    => 'f',
     },
     
@@ -357,7 +362,8 @@ sub validate {
         if $Slic3r::skirt_height < 1;
     
     # legacy with existing config files
-    $Slic3r::bridge_feed_rate ||= $Slic3r::print_feed_rate;
+    $Slic3r::bridge_feed_rate ||= $Slic3r::infill_feed_rate;
+    $Slic3r::solid_infill_feed_rate ||= $Slic3r::infill_feed_rate;
 }
 
 1;

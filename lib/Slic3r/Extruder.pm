@@ -6,6 +6,7 @@ has 'shift_x'            => (is => 'ro', default => sub {0} );
 has 'shift_y'            => (is => 'ro', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
 has 'flow_ratio'         => (is => 'rw', default => sub {1});
+has 'print_feed_rate'    => (is => 'rw');
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
@@ -19,13 +20,21 @@ has 'travel_feed_rate' => (
     is      => 'ro',
     default => sub { $Slic3r::travel_feed_rate * 60 },  # mm/min
 );
-has 'print_feed_rate' => (
-    is      => 'ro',
-    default => sub { $Slic3r::print_feed_rate * 60 },  # mm/min
-);
 has 'perimeter_feed_rate' => (
     is      => 'ro',
     default => sub { $Slic3r::perimeter_feed_rate * 60 },  # mm/min
+);
+has 'infill_feed_rate' => (
+    is      => 'ro',
+    default => sub { $Slic3r::infill_feed_rate * 60 },  # mm/min
+);
+has 'solid_infill_feed_rate' => (
+    is      => 'ro',
+    default => sub { $Slic3r::solid_infill_feed_rate * 60 },  # mm/min
+);
+has 'bridge_feed_rate' => (
+    is      => 'ro',
+    default => sub { $Slic3r::bridge_feed_rate * 60 },  # mm/min
 );
 has 'retract_speed' => (
     is      => 'ro',
@@ -112,6 +121,13 @@ sub extrude {
         * $path->depth_layers;
     
     # extrude arc or line
+    $self->print_feed_rate(
+        $path->role =~ /^(perimeter|skirt)$/o   ? $self->perimeter_feed_rate
+            : $path->role eq 'fill'             ? $self->infill_feed_rate
+            : $path->role eq 'solid-fill'       ? $self->solid_infill_feed_rate
+            : $path->role eq 'bridge'           ? $self->bridge_feed_rate
+            : die "Unknown role: " . $path->role
+    );
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
             $path->center, $e * $path->length, $description);
@@ -132,6 +148,7 @@ sub retract {
         && !$self->retracted;
     
     # prepare moves
+    $self->print_feed_rate($self->retract_speed);
     my $retract = [undef, undef, -$Slic3r::retract_length, "retract"];
     my $lift    = ($Slic3r::retract_lift == 0)
         ? undef
@@ -181,6 +198,7 @@ sub unretract {
         $self->lifted(0);
     }
     
+    $self->print_feed_rate($self->retract_speed);
     $gcode .= $self->G0(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
         "compensate retraction");
     
@@ -250,12 +268,7 @@ sub _Gx {
         : 1;
     
     # determine speed
-    my $speed = $self->travel_feed_rate * $speed_multiplier;
-    if ($e) {
-        $speed = $self->print_feed_rate * $speed_multiplier;
-        $speed = $self->retract_speed if $comment =~ /retract/;
-        $speed = $self->perimeter_feed_rate * $speed_multiplier if $comment =~ /perimeter/;
-    }
+    my $speed = ($e ? $self->print_feed_rate : $self->travel_feed_rate) * $speed_multiplier;
     
     # output speed if it's different from last one used
     # (goal: reduce gcode size)

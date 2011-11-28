@@ -7,7 +7,7 @@ extends 'Slic3r::Polyline';
 # expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
 
-# perimeter/fill/bridge/skirt
+# perimeter/fill/solid-fill/bridge/skirt
 has 'role'         => (is => 'ro', required => 1);
 
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);

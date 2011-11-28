@@ -39,9 +39,10 @@ GetOptions(
     'temperature=i'                 => \$Slic3r::temperature,
     
     # speed options
-    'print-feed-rate=i'             => \$Slic3r::print_feed_rate,
     'travel-feed-rate=i'            => \$Slic3r::travel_feed_rate,
     'perimeter-feed-rate=i'         => \$Slic3r::perimeter_feed_rate,
+    'infill-feed-rate=i'            => \$Slic3r::infill_feed_rate,
+    'solid-infill-feed-rate=i'      => \$Slic3r::solid_infill_feed_rate,
     'bridge-feed-rate=i'            => \$Slic3r::bridge_feed_rate,
     'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
     
@@ -154,10 +155,12 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --temperature       Extrusion temperature, set 0 to disable (default: $Slic3r::temperature)
     
   Speed options:
-    --print-feed-rate   Speed of print moves in mm/sec (default: $Slic3r::print_feed_rate)
     --travel-feed-rate  Speed of non-print moves in mm/sec (default: $Slic3r::travel_feed_rate)
     --perimeter-feed-rate
-                        Speed of print moves for perimeters in mm/sec (default: $Slic3r::print_feed_rate)
+                        Speed of print moves for perimeters in mm/sec (default: $Slic3r::perimeter_feed_rate)
+    --infill-feed-rate  Speed of print moves in mm/sec (default: $Slic3r::infill_feed_rate)
+    --solid-infill-feed-rate
+                        Speed of print moves for solid surfaces in mm/sec (default: $Slic3r::solid_infill_feed_rate)
     --bridge-feed-rate  Speed of bridge print moves in mm/sec (default: $Slic3r::bridge_feed_rate)
     --bottom-layer-speed-ratio
                         Factor to increase/decrease speeds on bottom 
