@@ -37,7 +37,6 @@ sub go {
     
     # this will clip $layer->surfaces to the infill boundaries 
     # and split them in top/bottom/internal surfaces;
-    # if fill density is null, it will delete all internal surfaces
     $self->status_cb->(30, "Detecting solid surfaces...");
     $print->detect_surfaces_type;
     

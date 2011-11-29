@@ -349,6 +349,9 @@ sub remove_small_perimeters {
 sub process_bridges {
     my $self = shift;
     
+    # no bridges are possible if we have no internal surfaces
+    return if $Slic3r::fill_density == 0;
+    
     my @bridges = ();
     
     # a bottom surface on a layer > 0 is either a bridge or a overhang 

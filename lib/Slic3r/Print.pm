@@ -171,13 +171,6 @@ sub detect_surfaces_type {
         Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
             $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
     }
-    
-    # remove internal surfaces if no infill is requested
-    if ($Slic3r::fill_density == 0) {
-        foreach my $layer (@{$self->layers}) {
-            @{$layer->surfaces} = grep $_->surface_type ne 'internal', @{$layer->surfaces};
-        }
-    }
 }
 
 sub discover_horizontal_shells {
@@ -283,7 +276,7 @@ sub extrude_skirt {
 # combine fill surfaces across layers
 sub infill_every_layers {
     my $self = shift;
-    return unless $Slic3r::infill_every_layers > 1;
+    return unless $Slic3r::infill_every_layers > 1 && $Slic3r::fill_density > 0;
     
     printf "==> COMBINING INFILL\n";
     
