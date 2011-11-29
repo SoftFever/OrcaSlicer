@@ -55,22 +55,18 @@ sub group {
     my $params = ref $_[0] eq 'HASH' ? shift(@_) : {};
     my (@surfaces) = @_;
     
-    my $unique_type = sub {
-        ($params->{merge_solid} && $_[0]->surface_type =~ /top|bottom|solid/
-            ? 'solid' : $_[0]->surface_type) . "_" . ($_[0]->bridge_angle || '')
-            . "_" . $_[0]->depth_layers;
-    };
-    my @unique_types = ();
+    my %unique_types = ();
     foreach my $surface (@surfaces) {
-        my $type = $unique_type->($surface);
-        push @unique_types, $type unless grep $_ eq $type, @unique_types;
+        my $type = ($params->{merge_solid} && $surface->surface_type =~ /top|bottom|solid/)
+            ? 'solid'
+            : $surface->surface_type;
+        $type .= "_" . ($_[0]->bridge_angle || '');
+        $type .= "_" . $_[0]->depth_layers;
+        $unique_types{$type} ||= [];
+        push @{ $unique_types{$type} }, $surface;
     }
     
-    my @groups = ();
-    foreach my $type (@unique_types) {
-        push @groups, [ grep { $unique_type->($_) eq $type } @surfaces ];
-    }
-    return @groups;
+    return values %unique_types;
 }
 
 sub add_hole {

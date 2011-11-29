@@ -63,6 +63,12 @@ sub make_fill {
                 );
             }
             
+            # subtract any other surface already processed
+            $union = diff_ex(
+                [ map @$_, @$union ],
+                [ map $_->p, @surfaces ],
+            );
+            
             push @surfaces, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $group->[0]->surface_type,
                 bridge_angle => $group->[0]->bridge_angle,
