@@ -215,6 +215,7 @@ sub make_loops {
         
         if (@discarded_lines) {
             print "  Warning: even slow detection algorithm threw errors. Review the output before printing.\n";
+            $layer->slicing_errors(1);
         }
     }
     

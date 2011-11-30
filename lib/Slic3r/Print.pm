@@ -98,6 +98,48 @@ sub new_from_mesh {
         $layer->make_surfaces($mesh->make_loops($layer));
     }
     
+    # detect slicing errors
+    my $warning_thrown = 0;
+    for (my $i = 0; $i <= $#{$print->layers}; $i++) {
+        my $layer = $print->layers->[$i];
+        next unless $layer->slicing_errors;
+        if (!$warning_thrown) {
+            warn "The model has overlapping or self-intersecting facets. I tried to repair it, "
+                . "however you might want to check the results or repair the input file and retry.\n";
+            $warning_thrown = 1;
+        }
+        
+        # try to repair the layer surfaces by merging all contours and all holes from
+        # neighbor layers
+        Slic3r::debugf "Attempting to repair layer %d\n", $i;
+        
+        my (@upper_surfaces, @lower_surfaces);
+        for (my $j = $i+1; $j <= $#{$print->layers}; $j++) {
+            if (!$print->layers->[$j]->slicing_errors) {
+                @upper_surfaces = @{$print->layers->[$j]->surfaces};
+                last;
+            }
+        }
+        for (my $j = $i-1; $j >= 0; $j--) {
+            if (!$print->layers->[$j]->slicing_errors) {
+                @lower_surfaces = @{$print->layers->[$j]->surfaces};
+                last;
+            }
+        }
+        
+        my $union = union_ex([
+            map $_->expolygon->contour, @upper_surfaces, @lower_surfaces,
+        ]);
+        my $diff = diff_ex(
+            [ map @$_, @$union ],
+            [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
+        );
+        
+        @{$layer->surfaces} = map Slic3r::Surface->cast_from_expolygon
+            ($_, surface_type => 'internal'),
+            @$diff;
+    }
+    
     return $print;
 }
 
