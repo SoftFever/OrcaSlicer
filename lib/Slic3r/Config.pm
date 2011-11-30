@@ -314,7 +314,7 @@ sub validate {
     
     # --solid-layers
     die "Invalid value for --solid-layers\n"
-        if $Slic3r::solid_layers < 1;
+        if $Slic3r::solid_layers < 0;
     
     # --print-center
     die "Invalid value for --print-center\n"

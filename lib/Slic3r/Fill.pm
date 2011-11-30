@@ -90,7 +90,7 @@ sub make_fill {
         my $is_solid = $surface->surface_type =~ /^(top|bottom)$/;
         
         # force 100% density and rectilinear fill for external surfaces
-        if ($surface->surface_type ne 'internal') {
+        if (($surface->surface_type ne 'internal') && ($Slic3r::solid_layers >= 1)) {
             $density = 1;
             $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
             $flow_width = $Slic3r::nozzle_diameter if $is_bridge;
