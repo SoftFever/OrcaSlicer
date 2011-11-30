@@ -2,7 +2,7 @@ package Slic3r::TriangleMesh;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z A B PI epsilon same_point points_coincide angle3points
-    merge_collinear_lines);
+    merge_collinear_lines nearest_point);
 use XXX;
 
 has 'facets'        => (is => 'ro', default => sub { [] });
@@ -132,8 +132,8 @@ sub make_loops {
                 }
                 
                 $next_lines
-                    or die sprintf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.\n", $get_point_id->($points[-1]));
-                last CYCLE if !@$next_lines;
+                    or printf("No lines start at point %s. This shouldn't happen. Please check the model for manifoldness.\n", $get_point_id->($points[-1]));
+                last CYCLE if !$next_lines or !@$next_lines;
                 
                 my @ordered_next_lines = sort 
                     { angle3points($points[-1], $points[-2], $next_lines->[$a][B]) <=> angle3points($points[-1], $points[-2], $next_lines->[$b][B]) } 
@@ -339,13 +339,7 @@ sub _facet {
     
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
         my $layer = $print->layer($layer_id);
-        my @intersections = $self->intersect_facet($facet_index, \@vertices, $layer->slice_z);
-        if ($facet_index =~ /^(488)$/ && $layer_id == 14) {
-            printf "z = %f\n", $layer->slice_z;
-            YYY \@intersections;
-            #exit if $facet_index == 488;
-        }
-        $layer->add_line($_) for @intersections;
+        $layer->add_line($_) for $self->intersect_facet($facet_index, \@vertices, $layer->slice_z);
     }
 }
 
