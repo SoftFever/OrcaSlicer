@@ -30,6 +30,13 @@ has 'surfaces' => (
     default => sub { [] },
 );
 
+# collection of surfaces for infill
+has 'fill_surfaces' => (
+    is      => 'rw',
+    #isa     => 'ArrayRef[Slic3r::Surface]',
+    default => sub { [] },
+);
+
 # ordered collection of extrusion paths to build all perimeters
 has 'perimeters' => (
     is      => 'rw',
@@ -77,24 +84,6 @@ sub print_z {
         + ($self->id * $Slic3r::layer_height)) / $Slic3r::resolution;
 }
 
-sub add_surface {
-    my $self = shift;
-    my (@vertices) = @_;
-    
-    # convert arrayref points to Point objects
-    @vertices = map Slic3r::Point->new($_), @vertices;
-    
-    my $surface = Slic3r::Surface->new(
-        contour => Slic3r::Polyline::Closed->new(points => \@vertices),
-    );
-    push @{ $self->surfaces }, $surface;
-    
-    # make sure our contour has its points in counter-clockwise order
-    $surface->contour->make_counter_clockwise;
-    
-    return $surface;
-}
-
 sub add_line {
     my $self = shift;
     my ($line) = @_;
@@ -125,14 +114,52 @@ sub make_surfaces {
     #);
 }
 
+sub prepare_fill_surfaces {
+    my $self = shift;
+    
+    my @surfaces = @{$self->surfaces};
+        
+    # merge too small internal surfaces with their surrounding tops
+    # (if they're too small, they can be treated as solid)
+    {
+        my $min_area = ((7 * $Slic3r::flow_width / $Slic3r::resolution)**2) * PI;
+        my $small_internal = [
+            grep { $_->expolygon->contour->area <= $min_area }
+            grep { $_->surface_type eq 'internal' }
+            @surfaces
+        ];
+        foreach my $s (@$small_internal) {
+            @surfaces = grep $_ ne $s, @surfaces;
+        }
+        my $union = union_ex([
+            (map $_->p, grep $_->surface_type eq 'top', @surfaces),
+            (map @$_, map $_->expolygon->safety_offset, @$small_internal),
+        ]);
+        my @top = map Slic3r::Surface->cast_from_expolygon($_, surface_type => 'top'), @$union;
+        @surfaces = (grep($_->surface_type ne 'top', @surfaces), @top);
+    }
+    
+    # remove top/bottom surfaces
+    if ($Slic3r::solid_layers == 0) {
+        @surfaces = grep $_->surface_type eq 'internal', @surfaces;
+    }
+    
+    # remove internal surfaces
+    if ($Slic3r::fill_density == 0) {
+        @surfaces = grep $_->surface_type ne 'internal', @surfaces;
+    }
+    
+    $self->fill_surfaces([@surfaces]);
+}
+
 sub remove_small_surfaces {
     my $self = shift;
     my @good_surfaces = ();
     
     my $distance = ($Slic3r::flow_width / 2 / $Slic3r::resolution);
     
-    my @surfaces = @{$self->surfaces};
-    @{$self->surfaces} = ();
+    my @surfaces = @{$self->fill_surfaces};
+    @{$self->fill_surfaces} = ();
     foreach my $surface (@surfaces) {
         # offset inwards
         my @offsets = $surface->expolygon->offset_ex(-$distance);
@@ -144,13 +171,13 @@ sub remove_small_surfaces {
         # the difference between $surface->expolygon and @offsets 
         # is what we can't print since it's too small
         
-        push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
+        push @{$self->fill_surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
             surface_type => $surface->surface_type), @offsets;
     }
     
     Slic3r::debugf "removed %d small surfaces at layer %d\n",
-        (@surfaces - @{$self->surfaces}), $self->id 
-        if @{$self->surfaces} != @surfaces;
+        (@surfaces - @{$self->fill_surfaces}), $self->id 
+        if @{$self->fill_surfaces} != @surfaces;
 }
 
 sub remove_small_perimeters {
@@ -178,7 +205,7 @@ sub process_bridges {
     
     my @solid_surfaces = grep {
         ($_->surface_type eq 'bottom' && $self->id > 0) || $_->surface_type eq 'top'
-    } @{$self->surfaces} or return;
+    } @{$self->fill_surfaces} or return;
     
     my @internal_surfaces = grep $_->surface_type =~ /internal/, @{$self->surfaces};
     
@@ -197,11 +224,13 @@ sub process_bridges {
             }
         }
         
-            #use Slic3r::SVG;
-            #Slic3r::SVG::output(undef, "bridge.svg",
-            #    green_polygons  => [ map $_->p, @supporting_surfaces ],
-            #    red_polygons    => [ @$expolygon ],
-            #);
+        if (0) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output(undef, "bridge.svg",
+                green_polygons  => [ map $_->p, @supporting_surfaces ],
+                red_polygons    => [ @$expolygon ],
+            );
+        }
         
         next SURFACE unless @supporting_surfaces;
         Slic3r::debugf "  Found $description on layer %d with %d support(s)\n", 
@@ -215,7 +244,8 @@ sub process_bridges {
             my @edges = ();  # edges are POLYLINES
             foreach my $supporting_surface (@supporting_surfaces) {
                 my @surface_edges = $supporting_surface->contour->clip_with_polygon($contour_offset);
-                if (@surface_edges == 1 && @{$supporting_surface->contour->p} == @{$surface_edges[0]->p}) {
+                if (@supporting_surfaces == 1 && @surface_edges == 1
+                    && @{$supporting_surface->contour->p} == @{$surface_edges[0]->p}) {
                     $bridge_over_hole = 1;
                 } else {
                     foreach my $edge (@surface_edges) {
@@ -234,6 +264,7 @@ sub process_bridges {
                 Slic3r::SVG::output(undef, "bridge.svg",
                     polylines       => [ map $_->p, @edges ],
                 );
+                exit if $self->id == 30;
             }
             
             if (@edges == 2) {
@@ -288,8 +319,8 @@ sub process_bridges {
     
     # apply bridges to layer
     {
-        my @surfaces = @{$self->surfaces};
-        @{$self->surfaces} = ();
+        my @surfaces = @{$self->fill_surfaces};
+        @{$self->fill_surfaces} = ();
         
         # intersect layer surfaces with bridges to get actual bridges
         foreach my $bridge (@bridges) {
@@ -298,7 +329,7 @@ sub process_bridges {
                 [ $bridge->p ],
             );
             
-            push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
+            push @{$self->fill_surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $bridge->surface_type,
                 bridge_angle => $bridge->bridge_angle,
             ), @$actual_bridge;
@@ -310,7 +341,7 @@ sub process_bridges {
                 [ map $_->p, @$group ],
                 [ map $_->p, @bridges ],
             );
-            push @{$self->surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
+            push @{$self->fill_surfaces}, map Slic3r::Surface->cast_from_expolygon($_,
                 surface_type => $group->[0]->surface_type), @$difference;
         }
     }

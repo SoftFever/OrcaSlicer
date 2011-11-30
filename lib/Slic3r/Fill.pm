@@ -51,8 +51,8 @@ sub make_fill {
     # merge overlapping surfaces
     my @surfaces = ();
     {
-        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layer->surfaces};
-        foreach my $group (Slic3r::Surface->group({merge_solid => 1}, @{$layer->surfaces})) {
+        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layer->fill_surfaces};
+        foreach my $group (Slic3r::Surface->group({merge_solid => 1}, @{$layer->fill_surfaces})) {
             my $union = union_ex([ map $_->p, @$group ]);
             
             # subtract surfaces having a defined bridge_angle from any other
@@ -90,7 +90,7 @@ sub make_fill {
         my $is_solid = $surface->surface_type =~ /^(top|bottom)$/;
         
         # force 100% density and rectilinear fill for external surfaces
-        if (($surface->surface_type ne 'internal') && ($Slic3r::solid_layers >= 1)) {
+        if ($surface->surface_type ne 'internal') {
             $density = 1;
             $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
             $flow_width = $Slic3r::nozzle_diameter if $is_bridge;

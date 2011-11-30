@@ -68,7 +68,7 @@ sub make_loops {
         }
     }
     
-    my $sparse_lines = [ map $_->line, @lines ];
+    my $sparse_lines = [ map $_->line, grep $_, @lines ];
     
     # detect closed loops
     if (0) {

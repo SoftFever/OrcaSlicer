@@ -45,6 +45,10 @@ sub go {
     $self->status_cb->(30, "Detecting solid surfaces...");
     $print->detect_surfaces_type;
     
+    # prepare fill surfaces
+    $self->status_cb->(35, "Preparing infill surfaces...");
+    $_->prepare_fill_surfaces for @{$print->layers};
+    
     # this will remove unprintable surfaces
     # (those that are too tight for extrusion)
     $self->status_cb->(40, "Cleaning up...");

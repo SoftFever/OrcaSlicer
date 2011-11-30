@@ -60,8 +60,8 @@ sub group {
         my $type = ($params->{merge_solid} && $surface->surface_type =~ /top|bottom|solid/)
             ? 'solid'
             : $surface->surface_type;
-        $type .= "_" . ($_[0]->bridge_angle || '');
-        $type .= "_" . $_[0]->depth_layers;
+        $type .= "_" . ($surface->bridge_angle || '');
+        $type .= "_" . $surface->depth_layers;
         $unique_types{$type} ||= [];
         push @{ $unique_types{$type} }, $surface;
     }
