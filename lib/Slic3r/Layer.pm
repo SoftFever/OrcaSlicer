@@ -2,7 +2,7 @@ package Slic3r::Layer;
 use Moo;
 
 use Math::Clipper ':all';
-use Slic3r::Geometry qw(collinear X Y A B PI);
+use Slic3r::Geometry qw(scale collinear X Y A B PI);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex PFT_EVENODD);
 use XXX;
 
@@ -278,8 +278,8 @@ sub process_bridges {
         # now, extend our bridge by taking a portion of supporting surfaces
         {
             # offset the bridge by the specified amount of mm (minimum 3)
-            my $bridge_overlap = 3 / $Slic3r::resolution;
-            my ($bridge_offset) = $expolygon->contour->offset($bridge_overlap, $Slic3r::resolution * 100, JT_MITER, 2);
+            my $bridge_overlap = scale 3;
+            my ($bridge_offset) = $expolygon->contour->offset($bridge_overlap);
             
             # calculate the new bridge
             my $intersection = intersection_ex(
