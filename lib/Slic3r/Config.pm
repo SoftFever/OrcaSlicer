@@ -289,7 +289,7 @@ sub load {
     open my $fh, '<', $file;
     while (<$fh>) {
         next if /^\s*#/;
-        /^(\w+) = (.+)/ or die "Unreadable configuration file (invalid data at line $.)\n";
+        /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
         my $key = $1;
         if (!exists $Options->{$key}) {
             $key = +(grep { $Options->{$_}{aliases} && grep $_ eq $key, @{$Options->{$_}{aliases}} }
