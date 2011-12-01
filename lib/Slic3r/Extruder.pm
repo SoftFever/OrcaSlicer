@@ -181,7 +181,7 @@ sub retract {
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
     if (!$Slic3r::use_relative_e_distances) {
-        $gcode .= "G92 E0\n";
+        $gcode .= "G92 " . $Slic3r::extrusion_axis . "0\n";
         $self->extrusion_distance(0);
     }
     
@@ -278,10 +278,10 @@ sub _Gx {
     }
     
     # output extrusion distance
-    if ($e && !$Slic3r::no_extrusion) {
+    if ($e && $Slic3r::extrusion_axis) {
         $self->extrusion_distance(0) if $Slic3r::use_relative_e_distances;
         $self->extrusion_distance($self->extrusion_distance + $e);
-        $gcode .= sprintf " E%.5f", $self->extrusion_distance;
+        $gcode .= sprintf " %s%.5f", $Slic3r::extrusion_axis, $self->extrusion_distance;
     }
     
     $gcode .= sprintf " ; %s", $comment if $comment;

@@ -95,7 +95,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (default: $Slic3r::print_center->[0],$Slic3r::print_center->[1])
     --use-relative-e-distances
                         Use relative distances for extrusion in GCODE output
-    --no-extrusion      Do not output any E value in GCODE
+    --extrusion-axis    The axis used for extrusion; leave empty to disable extrusion
+                        (default: $Slic3r::extrusion_axis)
     --z-offset          Additional height in mm to add to vertical coordinates
                         (+/-, default: $Slic3r::z_offset)
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported

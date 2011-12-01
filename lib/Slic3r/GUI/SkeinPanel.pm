@@ -17,7 +17,7 @@ sub new {
     my %panels = (
         printer => {
             title => 'Printer',
-            options => [qw(nozzle_diameter print_center use_relative_e_distances no_extrusion z_offset)],
+            options => [qw(nozzle_diameter print_center use_relative_e_distances extrusion_axis z_offset)],
         },
         filament => {
             title => 'Filament',

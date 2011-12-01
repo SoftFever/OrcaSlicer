@@ -25,10 +25,10 @@ our $Options = {
         cli     => 'use-relative-e-distances',
         type    => 'bool',
     },
-    'no_extrusion' => {
-        label   => 'No extrusion',
-        cli     => 'no-extrusion',
-        type    => 'bool',
+    'extrusion_axis' => {
+        label   => 'Extrusion axis',
+        cli     => 'extrusion_axis',
+        type    => 's',
     },
     'z_offset' => {
         label   => 'Z offset',

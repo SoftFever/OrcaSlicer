@@ -89,7 +89,8 @@ The author is Alessandro Ranellucci (me).
                             (default: 100,100)
         --use-relative-e-distances
                             Use relative distances for extrusion in GCODE output
-        --no-extrusion      Do not output any E value in GCODE
+        --extrusion-axis    The axis used for extrusion; leave empty to disable extrusion
+                            (default: E)
         --z-offset          Additional height in mm to add to vertical coordinates
                             (+/-, default: 0)
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported

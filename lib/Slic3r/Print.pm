@@ -472,7 +472,7 @@ sub export_gcode {
     printf $fh "M109 S%d ; wait for temperature to be reached\n", $Slic3r::temperature if $Slic3r::temperature;
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
-    print  $fh "G92 E0 ; reset extrusion distance\n" if !$Slic3r::no_extrusion;
+    printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis if $Slic3r::extrusion_axis;
     if ($Slic3r::use_relative_e_distances) {
         print $fh "M83 ; use relative distances for extrusion\n";
     } else {

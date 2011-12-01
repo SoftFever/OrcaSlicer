@@ -37,7 +37,7 @@ use Slic3r::TriangleMesh::IntersectionLine;
 our $nozzle_diameter    = 0.5;
 our $print_center       = [100,100];  # object will be centered around this point
 our $use_relative_e_distances = 0;
-our $no_extrusion       = 0;
+our $extrusion_axis     = 'E';
 our $z_offset           = 0;
 our $gcode_arcs         = 0;
 our $g0                 = 0;
