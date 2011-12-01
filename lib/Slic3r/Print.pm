@@ -280,27 +280,27 @@ sub discover_horizontal_shells {
                 next if $n < 0 || $n >= $self->layer_count;
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                 
-                my $surfaces = $self->layers->[$n]->fill_surfaces;
-                my @neighbor = @$surfaces;
+                my @neighbor_surfaces = @{$self->layers->[$n]->surfaces};
+                my @neighbor_fill_surfaces = @{$self->layers->[$n]->fill_surfaces};
                 
-                # find intersection between @surfaces and current layer's surfaces
+                # find intersection between neighbor and current layer's surfaces
                 # intersections have contours and holes
                 my $new_internal_solid = intersection_ex(
                     $surfaces_p,
-                    [ map $_->p, grep $_->surface_type =~ /internal/, @neighbor ],
+                    [ map $_->p, grep $_->surface_type =~ /internal/, @neighbor_surfaces ],
                 );
                 next if !@$new_internal_solid;
                 
                 # internal-solid are the union of the existing internal-solid surfaces
                 # and new ones
                 my $internal_solid = union_ex([
-                    ( map $_->p, grep $_->surface_type eq 'internal-solid', @neighbor ),
+                    ( map $_->p, grep $_->surface_type eq 'internal-solid', @neighbor_fill_surfaces ),
                     ( map @$_, @$new_internal_solid ),
                 ]);
                 
                 # subtract intersections from layer surfaces to get resulting inner surfaces
                 my $internal = diff_ex(
-                    [ map $_->p, grep $_->surface_type eq 'internal', @neighbor ],
+                    [ map $_->p, grep $_->surface_type eq 'internal', @neighbor_fill_surfaces ],
                     [ map @$_, @$internal_solid ],
                 );
                 Slic3r::debugf "    %d internal-solid and %d internal surfaces found\n",
@@ -310,23 +310,24 @@ sub discover_horizontal_shells {
                 # polygons as $internal; they will be removed by removed_small_features()
                 
                 # assign resulting inner surfaces to layer
-                @$surfaces = ();
-                push @$surfaces, Slic3r::Surface->cast_from_expolygon
+                my $neighbor_fill_surfaces = $self->layers->[$n]->fill_surfaces;
+                @$neighbor_fill_surfaces = ();
+                push @$neighbor_fill_surfaces, Slic3r::Surface->cast_from_expolygon
                     ($_, surface_type => 'internal')
                     for @$internal;
                 
                 # assign new internal-solid surfaces to layer
-                push @$surfaces, Slic3r::Surface->cast_from_expolygon
+                push @$neighbor_fill_surfaces, Slic3r::Surface->cast_from_expolygon
                     ($_, surface_type => 'internal-solid')
                     for @$internal_solid;
                 
                 # assign top and bottom surfaces to layer
-                foreach my $s (Slic3r::Surface->group(grep $_->surface_type =~ /top|bottom/, @neighbor)) {
+                foreach my $s (Slic3r::Surface->group(grep $_->surface_type =~ /top|bottom/, @neighbor_fill_surfaces)) {
                     my $solid_surfaces = diff_ex(
                         [ map $_->p, @$s ],
                         [ map @$_, @$internal_solid, @$internal ],
                     );
-                    push @$surfaces, Slic3r::Surface->cast_from_expolygon
+                    push @$neighbor_fill_surfaces, Slic3r::Surface->cast_from_expolygon
                         ($_, surface_type => $s->[0]->surface_type, bridge_angle => $s->[0]->bridge_angle)
                         for @$solid_surfaces;
                 }
