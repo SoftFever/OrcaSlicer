@@ -16,25 +16,25 @@ has 'last_f'             => (is => 'rw', default => sub {0});
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # calculate speeds
-has 'travel_feed_rate' => (
+has 'travel_speed' => (
     is      => 'ro',
-    default => sub { $Slic3r::travel_feed_rate * 60 },  # mm/min
+    default => sub { $Slic3r::travel_speed * 60 },  # mm/min
 );
-has 'perimeter_feed_rate' => (
+has 'perimeter_speed' => (
     is      => 'ro',
-    default => sub { $Slic3r::perimeter_feed_rate * 60 },  # mm/min
+    default => sub { $Slic3r::perimeter_speed * 60 },  # mm/min
 );
-has 'infill_feed_rate' => (
+has 'infill_speed' => (
     is      => 'ro',
-    default => sub { $Slic3r::infill_feed_rate * 60 },  # mm/min
+    default => sub { $Slic3r::infill_speed * 60 },  # mm/min
 );
-has 'solid_infill_feed_rate' => (
+has 'solid_infill_speed' => (
     is      => 'ro',
-    default => sub { $Slic3r::solid_infill_feed_rate * 60 },  # mm/min
+    default => sub { $Slic3r::solid_infill_speed * 60 },  # mm/min
 );
-has 'bridge_feed_rate' => (
+has 'bridge_speed' => (
     is      => 'ro',
-    default => sub { $Slic3r::bridge_feed_rate * 60 },  # mm/min
+    default => sub { $Slic3r::bridge_speed * 60 },  # mm/min
 );
 has 'retract_speed' => (
     is      => 'ro',
@@ -122,10 +122,10 @@ sub extrude {
     
     # extrude arc or line
     $self->print_feed_rate(
-        $path->role =~ /^(perimeter|skirt)$/o   ? $self->perimeter_feed_rate
-            : $path->role eq 'fill'             ? $self->infill_feed_rate
-            : $path->role eq 'solid-fill'       ? $self->solid_infill_feed_rate
-            : $path->role eq 'bridge'           ? $self->bridge_feed_rate
+        $path->role =~ /^(perimeter|skirt)$/o   ? $self->perimeter_speed
+            : $path->role eq 'fill'             ? $self->infill_speed
+            : $path->role eq 'solid-fill'       ? $self->solid_infill_speed
+            : $path->role eq 'bridge'           ? $self->bridge_speed
             : die "Unknown role: " . $path->role
     );
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
@@ -268,7 +268,7 @@ sub _Gx {
         : 1;
     
     # determine speed
-    my $speed = ($e ? $self->print_feed_rate : $self->travel_feed_rate) * $speed_multiplier;
+    my $speed = ($e ? $self->print_feed_rate : $self->travel_speed) * $speed_multiplier;
     
     # output speed if it's different from last one used
     # (goal: reduce gcode size)

@@ -10,119 +10,158 @@ our $Options = {
     # printer options
     'nozzle_diameter' => {
         label   => 'Nozzle diameter',
+        cli     => 'nozzle-diameter=f',
         type    => 'f',
     },
     'print_center' => {
         label   => 'Print center',
+        cli     => 'print-center=s',
         type    => 'point',
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
     },
     'use_relative_e_distances' => {
         label   => 'Use relative E distances',
+        cli     => 'use-relative-e-distances',
         type    => 'bool',
     },
     'no_extrusion' => {
         label   => 'No extrusion',
+        cli     => 'no-extrusion',
         type    => 'bool',
     },
     'z_offset' => {
         label   => 'Z offset',
+        cli     => 'z-offset=f',
         type    => 'f',
+    },
+    'gcode_arcs' => {
+        label   => 'Use native GCODE arcs',
+        cli     => 'gcode-arcs',
+        type    => 'bool',
+    },
+    'g0' => {
+        label   => 'Use g0 for travel moves',
+        cli     => 'g0',
+        type    => 'bool',
     },
     
     # filament options
     'filament_diameter' => {
         label   => 'Diameter (mm)',
+        cli     => 'filament-diameter=f',
         type    => 'f',
     },
     'extrusion_multiplier' => {
         label   => 'Extrusion multiplier',
+        cli     => 'extrusion-multiplier=f',
         type    => 'f',
         aliases => [qw(filament_packing_density)],
     },
     'temperature' => {
         label   => 'Temperature (°C)',
+        cli     => 'temperature=i',
         type    => 'i',
     },
     
     # speed options
-    'travel_feed_rate' => {
+    'travel_speed' => {
         label   => 'Travel (mm/s)',
+        cli     => 'travel-speed=i',
         type    => 'f',
+        aliases => [qw(travel_feed_rate)],
     },
-    'perimeter_feed_rate' => {
+    'perimeter_speed' => {
         label   => 'Perimeters (mm/s)',
+        cli     => 'perimeter-speed=i',
         type    => 'f',
+        aliases => [qw(perimeter_feed_rate)],
     },
-    'infill_feed_rate' => {
+    'infill_speed' => {
         label   => 'Infill (mm/s)',
+        cli     => 'infill-speed=i',
         type    => 'f',
-        aliases => [qw(print_feed_rate)],
+        aliases => [qw(print_feed_rate infill_feed_rate)],
     },
-    'solid_infill_feed_rate' => {
+    'solid_infill_speed' => {
         label   => 'Solid infill (mm/s)',
+        cli     => 'solid-infill-speed=i',
         type    => 'f',
+        aliases => [qw(solid_infill_feed_rate)],
     },
-    'bridge_feed_rate' => {
+    'bridge_speed' => {
         label   => 'Bridges (mm/s)',
+        cli     => 'bridge-speed=i',
         type    => 'f',
+        aliases => [qw(bridge_feed_rate)],
     },
     'bottom_layer_speed_ratio' => {
         label   => 'Bottom layer speed ratio',
+        cli     => 'bottom-layer-speed-ratio=f',
         type    => 'f',
     },
     
     # accuracy options
     'layer_height' => {
         label   => 'Layer height (mm)',
+        cli     => 'layer-height=f',
         type    => 'f',
     },
     'extrusion_width_ratio' => {
         label   => 'Extrusion width (ratio over layer height; leave zero to calculate automatically)',
+        cli     => 'extrusion-width-ratio=f',
         type    => 'f',
     },
     'first_layer_height_ratio' => {
         label   => 'First layer height ratio',
+        cli     => 'first-layer-height-ratio=f',
         type    => 'f',
     },
     'infill_every_layers' => {
         label   => 'Infill every N layers',
+        cli     => 'infill-every-layers=i',
         type    => 'i',
     },
     
     # print options
     'perimeters' => {
         label   => 'Perimeters',
+        cli     => 'perimeters=i',
         type    => 'i',
         aliases => [qw(perimeter_offsets)],
     },
     'solid_layers' => {
         label   => 'Solid layers',
+        cli     => 'solid-layers=i',
         type    => 'i',
     },
     'fill_pattern' => {
         label   => 'Fill pattern',
+        cli     => 'fill-pattern=s',
         type    => 'select',
         values  => [qw(rectilinear line concentric hilbertcurve archimedeanchords octagramspiral)],
         labels  => [qw(rectilinear line concentric), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
     },
     'solid_fill_pattern' => {
         label   => 'Solid fill pattern',
+        cli     => 'solid-fill-pattern=s',
         type    => 'select',
         values  => [qw(rectilinear concentric hilbertcurve archimedeanchords octagramspiral)],
         labels  => [qw(rectilinear concentric), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
     },
     'fill_density' => {
         label   => 'Fill density',
+        cli     => 'fill-density=f',
         type    => 'f',
     },
     'fill_angle' => {
         label   => 'Fill angle (°)',
+        cli     => 'fill-angle=i',
         type    => 'i',
     },
     'start_gcode' => {
         label   => 'Start GCODE',
+        cli     => 'start-gcode=s',
         type    => 's',
         multiline => 1,
         width   => 350,
@@ -132,6 +171,7 @@ our $Options = {
     },
     'end_gcode' => {
         label   => 'End GCODE',
+        cli     => 'end-gcode=s',
         type    => 's',
         multiline => 1,
         width   => 350,
@@ -143,60 +183,73 @@ our $Options = {
     # retraction options
     'retract_length' => {
         label   => 'Length (mm)',
+        cli     => 'retract-length=f',
         type    => 'f',
     },
     'retract_speed' => {
         label   => 'Speed (mm/s)',
+        cli     => 'retract-speed=i',
         type    => 'i',
     },
     'retract_restart_extra' => {
         label   => 'Extra length on restart (mm)',
+        cli     => 'retract-restart-extra=f',
         type    => 'f',
     },
     'retract_before_travel' => {
         label   => 'Minimum travel after retraction (mm)',
+        cli     => 'retract-before-travel=f',
         type    => 'f',
     },
     'retract_lift' => {
         label   => 'Lift Z (mm)',
+        cli     => 'retract-lift=f',
         type    => 'f',
     },
     
     # skirt options
     'skirts' => {
         label   => 'Loops',
+        cli     => 'skirts=i',
         type    => 'i',
     },
     'skirt_distance' => {
         label   => 'Distance from object (mm)',
+        cli     => 'skirt-distance=i',
         type    => 'i',
     },
     'skirt_height' => {
         label   => 'Skirt height (layers)',
+        cli     => 'skirt-height=i',
         type    => 'i',
     },
     
     # transform options
     'scale' => {
         label   => 'Scale',
+        cli     => 'scale=f',
         type    => 'f',
     },
     'rotate' => {
         label   => 'Rotate (°)',
+        cli     => 'rotate=i',
         type    => 'i',
     },
     'duplicate_x' => {
         label   => 'Copies along X',
+        cli     => 'duplicate-x=i',
         type    => 'i',
         aliases => [qw(multiply_x)],
     },
     'duplicate_y' => {
         label   => 'Copies along Y',
+        cli     => 'duplicate-y=i',
         type    => 'i',
         aliases => [qw(multiply_y)],
     },
     'duplicate_distance' => {
         label   => 'Distance between copies',
+        cli     => 'duplicate-distance=i',
         type    => 'i',
         aliases => [qw(multiply_distance)],
     },
@@ -260,7 +313,7 @@ sub validate_cli {
                 die "Invalid value for --${_}-gcode: file does not exist"
                     if !-e $opt->{$_."_gcode"};
                 open my $fh, "<", $opt->{$_."_gcode"};
-                set($_."_gcode", do { local $/; <$fh> });
+                $opt->{$_."_gcode"} = do { local $/; <$fh> };
                 close $fh;
             }
         }
@@ -361,8 +414,8 @@ sub validate {
         if $Slic3r::skirt_height < 1;
     
     # legacy with existing config files
-    $Slic3r::bridge_feed_rate ||= $Slic3r::infill_feed_rate;
-    $Slic3r::solid_infill_feed_rate ||= $Slic3r::infill_feed_rate;
+    $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
+    $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
 }
 
 1;

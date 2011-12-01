@@ -48,11 +48,11 @@ our $extrusion_multiplier = 1;
 our $temperature        = 200;
 
 # speed options
-our $travel_feed_rate           = 130;  # mm/sec
-our $perimeter_feed_rate        = 30;   # mm/sec
-our $infill_feed_rate           = 60;   # mm/sec
-our $solid_infill_feed_rate     = 60;   # mm/sec
-our $bridge_feed_rate           = 60;   # mm/sec
+our $travel_speed           = 130;  # mm/sec
+our $perimeter_speed        = 30;   # mm/sec
+our $infill_speed           = 60;   # mm/sec
+our $solid_infill_speed     = 60;   # mm/sec
+our $bridge_speed           = 60;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.3;
 
 # accuracy options

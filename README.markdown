@@ -100,17 +100,17 @@ The author is Alessandro Ranellucci (me).
       Filament options:
         --filament-diameter Diameter in mm of your raw filament (default: 3)
         --extrusion-multiplier
-                            Change this to alter the amount of plastic extruded. There should be 
+                            Change this to alter the amount of plastic extruded. There should be
                             very little need to change this value, which is only useful to 
                             compensate for filament packing (default: 1)
         --temperature       Extrusion temperature, set 0 to disable (default: 200)
         
       Speed options:
-        --print-feed-rate   Speed of print moves in mm/sec (default: 60)
-        --travel-feed-rate  Speed of non-print moves in mm/sec (default: 130)
-        --perimeter-feed-rate
-                            Speed of print moves for perimeters in mm/sec (default: 60)
-        --bridge-feed-rate  Speed of bridge print moves in mm/sec (default: 60)
+        --travel-speed      Speed of non-print moves in mm/sec (default: 130)
+        --perimeter-speed   Speed of print moves for perimeters in mm/sec (default: 30)
+        --infill-speed      Speed of print moves in mm/sec (default: 60)
+        --solid-infill-speed Speed of print moves for solid surfaces in mm/sec (default: 60)
+        --bridge-speed      Speed of bridge print moves in mm/sec (default: 60)
         --bottom-layer-speed-ratio
                             Factor to increase/decrease speeds on bottom 
                             layer by (default: 0.3)

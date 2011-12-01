@@ -11,76 +11,29 @@ BEGIN {
 use Getopt::Long;
 use Slic3r;
 use XXX;
-
 $|++;
-our %opt;
-GetOptions(
-    'help'                  => sub { usage() },
 
-    'debug'                 => \$Slic3r::debug,
-    'o|output=s'            => \$opt{output},
-    'close-after-slicing'   => \$opt{close_after_slicing},
+my %opt = ();
+my %cli_options = ();
+{
+    my %options = (
+        'help'                  => sub { usage() },
+        
+        'debug'                 => \$Slic3r::debug,
+        'o|output=s'            => \$opt{output},
+        'close-after-slicing'   => \$opt{close_after_slicing},
+        
+        'save=s'                => \$opt{save},
+        'load=s'                => \$opt{load},
+    );
+    foreach my $opt_key (keys %$Slic3r::Config::Options) {
+        my $opt = $Slic3r::Config::Options->{$opt_key};
+        $options{ $opt->{cli} } = \$cli_options{$opt_key}
+            if $opt->{cli};
+    }
     
-    'save=s'                    => \$opt{save},
-    'load=s'                    => \$opt{load},
-    
-    # printer options
-    'nozzle-diameter=f'         => \$Slic3r::nozzle_diameter,
-    'print-center=s'            => \$Slic3r::print_center,
-    'use-relative-e-distances'  => \$Slic3r::use_relative_e_distances,
-    'no-extrusion'              => \$Slic3r::no_extrusion,
-    'z-offset=f'                => \$Slic3r::z_offset,
-    'gcode-arcs'                => \$Slic3r::gcode_arcs,
-    'g0'                        => \$Slic3r::g0,
-    
-    # filament options
-    'filament-diameter=f'           => \$Slic3r::filament_diameter,
-    'extrusion-multiplier=f'        => \$Slic3r::extrusion_multiplier,
-    'temperature=i'                 => \$Slic3r::temperature,
-    
-    # speed options
-    'travel-feed-rate=i'            => \$Slic3r::travel_feed_rate,
-    'perimeter-feed-rate=i'         => \$Slic3r::perimeter_feed_rate,
-    'infill-feed-rate=i'            => \$Slic3r::infill_feed_rate,
-    'solid-infill-feed-rate=i'      => \$Slic3r::solid_infill_feed_rate,
-    'bridge-feed-rate=i'            => \$Slic3r::bridge_feed_rate,
-    'bottom-layer-speed-ratio=f'    => \$Slic3r::bottom_layer_speed_ratio,
-    
-    # accuracy options
-    'layer-height=f'                => \$Slic3r::layer_height,
-    'extrusion-width-ratio=f'       => \$Slic3r::extrusion_width_ratio,
-    'first-layer-height-ratio=f'    => \$Slic3r::first_layer_height_ratio,
-    'infill-every-layers=i'         => \$Slic3r::infill_every_layers,
-    
-    # print options
-    'perimeters=i'          => \$Slic3r::perimeters,
-    'solid-layers=i'        => \$Slic3r::solid_layers,
-    'fill-pattern=s'        => \$Slic3r::fill_pattern,
-    'solid-fill-pattern=s'  => \$Slic3r::solid_fill_pattern,
-    'fill-density=f'        => \$Slic3r::fill_density,
-    'fill-angle=i'          => \$Slic3r::fill_angle,
-    'start-gcode=s'         => \$opt{start_gcode},
-    'end-gcode=s'           => \$opt{end_gcode},
-    
-    # retraction options
-    'retract-length=f'          => \$Slic3r::retract_length,
-    'retract-speed=i'           => \$Slic3r::retract_speed,
-    'retract-restart-extra=f'   => \$Slic3r::retract_restart_extra,
-    'retract-before-travel=f'   => \$Slic3r::retract_before_travel,
-    'retract-lift=f'            => \$Slic3r::retract_lift,
-    
-    # skirt options
-    'skirts=i'              => \$Slic3r::skirts,
-    'skirt-distance=i'      => \$Slic3r::skirt_distance,
-    'skirt-height=i'        => \$Slic3r::skirt_height,
-    
-    # transform options
-    'scale=f'               => \$Slic3r::scale,
-    'rotate=i'              => \$Slic3r::rotate,
-    'duplicate-x=i'         => \$Slic3r::duplicate_x,
-    'duplicate-y=i'         => \$Slic3r::duplicate_y,
-    'duplicate-distance=i'  => \$Slic3r::duplicate_distance,
-) or usage(1);
+    GetOptions(%options) or usage(1);
+}
 
 # load configuration
 if ($opt{load}) {
@@ -89,7 +42,11 @@ if ($opt{load}) {
 }
 
 # validate command line options
-Slic3r::Config->validate_cli(\%opt);
+Slic3r::Config->validate_cli(\%cli_options);
+
+# apply command line options
+Slic3r::Config->set($_ => $cli_options{$_})
+    for grep defined $cli_options{$_}, keys %cli_options;
 
 # validate configuration
 Slic3r::Config->validate;
@@ -155,13 +112,11 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --temperature       Extrusion temperature, set 0 to disable (default: $Slic3r::temperature)
     
   Speed options:
-    --travel-feed-rate  Speed of non-print moves in mm/sec (default: $Slic3r::travel_feed_rate)
-    --perimeter-feed-rate
-                        Speed of print moves for perimeters in mm/sec (default: $Slic3r::perimeter_feed_rate)
-    --infill-feed-rate  Speed of print moves in mm/sec (default: $Slic3r::infill_feed_rate)
-    --solid-infill-feed-rate
-                        Speed of print moves for solid surfaces in mm/sec (default: $Slic3r::solid_infill_feed_rate)
-    --bridge-feed-rate  Speed of bridge print moves in mm/sec (default: $Slic3r::bridge_feed_rate)
+    --travel-speed      Speed of non-print moves in mm/sec (default: $Slic3r::travel_speed)
+    --perimeter-speed   Speed of print moves for perimeters in mm/sec (default: $Slic3r::perimeter_speed)
+    --infill-speed      Speed of print moves in mm/sec (default: $Slic3r::infill_speed)
+    --solid-infill-speed Speed of print moves for solid surfaces in mm/sec (default: $Slic3r::solid_infill_speed)
+    --bridge-speed      Speed of bridge print moves in mm/sec (default: $Slic3r::bridge_speed)
     --bottom-layer-speed-ratio
                         Factor to increase/decrease speeds on bottom 
                         layer by (default: $Slic3r::bottom_layer_speed_ratio)
