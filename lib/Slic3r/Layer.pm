@@ -3,7 +3,7 @@ use Moo;
 
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(scale collinear X Y A B PI);
-use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex PFT_EVENODD);
+use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex is_counter_clockwise);
 use XXX;
 
 # a sequential number of layer, starting at 0
@@ -98,7 +98,15 @@ sub make_surfaces {
     my ($loops) = @_;
     
     {
-        my $expolygons = union_ex($loops, PFT_EVENODD);
+        # merge contours
+        my $expolygons = union_ex([ grep is_counter_clockwise($_), @$loops ]);
+        
+        # subtract holes
+        $expolygons = union_ex([
+            (map @$_, @$expolygons),
+            (grep !is_counter_clockwise($_), @$loops)
+        ]);
+        
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
         
