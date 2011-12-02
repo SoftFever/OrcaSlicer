@@ -41,6 +41,7 @@ lib/Slic3r/TriangleMesh/IntersectionLine.pm
 MANIFEST			This list of files
 README.markdown
 slic3r.pl
+t/angles.t
 t/arcs.t
 t/clean_polylines.t
 t/clipper.t

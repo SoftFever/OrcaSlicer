@@ -85,6 +85,11 @@ sub atan {
     return Slic3r::Geometry::line_atan($self);
 }
 
+sub direction {
+    my $self = shift;
+    return Slic3r::Geometry::line_direction($self);
+}
+
 sub intersection {
     my $self = shift;
     my ($line, $require_crossing) = @_;

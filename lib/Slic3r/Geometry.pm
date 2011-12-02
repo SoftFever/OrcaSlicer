@@ -14,10 +14,11 @@ our @EXPORT_OK = qw(
     rotate_points move_points remove_coinciding_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect same_point
-    longest_segment angle3points three_points_aligned
+    longest_segment angle3points three_points_aligned line_direction
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear scale unscale merge_collinear_lines
+    rad2deg_dir
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -50,6 +51,14 @@ sub slope {
 sub line_atan {
     my ($line) = @_;
     return atan2($line->[B][Y] - $line->[A][Y], $line->[B][X] - $line->[A][X]);
+}
+
+sub line_direction {
+    my ($line) = @_;
+    my $atan2 = line_atan($line);
+    return ($atan2 == PI) ? 0
+        : ($atan2 < 0) ? ($atan2 + PI)
+        : $atan2;
 }
 
 sub lines_parallel {
@@ -309,6 +318,13 @@ sub deg2rad {
 sub rad2deg {
     my ($rad) = @_;
     return $rad / PI() * 180;
+}
+
+sub rad2deg_dir {
+    my ($rad) = @_;
+    $rad = ($rad < PI) ? (-$rad + PI/2) : ($rad + PI/2);
+    $rad += PI if $rad < 0;
+    return rad2deg($rad);
 }
 
 sub rotate_points {

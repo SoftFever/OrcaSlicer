@@ -177,6 +177,7 @@ sub detect_surfaces_type {
         my $expolygons = diff_ex(
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$subject_surfaces ],
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
+            1,
         );
         return grep $_->contour->is_printable,
             map Slic3r::Surface->cast_from_expolygon($_, surface_type => $result_type), 
@@ -206,7 +207,6 @@ sub detect_surfaces_type {
         # of current layer and upper one)
         if ($upper_layer) {
             @top = $surface_difference->($layer->surfaces, $upper_layer->surfaces, 'top');
-            
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->surfaces};
@@ -217,22 +217,6 @@ sub detect_surfaces_type {
         # of current layer and lower one)
         if ($lower_layer) {
             @bottom = $surface_difference->($layer->surfaces, $lower_layer->surfaces, 'bottom');
-            
-            $_->contour->merge_continuous_lines for @bottom;
-            
-            # merge_continuous_lines could return polylines with less than 3 points (thus invalid)
-            # actually, this shouldn't happen so it deserves further investigation
-            @bottom = grep $_->contour->is_valid, @bottom;
-            
-            foreach my $surface (@bottom) {
-                $surface->contour->remove_acute_vertices;
-        
-                # okay, this is an Ugly Hack(tm) to avoid floating point math problems
-                # with diagonal bridges. will find a nicer solution, promised.
-                my $offset = safety_offset([$surface->contour->p]);
-                @{$surface->contour->points} = map Slic3r::Point->new($_), @{ $offset->[0] };
-            }
-            
         } else {
             # if no lower layer, all surfaces of this one are solid
             @bottom = @{$layer->surfaces};
@@ -391,7 +375,6 @@ sub infill_every_layers {
                 [ map $_->p, grep $_->surface_type eq 'internal', @{$layer->fill_surfaces} ],
             );
             next if !@$intersection;
-            my $intersection_offsetted = safety_offset([ map @$_, @$intersection ]);
             
             # new fill surfaces of the current layer are:
             # - any non-internal surface
@@ -414,7 +397,8 @@ sub infill_every_layers {
                                 map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                     @{$layer->fill_surfaces},
                             ],
-                            $intersection_offsetted,
+                            $intersection,
+                            1,
                         )};
                 }
                 @{$layer->fill_surfaces} = @new_surfaces;
@@ -435,7 +419,8 @@ sub infill_every_layers {
                                 map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                     @{$lower_layer->fill_surfaces},
                             ],
-                            $intersection_offsetted,
+                            $intersection,
+                            1,
                         )};
                 }
                 @{$lower_layer->fill_surfaces} = @new_surfaces;

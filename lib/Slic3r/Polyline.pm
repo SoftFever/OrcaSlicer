@@ -3,7 +3,7 @@ use Moo;
 
 use Math::Clipper qw();
 use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
-    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges move_points);
+    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges move_points same_point);
 use Sub::Quote;
 use XXX;
 
@@ -156,9 +156,14 @@ sub clip_with_expolygon {
         push @polylines, $current_polyline;
     }
     
-    if (@polylines > 1 && scalar(@{$polylines[-1]}) == 2 && $polylines[-1][-1] eq $polylines[0][0]) {
-        unshift @{$polylines[0]}, $polylines[-1][0];
-        pop @polylines;
+    if (@polylines > 1 && same_point($polylines[-1][-1], $polylines[0][0])) {
+        if (scalar(@{$polylines[-1]}) == 2) {
+            unshift @{$polylines[0]}, $polylines[-1][0];
+            pop @polylines;
+        } else {
+            push @{$polylines[-1]}, $polylines[0][-1];
+            shift @polylines;
+        }
     }
     
     return map Slic3r::Polyline->cast($_), @polylines;

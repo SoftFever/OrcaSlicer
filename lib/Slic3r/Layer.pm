@@ -2,7 +2,7 @@ package Slic3r::Layer;
 use Moo;
 
 use Math::Clipper ':all';
-use Slic3r::Geometry qw(scale collinear X Y A B PI);
+use Slic3r::Geometry qw(scale collinear X Y A B PI rad2deg_dir);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex is_counter_clockwise);
 use XXX;
 
@@ -224,7 +224,7 @@ sub process_bridges {
         # offset the contour and intersect it with the internal surfaces to discover 
         # which of them has contact with our bridge
         my @supporting_surfaces = ();
-        my ($contour_offset) = $expolygon->contour->offset($Slic3r::flow_width / $Slic3r::resolution);
+        my ($contour_offset) = $expolygon->contour->offset(scale $Slic3r::flow_width * sqrt(2));
         foreach my $internal_surface (@internal_surfaces) {
             my $intersection = intersection_ex([$contour_offset], [$internal_surface->contour->p]);
             if (@$intersection) {
@@ -236,7 +236,7 @@ sub process_bridges {
             require "Slic3r/SVG.pm";
             Slic3r::SVG::output(undef, "bridge.svg",
                 green_polygons  => [ map $_->p, @supporting_surfaces ],
-                red_polygons    => [ @$expolygon ],
+                #red_polygons    => [ @$expolygon ],
             );
         }
         
@@ -257,6 +257,7 @@ sub process_bridges {
                     $bridge_over_hole = 1;
                 } else {
                     foreach my $edge (@surface_edges) {
+                        next unless @{$edge->points} >= 4;
                         shift @{$edge->points};
                         pop @{$edge->points};
                     }
@@ -272,15 +273,21 @@ sub process_bridges {
                 Slic3r::SVG::output(undef, "bridge.svg",
                     polylines       => [ map $_->p, @edges ],
                 );
-                exit if $self->id == 30;
             }
             
-            if (@edges == 2) {
-                my @chords = map Slic3r::Line->new($_->points->[0], $_->points->[-1]), @edges;
-                my @midpoints = map $_->midpoint, @chords;
-                $bridge_angle = -Slic3r::Geometry::rad2deg(Slic3r::Geometry::line_atan(\@midpoints) + PI/2);
-                Slic3r::debugf "Optimal infill angle of bridge on layer %d is %d degrees\n", $self->id, $bridge_angle;
+            {
+                my $weighted_sum = 0;
+                my $total_length = 0;
+                foreach my $line (map $_->lines, @edges) {
+                    my $len = $line->length;
+                    $weighted_sum += $len * $line->direction;
+                    $total_length += $len;
+                }
+                $bridge_angle = rad2deg_dir(($weighted_sum / $total_length) + PI/2);
             }
+            
+            Slic3r::debugf "Optimal infill angle of bridge on layer %d is %d degrees\n",
+                $self->id, $bridge_angle if defined $bridge_angle;
         }
         
         # now, extend our bridge by taking a portion of supporting surfaces
