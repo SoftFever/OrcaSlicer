@@ -17,11 +17,14 @@ sub new {
     my $self = $class->SUPER::new($box, wxVERTICAL);
     
     my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$p{options}}), 2, 2, 0);
+    my $bold_font = Wx::SystemSettings::GetFont(0);
+    $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
     
     foreach my $opt_key (@{$p{options}}) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
         my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition, [180,-1]);
         $label->Wrap(180);  # needed to avoid Linux/GTK bug
+        $label->SetFont($bold_font) if $opt->{important};
         my $field;
         if ($opt->{type} =~ /^(i|f|s)$/) {
             my $style = 0;

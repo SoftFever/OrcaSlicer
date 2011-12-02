@@ -12,6 +12,7 @@ our $Options = {
         label   => 'Nozzle diameter',
         cli     => 'nozzle-diameter=f',
         type    => 'f',
+        important => 1,
     },
     'print_center' => {
         label   => 'Print center',
@@ -27,7 +28,7 @@ our $Options = {
     },
     'extrusion_axis' => {
         label   => 'Extrusion axis',
-        cli     => 'extrusion_axis',
+        cli     => 'extrusion-axis',
         type    => 's',
     },
     'z_offset' => {
@@ -51,6 +52,7 @@ our $Options = {
         label   => 'Diameter (mm)',
         cli     => 'filament-diameter=f',
         type    => 'f',
+        important => 1,
     },
     'extrusion_multiplier' => {
         label   => 'Extrusion multiplier',
@@ -62,6 +64,7 @@ our $Options = {
         label   => 'Temperature (°C)',
         cli     => 'temperature=i',
         type    => 'i',
+        important => 1,
     },
     
     # speed options
