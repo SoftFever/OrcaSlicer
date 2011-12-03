@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 23;
+plan tests => 24;
 
 BEGIN {
     use FindBin;
@@ -50,6 +50,7 @@ use Slic3r::Geometry qw(line_atan line_direction rad2deg_dir PI);
     is rad2deg_dir(PI*1/4),   45, 'NE (degrees)';
     is rad2deg_dir(PI*3/4),  135, 'NW (degrees)';
     is rad2deg_dir(PI/6),     60, '30°';
+    is rad2deg_dir(PI/6*2),   30, '60°';
 }
 
 #==========================================================

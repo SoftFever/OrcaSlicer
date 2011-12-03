@@ -2,13 +2,10 @@ package Slic3r::Print;
 use Moo;
 
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z PI scale);
+use Slic3r::Geometry qw(X Y Z PI MIN MAX scale);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
     union_ex offset JT_ROUND JT_MITER);
 use XXX;
-
-use constant MIN => 0;
-use constant MAX => 1;
 
 has 'x_length' => (
     is          => 'ro',
@@ -184,17 +181,6 @@ sub detect_surfaces_type {
             @$expolygons;
     };
     
-    # clip surfaces to the fill boundaries
-    foreach my $layer (@{$self->layers}) {
-        my $intersection = intersection_ex(
-            [ map $_->p, @{$layer->surfaces} ],
-            [ map $_->p, @{$layer->fill_boundaries} ],
-        );
-        @{$layer->surfaces} = map Slic3r::Surface->cast_from_expolygon
-            ($_, surface_type => 'internal'),
-            @$intersection;
-    }
-    
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
         Slic3r::debugf "Detecting solid surfaces for layer %d\n", $layer->id;
@@ -206,20 +192,20 @@ sub detect_surfaces_type {
         # find top surfaces (difference between current surfaces
         # of current layer and upper one)
         if ($upper_layer) {
-            @top = $surface_difference->($layer->surfaces, $upper_layer->surfaces, 'top');
+            @top = $surface_difference->($layer->slices, $upper_layer->slices, 'top');
         } else {
             # if no upper layer, all surfaces of this one are solid
-            @top = @{$layer->surfaces};
+            @top = @{$layer->slices};
             $_->surface_type('top') for @top;
         }
         
         # find bottom surfaces (difference between current surfaces
         # of current layer and lower one)
         if ($lower_layer) {
-            @bottom = $surface_difference->($layer->surfaces, $lower_layer->surfaces, 'bottom');
+            @bottom = $surface_difference->($layer->slices, $lower_layer->slices, 'bottom');
         } else {
             # if no lower layer, all surfaces of this one are solid
-            @bottom = @{$layer->surfaces};
+            @bottom = @{$layer->slices};
             $_->surface_type('bottom') for @bottom;
         }
         
@@ -233,13 +219,27 @@ sub detect_surfaces_type {
         }
         
         # find internal surfaces (difference between top/bottom surfaces and others)
-        @internal = $surface_difference->($layer->surfaces, [@top, @bottom], 'internal');
+        @internal = $surface_difference->($layer->slices, [@top, @bottom], 'internal');
         
         # save surfaces to layer
-        $layer->surfaces([ @bottom, @top, @internal ]);
+        $layer->slices([ @bottom, @top, @internal ]);
         
         Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
             $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
+    }
+    
+    # clip surfaces to the fill boundaries
+    foreach my $layer (@{$self->layers}) {
+        @{$layer->surfaces} = ();
+        foreach my $surface (@{$layer->slices}) {
+            my $intersection = intersection_ex(
+                [ $surface->p ],
+                [ map $_->p, @{$layer->fill_boundaries} ],
+            );
+            push @{$layer->surfaces}, map Slic3r::Surface->cast_from_expolygon
+                ($_, surface_type => $surface->surface_type),
+                @$intersection;
+        }
     }
 }
 
@@ -327,7 +327,7 @@ sub extrude_skirt {
     # collect points from all layers contained in skirt height
     my @points = ();
     my @layers = map $self->layer($_), 0..($Slic3r::skirt_height-1);
-    push @points, map @$_, map $_->p, map @{ $_->surfaces }, @layers;
+    push @points, map @$_, map $_->p, map @{ $_->slices }, @layers;
     
     # find out convex hull
     my $convex_hull = convex_hull(\@points);
@@ -335,7 +335,7 @@ sub extrude_skirt {
     # draw outlines from outside to inside
     my @skirts = ();
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
-        my $distance = ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i)) / $Slic3r::resolution;
+        my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
         push @skirts, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ], role => 'skirt');
     }

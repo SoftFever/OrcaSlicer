@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
-    PI X Y Z A B X1 Y1 X2 Y2 epsilon slope line_atan lines_parallel 
+    PI X Y Z A B X1 Y1 X2 Y2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
@@ -18,7 +18,7 @@ our @EXPORT_OK = qw(
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear scale unscale merge_collinear_lines
-    rad2deg_dir
+    rad2deg_dir bounding_box_center
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -34,6 +34,8 @@ use constant X1 => 0;
 use constant Y1 => 1;
 use constant X2 => 2;
 use constant Y2 => 3;
+use constant MIN => 0;
+use constant MAX => 1;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
 our $epsilon = 1E-6;
@@ -601,6 +603,14 @@ sub bounding_box {
     my @y = sort { $a <=> $b } map $_->[Y], @$points;
     
     return ($x[0], $y[0], $x[-1], $y[-1]);
+}
+
+sub bounding_box_center {
+    my @bounding_box = bounding_box(@_);
+    return Slic3r::Point->new(
+        ($bounding_box[X2] - $bounding_box[X1]) / 2,
+        ($bounding_box[Y2] - $bounding_box[Y1]) / 2,
+    );
 }
 
 # bounding_box_intersect($d, @a, @b)

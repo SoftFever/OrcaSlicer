@@ -45,7 +45,7 @@ sub go {
     $self->status_cb->(30, "Detecting solid surfaces...");
     $print->detect_surfaces_type;
     
-    # prepare fill surfaces
+    # decide what surfaces are to be filled
     $self->status_cb->(35, "Preparing infill surfaces...");
     $_->prepare_fill_surfaces for @{$print->layers};
     
