@@ -285,7 +285,15 @@ sub process_bridges {
                 );
             }
             
-            if (@edges) {
+            if (@edges == 2) {
+                my @chords = map Slic3r::Line->new($_->points->[0], $_->points->[-1]), @edges;
+                my @midpoints = map $_->midpoint, @chords;
+                my $line_between_midpoints = Slic3r::Line->new(@midpoints);
+                $bridge_angle = rad2deg_dir($line_between_midpoints->direction);
+            } elsif (@edges == 1) {
+                my $line = Slic3r::Line->new($edges[0]->points->[0], $edges[0]->points->[-1]);
+                $bridge_angle = rad2deg_dir($line->direction);
+            } else {
                 my $center = bounding_box_center([ map @{$_->points}, @edges ]);
                 my $x = my $y = 0;
                 foreach my $point (map @{$_->points}, @edges) {
