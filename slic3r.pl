@@ -132,6 +132,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --extrusion-width-ratio
                         Calculate the extrusion width as the layer height multiplied by
                         this value (> 0, default: calculated automatically)
+    --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 1+, 

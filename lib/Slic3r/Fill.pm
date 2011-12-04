@@ -88,14 +88,19 @@ sub make_fill {
         my $filler      = $Slic3r::fill_pattern;
         my $density     = $Slic3r::fill_density;
         my $flow_width  = $Slic3r::flow_width;
+        my $flow_ratio  = 1;
         my $is_bridge = $layer->id > 0 && $surface->surface_type eq 'bottom';
         my $is_solid = $surface->surface_type =~ /^(top|bottom)$/;
         
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type ne 'internal') {
             $density = 1;
-            $filler = $is_bridge ? 'rectilinear' : $Slic3r::solid_fill_pattern;
-            $flow_width = $Slic3r::nozzle_diameter if $is_bridge;
+            $filler = $Slic3r::solid_fill_pattern;
+            if ($is_bridge) {
+                $filler = 'rectilinear';
+                $flow_width = sqrt($Slic3r::bridge_flow_ratio * ($Slic3r::nozzle_diameter**2));
+                $flow_ratio = $Slic3r::bridge_flow_ratio;
+            }
         } else {
             next SURFACE unless $density > 0;
         }
@@ -114,7 +119,7 @@ sub make_fill {
                     [ @$_ ],
                     role => ($is_bridge ? 'bridge' : $is_solid ? 'solid-fill' : 'fill'),
                     depth_layers => $surface->depth_layers,
-                    flow_ratio   => $params->{flow_ratio},
+                    flow_ratio   => $flow_ratio * ($params->{flow_ratio} || 1),
                 ), @paths,
             ],
         );
