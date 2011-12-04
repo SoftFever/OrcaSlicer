@@ -296,6 +296,8 @@ sub load {
     
     open my $fh, '<', $file;
     while (<$fh>) {
+        next if /^\s+/;
+        next if /^$/;
         next if /^\s*#/;
         /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
         my $key = $1;
