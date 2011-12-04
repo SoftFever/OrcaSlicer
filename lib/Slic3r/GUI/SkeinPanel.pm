@@ -158,7 +158,7 @@ sub do_slice {
         {
             local $SIG{__WARN__} = sub {
                 my $message = shift;
-                Wx::MessageDialog->new($self, $message, 'Non-manifold object', 
+                Wx::MessageDialog->new($self, $message, 'Warning', 
                     wxOK | wxICON_WARNING)->ShowModal;
             };
             $skein->go;

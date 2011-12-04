@@ -181,6 +181,20 @@ sub detect_surfaces_type {
             @$expolygons;
     };
     
+    # the contours must be offsetted by half extrusion width inwards
+    {
+        my $distance = scale $Slic3r::flow_width / 2;
+        foreach my $layer (@{$self->layers}) {
+            my @surfaces = @{$layer->slices};
+            @{$layer->slices} = ();
+            foreach my $surface (@surfaces) {
+                push @{$layer->slices}, map Slic3r::Surface->cast_from_expolygon
+                    ($_, surface_type => 'internal'),
+                    $surface->expolygon->offset_ex(-$distance);
+            }
+        }
+    }
+    
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
         Slic3r::debugf "Detecting solid surfaces for layer %d\n", $layer->id;

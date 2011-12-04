@@ -34,15 +34,14 @@ sub make_perimeter {
     ])};
     
     foreach my $surface (@surfaces) {
-        # the outer loop must be offsetted by half extrusion width inwards
         my @last_offsets = ($surface->expolygon);
-        my $distance = scale $Slic3r::flow_width / 2;
+        my $distance = 0;
         
         # create other offsets
         push @perimeters, [];
         for (my $loop = 0; $loop < $Slic3r::perimeters; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
-            @last_offsets = map $_->offset_ex(-$distance), @last_offsets;
+            @last_offsets = map $_->offset_ex(-$distance), @last_offsets if $distance;
             push @{ $perimeters[-1] }, [@last_offsets];
             
             # offset distance for inner loops

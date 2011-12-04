@@ -266,14 +266,14 @@ sub process_bridges {
             my $bridge_over_hole = 0;
             my @edges = ();  # edges are POLYLINES
             foreach my $supporting_surface (@supporting_surfaces) {
-                my @surface_edges = $supporting_surface->contour->clip_with_polygon($contour_offset);
+                my @surface_edges = map $_->clip_with_polygon($contour_offset),
+                    ($supporting_surface->contour, @{$supporting_surface->holes});
+                
                 if (@supporting_surfaces == 1 && @surface_edges == 1
                     && @{$supporting_surface->contour->p} == @{$surface_edges[0]->p}) {
                     $bridge_over_hole = 1;
-                } else {
-                    @surface_edges = grep { @{$_->points} } @surface_edges;
                 }
-                push @edges, @surface_edges;
+                push @edges, grep { @{$_->points} } @surface_edges;
             }
             Slic3r::debugf "  Bridge is supported on %d edge(s)\n", scalar(@edges);
             Slic3r::debugf "  and covers a hole\n" if $bridge_over_hole;
