@@ -38,7 +38,7 @@ use constant MIN => 0;
 use constant MAX => 1;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
-our $epsilon = 1E-6;
+our $epsilon = 1E-4;
 sub epsilon () { $epsilon }
 
 sub scale   ($) { $_[0] / $Slic3r::resolution }
@@ -212,7 +212,7 @@ sub polyline_lines {
     my @lines = ();
     my $last_point;
     foreach my $point (@$polygon) {
-        push @lines, [ $last_point, $point ] if $last_point;
+        push @lines, Slic3r::Line->new($last_point, $point) if $last_point;
         $last_point = $point;
     }
     

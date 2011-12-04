@@ -2,7 +2,7 @@ package Slic3r::TriangleMesh;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z A B PI epsilon same_point points_coincide angle3points
-    merge_collinear_lines nearest_point);
+    merge_collinear_lines nearest_point polyline_lines);
 use XXX;
 
 has 'facets'        => (is => 'ro', default => sub { [] });
@@ -194,28 +194,40 @@ sub make_loops {
         Slic3r::debugf "  %d lines out of %d were discarded and %d polylines were not closed\n",
             scalar(@discarded_lines), scalar(@lines), scalar(@discarded_polylines);
         print "  Warning: errors while parsing this layer (dirty or non-manifold model).\n";
-        print "  Retrying with slower algorithm.\n";
         
-        if (0) {
-            require "Slic3r/SVG.pm";
-            Slic3r::SVG::output(undef, "layer" . $self->id . "_detected.svg",
-                white_polygons => \@polygons,
-            );
-            Slic3r::SVG::output(undef, "layer" . $self->id . "_discarded_lines.svg",
-                red_lines   => \@discarded_lines,
-            );
-            Slic3r::SVG::output(undef, "layer" . $self->id . "_discarded_polylines.svg",
-                polylines   => \@discarded_polylines,
-            );
-        }
+        my $total_detected_length = 0;
+        $total_detected_length += $_->length for map $_->lines, @polygons;
+        my $total_discarded_length = 0;
+        $total_discarded_length += $_->length for map polyline_lines($_), @discarded_polylines;
+        $total_discarded_length += $_->length for @discarded_lines;
+        my $discarded_ratio = $total_discarded_length / $total_detected_length;
         
-        $sparse_lines = merge_collinear_lines($sparse_lines);
-        eval { $detect->(); };
-        warn $@ if $@;
+        Slic3r::debugf "  length ratio of discarded lines is %f\n", $discarded_ratio;
         
-        if (@discarded_lines) {
-            print "  Warning: even slow detection algorithm threw errors. Review the output before printing.\n";
-            $layer->slicing_errors(1);
+        if ($discarded_ratio > 0.00001) {
+            print "  Retrying with slower algorithm.\n";
+            
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(undef, "layer" . $layer->id . "_detected.svg",
+                    white_polygons => \@polygons,
+                );
+                Slic3r::SVG::output(undef, "layer" . $layer->id . "_discarded_lines.svg",
+                    red_lines   => \@discarded_lines,
+                );
+                Slic3r::SVG::output(undef, "layer" . $layer->id . "_discarded_polylines.svg",
+                    polylines   => \@discarded_polylines,
+                );
+            }
+            
+            $sparse_lines = merge_collinear_lines($sparse_lines);
+            eval { $detect->(); };
+            warn $@ if $@;
+            
+            if (@discarded_lines) {
+                print "  Warning: even slow detection algorithm threw errors. Review the output before printing.\n";
+                $layer->slicing_errors(1);
+            }
         }
     }
     
