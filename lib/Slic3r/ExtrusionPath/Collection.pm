@@ -18,7 +18,7 @@ sub add {
 
 sub endpoints {
     my $self = shift;
-    return map $_->endpoints, @{$self->paths};
+    return [ map $_->endpoints, @{$self->paths} ];
 }
 
 sub shortest_path {
@@ -30,7 +30,7 @@ sub shortest_path {
     CYCLE: while (@{$self->paths}) {
         # find nearest point
         $start_at = $start_near
-            ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, [ $self->endpoints ]))
+            ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, $self->endpoints))
             : $self->endpoints->[0];
         
         # loop through paths to find the one that starts or ends at the point found

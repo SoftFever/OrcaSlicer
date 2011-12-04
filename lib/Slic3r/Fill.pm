@@ -60,6 +60,7 @@ sub make_fill {
                 $union = diff_ex(
                     [ map @$_, @$union ],
                     [ map $_->p, @surfaces_with_bridge_angle ],
+                    1,
                 );
             }
             
@@ -67,6 +68,7 @@ sub make_fill {
             $union = diff_ex(
                 [ map @$_, @$union ],
                 [ map $_->p, @surfaces ],
+                1,
             );
             
             push @surfaces, map Slic3r::Surface->cast_from_expolygon($_,
@@ -103,6 +105,7 @@ sub make_fill {
             density     => $density,
             flow_width  => $flow_width,
         );
+        my $params = shift @paths;
         
         # save into layer
         push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
@@ -111,10 +114,11 @@ sub make_fill {
                     [ @$_ ],
                     role => ($is_bridge ? 'bridge' : $is_solid ? 'solid-fill' : 'fill'),
                     depth_layers => $surface->depth_layers,
+                    flow_ratio   => $params->{flow_ratio},
                 ), @paths,
             ],
         );
-        $layer->fills->[-1]->cleanup;
+        ###$layer->fills->[-1]->cleanup;
     }
 }
 

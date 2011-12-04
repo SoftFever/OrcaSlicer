@@ -272,6 +272,7 @@ sub discover_horizontal_shells {
                 my $new_internal_solid = intersection_ex(
                     $surfaces_p,
                     [ map $_->p, grep $_->surface_type =~ /internal/, @neighbor_surfaces ],
+                    undef, 1,
                 );
                 next if !@$new_internal_solid;
                 

@@ -117,6 +117,7 @@ sub extrude {
         * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
         * $Slic3r::flow_speed_ratio 
         * $self->flow_ratio
+        * ($path->flow_ratio || 1)
         * $Slic3r::extrusion_multiplier
         * $path->depth_layers;
     
