@@ -24,6 +24,10 @@ has 'perimeter_speed' => (
     is      => 'ro',
     default => sub { $Slic3r::perimeter_speed * 60 },  # mm/min
 );
+has 'small_perimeter_speed' => (
+    is      => 'ro',
+    default => sub { $Slic3r::small_perimeter_speed * 60 },  # mm/min
+);
 has 'infill_speed' => (
     is      => 'ro',
     default => sub { $Slic3r::infill_speed * 60 },  # mm/min
@@ -124,6 +128,7 @@ sub extrude {
     # extrude arc or line
     $self->print_feed_rate(
         $path->role =~ /^(perimeter|skirt)$/o   ? $self->perimeter_speed
+            : $path->role eq 'small-perimeter'  ? $self->small_perimeter_speed
             : $path->role eq 'fill'             ? $self->infill_speed
             : $path->role eq 'solid-fill'       ? $self->solid_infill_speed
             : $path->role eq 'bridge'           ? $self->bridge_speed

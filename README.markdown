@@ -109,6 +109,8 @@ The author is Alessandro Ranellucci (me).
       Speed options:
         --travel-speed      Speed of non-print moves in mm/sec (default: 130)
         --perimeter-speed   Speed of print moves for perimeters in mm/sec (default: 30)
+        --small-perimeter-speed
+                            Speed of print moves for small perimeters in mm/sec (default: 30)
         --infill-speed      Speed of print moves in mm/sec (default: 60)
         --solid-infill-speed Speed of print moves for solid surfaces in mm/sec (default: 60)
         --bridge-speed      Speed of bridge print moves in mm/sec (default: 60)

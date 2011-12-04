@@ -25,7 +25,7 @@ sub new {
         },
         print_speed => {
             title => 'Print speed',
-            options => [qw(perimeter_speed infill_speed solid_infill_speed bridge_speed)],
+            options => [qw(perimeter_speed small_perimeter_speed infill_speed solid_infill_speed bridge_speed)],
         },
         speed => {
             title => 'Other speed settings',

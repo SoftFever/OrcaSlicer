@@ -50,6 +50,7 @@ our $temperature        = 200;
 # speed options
 our $travel_speed           = 130;  # mm/sec
 our $perimeter_speed        = 30;   # mm/sec
+our $small_perimeter_speed  = 30;   # mm/sec
 our $infill_speed           = 60;   # mm/sec
 our $solid_infill_speed     = 60;   # mm/sec
 our $bridge_speed           = 60;   # mm/sec
@@ -57,6 +58,7 @@ our $bottom_layer_speed_ratio   = 0.3;
 
 # accuracy options
 our $resolution             = 0.00000001;
+our $small_perimeter_area   = (5 / $resolution) ** 2;
 our $layer_height           = 0.4;
 our $first_layer_height_ratio = 1;
 our $infill_every_layers    = 1;

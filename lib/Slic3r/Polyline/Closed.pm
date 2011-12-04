@@ -40,4 +40,9 @@ sub is_valid {
     return @{$self->points} >= 3;
 }
 
+sub polygon {
+    my $self = shift;
+    return Slic3r::Polygon->new($self->points);
+}
+
 1;

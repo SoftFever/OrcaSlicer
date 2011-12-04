@@ -115,6 +115,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   Speed options:
     --travel-speed      Speed of non-print moves in mm/sec (default: $Slic3r::travel_speed)
     --perimeter-speed   Speed of print moves for perimeters in mm/sec (default: $Slic3r::perimeter_speed)
+    --small-perimeter-speed
+                        Speed of print moves for small perimeters in mm/sec (default: $Slic3r::small_perimeter_speed)
     --infill-speed      Speed of print moves in mm/sec (default: $Slic3r::infill_speed)
     --solid-infill-speed Speed of print moves for solid surfaces in mm/sec (default: $Slic3r::solid_infill_speed)
     --bridge-speed      Speed of bridge print moves in mm/sec (default: $Slic3r::bridge_speed)

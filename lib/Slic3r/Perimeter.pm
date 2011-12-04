@@ -71,6 +71,11 @@ sub make_perimeter {
             push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($contour, role => 'perimeter');
         }
     }
+    
+    # detect small perimeters by checking their area
+    for (@{ $layer->perimeters }) {
+        $_->role('small-perimeter') if $_->polygon->area < $Slic3r::small_perimeter_area;
+    }
 }
 
 1;

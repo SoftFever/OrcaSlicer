@@ -80,6 +80,11 @@ our $Options = {
         type    => 'f',
         aliases => [qw(perimeter_feed_rate)],
     },
+    'small_perimeter_speed' => {
+        label   => 'Small perimeters (mm/s)',
+        cli     => 'small-perimeter-speed=i',
+        type    => 'f',
+    },
     'infill_speed' => {
         label   => 'Infill (mm/s)',
         cli     => 'infill-speed=i',
@@ -424,6 +429,7 @@ sub validate {
         if $Slic3r::skirt_height < 1;
     
     # legacy with existing config files
+    $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
     $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
     $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
 }
