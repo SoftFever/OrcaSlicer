@@ -122,6 +122,18 @@ sub make_surfaces {
                 @$expolygons;
     }
     
+    # the contours must be offsetted by half extrusion width inwards
+    {
+        my $distance = scale $Slic3r::flow_width / 2;
+        my @surfaces = @{$self->slices};
+        @{$self->slices} = ();
+        foreach my $surface (@surfaces) {
+            push @{$self->slices}, map Slic3r::Surface->cast_from_expolygon
+                ($_, surface_type => 'internal'),
+                $surface->expolygon->offset_ex(-$distance);
+        }
+    }
+    
     #use Slic3r::SVG;
     #Slic3r::SVG::output(undef, "surfaces.svg",
     #    polygons        => [ map $_->contour->p, @{$self->surfaces} ],
