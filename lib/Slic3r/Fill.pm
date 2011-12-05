@@ -122,7 +122,7 @@ sub make_fill {
                     flow_ratio   => $flow_ratio * ($params->{flow_ratio} || 1),
                 ), @paths,
             ],
-        );
+        ) if @paths;
         ###$layer->fills->[-1]->cleanup;
     }
 }

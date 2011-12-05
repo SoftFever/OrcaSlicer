@@ -43,7 +43,7 @@ sub fill_surface {
     my $polyline = Slic3r::Polyline->cast([
         map [ map {$_*$distance_between_lines} $path->n_to_xy($_) ], @n,
     ]);
-    return [] if !@{$polyline->points};
+    return {} if !@{$polyline->points};
     
     $self->process_polyline($polyline, $bounding_box);
     
