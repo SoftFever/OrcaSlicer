@@ -113,13 +113,13 @@ sub new_from_mesh {
         my (@upper_surfaces, @lower_surfaces);
         for (my $j = $i+1; $j <= $#{$print->layers}; $j++) {
             if (!$print->layers->[$j]->slicing_errors) {
-                @upper_surfaces = @{$print->layers->[$j]->surfaces};
+                @upper_surfaces = @{$print->layers->[$j]->slices};
                 last;
             }
         }
         for (my $j = $i-1; $j >= 0; $j--) {
             if (!$print->layers->[$j]->slicing_errors) {
-                @lower_surfaces = @{$print->layers->[$j]->surfaces};
+                @lower_surfaces = @{$print->layers->[$j]->slices};
                 last;
             }
         }
@@ -132,7 +132,7 @@ sub new_from_mesh {
             [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
         );
         
-        @{$layer->surfaces} = map Slic3r::Surface->cast_from_expolygon
+        @{$layer->slices} = map Slic3r::Surface->cast_from_expolygon
             ($_, surface_type => 'internal'),
             @$diff;
     }
