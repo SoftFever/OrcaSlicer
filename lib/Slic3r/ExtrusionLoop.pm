@@ -6,7 +6,7 @@ use XXX;
 extends 'Slic3r::Polyline::Closed';
 
 # perimeter/fill/solid-fill/bridge/skirt
-has 'role'         => (is => 'ro', required => 1);
+has 'role'         => (is => 'rw', required => 1);
 
 sub split_at {
     my $self = shift;

@@ -11,7 +11,7 @@ has 'depth_layers' => (is => 'ro', default => sub {1});
 has 'flow_ratio' => (is => 'rw');
 
 # perimeter/fill/solid-fill/bridge/skirt
-has 'role'         => (is => 'ro', required => 1);
+has 'role'         => (is => 'rw', required => 1);
 
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 use XXX;
