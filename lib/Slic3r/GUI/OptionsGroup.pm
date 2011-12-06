@@ -2,9 +2,10 @@ package Slic3r::GUI::OptionsGroup;
 use strict;
 use warnings;
 
-use Wx qw(:sizer);
+use Wx qw(:sizer wxSYS_DEFAULT_GUI_FONT);
 use Wx::Event qw(EVT_TEXT EVT_CHECKBOX EVT_CHOICE);
 use base 'Wx::StaticBoxSizer';
+
 
 # not very elegant, but this solution is temporary waiting for a better GUI
 our @reload_callbacks = ();
@@ -17,13 +18,19 @@ sub new {
     my $self = $class->SUPER::new($box, wxVERTICAL);
     
     my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$p{options}}), 2, 2, 0);
-    my $bold_font = Wx::SystemSettings::GetFont(0);
+
+    #grab the default font, to fix Windows font issues/keep things consistent
+    my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
+
     
     foreach my $opt_key (@{$p{options}}) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
         my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition, [180,-1]);
         $label->Wrap(180);  # needed to avoid Linux/GTK bug
+        
+        #set the bold font point size to the same size as all the other labels (for consistency)
+        $bold_font->SetPointSize($label->GetFont()->GetPointSize());
         $label->SetFont($bold_font) if $opt->{important};
         my $field;
         if ($opt->{type} =~ /^(i|f|s)$/) {
