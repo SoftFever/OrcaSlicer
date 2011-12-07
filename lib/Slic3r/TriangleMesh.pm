@@ -200,7 +200,9 @@ sub make_loops {
         my $total_discarded_length = 0;
         $total_discarded_length += $_->length for map polyline_lines($_), @discarded_polylines;
         $total_discarded_length += $_->length for @discarded_lines;
-        my $discarded_ratio = $total_discarded_length / $total_detected_length;
+        my $discarded_ratio = $total_detected_length
+            ? ($total_discarded_length / $total_detected_length)
+            : 0;
         
         Slic3r::debugf "  length ratio of discarded lines is %f\n", $discarded_ratio;
         
