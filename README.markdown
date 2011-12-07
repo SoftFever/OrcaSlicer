@@ -125,10 +125,6 @@ The author is Alessandro Ranellucci (me).
                             layer with (> 0, default: 1)
         --infill-every-layers
                             Infill every N layers (default: 1)
-        --extrusion-width-ratio
-                            Calculate the extrusion width as the layer height multiplied by
-                            this value (> 0, default: calculated automatically)
-        --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
       
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 1+, 
@@ -168,6 +164,14 @@ The author is Alessandro Ranellucci (me).
         --duplicate-x       Number of items along X axis (1+, default: 1)
         --duplicate-y       Number of items along Y axis (1+, default: 1)
         --duplicate-distance Distance in mm between copies (default: 6)
+      
+      Flow options (advanced):
+        --extrusion-width-ratio
+                            Calculate the extrusion width as the layer height multiplied by
+                            this value (> 0, default: calculated automatically)
+        --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
+        --overlap-ratio     Overlap between extrusion threads expressed as a ratio over extrusion 
+                            width (> 0, default: 0.15)
 
 If you want to change a preset file, just do
 

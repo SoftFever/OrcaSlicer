@@ -45,12 +45,12 @@ sub make_perimeter {
             push @{ $perimeters[-1] }, [@last_offsets];
             
             # offset distance for inner loops
-            $distance = $Slic3r::flow_width / $Slic3r::resolution;
+            $distance = scale $Slic3r::flow_spacing;
         }
         
         # create one more offset to be used as boundary for fill
         {
-            $distance -= scale $Slic3r::flow_width * $Slic3r::perimeter_infill_overlap_ratio;
+            $distance -= scale $Slic3r::flow_spacing;
             my @fill_boundaries = map Slic3r::Surface->cast_from_expolygon
                 ($_, surface_type => $surface->surface_type),
                 map $_->offset_ex(-$distance), @last_offsets;

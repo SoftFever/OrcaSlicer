@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y);
+use Slic3r::Geometry qw(scale X1 Y1 X2 Y2 A B X Y);
 use XXX;
 
 sub fill_surface {
@@ -16,7 +16,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($polygons, $rotate_vector);
     
-    my $distance_between_lines = $params{flow_width} / $Slic3r::resolution / $params{density};
+    my $distance_between_lines = scale $params{flow_spacing} / $params{density};
     my $number_of_lines = int(0.99999999 + $self->max_print_dimension / $distance_between_lines); # ceil
 
     #printf "distance = %f\n", $distance_between_lines;

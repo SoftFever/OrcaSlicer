@@ -115,6 +115,18 @@ our $Options = {
         cli     => 'layer-height=f',
         type    => 'f',
     },
+    'first_layer_height_ratio' => {
+        label   => 'First layer height ratio',
+        cli     => 'first-layer-height-ratio=f',
+        type    => 'f',
+    },
+    'infill_every_layers' => {
+        label   => 'Infill every N layers',
+        cli     => 'infill-every-layers=i',
+        type    => 'i',
+    },
+    
+    # flow options
     'extrusion_width_ratio' => {
         label   => 'Extrusion width (ratio over layer height; leave zero to calculate automatically)',
         cli     => 'extrusion-width-ratio=f',
@@ -125,15 +137,10 @@ our $Options = {
         cli     => 'bridge-flow-ratio=f',
         type    => 'f',
     },
-    'first_layer_height_ratio' => {
-        label   => 'First layer height ratio',
-        cli     => 'first-layer-height-ratio=f',
+    'overlap_ratio' => {
+        label   => 'Extrusion overlap (ratio over extrusion width)',
+        cli     => 'overlap-ratio=f',
         type    => 'f',
-    },
-    'infill_every_layers' => {
-        label   => 'Infill every N layers',
-        cli     => 'infill-every-layers=i',
-        type    => 'i',
     },
     
     # print options
@@ -371,9 +378,11 @@ sub validate {
         $Slic3r::flow_speed_ratio = $max_flow_width / $Slic3r::flow_width;
         $Slic3r::flow_width = $max_flow_width;
     }
+    $Slic3r::flow_spacing = $Slic3r::flow_width * (1-$Slic3r::overlap_ratio);
     
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
     Slic3r::debugf "Flow speed ratio = $Slic3r::flow_speed_ratio\n";
+    Slic3r::debugf "Flow spacing = $Slic3r::flow_spacing\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"

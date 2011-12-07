@@ -131,10 +131,6 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         layer with (> 0, default: $Slic3r::first_layer_height_ratio)
     --infill-every-layers
                         Infill every N layers (default: $Slic3r::infill_every_layers)
-    --extrusion-width-ratio
-                        Calculate the extrusion width as the layer height multiplied by
-                        this value (> 0, default: calculated automatically)
-    --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 1+, 
@@ -174,6 +170,14 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --duplicate-x       Number of items along X axis (1+, default: $Slic3r::duplicate_x)
     --duplicate-y       Number of items along Y axis (1+, default: $Slic3r::duplicate_y)
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
+  
+  Flow options (advanced):
+    --extrusion-width-ratio
+                        Calculate the extrusion width as the layer height multiplied by
+                        this value (> 0, default: calculated automatically)
+    --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
+    --overlap-ratio     Overlap between extrusion threads expressed as a ratio over extrusion
+                        width (> 0, default: $Slic3r::overlap_ratio)
     
 EOF
     exit ($exit_code || 0);

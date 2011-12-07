@@ -19,7 +19,7 @@ sub fill_surface {
     $bounding_box->[X1] += scale 0.1;
     $bounding_box->[X2] -= scale 0.1;
     
-    my $min_spacing = scale $params{flow_width};
+    my $min_spacing = scale $params{flow_spacing};
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
