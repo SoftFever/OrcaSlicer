@@ -396,7 +396,7 @@ sub infill_every_layers {
                                 map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                     @{$layer->fill_surfaces},
                             ],
-                            $intersection,
+                            [ map @$_, @$intersection ],
                             1,
                         )};
                 }
@@ -418,7 +418,7 @@ sub infill_every_layers {
                                 map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
                                     @{$lower_layer->fill_surfaces},
                             ],
-                            $intersection,
+                            [ map @$_, @$intersection ],
                             1,
                         )};
                 }
