@@ -135,6 +135,14 @@ sub new_from_mesh {
             @$diff;
     }
     
+    # remove empty layers from bottom
+    while (!@{$print->layers->[0]->slices}) {
+        shift @{$print->layers};
+        for (my $i = 0; $i <= $#{$print->layers}; $i++) {
+            $print->layers->[$i]->id($i);
+        }
+    }
+    
     return $print;
 }
 

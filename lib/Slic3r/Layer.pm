@@ -8,7 +8,7 @@ use XXX;
 
 # a sequential number of layer, starting at 0
 has 'id' => (
-    is          => 'ro',
+    is          => 'rw',
     #isa         => 'Int',
     required    => 1,
 );
