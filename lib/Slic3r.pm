@@ -18,7 +18,7 @@ use Slic3r::ExtrusionPath;
 use Slic3r::ExtrusionPath::Arc;
 use Slic3r::ExtrusionPath::Collection;
 use Slic3r::Fill;
-use Slic3r::Geometry;
+use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
 use Slic3r::Line;
 use Slic3r::Perimeter;
@@ -62,15 +62,18 @@ our $small_perimeter_area   = (5 / $resolution) ** 2;
 our $layer_height           = 0.4;
 our $first_layer_height_ratio = 1;
 our $infill_every_layers    = 1;
+
+# flow options
 our $extrusion_width_ratio  = 0;
 our $bridge_flow_ratio      = 1;
 our $flow_speed_ratio       = 1;
 our $flow_width;
+our $overlap_ratio          = 0.15;
+our $flow_spacing;
 
 # print options
 our $perimeters         = 3;
 our $solid_layers       = 3;
-our $perimeter_infill_overlap_ratio = 0.15;   # factor for flow width
 our $fill_pattern       = 'rectilinear';
 our $solid_fill_pattern = 'rectilinear';
 our $fill_density       = 0.4;  # 1 = 100%

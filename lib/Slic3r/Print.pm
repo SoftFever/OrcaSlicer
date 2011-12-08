@@ -342,7 +342,7 @@ sub extrude_skirt {
     # draw outlines from outside to inside
     my @skirts = ();
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
-        my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_width * $i));
+        my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
         push @skirts, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ], role => 'skirt');
     }

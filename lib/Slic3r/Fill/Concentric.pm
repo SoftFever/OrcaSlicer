@@ -3,6 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
+use Slic3r::Geometry qw(scale);
 use XXX;
 
 sub fill_surface {
@@ -11,8 +12,8 @@ sub fill_surface {
     
     # no rotation is supported for this infill pattern
     
-    my $flow_width_res = $params{flow_width} / $Slic3r::resolution;
-    my $distance = $flow_width_res / $params{density};
+    my $scaled_flow_spacing = scale $params{flow_spacing};
+    my $distance = $scaled_flow_spacing / $params{density};
     
     my @contour_loops = ();
     my @hole_loops = ();
@@ -43,7 +44,7 @@ sub fill_surface {
         my $path = $loop->split_at($cur_pos);
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
-        $path->clip_end($Slic3r::flow_width / $Slic3r::resolution);
+        $path->clip_end(scale $Slic3r::flow_spacing);
         
         push @paths, $path->p;
     }

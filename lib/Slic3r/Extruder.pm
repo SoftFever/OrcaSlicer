@@ -1,6 +1,8 @@
 package Slic3r::Extruder;
 use Moo;
 
+use Slic3r::Geometry qw(scale);
+
 has 'layer'              => (is => 'rw');
 has 'shift_x'            => (is => 'ro', default => sub {0} );
 has 'shift_y'            => (is => 'ro', default => sub {0} );
@@ -75,7 +77,7 @@ sub extrude_loop {
     my $extrusion_path = $loop->split_at($start_at);
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop
-    $extrusion_path->clip_end($Slic3r::flow_width / $Slic3r::resolution);
+    $extrusion_path->clip_end(scale $Slic3r::flow_spacing);
     
     # extrude along the path
     return $self->extrude($extrusion_path, $description);
