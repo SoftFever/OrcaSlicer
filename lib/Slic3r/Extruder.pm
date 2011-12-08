@@ -269,7 +269,7 @@ sub _Gx {
     my $dec = $self->dec;
     
     # apply the speed reduction for print moves on bottom layer
-    my $speed_multiplier = $e && $self->layer->id == 0
+    my $speed_multiplier = $e && $self->layer->id == 0 && $comment !~ /retract/
         ? $Slic3r::bottom_layer_speed_ratio 
         : 1;
     
