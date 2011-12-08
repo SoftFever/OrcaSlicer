@@ -74,7 +74,7 @@ our $perimeter_infill_overlap_ratio = 0.15;   # factor for flow width
 our $fill_pattern       = 'rectilinear';
 our $solid_fill_pattern = 'rectilinear';
 our $fill_density       = 0.4;  # 1 = 100%
-our $fill_angle         = 0;
+our $fill_angle         = 45;
 our $start_gcode = "G28 ; home all axes";
 our $end_gcode = <<"END";
 M104 S0 ; turn off temperature
