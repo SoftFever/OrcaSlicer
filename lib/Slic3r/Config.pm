@@ -138,7 +138,7 @@ our $Options = {
         type    => 'f',
     },
     'overlap_ratio' => {
-        label   => 'Extrusion overlap (ratio over extrusion width)',
+        label   => 'Extrusion overlap (ratio  over extrusion width)',  # the double space here prevents a bug in WxWidgets (Mac)
         cli     => 'overlap-ratio=f',
         type    => 'f',
     },
