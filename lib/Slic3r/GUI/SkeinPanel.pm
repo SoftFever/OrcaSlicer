@@ -3,11 +3,13 @@ use strict;
 use warnings;
 use utf8;
 
-use File::Basename qw(basename);
+use File::Basename qw(basename dirname);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxID_OK wxFD_OPEN
     wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
+
+my $last_dir;
 
 sub new {
     my $class = shift;
@@ -135,10 +137,11 @@ sub do_slice {
         Slic3r::Config->validate;
         
         # select input file
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', "", "", "STL files *.stl|*.stl;*.STL", wxFD_OPEN);
+        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $last_dir || "", "", "STL files *.stl|*.stl;*.STL", wxFD_OPEN);
         return unless $dialog->ShowModal == wxID_OK;
         my ($input_file) = $dialog->GetPaths;
         my $input_file_basename = basename($input_file);
+        $last_dir = dirname($input_file);
         
         # show processbar dialog
         $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
@@ -184,20 +187,23 @@ my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
 sub save_config {
     my $self = shift;
     
-    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', "", "config.ini", 
+    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $last_dir || "", "config.ini", 
         $ini_wildcard, wxFD_SAVE);
     if ($dlg->ShowModal == wxID_OK) {
-        Slic3r::Config->save($dlg->GetPath);
+        my $file = $dlg->GetPath;
+        $last_dir = dirname($file);
+        Slic3r::Config->save($file);
     }
 }
 
 sub load_config {
     my $self = shift;
     
-    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', "", "config.ini", 
+    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $last_dir || "", "config.ini", 
         $ini_wildcard, wxFD_OPEN);
     if ($dlg->ShowModal == wxID_OK) {
         my ($file) = $dlg->GetPaths;
+        $last_dir = dirname($file);
         eval {
             Slic3r::Config->load($file);
         };
