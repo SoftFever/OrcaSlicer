@@ -315,8 +315,9 @@ sub load {
         my $key = $1;
         if (!exists $Options->{$key}) {
             $key = +(grep { $Options->{$_}{aliases} && grep $_ eq $key, @{$Options->{$_}{aliases}} }
-                keys %$Options)[0] or die "Unknown option $1 at line $.\n";
+                keys %$Options)[0] or warn "Unknown option $1 at line $.\n";
         }
+        next unless $key;
         my $opt = $Options->{$key};
         set($key, $opt->{deserialize} ? $opt->{deserialize}->($2) : $2);
     }

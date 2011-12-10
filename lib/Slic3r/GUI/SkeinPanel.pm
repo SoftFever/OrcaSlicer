@@ -159,11 +159,7 @@ sub do_slice {
             },
         );
         {
-            local $SIG{__WARN__} = sub {
-                my $message = shift;
-                Wx::MessageDialog->new($self, $message, 'Warning', 
-                    wxOK | wxICON_WARNING)->ShowModal;
-            };
+            local $SIG{__WARN__} = $self->catch_warning;
             $skein->go;
         }
         $process_dialog->Destroy;
@@ -205,6 +201,7 @@ sub load_config {
         my ($file) = $dlg->GetPaths;
         $last_dir = dirname($file);
         eval {
+            local $SIG{__WARN__} = $self->catch_warning;
             Slic3r::Config->load($file);
         };
         $self->catch_error();
@@ -219,5 +216,13 @@ sub catch_error {
         Wx::MessageDialog->new($self, $err, 'Error', wxOK | wxICON_ERROR)->ShowModal;
     }
 }
+
+sub catch_warning {
+    my ($self) = @_;
+    return sub {
+        my $message = shift;
+        Wx::MessageDialog->new($self, $message, 'Warning', wxOK | wxICON_WARNING)->ShowModal;
+    };
+};
 
 1;
