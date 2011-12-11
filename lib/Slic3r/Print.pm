@@ -453,7 +453,7 @@ sub export_gcode {
     
     print  $fh "; most important settings used:\n";
     for (qw(layer_height perimeters fill_density nozzle_diameter filament_diameter
-        perimeter_speed infill_speed travel_speed extrusion_width_ratio)) {
+        perimeter_speed infill_speed travel_speed extrusion_width_ratio scale)) {
         printf $fh "; %s = %s\n", $_, Slic3r::Config->get($_);
     }
     print  $fh "\n";
