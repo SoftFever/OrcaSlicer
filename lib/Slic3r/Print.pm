@@ -42,16 +42,9 @@ sub new_from_mesh {
     # duplicate object
     {
         my @size = $mesh->size;
-        my @duplicate_offset = (
-            ($size[X] + scale $Slic3r::duplicate_distance),
-            ($size[Y] + scale $Slic3r::duplicate_distance),
-        );
-        for (my $i = 2; $i <= $Slic3r::duplicate_x; $i++) {
-            $mesh->duplicate($duplicate_offset[X] * ($i-1), 0);
-        }
-        for (my $i = 2; $i <= $Slic3r::duplicate_y; $i++) {
-            $mesh->duplicate(0, $duplicate_offset[Y] * ($i-1));
-        }
+        my @duplicate_offset = map +($size[$_] + scale $Slic3r::duplicate_distance), (X,Y);
+        $mesh->duplicate(map [$duplicate_offset[X] * ($_-1), 0], 2..$Slic3r::duplicate_x);
+        $mesh->duplicate(map [0, $duplicate_offset[Y] * ($_-1)], 2..$Slic3r::duplicate_y);
     }
     
     # initialize print job

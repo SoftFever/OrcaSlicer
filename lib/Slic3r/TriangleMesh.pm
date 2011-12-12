@@ -279,15 +279,17 @@ sub move {
 
 sub duplicate {
     my $self = shift;
-    my (@shift) = @_;
+    my (@shifts) = @_;
     
     my @new_facets = ();
     foreach my $facet (@{$self->facets}) {
         # transform vertex coordinates
         my ($normal, @vertices) = @$facet;
-        push @new_facets, [ $normal ];
-        foreach my $vertex (@vertices) {
-            push @{$new_facets[-1]}, [ map $vertex->[$_] + ($shift[$_] || 0), (X,Y,Z) ];
+        foreach my $shift (@shifts) {
+            push @new_facets, [ $normal ];
+            foreach my $vertex (@vertices) {
+                push @{$new_facets[-1]}, [ map $vertex->[$_] + ($shift->[$_] || 0), (X,Y,Z) ];
+            }
         }
     }
     push @{$self->facets}, @new_facets;
