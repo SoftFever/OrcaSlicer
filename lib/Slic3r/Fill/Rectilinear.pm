@@ -45,7 +45,7 @@ sub fill_surface {
     }
     
     # connect lines
-    {
+    if ($params{density} < 1) {
         my $collection = Slic3r::ExtrusionPath::Collection->new(
             paths => [ map Slic3r::ExtrusionPath->cast([ @$_ ], role => 'bogus'), @paths ],
         );
