@@ -182,7 +182,7 @@ sub prepare_fill_surfaces {
 sub remove_small_surfaces {
     my $self = shift;
     
-    my $distance = scale $Slic3r::flow_spacing / 2;
+    my $distance = scale $Slic3r::flow_width / 2;
     
     my @surfaces = @{$self->fill_surfaces};
     @{$self->fill_surfaces} = ();

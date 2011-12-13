@@ -137,11 +137,6 @@ our $Options = {
         cli     => 'bridge-flow-ratio=f',
         type    => 'f',
     },
-    'overlap_ratio' => {
-        label   => 'Extrusion overlap (ratio  over extrusion width)',  # the double space here prevents a bug in WxWidgets (Mac)
-        cli     => 'overlap-ratio=f',
-        type    => 'f',
-    },
     
     # print options
     'perimeters' => {
@@ -367,23 +362,21 @@ sub validate {
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
     die "First layer height can't be greater than --nozzle-diameter\n"
         if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) > $Slic3r::nozzle_diameter;
-    $Slic3r::flow_width = ($Slic3r::nozzle_diameter**2) 
-        * $Slic3r::flow_speed_ratio * PI / (4 * $Slic3r::layer_height);
     
-    my $max_flow_width = $Slic3r::layer_height + $Slic3r::nozzle_diameter;
     if ($Slic3r::extrusion_width_ratio) {
-        my $flow_width = $Slic3r::layer_height * $Slic3r::extrusion_width_ratio;
-        $Slic3r::flow_speed_ratio = $flow_width / $Slic3r::flow_width;
-        $Slic3r::flow_width = $flow_width;
-    } elsif ($Slic3r::flow_width > $max_flow_width) {
-        $Slic3r::flow_speed_ratio = $max_flow_width / $Slic3r::flow_width;
-        $Slic3r::flow_width = $max_flow_width;
+        $Slic3r::flow_width = $Slic3r::layer_height * $Slic3r::extrusion_width_ratio;
+    } else {
+        # here we calculate a sane default by matching the flow speed (at the nozzle)
+        # and the feed rate
+        $Slic3r::flow_width = (($Slic3r::nozzle_diameter**2) * PI + ($Slic3r::layer_height**2) * (4 - PI)) / (4 * $Slic3r::layer_height);
+        
+        my $max_flow_width = $Slic3r::layer_height + $Slic3r::nozzle_diameter;
+        $Slic3r::flow_width = $max_flow_width if $Slic3r::flow_width > $max_flow_width;
+        $Slic3r::flow_width = $Slic3r::nozzle_diameter * 1.05
+            if $Slic3r::flow_width < $Slic3r::nozzle_diameter;
     }
-    $Slic3r::flow_spacing = $Slic3r::flow_width * (1-$Slic3r::overlap_ratio);
     
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
-    Slic3r::debugf "Flow speed ratio = $Slic3r::flow_speed_ratio\n";
-    Slic3r::debugf "Flow spacing = $Slic3r::flow_spacing\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"

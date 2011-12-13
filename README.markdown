@@ -170,8 +170,6 @@ The author is Alessandro Ranellucci (me).
                             Calculate the extrusion width as the layer height multiplied by
                             this value (> 0, default: calculated automatically)
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
-        --overlap-ratio     Overlap between extrusion threads expressed as a ratio over extrusion 
-                            width (> 0, default: 0.15)
 
 If you want to change a preset file, just do
 

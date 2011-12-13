@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale epsilon);
+use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale unscale epsilon);
 use XXX;
 
 sub fill_surface {
@@ -19,14 +19,17 @@ sub fill_surface {
     $bounding_box->[X1] += scale 0.1;
     $bounding_box->[X2] -= scale 0.1;
     
-    my $min_spacing = scale $params{flow_spacing};
+    my $min_spacing = scale $params{flow_width};
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
     my $number_of_lines = int(($bounding_box->[X2] - $bounding_box->[X1]) / $distance_between_lines) + 1;
-    my $extra_space = ($bounding_box->[X2] - $bounding_box->[X1]) % $distance_between_lines;
-    $distance_between_lines += $extra_space / ($number_of_lines - 1) if $number_of_lines > 1;
-    my $flow_ratio = $distance_between_lines / ($min_spacing / $params{density});
+    my $flow_width = undef;
+    if ($params{density} == 1) {
+        my $extra_space = ($bounding_box->[X2] - $bounding_box->[X1]) % $distance_between_lines;
+        $distance_between_lines += $extra_space / ($number_of_lines - 1) if $number_of_lines > 1;
+        $flow_width = unscale $distance_between_lines;
+    }
     
     my @paths = ();
     my $x = $bounding_box->[X1];
@@ -70,7 +73,7 @@ sub fill_surface {
     # paths must be rotated back
     $self->rotate_points_back(\@paths, $rotate_vector);
     
-    return { flow_ratio => $flow_ratio }, @paths;
+    return { flow_width => $flow_width }, @paths;
 }
 
 1;
