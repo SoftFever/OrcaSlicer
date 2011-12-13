@@ -21,7 +21,6 @@ my %cli_options = ();
         
         'debug'                 => \$Slic3r::debug,
         'o|output=s'            => \$opt{output},
-        'close-after-slicing'   => \$opt{close_after_slicing},
         
         'save=s'                => \$opt{save},
         'load=s'                => \$opt{load},

@@ -181,5 +181,14 @@ If you want to slice a file overriding an option contained in your preset file:
 
     slic3r.pl --load config.ini --layer-height 0.25 file.stl
 
-        
+## How can I integrate Slic3r with Pronterface?
 
+Put this into *slicecommand*:
+
+    slic3r.pl $s --load config.ini --output $o
+
+And this into *sliceoptscommand*:
+
+    slic3r.pl $s --load config.ini
+
+Replace `slic3r.pl` with the full path to the slic3r executable.
