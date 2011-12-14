@@ -46,6 +46,11 @@ our $Options = {
         cli     => 'g0',
         type    => 'bool',
     },
+    'gcode_comments' => {
+        label   => 'Verbose GCODE (comments)',
+        cli     => 'gcode-comments',
+        type    => 'bool',
+    },
     
     # filament options
     'filament_diameter' => {

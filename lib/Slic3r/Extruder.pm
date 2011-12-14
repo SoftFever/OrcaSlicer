@@ -292,7 +292,7 @@ sub _Gx {
         $gcode .= sprintf " %s%.5f", $Slic3r::extrusion_axis, $self->extrusion_distance;
     }
     
-    $gcode .= sprintf " ; %s", $comment if $comment;
+    $gcode .= sprintf " ; %s", $comment if $comment && $Slic3r::gcode_comments;
     return "$gcode\n";
 }
 

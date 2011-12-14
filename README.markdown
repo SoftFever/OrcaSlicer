@@ -95,8 +95,9 @@ The author is Alessandro Ranellucci (me).
                             (+/-, default: 0)
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                             by all firmwares)
-        --g0                Use G0 commands for retraction (experimenta, not supported by all
+        --g0                Use G0 commands for retraction (experimental, not supported by all
                             firmwares)
+        --gcode-comments    Make GCODE verbose by adding comments (default: no)
         
       Filament options:
         --filament-diameter Diameter in mm of your raw filament (default: 3)
@@ -132,7 +133,7 @@ The author is Alessandro Ranellucci (me).
         --solid-layers      Number of solid layers to do for top/bottom surfaces
                             (range: 1+, default: 3)
         --fill-density      Infill density (range: 0-1, default: 0.4)
-        --fill-angle        Infill angle in degrees (range: 0-90, default: 0)
+        --fill-angle        Infill angle in degrees (range: 0-90, default: 45)
         --fill-pattern      Pattern to use to fill non-solid layers (default: rectilinear)
         --solid-fill-pattern Pattern to use to fill solid layers (default: rectilinear)
         --start-gcode       Load initial gcode from the supplied file. This will overwrite
@@ -144,7 +145,7 @@ The author is Alessandro Ranellucci (me).
       Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 
                             (default: 1)
-        --retract-speed     Speed for retraction in mm/sec (default: 40)
+        --retract-speed     Speed for retraction in mm/sec (default: 30)
         --retract-restart-extra
                             Additional amount of filament in mm to push after
                             compensating retraction (default: 0)

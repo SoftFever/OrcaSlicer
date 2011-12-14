@@ -41,6 +41,7 @@ our $extrusion_axis     = 'E';
 our $z_offset           = 0;
 our $gcode_arcs         = 0;
 our $g0                 = 0;
+our $gcode_comments     = 0;
 
 # filament options
 our $filament_diameter  = 3;    # mm

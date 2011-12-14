@@ -100,8 +100,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (+/-, default: $Slic3r::z_offset)
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
-    --g0                Use G0 commands for retraction (experimenta, not supported by all
+    --g0                Use G0 commands for retraction (experimental, not supported by all
                         firmwares)
+    --gcode-comments    Make GCODE verbose by adding comments (default: no)
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)
