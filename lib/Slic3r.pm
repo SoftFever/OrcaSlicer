@@ -88,7 +88,7 @@ END
 # retraction options
 our $retract_length         = 1;    # mm
 our $retract_restart_extra  = 0;    # mm
-our $retract_speed          = 40;   # mm/sec
+our $retract_speed          = 30;   # mm/sec
 our $retract_before_travel  = 2;    # mm
 our $retract_lift           = 0;    # mm
 
