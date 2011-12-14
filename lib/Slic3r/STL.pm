@@ -45,7 +45,7 @@ sub read_file {
 sub _read_ascii {
     my ($fh, $facets) = @_;
     
-    my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)$/;
+    my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)\s*$/;
     
     my $facet;
     seek $fh, 0, 0;
