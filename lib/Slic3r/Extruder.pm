@@ -7,7 +7,6 @@ has 'layer'              => (is => 'rw');
 has 'shift_x'            => (is => 'ro', default => sub {0} );
 has 'shift_y'            => (is => 'ro', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
-has 'flow_ratio'         => (is => 'rw', default => sub {1});
 has 'print_feed_rate'    => (is => 'rw');
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
@@ -77,7 +76,7 @@ sub extrude_loop {
     my $extrusion_path = $loop->split_at($start_at);
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop
-    $extrusion_path->clip_end(scale $Slic3r::flow_spacing);
+    $extrusion_path->clip_end(scale $Slic3r::flow_width);
     
     # extrude along the path
     return $self->extrude($extrusion_path, $description);
@@ -119,13 +118,14 @@ sub extrude {
     $gcode .= $self->unretract if $self->retracted;
     
     # calculate extrusion length per distance unit
+    my $w = $path->flow_width || $Slic3r::flow_width;
+    my $h = $path->depth_layers * $Slic3r::layer_height;
+    $h = $w if $path->role eq 'bridge';
+    
     my $e = $Slic3r::resolution
-        * (($Slic3r::nozzle_diameter**2) / ($Slic3r::filament_diameter ** 2))
-        * $Slic3r::flow_speed_ratio 
-        * $self->flow_ratio
-        * ($path->flow_ratio || 1)
+        * ($w * $h + ($Slic3r::layer_height**2) / 4 * (PI - 4) + $Slic3r::overlap_factor * (($Slic3r::layer_height**2) - ($Slic3r::layer_height**2) / 4 * PI))
         * $Slic3r::extrusion_multiplier
-        * $path->depth_layers;
+        * (4 / (($Slic3r::filament_diameter ** 2) * PI));
     
     # extrude arc or line
     $self->print_feed_rate(

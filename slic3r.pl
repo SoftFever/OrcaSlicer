@@ -175,8 +175,6 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         Calculate the extrusion width as the layer height multiplied by
                         this value (> 0, default: calculated automatically)
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
-    --overlap-ratio     Overlap between extrusion threads expressed as a ratio over extrusion
-                        width (> 0, default: $Slic3r::overlap_ratio)
     
 EOF
     exit ($exit_code || 0);

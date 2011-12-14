@@ -124,7 +124,14 @@ sub make_surfaces {
     
     # the contours must be offsetted by half extrusion width inwards
     {
-        my $distance = scale $Slic3r::flow_width / 2;
+        my $distance = $Slic3r::flow_width / 2;
+        if ($Slic3r::overlap_factor) {
+            # our overlap is done by increasing the flow; however external perimeters will grow 
+            # outwards, so we offset by the correct amount
+            $distance = ($Slic3r::flow_width + $Slic3r::overlap_factor * $Slic3r::layer_height * (1 - PI/4)) / 2;
+        }
+        $distance = scale $distance;
+        
         my @surfaces = @{$self->slices};
         @{$self->slices} = ();
         foreach my $surface (@surfaces) {
@@ -182,7 +189,7 @@ sub prepare_fill_surfaces {
 sub remove_small_surfaces {
     my $self = shift;
     
-    my $distance = scale $Slic3r::flow_spacing / 2;
+    my $distance = scale $Slic3r::flow_width / 2;
     
     my @surfaces = @{$self->fill_surfaces};
     @{$self->fill_surfaces} = ();
