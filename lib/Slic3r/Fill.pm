@@ -117,7 +117,7 @@ sub make_fill {
                     [ @$_ ],
                     role => ($is_bridge ? 'bridge' : $is_solid ? 'solid-fill' : 'fill'),
                     depth_layers => $surface->depth_layers,
-                    flow_width   => $flow_width,
+                    flow_width   => $params->{flow_width},
                 ), @paths,
             ],
         ) if @paths;
