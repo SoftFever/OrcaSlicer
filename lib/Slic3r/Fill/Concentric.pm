@@ -14,6 +14,9 @@ sub fill_surface {
     
     my $scaled_flow_width = scale $params{flow_width};
     my $distance = $scaled_flow_width / $params{density};
+    # TODO: adjust distance and flow width for solid surfaces
+    # using the same logic as Rectilinear infill
+    # (factor it out to parent class)
     
     my @contour_loops = ();
     my @hole_loops = ();
@@ -49,7 +52,7 @@ sub fill_surface {
         push @paths, $path->p;
     }
     
-    return @paths;
+    return {}, @paths;
 }
 
 1;
