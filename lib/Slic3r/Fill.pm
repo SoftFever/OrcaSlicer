@@ -98,6 +98,8 @@ sub make_fill {
             if ($is_bridge) {
                 $filler = 'rectilinear';
                 $flow_width = sqrt($Slic3r::bridge_flow_ratio * ($Slic3r::nozzle_diameter**2));
+            } elsif ($surface->surface_type eq 'internal-solid') {
+                $filler = 'rectilinear';
             }
         } else {
             next SURFACE unless $density > 0;
