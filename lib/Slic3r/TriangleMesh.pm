@@ -297,7 +297,7 @@ sub duplicate {
 
 sub bounding_box {
     my $self = shift;
-    my @extents = (map [99999999999, -99999999999], X,Y,Z);
+    my @extents = (map [9999999999999999999999, -9999999999999999999999], X,Y,Z);
     foreach my $facet (@{$self->facets}) {
         my ($normal, @vertices) = @$facet;
         foreach my $vertex (@vertices) {
