@@ -30,6 +30,7 @@ sub fill_surface {
         $distance_between_lines += $extra_space / ($number_of_lines - 1) if $number_of_lines > 1;
         $flow_width = unscale $distance_between_lines;
     }
+    my $overlap_distance = $min_spacing * $Slic3r::overlap_factor;
     
     my @paths = ();
     my $x = $bounding_box->[X1];
@@ -40,7 +41,12 @@ sub fill_surface {
             $vertical_line->[A][X] -= $line_oscillation;
             $vertical_line->[B][X] += $line_oscillation;
         }
-        push @paths, @{ $expolygon->clip_line($vertical_line) };
+        my @clipped_lines = @{ $expolygon->clip_line($vertical_line) };
+        for (@clipped_lines) {
+            $_->[0][Y] += $overlap_distance;
+            $_->[-1][Y] -= $overlap_distance;
+        }
+        push @paths, @clipped_lines;
         $x += $distance_between_lines;
     }
     
