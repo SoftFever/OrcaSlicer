@@ -375,7 +375,8 @@ sub validate {
         # and the feed rate
         $Slic3r::flow_width = (($Slic3r::nozzle_diameter**2) * PI + ($Slic3r::layer_height**2) * (4 - PI)) / (4 * $Slic3r::layer_height);
         
-        $Slic3r::flow_width = $max_flow_width if $Slic3r::flow_width > $Slic3r::nozzle_diameter * 1.2;
+        my $max_flow_width = $Slic3r::nozzle_diameter * 1.2;
+        $Slic3r::flow_width = $max_flow_width if $Slic3r::flow_width > $max_flow_width;
         $Slic3r::flow_width = $Slic3r::nozzle_diameter * 1.05
             if $Slic3r::flow_width < $Slic3r::nozzle_diameter;
     }
