@@ -122,8 +122,12 @@ sub extrude {
     my $h = $path->depth_layers * $Slic3r::layer_height;
     $h = $w if $path->role eq 'bridge';
     
+    # calculate additional flow for overlapping
+    my $overlap_area = $Slic3r::overlap_factor * (($Slic3r::layer_height**2) - ($Slic3r::layer_height**2) / 4 * PI);
+    $overlap_area = 0 if $path->role eq 'bridge';
+    
     my $e = $Slic3r::resolution
-        * ($w * $h + ($Slic3r::layer_height**2) / 4 * (PI - 4) + $Slic3r::overlap_factor * (($Slic3r::layer_height**2) - ($Slic3r::layer_height**2) / 4 * PI))
+        * ($w * $h + ($Slic3r::layer_height**2) / 4 * (PI - 4) + $overlap_area)
         * $Slic3r::extrusion_multiplier
         * (4 / (($Slic3r::filament_diameter ** 2) * PI));
     
