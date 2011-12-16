@@ -159,10 +159,10 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $Slic3r::retract_lift)
    
    Skirt options:
-    --skirts            Number of skirts to draw (default: $Slic3r::skirts)
+    --skirts            Number of skirts to draw (0+, default: $Slic3r::skirts)
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $Slic3r::skirt_distance)
-    --skirt-height      Height of skirts to draw (expressed in layers, default: $Slic3r::skirt_height)
+    --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: $Slic3r::skirt_height)
    
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
