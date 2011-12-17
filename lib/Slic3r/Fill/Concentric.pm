@@ -47,7 +47,7 @@ sub fill_surface {
         my $path = $loop->split_at($cur_pos);
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
-        $path->clip_end(scale $Slic3r::nozzle_diameter);
+        $path->clip_end(scale $Slic3r::nozzle_diameter / 2);
         
         push @paths, $path->p;
     }
