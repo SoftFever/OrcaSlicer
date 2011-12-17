@@ -7,7 +7,7 @@ extends 'Slic3r::Polyline';
 # expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
 
-has 'flow_width' => (is => 'rw');
+has 'flow_spacing' => (is => 'rw');
 
 # perimeter/fill/solid-fill/bridge/skirt
 has 'role'         => (is => 'rw', required => 1);

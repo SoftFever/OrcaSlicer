@@ -45,7 +45,7 @@ sub make_perimeter {
             push @{ $perimeters[-1] }, [@last_offsets];
             
             # offset distance for inner loops
-            $distance = scale $Slic3r::flow_width;
+            $distance = scale $Slic3r::flow_spacing;
         }
         
         # create one more offset to be used as boundary for fill

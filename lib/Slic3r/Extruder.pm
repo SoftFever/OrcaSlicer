@@ -76,7 +76,7 @@ sub extrude_loop {
     my $extrusion_path = $loop->split_at($start_at);
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop
-    $extrusion_path->clip_end(scale $Slic3r::flow_width);
+    $extrusion_path->clip_end(scale $Slic3r::nozzle_diameter);
     
     # extrude along the path
     return $self->extrude($extrusion_path, $description);
@@ -118,16 +118,23 @@ sub extrude {
     $gcode .= $self->unretract if $self->retracted;
     
     # calculate extrusion length per distance unit
-    my $w = $path->flow_width || $Slic3r::flow_width;
+    my $s = $path->flow_spacing || $Slic3r::flow_spacing;
     my $h = $path->depth_layers * $Slic3r::layer_height;
-    $h = $w if $path->role eq 'bridge';
+    my $w = ($s - $Slic3r::min_flow_spacing * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
     
-    # calculate additional flow for overlapping
-    my $overlap_area = $Slic3r::overlap_factor * (($Slic3r::layer_height**2) - ($Slic3r::layer_height**2) / 4 * PI);
-    $overlap_area = 0 if $path->role eq 'bridge';
+    my $area;
+    if ($path->role eq 'bridge') {
+        $area = ($s**2) * PI/4;
+    } elsif ($w >= ($Slic3r::nozzle_diameter + $h)) {
+        # rectangle with semicircles at the ends
+        $area = $w * $h + ($h**2) / 4 * (PI - 4);
+    } else {
+        # rectangle with shrunk semicircles at the ends
+        $area = $Slic3r::nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
+    }
     
     my $e = $Slic3r::resolution
-        * ($w * $h + ($Slic3r::layer_height**2) / 4 * (PI - 4) + $overlap_area)
+        * $area
         * $Slic3r::extrusion_multiplier
         * (4 / (($Slic3r::filament_diameter ** 2) * PI));
     

@@ -12,8 +12,8 @@ sub fill_surface {
     
     # no rotation is supported for this infill pattern
     
-    my $scaled_flow_width = scale $params{flow_width};
-    my $distance = $scaled_flow_width / $params{density};
+    my $scaled_flow_spacing = scale $params{flow_spacing};
+    my $distance = $scaled_flow_spacing / $params{density};
     # TODO: adjust distance and flow width for solid surfaces
     # using the same logic as Rectilinear infill
     # (factor it out to parent class)
@@ -47,7 +47,7 @@ sub fill_surface {
         my $path = $loop->split_at($cur_pos);
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
-        $path->clip_end(scale $Slic3r::flow_width);
+        $path->clip_end(scale $Slic3r::nozzle_diameter);
         
         push @paths, $path->p;
     }

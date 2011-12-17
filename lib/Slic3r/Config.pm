@@ -373,15 +373,34 @@ sub validate {
     } else {
         # here we calculate a sane default by matching the flow speed (at the nozzle)
         # and the feed rate
-        $Slic3r::flow_width = (($Slic3r::nozzle_diameter**2) * PI + ($Slic3r::layer_height**2) * (4 - PI)) / (4 * $Slic3r::layer_height);
+        my $volume = ($Slic3r::nozzle_diameter**2) * PI/4;
+        my $shape_threshold = $Slic3r::nozzle_diameter * $Slic3r::layer_height
+            + ($Slic3r::layer_height**2) * PI/4;
+        if ($volume >= $shape_threshold) {
+            # rectangle with semicircles at the ends
+            $Slic3r::flow_width = (($Slic3r::nozzle_diameter**2) * PI + ($Slic3r::layer_height**2) * (4 - PI)) / (4 * $Slic3r::layer_height);
+        } else {
+            # rectangle with squished semicircles at the ends
+            $Slic3r::flow_width = $Slic3r::nozzle_diameter * ($Slic3r::nozzle_diameter/$Slic3r::layer_height - 4/PI + 1);
+        }
         
-        my $max_flow_width = $Slic3r::nozzle_diameter * 1.2;
+        my $min_flow_width = $Slic3r::nozzle_diameter * 1.05;
+        my $max_flow_width = $Slic3r::nozzle_diameter * 1.4;
         $Slic3r::flow_width = $max_flow_width if $Slic3r::flow_width > $max_flow_width;
-        $Slic3r::flow_width = $Slic3r::nozzle_diameter * 1.05
-            if $Slic3r::flow_width < $Slic3r::nozzle_diameter;
+        $Slic3r::flow_width = $min_flow_width if $Slic3r::flow_width < $min_flow_width;
     }
     
+    if ($Slic3r::flow_width >= ($Slic3r::nozzle_diameter + $Slic3r::layer_height)) {
+        # rectangle with shrunk at the ends
+        $Slic3r::min_flow_spacing = $Slic3r::flow_width - $Slic3r::layer_height * (1 - PI/4);
+    } else {
+        # rectangle with shrunk semicircles at the ends
+        $Slic3r::min_flow_spacing = $Slic3r::flow_width * (1 - PI/4) + $Slic3r::nozzle_diameter * PI/4;
+    }
+    $Slic3r::flow_spacing = $Slic3r::flow_width - $Slic3r::overlap_factor * ($Slic3r::flow_width - $Slic3r::min_flow_spacing);
+    
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
+    Slic3r::debugf "Flow spacing = $Slic3r::flow_spacing\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"

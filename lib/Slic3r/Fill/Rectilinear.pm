@@ -19,18 +19,18 @@ sub fill_surface {
     $bounding_box->[X1] += scale 0.1;
     $bounding_box->[X2] -= scale 0.1;
     
-    my $min_spacing = scale $params{flow_width};
+    my $min_spacing = scale $params{flow_spacing};
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
     my $number_of_lines = int(($bounding_box->[X2] - $bounding_box->[X1]) / $distance_between_lines) + 1;
-    my $flow_width = undef;
+    my $flow_spacing = undef;
     if ($params{density} == 1) {
         my $extra_space = ($bounding_box->[X2] - $bounding_box->[X1]) % $distance_between_lines;
         $distance_between_lines += $extra_space / ($number_of_lines - 1) if $number_of_lines > 1;
-        $flow_width = unscale $distance_between_lines;
+        $flow_spacing = unscale $distance_between_lines;
     }
-    my $overlap_distance = $min_spacing * $Slic3r::overlap_factor;
+    my $overlap_distance = $Slic3r::nozzle_diameter * 0.20;
     
     my @paths = ();
     my $x = $bounding_box->[X1];
@@ -79,7 +79,7 @@ sub fill_surface {
     # paths must be rotated back
     $self->rotate_points_back(\@paths, $rotate_vector);
     
-    return { flow_width => $flow_width }, @paths;
+    return { flow_spacing => $flow_spacing }, @paths;
 }
 
 1;

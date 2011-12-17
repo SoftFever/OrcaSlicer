@@ -124,14 +124,7 @@ sub make_surfaces {
     
     # the contours must be offsetted by half extrusion width inwards
     {
-        my $distance = $Slic3r::flow_width / 2;
-        if ($Slic3r::overlap_factor) {
-            # our overlap is done by increasing the flow; however external perimeters will grow 
-            # outwards, so we offset by the correct amount
-            $distance = ($Slic3r::flow_width + $Slic3r::overlap_factor * $Slic3r::layer_height * (1 - PI/4)) / 2;
-        }
-        $distance = scale $distance;
-        
+        my $distance = scale $Slic3r::flow_width / 2;
         my @surfaces = @{$self->slices};
         @{$self->slices} = ();
         foreach my $surface (@surfaces) {
@@ -156,7 +149,7 @@ sub prepare_fill_surfaces {
     # merge too small internal surfaces with their surrounding tops
     # (if they're too small, they can be treated as solid)
     {
-        my $min_area = ((7 * $Slic3r::flow_width / $Slic3r::resolution)**2) * PI;
+        my $min_area = ((7 * $Slic3r::flow_spacing / $Slic3r::resolution)**2) * PI;
         my $small_internal = [
             grep { $_->expolygon->contour->area <= $min_area }
             grep { $_->surface_type eq 'internal' }
@@ -189,7 +182,7 @@ sub prepare_fill_surfaces {
 sub remove_small_surfaces {
     my $self = shift;
     
-    my $distance = scale $Slic3r::flow_width / 2;
+    my $distance = scale $Slic3r::flow_spacing / 2;
     
     my @surfaces = @{$self->fill_surfaces};
     @{$self->fill_surfaces} = ();
@@ -257,7 +250,7 @@ sub process_bridges {
         # offset the contour and intersect it with the internal surfaces to discover 
         # which of them has contact with our bridge
         my @supporting_surfaces = ();
-        my ($contour_offset) = $expolygon->contour->offset(scale $Slic3r::flow_width * sqrt(2));
+        my ($contour_offset) = $expolygon->contour->offset(scale $Slic3r::flow_spacing * sqrt(2));
         foreach my $internal_surface (@internal_surfaces) {
             my $intersection = intersection_ex([$contour_offset], [$internal_surface->contour->p]);
             if (@$intersection) {

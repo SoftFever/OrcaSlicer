@@ -32,7 +32,7 @@ sub is_printable {
     # if no offset is possible, then polyline is not printable
     my $p = $self->p;
     @$p = reverse @$p if !Math::Clipper::is_counter_clockwise($p);
-    my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_width / 2), $Slic3r::resolution * 100000, JT_MITER, 2);
+    my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_spacing / 2), $Slic3r::resolution * 100000, JT_MITER, 2);
     return @$offsets ? 1 : 0;
 }
 
