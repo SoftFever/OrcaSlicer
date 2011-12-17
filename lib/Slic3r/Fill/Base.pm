@@ -58,4 +58,15 @@ sub rotate_points_back {
     }
 }
 
+sub adjust_solid_spacing {
+    my $self = shift;
+    my %params = @_;
+    
+    my $number_of_lines = int($params{width} / $params{distance}) + 1;
+    return $params{distance} if $number_of_lines <= 1;
+    
+    my $extra_space = $params{width} % $params{distance};
+    return $params{distance} + $extra_space / ($number_of_lines - 1);
+}
+
 1;

@@ -23,19 +23,18 @@ sub fill_surface {
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
-    my $number_of_lines = int(($bounding_box->[X2] - $bounding_box->[X1]) / $distance_between_lines) + 1;
-    my $flow_spacing = undef;
-    if ($params{density} == 1) {
-        my $extra_space = ($bounding_box->[X2] - $bounding_box->[X1]) % $distance_between_lines;
-        $distance_between_lines += $extra_space / ($number_of_lines - 1) if $number_of_lines > 1;
-        $flow_spacing = unscale $distance_between_lines;
-    }
+    $distance_between_lines = $self->adjust_solid_spacing(
+        width       => $bounding_box->[X2] - $bounding_box->[X1],
+        distance    => $distance_between_lines,
+    ) if $params{density} == 1;
+    my $flow_spacing = unscale $distance_between_lines;
+    
     my $overlap_distance = $Slic3r::nozzle_diameter * 0.20;
     
     my @paths = ();
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
-    for (my $i = 0; $i < $number_of_lines; $i++) {
+    for (my $i = 0; $x <= $bounding_box->[X2]; $i++) {
         my $vertical_line = [ [$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]] ];
         if ($is_line_pattern && $i % 2) {
             $vertical_line->[A][X] -= $line_oscillation;

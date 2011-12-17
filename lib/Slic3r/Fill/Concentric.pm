@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(scale X1 Y1 X2 Y2);
+use Slic3r::Geometry qw(scale unscale X1 Y1 X2 Y2);
 use XXX;
 
 sub fill_surface {
@@ -12,21 +12,25 @@ sub fill_surface {
     
     # no rotation is supported for this infill pattern
     
-    my $bounding_box = [ $surface->expolygon->bounding_box ];
+    my $expolygon = $surface->expolygon;
+    my $bounding_box = [ $expolygon->bounding_box ];
     
-    my $scaled_flow_spacing = scale $params{flow_spacing};
-    my $distance = $scaled_flow_spacing / $params{density};
-    # TODO: adjust distance and flow width for solid surfaces
-    # using the same logic as Rectilinear infill
-    # (factor it out to parent class)
+    my $min_spacing = scale $params{flow_spacing};
+    my $distance = $min_spacing / $params{density};
+    
+    $distance = $self->adjust_solid_spacing(
+        width       => $bounding_box->[X2] - $bounding_box->[X1],
+        distance    => $distance,
+    ) if $params{density} == 1;
+    my $flow_spacing = unscale $distance;
     
     my @contour_loops = ();
     my @hole_loops = ();
-    my @last_offsets = ($surface->expolygon->offset_ex($distance));
+    my @last_offsets = ($expolygon->offset_ex($distance));
     while (@last_offsets) {
         my @new_offsets = ();
-        foreach my $expolygon (@last_offsets) {
-            my @offsets = $expolygon->offset_ex(-$distance);
+        foreach my $last_expolygon (@last_offsets) {
+            my @offsets = $last_expolygon->offset_ex(-$distance);
             foreach my $offset (@offsets) {
                 push @new_offsets, $offset;
                 push @contour_loops, $offset->contour;
@@ -57,7 +61,7 @@ sub fill_surface {
         push @paths, $path->p if @{$path->points};
     }
     
-    return {}, @paths;
+    return { flow_spacing => $flow_spacing }, @paths;
 }
 
 1;
