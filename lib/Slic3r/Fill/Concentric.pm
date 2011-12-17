@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(scale);
+use Slic3r::Geometry qw(scale X1 Y1 X2 Y2);
 use XXX;
 
 sub fill_surface {
@@ -11,6 +11,8 @@ sub fill_surface {
     my ($surface, %params) = @_;
     
     # no rotation is supported for this infill pattern
+    
+    my $bounding_box = [ $surface->expolygon->bounding_box ];
     
     my $scaled_flow_spacing = scale $params{flow_spacing};
     my $distance = $scaled_flow_spacing / $params{density};
@@ -38,7 +40,10 @@ sub fill_surface {
     
     # make paths
     my @paths = ();
-    my $cur_pos = Slic3r::Point->new(0,0);
+    my $cur_pos = Slic3r::Point->new(
+        ($bounding_box->[X1] + $bounding_box->[X2]) / 2,
+        ($bounding_box->[Y1] + $bounding_box->[Y2]) / 2,
+    );
     foreach my $loop (map Slic3r::ExtrusionLoop->cast($_, role => 'fill'), @loops) {
         # find the point of the loop that is closest to the current extruder position
         $cur_pos = $loop->nearest_point_to($cur_pos);
