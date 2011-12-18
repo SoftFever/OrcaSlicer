@@ -11,7 +11,7 @@ use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Fill::Rectilinear2;
-use Slic3r::Geometry qw(shortest_path);
+use Slic3r::Geometry qw(scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
 use XXX;
@@ -77,6 +77,36 @@ sub make_fill {
                 depth_layers => $group->[0]->depth_layers,
             ), @$union;
         }
+    }
+    
+    # add spacing between adjacent surfaces
+    {
+        my $distance = scale $Slic3r::flow_spacing / 2;
+        my @offsets = ();
+        foreach my $surface (@surfaces) {
+            my $expolygon = $surface->expolygon;
+            my $diff = diff_ex(
+                [ $expolygon->offset($distance) ],
+                $expolygon,
+                1,
+            );
+            push @offsets, map @$_, @$diff;
+        }
+        
+        my @new_surfaces = ();
+        foreach my $surface (@surfaces) {
+            my $diff = diff_ex(
+                $surface->expolygon,
+                [ @offsets ],
+            );
+            
+            push @new_surfaces, map Slic3r::Surface->cast_from_expolygon($_,
+                surface_type => $surface->surface_type,
+                bridge_angle => $surface->bridge_angle,
+                depth_layers => $surface->depth_layers,
+            ), @$diff;
+        }
+        @surfaces = @new_surfaces;
     }
     
     # organize infill surfaces using a shortest path search
