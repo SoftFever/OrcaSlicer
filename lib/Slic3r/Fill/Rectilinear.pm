@@ -58,7 +58,7 @@ sub fill_surface {
         
         my $can_connect = $is_line_pattern
             ? sub { $_[X] <= (abs((($_[2][Y] - $bounding_box->[Y1])*(2 * $line_oscillation)/($bounding_box->[Y2] - $bounding_box->[Y1])) - $line_oscillation) + $distance_between_lines) && $_[Y] <= $distance_between_lines * 5 }
-            : sub { ($_[X] <= $distance_between_lines) && ($_[Y] <= $distance_between_lines * 5) };
+            : sub { ($_[X] <= $distance_between_lines + epsilon) && ($_[Y] <= $distance_between_lines * 5) };
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
