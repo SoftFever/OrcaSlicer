@@ -159,8 +159,10 @@ sub do_slice {
             },
         );
         {
-            local $SIG{__WARN__} = $self->catch_warning;
+            my @warnings = ();
+            local $SIG{__WARN__} = sub { push @warnings, $_[0] };
             $skein->go;
+            $self->catch_warning->($_) for @warnings;
         }
         $process_dialog->Destroy;
         undef $process_dialog;
