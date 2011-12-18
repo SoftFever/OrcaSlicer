@@ -22,6 +22,7 @@ sub read_file {
         seek $fh, 80, 0;
         read $fh, my $buf, 4;
         my $triangle_count = unpack 'L', $buf;
+        die "STL file seems invalid, could not read facet count\n" if !defined $triangle_count;
         my $expected_size =
             + 80 # header
             +  4 # count

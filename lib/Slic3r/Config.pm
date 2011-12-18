@@ -391,7 +391,7 @@ sub validate {
     }
     
     if ($Slic3r::flow_width >= ($Slic3r::nozzle_diameter + $Slic3r::layer_height)) {
-        # rectangle with shrunk at the ends
+        # rectangle with semicircles at the ends
         $Slic3r::min_flow_spacing = $Slic3r::flow_width - $Slic3r::layer_height * (1 - PI/4);
     } else {
         # rectangle with shrunk semicircles at the ends
