@@ -54,6 +54,10 @@ sub make_perimeter {
                 ($_, surface_type => $surface->surface_type),
                 map $_->offset_ex(-$distance), @last_offsets;
             
+            # TODO: diff(offset(@last_offsets, -$distance/2), offset(@fill_boundaries, +$distance/2))
+            # this represents the small gaps that we need to treat like thin polygons,
+            # thus generating the skeleton and using it to fill them
+            
             push @{ $layer->fill_boundaries }, @fill_boundaries if @fill_boundaries;
         }
     }
