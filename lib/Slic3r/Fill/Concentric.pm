@@ -18,11 +18,14 @@ sub fill_surface {
     my $min_spacing = scale $params{flow_spacing};
     my $distance = $min_spacing / $params{density};
     
-    $distance = $self->adjust_solid_spacing(
-        width       => $bounding_box->[X2] - $bounding_box->[X1],
-        distance    => $distance,
-    ) if $params{density} == 1;
-    my $flow_spacing = unscale $distance;
+    my $flow_spacing;
+    if ($params{density} == 1) {
+        $distance = $self->adjust_solid_spacing(
+            width       => $bounding_box->[X2] - $bounding_box->[X1],
+            distance    => $distance,
+        );
+        $flow_spacing = unscale $distance;
+    }
     
     my @contour_loops = ();
     my @hole_loops = ();

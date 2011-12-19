@@ -23,11 +23,14 @@ sub fill_surface {
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
-    $distance_between_lines = $self->adjust_solid_spacing(
-        width       => $bounding_box->[X2] - $bounding_box->[X1],
-        distance    => $distance_between_lines,
-    ) if $params{density} == 1;
-    my $flow_spacing = unscale $distance_between_lines;
+    my $flow_spacing;
+    if ($params{density} == 1) {
+        $distance_between_lines = $self->adjust_solid_spacing(
+            width       => $bounding_box->[X2] - $bounding_box->[X1],
+            distance    => $distance_between_lines,
+        );
+        $flow_spacing = unscale $distance_between_lines;
+    }
     
     my $overlap_distance = $Slic3r::nozzle_diameter * 0.20;
     
