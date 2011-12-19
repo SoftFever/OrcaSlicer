@@ -105,14 +105,7 @@ sub make_surfaces {
     my ($loops) = @_;
     
     {
-        # merge contours
-        my $expolygons = union_ex([ grep is_counter_clockwise($_), @$loops ]);
-        
-        # subtract holes
-        $expolygons = union_ex([
-            (map @$_, @$expolygons),
-            (grep !is_counter_clockwise($_), @$loops)
-        ]);
+        my $expolygons = union_ex($loops);
         
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
@@ -134,11 +127,13 @@ sub make_surfaces {
         }
     }
     
-    #use Slic3r::SVG;
-    #Slic3r::SVG::output(undef, "surfaces.svg",
-    #    polygons        => [ map $_->contour->p, @{$self->surfaces} ],
-    #    red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->surfaces} ],
-    #);
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output(undef, "surfaces.svg",
+            polygons        => [ map $_->contour->p, @{$self->slices} ],
+            red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->slices} ],
+        );
+    }
 }
 
 sub prepare_fill_surfaces {
