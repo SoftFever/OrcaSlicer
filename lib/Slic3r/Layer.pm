@@ -247,7 +247,7 @@ sub process_bridges {
         my @supporting_surfaces = ();
         my ($contour_offset) = $expolygon->contour->offset(scale $Slic3r::flow_spacing * sqrt(2));
         foreach my $internal_surface (@internal_surfaces) {
-            my $intersection = intersection_ex([$contour_offset], [$internal_surface->contour->p]);
+            my $intersection = intersection_ex([$contour_offset], [$internal_surface->p]);
             if (@$intersection) {
                 push @supporting_surfaces, $internal_surface;
             }
