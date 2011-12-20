@@ -1,6 +1,7 @@
 package Slic3r::Skein;
 use Moo;
 
+use Slic3r::Geometry qw(PI);
 use Time::HiRes qw(gettimeofday tv_interval);
 use XXX;
 
@@ -96,6 +97,8 @@ sub go {
         $self->processing_time - int($self->processing_time/60)*60;
     
     # TODO: more statistics!
+    printf "Filament required: %.1fmm (%.1fcm3)\n",
+        $print->total_extrusion_length, $print->total_extrusion_volume;
 }
 
 1;

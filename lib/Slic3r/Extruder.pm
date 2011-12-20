@@ -10,6 +10,7 @@ has 'z'                  => (is => 'rw', default => sub {0} );
 has 'print_feed_rate'    => (is => 'rw');
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
+has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
@@ -300,6 +301,7 @@ sub _Gx {
     if ($e && $Slic3r::extrusion_axis) {
         $self->extrusion_distance(0) if $Slic3r::use_relative_e_distances;
         $self->extrusion_distance($self->extrusion_distance + $e);
+        $self->total_extrusion_length($self->total_extrusion_length + $e);
         $gcode .= sprintf " %s%.5f", $Slic3r::extrusion_axis, $self->extrusion_distance;
     }
     
