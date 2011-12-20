@@ -188,9 +188,11 @@ Put this into *slicecommand*:
 
 And this into *sliceoptscommand*:
 
-    slic3r.pl --load config.ini
+    slic3r.pl --load config.ini --ignore-nonexistent-config
 
-Replace `slic3r.pl` with the full path to the slic3r executable.
+Replace `slic3r.pl` with the full path to the slic3r executable and `config.ini`
+with the full path of your config file (put it in your home directory or where
+you like).
 On Mac, the executable has a path like this:
 
     /Applications/Slic3r.app/Contents/MacOS/slic3r

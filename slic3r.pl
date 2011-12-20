@@ -24,6 +24,7 @@ my %cli_options = ();
         
         'save=s'                => \$opt{save},
         'load=s'                => \$opt{load},
+        'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
     );
     foreach my $opt_key (keys %$Slic3r::Config::Options) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
@@ -36,8 +37,11 @@ my %cli_options = ();
 
 # load configuration
 if ($opt{load}) {
-    -e $opt{load} or die "Cannot find specified configuration file.\n";
-    Slic3r::Config->load($opt{load});
+    if (-e $opt{load}) {
+        Slic3r::Config->load($opt{load});
+    } else {
+        $opt{ignore_nonexistent_config} or die "Cannot find specified configuration file.\n";
+    }
 }
 
 # validate command line options
