@@ -328,7 +328,9 @@ sub extrude_skirt {
     
     # collect points from all layers contained in skirt height
     my @points = ();
-    my @layers = map $self->layer($_), 0..($Slic3r::skirt_height-1);
+    my $skirt_height = $Slic3r::skirt_height;
+    $skirt_height = $self->layer_count if $skirt_height > $self->layer_count;
+    my @layers = map $self->layer($_), 0..($skirt_height-1);
     push @points, map @$_, map $_->p, map @{ $_->slices }, @layers;
     return if !@points;
     
