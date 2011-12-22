@@ -71,14 +71,6 @@ sub make_loops {
     my $sparse_lines = [ map $_->line, grep $_, @lines ];
     
     # detect closed loops
-    if (0) {
-        printf "Layer was sliced at z = %f\n", $self->slice_z * $Slic3r::resolution;
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(undef, "lines.svg",
-            lines       => [ grep !$_->isa('Slic3r::Line::FacetEdge'), @lines ],
-            red_lines   => [ grep  $_->isa('Slic3r::Line::FacetEdge'), @lines ],
-        );
-    }
     
     my (@polygons, %visited_lines, @discarded_lines, @discarded_polylines) = ();
     
@@ -332,7 +324,7 @@ sub _facet {
     }
     Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
     
-    if ($min_z == $max_z) {
+    if (abs($max_z - $min_z) < epsilon) {
         Slic3r::debugf "Facet is horizontal; ignoring\n";
         return;
     }
@@ -375,8 +367,8 @@ sub intersect_facet {
         
         if (abs($a->[Z] - $b->[Z]) < epsilon && abs($a->[Z] - $z) < epsilon) {
             # edge is horizontal and belongs to the current layer
-            my $edge_type = (grep $_->[Z] > $z, @$vertices) ? 'bottom' : 'top';
-            ($a, $b) = ($b, $a) if $edge_type eq 'bottom';
+            my $edge_type = (grep $_->[Z] < $z - epsilon, @$vertices) ? 'top' : 'bottom';
+            ($a, $b) = ($b, $a) if $edge_type eq 'top';
             push @lines, Slic3r::TriangleMesh::IntersectionLine->new(
                 a           => [$a->[X], $a->[Y]],
                 b           => [$b->[X], $b->[Y]],
@@ -429,13 +421,13 @@ sub intersect_facet {
         
         # connect points:
         return Slic3r::TriangleMesh::IntersectionLine->new(
-            a      => [$points[A][X], $points[A][Y]],
-            b      => [$points[B][X], $points[B][Y]],
-            a_id   => $points[A][2],
-            b_id   => $points[B][2],
+            a      => [$points[B][X], $points[B][Y]],
+            b      => [$points[A][X], $points[A][Y]],
+            a_id   => $points[B][2],
+            b_id   => $points[A][2],
             facet_index => $facet_index,
-            prev_facet_index => ($points[A][3] ? +(grep $_ != $facet_index, @{$self->edge_facets->{$points[A][3]}})[0] || undef : undef),
-            next_facet_index => ($points[B][3] ? +(grep $_ != $facet_index, @{$self->edge_facets->{$points[B][3]}})[0] || undef : undef),
+            prev_facet_index => ($points[B][3] ? +(grep $_ != $facet_index, @{$self->edge_facets->{$points[B][3]}})[0] || undef : undef),
+            next_facet_index => ($points[A][3] ? +(grep $_ != $facet_index, @{$self->edge_facets->{$points[A][3]}})[0] || undef : undef),
         );
         #printf "  intersection points at z = %f: %f,%f - %f,%f\n", $z, map @$_, @intersection_points;
     }

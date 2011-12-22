@@ -105,7 +105,27 @@ sub make_surfaces {
     my ($loops) = @_;
     
     {
+        # merge everything
         my $expolygons = union_ex($loops);
+        
+        # sometimes the magic of floating point values produces holes outside of any contour;
+        # we need to ignore such holes, but Clipper will convert them to contours.
+        # so we identify them and remove them manually.
+        
+        # get expolygons without holes (candidate for reverse holes detection)
+        my @expolygons_without_holes = grep { @$_ == 1 } @$expolygons;
+        
+        # remove all holes from such expolygons
+        my $diff = diff_ex(
+            [ map @$_, @expolygons_without_holes ],
+            [ map [ reverse @$_ ], grep !is_counter_clockwise($_), @$loops ],
+        );
+        
+        # merge resulting holes (true holes) and other expolygons
+        $expolygons = [
+            (grep { @$_ > 1 } @$expolygons),
+            @$diff,
+        ];
         
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
