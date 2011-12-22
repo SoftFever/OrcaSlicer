@@ -17,7 +17,11 @@ sub angle {
 sub length {
     my $self = shift;
     
-    return $self->radius * $self->angle;
+    if($self->orientation eq 'ccw') {
+        return $self->radius * $self->angle;
+    } else {
+        return $self->radius * (2*PI() - $self->angle);
+    }
 }
 
 1;

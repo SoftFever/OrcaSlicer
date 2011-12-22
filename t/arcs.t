@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 10;
+plan tests => 12;
 
 BEGIN {
     use FindBin;
@@ -50,7 +50,10 @@ use Slic3r;
     
     isa_ok $collection1->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
     isa_ok $collection2->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
-    
+
+    is $collection1->paths->[0]->length, 7.06858347057701, 'cw oriented arc has correct length';
+    is $collection2->paths->[0]->length, 7.06858347057705, 'ccw oriented arc has correct length';
+
     is $collection1->paths->[0]->orientation, 'cw', 'cw orientation was correctly detected';
     is $collection2->paths->[0]->orientation, 'ccw', 'ccw orientation was correctly detected';
     
