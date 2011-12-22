@@ -101,15 +101,15 @@ sub new {
         
         my $slice_button = Wx::Button->new($self, -1, "Slice...");
         $buttons_sizer->Add($slice_button, 0);
-        EVT_BUTTON($self, $slice_button, \&do_slice);
+        EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
         my $save_button = Wx::Button->new($self, -1, "Save configuration...");
         $buttons_sizer->Add($save_button, 0);
-        EVT_BUTTON($self, $save_button, \&save_config);
+        EVT_BUTTON($self, $save_button, sub { $self->save_config });
         
         my $load_button = Wx::Button->new($self, -1, "Load configuration...");
         $buttons_sizer->Add($load_button, 0);
-        EVT_BUTTON($self, $load_button, \&load_config);
+        EVT_BUTTON($self, $load_button, sub { $self->load_config });
         
         my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);
         my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
@@ -128,8 +128,13 @@ sub new {
     return $self;
 }
 
+my $stl_wildcard = "STL files *.stl|*.stl;*.STL";
+my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
+my $gcode_wildcard = "GCODE files *.gcode|*.gcode;*.GCODE";
+
 sub do_slice {
     my $self = shift;
+    my %params = @_;
     
     my $process_dialog;
     eval {
@@ -137,11 +142,24 @@ sub do_slice {
         Slic3r::Config->validate;
         
         # select input file
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $last_dir || "", "", "STL files *.stl|*.stl;*.STL", wxFD_OPEN);
+        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $last_dir || "", "", $stl_wildcard, wxFD_OPEN);
         return unless $dialog->ShowModal == wxID_OK;
         my ($input_file) = $dialog->GetPaths;
         my $input_file_basename = basename($input_file);
         $last_dir = dirname($input_file);
+        
+        # select output file
+        my $output_file = $main::opt{output};
+        if ($params{save_as}) {
+            if (!$output_file) {
+                $output_file = $input_file_basename;
+                $output_file =~ s/\.stl$/.gcode/i;
+            }
+            my $dlg = Wx::FileDialog->new($self, 'Save gcode file as:', dirname($output_file),
+                basename($output_file), $gcode_wildcard, wxFD_SAVE);
+            return if $dlg->ShowModal != wxID_OK;
+            $output_file = $dlg->GetPath;
+        }
         
         # show processbar dialog
         $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
@@ -150,7 +168,7 @@ sub do_slice {
         
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
-            output_file => $main::opt{output},
+            output_file => $output_file,
             status_cb   => sub {
                 my ($percent, $message) = @_;
                 if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
@@ -179,8 +197,6 @@ sub do_slice {
     };
     $self->catch_error(sub { $process_dialog->Destroy if $process_dialog });
 }
-
-my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
 
 sub save_config {
     my $self = shift;
