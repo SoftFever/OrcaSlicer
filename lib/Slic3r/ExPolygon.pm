@@ -140,4 +140,11 @@ sub rotate {
     $_->rotate(@_) for @$self;
 }
 
+sub area {
+    my $self = shift;
+    my $area = $self->contour->area;
+    $area -= $_->area for $self->holes;
+    return $area;
+}
+
 1;

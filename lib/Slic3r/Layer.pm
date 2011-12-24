@@ -3,7 +3,7 @@ use Moo;
 
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(scale collinear X Y A B PI rad2deg_dir bounding_box_center);
-use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex is_counter_clockwise);
+use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex xor_ex is_counter_clockwise);
 use XXX;
 
 # a sequential number of layer, starting at 0
@@ -112,20 +112,35 @@ sub make_surfaces {
         # we need to ignore such holes, but Clipper will convert them to contours.
         # so we identify them and remove them manually.
         
+        my $area_sum = sub {
+            my $area = 0;
+            $area += $_->area for @_;
+            return $area;
+        };
+        
         # get expolygons without holes (candidate for reverse holes detection)
         my @expolygons_without_holes = grep { @$_ == 1 } @$expolygons;
         
-        # remove all holes from such expolygons
-        my $diff = diff_ex(
-            [ map @$_, @expolygons_without_holes ],
-            [ map [ reverse @$_ ], grep !is_counter_clockwise($_), @$loops ],
-        );
+        # prepare holes as contours to allow for safe xor'ing
+        my @reversed_holes = map [ reverse @$_ ], grep !is_counter_clockwise($_), @$loops;
         
-        # merge resulting holes (true holes) and other expolygons
-        $expolygons = [
-            (grep { @$_ > 1 } @$expolygons),
-            @$diff,
-        ];
+        # compare each expolygon without holes with each original hole; if their XOR
+        # is empty then they're the same and we can remove the hole from our layer
+        my %bogus_holes = ();
+        foreach my $contour (map $_->contour, @expolygons_without_holes) {
+            foreach my $hole (grep !exists $bogus_holes{$_}, @reversed_holes) {
+                my $xor = xor_ex([$contour], [$hole]);
+                if (!@$xor || $area_sum->(@$xor) < scale 1) {  # TODO: define this threshold better
+                    $bogus_holes{$hole} = $hole;
+                }
+            }
+        }
+        
+        # remove identified holes
+        $expolygons = diff_ex(
+            [ map @$_, @$expolygons ],
+            [ values %bogus_holes ],
+        ) if %bogus_holes;
         
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);

@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(explode_expolygon explode_expolygons safety_offset offset
-    diff_ex diff union_ex intersection_ex PFT_EVENODD JT_MITER JT_ROUND
+    diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     is_counter_clockwise);
 
 use Math::Clipper 1.02 ':all';
@@ -63,6 +63,18 @@ sub intersection_ex {
     return [
         map Slic3r::ExPolygon->new($_),
             @{ $clipper->ex_execute(CT_INTERSECTION, $jointype, $jointype) },
+    ];
+}
+
+sub xor_ex {
+    my ($subject, $clip, $jointype) = @_;
+    $jointype = PFT_NONZERO unless defined $jointype;
+    $clipper->clear;
+    $clipper->add_subject_polygons($subject);
+    $clipper->add_clip_polygons($clip);
+    return [
+        map Slic3r::ExPolygon->new($_),
+            @{ $clipper->ex_execute(CT_XOR, $jointype, $jointype) },
     ];
 }
 

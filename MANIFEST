@@ -49,3 +49,4 @@ t/collinear.t
 t/geometry.t
 t/polyclip.t
 t/stl.t
+utils/post-processing/z-every-line.pl
