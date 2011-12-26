@@ -10,7 +10,7 @@ use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
 my $last_dir;
-my $last_config;
+our $last_config;
 
 sub new {
     my $class = shift;
