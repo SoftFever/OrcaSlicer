@@ -7,6 +7,13 @@ use constant PI => 4 * atan2(1, 1);
 
 our $Options = {
 
+    # output options
+    'output_filename_format' => {
+        label   => 'Output filename format',
+        cli     => 'output=s',
+        type    => 's',
+    },
+
     # printer options
     'nozzle_diameter' => {
         label   => 'Nozzle diameter',

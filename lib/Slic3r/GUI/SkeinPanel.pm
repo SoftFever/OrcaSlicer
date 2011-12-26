@@ -61,6 +61,10 @@ sub new {
             title => 'Extrusion',
             options => [qw(extrusion_width_ratio bridge_flow_ratio)],
         },
+        output => {
+            title => 'Output',
+            options => [qw(output_filename_format)],
+        },
     );
     $self->{panels} = \%panels;
     
@@ -87,7 +91,7 @@ sub new {
         $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion)]),
+        $make_tab->([qw(extrusion)], [qw(output)]),
     );
     
     $tabpanel->AddPage($tabs[0], "Print Settings");
@@ -148,27 +152,8 @@ sub do_slice {
         my $input_file_basename = basename($input_file);
         $last_dir = dirname($input_file);
         
-        # select output file
-        my $output_file = $main::opt{output};
-        if ($params{save_as}) {
-            if (!$output_file) {
-                $output_file = $input_file_basename;
-                $output_file =~ s/\.stl$/.gcode/i;
-            }
-            my $dlg = Wx::FileDialog->new($self, 'Save gcode file as:', dirname($output_file),
-                basename($output_file), $gcode_wildcard, wxFD_SAVE);
-            return if $dlg->ShowModal != wxID_OK;
-            $output_file = $dlg->GetPath;
-        }
-        
-        # show processbar dialog
-        $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
-            100, $self, wxPD_APP_MODAL);
-        $process_dialog->Pulse;
-        
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
-            output_file => $output_file,
             status_cb   => sub {
                 my ($percent, $message) = @_;
                 if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
@@ -176,6 +161,24 @@ sub do_slice {
                 }
             },
         );
+
+        # select output file
+        my $output_file = $main::opt{output_filename};
+        if ($params{save_as}) {
+            if (!$output_file) {
+                $output_file = $skein->get_output_filename($input_file);
+            }
+            my $dlg = Wx::FileDialog->new($self, 'Save gcode file as:', dirname($output_file),
+                basename($output_file), $gcode_wildcard, wxFD_SAVE);
+            return if $dlg->ShowModal != wxID_OK;
+            $skein->output_file($dlg->GetPath);
+        }
+        
+        # show processbar dialog
+        $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
+            100, $self, wxPD_APP_MODAL);
+        $process_dialog->Pulse;
+        
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };

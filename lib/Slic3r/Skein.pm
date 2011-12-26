@@ -6,7 +6,7 @@ use Time::HiRes qw(gettimeofday tv_interval);
 use XXX;
 
 has 'input_file'    => (is => 'ro', required => 1);
-has 'output_file'   => (is => 'rw', required => 0);
+has 'output_file'    => (is => 'rw', required => 0);
 has 'status_cb'     => (is => 'rw', required => 0, default => sub { sub {} });
 has 'processing_time' => (is => 'rw', required => 0);
 
@@ -83,12 +83,11 @@ sub go {
     
     # output everything to a GCODE file
     $self->status_cb->(90, "Exporting GCODE...");
-    if (!$self->output_file) {
-        my $output_file = $self->input_file;
-        $output_file =~ s/\.stl$/.gcode/i;
-        $self->output_file($output_file);
+    if ($self->output_file) {
+        $print->export_gcode($self->output_file);
+    } else {
+        $print->export_gcode($self->get_output_filename);
     }
-    $print->export_gcode($self->output_file);
     
     # output some statistics
     $self->processing_time(tv_interval($t0));
@@ -99,6 +98,22 @@ sub go {
     # TODO: more statistics!
     printf "Filament required: %.1fmm (%.1fcm3)\n",
         $print->total_extrusion_length, $print->total_extrusion_volume;
+}
+
+sub get_output_filename {
+    my $self = shift;
+    my $filename = Slic3r::Config->get('output_filename_format');
+    my %opts = %$Slic3r::Config::Options;
+    my $input = $self->input_file;
+    # these pseudo-options are the path and filename, without and with extension, of the input file
+    $filename =~ s/\[input_filename\]/$input/g;
+    $input =~ s/\.stl$//i;
+    $filename =~ s/\[input_filename_base\]/$input/g;
+    # make a list of options
+    my $options = join '|', keys %$Slic3r::Config::Options;
+    # use that list to search and replace option names with option values
+    $filename =~ s/\[($options)\]/Slic3r::Config->get($1)/eg;
+    return $filename;
 }
 
 1;

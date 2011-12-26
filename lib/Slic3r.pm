@@ -33,6 +33,9 @@ use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 use Slic3r::TriangleMesh::IntersectionLine;
 
+# output options
+our $output_filename_format = '[input_filename_base].gcode';
+
 # printer options
 our $nozzle_diameter    = 0.5;
 our $print_center       = [100,100];  # object will be centered around this point

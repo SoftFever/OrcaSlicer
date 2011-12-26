@@ -81,8 +81,14 @@ The author is Alessandro Ranellucci (me).
         --help              Output this usage screen and exit
         --save <file>       Save configuration to the specified file
         --load <file>       Load configuration from the specified file
-        -o, --output        File to output gcode to (default: <inputfile>.gcode)
-        
+        -o <filename>       File name to output gcode to (default: --output)
+      
+      Output options:
+        --output            Output file name format (default: [input_filename_base].gcode)
+                            examples:
+                            [input_filename_base]_h[layer_height]_p[perimeters]_s[solid_layers].gcode
+                            [input_filename]_center[print_center]_layer[layer_height].gcode
+      
       Printer options:
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)
         --print-center      Coordinates of the point to center the print around 
