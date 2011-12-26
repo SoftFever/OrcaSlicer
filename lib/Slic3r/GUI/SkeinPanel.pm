@@ -10,6 +10,7 @@ use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
 my $last_dir;
+my $last_config;
 
 sub new {
     my $class = shift;
@@ -202,11 +203,14 @@ sub do_slice {
 sub save_config {
     my $self = shift;
     
-    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $last_dir || "", "config.ini", 
+    my $dir = $last_config ? dirname($last_config) : $last_dir || "";
+    my $filename = $last_config ? basename($last_config) : "config.ini";
+    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
         $ini_wildcard, wxFD_SAVE);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $last_dir = dirname($file);
+        $last_config = $file;
         Slic3r::Config->save($file);
     }
 }
@@ -219,6 +223,7 @@ sub load_config {
     if ($dlg->ShowModal == wxID_OK) {
         my ($file) = $dlg->GetPaths;
         $last_dir = dirname($file);
+        $last_config = $file;
         eval {
             local $SIG{__WARN__} = $self->catch_warning;
             Slic3r::Config->load($file);
