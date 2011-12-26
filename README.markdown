@@ -81,13 +81,15 @@ The author is Alessandro Ranellucci (me).
         --help              Output this usage screen and exit
         --save <file>       Save configuration to the specified file
         --load <file>       Load configuration from the specified file
-        -o <filename>       File name to output gcode to (default: --output)
-      
+        -o, --output <file> File to output gcode to (by default, the file will be saved
+                            into the same directory as the input file using the 
+                            --output-filename-format to generate the filename)
+        
       Output options:
-        --output            Output file name format (default: [input_filename_base].gcode)
-                            examples:
-                            [input_filename_base]_h[layer_height]_p[perimeters]_s[solid_layers].gcode
-                            [input_filename]_center[print_center]_layer[layer_height].gcode
+        --output-filament-format
+                            Output file name format; all config options enclosed in brackets
+                            will be replaced by their values, as well as [input_filename_base]
+                            and [input_filename] (default: [input_filename_base].gcode)
       
       Printer options:
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)
@@ -160,10 +162,10 @@ The author is Alessandro Ranellucci (me).
         --retract-lift      Lift Z by the given distance in mm when retracting (default: 0)
        
        Skirt options:
-        --skirts            Number of skirts to draw (default: 1)
+        --skirts            Number of skirts to draw (0+, default: 1)
         --skirt-distance    Distance in mm between innermost skirt and object 
                             (default: 6)
-        --skirt-height      Height of skirts to draw (expressed in layers, default: 1)
+        --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: 1)
        
        Transform options:
         --scale             Factor for scaling input object (default: 1)
@@ -202,3 +204,21 @@ you like).
 On Mac, the executable has a path like this:
 
     /Applications/Slic3r.app/Contents/MacOS/slic3r
+
+## How can I specify a custom filename format for output G-code files?
+
+You can specify a filename format by using any of the config options. 
+Just enclose them in square brackets, and Slic3r will replace them upon
+exporting.
+The additional `[input_filename]` and `[input_filename_base]` options will
+be replaced by the input file name (in the second case, the .stl extension 
+is stripped).
+
+The default format is `[input_filename_base].gcode`, meaning that if you slice
+a *foo.stl* file, the output will be saved to *foo.gcode*.
+
+See below for more complex examples:
+
+    [input_filename_base]_h[layer_height]_p[perimeters]_s[solid_layers].gcode
+    [input_filename]_center[print_center]_[layer_height]layers.gcode
+

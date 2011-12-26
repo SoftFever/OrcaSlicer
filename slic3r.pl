@@ -20,8 +20,7 @@ my %cli_options = ();
         'help'                  => sub { usage() },
         
         'debug'                 => \$Slic3r::debug,
-        
-        'o=s'                   => \$opt{output_filename},
+        'o|output=s'            => \$opt{output},
         
         'save=s'                => \$opt{save},
         'load=s'                => \$opt{load},
@@ -71,7 +70,7 @@ if ($ARGV[0]) {
     
     my $skein = Slic3r::Skein->new(
         input_file  => $input_file,
-        output_file => $opt{output_filename},
+        output_file => $opt{output},
     );
     $skein->go;
     
@@ -91,13 +90,15 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --help              Output this usage screen and exit
     --save <file>       Save configuration to the specified file
     --load <file>       Load configuration from the specified file
-    -o <filename>       File name to output gcode to (default: --output)
+    -o, --output <file> File to output gcode to (by default, the file will be saved
+                        into the same directory as the input file using the 
+                        --output-filename-format to generate the filename)
     
   Output options:
-    --output            Output file name format (default: [input_filename_base].gcode)
-                        examples:
-                        [input_filename_base]_h[layer_height]_p[perimeters]_s[solid_layers].gcode
-                        [input_filename]_center[print_center]_layer[layer_height].gcode
+    --output-filament-format
+                        Output file name format; all config options enclosed in brackets
+                        will be replaced by their values, as well as [input_filename_base]
+                        and [input_filename] (default: $Slic3r::output_filename_format)
   
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)

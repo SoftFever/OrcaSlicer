@@ -154,6 +154,7 @@ sub do_slice {
         
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
+            output_file => $main::opt{output},
             status_cb   => sub {
                 my ($percent, $message) = @_;
                 if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
@@ -163,11 +164,8 @@ sub do_slice {
         );
 
         # select output file
-        my $output_file = $main::opt{output_filename};
         if ($params{save_as}) {
-            if (!$output_file) {
-                $output_file = $skein->get_output_filename($input_file);
-            }
+            my $output_file = $skein->expanded_output_filepath;
             my $dlg = Wx::FileDialog->new($self, 'Save gcode file as:', dirname($output_file),
                 basename($output_file), $gcode_wildcard, wxFD_SAVE);
             return if $dlg->ShowModal != wxID_OK;

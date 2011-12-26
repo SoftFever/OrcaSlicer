@@ -1,12 +1,18 @@
 package Slic3r::Skein;
 use Moo;
 
+use File::Basename qw(basename fileparse);
 use Slic3r::Geometry qw(PI);
 use Time::HiRes qw(gettimeofday tv_interval);
 use XXX;
 
+# full path (relative or absolute) to the input file
 has 'input_file'    => (is => 'ro', required => 1);
-has 'output_file'    => (is => 'rw', required => 0);
+
+# full path (relative or absolute) to the output file; it may contain
+# formatting variables like [layer_height] etc.
+has 'output_file'   => (is => 'rw', required => 0);
+
 has 'status_cb'     => (is => 'rw', required => 0, default => sub { sub {} });
 has 'processing_time' => (is => 'rw', required => 0);
 
@@ -83,11 +89,7 @@ sub go {
     
     # output everything to a GCODE file
     $self->status_cb->(90, "Exporting GCODE...");
-    if ($self->output_file) {
-        $print->export_gcode($self->output_file);
-    } else {
-        $print->export_gcode($self->get_output_filename);
-    }
+    $print->export_gcode($self->expanded_output_filepath);
     
     # output some statistics
     $self->processing_time(tv_interval($t0));
@@ -100,20 +102,30 @@ sub go {
         $print->total_extrusion_length, $print->total_extrusion_volume;
 }
 
-sub get_output_filename {
+# this method will return the value of $self->output_file after expanding its
+# format variables with their values
+sub expanded_output_filepath {
     my $self = shift;
-    my $filename = Slic3r::Config->get('output_filename_format');
-    my %opts = %$Slic3r::Config::Options;
-    my $input = $self->input_file;
-    # these pseudo-options are the path and filename, without and with extension, of the input file
-    $filename =~ s/\[input_filename\]/$input/g;
-    $input =~ s/\.stl$//i;
-    $filename =~ s/\[input_filename_base\]/$input/g;
-    # make a list of options
-    my $options = join '|', keys %$Slic3r::Config::Options;
-    # use that list to search and replace option names with option values
-    $filename =~ s/\[($options)\]/Slic3r::Config->get($1)/eg;
-    return $filename;
+    
+    my $path = $self->output_file;
+    
+    # if no explicit output file was defined, we take the input
+    # file directory and append the specified filename format
+    $path ||= (fileparse($self->input_file))[1] . $Slic3r::output_filename_format;
+    
+    my $input_basename = basename($self->input_file);
+    $path =~ s/\[input_filename\]/$input_basename/g;  
+    $input_basename =~ s/\.stl$//i;
+    $path =~ s/\[input_filename_base\]/$input_basename/g;
+    
+    # build a regexp to match the available options
+    my $options = join '|',
+        grep !$Slic3r::Config::Options->{$_}{multiline},
+        keys %$Slic3r::Config::Options;
+    
+    # use that regexp to search and replace option names with option values
+    $path =~ s/\[($options)\]/Slic3r::Config->serialize($1)/eg;
+    return $path;
 }
 
 1;

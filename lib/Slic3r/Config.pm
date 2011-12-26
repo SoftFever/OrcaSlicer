@@ -10,7 +10,7 @@ our $Options = {
     # output options
     'output_filename_format' => {
         label   => 'Output filename format',
-        cli     => 'output=s',
+        cli     => 'output-filename-format=s',
         type    => 's',
     },
 
@@ -294,6 +294,14 @@ sub set {
     my ($opt_key, $value) = @_;
     no strict 'refs';
     ${"Slic3r::$opt_key"} = $value;
+}
+
+sub serialize {
+    my $class = @_ == 2 ? shift : undef;
+    my ($opt_key) = @_;
+    return $Options->{$opt_key}{serialize}
+        ? $Options->{$opt_key}{serialize}->(get($opt_key))
+        : get($opt_key);
 }
 
 sub save {
