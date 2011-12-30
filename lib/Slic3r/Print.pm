@@ -131,7 +131,7 @@ sub new_from_mesh {
     }
     
     # remove empty layers from bottom
-    while (@{$print->layers} && !@{$print->layers->[0]->slices}) {
+    while (@{$print->layers} && !@{$print->layers->[0]->slices} && !@{$print->layers->[0]->thin_walls}) {
         shift @{$print->layers};
         for (my $i = 0; $i <= $#{$print->layers}; $i++) {
             $print->layers->[$i]->id($i);
@@ -327,11 +327,10 @@ sub extrude_skirt {
     return unless $Slic3r::skirts > 0;
     
     # collect points from all layers contained in skirt height
-    my @points = ();
     my $skirt_height = $Slic3r::skirt_height;
     $skirt_height = $self->layer_count if $skirt_height > $self->layer_count;
     my @layers = map $self->layer($_), 0..($skirt_height-1);
-    push @points, map @$_, map $_->p, map @{ $_->slices }, @layers;
+    my @points = map @$_, map $_->p, map @{ $_->slices }, @layers;
     return if !@points;
     
     # find out convex hull
@@ -484,11 +483,11 @@ sub export_gcode {
         printf $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
         # extrude perimeters
-        printf $fh $extruder->extrude_loop($_, 'perimeter') for @{ $layer->perimeters };
+        printf $fh $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
         
         # extrude fills
         for my $fill (@{ $layer->fills }) {
-            printf $fh $extruder->extrude($_, 'fill') 
+            printf $fh $extruder->extrude_path($_, 'fill') 
                 for $fill->shortest_path($extruder->last_pos);
         }
     }

@@ -66,6 +66,14 @@ sub change_layer {
     return $gcode;
 }
 
+sub extrude {
+    my $self = shift;
+    
+    return $_[0]->isa('Slic3r::ExtrusionLoop')
+        ? $self->extrude_loop(@_)
+        : $self->extrude_path(@_);
+}
+
 sub extrude_loop {
     my $self = shift;
     my ($loop, $description) = @_;
@@ -80,10 +88,10 @@ sub extrude_loop {
     $extrusion_path->clip_end(scale $Slic3r::nozzle_diameter / 2);
     
     # extrude along the path
-    return $self->extrude($extrusion_path, $description);
+    return $self->extrude_path($extrusion_path, $description);
 }
 
-sub extrude {
+sub extrude_path {
     my $self = shift;
     my ($path, $description, $recursive) = @_;
     
@@ -92,7 +100,7 @@ sub extrude {
     # detect arcs
     if ($Slic3r::gcode_arcs && !$recursive) {
         my $gcode = "";
-        $gcode .= $self->extrude($_, $description, 1) for $path->detect_arcs;
+        $gcode .= $self->extrude_path($_, $description, 1) for $path->detect_arcs;
         return $gcode;
     }
     

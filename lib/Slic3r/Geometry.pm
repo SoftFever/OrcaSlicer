@@ -18,7 +18,8 @@ our @EXPORT_OK = qw(
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear scale unscale merge_collinear_lines
-    rad2deg_dir bounding_box_center
+    rad2deg_dir bounding_box_center line_intersects_any
+    polyline_remove_short_segments
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -66,7 +67,7 @@ sub line_direction {
 sub lines_parallel {
     my ($line1, $line2) = @_;
     
-    return abs(line_atan($line1) - line_atan($line2)) < $parallel_degrees_limit;
+    return abs(line_direction($line1) - line_direction($line2)) < $parallel_degrees_limit;
 }
 
 sub three_points_aligned {
@@ -438,6 +439,14 @@ sub polygon_points_visibility {
     return 1;
 }
 
+sub line_intersects_any {
+    my ($line, $lines) = @_;
+    for (@$lines) {
+        return 1 if line_intersection($line, $_, 1);
+    }
+    return 0;
+}
+
 sub line_intersection {
     my ($line1, $line2, $require_crossing) = @_;
     $require_crossing ||= 0;
@@ -674,6 +683,17 @@ sub polyline_remove_acute_vertices {
 sub polygon_remove_acute_vertices {
     my ($points) = @_;
     return polyline_remove_acute_vertices($points, 1);
+}
+
+sub polyline_remove_short_segments {
+    my ($points, $min_length, $isPolygon) = @_;
+    for (my $i = $isPolygon ? 0 : 1; $i < $#$points; $i++) {
+        if (distance_between_points($points->[$i-1], $points->[$i]) < $min_length) {
+            # we can remove $points->[$i]
+            splice @$points, $i, 1;
+            $i--;
+        }
+    }
 }
 
 # accepts an arrayref; each item should be an arrayref whose first

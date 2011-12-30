@@ -26,6 +26,11 @@ sub new {
     $self;
 }
 
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(map $_->clone, @$self);
+}
+
 # legacy method, to be removed when we ditch Slic3r::Polyline::Closed
 sub closed_polyline {
     my $self = shift;
@@ -85,6 +90,28 @@ sub offset {
     
     my $offsets = Math::Clipper::offset([$self], $distance, $scale, $joinType, $miterLimit);
     return @$offsets;
+}
+
+# this method subdivides the polygon segments to that no one of them
+# is longer than the length provided
+sub subdivide {
+    my $self = shift;
+    my ($max_length) = @_;
+    
+    for (my $i = 0; $i <= $#$self; $i++) {
+        my $len = Slic3r::Geometry::line_length([ $self->[$i-1], $self->[$i] ]);
+        my $num_points = int($len / $max_length) - 1;
+        $num_points++ if $len % $max_length;
+        next unless $num_points;
+        
+        # $num_points is the number of points to add between $i-1 and $i
+        my $spacing = $len / ($num_points + 1);
+        my @new_points = map Slic3r::Geometry::point_along_segment($self->[$i-1], $self->[$i], $spacing * $_),
+            1..$num_points;
+        
+        splice @$self, $i, 0, @new_points;
+        $i += @new_points;
+    }
 }
 
 1;

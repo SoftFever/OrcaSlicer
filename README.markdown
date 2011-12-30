@@ -55,7 +55,6 @@ Roadmap includes the following goals:
 
 Sure, it's very usable. Remember that:
 
-* it doesn't currently support single-walled parts (such as thin calibration objects);
 * it doesn't generate support material;
 * it only works well with manifold models (check them with Meshlab or Netfabb or http://cloud.netfabb.com/).
 

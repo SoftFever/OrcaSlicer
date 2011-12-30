@@ -45,6 +45,8 @@ sub reverse {
     @{$self->points} = reverse @{$self->points};
 }
 
+sub is_printable { 1 }
+
 sub split_at_acute_angles {
     my $self = shift;
     

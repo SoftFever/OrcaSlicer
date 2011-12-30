@@ -4,6 +4,7 @@ use warnings;
 
 # an ExPolygon is a polygon with holes
 
+use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(point_in_polygon X Y A B);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
@@ -22,6 +23,11 @@ sub new {
     }
     bless $self, $class;
     $self;
+}
+
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(map $_->clone, @$self);
 }
 
 sub contour {
@@ -145,6 +151,104 @@ sub area {
     my $area = $self->contour->area;
     $area -= $_->area for $self->holes;
     return $area;
+}
+
+# this method only works for expolygons having only a contour or
+# a contour and a hole, and not being thicker than the supplied 
+# width. it returns a polyline or a polygon
+sub medial_axis {
+    my $self = shift;
+    my ($width) = @_;
+    
+    my @self_lines = map $_->lines, @$self;
+    my $expolygon = $self->clone;
+    my @points = ();
+    foreach my $polygon (@$expolygon) {
+        Slic3r::Geometry::polyline_remove_short_segments($polygon, $width / 2);
+        
+        # subdivide polygon segments so that we don't have anyone of them
+        # being longer than $width / 2
+        $polygon->subdivide($width/2);
+        
+        push @points, @$polygon;
+    }
+    
+    my $voronoi = Math::Geometry::Voronoi->new(points => \@points);
+    $voronoi->compute;
+    
+    my @skeleton_lines = ();
+    
+    my $vertices = $voronoi->vertices;
+    my $edges = $voronoi->edges;
+    foreach my $edge (@$edges) {
+        # ignore lines going to infinite
+        next if $edge->[1] == -1 || $edge->[2] == -1;
+        
+        my ($a, $b);
+        $a = $vertices->[$edge->[1]];
+        $b = $vertices->[$edge->[2]];
+        
+        next if !$self->encloses_point($a) || !$self->encloses_point($b);
+        
+        push @skeleton_lines, [$edge->[1], $edge->[2]];
+    }
+    
+    # remove leafs (lines not connected to other lines at one of their endpoints)
+    {
+        my %pointmap = ();
+        $pointmap{$_}++ for map @$_, @skeleton_lines;
+        @skeleton_lines = grep {
+            $pointmap{$_->[A]} >= 2 && $pointmap{$_->[B]} >= 2
+        } @skeleton_lines;
+    }
+    
+    # now build a single polyline
+    my $polyline = [];
+    {
+        my %pointmap = ();
+        foreach my $line (@skeleton_lines) {
+            foreach my $point_id (@$line) {
+                $pointmap{$point_id} ||= [];
+                push @{$pointmap{$point_id}}, $line;
+            }
+        }
+        
+        # start from a point having only one line
+        foreach my $point_id (keys %pointmap) {
+            if (@{$pointmap{$point_id}} == 1) {
+                push @$polyline, grep $_ ne $point_id, map @$_, shift @{$pointmap{$point_id}};
+                last;
+            }
+        }
+        
+        # if no such point is found, pick a random one
+        push @$polyline, shift @{ +(values %pointmap)[0][0] } if !@$polyline;
+        
+        my %visited_lines = ();
+        while (1) {
+            my $last_point_id = $polyline->[-1];
+            
+            shift @{ $pointmap{$last_point_id} }
+                while @{ $pointmap{$last_point_id} } && $visited_lines{$pointmap{$last_point_id}[0]};
+            my $next_line = shift @{ $pointmap{$last_point_id} } or last;
+            $visited_lines{$next_line} = 1;
+            push @$polyline, grep $_ ne $last_point_id, @$next_line;
+        }
+    }
+    
+    # now replace point indexes with coordinates
+    @$polyline = map $vertices->[$_], @$polyline;
+    
+    # cleanup
+    Slic3r::Geometry::polyline_remove_short_segments($polyline, $width / 2);
+    @$polyline = Slic3r::Geometry::Douglas_Peucker($polyline, $width / 100);
+    Slic3r::Geometry::polyline_remove_parallel_continuous_edges($polyline);
+    
+    if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
+        return Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
+    } else {
+        return Slic3r::Polyline->cast($polyline);
+    }
 }
 
 1;

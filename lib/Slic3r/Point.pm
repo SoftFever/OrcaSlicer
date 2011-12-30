@@ -20,6 +20,11 @@ sub new {
     return $self;
 }
 
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(@$self);
+}
+
 sub cast {
     my $class = shift;
     if (ref $_[0] eq 'Slic3r::Point') {

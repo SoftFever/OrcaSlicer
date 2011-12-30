@@ -79,6 +79,15 @@ sub make_perimeter {
     for (@{ $layer->perimeters }) {
         $_->role('small-perimeter') if $_->polygon->area < $Slic3r::small_perimeter_area;
     }
+    
+    # add thin walls as perimeters
+    for (@{ $layer->thin_walls }) {
+        if ($_->isa('Slic3r::Polygon')) {
+            push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->cast($_, role => 'perimeter');
+        } else {
+            push @{ $layer->perimeters }, Slic3r::ExtrusionPath->cast($_->points, role => 'perimeter');
+        }
+    }
 }
 
 1;
