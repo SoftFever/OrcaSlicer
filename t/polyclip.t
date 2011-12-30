@@ -103,8 +103,8 @@ is_deeply $intersection, [ [12, 12], [18, 16] ], 'internal lines are preserved';
         ], 'tangent line is clipped to square with hole';
     }
     {
-        my $polyline = Slic3r::Polyline->cast([ [5, 18], [25, 18], [25, 15], [15, 15], [15, 12], [12, 12], [12, 5] ]);
-        is_deeply [ map $_->p, $polyline->clip_with_expolygon($expolygon) ], [
+        my $polyline = Slic3r::Polyline->new([ [5, 18], [25, 18], [25, 15], [15, 15], [15, 12], [12, 12], [12, 5] ]);
+        is_deeply [ map $_, $polyline->clip_with_expolygon($expolygon) ], [
             [ [10, 18], [20, 18] ],
             [ [20, 15], [16, 15] ],
             [ [15, 14], [15, 12], [12, 12], [12, 10] ],

@@ -40,6 +40,11 @@ sub holes {
     return @$self[1..$#$self];
 }
 
+sub lines {
+    my $self = shift;
+    return map $_->lines, @$self;
+}
+
 sub clipper_expolygon {
     my $self = shift;
     return {
@@ -106,7 +111,7 @@ sub bounding_box {
 sub clip_line {
     my $self = shift;
     my ($line) = @_;
-    $line = Slic3r::Line->cast($line);
+    $line = Slic3r::Line->new($line) if ref $line eq 'ARRAY';
     
     my @intersections = grep $_, map $_->intersection($line, 1), map $_->lines, @$self;
     my @dir = (
@@ -203,6 +208,8 @@ sub medial_axis {
     }
     return undef if !@skeleton_lines;
     
+    return undef if !@skeleton_lines;
+    
     # now build a single polyline
     my $polyline = [];
     {
@@ -248,7 +255,7 @@ sub medial_axis {
     if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
         return Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
     } else {
-        return Slic3r::Polyline->cast($polyline);
+        return Slic3r::Polyline->new($polyline);
     }
 }
 

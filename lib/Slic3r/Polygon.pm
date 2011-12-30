@@ -3,11 +3,10 @@ use strict;
 use warnings;
 
 # a polygon is a closed polyline.
-# if you're asking why there's a Slic3r::Polygon as well
-# as a Slic3r::Polyline::Closed you're right. I plan to
-# ditch the latter and port everything to this class.
+use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
+    scale polygon_remove_acute_vertices
     polygon_segment_having_point point_in_polygon move_points rotate_points);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
 
@@ -31,12 +30,6 @@ sub clone {
     return (ref $self)->new(map $_->clone, @$self);
 }
 
-# legacy method, to be removed when we ditch Slic3r::Polyline::Closed
-sub closed_polyline {
-    my $self = shift;
-    return Slic3r::Polyline::Closed->cast($self);
-}
-
 sub lines {
     my $self = shift;
     return map Slic3r::Line->new($_), polygon_lines($self);
@@ -44,7 +37,20 @@ sub lines {
 
 sub cleanup {
     my $self = shift;
+    $self->merge_continuous_lines;
+}
+
+sub merge_continuous_lines {
+    my $self = shift;
+    
     polygon_remove_parallel_continuous_edges($self);
+    bless $_, 'Slic3r::Point' for @$self;
+}
+
+sub remove_acute_vertices {
+    my $self = shift;
+    polygon_remove_acute_vertices($self);
+    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub point_on_segment {
@@ -106,12 +112,31 @@ sub subdivide {
         
         # $num_points is the number of points to add between $i-1 and $i
         my $spacing = $len / ($num_points + 1);
-        my @new_points = map Slic3r::Geometry::point_along_segment($self->[$i-1], $self->[$i], $spacing * $_),
+        my @new_points = map Slic3r::Point->new($_),
+            map Slic3r::Geometry::point_along_segment($self->[$i-1], $self->[$i], $spacing * $_),
             1..$num_points;
         
         splice @$self, $i, 0, @new_points;
         $i += @new_points;
     }
+}
+
+# returns false if the polyline is too tight to be printed
+sub is_printable {
+    my $self = shift;
+    
+    # try to get an inwards offset
+    # for a distance equal to half of the extrusion width;
+    # if no offset is possible, then polyline is not printable
+    my $p = $self->clone;
+    @$p = reverse @$p if !Math::Clipper::is_counter_clockwise($p);
+    my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_spacing / 2), $Slic3r::resolution * 100000, JT_MITER, 2);
+    return @$offsets ? 1 : 0;
+}
+
+sub is_valid {
+    my $self = shift;
+    return @{$self->points} >= 3;
 }
 
 1;

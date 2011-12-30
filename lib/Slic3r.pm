@@ -25,7 +25,6 @@ use Slic3r::Perimeter;
 use Slic3r::Point;
 use Slic3r::Polygon;
 use Slic3r::Polyline;
-use Slic3r::Polyline::Closed;
 use Slic3r::Print;
 use Slic3r::Skein;
 use Slic3r::STL;

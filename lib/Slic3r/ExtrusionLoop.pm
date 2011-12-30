@@ -3,10 +3,20 @@ use Moo;
 
 use XXX;
 
-extends 'Slic3r::Polyline::Closed';
+# the underlying Slic3r::Polygon objects holds the geometry
+has 'polygon' => (
+    is          => 'ro',
+    required    => 1,
+    handles     => [qw(is_printable nearest_point_to)],
+);
 
 # perimeter/fill/solid-fill/bridge/skirt
 has 'role'         => (is => 'rw', required => 1);
+
+sub BUILD {
+    my $self = shift;
+    bless $self->polygon, 'Slic3r::Polygon';
+}
 
 sub split_at {
     my $self = shift;
@@ -16,8 +26,8 @@ sub split_at {
     
     # find index of point
     my $i = -1;
-    for (my $n = 0; $n <= $#{$self->points}; $n++) {
-        if ($point->id eq $self->points->[$n]->id) {
+    for (my $n = 0; $n <= $#{$self->polygon}; $n++) {ZZZ "here" if ref $self->polygon->[$n] eq 'ARRAY'; 
+        if ($point->id eq $self->polygon->[$n]->id) {
             $i = $n;
             last;
         }
@@ -25,10 +35,13 @@ sub split_at {
     die "Point not found" if $i == -1;
     
     my @new_points = ();
-    push @new_points, @{$self->points}[$i .. $#{$self->points}];
-    push @new_points, @{$self->points}[0 .. $i];
+    push @new_points, @{$self->polygon}[$i .. $#{$self->polygon}];
+    push @new_points, @{$self->polygon}[0 .. $i];
     
-    return Slic3r::ExtrusionPath->new(points => [@new_points], role => $self->role);
+    return Slic3r::ExtrusionPath->new(
+        polyline    => Slic3r::Polyline->new(\@new_points),
+        role        => $self->role,
+    );
 }
 
 1;

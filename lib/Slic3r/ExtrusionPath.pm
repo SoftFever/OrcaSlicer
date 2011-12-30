@@ -1,7 +1,15 @@
 package Slic3r::ExtrusionPath;
 use Moo;
 
-extends 'Slic3r::Polyline';
+use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
+use XXX;
+
+# the underlying Slic3r::Polyline objects holds the geometry
+has 'polyline' => (
+    is          => 'ro',
+    required    => 1,
+    handles     => [qw(merge_continuous_lines lines)],
+);
 
 # this integer represents the vertical thickness of the extrusion
 # expressed in layers
@@ -12,8 +20,10 @@ has 'flow_spacing' => (is => 'rw');
 # perimeter/fill/solid-fill/bridge/skirt
 has 'role'         => (is => 'rw', required => 1);
 
-use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
-use XXX;
+sub BUILD {
+    my $self = shift;
+    bless $self->polyline, 'Slic3r::Polyline';
+}
 
 sub clip_end {
     my $self = shift;
@@ -33,6 +43,11 @@ sub clip_end {
         push @{$self->points}, Slic3r::Point->new($new_point);
         $distance = 0;
     }
+}
+
+sub points {
+    my $self = shift;
+    return $self->polyline;
 }
 
 sub endpoints {
@@ -68,10 +83,10 @@ sub split_at_acute_angles {
             # if the angle between $p[-2], $p[-1], $p3 is too acute
             # then consider $p3 only as a starting point of a new
             # path and stop the current one as it is
-            push @paths, (ref $self)->cast(
-                [@p],
-                role => $self->role,
-                depth_layers => $self->depth_layers,
+            push @paths, (ref $self)->new(
+                polyline        => Slic3r::Polyline->new(\@p),
+                role            => $self->role,
+                depth_layers    => $self->depth_layers,
              );
             @p = ($p3);
             push @p, grep $_, shift @points or last;
@@ -79,10 +94,10 @@ sub split_at_acute_angles {
             push @p, $p3;
         }
     }
-    push @paths, (ref $self)->cast(
-        [@p],
-        role => $self->role,
-        depth_layers => $self->depth_layers,
+    push @paths, (ref $self)->new(
+        polyline        => Slic3r::Polyline->new(\@p),
+        role            => $self->role,
+        depth_layers    => $self->depth_layers,
     ) if @p > 1;
     
     return @paths;
@@ -168,7 +183,7 @@ sub detect_arcs {
             }
             
             my $arc = Slic3r::ExtrusionPath::Arc->new(
-                points      => [@arc_points],
+                polyline    => Slic3r::Polyline->new(\@arc_points),
                 role        => $self->role,
                 orientation => $orientation,
                 center      => $arc_center,
@@ -177,9 +192,9 @@ sub detect_arcs {
             
             # points 0..$i form a linear path
             push @paths, (ref $self)->new(
-                points       => [ @points[0..$i] ],
-                role => $self->role,
-                depth_layers => $self->depth_layers,
+                polyline        => Slic3r::Polyline->new(@points[0..$i]),
+                role            => $self->role,
+                depth_layers    => $self->depth_layers,
             ) if $i > 0;
             
             # add our arc
@@ -196,9 +211,9 @@ sub detect_arcs {
     
     # remaining points form a linear path
     push @paths, (ref $self)->new(
-        points => [@points],
-        role => $self->role,
-        depth_layers => $self->depth_layers,
+        polyline        => Slic3r::Polyline->new(\@points),
+        role            => $self->role,
+        depth_layers    => $self->depth_layers,
     ) if @points > 1;
     
     return @paths;

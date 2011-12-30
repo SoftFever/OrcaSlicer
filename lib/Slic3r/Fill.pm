@@ -71,7 +71,8 @@ sub make_fill {
                 1,
             );
             
-            push @surfaces, map Slic3r::Surface->cast_from_expolygon($_,
+            push @surfaces, map Slic3r::Surface->new(
+                expolygon => $_,
                 surface_type => $group->[0]->surface_type,
                 bridge_angle => $group->[0]->bridge_angle,
                 depth_layers => $group->[0]->depth_layers,
@@ -100,7 +101,8 @@ sub make_fill {
                 [ @offsets ],
             );
             
-            push @new_surfaces, map Slic3r::Surface->cast_from_expolygon($_,
+            push @new_surfaces, map Slic3r::Surface->new(
+                expolygon => $_,
                 surface_type => $surface->surface_type,
                 bridge_angle => $surface->bridge_angle,
                 depth_layers => $surface->depth_layers,
@@ -111,7 +113,7 @@ sub make_fill {
     
     # organize infill surfaces using a shortest path search
     @surfaces = @{shortest_path([
-        map [ $_->contour->points->[0], $_ ], @surfaces,
+        map [ $_->contour->[0], $_ ], @surfaces,
     ])};
     
     SURFACE: foreach my $surface (@surfaces) {
@@ -145,15 +147,14 @@ sub make_fill {
         # save into layer
         push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
             paths => [
-                map Slic3r::ExtrusionPath->cast(
-                    [ @$_ ],
+                map Slic3r::ExtrusionPath->new(
+                    polyline => Slic3r::Polyline->new(@$_),
                     role => ($is_bridge ? 'bridge' : $is_solid ? 'solid-fill' : 'fill'),
                     depth_layers => $surface->depth_layers,
                     flow_spacing => $params->{flow_spacing},
                 ), @paths,
             ],
         ) if @paths;
-        ###$layer->fills->[-1]->cleanup;
     }
 }
 

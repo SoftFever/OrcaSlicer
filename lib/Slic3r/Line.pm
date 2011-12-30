@@ -21,13 +21,6 @@ sub new {
     return $self;
 }
 
-sub cast {
-    my $class = shift;
-    my ($line) = @_;
-    return $line if ref $line eq __PACKAGE__;
-    return $class->new($line);
-}
-
 sub a { $_[0][0] }
 sub b { $_[0][1] }
 

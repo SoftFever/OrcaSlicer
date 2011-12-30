@@ -125,8 +125,8 @@ sub new_from_mesh {
             [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
         );
         
-        @{$layer->slices} = map Slic3r::Surface->cast_from_expolygon
-            ($_, surface_type => 'internal'),
+        @{$layer->slices} = map Slic3r::Surface->new
+            (expolygon => $_, surface_type => 'internal'),
             @$diff;
     }
     
@@ -178,7 +178,7 @@ sub detect_surfaces_type {
             1,
         );
         return grep $_->contour->is_printable,
-            map Slic3r::Surface->cast_from_expolygon($_, surface_type => $result_type), 
+            map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };
     
@@ -223,7 +223,7 @@ sub detect_surfaces_type {
         @internal = $surface_difference->($layer->slices, [@top, @bottom], 'internal');
         
         # save surfaces to layer
-        $layer->slices([ @bottom, @top, @internal ]);
+        @{$layer->slices} = (@bottom, @top, @internal);
         
         Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
             $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
@@ -235,10 +235,10 @@ sub detect_surfaces_type {
         foreach my $surface (@{$layer->slices}) {
             my $intersection = intersection_ex(
                 [ $surface->p ],
-                [ map $_->p, @{$layer->fill_boundaries} ],
+                [ map @$_, @{$layer->fill_boundaries} ],
             );
-            push @{$layer->surfaces}, map Slic3r::Surface->cast_from_expolygon
-                ($_, surface_type => $surface->surface_type),
+            push @{$layer->surfaces}, map Slic3r::Surface->new
+                (expolygon => $_, surface_type => $surface->surface_type),
                 @$intersection;
         }
     }
@@ -298,13 +298,13 @@ sub discover_horizontal_shells {
                 # assign resulting inner surfaces to layer
                 my $neighbor_fill_surfaces = $self->layers->[$n]->fill_surfaces;
                 @$neighbor_fill_surfaces = ();
-                push @$neighbor_fill_surfaces, Slic3r::Surface->cast_from_expolygon
-                    ($_, surface_type => 'internal')
+                push @$neighbor_fill_surfaces, Slic3r::Surface->new
+                    (expolygon => $_, surface_type => 'internal')
                     for @$internal;
                 
                 # assign new internal-solid surfaces to layer
-                push @$neighbor_fill_surfaces, Slic3r::Surface->cast_from_expolygon
-                    ($_, surface_type => 'internal-solid')
+                push @$neighbor_fill_surfaces, Slic3r::Surface->new
+                    (expolygon => $_, surface_type => 'internal-solid')
                     for @$internal_solid;
                 
                 # assign top and bottom surfaces to layer
@@ -313,8 +313,8 @@ sub discover_horizontal_shells {
                         [ map $_->p, @$s ],
                         [ map @$_, @$internal_solid, @$internal ],
                     );
-                    push @$neighbor_fill_surfaces, Slic3r::Surface->cast_from_expolygon
-                        ($_, surface_type => $s->[0]->surface_type, bridge_angle => $s->[0]->bridge_angle)
+                    push @$neighbor_fill_surfaces, Slic3r::Surface->new
+                        (expolygon => $_, surface_type => $s->[0]->surface_type, bridge_angle => $s->[0]->bridge_angle)
                         for @$solid_surfaces;
                 }
             }
@@ -341,7 +341,10 @@ sub extrude_skirt {
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
         my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
-        push @skirts, Slic3r::ExtrusionLoop->cast([ @{$outline->[0]} ], role => 'skirt');
+        push @skirts, Slic3r::ExtrusionLoop->new(
+            polygon => Slic3r::Polygon->new(@{$outline->[0]}),
+            role => 'skirt',
+        );
     }
     
     # apply skirts to all layers
@@ -387,12 +390,12 @@ sub infill_every_layers {
             {
                 my @new_surfaces = ();
                 push @new_surfaces, grep $_->surface_type ne 'internal', @{$layer->fill_surfaces};
-                push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
-                    ($_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
+                push @new_surfaces, map Slic3r::Surface->new
+                    (expolygon => $_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
                 
                 foreach my $depth (reverse $d..$Slic3r::infill_every_layers) {
-                    push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
-                        ($_, surface_type => 'internal', depth_layers => $depth),
+                    push @new_surfaces, map Slic3r::Surface->new
+                        (expolygon => $_, surface_type => 'internal', depth_layers => $depth),
                         
                         # difference between our internal layers with depth == $depth
                         # and the intersection found
@@ -413,8 +416,8 @@ sub infill_every_layers {
                 my @new_surfaces = ();
                 push @new_surfaces, grep $_->surface_type ne 'internal', @{$lower_layer->fill_surfaces};
                 foreach my $depth (1..$Slic3r::infill_every_layers) {
-                    push @new_surfaces, map Slic3r::Surface->cast_from_expolygon
-                        ($_, surface_type => 'internal', depth_layers => $depth),
+                    push @new_surfaces, map Slic3r::Surface->new
+                        (expolygon => $_, surface_type => 'internal', depth_layers => $depth),
                         
                         # difference between internal layers with depth == $depth
                         # and the intersection found

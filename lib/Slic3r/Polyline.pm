@@ -1,38 +1,37 @@
 package Slic3r::Polyline;
-use Moo;
+use strict;
+use warnings;
 
 use Math::Clipper qw();
 use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
-    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges move_points same_point);
-use Sub::Quote;
+    move_points same_point);
 use XXX;
 
-# arrayref of ordered points
-has 'points' => (
-    is          => 'rw',
-    required    => 1,
-    default     => sub { [] },
-    isa         => quote_sub q{ use Carp; confess "invalid points" if grep ref $_ ne 'Slic3r::Point', @{$_[0]} },
-);
+# the constructor accepts an array(ref) of points
+sub new {
+    my $class = shift;
+    my $self;
+    if (@_ == 1) {
+        $self = [ @{$_[0]} ];
+    } else {
+        $self = [ @_ ];
+    }
+    
+    bless $self, $class;
+    bless $_, 'Slic3r::Point' for @$self;
+    $self;
+}
 
 sub id {
     my $self = shift;
-    return join ' - ', sort map $_->id, @{$self->points};
-}
-
-sub cast {
-    my $class = shift;
-    my ($points, %args) = @_;
-    
-    $points = [ map Slic3r::Point->cast($_), @$points ];
-    return $class->new(points => $points, %args);
+    return join ' - ', sort map $_->id, @$self;
 }
 
 sub lines {
     my $self = shift;
     my @lines = ();
     my $previous_point;
-    foreach my $point (@{ $self->points }) {
+    foreach my $point (@$self) {
         if ($previous_point) {
             push @lines, Slic3r::Line->new($previous_point, $point);
         }
@@ -41,43 +40,25 @@ sub lines {
     return @lines;
 }
 
-sub p {
-    my $self = shift;
-    return [ @{$self->points} ];
-}
-
 sub merge_continuous_lines {
     my $self = shift;
-    my $points = $self->p;
-    if ($self->isa('Slic3r::Polyline::Closed')) {
-        polygon_remove_parallel_continuous_edges($points);
-    } else {
-        polyline_remove_parallel_continuous_edges($points);
-    }
-    @{$self->points} = map Slic3r::Point->new($_), @$points;
+    
+    polyline_remove_parallel_continuous_edges($self);
+    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub remove_acute_vertices {
     my $self = shift;
-    my $points = $self->p;
-    if ($self->isa('Slic3r::Polyline::Closed')) {
-        polygon_remove_acute_vertices($points);
-    } else {
-        polyline_remove_acute_vertices($points);
-    }
-    @{$self->points} = map Slic3r::Point->new($_), @$points;
+    polyline_remove_acute_vertices($self);
+    bless $_, 'Slic3r::Point' for @$self;
 }
 
-sub cleanup {
+sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    my $points = $self->p;
-    push @$points, $points->[0] if $self->isa('Slic3r::Polyline::Closed');
-    my @clean_points = map Slic3r::Point->new($_), 
-        Slic3r::Geometry::Douglas_Peucker($self->p, $tolerance);
-    pop @clean_points if $self->isa('Slic3r::Polyline::Closed');
-    @{$self->points} = @clean_points;
+    @$self = Slic3r::Geometry::Douglas_Peucker($self, $tolerance);
+    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub reverse_points {
@@ -104,7 +85,7 @@ sub nearest_point_to {
     my $self = shift;
     my ($point) = @_;
     
-    $point = Slic3r::Geometry::nearest_point($point, $self->p);
+    $point = Slic3r::Geometry::nearest_point($point, $self);
     return Slic3r::Point->new($point);
 }
 
@@ -166,7 +147,7 @@ sub clip_with_expolygon {
         }
     }
     
-    return map Slic3r::Polyline->cast($_), @polylines;
+    return map Slic3r::Polyline->new($_), @polylines;
 }
 
 sub bounding_box {
