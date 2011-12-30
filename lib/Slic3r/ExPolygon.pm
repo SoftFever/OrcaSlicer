@@ -201,6 +201,7 @@ sub medial_axis {
             $pointmap{$_->[A]} >= 2 && $pointmap{$_->[B]} >= 2
         } @skeleton_lines;
     }
+    return undef if !@skeleton_lines;
     
     # now build a single polyline
     my $polyline = [];
