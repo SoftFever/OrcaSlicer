@@ -171,6 +171,7 @@ sub make_surfaces {
         my $diff = diff_ex(
             [ map $_->p, @surfaces ],
             $outgrown,
+            1,
         );
         
         push @{$self->thin_walls},
