@@ -39,6 +39,9 @@ my %cli_options = ();
 if ($opt{load}) {
     if (-e $opt{load}) {
         Slic3r::Config->load($opt{load});
+    } elsif (-e "$FindBin::Bin/$opt{load}") {
+        printf STDERR "Loaded $FindBin::Bin/$opt{load}\n";
+        Slic3r::Config->load("$FindBin::Bin/$opt{load}");
     } else {
         $opt{ignore_nonexistent_config} or die "Cannot find specified configuration file.\n";
     }
