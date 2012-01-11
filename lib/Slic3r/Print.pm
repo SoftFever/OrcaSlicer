@@ -330,7 +330,10 @@ sub extrude_skirt {
     my $skirt_height = $Slic3r::skirt_height;
     $skirt_height = $self->layer_count if $skirt_height > $self->layer_count;
     my @layers = map $self->layer($_), 0..($skirt_height-1);
-    my @points = map @$_, map $_->p, map +(@{$_->slices}, @{$_->thin_walls}), @layers;
+    my @points = (
+        (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
+        (map @$_, map @{$_->thin_walls}, @layers),
+    );
     return if !@points;
     
     # find out convex hull

@@ -83,7 +83,7 @@ sub make_perimeter {
         if ($_->isa('Slic3r::Polygon')) {
             push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $_, role => 'perimeter');
         } else {
-            push @{ $layer->perimeters }, Slic3r::ExtrusionPath->new(polyline => $_->points, role => 'perimeter');
+            push @{ $layer->perimeters }, Slic3r::ExtrusionPath->new(polyline => $_, role => 'perimeter');
         }
     }
 }

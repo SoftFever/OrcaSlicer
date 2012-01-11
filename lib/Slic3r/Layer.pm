@@ -321,13 +321,13 @@ sub process_bridges {
             my @edges = ();  # edges are POLYLINES
             foreach my $supporting_surface (@supporting_surfaces) {
                 my @surface_edges = map $_->clip_with_polygon($contour_offset),
-                    ($supporting_surface->contour, @{$supporting_surface->holes});
+                    ($supporting_surface->contour, $supporting_surface->holes);
                 
                 if (@supporting_surfaces == 1 && @surface_edges == 1
                     && @{$supporting_surface->contour->p} == @{$surface_edges[0]->p}) {
                     $bridge_over_hole = 1;
                 }
-                push @edges, grep { @{$_->points} } @surface_edges;
+                push @edges, grep { @$_ } @surface_edges;
             }
             Slic3r::debugf "  Bridge is supported on %d edge(s)\n", scalar(@edges);
             Slic3r::debugf "  and covers a hole\n" if $bridge_over_hole;
@@ -340,12 +340,12 @@ sub process_bridges {
             }
             
             if (@edges == 2) {
-                my @chords = map Slic3r::Line->new($_->points->[0], $_->points->[-1]), @edges;
+                my @chords = map Slic3r::Line->new($_->[0], $_->[-1]), @edges;
                 my @midpoints = map $_->midpoint, @chords;
                 my $line_between_midpoints = Slic3r::Line->new(@midpoints);
                 $bridge_angle = rad2deg_dir($line_between_midpoints->direction);
             } elsif (@edges == 1) {
-                my $line = Slic3r::Line->new($edges[0]->points->[0], $edges[0]->points->[-1]);
+                my $line = Slic3r::Line->new($edges[0]->[0], $edges[0]->[-1]);
                 $bridge_angle = rad2deg_dir($line->direction);
             } else {
                 my $center = bounding_box_center([ map @{$_->points}, @edges ]);
