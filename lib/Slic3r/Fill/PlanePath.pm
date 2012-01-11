@@ -58,7 +58,7 @@ sub fill_surface {
         );
     }
     
-    @paths = map $_->p, @paths;
+    @paths = map $_, @paths;
     
     # paths must be rotated back
     $self->rotate_points_back(\@paths, $rotate_vector);
