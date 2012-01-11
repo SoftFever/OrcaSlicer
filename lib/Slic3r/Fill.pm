@@ -52,7 +52,12 @@ sub make_fill {
     my @surfaces = ();
     {
         my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layer->fill_surfaces};
-        foreach my $group (Slic3r::Surface->group({merge_solid => 1}, @{$layer->fill_surfaces})) {
+        
+        # give priority to bridges
+        my @groups = Slic3r::Surface->group({merge_solid => 1}, @{$layer->fill_surfaces});
+        @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
+        
+        foreach my $group (@groups) {
             my $union = union_ex([ map $_->p, @$group ], undef, 1);
             
             # subtract surfaces having a defined bridge_angle from any other
