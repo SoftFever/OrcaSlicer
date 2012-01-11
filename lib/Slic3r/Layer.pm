@@ -245,7 +245,7 @@ sub remove_small_surfaces {
     
     # the difference between @surfaces and $self->fill_surfaces
     # is what's too small; we add it back as solid infill
-    {
+    if ($Slic3r::fill_density > 0) {
         my $diff = diff_ex(
             [ map $_->p, @surfaces ],
             [ map $_->p, @{$self->fill_surfaces} ],
