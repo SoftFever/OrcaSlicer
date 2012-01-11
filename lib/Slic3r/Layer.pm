@@ -324,7 +324,7 @@ sub process_bridges {
                     ($supporting_surface->contour, $supporting_surface->holes);
                 
                 if (@supporting_surfaces == 1 && @surface_edges == 1
-                    && @{$supporting_surface->contour->p} == @{$surface_edges[0]->p}) {
+                    && @{$supporting_surface->contour} == @{$surface_edges[0]}) {
                     $bridge_over_hole = 1;
                 }
                 push @edges, grep { @$_ } @surface_edges;
@@ -348,7 +348,7 @@ sub process_bridges {
                 my $line = Slic3r::Line->new($edges[0]->[0], $edges[0]->[-1]);
                 $bridge_angle = rad2deg_dir($line->direction);
             } else {
-                my $center = bounding_box_center([ map @{$_->points}, @edges ]);
+                my $center = bounding_box_center([ map @$_, @edges ]);
                 my $x = my $y = 0;
                 foreach my $point (map @{$_->points}, @edges) {
                     my $line = Slic3r::Line->new($center, $point);
