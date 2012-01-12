@@ -3,6 +3,7 @@ use Moo;
 
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(X Y shortest_path scale);
+use Slic3r::Geometry::Clipper qw(diff_ex);
 use XXX;
 
 sub make_perimeter {
@@ -42,6 +43,7 @@ sub make_perimeter {
         for (my $loop = 0; $loop < $Slic3r::perimeters; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
             @last_offsets = map $_->offset_ex(-$distance), @last_offsets if $distance;
+            last if !@last_offsets;
             push @{ $perimeters[-1] }, [@last_offsets];
             
             # offset distance for inner loops
@@ -51,12 +53,18 @@ sub make_perimeter {
         # create one more offset to be used as boundary for fill
         {
             my @fill_boundaries = map $_->offset_ex(-$distance), @last_offsets;
+            push @{ $layer->fill_boundaries }, @fill_boundaries;
             
-            # TODO: diff(offset(@last_offsets, -$distance/2), offset(@fill_boundaries, +$distance/2))
-            # this represents the small gaps that we need to treat like thin polygons,
+            # detect the small gaps that we need to treat like thin polygons,
             # thus generating the skeleton and using it to fill them
-            
-            push @{ $layer->fill_boundaries }, @fill_boundaries if @fill_boundaries;
+            my $small_gaps = diff_ex(
+                [ map @$_, map $_->offset_ex(-$distance/2), map @$_, @{$perimeters[-1]} ],
+                [ map @$_, map $_->offset_ex(+$distance/2), @fill_boundaries ],
+            );
+            push @{ $layer->thin_fills },
+                grep $_,
+                map $_->medial_axis(scale $Slic3r::flow_width),
+                @$small_gaps;
         }
     }
     

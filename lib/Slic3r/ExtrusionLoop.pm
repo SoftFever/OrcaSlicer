@@ -26,7 +26,7 @@ sub split_at {
     
     # find index of point
     my $i = -1;
-    for (my $n = 0; $n <= $#{$self->polygon}; $n++) {ZZZ "here" if ref $self->polygon->[$n] eq 'ARRAY'; 
+    for (my $n = 0; $n <= $#{$self->polygon}; $n++) {
         if ($point->id eq $self->polygon->[$n]->id) {
             $i = $n;
             last;

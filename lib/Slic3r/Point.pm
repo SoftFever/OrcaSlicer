@@ -12,8 +12,6 @@ sub new {
     } elsif ($_[0]->isa(__PACKAGE__)) {
         return $_[0];
     } else {
-        use XXX;
-        ZZZ \@_;
         die "Invalid arguments for ${class}->new";
     }
     bless $self, $class;

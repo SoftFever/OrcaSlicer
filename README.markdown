@@ -49,14 +49,14 @@ Roadmap includes the following goals:
 * support material for internal perimeters;
 * new and better GUI;
 * cool;
-* other fill patterns.
+* more fill patterns.
 
 ## Is it usable already? Any known limitation?
 
 Sure, it's very usable. Remember that:
 
 * it doesn't generate support material;
-* it only works well with manifold models (check them with Meshlab or Netfabb or http://cloud.netfabb.com/).
+* it only works well with manifold and clean models (check them with Meshlab or Netfabb or http://cloud.netfabb.com/).
 
 ## How to install?
 

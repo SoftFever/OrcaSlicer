@@ -61,7 +61,7 @@ sub clipper_polygon {
 }
 
 sub p {
-    my $self = shift;use XXX; ZZZ $self->expolygon if !eval { 1 if @{$self->expolygon}; 1 };
+    my $self = shift;
     return @{$self->expolygon};
 }
 

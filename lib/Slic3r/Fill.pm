@@ -161,6 +161,17 @@ sub make_fill {
             ],
         ) if @paths;
     }
+    
+    # add thin fill regions
+    push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
+        paths => [
+            map {
+                $_->isa('Slic3r::Polygon')
+                    ? Slic3r::ExtrusionLoop->new(polygon => $_, role => 'solid-fill')->split_at($_->[0])
+                    : Slic3r::ExtrusionPath->new(polyline => $_, role => 'solid-fill')
+            } @{$layer->thin_fills},
+        ],
+    ) if @{$layer->thin_fills};
 }
 
 1;
