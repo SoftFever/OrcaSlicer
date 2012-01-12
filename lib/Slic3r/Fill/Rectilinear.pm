@@ -74,7 +74,7 @@ sub fill_surface {
                     next;
                 }
             }
-            push @paths, [@{$path->points}];
+            push @paths, $path->points;
         }
     }
     

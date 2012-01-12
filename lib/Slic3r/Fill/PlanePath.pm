@@ -43,7 +43,7 @@ sub fill_surface {
     my $polyline = Slic3r::Polyline->new([
         map [ map {$_*$distance_between_lines} $path->n_to_xy($_) ], @n,
     ]);
-    return {} if !@{$polyline->points};
+    return {} if !@$polyline;
     
     $self->process_polyline($polyline, $bounding_box);
     
@@ -57,8 +57,6 @@ sub fill_surface {
             polylines => [map $_->p, @paths],
         );
     }
-    
-    @paths = map $_, @paths;
     
     # paths must be rotated back
     $self->rotate_points_back(\@paths, $rotate_vector);
