@@ -64,7 +64,7 @@ sub make_perimeter {
             push @{ $layer->thin_fills },
                 grep $_,
                 map $_->medial_axis(scale $Slic3r::flow_width),
-                @$small_gaps;
+                @$small_gaps if 0;
         }
     }
     
