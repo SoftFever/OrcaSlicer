@@ -56,7 +56,7 @@ sub new {
         },
         gcode => {
             title => 'Custom GCODE',
-            options => [qw(start_gcode end_gcode)],
+            options => [qw(start_gcode end_gcode gcode_comments)],
         },
         extrusion => {
             title => 'Extrusion',
