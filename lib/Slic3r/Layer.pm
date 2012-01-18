@@ -360,7 +360,7 @@ sub process_bridges {
             } else {
                 my $center = bounding_box_center([ map @$_, @edges ]);
                 my $x = my $y = 0;
-                foreach my $point (map @{$_->points}, @edges) {
+                foreach my $point (map @$, @edges) {
                     my $line = Slic3r::Line->new($center, $point);
                     my $dir = $line->direction;
                     my $len = $line->length;
