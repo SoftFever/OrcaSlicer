@@ -70,7 +70,7 @@ find me in #reprap on FreeNode with the nickname _Sound_.
 
 ## What's Slic3r license?
 
-Slic3r is dual-licensed under the _Perl Artistic License_ and the _AGPLv3_.
+Slic3r is licensed under the _GNU Affero General Public License, version 3_.
 The author is Alessandro Ranellucci (me).
 
 ## How can I invoke slic3r.pl using the command line?

@@ -1,5 +1,8 @@
 package Slic3r;
 
+# Copyright holder: Alessandro Ranellucci
+# This application is licensed under the GNU Affero General Public License, version 3
+
 use strict;
 use warnings;
 
