@@ -105,6 +105,8 @@ sub make_surfaces {
     my ($loops) = @_;
     
     {
+        # TODO: fix self-intersecting polygons in $loops (GH #160)
+        
         # merge everything
         my $expolygons = union_ex($loops);
         
@@ -130,7 +132,7 @@ sub make_surfaces {
         foreach my $contour (map $_->contour, @expolygons_without_holes) {
             foreach my $hole (grep !exists $bogus_holes{$_}, @reversed_holes) {
                 my $xor = xor_ex([$contour], [$hole]);
-                if (!@$xor || $area_sum->(@$xor) < scale 1) {  # TODO: define this threshold better
+                if ($area_sum->(@$xor) < scale 1) {  # TODO: define this threshold better
                     $bogus_holes{$hole} = $hole;
                 }
             }
@@ -170,10 +172,14 @@ sub make_surfaces {
             1,
         );
         
+        # TODO: remove very small expolygons from diff before attempting to do medial axis
+        # (benchmark first)
         push @{$self->thin_walls},
             grep $_,
             map $_->medial_axis(scale $Slic3r::flow_width),
             @$diff;
+        
+        Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls}) if @{$self->thin_walls};
     }
     
     if (0) {

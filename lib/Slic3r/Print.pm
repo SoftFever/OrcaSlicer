@@ -168,6 +168,7 @@ sub layer {
 
 sub detect_surfaces_type {
     my $self = shift;
+    Slic3r::debugf "Detecting solid surfaces...\n";
     
     # prepare a reusable subroutine to make surface differences
     my $surface_difference = sub {
@@ -184,7 +185,6 @@ sub detect_surfaces_type {
     
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
-        Slic3r::debugf "Detecting solid surfaces for layer %d\n", $layer->id;
         my $upper_layer = $self->layers->[$i+1];
         my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
         
@@ -225,8 +225,8 @@ sub detect_surfaces_type {
         # save surfaces to layer
         @{$layer->slices} = (@bottom, @top, @internal);
         
-        Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
-            $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
+        Slic3r::debugf "  layer %d (%d sliced expolygons) has %d bottom, %d top and %d internal surfaces\n",
+            $layer->id, scalar(@{$layer->slices}), scalar(@bottom), scalar(@top), scalar(@internal);
     }
     
     # clip surfaces to the fill boundaries
