@@ -483,17 +483,17 @@ sub export_gcode {
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
         # go to layer
-        printf $fh $extruder->change_layer($layer);
+        print $fh $extruder->change_layer($layer);
         
         # extrude skirts
-        printf $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
+        print $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
         # extrude perimeters
-        printf $fh $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
+        print $fh $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
         
         # extrude fills
         for my $fill (@{ $layer->fills }) {
-            printf $fh $extruder->extrude_path($_, 'fill') 
+            print $fh $extruder->extrude_path($_, 'fill') 
                 for $fill->shortest_path($extruder->last_pos);
         }
     }
@@ -502,6 +502,7 @@ sub export_gcode {
     $self->total_extrusion_length($extruder->total_extrusion_length);
     
     # write end commands to file
+    print $fh $extruder->retract;
     print $fh "$Slic3r::end_gcode\n";
     
     printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
