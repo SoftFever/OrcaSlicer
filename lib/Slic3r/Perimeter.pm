@@ -15,25 +15,26 @@ sub make_perimeter {
     die "Can't slice object with no perimeters!\n"
         if $Slic3r::perimeters == 0;
     
-    # this array will hold one arrayref per original surface;
-    # each item of this arrayref is an arrayref representing a depth (from inner
-    # perimeters to outer); each item of this arrayref is an ExPolygon:
+    # this array will hold one arrayref per original surface (island);
+    # each item of this arrayref is an arrayref representing a depth (from outer
+    # perimeters to inner); each item of this arrayref is an ExPolygon:
     # @perimeters = (
-    #    [ # first object (identified by a single surface before offsetting)
+    #    [ # first island
     #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #depth 0: outer loop
     #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #depth 1: inner loop
     #    ],
-    #    [ # second object
+    #    [ # second island
     #        ...
     #    ]
     # )
     my @perimeters = ();  # one item per depth; each item
     
-    # organize perimeter surfaces using a shortest path search
+    # organize islands using a shortest path search
     my @surfaces = @{shortest_path([
         map [ $_->contour->[0], $_ ], @{$layer->slices},
     ])};
     
+    # for each island:
     foreach my $surface (@surfaces) {
         my @last_offsets = ($surface->expolygon);
         my $distance = 0;
