@@ -654,7 +654,7 @@ sub angle3points {
 sub polyline_remove_parallel_continuous_edges {
     my ($points, $isPolygon) = @_;
     
-    for (my $i = $isPolygon ? 0 : 2; $i <= $#$points; $i++) {
+    for (my $i = $isPolygon ? 0 : 2; $i <= $#$points && @$points >= 3; $i++) {
         if (Slic3r::Geometry::lines_parallel([$points->[$i-2], $points->[$i-1]], [$points->[$i-1], $points->[$i]])) {
             # we can remove $points->[$i-1]
             splice @$points, $i-1, 1;

@@ -166,7 +166,7 @@ sub make_loops {
             pop @points;
             Slic3r::debugf "  Discovered polygon of %d points\n", scalar(@points);
             push @polygons, Slic3r::Polygon->new(@points);
-            $polygons[-1]->cleanup;
+            pop @polygons if !$polygons[-1]->cleanup;
         }
     };
     

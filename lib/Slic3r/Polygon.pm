@@ -38,6 +38,7 @@ sub lines {
 sub cleanup {
     my $self = shift;
     $self->merge_continuous_lines;
+    return @$self >= 3;
 }
 
 sub merge_continuous_lines {
