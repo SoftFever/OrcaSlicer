@@ -72,7 +72,49 @@ sub make_perimeter {
     # process one island (original surface) at time
     foreach my $island (@perimeters) {
         # do holes starting from innermost one
-        foreach my $hole (map $_->holes, map @$_, @$island) {
+        my @holes = ();
+        my @hole_depths = map [ map $_->holes, @$_ ], @$island;
+        
+        # organize the outermost hole loops using a shortest path search
+        @{$hole_depths[0]} = @{shortest_path([
+            map [ $_->[0], $_ ], @{$hole_depths[0]},
+        ])};
+        
+        CYCLE: while (map @$_, @hole_depths) {
+            shift @hole_depths while !@{$hole_depths[0]};
+            
+            # take first available hole
+            push @holes, shift @{$hole_depths[0]};
+            
+            my $current_depth = 0;
+            while (1) {
+                $current_depth++;
+                
+                # look for the hole containing this one if any
+                next CYCLE if !$hole_depths[$current_depth];
+                my $parent_hole;
+                for (@{$hole_depths[$current_depth]}) {
+                    if ($_->encloses_point($holes[-1]->[0])) {
+                        $parent_hole = $_;
+                        last;
+                    }
+                }
+                next CYCLE if !$parent_hole;
+                
+                # look for other holes contained in such parent
+                for (@{$hole_depths[$current_depth-1]}) {
+                    if ($parent_hole->encloses_point($_->[0])) {
+                        # we have a sibling, so let's move onto next iteration
+                        next CYCLE;
+                    }
+                }
+                
+                push @holes, $parent_hole;
+                @{$hole_depths[$current_depth]} = grep $_ ne $parent_hole, @{$hole_depths[$current_depth]};
+            }
+        }
+        
+        foreach my $hole (@holes) {
             push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $hole, role => 'perimeter');
         }
         
