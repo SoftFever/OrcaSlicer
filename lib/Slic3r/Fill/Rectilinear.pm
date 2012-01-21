@@ -32,7 +32,7 @@ sub fill_surface {
         $flow_spacing = unscale $distance_between_lines;
     }
     
-    my $overlap_distance = scale $Slic3r::flow_width * 0.2;
+    my $overlap_distance = scale $Slic3r::flow_width * 0.4;
     
     my @paths = ();
     my $x = $bounding_box->[X1];
