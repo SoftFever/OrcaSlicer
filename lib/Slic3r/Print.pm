@@ -138,6 +138,9 @@ sub new_from_mesh {
         }
     }
     
+    warn "No layers were detected. You might want to repair your STL file and retry.\n"
+        if !@{$print->layers};
+    
     return $print;
 }
 
