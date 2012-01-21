@@ -461,6 +461,7 @@ sub export_gcode {
         perimeter_speed infill_speed travel_speed extrusion_width_ratio scale)) {
         printf $fh "; %s = %s\n", $_, Slic3r::Config->get($_);
     }
+    printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow_width;
     print  $fh "\n";
     
     # write start commands to file
