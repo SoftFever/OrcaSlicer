@@ -144,6 +144,7 @@ sub make_surfaces {
             [ values %bogus_holes ],
         ) if %bogus_holes;
         
+        Slic3r::debugf "  %d bogus hole(s) removed\n", scalar(values %bogus_holes) if %bogus_holes;
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
         
