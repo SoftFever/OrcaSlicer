@@ -5,6 +5,7 @@ package Slic3r;
 
 use strict;
 use warnings;
+require v5.10;
 
 our $VERSION = "0.6.1-dev";
 
