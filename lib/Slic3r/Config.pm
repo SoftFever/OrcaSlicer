@@ -321,8 +321,10 @@ sub load {
     my $class = shift;
     my ($file) = @_;
     
+    local $/ = "\n";
     open my $fh, '<', $file;
     while (<$fh>) {
+        s/\R+$//;
         next if /^\s+/;
         next if /^$/;
         next if /^\s*#/;
