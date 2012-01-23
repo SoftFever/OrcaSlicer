@@ -23,7 +23,7 @@ my %cli_options = ();
         'o|output=s'            => \$opt{output},
         
         'save=s'                => \$opt{save},
-        'load=s'                => \$opt{load},
+        'load=s@'               => \$opt{load},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
     );
     foreach my $opt_key (keys %$Slic3r::Config::Options) {
@@ -37,13 +37,15 @@ my %cli_options = ();
 
 # load configuration
 if ($opt{load}) {
-    if (-e $opt{load}) {
-        Slic3r::Config->load($opt{load});
-    } elsif (-e "$FindBin::Bin/$opt{load}") {
-        printf STDERR "Loaded $FindBin::Bin/$opt{load}\n";
-        Slic3r::Config->load("$FindBin::Bin/$opt{load}");
-    } else {
-        $opt{ignore_nonexistent_config} or die "Cannot find specified configuration file.\n";
+    foreach my $configfile (@{$opt{load}}) {
+        if (-e $configfile) {
+            Slic3r::Config->load($configfile);
+        } elsif (-e "$FindBin::Bin/$configfile") {
+            printf STDERR "Loading $FindBin::Bin/$configfile\n";
+            Slic3r::Config->load("$FindBin::Bin/$configfile");
+        } else {
+            $opt{ignore_nonexistent_config} or die "Cannot find specified configuration file ($configfile).\n";
+        }
     }
 }
 
@@ -94,7 +96,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
 
     --help              Output this usage screen and exit
     --save <file>       Save configuration to the specified file
-    --load <file>       Load configuration from the specified file
+    --load <file>       Load configuration from the specified file. It can be used 
+                        more than once to load options from multiple files.
     -o, --output <file> File to output gcode to (by default, the file will be saved
                         into the same directory as the input file using the 
                         --output-filename-format to generate the filename)
