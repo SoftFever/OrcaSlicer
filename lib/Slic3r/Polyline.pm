@@ -63,7 +63,7 @@ sub simplify {
 
 sub reverse_points {
     my $self = shift;
-    @{$self->points} = reverse @{$self->points};
+    @$self = reverse @$self;
 }
 
 sub is_counter_clockwise {
@@ -152,13 +152,13 @@ sub clip_with_expolygon {
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::bounding_box($self->points);
+    return Slic3r::Geometry::bounding_box($self);
 }
 
 sub translate {
     my $self = shift;
     my ($x, $y) = @_;
-    @{$self->points} = move_points([$x, $y], @{$self->points});
+    @$self = move_points([$x, $y], @$self);
 }
 
 1;

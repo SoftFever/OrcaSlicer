@@ -137,7 +137,7 @@ sub is_printable {
 
 sub is_valid {
     my $self = shift;
-    return @{$self->points} >= 3;
+    return @$self >= 3;
 }
 
 1;

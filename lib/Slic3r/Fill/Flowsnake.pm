@@ -12,7 +12,7 @@ sub process_polyline {
     my $self = shift;
     my ($polyline, $bounding_box) = @_;
     
-    $_->[X] += ($bounding_box->[X1] + $bounding_box->[X2]/2) for @{$polyline->points};
+    $_->[X] += ($bounding_box->[X1] + $bounding_box->[X2]/2) for @$polyline;
 }
 
 1;
