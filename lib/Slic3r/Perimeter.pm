@@ -126,7 +126,7 @@ sub make_perimeter {
     
     # detect small perimeters by checking their area
     for (@{ $layer->perimeters }) {
-        $_->role('small-perimeter') if $_->polygon->area < $Slic3r::small_perimeter_area;
+        $_->role('small-perimeter') if abs($_->polygon->area) < $Slic3r::small_perimeter_area;
     }
     
     # add thin walls as perimeters
