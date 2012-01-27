@@ -8,7 +8,7 @@ BEGIN {
     use lib "$FindBin::Bin/lib";
 }
 
-use Getopt::Long;
+use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
 use XXX;
 $|++;
