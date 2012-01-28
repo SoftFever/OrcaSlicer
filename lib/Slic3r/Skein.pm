@@ -77,6 +77,9 @@ sub go {
     $self->status_cb->(60, "Generating horizontal shells...");
     $print->discover_horizontal_shells;
     
+    # free memory
+    @{$_->surfaces} = () for @{$print->layers};
+    
     # combine fill surfaces to honor the "infill every N layers" option
     $self->status_cb->(70, "Combining infill...");
     $print->infill_every_layers;
@@ -111,6 +114,9 @@ sub go {
             }
         }
     }
+    
+    # free memory
+    @{$_->fill_surfaces} = () for @{$print->layers};
     
     # output everything to a GCODE file
     $self->status_cb->(90, "Exporting GCODE...");

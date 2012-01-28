@@ -86,6 +86,9 @@ sub new_from_mesh {
         
         # build surfaces from sparse lines
         $layer->make_surfaces($mesh->make_loops($layer));
+        
+        # free memory
+        $layer->lines(undef);
     }
     
     # detect slicing errors
@@ -244,7 +247,11 @@ sub detect_surfaces_type {
                 (expolygon => $_, surface_type => $surface->surface_type),
                 @$intersection;
         }
+        
+        # free memory
+        @{$layer->fill_boundaries} = ();
     }
+    
 }
 
 sub discover_horizontal_shells {
