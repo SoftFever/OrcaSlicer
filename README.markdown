@@ -25,7 +25,8 @@ Slic3r current key features are:
 * easy configuration/calibration;
 * read binary and ASCII STL files;
 * powerful command line interface;
-* easy GUI
+* easy GUI;
+* multithreaded;
 * multiple infill patterns, with customizable density and angle;
 * retraction;
 * skirt;

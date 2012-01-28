@@ -1,6 +1,7 @@
 package Slic3r::Skein;
 use Moo;
 
+use Config;
 use File::Basename qw(basename fileparse);
 use Slic3r::Geometry qw(PI);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -84,7 +85,31 @@ sub go {
     $self->status_cb->(80, "Infilling layers...");
     {
         my $fill_maker = Slic3r::Fill->new('print' => $print);
-        $fill_maker->make_fill($_) for @{$print->layers};
+        
+        if ($Config{useithreads} && $Slic3r::threads > 1 && eval "use threads; use Thread::Queue; 1") {
+            my $q = Thread::Queue->new;
+            $q->enqueue(0..($print->layer_count-1), (map undef, 1..$Slic3r::threads));
+            
+            my $thread_cb = sub {
+                $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
+                my $fills = {};
+                while (defined (my $layer_id = $q->dequeue)) {
+                    $fills->{$layer_id} = [ $fill_maker->make_fill($print->layers->[$layer_id]) ];
+                }
+                return $fills;
+            };
+            
+            foreach my $th (map threads->create($thread_cb), 1..$Slic3r::threads) {
+                my $fills = $th->join;
+                foreach my $layer_id (keys %$fills) {
+                    @{$print->layers->[$layer_id]->fills} = @{$fills->{$layer_id}};
+                }
+            }
+        } else {
+            foreach my $layer (@{$print->layers}) {
+                @{$layer->fills} = $fill_maker->make_fill($layer);
+            }
+        }
     }
     
     # output everything to a GCODE file

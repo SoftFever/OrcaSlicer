@@ -121,6 +121,7 @@ sub make_fill {
         map [ $_->contour->[0], $_ ], @surfaces,
     ])};
     
+    my @fills = ();
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::fill_pattern;
         my $density         = $Slic3r::fill_density;
@@ -150,7 +151,7 @@ sub make_fill {
         my $params = shift @paths;
         
         # save into layer
-        push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
+        push @fills, Slic3r::ExtrusionPath::Collection->new(
             paths => [
                 map Slic3r::ExtrusionPath->new(
                     polyline => Slic3r::Polyline->new(@$_),
@@ -163,7 +164,7 @@ sub make_fill {
     }
     
     # add thin fill regions
-    push @{ $layer->fills }, Slic3r::ExtrusionPath::Collection->new(
+    push @fills, Slic3r::ExtrusionPath::Collection->new(
         paths => [
             map {
                 $_->isa('Slic3r::Polygon')
@@ -172,6 +173,8 @@ sub make_fill {
             } @{$layer->thin_fills},
         ],
     ) if @{$layer->thin_fills};
+    
+    return @fills;
 }
 
 1;
