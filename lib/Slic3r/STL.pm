@@ -83,4 +83,42 @@ sub _read_binary {
     }
 }
 
+sub write_file {
+    my $self = shift;
+    my ($file, $mesh, $binary) = @_;
+    
+    open my $fh, '>', $file;
+    
+    $binary
+        ? _write_binary($fh, $mesh->facets)
+        : _write_ascii($fh, $mesh->facets);
+    
+    close $fh;
+}
+
+sub _write_binary {
+    my ($fh, $facets) = @_;
+    
+    die "bigfloat" unless length(pack "f", 1) == 4;
+    
+    binmode $fh;
+    print $fh pack 'x80';
+    print $fh pack 'L', ($#$facets + 1);
+    print $fh pack '(f<3)4S', (map @$_, @$_), 0 for @$facets;
+}
+
+sub _write_ascii {
+    my ($fh, $facets) = @_;
+    
+    printf $fh "solid\n";
+    foreach my $facet (@$facets) {
+        printf $fh "   facet normal %f %f %f\n", @{$facet->[0]};
+        printf $fh "      outer loop\n";
+        printf $fh "         vertex %f %f %f\n", @$_ for @$facet[1,2,3];
+        printf $fh "      endloop\n";
+        printf $fh "   endfacet\n";
+    }
+    printf $fh "endsolid\n";
+}
+
 1;

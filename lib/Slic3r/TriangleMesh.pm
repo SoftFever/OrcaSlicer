@@ -457,4 +457,20 @@ sub edge_id {
     return join "-", sort @point_ids;
 }
 
+sub get_connected_facets {
+    my $self = shift;
+    my ($facet_id) = @_;
+    
+    my @facets = ();
+    foreach my $edge_facets (values %{$self->edge_facets}) {
+        if (grep $_ == $facet_id, @$edge_facets) {
+            # this edge belongs to the current facet, so let's get
+            # the other facet(s)
+            push @facets, grep $_ != $facet_id, @$edge_facets;
+        }
+    }
+    
+    return @facets;
+}
+
 1;
