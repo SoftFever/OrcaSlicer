@@ -74,6 +74,7 @@ our $infill_every_layers    = 1;
 
 # flow options
 our $extrusion_width_ratio  = 0;
+our $first_layer_flow_ratio = 1;
 our $bridge_flow_ratio      = 1;
 our $overlap_factor         = 0.5;
 our $flow_width;

@@ -60,7 +60,7 @@ sub new {
         },
         extrusion => {
             title => 'Extrusion',
-            options => [qw(extrusion_width_ratio bridge_flow_ratio)],
+            options => [qw(extrusion_width_ratio first_layer_flow_ratio bridge_flow_ratio)],
         },
         output => {
             title => 'Output',

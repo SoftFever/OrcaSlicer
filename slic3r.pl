@@ -196,6 +196,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --extrusion-width-ratio
                         Calculate the extrusion width as the layer height multiplied by
                         this value (> 0, default: calculated automatically)
+    --first-layer-flow-ratio
+                        Multiplier for extrusion of first layer (> 0, default: $Slic3r::first_layer_flow_ratio)
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
     
 EOF
