@@ -128,7 +128,7 @@ sub extrude_path {
     
     # calculate extrusion length per distance unit
     my $s = $path->flow_spacing || $Slic3r::flow_spacing;
-    my $h = $path->depth_layers * $Slic3r::layer_height;
+    my $h = $path->depth_layers * $self->layer->height;
     my $w = ($s - $Slic3r::min_flow_spacing * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
     
     my $area;

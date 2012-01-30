@@ -91,6 +91,13 @@ sub print_z {
         + ($self->id * $Slic3r::layer_height)) / $Slic3r::resolution;
 }
 
+sub height {
+    my $self = shift;
+    return $self->id == 0
+        ? ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio)
+        : $Slic3r::layer_height;
+}
+
 sub add_line {
     my $self = shift;
     my ($line) = @_;
