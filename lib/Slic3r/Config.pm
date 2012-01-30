@@ -144,11 +144,6 @@ our $Options = {
         cli     => 'extrusion-width-ratio=f',
         type    => 'f',
     },
-    'first_layer_flow_ratio' => {
-        label   => 'First layer flow ratio',
-        cli     => 'first-layer-flow-ratio=f',
-        type    => 'f',
-    },
     'bridge_flow_ratio' => {
         label   => 'Bridge flow ratio',
         cli     => 'bridge-flow-ratio=f',

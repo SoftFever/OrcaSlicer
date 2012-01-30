@@ -146,7 +146,6 @@ sub extrude_path {
         * $area
         * $Slic3r::extrusion_multiplier
         * (4 / (($Slic3r::filament_diameter ** 2) * PI));
-    $e *= $Slic3r::first_layer_flow_ratio if $self->layer->id == 0;
     
     # extrude arc or line
     $self->print_feed_rate(
