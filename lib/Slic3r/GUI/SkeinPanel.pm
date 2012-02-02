@@ -68,6 +68,12 @@ sub new {
         },
     );
     $self->{panels} = \%panels;
+
+    if (eval "use Growl::GNTP; 1") {
+        # register growl notifications
+        $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r'); #, AppIcon => "path/to/my/icon.gif");
+        $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
+    }
     
     my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
     my $make_tab = sub {
@@ -191,6 +197,8 @@ sub do_slice {
             my $message = sprintf "%s was successfully sliced in %d minutes and %.3f seconds.",
                 $input_file_basename, int($skein->processing_time/60),
                 $skein->processing_time - int($skein->processing_time/60)*60;
+            $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
+                if ($self->{growler});
             Wx::MessageDialog->new($self, $message, 'Done!', 
                 wxOK | wxICON_INFORMATION)->ShowModal;
         } else {
