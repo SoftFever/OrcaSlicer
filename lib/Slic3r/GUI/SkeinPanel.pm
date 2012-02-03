@@ -9,7 +9,8 @@ use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_E
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
-my $last_dir;
+my $last_skein_dir;
+my $last_config_dir;
 our $last_config;
 
 sub new {
@@ -153,11 +154,12 @@ sub do_slice {
         Slic3r::Config->validate;
         
         # select input file
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $last_dir || "", "", $stl_wildcard, wxFD_OPEN);
+        my $dir = $last_skein_dir || $last_config_dir || "";
+        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $dir, "", $stl_wildcard, wxFD_OPEN);
         return unless $dialog->ShowModal == wxID_OK;
         my ($input_file) = $dialog->GetPaths;
         my $input_file_basename = basename($input_file);
-        $last_dir = dirname($input_file);
+        $last_skein_dir = dirname($input_file);
         
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
@@ -211,13 +213,13 @@ sub do_slice {
 sub save_config {
     my $self = shift;
     
-    my $dir = $last_config ? dirname($last_config) : $last_dir || "";
+    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
         $ini_wildcard, wxFD_SAVE);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
-        $last_dir = dirname($file);
+        $last_config_dir = dirname($file);
         $last_config = $file;
         Slic3r::Config->save($file);
     }
@@ -226,11 +228,12 @@ sub save_config {
 sub load_config {
     my $self = shift;
     
-    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $last_dir || "", "config.ini", 
+    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
+    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
         $ini_wildcard, wxFD_OPEN);
     if ($dlg->ShowModal == wxID_OK) {
         my ($file) = $dlg->GetPaths;
-        $last_dir = dirname($file);
+        $last_config_dir = dirname($file);
         $last_config = $file;
         eval {
             local $SIG{__WARN__} = $self->catch_warning;
