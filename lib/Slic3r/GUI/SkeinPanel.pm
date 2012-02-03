@@ -154,7 +154,8 @@ sub do_slice {
         Slic3r::Config->validate;
         
         # select input file
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $last_skein_dir || "", "", $stl_wildcard, wxFD_OPEN);
+        my $dir = $last_skein_dir || $last_config_dir || "";
+        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $dir, "", $stl_wildcard, wxFD_OPEN);
         return unless $dialog->ShowModal == wxID_OK;
         my ($input_file) = $dialog->GetPaths;
         my $input_file_basename = basename($input_file);
@@ -212,7 +213,7 @@ sub do_slice {
 sub save_config {
     my $self = shift;
     
-    my $dir = $last_config ? dirname($last_config) : $last_config_dir || "";
+    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
         $ini_wildcard, wxFD_SAVE);
@@ -227,7 +228,7 @@ sub save_config {
 sub load_config {
     my $self = shift;
     
-    my $dir = $last_config ? dirname($last_config) : $last_config_dir || "";
+    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
         $ini_wildcard, wxFD_OPEN);
     if ($dlg->ShowModal == wxID_OK) {
