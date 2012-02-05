@@ -183,7 +183,7 @@ sub do_slice {
         
         # show processbar dialog
         $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
-            100, $self, wxPD_APP_MODAL);
+            100, $self, 0);
         $process_dialog->Pulse;
         
         {
