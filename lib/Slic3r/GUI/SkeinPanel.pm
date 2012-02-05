@@ -4,8 +4,8 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxID_OK wxFD_OPEN
-    wxFD_SAVE wxDEFAULT wxNORMAL);
+use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
+    wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
@@ -152,6 +152,14 @@ sub do_slice {
     eval {
         # validate configuration
         Slic3r::Config->validate;
+
+        # confirm slicing of more than one copies
+        my $copies = Slic3r::Config->get('duplicate_x') * Slic3r::Config->get('duplicate_y');
+        if ($copies > 1) {
+            my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
+                                                      'Confirm', wxICON_QUESTION | wxOK | wxCANCEL);
+            return unless $confirmation->ShowModal == wxID_OK;
+        }
         
         # select input file
         my $dir = $last_skein_dir || $last_config_dir || "";
