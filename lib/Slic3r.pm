@@ -38,6 +38,9 @@ use Slic3r::TriangleMesh::IntersectionLine;
 
 our $threads            = 4;
 
+# miscellaneous options
+our $notes              = '';
+
 # output options
 our $output_filename_format = '[input_filename_base].gcode';
 

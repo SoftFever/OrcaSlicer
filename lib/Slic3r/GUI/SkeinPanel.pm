@@ -67,6 +67,10 @@ sub new {
             title => 'Output',
             options => [qw(output_filename_format)],
         },
+        notes => {
+            title => 'Notes',
+            options => [qw(notes)],
+        },
     );
     $self->{panels} = \%panels;
 
@@ -99,13 +103,15 @@ sub new {
         $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
+        $make_tab->([qw(notes)]),
         $make_tab->([qw(extrusion)], [qw(output)]),
     );
     
     $tabpanel->AddPage($tabs[0], "Print Settings");
     $tabpanel->AddPage($tabs[1], "Printer and Filament");
     $tabpanel->AddPage($tabs[2], "Start/End GCODE");
-    $tabpanel->AddPage($tabs[3], "Advanced");
+    $tabpanel->AddPage($tabs[3], "Notes");
+    $tabpanel->AddPage($tabs[4], "Advanced");
         
     my $buttons_sizer;
     {

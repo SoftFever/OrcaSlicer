@@ -191,6 +191,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --duplicate-x       Number of items along X axis (1+, default: $Slic3r::duplicate_x)
     --duplicate-y       Number of items along Y axis (1+, default: $Slic3r::duplicate_y)
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
+
+   Miscellaneous options:
+    --notes             Notes to be added as comments to the output file
   
   Flow options (advanced):
     --extrusion-width-ratio
