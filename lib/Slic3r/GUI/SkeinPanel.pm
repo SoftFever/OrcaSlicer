@@ -227,6 +227,13 @@ sub do_slice {
 sub save_config {
     my $self = shift;
     
+    my $process_dialog;
+    eval {
+        # validate configuration
+        Slic3r::Config->validate;
+    };
+    $self->catch_error(sub { $process_dialog->Destroy if $process_dialog }) and return;
+    
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
@@ -263,7 +270,9 @@ sub catch_error {
     if (my $err = $@) {
         $cb->() if $cb;
         Wx::MessageDialog->new($self, $err, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+        return 1;
     }
+    return 0;
 }
 
 sub catch_warning {
