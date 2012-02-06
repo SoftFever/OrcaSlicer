@@ -7,6 +7,18 @@ use constant PI => 4 * atan2(1, 1);
 
 our $Options = {
 
+    # miscellaneous options
+    'notes' => {
+        label   => 'Configuraton notes',
+        cli		=> 'notes=s',
+        type    => 's',
+        multiline => 1,
+        width   => 350,
+        height  => 300,
+        serialize   => sub { join '\n', split /\R/, $_[0] },
+        deserialize => sub { join "\n", split /\\n/, $_[0] },
+    },
+
     # output options
     'output_filename_format' => {
         label   => 'Output filename format',

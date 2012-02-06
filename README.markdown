@@ -80,13 +80,14 @@ The author is Alessandro Ranellucci (me).
     
         --help              Output this usage screen and exit
         --save <file>       Save configuration to the specified file
-        --load <file>       Load configuration from the specified file
+        --load <file>       Load configuration from the specified file. It can be used 
+                            more than once to load options from multiple files.
         -o, --output <file> File to output gcode to (by default, the file will be saved
                             into the same directory as the input file using the 
                             --output-filename-format to generate the filename)
         
       Output options:
-        --output-filament-format
+        --output-filename-format
                             Output file name format; all config options enclosed in brackets
                             will be replaced by their values, as well as [input_filename_base]
                             and [input_filename] (default: [input_filename_base].gcode)
@@ -173,6 +174,9 @@ The author is Alessandro Ranellucci (me).
         --duplicate-x       Number of items along X axis (1+, default: 1)
         --duplicate-y       Number of items along Y axis (1+, default: 1)
         --duplicate-distance Distance in mm between copies (default: 6)
+    
+       Miscellaneous options:
+        --notes             Notes to be added as comments to the output file
       
       Flow options (advanced):
         --extrusion-width-ratio

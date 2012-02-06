@@ -4,8 +4,8 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxID_OK wxFD_OPEN
-    wxFD_SAVE wxDEFAULT wxNORMAL);
+use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
+    wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
@@ -67,6 +67,10 @@ sub new {
             title => 'Output',
             options => [qw(output_filename_format)],
         },
+        notes => {
+            title => 'Notes',
+            options => [qw(notes)],
+        },
     );
     $self->{panels} = \%panels;
 
@@ -99,13 +103,15 @@ sub new {
         $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
+        $make_tab->([qw(notes)]),
         $make_tab->([qw(extrusion)], [qw(output)]),
     );
     
     $tabpanel->AddPage($tabs[0], "Print Settings");
     $tabpanel->AddPage($tabs[1], "Printer and Filament");
     $tabpanel->AddPage($tabs[2], "Start/End GCODE");
-    $tabpanel->AddPage($tabs[3], "Advanced");
+    $tabpanel->AddPage($tabs[3], "Notes");
+    $tabpanel->AddPage($tabs[4], "Advanced");
         
     my $buttons_sizer;
     {
@@ -152,6 +158,14 @@ sub do_slice {
     eval {
         # validate configuration
         Slic3r::Config->validate;
+
+        # confirm slicing of more than one copies
+        my $copies = Slic3r::Config->get('duplicate_x') * Slic3r::Config->get('duplicate_y');
+        if ($copies > 1) {
+            my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
+                                                      'Confirm', wxICON_QUESTION | wxOK | wxCANCEL);
+            return unless $confirmation->ShowModal == wxID_OK;
+        }
         
         # select input file
         my $dir = $last_skein_dir || $last_config_dir || "";
@@ -183,7 +197,7 @@ sub do_slice {
         
         # show processbar dialog
         $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
-            100, $self, wxPD_APP_MODAL);
+            100, $self, 0);
         $process_dialog->Pulse;
         
         {

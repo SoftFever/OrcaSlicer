@@ -104,7 +104,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         --output-filename-format to generate the filename)
     
   Output options:
-    --output-filament-format
+    --output-filename-format
                         Output file name format; all config options enclosed in brackets
                         will be replaced by their values, as well as [input_filename_base]
                         and [input_filename] (default: $Slic3r::output_filename_format)
@@ -191,6 +191,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --duplicate-x       Number of items along X axis (1+, default: $Slic3r::duplicate_x)
     --duplicate-y       Number of items along Y axis (1+, default: $Slic3r::duplicate_y)
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
+
+   Miscellaneous options:
+    --notes             Notes to be added as comments to the output file
   
   Flow options (advanced):
     --extrusion-width-ratio
