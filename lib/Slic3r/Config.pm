@@ -61,7 +61,7 @@ our $Options = {
         type    => 'bool',
     },
     'g0' => {
-        label   => 'Use g0 for travel moves',
+        label   => 'Use G0 for travel moves',
         cli     => 'g0',
         type    => 'bool',
     },
