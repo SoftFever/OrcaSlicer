@@ -49,3 +49,4 @@ t/geometry.t
 t/polyclip.t
 t/stl.t
 utils/post-processing/z-every-line.pl
+utils/split_stl.pl

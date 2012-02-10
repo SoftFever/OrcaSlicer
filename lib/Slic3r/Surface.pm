@@ -37,6 +37,14 @@ sub group {
     return values %unique_types;
 }
 
+sub offset {
+    my $self = shift;
+    return (ref $self)->new(
+        expolygon => $self->expolygon->offset_ex(@_),
+        map { $_ => $self->$_ } qw(surface_type depth_layers bridge_angle),
+    );
+}
+
 sub add_hole {
     my $self = shift;
     my ($hole) = @_;
