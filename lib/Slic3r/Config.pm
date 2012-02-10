@@ -133,6 +133,23 @@ our $Options = {
         type    => 'f',
     },
     
+    # acceleration options
+    'acceleration' => {
+        label   => 'Enable acceleration control',
+        cli     => 'acceleration',
+        type    => 'bool',
+    },
+    'perimeter_acceleration' => {
+        label   => 'Perimeters (mm/s^2)',
+        cli     => 'perimeter-acceleration',
+        type    => 'f',
+    },
+    'infill_acceleration' => {
+        label   => 'Infill (mm/s^2)',
+        cli     => 'infill-acceleration',
+        type    => 'f',
+    },
+    
     # accuracy options
     'layer_height' => {
         label   => 'Layer height (mm)',

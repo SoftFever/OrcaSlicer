@@ -502,12 +502,14 @@ sub export_gcode {
         print $fh $extruder->change_layer($layer);
         
         # extrude skirts
+        print $fh $extruder->set_acceleration($Slic3r::perimeter_acceleration);
         print $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
         # extrude perimeters
         print $fh $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
         
         # extrude fills
+        print $fh $extruder->set_acceleration($Slic3r::infill_acceleration);
         for my $fill (@{ $layer->fills }) {
             print $fh $extruder->extrude_path($_, 'fill') 
                 for $fill->shortest_path($extruder->last_pos);

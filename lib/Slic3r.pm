@@ -68,6 +68,11 @@ our $solid_infill_speed     = 60;   # mm/sec
 our $bridge_speed           = 60;   # mm/sec
 our $bottom_layer_speed_ratio   = 0.3;
 
+# acceleration options
+our $acceleration           = 0;
+our $perimeter_acceleration = 25;   # mm/sec^2
+our $infill_acceleration    = 50;   # mm/sec^2
+
 # accuracy options
 our $resolution             = 0.00000001;
 our $small_perimeter_area   = (5 / $resolution) ** 2;

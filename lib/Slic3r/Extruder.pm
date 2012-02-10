@@ -233,6 +233,15 @@ sub unretract {
     return $gcode;
 }
 
+sub set_acceleration {
+    my $self = shift;
+    my ($acceleration) = @_;
+    return unless $Slic3r::acceleration;
+    
+    return sprintf "M201 E%s%s\n",
+        $acceleration, ($Slic3r::gcode_comments ? ' ; adjust acceleration' : '');
+}
+
 sub G0 {
     my $self = shift;
     return $self->G1(@_) if !$Slic3r::g0;
