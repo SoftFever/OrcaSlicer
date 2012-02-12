@@ -338,6 +338,7 @@ sub save {
     my ($file) = @_;
     
     open my $fh, '>', $file;
+    binmode $fh, ':utf8';
     foreach my $opt (sort keys %$Options) {
         my $value = get($opt);
         $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
@@ -352,6 +353,7 @@ sub load {
     
     local $/ = "\n";
     open my $fh, '<', $file;
+    binmode $fh, ':utf8';
     while (<$fh>) {
         s/\R+$//;
         next if /^\s+/;
