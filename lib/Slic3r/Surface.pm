@@ -39,10 +39,10 @@ sub group {
 
 sub offset {
     my $self = shift;
-    return (ref $self)->new(
-        expolygon => $self->expolygon->offset_ex(@_),
+    return map (ref $self)->new(
+        expolygon => $_,
         map { $_ => $self->$_ } qw(surface_type depth_layers bridge_angle),
-    );
+    ), $self->expolygon->offset_ex(@_);
 }
 
 sub add_hole {
