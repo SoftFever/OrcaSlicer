@@ -28,13 +28,13 @@ our $Options = {
 
     # printer options
     'nozzle_diameter' => {
-        label   => 'Nozzle diameter',
+        label   => 'Nozzle diameter (mm)',
         cli     => 'nozzle-diameter=f',
         type    => 'f',
         important => 1,
     },
     'print_center' => {
-        label   => 'Print center',
+        label   => 'Print center (mm)',
         cli     => 'print-center=s',
         type    => 'point',
         serialize   => sub { join ',', @{$_[0]} },
@@ -51,7 +51,7 @@ our $Options = {
         type    => 's',
     },
     'z_offset' => {
-        label   => 'Z offset',
+        label   => 'Z offset (mm)',
         cli     => 'z-offset=f',
         type    => 'f',
     },
