@@ -36,7 +36,7 @@ sub new {
             options => [qw(travel_speed bottom_layer_speed_ratio)],
         },
         acceleration => {
-            title => 'Acceleration settings',
+            title => 'Acceleration (experimental)',
             options => [qw(acceleration perimeter_acceleration infill_acceleration)],
         },
         accuracy => {

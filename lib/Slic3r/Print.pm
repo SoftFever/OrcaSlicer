@@ -521,6 +521,7 @@ sub export_gcode {
     
     # write end commands to file
     print $fh $extruder->retract;
+    print $fh "M501 ; reset acceleration\n" if $Slic3r::acceleration;
     print $fh "$Slic3r::end_gcode\n";
     
     printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
