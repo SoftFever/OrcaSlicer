@@ -449,6 +449,7 @@ sub validate {
     
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
     Slic3r::debugf "Flow spacing = $Slic3r::flow_spacing\n";
+    Slic3r::debugf "Min flow spacing = $Slic3r::min_flow_spacing\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"
