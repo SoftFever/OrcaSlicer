@@ -213,17 +213,13 @@ sub do_slice {
         $process_dialog->Destroy;
         undef $process_dialog;
         
-        if (!$main::opt{close_after_slicing}) {
-            my $message = sprintf "%s was successfully sliced in %d minutes and %.3f seconds.",
-                $input_file_basename, int($skein->processing_time/60),
-                $skein->processing_time - int($skein->processing_time/60)*60;
-            $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
-                if ($self->{growler});
-            Wx::MessageDialog->new($self, $message, 'Done!', 
-                wxOK | wxICON_INFORMATION)->ShowModal;
-        } else {
-            $self->GetParent->Destroy();  # quit
-        }
+        my $message = sprintf "%s was successfully sliced in %d minutes and %.3f seconds.",
+            $input_file_basename, int($skein->processing_time/60),
+            $skein->processing_time - int($skein->processing_time/60)*60;
+        $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
+            if ($self->{growler});
+        Wx::MessageDialog->new($self, $message, 'Done!', 
+            wxOK | wxICON_INFORMATION)->ShowModal;
     };
     $self->catch_error(sub { $process_dialog->Destroy if $process_dialog });
 }
