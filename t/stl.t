@@ -102,7 +102,8 @@ is $lower[0]->facet_edge, 'bottom', 'bottom edge on layer';
 is $upper[0]->facet_edge, 'top', 'upper edge on layer';
 
 sub vertices {
-    [ map [ @{$points[$_]}, $_[$_] ], 0..2 ]
+    push @{$mesh->vertices}, map [ @{$points[$_]}, $_[$_] ], 0..2;
+    [ ($#{$mesh->vertices}-2) .. $#{$mesh->vertices} ]
 }
 
 sub lines {
@@ -116,6 +117,7 @@ sub lines {
 
 sub line_plane_intersection {
     my ($line) = @_;
+    @$line = map $mesh->vertices->[$_], @$line;
     
     return [
         map sprintf('%.0f', $_),
