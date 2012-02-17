@@ -43,13 +43,14 @@ sub read_file {
     my $vertices = [];
     {
         my %vertices_map = ();
-        foreach my $facet (@$facets) {
+        for (my $f = 0; $f <= $#$facets; $f++) {
             for (1..3) {
-                if ($vertices_map{$facet->[$_]}) {
-                    $facet->[$_] = $vertices_map{$facet->[$_]};
+                my $point_id = join ',', @{$facets->[$f][$_]};
+                if (exists $vertices_map{$point_id}) {
+                    $facets->[$f][$_] = $vertices_map{$point_id};
                 } else {
-                    push @$vertices, $facet->[$_];
-                    $facet->[$_] = $vertices_map{$facet->[$_]} = $#$vertices;
+                    push @$vertices, $facets->[$f][$_];
+                    $facets->[$f][$_] = $vertices_map{$point_id} = $#$vertices;
                 }
             }
         }
