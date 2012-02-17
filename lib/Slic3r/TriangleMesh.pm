@@ -447,7 +447,7 @@ sub edge_id {
     my $self = shift;
     my ($edge) = @_;
     
-    my @point_ids = map sprintf("%f,%f,%f", @$_), @$edge;
+    my @point_ids = map sprintf("%d,%d,%d", map $_ / epsilon, @$_), @$edge;
     return join "-", sort @point_ids;
 }
 
