@@ -64,7 +64,7 @@ sub new_from_mesh {
         
         # transform vertex coordinates
         my ($normal, @vertices) = @$facet;
-        $mesh->_facet($print, $i, $normal, @vertices);
+        $mesh->slice_facet($print, $i, $normal, @vertices);
     }
     
     die "Invalid input file\n" if !@{$print->layers};

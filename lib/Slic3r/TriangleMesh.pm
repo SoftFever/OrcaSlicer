@@ -5,6 +5,7 @@ use Slic3r::Geometry qw(X Y Z A B PI epsilon same_point points_coincide angle3po
     merge_collinear_lines nearest_point polyline_lines);
 use XXX;
 
+has 'vertices'      => (is => 'ro', default => sub { [] });
 has 'facets'        => (is => 'ro', default => sub { [] });
 has 'edges'         => (is => 'ro', default => sub { [] });
 has 'edge_table'    => (is => 'ro', default => sub { {} });
@@ -234,11 +235,10 @@ sub rotate {
     return if $deg == 0;
     
     my $rad = Slic3r::Geometry::deg2rad($deg);
-    foreach my $facet (@{$self->facets}) {
-        my ($normal, @vertices) = @$facet;
-        foreach my $vertex (@vertices) {
-            @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
-        }
+    
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
     }
 }
 
@@ -247,12 +247,9 @@ sub scale {
     my ($factor) = @_;
     return if $factor == 1;
     
-    foreach my $facet (@{$self->facets}) {
-        # transform vertex coordinates
-        my ($normal, @vertices) = @$facet;
-        foreach my $vertex (@vertices) {
-            $vertex->[$_] *= $factor for X,Y,Z;
-        }
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        $vertex->[$_] *= $factor for X,Y,Z;
     }
 }
 
@@ -260,12 +257,9 @@ sub move {
     my $self = shift;
     my (@shift) = @_;
     
-    foreach my $facet (@{$self->facets}) {
-        # transform vertex coordinates
-        my ($normal, @vertices) = @$facet;
-        foreach my $vertex (@vertices) {
-            $vertex->[$_] += $shift[$_] for X,Y,Z;
-        }
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        $vertex->[$_] += $shift[$_] for X,Y,Z;
     }
 }
 
@@ -280,7 +274,8 @@ sub duplicate {
         foreach my $shift (@shifts) {
             push @new_facets, [ $normal ];
             foreach my $vertex (@vertices) {
-                push @{$new_facets[-1]}, [ map $vertex->[$_] + ($shift->[$_] || 0), (X,Y,Z) ];
+                push @{$self->vertices}, [ map $self->vertices->[$vertex][$_] + ($shift->[$_] || 0), (X,Y,Z) ];
+                push @{$new_facets[-1]}, $#{$self->vertices};
             }
         }
     }
@@ -289,14 +284,11 @@ sub duplicate {
 
 sub bounding_box {
     my $self = shift;
-    my @extents = (map [9999999999999999999999, -9999999999999999999999], X,Y,Z);
-    foreach my $facet (@{$self->facets}) {
-        my ($normal, @vertices) = @$facet;
-        foreach my $vertex (@vertices) {
-            for (X,Y,Z) {
-                $extents[$_][MIN] = $vertex->[$_] if $vertex->[$_] < $extents[$_][MIN];
-                $extents[$_][MAX] = $vertex->[$_] if $vertex->[$_] > $extents[$_][MAX];
-            }
+    my @extents = (map [undef, undef], X,Y,Z);
+    foreach my $vertex (@{$self->vertices}) {
+        for (X,Y,Z) {
+            $extents[$_][MIN] = $vertex->[$_] if !defined $extents[$_][MIN] || $vertex->[$_] < $extents[$_][MIN];
+            $extents[$_][MAX] = $vertex->[$_] if !defined $extents[$_][MAX] || $vertex->[$_] > $extents[$_][MAX];
         }
     }
     return @extents;
@@ -309,16 +301,18 @@ sub size {
     return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
 }
 
-sub _facet {
+sub slice_facet {
     my $self = shift;
     my ($print, $facet_index, $normal, @vertices) = @_;
     Slic3r::debugf "\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n",
-        $facet_index, map @$_, @vertices
+        $facet_index, map @{$self->vertices->[$_]}, @vertices
         if $Slic3r::debug;
+    
+    my @vertices_coordinates = map $self->vertices->[$_], @vertices;
     
     # find the vertical extents of the facet
     my ($min_z, $max_z) = (99999999999, -99999999999);
-    foreach my $vertex (@vertices) {
+    foreach my $vertex (@vertices_coordinates) {
         $min_z = $vertex->[Z] if $vertex->[Z] < $min_z;
         $max_z = $vertex->[Z] if $vertex->[Z] > $max_z;
     }
@@ -341,7 +335,7 @@ sub _facet {
     # this is needed to get all intersection lines in a consistent order
     # (external on the right of the line)
     {
-        my @z_order = sort { $vertices[$a][Z] <=> $vertices[$b][Z] } 0..2;
+        my @z_order = sort { $vertices_coordinates[$a][Z] <=> $vertices_coordinates[$b][Z] } 0..2;
         @vertices = (splice(@vertices, $z_order[0]), splice(@vertices, 0, $z_order[0]));
     }
     
@@ -367,7 +361,7 @@ sub intersect_facet {
         
         if (abs($a->[Z] - $b->[Z]) < epsilon && abs($a->[Z] - $z) < epsilon) {
             # edge is horizontal and belongs to the current layer
-            my $edge_type = (grep $_->[Z] < $z - epsilon, @$vertices) ? 'top' : 'bottom';
+            my $edge_type = (grep $self->vertices->[$_][Z] < $z - epsilon, @$vertices) ? 'top' : 'bottom';
             ($a, $b) = ($b, $a) if $edge_type eq 'top';
             push @lines, Slic3r::TriangleMesh::IntersectionLine->new(
                 a           => [$a->[X], $a->[Y]],
@@ -440,7 +434,7 @@ sub facet_edges {
     my ($facet) = @_;
     
     # ignore the normal if provided
-    my @vertices = @$facet[-3..-1];
+    my @vertices = map $self->vertices->[$_], @$facet[-3..-1];
     
     return (
         [ $vertices[0], $vertices[1] ],
