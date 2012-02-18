@@ -111,7 +111,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
-    --print-center      Coordinates of the point to center the print around 
+    --print-center      Coordinates in mm of the point to center the print around 
                         (default: $Slic3r::print_center->[0],$Slic3r::print_center->[1])
     --use-relative-e-distances
                         Use relative distances for extrusion in GCODE output
@@ -131,16 +131,16 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         Change this to alter the amount of plastic extruded. There should be
                         very little need to change this value, which is only useful to 
                         compensate for filament packing (default: $Slic3r::extrusion_multiplier)
-    --temperature       Extrusion temperature, set 0 to disable (default: $Slic3r::temperature)
+    --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: $Slic3r::temperature)
     
   Speed options:
-    --travel-speed      Speed of non-print moves in mm/sec (default: $Slic3r::travel_speed)
-    --perimeter-speed   Speed of print moves for perimeters in mm/sec (default: $Slic3r::perimeter_speed)
+    --travel-speed      Speed of non-print moves in mm/s (default: $Slic3r::travel_speed)
+    --perimeter-speed   Speed of print moves for perimeters in mm/s (default: $Slic3r::perimeter_speed)
     --small-perimeter-speed
-                        Speed of print moves for small perimeters in mm/sec (default: $Slic3r::small_perimeter_speed)
-    --infill-speed      Speed of print moves in mm/sec (default: $Slic3r::infill_speed)
-    --solid-infill-speed Speed of print moves for solid surfaces in mm/sec (default: $Slic3r::solid_infill_speed)
-    --bridge-speed      Speed of bridge print moves in mm/sec (default: $Slic3r::bridge_speed)
+                        Speed of print moves for small perimeters in mm/s (default: $Slic3r::small_perimeter_speed)
+    --infill-speed      Speed of print moves in mm/s (default: $Slic3r::infill_speed)
+    --solid-infill-speed Speed of print moves for solid surfaces in mm/s (default: $Slic3r::solid_infill_speed)
+    --bridge-speed      Speed of bridge print moves in mm/s (default: $Slic3r::bridge_speed)
     --bottom-layer-speed-ratio
                         Factor to increase/decrease speeds on bottom 
                         layer by (default: $Slic3r::bottom_layer_speed_ratio)
@@ -171,12 +171,12 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
   Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 
                         (default: $Slic3r::retract_length)
-    --retract-speed     Speed for retraction in mm/sec (default: $Slic3r::retract_speed)
+    --retract-speed     Speed for retraction in mm/s (default: $Slic3r::retract_speed)
     --retract-restart-extra
                         Additional amount of filament in mm to push after
                         compensating retraction (default: $Slic3r::retract_restart_extra)
     --retract-before-travel
-                        Only retract before travel moves of this length (default: $Slic3r::retract_before_travel)
+                        Only retract before travel moves of this length in mm (default: $Slic3r::retract_before_travel)
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $Slic3r::retract_lift)
    
    Skirt options:
