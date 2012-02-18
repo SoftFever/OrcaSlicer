@@ -56,17 +56,8 @@ sub new_from_mesh {
         y_length => $size[Y],
     );
     
-    $mesh->make_edge_table;
-        
     # process facets
-    for (my $i = 0; $i <= $#{$mesh->facets}; $i++) {
-        my $facet = $mesh->facets->[$i];
-        
-        # transform vertex coordinates
-        my ($normal, @vertices) = @$facet;
-        $mesh->slice_facet($print, $i, $normal, @vertices);
-    }
-    
+    $mesh->slice_facet($print, $_) for 0..$#{$mesh->facets};
     die "Invalid input file\n" if !@{$print->layers};
     
     # remove last layer if empty
