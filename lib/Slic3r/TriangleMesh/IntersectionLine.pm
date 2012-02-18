@@ -8,6 +8,8 @@ has 'b_id'          => (is => 'ro', required => 1);
 has 'facet_index'   => (is => 'ro', required => 1);
 has 'prev_facet_index' => (is => 'ro', required => 0);
 has 'next_facet_index' => (is => 'ro', required => 0);
+has 'prev_edge_id'  => (is => 'ro', required => 0);
+has 'next_edge_id'  => (is => 'ro', required => 0);
 has 'facet_edge'    => (is => 'ro', default => sub {0});
 
 sub points {

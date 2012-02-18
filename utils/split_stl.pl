@@ -31,7 +31,6 @@ my %opt = ();
     
     # loop while we have remaining facets
     my $part_count = 0;
-    $mesh->make_edge_table;
     while (1) {
         # get the first facet
         my @facet_queue = ();
@@ -53,7 +52,8 @@ my %opt = ();
         
         my $output_file = sprintf '%s_%02d.stl', $basename, ++$part_count;
         printf "Writing to %s\n", basename($output_file);
-        Slic3r::STL->write_file($output_file, Slic3r::TriangleMesh->new(facets => \@facets), !$opt{ascii});
+        my $new_mesh = Slic3r::TriangleMesh->new(facets => \@facets, vertices => $mesh->vertices);
+        Slic3r::STL->write_file($output_file, $new_mesh, !$opt{ascii});
     }
 }
 
