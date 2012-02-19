@@ -326,4 +326,11 @@ sub _Gx {
     return "$gcode\n";
 }
 
+sub set_tool {
+    my $self = shift;
+    my ($tool) = @_;
+    
+    return sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '');
+}
+
 1;

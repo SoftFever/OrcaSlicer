@@ -566,6 +566,9 @@ sub export_gcode {
     
     # set up our extruder object
     my $extruder = Slic3r::Extruder->new;
+    if ($Slic3r::support_material && $Slic3r::support_material_tool > 0) {
+        print $fh $extruder->set_tool(0);
+    }
     
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
@@ -594,8 +597,12 @@ sub export_gcode {
             
             # extrude support material
             if ($layer->support_fills) {
+                print $fh $extruder->set_tool($Slic3r::support_material_tool)
+                    if $Slic3r::support_material_tool > 0;
                 print $fh $extruder->extrude_path($_, 'support material') 
                     for $layer->support_fills->shortest_path($extruder->last_pos);
+                print $fh $extruder->set_tool(0)
+                    if $Slic3r::support_material_tool > 0;
             }
         }
     }

@@ -220,6 +220,13 @@ our $Options = {
         cli     => 'support-material',
         type    => 'bool',
     },
+    'support_material_tool' => {
+        label   => 'Tool used to extrude support material',
+        cli     => 'support-material-tool=i',
+        type    => 'select',
+        values  => [0,1],
+        labels  => [qw(Primary Secondary)],
+    },
     'start_gcode' => {
         label   => 'Start GCODE',
         cli     => 'start-gcode=s',
