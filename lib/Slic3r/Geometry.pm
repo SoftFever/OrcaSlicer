@@ -19,7 +19,7 @@ our @EXPORT_OK = qw(
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any
-    polyline_remove_short_segments
+    polyline_remove_short_segments normal triangle_normal
 );
 
 use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
@@ -412,6 +412,25 @@ sub multiply_vector {
 sub subtract_vectors {
     my ($line2, $line1) = @_;
     return [ $line2->[X] - $line1->[X], $line2->[Y] - $line1->[Y] ];
+}
+
+sub normal {
+    my ($line1, $line2) = @_;
+    
+    return [
+         ($line1->[Y] * $line2->[Z]) - ($line1->[Z] * $line2->[Y]),
+        -($line2->[Z] * $line1->[X]) + ($line2->[X] * $line1->[Z]),
+         ($line1->[X] * $line2->[Y]) - ($line1->[Y] * $line2->[X]),
+    ];
+}
+
+sub triangle_normal {
+    my ($v1, $v2, $v3) = @_;
+    
+    my $u = [ map +($v2->[$_] - $v1->[$_]), (X,Y,Z) ];
+    my $v = [ map +($v3->[$_] - $v1->[$_]), (X,Y,Z) ];
+    
+    return normal($u, $v);
 }
 
 # 2D dot product

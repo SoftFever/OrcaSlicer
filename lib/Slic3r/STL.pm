@@ -1,7 +1,7 @@
 package Slic3r::STL;
 use Moo;
 
-use Slic3r::Geometry qw(X Y Z);
+use Slic3r::Geometry qw(X Y Z triangle_normal);
 use XXX;
 
 sub read_file {
@@ -181,7 +181,10 @@ sub _write_binary {
     print $fh pack 'x80';
     print $fh pack 'L', scalar(@{$mesh->facets});
     foreach my $facet (@{$mesh->facets}) {
-        print $fh pack '(f<3)4S', @{$facet->[0]}, (map @{$mesh->vertices->[$_]}, @$facet[1,2,3]), 0;
+        print $fh pack '(f<3)4S',
+            @{_facet_normal($mesh, $facet)},
+            (map @{$mesh->vertices->[$_]}, @$facet[1,2,3]),
+            0;
     }
 }
 
@@ -190,13 +193,18 @@ sub _write_ascii {
     
     printf $fh "solid\n";
     foreach my $facet (@{$mesh->facets}) {
-        printf $fh "   facet normal %f %f %f\n", @{$facet->[0]};
+        printf $fh "   facet normal %f %f %f\n", @{_facet_normal($mesh, $facet)};
         printf $fh "      outer loop\n";
         printf $fh "         vertex %f %f %f\n", @{$mesh->vertices->[$_]} for @$facet[1,2,3];
         printf $fh "      endloop\n";
         printf $fh "   endfacet\n";
     }
     printf $fh "endsolid\n";
+}
+
+sub _facet_normal {
+    my ($mesh, $facet) = @_;
+    return triangle_normal(map $mesh->vertices->[$_], @$facet[1,2,3]);
 }
 
 1;
