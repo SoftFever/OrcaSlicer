@@ -140,12 +140,12 @@ our $Options = {
         type    => 'bool',
     },
     'perimeter_acceleration' => {
-        label   => 'Perimeters (mm/s^2)',
+        label   => 'Perimeters (mm/s²)',
         cli     => 'perimeter-acceleration',
         type    => 'f',
     },
     'infill_acceleration' => {
-        label   => 'Infill (mm/s^2)',
+        label   => 'Infill (mm/s²)',
         cli     => 'infill-acceleration',
         type    => 'f',
     },
