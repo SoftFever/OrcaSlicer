@@ -207,6 +207,7 @@ sub make_loops {
             my $next_line;
             if (defined $line->next_facet_index) {
                 for (@lines) {
+                    next if $visited_lines{$_};
                     if ($_->facet_index == $line->next_facet_index) {
                         $next_line = $_;
                         last;
@@ -215,6 +216,7 @@ sub make_loops {
             } elsif (defined $line->b_id) {
                 for (@lines) {
                     next if !defined $_->a_id;
+                    next if $visited_lines{$_};
                     if ($_->a_id == $line->b_id) {
                         $next_line = $_;
                         last;
