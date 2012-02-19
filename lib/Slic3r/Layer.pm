@@ -118,46 +118,9 @@ sub make_surfaces {
     my ($loops) = @_;
     
     {
-        # TODO: fix self-intersecting polygons in $loops (GH #160)
-        
         # merge everything
         my $expolygons = union_ex($loops);
-        
-        # sometimes the magic of floating point values produces holes outside of any contour;
-        # we need to ignore such holes, but Clipper will convert them to contours.
-        # so we identify them and remove them manually.
-        
-        my $area_sum = sub {
-            my $area = 0;
-            $area += $_->area for @_;
-            return $area;
-        };
-        
-        # get expolygons without holes (candidate for reverse holes detection)
-        my @expolygons_without_holes = grep { @$_ == 1 } @$expolygons;
-        
-        # prepare holes as contours to allow for safe xor'ing
-        my @reversed_holes = map [ reverse @$_ ], grep !is_counter_clockwise($_), @$loops;
-        
-        # compare each expolygon without holes with each original hole; if their XOR
-        # is empty then they're the same and we can remove the hole from our layer
-        my %bogus_holes = ();
-        foreach my $contour (map $_->contour, @expolygons_without_holes) {
-            foreach my $hole (grep !exists $bogus_holes{$_}, @reversed_holes) {
-                my $xor = xor_ex([$contour], [$hole]);
-                if ($area_sum->(@$xor) < scale 1) {  # TODO: define this threshold better
-                    $bogus_holes{$hole} = $hole;
-                }
-            }
-        }
-        
-        # remove identified holes
-        $expolygons = diff_ex(
-            [ map @$_, @$expolygons ],
-            [ values %bogus_holes ],
-        ) if %bogus_holes;
-        
-        Slic3r::debugf "  %d bogus hole(s) removed\n", scalar(values %bogus_holes) if %bogus_holes;
+
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
         
