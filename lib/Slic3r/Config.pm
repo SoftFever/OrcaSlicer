@@ -504,6 +504,10 @@ sub validate {
     die "Invalid value for --skirt-height\n"
         if $Slic3r::skirt_height < 0;
     
+    # --bridge-flow-ratio
+    die "Invalid value for --bridge-flow-ratio\n"
+        if $Slic3r::bridge_flow_ratio <= 0;
+    
     # legacy with existing config files
     $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
     $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
