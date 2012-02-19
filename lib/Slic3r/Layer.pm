@@ -66,10 +66,16 @@ has 'skirts' => (
     default => sub { [] },
 );
 
+# ordered collection of extrusion paths to fill surfaces for support material
+has 'support_fills' => (
+    is      => 'rw',
+    #isa     => 'Slic3r::ExtrusionPath::Collection',
+);
+
 # ordered collection of extrusion paths to fill surfaces
 has 'fills' => (
     is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::ExtrusionPath]',
+    #isa     => 'ArrayRef[Slic3r::ExtrusionPath::Collection]',
     default => sub { [] },
 );
 

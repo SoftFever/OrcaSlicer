@@ -37,6 +37,7 @@ Slic3r current key features are:
 * multiple solid layers near horizontal external surfaces;
 * ability to scale, rotate and duplicate input object;
 * customizable initial and final GCODE;
+* support material;
 * use different speed for bottom layer and perimeters.
 
 Experimental features include:
@@ -150,6 +151,7 @@ The author is Alessandro Ranellucci (me).
         --end-gcode         Load final gcode from the supplied file. This will overwrite 
                             the default commands (turn off temperature [M104 S0],
                             home X axis [G28 X], disable motors [M84]).
+        --support-material  Generate support material for overhangs
       
       Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 

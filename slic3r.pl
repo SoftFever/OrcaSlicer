@@ -167,6 +167,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --end-gcode         Load final gcode from the supplied file. This will overwrite 
                         the default commands (turn off temperature [M104 S0],
                         home X axis [G28 X], disable motors [M84]).
+    --support-material  Generate support material for overhangs
   
   Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 

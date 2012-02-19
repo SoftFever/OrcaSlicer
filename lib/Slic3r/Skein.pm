@@ -35,10 +35,6 @@ sub go {
         $print = Slic3r::Print->new_from_mesh($mesh);
     }
     
-    # make skirt
-    $self->status_cb->(15, "Generating skirt...");
-    $print->extrude_skirt;
-    
     # make perimeters
     # this will add a set of extrusion loops to each layer
     # as well as generate infill boundaries
@@ -117,6 +113,16 @@ sub go {
     
     # free memory
     @{$_->fill_surfaces} = () for @{$print->layers};
+    
+    # generate support material
+    if ($Slic3r::support_material) {
+        $self->status_cb->(85, "Generating support material...");
+        $print->generate_support_material;
+    }
+    
+    # make skirt
+    $self->status_cb->(88, "Generating skirt...");
+    $print->extrude_skirt;
     
     # output everything to a GCODE file
     $self->status_cb->(90, "Exporting GCODE...");

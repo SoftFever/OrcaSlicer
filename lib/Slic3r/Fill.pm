@@ -34,17 +34,16 @@ sub BUILD {
     my $self = shift;
     $self->fillers->{$_} ||= $FillTypes{$_}->new(print => $self->print)
         for ('rectilinear', $Slic3r::fill_pattern, $Slic3r::solid_fill_pattern);
+    
+    my $max_print_dimension = $self->print->max_length * sqrt(2);
+    $_->max_print_dimension($max_print_dimension) for values %{$self->fillers};
 }
 
 sub make_fill {
     my $self = shift;
     my ($layer) = @_;
     
-    my $max_print_dimension = $self->print->max_length * sqrt(2);
-    for (values %{$self->fillers}) {
-        $_->layer($layer);
-        $_->max_print_dimension($max_print_dimension);
-    }
+    $_->layer($layer) for values %{$self->fillers};
     
     printf "Filling layer %d:\n", $layer->id;
     

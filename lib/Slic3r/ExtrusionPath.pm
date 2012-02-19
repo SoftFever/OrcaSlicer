@@ -17,7 +17,7 @@ has 'depth_layers' => (is => 'ro', default => sub {1});
 
 has 'flow_spacing' => (is => 'rw');
 
-# perimeter/fill/solid-fill/bridge/skirt
+# perimeter/fill/solid-fill/bridge/skirt/support-material
 has 'role'         => (is => 'rw', required => 1);
 
 sub BUILD {
@@ -43,6 +43,22 @@ sub clip_end {
         push @{$self->points}, Slic3r::Point->new($new_point);
         $distance = 0;
     }
+}
+
+sub clip_with_expolygon {
+    my $self = shift;
+    my ($expolygon) = @_;
+    
+    my @paths = ();
+    foreach my $polyline ($self->polyline->clip_with_expolygon($expolygon)) {
+        push @paths, (ref $self)->new(
+            polyline        => $polyline,
+            depth_layers    => $self->depth_layers,
+            flow_spacing    => $self->flow_spacing,
+            role            => $self->role,
+        );
+    }
+    return @paths;
 }
 
 sub points {

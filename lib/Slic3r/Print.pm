@@ -342,6 +342,7 @@ sub extrude_skirt {
     my @points = (
         (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
         (map @$_, map @{$_->thin_walls}, @layers),
+        (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
     );
     return if !@points;
     
@@ -451,6 +452,74 @@ sub infill_every_layers {
     }
 }
 
+sub generate_support_material {
+    my $self = shift;
+    
+    # generate paths for the pattern that we're going to use
+    my $support_pattern = [];
+    {
+        # get all surfaces needing support material
+        my @surfaces = grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
+            map @{$_->slices}, grep $_->id > 0, @{$self->layers} or return;
+        
+        my @support_material_areas = @{union_ex([ map $_->p, @surfaces ])};
+        
+        for (1..$Slic3r::perimeters+1) {
+            foreach my $expolygon (@support_material_areas) {
+                push @$support_pattern,
+                    map Slic3r::ExtrusionLoop->new(
+                        polygon => $_,
+                        role    => 'support-material',
+                    )->split_at_first_point, @$expolygon;
+            }
+            @support_material_areas = map $_->offset_ex(- scale $Slic3r::flow_spacing),
+                @support_material_areas;
+        }
+        
+        my $fill = Slic3r::Fill->new(print => $self);
+        foreach my $expolygon (@support_material_areas) {
+            my @paths = $fill->fillers->{rectilinear}->fill_surface(
+                Slic3r::Surface->new(
+                    expolygon       => $expolygon,
+                    bridge_angle    => $Slic3r::fill_angle + 45,
+                ),
+                density         => 0.15,
+                flow_spacing    => $Slic3r::flow_spacing,
+            );
+            my $params = shift @paths;
+            
+            push @$support_pattern,
+                map Slic3r::ExtrusionPath->new(
+                    polyline        => Slic3r::Polyline->new(@$_),
+                    role            => 'support-material',
+                    depth_layers    => 1,
+                    flow_spacing    => $params->{flow_spacing},
+                ), @paths;
+        }
+    }
+    
+    # now apply the pattern to layers below unsupported surfaces
+    my (@a, @b) = ();
+    for (my $i = $#{$self->layers}; $i >=0; $i--) {
+        my $layer = $self->layers->[$i];
+        my @c = ();
+        if (@b) {
+            @c = @{diff_ex(
+                [ map @$_, @b ],
+                [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
+            )};
+            $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
+            foreach my $expolygon (@c) {
+                push @{$layer->support_fills->paths}, map $_->clip_with_expolygon($expolygon), @$support_pattern;
+            }
+        }
+        @b = @{union_ex([ map @$_, @c, @a ])};
+        @a = map $_->expolygon->offset_ex(scale 2),
+            grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
+            @{$layer->slices};
+    }
+}
+
 sub export_gcode {
     my $self = shift;
     my ($file) = @_;
@@ -521,6 +590,12 @@ sub export_gcode {
             for my $fill (@{ $layer->fills }) {
                 print $fh $extruder->extrude_path($_, 'fill') 
                     for $fill->shortest_path($extruder->last_pos);
+            }
+            
+            # extrude support material
+            if ($layer->support_fills) {
+                print $fh $extruder->extrude_path($_, 'support material') 
+                    for $layer->support_fills->shortest_path($extruder->last_pos);
             }
         }
     }

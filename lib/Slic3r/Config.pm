@@ -215,6 +215,11 @@ our $Options = {
         cli     => 'fill-angle=i',
         type    => 'i',
     },
+    'support_material' => {
+        label   => 'Generate support material',
+        cli     => 'support-material',
+        type    => 'bool',
+    },
     'start_gcode' => {
         label   => 'Start GCODE',
         cli     => 'start-gcode=s',

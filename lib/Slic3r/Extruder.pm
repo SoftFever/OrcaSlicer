@@ -149,7 +149,7 @@ sub extrude_path {
     
     # extrude arc or line
     $self->print_feed_rate(
-        $path->role =~ /^(perimeter|skirt)$/o   ? $self->perimeter_speed
+        $path->role =~ /^(perimeter|skirt|support-material)$/o ? $self->perimeter_speed
             : $path->role eq 'small-perimeter'  ? $self->small_perimeter_speed
             : $path->role eq 'fill'             ? $self->infill_speed
             : $path->role eq 'solid-fill'       ? $self->solid_infill_speed

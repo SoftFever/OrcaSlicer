@@ -18,13 +18,15 @@ sub infill_direction {
     $rotate[1] = [ $self->max_print_dimension * sqrt(2) / 2, $self->max_print_dimension * sqrt(2) / 2 ];
     @shift = @{$rotate[1]};
     
-    # alternate fill direction
-    if (($self->layer->id / $surface->depth_layers) % 2) {
-        $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle) + PI/2;
+    if ($self->layer) {
+        # alternate fill direction
+        if (($self->layer->id / $surface->depth_layers) % 2) {
+            $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle) + PI/2;
+        }
     }
-    
+        
     # use bridge angle
-    if ($surface->surface_type eq 'bottom' && $self->layer->id > 0 && defined $surface->bridge_angle) {
+    if (defined $surface->bridge_angle) {
         Slic3r::debugf "Filling bridge with angle %d\n", $surface->bridge_angle;
         $rotate[0] = Slic3r::Geometry::deg2rad($surface->bridge_angle);
     }

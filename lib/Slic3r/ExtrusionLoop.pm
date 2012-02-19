@@ -44,4 +44,9 @@ sub split_at {
     );
 }
 
+sub split_at_first_point {
+    my $self = shift;
+    return $self->split_at($self->polygon->[0]);
+}
+
 1;
