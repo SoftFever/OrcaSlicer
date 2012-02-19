@@ -253,6 +253,7 @@ sub medial_axis {
     Slic3r::Geometry::polyline_remove_parallel_continuous_edges($polyline);
     
     if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
+        return undef if @$polyline == 2;
         return Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
     } else {
         return Slic3r::Polyline->new($polyline);
