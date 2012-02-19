@@ -146,7 +146,7 @@ sub new {
     return $self;
 }
 
-my $stl_wildcard = "STL files *.stl|*.stl;*.STL";
+my $model_wildcard = "STL files (*.stl)|*.stl;*.STL|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
 my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
 my $gcode_wildcard = "GCODE files *.gcode|*.gcode;*.GCODE";
 
@@ -169,7 +169,7 @@ sub do_slice {
         
         # select input file
         my $dir = $last_skein_dir || $last_config_dir || "";
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL file to slice:', $dir, "", $stl_wildcard, wxFD_OPEN);
+        my $dialog = Wx::FileDialog->new($self, 'Choose a STL or AMF file to slice:', $dir, "", $model_wildcard, wxFD_OPEN);
         return unless $dialog->ShowModal == wxID_OK;
         my ($input_file) = $dialog->GetPaths;
         my $input_file_basename = basename($input_file);

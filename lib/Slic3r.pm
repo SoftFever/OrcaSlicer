@@ -31,6 +31,7 @@ use Slic3r::Polygon;
 use Slic3r::Polyline;
 use Slic3r::Print;
 use Slic3r::Skein;
+use Slic3r::AMF;
 use Slic3r::STL;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;

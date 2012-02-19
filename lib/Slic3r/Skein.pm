@@ -19,10 +19,6 @@ has 'processing_time' => (is => 'rw', required => 0);
 
 sub go {
     my $self = shift;
-    
-    die "Input file must have .stl extension\n" 
-        if $self->input_file !~ /\.stl$/i;
-    
     my $t0 = [gettimeofday];
     
     # skein the STL into layers
@@ -30,7 +26,11 @@ sub go {
     $self->status_cb->(10, "Processing triangulated mesh...");
     my $print;
     {
-        my $mesh = Slic3r::STL->read_file($self->input_file);
+        my $mesh = $self->input_file =~ /\.stl$/i
+            ? Slic3r::STL->read_file($self->input_file)
+            : $self->input_file =~ /\.amf(\.xml)?$/i
+                ? Slic3r::AMF->read_file($self->input_file)
+                : die "Input file must have .stl or .amf(.xml) extension\n";
         $mesh->check_manifoldness;
         $print = Slic3r::Print->new_from_mesh($mesh);
     }
@@ -152,7 +152,7 @@ sub expanded_output_filepath {
     
     my $input_basename = basename($self->input_file);
     $path =~ s/\[input_filename\]/$input_basename/g;  
-    $input_basename =~ s/\.stl$//i;
+    $input_basename =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
     $path =~ s/\[input_filename_base\]/$input_basename/g;
     
     # build a regexp to match the available options
