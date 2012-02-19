@@ -16,6 +16,7 @@ has 'edges_facets'  => (is => 'ro', default => sub { [] }); # id => [ $f1_id, $f
 use constant MIN => 0;
 use constant MAX => 1;
 
+# always make sure BUILD is idempotent
 sub BUILD {
     my $self = shift;
     
@@ -303,6 +304,7 @@ sub duplicate {
         }
     }
     push @{$self->facets}, @new_facets;
+    $self->BUILD;
 }
 
 sub bounding_box {

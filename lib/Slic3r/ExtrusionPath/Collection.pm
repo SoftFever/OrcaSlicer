@@ -25,21 +25,23 @@ sub shortest_path {
     my $self = shift;
     my ($start_near) = @_;
     
+    my @my_paths = @{$self->paths};
     my @paths = ();
     my $start_at;
-    CYCLE: while (@{$self->paths}) {
+    CYCLE: while (@my_paths) {
         # find nearest point
+        my $endpoints = [ map $_->endpoints, @my_paths ];
         $start_at = $start_near
-            ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, $self->endpoints))
+            ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, $endpoints))
             : $self->endpoints->[0];
         
         # loop through paths to find the one that starts or ends at the point found
-        PATH: for (my $i = 0; $i <= $#{$self->paths}; $i++) {
-            if ($start_at->id eq $self->paths->[$i]->points->[0]->id) {
-                push @paths, splice @{$self->paths}, $i, 1;
-            } elsif ($start_at->id eq $self->paths->[$i]->points->[-1]->id) {
-                $self->paths->[$i]->reverse;
-                push @paths, splice @{$self->paths}, $i, 1;
+        PATH: for (my $i = 0; $i <= $#my_paths; $i++) {
+            if ($start_at->id eq $my_paths[$i]->points->[0]->id) {
+                push @paths, splice @my_paths, $i, 1;
+            } elsif ($start_at->id eq $my_paths[$i]->points->[-1]->id) {
+                $my_paths[$i]->reverse;
+                push @paths, splice @my_paths, $i, 1;
             } else {
                 next PATH;
             }

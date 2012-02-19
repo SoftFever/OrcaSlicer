@@ -2,20 +2,16 @@ package Slic3r::Print;
 use Moo;
 
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z PI MIN MAX scale);
+use Slic3r::Geometry qw(X Y Z PI MIN MAX scale unscale move_points);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
     union_ex offset JT_ROUND JT_MITER);
 use XXX;
 
-has 'x_length' => (
-    is          => 'ro',
-    required    => 1,
-);
-
-has 'y_length' => (
-    is          => 'ro',
-    required    => 1,
-);
+has 'x_length'          => (is => 'ro', required => 1);
+has 'y_length'          => (is => 'ro', required => 1);
+has 'total_x_length'    => (is => 'rw'); # including duplicates
+has 'total_y_length'    => (is => 'rw'); # including duplicates
+has 'copies'            => (is => 'rw', default => sub {[]});
 
 has 'layers' => (
     traits  => ['Array'],
@@ -39,14 +35,6 @@ sub new_from_mesh {
         my @extents = $mesh->bounding_box;
         my @shift = map -$extents[$_][MIN], X,Y,Z;
         $mesh->move(@shift);
-    }
-    
-    # duplicate object
-    {
-        my @size = $mesh->size;
-        my @duplicate_offset = map +($size[$_] + scale $Slic3r::duplicate_distance), (X,Y);
-        $mesh->duplicate(map [$duplicate_offset[X] * ($_-1), 0], 2..$Slic3r::duplicate_x);
-        $mesh->duplicate(map [0, $duplicate_offset[Y] * ($_-1)], 2..$Slic3r::duplicate_y);
     }
     
     # initialize print job
@@ -136,6 +124,24 @@ sub new_from_mesh {
         if !@{$print->layers};
     
     return $print;
+}
+
+sub BUILD {
+    my $self = shift;
+    
+    my $dist = scale $Slic3r::duplicate_distance;
+    $self->total_x_length($self->x_length * $Slic3r::duplicate_x + $dist * ($Slic3r::duplicate_x - 1));
+    $self->total_y_length($self->y_length * $Slic3r::duplicate_y + $dist * ($Slic3r::duplicate_y - 1));
+    
+    # generate offsets for copies
+    for my $x_copy (1..$Slic3r::duplicate_x) {
+        for my $y_copy (1..$Slic3r::duplicate_y) {
+            push @{$self->copies}, [
+                ($self->x_length + scale $Slic3r::duplicate_distance) * ($x_copy-1),
+                ($self->y_length + scale $Slic3r::duplicate_distance) * ($y_copy-1),
+            ];
+        }
+    }
 }
 
 sub layer_count {
@@ -339,6 +345,9 @@ sub extrude_skirt {
     );
     return if !@points;
     
+    # duplicate points to take copies into account
+    push @points, map move_points($_, @points), @{$self->copies};
+    
     # find out convex hull
     my $convex_hull = convex_hull(\@points);
     
@@ -480,12 +489,14 @@ sub export_gcode {
         print $fh "M82 ; use absolute distances for extrusion\n";
     }
     
-    # set up our extruder object
-    my $extruder = Slic3r::Extruder->new(
-        # calculate X,Y shift to center print around specified origin
-        shift_x => $Slic3r::print_center->[X] - ($self->x_length * $Slic3r::resolution / 2),
-        shift_y => $Slic3r::print_center->[Y] - ($self->y_length * $Slic3r::resolution / 2),
+    # calculate X,Y shift to center print around specified origin
+    my @shift = (
+        $Slic3r::print_center->[X] - (unscale $self->total_x_length / 2),
+        $Slic3r::print_center->[Y] - (unscale $self->total_y_length / 2),
     );
+    
+    # set up our extruder object
+    my $extruder = Slic3r::Extruder->new;
     
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
@@ -493,17 +504,24 @@ sub export_gcode {
         print $fh $extruder->change_layer($layer);
         
         # extrude skirts
+        $extruder->shift_x($shift[X]);
+        $extruder->shift_y($shift[Y]);
         print $fh $extruder->set_acceleration($Slic3r::perimeter_acceleration);
         print $fh $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
-        # extrude perimeters
-        print $fh $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
-        
-        # extrude fills
-        print $fh $extruder->set_acceleration($Slic3r::infill_acceleration);
-        for my $fill (@{ $layer->fills }) {
-            print $fh $extruder->extrude_path($_, 'fill') 
-                for $fill->shortest_path($extruder->last_pos);
+        foreach my $copy (@{$self->copies}) {
+            $extruder->shift_x($shift[X] + unscale $copy->[X]);
+            $extruder->shift_y($shift[Y] + unscale $copy->[Y]);
+            
+            # extrude perimeters
+            print $fh $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
+            
+            # extrude fills
+            print $fh $extruder->set_acceleration($Slic3r::infill_acceleration);
+            for my $fill (@{ $layer->fills }) {
+                print $fh $extruder->extrude_path($_, 'fill') 
+                    for $fill->shortest_path($extruder->last_pos);
+            }
         }
     }
     

@@ -4,8 +4,8 @@ use Moo;
 use Slic3r::Geometry qw(scale);
 
 has 'layer'              => (is => 'rw');
-has 'shift_x'            => (is => 'ro', default => sub {0} );
-has 'shift_y'            => (is => 'ro', default => sub {0} );
+has 'shift_x'            => (is => 'rw', default => sub {0} );
+has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
 has 'print_feed_rate'    => (is => 'rw');
 
