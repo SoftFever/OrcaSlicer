@@ -40,6 +40,13 @@ our $Options = {
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
     },
+    'gcode_flavor' => {
+        label   => 'G-code flavor',
+        cli     => 'gcode-flavor=s',
+        type    => 'select',
+        values  => [qw(reprap teacup makerbot mach3 no-extrusion)],
+        labels  => ['RepRap (Marlin/Sprinter)', 'Teacup', 'MakerBot', 'Mach3/EMC', 'No extrusion'],
+    },
     'use_relative_e_distances' => {
         label   => 'Use relative E distances',
         cli     => 'use-relative-e-distances',
@@ -519,6 +526,9 @@ sub validate {
     # --bridge-flow-ratio
     die "Invalid value for --bridge-flow-ratio\n"
         if $Slic3r::bridge_flow_ratio <= 0;
+    
+    # G-code flavors
+    $Slic3r::extrusion_axis = 'A' if $Slic3r::gcode_flavor eq 'mach3';
     
     # legacy with existing config files
     $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;

@@ -113,12 +113,10 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
     --print-center      Coordinates in mm of the point to center the print around 
                         (default: $Slic3r::print_center->[0],$Slic3r::print_center->[1])
-    --use-relative-e-distances
-                        Use relative distances for extrusion in GCODE output
-    --extrusion-axis    The axis used for extrusion; leave empty to disable extrusion
-                        (default: $Slic3r::extrusion_axis)
     --z-offset          Additional height in mm to add to vertical coordinates
                         (+/-, default: $Slic3r::z_offset)
+    --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/mach3/no-extrusion,
+                        default: $Slic3r::gcode_flavor)
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
     --g0                Use G0 commands for retraction (experimental, not supported by all

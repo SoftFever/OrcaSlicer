@@ -48,9 +48,10 @@ our $output_filename_format = '[input_filename_base].gcode';
 # printer options
 our $nozzle_diameter    = 0.5;
 our $print_center       = [100,100];  # object will be centered around this point
+our $z_offset           = 0;
+our $gcode_flavor       = 'reprap';
 our $use_relative_e_distances = 0;
 our $extrusion_axis     = 'E';
-our $z_offset           = 0;
 our $gcode_arcs         = 0;
 our $g0                 = 0;
 our $gcode_comments     = 0;

@@ -546,16 +546,20 @@ sub export_gcode {
     print  $fh "\n";
     
     # write start commands to file
-    printf $fh "M104 S%d ; set temperature\n", $Slic3r::temperature if $Slic3r::temperature;
+    printf $fh "M104 %s%d ; set temperature\n",
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
+            if $Slic3r::temperature;
     print  $fh "$Slic3r::start_gcode\n";
-    printf $fh "M109 S%d ; wait for temperature to be reached\n", $Slic3r::temperature if $Slic3r::temperature;
+    printf $fh "M109 %s%d ; wait for temperature to be reached\n", 
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
+            if $Slic3r::temperature && $Slic3r::gcode_flavor ne 'makerbot';
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
-    printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis if $Slic3r::extrusion_axis;
-    if ($Slic3r::use_relative_e_distances) {
-        print $fh "M83 ; use relative distances for extrusion\n";
-    } else {
-        print $fh "M82 ; use absolute distances for extrusion\n";
+    if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup|makerbot)$/) {
+        printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis;
+        if (!$Slic3r::use_relative_e_distances && $Slic3r::gcode_flavor =~ /^(?:reprap|makerbot)$/) {
+            print $fh "M82 ; use absolute distances for extrusion\n";
+        }
     }
     
     # calculate X,Y shift to center print around specified origin

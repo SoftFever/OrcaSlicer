@@ -97,12 +97,10 @@ The author is Alessandro Ranellucci (me).
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)
         --print-center      Coordinates in mm of the point to center the print around 
                             (default: 100,100)
-        --use-relative-e-distances
-                            Use relative distances for extrusion in GCODE output
-        --extrusion-axis    The axis used for extrusion; leave empty to disable extrusion
-                            (default: E)
         --z-offset          Additional height in mm to add to vertical coordinates
                             (+/-, default: 0)
+        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/mach3/no-extrusion,
+                            default: reprap)
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                             by all firmwares)
         --g0                Use G0 commands for retraction (experimental, not supported by all
