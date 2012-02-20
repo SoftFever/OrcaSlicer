@@ -254,6 +254,16 @@ our $Options = {
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
+    'post_process' => {
+        label   => 'Post-processing scripts',
+        cli     => 'post-process=s@',
+        type    => 's@',
+        multiline => 1,
+        width   => 350,
+        height  => 60,
+        serialize   => sub { join '; ', @{$_[0]} },
+        deserialize => sub { [ split /\s*;\s*/, $_[0] ] },
+    },
     
     # retraction options
     'retract_length' => {
@@ -350,6 +360,14 @@ sub serialize {
     return $Options->{$opt_key}{serialize}
         ? $Options->{$opt_key}{serialize}->(get($opt_key))
         : get($opt_key);
+}
+
+sub deserialize {
+    my $class = @_ == 3 ? shift : undef;
+    my ($opt_key, $value) = @_;
+    return $Options->{$opt_key}{deserialize}
+        ? set($opt_key, $Options->{$opt_key}{deserialize}->($value))
+        : set($opt_key, $value);
 }
 
 sub save {

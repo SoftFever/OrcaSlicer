@@ -79,6 +79,10 @@ if ($ARGV[0]) {
     my $skein = Slic3r::Skein->new(
         input_file  => $input_file,
         output_file => $opt{output},
+        status_cb   => sub {
+            my ($percent, $message) = @_;
+            printf "=> $message\n";
+        },
     );
     $skein->go;
     
@@ -108,6 +112,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         Output file name format; all config options enclosed in brackets
                         will be replaced by their values, as well as [input_filename_base]
                         and [input_filename] (default: $Slic3r::output_filename_format)
+    --post-process      Generated G-code will be processed with the supplied script;
+                        call this more than once to process through multiple scripts.
   
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)

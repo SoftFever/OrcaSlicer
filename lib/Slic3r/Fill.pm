@@ -45,7 +45,7 @@ sub make_fill {
     
     $_->layer($layer) for values %{$self->fillers};
     
-    printf "Filling layer %d:\n", $layer->id;
+    Slic3r::debugf "Filling layer %d:\n", $layer->id;
     
     # merge overlapping surfaces
     my @surfaces = ();

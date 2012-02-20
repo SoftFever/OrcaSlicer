@@ -33,7 +33,7 @@ sub new {
         $bold_font->SetPointSize($label->GetFont()->GetPointSize());
         $label->SetFont($bold_font) if $opt->{important};
         my $field;
-        if ($opt->{type} =~ /^(i|f|s)$/) {
+        if ($opt->{type} =~ /^(i|f|s|s@)$/) {
             my $style = 0;
             my $size = Wx::wxDefaultSize;
             
@@ -42,10 +42,12 @@ sub new {
                 $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             }
             
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->get($opt_key),
+            my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get set);
+            
+            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key),
                 Wx::wxDefaultPosition, $size, $style);
-            EVT_TEXT($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue) });
-            push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->get($opt_key)) };
+            EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
+            push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
         } elsif ($opt->{type} eq 'bool') {
             $field = Wx::CheckBox->new($parent, -1, "");
             $field->SetValue(Slic3r::Config->get($opt_key));

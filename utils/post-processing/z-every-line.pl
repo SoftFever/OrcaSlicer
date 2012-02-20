@@ -1,11 +1,12 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -i
 
 use strict;
+use warnings;
 
 my $z = 0;
 
 # read stdin and any/all files passed as parameters one line at a time
-for (<>) {
+while (<>) {
 	# if we find a Z word, save it
 	$z = $1 if /Z(\d+(\.\d+)?)/;
 

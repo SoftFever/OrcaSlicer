@@ -9,7 +9,7 @@ use XXX;
 sub make_perimeter {
     my $self = shift;
     my ($layer) = @_;
-    printf "Making perimeter for layer %d\n", $layer->id;
+    Slic3r::debugf "Making perimeters for layer %d\n", $layer->id;
     
     # at least one perimeter is required
     die "Can't slice object with no perimeters!\n"

@@ -44,6 +44,7 @@ our $notes              = '';
 
 # output options
 our $output_filename_format = '[input_filename_base].gcode';
+our $post_process       = [];
 
 # printer options
 our $nozzle_diameter    = 0.5;

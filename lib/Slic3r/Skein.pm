@@ -23,7 +23,7 @@ sub go {
     
     # skein the STL into layers
     # each layer has surfaces with holes
-    $self->status_cb->(10, "Processing triangulated mesh...");
+    $self->status_cb->(10, "Processing triangulated mesh");
     my $print;
     {
         my $mesh = $self->input_file =~ /\.stl$/i
@@ -38,7 +38,7 @@ sub go {
     # make perimeters
     # this will add a set of extrusion loops to each layer
     # as well as generate infill boundaries
-    $self->status_cb->(20, "Generating perimeters...");
+    $self->status_cb->(20, "Generating perimeters");
     {
         my $perimeter_maker = Slic3r::Perimeter->new;
         $perimeter_maker->make_perimeter($_) for @{$print->layers};
@@ -46,42 +46,42 @@ sub go {
     
     # this will clip $layer->surfaces to the infill boundaries 
     # and split them in top/bottom/internal surfaces;
-    $self->status_cb->(30, "Detecting solid surfaces...");
+    $self->status_cb->(30, "Detecting solid surfaces");
     $print->detect_surfaces_type;
     
     # decide what surfaces are to be filled
-    $self->status_cb->(35, "Preparing infill surfaces...");
+    $self->status_cb->(35, "Preparing infill surfaces");
     $_->prepare_fill_surfaces for @{$print->layers};
     
     # this will remove unprintable surfaces
     # (those that are too tight for extrusion)
-    $self->status_cb->(40, "Cleaning up...");
+    $self->status_cb->(40, "Cleaning up");
     $_->remove_small_surfaces for @{$print->layers};
     
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
-    $self->status_cb->(45, "Detect bridges...");
+    $self->status_cb->(45, "Detect bridges");
     $_->process_bridges for @{$print->layers};
     
     # this will remove unprintable perimeter loops
     # (those that are too tight for extrusion)
-    $self->status_cb->(50, "Cleaning up the perimeters...");
+    $self->status_cb->(50, "Cleaning up the perimeters");
     $_->remove_small_perimeters for @{$print->layers};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
-    $self->status_cb->(60, "Generating horizontal shells...");
+    $self->status_cb->(60, "Generating horizontal shells");
     $print->discover_horizontal_shells;
     
     # free memory
     @{$_->surfaces} = () for @{$print->layers};
     
     # combine fill surfaces to honor the "infill every N layers" option
-    $self->status_cb->(70, "Combining infill...");
+    $self->status_cb->(70, "Combining infill");
     $print->infill_every_layers;
     
     # this will generate extrusion paths for each layer
-    $self->status_cb->(80, "Infilling layers...");
+    $self->status_cb->(80, "Infilling layers");
     {
         my $fill_maker = Slic3r::Fill->new('print' => $print);
         
@@ -116,17 +116,27 @@ sub go {
     
     # generate support material
     if ($Slic3r::support_material) {
-        $self->status_cb->(85, "Generating support material...");
+        $self->status_cb->(85, "Generating support material");
         $print->generate_support_material;
     }
     
     # make skirt
-    $self->status_cb->(88, "Generating skirt...");
+    $self->status_cb->(88, "Generating skirt");
     $print->extrude_skirt;
     
     # output everything to a GCODE file
-    $self->status_cb->(90, "Exporting GCODE...");
-    $print->export_gcode($self->expanded_output_filepath);
+    $self->status_cb->(90, "Exporting GCODE");
+    my $output_file = $self->expanded_output_filepath;
+    $print->export_gcode($output_file);
+    
+    # run post-processing scripts
+    if (@$Slic3r::post_process) {
+        $self->status_cb->(95, "Running post-processing scripts");
+        for (@$Slic3r::post_process) {
+            Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
+            system($_, $output_file);
+        }
+    }
     
     # output some statistics
     $self->processing_time(tv_interval($t0));

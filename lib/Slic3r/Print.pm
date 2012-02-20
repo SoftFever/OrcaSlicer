@@ -45,9 +45,8 @@ sub new_from_mesh {
     # (we might have created it because of the $max_layer = ... + 1 code below)
     pop @{$print->layers} if !@{$print->layers->[-1]->surfaces} && !@{$print->layers->[-1]->lines};
     
-    print "\n==> PROCESSING SLICES:\n";
     foreach my $layer (@{ $print->layers }) {
-        printf "Making surfaces for layer %d:\n", $layer->id;
+        Slic3r::debugf "Making surfaces for layer %d:\n", $layer->id;
         
         # layer currently has many lines representing intersections of
         # model facets with the layer plane. there may also be lines
@@ -516,8 +515,6 @@ sub generate_support_material {
 sub export_gcode {
     my $self = shift;
     my ($file) = @_;
-    
-    printf "Exporting GCODE file...\n";
     
     # open output gcode file
     open my $fh, ">", $file
