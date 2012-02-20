@@ -28,14 +28,7 @@ sub new_from_mesh {
     
     $mesh->rotate($Slic3r::rotate);
     $mesh->scale($Slic3r::scale / $Slic3r::resolution);
-    
-    # calculate the displacements needed to 
-    # have lowest value for each axis at coordinate 0
-    {
-        my @extents = $mesh->bounding_box;
-        my @shift = map -$extents[$_][MIN], X,Y,Z;
-        $mesh->move(@shift);
-    }
+    $mesh->align_to_origin;
     
     # initialize print job
     my @size = $mesh->size;

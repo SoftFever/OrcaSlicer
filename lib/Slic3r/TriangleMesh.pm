@@ -289,6 +289,15 @@ sub move {
     }
 }
 
+sub align_to_origin {
+    my $self = shift;
+    
+    # calculate the displacements needed to 
+    # have lowest value for each axis at coordinate 0
+    my @extents = $self->bounding_box;
+    $self->move(map -$extents[$_][MIN], X,Y,Z);
+}
+
 sub duplicate {
     my $self = shift;
     my (@shifts) = @_;
