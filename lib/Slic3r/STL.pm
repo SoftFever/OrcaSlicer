@@ -126,7 +126,7 @@ sub _read_ascii {
     
     my $facet;
     seek $fh, 0, 0;
-    while (<$fh>) {
+    while (my $_ = <$fh>) {
         s/\R+$//;
         if (!$facet) {
             /^\s*facet\s+normal\s+$point_re/ or next;
@@ -153,7 +153,7 @@ sub _read_binary {
     
     binmode $fh;
     seek $fh, 80 + 4, 0;
-    while (read $fh, $_, 4*4*3+2) {
+    while (read $fh, my $_, 4*4*3+2) {
         my @v = unpack '(f<3)4';
         push @$facets, [ [@v[0..2]], [@v[3..5]], [@v[6..8]], [@v[9..11]] ];
     }
