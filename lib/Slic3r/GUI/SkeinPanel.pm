@@ -118,6 +118,7 @@ sub new {
         $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         
         my $slice_button = Wx::Button->new($self, -1, "Slice...");
+        $slice_button->SetDefault();
         $buttons_sizer->Add($slice_button, 0);
         EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
