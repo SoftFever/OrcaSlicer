@@ -32,7 +32,7 @@ sub clone {
 
 sub reverse {
     my $self = shift;
-    @$self = reverse @$self;
+    @$self = CORE::reverse @$self;
 }
 
 sub lines {
@@ -135,7 +135,7 @@ sub is_printable {
     # for a distance equal to half of the extrusion width;
     # if no offset is possible, then polyline is not printable
     my $p = $self->clone;
-    @$p = reverse @$p if !Math::Clipper::is_counter_clockwise($p);
+    @$p = CORE::reverse @$p if !Math::Clipper::is_counter_clockwise($p);
     my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_spacing / 2), $Slic3r::resolution * 100000, JT_MITER, 2);
     return @$offsets ? 1 : 0;
 }
