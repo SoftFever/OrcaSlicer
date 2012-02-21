@@ -71,21 +71,18 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     exit;
 }
 
-if ($ARGV[0]) {
-
-    # skein
-    my $input_file = $ARGV[0];
-    
-    my $skein = Slic3r::Skein->new(
-        input_file  => $input_file,
-        output_file => $opt{output},
-        status_cb   => sub {
-            my ($percent, $message) = @_;
-            printf "=> $message\n";
-        },
-    );
-    $skein->go;
-    
+if (@ARGV) {
+    foreach my $input_file ( @ARGV ) {
+        my $skein = Slic3r::Skein->new(
+            input_file  => $input_file,
+            output_file => $opt{output},
+            status_cb   => sub {
+                my ($percent, $message) = @_;
+                printf "=> $message\n";
+            },
+        );
+        $skein->go;        
+    }
 } else {
     usage(1) unless $opt{save};
 }
