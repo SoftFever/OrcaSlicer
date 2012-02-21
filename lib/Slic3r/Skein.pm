@@ -23,6 +23,7 @@ sub go {
     
     # skein the STL into layers
     # each layer has surfaces with holes
+    $self->status_cb->(5, "Processing input file " . $self->input_file);    
     $self->status_cb->(10, "Processing triangulated mesh");
     my $print;
     if ($self->input_file =~ /\.stl$/i) {
@@ -127,8 +128,8 @@ sub go {
     $print->extrude_skirt;
     
     # output everything to a GCODE file
-    $self->status_cb->(90, "Exporting GCODE");
     my $output_file = $self->expanded_output_filepath;
+    $self->status_cb->(90, "Exporting GCODE to $output_file");
     $print->export_gcode($output_file);
     
     # run post-processing scripts
