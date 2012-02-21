@@ -30,6 +30,11 @@ sub clone {
     return (ref $self)->new(map $_->clone, @$self);
 }
 
+sub reverse {
+    my $self = shift;
+    @$self = reverse @$self;
+}
+
 sub lines {
     my $self = shift;
     return map Slic3r::Line->new($_), polygon_lines($self);

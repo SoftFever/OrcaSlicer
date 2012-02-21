@@ -115,6 +115,7 @@ sub make_perimeter {
         }
         
         foreach my $hole (@holes) {
+            $hole->reverse;
             push @{ $layer->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $hole, role => 'perimeter');
         }
         
