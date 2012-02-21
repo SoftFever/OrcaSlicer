@@ -77,7 +77,10 @@ sub extrude {
 sub extrude_loop {
     my $self = shift;
     my ($loop, $description) = @_;
-        
+    
+    # extrude all loops ccw
+    $loop->polygon->make_counter_clockwise;
+    
     # find the point of the loop that is closest to the current extruder position
     my $start_at = $loop->nearest_point_to($self->last_pos);
     

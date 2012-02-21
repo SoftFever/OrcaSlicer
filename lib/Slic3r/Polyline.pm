@@ -61,24 +61,24 @@ sub simplify {
     bless $_, 'Slic3r::Point' for @$self;
 }
 
-sub reverse_points {
+sub reverse {
     my $self = shift;
-    @$self = reverse @$self;
+    @$self = CORE::reverse @$self;
 }
 
 sub is_counter_clockwise {
     my $self = shift;
-    return Math::Clipper::is_counter_clockwise($self->p);
+    return Math::Clipper::is_counter_clockwise($self);
 }
 
 sub make_counter_clockwise {
     my $self = shift;
-    $self->reverse_points if !$self->is_counter_clockwise;
+    $self->reverse if !$self->is_counter_clockwise;
 }
 
 sub make_clockwise {
     my $self = shift;
-    $self->reverse_points if $self->is_counter_clockwise;
+    $self->reverse if $self->is_counter_clockwise;
 }
 
 sub nearest_point_to {
