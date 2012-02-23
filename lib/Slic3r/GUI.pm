@@ -12,6 +12,7 @@ use base 'Wx::App';
 sub OnInit {
     my $self = shift;
     
+    $self->SetAppName('Slic3r');
     #$self->SetIcon(Wx::Icon->new("path/to/my/icon.gif", wxBITMAP_TYPE_GIF) );
     
     my $frame = Wx::Frame->new( undef, -1, 'Slic3r', [-1, -1], Wx::wxDefaultSize,
