@@ -57,7 +57,6 @@ Roadmap includes the following goals:
 
 Sure, it's very usable. Remember that:
 
-* it doesn't generate support material;
 * it only works well with manifold and clean models (check them with Meshlab or Netfabb or http://cloud.netfabb.com/).
 
 ## How to install?
