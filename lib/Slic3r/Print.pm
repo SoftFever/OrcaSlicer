@@ -547,8 +547,12 @@ sub export_gcode {
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup|makerbot)$/) {
         printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis;
-        if (!$Slic3r::use_relative_e_distances && $Slic3r::gcode_flavor =~ /^(?:reprap|makerbot)$/) {
-            print $fh "M82 ; use absolute distances for extrusion\n";
+        if ($Slic3r::gcode_flavor =~ /^(?:reprap|makerbot)$/) {
+            if ($Slic3r::use_relative_e_distances) {
+                print $fh "M83 ; use relative distances for extrusion\n";
+            } else {
+                print $fh "M82 ; use absolute distances for extrusion\n";
+            }
         }
     }
     
