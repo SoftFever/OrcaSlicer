@@ -2,9 +2,11 @@ package Slic3r::Perimeter;
 use Moo;
 
 use Math::Clipper ':all';
-use Slic3r::Geometry qw(X Y shortest_path scale);
+use Slic3r::Geometry qw(X Y PI shortest_path scale unscale);
 use Slic3r::Geometry::Clipper qw(diff_ex);
 use XXX;
+
+my $HOLE_COMPENSATION_THRESHOLD;
 
 sub make_perimeter {
     my $self = shift;
@@ -34,10 +36,21 @@ sub make_perimeter {
         map [ $_->contour->[0], $_ ], @{$layer->slices},
     ])};
     
+    $HOLE_COMPENSATION_THRESHOLD ||= ((scale 6.5)**2)*PI;
+    
     # for each island:
     foreach my $surface (@surfaces) {
         my @last_offsets = ($surface->expolygon);
         my $distance = 0;
+        
+        # experimental hole compensation (see ArcCompensation in the RepRap wiki)
+        foreach my $hole ($last_offsets[0]->holes) {
+            my $area = abs($hole->area);last;
+            next unless $area <= $HOLE_COMPENSATION_THRESHOLD;
+            my $radius = sqrt($area / PI);
+            my $new_radius = (scale($Slic3r::flow_width) + sqrt((scale($Slic3r::flow_width)**2) + (4*($radius**2)))) / 2;
+            @$hole = map Slic3r::Point->new($_), @{ +($hole->offset(+ ($new_radius - $radius)))[0] };
+        }
         
         # create other offsets
         push @perimeters, [];
