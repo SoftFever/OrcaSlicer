@@ -630,10 +630,10 @@ sub bounding_box {
     my @x = (undef, undef);
     my @y = (undef, undef);
     for (@$points) {
-        $x[MIN] = $points->[X] if !defined $x[MIN] || $points->[X] < $x[MIN];
-        $x[MAX] = $points->[X] if !defined $x[MAX] || $points->[X] > $x[MAX];
-        $y[MIN] = $points->[Y] if !defined $y[MIN] || $points->[Y] < $y[MIN];
-        $y[MAX] = $points->[Y] if !defined $y[MAX] || $points->[Y] > $y[MAX];
+        $x[MIN] = $_->[X] if !defined $x[MIN] || $_->[X] < $x[MIN];
+        $x[MAX] = $_->[X] if !defined $x[MAX] || $_->[X] > $x[MAX];
+        $y[MIN] = $_->[Y] if !defined $y[MIN] || $_->[Y] < $y[MIN];
+        $y[MAX] = $_->[Y] if !defined $y[MAX] || $_->[Y] > $y[MAX];
     }
     
     return ($x[0], $y[0], $x[-1], $y[-1]);
