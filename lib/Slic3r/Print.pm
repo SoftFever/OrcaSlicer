@@ -496,27 +496,36 @@ sub generate_support_material {
         );
     }
     
-    # now apply the pattern to layers below unsupported surfaces
-    my (@a, @b) = ();
-    for (my $i = $#{$self->layers}; $i >=0; $i--) {
-        my $layer = $self->layers->[$i];
-        my @c = ();
-        if (@b) {
-            @c = @{diff_ex(
-                [ map @$_, @b ],
-                [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
-            )};
-            $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
-            foreach my $expolygon (@c) {
-                push @{$layer->support_fills->paths}, map $_->clip_with_expolygon($expolygon),
-                    map $_->clip_with_polygon($expolygon->bounding_box_polygon), @$support_pattern;
+    # now determine where to apply the pattern below unsupported surfaces
+    my %layers = ();
+    {
+        my (@a, @b) = ();
+        for (my $i = $#{$self->layers}; $i >=0; $i--) {
+            my $layer = $self->layers->[$i];
+            my @c = ();
+            if (@b) {
+                @c = @{diff_ex(
+                    [ map @$_, @b ],
+                    [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
+                )};
+                $layers{$i} = [@c];
             }
+            @b = @{union_ex([ map @$_, @c, @a ])};
+            @a = map $_->expolygon->offset_ex(scale 2),
+                grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
+                @{$layer->slices};
+            $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
         }
-        @b = @{union_ex([ map @$_, @c, @a ])};
-        @a = map $_->expolygon->offset_ex(scale 2),
-            grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
-            @{$layer->slices};
-        $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
+    }
+    
+    # apply the pattern to layers
+    foreach my $layer_id (keys %layers) {
+        my $layer = $self->layers->[$layer_id];
+        $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
+        foreach my $expolygon (@{ $layers{$layer_id} }) {
+            push @{$layer->support_fills->paths}, map $_->clip_with_expolygon($expolygon),
+                map $_->clip_with_polygon($expolygon->bounding_box_polygon), @$support_pattern;
+        };
     }
 }
 

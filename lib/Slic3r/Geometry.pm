@@ -295,6 +295,7 @@ sub polygon_has_vertex {
     return 0;
 }
 
+# polygon must be simple (non complex) and ccw
 sub polygon_is_convex {
     my ($points) = @_;
     for (my $i = 0; $i <= $#$points; $i++) {
