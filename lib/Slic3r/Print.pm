@@ -1,6 +1,7 @@
 package Slic3r::Print;
 use Moo;
 
+use Config;
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z PI MIN MAX scale unscale move_points);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
@@ -519,13 +520,43 @@ sub generate_support_material {
     }
     
     # apply the pattern to layers
-    foreach my $layer_id (keys %layers) {
-        my $layer = $self->layers->[$layer_id];
-        $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
-        foreach my $expolygon (@{ $layers{$layer_id} }) {
-            push @{$layer->support_fills->paths}, map $_->clip_with_expolygon($expolygon),
-                map $_->clip_with_polygon($expolygon->bounding_box_polygon), @$support_pattern;
+    {
+        my $clip_pattern = sub {
+            my ($expolygons) = @_;
+            my @paths = ();
+            foreach my $expolygon (@$expolygons) {
+                push @paths, map $_->clip_with_expolygon($expolygon),
+                    map $_->clip_with_polygon($expolygon->bounding_box_polygon),
+                    @$support_pattern;
+            };
+            return @paths;
         };
+        my %layer_paths = ();
+        if ($Config{useithreads} && $Slic3r::threads > 1 && eval "use threads; use Thread::Queue; 1") {
+            my $q = Thread::Queue->new;
+            $q->enqueue(keys %layers, (map undef, 1..$Slic3r::threads));
+            
+            my $thread_cb = sub {
+                my $paths = {};
+                while (defined (my $layer_id = $q->dequeue)) {
+                    $paths->{$layer_id} = [ $clip_pattern->($layers{$layer_id}) ];
+                }
+                return $paths;
+            };
+            
+            foreach my $th (map threads->create($thread_cb), 1..$Slic3r::threads) {
+                my $paths = $th->join;
+                $layer_paths{$_} = $paths->{$_} for keys %$paths;
+            }
+        } else {
+            $layer_paths{$_} = [ $clip_pattern->($layers{$_}) ] for keys %layers;
+        }
+        
+        foreach my $layer_id (keys %layer_paths) {
+            my $layer = $self->layers->[$layer_id];
+            $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
+            push @{$layer->support_fills->paths}, @{$layer_paths{$layer_id}};
+        }
     }
 }
 
