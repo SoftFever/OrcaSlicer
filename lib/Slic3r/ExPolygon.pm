@@ -5,7 +5,7 @@ use warnings;
 # an ExPolygon is a polygon with holes
 
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(point_in_polygon X Y A B);
+use Slic3r::Geometry qw(X Y A B point_in_polygon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 

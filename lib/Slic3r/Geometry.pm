@@ -19,7 +19,7 @@ our @EXPORT_OK = qw(
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
-    polyline_remove_short_segments normal triangle_normal
+    polyline_remove_short_segments normal triangle_normal polygon_is_convex
 );
 
 use XXX;
@@ -293,6 +293,15 @@ sub polygon_has_vertex {
         return 1 if points_coincide($p, $point);
     }
     return 0;
+}
+
+sub polygon_is_convex {
+    my ($points) = @_;
+    for (my $i = 0; $i <= $#$points; $i++) {
+        my $angle = angle3points($points->[$i-1], $points->[$i-2], $points->[$i]);
+        return 0 if $angle < PI;
+    }
+    return 1;
 }
 
 sub polyline_length {

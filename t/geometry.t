@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 17;
+plan tests => 20;
 
 BEGIN {
     use FindBin;
@@ -12,7 +12,7 @@ BEGIN {
 use Slic3r;
 use Slic3r::Geometry qw(PI polyline_remove_parallel_continuous_edges 
     polyline_remove_acute_vertices polygon_remove_acute_vertices
-    polygon_remove_parallel_continuous_edges);
+    polygon_remove_parallel_continuous_edges polygon_is_convex);
 
 #==========================================================
 
@@ -141,6 +141,17 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     ];
     polyline_remove_acute_vertices($polygon);
     is scalar(@$polygon), 6, 'polyline_remove_acute_vertices';
+}
+
+#==========================================================
+
+{
+    my $cw_square = [ [0,0], [0,10], [10,10], [10,0] ];
+    is polygon_is_convex($cw_square), 0, 'cw square is not convex';
+    is polygon_is_convex([ reverse @$cw_square ]), 1, 'ccw square is convex';
+    
+    my $convex1 = [ [0,0], [10,0], [10,10], [0,10], [0,6], [4,6], [4,4], [0,4] ];
+    is polygon_is_convex($convex1), 0, 'concave polygon';
 }
 
 #==========================================================
