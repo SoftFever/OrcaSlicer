@@ -18,11 +18,10 @@ our @EXPORT_OK = qw(
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     shortest_path collinear scale unscale merge_collinear_lines
-    rad2deg_dir bounding_box_center line_intersects_any
+    rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal
 );
 
-use Slic3r::Geometry::DouglasPeucker qw(Douglas_Peucker);
 use XXX;
 
 use constant PI => 4 * atan2(1, 1);
@@ -108,6 +107,19 @@ sub same_point {
 sub distance_between_points {
     my ($p1, $p2) = @_;
     return sqrt((($p1->[X] - $p2->[X])**2) + ($p1->[Y] - $p2->[Y])**2);
+}
+
+sub point_line_distance {
+    my ($point, $line) = @_;
+    return distance_between_points($point, $line->[A])
+        if same_point($line->[A], $line->[B]);
+    
+    my $n = ($line->[B][X] - $line->[A][X]) * ($line->[A][Y] - $point->[Y])
+        - ($line->[A][X] - $point->[X]) * ($line->[B][Y] - $line->[A][Y]);
+    
+    my $d = sqrt((($line->[B][X] - $line->[A][X]) ** 2) + (($line->[B][Y] - $line->[A][Y]) ** 2));
+    
+    return abs($n) / $d;
 }
 
 sub line_length {
@@ -738,6 +750,99 @@ sub shortest_path {
     }
     
     return $result;
+}
+
+sub douglas_peucker {
+    my ($points, $tolerance) = @_;
+    
+    my $results = [];
+    my $dmax = 0;
+    my $index = 0;
+    for my $i (1..$#$points) {
+        my $d = point_line_distance($points->[$i], [ $points->[0], $points->[-1] ]);
+        if ($d > $dmax) {
+            $index = $i;
+            $dmax = $d;
+        }
+    }
+    if ($dmax >= $tolerance) {
+        my $dp1 = douglas_peucker([ @$points[0..$index] ], $tolerance);
+        $results = [
+            @$dp1[0..($#$dp1-1)],
+            @{douglas_peucker([ @$points[$index..$#$points] ], $tolerance)},
+        ];
+    } else {
+        $results = [ $points->[0], $points->[-1] ];
+    }
+    return $results;
+}
+
+sub douglas_peucker2 {
+    my ($points, $tolerance) = @_;
+    
+    my $anchor = 0;
+    my $floater = $#$points;
+    my @stack = ();
+    my %keep = ();
+    
+    push @stack, [$anchor, $floater];
+    while (@stack) {
+        ($anchor, $floater) = @{pop @stack};
+        
+        # initialize line segment
+        my ($anchor_x, $anchor_y, $seg_len);
+        if (grep $points->[$floater][$_] != $points->[$anchor][$_], X, Y) {
+            $anchor_x = $points->[$floater][X] - $points->[$anchor][X];
+            $anchor_y = $points->[$floater][Y] - $points->[$anchor][Y];
+            $seg_len = sqrt(($anchor_x ** 2) + ($anchor_y ** 2));
+            # get the unit vector
+            $anchor_x /= $seg_len;
+            $anchor_y /= $seg_len;
+        } else {
+            $anchor_x = $anchor_y = $seg_len = 0;
+        }
+        
+        # inner loop:
+        my $max_dist = 0;
+        my $farthest = $anchor + 1;
+        for my $i (($anchor + 1) .. $floater) {
+            my $dist_to_seg = 0;
+            # compare to anchor
+            my $vecX = $points->[$i][X] - $points->[$anchor][X];
+            my $vecY = $points->[$i][Y] - $points->[$anchor][Y];
+            $seg_len = sqrt(($vecX ** 2) + ($vecY ** 2));
+            # dot product:
+            my $proj = $vecX * $anchor_x + $vecY * $anchor_y;
+            if ($proj < 0) {
+                $dist_to_seg = $seg_len;
+            } else {
+                # compare to floater
+                $vecX = $points->[$i][X] - $points->[$floater][X];
+                $vecY = $points->[$i][Y] - $points->[$floater][Y];
+                $seg_len = sqrt(($vecX ** 2) + ($vecY ** 2));
+                # dot product:
+                $proj = $vecX * (-$anchor_x) + $vecY * (-$anchor_y);
+                if ($proj < 0) {
+                    $dist_to_seg = $seg_len
+                } else {  # calculate perpendicular distance to line (pythagorean theorem):
+                    $dist_to_seg = sqrt(abs(($seg_len ** 2) - ($proj ** 2)));
+                }
+                if ($max_dist < $dist_to_seg) {
+                    $max_dist = $dist_to_seg;
+                    $farthest = $i;
+                }
+            }
+        }
+        
+        if ($max_dist <= $tolerance) { # use line segment
+            $keep{$_} = 1 for $anchor, $floater;
+        } else {
+            push @stack, [$anchor, $farthest];
+            push @stack, [$farthest, $floater];
+        }
+    }
+    
+    return [ map $points->[$_], sort keys %keep ];
 }
 
 1;

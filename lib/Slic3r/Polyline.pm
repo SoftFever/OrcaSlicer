@@ -57,7 +57,7 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    @$self = Slic3r::Geometry::Douglas_Peucker($self, $tolerance);
+    @$self = @{ Slic3r::Geometry::douglas_peucker($self, $tolerance) };
     bless $_, 'Slic3r::Point' for @$self;
 }
 
@@ -109,6 +109,9 @@ sub clip_with_polygon {
 sub clip_with_expolygon {
     my $self = shift;
     my ($expolygon) = @_;
+    
+    #printf "Clipping polyline of %d points to expolygon of %d polygons and %d points\n",
+    #    scalar(@$self), scalar(@$expolygon), scalar(map @$_, @$expolygon);
     
     my @polylines = ();
     my $current_polyline = [];

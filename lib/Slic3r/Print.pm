@@ -364,8 +364,6 @@ sub infill_every_layers {
     my $self = shift;
     return unless $Slic3r::infill_every_layers > 1 && $Slic3r::fill_density > 0;
     
-    printf "==> COMBINING INFILL\n";
-    
     # start from bottom, skip first layer
     for (my $i = 1; $i < $self->layer_count; $i++) {
         my $layer = $self->layer($i);
@@ -489,6 +487,14 @@ sub generate_support_material {
                 ), @paths;
         }
     }
+    $_->polyline->simplify(scale $Slic3r::flow_spacing / 3) for @$support_pattern;
+    
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output(undef, "support.svg",
+            polylines        => [ map $_->polyline, @$support_pattern ],
+        );
+    }
     
     # now apply the pattern to layers below unsupported surfaces
     my (@a, @b) = ();
@@ -502,13 +508,15 @@ sub generate_support_material {
             )};
             $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
             foreach my $expolygon (@c) {
-                push @{$layer->support_fills->paths}, map $_->clip_with_expolygon($expolygon), @$support_pattern;
+                push @{$layer->support_fills->paths}, map $_->clip_with_expolygon($expolygon),
+                    map $_->clip_with_polygon($expolygon->bounding_box_polygon), @$support_pattern;
             }
         }
         @b = @{union_ex([ map @$_, @c, @a ])};
         @a = map $_->expolygon->offset_ex(scale 2),
             grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
             @{$layer->slices};
+        $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
     }
 }
 

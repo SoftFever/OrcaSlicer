@@ -20,7 +20,6 @@ lib/Slic3r/Fill/Rectilinear.pm
 lib/Slic3r/Fill/Rectilinear2.pm
 lib/Slic3r/Geometry.pm
 lib/Slic3r/Geometry/Clipper.pm
-lib/Slic3r/Geometry/DouglasPeucker.pm
 lib/Slic3r/GUI.pm
 lib/Slic3r/GUI/OptionsGroup.pm
 lib/Slic3r/GUI/SkeinPanel.pm

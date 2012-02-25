@@ -108,6 +108,17 @@ sub bounding_box {
     return Slic3r::Geometry::bounding_box($self->contour);
 }
 
+sub bounding_box_polygon {
+    my $self = shift;
+    my @bb = $self->bounding_box;
+    return Slic3r::Polygon->new([
+        [ $bb[0], $bb[1] ],
+        [ $bb[2], $bb[1] ],
+        [ $bb[2], $bb[3] ],
+        [ $bb[0], $bb[3] ],
+    ]);
+}
+
 sub clip_line {
     my $self = shift;
     my ($line) = @_;
@@ -139,6 +150,11 @@ sub clip_line {
         push @lines, [ @points ];
     }
     return [@lines];
+}
+
+sub simplify {
+    my $self = shift;
+    $_->simplify(@_) for @$self;
 }
 
 sub translate {
