@@ -114,14 +114,14 @@ sub go {
         }
     }
     
-    # free memory
-    @{$_->fill_surfaces} = () for @{$print->layers};
-    
     # generate support material
     if ($Slic3r::support_material) {
         $self->status_cb->(85, "Generating support material");
         $print->generate_support_material;
     }
+    
+    # free memory (note that support material needs fill_surfaces)
+    @{$_->fill_surfaces} = () for @{$print->layers};
     
     # make skirt
     $self->status_cb->(88, "Generating skirt");

@@ -332,8 +332,15 @@ sub process_bridges {
                 my $line_between_midpoints = Slic3r::Line->new(@midpoints);
                 $bridge_angle = rad2deg_dir($line_between_midpoints->direction);
             } elsif (@edges == 1) {
-                my $line = Slic3r::Line->new($edges[0]->[0], $edges[0]->[-1]);
-                $bridge_angle = rad2deg_dir($line->direction);
+                # TODO: this case includes both U-shaped bridges and plain overhangs;
+                # we need a trapezoidation algorithm to detect the actual bridged area
+                # and separate it from the overhang area.
+                # in the mean time, we're treating as overhangs all cases where
+                # our supporting edge is a straight line
+                if (@{$edges[0]} > 2) {
+                    my $line = Slic3r::Line->new($edges[0]->[0], $edges[0]->[-1]);
+                    $bridge_angle = rad2deg_dir($line->direction);
+                }
             } else {
                 my $center = bounding_box_center([ map @$_, @edges ]);
                 my $x = my $y = 0;

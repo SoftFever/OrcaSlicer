@@ -446,14 +446,38 @@ sub infill_every_layers {
 sub generate_support_material {
     my $self = shift;
     
+    # determine unsupported surfaces
+    my %layers = ();
+    my @unsupported_expolygons = ();
+    {
+        my (@a, @b) = ();
+        for (my $i = $#{$self->layers}; $i >=0; $i--) {
+            my $layer = $self->layers->[$i];
+            my @c = ();
+            if (@b) {
+                @c = @{diff_ex(
+                    [ map @$_, @b ],
+                    [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
+                )};
+                $layers{$i} = [@c];
+            }
+            @b = @{union_ex([ map @$_, @c, @a ])};
+            
+            # get unsupported surfaces for current layer
+            @a = map $_->expolygon->offset_ex(scale $Slic3r::flow_spacing * $Slic3r::perimeters),
+                grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
+                @{$layer->fill_surfaces};
+            
+            $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
+            push @unsupported_expolygons, @a;
+        }
+    }
+    return if !@unsupported_expolygons;
+    
     # generate paths for the pattern that we're going to use
     my $support_pattern = [];
     {
-        # get all surfaces needing support material
-        my @surfaces = grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
-            map @{$_->slices}, grep $_->id > 0, @{$self->layers} or return;
-        
-        my @support_material_areas = @{union_ex([ map $_->p, @surfaces ])};
+        my @support_material_areas = @{union_ex([ map @$_, @unsupported_expolygons ])};
         
         for (1..$Slic3r::perimeters+1) {
             foreach my $expolygon (@support_material_areas) {
@@ -495,28 +519,6 @@ sub generate_support_material {
         Slic3r::SVG::output(undef, "support.svg",
             polylines        => [ map $_->polyline, @$support_pattern ],
         );
-    }
-    
-    # now determine where to apply the pattern below unsupported surfaces
-    my %layers = ();
-    {
-        my (@a, @b) = ();
-        for (my $i = $#{$self->layers}; $i >=0; $i--) {
-            my $layer = $self->layers->[$i];
-            my @c = ();
-            if (@b) {
-                @c = @{diff_ex(
-                    [ map @$_, @b ],
-                    [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
-                )};
-                $layers{$i} = [@c];
-            }
-            @b = @{union_ex([ map @$_, @c, @a ])};
-            @a = map $_->expolygon->offset_ex(scale 2),
-                grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
-                @{$layer->slices};
-            $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
-        }
     }
     
     # apply the pattern to layers
