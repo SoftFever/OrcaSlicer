@@ -38,7 +38,7 @@ sub fill_surface {
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
     for (my $i = 0; $x <= $bounding_box->[X2] + scale epsilon; $i++) {
-        my $vertical_line = [ [$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]] ];
+        my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
         if ($is_line_pattern && $i % 2) {
             $vertical_line->[A][X] -= $line_oscillation;
             $vertical_line->[B][X] += $line_oscillation;

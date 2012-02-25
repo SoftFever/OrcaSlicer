@@ -121,8 +121,7 @@ sub bounding_box_polygon {
 
 sub clip_line {
     my $self = shift;
-    my ($line) = @_;
-    $line = Slic3r::Line->new($line) if ref $line eq 'ARRAY';
+    my ($line) = @_;  # line must be a Slic3r::Line object
     
     my @intersections = grep $_, map $_->intersection($line, 1), map $_->lines, @$self;
     my @dir = (

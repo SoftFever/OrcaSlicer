@@ -32,7 +32,9 @@ sub clone {
 
 sub lines {
     my $self = shift;
-    return map Slic3r::Line->new($_), polygon_lines($self);
+    my @lines = polygon_lines($self);
+    bless $_, 'Slic3r::Line' for @lines;
+    return @lines;
 }
 
 sub cleanup {
