@@ -170,7 +170,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         home X axis [G28 X], disable motors [M84]).
     --support-material  Generate support material for overhangs
   
-  Retraction options:
+   Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 
                         (default: $Slic3r::retract_length)
     --retract-speed     Speed for retraction in mm/s (default: $Slic3r::retract_speed)
@@ -180,6 +180,17 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --retract-before-travel
                         Only retract before travel moves of this length in mm (default: $Slic3r::retract_before_travel)
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $Slic3r::retract_lift)
+   
+   Cooling options:
+    --min-fan-speed     Minimum fan speed (default: $Slic3r::min_fan_speed%)
+    --max-fan-speed     Maximum fan speed (default: $Slic3r::max_fan_speed%)
+    --bridge-fan-speed  Fan speed to use when bridging (default: $Slic3r::bridge_fan_speed%)
+    --fan-below-layer-time Enable fan if layer print time is below this approximate number 
+                        of seconds (default: $Slic3r::fan_below_layer_time)
+    --slowdown-below-layer-time Slow down if layer print time is below this approximate number
+                        of seconds (default: $Slic3r::slowdown_below_layer_time)
+    --min-print-speed   Minimum print speed speed (mm/s, default: $Slic3r::min_print_speed)
+    --disable-fan-first-layers Disable fan for the first N layers (default: $Slic3r::disable_fan_first_layers)
    
    Skirt options:
     --skirts            Number of skirts to draw (0+, default: $Slic3r::skirts)

@@ -26,8 +26,9 @@ sub new {
     
     foreach my $opt_key (@{$p{options}}) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
-        my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition, [180,-1]);
-        $label->Wrap(180);  # needed to avoid Linux/GTK bug
+        my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition,
+            [$p{label_width} || 180, -1]);
+        $label->Wrap($p{label_width} || 180);  # needed to avoid Linux/GTK bug
         
         #set the bold font point size to the same size as all the other labels (for consistency)
         $bold_font->SetPointSize($label->GetFont()->GetPointSize());

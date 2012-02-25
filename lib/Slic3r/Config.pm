@@ -292,6 +292,43 @@ our $Options = {
         type    => 'f',
     },
     
+    # cooling options
+    'min_fan_speed' => {
+        label   => 'Min fan speed (%)',
+        cli     => 'min-fan-speed=i',
+        type    => 'i',
+    },
+    'max_fan_speed' => {
+        label   => 'Max fan speed (%)',
+        cli     => 'max-fan-speed=i',
+        type    => 'i',
+    },
+    'bridge_fan_speed' => {
+        label   => 'Bridge fan speed (%)',
+        cli     => 'bridge-fan-speed=i',
+        type    => 'i',
+    },
+    'fan_below_layer_time' => {
+        label   => 'Enable fan if layer print time is below (approximate seconds)',
+        cli     => 'fan-below-layer-time=i',
+        type    => 'i',
+    },
+    'slowdown_below_layer_time' => {
+        label   => 'Slow down if layer print time is below (approximate seconds)',
+        cli     => 'slowdown-below-layer-time=i',
+        type    => 'i',
+    },
+    'min_print_speed' => {
+        label   => 'Min print speed (mm/s)',
+        cli     => 'min-print-speed=i',
+        type    => 'i',
+    },
+    'disable_fan_first_layers' => {
+        label   => 'Disable fan for the first N layers',
+        cli     => 'disable-fan-first-layers=i',
+        type    => 'i',
+    },
+    
     # skirt options
     'skirts' => {
         label   => 'Loops',

@@ -38,6 +38,7 @@ Slic3r current key features are:
 * ability to scale, rotate and duplicate input object;
 * customizable initial and final GCODE;
 * support material;
+* cooling and fan control;
 * use different speed for bottom layer and perimeters.
 
 Experimental features include:
@@ -50,7 +51,6 @@ Roadmap includes the following goals:
 * output some statistics;
 * support material for internal perimeters;
 * new and better GUI;
-* cool;
 * more fill patterns.
 
 ## Is it usable already? Any known limitation?
@@ -91,6 +91,8 @@ The author is Alessandro Ranellucci (me).
                             Output file name format; all config options enclosed in brackets
                             will be replaced by their values, as well as [input_filename_base]
                             and [input_filename] (default: [input_filename_base].gcode)
+        --post-process      Generated G-code will be processed with the supplied script;
+                            call this more than once to process through multiple scripts.
       
       Printer options:
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)
@@ -150,7 +152,7 @@ The author is Alessandro Ranellucci (me).
                             home X axis [G28 X], disable motors [M84]).
         --support-material  Generate support material for overhangs
       
-      Retraction options:
+       Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 
                             (default: 1)
         --retract-speed     Speed for retraction in mm/s (default: 30)
@@ -160,6 +162,17 @@ The author is Alessandro Ranellucci (me).
         --retract-before-travel
                             Only retract before travel moves of this length in mm (default: 2)
         --retract-lift      Lift Z by the given distance in mm when retracting (default: 0)
+       
+       Cooling options:
+        --min-fan-speed     Minimum fan speed (default: 35%)
+        --max-fan-speed     Maximum fan speed (default: 100%)
+        --bridge-fan-speed  Fan speed to use when bridging (default: 100%)
+        --fan-below-layer-time Enable fan if layer print time is below this approximate number 
+                            of seconds (default: 60)
+        --slowdown-below-layer-time Slow down if layer print time is below this approximate number
+                            of seconds (default: 15)
+        --min-print-speed   Minimum print speed speed (mm/s, default: 10)
+        --disable-fan-first-layers Disable fan for the first N layers (default: 1)
        
        Skirt options:
         --skirts            Number of skirts to draw (0+, default: 1)

@@ -1,50 +1,36 @@
 package Slic3r::Extruder;
 use Moo;
 
-use Slic3r::Geometry qw(scale);
+use Slic3r::Geometry qw(scale unscale);
 
 has 'layer'              => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
-has 'print_feed_rate'    => (is => 'rw');
+has 'speed'              => (is => 'rw');
 
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
+has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
 has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
-has 'last_f'             => (is => 'rw', default => sub {0});
+has 'last_speed'         => (is => 'rw', default => sub {""});
+has 'last_fan_speed'     => (is => 'rw', default => sub {0});
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
-# calculate speeds
-has 'travel_speed' => (
+# calculate speeds (mm/min)
+has 'speeds' => (
     is      => 'ro',
-    default => sub { $Slic3r::travel_speed * 60 },  # mm/min
-);
-has 'perimeter_speed' => (
-    is      => 'ro',
-    default => sub { $Slic3r::perimeter_speed * 60 },  # mm/min
-);
-has 'small_perimeter_speed' => (
-    is      => 'ro',
-    default => sub { $Slic3r::small_perimeter_speed * 60 },  # mm/min
-);
-has 'infill_speed' => (
-    is      => 'ro',
-    default => sub { $Slic3r::infill_speed * 60 },  # mm/min
-);
-has 'solid_infill_speed' => (
-    is      => 'ro',
-    default => sub { $Slic3r::solid_infill_speed * 60 },  # mm/min
-);
-has 'bridge_speed' => (
-    is      => 'ro',
-    default => sub { $Slic3r::bridge_speed * 60 },  # mm/min
-);
-has 'retract_speed' => (
-    is      => 'ro',
-    default => sub { $Slic3r::retract_speed * 60 },  # mm/min
+    default => sub {{
+        travel          => 60 * $Slic3r::travel_speed,
+        perimeter       => 60 * $Slic3r::perimeter_speed,
+        small_perimeter => 60 * $Slic3r::small_perimeter_speed,
+        infill          => 60 * $Slic3r::infill_speed,
+        solid_infill    => 60 * $Slic3r::solid_infill_speed,
+        bridge          => 60 * $Slic3r::bridge_speed,
+        retract         => 60 * $Slic3r::retract_speed,
+    }},
 );
 
 use Slic3r::Geometry qw(points_coincide PI X Y);
@@ -151,21 +137,30 @@ sub extrude_path {
         * (4 / (($Slic3r::filament_diameter ** 2) * PI));
     
     # extrude arc or line
-    $self->print_feed_rate(
-        $path->role =~ /^(perimeter|skirt|support-material)$/o ? $self->perimeter_speed
-            : $path->role eq 'small-perimeter'  ? $self->small_perimeter_speed
-            : $path->role eq 'fill'             ? $self->infill_speed
-            : $path->role eq 'solid-fill'       ? $self->solid_infill_speed
-            : $path->role eq 'bridge'           ? $self->bridge_speed
+    $self->speed(
+        $path->role =~ /^(perimeter|skirt|support-material)$/o ? 'perimeter'
+            : $path->role eq 'small-perimeter'  ? 'small_perimeter'
+            : $path->role eq 'fill'             ? 'infill'
+            : $path->role eq 'solid-fill'       ? 'solid_infill'
+            : $path->role eq 'bridge'           ? 'bridge'
             : die "Unknown role: " . $path->role
     );
+    my $path_length = 0;
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
+        $path_length = $path->length;
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
-            $path->center, $e * $path->length, $description);
+            $path->center, $e * $path_length, $description);
     } else {
         foreach my $line ($path->lines) {
-            $gcode .= $self->G1($line->b, undef, $e * $line->length, $description);
+            my $line_length = $line->length;
+            $path_length += $line_length;
+            $gcode .= $self->G1($line->b, undef, $e * $line_length, $description);
         }
+    }
+    
+    # TODO: optimize: avoid calculation if cooling is disabled
+    if (1) {
+        $self->elapsed_time($self->elapsed_time + (unscale($path_length) / $self->speeds->{$self->last_speed} * 60));
     }
     
     return $gcode;
@@ -179,7 +174,7 @@ sub retract {
         && !$self->retracted;
     
     # prepare moves
-    $self->print_feed_rate($self->retract_speed);
+    $self->speed('retract');
     my $retract = [undef, undef, -$Slic3r::retract_length, "retract"];
     my $lift    = ($Slic3r::retract_lift == 0 || defined $params{move_z})
         ? undef
@@ -229,7 +224,7 @@ sub unretract {
         $self->lifted(0);
     }
     
-    $self->print_feed_rate($self->retract_speed);
+    $self->speed('retract');
     $gcode .= $self->G0(undef, undef, ($Slic3r::retract_length + $Slic3r::retract_restart_extra), 
         "compensate retraction");
     
@@ -239,7 +234,7 @@ sub unretract {
 sub set_acceleration {
     my $self = shift;
     my ($acceleration) = @_;
-    return unless $Slic3r::acceleration;
+    return "" unless $Slic3r::acceleration;
     
     return sprintf "M201 E%s%s\n",
         $acceleration, ($Slic3r::gcode_comments ? ' ; adjust acceleration' : '');
@@ -248,20 +243,18 @@ sub set_acceleration {
 sub G0 {
     my $self = shift;
     return $self->G1(@_) if !$Slic3r::g0;
-    return "G0" . $self->G0_G1(@_);
+    return $self->_G0_G1("G0", @_);
 }
 
 sub G1 {
     my $self = shift;
-    return "G1" . $self->G0_G1(@_);
+    return $self->_G0_G1("G1", @_);
 }
 
-sub G0_G1 {
+sub _G0_G1 {
     my $self = shift;
-    my ($point, $z, $e, $comment) = @_;
+    my ($gcode, $point, $z, $e, $comment) = @_;
     my $dec = $self->dec;
-    
-    my $gcode = "";
     
     if ($point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
@@ -308,13 +301,19 @@ sub _Gx {
         : 1;
     
     # determine speed
-    my $speed = ($e ? $self->print_feed_rate : $self->travel_speed) * $speed_multiplier;
+    my $speed = ($e ? $self->speed : 'travel');
     
     # output speed if it's different from last one used
     # (goal: reduce gcode size)
-    if ($speed != $self->last_f) {
-        $gcode .= sprintf " F%.${dec}f", $speed;
-        $self->last_f($speed);
+    my $append_bridge_off = 0;
+    if ($speed ne $self->last_speed) {
+        if ($speed eq 'bridge') {
+            $gcode = "_BRIDGE_FAN_START\n$gcode";
+        } elsif ($self->last_speed eq 'bridge') {
+            $append_bridge_off = 1;
+        }
+        $gcode .= sprintf " F%.${dec}f", $self->speeds->{$speed} * $speed_multiplier;
+        $self->last_speed($speed);
     }
     
     # output extrusion distance
@@ -326,6 +325,9 @@ sub _Gx {
     }
     
     $gcode .= sprintf " ; %s", $comment if $comment && $Slic3r::gcode_comments;
+    if ($append_bridge_off) {
+        $gcode .= "\n_BRIDGE_FAN_END";
+    }
     return "$gcode\n";
 }
 
@@ -334,6 +336,21 @@ sub set_tool {
     my ($tool) = @_;
     
     return sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '');
+}
+
+sub set_fan {
+    my $self = shift;
+    my ($speed, $dont_save) = @_;
+    
+    if ($self->last_fan_speed != $speed || $dont_save) {
+        $self->last_fan_speed($speed) if !$dont_save;
+        if ($speed == 0) {
+            return sprintf "M107%s\n", ($Slic3r::gcode_comments ? ' ; disable fan' : '');
+        } else {
+            return sprintf "M106 S%d%s\n", (255 * $speed / 100), ($Slic3r::gcode_comments ? ' ; enable fan' : '');
+        }
+    }
+    return "";
 }
 
 1;

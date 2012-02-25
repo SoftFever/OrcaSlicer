@@ -114,6 +114,15 @@ our $retract_speed          = 30;   # mm/s
 our $retract_before_travel  = 2;    # mm
 our $retract_lift           = 0;    # mm
 
+# cooling options
+our $min_fan_speed          = 35;
+our $max_fan_speed          = 100;
+our $bridge_fan_speed       = 100;
+our $fan_below_layer_time   = 60;
+our $slowdown_below_layer_time = 15;
+our $min_print_speed        = 10;
+our $disable_fan_first_layers = 1;
+
 # skirt options
 our $skirts             = 1;
 our $skirt_distance     = 6;    # mm
