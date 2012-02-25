@@ -115,6 +115,7 @@ our $retract_before_travel  = 2;    # mm
 our $retract_lift           = 0;    # mm
 
 # cooling options
+our $cooling                = 0;
 our $min_fan_speed          = 35;
 our $max_fan_speed          = 100;
 our $bridge_fan_speed       = 100;

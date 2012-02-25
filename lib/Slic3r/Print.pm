@@ -660,33 +660,35 @@ sub export_gcode {
         }
         last if !$layer_gcode;
         
-        my $layer_time = $extruder->elapsed_time;
         my $fan_speed = 0;
         my $speed_factor = 1;
-        Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $layer->id, $layer_time;
-        if ($layer_time < $Slic3r::fan_below_layer_time) {
-            if ($layer_time < $Slic3r::slowdown_below_layer_time) {
-                $fan_speed = $Slic3r::max_fan_speed;
-                $speed_factor = $layer_time / $Slic3r::slowdown_below_layer_time;
-            } else {
-                $fan_speed = $Slic3r::max_fan_speed - ($Slic3r::max_fan_speed - $Slic3r::min_fan_speed)
-                    * ($layer_time - $Slic3r::slowdown_below_layer_time)
-                    / ($Slic3r::fan_below_layer_time - $Slic3r::slowdown_below_layer_time); #/
+        if ($Slic3r::cooling) {
+            my $layer_time = $extruder->elapsed_time;
+            Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $layer->id, $layer_time;
+            if ($layer_time < $Slic3r::fan_below_layer_time) {
+                if ($layer_time < $Slic3r::slowdown_below_layer_time) {
+                    $fan_speed = $Slic3r::max_fan_speed;
+                    $speed_factor = $layer_time / $Slic3r::slowdown_below_layer_time;
+                } else {
+                    $fan_speed = $Slic3r::max_fan_speed - ($Slic3r::max_fan_speed - $Slic3r::min_fan_speed)
+                        * ($layer_time - $Slic3r::slowdown_below_layer_time)
+                        / ($Slic3r::fan_below_layer_time - $Slic3r::slowdown_below_layer_time); #/
+                }
             }
+            Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
+            
+            if ($speed_factor < 1) {
+                $layer_gcode =~ s/^(?=.*? [XY])(G1 .*?F)(\d+(?:\.\d+)?)/
+                    my $new_speed = $2 * $speed_factor;
+                    $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
+                    /gexm;
+            }
+            $fan_speed = 0 if $layer->id < $Slic3r::disable_fan_first_layers;
+            $layer_gcode = $extruder->set_fan($fan_speed) . $layer_gcode;
         }
-        Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
-        
-        if ($speed_factor < 1) {
-            $layer_gcode =~ s/^(?=.*? [XY])(G1 .*?F)(\d+(?:\.\d+)?)/
-                my $new_speed = $2 * $speed_factor;
-                $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
-                /gexm;
-        }
-        $fan_speed = 0 if $layer->id < $Slic3r::disable_fan_first_layers;
-        $layer_gcode = $extruder->set_fan($fan_speed) . $layer_gcode;
         
         # bridge fan speed
-        if ($Slic3r::bridge_fan_speed == 0 || $layer->id < $Slic3r::disable_fan_first_layers) {
+        if (!$Slic3r::cooling || $Slic3r::bridge_fan_speed == 0 || $layer->id < $Slic3r::disable_fan_first_layers) {
             $layer_gcode =~ s/^_BRIDGE_FAN_(?:START|END)\n//gm;
         } else {
             $layer_gcode =~ s/^_BRIDGE_FAN_START\n/ $extruder->set_fan($Slic3r::bridge_fan_speed, 1) /gmex;

@@ -158,8 +158,7 @@ sub extrude_path {
         }
     }
     
-    # TODO: optimize: avoid calculation if cooling is disabled
-    if (1) {
+    if ($Slic3r::cooling) {
         $self->elapsed_time($self->elapsed_time + (unscale($path_length) / $self->speeds->{$self->last_speed} * 60));
     }
     

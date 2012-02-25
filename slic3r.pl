@@ -182,6 +182,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $Slic3r::retract_lift)
    
    Cooling options:
+    --cooling           Enable fan and cooling control
     --min-fan-speed     Minimum fan speed (default: $Slic3r::min_fan_speed%)
     --max-fan-speed     Maximum fan speed (default: $Slic3r::max_fan_speed%)
     --bridge-fan-speed  Fan speed to use when bridging (default: $Slic3r::bridge_fan_speed%)

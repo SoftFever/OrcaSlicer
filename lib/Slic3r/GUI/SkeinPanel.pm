@@ -49,7 +49,7 @@ sub new {
         },
         cooling => {
             title => 'Cooling',
-            options => [qw(min_fan_speed max_fan_speed bridge_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed disable_fan_first_layers)],
+            options => [qw(cooling min_fan_speed max_fan_speed bridge_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed disable_fan_first_layers)],
             label_width => 300,
         },
         skirt => {

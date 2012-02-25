@@ -164,6 +164,7 @@ The author is Alessandro Ranellucci (me).
         --retract-lift      Lift Z by the given distance in mm when retracting (default: 0)
        
        Cooling options:
+        --cooling           Enable fan and cooling control
         --min-fan-speed     Minimum fan speed (default: 35%)
         --max-fan-speed     Maximum fan speed (default: 100%)
         --bridge-fan-speed  Fan speed to use when bridging (default: 100%)

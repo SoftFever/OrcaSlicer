@@ -293,6 +293,11 @@ our $Options = {
     },
     
     # cooling options
+    'cooling' => {
+        label   => 'Enable cooling',
+        cli     => 'cooling',
+        type    => 'bool',
+    },
     'min_fan_speed' => {
         label   => 'Min fan speed (%)',
         cli     => 'min-fan-speed=i',
