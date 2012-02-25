@@ -31,9 +31,9 @@ lib/Slic3r/Polygon.pm
 lib/Slic3r/Polyline.pm
 lib/Slic3r/Print.pm
 lib/Slic3r/Skein.pm
-lib/Slic3r/AMF.pm
-lib/Slic3r/AMF/Parser.pm
-lib/Slic3r/STL.pm
+lib/Slic3r/Format/AMF.pm
+lib/Slic3r/Format/AMF/Parser.pm
+lib/Slic3r/Format/STL.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm
 lib/Slic3r/TriangleMesh.pm

@@ -27,11 +27,11 @@ sub go {
     $self->status_cb->(10, "Processing triangulated mesh");
     my $print;
     if ($self->input_file =~ /\.stl$/i) {
-        my $mesh = Slic3r::STL->read_file($self->input_file);
+        my $mesh = Slic3r::Format::STL->read_file($self->input_file);
         $mesh->check_manifoldness;
         $print = Slic3r::Print->new_from_mesh($mesh);
     } elsif ( $self->input_file =~ /\.amf(\.xml)?$/i) {
-        my ($materials, $meshes_by_material) = Slic3r::AMF->read_file($self->input_file);
+        my ($materials, $meshes_by_material) = Slic3r::Format::AMF->read_file($self->input_file);
         $_->check_manifoldness for values %$meshes_by_material;
         $print = Slic3r::Print->new_from_mesh($meshes_by_material->{_} || +(values %$meshes_by_material)[0]);
     } else {

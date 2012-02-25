@@ -1,4 +1,4 @@
-package Slic3r::AMF::Parser;
+package Slic3r::Format::AMF::Parser;
 use strict;
 use warnings;
 

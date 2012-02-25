@@ -24,7 +24,7 @@ my %opt = ();
 }
 
 {
-    my @meshes = map Slic3r::STL->read_file($_), @ARGV;
+    my @meshes = map Slic3r::Format::STL->read_file($_), @ARGV;
     my $output_file = $ARGV[0];
     $output_file =~ s/\.stl$/.amf.xml/i;
     
@@ -40,7 +40,7 @@ my %opt = ();
     }
     
     printf "Writing to %s\n", basename($output_file);
-    Slic3r::AMF->write_file($output_file, $materials, $meshes_by_material);
+    Slic3r::Format::AMF->write_file($output_file, $materials, $meshes_by_material);
 }
 
 

@@ -1,4 +1,4 @@
-package Slic3r::AMF;
+package Slic3r::Format::AMF;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z);
@@ -8,7 +8,7 @@ sub read_file {
     my $self = shift;
     my ($file) = @_;
     
-    eval "require Slic3r::AMF::Parser; 1"
+    eval "require Slic3r::Format::AMF::Parser; 1"
         or die "AMF parsing requires XML::SAX::ExpatXS\n";
     
     open my $fh, '<', $file or die "Failed to open $file\n";
@@ -17,7 +17,7 @@ sub read_file {
     my $materials = {};
     my $meshes_by_material = {};
     XML::SAX::ExpatXS
-        ->new(Handler => Slic3r::AMF::Parser->new(
+        ->new(Handler => Slic3r::Format::AMF::Parser->new(
             _vertices           => $vertices,
             _materials          => $materials,
             _meshes_by_material => $meshes_by_material,
