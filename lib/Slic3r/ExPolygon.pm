@@ -265,7 +265,7 @@ sub medial_axis {
     
     # cleanup
     Slic3r::Geometry::polyline_remove_short_segments($polyline, $width / 2);
-    @$polyline = Slic3r::Geometry::Douglas_Peucker($polyline, $width / 100);
+    $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
     Slic3r::Geometry::polyline_remove_parallel_continuous_edges($polyline);
     
     if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
