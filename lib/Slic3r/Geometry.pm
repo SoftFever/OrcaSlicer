@@ -38,8 +38,7 @@ use constant MIN => 0;
 use constant MAX => 1;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
-our $epsilon = 1E-4;
-sub epsilon () { $epsilon }
+sub epsilon () { 1E-4 }
 
 sub scale   ($) { $_[0] / $Slic3r::resolution }
 sub unscale ($) { $_[0] * $Slic3r::resolution }
@@ -549,32 +548,11 @@ sub merge_collinear_lines {
 }
 
 sub _line_intersection {
-  my ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 );
+  my ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 ) = @_;
 
-  if ( @_ == 8 ) {
-    ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 ) = @_;
-
-    # The bounding boxes chop the lines into line segments.
-    # bounding_box() is defined later in this chapter.
-    my @box_a = bounding_box([ [$x0, $y0], [$x1, $y1] ]);
-    my @box_b = bounding_box([ [$x2, $y2], [$x3, $y3] ]);
-    
-    # Take this test away and the line segments are
-    # turned into lines going from infinite to another.
-    # bounding_box_intersect() defined later in this chapter.
-    ###return "out of bounding box" unless bounding_box_intersect( 2, @box_a, @box_b );
-  }
-  elsif ( @_ == 4 ) { # The parametric form.
-    $x0 = $x2 = 0;
-    ( $y0, $y2 ) = @_[ 1, 3 ];
-    # Need to multiply by 'enough' to get 'far enough'.
-    my $abs_y0 = abs $y0;
-    my $abs_y2 = abs $y2;
-    my $enough = 10 * ( $abs_y0 > $abs_y2 ? $abs_y0 : $abs_y2 );
-    $x1 = $x3 = $enough;
-    $y1 = $_[0] * $x1 + $y0;
-    $y3 = $_[2] * $x2 + $y2;
-  }
+  # The bounding boxes chop the lines into line segments.ì
+  my @box_a = bounding_box([ [$x0, $y0], [$x1, $y1] ]);
+  my @box_b = bounding_box([ [$x2, $y2], [$x3, $y3] ]);
 
   my ($x, $y);  # The as-yet-undetermined intersection point.
 
@@ -649,8 +627,14 @@ sub _line_intersection {
 sub bounding_box {
     my ($points) = @_;
     
-    my @x = sort { $a <=> $b } map $_->[X], @$points;
-    my @y = sort { $a <=> $b } map $_->[Y], @$points;
+    my @x = (undef, undef);
+    my @y = (undef, undef);
+    for (@$points) {
+        $x[MIN] = $points->[X] if !defined $x[MIN] || $points->[X] < $x[MIN];
+        $x[MAX] = $points->[X] if !defined $x[MAX] || $points->[X] > $x[MAX];
+        $y[MIN] = $points->[Y] if !defined $y[MIN] || $points->[Y] < $y[MIN];
+        $y[MAX] = $points->[Y] if !defined $y[MAX] || $points->[Y] > $y[MAX];
+    }
     
     return ($x[0], $y[0], $x[-1], $y[-1]);
 }
