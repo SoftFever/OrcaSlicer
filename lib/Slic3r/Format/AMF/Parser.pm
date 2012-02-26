@@ -24,7 +24,7 @@ sub start_element {
     } elsif ($self->{_vertex} && $data->{LocalName} =~ /^[xyz]$/ && $self->{_tree}[-1] eq 'coordinates') {
         $self->{_coordinate} = $data->{LocalName};
     } elsif ($data->{LocalName} eq 'volume') {
-        $self->{_volume_materialid} = $self->_get_attribute($data, 'materialid');
+        $self->{_volume_materialid} = $self->_get_attribute($data, 'materialid') || '_';
         $self->{_volume} = [];
     } elsif ($data->{LocalName} eq 'triangle') {
         $self->{_triangle} = [[], "", "", ""];  # empty normal
