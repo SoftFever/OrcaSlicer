@@ -222,8 +222,10 @@ sub do_slice {
         my $message = sprintf "%s was successfully sliced in %d minutes and %.3f seconds.",
             $input_file_basename, int($skein->processing_time/60),
             $skein->processing_time - int($skein->processing_time/60)*60;
-        $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
-            if ($self->{growler});
+        eval {
+            $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
+                if ($self->{growler});
+        };
         Wx::MessageDialog->new($self, $message, 'Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
