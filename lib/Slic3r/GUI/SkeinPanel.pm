@@ -81,8 +81,10 @@ sub new {
 
     if (eval "use Growl::GNTP; 1") {
         # register growl notifications
-        $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r'); #, AppIcon => "path/to/my/icon.gif");
-        $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
+        eval {
+            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r'); #, AppIcon => "path/to/my/icon.gif");
+            $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
+        };
     }
     
     my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
