@@ -91,6 +91,11 @@ our $Options = {
         type    => 'f',
         aliases => [qw(filament_packing_density)],
     },
+    'first_layer_temperature' => {
+        label   => 'First layer temperature (°C)',
+        cli     => 'fisrt-layer-temperature=i',
+        type    => 'i',
+    },
     'temperature' => {
         label   => 'Temperature (°C)',
         cli     => 'temperature=i',
@@ -594,6 +599,7 @@ sub validate {
     $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
     $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
     $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
+    $Slic3r::first_layer_temperature //= $Slic3r::temperature; #/
 }
 
 1;

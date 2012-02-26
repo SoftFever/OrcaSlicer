@@ -25,7 +25,7 @@ sub new {
         },
         filament => {
             title => 'Filament',
-            options => [qw(filament_diameter extrusion_multiplier temperature)],
+            options => [qw(filament_diameter extrusion_multiplier temperature first_layer_temperature)],
         },
         print_speed => {
             title => 'Print speed',

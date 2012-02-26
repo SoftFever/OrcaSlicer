@@ -115,6 +115,8 @@ The author is Alessandro Ranellucci (me).
                             very little need to change this value, which is only useful to 
                             compensate for filament packing (default: 1)
         --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: 200)
+        --first-layer-temperature Extrusion temperature for the first layer, in degree Celsius,
+                            set 0 to disable (default: same as --temperature)
         
       Speed options:
         --travel-speed      Speed of non-print moves in mm/s (default: 130)

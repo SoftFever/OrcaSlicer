@@ -133,6 +133,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         very little need to change this value, which is only useful to 
                         compensate for filament packing (default: $Slic3r::extrusion_multiplier)
     --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: $Slic3r::temperature)
+    --first-layer-temperature Extrusion temperature for the first layer, in degree Celsius,
+                        set 0 to disable (default: same as --temperature)
     
   Speed options:
     --travel-speed      Speed of non-print moves in mm/s (default: $Slic3r::travel_speed)

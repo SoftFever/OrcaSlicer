@@ -587,8 +587,8 @@ sub export_gcode {
     
     # write start commands to file
     printf $fh "M104 %s%d ; set temperature\n",
-        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
-            if $Slic3r::temperature;
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
+            if $Slic3r::first_layer_temperature;
     print  $fh "$Slic3r::start_gcode\n";
     printf $fh "M109 %s%d ; wait for temperature to be reached\n", 
         ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
@@ -622,6 +622,12 @@ sub export_gcode {
     
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
+        if ($layer->id == 1) {
+            printf $fh "M104 %s%d ; set temperature\n",
+                ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
+                if $Slic3r::temperature && $Slic3r::temperature != $Slic3r::first_layer_temperature;
+        }
+        
         # go to layer
         print $fh $extruder->change_layer($layer);
         
