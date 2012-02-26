@@ -54,7 +54,7 @@ our $Options = {
     },
     'extrusion_axis' => {
         label   => 'Extrusion axis',
-        cli     => 'extrusion-axis',
+        cli     => 'extrusion-axis=s',
         type    => 's',
     },
     'z_offset' => {
