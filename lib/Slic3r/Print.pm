@@ -591,8 +591,8 @@ sub export_gcode {
             if $Slic3r::first_layer_temperature;
     print  $fh "$Slic3r::start_gcode\n";
     printf $fh "M109 %s%d ; wait for temperature to be reached\n", 
-        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
-            if $Slic3r::temperature && $Slic3r::gcode_flavor ne 'makerbot';
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
+            if $Slic3r::first_layer_temperature && $Slic3r::gcode_flavor ne 'makerbot';
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup|makerbot)$/) {
