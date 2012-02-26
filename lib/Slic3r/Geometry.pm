@@ -550,10 +550,6 @@ sub merge_collinear_lines {
 sub _line_intersection {
   my ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 ) = @_;
 
-  # The bounding boxes chop the lines into line segments.ì
-  my @box_a = bounding_box([ [$x0, $y0], [$x1, $y1] ]);
-  my @box_b = bounding_box([ [$x2, $y2], [$x3, $y3] ]);
-
   my ($x, $y);  # The as-yet-undetermined intersection point.
 
   my $dy10 = $y1 - $y0; # dyPQ, dxPQ are the coordinate differences
@@ -568,8 +564,7 @@ sub _line_intersection {
 
   my $dyx10;                            # The slopes.
   my $dyx32;
-
-
+  
   $dyx10 = $dy10 / $dx10 unless $dx10z;
   $dyx32 = $dy32 / $dx32 unless $dx32z;
 
@@ -621,6 +616,43 @@ sub _line_intersection {
   my $h32 = $dx32 ? ($x - $x2) / $dx32 : ($dy32 ? ($y - $y2) / $dy32 : 1);
 
   return [Slic3r::Point->new($x, $y), $h10 >= 0 && $h10 <= 1 && $h32 >= 0 && $h32 <= 1];
+}
+
+# http://paulbourke.net/geometry/lineline2d/
+sub _line_intersection2 {
+    my ($line1, $line2) = @_;
+    
+    my $denom = ($line2->[B][Y] - $line2->[A][Y]) * ($line1->[B][X] - $line1->[A][X])
+        - ($line2->[B][X] - $line2->[A][X]) * ($line1->[B][Y] - $line1->[A][Y]);
+    my $numerA = ($line2->[B][X] - $line2->[A][X]) * ($line1->[A][Y] - $line2->[A][Y])
+        - ($line2->[B][Y] - $line2->[A][Y]) * ($line1->[A][X] - $line2->[A][X]);
+    my $numerB = ($line1->[B][X] - $line1->[A][X]) * ($line1->[A][Y] - $line2->[A][Y])
+        - ($line1->[B][Y] - $line1->[A][Y]) * ($line1->[A][X] - $line2->[A][X]);
+    
+    # are the lines coincident?
+    if (abs($numerA) < epsilon && abs($numerB) < epsilon && abs($denom) < epsilon) {
+        return Slic3r::Point->new(
+            ($line1->[A][X] + $line1->[B][X]) / 2,
+            ($line1->[A][Y] + $line1->[B][Y]) / 2,
+        );
+    }
+    
+    # are the lines parallel?
+    if (abs($denom) < epsilon) {
+        return undef;
+    }
+    
+    # is the intersection along the segments?
+    my $muA = $numerA / $denom;
+    my $muB = $numerB / $denom;
+    if ($muA < 0 || $muA > 1 || $muB < 0 || $muB > 1) {
+        return undef;
+    }
+    
+    return Slic3r::Point->new(
+        $line1->[A][X] + $muA * ($line1->[B][X] - $line1->[A][X]),
+        $line1->[A][Y] + $muA * ($line1->[B][Y] - $line1->[A][Y]),
+    );
 }
 
 # 2D
