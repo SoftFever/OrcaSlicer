@@ -9,14 +9,14 @@ sub read_file {
     my ($file) = @_;
     
     eval "require Slic3r::Format::AMF::Parser; 1"
-        or die "AMF parsing requires XML::SAX::ExpatXS\n";
+        or die "AMF parsing requires XML::SAX\n";
     
     open my $fh, '<', $file or die "Failed to open $file\n";
     
     my $vertices = [];
     my $materials = {};
     my $meshes_by_material = {};
-    XML::SAX::ExpatXS
+    XML::SAX::PurePerl
         ->new(Handler => Slic3r::Format::AMF::Parser->new(
             _vertices           => $vertices,
             _materials          => $materials,

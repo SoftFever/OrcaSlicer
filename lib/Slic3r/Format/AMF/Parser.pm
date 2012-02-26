@@ -2,7 +2,7 @@ package Slic3r::Format::AMF::Parser;
 use strict;
 use warnings;
 
-use XML::SAX::ExpatXS;
+use XML::SAX::PurePerl;
 use XXX;
 
 use base 'XML::SAX::Base';
