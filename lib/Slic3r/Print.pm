@@ -640,7 +640,11 @@ sub export_gcode {
         $layer_gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
         $layer_gcode .= $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
-        foreach my $copy (@{$self->copies}) {
+        for (my $i = 0; $i <= $#{$self->copies}; $i++) {
+            # retract explicitely because changing the shift_[xy] properties below
+            # won't always trigger the automatic retraction
+            $layer_gcode .= $extruder->retract;
+            
             $extruder->shift_x($shift[X] + unscale $copy->[X]);
             $extruder->shift_y($shift[Y] + unscale $copy->[Y]);
             
