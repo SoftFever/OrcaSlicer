@@ -641,6 +641,8 @@ sub export_gcode {
         $layer_gcode .= $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
         
         for (my $i = 0; $i <= $#{$self->copies}; $i++) {
+            my $copy = $self->copies->[$i];
+            
             # retract explicitely because changing the shift_[xy] properties below
             # won't always trigger the automatic retraction
             $layer_gcode .= $extruder->retract;

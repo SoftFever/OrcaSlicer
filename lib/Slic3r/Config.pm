@@ -93,7 +93,7 @@ our $Options = {
     },
     'first_layer_temperature' => {
         label   => 'First layer temperature (°C)',
-        cli     => 'fisrt-layer-temperature=i',
+        cli     => 'first-layer-temperature=i',
         type    => 'i',
     },
     'temperature' => {
