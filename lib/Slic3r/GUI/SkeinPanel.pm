@@ -111,42 +111,65 @@ sub new {
         $make_tab->([qw(cooling)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(notes)]),
-        $make_tab->([qw(extrusion)], [qw(output)]),
+        $make_tab->([qw(notes)], [qw(extrusion output)]),
     );
     
-    $tabpanel->AddPage($tabs[0], "Print Settings");
+    $tabpanel->AddPage($tabs[0], "Printing");
     $tabpanel->AddPage($tabs[1], "Cooling");
-    $tabpanel->AddPage($tabs[2], "Printer and Filament");
-    $tabpanel->AddPage($tabs[3], "Start/End GCODE");
-    $tabpanel->AddPage($tabs[4], "Notes");
-    $tabpanel->AddPage($tabs[5], "Advanced");
+    $tabpanel->AddPage($tabs[2], "Extruding");
+    $tabpanel->AddPage($tabs[3], "GCODE");
+    $tabpanel->AddPage($tabs[4], "Advanced");
         
     my $buttons_sizer;
     {
         $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         
-        my $slice_button = Wx::Button->new($self, -1, "Slice...");
-        $slice_button->SetDefault();
-        $buttons_sizer->Add($slice_button, 0);
-        EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
-        my $save_button = Wx::Button->new($self, -1, "Save configuration...");
-        $buttons_sizer->Add($save_button, 0);
+        my $buttons_left_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $buttons_left_sizer->SetMinSize(300, 0);
+        
+        my $save_button = Wx::Button->new($self, -1, "Save Config…");
+        $buttons_left_sizer->Add($save_button, 0);
         EVT_BUTTON($self, $save_button, sub { $self->save_config });
         
-        my $load_button = Wx::Button->new($self, -1, "Load configuration...");
-        $buttons_sizer->Add($load_button, 0);
+        $buttons_left_sizer->Add((14, 0), 0);
+        
+        my $load_button = Wx::Button->new($self, -1, "Open Config…");
+        $buttons_left_sizer->Add($load_button, 0);
         EVT_BUTTON($self, $load_button, sub { $self->load_config });
         
-        my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);
+        $buttons_sizer->Add($buttons_left_sizer, 1);
+        
+        
         my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
+        my $update_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        
+        my $text = Wx::StaticText->new($self, -1, "Version $Slic3r::VERSION");
         $text->SetFont($font);
-        $buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
+        $update_sizer->Add($text, 0, wxALIGN_CENTRE);
+        
+        my $link = Wx::HyperlinkCtrl->new($self, -1, "Check for updates", "http://slic3r.org/");
+        $link->SetFont($font);
+        $update_sizer->Add($link, 0, wxALIGN_CENTRE);
+        
+        $buttons_sizer->Add($update_sizer, 0, wxEXPAND);
+        
+        
+        my $buttons_right_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $buttons_right_sizer->SetMinSize(300, 0);
+        
+        $buttons_right_sizer->AddStretchSpacer();
+        
+        my $slice_button = Wx::Button->new($self, -1, "Slice…");
+        $slice_button->SetDefault();
+        $buttons_right_sizer->Add($slice_button, 0, wxALIGN_RIGHT);
+        EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
+        
+        $buttons_sizer->Add($buttons_right_sizer, 1, wxALIGN_RIGHT);
     }
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, 10);
+    $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, (14));
     $sizer->Add($tabpanel);
     
     $sizer->SetSizeHints($self);
