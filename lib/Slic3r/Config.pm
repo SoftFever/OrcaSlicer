@@ -96,9 +96,20 @@ our $Options = {
         cli     => 'first-layer-temperature=i',
         type    => 'i',
     },
+    'first_layer_bed_temperature' => {
+        label   => 'First layer bed temperature (°C)',
+        cli     => 'first-layer-bed-temperature=i',
+        type    => 'i',
+    },
     'temperature' => {
         label   => 'Temperature (°C)',
         cli     => 'temperature=i',
+        type    => 'i',
+        important => 1,
+    },
+    'bed_temperature' => {
+        label   => 'Bed Temperature (°C)',
+        cli     => 'bed-temperature=i',
         type    => 'i',
         important => 1,
     },
@@ -596,6 +607,12 @@ sub validate {
     # --bridge-flow-ratio
     die "Invalid value for --bridge-flow-ratio\n"
         if $Slic3r::bridge_flow_ratio <= 0;
+
+	# --first_layer_temperature
+	$Slic3r::first_layer_temperature = $Slic3r::temperature unless $Slic3r::first_layer_temperature;
+
+	# --first-layer-bed-temperature
+	$Slic3r::first_layer_bed_temperature = $Slic3r::bed_temperature unless $Slic3r::first_layer_bed_temperature;
     
     # G-code flavors
     $Slic3r::extrusion_axis = 'A' if $Slic3r::gcode_flavor eq 'mach3';

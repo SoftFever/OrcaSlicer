@@ -586,6 +586,9 @@ sub export_gcode {
     print  $fh "\n";
     
     # write start commands to file
+    printf $fh "M190 %s%d ; set bed temperature\n",
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_bed_temperature
+            if $Slic3r::first_layer_bed_temperature && $Slic3r::start_gcode !~ /M190/i;
     printf $fh "M104 %s%d ; set temperature\n",
         ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
             if $Slic3r::first_layer_temperature;
@@ -626,6 +629,9 @@ sub export_gcode {
             printf $fh "M104 %s%d ; set temperature\n",
                 ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
                 if $Slic3r::temperature && $Slic3r::temperature != $Slic3r::first_layer_temperature;
+            printf $fh "M140 %s%d ; set bed temperature\n",
+                ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::bed_temperature
+                if $Slic3r::bed_temperature && $Slic3r::bed_temperature != $Slic3r::first_layer_bed_temperature;
         }
         
         # go to layer
