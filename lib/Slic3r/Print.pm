@@ -675,15 +675,13 @@ sub export_gcode {
         if ($Slic3r::cooling) {
             my $layer_time = $extruder->elapsed_time;
             Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $layer->id, $layer_time;
-            if ($layer_time < $Slic3r::fan_below_layer_time) {
-                if ($layer_time < $Slic3r::slowdown_below_layer_time) {
-                    $fan_speed = $Slic3r::max_fan_speed;
-                    $speed_factor = $layer_time / $Slic3r::slowdown_below_layer_time;
-                } else {
-                    $fan_speed = $Slic3r::max_fan_speed - ($Slic3r::max_fan_speed - $Slic3r::min_fan_speed)
-                        * ($layer_time - $Slic3r::slowdown_below_layer_time)
-                        / ($Slic3r::fan_below_layer_time - $Slic3r::slowdown_below_layer_time); #/
-                }
+            if ($layer_time < $Slic3r::slowdown_below_layer_time) {
+                $fan_speed = $Slic3r::max_fan_speed;
+                $speed_factor = $layer_time / $Slic3r::slowdown_below_layer_time;
+            } elsif ($layer_time < $Slic3r::fan_below_layer_time) {
+                $fan_speed = $Slic3r::max_fan_speed - ($Slic3r::max_fan_speed - $Slic3r::min_fan_speed)
+                    * ($layer_time - $Slic3r::slowdown_below_layer_time)
+                    / ($Slic3r::fan_below_layer_time - $Slic3r::slowdown_below_layer_time); #/
             }
             Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
             
