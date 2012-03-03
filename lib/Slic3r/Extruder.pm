@@ -307,7 +307,7 @@ sub _Gx {
     my $append_bridge_off = 0;
     if ($speed ne $self->last_speed) {
         if ($speed eq 'bridge') {
-            $gcode = "_BRIDGE_FAN_START\n$gcode";
+            $gcode = ";_BRIDGE_FAN_START\n$gcode";
         } elsif ($self->last_speed eq 'bridge') {
             $append_bridge_off = 1;
         }
@@ -325,7 +325,7 @@ sub _Gx {
     
     $gcode .= sprintf " ; %s", $comment if $comment && $Slic3r::gcode_comments;
     if ($append_bridge_off) {
-        $gcode .= "\n_BRIDGE_FAN_END";
+        $gcode .= "\n;_BRIDGE_FAN_END";
     }
     return "$gcode\n";
 }

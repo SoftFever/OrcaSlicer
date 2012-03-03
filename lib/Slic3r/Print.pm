@@ -629,9 +629,7 @@ sub export_gcode {
         }
         
         # go to layer
-        print $fh $extruder->change_layer($layer);
-        
-        my $layer_gcode = "";
+        my $layer_gcode = $extruder->change_layer($layer);
         $extruder->elapsed_time(0);
         
         # extrude skirts
@@ -701,10 +699,10 @@ sub export_gcode {
         
         # bridge fan speed
         if (!$Slic3r::cooling || $Slic3r::bridge_fan_speed == 0 || $layer->id < $Slic3r::disable_fan_first_layers) {
-            $layer_gcode =~ s/^_BRIDGE_FAN_(?:START|END)\n//gm;
+            $layer_gcode =~ s/^;_BRIDGE_FAN_(?:START|END)\n//gm;
         } else {
-            $layer_gcode =~ s/^_BRIDGE_FAN_START\n/ $extruder->set_fan($Slic3r::bridge_fan_speed, 1) /gmex;
-            $layer_gcode =~ s/^_BRIDGE_FAN_END\n/ $extruder->set_fan($fan_speed, 1) /gmex;
+            $layer_gcode =~ s/^;_BRIDGE_FAN_START\n/ $extruder->set_fan($Slic3r::bridge_fan_speed, 1) /gmex;
+            $layer_gcode =~ s/^;_BRIDGE_FAN_END\n/ $extruder->set_fan($fan_speed, 1) /gmex;
         }
         
         print $fh $layer_gcode;
