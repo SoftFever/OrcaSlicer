@@ -118,6 +118,9 @@ The author is Alessandro Ranellucci (me).
         --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: 200)
         --first-layer-temperature Extrusion temperature for the first layer, in degree Celsius,
                             set 0 to disable (default: same as --temperature)
+        --bed-temperature   Heated bed temperature in degree Celsius, set 0 to disable (default: 200)
+        --first-layer-bed-temperature Heated bed temperature for the first layer, in degree Celsius,
+                            set 0 to disable (default: same as --bed-temperature)
         
       Speed options:
         --travel-speed      Speed of non-print moves in mm/s (default: 130)
@@ -201,6 +204,8 @@ The author is Alessandro Ranellucci (me).
                             Calculate the extrusion width as the layer height multiplied by
                             this value (> 0, default: calculated automatically)
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
+        
+
 
 If you want to change a preset file, just do
 

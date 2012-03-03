@@ -62,6 +62,8 @@ our $filament_diameter  = 3;    # mm
 our $extrusion_multiplier = 1;
 our $temperature        = 200;
 our $first_layer_temperature;
+our $bed_temperature    = 0;
+our $first_layer_bed_temperature;
 
 # speed options
 our $travel_speed           = 130;  # mm/s

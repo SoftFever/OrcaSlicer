@@ -111,7 +111,6 @@ our $Options = {
         label   => 'Bed Temperature (°C)',
         cli     => 'bed-temperature=i',
         type    => 'i',
-        important => 1,
     },
     
     # speed options
@@ -608,11 +607,8 @@ sub validate {
     die "Invalid value for --bridge-flow-ratio\n"
         if $Slic3r::bridge_flow_ratio <= 0;
 
-	# --first_layer_temperature
-	$Slic3r::first_layer_temperature = $Slic3r::temperature unless $Slic3r::first_layer_temperature;
-
-	# --first-layer-bed-temperature
-	$Slic3r::first_layer_bed_temperature = $Slic3r::bed_temperature unless $Slic3r::first_layer_bed_temperature;
+	$Slic3r::first_layer_temperature //= $Slic3r::temperature;          #/
+	$Slic3r::first_layer_bed_temperature //= $Slic3r::bed_temperature;  #/
     
     # G-code flavors
     $Slic3r::extrusion_axis = 'A' if $Slic3r::gcode_flavor eq 'mach3';
@@ -621,7 +617,6 @@ sub validate {
     $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
     $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
     $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
-    $Slic3r::first_layer_temperature //= $Slic3r::temperature; #/
 }
 
 1;
