@@ -9,12 +9,12 @@ our $Options = {
 
     # miscellaneous options
     'notes' => {
-        label   => 'Configuration notes',
+        label   => 'Configuraton notes',
         cli		=> 'notes=s',
         type    => 's',
         multiline => 1,
-        width   => 213,
-        height  => 150,
+        width   => 350,
+        height  => 300,
         serialize   => sub { join '\n', split /\R/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
@@ -73,7 +73,7 @@ our $Options = {
         type    => 'bool',
     },
     'gcode_comments' => {
-        label   => 'GCODE comments',
+        label   => 'Verbose GCODE (comments)',
         cli     => 'gcode-comments',
         type    => 'bool',
     },
