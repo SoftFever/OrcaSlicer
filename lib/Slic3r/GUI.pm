@@ -30,11 +30,17 @@ sub OnInit {
     
     # File menu
     my $fileMenu = Wx::Menu->new;
-    $fileMenu->Append(1, "Slice...");
-    $fileMenu->Append(2, "Slice and save as...");
+    $fileMenu->Append(1, "Save Config…");
+    $fileMenu->Append(2, "Open Config…");
+    $fileMenu->AppendSeparator();
+    $fileMenu->Append(3, "Slice…");
+    $fileMenu->Append(4, "Slice and Save As…");
     $menubar->Append($fileMenu, "&File");
-    EVT_MENU($frame, 1, sub { $panel->do_slice });
-    EVT_MENU($frame, 2, sub { $panel->do_slice(save_as => 1) });
+    EVT_MENU($frame, 1, sub { $panel->save_config });
+    EVT_MENU($frame, 2, sub { $panel->load_config });
+    EVT_MENU($frame, 3, sub { $panel->do_slice });
+    EVT_MENU($frame, 4, sub { $panel->do_slice(save_as => 1) });
+    
     
     $box->SetSizeHints($frame);
     $frame->SetSizer($box);
