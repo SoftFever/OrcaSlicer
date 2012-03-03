@@ -114,9 +114,9 @@ sub new {
         $make_tab->([qw(notes)], [qw(extrusion output)]),
     );
     
-    $tabpanel->AddPage($tabs[0], "Printing");
+    $tabpanel->AddPage($tabs[0], "Print");
     $tabpanel->AddPage($tabs[1], "Cooling");
-    $tabpanel->AddPage($tabs[2], "Extruding");
+    $tabpanel->AddPage($tabs[2], "Printer and Filament");
     $tabpanel->AddPage($tabs[3], "GCODE");
     $tabpanel->AddPage($tabs[4], "Advanced");
         
@@ -144,13 +144,16 @@ sub new {
         my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
         my $update_sizer = Wx::BoxSizer->new(wxVERTICAL);
         
-        my $text = Wx::StaticText->new($self, -1, "Version $Slic3r::VERSION");
-        $text->SetFont($font);
-        $update_sizer->Add($text, 0, wxALIGN_CENTRE);
+        {
+            my $text = Wx::StaticText->new($self, -1, "Version $Slic3r::VERSION");
+            $text->SetFont($font);
+            $update_sizer->Add($text, 0, wxALIGN_CENTER);
         
-        my $link = Wx::HyperlinkCtrl->new($self, -1, "Check for updates", "http://slic3r.org/");
-        $link->SetFont($font);
-        $update_sizer->Add($link, 0, wxALIGN_CENTRE);
+            #my $link = Wx::HyperlinkCtrl->new($self, -1, "Check for updates at slic3r.org", "http://slic3r.org/");
+            my $link = Wx::StaticText->new($self, -1, "Check for updates at http://slic3r.org/");
+            $link->SetFont($font);
+            $update_sizer->Add($link, 0, wxALIGN_CENTER);
+        }
         
         $buttons_sizer->Add($update_sizer, 0, wxEXPAND);
         

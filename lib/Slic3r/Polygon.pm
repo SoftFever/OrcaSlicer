@@ -113,6 +113,7 @@ sub subdivide {
         $num_points++ if $len % $max_length;
         
         # $num_points is the number of points to add between $i-1 and $i
+        next if $num_points == -1;
         my $spacing = $len / ($num_points + 1);
         my @new_points = map Slic3r::Point->new($_),
             map Slic3r::Geometry::point_along_segment($self->[$i-1], $self->[$i], $spacing * $_),
