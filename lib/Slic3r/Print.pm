@@ -595,7 +595,7 @@ sub export_gcode {
             if $Slic3r::first_layer_temperature && $Slic3r::gcode_flavor ne 'makerbot';
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
-    if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup|makerbot)$/) {
+    if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup)$/) {
         printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis;
         if ($Slic3r::gcode_flavor =~ /^(?:reprap|makerbot)$/) {
             if ($Slic3r::use_relative_e_distances) {
