@@ -21,7 +21,7 @@ sub new {
     my %panels = (
         printer => {
             title => 'Printer',
-            options => [qw(nozzle_diameter print_center z_offset gcode_flavor use_relative_e_distances g0)],
+            options => [qw(nozzle_diameter print_center z_offset gcode_flavor use_relative_e_distances)],
         },
         filament => {
             title => 'Filament',
