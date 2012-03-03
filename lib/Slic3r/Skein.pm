@@ -163,19 +163,13 @@ sub expanded_output_filepath {
     # file directory and append the specified filename format
     $path ||= (fileparse($self->input_file))[1] . $Slic3r::output_filename_format;
     
-    my $input_basename = basename($self->input_file);
-    $path =~ s/\[input_filename\]/$input_basename/g;  
-    $input_basename =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
-    $path =~ s/\[input_filename_base\]/$input_basename/g;
+    my $input_filename = my $input_filename_base = basename($self->input_file);
+    $input_filename_base =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
     
-    # build a regexp to match the available options
-    my $options = join '|',
-        grep !$Slic3r::Config::Options->{$_}{multiline},
-        keys %$Slic3r::Config::Options;
-    
-    # use that regexp to search and replace option names with option values
-    $path =~ s/\[($options)\]/Slic3r::Config->serialize($1)/eg;
-    return $path;
+    return Slic3r::Config->replace_options($path, {
+        input_filename      => $input_filename,
+        input_filename_base => $input_filename_base,
+    });
 }
 
 1;

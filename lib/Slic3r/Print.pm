@@ -592,7 +592,7 @@ sub export_gcode {
     printf $fh "M104 %s%d ; set temperature\n",
         ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
             if $Slic3r::first_layer_temperature;
-    print  $fh "$Slic3r::start_gcode\n";
+    printf $fh "%s\n", Slic3r::Config->replace_options($Slic3r::start_gcode);
     printf $fh "M109 %s%d ; wait for temperature to be reached\n", 
         ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
             if $Slic3r::first_layer_temperature && $Slic3r::gcode_flavor ne 'makerbot';
@@ -720,7 +720,7 @@ sub export_gcode {
     print $fh $extruder->retract;
     print $fh $extruder->set_fan(0);
     print $fh "M501 ; reset acceleration\n" if $Slic3r::acceleration;
-    print $fh "$Slic3r::end_gcode\n";
+    printf $fh "%s\n", Slic3r::Config->replace_options($Slic3r::end_gcode);
     
     printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
         $self->total_extrusion_length, $self->total_extrusion_volume;

@@ -619,4 +619,23 @@ sub validate {
     $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
 }
 
+sub replace_options {
+    my $class = shift;
+    my ($string, $more_variables) = @_;
+    
+    if ($more_variables) {
+        my $variables = join '|', keys %$more_variables;
+        $string =~ s/\[($variables)\]/$more_variables->{$1}/eg;
+    }
+    
+    # build a regexp to match the available options
+    my $options = join '|',
+        grep !$Slic3r::Config::Options->{$_}{multiline},
+        keys %$Slic3r::Config::Options;
+    
+    # use that regexp to search and replace option names with option values
+    $string =~ s/\[($options)\]/Slic3r::Config->serialize($1)/eg;
+    return $string;
+}
+
 1;
