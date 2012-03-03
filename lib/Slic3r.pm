@@ -124,6 +124,7 @@ our $fan_below_layer_time   = 60;
 our $slowdown_below_layer_time = 15;
 our $min_print_speed        = 10;
 our $disable_fan_first_layers = 1;
+our $fan_always_on          = 0;
 
 # skirt options
 our $skirts             = 1;

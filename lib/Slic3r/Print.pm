@@ -670,7 +670,7 @@ sub export_gcode {
         }
         last if !$layer_gcode;
         
-        my $fan_speed = 0;
+        my $fan_speed = $Slic3r::fan_always_on ? $Slic3r::min_fan_speed : 0;
         my $speed_factor = 1;
         if ($Slic3r::cooling) {
             my $layer_time = $extruder->elapsed_time;
@@ -694,8 +694,8 @@ sub export_gcode {
                     /gexm;
             }
             $fan_speed = 0 if $layer->id < $Slic3r::disable_fan_first_layers;
-            $layer_gcode = $extruder->set_fan($fan_speed) . $layer_gcode;
         }
+        $layer_gcode = $extruder->set_fan($fan_speed) . $layer_gcode;
         
         # bridge fan speed
         if (!$Slic3r::cooling || $Slic3r::bridge_fan_speed == 0 || $layer->id < $Slic3r::disable_fan_first_layers) {

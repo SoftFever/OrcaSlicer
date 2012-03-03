@@ -176,6 +176,8 @@ The author is Alessandro Ranellucci (me).
                             of seconds (default: 15)
         --min-print-speed   Minimum print speed speed (mm/s, default: 10)
         --disable-fan-first-layers Disable fan for the first N layers (default: 1)
+        --fan-always-on     Keep fan always on at min fan speed, even for layers that don't need
+                            cooling
        
        Skirt options:
         --skirts            Number of skirts to draw (0+, default: 1)

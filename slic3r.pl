@@ -194,6 +194,8 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         of seconds (default: $Slic3r::slowdown_below_layer_time)
     --min-print-speed   Minimum print speed speed (mm/s, default: $Slic3r::min_print_speed)
     --disable-fan-first-layers Disable fan for the first N layers (default: $Slic3r::disable_fan_first_layers)
+    --fan-always-on     Keep fan always on at min fan speed, even for layers that don't need
+                        cooling
    
    Skirt options:
     --skirts            Number of skirts to draw (0+, default: $Slic3r::skirts)

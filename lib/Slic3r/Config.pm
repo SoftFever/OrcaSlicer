@@ -338,6 +338,11 @@ our $Options = {
         cli     => 'disable-fan-first-layers=i',
         type    => 'i',
     },
+    'fan_always_on' => {
+        label   => 'Keep fan always on',
+        cli     => 'fan-always-on',
+        type    => 'bool',
+    },
     
     # skirt options
     'skirts' => {
