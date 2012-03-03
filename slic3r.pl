@@ -120,6 +120,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         (+/-, default: $Slic3r::z_offset)
     --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/mach3/no-extrusion,
                         default: $Slic3r::gcode_flavor)
+    --use-relative-e-distances Enable this to get relative E values
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
     --g0                Use G0 commands for retraction (experimental, not supported by all

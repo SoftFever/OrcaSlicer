@@ -102,6 +102,7 @@ The author is Alessandro Ranellucci (me).
                             (+/-, default: 0)
         --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/mach3/no-extrusion,
                             default: reprap)
+        --use-relative-e-distances Enable this to get relative E values
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                             by all firmwares)
         --g0                Use G0 commands for retraction (experimental, not supported by all
