@@ -9,7 +9,7 @@ our $Options = {
 
     # miscellaneous options
     'notes' => {
-        label   => 'Configuraton notes',
+        label   => 'Configuration notes',
         cli		=> 'notes=s',
         type    => 's',
         multiline => 1,
@@ -73,7 +73,7 @@ our $Options = {
         type    => 'bool',
     },
     'gcode_comments' => {
-        label   => 'Verbose GCODE (comments)',
+        label   => 'Verbose G-code',
         cli     => 'gcode-comments',
         type    => 'bool',
     },
