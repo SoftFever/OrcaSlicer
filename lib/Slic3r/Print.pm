@@ -622,6 +622,7 @@ sub export_gcode {
     if ($Slic3r::support_material && $Slic3r::support_material_tool > 0) {
         print $fh $extruder->set_tool(0);
     }
+    print $fh $extruder->set_fan(0, 1) if $Slic3r::cooling && $Slic3r::disable_fan_first_layers;
     
     # write gcode commands layer by layer
     foreach my $layer (@{ $self->layers }) {
