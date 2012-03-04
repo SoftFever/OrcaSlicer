@@ -39,8 +39,8 @@ sub fill_surface {
     for (my $i = 0; $x <= $bounding_box->[X2] + scale epsilon; $i++) {
         my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
         if ($is_line_pattern && $i % 2) {
-            $vertical_line->[A][X] -= $line_oscillation;
-            $vertical_line->[B][X] += $line_oscillation;
+            $vertical_line->[A][X] += $line_oscillation;
+            $vertical_line->[B][X] -= $line_oscillation;
         }
         my @clipped_lines = @{ $expolygon->clip_line($vertical_line) };
         for (@clipped_lines) {
@@ -58,13 +58,18 @@ sub fill_surface {
         );
         @paths = ();
         
-        my $can_connect = $is_line_pattern
-            ? sub { $_[X] <= (abs((($_[2][Y] - $bounding_box->[Y1])*(2 * $line_oscillation)/($bounding_box->[Y2] - $bounding_box->[Y1])) - $line_oscillation) + $distance_between_lines) && $_[Y] <= $distance_between_lines * 5 }
-            : sub { ($_[X] >= $distance_between_lines - epsilon) && ($_[X] <= $distance_between_lines + epsilon) && ($_[Y] <= $distance_between_lines * 5) };
+        my $can_connect =
+            $is_line_pattern ? sub {
+                ($_[X] >= ($distance_between_lines - $line_oscillation) - epsilon) && ($_[X] <= ($distance_between_lines + $line_oscillation) + epsilon)
+                    && abs($_[Y]) <= $distance_between_lines * 5
+            } : sub {
+                ($_[X] >= $distance_between_lines - epsilon) && ($_[X] <= $distance_between_lines + epsilon)   # $_[X] == $distance_between_lines +/- epsilon
+                    && abs($_[Y]) <= $distance_between_lines * 5
+            };
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
-                my @distance = map abs($paths[-1][-1][$_] - $path->points->[0][$_]), (X,Y);
+                my @distance = map +($path->points->[0][$_] - $paths[-1][-1][$_]), (X,Y);
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
