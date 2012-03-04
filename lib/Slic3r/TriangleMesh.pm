@@ -196,6 +196,14 @@ sub make_loops {
         }
     }
     
+    # optimization: build indexes of lines
+    my %by_facet_index = map { $lines[$_]->facet_index => $_ }
+        grep defined $lines[$_]->facet_index,
+        (0..$#lines);
+    my %by_a_id = map { $lines[$_]->a_id => $_ }
+        grep defined $lines[$_]->a_id,
+        (0..$#lines);
+    
     my (@polygons, %visited_lines) = ();
     CYCLE: for (my $i = 0; $i <= $#lines; $i++) {
         my $line = $lines[$i];
@@ -205,23 +213,12 @@ sub make_loops {
         
         do {
             my $next_line;
-            if (defined $line->next_facet_index) {
-                for (@lines) {
-                    next if $visited_lines{$_};
-                    if ($_->facet_index == $line->next_facet_index) {
-                        $next_line = $_;
-                        last;
-                    }
-                }
-            } elsif (defined $line->b_id) {
-                for (@lines) {
-                    next if !defined $_->a_id;
-                    next if $visited_lines{$_};
-                    if ($_->a_id == $line->b_id) {
-                        $next_line = $_;
-                        last;
-                    }
-                }
+            if (defined $line->next_facet_index && exists $by_facet_index{$line->next_facet_index}) {
+                my $l = $lines[$by_facet_index{$line->next_facet_index}];
+                $next_line = $l unless $visited_lines{$l};
+            } elsif (defined $line->b_id && exists $by_a_id{$line->b_id}) {
+                my $l = $lines[$by_a_id{$line->b_id}];
+                $next_line = $l unless $visited_lines{$l};
             } else {
                 Slic3r::debugf "  line has no next_facet_index or b_id\n";
                 $layer->slicing_errors(1);
