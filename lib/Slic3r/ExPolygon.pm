@@ -5,7 +5,7 @@ use warnings;
 # an ExPolygon is a polygon with holes
 
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon);
+use Slic3r::Geometry qw(X Y A B point_in_polygon same_line);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
@@ -91,6 +91,14 @@ sub encloses_point {
     return $self->contour->encloses_point($point)
         && (!grep($_->encloses_point($point), $self->holes)
             || grep($_->point_on_segment($point), $self->holes));
+}
+
+sub encloses_line {
+    my $self = shift;
+    my ($line) = @_;
+    
+    my $clip = $self->clip_line($line);
+    return @$clip == 1 && same_line($clip->[0], $line);
 }
 
 sub point_on_segment {

@@ -13,7 +13,7 @@ our @EXPORT_OK = qw(
     polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
     rotate_points move_points remove_coinciding_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
-    line_intersection bounding_box bounding_box_intersect same_point
+    line_intersection bounding_box bounding_box_intersect same_point same_line
     longest_segment angle3points three_points_aligned line_direction
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
@@ -101,6 +101,11 @@ sub points_coincide {
 sub same_point {
     my ($p1, $p2) = @_;
     return $p1->[X] == $p2->[X] && $p1->[Y] == $p2->[Y];
+}
+
+sub same_line {
+    my ($line1, $line2) = @_;
+    return same_point($line1->[A], $line2->[A]) && same_point($line1->[B], $line2->[B]);
 }
 
 sub distance_between_points {

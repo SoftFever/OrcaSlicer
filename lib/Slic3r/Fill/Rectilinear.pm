@@ -15,9 +15,8 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $bounding_box = [ $expolygon->bounding_box ];
-    $bounding_box->[X1] += scale 0.1;
-    $bounding_box->[X2] -= scale 0.1;
+    my ($expolygon_off) = $expolygon->offset_ex(scale 0.2);
+    my $bounding_box = [ $expolygon_off->bounding_box ];
     
     my $min_spacing = scale $params{flow_spacing};
     my $distance_between_lines = $min_spacing / $params{density};
@@ -59,11 +58,9 @@ sub fill_surface {
         );
         @paths = ();
         
-        # the 1 below disables the fix for connection lines being extruded outside $expolygon
-        # (this happens to gears, for example).  it works, but it's 30% slower with it enabled
         my $can_connect = $is_line_pattern
             ? sub { $_[X] <= (abs((($_[2][Y] - $bounding_box->[Y1])*(2 * $line_oscillation)/($bounding_box->[Y2] - $bounding_box->[Y1])) - $line_oscillation) + $distance_between_lines) && $_[Y] <= $distance_between_lines * 5 }
-            : sub { ($_[X] >= $distance_between_lines - epsilon) && ($_[X] <= $distance_between_lines + epsilon) && ($_[Y] <= $distance_between_lines * 5) && (1 || $expolygon->encloses_point(Slic3r::Line->new(@_[2,3])->midpoint)) };
+            : sub { ($_[X] >= $distance_between_lines - epsilon) && ($_[X] <= $distance_between_lines + epsilon) && ($_[Y] <= $distance_between_lines * 5) };
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
@@ -71,7 +68,8 @@ sub fill_surface {
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
-                if ($can_connect->(@distance, $paths[-1][-1], $path->points->[0])) {
+                if ($can_connect->(@distance, $paths[-1][-1], $path->points->[0])
+                    && $expolygon_off->encloses_line([ $paths[-1][-1], $path->points->[0] ])) {
                     push @{$paths[-1]}, @{$path->points};
                     next;
                 }
