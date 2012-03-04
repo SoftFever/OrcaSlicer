@@ -214,18 +214,16 @@ sub make_loops {
         do {
             my $next_line;
             if (defined $line->next_facet_index && exists $by_facet_index{$line->next_facet_index}) {
-                my $l = $lines[$by_facet_index{$line->next_facet_index}];
-                $next_line = $l unless $visited_lines{$l};
+                $next_line = $lines[$by_facet_index{$line->next_facet_index}];
             } elsif (defined $line->b_id && exists $by_a_id{$line->b_id}) {
-                my $l = $lines[$by_a_id{$line->b_id}];
-                $next_line = $l unless $visited_lines{$l};
+                $next_line = $lines[$by_a_id{$line->b_id}];
             } else {
                 Slic3r::debugf "  line has no next_facet_index or b_id\n";
                 $layer->slicing_errors(1);
                 next CYCLE;
             }
             
-            if (!$next_line) {
+            if (!$next_line || $visited_lines{$next_line}) {
                 Slic3r::debugf "  failed to close this loop\n";
                 $layer->slicing_errors(1);
                 next CYCLE;
