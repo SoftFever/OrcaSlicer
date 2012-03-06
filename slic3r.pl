@@ -216,8 +216,9 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
     --rotate            Rotation angle in degrees (0-360, default: $Slic3r::rotate)
-    --duplicate-x       Number of items along X axis (1+, default: $Slic3r::duplicate_x)
-    --duplicate-y       Number of items along Y axis (1+, default: $Slic3r::duplicate_y)
+    --duplicate         Number of items with auto-arrange (1+, default: $Slic3r::duplicate)
+    --duplicate-x       Number of items along X axis for manual arrangement (1+, default: $Slic3r::duplicate_x)
+    --duplicate-y       Number of items along Y axis for manual arrangement (1+, default: $Slic3r::duplicate_y)
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
 
    Miscellaneous options:

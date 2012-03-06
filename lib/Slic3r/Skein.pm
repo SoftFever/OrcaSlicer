@@ -191,9 +191,9 @@ EOF
     }
     
     print $fh <<"EOF";
-	<!-- 
-	Generated using Slic3r $Slic3r::VERSION
-	http://slic3r.org/
+    <!-- 
+    Generated using Slic3r $Slic3r::VERSION
+    http://slic3r.org/
      -->
 </svg>
 EOF
