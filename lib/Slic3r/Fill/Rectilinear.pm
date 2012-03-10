@@ -16,6 +16,7 @@ sub fill_surface {
     $self->rotate_points($expolygon, $rotate_vector);
     
     my ($expolygon_off) = $expolygon->offset_ex(scale 0.2);
+    return {} if !$expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
     my $bounding_box = [ $expolygon_off->bounding_box ];
     
     my $min_spacing = scale $params{flow_spacing};
