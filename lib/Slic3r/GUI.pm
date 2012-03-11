@@ -1,6 +1,7 @@
 package Slic3r::GUI;
 use strict;
 use warnings;
+use utf8;
 
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
