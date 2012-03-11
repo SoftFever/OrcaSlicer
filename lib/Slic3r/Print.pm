@@ -47,7 +47,8 @@ sub new_from_mesh {
     pop @{$print->layers} if !@{$print->layers->[-1]->surfaces} && !@{$print->layers->[-1]->lines};
     
     foreach my $layer (@{ $print->layers }) {
-        Slic3r::debugf "Making surfaces for layer %d:\n", $layer->id;
+        Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
+            $layer->id, unscale $layer->slice_z if $Slic3r::debug;
         
         # layer currently has many lines representing intersections of
         # model facets with the layer plane. there may also be lines

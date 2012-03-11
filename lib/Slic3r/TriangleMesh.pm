@@ -1,7 +1,7 @@
 package Slic3r::TriangleMesh;
 use Moo;
 
-use Slic3r::Geometry qw(X Y Z A B epsilon same_point);
+use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 use XXX;
 
 # public
@@ -349,17 +349,16 @@ sub slice_facet {
     }
     Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
     
-    if (abs($max_z - $min_z) < epsilon) {
+    if ($max_z == $min_z) {
         Slic3r::debugf "Facet is horizontal; ignoring\n";
         return;
     }
     
     # calculate the layer extents
-    # (the -1 and +1 here are used as a quick and dirty replacement for some
-    # complex calculation of the first layer height ratio logic)
-    my $min_layer = int($min_z * $Slic3r::resolution / $Slic3r::layer_height) - 1;
+    my $first_layer_height = $Slic3r::layer_height * $Slic3r::first_layer_height_ratio;
+    my $min_layer = int((unscale($min_z) - ($first_layer_height + $Slic3r::layer_height / 2)) / $Slic3r::layer_height) - 2;
     $min_layer = 0 if $min_layer < 0;
-    my $max_layer = int($max_z * $Slic3r::resolution / $Slic3r::layer_height) + 1;
+    my $max_layer = int((unscale($max_z) - ($first_layer_height + $Slic3r::layer_height / 2)) / $Slic3r::layer_height) + 2;
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
@@ -384,7 +383,6 @@ sub intersect_facet {
         my ($a, $b)         = map $self->vertices->[$_], ($a_id, $b_id);
         #printf "Az = %f, Bz = %f, z = %f\n", $a->[Z], $b->[Z], $z;
         
-        #if (abs($a->[Z] - $b->[Z]) < epsilon && abs($a->[Z] - $z) < epsilon) {
         if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
             # edge is horizontal and belongs to the current layer
             my $edge_type = (grep $self->vertices->[$_][Z] < $z, @vertices_ids) ? 'top' : 'bottom';
