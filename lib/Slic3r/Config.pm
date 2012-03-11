@@ -514,6 +514,8 @@ sub validate {
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
     die "First layer height can't be greater than --nozzle-diameter\n"
         if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) > $Slic3r::nozzle_diameter;
+    die "First layer height can't be zero or negative\n"
+        if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) <= 0;
     
     if ($Slic3r::extrusion_width_ratio) {
         $Slic3r::flow_width = $Slic3r::layer_height * $Slic3r::extrusion_width_ratio;
