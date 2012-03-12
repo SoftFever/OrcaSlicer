@@ -11,6 +11,8 @@ use base 'Wx::Panel';
 
 my $last_skein_dir;
 my $last_config_dir;
+my $last_input_file;
+my $last_output_file;
 our $last_config;
 
 sub new {
@@ -179,9 +181,26 @@ sub do_slice {
         
         # select input file
         my $dir = $last_skein_dir || $last_config_dir || "";
-        my $dialog = Wx::FileDialog->new($self, 'Choose a STL or AMF file to slice:', $dir, "", $model_wildcard, wxFD_OPEN);
-        return unless $dialog->ShowModal == wxID_OK;
-        my ($input_file) = $dialog->GetPaths;
+
+        my $input_file;
+        if (!$params{reslice}) {
+            my $dialog = Wx::FileDialog->new($self, 'Choose a STL or AMF file to slice:', $dir, "", $model_wildcard, wxFD_OPEN);
+            return unless $dialog->ShowModal == wxID_OK;
+            $input_file = $dialog->GetPaths;
+            $last_input_file = $input_file;
+        } else {
+            if (!defined $last_input_file) {
+                Wx::MessageDialog->new($self, "No previously sliced file",
+                                       'Confirm', wxICON_ERROR | wxOK)->ShowModal();
+                return;
+            }
+            if (! -e $last_input_file) {
+                Wx::MessageDialog->new($self, "Cannot find previously sliced file!",
+                                       'Confirm', wxICON_ERROR | wxOK)->ShowModal();
+                return;
+            }
+            $input_file = $last_input_file;
+        }
         my $input_file_basename = basename($input_file);
         $last_skein_dir = dirname($input_file);
         
@@ -197,12 +216,17 @@ sub do_slice {
         );
 
         # select output file
-        if ($params{save_as}) {
+        if ($params{reslice}) {
+            if (defined $last_output_file) {
+                $skein->output_file($last_output_file);
+            }
+        } elsif ($params{save_as}) {
             my $output_file = $skein->expanded_output_filepath;
             my $dlg = Wx::FileDialog->new($self, 'Save gcode file as:', dirname($output_file),
                 basename($output_file), $gcode_wildcard, wxFD_SAVE);
             return if $dlg->ShowModal != wxID_OK;
             $skein->output_file($dlg->GetPath);
+            $last_output_file = $dlg->GetPath;
         }
         
         # show processbar dialog
