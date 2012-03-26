@@ -341,10 +341,10 @@ sub extrude_skirt {
     return if !@points;
     
     # duplicate points to take copies into account
-    push @points, map move_points($_, @points), @{$self->copies};
+    my @all_points = map move_points($_, @points), @{$self->copies};
     
     # find out convex hull
-    my $convex_hull = convex_hull(\@points);
+    my $convex_hull = convex_hull(\@all_points);
     
     # draw outlines from outside to inside
     my @skirts = ();
