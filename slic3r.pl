@@ -161,7 +161,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         Infill every N layers (default: $Slic3r::infill_every_layers)
   
   Print options:
-    --perimeters        Number of perimeters/horizontal skins (range: 1+, 
+    --perimeters        Number of perimeters/horizontal skins (range: 0+, 
                         default: $Slic3r::perimeters)
     --solid-layers      Number of solid layers to do for top/bottom surfaces
                         (range: 1+, default: $Slic3r::solid_layers)

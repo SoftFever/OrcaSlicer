@@ -143,7 +143,7 @@ The author is Alessandro Ranellucci (me).
                             Infill every N layers (default: 1)
       
       Print options:
-        --perimeters        Number of perimeters/horizontal skins (range: 1+, 
+        --perimeters        Number of perimeters/horizontal skins (range: 0+, 
                             default: 3)
         --solid-layers      Number of solid layers to do for top/bottom surfaces
                             (range: 1+, default: 3)

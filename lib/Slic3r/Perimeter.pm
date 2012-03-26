@@ -11,10 +11,6 @@ sub make_perimeter {
     my ($layer) = @_;
     Slic3r::debugf "Making perimeters for layer %d\n", $layer->id;
     
-    # at least one perimeter is required
-    die "Can't slice object with no perimeters!\n"
-        if $Slic3r::perimeters == 0;
-    
     # this array will hold one arrayref per original surface (island);
     # each item of this arrayref is an arrayref representing a depth (from outer
     # perimeters to inner); each item of this arrayref is an ExPolygon:

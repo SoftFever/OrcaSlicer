@@ -554,7 +554,7 @@ sub validate {
     
     # --perimeters
     die "Invalid value for --perimeters\n"
-        if $Slic3r::perimeters < 1;
+        if $Slic3r::perimeters < 0;
     
     # --solid-layers
     die "Invalid value for --solid-layers\n"
