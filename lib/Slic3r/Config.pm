@@ -63,7 +63,7 @@ our $Options = {
         type    => 'f',
     },
     'gcode_arcs' => {
-        label   => 'Use native GCODE arcs',
+        label   => 'Use native G-code arcs',
         cli     => 'gcode-arcs',
         type    => 'bool',
     },
@@ -250,7 +250,7 @@ our $Options = {
         labels  => [qw(Primary Secondary)],
     },
     'start_gcode' => {
-        label   => 'Start GCODE',
+        label   => 'Start G-code',
         cli     => 'start-gcode=s',
         type    => 's',
         multiline => 1,
@@ -260,7 +260,7 @@ our $Options = {
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
     'end_gcode' => {
-        label   => 'End GCODE',
+        label   => 'End G-code',
         cli     => 'end-gcode=s',
         type    => 's',
         multiline => 1,
@@ -270,7 +270,7 @@ our $Options = {
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
     'layer_gcode' => {
-        label   => 'Layer Change GCODE',
+        label   => 'Layer Change G-code',
         cli     => 'layer-gcode=s',
         type    => 's',
         multiline => 1,

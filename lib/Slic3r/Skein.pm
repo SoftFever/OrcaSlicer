@@ -133,9 +133,9 @@ sub go {
     $self->status_cb->(88, "Generating skirt");
     $print->extrude_skirt;
     
-    # output everything to a GCODE file
+    # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath;
-    $self->status_cb->(90, "Exporting GCODE to $output_file");
+    $self->status_cb->(90, "Exporting G-code to $output_file");
     $print->export_gcode($output_file);
     
     # run post-processing scripts
