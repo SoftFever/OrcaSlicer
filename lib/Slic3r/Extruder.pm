@@ -183,7 +183,7 @@ sub retract {
         : [undef, $self->z + $Slic3r::retract_lift, 0, 'lift plate during retraction'];
     
     my $gcode = "";
-    if ($Slic3r::g0 && $params{travel_to}) {
+    if (($Slic3r::g0 || $Slic3r::gcode_flavor eq 'mach3') && $params{travel_to}) {
         if ($lift) {
             # combine lift and retract
             $lift->[2] = $retract->[2];
@@ -193,7 +193,7 @@ sub retract {
             my $travel = [$params{travel_to}, undef, $retract->[2], 'travel and retract'];
             $gcode .= $self->G0(@$travel);
         }
-    } elsif ($Slic3r::g0 && defined $params{move_z}) {
+    } elsif (($Slic3r::g0 || $Slic3r::gcode_flavor eq 'mach3') && defined $params{move_z}) {
         # combine Z change and retraction
         my $travel = [undef, $params{move_z}, $retract->[2], 'change layer and retract'];
         $gcode .= $self->G0(@$travel);
@@ -244,7 +244,7 @@ sub set_acceleration {
 
 sub G0 {
     my $self = shift;
-    return $self->G1(@_) if !$Slic3r::g0;
+    return $self->G1(@_) if !($Slic3r::g0 || $Slic3r::gcode_flavor eq 'mach3');
     return $self->_G0_G1("G0", @_);
 }
 
