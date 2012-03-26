@@ -161,19 +161,19 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         Infill every N layers (default: $Slic3r::infill_every_layers)
   
   Print options:
-    --perimeters        Number of perimeters/horizontal skins (range: 0+, 
-                        default: $Slic3r::perimeters)
+    --perimeters        Number of perimeters/horizontal skins (range: 0+, default: $Slic3r::perimeters)
     --solid-layers      Number of solid layers to do for top/bottom surfaces
                         (range: 1+, default: $Slic3r::solid_layers)
     --fill-density      Infill density (range: 0-1, default: $Slic3r::fill_density)
     --fill-angle        Infill angle in degrees (range: 0-90, default: $Slic3r::fill_angle)
     --fill-pattern      Pattern to use to fill non-solid layers (default: $Slic3r::fill_pattern)
     --solid-fill-pattern Pattern to use to fill solid layers (default: $Slic3r::solid_fill_pattern)
-    --start-gcode       Load initial gcode from the supplied file. This will overwrite
+    --start-gcode       Load initial G-code from the supplied file. This will overwrite
                         the default command (home all axes [G28]).
-    --end-gcode         Load final gcode from the supplied file. This will overwrite 
+    --end-gcode         Load final G-code from the supplied file. This will overwrite 
                         the default commands (turn off temperature [M104 S0],
                         home X axis [G28 X], disable motors [M84]).
+    --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
     --support-material  Generate support material for overhangs
   
    Retraction options:

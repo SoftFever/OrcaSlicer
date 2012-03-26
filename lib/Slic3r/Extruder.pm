@@ -49,6 +49,9 @@ sub change_layer {
     $gcode .= $self->G0(undef, $z, 0, 'move to next layer')
         if $self->z != $z;
     
+    $gcode .= Slic3r::Config->replace_options($Slic3r::layer_gcode) . "\n"
+        if $Slic3r::layer_gcode;
+    
     return $gcode;
 }
 

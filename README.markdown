@@ -143,8 +143,7 @@ The author is Alessandro Ranellucci (me).
                             Infill every N layers (default: 1)
       
       Print options:
-        --perimeters        Number of perimeters/horizontal skins (range: 0+, 
-                            default: 3)
+        --perimeters        Number of perimeters/horizontal skins (range: 0+, default: 3)
         --solid-layers      Number of solid layers to do for top/bottom surfaces
                             (range: 1+, default: 3)
         --fill-density      Infill density (range: 0-1, default: 0.4)
@@ -156,6 +155,7 @@ The author is Alessandro Ranellucci (me).
         --end-gcode         Load final gcode from the supplied file. This will overwrite 
                             the default commands (turn off temperature [M104 S0],
                             home X axis [G28 X], disable motors [M84]).
+        --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --support-material  Generate support material for overhangs
       
        Retraction options:

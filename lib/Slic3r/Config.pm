@@ -255,7 +255,7 @@ our $Options = {
         type    => 's',
         multiline => 1,
         width   => 350,
-        height  => 150,
+        height  => 120,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
@@ -265,7 +265,17 @@ our $Options = {
         type    => 's',
         multiline => 1,
         width   => 350,
-        height  => 150,
+        height  => 120,
+        serialize   => sub { join '\n', split /\R+/, $_[0] },
+        deserialize => sub { join "\n", split /\\n/, $_[0] },
+    },
+    'layer_gcode' => {
+        label   => 'Layer Change GCODE',
+        cli     => 'layer-gcode=s',
+        type    => 's',
+        multiline => 1,
+        width   => 350,
+        height  => 50,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
@@ -475,7 +485,7 @@ sub validate_cli {
     my $class = shift;
     my ($opt) = @_;
     
-    for (qw(start end)) {
+    for (qw(start end layer)) {
         if (defined $opt->{$_."_gcode"}) {
             if ($opt->{$_."_gcode"} eq "") {
                 set($_."_gcode", "");

@@ -64,7 +64,7 @@ sub new {
         },
         gcode => {
             title => 'Custom GCODE',
-            options => [qw(start_gcode end_gcode gcode_comments post_process)],
+            options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
         },
         extrusion => {
             title => 'Extrusion',
