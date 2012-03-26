@@ -222,7 +222,8 @@ sub do_slice {
             }
         } elsif ($params{save_as}) {
             my $output_file = $skein->expanded_output_filepath;
-            my $dlg = Wx::FileDialog->new($self, 'Save gcode file as:', dirname($output_file),
+            $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
+            my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:', dirname($output_file),
                 basename($output_file), $gcode_wildcard, wxFD_SAVE);
             return if $dlg->ShowModal != wxID_OK;
             $skein->output_file($dlg->GetPath);
@@ -237,15 +238,22 @@ sub do_slice {
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
-            $skein->go;
+            if ($params{export_svg}) {
+                $skein->export_svg;
+            } else {
+                $skein->go;
+            }
             $self->catch_warning->($_) for @warnings;
         }
         $process_dialog->Destroy;
         undef $process_dialog;
         
-        my $message = sprintf "%s was successfully sliced in %d minutes and %.3f seconds.",
-            $input_file_basename, int($skein->processing_time/60),
-            $skein->processing_time - int($skein->processing_time/60)*60;
+        my $message = "$input_file_basename was successfully sliced";
+        $message .= sprintf " in %d minutes and %.3f seconds",
+            int($skein->processing_time/60),
+            $skein->processing_time - int($skein->processing_time/60)*60
+            if $skein->processing_time;
+        $message .= ".";
         eval {
             $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
                 if ($self->{growler});

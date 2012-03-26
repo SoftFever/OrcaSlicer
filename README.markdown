@@ -93,6 +93,7 @@ The author is Alessandro Ranellucci (me).
                             and [input_filename] (default: [input_filename_base].gcode)
         --post-process      Generated G-code will be processed with the supplied script;
                             call this more than once to process through multiple scripts.
+        --export-svg        Export a SVG file containing slices instead of G-code.
       
       Printer options:
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)

@@ -26,6 +26,7 @@ my %cli_options = ();
         'load=s@'               => \$opt{load},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
         'threads|j=i'           => \$Slic3r::threads,
+        'export-svg'            => \$opt{export_svg},
     );
     foreach my $opt_key (keys %$Slic3r::Config::Options) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
@@ -81,7 +82,11 @@ if (@ARGV) {
                 printf "=> $message\n";
             },
         );
-        $skein->go;        
+        if ($opt{export_svg}) {
+            $skein->export_svg;
+        } else {
+            $skein->go;
+        }
     }
 } else {
     usage(1) unless $opt{save};
@@ -111,6 +116,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         and [input_filename] (default: $Slic3r::output_filename_format)
     --post-process      Generated G-code will be processed with the supplied script;
                         call this more than once to process through multiple scripts.
+    --export-svg        Export a SVG file containing slices instead of G-code.
   
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
