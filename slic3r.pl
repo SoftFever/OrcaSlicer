@@ -131,7 +131,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         by all firmwares)
     --g0                Use G0 commands for retraction (experimental, not supported by all
                         firmwares)
-    --gcode-comments    Make GCODE verbose by adding comments (default: no)
+    --gcode-comments    Make G-code verbose by adding comments (default: no)
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)

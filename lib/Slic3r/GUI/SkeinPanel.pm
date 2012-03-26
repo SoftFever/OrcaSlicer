@@ -63,7 +63,7 @@ sub new {
             options => [qw(scale rotate duplicate_x duplicate_y duplicate_distance)],
         },
         gcode => {
-            title => 'Custom GCODE',
+            title => 'Custom G-code',
             options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
         },
         extrusion => {
@@ -120,7 +120,7 @@ sub new {
     $tabpanel->AddPage($tabs[0], "Print Settings");
     $tabpanel->AddPage($tabs[1], "Cooling");
     $tabpanel->AddPage($tabs[2], "Printer and Filament");
-    $tabpanel->AddPage($tabs[3], "Start/End GCODE");
+    $tabpanel->AddPage($tabs[3], "Custom G-code");
     $tabpanel->AddPage($tabs[4], "Notes");
     $tabpanel->AddPage($tabs[5], "Advanced");
         
@@ -160,7 +160,7 @@ sub new {
 
 my $model_wildcard = "STL files (*.stl)|*.stl;*.STL|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
 my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
-my $gcode_wildcard = "GCODE files *.gcode|*.gcode;*.GCODE";
+my $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE";
 
 sub do_slice {
     my $self = shift;
