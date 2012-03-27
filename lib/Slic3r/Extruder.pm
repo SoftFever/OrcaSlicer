@@ -349,7 +349,8 @@ sub set_fan {
         if ($speed == 0) {
             return sprintf "M107%s\n", ($Slic3r::gcode_comments ? ' ; disable fan' : '');
         } else {
-            return sprintf "M106 S%d%s\n", (255 * $speed / 100), ($Slic3r::gcode_comments ? ' ; enable fan' : '');
+            return sprintf "M106 %s%d%s\n", ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'),
+                (255 * $speed / 100), ($Slic3r::gcode_comments ? ' ; enable fan' : '');
         }
     }
     return "";
