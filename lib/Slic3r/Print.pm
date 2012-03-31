@@ -338,7 +338,7 @@ sub extrude_skirt {
         (map @$_, map @{$_->thin_walls}, @layers),
         (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
     );
-    return if !@points;
+    return if @points < 3;  # at least three points required for a convex hull
     
     # duplicate points to take copies into account
     my @all_points = map move_points($_, @points), @{$self->copies};
