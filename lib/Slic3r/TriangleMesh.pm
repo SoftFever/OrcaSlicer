@@ -108,9 +108,12 @@ sub clean {
 sub check_manifoldness {
     my $self = shift;
     
+    # look for edges not connected to exactly two facets
     if (grep { @$_ != 2 } @{$self->edges_facets}) {
-        warn "Warning: The input file is not manifold. You might want to check the "
-            . "resulting gcode before printing.\n";
+        my ($first_bad_edge_id) = grep { @{ $self->edges_facets->[$_] } != 2 } 0..$#{$self->edges_facets};
+        warn sprintf "Warning: The input file is not manifold near edge %f-%f. "
+            . "You might want to check the resulting G-code before printing.\n",
+            @{$self->edges->[$first_bad_edge_id]};
     }
 }
 
