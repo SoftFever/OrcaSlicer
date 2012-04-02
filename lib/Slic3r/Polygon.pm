@@ -37,6 +37,21 @@ sub lines {
     return @lines;
 }
 
+sub is_counter_clockwise {
+    my $self = shift;
+    return Math::Clipper::is_counter_clockwise($self);
+}
+
+sub make_counter_clockwise {
+    my $self = shift;
+    $self->reverse if !$self->is_counter_clockwise;
+}
+
+sub make_clockwise {
+    my $self = shift;
+    $self->reverse if $self->is_counter_clockwise;
+}
+
 sub cleanup {
     my $self = shift;
     $self->merge_continuous_lines;

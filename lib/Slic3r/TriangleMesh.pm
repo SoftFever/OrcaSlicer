@@ -245,8 +245,10 @@ sub make_loops {
             $line = $next_line;
         } while ($first_facet_index != $line->facet_index);
     
-        Slic3r::debugf "  Discovered polygon of %d points\n", scalar(@points);
         push @polygons, Slic3r::Polygon->new(@points);
+        Slic3r::debugf "  Discovered %s polygon of %d points\n",
+            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@points)
+            if $Slic3r::debug;
         pop @polygons if !$polygons[-1]->cleanup;
     }
     

@@ -66,21 +66,6 @@ sub reverse {
     @$self = CORE::reverse @$self;
 }
 
-sub is_counter_clockwise {
-    my $self = shift;
-    return Math::Clipper::is_counter_clockwise($self);
-}
-
-sub make_counter_clockwise {
-    my $self = shift;
-    $self->reverse if !$self->is_counter_clockwise;
-}
-
-sub make_clockwise {
-    my $self = shift;
-    $self->reverse if $self->is_counter_clockwise;
-}
-
 sub nearest_point_to {
     my $self = shift;
     my ($point) = @_;

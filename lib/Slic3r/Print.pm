@@ -222,8 +222,8 @@ sub detect_surfaces_type {
         # save surfaces to layer
         @{$layer->slices} = (@bottom, @top, @internal);
         
-        Slic3r::debugf "  layer %d (%d sliced expolygons) has %d bottom, %d top and %d internal surfaces\n",
-            $layer->id, scalar(@{$layer->slices}), scalar(@bottom), scalar(@top), scalar(@internal);
+        Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
+            $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
     }
     
     # clip surfaces to the fill boundaries
