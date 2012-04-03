@@ -52,6 +52,9 @@ sub fill_surface {
         ($bounding_box->[Y1] + $bounding_box->[Y2]) / 2,
     );
     foreach my $loop (map Slic3r::ExtrusionLoop->new(polygon => $_, role => 'fill'), @loops) {
+        # extrude all loops ccw
+        $loop->polygon->make_counter_clockwise;
+        
         # find the point of the loop that is closest to the current extruder position
         $cur_pos = $loop->nearest_point_to($cur_pos);
         
