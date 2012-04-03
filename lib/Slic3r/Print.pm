@@ -696,7 +696,7 @@ sub export_gcode {
             Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
             
             if ($speed_factor < 1) {
-                $layer_gcode =~ s/^(?=.*? [XY])(G1 .*?F)(\d+(?:\.\d+)?)/
+                $layer_gcode =~ s/^(?=.*? [XY])(?=.*? E)(G1 .*?F)(\d+(?:\.\d+)?)/
                     my $new_speed = $2 * $speed_factor;
                     $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
                     /gexm;
