@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
+use FindBin;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 
@@ -14,10 +15,10 @@ sub OnInit {
     my $self = shift;
     
     $self->SetAppName('Slic3r');
-    #$self->SetIcon(Wx::Icon->new("path/to/my/icon.gif", wxBITMAP_TYPE_GIF) );
     
     my $frame = Wx::Frame->new( undef, -1, 'Slic3r', [-1, -1], Wx::wxDefaultSize,
          wxDEFAULT_FRAME_STYLE ^ (wxRESIZE_BORDER | wxMAXIMIZE_BOX) );
+    #$frame->SetIcon(Wx::Icon->new("$FindBin::Bin/var/icon.png", &Wx::wxBITMAP_TYPE_ANY) );
     
     my $panel = Slic3r::GUI::SkeinPanel->new($frame);
     my $box = Wx::BoxSizer->new(wxVERTICAL);
