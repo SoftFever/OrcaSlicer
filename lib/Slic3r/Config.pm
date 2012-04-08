@@ -624,6 +624,7 @@ sub validate {
     
     # G-code flavors
     $Slic3r::extrusion_axis = 'A' if $Slic3r::gcode_flavor eq 'mach3';
+    $Slic3r::extrusion_axis = ''  if $Slic3r::gcode_flavor eq 'no-extrusion';
     
     # legacy with existing config files
     $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
