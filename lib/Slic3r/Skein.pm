@@ -94,30 +94,29 @@ sub go {
     {
         my $fill_maker = Slic3r::Fill->new('print' => $print);
         
-        if ($Config{useithreads} && $Slic3r::threads > 1 && eval "use threads; use Thread::Queue; 1") {
-            my $q = Thread::Queue->new;
-            $q->enqueue(0..($print->layer_count-1), (map undef, 1..$Slic3r::threads));
-            
-            my $thread_cb = sub {
+        Slic3r::parallelize(
+            items => [ 0..($print->layer_count-1) ],
+            thread_cb => sub {
+                my $q = shift;
                 $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
                 my $fills = {};
                 while (defined (my $layer_id = $q->dequeue)) {
                     $fills->{$layer_id} = [ $fill_maker->make_fill($print->layers->[$layer_id]) ];
                 }
                 return $fills;
-            };
-            
-            foreach my $th (map threads->create($thread_cb), 1..$Slic3r::threads) {
-                my $fills = $th->join;
+            },
+            collect_cb => sub {
+                my $fills = shift;
                 foreach my $layer_id (keys %$fills) {
                     @{$print->layers->[$layer_id]->fills} = @{$fills->{$layer_id}};
                 }
-            }
-        } else {
-            foreach my $layer (@{$print->layers}) {
-                @{$layer->fills} = $fill_maker->make_fill($layer);
-            }
-        }
+            },
+            no_threads_cb => sub {
+                foreach my $layer (@{$print->layers}) {
+                    @{$layer->fills} = $fill_maker->make_fill($layer);
+                }
+            },
+        );
     }
     
     # generate support material

@@ -568,25 +568,24 @@ sub generate_support_material {
             return @paths;
         };
         my %layer_paths = ();
-        if ($Config{useithreads} && $Slic3r::threads > 1 && eval "use threads; use Thread::Queue; 1") {
-            my $q = Thread::Queue->new;
-            $q->enqueue(keys %layers, (map undef, 1..$Slic3r::threads));
-            
-            my $thread_cb = sub {
+        Slic3r::parallelize(
+            items => [ keys %layers ],
+            thread_cb => sub {
+                my $q = shift;
                 my $paths = {};
                 while (defined (my $layer_id = $q->dequeue)) {
                     $paths->{$layer_id} = [ $clip_pattern->($layers{$layer_id}) ];
                 }
                 return $paths;
-            };
-            
-            foreach my $th (map threads->create($thread_cb), 1..$Slic3r::threads) {
-                my $paths = $th->join;
+            },
+            collect_cb => sub {
+                my $paths = shift;
                 $layer_paths{$_} = $paths->{$_} for keys %$paths;
-            }
-        } else {
-            $layer_paths{$_} = [ $clip_pattern->($layers{$_}) ] for keys %layers;
-        }
+            },
+            no_threads_cb => sub {
+                $layer_paths{$_} = [ $clip_pattern->($layers{$_}) ] for keys %layers;
+            },
+        );
         
         foreach my $layer_id (keys %layer_paths) {
             my $layer = $self->layers->[$layer_id];
