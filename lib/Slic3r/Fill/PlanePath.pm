@@ -23,7 +23,7 @@ sub fill_surface {
     my ($surface, %params) = @_;
     
     # rotate polygons
-    my $expolygon = $surface->expolygon;
+    my $expolygon = $surface->expolygon->clone;
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     

@@ -593,7 +593,7 @@ sub generate_support_material {
     my @unsupported_expolygons = ();
     {
         my (@a, @b) = ();
-        for (my $i = $#{$self->layers}; $i >=0; $i--) {
+        for my $i (reverse 0 .. $#{$self->layers}) {
             my $layer = $self->layers->[$i];
             my @c = ();
             if (@b) {
@@ -617,61 +617,53 @@ sub generate_support_material {
     return if !@unsupported_expolygons;
     
     # generate paths for the pattern that we're going to use
-    my $support_pattern = [];
+    my $support_patterns = [];
     {
-        my @support_material_areas = @{union_ex([ map @$_, @unsupported_expolygons ])};
-        
-        for (1..$Slic3r::perimeters+1) {
-            foreach my $expolygon (@support_material_areas) {
-                push @$support_pattern,
-                    map Slic3r::ExtrusionLoop->new(
-                        polygon => $_,
-                        role    => 'support-material',
-                    )->split_at_first_point, @$expolygon;
-            }
-            @support_material_areas = map $_->offset_ex(- scale $Slic3r::flow_spacing),
-                @support_material_areas;
-        }
+        my @support_material_areas = map $_->offset_ex(scale 5),
+            @{union_ex([ map @$_, @unsupported_expolygons ])};
         
         my $fill = Slic3r::Fill->new(print => $self);
-        foreach my $expolygon (@support_material_areas) {
-            my @paths = $fill->fillers->{rectilinear}->fill_surface(
-                Slic3r::Surface->new(
-                    expolygon       => $expolygon,
-                    bridge_angle    => $Slic3r::fill_angle + 45,
-                ),
-                density         => 0.15,
-                flow_spacing    => $Slic3r::flow_spacing,
-            );
-            my $params = shift @paths;
-            
-            push @$support_pattern,
-                map Slic3r::ExtrusionPath->new(
-                    polyline        => Slic3r::Polyline->new(@$_),
-                    role            => 'support-material',
-                    depth_layers    => 1,
-                    flow_spacing    => $params->{flow_spacing},
-                ), @paths;
+        foreach my $angle (0, 90) {
+            my @patterns = ();
+            foreach my $expolygon (@support_material_areas) {
+                my @paths = $fill->fillers->{rectilinear}->fill_surface(
+                    Slic3r::Surface->new(
+                        expolygon       => $expolygon,
+                        bridge_angle    => $Slic3r::fill_angle + 45 + $angle,
+                    ),
+                    density         => 0.20,
+                    flow_spacing    => $Slic3r::flow_spacing,
+                );
+                my $params = shift @paths;
+                
+                push @patterns,
+                    map Slic3r::ExtrusionPath->new(
+                        polyline        => Slic3r::Polyline->new(@$_),
+                        role            => 'support-material',
+                        depth_layers    => 1,
+                        flow_spacing    => $params->{flow_spacing},
+                    ), @paths;
+            }
+            push @$support_patterns, [@patterns];
         }
     }
-    $_->polyline->simplify(scale $Slic3r::flow_spacing / 3) for @$support_pattern;
     
     if (0) {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output(undef, "support.svg",
-            polylines        => [ map $_->polyline, @$support_pattern ],
+            polylines        => [ map $_->polyline, map @$_, @$support_patterns ],
         );
     }
     
     # apply the pattern to layers
     {
         my $clip_pattern = sub {
-            my ($expolygons) = @_;
+            my ($layer_id, $expolygons) = @_;
             my @paths = ();
             foreach my $expolygon (@$expolygons) {
                 push @paths, map $_->clip_with_expolygon($expolygon),
                     map $_->clip_with_polygon($expolygon->bounding_box_polygon),
-                    @$support_pattern;
+                    @{$support_patterns->[ $layer_id % 2 ]};
             };
             return @paths;
         };
@@ -682,7 +674,7 @@ sub generate_support_material {
                 my $q = shift;
                 my $paths = {};
                 while (defined (my $layer_id = $q->dequeue)) {
-                    $paths->{$layer_id} = [ $clip_pattern->($layers{$layer_id}) ];
+                    $paths->{$layer_id} = [ $clip_pattern->($layer_id, $layers{$layer_id}) ];
                 }
                 return $paths;
             },
@@ -691,7 +683,7 @@ sub generate_support_material {
                 $layer_paths{$_} = $paths->{$_} for keys %$paths;
             },
             no_threads_cb => sub {
-                $layer_paths{$_} = [ $clip_pattern->($layers{$_}) ] for keys %layers;
+                $layer_paths{$_} = [ $clip_pattern->($_, $layers{$_}) ] for keys %layers;
             },
         );
         
