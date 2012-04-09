@@ -39,7 +39,40 @@ sub new_from_mesh {
     );
     
     # process facets
-    $mesh->slice_facet($print, $_) for 0..$#{$mesh->facets};
+    {
+        my $apply_lines = sub {
+            my $lines = shift;
+            foreach my $layer_id (keys %$lines) {
+                my $layer = $print->layer($layer_id);
+                $layer->add_line($_) for @{ $lines->{$layer_id} };
+            }
+        };
+        Slic3r::parallelize(
+            disable => ($#{$mesh->facets} < 500),  # don't parallelize when too few facets
+            items => [ 0..$#{$mesh->facets} ],
+            thread_cb => sub {
+                my $q = shift;
+                my $result_lines = {};
+                while (defined (my $facet_id = $q->dequeue)) {
+                    my $lines = $mesh->slice_facet($print, $facet_id);
+                    foreach my $layer_id (keys %$lines) {
+                        $result_lines->{$layer_id} ||= [];
+                        push @{ $result_lines->{$layer_id} }, @{ $lines->{$layer_id} };
+                    }
+                }
+                return $result_lines;
+            },
+            collect_cb => sub {
+                $apply_lines->($_[0]);
+            },
+            no_threads_cb => sub {
+                for (0..$#{$mesh->facets}) {
+                    my $lines = $mesh->slice_facet($print, $_);
+                    $apply_lines->($lines);
+                }
+            },
+        );
+    }
     die "Invalid input file\n" if !@{$print->layers};
     
     # remove last layer if empty

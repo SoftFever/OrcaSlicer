@@ -14,6 +14,7 @@ sub debugf {
     printf @_ if $debug;
 }
 
+use Config;
 use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::Extruder;
@@ -140,5 +141,21 @@ our $rotate             = 0;
 our $duplicate_x        = 1;
 our $duplicate_y        = 1;
 our $duplicate_distance = 6;    # mm
+
+sub parallelize {
+    my %params = @_;
+    
+    if (!$params{disable} && $Config{useithreads} && $Slic3r::threads > 1 && eval "use threads; use Thread::Queue; 1") {
+        my $q = Thread::Queue->new;
+        $q->enqueue(@{ $params{items} }, (map undef, 1..$Slic3r::threads));
+        
+        my $thread_cb = sub { $params{thread_cb}->($q) };
+        foreach my $th (map threads->create($thread_cb), 1..$Slic3r::threads) {
+            $params{collect_cb}->($th->join);
+        }
+    } else {
+        $params{no_threads_cb}->();
+    }
+}
 
 1;

@@ -366,10 +366,13 @@ sub slice_facet {
     my $max_layer = int((unscale($max_z) - ($first_layer_height + $Slic3r::layer_height / 2)) / $Slic3r::layer_height) + 2;
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
+    my $lines = {};  # layer_id => [ lines ]
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
         my $layer = $print->layer($layer_id);
-        $layer->add_line($_) for $self->intersect_facet($facet_id, $layer->slice_z);
+        $lines->{$layer_id} ||= [];
+        push @{ $lines->{$layer_id} }, $self->intersect_facet($facet_id, $layer->slice_z);
     }
+    return $lines;
 }
 
 sub intersect_facet {
