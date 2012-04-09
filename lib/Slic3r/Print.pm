@@ -157,17 +157,125 @@ sub BUILD {
     my $self = shift;
     
     my $dist = scale $Slic3r::duplicate_distance;
-    $self->total_x_length($self->x_length * $Slic3r::duplicate_x + $dist * ($Slic3r::duplicate_x - 1));
-    $self->total_y_length($self->y_length * $Slic3r::duplicate_y + $dist * ($Slic3r::duplicate_y - 1));
-    
-    # generate offsets for copies
-    for my $x_copy (1..$Slic3r::duplicate_x) {
-        for my $y_copy (1..$Slic3r::duplicate_y) {
-            push @{$self->copies}, [
-                ($self->x_length + scale $Slic3r::duplicate_distance) * ($x_copy-1),
-                ($self->y_length + scale $Slic3r::duplicate_distance) * ($y_copy-1),
-            ];
+
+    if ($Slic3r::duplicate_x > 1 || $Slic3r::duplicate_y > 1) {
+        $self->total_x_length($self->x_length * $Slic3r::duplicate_x + $dist * ($Slic3r::duplicate_x - 1));
+        $self->total_y_length($self->y_length * $Slic3r::duplicate_y + $dist * ($Slic3r::duplicate_y - 1));
+        
+        # generate offsets for copies
+        for my $x_copy (1..$Slic3r::duplicate_x) {
+            for my $y_copy (1..$Slic3r::duplicate_y) {
+                push @{$self->copies}, [
+                    ($self->x_length + $dist) * ($x_copy-1),
+                    ($self->y_length + $dist) * ($y_copy-1),
+                ];
+            }
         }
+    } elsif ($Slic3r::duplicate > 1) {
+        my $linint = sub {
+            my ($value, $oldmin, $oldmax, $newmin, $newmax) = @_;
+            return ($value - $oldmin) * ($newmax - $newmin) / ($oldmax - $oldmin) + $newmin;
+        };
+
+        # use center location to determine print area. assume X200 Y200 if center is 0,0
+		# TODO: add user configuration for bed area with new gui
+        my $printx = $Slic3r::print_center->[X] * 2 || 200;
+        my $printy = $Slic3r::print_center->[Y] * 2 || 200;
+
+        # use actual part size plus separation distance (half on each side) in spacing algorithm
+        my $partx = unscale($self->x_length) + $Slic3r::duplicate_distance;
+        my $party = unscale($self->y_length) + $Slic3r::duplicate_distance;
+
+        # this is how many cells we have available into which to put parts
+        my $cellw = int($printx / $partx);
+        my $cellh = int($printy / $party);
+        die "$Slic3r::duplicate parts won't fit in your print area!\n" if $Slic3r::duplicate > ($cellw * $cellh);
+
+        # width and height of space used by cells
+        my $w = $cellw * $partx;
+        my $h = $cellh * $party;
+
+        # left and right border positions of space used by cells
+        my $l = ($printx - $w) / 2;
+        my $r = $l + $w;
+
+        # top and bottom border positions
+        my $t = ($printy - $h) / 2;
+        my $b = $t + $h;
+
+        # list of cells, sorted by distance from center
+        my @cellsorder;
+
+        # work out distance for all cells, sort into list
+        for my $i (0..$cellw-1) {
+            for my $j (0..$cellh-1) {
+                my $cx = $linint->($i + 0.5, 0, $cellw, $l, $r);
+                my $cy = $linint->($j + 0.5, 0, $cellh, $t, $b);
+
+                my $xd = abs(($printx / 2) - $cx);
+                my $yd = abs(($printy / 2) - $cy);
+
+                my $c = {
+                    location => [$cx, $cy],
+                    index => [$i, $j],
+                    distance => $xd * $xd + $yd * $yd - abs(($cellw / 2) - ($i + 0.5)),
+                };
+
+                BINARYINSERTIONSORT: {
+                    my $index = $c->{distance};
+                    my $low = 0;
+                    my $high = @cellsorder;
+                    while ($low < $high) {
+                        my $mid = ($low + (($high - $low) / 2)) | 0;
+                        my $midval = $cellsorder[$mid]->[0];
+        
+                        if ($midval < $index) {
+                            $low = $mid + 1;
+                        } elsif ($midval > $index) {
+                            $high = $mid;
+                        } else {
+                            splice @cellsorder, $mid, 0, [$index, $c];
+                            last BINARYINSERTIONSORT;
+                        }
+                    }
+                    splice @cellsorder, $low, 0, [$index, $c];
+                }
+            }
+        }
+
+        # the extents of cells actually used by objects
+        my ($lx, $ty, $rx, $by) = (0, 0, 0, 0);
+
+        # now find cells actually used by objects, map out the extents so we can position correctly
+        for my $i (1..$Slic3r::duplicate) {
+            my $c = $cellsorder[$i - 1];
+            my $cx = $c->[1]->{index}->[0];
+            my $cy = $c->[1]->{index}->[1];
+            if ($i == 1) {
+                $lx = $rx = $cx;
+                $ty = $by = $cy;
+            } else {
+                $rx = $cx if $cx > $rx;
+                $lx = $cx if $cx < $lx;
+                $by = $cy if $cy > $by;
+                $ty = $cy if $cy < $ty;
+            }
+        }
+        # now we actually place objects into cells, positioned such that the left and bottom borders are at 0
+        for my $i (1..$Slic3r::duplicate) {
+            my $c = shift @cellsorder;
+            my $cx = $c->[1]->{index}->[0] - $lx;
+            my $cy = $c->[1]->{index}->[1] - $ty;
+
+            push @{$self->copies}, [scale($cx * $partx - (unscale($self->x_length) / 2)), scale($cy * $party - (unscale($self->y_length) / 2))];
+        }
+        # save size of area used
+        $self->total_x_length(scale(($rx - $lx) * $partx));
+        $self->total_y_length(scale(($by - $ty) * $party));
+    } else {
+        $self->total_x_length($self->x_length);
+        $self->total_y_length($self->y_length);
+        push @{$self->copies}, [0, 0];
     }
 }
 

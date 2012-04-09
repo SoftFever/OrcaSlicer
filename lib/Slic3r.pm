@@ -138,6 +138,7 @@ our $skirt_height       = 1;    # layers
 # transform options
 our $scale              = 1;
 our $rotate             = 0;
+our $duplicate          = 1;
 our $duplicate_x        = 1;
 our $duplicate_y        = 1;
 our $duplicate_distance = 6;    # mm

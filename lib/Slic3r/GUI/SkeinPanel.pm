@@ -60,7 +60,7 @@ sub new {
         },
         transform => {
             title => 'Transform',
-            options => [qw(scale rotate duplicate_x duplicate_y duplicate_distance)],
+            options => [qw(scale rotate duplicate duplicate_x duplicate_y duplicate_distance)],
         },
         gcode => {
             title => 'Custom G-code',
