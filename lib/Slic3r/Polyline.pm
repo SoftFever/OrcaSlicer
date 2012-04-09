@@ -40,6 +40,11 @@ sub lines {
     return @lines;
 }
 
+sub boost_linestring {
+    my $self = shift;
+    return Boost::Geometry::Utils::linestring($self);
+}
+
 sub merge_continuous_lines {
     my $self = shift;
     
@@ -95,47 +100,12 @@ sub clip_with_expolygon {
     my $self = shift;
     my ($expolygon) = @_;
     
-    #printf "Clipping polyline of %d points to expolygon of %d polygons and %d points\n",
-    #    scalar(@$self), scalar(@$expolygon), scalar(map @$_, @$expolygon);
-    
-    my @polylines = ();
-    my $current_polyline = [];
-    foreach my $line ($self->lines) {
-        my ($first_line, @other_lines) = @{ $expolygon->clip_line($line) };
-        next unless $first_line;
-        
-        if (!@$current_polyline) {
-            push @$current_polyline, @$first_line;
-        } elsif ($first_line->[A]->coincides_with($current_polyline->[-1])) {
-            push @$current_polyline, $first_line->[B];
-        } else {
-            push @polylines, $current_polyline;
-            $current_polyline = [ @$first_line ];
-        }
-        
-        foreach my $other_line (@other_lines) {
-            if (@$current_polyline) {
-                push @polylines, $current_polyline;
-                $current_polyline = [];
-            }
-            push @polylines, [ @$other_line ];
-        }
-    }
-    if (@$current_polyline) {
-        push @polylines, $current_polyline;
-    }
-    
-    if (@polylines > 1 && same_point($polylines[-1][-1], $polylines[0][0])) {
-        if (scalar(@{$polylines[-1]}) == 2) {
-            unshift @{$polylines[0]}, $polylines[-1][0];
-            pop @polylines;
-        } else {
-            push @{$polylines[-1]}, $polylines[0][-1];
-            shift @polylines;
-        }
-    }
-    
-    return map Slic3r::Polyline->new($_), @polylines;
+    my $result = Boost::Geometry::Utils::polygon_linestring_intersection(
+        $expolygon->boost_polygon,
+        $self->boost_linestring,
+    );
+    bless $_, 'Slic3r::Polyline' for @$result;
+    return @$result;
 }
 
 sub bounding_box {

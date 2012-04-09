@@ -4,6 +4,7 @@ use warnings;
 
 # an ExPolygon is a polygon with holes
 
+use Boost::Geometry::Utils;
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
@@ -51,6 +52,11 @@ sub clipper_expolygon {
         outer => $self->contour,
         holes => [ $self->holes ],
     };
+}
+
+sub boost_polygon {
+    my $self = shift;
+    return Boost::Geometry::Utils::polygon(@$self);
 }
 
 sub offset {
@@ -131,32 +137,10 @@ sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
     
-    my @intersections = grep $_, map $_->intersection($line, 1), map $_->lines, @$self;
-    my @dir = (
-        $line->[B][X] <=> $line->[A][X],
-        $line->[B][Y] <=> $line->[A][Y],
+    return Boost::Geometry::Utils::polygon_linestring_intersection(
+        $self->boost_polygon,
+        $line->boost_linestring,
     );
-    
-    @intersections = sort {
-        (($a->[X] <=> $b->[X]) == $dir[X]) && (($a->[Y] <=> $b->[Y]) == $dir[Y]) ? 1 : -1
-    } @intersections, @$line;
-    
-    shift @intersections if $intersections[0]->coincides_with($intersections[1]);
-    pop @intersections if $intersections[-1]->coincides_with($intersections[-2]);
-    
-    shift @intersections
-        if !$self->encloses_point($intersections[0])
-        && !$self->point_on_segment($intersections[0]);
-    
-    my @lines = ();
-    while (@intersections) {
-        # skip tangent points
-        my @points = splice @intersections, 0, 2;
-        next if !$points[1];
-        next if $points[0]->coincides_with($points[1]);
-        push @lines, [ @points ];
-    }
-    return [@lines];
 }
 
 sub simplify {

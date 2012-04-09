@@ -34,22 +34,25 @@ sub fill_surface {
     
     my $overlap_distance = scale $Slic3r::flow_width * 0.4;
     
-    my @paths = ();
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
+    my @vertical_lines = ();
     for (my $i = 0; $x <= $bounding_box->[X2] + scale epsilon; $i++) {
         my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
         if ($is_line_pattern && $i % 2) {
             $vertical_line->[A][X] += $line_oscillation;
             $vertical_line->[B][X] -= $line_oscillation;
         }
-        my @clipped_lines = @{ $expolygon->clip_line($vertical_line) };
-        for (@clipped_lines) {
-            $_->[0][Y] += $overlap_distance;
-            $_->[-1][Y] -= $overlap_distance;
-        }
-        push @paths, @clipped_lines;
+        push @vertical_lines, $vertical_line;
         $x += $distance_between_lines;
+    }
+    my @paths = @{ Boost::Geometry::Utils::polygon_linestring_intersection(
+        $expolygon->boost_polygon,
+        Boost::Geometry::Utils::linestring(@vertical_lines),
+    ) };
+    for (@paths) {
+        $_->[0][Y] += $overlap_distance;
+        $_->[-1][Y] -= $overlap_distance;
     }
     
     # connect lines
@@ -75,7 +78,7 @@ sub fill_surface {
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
                 if ($can_connect->(@distance, $paths[-1][-1], $path->points->[0])
-                    && $expolygon_off->encloses_line([ $paths[-1][-1], $path->points->[0] ])) {
+                    && $expolygon_off->encloses_line(Slic3r::Line->new($paths[-1][-1], $path->points->[0]))) {
                     push @{$paths[-1]}, @{$path->points};
                     next;
                 }

@@ -2,6 +2,7 @@ package Slic3r::Line;
 use strict;
 use warnings;
 
+use Boost::Geometry::Utils;
 use Slic3r::Geometry qw(A B X Y);
 
 sub new {
@@ -29,6 +30,11 @@ sub ordered_id {
 sub coordinates {
     my $self = shift;
     return ($self->a->coordinates, $self->b->coordinates);
+}
+
+sub boost_linestring {
+    my $self = shift;
+    return Boost::Geometry::Utils::linestring($self);
 }
 
 sub coincides_with {
