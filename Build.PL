@@ -15,11 +15,16 @@ my $build = Module::Build->new(
         'Math::Geometry::Voronoi'   => '1.3',
         'Math::PlanePath'           => '53',
         'Moo'                       => '0',
+        'perl'                      => '5.10.0',
         'Time::HiRes'               => '0',
         'XXX'                       => '0',
     },
     build_requires => {
         'Test::More' => '0.10',
+    },
+    recommends     => {
+        'Growl::GNTP' => '0.15',
+        'Wx'          => '0.9901',
     },
     script_files    => ['slic3r.pl'],
 );
