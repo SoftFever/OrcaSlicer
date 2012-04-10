@@ -140,12 +140,12 @@ is_deeply $intersection, [ [12, 12], [18, 16] ], 'internal lines are preserved';
     is is_counter_clockwise($small_circle), 0, "hole is clockwise";
     
     my $expolygon = Slic3r::ExPolygon->new($large_circle, $small_circle);
-    $line = Slic3r::Line->new([152.741724,288.086671142818], [152.741724,34.166466971035]);
+    $line = Slic3r::Line->new([152.742,288.086671142818], [152.742,34.166466971035]);
     
     my $intersections = $expolygon->clip_line($line);
     is_deeply $intersections, [
-        [ [152.741724, 288.086671142818], [152.741724, 215.178806915206],  ],
-        [ [152.741724, 108.087543109156], [152.741724, 35.166466971035] ],
+        [ [152.742, 288.087], [152.742, 215.179],  ],
+        [ [152.742, 108.088], [152.742, 35.1665] ],
     ], 'line is clipped to square with hole';
 }
 

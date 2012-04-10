@@ -2,11 +2,12 @@ use Module::Build;
 
 my $build = Module::Build->new(
     module_name     => 'Slic3r',
-    dist_abstract   => 'STL-to-GCODE translator',
+    dist_abstract   => 'G-code generator for 3D printers',
     dist_author     => 'Alessandro Ranellucci <aar@cpan.org>',
     dist_version    => '0.1',
     license         => 'perl',
     requires        => {
+        'Boost::Geometry::Utils'    => '0',
         'File::Basename'            => '0',
         'Getopt::Long'              => '0',
         'Math::Clipper'             => '1.05',
