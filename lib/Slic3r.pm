@@ -38,7 +38,8 @@ use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 use Slic3r::TriangleMesh::IntersectionLine;
 
-our $threads            = 4;
+our $have_threads       = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
+our $threads            = $have_threads ? 4 : undef;
 
 # miscellaneous options
 our $notes              = '';
@@ -146,7 +147,7 @@ our $duplicate_distance = 6;    # mm
 sub parallelize {
     my %params = @_;
     
-    if (!$params{disable} && $Config{useithreads} && $Slic3r::threads > 1 && eval "use threads; use Thread::Queue; 1") {
+    if (!$params{disable} && $Slic3r::have_threads && $Slic3r::threads > 1) {
         my $q = Thread::Queue->new;
         $q->enqueue(@{ $params{items} }, (map undef, 1..$Slic3r::threads));
         

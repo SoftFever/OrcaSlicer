@@ -95,6 +95,13 @@ if (@ARGV) {
 sub usage {
     my ($exit_code) = @_;
     
+    my $j = '';
+    if ($Slic3r::have_threads) {
+        $j = <<"EOF";
+    -j, --threads <num> Number of threads to use (1+, default: $Slic3r::threads)
+EOF
+    }
+    
     print <<"EOF";
 Slic3r $Slic3r::VERSION is a STL-to-GCODE translator for RepRap 3D printers
 written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
@@ -108,7 +115,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     -o, --output <file> File to output gcode to (by default, the file will be saved
                         into the same directory as the input file using the 
                         --output-filename-format to generate the filename)
-    
+$j
   Output options:
     --output-filename-format
                         Output file name format; all config options enclosed in brackets

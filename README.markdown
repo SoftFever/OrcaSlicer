@@ -85,7 +85,8 @@ The author is Alessandro Ranellucci (me).
         -o, --output <file> File to output gcode to (by default, the file will be saved
                             into the same directory as the input file using the 
                             --output-filename-format to generate the filename)
-        
+        -j, --threads <num> Number of threads to use (1+, default: 4) 
+      
       Output options:
         --output-filename-format
                             Output file name format; all config options enclosed in brackets
