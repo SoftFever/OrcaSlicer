@@ -15,6 +15,7 @@ my $build = Module::Build->new(
         'Math::Geometry::Voronoi'   => '1.3',
         'Math::PlanePath'           => '53',
         'Moo'                       => '0',
+        'perl'                      => '5.10.0',
         'Time::HiRes'               => '0',
         'XXX'                       => '0',
     },
