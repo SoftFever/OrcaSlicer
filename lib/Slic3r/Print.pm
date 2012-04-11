@@ -181,9 +181,18 @@ sub BUILD {
         my $partx = unscale($self->x_length) + $Slic3r::duplicate_distance;
         my $party = unscale($self->y_length) + $Slic3r::duplicate_distance;
 
+        # margin needed for the skirt
+        my $skirt_margin;		
+        if ($Slic3r::skirts > 0) {
+            $skirt_margin = ($Slic3r::flow_spacing * $Slic3r::skirts + $Slic3r::skirt_distance) * 2;
+        } else {
+            $skirt_margin = 0;		
+        }
+
         # this is how many cells we have available into which to put parts
-        my $cellw = int($Slic3r::bed_size->[X] / $partx);
-        my $cellh = int($Slic3r::bed_size->[Y] / $party);
+        my $cellw = int(($Slic3r::bed_size->[X] - $skirt_margin + $Slic3r::duplicate_distance) / $partx);
+        my $cellh = int(($Slic3r::bed_size->[Y] - $skirt_margin + $Slic3r::duplicate_distance) / $party);
+
         die "$Slic3r::duplicate parts won't fit in your print area!\n" if $Slic3r::duplicate > ($cellw * $cellh);
 
         # width and height of space used by cells
@@ -266,8 +275,8 @@ sub BUILD {
         }
 
         # save size of area used
-        $self->total_x_length(scale(($rx - $lx + 1) * $partx));
-        $self->total_y_length(scale(($by - $ty + 1) * $party));
+        $self->total_x_length(scale(($rx - $lx + 1) * $partx - $Slic3r::duplicate_distance));
+        $self->total_y_length(scale(($by - $ty + 1) * $party - $Slic3r::duplicate_distance));
     } else {
         $self->total_x_length($self->x_length);
         $self->total_y_length($self->y_length);
