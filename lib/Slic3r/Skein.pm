@@ -169,33 +169,32 @@ sub export_svg {
     print $fh sprintf <<"EOF", unscale($print->total_x_length), unscale($print->total_y_length);
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
-<svg width="%s" height="%s" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="%s" height="%s" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:slic3r="http://slic3r.org/namespaces/slic3r">
+  <!-- 
+  Generated using Slic3r $Slic3r::VERSION
+  http://slic3r.org/
+   -->
 EOF
     
     my $print_polygon = sub {
-        my ($polygon, $fill) = @_;
-        printf $fh qq{    <polygon points="%s" style="fill: %s" />},
-            (join ' ', map { join ',', map unscale $_, @$_ } @$polygon), $fill;
+        my ($polygon, $type) = @_;
+        printf $fh qq{    <polygon slic3r:type="%s" points="%s" style="fill: %s" />\n},
+            $type, (join ' ', map { join ',', map unscale $_, @$_ } @$polygon),
+            ($type eq 'contour' ? 'black' : 'white');
     };
     
     foreach my $layer (@{$print->layers}) {
-        printf $fh qq{  <g id="layer%d">\n}, $layer->id;
+        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer->id, unscale $layer->slice_z;
         # sort slices so that the outermost ones come first
         my @slices = sort { $a->expolygon->contour->encloses_point($b->expolygon->contour->[0]) ? 0 : 1 } @{$layer->slices};
         foreach my $slice (@slices) {
-            $print_polygon->($slice->expolygon->contour, 'black');
-            $print_polygon->($_, 'white') for $slice->expolygon->holes;
+            $print_polygon->($slice->expolygon->contour, 'contour');
+            $print_polygon->($_, 'hole') for $slice->expolygon->holes;
         }
         print $fh qq{  </g>\n};
     }
     
-    print $fh <<"EOF";
-    <!-- 
-    Generated using Slic3r $Slic3r::VERSION
-    http://slic3r.org/
-     -->
-</svg>
-EOF
+    print $fh "</svg>\n";
     close $fh;
     print "Done.\n";
 }
