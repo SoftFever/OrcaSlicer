@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
+use Slic3r::Geometry qw(X Y);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
     wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON);
@@ -60,7 +61,7 @@ sub new {
         },
         transform => {
             title => 'Transform',
-            options => [qw(scale rotate duplicate duplicate_x duplicate_y duplicate_distance)],
+            options => [qw(scale rotate duplicate duplicate_grid duplicate_distance)],
         },
         gcode => {
             title => 'Custom G-code',
@@ -172,7 +173,8 @@ sub do_slice {
         Slic3r::Config->validate;
 
         # confirm slicing of more than one copies
-        my $copies = Slic3r::Config->get('duplicate_x') * Slic3r::Config->get('duplicate_y');
+        my $copies = $Slic3r::duplicate_grid->[X] * $Slic3r::duplicate_grid->[Y];
+        $copies = $Slic3r::duplicate if $Slic3r::duplicate > 1;
         if ($copies > 1) {
             my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
                                                       'Confirm', wxICON_QUESTION | wxOK | wxCANCEL);

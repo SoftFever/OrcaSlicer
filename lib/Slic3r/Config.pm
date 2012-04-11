@@ -5,6 +5,9 @@ use utf8;
 
 use constant PI => 4 * atan2(1, 1);
 
+# cemetery of old config settings
+our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y);
+
 our $Options = {
 
     # miscellaneous options
@@ -397,17 +400,12 @@ our $Options = {
         cli      => 'duplicate=i',
         type    => 'i',
     },
-    'duplicate_x' => {
-        label   => 'Copies along X',
-        cli     => 'duplicate-x=i',
-        type    => 'i',
-        aliases => [qw(multiply_x)],
-    },
-    'duplicate_y' => {
-        label   => 'Copies along Y',
-        cli     => 'duplicate-y=i',
-        type    => 'i',
-        aliases => [qw(multiply_y)],
+    'duplicate_grid' => {
+        label   => 'Copies (grid)',
+        cli     => 'duplicate-grid=s',
+        type    => 'point',
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
     },
     'duplicate_distance' => {
         label   => 'Distance between copies',
@@ -465,6 +463,8 @@ sub load {
     my $class = shift;
     my ($file) = @_;
     
+    my %ignore = map { $_ => 1 } @Ignore;
+    
     local $/ = "\n";
     open my $fh, '<', $file;
     binmode $fh, ':utf8';
@@ -475,6 +475,7 @@ sub load {
         next if /^\s*#/;
         /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
         my $key = $1;
+        next if $ignore{$key};
         if (!exists $Options->{$key}) {
             $key = +(grep { $Options->{$_}{aliases} && grep $_ eq $key, @{$Options->{$_}{aliases}} }
                 keys %$Options)[0] or warn "Unknown option $1 at line $.\n";
@@ -611,21 +612,11 @@ sub validate {
         if $Slic3r::scale <= 0;
     
     # --duplicate
-    die "Invalid value for --duplicate\n"
-        if $Slic3r::duplicate < 1;
-
-    # --duplicate-x
-    die "Invalid value for --duplicate-x\n"
-        if $Slic3r::duplicate_x < 1;
-    
-    # --duplicate-y
-    die "Invalid value for --duplicate-y\n"
-        if $Slic3r::duplicate_y < 1;
-
-    # reflect actual quantity in 'duplicate' setting for use with output-filename-format, ie both --duplicate 15 and --duplicate-x 3 --duplicate-y 5 will make an appropriate filename
-    if ($Slic3r::duplicate == 1 && (($Slic3r::duplicate_x > 1) || ($Slic3r::duplicate_y > 1))) {
-        $Slic3r::duplicate = $Slic3r::duplicate_x * $Slic3r::duplicate_y;
-    }
+    die "Invalid value for --duplicate or --duplicate-grid\n"
+        if !$Slic3r::duplicate || $Slic3r::duplicate < 1 || !$Slic3r::duplicate_grid
+            || (grep !$_, @$Slic3r::duplicate_grid);
+    die "Use either --duplicate or --duplicate-grid (using both doesn't make sense)\n"
+        if $Slic3r::duplicate > 1 && $Slic3r::duplicate_grid && (grep $_ && $_ > 1, @$Slic3r::duplicate_grid);
     
     # --duplicate-distance
     die "Invalid value for --duplicate-distance\n"

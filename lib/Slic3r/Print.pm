@@ -158,13 +158,13 @@ sub BUILD {
     
     my $dist = scale $Slic3r::duplicate_distance;
 
-    if ($Slic3r::duplicate_x > 1 || $Slic3r::duplicate_y > 1) {
-        $self->total_x_length($self->x_length * $Slic3r::duplicate_x + $dist * ($Slic3r::duplicate_x - 1));
-        $self->total_y_length($self->y_length * $Slic3r::duplicate_y + $dist * ($Slic3r::duplicate_y - 1));
+    if ($Slic3r::duplicate_grid->[X] > 1 || $Slic3r::duplicate_grid->[Y] > 1) {
+        $self->total_x_length($self->x_length * $Slic3r::duplicate_grid->[X] + $dist * ($Slic3r::duplicate_grid->[X] - 1));
+        $self->total_y_length($self->y_length * $Slic3r::duplicate_grid->[Y] + $dist * ($Slic3r::duplicate_grid->[Y] - 1));
         
         # generate offsets for copies
-        for my $x_copy (1..$Slic3r::duplicate_x) {
-            for my $y_copy (1..$Slic3r::duplicate_y) {
+        for my $x_copy (1..$Slic3r::duplicate_grid->[X]) {
+            for my $y_copy (1..$Slic3r::duplicate_grid->[Y]) {
                 push @{$self->copies}, [
                     ($self->x_length + $dist) * ($x_copy-1),
                     ($self->y_length + $dist) * ($y_copy-1),

@@ -224,14 +224,13 @@ $j
     --scale             Factor for scaling input object (default: $Slic3r::scale)
     --rotate            Rotation angle in degrees (0-360, default: $Slic3r::rotate)
     --duplicate         Number of items with auto-arrange (1+, default: $Slic3r::duplicate)
-    --duplicate-x       Number of items along X axis for manual arrangement (1+, default: $Slic3r::duplicate_x)
-    --duplicate-y       Number of items along Y axis for manual arrangement (1+, default: $Slic3r::duplicate_y)
+    --duplicate-grid    Number of items with grid arrangement (default: $Slic3r::duplicate_grid->[0],$Slic3r::duplicate_grid->[1])
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
 
    Miscellaneous options:
     --notes             Notes to be added as comments to the output file
   
-  Flow options (advanced):
+   Flow options (advanced):
     --extrusion-width-ratio
                         Calculate the extrusion width as the layer height multiplied by
                         this value (> 0, default: calculated automatically)

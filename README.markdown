@@ -195,14 +195,13 @@ The author is Alessandro Ranellucci (me).
         --scale             Factor for scaling input object (default: 1)
         --rotate            Rotation angle in degrees (0-360, default: 0)
         --duplicate         Number of items with auto-arrange (1+, default: 1)
-        --duplicate-x       Number of items along X axis for manual arrangement (1+, default: 1)
-        --duplicate-y       Number of items along Y axis for manual arrangement (1+, default: 1)
+        --duplicate-grid    Number of items with grid arrangement (default: 1,1)
         --duplicate-distance Distance in mm between copies (default: 6)
-    
+        
        Miscellaneous options:
         --notes             Notes to be added as comments to the output file
       
-      Flow options (advanced):
+       Flow options (advanced):
         --extrusion-width-ratio
                             Calculate the extrusion width as the layer height multiplied by
                             this value (> 0, default: calculated automatically)
