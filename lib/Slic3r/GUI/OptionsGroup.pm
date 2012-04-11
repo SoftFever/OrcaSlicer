@@ -8,7 +8,8 @@ use base 'Wx::StaticBoxSizer';
 
 
 # not very elegant, but this solution is temporary waiting for a better GUI
-our @reload_callbacks = ();
+our @reload_callbacks = (\&update_duplicate_controls);
+our %fields = ();  # $key => [$control]
 
 sub new {
     my $class = shift;
@@ -77,9 +78,13 @@ sub new {
                 $x_field->SetValue($value->[0]);
                 $y_field->SetValue($value->[1]);
             };
+            $fields{$opt_key} = [$x_field, $y_field];
         } elsif ($opt->{type} eq 'select') {
             $field = Wx::Choice->new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values});
-            EVT_CHOICE($parent, $field, sub { Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]) });
+            EVT_CHOICE($parent, $field, sub {
+                Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
+                update_duplicate_controls() if $opt_key eq 'duplicate_mode';
+            });
             push @reload_callbacks, sub {
                 my $value = Slic3r::Config->get($opt_key);
                 $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
@@ -89,11 +94,20 @@ sub new {
             die "Unsupported option type: " . $opt->{type};
         }
         $grid_sizer->Add($_) for $label, $field;
+        $fields{$opt_key} ||= [$field];
     }
     
     $self->Add($grid_sizer, 0, wxEXPAND);
     
     return $self;
+}
+
+sub update_duplicate_controls {
+    my $value = Slic3r::Config->get('duplicate_mode');
+    $_->Enable($value eq 'autoarrange') for @{$fields{duplicate}};
+    $_->Enable($value eq 'autoarrange') for @{$fields{bed_size}};
+    $_->Enable($value eq 'grid') for @{$fields{duplicate_grid}};
+    $_->Enable($value ne 'no') for @{$fields{duplicate_distance}};
 }
 
 1;

@@ -395,6 +395,13 @@ our $Options = {
         cli     => 'rotate=i',
         type    => 'i',
     },
+    'duplicate_mode' => {
+        label   => 'Duplicate',
+        gui_only => 1,
+        type    => 'select',
+        values  => [qw(no autoarrange grid)],
+        labels  => ['No', 'Autoarrange', 'Grid'],
+    },
     'duplicate' => {
         label    => 'Copies (autoarrange)',
         cli      => 'duplicate=i',
@@ -459,6 +466,7 @@ sub save {
     open my $fh, '>', $file;
     binmode $fh, ':utf8';
     foreach my $opt (sort keys %$Options) {
+        next if $Options->{$opt}{gui_only};
         my $value = get($opt);
         $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
         printf $fh "%s = %s\n", $opt, $value;
@@ -624,6 +632,8 @@ sub validate {
             || (grep !$_, @$Slic3r::duplicate_grid);
     die "Use either --duplicate or --duplicate-grid (using both doesn't make sense)\n"
         if $Slic3r::duplicate > 1 && $Slic3r::duplicate_grid && (grep $_ && $_ > 1, @$Slic3r::duplicate_grid);
+    $Slic3r::duplicate_mode = 'autoarrange' if $Slic3r::duplicate > 1;
+    $Slic3r::duplicate_mode = 'grid' if grep $_ && $_ > 1, @$Slic3r::duplicate_grid;
     
     # --duplicate-distance
     die "Invalid value for --duplicate-distance\n"

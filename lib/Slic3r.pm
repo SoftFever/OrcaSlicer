@@ -139,6 +139,7 @@ our $skirt_height       = 1;    # layers
 # transform options
 our $scale              = 1;
 our $rotate             = 0;
+our $duplicate_mode     = 'no';
 our $duplicate          = 1;
 our $bed_size           = [200,200];
 our $duplicate_grid     = [1,1];

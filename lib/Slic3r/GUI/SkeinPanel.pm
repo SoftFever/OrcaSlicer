@@ -61,7 +61,7 @@ sub new {
         },
         transform => {
             title => 'Transform',
-            options => [qw(scale rotate duplicate bed_size duplicate_grid duplicate_distance)],
+            options => [qw(scale rotate duplicate_mode duplicate bed_size duplicate_grid duplicate_distance)],
         },
         gcode => {
             title => 'Custom G-code',
@@ -155,6 +155,8 @@ sub new {
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);
     $self->Layout;
+    
+    $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
     
     return $self;
 }
