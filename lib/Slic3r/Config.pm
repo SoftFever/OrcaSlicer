@@ -601,7 +601,7 @@ sub validate {
     die "Invalid value for --print-center\n"
         if !ref $Slic3r::print_center 
             && (!$Slic3r::print_center || $Slic3r::print_center !~ /^\d+,\d+$/);
-    $Slic3r::print_center = [ split /,/, $Slic3r::print_center ]
+    $Slic3r::print_center = [ split /[,x]/, $Slic3r::print_center ]
         if !ref $Slic3r::print_center;
     
     # --fill-pattern
@@ -630,14 +630,14 @@ sub validate {
     die "Invalid value for --bed-size\n"
         if !ref $Slic3r::bed_size 
             && (!$Slic3r::bed_size || $Slic3r::bed_size !~ /^\d+,\d+$/);
-    $Slic3r::bed_size = [ split /,/, $Slic3r::bed_size ]
+    $Slic3r::bed_size = [ split /[,x]/, $Slic3r::bed_size ]
         if !ref $Slic3r::bed_size;
     
     # --duplicate-grid
     die "Invalid value for --duplicate-grid\n"
         if !ref $Slic3r::duplicate_grid 
             && (!$Slic3r::duplicate_grid || $Slic3r::duplicate_grid !~ /^\d+,\d+$/);
-    $Slic3r::duplicate_grid = [ split /,/, $Slic3r::duplicate_grid ]
+    $Slic3r::duplicate_grid = [ split /[,x]/, $Slic3r::duplicate_grid ]
         if !ref $Slic3r::duplicate_grid;
     
     # --duplicate
