@@ -140,6 +140,7 @@ our $skirt_height       = 1;    # layers
 our $scale              = 1;
 our $rotate             = 0;
 our $duplicate          = 1;
+our $bed_size           = [200,200];
 our $duplicate_grid     = [1,1];
 our $duplicate_distance = 6;    # mm
 

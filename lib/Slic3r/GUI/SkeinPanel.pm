@@ -61,7 +61,7 @@ sub new {
         },
         transform => {
             title => 'Transform',
-            options => [qw(scale rotate duplicate duplicate_grid duplicate_distance)],
+            options => [qw(scale rotate duplicate bed_size duplicate_grid duplicate_distance)],
         },
         gcode => {
             title => 'Custom G-code',

@@ -195,6 +195,7 @@ The author is Alessandro Ranellucci (me).
         --scale             Factor for scaling input object (default: 1)
         --rotate            Rotation angle in degrees (0-360, default: 0)
         --duplicate         Number of items with auto-arrange (1+, default: 1)
+        --bed-size          Bed size, only used for auto-arrange (mm, default: 200,200)
         --duplicate-grid    Number of items with grid arrangement (default: 1,1)
         --duplicate-distance Distance in mm between copies (default: 6)
         

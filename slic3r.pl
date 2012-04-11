@@ -224,6 +224,7 @@ $j
     --scale             Factor for scaling input object (default: $Slic3r::scale)
     --rotate            Rotation angle in degrees (0-360, default: $Slic3r::rotate)
     --duplicate         Number of items with auto-arrange (1+, default: $Slic3r::duplicate)
+    --bed-size          Bed size, only used for auto-arrange (mm, default: $Slic3r::bed_size->[0],$Slic3r::bed_size->[1])
     --duplicate-grid    Number of items with grid arrangement (default: $Slic3r::duplicate_grid->[0],$Slic3r::duplicate_grid->[1])
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
 

@@ -177,18 +177,13 @@ sub BUILD {
             return ($value - $oldmin) * ($newmax - $newmin) / ($oldmax - $oldmin) + $newmin;
         };
 
-        # use center location to determine print area. assume X200 Y200 if center is 0,0
-		# TODO: add user configuration for bed area with new gui
-        my $printx = $Slic3r::print_center->[X] * 2 || 200;
-        my $printy = $Slic3r::print_center->[Y] * 2 || 200;
-
         # use actual part size plus separation distance (half on each side) in spacing algorithm
         my $partx = unscale($self->x_length) + $Slic3r::duplicate_distance;
         my $party = unscale($self->y_length) + $Slic3r::duplicate_distance;
 
         # this is how many cells we have available into which to put parts
-        my $cellw = int($printx / $partx);
-        my $cellh = int($printy / $party);
+        my $cellw = int($Slic3r::bed_size->[X] / $partx);
+        my $cellh = int($Slic3r::bed_size->[Y] / $party);
         die "$Slic3r::duplicate parts won't fit in your print area!\n" if $Slic3r::duplicate > ($cellw * $cellh);
 
         # width and height of space used by cells
@@ -196,11 +191,11 @@ sub BUILD {
         my $h = $cellh * $party;
 
         # left and right border positions of space used by cells
-        my $l = ($printx - $w) / 2;
+        my $l = ($Slic3r::bed_size->[X] - $w) / 2;
         my $r = $l + $w;
 
         # top and bottom border positions
-        my $t = ($printy - $h) / 2;
+        my $t = ($Slic3r::bed_size->[Y] - $h) / 2;
         my $b = $t + $h;
 
         # list of cells, sorted by distance from center
@@ -212,8 +207,8 @@ sub BUILD {
                 my $cx = $linint->($i + 0.5, 0, $cellw, $l, $r);
                 my $cy = $linint->($j + 0.5, 0, $cellh, $t, $b);
 
-                my $xd = abs(($printx / 2) - $cx);
-                my $yd = abs(($printy / 2) - $cy);
+                my $xd = abs(($Slic3r::bed_size->[X] / 2) - $cx);
+                my $yd = abs(($Slic3r::bed_size->[Y] / 2) - $cy);
 
                 my $c = {
                     location => [$cx, $cy],

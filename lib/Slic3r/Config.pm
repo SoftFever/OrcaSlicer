@@ -396,9 +396,16 @@ our $Options = {
         type    => 'i',
     },
     'duplicate' => {
-        label    => 'Copies (auto arrange)',
+        label    => 'Copies (autoarrange)',
         cli      => 'duplicate=i',
         type    => 'i',
+    },
+    'bed_size' => {
+        label   => 'Bed size for autoarrange (mm)',
+        cli     => 'bed-size=s',
+        type    => 'point',
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
     },
     'duplicate_grid' => {
         label   => 'Copies (grid)',
