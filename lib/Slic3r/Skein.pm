@@ -187,9 +187,14 @@ EOF
         printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer->id, unscale $layer->slice_z;
         # sort slices so that the outermost ones come first
         my @slices = sort { $a->expolygon->contour->encloses_point($b->expolygon->contour->[0]) ? 0 : 1 } @{$layer->slices};
-        foreach my $slice (@slices) {
-            $print_polygon->($slice->expolygon->contour, 'contour');
-            $print_polygon->($_, 'hole') for $slice->expolygon->holes;
+        
+        foreach my $copy (@{$print->copies}) {
+            foreach my $slice (@slices) {
+                my $expolygon = $slice->expolygon->clone;
+                $expolygon->translate(@$copy);
+                $print_polygon->($expolygon->contour, 'contour');
+                $print_polygon->($_, 'hole') for $expolygon->holes;
+            }
         }
         print $fh qq{  </g>\n};
     }
