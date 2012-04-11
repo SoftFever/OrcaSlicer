@@ -262,11 +262,12 @@ sub BUILD {
             my $cx = $c->[1]->{index}->[0] - $lx;
             my $cy = $c->[1]->{index}->[1] - $ty;
 
-            push @{$self->copies}, [scale($cx * $partx - (unscale($self->x_length) / 2)), scale($cy * $party - (unscale($self->y_length) / 2))];
+            push @{$self->copies}, [scale($cx * $partx), scale($cy * $party)];
         }
+
         # save size of area used
-        $self->total_x_length(scale(($rx - $lx) * $partx));
-        $self->total_y_length(scale(($by - $ty) * $party));
+        $self->total_x_length(scale(($rx - $lx + 1) * $partx));
+        $self->total_y_length(scale(($by - $ty + 1) * $party));
     } else {
         $self->total_x_length($self->x_length);
         $self->total_y_length($self->y_length);
