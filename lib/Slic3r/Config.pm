@@ -626,6 +626,20 @@ sub validate {
     die "Invalid value for --scale\n"
         if $Slic3r::scale <= 0;
     
+    # --bed-size
+    die "Invalid value for --bed-size\n"
+        if !ref $Slic3r::bed_size 
+            && (!$Slic3r::bed_size || $Slic3r::bed_size !~ /^\d+,\d+$/);
+    $Slic3r::bed_size = [ split /,/, $Slic3r::bed_size ]
+        if !ref $Slic3r::bed_size;
+    
+    # --duplicate-grid
+    die "Invalid value for --duplicate-grid\n"
+        if !ref $Slic3r::duplicate_grid 
+            && (!$Slic3r::duplicate_grid || $Slic3r::duplicate_grid !~ /^\d+,\d+$/);
+    $Slic3r::duplicate_grid = [ split /,/, $Slic3r::duplicate_grid ]
+        if !ref $Slic3r::duplicate_grid;
+    
     # --duplicate
     die "Invalid value for --duplicate or --duplicate-grid\n"
         if !$Slic3r::duplicate || $Slic3r::duplicate < 1 || !$Slic3r::duplicate_grid
