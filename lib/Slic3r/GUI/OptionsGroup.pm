@@ -103,11 +103,17 @@ sub new {
 }
 
 sub update_duplicate_controls {
+    # prevent infinite loops when calling ourselves
+    return if +(caller 1)[3] =~ /::update_duplicate_controls$/;
+    
     my $value = Slic3r::Config->get('duplicate_mode');
     $_->Enable($value eq 'autoarrange') for @{$fields{duplicate}};
     $_->Enable($value eq 'autoarrange') for @{$fields{bed_size}};
     $_->Enable($value eq 'grid') for @{$fields{duplicate_grid}};
     $_->Enable($value ne 'no') for @{$fields{duplicate_distance}};
+    Slic3r::Config->set('duplicate', 1) if $value ne 'autoarrange';
+    Slic3r::Config->set('duplicate_grid', [1,1]) if $value ne 'grid';
+    $_->() for @reload_callbacks;  # apply new values
 }
 
 1;
