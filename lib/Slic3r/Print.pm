@@ -610,10 +610,18 @@ sub generate_support_material {
             }
             @b = @{union_ex([ map @$_, @c, @a ])};
             
-            # get unsupported surfaces for current layer
-            @a = map $_->expolygon->offset_ex(scale $Slic3r::flow_spacing * $Slic3r::perimeters),
-                grep $_->surface_type eq 'bottom' && !defined $_->bridge_angle,
-                @{$layer->fill_surfaces};
+            # get unsupported surfaces for current layer as all bottom slices
+            # minus the bridges offsetted to cover their perimeters.
+            # actually, we are marking as bridges more than we should be, so 
+            # better build support material for bridges too rather than ignoring
+            # those parts. a visibility check algorithm is needed.
+            # @a = @{diff_ex(
+            #     [ map $_->p, grep $_->surface_type eq 'bottom', @{$layer->slices} ],
+            #     [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_spacing * $Slic3r::perimeters),
+            #         grep $_->surface_type eq 'bottom' && defined $_->bridge_angle,
+            #         @{$layer->fill_surfaces} ],
+            # )};
+            @a = map $_->expolygon, grep $_->surface_type eq 'bottom', @{$layer->slices};
             
             $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
             push @unsupported_expolygons, @a;
