@@ -105,6 +105,7 @@ sub clip_with_expolygon {
         $self->boost_linestring,
     );
     bless $_, 'Slic3r::Polyline' for @$result;
+    bless $_, 'Slic3r::Point' for map @$_, @$result;
     return @$result;
 }
 
