@@ -18,7 +18,6 @@ lib/Slic3r/Fill/Line.pm
 lib/Slic3r/Fill/OctagramSpiral.pm
 lib/Slic3r/Fill/PlanePath.pm
 lib/Slic3r/Fill/Rectilinear.pm
-lib/Slic3r/Fill/Rectilinear2.pm
 lib/Slic3r/Geometry.pm
 lib/Slic3r/Geometry/Clipper.pm
 lib/Slic3r/GUI.pm

@@ -11,7 +11,6 @@ use Slic3r::Fill::Line;
 use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
-use Slic3r::Fill::Rectilinear2;
 use Slic3r::Geometry qw(scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
@@ -22,7 +21,6 @@ has 'fillers'   => (is => 'rw', default => sub { {} });
 our %FillTypes = (
     archimedeanchords   => 'Slic3r::Fill::ArchimedeanChords',
     rectilinear         => 'Slic3r::Fill::Rectilinear',
-    rectilinear2        => 'Slic3r::Fill::Rectilinear2',
     flowsnake           => 'Slic3r::Fill::Flowsnake',
     octagramspiral      => 'Slic3r::Fill::OctagramSpiral',
     hilbertcurve        => 'Slic3r::Fill::HilbertCurve',
