@@ -82,18 +82,18 @@ has 'fills' => (
 sub slice_z {
     my $self = shift;
     if ($self->id == 0) {
-        return ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) / 2 / $Slic3r::resolution;
+        return ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) / 2 / $Slic3r::scaling_factor;
     }
     return (($Slic3r::layer_height * $Slic3r::first_layer_height_ratio)
         + (($self->id-1) * $Slic3r::layer_height)
-        + ($Slic3r::layer_height/2)) / $Slic3r::resolution;
+        + ($Slic3r::layer_height/2)) / $Slic3r::scaling_factor;
 }
 
 # Z used for printing
 sub print_z {
     my $self = shift;
     return (($Slic3r::layer_height * $Slic3r::first_layer_height_ratio)
-        + ($self->id * $Slic3r::layer_height)) / $Slic3r::resolution;
+        + ($self->id * $Slic3r::layer_height)) / $Slic3r::scaling_factor;
 }
 
 sub height {
@@ -175,7 +175,7 @@ sub prepare_fill_surfaces {
     # merge too small internal surfaces with their surrounding tops
     # (if they're too small, they can be treated as solid)
     {
-        my $min_area = ((7 * $Slic3r::flow_spacing / $Slic3r::resolution)**2) * PI;
+        my $min_area = ((7 * $Slic3r::flow_spacing / $Slic3r::scaling_factor)**2) * PI;
         my $small_internal = [
             grep { $_->expolygon->contour->area <= $min_area }
             grep { $_->surface_type eq 'internal' }

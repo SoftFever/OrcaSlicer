@@ -130,7 +130,7 @@ sub detect_arcs {
     my ($max_angle, $len_epsilon) = @_;
     
     $max_angle = deg2rad($max_angle || 15);
-    $len_epsilon ||= 10 / $Slic3r::resolution;
+    $len_epsilon ||= 10 / $Slic3r::scaling_factor;
     
     my @points = @{$self->points};
     my @paths = ();

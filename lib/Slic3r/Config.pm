@@ -534,7 +534,7 @@ sub validate {
     die "Invalid value for --layer-height\n"
         if $Slic3r::layer_height <= 0;
     die "--layer-height must be a multiple of print resolution\n"
-        if $Slic3r::layer_height / $Slic3r::resolution % 1 != 0;
+        if $Slic3r::layer_height / $Slic3r::scaling_factor % 1 != 0;
     
     # --first-layer-height-ratio
     die "Invalid value for --first-layer-height-ratio\n"

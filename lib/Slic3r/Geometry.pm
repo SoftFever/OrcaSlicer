@@ -39,8 +39,8 @@ our $parallel_degrees_limit = abs(deg2rad(3));
 
 sub epsilon () { 1E-4 }
 
-sub scale   ($) { $_[0] / $Slic3r::resolution }
-sub unscale ($) { $_[0] * $Slic3r::resolution }
+sub scale   ($) { $_[0] / $Slic3r::scaling_factor }
+sub unscale ($) { $_[0] * $Slic3r::scaling_factor }
 
 sub slope {
     my ($line) = @_;

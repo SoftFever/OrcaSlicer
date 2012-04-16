@@ -82,8 +82,8 @@ our $perimeter_acceleration = 25;   # mm/s^2
 our $infill_acceleration    = 50;   # mm/s^2
 
 # accuracy options
-our $resolution             = 0.00000001;
-our $small_perimeter_area   = ((6.5 / $resolution)**2)*PI;
+our $scaling_factor         = 0.00000001;
+our $small_perimeter_area   = ((6.5 / $scaling_factor)**2)*PI;
 our $layer_height           = 0.4;
 our $first_layer_height_ratio = 1;
 our $infill_every_layers    = 1;

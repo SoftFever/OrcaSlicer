@@ -27,7 +27,7 @@ sub new_from_mesh {
     my ($mesh) = @_;
     
     $mesh->rotate($Slic3r::rotate);
-    $mesh->scale($Slic3r::scale / $Slic3r::resolution);
+    $mesh->scale($Slic3r::scale / $Slic3r::scaling_factor);
     $mesh->align_to_origin;
     
     # initialize print job
@@ -495,7 +495,7 @@ sub extrude_skirt {
     my @skirts = ();
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
         my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_spacing * $i));
-        my $outline = offset([$convex_hull], $distance, $Slic3r::resolution * 100, JT_ROUND);
+        my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
         push @skirts, Slic3r::ExtrusionLoop->new(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
             role => 'skirt',

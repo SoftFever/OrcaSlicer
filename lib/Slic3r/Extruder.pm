@@ -40,7 +40,7 @@ sub change_layer {
     my ($layer) = @_;
     
     $self->layer($layer);
-    my $z = $Slic3r::z_offset + $layer->print_z * $Slic3r::resolution;
+    my $z = $Slic3r::z_offset + $layer->print_z * $Slic3r::scaling_factor;
     
     my $gcode = "";
     
@@ -100,7 +100,7 @@ sub extrude_path {
     # retract if distance from previous position is greater or equal to the one
     # specified by the user *and* to the maximum distance between infill lines
     {
-        my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * $Slic3r::resolution;
+        my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * $Slic3r::scaling_factor;
         my $distance_threshold = $Slic3r::retract_before_travel;
         $distance_threshold = 2 * $Slic3r::flow_width / $Slic3r::fill_density * sqrt(2)
             if $Slic3r::fill_density > 0 && $description =~ /fill/;
@@ -133,7 +133,7 @@ sub extrude_path {
         $area = $Slic3r::nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
     }
     
-    my $e = $Slic3r::resolution
+    my $e = $Slic3r::scaling_factor
         * $area
         * $Slic3r::extrusion_multiplier
         * (4 / (($Slic3r::filament_diameter ** 2) * PI));
@@ -259,8 +259,8 @@ sub _G0_G1 {
     
     if ($point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
-            ($point->x * $Slic3r::resolution) + $self->shift_x, 
-            ($point->y * $Slic3r::resolution) + $self->shift_y; #**
+            ($point->x * $Slic3r::scaling_factor) + $self->shift_x, 
+            ($point->y * $Slic3r::scaling_factor) + $self->shift_y; #**
         $self->last_pos($point);
     }
     if (defined $z && $z != $self->z) {
@@ -279,13 +279,13 @@ sub G2_G3 {
     my $gcode = $orientation eq 'cw' ? "G2" : "G3";
     
     $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
-        ($point->x * $Slic3r::resolution) + $self->shift_x, 
-        ($point->y * $Slic3r::resolution) + $self->shift_y; #**
+        ($point->x * $Slic3r::scaling_factor) + $self->shift_x, 
+        ($point->y * $Slic3r::scaling_factor) + $self->shift_y; #**
     
     # XY distance of the center from the start position
     $gcode .= sprintf " I%.${dec}f J%.${dec}f",
-        ($center->[X] - $self->last_pos->[X]) * $Slic3r::resolution,
-        ($center->[Y] - $self->last_pos->[Y]) * $Slic3r::resolution;
+        ($center->[X] - $self->last_pos->[X]) * $Slic3r::scaling_factor,
+        ($center->[Y] - $self->last_pos->[Y]) * $Slic3r::scaling_factor;
     
     $self->last_pos($point);
     return $self->_Gx($gcode, $e, $comment);

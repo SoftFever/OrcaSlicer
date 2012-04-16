@@ -95,7 +95,7 @@ sub safety_offset {
 sub offset {
     my $self = shift;
     my ($distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= $Slic3r::resolution * 1000000;
+    $scale      ||= $Slic3r::scaling_factor * 1000000;
     $joinType   = JT_MITER if !defined $joinType;
     $miterLimit ||= 2;
     
@@ -135,7 +135,7 @@ sub is_printable {
     # if no offset is possible, then polyline is not printable
     my $p = $self->clone;
     $p->make_counter_clockwise;
-    my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_spacing / 2), $Slic3r::resolution * 100000, JT_MITER, 2);
+    my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_spacing / 2), $Slic3r::scaling_factor * 100000, JT_MITER, 2);
     return @$offsets ? 1 : 0;
 }
 
