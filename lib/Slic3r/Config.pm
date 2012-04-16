@@ -220,8 +220,8 @@ our $Options = {
         label   => 'Fill pattern',
         cli     => 'fill-pattern=s',
         type    => 'select',
-        values  => [qw(rectilinear line concentric hilbertcurve archimedeanchords octagramspiral)],
-        labels  => [qw(rectilinear line concentric), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
+        values  => [qw(rectilinear line concentric honeycomb hilbertcurve archimedeanchords octagramspiral)],
+        labels  => [qw(rectilinear line concentric honeycomb), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
     },
     'solid_fill_pattern' => {
         label   => 'Solid fill pattern',

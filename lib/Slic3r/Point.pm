@@ -54,6 +54,18 @@ sub distance_to {
     return Slic3r::Geometry::distance_between_points($self, $point);
 }
 
+sub rotate {
+    my $self = shift;
+    my ($angle, $center) = @_;
+    @$self = @{ +(Slic3r::Geometry::rotate_points($angle, $center, $self))[0] };
+}
+
+sub translate {
+    my $self = shift;
+    my ($x, $y) = @_;
+    @$self = @{ +(Slic3r::Geometry::move_points([$x, $y], $self))[0] };
+}
+
 sub x { $_[0]->[0] }
 sub y { $_[0]->[1] }
 

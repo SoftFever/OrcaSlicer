@@ -6,6 +6,7 @@ use Slic3r::Fill::Base;
 use Slic3r::Fill::Concentric;
 use Slic3r::Fill::Flowsnake;
 use Slic3r::Fill::HilbertCurve;
+use Slic3r::Fill::Honeycomb;
 use Slic3r::Fill::Line;
 use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
@@ -28,6 +29,7 @@ our %FillTypes = (
     hilbertcurve        => 'Slic3r::Fill::HilbertCurve',
     line                => 'Slic3r::Fill::Line',
     concentric          => 'Slic3r::Fill::Concentric',
+    honeycomb           => 'Slic3r::Fill::Honeycomb',
 );
 
 sub BUILD {

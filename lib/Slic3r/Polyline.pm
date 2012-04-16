@@ -114,10 +114,16 @@ sub bounding_box {
     return Slic3r::Geometry::bounding_box($self);
 }
 
+sub rotate {
+    my $self = shift;
+    my ($angle, $center) = @_;
+    @$self = Slic3r::Geometry::rotate_points($angle, $center, @$self);
+}
+
 sub translate {
     my $self = shift;
     my ($x, $y) = @_;
-    @$self = move_points([$x, $y], @$self);
+    @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
 }
 
 1;
