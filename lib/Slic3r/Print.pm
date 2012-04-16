@@ -621,7 +621,7 @@ sub generate_support_material {
             #         grep $_->surface_type eq 'bottom' && defined $_->bridge_angle,
             #         @{$layer->fill_surfaces} ],
             # )};
-            @a = map $_->expolygon, grep $_->surface_type eq 'bottom', @{$layer->slices};
+            @a = map $_->expolygon->clone, grep $_->surface_type eq 'bottom', @{$layer->slices};
             
             $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
             push @unsupported_expolygons, @a;
