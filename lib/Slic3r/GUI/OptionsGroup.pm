@@ -113,6 +113,7 @@ sub update_duplicate_controls {
     $_->Enable($value ne 'no') for @{$fields{duplicate_distance}};
     Slic3r::Config->set('duplicate', 1) if $value ne 'autoarrange';
     Slic3r::Config->set('duplicate_grid', [1,1]) if $value ne 'grid';
+    $fields{duplicate}[0]->GetParent->Refresh;
     $_->() for @reload_callbacks;  # apply new values
 }
 

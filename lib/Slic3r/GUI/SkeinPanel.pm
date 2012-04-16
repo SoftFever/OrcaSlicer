@@ -85,7 +85,7 @@ sub new {
     if (eval "use Growl::GNTP; 1") {
         # register growl notifications
         eval {
-            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => "$FindBin::Bin/var/icon.png");
+            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => "$FindBin::Bin/var/Slic3r.png");
             $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
         };
     }
