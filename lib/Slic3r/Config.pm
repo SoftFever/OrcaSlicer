@@ -649,10 +649,6 @@ sub validate {
     $Slic3r::duplicate_mode = 'autoarrange' if $Slic3r::duplicate > 1;
     $Slic3r::duplicate_mode = 'grid' if grep $_ && $_ > 1, @$Slic3r::duplicate_grid;
     
-    # --duplicate-distance
-    die "Invalid value for --duplicate-distance\n"
-        if $Slic3r::duplicate_distance < 1;
-    
     # --skirt-height
     die "Invalid value for --skirt-height\n"
         if $Slic3r::skirt_height < 0;
