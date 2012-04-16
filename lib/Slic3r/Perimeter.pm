@@ -4,7 +4,6 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(X Y PI shortest_path scale unscale);
 use Slic3r::Geometry::Clipper qw(diff_ex);
-use XXX;
 
 sub make_perimeter {
     my $self = shift;

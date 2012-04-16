@@ -34,7 +34,6 @@ has 'speeds' => (
 );
 
 use Slic3r::Geometry qw(points_coincide PI X Y);
-use XXX;
 
 sub change_layer {
     my $self = shift;

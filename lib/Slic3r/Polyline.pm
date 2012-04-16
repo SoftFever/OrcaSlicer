@@ -5,7 +5,6 @@ use warnings;
 use Math::Clipper qw();
 use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     move_points same_point);
-use XXX;
 
 # the constructor accepts an array(ref) of points
 sub new {

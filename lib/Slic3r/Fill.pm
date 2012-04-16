@@ -15,7 +15,6 @@ use Slic3r::Fill::Rectilinear2;
 use Slic3r::Geometry qw(scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
-use XXX;
 
 has 'print'     => (is => 'ro', required => 1);
 has 'fillers'   => (is => 'rw', default => sub { {} });

@@ -4,7 +4,6 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::Geometry qw(scale collinear X Y A B PI rad2deg_dir bounding_box_center);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex xor_ex is_counter_clockwise);
-use XXX;
 
 # a sequential number of layer, starting at 0
 has 'id' => (

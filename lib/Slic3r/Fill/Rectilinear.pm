@@ -4,7 +4,6 @@ use Moo;
 extends 'Slic3r::Fill::Base';
 
 use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale unscale epsilon);
-use XXX;
 
 sub fill_surface {
     my $self = shift;

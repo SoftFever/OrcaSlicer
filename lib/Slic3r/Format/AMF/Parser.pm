@@ -3,7 +3,6 @@ use strict;
 use warnings;
 
 use XML::SAX::PurePerl;
-use XXX;
 
 use base 'XML::SAX::Base';
 

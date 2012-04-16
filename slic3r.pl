@@ -10,7 +10,6 @@ BEGIN {
 
 use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
-use XXX;
 $|++;
 
 my %opt = ();

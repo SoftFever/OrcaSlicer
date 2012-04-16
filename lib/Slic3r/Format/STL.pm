@@ -2,7 +2,6 @@ package Slic3r::Format::STL;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z triangle_normal);
-use XXX;
 
 sub read_file {
     my $self = shift;

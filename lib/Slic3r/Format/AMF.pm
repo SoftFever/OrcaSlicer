@@ -2,7 +2,6 @@ package Slic3r::Format::AMF;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z);
-use XXX;
 
 sub read_file {
     my $self = shift;

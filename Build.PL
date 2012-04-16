@@ -17,7 +17,6 @@ my $build = Module::Build->new(
         'Moo'                       => '0',
         'perl'                      => '5.10.0',
         'Time::HiRes'               => '0',
-        'XXX'                       => '0',
     },
     build_requires => {
         'Test::More' => '0.10',

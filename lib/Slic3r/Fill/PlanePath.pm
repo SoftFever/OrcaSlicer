@@ -4,7 +4,6 @@ use Moo;
 extends 'Slic3r::Fill::Base';
 
 use Slic3r::Geometry qw(scale bounding_box X1 Y1 X2 Y2);
-use XXX;
 
 sub multiplier () { 1 }
 

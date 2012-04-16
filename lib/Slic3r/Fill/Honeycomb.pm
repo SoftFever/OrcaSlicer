@@ -7,7 +7,6 @@ has 'cache' => (is => 'rw', default => sub {{}});
 
 use Slic3r::Geometry qw(PI X1 Y1 X2 Y2 X Y scale);
 use Slic3r::Geometry::Clipper qw(intersection_ex);
-use XXX;
 
 sub angles () { [0, PI/3, PI/3*2] }
 

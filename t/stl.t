@@ -11,7 +11,6 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::Geometry qw(X Y Z A B);
-use XXX;
 
 my @lines;
 my $z = 20;

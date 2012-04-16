@@ -6,7 +6,6 @@ use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z PI MIN MAX scale unscale move_points);
 use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
     union_ex offset JT_ROUND JT_MITER);
-use XXX;
 
 has 'x_length'          => (is => 'ro', required => 1);
 has 'y_length'          => (is => 'ro', required => 1);

@@ -2,7 +2,6 @@ package Slic3r::TriangleMesh;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
-use XXX;
 
 # public
 has 'vertices'      => (is => 'ro', required => 1);         # id => [ [$x1,$y1],[$x2,$y2],[$x3,$y3] ]

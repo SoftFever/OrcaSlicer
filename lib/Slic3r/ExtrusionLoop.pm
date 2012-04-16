@@ -1,7 +1,6 @@
 package Slic3r::ExtrusionLoop;
 use Moo;
 
-use XXX;
 
 # the underlying Slic3r::Polygon objects holds the geometry
 has 'polygon' => (

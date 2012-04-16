@@ -1,7 +1,6 @@
 package Slic3r::Fill::Base;
 use Moo;
 
-use XXX;
 
 has 'print'               => (is => 'rw');
 has 'layer'               => (is => 'rw');

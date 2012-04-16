@@ -5,7 +5,6 @@ use Config;
 use File::Basename qw(basename fileparse);
 use Slic3r::Geometry qw(PI unscale);
 use Time::HiRes qw(gettimeofday tv_interval);
-use XXX;
 
 # full path (relative or absolute) to the input file
 has 'input_file'    => (is => 'ro', required => 1);

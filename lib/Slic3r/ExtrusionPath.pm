@@ -2,7 +2,6 @@ package Slic3r::ExtrusionPath;
 use Moo;
 
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
-use XXX;
 
 # the underlying Slic3r::Polyline objects holds the geometry
 has 'polyline' => (

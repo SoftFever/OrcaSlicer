@@ -22,7 +22,6 @@ our @EXPORT_OK = qw(
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
 );
 
-use XXX;
 
 use constant PI => 4 * atan2(1, 1);
 use constant A => 0;

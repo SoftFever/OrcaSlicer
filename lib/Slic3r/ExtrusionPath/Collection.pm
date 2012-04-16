@@ -1,7 +1,6 @@
 package Slic3r::ExtrusionPath::Collection;
 use Moo;
 
-use XXX;
 
 has 'paths' => (
     is      => 'rw',
