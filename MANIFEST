@@ -18,6 +18,9 @@ lib/Slic3r/Fill/Line.pm
 lib/Slic3r/Fill/OctagramSpiral.pm
 lib/Slic3r/Fill/PlanePath.pm
 lib/Slic3r/Fill/Rectilinear.pm
+lib/Slic3r/Format/AMF.pm
+lib/Slic3r/Format/AMF/Parser.pm
+lib/Slic3r/Format/STL.pm
 lib/Slic3r/Geometry.pm
 lib/Slic3r/Geometry/Clipper.pm
 lib/Slic3r/GUI.pm
@@ -31,9 +34,6 @@ lib/Slic3r/Polygon.pm
 lib/Slic3r/Polyline.pm
 lib/Slic3r/Print.pm
 lib/Slic3r/Skein.pm
-lib/Slic3r/Format/AMF.pm
-lib/Slic3r/Format/AMF/Parser.pm
-lib/Slic3r/Format/STL.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm
 lib/Slic3r/TriangleMesh.pm
@@ -51,6 +51,10 @@ t/geometry.t
 t/polyclip.t
 t/stl.t
 utils/amf-to-stl.pl
+utils/file_info.pl
 utils/post-processing/z-every-line.pl
 utils/split_stl.pl
 utils/stl-to-amf.pl
+var/Slic3r.icns
+var/Slic3r.ico
+var/Slic3r.png
