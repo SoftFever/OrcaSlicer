@@ -189,8 +189,12 @@ sub do_slice {
         my $input_file;
         if (!$params{reslice}) {
             my $dialog = Wx::FileDialog->new($self, 'Choose a STL or AMF file to slice:', $dir, "", $model_wildcard, wxFD_OPEN);
-            return unless $dialog->ShowModal == wxID_OK;
+            if ($dialog->ShowModal != wxID_OK) {
+                $dialog->Destroy;
+                return;
+            }
             $input_file = $dialog->GetPaths;
+            $dialog->Destroy;
             $last_input_file = $input_file;
         } else {
             if (!defined $last_input_file) {
@@ -229,9 +233,13 @@ sub do_slice {
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:', dirname($output_file),
                 basename($output_file), $gcode_wildcard, wxFD_SAVE);
-            return if $dlg->ShowModal != wxID_OK;
+            if ($dlg->ShowModal != wxID_OK) {
+                $dlg->Destroy;
+                return;
+            }
             $skein->output_file($dlg->GetPath);
             $last_output_file = $dlg->GetPath;
+            $dlg->Destroy;
         }
         
         # show processbar dialog
@@ -288,6 +296,7 @@ sub save_config {
         $last_config = $file;
         Slic3r::Config->save($file);
     }
+    $dlg->Destroy;
 }
 
 sub load_config {
@@ -307,6 +316,7 @@ sub load_config {
         $self->catch_error();
         $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
     }
+    $dlg->Destroy;
 }
 
 sub catch_error {
