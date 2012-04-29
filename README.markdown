@@ -95,6 +95,8 @@ The author is Alessandro Ranellucci (me).
         --post-process      Generated G-code will be processed with the supplied script;
                             call this more than once to process through multiple scripts.
         --export-svg        Export a SVG file containing slices instead of G-code.
+        --merge             If multiple files are supplied, they will be composed into a single 
+                            print rather than processed individually.
       
       Printer options:
         --nozzle-diameter   Diameter of nozzle in mm (default: 0.5)

@@ -8,6 +8,7 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 # full path (relative or absolute) to the input file
 has 'input_file'    => (is => 'ro', required => 1);
+has 'additional_input_files' => (is => 'ro', required => 0, default => sub {[]});
 
 # full path (relative or absolute) to the output file; it may contain
 # formatting variables like [layer_height] etc.
@@ -19,18 +20,21 @@ has 'processing_time' => (is => 'rw', required => 0);
 sub slice_input {
     my $self = shift;
     
-    my $print;
-    if ($self->input_file =~ /\.stl$/i) {
-        my $mesh = Slic3r::Format::STL->read_file($self->input_file);
-        $mesh->check_manifoldness;
-        $print = Slic3r::Print->new_from_mesh($mesh);
-    } elsif ( $self->input_file =~ /\.amf(\.xml)?$/i) {
-        my ($materials, $meshes_by_material) = Slic3r::Format::AMF->read_file($self->input_file);
-        $_->check_manifoldness for values %$meshes_by_material;
-        $print = Slic3r::Print->new_from_mesh($meshes_by_material->{_} || +(values %$meshes_by_material)[0]);
-    } else {
-        die "Input file must have .stl or .amf(.xml) extension\n";
+    my $print = Slic3r::Print->new;
+    foreach my $input_file ($self->input_file, @{$self->additional_input_files}) {
+        if ($input_file =~ /\.stl$/i) {
+            my $mesh = Slic3r::Format::STL->read_file($input_file);
+            $mesh->check_manifoldness;
+            $print->add_object_from_mesh($mesh);
+        } elsif ( $input_file =~ /\.amf(\.xml)?$/i) {
+            my ($materials, $meshes_by_material) = Slic3r::Format::AMF->read_file($input_file);
+            $_->check_manifoldness for values %$meshes_by_material;
+            $print->add_object_from_mesh($meshes_by_material->{_} || +(values %$meshes_by_material)[0]);
+        } else {
+            die "Input file must have .stl or .amf(.xml) extension\n";
+        }
     }
+    return $print;
 }
 
 sub go {
@@ -42,76 +46,82 @@ sub go {
     $self->status_cb->(5, "Processing input file " . $self->input_file);    
     $self->status_cb->(10, "Processing triangulated mesh");
     my $print = $self->slice_input;
+    $print->arrange_objects;
     
     # make perimeters
     # this will add a set of extrusion loops to each layer
     # as well as generate infill boundaries
     $self->status_cb->(20, "Generating perimeters");
-    {
-        my $perimeter_maker = Slic3r::Perimeter->new;
-        $perimeter_maker->make_perimeter($_) for @{$print->layers};
-    }
+    $_->make_perimeters for map @{$_->layers}, @{$print->objects};
     
     # this will clip $layer->surfaces to the infill boundaries 
     # and split them in top/bottom/internal surfaces;
     $self->status_cb->(30, "Detecting solid surfaces");
-    $print->detect_surfaces_type;
+    $_->detect_surfaces_type for @{$print->objects};
     
     # decide what surfaces are to be filled
     $self->status_cb->(35, "Preparing infill surfaces");
-    $_->prepare_fill_surfaces for @{$print->layers};
+    $_->prepare_fill_surfaces for map @{$_->layers}, @{$print->objects};
     
     # this will remove unprintable surfaces
     # (those that are too tight for extrusion)
     $self->status_cb->(40, "Cleaning up");
-    $_->remove_small_surfaces for @{$print->layers};
+    $_->remove_small_surfaces for map @{$_->layers}, @{$print->objects};
     
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
     $self->status_cb->(45, "Detect bridges");
-    $_->process_bridges for @{$print->layers};
+    $_->process_bridges for map @{$_->layers}, @{$print->objects};
     
     # this will remove unprintable perimeter loops
     # (those that are too tight for extrusion)
     $self->status_cb->(50, "Cleaning up the perimeters");
-    $_->remove_small_perimeters for @{$print->layers};
+    $_->remove_small_perimeters for map @{$_->layers}, @{$print->objects};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
     $self->status_cb->(60, "Generating horizontal shells");
-    $print->discover_horizontal_shells;
+    $_->discover_horizontal_shells for @{$print->objects};
     
     # free memory
-    @{$_->surfaces} = () for @{$print->layers};
+    @{$_->surfaces} = () for map @{$_->layers}, @{$print->objects};
     
     # combine fill surfaces to honor the "infill every N layers" option
     $self->status_cb->(70, "Combining infill");
-    $print->infill_every_layers;
+    $_->infill_every_layers for @{$print->objects};
     
     # this will generate extrusion paths for each layer
     $self->status_cb->(80, "Infilling layers");
     {
         my $fill_maker = Slic3r::Fill->new('print' => $print);
         
+        my @items = ();  # [obj_idx, layer_id]
+        foreach my $obj_idx (0 .. $#{$print->objects}) {
+            push @items, map [$obj_idx, $_], 0..$#{$print->objects->[$obj_idx]->layers};
+        }
         Slic3r::parallelize(
-            items => [ 0..($print->layer_count-1) ],
+            items => [@items],
             thread_cb => sub {
                 my $q = shift;
                 $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
                 my $fills = {};
-                while (defined (my $layer_id = $q->dequeue)) {
-                    $fills->{$layer_id} = [ $fill_maker->make_fill($print->layers->[$layer_id]) ];
+                while (defined (my $obj_layer = $q->dequeue)) {
+                    my ($obj_idx, $layer_id) = @$obj_layer;
+                    $fills->{$obj_idx} ||= {};
+                    $fills->{$obj_idx}{$layer_id} = [ $fill_maker->make_fill($print->objects->[$obj_idx]->layers->[$layer_id]) ];
                 }
                 return $fills;
             },
             collect_cb => sub {
                 my $fills = shift;
-                foreach my $layer_id (keys %$fills) {
-                    @{$print->layers->[$layer_id]->fills} = @{$fills->{$layer_id}};
+                foreach my $obj_idx (keys %$fills) {
+                    foreach my $layer_id (keys %{$fills->{$obj_idx}}) {
+                        @{$print->objects->[$obj_idx]->layers->[$layer_id]->fills} = @{$fills->{$obj_idx}{$layer_id}};
+                    }
                 }
             },
             no_threads_cb => sub {
-                foreach my $layer (@{$print->layers}) {
+                foreach my $layer (map @{$_->layers}, @{$print->objects}) {
                     @{$layer->fills} = $fill_maker->make_fill($layer);
                 }
             },
@@ -121,15 +131,15 @@ sub go {
     # generate support material
     if ($Slic3r::support_material) {
         $self->status_cb->(85, "Generating support material");
-        $print->generate_support_material;
+        $_->generate_support_material for @{$print->objects};
     }
     
     # free memory (note that support material needs fill_surfaces)
-    @{$_->fill_surfaces} = () for @{$print->layers};
+    @{$_->fill_surfaces} = () for map @{$_->layers}, @{$print->objects};
     
     # make skirt
     $self->status_cb->(88, "Generating skirt");
-    $print->extrude_skirt;
+    $print->make_skirt;
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath;

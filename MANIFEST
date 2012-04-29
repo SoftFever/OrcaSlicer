@@ -28,11 +28,11 @@ lib/Slic3r/GUI/OptionsGroup.pm
 lib/Slic3r/GUI/SkeinPanel.pm
 lib/Slic3r/Layer.pm
 lib/Slic3r/Line.pm
-lib/Slic3r/Perimeter.pm
 lib/Slic3r/Point.pm
 lib/Slic3r/Polygon.pm
 lib/Slic3r/Polyline.pm
 lib/Slic3r/Print.pm
+lib/Slic3r/Print/Object.pm
 lib/Slic3r/Skein.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm

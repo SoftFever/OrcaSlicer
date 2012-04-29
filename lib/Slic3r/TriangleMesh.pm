@@ -338,7 +338,7 @@ sub size {
 
 sub slice_facet {
     my $self = shift;
-    my ($print, $facet_id) = @_;
+    my ($print_object, $facet_id) = @_;
     my ($normal, @vertices) = @{$self->facets->[$facet_id]};
     Slic3r::debugf "\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n",
         $facet_id, map @{$self->vertices->[$_]}, @vertices
@@ -367,7 +367,7 @@ sub slice_facet {
     
     my $lines = {};  # layer_id => [ lines ]
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
-        my $layer = $print->layer($layer_id);
+        my $layer = $print_object->layer($layer_id);
         $lines->{$layer_id} ||= [];
         push @{ $lines->{$layer_id} }, $self->intersect_facet($facet_id, $layer->slice_z);
     }

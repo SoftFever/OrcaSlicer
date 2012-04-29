@@ -26,6 +26,7 @@ my %cli_options = ();
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
         'threads|j=i'           => \$Slic3r::threads,
         'export-svg'            => \$opt{export_svg},
+        'merge'                 => \$opt{merge},
     );
     foreach my $opt_key (keys %$Slic3r::Config::Options) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
@@ -72,9 +73,10 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
 }
 
 if (@ARGV) {
-    foreach my $input_file ( @ARGV ) {
+    while (my $input_file = shift @ARGV) {
         my $skein = Slic3r::Skein->new(
             input_file  => $input_file,
+            additional_input_files => $opt{merge} ? [ splice @ARGV, 0 ] : [],
             output_file => $opt{output},
             status_cb   => sub {
                 my ($percent, $message) = @_;
@@ -123,6 +125,8 @@ $j
     --post-process      Generated G-code will be processed with the supplied script;
                         call this more than once to process through multiple scripts.
     --export-svg        Export a SVG file containing slices instead of G-code.
+    --merge             If multiple files are supplied, they will be composed into a single 
+                        print rather than processed individually.
   
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)

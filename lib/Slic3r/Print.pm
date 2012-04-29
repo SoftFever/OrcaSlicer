@@ -1,38 +1,34 @@
 package Slic3r::Print;
 use Moo;
 
-use Config;
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z PI MIN MAX scale unscale move_points);
-use Slic3r::Geometry::Clipper qw(explode_expolygons safety_offset diff_ex intersection_ex
-    union_ex offset JT_ROUND JT_MITER);
+use Slic3r::Geometry qw(X Y Z PI scale unscale move_points);
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex offset JT_ROUND);
 
-has 'x_length'          => (is => 'ro', required => 1);
-has 'y_length'          => (is => 'ro', required => 1);
+has 'objects'           => (is => 'rw', default => sub {[]});
+has 'copies'            => (is => 'rw', default => sub {[]});  # obj_idx => [copies...]
 has 'total_x_length'    => (is => 'rw'); # including duplicates
 has 'total_y_length'    => (is => 'rw'); # including duplicates
-has 'copies'            => (is => 'rw', default => sub {[]});
+has 'total_extrusion_length' => (is => 'rw');
 
-has 'layers' => (
-    traits  => ['Array'],
+# ordered collection of extrusion paths to build skirt loops
+has 'skirt' => (
     is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::Layer]',
+    #isa     => 'ArrayRef[Slic3r::ExtrusionLoop]',
     default => sub { [] },
 );
 
-has 'total_extrusion_length' => (is => 'rw');
-
-sub new_from_mesh {
-    my $class = shift;
+sub add_object_from_mesh {
+    my $self = shift;
     my ($mesh) = @_;
     
     $mesh->rotate($Slic3r::rotate);
     $mesh->scale($Slic3r::scale / $Slic3r::scaling_factor);
     $mesh->align_to_origin;
     
-    # initialize print job
+    # initialize print object
     my @size = $mesh->size;
-    my $print = $class->new(
+    my $object = Slic3r::Print::Object->new(
         x_length => $size[X],
         y_length => $size[Y],
     );
@@ -42,7 +38,7 @@ sub new_from_mesh {
         my $apply_lines = sub {
             my $lines = shift;
             foreach my $layer_id (keys %$lines) {
-                my $layer = $print->layer($layer_id);
+                my $layer = $object->layer($layer_id);
                 $layer->add_line($_) for @{ $lines->{$layer_id} };
             }
         };
@@ -53,7 +49,7 @@ sub new_from_mesh {
                 my $q = shift;
                 my $result_lines = {};
                 while (defined (my $facet_id = $q->dequeue)) {
-                    my $lines = $mesh->slice_facet($print, $facet_id);
+                    my $lines = $mesh->slice_facet($object, $facet_id);
                     foreach my $layer_id (keys %$lines) {
                         $result_lines->{$layer_id} ||= [];
                         push @{ $result_lines->{$layer_id} }, @{ $lines->{$layer_id} };
@@ -66,19 +62,19 @@ sub new_from_mesh {
             },
             no_threads_cb => sub {
                 for (0..$#{$mesh->facets}) {
-                    my $lines = $mesh->slice_facet($print, $_);
+                    my $lines = $mesh->slice_facet($object, $_);
                     $apply_lines->($lines);
                 }
             },
         );
     }
-    die "Invalid input file\n" if !@{$print->layers};
+    die "Invalid input file\n" if !@{$object->layers};
     
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code below)
-    pop @{$print->layers} if !@{$print->layers->[-1]->surfaces} && !@{$print->layers->[-1]->lines};
+    pop @{$object->layers} if !@{$object->layers->[-1]->surfaces} && !@{$object->layers->[-1]->lines};
     
-    foreach my $layer (@{ $print->layers }) {
+    foreach my $layer (@{ $object->layers }) {
         Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
             $layer->id, unscale $layer->slice_z if $Slic3r::debug;
         
@@ -98,8 +94,8 @@ sub new_from_mesh {
     
     # detect slicing errors
     my $warning_thrown = 0;
-    for (my $i = 0; $i <= $#{$print->layers}; $i++) {
-        my $layer = $print->layers->[$i];
+    for my $i (0 .. $#{$object->layers}) {
+        my $layer = $object->layers->[$i];
         next unless $layer->slicing_errors;
         if (!$warning_thrown) {
             warn "The model has overlapping or self-intersecting facets. I tried to repair it, "
@@ -112,15 +108,15 @@ sub new_from_mesh {
         Slic3r::debugf "Attempting to repair layer %d\n", $i;
         
         my (@upper_surfaces, @lower_surfaces);
-        for (my $j = $i+1; $j <= $#{$print->layers}; $j++) {
-            if (!$print->layers->[$j]->slicing_errors) {
-                @upper_surfaces = @{$print->layers->[$j]->slices};
+        for (my $j = $i+1; $j <= $#{$object->layers}; $j++) {
+            if (!$object->layers->[$j]->slicing_errors) {
+                @upper_surfaces = @{$object->layers->[$j]->slices};
                 last;
             }
         }
         for (my $j = $i-1; $j >= 0; $j--) {
-            if (!$print->layers->[$j]->slicing_errors) {
-                @lower_surfaces = @{$print->layers->[$j]->slices};
+            if (!$object->layers->[$j]->slicing_errors) {
+                @lower_surfaces = @{$object->layers->[$j]->slices};
                 last;
             }
         }
@@ -139,46 +135,67 @@ sub new_from_mesh {
     }
     
     # remove empty layers from bottom
-    while (@{$print->layers} && !@{$print->layers->[0]->slices} && !@{$print->layers->[0]->thin_walls}) {
-        shift @{$print->layers};
-        for (my $i = 0; $i <= $#{$print->layers}; $i++) {
-            $print->layers->[$i]->id($i);
+    while (@{$object->layers} && !@{$object->layers->[0]->slices} && !@{$object->layers->[0]->thin_walls}) {
+        shift @{$object->layers};
+        for (my $i = 0; $i <= $#{$object->layers}; $i++) {
+            $object->layers->[$i]->id($i);
         }
     }
     
     warn "No layers were detected. You might want to repair your STL file and retry.\n"
-        if !@{$print->layers};
+        if !@{$object->layers};
     
-    return $print;
+    push @{$self->objects}, $object;
+    return $object;
 }
 
-sub BUILD {
+sub layer_count {
+    my $self = shift;
+    my $count = 0;
+    foreach my $object (@{$self->objects}) {
+        $count = @{$object->layers} if @{$object->layers} > $count;
+    }
+    return $count;
+}
+
+sub arrange_objects {
     my $self = shift;
     
     my $dist = scale $Slic3r::duplicate_distance;
 
     if ($Slic3r::duplicate_grid->[X] > 1 || $Slic3r::duplicate_grid->[Y] > 1) {
-        $self->total_x_length($self->x_length * $Slic3r::duplicate_grid->[X] + $dist * ($Slic3r::duplicate_grid->[X] - 1));
-        $self->total_y_length($self->y_length * $Slic3r::duplicate_grid->[Y] + $dist * ($Slic3r::duplicate_grid->[Y] - 1));
+        if (@{$self->objects} > 1) {
+            die "Grid duplication is not supported with multiple objects\n";
+        }
+        my $object = $self->objects->[0];
+        $self->total_x_length($object->x_length * $Slic3r::duplicate_grid->[X] + $dist * ($Slic3r::duplicate_grid->[X] - 1));
+        $self->total_y_length($object->y_length * $Slic3r::duplicate_grid->[Y] + $dist * ($Slic3r::duplicate_grid->[Y] - 1));
         
         # generate offsets for copies
+        push @{$self->copies}, [];
         for my $x_copy (1..$Slic3r::duplicate_grid->[X]) {
             for my $y_copy (1..$Slic3r::duplicate_grid->[Y]) {
-                push @{$self->copies}, [
+                push @{$self->copies->[0]}, [
                     ($self->x_length + $dist) * ($x_copy-1),
                     ($self->y_length + $dist) * ($y_copy-1),
                 ];
             }
         }
-    } elsif ($Slic3r::duplicate > 1) {
+    } elsif ($Slic3r::duplicate > 1 || @{$self->objects} > 1) {
+        my $total_parts = @{$self->objects} * $Slic3r::duplicate;
         my $linint = sub {
             my ($value, $oldmin, $oldmax, $newmin, $newmax) = @_;
             return ($value - $oldmin) * ($newmax - $newmin) / ($oldmax - $oldmin) + $newmin;
         };
 
-        # use actual part size plus separation distance (half on each side) in spacing algorithm
-        my $partx = unscale($self->x_length) + $Slic3r::duplicate_distance;
-        my $party = unscale($self->y_length) + $Slic3r::duplicate_distance;
+        # use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
+        my $partx = my $party = 0;
+        foreach my $object (@{$self->objects}) {
+            $partx = $object->x_length if $object->x_length > $partx;
+            $party = $object->y_length if $object->y_length > $party;
+        }
+        $partx = unscale($partx) + $Slic3r::duplicate_distance;
+        $party = unscale($party) + $Slic3r::duplicate_distance;
 
         # margin needed for the skirt
         my $skirt_margin;		
@@ -192,7 +209,7 @@ sub BUILD {
         my $cellw = int(($Slic3r::bed_size->[X] - $skirt_margin + $Slic3r::duplicate_distance) / $partx);
         my $cellh = int(($Slic3r::bed_size->[Y] - $skirt_margin + $Slic3r::duplicate_distance) / $party);
 
-        die "$Slic3r::duplicate parts won't fit in your print area!\n" if $Slic3r::duplicate > ($cellw * $cellh);
+        die "$total_parts parts won't fit in your print area!\n" if $total_parts > ($cellw * $cellh);
 
         # width and height of space used by cells
         my $w = $cellw * $partx;
@@ -250,7 +267,7 @@ sub BUILD {
         my ($lx, $ty, $rx, $by) = (0, 0, 0, 0);
 
         # now find cells actually used by objects, map out the extents so we can position correctly
-        for my $i (1..$Slic3r::duplicate) {
+        for my $i (1..$total_parts) {
             my $c = $cellsorder[$i - 1];
             my $cx = $c->[1]->{index}->[0];
             my $cy = $c->[1]->{index}->[1];
@@ -265,446 +282,66 @@ sub BUILD {
             }
         }
         # now we actually place objects into cells, positioned such that the left and bottom borders are at 0
-        for my $i (1..$Slic3r::duplicate) {
-            my $c = shift @cellsorder;
-            my $cx = $c->[1]->{index}->[0] - $lx;
-            my $cy = $c->[1]->{index}->[1] - $ty;
-
-            push @{$self->copies}, [scale($cx * $partx), scale($cy * $party)];
+        for (0..$#{$self->objects}) {
+            my @copies = ();
+            for (1..$Slic3r::duplicate) {
+                my $c = shift @cellsorder;
+                my $cx = $c->[1]->{index}->[0] - $lx;
+                my $cy = $c->[1]->{index}->[1] - $ty;
+    
+                push @copies, [scale($cx * $partx), scale($cy * $party)];
+            }
+            push @{$self->copies}, [@copies];
         }
 
         # save size of area used
         $self->total_x_length(scale(($rx - $lx + 1) * $partx - $Slic3r::duplicate_distance));
         $self->total_y_length(scale(($by - $ty + 1) * $party - $Slic3r::duplicate_distance));
     } else {
-        $self->total_x_length($self->x_length);
-        $self->total_y_length($self->y_length);
-        push @{$self->copies}, [0, 0];
+        $self->total_x_length($self->objects->[0]->x_length);
+        $self->total_y_length($self->objects->[0]->y_length);
+        push @{$self->copies}, [[0, 0]];
     }
-}
-
-sub layer_count {
-    my $self = shift;
-    return scalar @{ $self->layers };
 }
 
 sub max_length {
     my $self = shift;
-    return ($self->x_length > $self->y_length) ? $self->x_length : $self->y_length;
+    return ($self->total_x_length > $self->total_y_length) ? $self->total_x_length : $self->total_y_length;
 }
 
-sub layer {
-    my $self = shift;
-    my ($layer_id) = @_;
-    
-    # extend our print by creating all necessary layers
-    
-    if ($self->layer_count < $layer_id + 1) {
-        for (my $i = $self->layer_count; $i <= $layer_id; $i++) {
-            push @{ $self->layers }, Slic3r::Layer->new(id => $i);
-        }
-    }
-    
-    return $self->layers->[$layer_id];
-}
-
-sub detect_surfaces_type {
-    my $self = shift;
-    Slic3r::debugf "Detecting solid surfaces...\n";
-    
-    # prepare a reusable subroutine to make surface differences
-    my $surface_difference = sub {
-        my ($subject_surfaces, $clip_surfaces, $result_type) = @_;
-        my $expolygons = diff_ex(
-            [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$subject_surfaces ],
-            [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
-            1,
-        );
-        return grep $_->contour->is_printable,
-            map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
-            @$expolygons;
-    };
-    
-    for (my $i = 0; $i < $self->layer_count; $i++) {
-        my $layer = $self->layers->[$i];
-        my $upper_layer = $self->layers->[$i+1];
-        my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
-        
-        my (@bottom, @top, @internal) = ();
-        
-        # find top surfaces (difference between current surfaces
-        # of current layer and upper one)
-        if ($upper_layer) {
-            @top = $surface_difference->($layer->slices, $upper_layer->slices, 'top');
-        } else {
-            # if no upper layer, all surfaces of this one are solid
-            @top = @{$layer->slices};
-            $_->surface_type('top') for @top;
-        }
-        
-        # find bottom surfaces (difference between current surfaces
-        # of current layer and lower one)
-        if ($lower_layer) {
-            @bottom = $surface_difference->($layer->slices, $lower_layer->slices, 'bottom');
-        } else {
-            # if no lower layer, all surfaces of this one are solid
-            @bottom = @{$layer->slices};
-            $_->surface_type('bottom') for @bottom;
-        }
-        
-        # now, if the object contained a thin membrane, we could have overlapping bottom
-        # and top surfaces; let's do an intersection to discover them and consider them
-        # as bottom surfaces (to allow for bridge detection)
-        if (@top && @bottom) {
-            my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
-            Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layer->id, scalar(@$overlapping);
-            @top = $surface_difference->([@top], $overlapping, 'top');
-        }
-        
-        # find internal surfaces (difference between top/bottom surfaces and others)
-        @internal = $surface_difference->($layer->slices, [@top, @bottom], 'internal');
-        
-        # save surfaces to layer
-        @{$layer->slices} = (@bottom, @top, @internal);
-        
-        Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
-            $layer->id, scalar(@bottom), scalar(@top), scalar(@internal);
-    }
-    
-    # clip surfaces to the fill boundaries
-    foreach my $layer (@{$self->layers}) {
-        @{$layer->surfaces} = ();
-        foreach my $surface (@{$layer->slices}) {
-            my $intersection = intersection_ex(
-                [ $surface->p ],
-                [ map @$_, @{$layer->fill_boundaries} ],
-            );
-            push @{$layer->surfaces}, map Slic3r::Surface->new
-                (expolygon => $_, surface_type => $surface->surface_type),
-                @$intersection;
-        }
-        
-        # free memory
-        @{$layer->fill_boundaries} = ();
-    }
-    
-}
-
-sub discover_horizontal_shells {
-    my $self = shift;
-    
-    Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
-    
-    for (my $i = 0; $i < $self->layer_count; $i++) {
-        my $layer = $self->layers->[$i];
-        foreach my $type (qw(top bottom)) {
-            # find surfaces of current type for current layer
-            # and offset them to take perimeters into account
-            my @surfaces = map $_->offset($Slic3r::perimeters * scale $Slic3r::flow_width),
-                grep $_->surface_type eq $type, @{$layer->fill_surfaces} or next;
-            my $surfaces_p = [ map $_->p, @surfaces ];
-            Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
-                $i, scalar(@surfaces), $type;
-            
-            for (my $n = $type eq 'top' ? $i-1 : $i+1; 
-                    abs($n - $i) <= $Slic3r::solid_layers-1; 
-                    $type eq 'top' ? $n-- : $n++) {
-                
-                next if $n < 0 || $n >= $self->layer_count;
-                Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
-                
-                my @neighbor_surfaces = @{$self->layers->[$n]->surfaces};
-                my @neighbor_fill_surfaces = @{$self->layers->[$n]->fill_surfaces};
-                
-                # find intersection between neighbor and current layer's surfaces
-                # intersections have contours and holes
-                my $new_internal_solid = intersection_ex(
-                    $surfaces_p,
-                    [ map $_->p, grep $_->surface_type =~ /internal/, @neighbor_surfaces ],
-                    undef, 1,
-                );
-                next if !@$new_internal_solid;
-                
-                # internal-solid are the union of the existing internal-solid surfaces
-                # and new ones
-                my $internal_solid = union_ex([
-                    ( map $_->p, grep $_->surface_type eq 'internal-solid', @neighbor_fill_surfaces ),
-                    ( map @$_, @$new_internal_solid ),
-                ]);
-                
-                # subtract intersections from layer surfaces to get resulting inner surfaces
-                my $internal = diff_ex(
-                    [ map $_->p, grep $_->surface_type eq 'internal', @neighbor_fill_surfaces ],
-                    [ map @$_, @$internal_solid ],
-                );
-                Slic3r::debugf "    %d internal-solid and %d internal surfaces found\n",
-                    scalar(@$internal_solid), scalar(@$internal);
-                
-                # Note: due to floating point math we're going to get some very small
-                # polygons as $internal; they will be removed by removed_small_features()
-                
-                # assign resulting inner surfaces to layer
-                my $neighbor_fill_surfaces = $self->layers->[$n]->fill_surfaces;
-                @$neighbor_fill_surfaces = ();
-                push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                    (expolygon => $_, surface_type => 'internal')
-                    for @$internal;
-                
-                # assign new internal-solid surfaces to layer
-                push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                    (expolygon => $_, surface_type => 'internal-solid')
-                    for @$internal_solid;
-                
-                # assign top and bottom surfaces to layer
-                foreach my $s (Slic3r::Surface->group(grep $_->surface_type =~ /top|bottom/, @neighbor_fill_surfaces)) {
-                    my $solid_surfaces = diff_ex(
-                        [ map $_->p, @$s ],
-                        [ map @$_, @$internal_solid, @$internal ],
-                    );
-                    push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                        (expolygon => $_, surface_type => $s->[0]->surface_type, bridge_angle => $s->[0]->bridge_angle)
-                        for @$solid_surfaces;
-                }
-            }
-        }
-    }
-}
-
-sub extrude_skirt {
+sub make_skirt {
     my $self = shift;
     return unless $Slic3r::skirts > 0;
     
     # collect points from all layers contained in skirt height
     my $skirt_height = $Slic3r::skirt_height;
     $skirt_height = $self->layer_count if $skirt_height > $self->layer_count;
-    my @layers = map $self->layer($_), 0..($skirt_height-1);
-    my @points = (
-        (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
-        (map @$_, map @{$_->thin_walls}, @layers),
-        (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
-    );
+    my @points = ();
+    foreach my $obj_idx (0 .. $#{$self->objects}) {
+        my @layers = map $self->objects->[$obj_idx]->layer($_), 0..($skirt_height-1);
+        my @layer_points = (
+            (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
+            (map @$_, map @{$_->thin_walls}, @layers),
+            (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
+        );
+        push @points, map move_points($_, @layer_points), @{$self->copies->[$obj_idx]};
+    }
     return if @points < 3;  # at least three points required for a convex hull
     
-    # duplicate points to take copies into account
-    my @all_points = map move_points($_, @points), @{$self->copies};
-    
     # find out convex hull
-    my $convex_hull = convex_hull(\@all_points);
+    my $convex_hull = convex_hull(\@points);
     
     # draw outlines from outside to inside
-    my @skirts = ();
+    my @skirt = ();
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
         my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
-        push @skirts, Slic3r::ExtrusionLoop->new(
+        push @skirt, Slic3r::ExtrusionLoop->new(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
             role => 'skirt',
         );
     }
-    
-    # apply skirts to all layers
-    push @{$_->skirts}, @skirts for @layers;
-}
-
-# combine fill surfaces across layers
-sub infill_every_layers {
-    my $self = shift;
-    return unless $Slic3r::infill_every_layers > 1 && $Slic3r::fill_density > 0;
-    
-    # start from bottom, skip first layer
-    for (my $i = 1; $i < $self->layer_count; $i++) {
-        my $layer = $self->layer($i);
-        
-        # skip layer if no internal fill surfaces
-        next if !grep $_->surface_type eq 'internal', @{$layer->fill_surfaces};
-        
-        # for each possible depth, look for intersections with the lower layer
-        # we do this from the greater depth to the smaller
-        for (my $d = $Slic3r::infill_every_layers - 1; $d >= 1; $d--) {
-            next if ($i - $d) < 0;
-            my $lower_layer = $self->layer($i - 1);
-            
-            # select surfaces of the lower layer having the depth we're looking for
-            my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type eq 'internal',
-                @{$lower_layer->fill_surfaces};
-            next if !@lower_surfaces;
-            
-            # calculate intersection between our surfaces and theirs
-            my $intersection = intersection_ex(
-                [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
-                [ map $_->p, grep $_->surface_type eq 'internal', @{$layer->fill_surfaces} ],
-            );
-            next if !@$intersection;
-            
-            # new fill surfaces of the current layer are:
-            # - any non-internal surface
-            # - intersections found (with a $d + 1 depth)
-            # - any internal surface not belonging to the intersection (with its original depth)
-            {
-                my @new_surfaces = ();
-                push @new_surfaces, grep $_->surface_type ne 'internal', @{$layer->fill_surfaces};
-                push @new_surfaces, map Slic3r::Surface->new
-                    (expolygon => $_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
-                
-                foreach my $depth (reverse $d..$Slic3r::infill_every_layers) {
-                    push @new_surfaces, map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => 'internal', depth_layers => $depth),
-                        
-                        # difference between our internal layers with depth == $depth
-                        # and the intersection found
-                        @{diff_ex(
-                            [
-                                map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
-                                    @{$layer->fill_surfaces},
-                            ],
-                            [ map @$_, @$intersection ],
-                            1,
-                        )};
-                }
-                @{$layer->fill_surfaces} = @new_surfaces;
-            }
-            
-            # now we remove the intersections from lower layer
-            {
-                my @new_surfaces = ();
-                push @new_surfaces, grep $_->surface_type ne 'internal', @{$lower_layer->fill_surfaces};
-                foreach my $depth (1..$Slic3r::infill_every_layers) {
-                    push @new_surfaces, map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => 'internal', depth_layers => $depth),
-                        
-                        # difference between internal layers with depth == $depth
-                        # and the intersection found
-                        @{diff_ex(
-                            [
-                                map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
-                                    @{$lower_layer->fill_surfaces},
-                            ],
-                            [ map @$_, @$intersection ],
-                            1,
-                        )};
-                }
-                @{$lower_layer->fill_surfaces} = @new_surfaces;
-            }
-        }
-    }
-}
-
-sub generate_support_material {
-    my $self = shift;
-    
-    # determine unsupported surfaces
-    my %layers = ();
-    my @unsupported_expolygons = ();
-    {
-        my (@a, @b) = ();
-        for my $i (reverse 0 .. $#{$self->layers}) {
-            my $layer = $self->layers->[$i];
-            my @c = ();
-            if (@b) {
-                @c = @{diff_ex(
-                    [ map @$_, @b ],
-                    [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
-                )};
-                $layers{$i} = [@c];
-            }
-            @b = @{union_ex([ map @$_, @c, @a ])};
-            
-            # get unsupported surfaces for current layer as all bottom slices
-            # minus the bridges offsetted to cover their perimeters.
-            # actually, we are marking as bridges more than we should be, so 
-            # better build support material for bridges too rather than ignoring
-            # those parts. a visibility check algorithm is needed.
-            # @a = @{diff_ex(
-            #     [ map $_->p, grep $_->surface_type eq 'bottom', @{$layer->slices} ],
-            #     [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_spacing * $Slic3r::perimeters),
-            #         grep $_->surface_type eq 'bottom' && defined $_->bridge_angle,
-            #         @{$layer->fill_surfaces} ],
-            # )};
-            @a = map $_->expolygon->clone, grep $_->surface_type eq 'bottom', @{$layer->slices};
-            
-            $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
-            push @unsupported_expolygons, @a;
-        }
-    }
-    return if !@unsupported_expolygons;
-    
-    # generate paths for the pattern that we're going to use
-    my $support_patterns = [];
-    {
-        my @support_material_areas = map $_->offset_ex(scale 5),
-            @{union_ex([ map @$_, @unsupported_expolygons ])};
-        
-        my $fill = Slic3r::Fill->new(print => $self);
-        foreach my $angle (0, 90) {
-            my @patterns = ();
-            foreach my $expolygon (@support_material_areas) {
-                my @paths = $fill->fillers->{rectilinear}->fill_surface(
-                    Slic3r::Surface->new(
-                        expolygon       => $expolygon,
-                        bridge_angle    => $Slic3r::fill_angle + 45 + $angle,
-                    ),
-                    density         => 0.20,
-                    flow_spacing    => $Slic3r::flow_spacing,
-                );
-                my $params = shift @paths;
-                
-                push @patterns,
-                    map Slic3r::ExtrusionPath->new(
-                        polyline        => Slic3r::Polyline->new(@$_),
-                        role            => 'support-material',
-                        depth_layers    => 1,
-                        flow_spacing    => $params->{flow_spacing},
-                    ), @paths;
-            }
-            push @$support_patterns, [@patterns];
-        }
-    }
-    
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(undef, "support.svg",
-            polylines        => [ map $_->polyline, map @$_, @$support_patterns ],
-        );
-    }
-    
-    # apply the pattern to layers
-    {
-        my $clip_pattern = sub {
-            my ($layer_id, $expolygons) = @_;
-            my @paths = ();
-            foreach my $expolygon (@$expolygons) {
-                push @paths, map $_->clip_with_expolygon($expolygon),
-                    map $_->clip_with_polygon($expolygon->bounding_box_polygon),
-                    @{$support_patterns->[ $layer_id % 2 ]};
-            };
-            return @paths;
-        };
-        my %layer_paths = ();
-        Slic3r::parallelize(
-            items => [ keys %layers ],
-            thread_cb => sub {
-                my $q = shift;
-                my $paths = {};
-                while (defined (my $layer_id = $q->dequeue)) {
-                    $paths->{$layer_id} = [ $clip_pattern->($layer_id, $layers{$layer_id}) ];
-                }
-                return $paths;
-            },
-            collect_cb => sub {
-                my $paths = shift;
-                $layer_paths{$_} = $paths->{$_} for keys %$paths;
-            },
-            no_threads_cb => sub {
-                $layer_paths{$_} = [ $clip_pattern->($_, $layers{$_}) ] for keys %layers;
-            },
-        );
-        
-        foreach my $layer_id (keys %layer_paths) {
-            my $layer = $self->layers->[$layer_id];
-            $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
-            push @{$layer->support_fills->paths}, @{$layer_paths{$layer_id}};
-        }
-    }
+    push @{$self->skirt}, @skirt;
 }
 
 sub export_gcode {
@@ -772,7 +409,12 @@ sub export_gcode {
     print $fh $extruder->set_fan(0, 1) if $Slic3r::cooling && $Slic3r::disable_fan_first_layers;
     
     # write gcode commands layer by layer
-    foreach my $layer (@{ $self->layers }) {
+    my @layers = ();  # [ $obj_idx, $layer ]
+    for my $layer_id (0..$self->layer_count) {
+        push @layers, map [ $_, $self->objects->[$_]->layers->[$layer_id] ], 0..$#{$self->objects};
+    }
+    foreach my $obj_layer (grep $_->[1], @layers) {
+        my ($obj_idx, $layer) = @$obj_layer;
         if ($layer->id == 1) {
             printf $fh "M104 %s%d ; set temperature\n",
                 ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
@@ -786,15 +428,15 @@ sub export_gcode {
         my $layer_gcode = $extruder->change_layer($layer);
         $extruder->elapsed_time(0);
         
-        # extrude skirts
+        # extrude skirt
         $extruder->shift_x($shift[X]);
         $extruder->shift_y($shift[Y]);
         $layer_gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
-        $layer_gcode .= $extruder->extrude_loop($_, 'skirt') for @{ $layer->skirts };
+        if ($layer->id < $Slic3r::skirt_height) {
+            $layer_gcode .= $extruder->extrude_loop($_, 'skirt') for @{$self->skirt};
+        }
         
-        for (my $i = 0; $i <= $#{$self->copies}; $i++) {
-            my $copy = $self->copies->[$i];
-            
+        for my $copy (@{ $self->copies->[$obj_idx] }) {
             # retract explicitely because changing the shift_[xy] properties below
             # won't always trigger the automatic retraction
             $layer_gcode .= $extruder->retract;
