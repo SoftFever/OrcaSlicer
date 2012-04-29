@@ -26,7 +26,7 @@ my %cli_options = ();
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
         'threads|j=i'           => \$Slic3r::threads,
         'export-svg'            => \$opt{export_svg},
-        'merge'                 => \$opt{merge},
+        'merge|m'               => \$opt{merge},
     );
     foreach my $opt_key (keys %$Slic3r::Config::Options) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
