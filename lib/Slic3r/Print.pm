@@ -176,8 +176,8 @@ sub arrange_objects {
         for my $x_copy (1..$Slic3r::duplicate_grid->[X]) {
             for my $y_copy (1..$Slic3r::duplicate_grid->[Y]) {
                 push @{$self->copies->[0]}, [
-                    ($self->x_length + $dist) * ($x_copy-1),
-                    ($self->y_length + $dist) * ($y_copy-1),
+                    ($object->x_length + $dist) * ($x_copy-1),
+                    ($object->y_length + $dist) * ($y_copy-1),
                 ];
             }
         }
