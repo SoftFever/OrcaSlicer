@@ -6,6 +6,7 @@ use utf8;
 use File::Basename qw(basename dirname);
 use Math::ConvexHull qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
+use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
     wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED);
@@ -452,7 +453,7 @@ sub repaint {
     # draw skirt
     if (@{$parent->{object_previews}} && $Slic3r::skirts) {
         my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->[2]}, @{$parent->{object_previews}} ]));
-        $convex_hull = +($convex_hull->offset($Slic3r::skirt_distance * $parent->{scaling_factor}, 1))[0];
+        $convex_hull = +($convex_hull->offset($Slic3r::skirt_distance * $parent->{scaling_factor}, 1, JT_ROUND))[0];
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
         $dc->DrawPolygon($parent->_y($convex_hull), 0, 0) if $convex_hull;
