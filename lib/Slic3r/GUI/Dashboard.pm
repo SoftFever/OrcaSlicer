@@ -129,7 +129,6 @@ sub load_file {
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
     my $object = $self->{print}->add_object_from_file($input_file);
     my $obj_idx = $#{$self->{print}->objects};
-    $self->{print}->arrange_objects;
     
     $self->{list}->InsertStringItem($obj_idx, basename($input_file));
     $self->{list}->SetItem($obj_idx, 1, "1");
@@ -138,8 +137,7 @@ sub load_file {
     push @{$self->{scale}}, 1;
     
     $self->make_thumbnail($obj_idx);
-    $self->recenter;
-    $self->{canvas}->Refresh;
+    $self->arrange;
     $self->{list}->Update;
     $self->{list}->Select($obj_idx, 1);
     $self->object_list_changed;
@@ -235,14 +233,16 @@ sub rotate {
     
     $self->make_thumbnail($obj_idx);
     $self->arrange;
-    $self->recenter;
-    $self->{canvas}->Refresh;
 }
 
 sub arrange {
     my $self = shift;
     
-    $self->{print}->arrange_objects;
+    eval {
+        $self->{print}->arrange_objects;
+    };
+    Slic3r::GUI::warning_catcher($self)->($@) if $@;
+    
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -266,10 +266,8 @@ sub changescale {
     $self->{scale}[$obj_idx] = $scale/100;
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
     
-    $self->{print}->arrange_objects;
     $self->make_thumbnail($obj_idx);
-    $self->recenter;
-    $self->{canvas}->Refresh;
+    $self->arrange;
 }
 
 sub export_gcode {
