@@ -139,9 +139,12 @@ sub load_file {
     
     $Slic3r::GUI::SkeinPanel::last_input_file = $input_file;
     
+    my $process_dialog = Wx::ProgressDialog->new('Loading...', "Processing input file...", 100, $self, 0);
+    $process_dialog->Pulse;
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
     my $object = $self->{print}->add_object_from_file($input_file);
     my $obj_idx = $#{$self->{print}->objects};
+    $process_dialog->Destroy;
     
     $self->{list}->InsertStringItem($obj_idx, basename($input_file));
     $self->{list}->SetItem($obj_idx, 1, "1");

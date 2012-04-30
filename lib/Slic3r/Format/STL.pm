@@ -121,12 +121,11 @@ sub read_file {
 sub _read_ascii {
     my ($fh, $facets) = @_;
     
-    my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)\s*$/;
+    my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)/;
     
     my $facet;
     seek $fh, 0, 0;
     while (my $_ = <$fh>) {
-        s/\R+$//;
         if (!$facet) {
             /^\s*facet\s+normal\s+$point_re/ or next;
             $facet = [ [$1, $2, $3] ];
@@ -135,7 +134,7 @@ sub _read_ascii {
                 push @$facets, $facet;
                 undef $facet;
             } else {
-                /^\s*vertex\s+$point_re/ or next;
+                /^\s*vertex\s+$point_re/o or next;
                 push @$facet, [map $_ * 1, $1, $2, $3];
             }
         }
