@@ -398,6 +398,7 @@ sub infill_every_layers {
 
 sub generate_support_material {
     my $self = shift;
+    my %params = @_;
     
     # determine unsupported surfaces
     my %layers = ();
@@ -441,7 +442,7 @@ sub generate_support_material {
         my @support_material_areas = map $_->offset_ex(scale 5),
             @{union_ex([ map @$_, @unsupported_expolygons ])};
         
-        my $fill = Slic3r::Fill->new(print => $self);
+        my $fill = Slic3r::Fill->new(print => $params{print});
         foreach my $angle (0, 90) {
             my @patterns = ();
             foreach my $expolygon (@support_material_areas) {

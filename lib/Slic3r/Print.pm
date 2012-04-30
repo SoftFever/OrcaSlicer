@@ -237,7 +237,7 @@ sub export_gcode {
     # generate support material
     if ($Slic3r::support_material) {
         $status_cb->(85, "Generating support material");
-        $_->generate_support_material for @{$self->objects};
+        $_->generate_support_material(print => $self) for @{$self->objects};
     }
     
     # free memory (note that support material needs fill_surfaces)
