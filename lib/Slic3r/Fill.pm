@@ -16,6 +16,7 @@ use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
 
 has 'print'     => (is => 'ro', required => 1);
+has 'max_print_dimension' => (is => 'rw');
 has 'fillers'   => (is => 'rw', default => sub { {} });
 
 our %FillTypes = (
@@ -31,12 +32,22 @@ our %FillTypes = (
 
 sub BUILD {
     my $self = shift;
-    $self->fillers->{$_} ||= $FillTypes{$_}->new(print => $self->print)
-        for ('rectilinear', $Slic3r::fill_pattern, $Slic3r::solid_fill_pattern);
     
     my $print_size = $self->print->size;
     my $max_print_dimension = ($print_size->[X] > $print_size->[Y] ? $print_size->[X] : $print_size->[Y]) * sqrt(2);
-    $_->max_print_dimension($max_print_dimension) for values %{$self->fillers};
+    $self->max_print_dimension($max_print_dimension);
+    
+    $self->filler($_) for ('rectilinear', $Slic3r::fill_pattern, $Slic3r::solid_fill_pattern);
+}
+
+sub filler {
+    my $self = shift;
+    my ($filler) = @_;
+    if (!$self->fillers->{$filler}) {
+        $self->fillers->{$filler} = $FillTypes{$filler}->new(print => $self->print);
+        $self->fillers->{$filler}->max_print_dimension($self->max_print_dimension);
+    }
+    return $self->fillers->{$filler};
 }
 
 sub make_fill {

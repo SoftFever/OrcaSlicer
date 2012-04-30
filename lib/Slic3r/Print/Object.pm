@@ -443,13 +443,14 @@ sub generate_support_material {
             @{union_ex([ map @$_, @unsupported_expolygons ])};
         
         my $fill = Slic3r::Fill->new(print => $params{print});
-        foreach my $angle (0, 90) {
+        foreach my $layer (map $self->layers->[$_], 0,1,2) {  # ugly hack
+            $fill->filler('honeycomb')->layer($layer);
             my @patterns = ();
             foreach my $expolygon (@support_material_areas) {
-                my @paths = $fill->fillers->{rectilinear}->fill_surface(
+                my @paths = $fill->filler('honeycomb')->fill_surface(
                     Slic3r::Surface->new(
                         expolygon       => $expolygon,
-                        bridge_angle    => $Slic3r::fill_angle + 45 + $angle,
+                        #bridge_angle    => $Slic3r::fill_angle + 45 + $angle,
                     ),
                     density         => 0.20,
                     flow_spacing    => $Slic3r::flow_spacing,
@@ -483,7 +484,7 @@ sub generate_support_material {
             foreach my $expolygon (@$expolygons) {
                 push @paths, map $_->clip_with_expolygon($expolygon),
                     map $_->clip_with_polygon($expolygon->bounding_box_polygon),
-                    @{$support_patterns->[ $layer_id % 2 ]};
+                    @{$support_patterns->[ $layer_id % @$support_patterns ]};
             };
             return @paths;
         };
