@@ -41,12 +41,13 @@ sub new {
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     
     $self->{btn_load} = Wx::Button->new($self, -1, "Add…");
-    $self->{btn_remove} = Wx::Button->new($self, -1, "Remove");
+    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete");
     $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy");
     $self->{btn_decrease} = Wx::Button->new($self, -1, "-1 copy");
     $self->{btn_rotate45cw} = Wx::Button->new($self, -1, "Rotate by 45° (cw)");
     $self->{btn_rotate45ccw} = Wx::Button->new($self, -1, "Rotate by 45° (ccw)");
-    $self->{btn_reset} = Wx::Button->new($self, -1, "Clean");
+    $self->{btn_rotate} = Wx::Button->new($self, -1, "Rotate…");
+    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All");
     $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange");
     $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…");
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…");
@@ -59,11 +60,12 @@ sub new {
     EVT_BUTTON($self, $self->{btn_remove}, \&remove);
     EVT_BUTTON($self, $self->{btn_increase}, \&increase);
     EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
-    EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(45) });
-    EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(-45) });
+    EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
+    EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
     EVT_BUTTON($self, $self->{btn_reset}, \&reset);
     EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
     EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
+    EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
@@ -101,7 +103,7 @@ sub new {
         
         my $buttons2 = Wx::BoxSizer->new(wxVERTICAL);
         $buttons2->Add($self->{"btn_$_"})
-            for qw(increase decrease rotate45cw rotate45ccw changescale);
+            for qw(increase decrease rotate45cw rotate45ccw rotate changescale);
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $buttons_sizer->Add($_) for ($buttons1, $buttons2);
@@ -239,6 +241,11 @@ sub rotate {
     
     my $obj_idx = $self->selected_object_idx;
     my $object = $self->{print}->objects->[$obj_idx];
+    
+    if (!defined $angle) {
+        $angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate", 0, -364, 364, $self);
+        return if !$angle || $angle == -1;
+    }
     
     # rotate, realign to 0,0 and update size
     $object->mesh->rotate($angle);
@@ -557,7 +564,8 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{$_}->$method
-        for qw(btn_remove btn_increase btn_decrease btn_rotate45cw btn_rotate45ccw btn_changescale);
+        for qw(btn_remove btn_increase btn_decrease btn_rotate45cw btn_rotate45ccw btn_rotate
+            btn_changescale);
 }
 
 sub selected_object_idx {
