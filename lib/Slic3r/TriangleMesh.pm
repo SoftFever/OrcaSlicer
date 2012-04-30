@@ -490,4 +490,44 @@ sub get_connected_facets {
     return keys %facets;
 }
 
+sub split_mesh {
+    my $self = shift;
+    
+    my @meshes = ();
+    
+    # loop while we have remaining facets
+    while (1) {
+        # get the first facet
+        my @facet_queue = ();
+        my @facets = ();
+        for (my $i = 0; $i <= $#{$self->facets}; $i++) {
+            if (defined $self->facets->[$i]) {
+                push @facet_queue, $i;
+                last;
+            }
+        }
+        last if !@facet_queue;
+        
+        while (defined (my $facet_id = shift @facet_queue)) {
+            next unless defined $self->facets->[$facet_id];
+            push @facets, map [ @$_ ], $self->facets->[$facet_id];
+            push @facet_queue, $self->get_connected_facets($facet_id);
+            $self->facets->[$facet_id] = undef;
+        }
+        
+        my %vertices = map { $_ => 1 } map @$_[1,2,3], @facets;
+        my @new_vertices = keys %vertices;
+        my %new_vertices = map { $new_vertices[$_] => $_ } 0..$#new_vertices;
+        foreach my $facet (@facets) {
+            $facet->[$_] = $new_vertices{$facet->[$_]} for 1,2,3;
+        }
+        push @meshes, Slic3r::TriangleMesh->new(
+            facets => \@facets,
+            vertices => [ map $self->vertices->[$_], keys %vertices ],
+        );
+    }
+    
+    return @meshes;
+}
+
 1;

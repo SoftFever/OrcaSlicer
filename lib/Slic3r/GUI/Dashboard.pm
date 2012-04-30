@@ -50,6 +50,7 @@ sub new {
     $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All");
     $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange");
     $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…");
+    $self->{btn_split} = Wx::Button->new($self, -1, "Split");
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…");
     $self->{btn_export_gcode}->SetDefault;
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
@@ -66,6 +67,7 @@ sub new {
     EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
     EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
     EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
+    EVT_BUTTON($self, $self->{btn_split}, \&split_object);
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
@@ -94,7 +96,7 @@ sub new {
         
         my $buttons2 = Wx::BoxSizer->new(wxVERTICAL);
         $buttons2->Add($self->{"btn_$_"})
-            for qw(increase decrease rotate45cw rotate45ccw rotate changescale);
+            for qw(increase decrease rotate45cw rotate45ccw rotate changescale split);
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $buttons_sizer->Add($_) for ($buttons1, $buttons2);
@@ -135,17 +137,25 @@ sub load_file {
     my $process_dialog = Wx::ProgressDialog->new('Loading...', "Processing input file...", 100, $self, 0);
     $process_dialog->Pulse;
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-    my $object = $self->{print}->add_object_from_file($input_file);
+    $self->{print}->add_object_from_file($input_file);
     my $obj_idx = $#{$self->{print}->objects};
     $process_dialog->Destroy;
     
-    $self->{list}->InsertStringItem($obj_idx, basename($input_file));
+    $self->object_loaded($obj_idx);
+}
+
+sub object_loaded {
+    my $self = shift;
+    my ($obj_idx, %params) = @_;
+    
+    my $object = $self->{print}->objects->[$obj_idx];
+    $self->{list}->InsertStringItem($obj_idx, basename($object->input_file));
     $self->{list}->SetItem($obj_idx, 1, "1");
     $self->{list}->SetItem($obj_idx, 2, "100%");
     push @{$self->{scale}}, 1;
     
     $self->make_thumbnail($obj_idx);
-    $self->arrange;
+    $self->arrange unless $params{no_arrange};
     $self->{list}->Update;
     $self->{list}->Select($obj_idx, 1);
     $self->object_list_changed;
@@ -280,6 +290,25 @@ sub changescale {
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
     
     $self->make_thumbnail($obj_idx);
+    $self->arrange;
+}
+
+sub split_object {
+    my $self = shift;
+    
+    my $obj_idx = $self->selected_object_idx;
+    my $current_object = $self->{print}->objects->[$obj_idx];
+    my $mesh = $current_object->mesh->clone;
+    $mesh->scale($Slic3r::scaling_factor);
+    
+    foreach my $mesh ($mesh->split_mesh) {
+        my $object = $self->{print}->add_object_from_mesh($mesh);
+        $object->input_file($current_object->input_file);
+        $self->object_loaded($#{$self->{print}->objects}, no_arrange => 1);
+    }
+    
+    $self->{list}->Select($obj_idx, 1);
+    $self->remove;
     $self->arrange;
 }
 
@@ -569,8 +598,8 @@ sub object_list_changed {
     my $self = shift;
     
     my $method = $self->{print} && @{$self->{print}->objects} ? 'Enable' : 'Disable';
-    $self->{$_}->$method
-        for qw(btn_reset btn_arrange btn_export_gcode btn_export_stl);
+    $self->{"btn_$_"}->$method
+        for qw(reset arrange export_gcode export_stl);
 }
 
 sub selection_changed {
@@ -578,9 +607,8 @@ sub selection_changed {
     my ($have_sel) = @_;
     
     my $method = $have_sel ? 'Enable' : 'Disable';
-    $self->{$_}->$method
-        for qw(btn_remove btn_increase btn_decrease btn_rotate45cw btn_rotate45ccw btn_rotate
-            btn_changescale);
+    $self->{"btn_$_"}->$method
+        for qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split);
 }
 
 sub selected_object_idx {

@@ -29,30 +29,10 @@ my %opt = ();
     my $basename = $ARGV[0];
     $basename =~ s/\.stl$//i;
     
-    # loop while we have remaining facets
     my $part_count = 0;
-    while (1) {
-        # get the first facet
-        my @facet_queue = ();
-        my @facets = ();
-        for (my $i = 0; $i <= $#{$mesh->facets}; $i++) {
-            if (defined $mesh->facets->[$i]) {
-                push @facet_queue, $i;
-                last;
-            }
-        }
-        last if !@facet_queue;
-        
-        while (defined (my $facet_id = shift @facet_queue)) {
-            next unless defined $mesh->facets->[$facet_id];
-            push @facets, $mesh->facets->[$facet_id];
-            push @facet_queue, $mesh->get_connected_facets($facet_id);
-            $mesh->facets->[$facet_id] = undef;
-        }
-        
+    foreach my $new_mesh ($mesh->split_mesh) {
         my $output_file = sprintf '%s_%02d.stl', $basename, ++$part_count;
         printf "Writing to %s\n", basename($output_file);
-        my $new_mesh = Slic3r::TriangleMesh->new(facets => \@facets, vertices => $mesh->vertices);
         Slic3r::Format::STL->write_file($output_file, $new_mesh, !$opt{ascii});
     }
 }
