@@ -19,6 +19,7 @@ my %cli_options = ();
         'help'                  => sub { usage() },
         
         'debug'                 => \$Slic3r::debug,
+        'gui'                   => \$opt{gui},
         'o|output=s'            => \$opt{output},
         
         'save=s'                => \$opt{save},
@@ -71,6 +72,7 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     Slic3r::GUI->new->MainLoop;
     exit;
 }
+die $@ if $@ && $opt{gui};
 
 if (@ARGV) {
     while (my $input_file = shift @ARGV) {

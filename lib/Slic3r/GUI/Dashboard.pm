@@ -1,6 +1,8 @@
 package Slic3r::GUI::Dashboard;
 use strict;
 use warnings;
+my $have_threads = eval "use threads; 1";
+use threads::shared;
 use utf8;
 
 use File::Basename qw(basename dirname);
@@ -9,8 +11,11 @@ use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
     wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
-use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED);
+use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED
+    EVT_COMMAND);
 use base 'Wx::Panel';
+
+my $THUMBNAIL_DONE_EVENT : shared = Wx::NewEventType;
 
 sub new {
     my $class = shift;
@@ -64,6 +69,13 @@ sub new {
     
     $_->SetDropTarget(Slic3r::GUI::Dashboard::DropTarget->new($self))
         for $self, $self->{canvas}, $self->{list};
+    
+    EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
+        my ($self, $event) = @_;
+        my ($obj_idx, $thumbnail) = @{$event->GetData};
+        $self->{thumbnails}[$obj_idx] = $thumbnail;
+        $self->{canvas}->Refresh;
+    });
     
     # calculate scaling factor for preview
     {
@@ -379,14 +391,24 @@ sub make_thumbnail {
     my $self = shift;
     my ($obj_idx) = @_;
     
-    my $object = $self->{print}->objects->[$obj_idx];
-    my @points = map [ @$_[X,Y] ], @{$object->mesh->vertices};
-    my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-    for (@$convex_hull) {
-        @$_ = map $self->to_pixel($_), @$_;
-    }
-    $convex_hull->simplify(0.3);
-    $self->{thumbnails}->[$obj_idx] = $convex_hull;
+    my $cb = sub {
+        my $object = $self->{print}->objects->[$obj_idx];
+        my @points = map [ @$_[X,Y] ], @{$object->mesh->vertices};
+        my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
+        for (@$convex_hull) {
+            @$_ = map $self->to_pixel($_), @$_;
+        }
+        $convex_hull->simplify(0.3);
+        $self->{thumbnails}->[$obj_idx] = $convex_hull;  # ignored in multithread environment
+        
+        $have_threads
+            ? Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $convex_hull ])))
+            : $self->{canvas}->Refresh;
+        
+        threads->exit if $have_threads;
+    };
+    
+    $have_threads ? threads->create($cb) : $cb->();
 }
 
 sub recenter {
