@@ -4,8 +4,10 @@ use Moo;
 use Slic3r::Geometry qw(scale);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
 
-has 'x_length'          => (is => 'ro', required => 1);
-has 'y_length'          => (is => 'ro', required => 1);
+has 'input_file'        => (is => 'rw', required => 0);
+has 'mesh'              => (is => 'rw', required => 0);
+has 'x_length'          => (is => 'rw', required => 1);
+has 'y_length'          => (is => 'rw', required => 1);
 
 has 'layers' => (
     traits  => ['Array'],
@@ -32,6 +34,122 @@ sub layer {
     }
     
     return $self->layers->[$layer_id];
+}
+
+sub slice {
+    my $self = shift;
+    
+    # process facets
+    {
+        my $apply_lines = sub {
+            my $lines = shift;
+            foreach my $layer_id (keys %$lines) {
+                my $layer = $self->layer($layer_id);
+                $layer->add_line($_) for @{ $lines->{$layer_id} };
+            }
+        };
+        Slic3r::parallelize(
+            disable => ($#{$self->mesh->facets} < 500),  # don't parallelize when too few facets
+            items => [ 0..$#{$self->mesh->facets} ],
+            thread_cb => sub {
+                my $q = shift;
+                my $result_lines = {};
+                while (defined (my $facet_id = $q->dequeue)) {
+                    my $lines = $self->mesh->slice_facet($self, $facet_id);
+                    foreach my $layer_id (keys %$lines) {
+                        $result_lines->{$layer_id} ||= [];
+                        push @{ $result_lines->{$layer_id} }, @{ $lines->{$layer_id} };
+                    }
+                }
+                return $result_lines;
+            },
+            collect_cb => sub {
+                $apply_lines->($_[0]);
+            },
+            no_threads_cb => sub {
+                for (0..$#{$self->mesh->facets}) {
+                    my $lines = $self->mesh->slice_facet($self, $_);
+                    $apply_lines->($lines);
+                }
+            },
+        );
+    }
+    die "Invalid input file\n" if !@{$self->layers};
+    
+    # remove last layer if empty
+    # (we might have created it because of the $max_layer = ... + 1 code below)
+    pop @{$self->layers} if !@{$self->layers->[-1]->surfaces} && !@{$self->layers->[-1]->lines};
+    
+    foreach my $layer (@{ $self->layers }) {
+        Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
+            $layer->id, unscale $layer->slice_z if $Slic3r::debug;
+        
+        # layer currently has many lines representing intersections of
+        # model facets with the layer plane. there may also be lines
+        # that we need to ignore (for example, when two non-horizontal
+        # facets share a common edge on our plane, we get a single line;
+        # however that line has no meaning for our layer as it's enclosed
+        # inside a closed polyline)
+        
+        # build surfaces from sparse lines
+        $layer->make_surfaces($self->mesh->make_loops($layer));
+        
+        # free memory
+        $layer->lines(undef);
+    }
+    
+    # detect slicing errors
+    my $warning_thrown = 0;
+    for my $i (0 .. $#{$self->layers}) {
+        my $layer = $self->layers->[$i];
+        next unless $layer->slicing_errors;
+        if (!$warning_thrown) {
+            warn "The model has overlapping or self-intersecting facets. I tried to repair it, "
+                . "however you might want to check the results or repair the input file and retry.\n";
+            $warning_thrown = 1;
+        }
+        
+        # try to repair the layer surfaces by merging all contours and all holes from
+        # neighbor layers
+        Slic3r::debugf "Attempting to repair layer %d\n", $i;
+        
+        my (@upper_surfaces, @lower_surfaces);
+        for (my $j = $i+1; $j <= $#{$self->layers}; $j++) {
+            if (!$self->layers->[$j]->slicing_errors) {
+                @upper_surfaces = @{$self->layers->[$j]->slices};
+                last;
+            }
+        }
+        for (my $j = $i-1; $j >= 0; $j--) {
+            if (!$self->layers->[$j]->slicing_errors) {
+                @lower_surfaces = @{$self->layers->[$j]->slices};
+                last;
+            }
+        }
+        
+        my $union = union_ex([
+            map $_->expolygon->contour, @upper_surfaces, @lower_surfaces,
+        ]);
+        my $diff = diff_ex(
+            [ map @$_, @$union ],
+            [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
+        );
+        
+        @{$layer->slices} = map Slic3r::Surface->new
+            (expolygon => $_, surface_type => 'internal'),
+            @$diff;
+    }
+    
+    # remove empty layers from bottom
+    while (@{$self->layers} && !@{$self->layers->[0]->slices} && !@{$self->layers->[0]->thin_walls}) {
+        shift @{$self->layers};
+        for (my $i = 0; $i <= $#{$self->layers}; $i++) {
+            $self->layers->[$i]->id($i);
+        }
+    }
+    
+    warn "No layers were detected. You might want to repair your STL file and retry.\n"
+        if !@{$self->layers};
 }
 
 sub detect_surfaces_type {

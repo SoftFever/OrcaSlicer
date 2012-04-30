@@ -74,9 +74,13 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
 
 if (@ARGV) {
     while (my $input_file = shift @ARGV) {
-        my $skein = Slic3r::Skein->new(
-            input_file  => $input_file,
-            additional_input_files => $opt{merge} ? [ splice @ARGV, 0 ] : [],
+        my $print = Slic3r::Print->new;
+        $print->add_object_from_file($input_file);
+        if ($opt{merge}) {
+            $print->add_object_from_file($_) for splice @ARGV, 0;
+        }
+        $print->duplicate;
+        my %params = (
             output_file => $opt{output},
             status_cb   => sub {
                 my ($percent, $message) = @_;
@@ -84,9 +88,9 @@ if (@ARGV) {
             },
         );
         if ($opt{export_svg}) {
-            $skein->export_svg;
+            $print->export_svg(%params);
         } else {
-            $skein->go;
+            $print->export_gcode(%params);
         }
     }
 } else {
@@ -125,7 +129,7 @@ $j
     --post-process      Generated G-code will be processed with the supplied script;
                         call this more than once to process through multiple scripts.
     --export-svg        Export a SVG file containing slices instead of G-code.
-    --merge             If multiple files are supplied, they will be composed into a single 
+    -m, --merge         If multiple files are supplied, they will be composed into a single 
                         print rather than processed individually.
   
   Printer options:

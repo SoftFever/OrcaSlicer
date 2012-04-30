@@ -11,7 +11,7 @@ use Slic3r::Fill::Line;
 use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
-use Slic3r::Geometry qw(scale shortest_path);
+use Slic3r::Geometry qw(X Y scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
 
@@ -34,7 +34,8 @@ sub BUILD {
     $self->fillers->{$_} ||= $FillTypes{$_}->new(print => $self->print)
         for ('rectilinear', $Slic3r::fill_pattern, $Slic3r::solid_fill_pattern);
     
-    my $max_print_dimension = $self->print->max_length * sqrt(2);
+    my $print_size = $self->print->size;
+    my $max_print_dimension = ($print_size->[X] > $print_size->[Y] ? $print_size->[X] : $print_size->[Y]) * sqrt(2);
     $_->max_print_dimension($max_print_dimension) for values %{$self->fillers};
 }
 

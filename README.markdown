@@ -50,7 +50,7 @@ Roadmap includes the following goals:
 
 * output some statistics;
 * support material for internal perimeters;
-* new and better GUI;
+* more GUI work;
 * more fill patterns.
 
 ## Is it usable already? Any known limitation?
@@ -95,7 +95,7 @@ The author is Alessandro Ranellucci (me).
         --post-process      Generated G-code will be processed with the supplied script;
                             call this more than once to process through multiple scripts.
         --export-svg        Export a SVG file containing slices instead of G-code.
-        --merge             If multiple files are supplied, they will be composed into a single 
+        -m, --merge         If multiple files are supplied, they will be composed into a single 
                             print rather than processed individually.
       
       Printer options:

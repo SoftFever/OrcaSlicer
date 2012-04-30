@@ -4,7 +4,7 @@ use Moo;
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 
 # public
-has 'vertices'      => (is => 'ro', required => 1);         # id => [ [$x1,$y1],[$x2,$y2],[$x3,$y3] ]
+has 'vertices'      => (is => 'ro', required => 1);         # id => [$x,$y,$z]
 has 'facets'        => (is => 'ro', required => 1);         # id => [ $normal, $v1_id, $v2_id, $v3_id ]
 
 # private

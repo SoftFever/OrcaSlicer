@@ -8,7 +8,7 @@ use base 'Wx::StaticBoxSizer';
 
 
 # not very elegant, but this solution is temporary waiting for a better GUI
-our @reload_callbacks = (\&update_duplicate_controls);
+our @reload_callbacks = ();
 our %fields = ();  # $key => [$control]
 
 sub new {
@@ -83,7 +83,6 @@ sub new {
             $field = Wx::Choice->new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values});
             EVT_CHOICE($parent, $field, sub {
                 Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
-                update_duplicate_controls() if $opt_key eq 'duplicate_mode';
             });
             push @reload_callbacks, sub {
                 my $value = Slic3r::Config->get($opt_key);
@@ -100,21 +99,6 @@ sub new {
     $self->Add($grid_sizer, 0, wxEXPAND);
     
     return $self;
-}
-
-sub update_duplicate_controls {
-    # prevent infinite loops when calling ourselves
-    return if +(caller 1)[3] =~ /::update_duplicate_controls$/;
-    
-    my $value = Slic3r::Config->get('duplicate_mode');
-    $_->Enable($value eq 'autoarrange') for @{$fields{duplicate}};
-    $_->Enable($value eq 'autoarrange') for @{$fields{bed_size}};
-    $_->Enable($value eq 'grid') for @{$fields{duplicate_grid}};
-    $_->Enable($value ne 'no') for @{$fields{duplicate_distance}};
-    Slic3r::Config->set('duplicate', 1) if $value ne 'autoarrange';
-    Slic3r::Config->set('duplicate_grid', [1,1]) if $value ne 'grid';
-    $fields{duplicate}[0]->GetParent->Refresh;
-    $_->() for @reload_callbacks;  # apply new values
 }
 
 1;

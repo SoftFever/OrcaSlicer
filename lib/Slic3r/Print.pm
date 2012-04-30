@@ -1,15 +1,16 @@
 package Slic3r::Print;
 use Moo;
 
+use File::Basename qw(basename fileparse);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z PI scale unscale move_points);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex offset JT_ROUND);
+use Time::HiRes qw(gettimeofday tv_interval);
 
-has 'objects'           => (is => 'rw', default => sub {[]});
-has 'copies'            => (is => 'rw', default => sub {[]});  # obj_idx => [copies...]
-has 'total_x_length'    => (is => 'rw'); # including duplicates
-has 'total_y_length'    => (is => 'rw'); # including duplicates
+has 'objects'                => (is => 'rw', default => sub {[]});
+has 'copies'                 => (is => 'rw', default => sub {[]});  # obj_idx => [copies...]
 has 'total_extrusion_length' => (is => 'rw');
+has 'processing_time'        => (is => 'rw', required => 0);
 
 # ordered collection of extrusion paths to build skirt loops
 has 'skirt' => (
@@ -17,6 +18,26 @@ has 'skirt' => (
     #isa     => 'ArrayRef[Slic3r::ExtrusionLoop]',
     default => sub { [] },
 );
+
+sub add_object_from_file {
+    my $self = shift;
+    my ($input_file) = @_;
+    
+    my $object;
+    if ($input_file =~ /\.stl$/i) {
+        my $mesh = Slic3r::Format::STL->read_file($input_file);
+        $mesh->check_manifoldness;
+        $object = $self->add_object_from_mesh($mesh);
+    } elsif ( $input_file =~ /\.amf(\.xml)?$/i) {
+        my ($materials, $meshes_by_material) = Slic3r::Format::AMF->read_file($input_file);
+        $_->check_manifoldness for values %$meshes_by_material;
+        $object = $self->add_object_from_mesh($meshes_by_material->{_} || +(values %$meshes_by_material)[0]);
+    } else {
+        die "Input file must have .stl or .amf(.xml) extension\n";
+    }
+    $object->input_file($input_file);
+    return $object;
+}
 
 sub add_object_from_mesh {
     my $self = shift;
@@ -29,123 +50,13 @@ sub add_object_from_mesh {
     # initialize print object
     my @size = $mesh->size;
     my $object = Slic3r::Print::Object->new(
+        mesh     => $mesh,
         x_length => $size[X],
         y_length => $size[Y],
     );
     
-    # process facets
-    {
-        my $apply_lines = sub {
-            my $lines = shift;
-            foreach my $layer_id (keys %$lines) {
-                my $layer = $object->layer($layer_id);
-                $layer->add_line($_) for @{ $lines->{$layer_id} };
-            }
-        };
-        Slic3r::parallelize(
-            disable => ($#{$mesh->facets} < 500),  # don't parallelize when too few facets
-            items => [ 0..$#{$mesh->facets} ],
-            thread_cb => sub {
-                my $q = shift;
-                my $result_lines = {};
-                while (defined (my $facet_id = $q->dequeue)) {
-                    my $lines = $mesh->slice_facet($object, $facet_id);
-                    foreach my $layer_id (keys %$lines) {
-                        $result_lines->{$layer_id} ||= [];
-                        push @{ $result_lines->{$layer_id} }, @{ $lines->{$layer_id} };
-                    }
-                }
-                return $result_lines;
-            },
-            collect_cb => sub {
-                $apply_lines->($_[0]);
-            },
-            no_threads_cb => sub {
-                for (0..$#{$mesh->facets}) {
-                    my $lines = $mesh->slice_facet($object, $_);
-                    $apply_lines->($lines);
-                }
-            },
-        );
-    }
-    die "Invalid input file\n" if !@{$object->layers};
-    
-    # remove last layer if empty
-    # (we might have created it because of the $max_layer = ... + 1 code below)
-    pop @{$object->layers} if !@{$object->layers->[-1]->surfaces} && !@{$object->layers->[-1]->lines};
-    
-    foreach my $layer (@{ $object->layers }) {
-        Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
-            $layer->id, unscale $layer->slice_z if $Slic3r::debug;
-        
-        # layer currently has many lines representing intersections of
-        # model facets with the layer plane. there may also be lines
-        # that we need to ignore (for example, when two non-horizontal
-        # facets share a common edge on our plane, we get a single line;
-        # however that line has no meaning for our layer as it's enclosed
-        # inside a closed polyline)
-        
-        # build surfaces from sparse lines
-        $layer->make_surfaces($mesh->make_loops($layer));
-        
-        # free memory
-        $layer->lines(undef);
-    }
-    
-    # detect slicing errors
-    my $warning_thrown = 0;
-    for my $i (0 .. $#{$object->layers}) {
-        my $layer = $object->layers->[$i];
-        next unless $layer->slicing_errors;
-        if (!$warning_thrown) {
-            warn "The model has overlapping or self-intersecting facets. I tried to repair it, "
-                . "however you might want to check the results or repair the input file and retry.\n";
-            $warning_thrown = 1;
-        }
-        
-        # try to repair the layer surfaces by merging all contours and all holes from
-        # neighbor layers
-        Slic3r::debugf "Attempting to repair layer %d\n", $i;
-        
-        my (@upper_surfaces, @lower_surfaces);
-        for (my $j = $i+1; $j <= $#{$object->layers}; $j++) {
-            if (!$object->layers->[$j]->slicing_errors) {
-                @upper_surfaces = @{$object->layers->[$j]->slices};
-                last;
-            }
-        }
-        for (my $j = $i-1; $j >= 0; $j--) {
-            if (!$object->layers->[$j]->slicing_errors) {
-                @lower_surfaces = @{$object->layers->[$j]->slices};
-                last;
-            }
-        }
-        
-        my $union = union_ex([
-            map $_->expolygon->contour, @upper_surfaces, @lower_surfaces,
-        ]);
-        my $diff = diff_ex(
-            [ map @$_, @$union ],
-            [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
-        );
-        
-        @{$layer->slices} = map Slic3r::Surface->new
-            (expolygon => $_, surface_type => 'internal'),
-            @$diff;
-    }
-    
-    # remove empty layers from bottom
-    while (@{$object->layers} && !@{$object->layers->[0]->slices} && !@{$object->layers->[0]->thin_walls}) {
-        shift @{$object->layers};
-        for (my $i = 0; $i <= $#{$object->layers}; $i++) {
-            $object->layers->[$i]->id($i);
-        }
-    }
-    
-    warn "No layers were detected. You might want to repair your STL file and retry.\n"
-        if !@{$object->layers};
-    
     push @{$self->objects}, $object;
+    push @{$self->copies}, [[0, 0]];
     return $object;
 }
 
@@ -158,21 +69,18 @@ sub layer_count {
     return $count;
 }
 
-sub arrange_objects {
+sub duplicate {
     my $self = shift;
     
-    my $dist = scale $Slic3r::duplicate_distance;
-
     if ($Slic3r::duplicate_grid->[X] > 1 || $Slic3r::duplicate_grid->[Y] > 1) {
         if (@{$self->objects} > 1) {
             die "Grid duplication is not supported with multiple objects\n";
         }
         my $object = $self->objects->[0];
-        $self->total_x_length($object->x_length * $Slic3r::duplicate_grid->[X] + $dist * ($Slic3r::duplicate_grid->[X] - 1));
-        $self->total_y_length($object->y_length * $Slic3r::duplicate_grid->[Y] + $dist * ($Slic3r::duplicate_grid->[Y] - 1));
         
         # generate offsets for copies
-        push @{$self->copies}, [];
+        my $dist = scale $Slic3r::duplicate_distance;
+        @{$self->copies->[0]} = ();
         for my $x_copy (1..$Slic3r::duplicate_grid->[X]) {
             for my $y_copy (1..$Slic3r::duplicate_grid->[Y]) {
                 push @{$self->copies->[0]}, [
@@ -181,132 +89,247 @@ sub arrange_objects {
                 ];
             }
         }
-    } elsif ($Slic3r::duplicate > 1 || @{$self->objects} > 1) {
-        my $total_parts = @{$self->objects} * $Slic3r::duplicate;
-        my $linint = sub {
-            my ($value, $oldmin, $oldmax, $newmin, $newmax) = @_;
-            return ($value - $oldmin) * ($newmax - $newmin) / ($oldmax - $oldmin) + $newmin;
-        };
-
-        # use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
-        my $partx = my $party = 0;
-        foreach my $object (@{$self->objects}) {
-            $partx = $object->x_length if $object->x_length > $partx;
-            $party = $object->y_length if $object->y_length > $party;
+    } elsif ($Slic3r::duplicate > 1) {
+        foreach my $copies (@{$self->copies}) {
+            @$copies = map [0,0], 1..$Slic3r::duplicate;
         }
-        $partx = unscale($partx) + $Slic3r::duplicate_distance;
-        $party = unscale($party) + $Slic3r::duplicate_distance;
-
-        # margin needed for the skirt
-        my $skirt_margin;		
-        if ($Slic3r::skirts > 0) {
-            $skirt_margin = ($Slic3r::flow_spacing * $Slic3r::skirts + $Slic3r::skirt_distance) * 2;
-        } else {
-            $skirt_margin = 0;		
-        }
-
-        # this is how many cells we have available into which to put parts
-        my $cellw = int(($Slic3r::bed_size->[X] - $skirt_margin + $Slic3r::duplicate_distance) / $partx);
-        my $cellh = int(($Slic3r::bed_size->[Y] - $skirt_margin + $Slic3r::duplicate_distance) / $party);
-
-        die "$total_parts parts won't fit in your print area!\n" if $total_parts > ($cellw * $cellh);
-
-        # width and height of space used by cells
-        my $w = $cellw * $partx;
-        my $h = $cellh * $party;
-
-        # left and right border positions of space used by cells
-        my $l = ($Slic3r::bed_size->[X] - $w) / 2;
-        my $r = $l + $w;
-
-        # top and bottom border positions
-        my $t = ($Slic3r::bed_size->[Y] - $h) / 2;
-        my $b = $t + $h;
-
-        # list of cells, sorted by distance from center
-        my @cellsorder;
-
-        # work out distance for all cells, sort into list
-        for my $i (0..$cellw-1) {
-            for my $j (0..$cellh-1) {
-                my $cx = $linint->($i + 0.5, 0, $cellw, $l, $r);
-                my $cy = $linint->($j + 0.5, 0, $cellh, $t, $b);
-
-                my $xd = abs(($Slic3r::bed_size->[X] / 2) - $cx);
-                my $yd = abs(($Slic3r::bed_size->[Y] / 2) - $cy);
-
-                my $c = {
-                    location => [$cx, $cy],
-                    index => [$i, $j],
-                    distance => $xd * $xd + $yd * $yd - abs(($cellw / 2) - ($i + 0.5)),
-                };
-
-                BINARYINSERTIONSORT: {
-                    my $index = $c->{distance};
-                    my $low = 0;
-                    my $high = @cellsorder;
-                    while ($low < $high) {
-                        my $mid = ($low + (($high - $low) / 2)) | 0;
-                        my $midval = $cellsorder[$mid]->[0];
-        
-                        if ($midval < $index) {
-                            $low = $mid + 1;
-                        } elsif ($midval > $index) {
-                            $high = $mid;
-                        } else {
-                            splice @cellsorder, $mid, 0, [$index, $c];
-                            last BINARYINSERTIONSORT;
-                        }
-                    }
-                    splice @cellsorder, $low, 0, [$index, $c];
-                }
-            }
-        }
-
-        # the extents of cells actually used by objects
-        my ($lx, $ty, $rx, $by) = (0, 0, 0, 0);
-
-        # now find cells actually used by objects, map out the extents so we can position correctly
-        for my $i (1..$total_parts) {
-            my $c = $cellsorder[$i - 1];
-            my $cx = $c->[1]->{index}->[0];
-            my $cy = $c->[1]->{index}->[1];
-            if ($i == 1) {
-                $lx = $rx = $cx;
-                $ty = $by = $cy;
-            } else {
-                $rx = $cx if $cx > $rx;
-                $lx = $cx if $cx < $lx;
-                $by = $cy if $cy > $by;
-                $ty = $cy if $cy < $ty;
-            }
-        }
-        # now we actually place objects into cells, positioned such that the left and bottom borders are at 0
-        for (0..$#{$self->objects}) {
-            my @copies = ();
-            for (1..$Slic3r::duplicate) {
-                my $c = shift @cellsorder;
-                my $cx = $c->[1]->{index}->[0] - $lx;
-                my $cy = $c->[1]->{index}->[1] - $ty;
-    
-                push @copies, [scale($cx * $partx), scale($cy * $party)];
-            }
-            push @{$self->copies}, [@copies];
-        }
-
-        # save size of area used
-        $self->total_x_length(scale(($rx - $lx + 1) * $partx - $Slic3r::duplicate_distance));
-        $self->total_y_length(scale(($by - $ty + 1) * $party - $Slic3r::duplicate_distance));
-    } else {
-        $self->total_x_length($self->objects->[0]->x_length);
-        $self->total_y_length($self->objects->[0]->y_length);
-        push @{$self->copies}, [[0, 0]];
+        $self->arrange_objects;
     }
 }
 
-sub max_length {
+sub arrange_objects {
     my $self = shift;
-    return ($self->total_x_length > $self->total_y_length) ? $self->total_x_length : $self->total_y_length;
+
+    my $total_parts = scalar map @$_, @{$self->copies};
+    my $partx = my $party = 0;
+    foreach my $object (@{$self->objects}) {
+        $partx = $object->x_length if $object->x_length > $partx;
+        $party = $object->y_length if $object->y_length > $party;
+    }
+    my @positions = Slic3r::Geometry::arrange
+        ($total_parts, $partx, $party, (map scale $_, @$Slic3r::bed_size), scale $Slic3r::duplicate_distance);
+    
+    for my $obj_idx (0..$#{$self->objects}) {
+        @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};
+    }
+}
+
+sub bounding_box {
+    my $self = shift;
+    
+    my @points = ();
+    foreach my $obj_idx (0 .. $#{$self->objects}) {
+        my $object = $self->objects->[$obj_idx];
+        foreach my $copy (@{$self->copies->[$obj_idx]}) {
+            push @points,
+                [ $copy->[X], $copy->[Y] ],
+                [ $copy->[X] + $object->x_length, $copy->[Y] ],
+                [ $copy->[X] + $object->x_length, $copy->[Y] + $object->y_length ],
+                [ $copy->[X], $copy->[Y] + $object->y_length ];
+        }
+    }
+    return Slic3r::Geometry::bounding_box(\@points);
+}
+
+sub size {
+    my $self = shift;
+    
+    my @bb = $self->bounding_box;
+    return [ $bb[X2] - $bb[X1], $bb[Y2] - $bb[Y1] ];
+}
+
+sub export_gcode {
+    my $self = shift;
+    my %params = @_;
+    
+    my $status_cb = $params{status_cb} || sub {};
+    my $t0 = [gettimeofday];
+    
+    # skein the STL into layers
+    # each layer has surfaces with holes
+    $status_cb->(5, "Processing input file");    
+    $status_cb->(10, "Processing triangulated mesh");
+    $_->slice for @{$self->objects};
+    unless ($params{keep_meshes}) {
+        $_->mesh(undef) for @{$self->objects};  # free memory
+    }
+    
+    # make perimeters
+    # this will add a set of extrusion loops to each layer
+    # as well as generate infill boundaries
+    $status_cb->(20, "Generating perimeters");
+    $_->make_perimeters for map @{$_->layers}, @{$self->objects};
+    
+    # this will clip $layer->surfaces to the infill boundaries 
+    # and split them in top/bottom/internal surfaces;
+    $status_cb->(30, "Detecting solid surfaces");
+    $_->detect_surfaces_type for @{$self->objects};
+    
+    # decide what surfaces are to be filled
+    $status_cb->(35, "Preparing infill surfaces");
+    $_->prepare_fill_surfaces for map @{$_->layers}, @{$self->objects};
+    
+    # this will remove unprintable surfaces
+    # (those that are too tight for extrusion)
+    $status_cb->(40, "Cleaning up");
+    $_->remove_small_surfaces for map @{$_->layers}, @{$self->objects};
+    
+    # this will detect bridges and reverse bridges
+    # and rearrange top/bottom/internal surfaces
+    $status_cb->(45, "Detect bridges");
+    $_->process_bridges for map @{$_->layers}, @{$self->objects};
+    
+    # this will remove unprintable perimeter loops
+    # (those that are too tight for extrusion)
+    $status_cb->(50, "Cleaning up the perimeters");
+    $_->remove_small_perimeters for map @{$_->layers}, @{$self->objects};
+    
+    # detect which fill surfaces are near external layers
+    # they will be split in internal and internal-solid surfaces
+    $status_cb->(60, "Generating horizontal shells");
+    $_->discover_horizontal_shells for @{$self->objects};
+    
+    # free memory
+    @{$_->surfaces} = () for map @{$_->layers}, @{$self->objects};
+    
+    # combine fill surfaces to honor the "infill every N layers" option
+    $status_cb->(70, "Combining infill");
+    $_->infill_every_layers for @{$self->objects};
+    
+    # this will generate extrusion paths for each layer
+    $status_cb->(80, "Infilling layers");
+    {
+        my $fill_maker = Slic3r::Fill->new('print' => $self);
+        
+        my @items = ();  # [obj_idx, layer_id]
+        foreach my $obj_idx (0 .. $#{$self->objects}) {
+            push @items, map [$obj_idx, $_], 0..$#{$self->objects->[$obj_idx]->layers};
+        }
+        Slic3r::parallelize(
+            items => [@items],
+            thread_cb => sub {
+                my $q = shift;
+                $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
+                my $fills = {};
+                while (defined (my $obj_layer = $q->dequeue)) {
+                    my ($obj_idx, $layer_id) = @$obj_layer;
+                    $fills->{$obj_idx} ||= {};
+                    $fills->{$obj_idx}{$layer_id} = [ $fill_maker->make_fill($self->objects->[$obj_idx]->layers->[$layer_id]) ];
+                }
+                return $fills;
+            },
+            collect_cb => sub {
+                my $fills = shift;
+                foreach my $obj_idx (keys %$fills) {
+                    foreach my $layer_id (keys %{$fills->{$obj_idx}}) {
+                        @{$self->objects->[$obj_idx]->layers->[$layer_id]->fills} = @{$fills->{$obj_idx}{$layer_id}};
+                    }
+                }
+            },
+            no_threads_cb => sub {
+                foreach my $layer (map @{$_->layers}, @{$self->objects}) {
+                    @{$layer->fills} = $fill_maker->make_fill($layer);
+                }
+            },
+        );
+    }
+    
+    # generate support material
+    if ($Slic3r::support_material) {
+        $status_cb->(85, "Generating support material");
+        $_->generate_support_material for @{$self->objects};
+    }
+    
+    # free memory (note that support material needs fill_surfaces)
+    @{$_->fill_surfaces} = () for map @{$_->layers}, @{$self->objects};
+    
+    # make skirt
+    $status_cb->(88, "Generating skirt");
+    $self->make_skirt;
+    
+    # output everything to a G-code file
+    my $output_file = $self->expanded_output_filepath($params{output_file});
+    $status_cb->(90, "Exporting G-code to $output_file");
+    $self->write_gcode($output_file);
+    
+    # run post-processing scripts
+    if (@$Slic3r::post_process) {
+        $status_cb->(95, "Running post-processing scripts");
+        for (@$Slic3r::post_process) {
+            Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
+            system($_, $output_file);
+        }
+    }
+    
+    # output some statistics
+    $self->processing_time(tv_interval($t0));
+    printf "Done. Process took %d minutes and %.3f seconds\n", 
+        int($self->processing_time/60),
+        $self->processing_time - int($self->processing_time/60)*60;
+    
+    # TODO: more statistics!
+    printf "Filament required: %.1fmm (%.1fcm3)\n",
+        $self->total_extrusion_length, $self->total_extrusion_volume;
+}
+
+sub export_svg {
+    my $self = shift;
+    my %params = @_;
+    
+    $_->slice for @{$self->objects};
+    unless ($params{keep_meshes}) {
+        $_->mesh(undef) for @{$self->objects};  # free memory
+    }
+    $self->arrange_objects;
+    
+    my $output_file = $self->expanded_output_filepath($params{output_file});
+    $output_file =~ s/\.gcode$/.svg/i;
+    
+    open my $fh, ">", $output_file or die "Failed to open $output_file for writing\n";
+    print "Exporting to $output_file...";
+    my $print_size = $self->size;
+    print $fh sprintf <<"EOF", unscale($print_size->[X]), unscale($print_size->[Y]);
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg width="%s" height="%s" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:slic3r="http://slic3r.org/namespaces/slic3r">
+  <!-- 
+  Generated using Slic3r $Slic3r::VERSION
+  http://slic3r.org/
+   -->
+EOF
+    
+    my $print_polygon = sub {
+        my ($polygon, $type) = @_;
+        printf $fh qq{    <polygon slic3r:type="%s" points="%s" style="fill: %s" />\n},
+            $type, (join ' ', map { join ',', map unscale $_, @$_ } @$polygon),
+            ($type eq 'contour' ? 'black' : 'white');
+    };
+    
+    for my $layer_id (0..$self->layer_count-1) {
+        my @layers = map $_->layers->[$layer_id], @{$self->objects};
+        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale +(grep defined $_, @layers)[0]->slice_z;
+        
+        for my $obj_idx (0 .. $#layers) {
+            my $layer = $layers[$layer_id] or next;
+            
+            # sort slices so that the outermost ones come first
+            my @slices = sort { $a->expolygon->contour->encloses_point($b->expolygon->contour->[0]) ? 0 : 1 } @{$layer->slices};
+            
+            foreach my $copy (@{$self->copies->[$obj_idx]}) {
+                foreach my $slice (@slices) {
+                    my $expolygon = $slice->expolygon->clone;
+                    $expolygon->translate(@$copy);
+                    $print_polygon->($expolygon->contour, 'contour');
+                    $print_polygon->($_, 'hole') for $expolygon->holes;
+                }
+            }
+        }
+        print $fh qq{  </g>\n};
+    }
+    
+    print $fh "</svg>\n";
+    close $fh;
+    print "Done.\n";
 }
 
 sub make_skirt {
@@ -344,7 +367,7 @@ sub make_skirt {
     push @{$self->skirt}, @skirt;
 }
 
-sub export_gcode {
+sub write_gcode {
     my $self = shift;
     my ($file) = @_;
     
@@ -394,9 +417,10 @@ sub export_gcode {
     }
     
     # calculate X,Y shift to center print around specified origin
+    my @print_bb = $self->bounding_box;
     my @shift = (
-        $Slic3r::print_center->[X] - (unscale $self->total_x_length / 2),
-        $Slic3r::print_center->[Y] - (unscale $self->total_y_length / 2),
+        $Slic3r::print_center->[X] - (unscale ($print_bb[X2] - $print_bb[X1]) / 2) - unscale $print_bb[X1],
+        $Slic3r::print_center->[Y] - (unscale ($print_bb[Y2] - $print_bb[Y1]) / 2) - unscale $print_bb[Y1],
     );
     
     # set up our extruder object
@@ -521,6 +545,26 @@ sub export_gcode {
 sub total_extrusion_volume {
     my $self = shift;
     return $self->total_extrusion_length * ($Slic3r::filament_diameter**2) * PI/4 / 1000;
+}
+
+# this method will return the value of $self->output_file after expanding its
+# format variables with their values
+sub expanded_output_filepath {
+    my $self = shift;
+    my ($path) = @_;
+    
+    # if no explicit output file was defined, we take the input
+    # file directory and append the specified filename format
+    my $input_file = $self->objects->[0]->input_file;
+    $path ||= (fileparse($input_file))[1] . $Slic3r::output_filename_format;
+    
+    my $input_filename = my $input_filename_base = basename($input_file);
+    $input_filename_base =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
+    
+    return Slic3r::Config->replace_options($path, {
+        input_filename      => $input_filename,
+        input_filename_base => $input_filename_base,
+    });
 }
 
 1;

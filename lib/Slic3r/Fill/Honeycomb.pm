@@ -39,7 +39,8 @@ sub fill_surface {
         
         # adjust actual bounding box to the nearest multiple of our hex pattern
         # and align it so that it matches across layers
-        my $bounding_box = [ 0, 0, $self->print->total_x_length, $self->print->total_y_length ];
+        my $print_bounding_box = $self->print->bounding_box;
+        my $bounding_box = [ 0, 0, $print_bounding_box->[X2], $print_bounding_box->[Y2] ];
         {
             my $bb_polygon = Slic3r::Polygon->new([
                 [ $bounding_box->[X1], $bounding_box->[Y1] ],

@@ -10,10 +10,10 @@ use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_E
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
-my $last_skein_dir;
-my $last_config_dir;
-my $last_input_file;
-my $last_output_file;
+our $last_skein_dir;
+our $last_config_dir;
+our $last_input_file;
+our $last_output_file;
 our $last_config;
 
 sub new {
@@ -24,7 +24,7 @@ sub new {
     my %panels = (
         printer => {
             title => 'Printer',
-            options => [qw(nozzle_diameter print_center z_offset gcode_flavor use_relative_e_distances)],
+            options => [qw(nozzle_diameter bed_size print_center z_offset gcode_flavor use_relative_e_distances)],
         },
         filament => {
             title => 'Filament',
@@ -59,12 +59,8 @@ sub new {
             title => 'Skirt',
             options => [qw(skirts skirt_distance skirt_height)],
         },
-        transform => {
-            title => 'Transform',
-            options => [qw(scale rotate duplicate_mode duplicate bed_size duplicate_grid duplicate_distance)],
-        },
         gcode => {
-            title => 'Custom G-code',
+            title => 'G-code',
             options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
         },
         extrusion => {
@@ -110,26 +106,25 @@ sub new {
     };
     
     my @tabs = (
-        $make_tab->([qw(transform accuracy skirt)], [qw(print retract)]),
+        $make_tab->([qw(accuracy skirt retract)], [qw(print notes)]),
         $make_tab->([qw(cooling)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(notes)]),
         $make_tab->([qw(extrusion)], [qw(output)]),
     );
     
+    $tabpanel->AddPage(Slic3r::GUI::Dashboard->new($tabpanel), "Dashboard");
     $tabpanel->AddPage($tabs[0], "Print Settings");
     $tabpanel->AddPage($tabs[1], "Cooling");
     $tabpanel->AddPage($tabs[2], "Printer and Filament");
-    $tabpanel->AddPage($tabs[3], "Custom G-code");
-    $tabpanel->AddPage($tabs[4], "Notes");
-    $tabpanel->AddPage($tabs[5], "Advanced");
+    $tabpanel->AddPage($tabs[3], "G-code");
+    $tabpanel->AddPage($tabs[4], "Advanced");
         
     my $buttons_sizer;
     {
         $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         
-        my $slice_button = Wx::Button->new($self, -1, "Slice...");
+        my $slice_button = Wx::Button->new($self, -1, "Quick slice…");
         $slice_button->SetDefault();
         $buttons_sizer->Add($slice_button, 0, wxRIGHT, 20);
         EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
@@ -161,9 +156,9 @@ sub new {
     return $self;
 }
 
-my $model_wildcard = "STL files (*.stl)|*.stl;*.STL|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
-my $ini_wildcard = "INI files *.ini|*.ini;*.INI";
-my $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE";
+our $model_wildcard = "STL files (*.stl)|*.stl;*.STL|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
+our $ini_wildcard = "INI files *.ini|*.ini;*.INI";
+our $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE";
 
 sub do_slice {
     my $self = shift;
@@ -212,24 +207,15 @@ sub do_slice {
         my $input_file_basename = basename($input_file);
         $last_skein_dir = dirname($input_file);
         
-        my $skein = Slic3r::Skein->new(
-            input_file  => $input_file,
-            output_file => $main::opt{output},
-            status_cb   => sub {
-                my ($percent, $message) = @_;
-                if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
-                    $process_dialog->Update($percent, "$message...");
-                }
-            },
-        );
+        my $print = Slic3r::Print->new;
+        $print->add_object_from_file($input_file);
 
         # select output file
+        my $output_file = $main::opt{output};
         if ($params{reslice}) {
-            if (defined $last_output_file) {
-                $skein->output_file($last_output_file);
-            }
+            $output_file = $last_output_file if defined $last_output_file;
         } elsif ($params{save_as}) {
-            my $output_file = $skein->expanded_output_filepath;
+            $output_file = $print->expanded_output_filepath($output_file);
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:', dirname($output_file),
                 basename($output_file), $gcode_wildcard, wxFD_SAVE);
@@ -237,8 +223,7 @@ sub do_slice {
                 $dlg->Destroy;
                 return;
             }
-            $skein->output_file($dlg->GetPath);
-            $last_output_file = $dlg->GetPath;
+            $output_file = $last_output_file = $dlg->GetPath;
             $dlg->Destroy;
         }
         
@@ -250,21 +235,30 @@ sub do_slice {
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
+            my %params = (
+                output_file => $output_file,
+                status_cb   => sub {
+                    my ($percent, $message) = @_;
+                    if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
+                        $process_dialog->Update($percent, "$message...");
+                    }
+                },
+            );
             if ($params{export_svg}) {
-                $skein->export_svg;
+                $print->export_svg(%params);
             } else {
-                $skein->go;
+                $print->export_gcode(%params);
             }
-            $self->catch_warning->($_) for @warnings;
+            Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
         $process_dialog->Destroy;
         undef $process_dialog;
         
         my $message = "$input_file_basename was successfully sliced";
         $message .= sprintf " in %d minutes and %.3f seconds",
-            int($skein->processing_time/60),
-            $skein->processing_time - int($skein->processing_time/60)*60
-            if $skein->processing_time;
+            int($print->processing_time/60),
+            $print->processing_time - int($print->processing_time/60)*60
+                if $print->processing_time;
         $message .= ".";
         eval {
             $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
@@ -273,7 +267,7 @@ sub do_slice {
         Wx::MessageDialog->new($self, $message, 'Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
-    $self->catch_error(sub { $process_dialog->Destroy if $process_dialog });
+    Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
 }
 
 sub save_config {
@@ -284,7 +278,7 @@ sub save_config {
         # validate configuration
         Slic3r::Config->validate;
     };
-    $self->catch_error(sub { $process_dialog->Destroy if $process_dialog }) and return;
+    Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog }) and return;
     
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
@@ -310,7 +304,7 @@ sub load_config {
         $last_config_dir = dirname($file);
         $last_config = $file;
         eval {
-            local $SIG{__WARN__} = $self->catch_warning;
+            local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
             Slic3r::Config->load($file);
         };
         $self->catch_error();
@@ -318,23 +312,5 @@ sub load_config {
     }
     $dlg->Destroy;
 }
-
-sub catch_error {
-    my ($self, $cb) = @_;
-    if (my $err = $@) {
-        $cb->() if $cb;
-        Wx::MessageDialog->new($self, $err, 'Error', wxOK | wxICON_ERROR)->ShowModal;
-        return 1;
-    }
-    return 0;
-}
-
-sub catch_warning {
-    my ($self) = @_;
-    return sub {
-        my $message = shift;
-        Wx::MessageDialog->new($self, $message, 'Warning', wxOK | wxICON_WARNING)->ShowModal;
-    };
-};
 
 1;

@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use FindBin;
+use Slic3r::GUI::Dashboard;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 
@@ -63,6 +64,24 @@ sub About {
     $info->AddDeveloper('Alessandro Ranellucci');
     
     Wx::AboutBox($info);
+}
+
+sub catch_error {
+    my ($self, $cb) = @_;
+    if (my $err = $@) {
+        $cb->() if $cb;
+        Wx::MessageDialog->new($self, $err, 'Error', &Wx::wxOK | &Wx::wxICON_ERROR)->ShowModal;
+        return 1;
+    }
+    return 0;
+}
+
+sub warning_catcher {
+    my ($self) = @_;
+    return sub {
+        my $message = shift;
+        Wx::MessageDialog->new($self, $message, 'Warning', &Wx::wxOK | &Wx::wxICON_WARNING)->ShowModal;
+    };
 }
 
 1;
