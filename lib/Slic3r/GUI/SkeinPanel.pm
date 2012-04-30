@@ -69,7 +69,7 @@ sub new {
         },
         output => {
             title => 'Output',
-            options => [qw(output_filename_format)],
+            options => [qw(output_filename_format duplicate_distance)],
         },
         notes => {
             title => 'Notes',
