@@ -58,6 +58,14 @@ sub BUILD {
     }
 }
 
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(
+        vertices => [ map [ @$_ ], @{$self->vertices} ],
+        facets   => [ map [ @$_ ], @{$self->facets} ],
+    );
+}
+
 sub _facet_edges {
     my $self = shift;
     my ($facet_id) = @_;
@@ -284,7 +292,7 @@ sub move {
     
     # transform vertex coordinates
     foreach my $vertex (@{$self->vertices}) {
-        $vertex->[$_] += $shift[$_] for X,Y,Z;
+        $vertex->[$_] += $shift[$_] || 0 for X,Y,Z;
     }
 }
 

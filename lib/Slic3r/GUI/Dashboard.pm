@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use Math::ConvexHull qw(convex_hull);
-use Slic3r::Geometry qw(X Y X1 Y1 X2 Y2 scale unscale);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
     wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED);
@@ -45,6 +45,7 @@ sub new {
     $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…");
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…");
     $self->{btn_export_gcode}->SetDefault;
+    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
     $self->{$_}->SetWindowVariant(&Wx::wxWINDOW_VARIANT_SMALL) for grep /^btn_/, keys %$self;
     $self->selection_changed(0);
     $self->object_list_changed;
@@ -58,8 +59,10 @@ sub new {
     EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
     EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
+    EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
-    $self->SetDropTarget(Slic3r::GUI::Dashboard::DropTarget->new($self));
+    $_->SetDropTarget(Slic3r::GUI::Dashboard::DropTarget->new($self))
+        for $self, $self->{canvas}, $self->{list};
     
     # calculate scaling factor for preview
     {
@@ -81,7 +84,7 @@ sub new {
     {
         my $buttons1 = Wx::BoxSizer->new(wxVERTICAL);
         $buttons1->Add($self->{"btn_$_"})
-            for qw(load remove reset arrange export_gcode);
+            for qw(load remove reset arrange export_gcode export_stl);
         
         my $buttons2 = Wx::BoxSizer->new(wxVERTICAL);
         $buttons2->Add($self->{"btn_$_"})
@@ -337,6 +340,42 @@ sub export_gcode {
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
 }
 
+sub export_stl {
+    my $self = shift;
+    
+    my $print = $self->{print};
+        
+    # select output file
+    my $output_file = $main::opt{output};
+    {
+        $output_file = $print->expanded_output_filepath($output_file);
+        $output_file =~ s/\.gcode$/.stl/i;
+        my $dlg = Wx::FileDialog->new($self, 'Save STL file as:', dirname($output_file),
+            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE);
+        if ($dlg->ShowModal != wxID_OK) {
+            $dlg->Destroy;
+            return;
+        }
+        $output_file = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
+        $dlg->Destroy;
+    }
+    
+    my $mesh = Slic3r::TriangleMesh->new(facets => [], vertices => []);
+    for my $obj_idx (0 .. $#{$print->objects}) {
+        for my $copy (@{$print->copies->[$obj_idx]}) {
+            my $cloned_mesh = $print->objects->[$obj_idx]->mesh->clone;
+            $cloned_mesh->move(@$copy);
+            my $vertices_offset = scalar @{$mesh->vertices};
+            push @{$mesh->vertices}, @{$cloned_mesh->vertices};
+            push @{$mesh->facets}, map [ $_->[0], map $vertices_offset + $_, @$_[1,2,3] ], @{$cloned_mesh->facets};
+        }
+    }
+    $mesh->scale($Slic3r::scaling_factor);
+    $mesh->align_to_origin;
+    
+    Slic3r::Format::STL->write_file($output_file, $mesh, 1);
+}
+
 sub make_thumbnail {
     my $self = shift;
     my ($obj_idx) = @_;
@@ -484,7 +523,7 @@ sub object_list_changed {
     
     my $method = $self->{print} && @{$self->{print}->objects} ? 'Enable' : 'Disable';
     $self->{$_}->$method
-        for qw(btn_reset btn_arrange btn_export_gcode);
+        for qw(btn_reset btn_arrange btn_export_gcode btn_export_stl);
 }
 
 sub selection_changed {
