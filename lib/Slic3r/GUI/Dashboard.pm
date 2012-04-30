@@ -76,19 +76,10 @@ sub new {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
         $self->{thumbnails}[$obj_idx] = $thumbnail;
-        $self->{canvas}->Refresh;
+        $self->make_thumbnail2;
     });
     
-    # calculate scaling factor for preview
-    {
-        # supposing the preview canvas is square, calculate the scaling factor
-        # to constrain print bed area inside preview
-        my $canvas_side = $self->{canvas}->GetSize->GetWidth;
-        my $bed_largest_side = $Slic3r::bed_size->[X] > $Slic3r::bed_size->[Y]
-            ? $Slic3r::bed_size->[Y] : $Slic3r::bed_size->[X];
-        $self->{scaling_factor} = $canvas_side / $bed_largest_side;
-    }
-    
+    $self->update_bed_size;
     $self->{print} = Slic3r::Print->new;
     $self->{thumbnails} = [];       # polygons, each one aligned to 0,0
     $self->{scale} = [];
@@ -411,14 +402,21 @@ sub make_thumbnail {
         $convex_hull->simplify(0.3);
         $self->{thumbnails}->[$obj_idx] = $convex_hull;  # ignored in multithread environment
         
-        $have_threads
-            ? Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $convex_hull ])))
-            : $self->{canvas}->Refresh;
-        
-        threads->exit if $have_threads;
+        if ($have_threads) {
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $convex_hull ])));
+            threads->exit;
+        } else {
+            $self->make_thumbnail2;
+        }
     };
     
     $have_threads ? threads->create($cb) : $cb->();
+}
+
+sub make_thumbnail2 {
+    my $self = shift;
+    $self->recenter;
+    $self->{canvas}->Refresh;
 }
 
 sub recenter {
@@ -433,6 +431,21 @@ sub recenter {
     ];
 }
 
+sub update_bed_size {
+    my $self = shift;
+    
+    # supposing the preview canvas is square, calculate the scaling factor
+    # to constrain print bed area inside preview
+    my $canvas_side = $self->{canvas}->GetSize->GetWidth;
+    my $bed_largest_side = $Slic3r::bed_size->[X] > $Slic3r::bed_size->[Y]
+        ? $Slic3r::bed_size->[Y] : $Slic3r::bed_size->[X];
+    my $old_scaling_factor = $self->{scaling_factor};
+    $self->{scaling_factor} = $canvas_side / $bed_largest_side;
+    if (defined $old_scaling_factor && $self->{scaling_factor} != $old_scaling_factor) {
+        $self->make_thumbnail($_) for 0..$#{$self->{thumbnails}};
+    }
+}
+
 sub repaint {
     my ($self, $event) = @_;
     my $parent = $self->GetParent;
@@ -441,6 +454,9 @@ sub repaint {
     my $dc = Wx::PaintDC->new($self);
     my $size = $self->GetSize;
     my @size = ($size->GetWidth, $size->GetHeight);
+    
+    # calculate scaling factor for preview
+    $parent->update_bed_size;
     
     # draw grid
     $dc->SetPen($parent->{grid_pen});
