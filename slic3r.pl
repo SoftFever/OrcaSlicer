@@ -82,6 +82,7 @@ if (@ARGV) {
             $print->add_object_from_file($_) for splice @ARGV, 0;
         }
         $print->duplicate;
+        $print->arrange_objects if @{$print->objects} > 1;
         my %params = (
             output_file => $opt{output},
             status_cb   => sub {
