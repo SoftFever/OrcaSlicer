@@ -434,6 +434,7 @@ sub repaint {
     $dc->SetPen(Wx::wxBLACK_PEN);
     @{$parent->{object_previews}} = ();
     for my $obj_idx (0 .. $#{$print->objects}) {
+        next unless $parent->{thumbnails}[$obj_idx];
         for my $copy_idx (0 .. $#{$print->copies->[$obj_idx]}) {
             my $copy = $print->copies->[$obj_idx][$copy_idx];
             push @{$parent->{object_previews}}, [ $obj_idx, $copy_idx, $parent->{thumbnails}[$obj_idx]->clone ];
