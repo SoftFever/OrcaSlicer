@@ -54,7 +54,6 @@ sub new {
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…");
     $self->{btn_export_gcode}->SetDefault;
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
-    $self->{$_}->SetWindowVariant(&Wx::wxWINDOW_VARIANT_SMALL) for grep /^btn_/, keys %$self;
     $self->selection_changed(0);
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_load}, \&load);
@@ -90,20 +89,20 @@ sub new {
     $self->recenter;
     
     {
-        my $buttons1 = Wx::BoxSizer->new(wxVERTICAL);
-        $buttons1->Add($self->{"btn_$_"})
-            for qw(load remove reset arrange export_gcode export_stl);
+        my @col1 = qw(load remove reset arrange export_gcode export_stl);
+        my @col2 =  qw(increase decrease rotate45cw rotate45ccw rotate changescale split);
+        my $buttons = Wx::GridBagSizer->new();
+        for (my $row = 0; $row < scalar(@col1); $row++) {
+            $buttons->Add($self->{"btn_$col1[$row]"}, Wx::GBPosition->new($row, 0), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL);
+        }
         
-        my $buttons2 = Wx::BoxSizer->new(wxVERTICAL);
-        $buttons2->Add($self->{"btn_$_"})
-            for qw(increase decrease rotate45cw rotate45ccw rotate changescale split);
-        
-        my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $buttons_sizer->Add($_) for ($buttons1, $buttons2);
+        for (my $row = 0; $row < scalar(@col2); $row++) {
+            $buttons->Add($self->{"btn_$col2[$row]"}, Wx::GBPosition->new($row, 1), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL);
+        }
         
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $vertical_sizer->Add($self->{list}, 0, wxEXPAND | wxALL);
-        $vertical_sizer->Add($buttons_sizer);
+        $vertical_sizer->Add($buttons);
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $sizer->Add($self->{canvas}, 0, wxALL, 10);
