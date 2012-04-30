@@ -142,7 +142,6 @@ sub load_file {
     $self->{list}->InsertStringItem($obj_idx, basename($input_file));
     $self->{list}->SetItem($obj_idx, 1, "1");
     $self->{list}->SetItem($obj_idx, 2, "100%");
-    $self->{list}->Select($obj_idx, 0);
     push @{$self->{scale}}, 1;
     
     $self->make_thumbnail($obj_idx);
@@ -586,7 +585,7 @@ sub selection_changed {
 
 sub selected_object_idx {
     my $self = shift;
-    return $self->{selected_objects}[0][0] || $self->{list}->GetFirstSelected;
+    return $self->{selected_objects}[0] ? $self->{selected_objects}[0][0] : $self->{list}->GetFirstSelected;
 }
 
 sub to_pixel {
