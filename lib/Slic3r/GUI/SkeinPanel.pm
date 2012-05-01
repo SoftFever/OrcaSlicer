@@ -307,7 +307,7 @@ sub load_config {
             local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
             Slic3r::Config->load($file);
         };
-        $self->catch_error();
+        Slic3r::GUI::catch_error($self);
         $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
     }
     $dlg->Destroy;
