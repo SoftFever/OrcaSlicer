@@ -406,7 +406,8 @@ sub write_gcode {
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup)$/) {
-        printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis if $Slic3r::extrusion_axis;
+        printf $fh "G92 %s0 ; reset extrusion distance\n", $Slic3r::extrusion_axis
+            if $Slic3r::extrusion_axis && !$Slic3r::use_relative_e_distances;
         if ($Slic3r::gcode_flavor =~ /^(?:reprap|makerbot)$/) {
             if ($Slic3r::use_relative_e_distances) {
                 print $fh "M83 ; use relative distances for extrusion\n";
