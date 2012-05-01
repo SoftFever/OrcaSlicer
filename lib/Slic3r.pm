@@ -35,7 +35,6 @@ use Slic3r::Print;
 use Slic3r::Print::Object;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
-use Slic3r::TriangleMesh::IntersectionLine;
 
 our $have_threads       = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
 our $threads            = $have_threads ? 4 : undef;

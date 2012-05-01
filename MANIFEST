@@ -37,7 +37,6 @@ lib/Slic3r/Print/Object.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm
 lib/Slic3r/TriangleMesh.pm
-lib/Slic3r/TriangleMesh/IntersectionLine.pm
 MANIFEST			This list of files
 README.markdown
 slic3r.pl

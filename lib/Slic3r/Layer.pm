@@ -18,7 +18,7 @@ has 'slicing_errors' => (is => 'rw');
 # these need to be merged in continuos (closed) polylines
 has 'lines' => (
     is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::TriangleMesh::IntersectionLine]',
+    #isa     => 'ArrayRef[ArrayRef]',
     default => sub { [] },
 );
 
