@@ -151,7 +151,7 @@ sub make_loops {
                 next unless defined $lines[$j] && $lines[$j]->[I_FACET_EDGE];
                 
                 # are these facets adjacent? (sharing a common edge on this layer)
-                if ($lines[$i]->a_id == $lines[$j]->b_id && $lines[$i]->b_id == $lines[$j]->a_id) {
+                if ($lines[$i]->[I_A_ID] == $lines[$j]->[I_B_ID] && $lines[$i]->[I_B_ID] == $lines[$j]->[I_A_ID]) {
                 
                     # if they are both oriented upwards or downwards (like a 'V')
                     # then we can remove both edges from this layer since it won't 
@@ -252,7 +252,7 @@ sub make_loops {
                 Slic3r::debugf "  wrong prev_facet_index\n";
                 $layer->slicing_errors(1);
                 next CYCLE;
-            } elsif (defined $next_line->[I_A_ID] && $next_line->[I_A_ID] != $line->b_id) {
+            } elsif (defined $next_line->[I_A_ID] && $next_line->[I_A_ID] != $line->[I_B_ID]) {
                 Slic3r::debugf "  wrong a_id\n";
                 $layer->slicing_errors(1);
                 next CYCLE;
