@@ -40,20 +40,33 @@ sub new {
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     
-    $self->{btn_load} = Wx::Button->new($self, -1, "Add…");
-    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete");
-    $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy");
-    $self->{btn_decrease} = Wx::Button->new($self, -1, "-1 copy");
-    $self->{btn_rotate45cw} = Wx::Button->new($self, -1, "Rotate by 45° (cw)");
-    $self->{btn_rotate45ccw} = Wx::Button->new($self, -1, "Rotate by 45° (ccw)");
-    $self->{btn_rotate} = Wx::Button->new($self, -1, "Rotate…");
-    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All");
-    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange");
-    $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…");
-    $self->{btn_split} = Wx::Button->new($self, -1, "Split");
-    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…");
+    $self->{btn_load} = Wx::Button->new($self, -1, "Add…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_decrease} = Wx::Button->new($self, -1, "-1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_rotate45cw} = Wx::Button->new($self, -1, "Rotate (45° cw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_rotate45ccw} = Wx::Button->new($self, -1, "Rotate (45° ccw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_rotate} = Wx::Button->new($self, -1, "Rotate…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_split} = Wx::Button->new($self, -1, "Split", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_export_gcode}->SetDefault;
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
+    $self->{btn_load}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_remove}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_delete.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_increase}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_decrease}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_rotate45cw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_rotate45ccw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_rotate}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_reset}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/cross.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_arrange}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/bricks.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_changescale}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_split}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_export_gcode}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/layers.png", &Wx::wxBITMAP_TYPE_PNG));
+    $self->{btn_export_stl}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_go.png", &Wx::wxBITMAP_TYPE_PNG));
     $self->selection_changed(0);
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_load}, \&load);
@@ -91,7 +104,7 @@ sub new {
     {
         my @col1 = qw(load remove reset arrange export_gcode export_stl);
         my @col2 =  qw(increase decrease rotate45cw rotate45ccw rotate changescale split);
-        my $buttons = Wx::GridBagSizer->new(10, 10);
+        my $buttons = Wx::GridBagSizer->new(5, 5);
         $buttons->Add($self->{"btn_$col1[$_]"}, Wx::GBPosition->new($_, 0), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
             for 0..$#col1;
         $buttons->Add($self->{"btn_$col2[$_]"}, Wx::GBPosition->new($_, 1), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
