@@ -54,19 +54,21 @@ sub new {
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_export_gcode}->SetDefault;
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
-    $self->{btn_load}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_remove}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_delete.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_increase}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_decrease}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_rotate45cw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_rotate45ccw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_rotate}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_reset}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/cross.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_arrange}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/bricks.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_changescale}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_split}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_export_gcode}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/layers.png", &Wx::wxBITMAP_TYPE_PNG));
-    $self->{btn_export_stl}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_go.png", &Wx::wxBITMAP_TYPE_PNG));
+    if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
+        $self->{btn_load}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_remove}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_delete.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_increase}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_decrease}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_rotate45cw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_rotate45ccw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_rotate}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_reset}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/cross.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_arrange}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/bricks.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_changescale}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_split}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_export_gcode}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/layers.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_export_stl}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_go.png", &Wx::wxBITMAP_TYPE_PNG));
+    }
     $self->selection_changed(0);
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_load}, \&load);
