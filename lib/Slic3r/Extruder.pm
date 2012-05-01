@@ -164,7 +164,9 @@ sub extrude_path {
     }
     
     if ($Slic3r::cooling) {
-        $self->elapsed_time($self->elapsed_time + (unscale($path_length) / $self->speeds->{$self->last_speed} * 60));
+        my $path_time = unscale($path_length) / $self->speeds->{$self->last_speed} * 60;
+        $path_time /= $Slic3r::bottom_layer_speed_ratio if $self->layer->id == 0;
+        $self->elapsed_time($self->elapsed_time + $path_time);
     }
     
     return $gcode;
