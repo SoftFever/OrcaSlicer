@@ -1,7 +1,7 @@
 package Slic3r::Print::Object;
 use Moo;
 
-use Slic3r::Geometry qw(scale);
+use Slic3r::Geometry qw(scale unscale);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
 
 has 'input_file'        => (is => 'rw', required => 0);
