@@ -198,7 +198,10 @@ sub make_perimeters {
             next unless $area <= $Slic3r::small_perimeter_area;
             my $radius = sqrt($area / PI);
             my $new_radius = (scale($Slic3r::flow_width) + sqrt((scale($Slic3r::flow_width)**2) + (4*($radius**2)))) / 2;
+            # holes are always turned to contours, so reverse point order before and after
+            $hole->reverse;
             @$hole = map Slic3r::Point->new($_), @{ +($hole->offset(+ ($new_radius - $radius)))[0] };
+            $hole->reverse;
         }
         
         # create other offsets
