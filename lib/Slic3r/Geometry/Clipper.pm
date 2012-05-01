@@ -8,7 +8,7 @@ our @EXPORT_OK = qw(explode_expolygon explode_expolygons safety_offset offset
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     is_counter_clockwise);
 
-use Math::Clipper 1.05 ':all';
+use Math::Clipper 1.07 ':all';
 use Slic3r::Geometry qw(scale);
 our $clipper = Math::Clipper->new;
 
