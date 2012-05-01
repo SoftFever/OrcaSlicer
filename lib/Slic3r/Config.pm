@@ -679,6 +679,16 @@ sub replace_options {
         $string =~ s/\[($variables)\]/$more_variables->{$1}/eg;
     }
     
+    my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
+    $string =~ s/\[timestamp\]/sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0]/egx;
+    $string =~ s/\[year\]/$lt[5]/eg;
+    $string =~ s/\[month\]/$lt[4]/eg;
+    $string =~ s/\[day\]/$lt[3]/eg;
+    $string =~ s/\[hour\]/$lt[2]/eg;
+    $string =~ s/\[minute\]/$lt[1]/eg;
+    $string =~ s/\[second\]/$lt[0]/eg;
+    $string =~ s/\[version\]/$Slic3r::VERSION/eg;
+    
     # build a regexp to match the available options
     my $options = join '|',
         grep !$Slic3r::Config::Options->{$_}{multiline},
