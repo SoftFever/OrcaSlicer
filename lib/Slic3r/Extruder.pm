@@ -341,7 +341,7 @@ sub set_tool {
     my $self = shift;
     my ($tool) = @_;
     
-    return sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '');
+    return $self->retract . sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '');
 }
 
 sub set_fan {
