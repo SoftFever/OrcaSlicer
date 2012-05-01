@@ -130,11 +130,11 @@ sub new {
         EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
         my $save_button = Wx::Button->new($self, -1, "Save config...");
-        $buttons_sizer->Add($save_button, 0);
+        $buttons_sizer->Add($save_button, 0, wxRIGHT, 5);
         EVT_BUTTON($self, $save_button, sub { $self->save_config });
         
         my $load_button = Wx::Button->new($self, -1, "Load config...");
-        $buttons_sizer->Add($load_button, 0);
+        $buttons_sizer->Add($load_button, 0, wxRIGHT, 5);
         EVT_BUTTON($self, $load_button, sub { $self->load_config });
         
         my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);

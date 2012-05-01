@@ -91,17 +91,14 @@ sub new {
     {
         my @col1 = qw(load remove reset arrange export_gcode export_stl);
         my @col2 =  qw(increase decrease rotate45cw rotate45ccw rotate changescale split);
-        my $buttons = Wx::GridBagSizer->new();
-        for (my $row = 0; $row < scalar(@col1); $row++) {
-            $buttons->Add($self->{"btn_$col1[$row]"}, Wx::GBPosition->new($row, 0), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL);
-        }
-        
-        for (my $row = 0; $row < scalar(@col2); $row++) {
-            $buttons->Add($self->{"btn_$col2[$row]"}, Wx::GBPosition->new($row, 1), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL);
-        }
+        my $buttons = Wx::GridBagSizer->new(10, 10);
+        $buttons->Add($self->{"btn_$col1[$_]"}, Wx::GBPosition->new($_, 0), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
+            for 0..$#col1;
+        $buttons->Add($self->{"btn_$col2[$_]"}, Wx::GBPosition->new($_, 1), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
+            for 0..$#col2;
         
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $vertical_sizer->Add($self->{list}, 0, wxEXPAND | wxALL);
+        $vertical_sizer->Add($self->{list}, 0, wxEXPAND | wxALL, 10);
         $vertical_sizer->Add($buttons);
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
