@@ -238,6 +238,8 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
+    my $area_threshold = scale($Slic3r::flow_spacing) ** 2;
+    
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
         foreach my $type (qw(top bottom)) {
@@ -279,6 +281,7 @@ sub discover_horizontal_shells {
                 my $internal = diff_ex(
                     [ map $_->p, grep $_->surface_type eq 'internal', @neighbor_fill_surfaces ],
                     [ map @$_, @$internal_solid ],
+                    1,
                 );
                 Slic3r::debugf "    %d internal-solid and %d internal surfaces found\n",
                     scalar(@$internal_solid), scalar(@$internal);
@@ -303,6 +306,7 @@ sub discover_horizontal_shells {
                     my $solid_surfaces = diff_ex(
                         [ map $_->p, @$s ],
                         [ map @$_, @$internal_solid, @$internal ],
+                        1,
                     );
                     push @$neighbor_fill_surfaces, Slic3r::Surface->new
                         (expolygon => $_, surface_type => $s->[0]->surface_type, bridge_angle => $s->[0]->bridge_angle)
@@ -310,6 +314,8 @@ sub discover_horizontal_shells {
                 }
             }
         }
+        
+        @{$layer->fill_surfaces} = grep $_->expolygon->area > $area_threshold, @{$layer->fill_surfaces};
     }
 }
 
@@ -317,6 +323,8 @@ sub discover_horizontal_shells {
 sub infill_every_layers {
     my $self = shift;
     return unless $Slic3r::infill_every_layers > 1 && $Slic3r::fill_density > 0;
+    
+    my $area_threshold = scale($Slic3r::flow_spacing) ** 2;
     
     # start from bottom, skip first layer
     for (my $i = 1; $i < $self->layer_count; $i++) {
@@ -340,7 +348,11 @@ sub infill_every_layers {
             my $intersection = intersection_ex(
                 [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
                 [ map $_->p, grep $_->surface_type eq 'internal', @{$layer->fill_surfaces} ],
+                undef, 1,
             );
+            
+            # purge intersections, skip tiny regions
+            @$intersection = grep $_->area > $area_threshold, @$intersection;
             next if !@$intersection;
             
             # new fill surfaces of the current layer are:
@@ -392,6 +404,8 @@ sub infill_every_layers {
                 }
                 @{$lower_layer->fill_surfaces} = @new_surfaces;
             }
+            
+            
         }
     }
 }

@@ -14,7 +14,7 @@ sub factor {
 sub svg {
     my ($print) = @_;
     $print ||= Slic3r::Print->new(x_length => 200 / $Slic3r::scaling_factor, y_length => 200 / $Slic3r::scaling_factor);
-    my $svg = SVG->new(width => $print->max_length * factor(), height => $print->max_length * factor());
+    my $svg = SVG->new(width => 200 * 10, height => 200 * 10);
     
     my $marker_end = $svg->marker(
         id => "endArrow",
