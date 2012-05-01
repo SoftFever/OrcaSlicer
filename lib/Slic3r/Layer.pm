@@ -142,14 +142,17 @@ sub make_surfaces {
             1,
         );
         
-        # TODO: remove very small expolygons from diff before attempting to do medial axis
-        # (benchmark first)
-        push @{$self->thin_walls},
-            grep $_,
-            map $_->medial_axis(scale $Slic3r::flow_width),
-            @$diff;
-        
-        Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls}) if @{$self->thin_walls};
+        if (@$diff) {
+            my $area_threshold = scale($Slic3r::flow_spacing) ** 2;
+            @$diff = grep $_->area > ($area_threshold), @$diff;
+            
+            push @{$self->thin_walls},
+                grep $_,
+                map $_->medial_axis(scale $Slic3r::flow_width),
+                @$diff;
+            
+            Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls}) if @{$self->thin_walls};
+        }
     }
     
     if (0) {
