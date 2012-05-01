@@ -267,7 +267,6 @@ sub make_loops {
         Slic3r::debugf "  Discovered %s polygon of %d points\n",
             ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@points)
             if $Slic3r::debug;
-        pop @polygons if !$polygons[-1]->cleanup;
     }
     
     return [@polygons];

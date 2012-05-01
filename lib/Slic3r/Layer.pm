@@ -112,7 +112,8 @@ sub make_surfaces {
     {
         # merge everything
         my $expolygons = union_ex($loops);
-
+        $_->simplify(scale $Slic3r::resolution) for @$expolygons;
+        
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
         
