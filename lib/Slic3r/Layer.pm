@@ -191,7 +191,7 @@ sub make_perimeters {
         
         # experimental hole compensation (see ArcCompensation in the RepRap wiki)
         foreach my $hole ($last_offsets[0]->holes) {
-            my $area = abs($hole->area);last;
+            my $area = abs($hole->area);
             next unless $area <= $Slic3r::small_perimeter_area;
             my $radius = sqrt($area / PI);
             my $new_radius = (scale($Slic3r::flow_width) + sqrt((scale($Slic3r::flow_width)**2) + (4*($radius**2)))) / 2;
