@@ -1,21 +1,35 @@
 package Slic3r::Surface;
-use Moo;
+use strict;
+use warnings;
 
-has 'expolygon' => (
-    is => 'ro',
-    required => 1,
-    handles => [qw(encloses_point lines contour holes)],
-);
+use constant S_EXPOLYGON    => 0;
+use constant S_SURFACE_TYPE => 1;
+use constant S_DEPTH_LAYERS => 2;
+use constant S_BRIDGE_ANGLE => 3;
 
-has 'surface_type' => (
-    is      => 'rw',
-    #isa     => enum([qw(internal internal-solid bottom top)]),
-);
+sub new {
+    my $class = shift;
+    my %args = @_;
+    
+    my $self = [
+        map delete $args{$_}, qw(expolygon surface_type depth_layers bridge_angle),
+    ];
+    $self->[S_DEPTH_LAYERS] //= 1; #/
+    
+    bless $self, $class;
+    $self;
+}
 
-# this integer represents the thickness of the surface expressed in layers
-has 'depth_layers' => (is => 'ro', default => sub {1});
+sub expolygon       { $_[0][S_EXPOLYGON] }
+sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if $_[1]; $_[0][S_SURFACE_TYPE] }
+sub depth_layers    { $_[0][S_DEPTH_LAYERS] } # this integer represents the thickness of the surface expressed in layers
+sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] }
 
-has 'bridge_angle' => (is => 'ro');
+# delegate handles
+sub encloses_point  { $_[0]->expolygon->encloses_point }
+sub lines           { $_[0]->expolygon->lines }
+sub contour         { $_[0]->expolygon->contour }
+sub holes           { $_[0]->expolygon->holes }
 
 # static method to group surfaces having same surface_type, bridge_angle and depth_layers
 sub group {
