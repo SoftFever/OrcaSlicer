@@ -144,19 +144,19 @@ sub make_loops {
     # remove tangent edges
     {
         for (my $i = 0; $i <= $#lines; $i++) {
-            next unless defined $lines[$i] && $lines[$i]->[I_FACET_EDGE];
+            next unless defined $lines[$i] && defined $lines[$i][I_FACET_EDGE];
             # if the line is a facet edge, find another facet edge
             # having the same endpoints but in reverse order
             for (my $j = $i+1; $j <= $#lines; $j++) {
-                next unless defined $lines[$j] && $lines[$j]->[I_FACET_EDGE];
+                next unless defined $lines[$j] && defined $lines[$j][I_FACET_EDGE];
                 
                 # are these facets adjacent? (sharing a common edge on this layer)
-                if ($lines[$i]->[I_A_ID] == $lines[$j]->[I_B_ID] && $lines[$i]->[I_B_ID] == $lines[$j]->[I_A_ID]) {
+                if ($lines[$i][I_A_ID] == $lines[$j][I_B_ID] && $lines[$i][I_B_ID] == $lines[$j][I_A_ID]) {
                 
                     # if they are both oriented upwards or downwards (like a 'V')
                     # then we can remove both edges from this layer since it won't 
                     # affect the sliced shape
-                    if ($lines[$j]->[I_FACET_EDGE] eq $lines[$i]->[I_FACET_EDGE]) {
+                    if ($lines[$j][I_FACET_EDGE] == $lines[$i][I_FACET_EDGE]) {
                         $lines[$i] = undef;
                         $lines[$j] = undef;
                         last;
@@ -165,7 +165,7 @@ sub make_loops {
                     # if one of them is oriented upwards and the other is oriented
                     # downwards, let's only keep one of them (it doesn't matter which
                     # one since all 'top' lines were reversed at slicing)
-                    if ($lines[$i]->[I_FACET_EDGE] eq FE_TOP && $lines[$j]->[I_FACET_EDGE] eq FE_BOTTOM) {
+                    if ($lines[$i][I_FACET_EDGE] == FE_TOP && $lines[$j][I_FACET_EDGE] == FE_BOTTOM) {
                         $lines[$j] = undef;
                         last;
                     }
@@ -196,8 +196,8 @@ sub make_loops {
         # if two lines start at this point, one being a 'top' facet edge and the other being a 'bottom' one,
         # then remove the top one and those following it (removing the top or the bottom one is an arbitrary
         # choice)
-        if (@lines_starting_here == 2 && join('', sort map $_->[I_FACET_EDGE], @lines_starting_here) eq FE_BOTTOM.FE_TOP) {
-            my @to_remove = grep $_->[I_FACET_EDGE] eq FE_TOP, @lines_starting_here;
+        if (@lines_starting_here == 2 && join('', sort map $_->[I_FACET_EDGE], @lines_starting_here) eq FE_TOP.FE_BOTTOM) {
+            my @to_remove = grep $_->[I_FACET_EDGE] == FE_TOP, @lines_starting_here;
             while (!grep defined $_->[I_B_ID] && $_->[I_B_ID] == $to_remove[-1]->[I_B_ID] && $_ ne $to_remove[-1], @lines) {
                 push @to_remove, grep defined $_->[I_A_ID] && $_->[I_A_ID] == $to_remove[-1]->[I_B_ID], @lines;
             }
@@ -208,8 +208,8 @@ sub make_loops {
             if (0) {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output(undef, "same_point.svg",
-                    lines       => [ map $_->line, grep !$_->[I_FACET_EDGE], @lines ],
-                    red_lines   => [ map $_->line, grep $_->[I_FACET_EDGE], @lines ],
+                    lines       => [ map $_->line, grep !defined $_->[I_FACET_EDGE], @lines ],
+                    red_lines   => [ map $_->line, grep defined $_->[I_FACET_EDGE], @lines ],
                     points      => [ $self->vertices->[$point_id] ],
                     no_arrows => 0,
                 );
@@ -218,11 +218,11 @@ sub make_loops {
     }
     
     # optimization: build indexes of lines
-    my %by_facet_index = map { $lines[$_]->[I_FACET_INDEX] => $_ }
-        grep defined $lines[$_]->[I_FACET_INDEX],
+    my %by_facet_index = map { $lines[$_][I_FACET_INDEX] => $_ }
+        grep defined $lines[$_][I_FACET_INDEX],
         (0..$#lines);
-    my %by_a_id = map { $lines[$_]->[I_A_ID] => $_ }
-        grep defined $lines[$_]->[I_A_ID],
+    my %by_a_id = map { $lines[$_][I_A_ID] => $_ }
+        grep defined $lines[$_][I_A_ID],
         (0..$#lines);
     
     my (@polygons, %visited_lines) = ();
@@ -411,7 +411,7 @@ sub intersect_facet {
         if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
             # edge is horizontal and belongs to the current layer
             my $edge_type = (grep $self->vertices->[$_][Z] < $z, @vertices_ids) ? FE_TOP : FE_BOTTOM;
-            if ($edge_type eq FE_TOP) {
+            if ($edge_type == FE_TOP) {
                 ($a, $b) = ($b, $a);
                 ($a_id, $b_id) = ($b_id, $a_id);
             }
