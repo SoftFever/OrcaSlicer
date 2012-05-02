@@ -60,6 +60,14 @@ sub add_object_from_mesh {
     return $object;
 }
 
+sub cleanup {
+    my $self = shift;
+    $_->cleanup for @{$self->objects};
+    @{$self->skirt} = ();
+    $self->total_extrusion_length(0);
+    $self->processing_time(0);
+}
+
 sub layer_count {
     my $self = shift;
     my $count = 0;

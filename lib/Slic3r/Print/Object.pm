@@ -152,6 +152,11 @@ sub slice {
         if !@{$self->layers};
 }
 
+sub cleanup {
+    my $self = shift;
+    @{$self->layers} = ();
+}
+
 sub detect_surfaces_type {
     my $self = shift;
     Slic3r::debugf "Detecting solid surfaces...\n";

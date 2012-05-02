@@ -370,6 +370,7 @@ sub export_gcode {
             } else {
                 $print->export_gcode(%params);
             }
+            $print->cleanup;
             Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
         $process_dialog->Destroy;
