@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use FindBin;
-use Slic3r::GUI::Dashboard;
+use Slic3r::GUI::Plater;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 

@@ -113,7 +113,7 @@ sub new {
         $make_tab->([qw(extrusion)], [qw(output)]),
     );
     
-    $tabpanel->AddPage(Slic3r::GUI::Dashboard->new($tabpanel), "Dashboard");
+    $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
     $tabpanel->AddPage($tabs[0], "Print Settings");
     $tabpanel->AddPage($tabs[1], "Cooling");
     $tabpanel->AddPage($tabs[2], "Printer and Filament");

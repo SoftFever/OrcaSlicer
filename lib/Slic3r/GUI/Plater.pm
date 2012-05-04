@@ -1,4 +1,4 @@
-package Slic3r::GUI::Dashboard;
+package Slic3r::GUI::Plater;
 use strict;
 use warnings;
 my $have_threads = eval "use threads; 1";
@@ -85,7 +85,7 @@ sub new {
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
-    $_->SetDropTarget(Slic3r::GUI::Dashboard::DropTarget->new($self))
+    $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for $self, $self->{canvas}, $self->{list};
     
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
@@ -645,7 +645,7 @@ sub _y {
     return [ map [ $_->[X], $height - $_->[Y] ], @$points ];
 }
 
-package Slic3r::GUI::Dashboard::DropTarget;
+package Slic3r::GUI::Plater::DropTarget;
 
 use Wx::DND;
 use base 'Wx::FileDropTarget';
