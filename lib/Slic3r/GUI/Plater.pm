@@ -39,6 +39,7 @@ sub new {
     $self->{selected_brush} = Wx::Brush->new(Wx::Colour->new(255,128,128), &Wx::wxSOLID);
     $self->{transparent_brush} = Wx::Brush->new(Wx::Colour->new(0,0,0), &Wx::wxTRANSPARENT);
     $self->{grid_pen} = Wx::Pen->new(Wx::Colour->new(230,230,230), 1, &Wx::wxSOLID);
+    $self->{print_center_pen} = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, &Wx::wxSOLID);
     $self->{skirt_pen} = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, &Wx::wxSOLID);
     
     $self->{list} = Wx::ListView->new($self, -1, [-1, -1], [-1, 180], &Wx::wxLC_SINGLE_SEL | &Wx::wxLC_REPORT | &Wx::wxBORDER_DEFAULT);
@@ -74,7 +75,7 @@ sub new {
     $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_export_gcode}->SetDefault;
-    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
+    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     
     # buttons for object manipulation
     if (!$self->{htoolbar}) {
@@ -566,6 +567,17 @@ sub repaint {
         $dc->DrawLine(0, $y, $size[X], $y);
     }
     
+    # draw print center
+    if (@{$print->objects}) {
+        $dc->SetPen($parent->{print_center_pen});
+        $dc->DrawLine($size[X]/2, 0, $size[X]/2, $size[Y]);
+        $dc->DrawLine(0, $size[Y]/2, $size[X], $size[Y]/2);
+        $dc->SetTextForeground(Wx::Colour->new(0,0,0));
+        $dc->SetFont(Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
+        $dc->DrawLabel("X = " . $Slic3r::print_center->[X], Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), &Wx::wxALIGN_CENTER_HORIZONTAL | &Wx::wxALIGN_BOTTOM);
+        $dc->DrawRotatedText("Y = " . $Slic3r::print_center->[Y], 0, $size[Y]/2+15, 90);
+    }
+    
     # draw frame
     $dc->SetPen(Wx::wxBLACK_PEN);
     $dc->SetBrush($parent->{transparent_brush});
@@ -574,6 +586,7 @@ sub repaint {
     # draw text if plate is empty
     if (!@{$print->objects}) {
         $dc->SetTextForeground(Wx::Colour->new(150,50,50));
+        $dc->SetFont(Wx::Font->new(14, wxDEFAULT, wxNORMAL, wxNORMAL));
         $dc->DrawLabel("Drag your objects here", Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), &Wx::wxALIGN_CENTER_HORIZONTAL | &Wx::wxALIGN_CENTER_VERTICAL);
     }
     
