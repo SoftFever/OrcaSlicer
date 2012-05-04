@@ -362,6 +362,7 @@ sub split_object {
     
     my $obj_idx = $self->selected_object_idx;
     my $current_object = $self->{print}->objects->[$obj_idx];
+    my $current_copies_num = @{$self->{print}->copies->[$obj_idx]};
     my $mesh = $current_object->mesh->clone;
     $mesh->scale($Slic3r::scaling_factor);
     
@@ -370,7 +371,9 @@ sub split_object {
     foreach my $mesh (@new_meshes) {
         my $object = $self->{print}->add_object_from_mesh($mesh);
         $object->input_file($current_object->input_file);
-        $self->object_loaded($#{$self->{print}->objects}, no_arrange => 1);
+        my $new_obj_idx = $#{$self->{print}->objects};
+        push @{$self->{print}->copies->[$new_obj_idx]}, [0,0] for 2..$current_copies_num;
+        $self->object_loaded($new_obj_idx, no_arrange => 1);
     }
     
     $self->{list}->Select($obj_idx, 1);
