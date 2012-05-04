@@ -12,8 +12,16 @@ use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
     wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED
-    EVT_COMMAND);
+    EVT_COMMAND EVT_TOOL);
 use base 'Wx::Panel';
+
+use constant TB_MORE    => 1;
+use constant TB_LESS    => 2;
+use constant TB_45CW    => 3;
+use constant TB_45CCW   => 4;
+use constant TB_ROTATE  => 5;
+use constant TB_SCALE   => 6;
+use constant TB_SPLIT   => 7;
 
 my $THUMBNAIL_DONE_EVENT : shared = Wx::NewEventType;
 
@@ -44,50 +52,86 @@ sub new {
     #$self->{vtoolbar}->AddTool(1, '', Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG), 'Foo...');
     Wx::ToolTip::Enable(1);
     
+    # toolbar for object manipulation
+    $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], &Wx::wxTB_HORIZONTAL | &Wx::wxTB_HORZ_TEXT);
+    if ($self->{htoolbar}) {
+        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddSeparator;
+        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddSeparator;
+        $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddSeparator;
+        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG), '');
+    }
+    
+    # general buttons
     $self->{btn_load} = Wx::Button->new($self, -1, "Add…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_decrease} = Wx::Button->new($self, -1, "-1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_rotate45cw} = Wx::Button->new($self, -1, "Rotate (45° cw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_rotate45ccw} = Wx::Button->new($self, -1, "Rotate (45° ccw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_rotate} = Wx::Button->new($self, -1, "Rotate…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_split} = Wx::Button->new($self, -1, "Split", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_export_gcode}->SetDefault;
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…");
+    
+    # buttons for object manipulation
+    if (!$self->{htoolbar}) {
+        $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+        $self->{btn_decrease} = Wx::Button->new($self, -1, "-1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+        $self->{btn_rotate45cw} = Wx::Button->new($self, -1, "Rotate (45° cw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+        $self->{btn_rotate45ccw} = Wx::Button->new($self, -1, "Rotate (45° ccw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+        $self->{btn_rotate} = Wx::Button->new($self, -1, "Rotate…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+        $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+        $self->{btn_split} = Wx::Button->new($self, -1, "Split", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    }
     if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
-        $self->{btn_load}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_remove}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_delete.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_increase}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_decrease}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_rotate45cw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_rotate45ccw}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_rotate}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_reset}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/cross.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_arrange}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/bricks.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_changescale}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_split}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_export_gcode}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/layers.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_export_stl}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/brick_go.png", &Wx::wxBITMAP_TYPE_PNG));
+        my %icons = qw(
+            load            brick_add.png
+            remove          brick_delete.png
+            reset           cross.png
+            arrange         bricks.png
+            export_gcode    layers.png
+            export_stl      brick_go.png
+            
+            increase        add.png
+            decrease        delete.png
+            rotate45cw      arrow_rotate_clockwise.png
+            rotate45ccw     arrow_rotate_anticlockwise.png
+            rotate          arrow_rotate_clockwise.png
+            changescale     arrow_out.png
+            split           shape_ungroup.png
+        );
+        $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/$icons{$_}", &Wx::wxBITMAP_TYPE_PNG))
+            for grep $self->{"btn_$_"}, keys %icons;
     }
     $self->selection_changed(0);
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_load}, \&load);
     EVT_BUTTON($self, $self->{btn_remove}, \&remove);
-    EVT_BUTTON($self, $self->{btn_increase}, \&increase);
-    EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
-    EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
-    EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
     EVT_BUTTON($self, $self->{btn_reset}, \&reset);
     EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
-    EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
-    EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
-    EVT_BUTTON($self, $self->{btn_split}, \&split_object);
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
+    
+    if ($self->{htoolbar}) {
+        EVT_TOOL($self, TB_MORE, \&increase);
+        EVT_TOOL($self, TB_LESS, \&decrease);
+        EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
+        EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
+        EVT_TOOL($self, TB_ROTATE, \&changescale);
+        EVT_TOOL($self, TB_SCALE, sub { $_[0]->rotate(undef) });
+        EVT_TOOL($self, TB_SPLIT, \&split_object);
+    } else {
+        EVT_BUTTON($self, $self->{btn_increase}, \&increase);
+        EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
+        EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
+        EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
+        EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
+        EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
+        EVT_BUTTON($self, $self->{btn_split}, \&split_object);
+    }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for $self, $self->{canvas}, $self->{list};
@@ -108,21 +152,22 @@ sub new {
     $self->recenter;
     
     {
-        my @col1 = qw(load remove reset arrange export_gcode export_stl);
-        my @col2 =  qw(increase decrease rotate45cw rotate45ccw rotate changescale split);
-        my $buttons = Wx::GridBagSizer->new(5, 5);
-        $buttons->Add($self->{"btn_$col1[$_]"}, Wx::GBPosition->new($_, 0), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
-            for 0..$#col1;
-        $buttons->Add($self->{"btn_$col2[$_]"}, Wx::GBPosition->new($_, 1), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
-            for 0..$#col2;
+        my $buttons = Wx::GridSizer->new(2, 3, 5, 5);
+        $buttons->Add($self->{"btn_load"}, 0, wxEXPAND | wxALL);
+        $buttons->Add($self->{"btn_arrange"}, 0, wxEXPAND | wxALL);
+        $buttons->Add($self->{"btn_export_gcode"}, 0, wxEXPAND | wxALL);
+        $buttons->Add($self->{"btn_remove"}, 0, wxEXPAND | wxALL);
+        $buttons->Add($self->{"btn_reset"}, 0, wxEXPAND | wxALL);
+        $buttons->Add($self->{"btn_export_stl"}, 0, wxEXPAND | wxALL);
         
         my $list_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $list_sizer->Add($self->{list}, 1, wxEXPAND | wxALL, 0);
         $list_sizer->Add($self->{vtoolbar}, 0, wxEXPAND, 0) if $self->{vtoolbar};
         
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $vertical_sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
         $vertical_sizer->Add($list_sizer, 0, wxEXPAND | &Wx::wxBOTTOM, 10);
-        $vertical_sizer->Add($buttons);
+        $vertical_sizer->Add($buttons, 0, wxEXPAND);
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $sizer->Add($self->{canvas}, 0, wxALL, 10);
@@ -621,7 +666,7 @@ sub object_list_changed {
     
     my $method = $self->{print} && @{$self->{print}->objects} ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for qw(reset arrange export_gcode export_stl);
+        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl);
 }
 
 sub selection_changed {
@@ -630,7 +675,11 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split);
+        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split);
+    
+    if ($self->{htoolbar}) {
+        $self->{htoolbar}->EnableTool($_, $have_sel) for 1..$self->{htoolbar}->GetToolsCount;
+    }
 }
 
 sub selected_object_idx {
