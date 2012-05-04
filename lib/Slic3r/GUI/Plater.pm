@@ -49,13 +49,10 @@ sub new {
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     
-    #$self->{vtoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [30, 180], &Wx::wxTB_VERTICAL);
-    #$self->{vtoolbar}->AddTool(1, '', Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG), 'Foo...');
-    Wx::ToolTip::Enable(1);
-    
     # toolbar for object manipulation
     $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], &Wx::wxTB_HORIZONTAL | &Wx::wxTB_HORZ_TEXT);
     if ($self->{htoolbar}) {
+        Wx::ToolTip::Enable(1);
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
@@ -121,8 +118,8 @@ sub new {
         EVT_TOOL($self, TB_LESS, \&decrease);
         EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
         EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
-        EVT_TOOL($self, TB_ROTATE, \&changescale);
-        EVT_TOOL($self, TB_SCALE, sub { $_[0]->rotate(undef) });
+        EVT_TOOL($self, TB_ROTATE, sub { $_[0]->rotate(undef) });
+        EVT_TOOL($self, TB_SCALE, \&changescale);
         EVT_TOOL($self, TB_SPLIT, \&split_object);
     } else {
         EVT_BUTTON($self, $self->{btn_increase}, \&increase);
@@ -207,6 +204,7 @@ sub load_file {
     $process_dialog->Destroy;
     
     $self->object_loaded($obj_idx);
+    $self->statusbar->SetStatusText("Loaded $input_file");
 }
 
 sub object_loaded {
@@ -312,6 +310,9 @@ sub rotate {
         return if !$angle || $angle == -1;
     }
     
+    $self->statusbar->SetStatusText("Rotating object...");
+    $self->statusbar->StartBusy;
+    
     # rotate, realign to 0,0 and update size
     $object->mesh->rotate($angle);
     $object->mesh->align_to_origin;
@@ -321,6 +322,8 @@ sub rotate {
     
     $self->make_thumbnail($obj_idx);
     $self->arrange;
+    $self->statusbar->StopBusy;
+    $self->statusbar->SetStatusText("");
 }
 
 sub arrange {
@@ -343,6 +346,9 @@ sub changescale {
     $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $scale*100, 0, 1000, $self);
     return if !$scale || $scale == -1;
     
+    $self->statusbar->SetStatusText("Scaling object...");
+    $self->statusbar->StartBusy;
+    
     my $object = $self->{print}->objects->[$obj_idx];
     my $mesh = $object->mesh;
     $mesh->scale($scale/100 / $self->{scale}[$obj_idx]);
@@ -356,6 +362,8 @@ sub changescale {
     
     $self->make_thumbnail($obj_idx);
     $self->arrange;
+    $self->statusbar->StopBusy;
+    $self->statusbar->SetStatusText("");
 }
 
 sub split_object {
@@ -429,7 +437,6 @@ sub export_gcode {
             } else {
                 $print->export_gcode(%params);
             }
-            $print->cleanup;
             Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
         $process_dialog->Destroy;
@@ -445,8 +452,10 @@ sub export_gcode {
             $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
                 if ($self->{growler});
         };
+        $self->statusbar->SetStatusText("G-code file exported to $output_file");
         Wx::MessageDialog->new($self, $message, 'Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
+        $print->cleanup;
     };
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
 }
@@ -485,6 +494,7 @@ sub export_stl {
     $mesh->align_to_origin;
     
     Slic3r::Format::STL->write_file($output_file, $mesh, 1);
+    $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
 sub make_thumbnail {
@@ -701,6 +711,11 @@ sub selection_changed {
 sub selected_object_idx {
     my $self = shift;
     return $self->{selected_objects}[0] ? $self->{selected_objects}[0][0] : $self->{list}->GetFirstSelected;
+}
+
+sub statusbar {
+    my $self = shift;
+    return $self->GetParent->GetParent->GetParent->{statusbar};
 }
 
 sub to_pixel {
