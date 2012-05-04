@@ -16,6 +16,7 @@ sub OnInit {
     my $self = shift;
     
     $self->SetAppName('Slic3r');
+    Slic3r::debugf "wxWidgets version %s\n", &Wx::wxVERSION_STRING;
     
     my $frame = Wx::Frame->new( undef, -1, 'Slic3r', [-1, -1], Wx::wxDefaultSize,
          wxDEFAULT_FRAME_STYLE ^ (wxRESIZE_BORDER | wxMAXIMIZE_BOX) );
