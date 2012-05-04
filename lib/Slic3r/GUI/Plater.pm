@@ -40,6 +40,10 @@ sub new {
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     
+    #$self->{vtoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [30, 180], &Wx::wxTB_VERTICAL);
+    #$self->{vtoolbar}->AddTool(1, '', Wx::Bitmap->new("$FindBin::Bin/var/brick_add.png", &Wx::wxBITMAP_TYPE_PNG), 'Foo...');
+    Wx::ToolTip::Enable(1);
+    
     $self->{btn_load} = Wx::Button->new($self, -1, "Add…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
@@ -112,8 +116,12 @@ sub new {
         $buttons->Add($self->{"btn_$col2[$_]"}, Wx::GBPosition->new($_, 1), Wx::GBSpan->new(1, 1), wxEXPAND | wxALL)
             for 0..$#col2;
         
+        my $list_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $list_sizer->Add($self->{list}, 1, wxEXPAND | wxALL, 0);
+        $list_sizer->Add($self->{vtoolbar}, 0, wxEXPAND, 0) if $self->{vtoolbar};
+        
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $vertical_sizer->Add($self->{list}, 0, wxEXPAND | wxALL, 10);
+        $vertical_sizer->Add($list_sizer, 0, wxEXPAND | &Wx::wxBOTTOM, 10);
         $vertical_sizer->Add($buttons);
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
