@@ -393,7 +393,6 @@ sub split_object {
 sub export_gcode {
     my $self = shift;
     
-    my $process_dialog;
     eval {
         # validate configuration
         Slic3r::Config->validate;
@@ -414,11 +413,7 @@ sub export_gcode {
             $dlg->Destroy;
         }
         
-        # show processbar dialog
-        $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing input file...", 
-            100, $self, 0);
-        $process_dialog->Pulse;
-        
+        $self->statusbar->StartBusy;
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
@@ -426,9 +421,8 @@ sub export_gcode {
                 output_file => $output_file,
                 status_cb   => sub {
                     my ($percent, $message) = @_;
-                    if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
-                        $process_dialog->Update($percent, "$message...");
-                    }
+                    $self->statusbar->SetProgress($percent);
+                    $self->statusbar->SetStatusText("$message...");
                 },
                 keep_meshes => 1,
             );
@@ -439,8 +433,7 @@ sub export_gcode {
             }
             Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
-        $process_dialog->Destroy;
-        undef $process_dialog;
+        $self->statusbar->StopBusy;
         
         my $message = "Your files were successfully sliced";
         $message .= sprintf " in %d minutes and %.3f seconds",
@@ -457,7 +450,10 @@ sub export_gcode {
             wxOK | wxICON_INFORMATION)->ShowModal;
         $print->cleanup;
     };
-    Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
+    Slic3r::GUI::catch_error($self, sub {
+        $self->statusbar->StartBusy;
+        $self->statusbar->SetStatusText("");
+    });
 }
 
 sub export_stl {
