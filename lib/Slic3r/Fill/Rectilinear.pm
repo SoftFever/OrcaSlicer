@@ -61,14 +61,14 @@ sub fill_surface {
         );
         @paths = ();
         
-        my $can_connect =
-            $is_line_pattern ? sub {
-                ($_[X] >= ($distance_between_lines - $line_oscillation) - epsilon) && ($_[X] <= ($distance_between_lines + $line_oscillation) + epsilon)
-                    && abs($_[Y]) <= $distance_between_lines * 5
-            } : sub {
-                ($_[X] >= $distance_between_lines - epsilon) && ($_[X] <= $distance_between_lines + epsilon)   # $_[X] == $distance_between_lines +/- epsilon
-                    && abs($_[Y]) <= $distance_between_lines * 5
-            };
+        my $tolerance = scale epsilon;
+        my $diagonal_distance = $distance_between_lines * 5;
+        my $can_connect = $is_line_pattern
+            ? sub {
+                ($_[X] >= ($distance_between_lines - $line_oscillation) - $tolerance) && ($_[X] <= ($distance_between_lines + $line_oscillation) + $tolerance)
+                    && abs($_[Y]) <= $diagonal_distance
+            }
+            : sub { abs($_[X] - $distance_between_lines) <= $tolerance && abs($_[Y]) <= $diagonal_distance };
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
