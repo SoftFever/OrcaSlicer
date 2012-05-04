@@ -312,7 +312,9 @@ sub split_object {
     my $mesh = $current_object->mesh->clone;
     $mesh->scale($Slic3r::scaling_factor);
     
-    foreach my $mesh ($mesh->split_mesh) {
+    my @new_meshes = $mesh->split_mesh;
+    return if @new_meshes == 1;
+    foreach my $mesh (@new_meshes) {
         my $object = $self->{print}->add_object_from_mesh($mesh);
         $object->input_file($current_object->input_file);
         $self->object_loaded($#{$self->{print}->objects}, no_arrange => 1);
