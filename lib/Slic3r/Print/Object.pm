@@ -419,6 +419,8 @@ sub generate_support_material {
     my $self = shift;
     my %params = @_;
     
+    my $distance_from_object = 3; # mm
+    
     # determine unsupported surfaces
     my %layers = ();
     my @unsupported_expolygons = ();
@@ -430,7 +432,7 @@ sub generate_support_material {
             if (@b) {
                 @c = @{diff_ex(
                     [ map @$_, @b ],
-                    [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_width), @{$layer->slices} ],
+                    [ map @$_, map $_->expolygon->offset_ex(scale $distance_from_object), @{$layer->slices} ],
                 )};
                 $layers{$i} = [@c];
             }
