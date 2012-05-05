@@ -23,7 +23,10 @@ use constant TB_ROTATE  => 5;
 use constant TB_SCALE   => 6;
 use constant TB_SPLIT   => 7;
 
-my $THUMBNAIL_DONE_EVENT : shared = Wx::NewEventType;
+my $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
+my $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
+my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
+my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 
 sub new {
     my $class = shift;
@@ -139,6 +142,23 @@ sub new {
         my ($obj_idx, $thumbnail) = @{$event->GetData};
         $self->{thumbnails}[$obj_idx] = $thumbnail;
         $self->make_thumbnail2;
+    });
+    
+    EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
+        my ($self, $event) = @_;
+        my ($percent, $message) = @{$event->GetData};
+        $self->statusbar->SetProgress($percent);
+        $self->statusbar->SetStatusText("$message...");
+    });
+    
+    EVT_COMMAND($self, -1, $MESSAGE_DIALOG_EVENT, sub {
+        my ($self, $event) = @_;
+        Wx::MessageDialog->new($self, @{$event->GetData})->ShowModal;
+    });
+    
+    EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
+        my ($self, $event) = @_;
+        $self->on_export_completed(@{$event->GetData});
     });
     
     $self->update_bed_size;
@@ -393,37 +413,80 @@ sub split_object {
 sub export_gcode {
     my $self = shift;
     
+    if ($self->{export_thread}) {
+        Wx::MessageDialog->new($self, "Another slicing job is currently running.", 'Error', wxOK | &Wx::wxICON_ERROR)->ShowModal;
+        return;
+    }
+    
+    # select output file
+    $self->{output_file} = $main::opt{output};
+    {
+        $self->{output_file} = $self->{print}->expanded_output_filepath($self->{output_file});
+        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', dirname($self->{output_file}),
+            basename($self->{output_file}), $Slic3r::GUI::SkeinPanel::gcode_wildcard, wxFD_SAVE);
+        if ($dlg->ShowModal != wxID_OK) {
+            $dlg->Destroy;
+            return;
+        }
+        $self->{output_file} = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
+        $dlg->Destroy;
+    }
+    
+    $self->statusbar->StartBusy;
+    if ($have_threads) {
+        $self->{export_thread} = threads->create(sub {
+            $self->export_gcode2(
+                $self->{output_file},
+                progressbar     => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([@_]))) },
+                message_dialog  => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) },
+                on_completed    => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, shared_clone([@_]))) },
+                catch_error     => sub {
+                    Slic3r::GUI::catch_error($self, $_[0], sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) });
+                },
+            );
+        });
+        $self->statusbar->SetCancelCallback(sub {
+            $self->{export_thread}->kill('KILL');
+            $self->{export_thread} = undef;
+            $self->statusbar->StopBusy;
+            $self->statusbar->SetStatusText("Export cancelled");
+        });
+    } else {
+        $self->export_gcode2(
+            $self->{output_file},
+            progressbar => sub {
+                my ($percent, $message) = @_;
+                $self->statusbar->SetProgress($percent);
+                $self->statusbar->SetStatusText("$message...");
+            },
+            message_dialog => sub { Wx::MessageDialog->new($self, @_)->ShowModal },
+            on_completed => sub { $self->on_export_completed(@_) },
+            catch_error => sub { Slic3r::GUI::catch_error($self, @_) },
+        );
+    }
+}
+
+sub export_gcode2 {
+    my $self = shift;
+    my ($output_file, %params) = @_;
+    $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
+    local $SIG{'KILL'} = sub {
+        Slic3r::debugf "Exporting cancelled; exiting thread...\n";
+        threads->exit();
+    };
+    
     eval {
         # validate configuration
         Slic3r::Config->validate;
         
         my $print = $self->{print};
         
-        # select output file
-        my $output_file = $main::opt{output};
-        {
-            $output_file = $print->expanded_output_filepath($output_file);
-            my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', dirname($output_file),
-                basename($output_file), $Slic3r::GUI::SkeinPanel::gcode_wildcard, wxFD_SAVE);
-            if ($dlg->ShowModal != wxID_OK) {
-                $dlg->Destroy;
-                return;
-            }
-            $output_file = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
-            $dlg->Destroy;
-        }
-        
-        $self->statusbar->StartBusy;
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
             my %params = (
                 output_file => $output_file,
-                status_cb   => sub {
-                    my ($percent, $message) = @_;
-                    $self->statusbar->SetProgress($percent);
-                    $self->statusbar->SetStatusText("$message...");
-                },
+                status_cb   => sub { $params{progressbar}->(@_) },
                 keep_meshes => 1,
             );
             if ($params{export_svg}) {
@@ -431,9 +494,10 @@ sub export_gcode {
             } else {
                 $print->export_gcode(%params);
             }
-            Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
+            Slic3r::GUI::warning_catcher($self, sub {
+                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
+            })->($_) for @warnings;
         }
-        $self->statusbar->StopBusy;
         
         my $message = "Your files were successfully sliced";
         $message .= sprintf " in %d minutes and %.3f seconds",
@@ -442,18 +506,26 @@ sub export_gcode {
                 if $print->processing_time;
         $message .= ".";
         eval {
+            # TODO: fix it as we don't have $self->{growler}
             $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
                 if ($self->{growler});
         };
-        $self->statusbar->SetStatusText("G-code file exported to $output_file");
-        Wx::MessageDialog->new($self, $message, 'Done!', 
-            wxOK | wxICON_INFORMATION)->ShowModal;
+        $params{on_completed}->($message);
         $print->cleanup;
     };
-    Slic3r::GUI::catch_error($self, sub {
-        $self->statusbar->StartBusy;
+    $params{catch_error}->(sub {
+        $self->statusbar->StopBusy;
         $self->statusbar->SetStatusText("");
     });
+}
+
+sub on_export_completed {
+    my $self = shift;
+    my ($message) = @_;
+    
+    $self->statusbar->StopBusy;
+    $self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
+    Wx::MessageDialog->new($self, $message, 'Done!', wxOK | wxICON_INFORMATION)->ShowModal;
 }
 
 sub export_stl {

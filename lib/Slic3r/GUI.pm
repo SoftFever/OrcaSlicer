@@ -75,20 +75,26 @@ sub About {
 }
 
 sub catch_error {
-    my ($self, $cb) = @_;
+    my ($self, $cb, $message_dialog) = @_;
     if (my $err = $@) {
         $cb->() if $cb;
-        Wx::MessageDialog->new($self, $err, 'Error', &Wx::wxOK | &Wx::wxICON_ERROR)->ShowModal;
+        my @params = ($err, 'Error', &Wx::wxOK | &Wx::wxICON_ERROR);
+        $message_dialog
+            ? $message_dialog->(@params)
+            : Wx::MessageDialog->new($self, @params)->ShowModal;
         return 1;
     }
     return 0;
 }
 
 sub warning_catcher {
-    my ($self) = @_;
+    my ($self, $message_dialog) = @_;
     return sub {
         my $message = shift;
-        Wx::MessageDialog->new($self, $message, 'Warning', &Wx::wxOK | &Wx::wxICON_WARNING)->ShowModal;
+        my @params = ($message, 'Warning', &Wx::wxOK | &Wx::wxICON_WARNING);
+        $message_dialog
+            ? $message_dialog->(@params)
+            : Wx::MessageDialog->new($self, @params)->ShowModal;
     };
 }
 
@@ -104,13 +110,19 @@ sub new {
     $self->{timer} = Wx::Timer->new($self);
     $self->{prog} = Wx::Gauge->new($self, &Wx::wxGA_HORIZONTAL, 100, [-1,-1], [-1,-1]);
     $self->{prog}->Hide;
+    $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", [-1,-1], [-1,8]);
+    $self->{cancelbutton}->Hide;
     
-    $self->SetFieldsCount(2);
-    $self->SetStatusWidths(-1, 155);
+    $self->SetFieldsCount(3);
+    $self->SetStatusWidths(-1, 150, 155);
     
     Wx::Event::EVT_IDLE($self, sub { $self->_Reposition });
     Wx::Event::EVT_TIMER($self, \&OnTimer, $self->{timer});
     Wx::Event::EVT_SIZE($self, \&OnSize);
+    Wx::Event::EVT_BUTTON($self, $self->{cancelbutton}, sub {
+        $self->{cancel_cb}->();
+        $self->{cancelbutton}->Hide;
+    });
     
     return $self;
 }
@@ -124,11 +136,18 @@ sub _Reposition {
     my $self = shift;
     
     ##if ($self->{_changed}) {
+    {
         my $rect = $self->GetFieldRect($self->GetFieldsCount - 1);
         my $prog_pos = [$rect->GetX + 2, $rect->GetY + 2];
         $self->{prog}->Move($prog_pos);
         $self->{prog}->SetSize($rect->GetWidth - 8, $rect->GetHeight - 4);
-    ##}
+    }
+    {
+        my $rect = $self->GetFieldRect($self->GetFieldsCount - 2);
+        my $pos = [$rect->GetX + 2, $rect->GetY + 2];
+        $self->{cancelbutton}->Move($pos);
+        $self->{cancelbutton}->SetSize($rect->GetWidth - 8, $rect->GetHeight - 4);
+    }
     $self->{_changed} = 0;
 }
 
@@ -147,6 +166,13 @@ sub OnTimer {
         $self->{timer}->Stop;
     }
     $self->{prog}->Pulse if $self->{_busy};
+}
+
+sub SetCancelCallback {
+    my $self = shift;
+    my ($cb) = @_;
+    $self->{cancel_cb} = $cb;
+    $cb ? $self->{cancelbutton}->Show : $self->{cancelbutton}->Hide;
 }
 
 sub Run {
