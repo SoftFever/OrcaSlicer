@@ -215,8 +215,6 @@ sub medial_axis {
     }
     return undef if !@skeleton_lines;
     
-    return undef if !@skeleton_lines;
-    
     # now build a single polyline
     my $polyline = [];
     {

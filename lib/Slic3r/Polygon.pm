@@ -132,11 +132,14 @@ sub is_printable {
     
     # try to get an inwards offset
     # for a distance equal to half of the extrusion width;
-    # if no offset is possible, then polyline is not printable
+    # if no offset is possible, then polyline is not printable.
+    # we use flow_width here because this has to be consistent 
+    # with the thin wall detection in Layer->make_surfaces, 
+    # otherwise we could lose surfaces as that logic wouldn't
+    # detect them and we would be discarding them.
     my $p = $self->clone;
     $p->make_counter_clockwise;
-    my $offsets = Math::Clipper::offset([$p], -(scale $Slic3r::flow_spacing / 2), $Slic3r::scaling_factor * 100000, JT_MITER, 2);
-    return @$offsets ? 1 : 0;
+    return $p->offset(scale $Slic3r::flow_width / 2) ? 1 : 0;
 }
 
 sub is_valid {
