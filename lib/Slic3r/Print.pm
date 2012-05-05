@@ -166,7 +166,7 @@ sub export_gcode {
     # this will add a set of extrusion loops to each layer
     # as well as generate infill boundaries
     $status_cb->(20, "Generating perimeters");
-    $_->make_perimeters for map @{$_->layers}, @{$self->objects};
+    $_->make_perimeters for @{$self->objects};
     
     # this will clip $layer->surfaces to the infill boundaries 
     # and split them in top/bottom/internal surfaces;

@@ -206,9 +206,10 @@ sub make_perimeters {
             $hole->reverse;
         }
         
-        # create other offsets
+        # generate perimeters inwards
+        my $loop_number = $Slic3r::perimeters + ($surface->additional_inner_perimeters || 0);
         push @perimeters, [];
-        for (my $loop = 0; $loop < $Slic3r::perimeters; $loop++) {
+        for (my $loop = 0; $loop < $loop_number; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
             @last_offsets = map $_->offset_ex(-$distance), @last_offsets if $distance;
             last if !@last_offsets;
