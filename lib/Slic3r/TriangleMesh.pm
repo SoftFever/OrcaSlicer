@@ -190,13 +190,15 @@ sub make_loops {
     }
     
     foreach my $point_id (grep $a_count{$_} > 1, keys %a_count) {
-        my @lines_starting_here = grep defined $_->[I_A_ID] && defined $_[I_FACET_EDGE] && $_->[I_A_ID] == $point_id, @lines;
+        my @lines_starting_here = grep defined $_->[I_A_ID] && $_->[I_A_ID] == $point_id, @lines;
         Slic3r::debugf "%d lines start at point %d\n", scalar(@lines_starting_here), $point_id;
         
         # if two lines start at this point, one being a 'top' facet edge and the other being a 'bottom' one,
         # then remove the top one and those following it (removing the top or the bottom one is an arbitrary
         # choice)
-        if (@lines_starting_here == 2 && join('', sort map $_->[I_FACET_EDGE], @lines_starting_here) eq FE_TOP.FE_BOTTOM) {
+        # The "// ''" on the next line avoids uninitialized value errors mentioned in issue #357 but these
+        # errors occur on fixed models so the root cause still needs to be found
+        if (@lines_starting_here == 2 && join('', sort map $_->[I_FACET_EDGE] // '', @lines_starting_here) eq FE_TOP.FE_BOTTOM) {
             my @to_remove = grep $_->[I_FACET_EDGE] == FE_TOP, @lines_starting_here;
             while (!grep defined $_->[I_B_ID] && $_->[I_B_ID] == $to_remove[-1]->[I_B_ID] && $_ ne $to_remove[-1], @lines) {
                 push @to_remove, grep defined $_->[I_A_ID] && $_->[I_A_ID] == $to_remove[-1]->[I_B_ID], @lines;
