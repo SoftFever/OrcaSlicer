@@ -23,9 +23,8 @@ use constant I_PREV_FACET_INDEX => 4;
 use constant I_NEXT_FACET_INDEX => 5;
 use constant I_FACET_EDGE       => 6;
 
-use constant FE_NONE            => 0;
-use constant FE_TOP             => 1;
-use constant FE_BOTTOM          => 2;
+use constant FE_TOP             => 0;
+use constant FE_BOTTOM          => 1;
 
 # always make sure BUILD is idempotent
 sub BUILD {
@@ -145,11 +144,11 @@ sub make_loops {
     # remove tangent edges
     {
         for (my $i = 0; $i <= $#lines; $i++) {
-            next unless defined $lines[$i] && $lines[$i][I_FACET_EDGE];
+            next unless defined $lines[$i] && defined $lines[$i][I_FACET_EDGE];
             # if the line is a facet edge, find another facet edge
             # having the same endpoints but in reverse order
             for (my $j = $i+1; $j <= $#lines; $j++) {
-                next unless defined $lines[$j] && $lines[$j][I_FACET_EDGE];
+                next unless defined $lines[$j] && defined $lines[$j][I_FACET_EDGE];
                 
                 # are these facets adjacent? (sharing a common edge on this layer)
                 if ($lines[$i][I_A_ID] == $lines[$j][I_B_ID] && $lines[$i][I_B_ID] == $lines[$j][I_A_ID]) {
@@ -157,8 +156,7 @@ sub make_loops {
                     # if they are both oriented upwards or downwards (like a 'V')
                     # then we can remove both edges from this layer since it won't 
                     # affect the sliced shape
-                    if ($lines[$j][I_FACET_EDGE] &&
-                        $lines[$j][I_FACET_EDGE] == $lines[$i][I_FACET_EDGE]) {
+                    if ($lines[$j][I_FACET_EDGE] == $lines[$i][I_FACET_EDGE]) {
                         $lines[$i] = undef;
                         $lines[$j] = undef;
                         last;
@@ -192,7 +190,7 @@ sub make_loops {
     }
     
     foreach my $point_id (grep $a_count{$_} > 1, keys %a_count) {
-        my @lines_starting_here = grep defined $_->[I_A_ID] && $_->[I_A_ID] == $point_id, @lines;
+        my @lines_starting_here = grep defined $_->[I_A_ID] && defined $_[I_FACET_EDGE] && $_->[I_A_ID] == $point_id, @lines;
         Slic3r::debugf "%d lines start at point %d\n", scalar(@lines_starting_here), $point_id;
         
         # if two lines start at this point, one being a 'top' facet edge and the other being a 'bottom' one,
@@ -210,8 +208,8 @@ sub make_loops {
             if (0) {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output(undef, "same_point.svg",
-                    lines       => [ map $_->line, grep !$_->[I_FACET_EDGE], @lines ],
-                    red_lines   => [ map $_->line, grep $_->[I_FACET_EDGE], @lines ],
+                    lines       => [ map $_->line, grep !defined $_->[I_FACET_EDGE], @lines ],
+                    red_lines   => [ map $_->line, grep defined $_->[I_FACET_EDGE], @lines ],
                     points      => [ $self->vertices->[$point_id] ],
                     no_arrows => 0,
                 );
@@ -484,7 +482,7 @@ sub intersect_facet {
             $facet_id,                          # I_FACET_INDEX
             $prev_facet_index,                  # I_PREV_FACET_INDEX
             $next_facet_index,                  # I_NEXT_FACET_INDEX
-            FE_NONE,                            # I_FACET_EDGE
+            undef,                              # I_FACET_EDGE
             
             # Unused data:
             # a             => [$points[B][X], $points[B][Y]],
