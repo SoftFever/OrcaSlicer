@@ -70,6 +70,13 @@ sub reverse {
     @$self = CORE::reverse @$self;
 }
 
+sub length {
+    my $self = shift;
+    my $length = 0;
+    $length += $_->length for $self->lines;
+    return $length;
+}
+
 sub nearest_point_to {
     my $self = shift;
     my ($point) = @_;

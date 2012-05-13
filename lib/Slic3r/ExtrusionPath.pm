@@ -7,7 +7,7 @@ use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 has 'polyline' => (
     is          => 'ro',
     required    => 1,
-    handles     => [qw(merge_continuous_lines lines)],
+    handles     => [qw(merge_continuous_lines lines length)],
 );
 
 # this integer represents the vertical thickness of the extrusion
