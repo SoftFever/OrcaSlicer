@@ -37,7 +37,7 @@ use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 
 our $have_threads       = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
-our $threads            = $have_threads ? 4 : undef;
+our $threads            = $have_threads ? 2 : undef;
 
 # miscellaneous options
 our $notes              = '';
