@@ -194,9 +194,9 @@ sub make_perimeters {
         
         # experimental hole compensation (see ArcCompensation in the RepRap wiki)
         foreach my $hole ($last_offsets[0]->holes) {
-            my $area = abs($hole->area);
-            next unless $area <= $Slic3r::small_perimeter_area;
-            my $radius = sqrt($area / PI);
+            my $circumference = abs($hole->length);
+            next unless $circumference <= $Slic3r::small_perimeter_length;
+            my $radius = ($circumference / PI / 2);
             my $new_radius = (scale($Slic3r::flow_width) + sqrt((scale($Slic3r::flow_width)**2) + (4*($radius**2)))) / 2;
             # holes are always turned to contours, so reverse point order before and after
             $hole->reverse;
@@ -294,7 +294,7 @@ sub make_perimeters {
     
     # detect small perimeters by checking their area
     for (@{ $self->perimeters }) {
-        $_->role('small-perimeter') if abs($_->polygon->area) < $Slic3r::small_perimeter_area;
+        $_->role('small-perimeter') if abs($_->polygon->length) <= $Slic3r::small_perimeter_length;
     }
     
     # add thin walls as perimeters
