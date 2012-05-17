@@ -121,10 +121,7 @@ sub extrude_path {
     $gcode .= $self->unretract if $self->retracted;
     
     # calculate extrusion length per distance unit
-    my $s = $path->flow_spacing
-        || ($path->role eq 'support-material'
-            ? ($Slic3r::flow_spacing * 1.5)
-            : $Slic3r::flow_spacing);
+    my $s = $path->flow_spacing || $Slic3r::flow_spacing;
     my $h = $path->depth_layers * $self->layer->height;
     my $w = ($s - $Slic3r::min_flow_spacing * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
     
