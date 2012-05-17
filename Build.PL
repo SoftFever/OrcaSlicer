@@ -27,7 +27,11 @@ my $build = Module::Build->new(
     },
     script_files    => ['slic3r.pl'],
 );
-$build->dispatch('installdeps');
-$build->dispatch('test', verbose => 0);
+
+if (not $ENV{SLIC3R_NO_AUTO})
+{
+    $build->dispatch('installdeps');
+    $build->dispatch('test', verbose => 0);
+}
 
 $build->create_build_script;
