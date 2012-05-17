@@ -341,7 +341,8 @@ sub rotate {
     $object->y_length($size[Y]);
     
     $self->make_thumbnail($obj_idx);
-    $self->arrange;
+    $self->recenter;
+    $self->{canvas}->Refresh;
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
 }
