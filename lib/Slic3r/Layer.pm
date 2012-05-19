@@ -285,12 +285,10 @@ sub make_perimeters {
         }
         
         # do holes, then contours starting from innermost one
-        foreach my $polygon ((reverse @holes), (map $_->contour, map @$_, reverse @$island)) {
-            next unless $polygon->is_printable;
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(
-                polygon => $polygon,
-                role => (abs($polygon->length) <= $Slic3r::small_perimeter_length) ? EXTR_ROLE_SMALLPERIMETER : EXTR_ROLE_PERIMETER,
-            );
+        $self->add_perimeter($_) for reverse @holes;
+        for my $depth (reverse 0 .. $#$island) {
+            my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER : EXTR_ROLE_PERIMETER;
+            $self->add_perimeter($_, $role) for map $_->contour, @{$island->[$depth]};
         }
     }
     
@@ -302,6 +300,17 @@ sub make_perimeters {
             push @{ $self->perimeters }, Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_PERIMETER);
         }
     }
+}
+
+sub add_perimeter {
+    my $self = shift;
+    my ($polygon, $role) = @_;
+    
+    return unless $polygon->is_printable;
+    push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(
+        polygon => $polygon,
+        role => (abs($polygon->length) <= $Slic3r::small_perimeter_length) ? EXTR_ROLE_SMALLPERIMETER : ($role // EXTR_ROLE_PERIMETER),  #/
+    );
 }
 
 sub prepare_fill_surfaces {

@@ -105,6 +105,7 @@ our $fill_pattern       = 'rectilinear';
 our $solid_fill_pattern = 'rectilinear';
 our $fill_density       = 0.4;  # 1 = 100%
 our $fill_angle         = 45;
+our $randomize_start    = 1;
 our $support_material   = 0;
 our $support_material_tool = 0;
 our $start_gcode = "G28 ; home all axes";

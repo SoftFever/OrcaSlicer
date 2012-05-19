@@ -197,6 +197,7 @@ $j
                         home X axis [G28 X], disable motors [M84]).
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
     --support-material  Generate support material for overhangs
+    --randomize-start   Randomize starting point across layers (default: yes)
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 

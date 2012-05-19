@@ -44,7 +44,7 @@ sub new {
         },
         print => {
             title => 'Print settings',
-            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern support_material support_material_tool)],
+            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start support_material support_material_tool)],
         },
         retract => {
             title => 'Retraction',

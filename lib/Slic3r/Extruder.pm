@@ -35,13 +35,14 @@ has 'speeds' => (
 );
 
 my %role_speeds = (
-    &EXTR_ROLE_PERIMETER       => 'perimeter',
-    &EXTR_ROLE_SMALLPERIMETER  => 'small_perimeter',
-    &EXTR_ROLE_FILL            => 'infill',
-    &EXTR_ROLE_SOLIDFILL       => 'solid_infill',
-    &EXTR_ROLE_BRIDGE          => 'bridge',
-    &EXTR_ROLE_SKIRT           => 'perimeter',
-    &EXTR_ROLE_SUPPORTMATERIAL => 'perimeter',
+    &EXTR_ROLE_PERIMETER                    => 'perimeter',
+    &EXTR_ROLE_SMALLPERIMETER               => 'small_perimeter',
+    &EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 'perimeter',
+    &EXTR_ROLE_FILL                         => 'infill',
+    &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
+    &EXTR_ROLE_BRIDGE                       => 'bridge',
+    &EXTR_ROLE_SKIRT                        => 'perimeter',
+    &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
 );
 
 use Slic3r::Geometry qw(points_coincide PI X Y);
@@ -85,7 +86,14 @@ sub extrude_loop {
     $loop->polygon->make_counter_clockwise;
     
     # find the point of the loop that is closest to the current extruder position
-    my $start_at = $loop->nearest_point_to($self->last_pos);
+    # or randomize if requested
+    my $last_pos = $self->last_pos;
+    if ($Slic3r::randomize_start && $loop->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER) {
+        srand $self->layer->id * 10;
+        $last_pos = Slic3r::Point->new(scale $Slic3r::print_center->[X], scale $Slic3r::bed_size->[Y]);
+        $last_pos->rotate(rand(2*PI), $Slic3r::print_center);
+    }
+    my $start_at = $loop->nearest_point_to($last_pos);
     
     # split the loop at the starting point and make a path
     my $extrusion_path = $loop->split_at($start_at);

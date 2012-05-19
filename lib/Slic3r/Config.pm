@@ -245,6 +245,11 @@ our $Options = {
         cli     => 'fill-angle=i',
         type    => 'i',
     },
+    'randomize_start' => {
+        label   => 'Randomize starting points',
+        cli     => 'randomize-start',
+        type    => 'bool',
+    },
     'support_material' => {
         label   => 'Generate support material',
         cli     => 'support-material',
