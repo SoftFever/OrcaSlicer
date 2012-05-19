@@ -14,9 +14,10 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my ($expolygon_off) = $expolygon->offset_ex(scale 0.2);
+    my ($expolygon_off) = $expolygon->offset_ex(scale 0.3);
     return {} if !$expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
-    my $bounding_box = [ $expolygon_off->bounding_box ];
+    my ($expolygon_epsilon_off) = $expolygon->offset_ex(scale epsilon);
+    my $bounding_box = [ $expolygon->bounding_box ];
     
     my $min_spacing = scale $params{flow_spacing};
     my $distance_between_lines = $min_spacing / $params{density};
@@ -46,7 +47,7 @@ sub fill_surface {
         $x += $distance_between_lines;
     }
     my @paths = @{ Boost::Geometry::Utils::polygon_linestring_intersection(
-        $expolygon->boost_polygon,
+        $expolygon_epsilon_off->boost_polygon,
         Boost::Geometry::Utils::linestring(@vertical_lines),
     ) };
     for (@paths) {
