@@ -10,6 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(epsilon);
 
 {
@@ -19,7 +20,7 @@ use Slic3r::Geometry qw(epsilon);
         [306517.1,219034.23], [286979.42,248012.49], [258001.16,267550.17], [222515.14,274714.47], 
         [187029.11,267550.17], [158050.85,248012.49], [138513.17,219034.23], [131348.87,183548.2], 
         [86948.77,175149.09], [119825.35,100585],
-    ), role => 'fill');
+    ), role => EXTR_ROLE_FILL);
     
     my $collection = Slic3r::ExtrusionPath::Collection->new(paths => [$path]);
     $collection->detect_arcs(30);
@@ -37,10 +38,10 @@ use Slic3r::Geometry qw(epsilon);
         [13.8268343236509,19.2387953251129], [14.5399049973955,18.9100652418837], 
         [15.2249856471595,18.5264016435409], [15.8778525229247,18.0901699437495], 
         [16.4944804833018,17.6040596560003],
-    ), role => 'fill');
+    ), role => EXTR_ROLE_FILL);
     my $path2 = Slic3r::ExtrusionPath->new(
         polyline    => Slic3r::Polyline->new(reverse @{$path1->points}),
-        role        => 'fill',
+        role        => EXTR_ROLE_FILL,
     );
     
     my $collection1 = Slic3r::ExtrusionPath::Collection->new(paths => [$path1]);

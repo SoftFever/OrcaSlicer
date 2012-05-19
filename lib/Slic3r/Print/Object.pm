@@ -1,6 +1,7 @@
 package Slic3r::Print::Object;
 use Moo;
 
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
 
@@ -542,7 +543,7 @@ sub generate_support_material {
                 push @patterns,
                     map Slic3r::ExtrusionPath->new(
                         polyline        => Slic3r::Polyline->new(@$_),
-                        role            => 'support-material',
+                        role            => EXTR_ROLE_SUPPORTMATERIAL,
                         depth_layers    => 1,
                         flow_spacing    => $params->{flow_spacing},
                     ), @paths;

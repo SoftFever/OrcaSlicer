@@ -3,6 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex offset JT_ROUND);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -369,7 +370,7 @@ sub make_skirt {
         my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
         push @skirt, Slic3r::ExtrusionLoop->new(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
-            role => 'skirt',
+            role => EXTR_ROLE_SKIRT,
         );
     }
     push @{$self->skirt}, @skirt;

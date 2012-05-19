@@ -57,7 +57,7 @@ sub fill_surface {
     # connect lines
     {
         my $collection = Slic3r::ExtrusionPath::Collection->new(
-            paths => [ map Slic3r::ExtrusionPath->new(polyline => Slic3r::Polyline->new(@$_), role => 'bogus'), @paths ],
+            paths => [ map Slic3r::ExtrusionPath->new(polyline => Slic3r::Polyline->new(@$_), role => -1), @paths ],
         );
         @paths = ();
         

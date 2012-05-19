@@ -11,6 +11,7 @@ use Slic3r::Fill::Line;
 use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 
@@ -165,7 +166,9 @@ sub make_fill {
             paths => [
                 map Slic3r::ExtrusionPath->new(
                     polyline => Slic3r::Polyline->new(@$_),
-                    role => ($is_bridge ? 'bridge' : $is_solid ? 'solid-fill' : 'fill'),
+                    role => ($is_bridge ? EXTR_ROLE_BRIDGE
+                        : $is_solid ? EXTR_ROLE_SOLIDFILL
+                        : EXTR_ROLE_FILL),
                     depth_layers => $surface->depth_layers,
                     flow_spacing => $params->{flow_spacing},
                 ), @paths,
@@ -178,8 +181,8 @@ sub make_fill {
         paths => [
             map {
                 $_->isa('Slic3r::Polygon')
-                    ? Slic3r::ExtrusionLoop->new(polygon => $_, role => 'solid-fill')->split_at($_->[0])
-                    : Slic3r::ExtrusionPath->new(polyline => $_, role => 'solid-fill')
+                    ? Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_SOLIDFILL)->split_at($_->[0])
+                    : Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_SOLIDFILL)
             } @{$layer->thin_fills},
         ],
     ) if @{$layer->thin_fills};

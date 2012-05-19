@@ -1,7 +1,6 @@
 package Slic3r::ExtrusionLoop;
 use Moo;
 
-
 # the underlying Slic3r::Polygon objects holds the geometry
 has 'polygon' => (
     is          => 'ro',
@@ -9,7 +8,7 @@ has 'polygon' => (
     handles     => [qw(is_printable nearest_point_to)],
 );
 
-# perimeter/fill/solid-fill/bridge/skirt
+# see EXTR_ROLE_* constants in ExtrusionPath.pm
 has 'role'         => (is => 'rw', required => 1);
 
 sub BUILD {

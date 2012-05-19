@@ -3,6 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale X1 Y1 X2 Y2);
 
 sub fill_surface {
@@ -50,7 +51,7 @@ sub fill_surface {
         ($bounding_box->[X1] + $bounding_box->[X2]) / 2,
         ($bounding_box->[Y1] + $bounding_box->[Y2]) / 2,
     );
-    foreach my $loop (map Slic3r::ExtrusionLoop->new(polygon => $_, role => 'fill'), @loops) {
+    foreach my $loop (map Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_FILL), @loops) {
         # extrude all loops ccw
         $loop->polygon->make_counter_clockwise;
         

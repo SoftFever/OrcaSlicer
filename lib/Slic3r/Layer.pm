@@ -2,6 +2,7 @@ package Slic3r::Layer;
 use Moo;
 
 use Math::Clipper ':all';
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale collinear X Y A B PI rad2deg_dir bounding_box_center shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex xor_ex is_counter_clockwise);
 
@@ -283,26 +284,26 @@ sub make_perimeters {
         }
         
         foreach my $hole (reverse @holes) {
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $hole, role => 'perimeter');
+            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $hole, role => EXTR_ROLE_PERIMETER);
         }
         
         # do contours starting from innermost one
         foreach my $contour (map $_->contour, map @$_, reverse @$island) {
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $contour, role => 'perimeter');
+            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $contour, role => EXTR_ROLE_PERIMETER);
         }
     }
     
     # detect small perimeters by checking their area
     for (@{ $self->perimeters }) {
-        $_->role('small-perimeter') if abs($_->polygon->length) <= $Slic3r::small_perimeter_length;
+        $_->role(EXTR_ROLE_SMALLPERIMETER) if abs($_->polygon->length) <= $Slic3r::small_perimeter_length;
     }
     
     # add thin walls as perimeters
     for (@{ $self->thin_walls }) {
         if ($_->isa('Slic3r::Polygon')) {
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $_, role => 'perimeter');
+            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_PERIMETER);
         } else {
-            push @{ $self->perimeters }, Slic3r::ExtrusionPath->new(polyline => $_, role => 'perimeter');
+            push @{ $self->perimeters }, Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_PERIMETER);
         }
     }
 }

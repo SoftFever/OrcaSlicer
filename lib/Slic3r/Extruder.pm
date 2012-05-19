@@ -1,6 +1,7 @@
 package Slic3r::Extruder;
 use Moo;
 
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale);
 
 has 'layer'              => (is => 'rw');
@@ -31,6 +32,16 @@ has 'speeds' => (
         bridge          => 60 * $Slic3r::bridge_speed,
         retract         => 60 * $Slic3r::retract_speed,
     }},
+);
+
+my %role_speeds = (
+    &EXTR_ROLE_PERIMETER       => 'perimeter',
+    &EXTR_ROLE_SMALLPERIMETER  => 'small_perimeter',
+    &EXTR_ROLE_FILL            => 'infill',
+    &EXTR_ROLE_SOLIDFILL       => 'solid_infill',
+    &EXTR_ROLE_BRIDGE          => 'bridge',
+    &EXTR_ROLE_SKIRT           => 'perimeter',
+    &EXTR_ROLE_SUPPORTMATERIAL => 'perimeter',
 );
 
 use Slic3r::Geometry qw(points_coincide PI X Y);
@@ -126,7 +137,7 @@ sub extrude_path {
     my $w = ($s - $Slic3r::min_flow_spacing * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
     
     my $area;
-    if ($path->role eq 'bridge') {
+    if ($path->role == EXTR_ROLE_BRIDGE) {
         $area = ($s**2) * PI/4;
     } elsif ($w >= ($Slic3r::nozzle_diameter + $h)) {
         # rectangle with semicircles at the ends
@@ -142,14 +153,7 @@ sub extrude_path {
         * (4 / (($Slic3r::filament_diameter ** 2) * PI));
     
     # extrude arc or line
-    $self->speed(
-        $path->role =~ /^(perimeter|skirt|support-material)$/o ? 'perimeter'
-            : $path->role eq 'small-perimeter'  ? 'small_perimeter'
-            : $path->role eq 'fill'             ? 'infill'
-            : $path->role eq 'solid-fill'       ? 'solid_infill'
-            : $path->role eq 'bridge'           ? 'bridge'
-            : die "Unknown role: " . $path->role
-    );
+    $self->speed( $role_speeds{$path->role} || die "Unknown role: " . $path->role );
     my $path_length = 0;
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
         $path_length = $path->length;
