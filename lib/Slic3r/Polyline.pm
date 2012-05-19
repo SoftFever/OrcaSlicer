@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Math::Clipper qw();
+use Scalar::Util qw(reftype);
 use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     move_points same_point);
 
@@ -30,6 +31,7 @@ sub serialize {
 
 sub deserialize {
     my $self = shift;
+    return $self if reftype $self ne 'SCALAR';
     my @v = unpack '(l2)*', $$self;
     my $o = [ map [ $v[2*$_], $v[2*$_+1] ], 0 .. int($#v/2) ];
     bless $_, 'Slic3r::Point' for @$o;

@@ -16,6 +16,7 @@ my $build = Module::Build->new(
         'Math::PlanePath'           => '53',
         'Moo'                       => '0',
         'perl'                      => '5.10.0',
+        'Scalar::Util'              => '0',
         'Time::HiRes'               => '0',
     },
     build_requires => {
