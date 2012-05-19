@@ -68,9 +68,12 @@ sub change_layer {
 sub extrude {
     my $self = shift;
     
-    return $_[0]->isa('Slic3r::ExtrusionLoop')
-        ? $self->extrude_loop(@_)
-        : $self->extrude_path(@_);
+    if ($_[0]->isa('Slic3r::ExtrusionLoop')) {
+        $self->extrude_loop(@_);
+    } else {
+        $_[0]->deserialize;
+        $self->extrude_path(@_);
+    }
 }
 
 sub extrude_loop {
