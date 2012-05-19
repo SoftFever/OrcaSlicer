@@ -21,6 +21,11 @@ our $Options = {
         serialize   => sub { join '\n', split /\R/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
+    'threads' => {
+        label   => 'Threads (more speed, more memory usage)',
+        cli     => 'threads|j=i',
+        type    => 'i',
+    },
 
     # output options
     'output_filename_format' => {

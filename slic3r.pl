@@ -25,7 +25,6 @@ my %cli_options = ();
         'save=s'                => \$opt{save},
         'load=s@'               => \$opt{load},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
-        'threads|j=i'           => \$Slic3r::threads,
         'export-svg'            => \$opt{export_svg},
         'merge|m'               => \$opt{merge},
     );

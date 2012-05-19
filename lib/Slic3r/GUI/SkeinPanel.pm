@@ -71,6 +71,10 @@ sub new {
             title => 'Output',
             options => [qw(output_filename_format duplicate_distance)],
         },
+        other => {
+            title => 'Other',
+            options => [$Slic3r::have_threads ? qw(threads) : ()],
+        },
         notes => {
             title => 'Notes',
             options => [qw(notes)],
@@ -95,6 +99,7 @@ sub new {
         foreach my $col (@cols) {
             my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
             for my $optgroup (@$col) {
+                next unless @{ $panels{$optgroup}{options} };
                 my $optpanel = Slic3r::GUI::OptionsGroup->new($tab, %{$panels{$optgroup}});
                 $vertical_sizer->Add($optpanel, 0, wxEXPAND | wxALL, 10);
             }
@@ -110,7 +115,7 @@ sub new {
         $make_tab->([qw(cooling)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion)], [qw(output)]),
+        $make_tab->([qw(extrusion other)], [qw(output)]),
     );
     
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
