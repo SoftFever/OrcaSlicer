@@ -1,14 +1,13 @@
 package Slic3r::GUI::Plater;
 use strict;
 use warnings;
-my $have_threads = eval "use threads; 1";
-use threads::shared;
 use utf8;
 
 use File::Basename qw(basename dirname);
 use Math::ConvexHull qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
+use threads::shared qw(shared_clone);
 use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
     wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
 use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED
@@ -27,6 +26,7 @@ my $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
 my $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
 my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
 my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
+my $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
 
 sub new {
     my $class = shift;
@@ -159,6 +159,11 @@ sub new {
     EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
         $self->on_export_completed(@{$event->GetData});
+    });
+    
+    EVT_COMMAND($self, -1, $EXPORT_FAILED_EVENT, sub {
+        my ($self, $event) = @_;
+        $self->on_export_failed;
     });
     
     $self->update_bed_size;
@@ -434,7 +439,7 @@ sub export_gcode {
     }
     
     $self->statusbar->StartBusy;
-    if ($have_threads) {
+    if ($Slic3r::have_threads) {
         $self->{export_thread} = threads->create(sub {
             $self->export_gcode2(
                 $self->{output_file},
@@ -442,7 +447,10 @@ sub export_gcode {
                 message_dialog  => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) },
                 on_completed    => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, shared_clone([@_]))) },
                 catch_error     => sub {
-                    Slic3r::GUI::catch_error($self, $_[0], sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) });
+                    Slic3r::GUI::catch_error($self, $_[0], sub {
+                        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
+                        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_FAILED_EVENT, undef));
+                    });
                 },
             );
         });
@@ -474,7 +482,7 @@ sub export_gcode2 {
     local $SIG{'KILL'} = sub {
         Slic3r::debugf "Exporting cancelled; exiting thread...\n";
         threads->exit();
-    };
+    } if $Slic3r::have_threads;
     
     eval {
         # validate configuration
@@ -514,10 +522,7 @@ sub export_gcode2 {
         $params{on_completed}->($message);
         $print->cleanup;
     };
-    $params{catch_error}->(sub {
-        $self->statusbar->StopBusy;
-        $self->statusbar->SetStatusText("");
-    });
+    $params{catch_error}->();
 }
 
 sub on_export_completed {
@@ -529,6 +534,16 @@ sub on_export_completed {
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
     Wx::MessageDialog->new($self, $message, 'Done!', wxOK | wxICON_INFORMATION)->ShowModal;
+}
+
+sub on_export_failed {
+    my $self = shift;
+    my ($message) = @_;
+    
+    $self->{export_thread} = undef;
+    $self->statusbar->SetCancelCallback(undef);
+    $self->statusbar->StopBusy;
+    $self->statusbar->SetStatusText("Export failed");
 }
 
 sub export_stl {
@@ -582,7 +597,7 @@ sub make_thumbnail {
         $convex_hull->simplify(0.3);
         $self->{thumbnails}->[$obj_idx] = $convex_hull;  # ignored in multithread environment
         
-        if ($have_threads) {
+        if ($Slic3r::have_threads) {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $convex_hull ])));
             threads->exit;
         } else {
@@ -590,7 +605,7 @@ sub make_thumbnail {
         }
     };
     
-    $have_threads ? threads->create($cb) : $cb->();
+    $Slic3r::have_threads ? threads->create($cb) : $cb->();
 }
 
 sub make_thumbnail2 {
