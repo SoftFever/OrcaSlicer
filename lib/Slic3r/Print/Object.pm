@@ -4,6 +4,7 @@ use Moo;
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
+use Slic3r::Surface ':types';
 
 has 'input_file'        => (is => 'rw', required => 0);
 has 'mesh'              => (is => 'rw', required => 0);
@@ -137,7 +138,7 @@ sub slice {
         );
         
         @{$layer->slices} = map Slic3r::Surface->new
-            (expolygon => $_, surface_type => 'internal'),
+            (expolygon => $_, surface_type => S_TYPE_INTERNAL),
             @$diff;
     }
     
@@ -246,21 +247,21 @@ sub detect_surfaces_type {
         # find top surfaces (difference between current surfaces
         # of current layer and upper one)
         if ($upper_layer) {
-            @top = $surface_difference->($layer->slices, $upper_layer->slices, 'top');
+            @top = $surface_difference->($layer->slices, $upper_layer->slices, S_TYPE_TOP);
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->slices};
-            $_->surface_type('top') for @top;
+            $_->surface_type(S_TYPE_TOP) for @top;
         }
         
         # find bottom surfaces (difference between current surfaces
         # of current layer and lower one)
         if ($lower_layer) {
-            @bottom = $surface_difference->($layer->slices, $lower_layer->slices, 'bottom');
+            @bottom = $surface_difference->($layer->slices, $lower_layer->slices, S_TYPE_BOTTOM);
         } else {
             # if no lower layer, all surfaces of this one are solid
             @bottom = @{$layer->slices};
-            $_->surface_type('bottom') for @bottom;
+            $_->surface_type(S_TYPE_BOTTOM) for @bottom;
         }
         
         # now, if the object contained a thin membrane, we could have overlapping bottom
@@ -269,11 +270,11 @@ sub detect_surfaces_type {
         if (@top && @bottom) {
             my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
             Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layer->id, scalar(@$overlapping);
-            @top = $surface_difference->([@top], $overlapping, 'top');
+            @top = $surface_difference->([@top], $overlapping, S_TYPE_TOP);
         }
         
         # find internal surfaces (difference between top/bottom surfaces and others)
-        @internal = $surface_difference->($layer->slices, [@top, @bottom], 'internal');
+        @internal = $surface_difference->($layer->slices, [@top, @bottom], S_TYPE_INTERNAL);
         
         # save surfaces to layer
         @{$layer->slices} = (@bottom, @top, @internal);
@@ -309,11 +310,11 @@ sub discover_horizontal_shells {
     
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
-        foreach my $type (qw(top bottom)) {
+        foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
             # find surfaces of current type for current layer
             # and offset them to take perimeters into account
             my @surfaces = map $_->offset($Slic3r::perimeters * scale $Slic3r::flow_width),
-                grep $_->surface_type eq $type, @{$layer->fill_surfaces} or next;
+                grep $_->surface_type == $type, @{$layer->fill_surfaces} or next;
             my $surfaces_p = [ map $_->p, @surfaces ];
             Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
                 $i, scalar(@surfaces), $type;
@@ -332,7 +333,7 @@ sub discover_horizontal_shells {
                 # intersections have contours and holes
                 my $new_internal_solid = intersection_ex(
                     $surfaces_p,
-                    [ map $_->p, grep $_->surface_type =~ /internal/, @neighbor_surfaces ],
+                    [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_surfaces ],
                     undef, 1,
                 );
                 next if !@$new_internal_solid;
@@ -340,13 +341,13 @@ sub discover_horizontal_shells {
                 # internal-solid are the union of the existing internal-solid surfaces
                 # and new ones
                 my $internal_solid = union_ex([
-                    ( map $_->p, grep $_->surface_type eq 'internal-solid', @neighbor_fill_surfaces ),
+                    ( map $_->p, grep $_->surface_type == S_TYPE_INTERNALSOLID, @neighbor_fill_surfaces ),
                     ( map @$_, @$new_internal_solid ),
                 ]);
                 
                 # subtract intersections from layer surfaces to get resulting inner surfaces
                 my $internal = diff_ex(
-                    [ map $_->p, grep $_->surface_type eq 'internal', @neighbor_fill_surfaces ],
+                    [ map $_->p, grep $_->surface_type == S_TYPE_INTERNAL, @neighbor_fill_surfaces ],
                     [ map @$_, @$internal_solid ],
                     1,
                 );
@@ -360,16 +361,16 @@ sub discover_horizontal_shells {
                 my $neighbor_fill_surfaces = $self->layers->[$n]->fill_surfaces;
                 @$neighbor_fill_surfaces = ();
                 push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                    (expolygon => $_, surface_type => 'internal')
+                    (expolygon => $_, surface_type => S_TYPE_INTERNAL)
                     for @$internal;
                 
                 # assign new internal-solid surfaces to layer
                 push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                    (expolygon => $_, surface_type => 'internal-solid')
+                    (expolygon => $_, surface_type => S_TYPE_INTERNALSOLID)
                     for @$internal_solid;
                 
                 # assign top and bottom surfaces to layer
-                foreach my $s (Slic3r::Surface->group(grep $_->surface_type =~ /top|bottom/, @neighbor_fill_surfaces)) {
+                foreach my $s (Slic3r::Surface->group(grep { $_->surface_type == S_TYPE_TOP || $_->surface_type == S_TYPE_BOTTOM } @neighbor_fill_surfaces)) {
                     my $solid_surfaces = diff_ex(
                         [ map $_->p, @$s ],
                         [ map @$_, @$internal_solid, @$internal ],
@@ -398,7 +399,7 @@ sub infill_every_layers {
         my $layer = $self->layer($i);
         
         # skip layer if no internal fill surfaces
-        next if !grep $_->surface_type eq 'internal', @{$layer->fill_surfaces};
+        next if !grep $_->surface_type == S_TYPE_INTERNAL, @{$layer->fill_surfaces};
         
         # for each possible depth, look for intersections with the lower layer
         # we do this from the greater depth to the smaller
@@ -407,14 +408,14 @@ sub infill_every_layers {
             my $lower_layer = $self->layer($i - 1);
             
             # select surfaces of the lower layer having the depth we're looking for
-            my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type eq 'internal',
+            my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type == S_TYPE_INTERNAL,
                 @{$lower_layer->fill_surfaces};
             next if !@lower_surfaces;
             
             # calculate intersection between our surfaces and theirs
             my $intersection = intersection_ex(
                 [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
-                [ map $_->p, grep $_->surface_type eq 'internal', @{$layer->fill_surfaces} ],
+                [ map $_->p, grep $_->surface_type == S_TYPE_INTERNAL, @{$layer->fill_surfaces} ],
                 undef, 1,
             );
             
@@ -428,19 +429,19 @@ sub infill_every_layers {
             # - any internal surface not belonging to the intersection (with its original depth)
             {
                 my @new_surfaces = ();
-                push @new_surfaces, grep $_->surface_type ne 'internal', @{$layer->fill_surfaces};
+                push @new_surfaces, grep $_->surface_type != S_TYPE_INTERNAL, @{$layer->fill_surfaces};
                 push @new_surfaces, map Slic3r::Surface->new
-                    (expolygon => $_, surface_type => 'internal', depth_layers => $d + 1), @$intersection;
+                    (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $d + 1), @$intersection;
                 
                 foreach my $depth (reverse $d..$Slic3r::infill_every_layers) {
                     push @new_surfaces, map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => 'internal', depth_layers => $depth),
+                        (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $depth),
                         
                         # difference between our internal layers with depth == $depth
                         # and the intersection found
                         @{diff_ex(
                             [
-                                map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
+                                map $_->p, grep $_->surface_type == S_TYPE_INTERNAL && $_->depth_layers == $depth, 
                                     @{$layer->fill_surfaces},
                             ],
                             [ map @$_, @$intersection ],
@@ -453,16 +454,16 @@ sub infill_every_layers {
             # now we remove the intersections from lower layer
             {
                 my @new_surfaces = ();
-                push @new_surfaces, grep $_->surface_type ne 'internal', @{$lower_layer->fill_surfaces};
+                push @new_surfaces, grep $_->surface_type != S_TYPE_INTERNAL, @{$lower_layer->fill_surfaces};
                 foreach my $depth (1..$Slic3r::infill_every_layers) {
                     push @new_surfaces, map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => 'internal', depth_layers => $depth),
+                        (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $depth),
                         
                         # difference between internal layers with depth == $depth
                         # and the intersection found
                         @{diff_ex(
                             [
-                                map $_->p, grep $_->surface_type eq 'internal' && $_->depth_layers == $depth, 
+                                map $_->p, grep $_->surface_type == S_TYPE_INTERNAL && $_->depth_layers == $depth, 
                                     @{$lower_layer->fill_surfaces},
                             ],
                             [ map @$_, @$intersection ],
@@ -506,12 +507,12 @@ sub generate_support_material {
             # better build support material for bridges too rather than ignoring
             # those parts. a visibility check algorithm is needed.
             # @a = @{diff_ex(
-            #     [ map $_->p, grep $_->surface_type eq 'bottom', @{$layer->slices} ],
+            #     [ map $_->p, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices} ],
             #     [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_spacing * $Slic3r::perimeters),
-            #         grep $_->surface_type eq 'bottom' && defined $_->bridge_angle,
+            #         grep $_->surface_type == S_TYPE_BOTTOM && defined $_->bridge_angle,
             #         @{$layer->fill_surfaces} ],
             # )};
-            @a = map $_->expolygon->clone, grep $_->surface_type eq 'bottom', @{$layer->slices};
+            @a = map $_->expolygon->clone, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices};
             
             $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
             push @unsupported_expolygons, @a;

@@ -5,6 +5,7 @@ use Math::Clipper ':all';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale collinear X Y A B PI rad2deg_dir bounding_box_center shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex xor_ex is_counter_clockwise);
+use Slic3r::Surface ':types';
 
 # a sequential number of layer, starting at 0
 has 'id' => (
@@ -119,7 +120,7 @@ sub make_surfaces {
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
         
         push @{$self->slices},
-            map Slic3r::Surface->new(expolygon => $_, surface_type => 'internal'),
+            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),
                 @$expolygons;
     }
     
@@ -130,7 +131,7 @@ sub make_surfaces {
         @{$self->slices} = ();
         foreach my $surface (@surfaces) {
             push @{$self->slices}, map Slic3r::Surface->new
-                (expolygon => $_, surface_type => 'internal'),
+                (expolygon => $_, surface_type => S_TYPE_INTERNAL),
                 $surface->expolygon->offset_ex(-$distance);
         }
         
@@ -319,28 +320,28 @@ sub prepare_fill_surfaces {
         my $min_area = ((7 * $Slic3r::flow_spacing / $Slic3r::scaling_factor)**2) * PI;
         my $small_internal = [
             grep { $_->expolygon->contour->area <= $min_area }
-            grep { $_->surface_type eq 'internal' }
+            grep { $_->surface_type == S_TYPE_INTERNAL }
             @surfaces
         ];
         foreach my $s (@$small_internal) {
             @surfaces = grep $_ ne $s, @surfaces;
         }
         my $union = union_ex([
-            (map $_->p, grep $_->surface_type eq 'top', @surfaces),
+            (map $_->p, grep $_->surface_type == S_TYPE_TOP, @surfaces),
             (map @$_, map $_->expolygon->safety_offset, @$small_internal),
         ]);
-        my @top = map Slic3r::Surface->new(expolygon => $_, surface_type => 'top'), @$union;
-        @surfaces = (grep($_->surface_type ne 'top', @surfaces), @top);
+        my @top = map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_TOP), @$union;
+        @surfaces = (grep($_->surface_type != S_TYPE_TOP, @surfaces), @top);
     }
     
     # remove top/bottom surfaces
     if ($Slic3r::solid_layers == 0) {
-        @surfaces = grep $_->surface_type eq 'internal', @surfaces;
+        @surfaces = grep $_->surface_type == S_TYPE_INTERNAL, @surfaces;
     }
     
     # remove internal surfaces
     if ($Slic3r::fill_density == 0) {
-        @surfaces = grep $_->surface_type ne 'internal', @surfaces;
+        @surfaces = grep $_->surface_type == S_TYPE_INTERNAL, @surfaces;
     }
     
     $self->fill_surfaces([@surfaces]);
@@ -379,7 +380,7 @@ sub remove_small_surfaces {
         );
         push @{$self->fill_surfaces}, map Slic3r::Surface->new(
             expolygon => $_,
-            surface_type => 'internal-solid'), @$diff;
+            surface_type => S_TYPE_INTERNALSOLID), @$diff;
     }
 }
 
@@ -407,14 +408,14 @@ sub process_bridges {
     # reverse bridge processing
     
     my @solid_surfaces = grep {
-        ($_->surface_type eq 'bottom' && $self->id > 0) || $_->surface_type eq 'top'
+        ($_->surface_type == S_TYPE_BOTTOM && $self->id > 0) || $_->surface_type == S_TYPE_TOP
     } @{$self->fill_surfaces} or return;
     
-    my @internal_surfaces = grep $_->surface_type =~ /internal/, @{$self->slices};
+    my @internal_surfaces = grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @{$self->slices};
     
     SURFACE: foreach my $surface (@solid_surfaces) {
         my $expolygon = $surface->expolygon->safety_offset;
-        my $description = $surface->surface_type eq 'bottom' ? 'bridge/overhang' : 'reverse bridge';
+        my $description = $surface->surface_type == S_TYPE_BOTTOM ? 'bridge/overhang' : 'reverse bridge';
         
         # offset the contour and intersect it with the internal surfaces to discover 
         # which of them has contact with our bridge
@@ -441,7 +442,7 @@ sub process_bridges {
         next SURFACE unless @supporting_surfaces;
         
         my $bridge_angle = undef;
-        if ($surface->surface_type eq 'bottom') {
+        if ($surface->surface_type == S_TYPE_BOTTOM) {
             # detect optimal bridge angle
             
             my $bridge_over_hole = 0;

@@ -2,11 +2,21 @@ package Slic3r::Surface;
 use strict;
 use warnings;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID);
+our %EXPORT_TAGS = (types => \@EXPORT_OK);
+
 use constant S_EXPOLYGON    => 0;
 use constant S_SURFACE_TYPE => 1;
 use constant S_DEPTH_LAYERS => 2;
 use constant S_BRIDGE_ANGLE => 3;
 use constant S_ADDITIONAL_INNER_PERIMETERS => 4;
+
+use constant S_TYPE_TOP             => 0;
+use constant S_TYPE_BOTTOM          => 1;
+use constant S_TYPE_INTERNAL        => 2;
+use constant S_TYPE_INTERNALSOLID   => 3;
 
 sub new {
     my $class = shift;
@@ -22,7 +32,7 @@ sub new {
 }
 
 sub expolygon       { $_[0][S_EXPOLYGON] }
-sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if $_[1]; $_[0][S_SURFACE_TYPE] }
+sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if defined $_[1]; $_[0][S_SURFACE_TYPE] }
 sub depth_layers    { $_[0][S_DEPTH_LAYERS] } # this integer represents the thickness of the surface expressed in layers
 sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] }
 sub additional_inner_perimeters { $_[0][S_ADDITIONAL_INNER_PERIMETERS] = $_[1] if $_[1]; $_[0][S_ADDITIONAL_INNER_PERIMETERS] }
@@ -41,7 +51,7 @@ sub group {
     
     my %unique_types = ();
     foreach my $surface (@surfaces) {
-        my $type = ($params->{merge_solid} && $surface->surface_type =~ /top|bottom|solid/)
+        my $type = ($params->{merge_solid} && grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID)
             ? 'solid'
             : $surface->surface_type;
         $type .= "_" . ($surface->bridge_angle // ''); #/

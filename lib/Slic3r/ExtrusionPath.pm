@@ -7,7 +7,6 @@ our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_SMALLPERIMETER EXTR_ROLE_FILL 
     EXTR_ROLE_BRIDGE EXTR_ROLE_SKIRT EXTR_ROLE_SUPPORTMATERIAL);
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
 
-
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 
 # the underlying Slic3r::Polyline objects holds the geometry

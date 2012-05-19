@@ -14,6 +14,7 @@ use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
+use Slic3r::Surface ':types';
 
 
 has 'print'     => (is => 'ro', required => 1);
@@ -137,17 +138,17 @@ sub make_fill {
         my $filler          = $Slic3r::fill_pattern;
         my $density         = $Slic3r::fill_density;
         my $flow_spacing    = $Slic3r::flow_spacing;
-        my $is_bridge       = $layer->id > 0 && $surface->surface_type eq 'bottom';
-        my $is_solid        = $surface->surface_type =~ /^(top|bottom|internal-solid)$/;
+        my $is_bridge       = $layer->id > 0 && $surface->surface_type == S_TYPE_BOTTOM;
+        my $is_solid        = grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID;
         
         # force 100% density and rectilinear fill for external surfaces
-        if ($surface->surface_type ne 'internal') {
+        if ($surface->surface_type != S_TYPE_INTERNAL) {
             $density = 1;
             $filler = $Slic3r::solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
                 $flow_spacing = sqrt($Slic3r::bridge_flow_ratio * ($Slic3r::nozzle_diameter**2));
-            } elsif ($surface->surface_type eq 'internal-solid') {
+            } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }
         } else {
