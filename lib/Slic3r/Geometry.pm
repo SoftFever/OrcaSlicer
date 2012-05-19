@@ -236,7 +236,7 @@ sub polyline_lines {
 }
 
 sub polygon_lines {
-    my ($polygon) = @_;
+    my ($polygon) = @_;use XXX; ZZZ $polygon if !eval { @$polygon };
     return polyline_lines([ @$polygon, $polygon->[0] ]);
 }
 

@@ -78,6 +78,7 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
+    $loop->deserialize;
     $loop->polygon->make_counter_clockwise;
     
     # find the point of the loop that is closest to the current extruder position
@@ -85,6 +86,7 @@ sub extrude_loop {
     
     # split the loop at the starting point and make a path
     my $extrusion_path = $loop->split_at($start_at);
+    $extrusion_path->deserialize;
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so

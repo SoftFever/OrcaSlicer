@@ -284,19 +284,14 @@ sub make_perimeters {
             }
         }
         
-        foreach my $hole (reverse @holes) {
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $hole, role => EXTR_ROLE_PERIMETER);
+        # do holes, then contours starting from innermost one
+        foreach my $polygon ((reverse @holes), (map $_->contour, map @$_, reverse @$island)) {
+            next unless $polygon->is_printable;
+            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(
+                polygon => $polygon,
+                role => (abs($polygon->length) <= $Slic3r::small_perimeter_length) ? EXTR_ROLE_SMALLPERIMETER : EXTR_ROLE_PERIMETER,
+            );
         }
-        
-        # do contours starting from innermost one
-        foreach my $contour (map $_->contour, map @$_, reverse @$island) {
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $contour, role => EXTR_ROLE_PERIMETER);
-        }
-    }
-    
-    # detect small perimeters by checking their area
-    for (@{ $self->perimeters }) {
-        $_->role(EXTR_ROLE_SMALLPERIMETER) if abs($_->polygon->length) <= $Slic3r::small_perimeter_length;
     }
     
     # add thin walls as perimeters
@@ -382,16 +377,6 @@ sub remove_small_surfaces {
             expolygon => $_,
             surface_type => S_TYPE_INTERNALSOLID), @$diff;
     }
-}
-
-sub remove_small_perimeters {
-    my $self = shift;
-    my @good_perimeters = grep $_->is_printable, @{$self->perimeters};
-    Slic3r::debugf "removed %d unprintable perimeters at layer %d\n",
-        (@{$self->perimeters} - @good_perimeters), $self->id
-        if @good_perimeters != @{$self->perimeters};
-    
-    @{$self->perimeters} = @good_perimeters;
 }
 
 # make bridges printable

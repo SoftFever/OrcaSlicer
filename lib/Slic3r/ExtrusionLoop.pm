@@ -3,7 +3,7 @@ use Moo;
 
 # the underlying Slic3r::Polygon objects holds the geometry
 has 'polygon' => (
-    is          => 'ro',
+    is          => 'rw',
     required    => 1,
     handles     => [qw(is_printable nearest_point_to)],
 );
@@ -14,6 +14,12 @@ has 'role'         => (is => 'rw', required => 1);
 sub BUILD {
     my $self = shift;
     bless $self->polygon, 'Slic3r::Polygon';
+    $self->polygon($self->polygon->serialize);
+}
+
+sub deserialize {
+    my $self = shift;
+    $self->polygon($self->polygon->deserialize);
 }
 
 sub split_at {

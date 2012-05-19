@@ -21,6 +21,22 @@ sub new {
     $self;
 }
 
+sub serialize {
+    my $self = shift;
+    my $s = \ pack 'l*', map @$_, @$self;
+    bless $s, ref $self;
+    return $s;
+}
+
+sub deserialize {
+    my $self = shift;
+    my @v = unpack '(l2)*', $$self;
+    my $o = [ map [ $v[2*$_], $v[2*$_+1] ], 0 .. int($#v/2) ];
+    bless $_, 'Slic3r::Point' for @$o;
+    bless $o, ref $self;
+    return $o;
+}
+
 sub id {
     my $self = shift;
     return join ' - ', sort map $_->id, @$self;

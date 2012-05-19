@@ -11,7 +11,7 @@ use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 
 # the underlying Slic3r::Polyline objects holds the geometry
 has 'polyline' => (
-    is          => 'ro',
+    is          => 'rw',
     required    => 1,
     handles     => [qw(merge_continuous_lines lines length)],
 );
@@ -34,6 +34,12 @@ use constant EXTR_ROLE_SUPPORTMATERIAL  => 6;
 sub BUILD {
     my $self = shift;
     bless $self->polyline, 'Slic3r::Polyline';
+    $self->polyline($self->polyline->serialize);
+}
+
+sub deserialize {
+    my $self = shift;
+    $self->polyline($self->polyline->deserialize);
 }
 
 sub clip_end {

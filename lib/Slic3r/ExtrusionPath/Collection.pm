@@ -25,6 +25,7 @@ sub shortest_path {
     my ($start_near) = @_;
     
     my @my_paths = @{$self->paths};
+    $_->deserialize for @my_paths;
     my @paths = ();
     my $start_at;
     CYCLE: while (@my_paths) {

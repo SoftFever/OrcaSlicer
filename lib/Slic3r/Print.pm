@@ -188,11 +188,6 @@ sub export_gcode {
     $status_cb->(45, "Detect bridges");
     $_->process_bridges for map @{$_->layers}, @{$self->objects};
     
-    # this will remove unprintable perimeter loops
-    # (those that are too tight for extrusion)
-    $status_cb->(50, "Cleaning up the perimeters");
-    $_->remove_small_perimeters for map @{$_->layers}, @{$self->objects};
-    
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
     $status_cb->(60, "Generating horizontal shells");
