@@ -59,8 +59,8 @@ sub new {
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG), '');
