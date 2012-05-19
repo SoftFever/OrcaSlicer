@@ -198,7 +198,9 @@ sub make_perimeters {
         foreach my $hole ($last_offsets[0]->holes) {
             my $circumference = abs($hole->length);
             next unless $circumference <= $Slic3r::small_perimeter_length;
-            my $radius = ($circumference / PI / 2);
+            # revert the compensation done in make_surfaces() and get the actual radius
+            # of the hole
+            my $radius = ($circumference / PI / 2) - scale $Slic3r::flow_spacing/2;
             my $new_radius = (scale($Slic3r::flow_width) + sqrt((scale($Slic3r::flow_width)**2) + (4*($radius**2)))) / 2;
             # holes are always turned to contours, so reverse point order before and after
             $hole->reverse;
