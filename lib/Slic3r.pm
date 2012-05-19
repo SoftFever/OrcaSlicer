@@ -14,7 +14,11 @@ sub debugf {
     printf @_ if $debug;
 }
 
+# load threads before Moo as required by it
+our $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
+
 use Config;
+use Moo;
 use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::Extruder;
@@ -36,7 +40,6 @@ use Slic3r::Print::Object;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 
-our $have_threads       = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
 our $threads            = $have_threads ? 2 : undef;
 
 # miscellaneous options
