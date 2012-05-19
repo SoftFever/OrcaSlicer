@@ -93,7 +93,7 @@ sub new {
             remove          brick_delete.png
             reset           cross.png
             arrange         bricks.png
-            export_gcode    layers.png
+            export_gcode    cog_go.png
             export_stl      brick_go.png
             
             increase        add.png
