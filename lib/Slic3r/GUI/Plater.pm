@@ -353,7 +353,7 @@ sub arrange {
     eval {
         $self->{print}->arrange_objects;
     };
-    Slic3r::GUI::warning_catcher($self)->($@) if $@;
+    # ignore arrange warnings on purpose
     
     $self->recenter;
     $self->{canvas}->Refresh;
