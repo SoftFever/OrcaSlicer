@@ -529,6 +529,7 @@ sub on_export_completed {
     my $self = shift;
     my ($message) = @_;
     
+    $self->{export_thread}->detach;
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
@@ -540,6 +541,7 @@ sub on_export_failed {
     my $self = shift;
     my ($message) = @_;
     
+    $self->{export_thread}->detach;
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
@@ -605,7 +607,7 @@ sub make_thumbnail {
         }
     };
     
-    $Slic3r::have_threads ? threads->create($cb) : $cb->();
+    $Slic3r::have_threads ? threads->create($cb)->detach : $cb->();
 }
 
 sub make_thumbnail2 {
