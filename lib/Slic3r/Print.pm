@@ -353,7 +353,7 @@ sub make_skirt {
         my @layer_points = (
             (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, @layers),
-            (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
+            (map @{$_->polyline->deserialize}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
         );
         push @points, map move_points($_, @layer_points), @{$self->copies->[$obj_idx]};
     }
