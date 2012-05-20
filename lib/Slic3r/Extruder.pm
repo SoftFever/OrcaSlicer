@@ -377,4 +377,28 @@ sub set_fan {
     return "";
 }
 
+sub set_temperature {
+    my $self = shift;
+    my ($temperature, $wait) = @_;
+    
+    return "" if $wait && $Slic3r::gcode_flavor eq 'makerbot';
+    
+    my ($code, $comment) = $wait
+        ? ('M109', 'wait for temperature to be reached')
+        : ('M104', 'set temperature');
+    return sprintf "$code %s%d ; $comment\n",
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
+}
+
+sub set_bed_temperature {
+    my $self = shift;
+    my ($temperature, $wait) = @_;
+    
+    my ($code, $comment) = $wait
+        ? (($Slic3r::gcode_flavor eq 'makerbot' ? '109' : '190'), 'wait for bed temperature to be reached')
+        : ('M40', 'set bed temperature');
+    return sprintf "$code %s%d ; $comment\n",
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
+}
+
 1;

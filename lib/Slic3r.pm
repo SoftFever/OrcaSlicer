@@ -109,6 +109,7 @@ our $fill_angle         = 45;
 our $randomize_start    = 1;
 our $support_material   = 0;
 our $support_material_tool = 0;
+our $complete_objects   = 0;
 our $start_gcode = "G28 ; home all axes";
 our $end_gcode = <<"END";
 M104 S0 ; turn off temperature

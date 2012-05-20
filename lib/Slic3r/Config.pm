@@ -262,6 +262,11 @@ our $Options = {
         values  => [0,1],
         labels  => [qw(Primary Secondary)],
     },
+    'complete_objects' => {
+        label   => 'Complete individual objects (watch out for extruder collisions if you enable this)',
+        cli     => 'complete-objects',
+        type    => 'bool',
+    },
     'start_gcode' => {
         label   => 'Start G-code',
         cli     => 'start-gcode=s',

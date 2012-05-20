@@ -35,11 +35,12 @@ Slic3r current key features are:
 * save configuration profiles;
 * center print around bed center point;
 * multiple solid layers near horizontal external surfaces;
-* ability to scale, rotate and duplicate input object;
+* ability to scale, rotate and duplicate input objects;
 * customizable initial and final G-code;
 * support material;
 * cooling and fan control;
-* use different speed for bottom layer and perimeters.
+* use different speed for bottom layer, perimeters, small perimeters, bridges, solid infill;
+* ability to print complete objects before moving onto next one.
 
 Experimental features include:
 
@@ -51,28 +52,24 @@ Roadmap includes the following goals:
 * output some statistics;
 * support material for internal perimeters;
 * more GUI work;
-* more fill patterns.
-
-## Is it usable already? Any known limitation?
-
-Sure, it's very usable. Remember that:
-
-* it only works well with manifold and clean models (check them with Meshlab or Netfabb or http://cloud.netfabb.com/).
+* more fill patterns;
+* a more complete roadmap is needed too ;-)
 
 ## How to install?
 
 It's very easy. See the [project homepage](http://slic3r.org/)
-for instructions and links to the precompiled packages.
+for instructions and links to the precompiled packages that you can just
+download and run, with no dependencies required.
 
 ## Can I help?
 
 Sure! Send patches and/or drop me a line at aar@cpan.org. You can also 
-find me in #reprap on FreeNode with the nickname _Sound_.
+find me in #reprap and in #slic3r on FreeNode with the nickname _Sound_.
 
 ## What's Slic3r license?
 
 Slic3r is licensed under the _GNU Affero General Public License, version 3_.
-The author is Alessandro Ranellucci (me).
+The author is Alessandro Ranellucci.
 
 ## How can I invoke slic3r.pl using the command line?
 
@@ -162,6 +159,8 @@ The author is Alessandro Ranellucci (me).
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --support-material  Generate support material for overhangs
         --randomize-start   Randomize starting point across layers (default: yes)
+        --complete-objects  When printing multiple objects and/or copies, complete each one before
+                            starting the next one; watch out for extruder collisions (default: no)
       
        Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 

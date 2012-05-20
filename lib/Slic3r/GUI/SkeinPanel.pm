@@ -61,7 +61,8 @@ sub new {
         },
         gcode => {
             title => 'G-code',
-            options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
+            options => [qw(start_gcode end_gcode layer_gcode complete_objects gcode_comments post_process)],
+            label_width => 260,
         },
         extrusion => {
             title => 'Extrusion',

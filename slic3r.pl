@@ -202,6 +202,8 @@ $j
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
     --support-material  Generate support material for overhangs
     --randomize-start   Randomize starting point across layers (default: yes)
+    --complete-objects  When printing multiple objects and/or copies, complete each one before
+                        starting the next one; watch out for extruder collisions (default: no)
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 

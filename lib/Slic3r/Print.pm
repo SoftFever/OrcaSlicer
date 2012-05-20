@@ -398,19 +398,23 @@ sub write_gcode {
     printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow_width;
     print  $fh "\n";
     
+    # set up our extruder object
+    my $extruder = Slic3r::Extruder->new;
+    my $min_print_speed = 60 * $Slic3r::min_print_speed;
+    my $dec = $extruder->dec;
+    if ($Slic3r::support_material && $Slic3r::support_material_tool > 0) {
+        print $fh $extruder->set_tool(0);
+    }
+    print $fh $extruder->set_fan(0, 1) if $Slic3r::cooling && $Slic3r::disable_fan_first_layers;
+    
     # write start commands to file
-    printf $fh "M%s %s%d ; set bed temperature\n",
-        ($Slic3r::gcode_flavor eq 'makerbot' ? '109' : '190'),
-        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_bed_temperature
+    printf $fh $extruder->set_bed_temperature($Slic3r::first_layer_bed_temperature, 1),
             if $Slic3r::first_layer_bed_temperature && $Slic3r::start_gcode !~ /M190/i;
-    printf $fh "M104 %s%d ; set temperature\n",
-        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
-            if $Slic3r::first_layer_temperature;
+    printf $fh $extruder->set_temperature($Slic3r::first_layer_temperature)
+        if $Slic3r::first_layer_temperature;
     printf $fh "%s\n", Slic3r::Config->replace_options($Slic3r::start_gcode);
-    printf $fh "M109 %s%d ; wait for temperature to be reached\n", 
-        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::first_layer_temperature
-            if $Slic3r::first_layer_temperature && $Slic3r::gcode_flavor ne 'makerbot'
-                && $Slic3r::start_gcode !~ /M109/i;
+    printf $fh $extruder->set_temperature($Slic3r::first_layer_temperature, 1)
+            if $Slic3r::first_layer_temperature && $Slic3r::start_gcode !~ /M109/i;
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup)$/) {
@@ -432,72 +436,66 @@ sub write_gcode {
         $Slic3r::print_center->[Y] - (unscale ($print_bb[Y2] - $print_bb[Y1]) / 2) - unscale $print_bb[Y1],
     );
     
-    # set up our extruder object
-    my $extruder = Slic3r::Extruder->new;
-    my $min_print_speed = 60 * $Slic3r::min_print_speed;
-    my $dec = $extruder->dec;
-    if ($Slic3r::support_material && $Slic3r::support_material_tool > 0) {
-        print $fh $extruder->set_tool(0);
-    }
-    print $fh $extruder->set_fan(0, 1) if $Slic3r::cooling && $Slic3r::disable_fan_first_layers;
-    
-    # write gcode commands layer by layer
-    for my $layer_id (0..$self->layer_count-1) {
-        my @obj_idx = grep $self->objects->[$_]->layers->[$layer_id], 0..$#{$self->objects};
-        my @obj_layers = map $self->objects->[$_]->layers->[$layer_id], @obj_idx;
+    # prepare the logic to print one layer
+    my $skirt_done = 0;
+    my $extrude_layer = sub {
+        my ($layer_id, $object_copies) = @_;
+        my $gcode = "";
+        
         if ($layer_id == 1) {
-            printf $fh "M104 %s%d ; set temperature\n",
-                ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::temperature
+            $gcode .= $extruder->set_temperature($Slic3r::temperature)
                 if $Slic3r::temperature && $Slic3r::temperature != $Slic3r::first_layer_temperature;
-            printf $fh "M140 %s%d ; set bed temperature\n",
-                ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $Slic3r::bed_temperature
+            $gcode .= $extruder->set_bed_temperature($Slic3r::bed_temperature)
                 if $Slic3r::bed_temperature && $Slic3r::bed_temperature != $Slic3r::first_layer_bed_temperature;
         }
         
-        # go to layer
-        my $layer_gcode = $extruder->change_layer($obj_layers[0]);
+        # go to layer (just use the first one, we only need Z from it)
+        $gcode .= $extruder->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
         $extruder->elapsed_time(0);
         
         # extrude skirt
-        $extruder->shift_x($shift[X]);
-        $extruder->shift_y($shift[Y]);
-        $layer_gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
-        if ($layer_id < $Slic3r::skirt_height) {
-            $layer_gcode .= $extruder->extrude_loop($_, 'skirt') for @{$self->skirt};
+        if (!$skirt_done) {
+            $extruder->shift_x($shift[X]);
+            $extruder->shift_y($shift[Y]);
+            $gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
+            if ($layer_id < $Slic3r::skirt_height) {
+                $gcode .= $extruder->extrude_loop($_, 'skirt') for @{$self->skirt};
+            }
+            $skirt_done = 1;
         }
         
-        for my $obj_idx (@obj_idx) {
+        for my $obj_copy (@$object_copies) {
+            my ($obj_idx, $copy) = @$obj_copy;
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
-            for my $copy (@{ $self->copies->[$obj_idx] }) {
-                # retract explicitely because changing the shift_[xy] properties below
-                # won't always trigger the automatic retraction
-                $layer_gcode .= $extruder->retract;
-                
-                $extruder->shift_x($shift[X] + unscale $copy->[X]);
-                $extruder->shift_y($shift[Y] + unscale $copy->[Y]);
-                
-                # extrude perimeters
-                $layer_gcode .= $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
-                
-                # extrude fills
-                $layer_gcode .= $extruder->set_acceleration($Slic3r::infill_acceleration);
-                for my $fill (@{ $layer->fills }) {
-                    $layer_gcode .= $extruder->extrude_path($_, 'fill') 
-                        for $fill->shortest_path($extruder->last_pos);
-                }
-                
-                # extrude support material
-                if ($layer->support_fills) {
-                    $layer_gcode .= $extruder->set_tool($Slic3r::support_material_tool)
-                        if $Slic3r::support_material_tool > 0;
-                    $layer_gcode .= $extruder->extrude_path($_, 'support material') 
-                        for $layer->support_fills->shortest_path($extruder->last_pos);
-                    $layer_gcode .= $extruder->set_tool(0)
-                        if $Slic3r::support_material_tool > 0;
-                }
+            
+            # retract explicitely because changing the shift_[xy] properties below
+            # won't always trigger the automatic retraction
+            $gcode .= $extruder->retract;
+            
+            $extruder->shift_x($shift[X] + unscale $copy->[X]);
+            $extruder->shift_y($shift[Y] + unscale $copy->[Y]);
+            
+            # extrude perimeters
+            $gcode .= $extruder->extrude($_, 'perimeter') for @{ $layer->perimeters };
+            
+            # extrude fills
+            $gcode .= $extruder->set_acceleration($Slic3r::infill_acceleration);
+            for my $fill (@{ $layer->fills }) {
+                $gcode .= $extruder->extrude_path($_, 'fill') 
+                    for $fill->shortest_path($extruder->last_pos);
+            }
+            
+            # extrude support material
+            if ($layer->support_fills) {
+                $gcode .= $extruder->set_tool($Slic3r::support_material_tool)
+                    if $Slic3r::support_material_tool > 0;
+                $gcode .= $extruder->extrude_path($_, 'support material') 
+                    for $layer->support_fills->shortest_path($extruder->last_pos);
+                $gcode .= $extruder->set_tool(0)
+                    if $Slic3r::support_material_tool > 0;
             }
         }
-        last if !$layer_gcode;
+        last if !$gcode;
         
         my $fan_speed = $Slic3r::fan_always_on ? $Slic3r::min_fan_speed : 0;
         my $speed_factor = 1;
@@ -515,24 +513,77 @@ sub write_gcode {
             Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
             
             if ($speed_factor < 1) {
-                $layer_gcode =~ s/^(?=.*? [XY])(?=.*? E)(G1 .*?F)(\d+(?:\.\d+)?)/
+                $gcode =~ s/^(?=.*? [XY])(?=.*? E)(G1 .*?F)(\d+(?:\.\d+)?)/
                     my $new_speed = $2 * $speed_factor;
                     $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
                     /gexm;
             }
             $fan_speed = 0 if $layer_id < $Slic3r::disable_fan_first_layers;
         }
-        $layer_gcode = $extruder->set_fan($fan_speed) . $layer_gcode;
+        $gcode = $extruder->set_fan($fan_speed) . $gcode;
         
         # bridge fan speed
         if (!$Slic3r::cooling || $Slic3r::bridge_fan_speed == 0 || $layer_id < $Slic3r::disable_fan_first_layers) {
-            $layer_gcode =~ s/^;_BRIDGE_FAN_(?:START|END)\n//gm;
+            $gcode =~ s/^;_BRIDGE_FAN_(?:START|END)\n//gm;
         } else {
-            $layer_gcode =~ s/^;_BRIDGE_FAN_START\n/ $extruder->set_fan($Slic3r::bridge_fan_speed, 1) /gmex;
-            $layer_gcode =~ s/^;_BRIDGE_FAN_END\n/ $extruder->set_fan($fan_speed, 1) /gmex;
+            $gcode =~ s/^;_BRIDGE_FAN_START\n/ $extruder->set_fan($Slic3r::bridge_fan_speed, 1) /gmex;
+            $gcode =~ s/^;_BRIDGE_FAN_END\n/ $extruder->set_fan($fan_speed, 1) /gmex;
         }
         
-        print $fh $layer_gcode;
+        return $gcode;
+    };
+    
+    # do all objects for each layer
+    if ($Slic3r::complete_objects) {
+        
+        # get the height of the tallest object
+        my $max_z;
+        {
+            my @last_layers = sort { $a->layer_id <=> $b->layer_id } map $_->layers->[-1], @{$self->objects};
+            $max_z = $Slic3r::z_offset + unscale $last_layers[-1]->print_z;
+        }
+        
+        my $finished_objects = 0;
+        for my $obj_idx (0..$#{$self->objects}) {
+            for my $copy (@{ $self->copies->[$obj_idx] }) {
+                # move to the origin position for the copy we're going to print.
+                # this happens before Z goes down to layer 0 again, so that 
+                # no collision happens hopefully.
+                # if our current Z is lower than the tallest object in the print,
+                # raise our Z to that one + a little clearance before doing the
+                # horizontal move
+                if ($finished_objects > 0) {
+                    $extruder->shift_x($shift[X] + unscale $copy->[X]);
+                    $extruder->shift_y($shift[Y] + unscale $copy->[Y]);
+                    print $fh $extruder->retract;
+                    print $fh $extruder->G0(undef, $max_z + 1, 0, 'move up to avoid collisions')
+                        if $extruder->z < $max_z;
+                    print $fh $extruder->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
+                }
+                
+                for my $layer_id (0..$#{$self->objects->[$obj_idx]->layers}) {
+                    # if we are printing the bottom layer of an object, and we have already finished
+                    # another one, set first layer temperatures. this happens before the Z move
+                    # is triggered, so machine has more time to reach such temperatures
+                    if ($layer_id == 0 && $finished_objects > 0) {
+                        printf $fh $extruder->set_bed_temperature($Slic3r::first_layer_bed_temperature),
+                            if $Slic3r::first_layer_bed_temperature;
+                        printf $fh $extruder->set_temperature($Slic3r::first_layer_temperature)
+                            if $Slic3r::first_layer_temperature;
+                    }
+                    print $fh $extrude_layer->($layer_id, [[ $obj_idx, $copy ]]);
+                }
+                $finished_objects++;
+            }
+        }
+    } else {
+        for my $layer_id (0..$self->layer_count-1) {
+            my @object_copies = ();
+            for my $obj_idx (grep $self->objects->[$_]->layers->[$layer_id], 0..$#{$self->objects}) {
+                push @object_copies, map [ $obj_idx, $_ ], @{ $self->copies->[$obj_idx] };
+            }
+            print $fh $extrude_layer->($layer_id, \@object_copies);
+        }
     }
     
     # save statistic data
