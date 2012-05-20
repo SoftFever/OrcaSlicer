@@ -536,9 +536,9 @@ sub validate {
     
     # -j, --threads
     die "Invalid value for --threads\n"
-        if defined $Slic3r::threads && $Slic3r::threads < 1;
+        if $Slic3r::threads < 1;
     die "Your perl wasn't built with multithread support\n"
-        if defined $Slic3r::threads && $Slic3r::threads > 1 && !$Slic3r::have_threads;
+        if $Slic3r::threads > 1 && !$Slic3r::have_threads;
 
     # --layer-height
     die "Invalid value for --layer-height\n"

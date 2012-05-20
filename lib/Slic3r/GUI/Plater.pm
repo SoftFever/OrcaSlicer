@@ -529,7 +529,7 @@ sub on_export_completed {
     my $self = shift;
     my ($message) = @_;
     
-    $self->{export_thread}->detach;
+    $self->{export_thread}->detach if $self->{export_thread};
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
@@ -541,7 +541,7 @@ sub on_export_failed {
     my $self = shift;
     my ($message) = @_;
     
-    $self->{export_thread}->detach;
+    $self->{export_thread}->detach if $self->{export_thread};
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;

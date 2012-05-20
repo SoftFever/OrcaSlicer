@@ -41,7 +41,7 @@ use Slic3r::Print::Object;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 
-our $threads            = $have_threads ? 2 : undef;
+our $threads            = $have_threads ? 2 : 1;
 
 # miscellaneous options
 our $notes              = '';
