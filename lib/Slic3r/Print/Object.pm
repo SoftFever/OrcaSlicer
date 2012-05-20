@@ -317,11 +317,11 @@ sub discover_horizontal_shells {
                 grep $_->surface_type == $type, @{$layer->fill_surfaces} or next;
             my $surfaces_p = [ map $_->p, @surfaces ];
             Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
-                $i, scalar(@surfaces), $type;
+                $i, scalar(@surfaces), ($type == S_TYPE_TOP ? 'top' : 'bottom');
             
-            for (my $n = $type eq 'top' ? $i-1 : $i+1; 
+            for (my $n = $type == S_TYPE_TOP ? $i-1 : $i+1; 
                     abs($n - $i) <= $Slic3r::solid_layers-1; 
-                    $type eq 'top' ? $n-- : $n++) {
+                    $type == S_TYPE_TOP ? $n-- : $n++) {
                 
                 next if $n < 0 || $n >= $self->layer_count;
                 Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
