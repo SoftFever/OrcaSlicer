@@ -30,8 +30,12 @@ my %cli_options = ();
     );
     foreach my $opt_key (keys %$Slic3r::Config::Options) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
-        $options{ $opt->{cli} } = \$cli_options{$opt_key}
-            if $opt->{cli};
+        my $cli = $opt->{cli} or next;
+        if ($cli =~ /-/) {
+            # allow alternative options with '_' in place of '-'
+            $cli = $opt_key.'|'.$cli;
+        }
+        $options{ $cli } = \$cli_options{$opt_key};
     }
     
     GetOptions(%options) or usage(1);
