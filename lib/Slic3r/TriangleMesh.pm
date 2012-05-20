@@ -36,7 +36,7 @@ sub BUILD {
     my %table = ();  # edge_coordinates => edge_id
     
     for (my $facet_id = 0; $facet_id <= $#{$self->facets}; $facet_id++) {
-        my $facet = $self->facets->[$facet_id];##use Devel::Size qw(total_size); printf "total_size = %d\n", total_size($facet);exit;
+        my $facet = $self->facets->[$facet_id];
         $self->facets_edges->[$facet_id] = [];
         
         # reorder vertices so that the first one is the one with lowest Z
