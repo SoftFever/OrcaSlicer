@@ -139,7 +139,7 @@ sub make_fill {
         my $density         = $Slic3r::fill_density;
         my $flow_spacing    = $Slic3r::flow_spacing;
         my $is_bridge       = $layer->id > 0 && $surface->surface_type == S_TYPE_BOTTOM;
-        my $is_solid        = grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID;
+        my $is_solid        = (grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID) ? 1 : 0;
         
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type != S_TYPE_INTERNAL) {
