@@ -5,7 +5,7 @@ use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 
 # public
 has 'vertices'      => (is => 'ro', required => 1);         # id => [$x,$y,$z]
-has 'facets'        => (is => 'ro', required => 1);         # id => [ $normal, $v1_id, $v2_id, $v3_id ]
+has 'facets'        => (is => 'ro', required => 1);         # id => [ $v1_id, $v2_id, $v3_id ]
 
 # private
 has 'edges'         => (is => 'ro', default => sub { [] }); # id => [ $v1_id, $v2_id ]
@@ -36,15 +36,15 @@ sub BUILD {
     my %table = ();  # edge_coordinates => edge_id
     
     for (my $facet_id = 0; $facet_id <= $#{$self->facets}; $facet_id++) {
-        my $facet = $self->facets->[$facet_id];
+        my $facet = $self->facets->[$facet_id];##use Devel::Size qw(total_size); printf "total_size = %d\n", total_size($facet);exit;
         $self->facets_edges->[$facet_id] = [];
         
         # reorder vertices so that the first one is the one with lowest Z
         # this is needed to get all intersection lines in a consistent order
         # (external on the right of the line)
         {
-            my @z_order = sort { $self->vertices->[$facet->[$a]][Z] <=> $self->vertices->[$facet->[$b]][Z] } 1..3;
-            @$facet[1..3] = (@$facet[$z_order[0]..3], @$facet[1..($z_order[0]-1)]);
+            my @z_order = sort { $self->vertices->[$facet->[$a]][Z] <=> $self->vertices->[$facet->[$b]][Z] } -3..-1;
+            @$facet[-3..-1] = (@$facet[$z_order[0]..-1], @$facet[-3..($z_order[0]-1)]);
         }
         
         # ignore the normal if provided
@@ -83,9 +83,9 @@ sub _facet_edges {
     
     my $facet = $self->facets->[$facet_id];
     return (
-        [ $facet->[1], $facet->[2] ],
-        [ $facet->[2], $facet->[3] ],
-        [ $facet->[3], $facet->[1] ],
+        [ $facet->[-3], $facet->[-2] ],
+        [ $facet->[-2], $facet->[-1] ],
+        [ $facet->[-1], $facet->[-3] ],
     );
 }
 
@@ -198,7 +198,7 @@ sub make_loops {
         # choice)
         # The "// ''" on the next line avoids uninitialized value errors mentioned in issue #357 but these
         # errors occur on fixed models so the root cause still needs to be found
-        if (@lines_starting_here == 2 && join('', sort map $_->[I_FACET_EDGE] // '', @lines_starting_here) eq FE_TOP.FE_BOTTOM) {
+        if (@lines_starting_here == 2 && join('', sort map $_->[I_FACET_EDGE] // '', @lines_starting_here) eq FE_TOP.FE_BOTTOM) { #/
             my @to_remove = grep $_->[I_FACET_EDGE] == FE_TOP, @lines_starting_here;
             while (!grep defined $_->[I_B_ID] && $_->[I_B_ID] == $to_remove[-1]->[I_B_ID] && $_ ne $to_remove[-1], @lines) {
                 push @to_remove, grep defined $_->[I_A_ID] && $_->[I_A_ID] == $to_remove[-1]->[I_B_ID], @lines;
@@ -359,7 +359,7 @@ sub size {
 sub slice_facet {
     my $self = shift;
     my ($print_object, $facet_id) = @_;
-    my ($normal, @vertices) = @{$self->facets->[$facet_id]};
+    my @vertices = @{$self->facets->[$facet_id]}[-3..-1];
     Slic3r::debugf "\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n",
         $facet_id, map @{$self->vertices->[$_]}, @vertices
         if $Slic3r::debug;
@@ -398,7 +398,7 @@ sub intersect_facet {
     my $self = shift;
     my ($facet_id, $z) = @_;
     
-    my @vertices_ids        = @{$self->facets->[$facet_id]}[1..3];
+    my @vertices_ids        = @{$self->facets->[$facet_id]}[-3..-1];
     my @edge_ids            = @{$self->facets_edges->[$facet_id]};
     my @edge_vertices_ids   = $self->_facet_edges($facet_id);
     
@@ -534,11 +534,11 @@ sub split_mesh {
             $self->facets->[$facet_id] = undef;
         }
         
-        my %vertices = map { $_ => 1 } map @$_[1,2,3], @facets;
+        my %vertices = map { $_ => 1 } map @$_[-3..-1], @facets;
         my @new_vertices = keys %vertices;
         my %new_vertices = map { $new_vertices[$_] => $_ } 0..$#new_vertices;
         foreach my $facet (@facets) {
-            $facet->[$_] = $new_vertices{$facet->[$_]} for 1,2,3;
+            $facet->[$_] = $new_vertices{$facet->[$_]} for -3..-1;
         }
         push @meshes, Slic3r::TriangleMesh->new(
             facets => \@facets,

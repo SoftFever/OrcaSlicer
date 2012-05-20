@@ -26,9 +26,9 @@ sub start_element {
         $self->{_volume_materialid} = $self->_get_attribute($data, 'materialid') || '_';
         $self->{_volume} = [];
     } elsif ($data->{LocalName} eq 'triangle') {
-        $self->{_triangle} = [[], "", "", ""];  # empty normal
+        $self->{_triangle} = ["", "", ""];
     } elsif ($self->{_triangle} && $data->{LocalName} =~ /^v([123])$/ && $self->{_tree}[-1] eq 'triangle') {
-        $self->{_vertex_idx} = $1;
+        $self->{_vertex_idx} = $1-1;
     } elsif ($data->{LocalName} eq 'material') {
         $self->{_material_id} = $self->_get_attribute($data, 'id') || '_';
         $self->{_material} = {};

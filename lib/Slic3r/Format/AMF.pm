@@ -74,7 +74,7 @@ sub write_file {
         foreach my $facet (@{$mesh->facets}) {
             printf $fh qq{        <triangle>\n};
             printf $fh qq{          <v%d>%d</v%d>\n}, $_, $facet->[$_] + $vertices_offset{$mesh}, $_
-                for 1..3;
+                for -3..-1;
             printf $fh qq{        </triangle>\n};
         }
         printf $fh qq{      </volume>\n};

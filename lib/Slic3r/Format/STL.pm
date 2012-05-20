@@ -43,7 +43,7 @@ sub read_file {
         my %vertices_map = ();    # given a vertex's coordinates, what's its index?
         my @vertices_facets = (); # given a vertex index, what are the indexes of its tangent facets?
         for (my $f = 0; $f <= $#$facets; $f++) {
-            for (1..3) {
+            for (-3..-1) {
                 my $point_id = join ',', @{$facets->[$f][$_]};
                 if (exists $vertices_map{$point_id}) {
                     $facets->[$f][$_] = $vertices_map{$point_id};
@@ -74,11 +74,11 @@ sub read_file {
                     CYCLE: while (@facets_indexes && @this_f) {
                         
                         # look for a facet that is connected to $this_f[-1] and whose common line contains $v
-                        my @other_vertices_indexes = grep $_ != $v, @{$facets->[$this_f[-1]]}[1..3];
+                        my @other_vertices_indexes = grep $_ != $v, @{$facets->[$this_f[-1]]}[-3..-1];
                         
                         OTHER: for my $other_f (@facets_indexes) {
                             # facet is connected if it shares one more point
-                            for (grep $_ != $v, @{$facets->[$other_f]}[1..3]) {
+                            for (grep $_ != $v, @{$facets->[$other_f]}[-3..-1]) {
                                 if ($_ ~~ @other_vertices_indexes) {
                                     #printf "facet %d is connected to $other_f (sharing vertices $v and $_)\n", $this_f[-1];
                                     
@@ -107,7 +107,7 @@ sub read_file {
                         Slic3r::debugf "  more than one vertex in the same point\n";
                         push @$vertices, $vertices->[$v];
                         for my $f (@this_f) {
-                            $facets->[$f][$_] = $#$vertices for grep $facets->[$f][$_] == $v, 1..3;
+                            $facets->[$f][$_] = $#$vertices for grep $facets->[$f][$_] == $v, -3..-1;
                         }
                     }
                 }
@@ -128,7 +128,7 @@ sub _read_ascii {
     while (my $_ = <$fh>) {
         if (!$facet) {
             /^\s*facet\s+normal\s+$point_re/ or next;
-            $facet = [ [$1, $2, $3] ];
+            $facet = [];  # ignore normal: [$1, $2, $3]
         } else {
             if (/^\s*endfacet/) {
                 push @$facets, $facet;
@@ -153,7 +153,7 @@ sub _read_binary {
     seek $fh, 80 + 4, 0;
     while (read $fh, my $_, 4*4*3+2) {
         my @v = unpack '(f<3)4';
-        push @$facets, [ [@v[0..2]], [@v[3..5]], [@v[6..8]], [@v[9..11]] ];
+        push @$facets, [ [@v[3..5]], [@v[6..8]], [@v[9..11]] ];  # ignore normal: [@v[0..2]]
     }
 }
 
