@@ -28,6 +28,7 @@ use Slic3r::ExtrusionPath::Arc;
 use Slic3r::ExtrusionPath::Collection;
 use Slic3r::Fill;
 use Slic3r::Format::AMF;
+use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;

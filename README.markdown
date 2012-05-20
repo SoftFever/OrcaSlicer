@@ -23,9 +23,9 @@ Slic3r current key features are:
 
 * multi-platform (Linux/Mac/Win) and packaged as standalone-app with no dependencies required;
 * easy configuration/calibration;
-* read binary and ASCII STL files as well as AMF;
+* read binary and ASCII STL files as well as OBJ and AMF;
 * powerful command line interface;
-* easy GUI;
+* easy GUI with plating and manipulation facilities;
 * multithreaded;
 * multiple infill patterns, with customizable density and angle;
 * retraction;

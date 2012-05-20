@@ -29,12 +29,16 @@ sub add_object_from_file {
         my $mesh = Slic3r::Format::STL->read_file($input_file);
         $mesh->check_manifoldness;
         $object = $self->add_object_from_mesh($mesh);
+    } elsif ($input_file =~ /\.obj$/i) {
+        my $mesh = Slic3r::Format::OBJ->read_file($input_file);
+        $mesh->check_manifoldness;
+        $object = $self->add_object_from_mesh($mesh);
     } elsif ( $input_file =~ /\.amf(\.xml)?$/i) {
         my ($materials, $meshes_by_material) = Slic3r::Format::AMF->read_file($input_file);
         $_->check_manifoldness for values %$meshes_by_material;
         $object = $self->add_object_from_mesh($meshes_by_material->{_} || +(values %$meshes_by_material)[0]);
     } else {
-        die "Input file must have .stl or .amf(.xml) extension\n";
+        die "Input file must have .stl, .obj or .amf(.xml) extension\n";
     }
     $object->input_file($input_file);
     return $object;

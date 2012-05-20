@@ -205,7 +205,7 @@ sub load {
     my $self = shift;
     
     my $dir = $Slic3r::GUI::SkeinPanel::last_skein_dir || $Slic3r::GUI::SkeinPanel::last_config_dir || "";
-    my $dialog = Wx::FileDialog->new($self, 'Choose a STL or AMF file:', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN);
+    my $dialog = Wx::FileDialog->new($self, 'Choose a file (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;

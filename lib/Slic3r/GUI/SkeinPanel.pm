@@ -161,7 +161,7 @@ sub new {
     return $self;
 }
 
-our $model_wildcard = "STL files (*.stl)|*.stl;*.STL|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
+our $model_wildcard = "STL files (*.stl)|*.stl;*.STL|OBJ files (*.obj)|*.obj;*.OBJ|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
 our $ini_wildcard = "INI files *.ini|*.ini;*.INI";
 our $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE";
 
@@ -188,7 +188,7 @@ sub do_slice {
 
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a STL or AMF file to slice:', $dir, "", $model_wildcard, wxFD_OPEN);
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN);
             if ($dialog->ShowModal != wxID_OK) {
                 $dialog->Destroy;
                 return;
