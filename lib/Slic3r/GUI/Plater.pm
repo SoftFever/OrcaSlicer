@@ -53,9 +53,9 @@ sub new {
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     
     # toolbar for object manipulation
-    $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], &Wx::wxTB_HORIZONTAL | &Wx::wxTB_HORZ_TEXT);
-    if ($self->{htoolbar}) {
+    if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
+        $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], &Wx::wxTB_HORIZONTAL | &Wx::wxTB_HORZ_TEXT);
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
@@ -66,6 +66,14 @@ sub new {
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG), '');
+    } else {
+        my %tbar_buttons = (increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
+            rotate => "Rotate…", changescale => "Scale…", split => "Split");
+        $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
+        for (qw(increase decrease rotate45ccw rotate45cw rotate changescale split)) {
+            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, [-1,-1], [-1,-1], &Wx::wxBU_EXACTFIT);
+            $self->{btoolbar}->Add($self->{"btn_$_"});
+        }
     }
     
     # general buttons
@@ -77,16 +85,6 @@ sub new {
     $self->{btn_export_gcode}->SetDefault;
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
     
-    # buttons for object manipulation
-    if (!$self->{htoolbar}) {
-        $self->{btn_increase} = Wx::Button->new($self, -1, "+1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-        $self->{btn_decrease} = Wx::Button->new($self, -1, "-1 copy", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-        $self->{btn_rotate45cw} = Wx::Button->new($self, -1, "Rotate (45° cw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-        $self->{btn_rotate45ccw} = Wx::Button->new($self, -1, "Rotate (45° ccw)", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-        $self->{btn_rotate} = Wx::Button->new($self, -1, "Rotate…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-        $self->{btn_changescale} = Wx::Button->new($self, -1, "Change Scale…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-        $self->{btn_split} = Wx::Button->new($self, -1, "Split", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    }
     if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
         my %icons = qw(
             load            brick_add.png
@@ -104,8 +102,9 @@ sub new {
             changescale     arrow_out.png
             split           shape_ungroup.png
         );
-        $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/$icons{$_}", &Wx::wxBITMAP_TYPE_PNG))
-            for grep $self->{"btn_$_"}, keys %icons;
+        for (grep $self->{"btn_$_"}, keys %icons) {
+            $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/$icons{$_}", &Wx::wxBITMAP_TYPE_PNG));
+        }
     }
     $self->selection_changed(0);
     $self->object_list_changed;
@@ -189,6 +188,7 @@ sub new {
         
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $vertical_sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
+        $vertical_sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
         $vertical_sizer->Add($list_sizer, 0, wxEXPAND | &Wx::wxBOTTOM, 10);
         $vertical_sizer->Add($buttons, 0, wxEXPAND);
         
