@@ -310,7 +310,7 @@ EOF
         my ($polygon, $type) = @_;
         printf $fh qq{    <polygon slic3r:type="%s" points="%s" style="fill: %s" />\n},
             $type, (join ' ', map { join ',', map unscale $_, @$_ } @$polygon),
-            ($type eq 'contour' ? 'black' : 'white');
+            ($type eq 'contour' ? 'white' : 'black');
     };
     
     for my $layer_id (0..$self->layer_count-1) {
