@@ -15,9 +15,10 @@ sub debugf {
 }
 
 # load threads before Moo as required by it
+our $have_threads;
 BEGIN {
     use Config;
-    our $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
+    $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
 }
 
 use Moo;
