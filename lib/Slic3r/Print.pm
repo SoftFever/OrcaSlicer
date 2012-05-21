@@ -536,28 +536,20 @@ sub write_gcode {
     # do all objects for each layer
     if ($Slic3r::complete_objects) {
         
-        # get the height of the tallest object
-        my $max_z;
-        {
-            my @last_layers = sort { $a->layer_id <=> $b->layer_id } map $_->layers->[-1], @{$self->objects};
-            $max_z = $Slic3r::z_offset + unscale $last_layers[-1]->print_z;
-        }
+        # print objects from the smallest to the tallest to avoid collisions
+        # when moving onto next object starting point
+        my @obj_idx = sort { $a->layer_count <=> $b->layer_count } 0..$#{$self->objects};
         
         my $finished_objects = 0;
-        for my $obj_idx (0..$#{$self->objects}) {
+        for my $obj_idx (@obj_idx) {
             for my $copy (@{ $self->copies->[$obj_idx] }) {
                 # move to the origin position for the copy we're going to print.
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
-                # if our current Z is lower than the tallest object in the print,
-                # raise our Z to that one + a little clearance before doing the
-                # horizontal move
                 if ($finished_objects > 0) {
                     $extruder->shift_x($shift[X] + unscale $copy->[X]);
                     $extruder->shift_y($shift[Y] + unscale $copy->[Y]);
                     print $fh $extruder->retract;
-                    print $fh $extruder->G0(undef, $max_z + 1, 0, 'move up to avoid collisions')
-                        if $extruder->z < $max_z;
                     print $fh $extruder->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
                 
