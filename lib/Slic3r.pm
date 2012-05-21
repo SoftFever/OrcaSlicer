@@ -15,8 +15,10 @@ sub debugf {
 }
 
 # load threads before Moo as required by it
-use Config;
-our $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
+BEGIN {
+    use Config;
+    our $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
+}
 
 use Moo;
 use Slic3r::Config;
