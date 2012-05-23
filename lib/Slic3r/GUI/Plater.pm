@@ -43,6 +43,7 @@ sub new {
     $self->{transparent_brush} = Wx::Brush->new(Wx::Colour->new(0,0,0), &Wx::wxTRANSPARENT);
     $self->{grid_pen} = Wx::Pen->new(Wx::Colour->new(230,230,230), 1, &Wx::wxSOLID);
     $self->{print_center_pen} = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, &Wx::wxSOLID);
+    $self->{clearance_pen} = Wx::Pen->new(Wx::Colour->new(0,0,200), 1, &Wx::wxSOLID);
     $self->{skirt_pen} = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, &Wx::wxSOLID);
     
     $self->{list} = Wx::ListView->new($self, -1, [-1, -1], [-1, 180], &Wx::wxLC_SINGLE_SEL | &Wx::wxLC_REPORT | &Wx::wxBORDER_DEFAULT);
@@ -470,7 +471,7 @@ sub export_gcode {
             },
             message_dialog => sub { Wx::MessageDialog->new($self, @_)->ShowModal },
             on_completed => sub { $self->on_export_completed(@_) },
-            catch_error => sub { Slic3r::GUI::catch_error($self, @_) },
+            catch_error => sub { Slic3r::GUI::catch_error($self, @_) && $self->on_export_failed },
         );
     }
 }
@@ -489,6 +490,7 @@ sub export_gcode2 {
         Slic3r::Config->validate;
         
         my $print = $self->{print};
+        $print->validate;
         
         {
             my @warnings = ();
@@ -704,6 +706,14 @@ sub repaint {
                 $dc->SetBrush($parent->{objects_brush});
             }
             $dc->DrawPolygon($parent->_y($parent->{object_previews}->[-1][2]), 0, 0);
+            
+            # if sequential printing is enabled and we have more than one object
+            if ($Slic3r::complete_objects && (map @$_, @{$print->copies}) > 1) {
+                my $clearance = +($parent->{object_previews}->[-1][2]->offset($Slic3r::extruder_clearance_radius / 2 * $parent->{scaling_factor}, 1, JT_ROUND))[0];
+                $dc->SetPen($parent->{clearance_pen});
+                $dc->SetBrush($parent->{transparent_brush});
+                $dc->DrawPolygon($parent->_y($clearance), 0, 0);
+            }
         }
     }
     

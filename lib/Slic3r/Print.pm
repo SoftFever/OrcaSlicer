@@ -5,7 +5,7 @@ use File::Basename qw(basename fileparse);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
-use Slic3r::Geometry::Clipper qw(diff_ex union_ex offset JT_ROUND);
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND);
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'objects'                => (is => 'rw', default => sub {[]});
@@ -63,6 +63,51 @@ sub add_object_from_mesh {
     push @{$self->objects}, $object;
     push @{$self->copies}, [[0, 0]];
     return $object;
+}
+
+sub validate {
+    my $self = shift;
+    
+    if ($Slic3r::complete_objects) {
+        # check horizontal clearance
+        {
+            my @a = ();
+            for my $obj_idx (0 .. $#{$self->objects}) {
+                my $clearance;
+                {
+                    my @points = map [ @$_[X,Y] ], @{$self->objects->[$obj_idx]->mesh->vertices};
+                    my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
+                    $clearance = +($convex_hull->offset(scale $Slic3r::extruder_clearance_radius / 2, 1, JT_ROUND))[0];
+                }
+                for my $copy (@{$self->copies->[$obj_idx]}) {
+                    my $copy_clearance = $clearance->clone;
+                    $copy_clearance->translate(@$copy);
+                    if (@{ intersection_ex(\@a, [$copy_clearance]) }) {
+                        die "Some objects are too close; your extruder will collide with them.\n";
+                    }
+                    @a = map @$_, @{union_ex([ @a, $copy_clearance ])};
+                }
+            }
+        }
+        
+        # check vertical clearance
+        {
+            my @obj_copies = $self->object_copies;
+            pop @obj_copies;  # ignore the last copy: its height doesn't matter
+            if (grep { +($self->objects->[$_->[0]]->mesh->size)[Z] > scale $Slic3r::extruder_clearance_height } @obj_copies) {
+                die "Some objects are too tall and cannot be printed without extruder collisions.\n";
+            }
+        }
+    }
+}
+
+sub object_copies {
+    my $self = shift;
+    my @oc = ();
+    for my $obj_idx (0 .. $#{$self->objects}) {
+        push @oc, map [ $obj_idx, $_ ], @{$self->copies->[$obj_idx]};
+    }
+    return @oc;
 }
 
 sub cleanup {

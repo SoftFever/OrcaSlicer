@@ -86,6 +86,7 @@ if (@ARGV) {
         }
         $print->duplicate;
         $print->arrange_objects if @{$print->objects} > 1;
+        $print->validate;
         my %params = (
             output_file => $opt{output},
             status_cb   => sub {
@@ -202,8 +203,6 @@ $j
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
     --support-material  Generate support material for overhangs
     --randomize-start   Randomize starting point across layers (default: yes)
-    --complete-objects  When printing multiple objects and/or copies, complete each one before
-                        starting the next one; watch out for extruder collisions (default: no)
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 
@@ -243,7 +242,15 @@ $j
     --bed-size          Bed size, only used for auto-arrange (mm, default: $Slic3r::bed_size->[0],$Slic3r::bed_size->[1])
     --duplicate-grid    Number of items with grid arrangement (default: $Slic3r::duplicate_grid->[0],$Slic3r::duplicate_grid->[1])
     --duplicate-distance Distance in mm between copies (default: $Slic3r::duplicate_distance)
-
+   
+   Sequential printing options:
+    --complete-objects  When printing multiple objects and/or copies, complete each one before
+                        starting the next one; watch out for extruder collisions (default: no)
+    --extruder-clearance-radius Radius in mm above which extruder won't collide with anything
+                        (default: $Slic3r::extruder_clearance_radius)
+    --extruder-clearance-height Maximum vertical extruder depth; i.e. vertical distance from 
+                        extruder tip and carriage bottom (default: $Slic3r::extruder_clearance_height)
+   
    Miscellaneous options:
     --notes             Notes to be added as comments to the output file
   

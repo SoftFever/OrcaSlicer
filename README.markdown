@@ -159,8 +159,6 @@ The author is Alessandro Ranellucci.
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --support-material  Generate support material for overhangs
         --randomize-start   Randomize starting point across layers (default: yes)
-        --complete-objects  When printing multiple objects and/or copies, complete each one before
-                            starting the next one; watch out for extruder collisions (default: no)
       
        Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion 
@@ -199,7 +197,15 @@ The author is Alessandro Ranellucci.
         --duplicate         Number of items with auto-arrange (1+, default: 1)
         --bed-size          Bed size, only used for auto-arrange (mm, default: 200,200)
         --duplicate-grid    Number of items with grid arrangement (default: 1,1)
-        --duplicate-distance Distance in mm between copies (default: 6)
+        --duplicate-distance Distance in mm between copies (default: 6)   
+   
+       Sequential printing options:
+        --complete-objects  When printing multiple objects and/or copies, complete each one before
+                            starting the next one; watch out for extruder collisions (default: no)
+        --extruder-clearance-radius Radius in mm above which extruder won't collide with anything
+                            (default: 20)
+        --extruder-clearance-height Maximum vertical extruder depth; i.e. vertical distance from 
+                            extruder tip and carriage bottom (default: 20)
         
        Miscellaneous options:
         --notes             Notes to be added as comments to the output file

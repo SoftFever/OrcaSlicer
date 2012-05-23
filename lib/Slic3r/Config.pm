@@ -262,11 +262,6 @@ our $Options = {
         values  => [0,1],
         labels  => [qw(Primary Secondary)],
     },
-    'complete_objects' => {
-        label   => 'Complete individual objects (watch out for extruder collisions if you enable this)',
-        cli     => 'complete-objects',
-        type    => 'bool',
-    },
     'start_gcode' => {
         label   => 'Start G-code',
         cli     => 'start-gcode=s',
@@ -441,6 +436,23 @@ our $Options = {
         cli     => 'duplicate-distance=f',
         type    => 'i',
         aliases => [qw(multiply_distance)],
+    },
+    
+    # sequential printing options
+    'complete_objects' => {
+        label   => 'Complete individual objects (watch out for extruder collisions)',
+        cli     => 'complete-objects',
+        type    => 'bool',
+    },
+    'extruder_clearance_radius' => {
+        label   => 'Extruder clearance radius (mm)',
+        cli     => 'extruder-clearance-radius=f',
+        type    => 'i',
+    },
+    'extruder_clearance_height' => {
+        label   => 'Extruder clearance height (mm)',
+        cli     => 'extruder-clearance-height=f',
+        type    => 'i',
     },
 };
 
@@ -671,7 +683,13 @@ sub validate {
     # --bridge-flow-ratio
     die "Invalid value for --bridge-flow-ratio\n"
         if $Slic3r::bridge_flow_ratio <= 0;
-
+    
+    # extruder clearance
+    die "Invalid value for --extruder-clearance-radius\n"
+        if $Slic3r::extruder_clearance_radius <= 0;
+    die "Invalid value for --extruder-clearance-height\n"
+        if $Slic3r::extruder_clearance_height <= 0;
+    
     $Slic3r::first_layer_temperature //= $Slic3r::temperature;          #/
     $Slic3r::first_layer_bed_temperature //= $Slic3r::bed_temperature;  #/
     

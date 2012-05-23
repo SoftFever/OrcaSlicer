@@ -61,8 +61,12 @@ sub new {
         },
         gcode => {
             title => 'G-code',
-            options => [qw(start_gcode end_gcode layer_gcode complete_objects gcode_comments post_process)],
+            options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
             label_width => 260,
+        },
+        sequential_printing => {
+            title => 'Sequential printing',
+            options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
         },
         extrusion => {
             title => 'Extrusion',
@@ -116,7 +120,7 @@ sub new {
         $make_tab->([qw(cooling)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion other)], [qw(output)]),
+        $make_tab->([qw(extrusion other sequential_printing)], [qw(output)]),
     );
     
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
@@ -215,6 +219,7 @@ sub do_slice {
         
         my $print = Slic3r::Print->new;
         $print->add_object_from_file($input_file);
+        $print->validate;
 
         # select output file
         my $output_file = $main::opt{output};

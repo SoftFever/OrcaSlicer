@@ -100,7 +100,7 @@ sub offset {
     $miterLimit ||= 2;
     
     my $offsets = Math::Clipper::offset([$self], $distance, $scale, $joinType, $miterLimit);
-    return @$offsets;
+    return map Slic3r::Polygon->new($_), @$offsets;
 }
 
 # this method subdivides the polygon segments to that no one of them

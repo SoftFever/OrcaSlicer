@@ -112,7 +112,6 @@ our $fill_angle         = 45;
 our $randomize_start    = 1;
 our $support_material   = 0;
 our $support_material_tool = 0;
-our $complete_objects   = 0;
 our $start_gcode = "G28 ; home all axes";
 our $end_gcode = <<"END";
 M104 S0 ; turn off temperature
@@ -152,6 +151,11 @@ our $duplicate          = 1;
 our $bed_size           = [200,200];
 our $duplicate_grid     = [1,1];
 our $duplicate_distance = 6;    # mm
+
+# sequential printing
+our $complete_objects           = 0;
+our $extruder_clearance_radius  = 20;     # mm
+our $extruder_clearance_height  = 20;     # mm
 
 sub parallelize {
     my %params = @_;
