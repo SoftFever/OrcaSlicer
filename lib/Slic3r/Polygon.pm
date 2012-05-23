@@ -9,26 +9,6 @@ use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
     scale polygon_remove_acute_vertices polygon_segment_having_point point_in_polygon);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
 
-# the constructor accepts an array(ref) of points
-sub new {
-    my $class = shift;
-    my $self;
-    if (@_ == 1) {
-        $self = [ @{$_[0]} ];
-    } else {
-        $self = [ @_ ];
-    }
-    
-    bless $self, $class;
-    bless $_, 'Slic3r::Point' for @$self;
-    $self;
-}
-
-sub clone {
-    my $self = shift;
-    return (ref $self)->new(map $_->clone, @$self);
-}
-
 sub lines {
     my $self = shift;
     my @lines = polygon_lines($self);
@@ -49,12 +29,6 @@ sub make_counter_clockwise {
 sub make_clockwise {
     my $self = shift;
     $self->reverse if $self->is_counter_clockwise;
-}
-
-sub cleanup {
-    my $self = shift;
-    $self->merge_continuous_lines;
-    return @$self >= 3;
 }
 
 sub merge_continuous_lines {

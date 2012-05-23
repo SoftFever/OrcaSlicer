@@ -22,6 +22,11 @@ sub new {
     $self;
 }
 
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(map $_->clone, @$self);
+}
+
 sub serialize {
     my $self = shift;
     my $s = \ pack 'l*', map @$_, @$self;
