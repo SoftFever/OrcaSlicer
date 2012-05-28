@@ -136,10 +136,15 @@ sub check_manifoldness {
 }
 
 sub make_loops {
-    my $self = shift;
     my ($layer) = @_;
     
-    my @lines = @{$layer->lines};
+    my @lines = map {
+        my @data = unpack 'ffLLLLLc', $_;
+        splice @data, 0, 2, [ @data[0,1] ];
+        $data[$_] ||= undef for I_A_ID, I_B_ID;
+        $data[I_FACET_EDGE] = undef if $data[I_FACET_EDGE] == -1;
+        [@data]
+    } @{$layer->lines};
     
     # remove tangent edges
     {
@@ -212,7 +217,7 @@ sub make_loops {
                 Slic3r::SVG::output(undef, "same_point.svg",
                     lines       => [ map $_->line, grep !defined $_->[I_FACET_EDGE], @lines ],
                     red_lines   => [ map $_->line, grep defined $_->[I_FACET_EDGE], @lines ],
-                    points      => [ $self->vertices->[$point_id] ],
+                    #points      => [ $self->vertices->[$point_id] ],
                     no_arrows => 0,
                 );
             }
@@ -417,8 +422,8 @@ sub intersect_facet {
                 ($a, $b) = ($b, $a);
                 ($a_id, $b_id) = ($b_id, $a_id);
             }
-            push @lines, [
-                [$b->[X], $b->[Y]],     # I_B
+            push @lines, pack 'ffLLLLLc', (
+                $b->[X], $b->[Y],       # I_B
                 $a_id,                  # I_A_ID
                 $b_id,                  # I_B_ID
                 $facet_id,              # I_FACET_INDEX
@@ -428,7 +433,7 @@ sub intersect_facet {
                 
                 # Unused data:
                 # a             => [$a->[X], $a->[Y]],
-            ];
+            );
             #print "Horizontal edge at $z!\n";
             
         } elsif ($a->[Z] == $z) {
@@ -477,20 +482,15 @@ sub intersect_facet {
         $next_facet_index = +(grep $_ != $facet_id, @{$self->edges_facets->[$points[A][3]]})[0]
             if defined $points[A][3];
         
-        return [
-            [$points[A][X], $points[A][Y]],     # I_B
-            $points[B][2],                      # I_A_ID
-            $points[A][2],                      # I_B_ID
-            $facet_id,                          # I_FACET_INDEX
-            $prev_facet_index,                  # I_PREV_FACET_INDEX
-            $next_facet_index,                  # I_NEXT_FACET_INDEX
-            undef,                              # I_FACET_EDGE
-            
-            # Unused data:
-            # a             => [$points[B][X], $points[B][Y]],
-            # prev_edge_id  => $points[B][3],
-            # next_edge_id  => $points[A][3],
-        ];
+        return pack 'ffLLLLLc', (
+            $points[A][X], $points[A][Y],   # I_B
+            $points[B][2] || 0,             # I_A_ID
+            $points[A][2] || 0,             # I_B_ID
+            $facet_id,                      # I_FACET_INDEX
+            $prev_facet_index,              # I_PREV_FACET_INDEX
+            $next_facet_index,              # I_NEXT_FACET_INDEX
+            -1,                             # I_FACET_EDGE
+        );
         #printf "  intersection points at z = %f: %f,%f - %f,%f\n", $z, map @$_, @intersection_points;
     }
     

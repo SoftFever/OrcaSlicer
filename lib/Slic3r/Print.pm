@@ -207,10 +207,7 @@ sub export_gcode {
     # each layer has surfaces with holes
     $status_cb->(5, "Processing input file");    
     $status_cb->(10, "Processing triangulated mesh");
-    $_->slice for @{$self->objects};
-    unless ($params{keep_meshes}) {
-        $_->mesh(undef) for @{$self->objects};  # free memory
-    }
+    $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
     
     # make perimeters
     # this will add a set of extrusion loops to each layer

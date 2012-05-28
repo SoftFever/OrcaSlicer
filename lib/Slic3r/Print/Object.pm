@@ -40,6 +40,7 @@ sub layer {
 
 sub slice {
     my $self = shift;
+    my %params = @_;
     
     # process facets
     {
@@ -78,6 +79,9 @@ sub slice {
     }
     die "Invalid input file\n" if !@{$self->layers};
     
+    # free memory
+    $self->mesh(undef) unless $params{keep_meshes};
+    
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code below)
     pop @{$self->layers} if !@{$self->layers->[-1]->surfaces} && !@{$self->layers->[-1]->lines};
@@ -94,7 +98,7 @@ sub slice {
         # inside a closed polyline)
         
         # build surfaces from sparse lines
-        $layer->make_surfaces($self->mesh->make_loops($layer));
+        $layer->make_surfaces(Slic3r::TriangleMesh::make_loops($layer));
         
         # free memory
         $layer->lines(undef);
