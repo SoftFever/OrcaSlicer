@@ -15,6 +15,7 @@ has 'edges_facets'  => (is => 'ro', default => sub { [] }); # id => [ $f1_id, $f
 use constant MIN => 0;
 use constant MAX => 1;
 
+use constant I_FMT              => 'ffLLLLLc';
 use constant I_B                => 0;
 use constant I_A_ID             => 1;
 use constant I_B_ID             => 2;
@@ -139,7 +140,7 @@ sub make_loops {
     my ($layer) = @_;
     
     my @lines = map {
-        my @data = unpack 'ffLLLLLc', $_;
+        my @data = unpack I_FMT, $_;
         splice @data, 0, 2, [ @data[0,1] ];
         $data[$_] ||= undef for I_A_ID, I_B_ID;
         $data[I_FACET_EDGE] = undef if $data[I_FACET_EDGE] == -1;
@@ -422,7 +423,7 @@ sub intersect_facet {
                 ($a, $b) = ($b, $a);
                 ($a_id, $b_id) = ($b_id, $a_id);
             }
-            push @lines, pack 'ffLLLLLc', (
+            push @lines, pack I_FMT, (
                 $b->[X], $b->[Y],       # I_B
                 $a_id,                  # I_A_ID
                 $b_id,                  # I_B_ID
@@ -482,7 +483,7 @@ sub intersect_facet {
         $next_facet_index = +(grep $_ != $facet_id, @{$self->edges_facets->[$points[A][3]]})[0]
             if defined $points[A][3];
         
-        return pack 'ffLLLLLc', (
+        return pack I_FMT, (
             $points[A][X], $points[A][Y],   # I_B
             $points[B][2] || 0,             # I_A_ID
             $points[A][2] || 0,             # I_B_ID
