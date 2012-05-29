@@ -21,6 +21,9 @@ BEGIN {
     $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
 }
 
+use FindBin;
+our $var = "$FindBin::Bin/var";
+
 use Moo;
 use Slic3r::Config;
 use Slic3r::ExPolygon;
@@ -43,6 +46,7 @@ use Slic3r::Print;
 use Slic3r::Print::Object;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
+eval "use Slic3r::Build";
 
 our $threads            = $have_threads ? 2 : 1;
 

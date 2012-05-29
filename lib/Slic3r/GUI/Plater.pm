@@ -57,16 +57,16 @@ sub new {
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], &Wx::wxTB_HORIZONTAL | &Wx::wxTB_HORZ_TEXT);
-        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$FindBin::Bin/var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$FindBin::Bin/var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate...", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$FindBin::Bin/var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$FindBin::Bin/var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
             rotate => "Rotate…", changescale => "Scale…", split => "Split");
@@ -104,7 +104,7 @@ sub new {
             split           shape_ungroup.png
         );
         for (grep $self->{"btn_$_"}, keys %icons) {
-            $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$FindBin::Bin/var/$icons{$_}", &Wx::wxBITMAP_TYPE_PNG));
+            $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icons{$_}", &Wx::wxBITMAP_TYPE_PNG));
         }
     }
     $self->selection_changed(0);
