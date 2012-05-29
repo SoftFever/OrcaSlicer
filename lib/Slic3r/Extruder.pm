@@ -395,8 +395,8 @@ sub set_bed_temperature {
     my ($temperature, $wait) = @_;
     
     my ($code, $comment) = $wait
-        ? (($Slic3r::gcode_flavor eq 'makerbot' ? '109' : '190'), 'wait for bed temperature to be reached')
-        : ('M40', 'set bed temperature');
+        ? (($Slic3r::gcode_flavor eq 'makerbot' ? 'M109' : 'M190'), 'wait for bed temperature to be reached')
+        : ('M140', 'set bed temperature');
     return sprintf "$code %s%d ; $comment\n",
         ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
 }
