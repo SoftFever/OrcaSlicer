@@ -116,7 +116,7 @@ sub add_facet {
 
 sub intersect {
     add_facet(@_);
-    return $mesh->intersect_facet($#{$mesh->facets}, $z);
+    return map Slic3r::TriangleMesh::unpack_line($_), $mesh->intersect_facet($#{$mesh->facets}, $z);
 }
 
 sub lines {

@@ -136,16 +136,20 @@ sub check_manifoldness {
     }
 }
 
+sub unpack_line {
+    my ($packed) = @_;
+    
+    my @data = unpack I_FMT, $packed;
+    splice @data, 0, 2, [ @data[0,1] ];
+    $data[$_] ||= undef for I_A_ID, I_B_ID, I_PREV_FACET_INDEX, I_NEXT_FACET_INDEX;
+    $data[I_FACET_EDGE] = undef if $data[I_FACET_EDGE] == -1;
+    return [@data];
+}
+
 sub make_loops {
     my ($layer) = @_;
     
-    my @lines = map {
-        my @data = unpack I_FMT, $_;
-        splice @data, 0, 2, [ @data[0,1] ];
-        $data[$_] ||= undef for I_A_ID, I_B_ID;
-        $data[I_FACET_EDGE] = undef if $data[I_FACET_EDGE] == -1;
-        [@data]
-    } @{$layer->lines};
+    my @lines = map unpack_line($_), @{$layer->lines};
     
     # remove tangent edges
     {
@@ -428,8 +432,8 @@ sub intersect_facet {
                 $a_id,                  # I_A_ID
                 $b_id,                  # I_B_ID
                 $facet_id,              # I_FACET_INDEX
-                undef,                  # I_PREV_FACET_INDEX
-                undef,                  # I_NEXT_FACET_INDEX
+                0,                      # I_PREV_FACET_INDEX
+                0,                      # I_NEXT_FACET_INDEX
                 $edge_type,             # I_FACET_EDGE
                 
                 # Unused data:
@@ -488,8 +492,8 @@ sub intersect_facet {
             $points[B][2] || 0,             # I_A_ID
             $points[A][2] || 0,             # I_B_ID
             $facet_id,                      # I_FACET_INDEX
-            $prev_facet_index,              # I_PREV_FACET_INDEX
-            $next_facet_index,              # I_NEXT_FACET_INDEX
+            $prev_facet_index || 0,         # I_PREV_FACET_INDEX
+            $next_facet_index || 0,         # I_NEXT_FACET_INDEX
             -1,                             # I_FACET_EDGE
         );
         #printf "  intersection points at z = %f: %f,%f - %f,%f\n", $z, map @$_, @intersection_points;
