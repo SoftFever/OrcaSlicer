@@ -164,8 +164,14 @@ sub arrange_objects {
         $partx = $object->x_length if $object->x_length > $partx;
         $party = $object->y_length if $object->y_length > $party;
     }
+    
+    # object distance is max(duplicate_distance, clearance_radius)
+    my $distance = $Slic3r::complete_objects && $Slic3r::extruder_clearance_radius > $Slic3r::duplicate_distance
+        ? $Slic3r::extruder_clearance_radius
+        : $Slic3r::duplicate_distance;
+    
     my @positions = Slic3r::Geometry::arrange
-        ($total_parts, $partx, $party, (map scale $_, @$Slic3r::bed_size), scale $Slic3r::duplicate_distance);
+        ($total_parts, $partx, $party, (map scale $_, @$Slic3r::bed_size), scale $distance);
     
     for my $obj_idx (0..$#{$self->objects}) {
         @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};
