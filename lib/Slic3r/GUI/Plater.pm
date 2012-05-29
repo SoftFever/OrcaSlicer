@@ -505,9 +505,9 @@ sub export_gcode2 {
             } else {
                 $print->export_gcode(%params);
             }
-            Slic3r::GUI::warning_catcher($self, sub {
+            Slic3r::GUI::warning_catcher($self, $Slic3r::have_threads ? sub {
                 Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
-            })->($_) for @warnings;
+            } : undef)->($_) for @warnings;
         }
         
         my $message = "Your files were successfully sliced";
