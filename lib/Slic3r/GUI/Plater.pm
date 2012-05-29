@@ -577,7 +577,7 @@ sub export_stl {
             $cloned_mesh->move(@$copy);
             my $vertices_offset = scalar @{$mesh->vertices};
             push @{$mesh->vertices}, @{$cloned_mesh->vertices};
-            push @{$mesh->facets}, map [ $_->[0], map $vertices_offset + $_, @$_[1,2,3] ], @{$cloned_mesh->facets};
+            push @{$mesh->facets}, map [ $_->[0], map $vertices_offset + $_, @$_[-3..-1] ], @{$cloned_mesh->facets};
         }
     }
     $mesh->scale($Slic3r::scaling_factor);
