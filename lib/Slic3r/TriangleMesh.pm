@@ -15,7 +15,7 @@ has 'edges_facets'  => (is => 'ro', default => sub { [] }); # id => [ $f1_id, $f
 use constant MIN => 0;
 use constant MAX => 1;
 
-use constant I_FMT              => 'ffLLLLLc';
+use constant I_FMT              => 'ffLLLllc';
 use constant I_B                => 0;
 use constant I_A_ID             => 1;
 use constant I_B_ID             => 2;
@@ -141,8 +141,8 @@ sub unpack_line {
     
     my @data = unpack I_FMT, $packed;
     splice @data, 0, 2, [ @data[0,1] ];
-    $data[$_] ||= undef for I_A_ID, I_B_ID, I_PREV_FACET_INDEX, I_NEXT_FACET_INDEX;
-    $data[I_FACET_EDGE] = undef if $data[I_FACET_EDGE] == -1;
+    $data[$_] ||= undef for I_A_ID, I_B_ID;
+    $data[$_] = undef for grep $data[$_] == -1, I_FACET_EDGE, I_PREV_FACET_INDEX, I_NEXT_FACET_INDEX;
     return [@data];
 }
 
@@ -432,8 +432,8 @@ sub intersect_facet {
                 $a_id,                  # I_A_ID
                 $b_id,                  # I_B_ID
                 $facet_id,              # I_FACET_INDEX
-                0,                      # I_PREV_FACET_INDEX
-                0,                      # I_NEXT_FACET_INDEX
+                -1,                     # I_PREV_FACET_INDEX
+                -1,                     # I_NEXT_FACET_INDEX
                 $edge_type,             # I_FACET_EDGE
                 
                 # Unused data:
@@ -492,8 +492,8 @@ sub intersect_facet {
             $points[B][2] || 0,             # I_A_ID
             $points[A][2] || 0,             # I_B_ID
             $facet_id,                      # I_FACET_INDEX
-            $prev_facet_index || 0,         # I_PREV_FACET_INDEX
-            $next_facet_index || 0,         # I_NEXT_FACET_INDEX
+            $prev_facet_index // -1,        # I_PREV_FACET_INDEX  /
+            $next_facet_index // -1,        # I_NEXT_FACET_INDEX  /
             -1,                             # I_FACET_EDGE
         );
         #printf "  intersection points at z = %f: %f,%f - %f,%f\n", $z, map @$_, @intersection_points;
