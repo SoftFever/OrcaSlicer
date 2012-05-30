@@ -294,7 +294,7 @@ sub save_config {
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
-        $ini_wildcard, wxFD_SAVE);
+        $ini_wildcard, wxFD_SAVE | &Wx::wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $last_config_dir = dirname($file);

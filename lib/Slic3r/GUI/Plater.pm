@@ -561,7 +561,7 @@ sub export_stl {
         $output_file = $print->expanded_output_filepath($output_file);
         $output_file =~ s/\.gcode$/.stl/i;
         my $dlg = Wx::FileDialog->new($self, 'Save STL file as:', dirname($output_file),
-            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE);
+            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | &Wx::wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
