@@ -332,10 +332,7 @@ sub export_svg {
     my $self = shift;
     my %params = @_;
     
-    $_->slice for @{$self->objects};
-    unless ($params{keep_meshes}) {
-        $_->mesh(undef) for @{$self->objects};  # free memory
-    }
+    $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
     $self->arrange_objects;
     
     my $output_file = $self->expanded_output_filepath($params{output_file});
