@@ -206,14 +206,14 @@ sub load {
     my $self = shift;
     
     my $dir = $Slic3r::GUI::SkeinPanel::last_skein_dir || $Slic3r::GUI::SkeinPanel::last_config_dir || "";
-    my $dialog = Wx::FileDialog->new($self, 'Choose a file (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN);
+    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN | &Wx::wxFD_MULTIPLE | &Wx::wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;
     }
-    my $input_file = $dialog->GetPaths;
+    my @input_files = $dialog->GetPaths;
     $dialog->Destroy;
-    return $self->load_file($input_file);
+    $self->load_file($_) for @input_files;
 }
 
 sub load_file {

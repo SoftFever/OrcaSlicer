@@ -194,7 +194,7 @@ sub do_slice {
 
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN);
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN | &Wx::wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
                 $dialog->Destroy;
                 return;
@@ -310,7 +310,7 @@ sub load_config {
     
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-        $ini_wildcard, wxFD_OPEN);
+        $ini_wildcard, wxFD_OPEN | &Wx::wxFD_FILE_MUST_EXIST);
     if ($dlg->ShowModal == wxID_OK) {
         my ($file) = $dlg->GetPaths;
         $last_config_dir = dirname($file);
