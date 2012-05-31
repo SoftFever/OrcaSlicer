@@ -482,7 +482,7 @@ sub write_gcode {
     );
     
     # prepare the logic to print one layer
-    my $skirt_done = 0;
+    my $skirt_done = 0;  # count of skirt layers done
     my $extrude_layer = sub {
         my ($layer_id, $object_copies) = @_;
         my $gcode = "";
@@ -499,14 +499,14 @@ sub write_gcode {
         $extruder->elapsed_time(0);
         
         # extrude skirt
-        if (!$skirt_done) {
+        if ($skirt_done < $Slic3r::skirt_height) {
             $extruder->shift_x($shift[X]);
             $extruder->shift_y($shift[Y]);
             $gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
             if ($layer_id < $Slic3r::skirt_height) {
                 $gcode .= $extruder->extrude_loop($_, 'skirt') for @{$self->skirt};
             }
-            $skirt_done = 1;
+            $skirt_done++;
         }
         
         for my $obj_copy (@$object_copies) {
