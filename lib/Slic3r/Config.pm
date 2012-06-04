@@ -211,7 +211,7 @@ our $Options = {
     
     # print options
     'perimeters' => {
-        label   => 'Perimeters',
+        label   => 'Perimeters (minimum)',
         cli     => 'perimeters=i',
         type    => 'i',
         aliases => [qw(perimeter_offsets)],
