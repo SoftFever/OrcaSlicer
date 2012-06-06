@@ -403,7 +403,10 @@ sub split_object {
     $mesh->scale($Slic3r::scaling_factor);
     
     my @new_meshes = $mesh->split_mesh;
-    return if @new_meshes == 1;
+    if (@new_meshes == 1) {
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it contained already a single part.");
+        return;
+    }
     foreach my $mesh (@new_meshes) {
         my $object = $self->{print}->add_object_from_mesh($mesh);
         $object->input_file($current_object->input_file);
