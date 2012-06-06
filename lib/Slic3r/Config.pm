@@ -135,9 +135,10 @@ our $Options = {
         aliases => [qw(perimeter_feed_rate)],
     },
     'small_perimeter_speed' => {
-        label   => 'Small perimeters (mm/s)',
+        label   => 'Small perimeters (mm/s or %)',
         cli     => 'small-perimeter-speed=f',
         type    => 'f',
+        ratio_over => 'perimeter_speed',
     },
     'infill_speed' => {
         label   => 'Infill (mm/s)',
@@ -146,10 +147,17 @@ our $Options = {
         aliases => [qw(print_feed_rate infill_feed_rate)],
     },
     'solid_infill_speed' => {
-        label   => 'Solid infill (mm/s)',
+        label   => 'Solid infill (mm/s or %)',
         cli     => 'solid-infill-speed=f',
         type    => 'f',
+        ratio_over => 'infill_speed',
         aliases => [qw(solid_infill_feed_rate)],
+    },
+    'top_solid_infill_speed' => {
+        label   => 'Solid infill (mm/s or %)',
+        cli     => 'solid-infill-speed=f',
+        type    => 'f',
+        ratio_over => 'solid_infill_speed',
     },
     'bridge_speed' => {
         label   => 'Bridges (mm/s)',
@@ -190,6 +198,7 @@ our $Options = {
         label   => 'First layer height (mm or %)',
         cli     => 'first-layer-height=s',
         type    => 'f',
+        ratio_over => 'layer_height',
     },
     'infill_every_layers' => {
         label   => 'Infill every N layers',
@@ -475,7 +484,10 @@ sub get {
     my $class = @_ == 2 ? shift : undef;
     my ($opt_key) = @_;
     no strict 'refs';
-    return ${"Slic3r::$opt_key"};
+    my $value = ${"Slic3r::$opt_key"};
+    $value = get($Options->{$opt_key}{ratio_over}) * $1/100
+        if $Options->{$opt_key}{ratio_over} && $value =~ /^(\d+(?:\.\d+)?)%$/;
+    return $value;
 }
 
 sub set {
@@ -589,9 +601,7 @@ sub validate {
     # --first-layer-height
     die "Invalid value for --first-layer-height\n"
         if $Slic3r::first_layer_height !~ /^(?:\d+(?:\.\d+)?)%?$/;
-    $Slic3r::_first_layer_height = $Slic3r::first_layer_height =~ /^(\d+(?:\.\d+)?)%$/
-        ? ($Slic3r::layer_height * $1/100)
-        : $Slic3r::first_layer_height;
+    $Slic3r::_first_layer_height = Slic3r::Config->get('first_layer_height');
     
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"
@@ -699,6 +709,7 @@ sub validate {
     $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
     $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
     $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
+    $Slic3r::top_solid_infill_speed ||= $Slic3r::solid_infill_speed;
 }
 
 sub replace_options {

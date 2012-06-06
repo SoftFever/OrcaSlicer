@@ -24,13 +24,14 @@ has 'dec'                => (is => 'ro', default => sub { 3 } );
 has 'speeds' => (
     is      => 'ro',
     default => sub {{
-        travel          => 60 * $Slic3r::travel_speed,
-        perimeter       => 60 * $Slic3r::perimeter_speed,
-        small_perimeter => 60 * $Slic3r::small_perimeter_speed,
-        infill          => 60 * $Slic3r::infill_speed,
-        solid_infill    => 60 * $Slic3r::solid_infill_speed,
-        bridge          => 60 * $Slic3r::bridge_speed,
-        retract         => 60 * $Slic3r::retract_speed,
+        travel              => 60 * Slic3r::Config->get('travel_speed'),
+        perimeter           => 60 * Slic3r::Config->get('perimeter_speed'),
+        small_perimeter     => 60 * Slic3r::Config->get('small_perimeter_speed'),
+        infill              => 60 * Slic3r::Config->get('infill_speed'),
+        solid_infill        => 60 * Slic3r::Config->get('solid_infill_speed'),
+        top_solid_infill    => 60 * Slic3r::Config->get('top_solid_infill_speed'),
+        bridge              => 60 * Slic3r::Config->get('bridge_speed'),
+        retract             => 60 * Slic3r::Config->get('retract_speed'),
     }},
 );
 
@@ -40,6 +41,7 @@ my %role_speeds = (
     &EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 'perimeter',
     &EXTR_ROLE_FILL                         => 'infill',
     &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
+    &EXTR_ROLE_TOPSOLIDFILL                 => 'top_solid_infill',
     &EXTR_ROLE_BRIDGE                       => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
@@ -183,7 +185,7 @@ sub extrude_path {
     if ($Slic3r::cooling) {
         my $path_time = unscale($path_length) / $self->speeds->{$self->last_speed} * 60;
         if ($self->layer->id == 0) {
-            $path_time = $Slic3r::first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
+            $path_time = $Slic3r:: =~ /^(\d+(?:\.\d+)?)%$/
                 ? $path_time / ($1/100)
                 : unscale($path_length) / $Slic3r::first_layer_speed * 60;
         }

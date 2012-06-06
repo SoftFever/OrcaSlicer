@@ -171,9 +171,13 @@ $j
     --travel-speed      Speed of non-print moves in mm/s (default: $Slic3r::travel_speed)
     --perimeter-speed   Speed of print moves for perimeters in mm/s (default: $Slic3r::perimeter_speed)
     --small-perimeter-speed
-                        Speed of print moves for small perimeters in mm/s (default: $Slic3r::small_perimeter_speed)
+                        Speed of print moves for small perimeters in mm/s or % over perimeter speed
+                        (default: $Slic3r::small_perimeter_speed)
     --infill-speed      Speed of print moves in mm/s (default: $Slic3r::infill_speed)
-    --solid-infill-speed Speed of print moves for solid surfaces in mm/s (default: $Slic3r::solid_infill_speed)
+    --solid-infill-speed Speed of print moves for solid surfaces in mm/s or % over infill speed
+                        (default: $Slic3r::solid_infill_speed)
+    --top-solid-infill-speed Speed of print moves for top surfaces in mm/s or % over solid infill speed
+                        (default: $Slic3r::top_solid_infill_speed)
     --bridge-speed      Speed of bridge print moves in mm/s (default: $Slic3r::bridge_speed)
     --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                         value or as a percentage over normal speeds (default: $Slic3r::first_layer_speed)

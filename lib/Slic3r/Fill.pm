@@ -167,9 +167,11 @@ sub make_fill {
             paths => [
                 map Slic3r::ExtrusionPath->new(
                     polyline => Slic3r::Polyline->new(@$_),
-                    role => ($is_bridge ? EXTR_ROLE_BRIDGE
-                        : $is_solid ? EXTR_ROLE_SOLIDFILL
-                        : EXTR_ROLE_FILL),
+                    role => ($is_bridge
+                        ? EXTR_ROLE_BRIDGE
+                        : $is_solid
+                            ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
+                            : EXTR_ROLE_FILL),
                     depth_layers => $surface->depth_layers,
                     flow_spacing => $params->{flow_spacing},
                 ), @paths,

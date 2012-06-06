@@ -127,9 +127,13 @@ The author is Alessandro Ranellucci.
         --travel-speed      Speed of non-print moves in mm/s (default: 130)
         --perimeter-speed   Speed of print moves for perimeters in mm/s (default: 30)
         --small-perimeter-speed
-                            Speed of print moves for small perimeters in mm/s (default: 30)
+                            Speed of print moves for small perimeters in mm/s or % over perimeter speed
+                            (default: 30)
         --infill-speed      Speed of print moves in mm/s (default: 60)
-        --solid-infill-speed Speed of print moves for solid surfaces in mm/s (default: 60)
+        --solid-infill-speed Speed of print moves for solid surfaces in mm/s or % over infill speed
+                            (default: 60)
+        --top-solid-infill-speed Speed of print moves for top surfaces in mm/s or % over solid infill speed
+                            (default: 50)
         --bridge-speed      Speed of bridge print moves in mm/s (default: 60)
         --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                             value or as a percentage over normal speeds (default: 30%)
