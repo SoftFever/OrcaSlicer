@@ -58,7 +58,7 @@ sub change_layer {
     
     $gcode .= $self->retract(move_z => $z);
     $gcode .= $self->G0(undef, $z, 0, 'move to next layer (' . $layer->id . ')')
-        if $self->z != $z;
+        if $self->z != $z && !$self->lifted;
     
     $gcode .= Slic3r::Config->replace_options($Slic3r::layer_gcode) . "\n"
         if $Slic3r::layer_gcode;
@@ -222,6 +222,10 @@ sub retract {
         # combine Z change and retraction
         my $travel = [undef, $params{move_z}, $retract->[2], 'change layer and retract'];
         $gcode .= $self->G0(@$travel);
+    } elsif (defined $params{move_z} && $Slic3r::retract_lift) {
+        my $travel = [undef, $params{move_z} + $Slic3r::retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
+        $gcode .= $self->G0(@$travel);
+        $self->lifted(1);
     } else {
         $gcode .= $self->G1(@$retract);
         if ($lift) {
