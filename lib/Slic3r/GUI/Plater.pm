@@ -637,7 +637,7 @@ sub update_bed_size {
     # to constrain print bed area inside preview
     my $canvas_side = $self->{canvas}->GetSize->GetWidth;
     my $bed_largest_side = $Slic3r::bed_size->[X] > $Slic3r::bed_size->[Y]
-        ? $Slic3r::bed_size->[Y] : $Slic3r::bed_size->[X];
+        ? $Slic3r::bed_size->[X] : $Slic3r::bed_size->[Y];
     my $old_scaling_factor = $self->{scaling_factor};
     $self->{scaling_factor} = $canvas_side / $bed_largest_side;
     if (defined $old_scaling_factor && $self->{scaling_factor} != $old_scaling_factor) {
