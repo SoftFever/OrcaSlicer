@@ -157,9 +157,9 @@ our $Options = {
         type    => 'f',
         aliases => [qw(bridge_feed_rate)],
     },
-    'bottom_layer_speed' => {
-        label   => 'Bottom layer speed (mm/s or %)',
-        cli     => 'bottom-layer-speed=f',
+    'first_layer_speed' => {
+        label   => 'First layer speed (mm/s or %)',
+        cli     => 'first-layer-speed=f',
         type    => 'f',
     },
     
@@ -522,6 +522,7 @@ sub load {
         next if $ignore{$key};
         if ($key =~ /^(?:extrusion_width|bottom_layer_speed)_ratio$/) {
             $key = $1;
+            $key =~ s/^bottom_layer_speed$/first_layer_speed/;
             $val = $val =~ /^\d+(\.\d+)?$/ ? ($val*100) . "%" : 0;
         }
         

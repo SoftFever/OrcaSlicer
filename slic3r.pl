@@ -175,8 +175,8 @@ $j
     --infill-speed      Speed of print moves in mm/s (default: $Slic3r::infill_speed)
     --solid-infill-speed Speed of print moves for solid surfaces in mm/s (default: $Slic3r::solid_infill_speed)
     --bridge-speed      Speed of bridge print moves in mm/s (default: $Slic3r::bridge_speed)
-    --bottom-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
-                        value or as a percentage over normal speeds (default: $Slic3r::bottom_layer_speed)
+    --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
+                        value or as a percentage over normal speeds (default: $Slic3r::first_layer_speed)
     
   Accuracy options:
     --layer-height      Layer height in mm (default: $Slic3r::layer_height)
