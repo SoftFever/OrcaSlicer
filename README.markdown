@@ -131,9 +131,8 @@ The author is Alessandro Ranellucci.
         --infill-speed      Speed of print moves in mm/s (default: 60)
         --solid-infill-speed Speed of print moves for solid surfaces in mm/s (default: 60)
         --bridge-speed      Speed of bridge print moves in mm/s (default: 60)
-        --bottom-layer-speed-ratio
-                            Factor to increase/decrease speeds on bottom 
-                            layer by (default: 0.3)
+        --bottom-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
+                            value or as a percentage over normal speeds (default: 30%)
         
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.4)

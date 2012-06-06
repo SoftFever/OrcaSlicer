@@ -36,7 +36,7 @@ sub new {
         },
         speed => {
             title => 'Other speed settings',
-            options => [qw(travel_speed bottom_layer_speed_ratio)],
+            options => [qw(travel_speed bottom_layer_speed)],
         },
         accuracy => {
             title => 'Accuracy',

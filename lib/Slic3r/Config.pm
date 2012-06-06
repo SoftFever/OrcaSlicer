@@ -157,9 +157,9 @@ our $Options = {
         type    => 'f',
         aliases => [qw(bridge_feed_rate)],
     },
-    'bottom_layer_speed_ratio' => {
-        label   => 'Bottom layer speed ratio',
-        cli     => 'bottom-layer-speed-ratio=f',
+    'bottom_layer_speed' => {
+        label   => 'Bottom layer speed (mm/s or %)',
+        cli     => 'bottom-layer-speed=f',
         type    => 'f',
     },
     

@@ -83,7 +83,7 @@ our $small_perimeter_speed  = 30;   # mm/s
 our $infill_speed           = 60;   # mm/s
 our $solid_infill_speed     = 60;   # mm/s
 our $bridge_speed           = 60;   # mm/s
-our $bottom_layer_speed_ratio   = 0.3;
+our $bottom_layer_speed     = '30%'; # mm/s or %  
 
 # acceleration options
 our $acceleration           = 0;
