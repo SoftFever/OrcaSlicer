@@ -535,7 +535,7 @@ sub load {
         
         # handle legacy options
         next if $ignore{$key};
-        if ($key =~ /^(?:extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
+        if ($key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
             $key = $1;
             $key =~ s/^bottom_layer_speed$/first_layer_speed/;
             $val = $val =~ /^\d+(\.\d+)?$/ ? ($val*100) . "%" : 0;
