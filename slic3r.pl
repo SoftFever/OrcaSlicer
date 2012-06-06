@@ -255,9 +255,8 @@ $j
     --notes             Notes to be added as comments to the output file
   
    Flow options (advanced):
-    --extrusion-width-ratio
-                        Calculate the extrusion width as the layer height multiplied by
-                        this value (> 0, default: calculated automatically)
+    --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm
+                        (like 0.65) or a percentage over layer height (like 200%)
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
     
 EOF

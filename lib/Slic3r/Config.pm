@@ -198,9 +198,9 @@ our $Options = {
     },
     
     # flow options
-    'extrusion_width_ratio' => {
-        label   => 'Extrusion width (ratio over layer height; leave zero to calculate automatically)',
-        cli     => 'extrusion-width-ratio=f',
+    'extrusion_width' => {
+        label   => 'Extrusion width (mm or %; leave zero to calculate automatically)',
+        cli     => 'extrusion-width=f',
         type    => 'f',
     },
     'bridge_flow_ratio' => {
@@ -516,15 +516,22 @@ sub load {
         next if /^$/;
         next if /^\s*#/;
         /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
-        my $key = $1;
+        my ($key, $val) = ($1, $2);
+        
+        # handle legacy options
         next if $ignore{$key};
+        if ($key eq 'extrusion_width_ratio') {
+            $key = 'extrusion_width';
+            $val = $val =~ /^\d+(\.\d+)?$/ ? ($val*100) . "%" : 0;
+        }
+        
         if (!exists $Options->{$key}) {
             $key = +(grep { $Options->{$_}{aliases} && grep $_ eq $key, @{$Options->{$_}{aliases}} }
-                keys %$Options)[0] or warn "Unknown option $1 at line $.\n";
+                keys %$Options)[0] or warn "Unknown option $key at line $.\n";
         }
         next unless $key;
         my $opt = $Options->{$key};
-        set($key, $opt->{deserialize} ? $opt->{deserialize}->($2) : $2);
+        set($key, $opt->{deserialize} ? $opt->{deserialize}->($val) : $val);
     }
     close $fh;
 }
@@ -581,8 +588,10 @@ sub validate {
     die "First layer height can't be zero or negative\n"
         if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) <= 0;
     
-    if ($Slic3r::extrusion_width_ratio) {
-        $Slic3r::flow_width = $Slic3r::layer_height * $Slic3r::extrusion_width_ratio;
+    if ($Slic3r::extrusion_width) {
+        $Slic3r::flow_width = $Slic3r::extrusion_width =~ /^(\d+(?:\.\d+)?)%$/
+            ? ($Slic3r::layer_height * $1 / 100)
+            : $Slic3r::extrusion_width;
     } else {
         # here we calculate a sane default by matching the flow speed (at the nozzle)
         # and the feed rate
