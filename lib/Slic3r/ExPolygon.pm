@@ -215,54 +215,73 @@ sub medial_axis {
     }
     return undef if !@skeleton_lines;
     
-    # now build a single polyline
-    my $polyline = [];
+    # now walk along the medial axis and build continuos polylines or polygons
+    my @polylines = ();
     {
-        my %pointmap = ();
-        foreach my $line (@skeleton_lines) {
-            foreach my $point_id (@$line) {
-                $pointmap{$point_id} ||= [];
-                push @{$pointmap{$point_id}}, $line;
+        # build a map of line endpoints
+        my %pointmap = ();  # point_idx => [line_idx, line_idx ...]
+        for my $line_idx (0 .. $#skeleton_lines) {
+            for my $point_idx (@{$skeleton_lines[$line_idx]}) {
+                $pointmap{$point_idx} ||= [];
+                push @{$pointmap{$point_idx}}, $line_idx;
             }
         }
         
-        # start from a point having only one line
-        foreach my $point_id (keys %pointmap) {
-            if (@{$pointmap{$point_id}} == 1) {
-                push @$polyline, grep $_ ne $point_id, map @$_, shift @{$pointmap{$point_id}};
-                last;
-            }
-        }
+        # build the list of available lines
+        my %spare_lines = map {$_ => 1} (0 .. $#skeleton_lines);
         
-        # if no such point is found, pick a random one
-        push @$polyline, shift @{ +(values %pointmap)[0][0] } if !@$polyline;
-        
-        my %visited_lines = ();
-        while (1) {
-            my $last_point_id = $polyline->[-1];
+        CYCLE: while (%spare_lines) {
+            push @polylines, [];
+            my $polyline = $polylines[-1];
             
-            shift @{ $pointmap{$last_point_id} }
-                while @{ $pointmap{$last_point_id} } && $visited_lines{$pointmap{$last_point_id}[0]};
-            my $next_line = shift @{ $pointmap{$last_point_id} } or last;
-            $visited_lines{$next_line} = 1;
-            push @$polyline, grep $_ ne $last_point_id, @$next_line;
+            # start from a random line
+            my $first_line_idx = +(keys %spare_lines)[0];
+            delete $spare_lines{$first_line_idx};
+            push @$polyline, @{ $skeleton_lines[$first_line_idx] };
+            
+            while (1) {
+                my $last_point_id = $polyline->[-1];
+                my $lines_starting_here = $pointmap{$last_point_id};
+                
+                # remove all the visited lines from the array
+                shift @$lines_starting_here
+                    while @$lines_starting_here && !$spare_lines{$lines_starting_here->[0]};
+                
+                # do we have a line starting here?
+                my $next_line_idx = shift @$lines_starting_here;
+                if (!defined $next_line_idx) {
+                    delete $pointmap{$last_point_id};
+                    next CYCLE;
+                }
+                
+                # line is not available anymore
+                delete $spare_lines{$next_line_idx};
+                
+                # add the other point to our polyline and continue walking
+                push @$polyline, grep $_ ne $last_point_id, @{$skeleton_lines[$next_line_idx]};
+            }
         }
     }
     
-    # now replace point indexes with coordinates
-    @$polyline = map $vertices->[$_], @$polyline;
-    
-    # cleanup
-    Slic3r::Geometry::polyline_remove_short_segments($polyline, $width / 2);
-    $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
-    Slic3r::Geometry::polyline_remove_parallel_continuous_edges($polyline);
-    
-    if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
-        return undef if @$polyline == 2;
-        return Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
-    } else {
-        return Slic3r::Polyline->new($polyline);
+    my @result = ();
+    foreach my $polyline (@polylines) {
+        next unless @$polyline >= 2;
+        
+        # now replace point indexes with coordinates
+        @$polyline = map $vertices->[$_], @$polyline;
+        
+        # cleanup
+        $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
+        
+        if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
+            next if @$polyline == 2;
+            push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
+        } else {
+            push @result, Slic3r::Polyline->new($polyline);
+        }
     }
+    
+    return @result;
 }
 
 1;

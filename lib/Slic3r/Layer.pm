@@ -174,7 +174,6 @@ sub make_surfaces {
             @$diff = grep $_->area > ($area_threshold), @$diff;
             
             push @{$self->thin_walls},
-                grep $_,
                 map $_->medial_axis(scale $self->perimeters_flow->width),
                 @$diff;
             
@@ -260,7 +259,6 @@ sub make_perimeters {
                 [ map @$_, map $_->offset_ex(+$distance/2), @fill_boundaries ],
             );
             push @{ $self->thin_fills },
-                grep $_,
                 map $_->medial_axis(scale $self->perimeters_flow->width),
                 @$small_gaps if 0;
         }
@@ -320,12 +318,17 @@ sub make_perimeters {
     }
     
     # add thin walls as perimeters
-    for (@{ $self->thin_walls }) {
-        if ($_->isa('Slic3r::Polygon')) {
-            push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_PERIMETER);
-        } else {
-            push @{ $self->perimeters }, Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_PERIMETER);
+    {
+        my @thin_paths = ();
+        for (@{ $self->thin_walls }) {
+            if ($_->isa('Slic3r::Polygon')) {
+                push @thin_paths, Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_PERIMETER);
+            } else {
+                push @thin_paths, Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_PERIMETER);
+            }
         }
+        my $collection = Slic3r::ExtrusionPath::Collection->new(paths => \@thin_paths);
+        push @{ $self->perimeters }, $collection->shortest_path;
     }
 }
 
