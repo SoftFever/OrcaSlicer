@@ -33,6 +33,7 @@ use Slic3r::ExtrusionPath;
 use Slic3r::ExtrusionPath::Arc;
 use Slic3r::ExtrusionPath::Collection;
 use Slic3r::Fill;
+use Slic3r::Flow;
 use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
@@ -100,16 +101,16 @@ our $_first_layer_height    = undef;   # mm (computed)
 our $infill_every_layers    = 1;
 
 # flow options
-our $extrusion_width        = 0;
-our $first_layer_extrusion_width = 0;
-our $bridge_flow_ratio      = 1;
-our $overlap_factor         = 0.5;
-our $flow_width;
-our $min_flow_spacing;
-our $flow_spacing;
-our $first_layer_flow_width;
-our $first_layer_min_flow_spacing;
-our $first_layer_flow_spacing;
+our $extrusion_width                = 0;
+our $first_layer_extrusion_width    = 0;
+our $perimeters_extrusion_width     = 0;
+our $infill_extrusion_width         = 0;
+our $bridge_flow_ratio              = 1;
+our $overlap_factor                 = 0.5;
+our $flow                           = Slic3r::Flow->new;
+our $first_layer_flow               = undef;
+our $perimeters_flow                = Slic3r::Flow->new;
+our $infill_flow                    = Slic3r::Flow->new;
 
 # print options
 our $perimeters         = 3;

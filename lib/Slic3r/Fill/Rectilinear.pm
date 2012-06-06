@@ -32,7 +32,7 @@ sub fill_surface {
         $flow_spacing = unscale $distance_between_lines;
     }
     
-    my $overlap_distance = scale($self->layer->flow_width || $Slic3r::flow_width) * 0.4;
+    my $overlap_distance = scale($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) * 0.4;
     
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');

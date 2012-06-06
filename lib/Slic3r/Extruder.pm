@@ -102,7 +102,7 @@ sub extrude_loop {
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end(scale($self->layer->flow_width || $Slic3r::flow_width) * 0.15);
+    $extrusion_path->clip_end(scale($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) * 0.15);
     return '' if !@{$extrusion_path->polyline};
     
     # extrude along the path
@@ -129,7 +129,7 @@ sub extrude_path {
     {
         my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * $Slic3r::scaling_factor;
         my $distance_threshold = $Slic3r::retract_before_travel;
-        $distance_threshold = 2 * ($self->layer->flow_width || $Slic3r::flow_width) / $Slic3r::fill_density * sqrt(2)
+        $distance_threshold = 2 * ($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) / $Slic3r::fill_density * sqrt(2)
             if $Slic3r::fill_density > 0 && $description =~ /fill/;
     
         if ($distance_from_last_pos >= $distance_threshold) {
@@ -145,9 +145,9 @@ sub extrude_path {
     $gcode .= $self->unretract if $self->retracted;
     
     # calculate extrusion length per distance unit
-    my $s = $path->flow_spacing || $self->layer->flow_spacing || $Slic3r::flow_spacing;
+    my $s = $path->flow_spacing || $self->layer ? $self->layer->flow->spacing : $Slic3r::flow->spacing;
     my $h = $path->depth_layers * $self->layer->height;
-    my $w = ($s - $Slic3r::min_flow_spacing * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
+    my $w = ($s - ($self->layer ? $self->layer->flow->min_spacing : $Slic3r::flow->min_spacing) * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
     
     my $area;
     if ($path->role == EXTR_ROLE_BRIDGE) {

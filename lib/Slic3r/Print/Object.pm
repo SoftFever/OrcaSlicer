@@ -174,13 +174,13 @@ sub make_perimeters {
         my $layer = $self->layers->[$layer_id];
         my $upper_layer = $self->layers->[$layer_id+1];
         
-        my $overlap = $layer->flow_spacing;  # one perimeter
+        my $overlap = $layer->perimeters_flow->spacing;  # one perimeter
         
         # compute polygons representing the thickness of the first external perimeter of
         # the upper layer slices
         my $upper = diff_ex(
-            [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * scale $layer->flow_spacing), @{$upper_layer->slices} ],
-            [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * scale $layer->flow_spacing)), @{$upper_layer->slices} ],
+            [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * scale $layer->perimeters_flow->spacing), @{$upper_layer->slices} ],
+            [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * scale $layer->perimeters_flow->spacing)), @{$upper_layer->slices} ],
         );
         next if !@$upper;
         
@@ -189,10 +189,10 @@ sub make_perimeters {
         my $ignore = [];
         {
             my $diff = diff_ex(
-                [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::perimeters-0.5) * scale $layer->flow_spacing), @{$layer->slices} ],
+                [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::perimeters-0.5) * scale $layer->perimeters_flow->spacing), @{$layer->slices} ],
                 [ map @{$_->expolygon}, @{$upper_layer->slices} ],
             );
-            $ignore = [ map @$_, map $_->offset_ex(scale $layer->flow_spacing), @$diff ];
+            $ignore = [ map @$_, map $_->offset_ex(scale $layer->perimeters_flow->spacing), @$diff ];
         }
         
         foreach my $slice (@{$layer->slices}) {
@@ -202,9 +202,9 @@ sub make_perimeters {
                 # of our slice
                 my $hypothetical_perimeter;
                 {
-                    my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * scale $layer->flow_spacing) ];
+                    my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * scale $layer->perimeters_flow->spacing) ];
                     last CYCLE if !@$outer;
-                    my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * scale $layer->flow_spacing) ];
+                    my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * scale $layer->perimeters_flow->spacing) ];
                     last CYCLE if !@$inner;
                     $hypothetical_perimeter = diff_ex($outer, $inner);
                 }
@@ -236,7 +236,7 @@ sub detect_surfaces_type {
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
             1,
         );
-        return grep $_->contour->is_printable($layer->flow_width),
+        return grep $_->contour->is_printable($layer->flow->width),
             map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };
@@ -310,14 +310,14 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
-    my $area_threshold = scale($Slic3r::flow_spacing) ** 2;
+    my $area_threshold = scale($Slic3r::flow->spacing) ** 2;
     
     for (my $i = 0; $i < $self->layer_count; $i++) {
         my $layer = $self->layers->[$i];
         foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
             # find surfaces of current type for current layer
             # and offset them to take perimeters into account
-            my @surfaces = map $_->offset($Slic3r::perimeters * scale $layer->flow_width),
+            my @surfaces = map $_->offset($Slic3r::perimeters * scale $layer->perimeters_flow->width),
                 grep $_->surface_type == $type, @{$layer->fill_surfaces} or next;
             my $surfaces_p = [ map $_->p, @surfaces ];
             Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
@@ -396,7 +396,7 @@ sub infill_every_layers {
     my $self = shift;
     return unless $Slic3r::infill_every_layers > 1 && $Slic3r::fill_density > 0;
     
-    my $area_threshold = scale($Slic3r::flow_spacing) ** 2;
+    my $area_threshold = scale($Slic3r::flow->spacing) ** 2;
     
     # start from bottom, skip first layer
     for (my $i = 1; $i < $self->layer_count; $i++) {
@@ -512,13 +512,13 @@ sub generate_support_material {
             # those parts. a visibility check algorithm is needed.
             # @a = @{diff_ex(
             #     [ map $_->p, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices} ],
-            #     [ map @$_, map $_->expolygon->offset_ex(scale $layer->flow_spacing * $Slic3r::perimeters),
+            #     [ map @$_, map $_->expolygon->offset_ex(scale $layer->flow->spacing * $Slic3r::perimeters),
             #         grep $_->surface_type == S_TYPE_BOTTOM && defined $_->bridge_angle,
             #         @{$layer->fill_surfaces} ],
             # )};
             @a = map $_->expolygon->clone, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices};
             
-            $_->simplify(scale $layer->flow_spacing * 3) for @a;
+            $_->simplify(scale $layer->flow->spacing * 3) for @a;
             push @unsupported_expolygons, @a;
         }
     }
@@ -541,7 +541,7 @@ sub generate_support_material {
                         #bridge_angle    => $Slic3r::fill_angle + 45 + $angle,
                     ),
                     density         => 0.20,
-                    flow_spacing    => $Slic3r::flow_spacing,
+                    flow_spacing    => $Slic3r::flow->spacing,
                 );
                 my $params = shift @paths;
                 

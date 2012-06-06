@@ -890,7 +890,7 @@ sub arrange {
     # margin needed for the skirt
     my $skirt_margin;		
     if ($Slic3r::skirts > 0) {
-        $skirt_margin = ($Slic3r::flow_spacing * $Slic3r::skirts + $Slic3r::skirt_distance) * 2;
+        $skirt_margin = ($Slic3r::flow->spacing * $Slic3r::skirts + $Slic3r::skirt_distance) * 2;
     } else {
         $skirt_margin = 0;		
     }

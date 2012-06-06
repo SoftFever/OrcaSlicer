@@ -410,7 +410,7 @@ sub make_skirt {
     # draw outlines from outside to inside
     my @skirt = ();
     for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
-        my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow_spacing * $i));
+        my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow->spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
         push @skirt, Slic3r::ExtrusionLoop->new(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
@@ -440,9 +440,9 @@ sub write_gcode {
         extrusion_multiplier perimeter_speed infill_speed travel_speed scale)) {
         printf $fh "; %s = %s\n", $_, Slic3r::Config->get($_);
     }
-    printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow_width;
-    printf $fh "; first layer single wall width = %.2fmm\n", $Slic3r::first_layer_flow_width
-        if $Slic3r::first_layer_flow_width != $Slic3r::flow_width;
+    printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow->width;
+    printf $fh "; first layer single wall width = %.2fmm\n", $Slic3r::first_layer_flow->width
+        if $Slic3r::first_layer_flow;
     print  $fh "\n";
     
     # set up our extruder object

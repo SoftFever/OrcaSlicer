@@ -256,6 +256,10 @@ $j
                         (like 0.65) or a percentage over layer height (like 200%)
     --first-layer-extrusion-width
                         Set a different extrusion width for first layer
+    --perimeters-extrusion-width
+                        Set a different extrusion width for perimeters
+    --infill-extrusion-width
+                        Set a different extrusion width for infill
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
     
 EOF

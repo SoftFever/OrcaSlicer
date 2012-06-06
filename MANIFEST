@@ -18,6 +18,7 @@ lib/Slic3r/Fill/Line.pm
 lib/Slic3r/Fill/OctagramSpiral.pm
 lib/Slic3r/Fill/PlanePath.pm
 lib/Slic3r/Fill/Rectilinear.pm
+lib/Slic3r/Flow.pm
 lib/Slic3r/Format/AMF.pm
 lib/Slic3r/Format/AMF/Parser.pm
 lib/Slic3r/Format/OBJ.pm
