@@ -169,18 +169,18 @@ sub make_perimeters {
     # compare each layer to the one below, and mark those slices needing
     # one additional inner perimeter, like the top of domed objects-
     
-    # this algorithm makes sure that almost one perimeter is overlapping:
-    my $overlap = $Slic3r::flow_spacing;
-    
+    # this algorithm makes sure that almost one perimeter is overlapping
     for my $layer_id (0 .. $self->layer_count-2) {
         my $layer = $self->layers->[$layer_id];
         my $upper_layer = $self->layers->[$layer_id+1];
         
+        my $overlap = $layer->flow_spacing;  # one perimeter
+        
         # compute polygons representing the thickness of the first external perimeter of
         # the upper layer slices
         my $upper = diff_ex(
-            [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * scale $Slic3r::flow_spacing), @{$upper_layer->slices} ],
-            [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * scale $Slic3r::flow_spacing)), @{$upper_layer->slices} ],
+            [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * scale $layer->flow_spacing), @{$upper_layer->slices} ],
+            [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * scale $layer->flow_spacing)), @{$upper_layer->slices} ],
         );
         next if !@$upper;
         
@@ -189,10 +189,10 @@ sub make_perimeters {
         my $ignore = [];
         {
             my $diff = diff_ex(
-                [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::perimeters-0.5) * scale $Slic3r::flow_spacing), @{$layer->slices} ],
+                [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::perimeters-0.5) * scale $layer->flow_spacing), @{$layer->slices} ],
                 [ map @{$_->expolygon}, @{$upper_layer->slices} ],
             );
-            $ignore = [ map @$_, map $_->offset_ex(scale $Slic3r::flow_spacing), @$diff ];
+            $ignore = [ map @$_, map $_->offset_ex(scale $layer->flow_spacing), @$diff ];
         }
         
         foreach my $slice (@{$layer->slices}) {
@@ -202,9 +202,9 @@ sub make_perimeters {
                 # of our slice
                 my $hypothetical_perimeter;
                 {
-                    my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * scale $Slic3r::flow_spacing) ];
+                    my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * scale $layer->flow_spacing) ];
                     last CYCLE if !@$outer;
-                    my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * scale $Slic3r::flow_spacing) ];
+                    my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * scale $layer->flow_spacing) ];
                     last CYCLE if !@$inner;
                     $hypothetical_perimeter = diff_ex($outer, $inner);
                 }
@@ -230,13 +230,13 @@ sub detect_surfaces_type {
     
     # prepare a reusable subroutine to make surface differences
     my $surface_difference = sub {
-        my ($subject_surfaces, $clip_surfaces, $result_type) = @_;
+        my ($subject_surfaces, $clip_surfaces, $result_type, $layer) = @_;
         my $expolygons = diff_ex(
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$subject_surfaces ],
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
             1,
         );
-        return grep $_->contour->is_printable,
+        return grep $_->contour->is_printable($layer->flow_width),
             map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };
@@ -251,7 +251,7 @@ sub detect_surfaces_type {
         # find top surfaces (difference between current surfaces
         # of current layer and upper one)
         if ($upper_layer) {
-            @top = $surface_difference->($layer->slices, $upper_layer->slices, S_TYPE_TOP);
+            @top = $surface_difference->($layer->slices, $upper_layer->slices, S_TYPE_TOP, $layer);
         } else {
             # if no upper layer, all surfaces of this one are solid
             @top = @{$layer->slices};
@@ -261,7 +261,7 @@ sub detect_surfaces_type {
         # find bottom surfaces (difference between current surfaces
         # of current layer and lower one)
         if ($lower_layer) {
-            @bottom = $surface_difference->($layer->slices, $lower_layer->slices, S_TYPE_BOTTOM);
+            @bottom = $surface_difference->($layer->slices, $lower_layer->slices, S_TYPE_BOTTOM, $layer);
         } else {
             # if no lower layer, all surfaces of this one are solid
             @bottom = @{$layer->slices};
@@ -274,11 +274,11 @@ sub detect_surfaces_type {
         if (@top && @bottom) {
             my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
             Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layer->id, scalar(@$overlapping);
-            @top = $surface_difference->([@top], $overlapping, S_TYPE_TOP);
+            @top = $surface_difference->([@top], $overlapping, S_TYPE_TOP, $layer);
         }
         
         # find internal surfaces (difference between top/bottom surfaces and others)
-        @internal = $surface_difference->($layer->slices, [@top, @bottom], S_TYPE_INTERNAL);
+        @internal = $surface_difference->($layer->slices, [@top, @bottom], S_TYPE_INTERNAL, $layer);
         
         # save surfaces to layer
         @{$layer->slices} = (@bottom, @top, @internal);
@@ -317,7 +317,7 @@ sub discover_horizontal_shells {
         foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
             # find surfaces of current type for current layer
             # and offset them to take perimeters into account
-            my @surfaces = map $_->offset($Slic3r::perimeters * scale $Slic3r::flow_width),
+            my @surfaces = map $_->offset($Slic3r::perimeters * scale $layer->flow_width),
                 grep $_->surface_type == $type, @{$layer->fill_surfaces} or next;
             my $surfaces_p = [ map $_->p, @surfaces ];
             Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
@@ -512,13 +512,13 @@ sub generate_support_material {
             # those parts. a visibility check algorithm is needed.
             # @a = @{diff_ex(
             #     [ map $_->p, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices} ],
-            #     [ map @$_, map $_->expolygon->offset_ex(scale $Slic3r::flow_spacing * $Slic3r::perimeters),
+            #     [ map @$_, map $_->expolygon->offset_ex(scale $layer->flow_spacing * $Slic3r::perimeters),
             #         grep $_->surface_type == S_TYPE_BOTTOM && defined $_->bridge_angle,
             #         @{$layer->fill_surfaces} ],
             # )};
             @a = map $_->expolygon->clone, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices};
             
-            $_->simplify(scale $Slic3r::flow_spacing * 3) for @a;
+            $_->simplify(scale $layer->flow_spacing * 3) for @a;
             push @unsupported_expolygons, @a;
         }
     }

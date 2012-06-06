@@ -254,6 +254,8 @@ $j
    Flow options (advanced):
     --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm
                         (like 0.65) or a percentage over layer height (like 200%)
+    --first-layer-extrusion-width
+                        Set a different extrusion width for first layer
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $Slic3r::bridge_flow_ratio)
     
 EOF

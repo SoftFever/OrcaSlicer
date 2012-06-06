@@ -159,7 +159,7 @@ our $Options = {
     },
     'first_layer_speed' => {
         label   => 'First layer speed (mm/s or %)',
-        cli     => 'first-layer-speed=f',
+        cli     => 'first-layer-speed=s',
         type    => 'f',
     },
     
@@ -188,7 +188,7 @@ our $Options = {
     },
     'first_layer_height' => {
         label   => 'First layer height (mm or %)',
-        cli     => 'first-layer-height=f',
+        cli     => 'first-layer-height=s',
         type    => 'f',
     },
     'infill_every_layers' => {
@@ -200,7 +200,12 @@ our $Options = {
     # flow options
     'extrusion_width' => {
         label   => 'Extrusion width (mm or %; leave zero to calculate automatically)',
-        cli     => 'extrusion-width=f',
+        cli     => 'extrusion-width=s',
+        type    => 'f',
+    },
+    'first_layer_extrusion_width' => {
+        label   => 'First layer extrusion width (mm or %; leave zero to use default)',
+        cli     => 'first-layer-extrusion-width=s',
         type    => 'f',
     },
     'bridge_flow_ratio' => {
@@ -283,7 +288,7 @@ our $Options = {
         deserialize => sub { join "\n", split /\\n/, $_[0] },
     },
     'layer_gcode' => {
-        label   => 'Layer Change G-code',
+        label   => 'Layer change G-code',
         cli     => 'layer-gcode=s',
         type    => 's',
         multiline => 1,
@@ -590,42 +595,17 @@ sub validate {
     die "First layer height can't be greater than --nozzle-diameter\n"
         if $Slic3r::_first_layer_height > $Slic3r::nozzle_diameter;
     
-    if ($Slic3r::extrusion_width) {
-        $Slic3r::flow_width = $Slic3r::extrusion_width =~ /^(\d+(?:\.\d+)?)%$/
-            ? ($Slic3r::layer_height * $1 / 100)
-            : $Slic3r::extrusion_width;
-    } else {
-        # here we calculate a sane default by matching the flow speed (at the nozzle)
-        # and the feed rate
-        my $volume = ($Slic3r::nozzle_diameter**2) * PI/4;
-        my $shape_threshold = $Slic3r::nozzle_diameter * $Slic3r::layer_height
-            + ($Slic3r::layer_height**2) * PI/4;
-        if ($volume >= $shape_threshold) {
-            # rectangle with semicircles at the ends
-            $Slic3r::flow_width = (($Slic3r::nozzle_diameter**2) * PI + ($Slic3r::layer_height**2) * (4 - PI)) / (4 * $Slic3r::layer_height);
-        } else {
-            # rectangle with squished semicircles at the ends
-            $Slic3r::flow_width = $Slic3r::nozzle_diameter * ($Slic3r::nozzle_diameter/$Slic3r::layer_height - 4/PI + 1);
-        }
-        
-        my $min_flow_width = $Slic3r::nozzle_diameter * 1.05;
-        my $max_flow_width = $Slic3r::nozzle_diameter * 1.4;
-        $Slic3r::flow_width = $max_flow_width if $Slic3r::flow_width > $max_flow_width;
-        $Slic3r::flow_width = $min_flow_width if $Slic3r::flow_width < $min_flow_width;
-    }
-    
-    if ($Slic3r::flow_width >= ($Slic3r::nozzle_diameter + $Slic3r::layer_height)) {
-        # rectangle with semicircles at the ends
-        $Slic3r::min_flow_spacing = $Slic3r::flow_width - $Slic3r::layer_height * (1 - PI/4);
-    } else {
-        # rectangle with shrunk semicircles at the ends
-        $Slic3r::min_flow_spacing = $Slic3r::flow_width * (1 - PI/4) + $Slic3r::nozzle_diameter * PI/4;
-    }
-    $Slic3r::flow_spacing = $Slic3r::flow_width - $Slic3r::overlap_factor * ($Slic3r::flow_width - $Slic3r::min_flow_spacing);
-    
+    # calculate flow
+    ($Slic3r::flow_width, $Slic3r::min_flow_spacing, $Slic3r::flow_spacing) = calculate_flow($Slic3r::extrusion_width);
     Slic3r::debugf "Flow width = $Slic3r::flow_width\n";
     Slic3r::debugf "Flow spacing = $Slic3r::flow_spacing\n";
     Slic3r::debugf "Min flow spacing = $Slic3r::min_flow_spacing\n";
+    
+    # calculate first layer flow
+    ($Slic3r::first_layer_flow_width, $Slic3r::first_layer_min_flow_spacing, $Slic3r::first_layer_flow_spacing) = calculate_flow($Slic3r::first_layer_extrusion_width || $Slic3r::extrusion_width);
+    Slic3r::debugf "First Layer Flow width = $Slic3r::first_layer_flow_width\n";
+    Slic3r::debugf "First Layer Flow spacing = $Slic3r::first_layer_flow_spacing\n";
+    Slic3r::debugf "First Layer Min flow spacing = $Slic3r::first_layer_min_flow_spacing\n";
     
     # --perimeters
     die "Invalid value for --perimeters\n"
@@ -741,6 +721,46 @@ sub replace_options {
     # use that regexp to search and replace option names with option values
     $string =~ s/\[($options)\]/Slic3r::Config->serialize($1)/eg;
     return $string;
+}
+
+sub calculate_flow {
+    my ($extrusion_width) = @_;
+    
+    my ($flow_width, $min_flow_spacing, $flow_spacing);
+    if ($extrusion_width) {
+        $flow_width = $extrusion_width =~ /^(\d+(?:\.\d+)?)%$/
+            ? ($Slic3r::layer_height * $1 / 100)
+            : $extrusion_width;
+    } else {
+        # here we calculate a sane default by matching the flow speed (at the nozzle)
+        # and the feed rate
+        my $volume = ($Slic3r::nozzle_diameter**2) * PI/4;
+        my $shape_threshold = $Slic3r::nozzle_diameter * $Slic3r::layer_height
+            + ($Slic3r::layer_height**2) * PI/4;
+        if ($volume >= $shape_threshold) {
+            # rectangle with semicircles at the ends
+            $flow_width = (($Slic3r::nozzle_diameter**2) * PI + ($Slic3r::layer_height**2) * (4 - PI)) / (4 * $Slic3r::layer_height);
+        } else {
+            # rectangle with squished semicircles at the ends
+            $flow_width = $Slic3r::nozzle_diameter * ($Slic3r::nozzle_diameter/$Slic3r::layer_height - 4/PI + 1);
+        }
+        
+        my $min_flow_width = $Slic3r::nozzle_diameter * 1.05;
+        my $max_flow_width = $Slic3r::nozzle_diameter * 1.4;
+        $flow_width = $max_flow_width if $flow_width > $max_flow_width;
+        $flow_width = $min_flow_width if $flow_width < $min_flow_width;
+    }
+    
+    if ($flow_width >= ($Slic3r::nozzle_diameter + $Slic3r::layer_height)) {
+        # rectangle with semicircles at the ends
+        $min_flow_spacing = $flow_width - $Slic3r::layer_height * (1 - PI/4);
+    } else {
+        # rectangle with shrunk semicircles at the ends
+        $min_flow_spacing = $flow_width * (1 - PI/4) + $Slic3r::nozzle_diameter * PI/4;
+    }
+    $flow_spacing = $flow_width - $Slic3r::overlap_factor * ($flow_width - $min_flow_spacing);
+    
+    return ($flow_width, $min_flow_spacing, $flow_spacing);
 }
 
 1;

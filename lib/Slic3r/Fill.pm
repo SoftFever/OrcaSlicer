@@ -99,7 +99,7 @@ sub make_fill {
     
     # add spacing between adjacent surfaces
     {
-        my $distance = scale $Slic3r::flow_spacing / 2;
+        my $distance = scale $layer->flow_spacing / 2;
         my @offsets = ();
         foreach my $surface (@surfaces) {
             my $expolygon = $surface->expolygon;
@@ -137,7 +137,7 @@ sub make_fill {
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::fill_pattern;
         my $density         = $Slic3r::fill_density;
-        my $flow_spacing    = $Slic3r::flow_spacing;
+        my $flow_spacing    = $layer->flow_spacing;
         my $is_bridge       = $layer->id > 0 && $surface->surface_type == S_TYPE_BOTTOM;
         my $is_solid        = (grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID) ? 1 : 0;
         

@@ -64,7 +64,7 @@ sub fill_surface {
         $path->deserialize;
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
-        $path->clip_end(scale $Slic3r::flow_width * 0.15);
+        $path->clip_end(scale($self->layer->flow_width || $Slic3r::flow_width) * 0.15);
         
         push @paths, $path->points if @{$path->points};
     }

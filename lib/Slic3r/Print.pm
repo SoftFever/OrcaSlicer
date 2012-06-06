@@ -441,6 +441,8 @@ sub write_gcode {
         printf $fh "; %s = %s\n", $_, Slic3r::Config->get($_);
     }
     printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow_width;
+    printf $fh "; first layer single wall width = %.2fmm\n", $Slic3r::first_layer_flow_width
+        if $Slic3r::first_layer_flow_width != $Slic3r::flow_width;
     print  $fh "\n";
     
     # set up our extruder object
