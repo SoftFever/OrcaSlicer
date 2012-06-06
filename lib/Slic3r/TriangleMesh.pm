@@ -237,7 +237,7 @@ sub make_loops {
         grep defined $lines[$_][I_A_ID],
         (0..$#lines);
     
-    my (@polygons, %visited_lines) = ();
+    my (@polygons, @failed_loops, %visited_lines) = ();
     CYCLE: for (my $i = 0; $i <= $#lines; $i++) {
         my $line = $lines[$i];
         next if $visited_lines{$line};
@@ -253,20 +253,24 @@ sub make_loops {
             } else {
                 Slic3r::debugf "  line has no next_facet_index or b_id\n";
                 $layer->slicing_errors(1);
+                push @failed_loops, [@points] if @points;
                 next CYCLE;
             }
             
             if (!$next_line || $visited_lines{$next_line}) {
                 Slic3r::debugf "  failed to close this loop\n";
                 $layer->slicing_errors(1);
+                push @failed_loops, [@points] if @points;
                 next CYCLE;
             } elsif (defined $next_line->[I_PREV_FACET_INDEX] && $next_line->[I_PREV_FACET_INDEX] != $line->[I_FACET_INDEX]) {
                 Slic3r::debugf "  wrong prev_facet_index\n";
                 $layer->slicing_errors(1);
+                push @failed_loops, [@points] if @points;
                 next CYCLE;
             } elsif (defined $next_line->[I_A_ID] && $next_line->[I_A_ID] != $line->[I_B_ID]) {
                 Slic3r::debugf "  wrong a_id\n";
                 $layer->slicing_errors(1);
+                push @failed_loops, [@points] if @points;
                 next CYCLE;
             }
             
@@ -278,6 +282,14 @@ sub make_loops {
         push @polygons, Slic3r::Polygon->new(@points);
         Slic3r::debugf "  Discovered %s polygon of %d points\n",
             ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@points)
+            if $Slic3r::debug;
+    }
+    
+    # TODO: we should try to combine failed loops
+    for (grep @$_ >= 3, @failed_loops) {
+        push @polygons, Slic3r::Polygon->new(@$_);
+        Slic3r::debugf "  Discovered failed %s polygon of %d points\n",
+            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@$_)
             if $Slic3r::debug;
     }
     
