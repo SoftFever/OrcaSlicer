@@ -40,7 +40,7 @@ sub new {
         },
         accuracy => {
             title => 'Accuracy',
-            options => [qw(layer_height first_layer_height_ratio infill_every_layers)],
+            options => [qw(layer_height first_layer_height infill_every_layers)],
         },
         print => {
             title => 'Print settings',

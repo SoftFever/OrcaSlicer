@@ -95,7 +95,8 @@ our $scaling_factor         = 0.000001;
 our $resolution             = 0.01;
 our $small_perimeter_length = (6.5 / $scaling_factor)*2*PI;
 our $layer_height           = 0.4;
-our $first_layer_height_ratio = 1;
+our $first_layer_height     = '100%';  # mm or %
+our $_first_layer_height    = undef;   # mm (computed)
 our $infill_every_layers    = 1;
 
 # flow options

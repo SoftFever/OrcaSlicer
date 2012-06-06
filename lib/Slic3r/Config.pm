@@ -186,9 +186,9 @@ our $Options = {
         cli     => 'layer-height=f',
         type    => 'f',
     },
-    'first_layer_height_ratio' => {
-        label   => 'First layer height ratio',
-        cli     => 'first-layer-height-ratio=f',
+    'first_layer_height' => {
+        label   => 'First layer height (mm or %)',
+        cli     => 'first-layer-height=f',
         type    => 'f',
     },
     'infill_every_layers' => {
@@ -520,7 +520,7 @@ sub load {
         
         # handle legacy options
         next if $ignore{$key};
-        if ($key =~ /^(?:extrusion_width|bottom_layer_speed)_ratio$/) {
+        if ($key =~ /^(?:extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
             $key = $1;
             $key =~ s/^bottom_layer_speed$/first_layer_speed/;
             $val = $val =~ /^\d+(\.\d+)?$/ ? ($val*100) . "%" : 0;
@@ -571,9 +571,12 @@ sub validate {
     die "--layer-height must be a multiple of print resolution\n"
         if $Slic3r::layer_height / $Slic3r::scaling_factor % 1 != 0;
     
-    # --first-layer-height-ratio
-    die "Invalid value for --first-layer-height-ratio\n"
-        if $Slic3r::first_layer_height_ratio < 0;
+    # --first-layer-height
+    die "Invalid value for --first-layer-height\n"
+        if $Slic3r::first_layer_height !~ /^(?:\d+(?:\.\d+)?)%?$/;
+    $Slic3r::_first_layer_height = $Slic3r::first_layer_height =~ /^(\d+(?:\.\d+)?)%$/
+        ? ($Slic3r::layer_height * $1/100)
+        : $Slic3r::first_layer_height;
     
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"
@@ -585,9 +588,7 @@ sub validate {
     die "--layer-height can't be greater than --nozzle-diameter\n"
         if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
     die "First layer height can't be greater than --nozzle-diameter\n"
-        if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) > $Slic3r::nozzle_diameter;
-    die "First layer height can't be zero or negative\n"
-        if ($Slic3r::layer_height * $Slic3r::first_layer_height_ratio) <= 0;
+        if $Slic3r::_first_layer_height > $Slic3r::nozzle_diameter;
     
     if ($Slic3r::extrusion_width) {
         $Slic3r::flow_width = $Slic3r::extrusion_width =~ /^(\d+(?:\.\d+)?)%$/

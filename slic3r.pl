@@ -180,9 +180,7 @@ $j
     
   Accuracy options:
     --layer-height      Layer height in mm (default: $Slic3r::layer_height)
-    --first-layer-height-ratio
-                        Multiplication factor for the height to slice and print the first
-                        layer with (> 0, default: $Slic3r::first_layer_height_ratio)
+    --first-layer-height Layer height for first layer (mm or %, default: $Slic3r::first_layer_height)
     --infill-every-layers
                         Infill every N layers (default: $Slic3r::infill_every_layers)
   
