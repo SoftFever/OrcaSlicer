@@ -184,7 +184,7 @@ sub make_fill {
         paths => [
             map {
                 $_->isa('Slic3r::Polygon')
-                    ? Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_SOLIDFILL)->split_at($_->[0])
+                    ? Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_SOLIDFILL)->split_at_first_point
                     : Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_SOLIDFILL)
             } @{$layer->thin_fills},
         ],

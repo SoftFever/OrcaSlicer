@@ -120,7 +120,10 @@ sub extrude_path {
     # detect arcs
     if ($Slic3r::gcode_arcs && !$recursive) {
         my $gcode = "";
-        $gcode .= $self->extrude_path($_, $description, 1) for $path->detect_arcs;
+        foreach my $arc_path ($path->detect_arcs) {
+            $arc_path->deserialize;
+            $gcode .= $self->extrude_path($arc_path, $description, 1);
+        }
         return $gcode;
     }
     

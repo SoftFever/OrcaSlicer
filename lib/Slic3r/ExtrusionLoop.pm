@@ -28,6 +28,8 @@ sub split_at {
     
     $point = Slic3r::Point->new($point);
     
+    $self->deserialize;
+    
     # find index of point
     my $i = -1;
     for (my $n = 0; $n <= $#{$self->polygon}; $n++) {
@@ -50,6 +52,7 @@ sub split_at {
 
 sub split_at_first_point {
     my $self = shift;
+    $self->deserialize;
     return $self->split_at($self->polygon->[0]);
 }
 
