@@ -185,7 +185,7 @@ sub extrude_path {
     if ($Slic3r::cooling) {
         my $path_time = unscale($path_length) / $self->speeds->{$self->last_speed} * 60;
         if ($self->layer->id == 0) {
-            $path_time = $Slic3r:: =~ /^(\d+(?:\.\d+)?)%$/
+            $path_time = $Slic3r::first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? $path_time / ($1/100)
                 : unscale($path_length) / $Slic3r::first_layer_speed * 60;
         }
