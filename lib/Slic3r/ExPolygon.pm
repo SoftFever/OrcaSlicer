@@ -213,7 +213,7 @@ sub medial_axis {
             $pointmap{$_->[A]} >= 2 && $pointmap{$_->[B]} >= 2
         } @skeleton_lines;
     }
-    return undef if !@skeleton_lines;
+    return () if !@skeleton_lines;
     
     # now walk along the medial axis and build continuos polylines or polygons
     my @polylines = ();

@@ -157,7 +157,8 @@ sub make_surfaces {
         foreach my $surface (@surfaces) {
             push @{$self->slices}, map Slic3r::Surface->new
                 (expolygon => $_, surface_type => S_TYPE_INTERNAL),
-                $surface->expolygon->offset_ex(-$distance);
+                map $_->offset_ex(+$distance),
+                $surface->expolygon->offset_ex(-2*$distance);
         }
         
         # now detect thin walls by re-outgrowing offsetted surfaces and subtracting
@@ -193,6 +194,8 @@ sub make_surfaces {
 sub make_perimeters {
     my $self = shift;
     Slic3r::debugf "Making perimeters for layer %d\n", $self->id;
+    
+    my $gap_area_threshold = scale($self->perimeters_flow->width)** 2;
     
     # this array will hold one arrayref per original surface (island);
     # each item of this arrayref is an arrayref representing a depth (from outer
@@ -234,12 +237,27 @@ sub make_perimeters {
             $hole->reverse;
         }
         
+        my @gaps = ();
+        
         # generate perimeters inwards
         my $loop_number = $Slic3r::perimeters + ($surface->additional_inner_perimeters || 0);
         push @perimeters, [];
         for (my $loop = 0; $loop < $loop_number; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
-            @last_offsets = map $_->offset_ex(-$distance), @last_offsets if $distance;
+            if ($distance) {
+                my @new_offsets = ();
+                foreach my $expolygon (@last_offsets) {
+                    my @offsets = map $_->offset_ex(+0.5*$distance), $expolygon->offset_ex(-1.5*$distance);
+                    push @new_offsets, @offsets;
+                    
+                    my $diff = diff_ex(
+                        [ map @$_, $expolygon->offset_ex(-$distance) ],
+                        [ map @$_, @offsets ],
+                    );
+                    push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
+                }
+                @last_offsets = @new_offsets;
+            }
             last if !@last_offsets;
             push @{ $perimeters[-1] }, [@last_offsets];
             
@@ -254,13 +272,11 @@ sub make_perimeters {
             
             # detect the small gaps that we need to treat like thin polygons,
             # thus generating the skeleton and using it to fill them
-            my $small_gaps = diff_ex(
-                [ map @$_, map $_->offset_ex(-$distance/2), map @$_, @{$perimeters[-1]} ],
-                [ map @$_, map $_->offset_ex(+$distance/2), @fill_boundaries ],
-            );
             push @{ $self->thin_fills },
                 map $_->medial_axis(scale $self->perimeters_flow->width),
-                @$small_gaps if 0;
+                @gaps;
+            Slic3r::debugf "  %d gaps filled\n", scalar @{ $self->thin_fills }
+                if @{ $self->thin_fills };
         }
     }
     
