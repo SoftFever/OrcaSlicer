@@ -528,6 +528,16 @@ sub save {
     close $fh;
 }
 
+sub setenv {
+    my $class = shift;
+    foreach my $opt (sort keys %$Options) {
+        next if $Options->{$opt}{gui_only};
+        my $value = get($opt);
+        $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
+        $ENV{"SLIC3R_" . uc $opt} = $value;
+    }
+}
+
 sub load {
     my $class = shift;
     my ($file) = @_;

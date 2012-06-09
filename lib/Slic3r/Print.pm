@@ -311,6 +311,7 @@ sub export_gcode {
     # run post-processing scripts
     if (@$Slic3r::post_process) {
         $status_cb->(95, "Running post-processing scripts");
+        Slic3r::Config->setenv;
         for (@$Slic3r::post_process) {
             Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
             system($_, $output_file);
