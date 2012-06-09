@@ -14,7 +14,7 @@ use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 has 'polyline' => (
     is          => 'rw',
     required    => 1,
-    handles     => [qw(merge_continuous_lines lines length)],
+    handles     => [qw(merge_continuous_lines lines length reverse)],
 );
 
 # this integer represents the vertical thickness of the extrusion
@@ -96,11 +96,6 @@ sub points {
 sub endpoints {
     my $self = shift;
     return ($self->points->[0], $self->points->[-1]);
-}
-
-sub reverse {
-    my $self = shift;
-    @{$self->points} = reverse @{$self->points};
 }
 
 sub is_printable { 1 }

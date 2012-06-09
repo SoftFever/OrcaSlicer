@@ -5,7 +5,7 @@ use Moo;
 has 'polygon' => (
     is          => 'rw',
     required    => 1,
-    handles     => [qw(is_printable nearest_point_to)],
+    handles     => [qw(is_printable nearest_point_to reverse)],
 );
 
 # see EXTR_ROLE_* constants in ExtrusionPath.pm
