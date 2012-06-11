@@ -359,10 +359,12 @@ EOF
             ($type eq 'contour' ? 'white' : 'black');
     };
     
+    my @previous_layer_slices = ();
     for my $layer_id (0..$self->layer_count-1) {
         my @layers = map $_->layers->[$layer_id], @{$self->objects};
         printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale +(grep defined $_, @layers)[0]->slice_z;
         
+        my @current_layer_slices = ();
         for my $obj_idx (0 .. $#{$self->objects}) {
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id] or next;
             
@@ -374,10 +376,34 @@ EOF
                     $expolygon->translate(@$copy);
                     $print_polygon->($expolygon->contour, 'contour');
                     $print_polygon->($_, 'hole') for $expolygon->holes;
+                    push @current_layer_slices, $expolygon;
                 }
             }
         }
+        # generate support material
+        if ($Slic3r::support_material && $layer_id > 0) {
+            my (@supported_slices, @unsupported_slices) = ();
+            foreach my $expolygon (@current_layer_slices) {
+                my $intersection = intersection_ex(
+                    [ map @$_, @previous_layer_slices ],
+                    $expolygon,
+                );
+                @$intersection
+                    ? push @supported_slices, $expolygon
+                    : push @unsupported_slices, $expolygon;
+            }
+            my @supported_points = map @$_, @$_, @supported_slices;
+            foreach my $expolygon (@unsupported_slices) {
+                # look for the nearest point to this island among all
+                # supported points
+                my $support_point = nearest_point($expolygon->contour->[0], \@supported_points);
+                my $anchor_point = nearest_point($support_point, $expolygon->contour->[0]);
+                printf $fh qq{    <line x1="%s" y1="%s" x2="%s" y2="%s" style="stroke-width: 2" />\n},
+                    map @$_, $support_point, $anchor_point;
+            }
+        }
         print $fh qq{  </g>\n};
+        @previous_layer_slices = @current_layer_slices;
     }
     
     print $fh "</svg>\n";
