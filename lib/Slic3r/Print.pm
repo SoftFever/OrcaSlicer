@@ -363,12 +363,11 @@ EOF
         my @layers = map $_->layers->[$layer_id], @{$self->objects};
         printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale +(grep defined $_, @layers)[0]->slice_z;
         
-        for my $obj_idx (0 .. $#layers) {
-            my $layer = $layers[$layer_id] or next;
+        for my $obj_idx (0 .. $#{$self->objects}) {
+            my $layer = $self->objects->[$obj_idx]->layers->[$layer_id] or next;
             
             # sort slices so that the outermost ones come first
             my @slices = sort { $a->expolygon->contour->encloses_point($b->expolygon->contour->[0]) ? 0 : 1 } @{$layer->slices};
-            
             foreach my $copy (@{$self->copies->[$obj_idx]}) {
                 foreach my $slice (@slices) {
                     my $expolygon = $slice->expolygon->clone;
