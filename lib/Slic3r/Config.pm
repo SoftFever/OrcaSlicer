@@ -154,8 +154,8 @@ our $Options = {
         aliases => [qw(solid_infill_feed_rate)],
     },
     'top_solid_infill_speed' => {
-        label   => 'Solid infill (mm/s or %)',
-        cli     => 'solid-infill-speed=f',
+        label   => 'Top solid infill (mm/s or %)',
+        cli     => 'top-solid-infill-speed=f',
         type    => 'f',
         ratio_over => 'solid_infill_speed',
     },
