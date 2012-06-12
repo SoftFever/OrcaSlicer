@@ -78,6 +78,8 @@ sub About {
     my $info = Wx::AboutDialogInfo->new;
     $info->SetName('Slic3r');
     $info->AddDeveloper('Alessandro Ranellucci');
+    $info->SetVersion($Slic3r::VERSION);
+    $info->SetDescription('STL-to-GCODE translator for RepRap printers');
     
     Wx::AboutBox($info);
 }
