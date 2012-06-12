@@ -44,7 +44,7 @@ sub OnInit {
     $fileMenu->Append(5, "Slice and Save As…");
     $fileMenu->Append(6, "Export SVG…");
     $fileMenu->AppendSeparator();
-    $fileMenu->Append(&Wx::wxID_EXIT, "&Quit");
+    $fileMenu->Append(wxID_EXIT, "&Quit");
     $menubar->Append($fileMenu, "&File");
     EVT_MENU($frame, 1, sub { $panel->save_config });
     EVT_MENU($frame, 2, sub { $panel->load_config });
