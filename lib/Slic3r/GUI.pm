@@ -29,9 +29,6 @@ sub OnInit {
     
     # menubar
     my $menubar = Wx::MenuBar->new;
-    $frame->SetMenuBar($menubar);
-    EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(1)});
-    EVT_MENU($frame, wxID_ABOUT, \&About);
     
     # status bar
     $frame->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($frame, -1);
@@ -47,7 +44,7 @@ sub OnInit {
     $fileMenu->Append(5, "Slice and Save As…");
     $fileMenu->Append(6, "Export SVG…");
     $fileMenu->AppendSeparator();
-    $fileMenu->Append(&Wx::wxID_EXIT, "&Quit");
+    $fileMenu->Append(wxID_EXIT, "&Quit");
     $menubar->Append($fileMenu, "&File");
     EVT_MENU($frame, 1, sub { $panel->save_config });
     EVT_MENU($frame, 2, sub { $panel->load_config });
@@ -55,6 +52,17 @@ sub OnInit {
     EVT_MENU($frame, 4, sub { $panel->do_slice(reslice => 1) });
     EVT_MENU($frame, 5, sub { $panel->do_slice(save_as => 1) });
     EVT_MENU($frame, 6, sub { $panel->do_slice(save_as => 1, export_svg => 1) });
+    EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(1)});
+
+    # Help menu
+    my $helpMenu = Wx::Menu->new;
+    $helpMenu->Append(wxID_ABOUT, "&About");
+    $menubar->Append($helpMenu, "&Help");
+    EVT_MENU($frame, wxID_ABOUT, \&About);
+
+    # Set the menubar after appending items, otherwise special items
+    # will not be handled correctly
+    $frame->SetMenuBar($menubar);
     
     $box->SetSizeHints($frame);
     $frame->SetSizer($box);
@@ -70,6 +78,8 @@ sub About {
     my $info = Wx::AboutDialogInfo->new;
     $info->SetName('Slic3r');
     $info->AddDeveloper('Alessandro Ranellucci');
+    $info->SetVersion($Slic3r::VERSION);
+    $info->SetDescription('STL-to-GCODE translator for RepRap printers');
     
     Wx::AboutBox($info);
 }
