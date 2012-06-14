@@ -16,6 +16,11 @@ sub lines {
     return @lines;
 }
 
+sub boost_linestring {
+    my $self = shift;
+    return Boost::Geometry::Utils::linestring([@$self, $self->[0]]);
+}
+
 sub is_counter_clockwise {
     my $self = shift;
     return Math::Clipper::is_counter_clockwise($self);
