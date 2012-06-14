@@ -519,11 +519,7 @@ sub export_gcode2 {
             $print->processing_time - int($print->processing_time/60)*60
                 if $print->processing_time;
         $message .= ".";
-        eval {
-            # TODO: fix it as we don't have $self->{growler}
-            $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
-                if ($self->{growler});
-        };
+        Slic3r::GUI::notify($message);
         $params{on_completed}->($message);
         $print->cleanup;
     };

@@ -12,6 +12,8 @@ use Wx 0.9901 qw(:sizer :frame wxID_EXIT wxID_ABOUT);
 use Wx::Event qw(EVT_MENU);
 use base 'Wx::App';
 
+my $growler;
+
 sub OnInit {
     my $self = shift;
     
@@ -27,6 +29,14 @@ sub OnInit {
     my $box = Wx::BoxSizer->new(wxVERTICAL);
     $box->Add($panel, 0);
     
+    if (eval "use Growl::GNTP; 1") {
+        # register growl notifications
+        eval {
+            $growler = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => "$Slic3r::var/Slic3r.png");
+            $growler->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
+        };
+    }
+
     # menubar
     my $menubar = Wx::MenuBar->new;
     
@@ -105,6 +115,15 @@ sub warning_catcher {
         $message_dialog
             ? $message_dialog->(@params)
             : Wx::MessageDialog->new($self, @params)->ShowModal;
+    };
+}
+
+sub notify {
+    my ($message) = @_;
+
+    eval {
+        $growler->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
+            if $growler;
     };
 }
 
