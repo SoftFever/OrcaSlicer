@@ -17,6 +17,7 @@ my %cli_options = ();
 {
     my %options = (
         'help'                  => sub { usage() },
+        'version'               => sub { print "$Slic3r::VERSION\n"; exit 0 },
         
         'debug'                 => \$Slic3r::debug,
         'gui'                   => \$opt{gui},
@@ -121,6 +122,7 @@ written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
 Usage: slic3r.pl [ OPTIONS ] file.stl
 
     --help              Output this usage screen and exit
+    --version           Output the version of Slic3r and exit
     --save <file>       Save configuration to the specified file
     --load <file>       Load configuration from the specified file. It can be used 
                         more than once to load options from multiple files.
