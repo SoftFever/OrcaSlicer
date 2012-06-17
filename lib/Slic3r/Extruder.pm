@@ -349,7 +349,7 @@ sub _Gx {
         if ($e && $self->layer->id == 0 && $comment !~ /retract/) {
             $speed_f = $Slic3r::first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? ($speed_f * $1/100)
-                : $Slic3r::first_layer_speed;
+                : $Slic3r::first_layer_speed * 60;
         }
         $gcode .= sprintf " F%.${dec}f", $speed_f;
         $self->last_speed($speed);
