@@ -154,15 +154,16 @@ sub point_in_polygon {
     my ($point, $polygon) = @_;
     
     my ($x, $y) = @$point;
-    my @xy = map @$_, @$polygon;
+    my $n = @$polygon;
+    my @x;
+    my @y;
+    foreach (0..$n-1) {
+      push @x, $polygon->[$_]->[X];
+      push @y, $polygon->[$_]->[Y];
+    }
     
     # Derived from the comp.graphics.algorithms FAQ,
     # courtesy of Wm. Randolph Franklin
-    my $n = @xy / 2;                        # Number of points in polygon
-    my @i = map { 2*$_ } 0..(@xy/2);        # The even indices of @xy
-    my @x = map { $xy[$_]     } @i;         # Even indices: x-coordinates
-    my @y = map { $xy[$_ + 1] } @i;         # Odd indices:  y-coordinates
-    
     my ($i, $j);
     my $side = 0;                           # 0 = outside; 1 = inside
     for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
