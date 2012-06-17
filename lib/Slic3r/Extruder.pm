@@ -227,13 +227,13 @@ sub retract {
         # combine Z change and retraction
         my $travel = [undef, $params{move_z}, $retract->[2], 'change layer and retract'];
         $gcode .= $self->G0(@$travel);
-    } elsif (defined $params{move_z} && $Slic3r::retract_lift) {
-        my $travel = [undef, $params{move_z} + $Slic3r::retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
-        $gcode .= $self->G0(@$travel);
-        $self->lifted(1);
     } else {
         $gcode .= $self->G1(@$retract);
-        if ($lift) {
+        if (defined $params{move_z} && $Slic3r::retract_lift > 0) {
+            my $travel = [undef, $params{move_z} + $Slic3r::retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
+            $gcode .= $self->G0(@$travel);
+            $self->lifted(1);
+        } elsif ($lift) {
             $gcode .= $self->G1(@$lift);
         }
     }
