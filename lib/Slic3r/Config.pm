@@ -16,7 +16,7 @@ our $Options = {
         cli     => 'notes=s',
         type    => 's',
         multiline => 1,
-        width   => 220,
+        width   => 450,
         height  => 130,
         serialize   => sub { join '\n', split /\R/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },

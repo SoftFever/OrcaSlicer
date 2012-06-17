@@ -115,6 +115,7 @@ sub new {
     $self->AddOptionsPage('Notes', 'note.png', optgroups => [
         {
             title => 'Notes',
+            no_labels => 1,
             options => [qw(notes)],
         },
     ]);
@@ -129,8 +130,13 @@ sub new {
             options => [qw(gcode_comments output_filename_format)],
         },
         {
-            title => 'Advanced',
-            options => [qw(post_process duplicate_distance)],  # this is not the right place for duplicate_distance
+            title => 'Post-processing scripts',
+            no_labels => 1,
+            options => [qw(post_process)],  # this is not the right place for duplicate_distance
+        },
+        {
+            title => 'Other',
+            options => [qw(duplicate_distance)],  # this is not the right place for duplicate_distance
         },
     ]);
     
@@ -187,8 +193,19 @@ sub new {
     
     $self->AddOptionsPage('Custom G-code', 'cog.png', optgroups => [
         {
-            title => 'Custom G-code',
-            options => [qw(start_gcode end_gcode layer_gcode)],
+            title => 'Start G-code',
+            no_labels => 1,
+            options => [qw(start_gcode)],
+        },
+        {
+            title => 'End G-code',
+            no_labels => 1,
+            options => [qw(end_gcode)],
+        },
+        {
+            title => 'Layer change G-code',
+            no_labels => 1,
+            options => [qw(layer_gcode)],
         },
     ]);
     
@@ -202,7 +219,6 @@ sub new {
             options => [qw(retract_restart_extra retract_before_travel)],
         },
     ]);
-    
     
     return $self;
 }
