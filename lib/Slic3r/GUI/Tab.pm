@@ -11,15 +11,28 @@ sub new {
     my $class = shift;
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], &Wx::wxBK_LEFT);
-
+    
+    $self->{images} = Wx::ImageList->new(16, 16, 1);
+    $self->AssignImageList($self->{images});
+    $self->{imagecount} = -1;
+    
     return $self;
 }
 
 sub AddOptionsPage {
     my $self = shift;
     my $title = shift;
+    my $image = (ref $_[1]) ? undef : shift;
     my $page = Slic3r::GUI::Tab::Page->new($self, @_);
-    $self->AddPage($page, $title);
+    
+    my $bitmap = $image
+        ? Wx::Bitmap->new("$Slic3r::var/$image", &Wx::wxBITMAP_TYPE_PNG)
+        : undef;
+    if ($bitmap) {
+        $self->{images}->Add($bitmap);
+        $self->{imagecount}++;
+    }
+    $self->AddPage($page, $title, undef, $self->{imagecount});
 }
 
 package Slic3r::GUI::Tab::Print;
@@ -33,7 +46,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    $self->AddOptionsPage('Layers and perimeters', optgroups => [
+    $self->AddOptionsPage('Layers and perimeters', 'layers.png', optgroups => [
         {
             title => 'Layer height',
             options => [qw(layer_height first_layer_height)],
@@ -48,14 +61,14 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Infill', optgroups => [
+    $self->AddOptionsPage('Infill', 'shading.png', optgroups => [
         {
             title => 'Infill',
             options => [qw(fill_density fill_angle fill_pattern solid_fill_pattern)],
         },
     ]);
     
-    $self->AddOptionsPage('Speed', optgroups => [
+    $self->AddOptionsPage('Speed', 'time.png', optgroups => [
         {
             title => 'Speed for print moves',
             options => [qw(perimeter_speed small_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed)],
@@ -70,14 +83,14 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Skirt', optgroups => [
+    $self->AddOptionsPage('Skirt', 'box.png', optgroups => [
         {
             title => 'Skirt',
             options => [qw(skirts skirt_distance skirt_height)],
         },
     ]);
     
-    $self->AddOptionsPage('Cooling', optgroups => [
+    $self->AddOptionsPage('Cooling', 'hourglass.png', optgroups => [
         {
             title => 'Enable',
             options => [qw(cooling)],
@@ -92,21 +105,21 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Support material', optgroups => [
+    $self->AddOptionsPage('Support material', 'building.png', optgroups => [
         {
             title => 'Support material',
             options => [qw(support_material support_material_tool)],
         },
     ]);
     
-    $self->AddOptionsPage('Notes', optgroups => [
+    $self->AddOptionsPage('Notes', 'note.png', optgroups => [
         {
             title => 'Notes',
             options => [qw(notes)],
         },
     ]);
     
-    $self->AddOptionsPage('Output options', optgroups => [
+    $self->AddOptionsPage('Output options', 'page_white_go.png', optgroups => [
         {
             title => 'Sequential printing',
             options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
@@ -121,7 +134,7 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Advanced', optgroups => [
+    $self->AddOptionsPage('Advanced', 'wrench.png', optgroups => [
         {
             title => 'Extrusion width',
             options => [qw(extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width)],
@@ -131,9 +144,6 @@ sub new {
             options => [qw(bridge_flow_ratio)],
         },
     ]);
-    
-    
-    
     
     return $self;
 }
@@ -149,7 +159,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    $self->AddOptionsPage('General', optgroups => [
+    $self->AddOptionsPage('General', 'printer_empty.png', optgroups => [
         {
             title => 'Size and coordinates',
             options => [qw(bed_size print_center z_offset)],
@@ -160,7 +170,7 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Extruder and filament', optgroups => [
+    $self->AddOptionsPage('Extruder and filament', 'spool.png', optgroups => [
         {
             title => 'Size',
             options => [qw(nozzle_diameter)],
@@ -175,14 +185,14 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Custom G-code', optgroups => [
+    $self->AddOptionsPage('Custom G-code', 'cog.png', optgroups => [
         {
             title => 'Custom G-code',
             options => [qw(start_gcode end_gcode layer_gcode)],
         },
     ]);
     
-    $self->AddOptionsPage('Retraction', optgroups => [
+    $self->AddOptionsPage('Retraction', 'arrow_up.png', optgroups => [
         {
             title => 'Retraction',
             options => [qw(retract_length retract_lift retract_speed)],
