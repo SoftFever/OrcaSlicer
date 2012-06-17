@@ -7,6 +7,7 @@ use FindBin;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
+use Slic3r::GUI::Tab;
 
 use Wx 0.9901 qw(:sizer :frame wxID_EXIT wxID_ABOUT);
 use Wx::Event qw(EVT_MENU);

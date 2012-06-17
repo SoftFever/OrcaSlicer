@@ -21,106 +21,25 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    my %panels = (
-        printer => {
-            title => 'Printer',
-            options => [qw(nozzle_diameter bed_size print_center z_offset gcode_flavor use_relative_e_distances)],
-        },
-        filament => {
-            title => 'Filament',
-            options => [qw(filament_diameter extrusion_multiplier temperature first_layer_temperature bed_temperature first_layer_bed_temperature)],
-        },
-        print_speed => {
-            title => 'Print speed',
-            options => [qw(perimeter_speed small_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed)],
-        },
-        speed => {
-            title => 'Other speed settings',
-            options => [qw(travel_speed first_layer_speed)],
-        },
-        accuracy => {
-            title => 'Accuracy',
-            options => [qw(layer_height first_layer_height infill_every_layers)],
-        },
-        print => {
-            title => 'Print settings',
-            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start support_material support_material_tool)],
-        },
-        retract => {
-            title => 'Retraction',
-            options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
-        },
-        cooling => {
-            title => 'Cooling',
-            options => [qw(cooling min_fan_speed max_fan_speed bridge_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed disable_fan_first_layers fan_always_on)],
-            label_width => 300,
-        },
-        skirt => {
-            title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height)],
-        },
-        gcode => {
-            title => 'G-code',
-            options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
-            label_width => 260,
-        },
-        sequential_printing => {
-            title => 'Sequential printing',
-            options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
-        },
-        extrusion => {
-            title => 'Extrusion',
-            options => [qw(extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width bridge_flow_ratio)],
-        },
-        output => {
-            title => 'Output',
-            options => [qw(output_filename_format duplicate_distance)],
-        },
-        other => {
-            title => 'Other',
-            options => [$Slic3r::have_threads ? qw(threads) : ()],
-        },
-        notes => {
-            title => 'Notes',
-            options => [qw(notes)],
-        },
-    );
-    $self->{panels} = \%panels;
-    
     my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
-    my $make_tab = sub {
-        my @cols = @_;
+    my $make_treebook_tab = sub {
+        my $class = shift;
         
         my $tab = Wx::Panel->new($tabpanel, -1);
-        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        foreach my $col (@cols) {
-            my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-            for my $optgroup (@$col) {
-                next unless @{ $panels{$optgroup}{options} };
-                my $optpanel = Slic3r::GUI::OptionsGroup->new($tab, %{$panels{$optgroup}});
-                $vertical_sizer->Add($optpanel, 0, wxEXPAND | wxALL, 10);
-            }
-            $sizer->Add($vertical_sizer);
-        }
-        
+        my $sizer = Wx::BoxSizer->new(&Wx::wxVERTICAL);
+        $sizer->Add($class->new($tab), 1, &Wx::wxALL | &Wx::wxEXPAND, 5);
         $tab->SetSizer($sizer);
         return $tab;
     };
     
     my @tabs = (
-        $make_tab->([qw(accuracy skirt retract)], [qw(print notes)]),
-        $make_tab->([qw(cooling)]),
-        $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
-        $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion other sequential_printing)], [qw(output)]),
+        $make_treebook_tab->('Slic3r::GUI::Tab::Print'),
+        $make_treebook_tab->('Slic3r::GUI::Tab::Printer'),
     );
     
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
-    $tabpanel->AddPage($tabs[0], "Print Settings");
-    $tabpanel->AddPage($tabs[1], "Cooling");
-    $tabpanel->AddPage($tabs[2], "Printer and Filament");
-    $tabpanel->AddPage($tabs[3], "G-code");
-    $tabpanel->AddPage($tabs[4], "Advanced");
+    $tabpanel->AddPage($tabs[0], "Print settings");
+    $tabpanel->AddPage($tabs[1], "Filament/printer settings");
         
     my $buttons_sizer;
     {
