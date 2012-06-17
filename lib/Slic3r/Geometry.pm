@@ -155,12 +155,8 @@ sub point_in_polygon {
     
     my ($x, $y) = @$point;
     my $n = @$polygon;
-    my @x;
-    my @y;
-    foreach (0..$n-1) {
-      push @x, $polygon->[$_]->[X];
-      push @y, $polygon->[$_]->[Y];
-    }
+    my @x = map $_->[X], @$polygon;
+    my @y = map $_->[Y], @$polygon;
     
     # Derived from the comp.graphics.algorithms FAQ,
     # courtesy of Wm. Randolph Franklin
