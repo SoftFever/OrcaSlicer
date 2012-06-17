@@ -83,8 +83,8 @@ The author is Alessandro Ranellucci.
         -o, --output <file> File to output gcode to (by default, the file will be saved
                             into the same directory as the input file using the 
                             --output-filename-format to generate the filename)
-        -j, --threads <num> Number of threads to use (1+, default: 4) 
-      
+        -j, --threads <num> Number of threads to use (1+, default: 2)
+    
       Output options:
         --output-filename-format
                             Output file name format; all config options enclosed in brackets
@@ -153,9 +153,9 @@ The author is Alessandro Ranellucci.
         --fill-angle        Infill angle in degrees (range: 0-90, default: 45)
         --fill-pattern      Pattern to use to fill non-solid layers (default: rectilinear)
         --solid-fill-pattern Pattern to use to fill solid layers (default: rectilinear)
-        --start-gcode       Load initial gcode from the supplied file. This will overwrite
+        --start-gcode       Load initial G-code from the supplied file. This will overwrite
                             the default command (home all axes [G28]).
-        --end-gcode         Load final gcode from the supplied file. This will overwrite 
+        --end-gcode         Load final G-code from the supplied file. This will overwrite 
                             the default commands (turn off temperature [M104 S0],
                             home X axis [G28 X], disable motors [M84]).
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
@@ -199,8 +199,8 @@ The author is Alessandro Ranellucci.
         --duplicate         Number of items with auto-arrange (1+, default: 1)
         --bed-size          Bed size, only used for auto-arrange (mm, default: 200,200)
         --duplicate-grid    Number of items with grid arrangement (default: 1,1)
-        --duplicate-distance Distance in mm between copies (default: 6)   
-   
+        --duplicate-distance Distance in mm between copies (default: 6)
+       
        Sequential printing options:
         --complete-objects  When printing multiple objects and/or copies, complete each one before
                             starting the next one; watch out for extruder collisions (default: no)
@@ -208,19 +208,21 @@ The author is Alessandro Ranellucci.
                             (default: 20)
         --extruder-clearance-height Maximum vertical extruder depth; i.e. vertical distance from 
                             extruder tip and carriage bottom (default: 20)
-        
+       
        Miscellaneous options:
         --notes             Notes to be added as comments to the output file
       
        Flow options (advanced):
         --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm
                             (like 0.65) or a percentage over layer height (like 200%)
+        --first-layer-extrusion-width
+                            Set a different extrusion width for first layer
         --perimeters-extrusion-width
-                        Set a different extrusion width for perimeters
+                            Set a different extrusion width for perimeters
         --infill-extrusion-width
-                        Set a different extrusion width for infill
+                            Set a different extrusion width for infill
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
-        
+            
 
 
 If you want to change a preset file, just do
