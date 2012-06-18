@@ -42,12 +42,8 @@ sub new {
         my $field;
         if ($opt->{type} =~ /^(i|f|s|s@)$/) {
             my $style = 0;
-            my $size = Wx::wxDefaultSize;
-            
-            if ($opt->{multiline}) {
-                $style = &Wx::wxTE_MULTILINE;
-                $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
-            }
+            $style = &Wx::wxTE_MULTILINE if $opt->{multiline};
+            my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             
             my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get set);
             

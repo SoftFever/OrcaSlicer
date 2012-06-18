@@ -33,6 +33,7 @@ our $Options = {
         label   => 'Output filename format',
         cli     => 'output-filename-format=s',
         type    => 's',
+        width   => 300,
     },
 
     # printer options
