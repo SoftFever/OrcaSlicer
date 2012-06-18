@@ -86,7 +86,7 @@ sub About {
     $info->SetName('Slic3r');
     $info->AddDeveloper('Alessandro Ranellucci');
     $info->SetVersion($Slic3r::VERSION);
-    $info->SetDescription('STL-to-GCODE translator for RepRap printers');
+    $info->SetDescription('G-code generator for 3D printers');
     
     Wx::AboutBox($info);
 }

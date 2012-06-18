@@ -6,8 +6,8 @@ A: Yes.
 
 ## What's it?
 
-Slic3r is an STL-to-GCODE translator for RepRap 3D printers, aiming to
-be a modern and fast alternative to Skeinforge.
+Slic3r is a G-code generator for 3D printers. It's compatible with RepRaps,
+Makerbots, Ultimakers and many more machines.
 
 See the [project homepage](http://slic3r.org/) at slic3r.org
 for more information.
@@ -63,8 +63,11 @@ download and run, with no dependencies required.
 
 ## Can I help?
 
-Sure! Send patches and/or drop me a line at aar@cpan.org. You can also 
+Sure! Drop me a line at aar@cpan.org. You can also 
 find me in #reprap and in #slic3r on FreeNode with the nickname _Sound_.
+Before sending patches and pull requests contact me to discuss your proposed
+changes: this way we'll ensure nobody wastes their time and no conflicts arise
+in development.
 
 ## What's Slic3r license?
 
