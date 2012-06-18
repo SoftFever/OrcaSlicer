@@ -85,7 +85,7 @@ sub new {
             };
             $fields{$opt_key} = [$x_field, $y_field];
         } elsif ($opt->{type} eq 'select') {
-            $field = Wx::Choice->new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values});
+            $field = Wx::ComboBox->new($parent, -1, "", Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values}, &Wx::wxCB_READONLY);
             EVT_CHOICE($parent, $field, sub {
                 Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
             });
