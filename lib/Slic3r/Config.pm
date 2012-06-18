@@ -26,6 +26,8 @@ our $Options = {
         sidetext => '(more speed but more memory usage)',
         cli     => 'threads|j=i',
         type    => 'i',
+        min     => 1,
+        max     => 16,
     },
 
     # output options
@@ -110,18 +112,21 @@ our $Options = {
         sidetext => '°C',
         cli     => 'first-layer-temperature=i',
         type    => 'i',
+        max     => 300,
     },
     'first_layer_bed_temperature' => {
         label   => 'First layer bed temperature',
         sidetext => '°C',
         cli     => 'first-layer-bed-temperature=i',
         type    => 'i',
+        max     => 300,
     },
     'temperature' => {
         label   => 'Temperature',
         sidetext => '°C',
         cli     => 'temperature=i',
         type    => 'i',
+        max     => 300,
         important => 1,
     },
     'bed_temperature' => {
@@ -129,6 +134,7 @@ our $Options = {
         sidetext => '°C',
         cli     => 'bed-temperature=i',
         type    => 'i',
+        max     => 300,
     },
     
     # speed options
@@ -227,6 +233,7 @@ our $Options = {
         sidetext => 'layers',
         cli     => 'infill-every-layers=i',
         type    => 'i',
+        min     => 1,
     },
     
     # flow options
@@ -296,6 +303,7 @@ our $Options = {
         sidetext => '°',
         cli     => 'fill-angle=i',
         type    => 'i',
+        max     => 359,
     },
     'randomize_start' => {
         label   => 'Randomize starting points',
@@ -367,6 +375,7 @@ our $Options = {
         sidetext => 'mm/s',
         cli     => 'retract-speed=f',
         type    => 'i',
+        max     => 1000,
     },
     'retract_restart_extra' => {
         label   => 'Extra length on restart',
@@ -398,24 +407,28 @@ our $Options = {
         sidetext => '%',
         cli     => 'min-fan-speed=i',
         type    => 'i',
+        max     => 1000,
     },
     'max_fan_speed' => {
         label   => 'Max fan speed',
         sidetext => '%',
         cli     => 'max-fan-speed=i',
         type    => 'i',
+        max     => 1000,
     },
     'bridge_fan_speed' => {
         label   => 'Bridge fan speed',
         sidetext => '%',
         cli     => 'bridge-fan-speed=i',
         type    => 'i',
+        max     => 1000,
     },
     'fan_below_layer_time' => {
         label   => 'Enable fan if layer print time is below',
         sidetext => 'approximate seconds',
         cli     => 'fan-below-layer-time=i',
         type    => 'i',
+        max     => 1000,
         width   => 60,
     },
     'slowdown_below_layer_time' => {
@@ -423,6 +436,7 @@ our $Options = {
         sidetext => 'approximate seconds',
         cli     => 'slowdown-below-layer-time=i',
         type    => 'i',
+        max     => 1000,
         width   => 60,
     },
     'min_print_speed' => {
@@ -430,12 +444,14 @@ our $Options = {
         sidetext => 'mm/s',
         cli     => 'min-print-speed=f',
         type    => 'i',
+        max     => 1000,
     },
     'disable_fan_first_layers' => {
         label   => 'Disable fan for the first',
         sidetext => 'layers',
         cli     => 'disable-fan-first-layers=i',
         type    => 'i',
+        max     => 1000,
     },
     'fan_always_on' => {
         label   => 'Keep fan always on',
@@ -453,7 +469,7 @@ our $Options = {
         label   => 'Distance from object',
         sidetext => 'mm',
         cli     => 'skirt-distance=f',
-        type    => 'i',
+        type    => 'f',
     },
     'skirt_height' => {
         label   => 'Skirt height',
@@ -473,6 +489,7 @@ our $Options = {
         sidetext => '°',
         cli     => 'rotate=i',
         type    => 'i',
+        max     => 359,
     },
     'duplicate_mode' => {
         label   => 'Duplicate',
@@ -485,6 +502,7 @@ our $Options = {
         label    => 'Copies (autoarrange)',
         cli      => 'duplicate=i',
         type    => 'i',
+        min     => 1,
     },
     'bed_size' => {
         label   => 'Bed size',
@@ -505,7 +523,7 @@ our $Options = {
         label   => 'Distance between copies',
         sidetext => 'mm',
         cli     => 'duplicate-distance=f',
-        type    => 'i',
+        type    => 'f',
         aliases => [qw(multiply_distance)],
     },
     
@@ -519,13 +537,13 @@ our $Options = {
         label   => 'Extruder clearance radius',
         sidetext => 'mm',
         cli     => 'extruder-clearance-radius=f',
-        type    => 'i',
+        type    => 'f',
     },
     'extruder_clearance_height' => {
         label   => 'Extruder clearance height',
         sidetext => 'mm',
         cli     => 'extruder-clearance-height=f',
-        type    => 'i',
+        type    => 'f',
     },
 };
 

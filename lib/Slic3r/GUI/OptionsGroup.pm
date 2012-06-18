@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Wx qw(:sizer wxSYS_DEFAULT_GUI_FONT);
-use Wx::Event qw(EVT_TEXT EVT_CHECKBOX EVT_CHOICE);
+use Wx::Event qw(EVT_TEXT EVT_SPINCTRL EVT_CHECKBOX EVT_CHOICE);
 use base 'Wx::StaticBoxSizer';
 
 
@@ -49,9 +49,14 @@ sub new {
             
             my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get set);
             
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key),
-                Wx::wxDefaultPosition, $size, $style);
-            EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
+            if ($opt->{type} eq 'i') {
+                my $value = Slic3r::Config->$get($opt_key);
+                $field = Wx::SpinCtrl->new($parent, -1, $value, Wx::wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
+                EVT_SPINCTRL($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
+            } else {
+                $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), Wx::wxDefaultPosition, $size, $style);
+                EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
+            }
             push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
         } elsif ($opt->{type} eq 'bool') {
             $field = Wx::CheckBox->new($parent, -1, "");
@@ -100,7 +105,7 @@ sub new {
             $sizer->Add($field);
             my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, Wx::wxDefaultPosition, [-1, -1]);
             $sidetext->SetFont($sidetext_font);
-            $sizer->Add($sidetext, 0, &Wx::wxLEFT, 4);
+            $sizer->Add($sidetext, 0, &Wx::wxLEFT | &Wx::wxALIGN_CENTER_VERTICAL , 4);
             $grid_sizer->Add($sizer);
         } else {
             $grid_sizer->Add($field, 0, $opt->{full_width} ? &Wx::wxEXPAND : 0);
