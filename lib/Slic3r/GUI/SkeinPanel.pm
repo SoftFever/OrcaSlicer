@@ -66,7 +66,7 @@ sub new {
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, 10);
-    $sizer->Add($tabpanel);
+    $sizer->Add($tabpanel, 1, wxEXPAND);
     
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);

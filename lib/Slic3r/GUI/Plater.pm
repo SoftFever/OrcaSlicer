@@ -49,7 +49,7 @@ sub new {
     $self->{list} = Wx::ListView->new($self, -1, [-1, -1], [-1, 180], &Wx::wxLC_SINGLE_SEL | &Wx::wxLC_REPORT | &Wx::wxBORDER_DEFAULT);
     $self->{list}->InsertColumn(0, "Name", &Wx::wxLIST_FORMAT_LEFT, 300);
     $self->{list}->InsertColumn(1, "Copies", &Wx::wxLIST_FORMAT_CENTER, 50);
-    $self->{list}->InsertColumn(2, "Scale", &Wx::wxLIST_FORMAT_CENTER, 50);
+    $self->{list}->InsertColumn(2, "Scale", &Wx::wxLIST_FORMAT_CENTER, &Wx::wxLIST_AUTOSIZE_USEHEADER);
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     

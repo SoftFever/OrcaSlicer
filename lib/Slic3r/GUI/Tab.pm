@@ -101,6 +101,7 @@ sub new {
         },
         {
             title => 'Cooling thresholds',
+            label_width => 250,
             options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
         },
     ]);
@@ -132,11 +133,7 @@ sub new {
         {
             title => 'Post-processing scripts',
             no_labels => 1,
-            options => [qw(post_process)],  # this is not the right place for duplicate_distance
-        },
-        {
-            title => 'Other',
-            options => [qw(duplicate_distance)],  # this is not the right place for duplicate_distance
+            options => [qw(post_process)],
         },
     ]);
     
@@ -148,6 +145,10 @@ sub new {
         {
             title => 'Flow',
             options => [qw(bridge_flow_ratio)],
+        },
+        {
+            title => 'Other',
+            options => [qw(duplicate_distance)],
         },
     ]);
     
@@ -227,12 +228,14 @@ package Slic3r::GUI::Tab::Page;
 
 use Wx qw(:sizer :progressdialog);
 use Wx::Event qw();
-use base 'Wx::Panel';
+use base 'Wx::ScrolledWindow';
 
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1);
+    
+    $self->SetScrollbars(1, 1, 1, 1);
     
     $self->{vsizer} = Wx::BoxSizer->new(&Wx::wxVERTICAL);
     $self->SetSizer($self->{vsizer});
@@ -247,7 +250,7 @@ sub new {
 sub append_optgroup {
     my $self = shift;
     
-    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, @_, label_width => 200);
+    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, label_width => 200, @_);
     $self->{vsizer}->Add($optgroup, 0, wxEXPAND | wxALL, 5);
 }
 

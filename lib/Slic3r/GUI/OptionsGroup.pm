@@ -19,7 +19,9 @@ sub new {
     my $self = $class->SUPER::new($box, wxVERTICAL);
     
     my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$p{options}}), 2, ($p{no_labels} ? 1 : 2), 0);
-
+    $grid_sizer->SetFlexibleDirection(&Wx::wxHORIZONTAL);
+    $grid_sizer->AddGrowableCol($p{no_labels} ? 0 : 1);
+    
     # grab the default font, to fix Windows font issues/keep things consistent
     my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
@@ -101,7 +103,7 @@ sub new {
             $sizer->Add($sidetext, 0, &Wx::wxLEFT, 4);
             $grid_sizer->Add($sizer);
         } else {
-            $grid_sizer->Add($field);
+            $grid_sizer->Add($field, 0, $opt->{full_width} ? &Wx::wxEXPAND : 0);
         }
         $fields{$opt_key} ||= [$field];
     }
