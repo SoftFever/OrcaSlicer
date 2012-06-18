@@ -34,12 +34,14 @@ sub new {
     
     my @tabs = (
         $make_treebook_tab->('Slic3r::GUI::Tab::Print'),
+        $make_treebook_tab->('Slic3r::GUI::Tab::Filament'),
         $make_treebook_tab->('Slic3r::GUI::Tab::Printer'),
     );
     
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
     $tabpanel->AddPage($tabs[0], "Print settings");
-    $tabpanel->AddPage($tabs[1], "Filament/printer settings");
+    $tabpanel->AddPage($tabs[1], "Filament settings");
+    $tabpanel->AddPage($tabs[2], "Printer settings");
         
     my $buttons_sizer;
     {

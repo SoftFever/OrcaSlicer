@@ -90,22 +90,6 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Cooling', 'hourglass.png', optgroups => [
-        {
-            title => 'Enable',
-            options => [qw(cooling)],
-        },
-        {
-            title => 'Fan settings',
-            options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on)],
-        },
-        {
-            title => 'Cooling thresholds',
-            label_width => 250,
-            options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
-        },
-    ]);
-    
     $self->AddOptionsPage('Support material', 'building.png', optgroups => [
         {
             title => 'Support material',
@@ -140,6 +124,7 @@ sub new {
     $self->AddOptionsPage('Advanced', 'wrench.png', optgroups => [
         {
             title => 'Extrusion width',
+            label_width => 180,
             options => [qw(extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width)],
         },
         {
@@ -149,6 +134,47 @@ sub new {
         {
             title => 'Other',
             options => [qw(duplicate_distance)],
+        },
+    ]);
+    
+    return $self;
+}
+
+package Slic3r::GUI::Tab::Filament;
+
+use Wx qw(:sizer :progressdialog);
+use Wx::Event qw();
+use base 'Slic3r::GUI::Tab';
+
+sub new {
+    my $class = shift;
+    my ($parent) = @_;
+    my $self = $class->SUPER::new($parent, -1);
+    
+    $self->AddOptionsPage('Filament', 'spool.png', optgroups => [
+        {
+            title => 'Filament',
+            options => [qw(filament_diameter extrusion_multiplier)],
+        },
+        {
+            title => 'Temperature',
+            options => [qw(temperature first_layer_temperature bed_temperature first_layer_bed_temperature)],
+        },
+    ]);
+    
+    $self->AddOptionsPage('Cooling', 'hourglass.png', optgroups => [
+        {
+            title => 'Enable',
+            options => [qw(cooling)],
+        },
+        {
+            title => 'Fan settings',
+            options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on)],
+        },
+        {
+            title => 'Cooling thresholds',
+            label_width => 250,
+            options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
         },
     ]);
     
@@ -177,18 +203,14 @@ sub new {
         },
     ]);
     
-    $self->AddOptionsPage('Extruder and filament', 'spool.png', optgroups => [
+    $self->AddOptionsPage('Extruder 1', 'funnel.png', optgroups => [
         {
             title => 'Size',
             options => [qw(nozzle_diameter)],
         },
         {
-            title => 'Filament',
-            options => [qw(filament_diameter extrusion_multiplier)],
-        },
-        {
-            title => 'Temperature',
-            options => [qw(temperature first_layer_temperature bed_temperature first_layer_bed_temperature)],
+            title => 'Retraction',
+            options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
         },
     ]);
     
@@ -207,17 +229,6 @@ sub new {
             title => 'Layer change G-code',
             no_labels => 1,
             options => [qw(layer_gcode)],
-        },
-    ]);
-    
-    $self->AddOptionsPage('Retraction', 'arrow_up.png', optgroups => [
-        {
-            title => 'Retraction',
-            options => [qw(retract_length retract_lift retract_speed)],
-        },
-        {
-            title => 'Advanced',
-            options => [qw(retract_restart_extra retract_before_travel)],
         },
     ]);
     
