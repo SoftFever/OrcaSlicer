@@ -8,6 +8,12 @@ use constant PI => 4 * atan2(1, 1);
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y);
 
+our %Groups = (
+    print       => [qw(layer_height first_layer_height perimeters randomize_start solid_layers fill_density fill_angle fill_pattern solid_fill_pattern infill_every_layers perimeter_speed small_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed travel_speed first_layer_speed skirts skirt_distance skirt_height support_material support_material_tool notes complete_objects extruder_clearance_radius extruder_clearance_height gcode_comments output_filename_format post_process extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width bridge_flow_ratio duplicate_distance)],
+    filament    => [qw(filament_diameter extrusion_multiplier temperature first_layer_temperature bed_temperature first_layer_bed_temperature cooling min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on fan_below_layer_time slowdown_below_layer_time min_print_speed)],
+    printer     => [qw(bed_size print_center z_offset gcode_flavor use_relative_e_distances nozzle_diameter retract_length retract_lift retract_speed retract_restart_extra retract_before_travel start_gcode end_gcode layer_gcode)],
+);
+
 our $Options = {
 
     # miscellaneous options
@@ -243,7 +249,7 @@ our $Options = {
     # accuracy options
     'layer_height' => {
         label   => 'Layer height',
-        tooltip => 'This setting control the height (and thus the total number) of the slices/layers. Thinner layers give better accuracy but take more time to print.',
+        tooltip => 'This setting controls the height (and thus the total number) of the slices/layers. Thinner layers give better accuracy but take more time to print.',
         sidetext => 'mm',
         cli     => 'layer-height=f',
         type    => 'f',
@@ -651,11 +657,12 @@ sub deserialize {
 
 sub save {
     my $class = shift;
-    my ($file) = @_;
+    my ($file, $group) = @_;
     
     open my $fh, '>', $file;
     binmode $fh, ':utf8';
     foreach my $opt (sort keys %$Options) {
+        next if defined $group && not ($opt ~~ @{$Groups{$group}});
         next if $Options->{$opt}{gui_only};
         my $value = get($opt);
         $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
@@ -674,22 +681,42 @@ sub setenv {
     }
 }
 
-sub load {
+sub current {
+    my $class = shift;
+    return { map +($_ => get($_)), sort keys %$Options };
+}
+
+sub read_ini {
     my $class = shift;
     my ($file) = @_;
-    
-    my %ignore = map { $_ => 1 } @Ignore;
     
     local $/ = "\n";
     open my $fh, '<', $file;
     binmode $fh, ':utf8';
+    
+    my $ini = { _ => {} };
+    my $category = '_';
     while (<$fh>) {
         s/\R+$//;
         next if /^\s+/;
         next if /^$/;
         next if /^\s*#/;
         /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
-        my ($key, $val) = ($1, $2);
+        $ini->{$category}{$1} = $2;
+    }
+    close $fh;
+    
+    return $ini;
+}
+
+sub load_hash {
+    my $class = shift;
+    my ($hash, $group, $deserialized) = @_;
+    
+    my %ignore = map { $_ => 1 } @Ignore;
+    foreach my $key (sort keys %$hash) {
+        next if defined $group && not ($key ~~ @{$Groups{$group}});
+        my $val = $hash->{$key};
         
         # handle legacy options
         next if $ignore{$key};
@@ -705,9 +732,16 @@ sub load {
         }
         next unless $key;
         my $opt = $Options->{$key};
-        set($key, $opt->{deserialize} ? $opt->{deserialize}->($val) : $val);
+        set($key, ($opt->{deserialize} && !$deserialized) ? $opt->{deserialize}->($val) : $val);
     }
-    close $fh;
+}
+
+sub load {
+    my $class = shift;
+    my ($file) = @_;
+    
+    my $ini = __PACKAGE__->read_ini($file);
+    __PACKAGE__->load_hash($ini->{_});
 }
 
 sub validate_cli {

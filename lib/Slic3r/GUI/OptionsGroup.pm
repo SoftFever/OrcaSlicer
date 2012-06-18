@@ -3,13 +3,13 @@ use strict;
 use warnings;
 
 use Wx qw(:sizer wxSYS_DEFAULT_GUI_FONT);
-use Wx::Event qw(EVT_TEXT EVT_SPINCTRL EVT_CHECKBOX EVT_CHOICE);
+use Wx::Event qw(EVT_TEXT EVT_SPINCTRL EVT_CHECKBOX EVT_COMBOBOX);
 use base 'Wx::StaticBoxSizer';
 
 
 # not very elegant, but this solution is temporary waiting for a better GUI
-our @reload_callbacks = ();
-our %fields = ();  # $key => [$control]
+our %reload_callbacks = (); # key => $cb
+our %fields = ();           # $key => [$control]
 
 sub new {
     my $class = shift;
@@ -27,6 +27,8 @@ sub new {
     $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
     my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     $sidetext_font->SetPointSize(12);
+    
+    my $onChange = $p{on_change} || sub {};
     
     foreach my $opt_key (@{$p{options}}) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
@@ -52,17 +54,17 @@ sub new {
             if ($opt->{type} eq 'i') {
                 my $value = Slic3r::Config->$get($opt_key);
                 $field = Wx::SpinCtrl->new($parent, -1, $value, Wx::wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
-                EVT_SPINCTRL($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
+                EVT_SPINCTRL($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue); $onChange->($opt_key) });
             } else {
                 $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), Wx::wxDefaultPosition, $size, $style);
-                EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
+                EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue); $onChange->($opt_key) });
             }
-            push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
+            $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
         } elsif ($opt->{type} eq 'bool') {
             $field = Wx::CheckBox->new($parent, -1, "");
             $field->SetValue(Slic3r::Config->get($opt_key));
-            EVT_CHECKBOX($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue) });
-            push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->get($opt_key)) };
+            EVT_CHECKBOX($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue); $onChange->($opt_key) });
+            $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->get($opt_key)) };
         } elsif ($opt->{type} eq 'point') {
             $field = Wx::BoxSizer->new(wxHORIZONTAL);
             my $field_size = Wx::Size->new(40, -1);
@@ -83,9 +85,9 @@ sub new {
                 $val->[$i] = $value;
                 Slic3r::Config->set($opt_key, $val);
             };
-            EVT_TEXT($parent, $x_field, sub { $set_value->(0, $x_field->GetValue) });
-            EVT_TEXT($parent, $y_field, sub { $set_value->(1, $y_field->GetValue) });
-            push @reload_callbacks, sub {
+            EVT_TEXT($parent, $x_field, sub { $set_value->(0, $x_field->GetValue); $onChange->($opt_key) });
+            EVT_TEXT($parent, $y_field, sub { $set_value->(1, $y_field->GetValue); $onChange->($opt_key) });
+            $reload_callbacks{$opt_key} = sub {
                 my $value = Slic3r::Config->get($opt_key);
                 $x_field->SetValue($value->[0]);
                 $y_field->SetValue($value->[1]);
@@ -93,14 +95,15 @@ sub new {
             $fields{$opt_key} = [$x_field, $y_field];
         } elsif ($opt->{type} eq 'select') {
             $field = Wx::ComboBox->new($parent, -1, "", Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values}, &Wx::wxCB_READONLY);
-            EVT_CHOICE($parent, $field, sub {
+            EVT_COMBOBOX($parent, $field, sub {
                 Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
+                $onChange->($opt_key);
             });
-            push @reload_callbacks, sub {
+            $reload_callbacks{$opt_key} = sub {
                 my $value = Slic3r::Config->get($opt_key);
                 $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
             };
-            $reload_callbacks[-1]->();
+            $reload_callbacks{$opt_key}->();
         } else {
             die "Unsupported option type: " . $opt->{type};
         }

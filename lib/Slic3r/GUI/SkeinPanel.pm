@@ -58,8 +58,6 @@ sub new {
     $self->SetSizer($sizer);
     $self->Layout;
     
-    $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
-    
     return $self;
 }
 
@@ -214,7 +212,7 @@ sub load_config {
             Slic3r::Config->load($file);
         };
         Slic3r::GUI::catch_error($self);
-        $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
+        $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
     }
     $dlg->Destroy;
 }

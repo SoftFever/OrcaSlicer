@@ -73,9 +73,9 @@ our $gcode_comments     = 0;
 our $filament_diameter  = 3;    # mm
 our $extrusion_multiplier = 1;
 our $temperature        = 200;
-our $first_layer_temperature;
+our $first_layer_temperature = $temperature;
 our $bed_temperature    = 0;
-our $first_layer_bed_temperature;
+our $first_layer_bed_temperature = $bed_temperature;
 
 # speed options
 our $travel_speed           = 130;      # mm/s
@@ -167,6 +167,8 @@ our $duplicate_distance = 6;    # mm
 our $complete_objects           = 0;
 our $extruder_clearance_radius  = 20;     # mm
 our $extruder_clearance_height  = 20;     # mm
+
+our $Defaults = Slic3r::Config->current;
 
 sub parallelize {
     my %params = @_;

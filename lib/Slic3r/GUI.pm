@@ -14,18 +14,13 @@ use Wx::Event qw(EVT_MENU);
 use base 'Wx::App';
 
 my $growler;
+our $datadir;
 
 sub OnInit {
     my $self = shift;
     
     $self->SetAppName('Slic3r');
     Slic3r::debugf "wxWidgets version %s\n", &Wx::wxVERSION_STRING;
-    
-    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,500], wxDEFAULT_FRAME_STYLE);
-    Wx::Image::AddHandler(Wx::PNGHandler->new);
-    $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG) );
-    
-    my $panel = Slic3r::GUI::SkeinPanel->new($frame);
     
     if (eval "use Growl::GNTP; 1") {
         # register growl notifications
@@ -34,9 +29,20 @@ sub OnInit {
             $growler->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
         };
     }
+    
+    # locate or create data directory
+    $datadir = Wx::StandardPaths::Get->GetUserDataDir;
+    for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
+        mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
+            unless -d $_;
+    }
+    
+    # application frame
+    Wx::Image::AddHandler(Wx::PNGHandler->new);
+    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,500], wxDEFAULT_FRAME_STYLE);
+    $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG) );
+    my $panel = Slic3r::GUI::SkeinPanel->new($frame);
 
-    # menubar
-    my $menubar = Wx::MenuBar->new;
     
     # status bar
     $frame->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($frame, -1);
@@ -44,33 +50,41 @@ sub OnInit {
     
     # File menu
     my $fileMenu = Wx::Menu->new;
-    $fileMenu->Append(1, "Save Config…");
-    $fileMenu->Append(2, "Open Config…");
-    $fileMenu->AppendSeparator();
-    $fileMenu->Append(3, "Slice…");
-    $fileMenu->Append(4, "Reslice");
-    $fileMenu->Append(5, "Slice and Save As…");
-    $fileMenu->Append(6, "Export SVG…");
-    $fileMenu->AppendSeparator();
-    $fileMenu->Append(wxID_EXIT, "&Quit");
-    $menubar->Append($fileMenu, "&File");
-    EVT_MENU($frame, 1, sub { $panel->save_config });
-    EVT_MENU($frame, 2, sub { $panel->load_config });
-    EVT_MENU($frame, 3, sub { $panel->do_slice });
-    EVT_MENU($frame, 4, sub { $panel->do_slice(reslice => 1) });
-    EVT_MENU($frame, 5, sub { $panel->do_slice(save_as => 1) });
-    EVT_MENU($frame, 6, sub { $panel->do_slice(save_as => 1, export_svg => 1) });
-    EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(1)});
-
+    {
+        $fileMenu->Append(1, "Save Config…");
+        $fileMenu->Append(2, "Open Config…");
+        $fileMenu->AppendSeparator();
+        $fileMenu->Append(3, "Slice…");
+        $fileMenu->Append(4, "Reslice");
+        $fileMenu->Append(5, "Slice and Save As…");
+        $fileMenu->Append(6, "Export SVG…");
+        $fileMenu->AppendSeparator();
+        $fileMenu->Append(wxID_EXIT, "&Quit");
+        EVT_MENU($frame, 1, sub { $panel->save_config });
+        EVT_MENU($frame, 2, sub { $panel->load_config });
+        EVT_MENU($frame, 3, sub { $panel->do_slice });
+        EVT_MENU($frame, 4, sub { $panel->do_slice(reslice => 1) });
+        EVT_MENU($frame, 5, sub { $panel->do_slice(save_as => 1) });
+        EVT_MENU($frame, 6, sub { $panel->do_slice(save_as => 1, export_svg => 1) });
+        EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(1)});
+    }
+    
     # Help menu
     my $helpMenu = Wx::Menu->new;
-    $helpMenu->Append(wxID_ABOUT, "&About");
-    $menubar->Append($helpMenu, "&Help");
-    EVT_MENU($frame, wxID_ABOUT, \&About);
-
-    # Set the menubar after appending items, otherwise special items
+    {
+        $helpMenu->Append(wxID_ABOUT, "&About");
+        EVT_MENU($frame, wxID_ABOUT, \&About);
+    }
+    
+    # menubar
+    # assign menubar to frame after appending items, otherwise special items
     # will not be handled correctly
-    $frame->SetMenuBar($menubar);
+    {
+        my $menubar = Wx::MenuBar->new;
+        $menubar->Append($fileMenu, "&File");
+        $menubar->Append($helpMenu, "&Help");
+        $frame->SetMenuBar($menubar);
+    }
     
     $frame->SetMinSize($frame->GetSize);
     $frame->Show;
@@ -102,6 +116,18 @@ sub catch_error {
         return 1;
     }
     return 0;
+}
+
+sub show_error {
+    my $self = shift;
+    my ($message) = @_;
+    Wx::MessageDialog->new($self, $message, 'Error', &Wx::wxOK | &Wx::wxICON_ERROR)->ShowModal;
+}
+
+sub fatal_error {
+    my $self = shift;
+    $self->show_error(@_);
+    exit 1;
 }
 
 sub warning_catcher {
