@@ -67,12 +67,16 @@ sub new {
             $field = Wx::BoxSizer->new(wxHORIZONTAL);
             my $field_size = Wx::Size->new(40, -1);
             my $value = Slic3r::Config->get($opt_key);
-            $field->Add($_) for (
+            my @items = (
                 Wx::StaticText->new($parent, -1, "x:"),
                 my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], Wx::wxDefaultPosition, $field_size),
                 Wx::StaticText->new($parent, -1, "  y:"),
                 my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], Wx::wxDefaultPosition, $field_size),
             );
+            $field->Add($_) for @items;
+            if ($opt->{tooltip}) {
+                $_->SetToolTipString($opt->{tooltip}) for @items;
+            }
             my $set_value = sub {
                 my ($i, $value) = @_;
                 my $val = Slic3r::Config->get($opt_key);
@@ -100,6 +104,8 @@ sub new {
         } else {
             die "Unsupported option type: " . $opt->{type};
         }
+        $label->SetToolTipString($opt->{tooltip}) if $label && $opt->{tooltip};
+        $field->SetToolTipString($opt->{tooltip}) if $opt->{tooltip} && $field->can('SetToolTipString');
         if ($opt->{sidetext}) {
             my $sizer = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
             $sizer->Add($field);

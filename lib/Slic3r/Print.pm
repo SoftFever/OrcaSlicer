@@ -484,7 +484,7 @@ sub write_gcode {
     printf $fh $extruder->set_bed_temperature($Slic3r::first_layer_bed_temperature, 1),
             if $Slic3r::first_layer_bed_temperature && $Slic3r::start_gcode !~ /M190/i;
     printf $fh $extruder->set_temperature($Slic3r::first_layer_temperature)
-        if $Slic3r::first_layer_temperature;
+        if $Slic3r::first_layer_temperature && $Slic3r::start_gcode !~ /M104/i;
     printf $fh "%s\n", Slic3r::Config->replace_options($Slic3r::start_gcode);
     printf $fh $extruder->set_temperature($Slic3r::first_layer_temperature, 1)
             if $Slic3r::first_layer_temperature && $Slic3r::start_gcode !~ /M109/i;
