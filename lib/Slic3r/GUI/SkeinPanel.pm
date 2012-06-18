@@ -22,26 +22,10 @@ sub new {
     my $self = $class->SUPER::new($parent, -1);
     
     my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
-    my $make_treebook_tab = sub {
-        my $class = shift;
-        
-        my $tab = Wx::Panel->new($tabpanel, -1);
-        my $sizer = Wx::BoxSizer->new(&Wx::wxVERTICAL);
-        $sizer->Add($class->new($tab), 1, &Wx::wxALL | &Wx::wxEXPAND, 5);
-        $tab->SetSizer($sizer);
-        return $tab;
-    };
-    
-    my @tabs = (
-        $make_treebook_tab->('Slic3r::GUI::Tab::Print'),
-        $make_treebook_tab->('Slic3r::GUI::Tab::Filament'),
-        $make_treebook_tab->('Slic3r::GUI::Tab::Printer'),
-    );
-    
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
-    $tabpanel->AddPage($tabs[0], "Print settings");
-    $tabpanel->AddPage($tabs[1], "Filament settings");
-    $tabpanel->AddPage($tabs[2], "Printer settings");
+    $tabpanel->AddPage(Slic3r::GUI::Tab::Print->new($tabpanel), "Print settings");
+    $tabpanel->AddPage(Slic3r::GUI::Tab::Filament->new($tabpanel), "Filament settings");
+    $tabpanel->AddPage(Slic3r::GUI::Tab::Printer->new($tabpanel), "Printer settings");
         
     my $buttons_sizer;
     {

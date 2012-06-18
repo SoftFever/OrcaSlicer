@@ -4,17 +4,36 @@ use warnings;
 use utf8;
 
 use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
-use base 'Wx::Treebook';
+use Wx::Event qw(EVT_TREE_SEL_CHANGED);
+use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], &Wx::wxBK_LEFT);
     
-    $self->{images} = Wx::ImageList->new(16, 16, 1);
-    $self->AssignImageList($self->{images});
-    $self->{imagecount} = -1;
+    $self->{sizer} = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+    $self->{sizer}->SetSizeHints($self);
+    $self->SetSizer($self->{sizer});
+    
+    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, [-1, -1], [200, -1], &Wx::wxTR_NO_BUTTONS | &Wx::wxTR_HIDE_ROOT | &Wx::wxTR_SINGLE | &Wx::wxTR_NO_LINES);
+    $self->{sizer}->Add($self->{treectrl}, 0, &Wx::wxEXPAND);
+    
+    $self->{icons} = Wx::ImageList->new(16, 16, 1);
+    $self->{treectrl}->AssignImageList($self->{icons});
+    $self->{iconcount} = -1;
+    
+    $self->{treectrl}->AddRoot("root");
+    $self->{pages} = {};
+    $self->{treectrl}->SetIndent(0);
+    EVT_TREE_SEL_CHANGED($parent, $self->{treectrl}, sub {
+        $_->Hide for values %{$self->{pages}};
+        $self->{sizer}->Remove(1);
+        my $page = $self->{pages}->{ $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) };
+        $page->Show;
+        $self->{sizer}->Add($page, 1, &Wx::wxEXPAND | &Wx::wxLEFT, 5);
+        $self->{sizer}->Layout;
+    });
     
     return $self;
 }
@@ -22,17 +41,19 @@ sub new {
 sub AddOptionsPage {
     my $self = shift;
     my $title = shift;
-    my $image = (ref $_[1]) ? undef : shift;
+    my $icon = (ref $_[1]) ? undef : shift;
     my $page = Slic3r::GUI::Tab::Page->new($self, @_);
     
-    my $bitmap = $image
-        ? Wx::Bitmap->new("$Slic3r::var/$image", &Wx::wxBITMAP_TYPE_PNG)
+    my $bitmap = $icon
+        ? Wx::Bitmap->new("$Slic3r::var/$icon", &Wx::wxBITMAP_TYPE_PNG)
         : undef;
     if ($bitmap) {
-        $self->{images}->Add($bitmap);
-        $self->{imagecount}++;
+        $self->{icons}->Add($bitmap);
+        $self->{iconcount}++;
     }
-    $self->AddPage($page, $title, undef, $self->{imagecount});
+    $page->Hide;
+    $self->{treectrl}->AppendItem($self->{treectrl}->GetRootItem, $title, $self->{iconcount});
+    $self->{pages}{$title} = $page;
 }
 
 package Slic3r::GUI::Tab::Print;
