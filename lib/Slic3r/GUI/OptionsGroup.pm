@@ -23,6 +23,8 @@ sub new {
     # grab the default font, to fix Windows font issues/keep things consistent
     my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
+    my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    $sidetext_font->SetPointSize(12);
     
     foreach my $opt_key (@{$p{options}}) {
         my $opt = $Slic3r::Config::Options->{$opt_key};
@@ -95,7 +97,16 @@ sub new {
         } else {
             die "Unsupported option type: " . $opt->{type};
         }
-        $grid_sizer->Add($field);
+        if ($opt->{sidetext}) {
+            my $sizer = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+            $sizer->Add($field);
+            my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, Wx::wxDefaultPosition, [-1, -1]);
+            $sidetext->SetFont($sidetext_font);
+            $sizer->Add($sidetext, 0, &Wx::wxLEFT, 4);
+            $grid_sizer->Add($sizer);
+        } else {
+            $grid_sizer->Add($field);
+        }
         $fields{$opt_key} ||= [$field];
     }
     

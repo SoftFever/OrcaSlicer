@@ -64,7 +64,7 @@ sub new {
     $self->AddOptionsPage('Infill', 'shading.png', optgroups => [
         {
             title => 'Infill',
-            options => [qw(fill_density fill_angle fill_pattern solid_fill_pattern)],
+            options => [qw(fill_density fill_angle fill_pattern solid_fill_pattern infill_every_layers)],
         },
     ]);
     
@@ -78,7 +78,7 @@ sub new {
             options => [qw(travel_speed)],
         },
         {
-            title => 'Advanced',
+            title => 'Modifiers',
             options => [qw(first_layer_speed)],
         },
     ]);
@@ -247,7 +247,7 @@ sub new {
 sub append_optgroup {
     my $self = shift;
     
-    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, @_, label_width => 300);
+    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, @_, label_width => 200);
     $self->{vsizer}->Add($optgroup, 0, wxEXPAND | wxALL, 5);
 }
 
