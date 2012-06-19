@@ -21,13 +21,17 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    $self->{options_tabs} = {};
     my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
-    $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
-    $tabpanel->AddPage($self->{options_tabs}{print} = Slic3r::GUI::Tab::Print->new($tabpanel), "Print settings");
-    $tabpanel->AddPage($self->{options_tabs}{filament} = Slic3r::GUI::Tab::Filament->new($tabpanel), "Filament settings");
-    $tabpanel->AddPage($self->{options_tabs}{printer} = Slic3r::GUI::Tab::Printer->new($tabpanel), "Printer settings");
-        
+    $tabpanel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($tabpanel), "Plater");
+    $self->{options_tabs} = {
+        print       => Slic3r::GUI::Tab::Print->new     ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{print}),
+        filament    => Slic3r::GUI::Tab::Filament->new  ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
+        printer     => Slic3r::GUI::Tab::Printer->new   ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
+    };
+    $tabpanel->AddPage($self->{options_tabs}{print},    "Print settings");
+    $tabpanel->AddPage($self->{options_tabs}{filament}, "Filament settings");
+    $tabpanel->AddPage($self->{options_tabs}{printer},  "Printer settings");
+    
     my $buttons_sizer;
     {
         $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);

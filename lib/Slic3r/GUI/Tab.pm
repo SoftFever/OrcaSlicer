@@ -9,13 +9,16 @@ use Wx qw(:sizer :progressdialog);
 use Wx::Event qw(EVT_TREE_SEL_CHANGED EVT_CHOICE EVT_BUTTON);
 use base 'Wx::Panel';
 
-my $small_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
-$small_font->SetPointSize(11);
-
 sub new {
     my $class = shift;
-    my ($parent) = @_;
+    my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], &Wx::wxBK_LEFT);
+    
+    $self->{sync_presets_with} = $params{sync_presets_with};
+    EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
+        $self->{presets_choice}->SetSelection($self->{sync_presets_with}->GetSelection);
+        $self->on_select_preset;
+    });
     
     # horizontal sizer
     $self->{sizer} = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
@@ -35,7 +38,7 @@ sub new {
         
         # choice menu
         $self->{presets_choice} = Wx::Choice->new($box, -1, [-1, -1], [-1, -1], []);
-        $self->{presets_choice}->SetFont($small_font);
+        $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
         $self->{btn_save_preset} = Wx::BitmapButton->new($box, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", &Wx::wxBITMAP_TYPE_PNG));
@@ -71,26 +74,8 @@ sub new {
     });
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
-        if (defined $self->{dirty}) {
-            # TODO: prompt user?
-            $self->set_dirty(0);
-        }
-        
-        my $i = $self->{presets_choice}->GetSelection;
-        if ($i == 0) {
-            Slic3r::Config->load_hash($Slic3r::Defaults, $self->{presets_group}, 1);
-            $self->{btn_delete_preset}->Disable;
-        } else {
-            my $file = $self->{presets}[$i-1];
-            if (!-e $file) {
-                Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($file).");
-                return;
-            }
-            Slic3r::Config->load($file, $self->{presets_group});
-            $self->{btn_delete_preset}->Enable;
-        }
-        $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks{@{$Slic3r::Config::Groups{$self->{presets_group}}}};
-        $self->set_dirty(0);
+        $self->on_select_preset;
+        $self->sync_presets;
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub {
@@ -109,9 +94,35 @@ sub new {
         $self->set_dirty(0);
         $self->load_presets;
         $self->{presets_choice}->SetSelection(1 + first { basename($self->{presets}[$_]) eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
+        $self->sync_presets;
     });
     
     return $self;
+}
+
+sub on_select_preset {
+    my $self = shift;
+    
+    if (defined $self->{dirty}) {
+        # TODO: prompt user?
+        $self->set_dirty(0);
+    }
+    
+    my $i = $self->{presets_choice}->GetSelection;
+    if ($i == 0) {
+        Slic3r::Config->load_hash($Slic3r::Defaults, $self->{presets_group}, 1);
+        $self->{btn_delete_preset}->Disable;
+    } else {
+        my $file = $self->{presets}[$i-1];
+        if (!-e $file) {
+            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($file).");
+            return;
+        }
+        Slic3r::Config->load($file, $self->{presets_group});
+        $self->{btn_delete_preset}->Enable;
+    }
+    $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks{@{$Slic3r::Config::Groups{$self->{presets_group}}}};
+    $self->set_dirty(0);
 }
 
 sub add_options_page {
@@ -120,6 +131,7 @@ sub add_options_page {
     my $icon = (ref $_[1]) ? undef : shift;
     my $page = Slic3r::GUI::Tab::Page->new($self, @_, on_change => sub {
         $self->set_dirty(1);
+        $self->sync_presets;
     });
     
     my $bitmap = $icon
@@ -156,6 +168,7 @@ sub set_dirty {
         $text =~ s/ \(modified\)$//;
         $self->{presets_choice}->SetString($i, $text);
     }
+    $self->sync_presets;
 }
 
 sub load_presets {
@@ -176,6 +189,7 @@ sub load_presets {
         $preset =~ s/\.ini$//i;
         $self->{presets_choice}->Append($preset);
     }
+    $self->sync_presets;
 }
 
 sub external_config_loaded {
@@ -194,6 +208,17 @@ sub external_config_loaded {
     $self->set_dirty(0);
     $self->{btn_save_preset}->Enable;
     $self->{btn_delete_preset}->Disable;
+    $self->sync_presets;
+}
+
+sub sync_presets {
+    my $self = shift;
+    return unless $self->{sync_presets_with};
+    $self->{sync_presets_with}->Clear;
+    foreach my $item ($self->{presets_choice}->GetStrings) {
+        $self->{sync_presets_with}->Append($item);
+    }
+    $self->{sync_presets_with}->SetSelection($self->{presets_choice}->GetSelection);
 }
 
 package Slic3r::GUI::Tab::Print;
@@ -203,8 +228,8 @@ use base 'Slic3r::GUI::Tab';
 
 sub new {
     my $class = shift;
-    my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1);
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, %params);
     
     $self->add_options_page('Layers and perimeters', 'layers.png', optgroups => [
         {
@@ -309,8 +334,8 @@ use base 'Slic3r::GUI::Tab';
 
 sub new {
     my $class = shift;
-    my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1);
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, %params);
     
     $self->add_options_page('Filament', 'spool.png', optgroups => [
         {
@@ -351,8 +376,8 @@ use base 'Slic3r::GUI::Tab';
 
 sub new {
     my $class = shift;
-    my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1);
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, %params);
     
     $self->add_options_page('General', 'printer_empty.png', optgroups => [
         {

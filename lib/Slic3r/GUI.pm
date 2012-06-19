@@ -16,6 +16,11 @@ use base 'Wx::App';
 my $growler;
 our $datadir;
 
+our $small_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
+$small_font->SetPointSize(11);
+our $medium_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
+$medium_font->SetPointSize(12);
+
 sub OnInit {
     my $self = shift;
     
