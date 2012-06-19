@@ -136,7 +136,7 @@ our $Options = {
     },
     'small_perimeter_speed' => {
         label   => 'Small perimeters (mm/s or %)',
-        cli     => 'small-perimeter-speed=f',
+        cli     => 'small-perimeter-speed=s',
         type    => 'f',
         ratio_over => 'perimeter_speed',
     },
@@ -148,14 +148,14 @@ our $Options = {
     },
     'solid_infill_speed' => {
         label   => 'Solid infill (mm/s or %)',
-        cli     => 'solid-infill-speed=f',
+        cli     => 'solid-infill-speed=s',
         type    => 'f',
         ratio_over => 'infill_speed',
         aliases => [qw(solid_infill_feed_rate)],
     },
     'top_solid_infill_speed' => {
         label   => 'Top solid infill (mm/s or %)',
-        cli     => 'top-solid-infill-speed=f',
+        cli     => 'top-solid-infill-speed=s',
         type    => 'f',
         ratio_over => 'solid_infill_speed',
     },
@@ -490,6 +490,14 @@ sub get {
     return $value;
 }
 
+sub get_raw {
+    my $class = @_ == 2 ? shift : undef;
+    my ($opt_key) = @_;
+    no strict 'refs';
+    my $value = ${"Slic3r::$opt_key"};
+    return $value;
+}
+
 sub set {
     my $class = @_ == 3 ? shift : undef;
     my ($opt_key, $value) = @_;
@@ -501,8 +509,8 @@ sub serialize {
     my $class = @_ == 2 ? shift : undef;
     my ($opt_key) = @_;
     return $Options->{$opt_key}{serialize}
-        ? $Options->{$opt_key}{serialize}->(get($opt_key))
-        : get($opt_key);
+        ? $Options->{$opt_key}{serialize}->(get_raw($opt_key))
+        : get_raw($opt_key);
 }
 
 sub deserialize {
@@ -521,7 +529,7 @@ sub save {
     binmode $fh, ':utf8';
     foreach my $opt (sort keys %$Options) {
         next if $Options->{$opt}{gui_only};
-        my $value = get($opt);
+        my $value = get_raw($opt);
         $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
         printf $fh "%s = %s\n", $opt, $value;
     }
