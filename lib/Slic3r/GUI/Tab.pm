@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
+use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:sizer :progressdialog);
 use Wx::Event qw(EVT_TREE_SEL_CHANGED EVT_CHOICE EVT_BUTTON);
@@ -80,7 +81,7 @@ sub new {
             Slic3r::Config->load_hash($Slic3r::Defaults, $self->{presets_group}, 1);
             $self->{btn_delete_preset}->Disable;
         } else {
-            my $file = "$Slic3r::GUI::datadir/$self->{presets_group}/" . $self->{presets}[$i-1];
+            my $file = $self->{presets}[$i-1];
             if (!-e $file) {
                 Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($file).");
                 return;
@@ -94,20 +95,20 @@ sub new {
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub {
         my $i = $self->{presets_choice}->GetSelection;
-        my $default = $i == 0 ? 'Untitled' : $self->{presets}[$i-1];
+        my $default = $i == 0 ? 'Untitled' : basename($self->{presets}[$i-1]);
         $default =~ s/\.ini$//i;
         
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
             default => $default,
-            values  => [ map { $_ =~ s/\.ini$//i; $_ } @{$self->{presets}} ],
+            values  => [ map { my $filename = basename($_); $filename =~ /^(.*?)\.ini$/i; $1 } @{$self->{presets}} ],
         );
-        return unless $dlg->ShowModal;
+        return unless $dlg->ShowModal == &Wx::wxID_OK;
         
         my $file = sprintf "$Slic3r::GUI::datadir/$self->{presets_group}/%s.ini", $dlg->get_name;
         Slic3r::Config->save($file, $self->{presets_group});
         $self->set_dirty(0);
         $self->load_presets;
-        $self->{presets_choice}->SetSelection(1 + first { $self->{presets}[$_] eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
+        $self->{presets_choice}->SetSelection(1 + first { basename($self->{presets}[$_]) eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
     });
     
     return $self;
@@ -171,10 +172,28 @@ sub load_presets {
     $self->{presets_choice}->Clear;
     $self->{presets_choice}->Append("- default -");
     foreach my $preset (@presets) {
-        push @{$self->{presets}}, $preset;
+        push @{$self->{presets}}, "$Slic3r::GUI::datadir/$self->{presets_group}/$preset";
         $preset =~ s/\.ini$//i;
         $self->{presets_choice}->Append($preset);
     }
+}
+
+sub external_config_loaded {
+    my $self = shift;
+    my ($file) = @_;
+    
+    # look for the loaded config among the existing menu items
+    my $i = first { $self->{presets}[$_] eq $file } 0..$#{$self->{presets}};
+    if (!$i) {
+        push @{$self->{presets}}, $file;
+        my $preset_name = basename($file); # leave the .ini suffix
+        $self->{presets_choice}->Append($preset_name);
+        $i = $#{$self->{presets}};
+    }
+    $self->{presets_choice}->SetSelection(1 + $i);
+    $self->set_dirty(0);
+    $self->{btn_save_preset}->Enable;
+    $self->{btn_delete_preset}->Disable;
 }
 
 package Slic3r::GUI::Tab::Print;
@@ -430,13 +449,12 @@ sub new {
     
     EVT_BUTTON($self, &Wx::wxID_OK, sub {
         if (($self->{chosen_name} = $combo->GetValue) && $self->{chosen_name} =~ /^[a-z0-9 _-]+$/i) {
-            $self->EndModal(1);
+            $self->EndModal(&Wx::wxID_OK);
         }
     });
     
     $self->SetSizer($sizer);
     $sizer->SetSizeHints($self);
-    $self->SetReturnCode(0);
     
     return $self;
 }

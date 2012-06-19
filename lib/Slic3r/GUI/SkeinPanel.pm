@@ -21,11 +21,12 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
+    $self->{options_tabs} = {};
     my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
-    $tabpanel->AddPage(Slic3r::GUI::Tab::Print->new($tabpanel), "Print settings");
-    $tabpanel->AddPage(Slic3r::GUI::Tab::Filament->new($tabpanel), "Filament settings");
-    $tabpanel->AddPage(Slic3r::GUI::Tab::Printer->new($tabpanel), "Printer settings");
+    $tabpanel->AddPage($self->{options_tabs}{print} = Slic3r::GUI::Tab::Print->new($tabpanel), "Print settings");
+    $tabpanel->AddPage($self->{options_tabs}{filament} = Slic3r::GUI::Tab::Filament->new($tabpanel), "Filament settings");
+    $tabpanel->AddPage($self->{options_tabs}{printer} = Slic3r::GUI::Tab::Printer->new($tabpanel), "Printer settings");
         
     my $buttons_sizer;
     {
@@ -36,7 +37,7 @@ sub new {
         $buttons_sizer->Add($slice_button, 0, wxRIGHT, 20);
         EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
-        my $save_button = Wx::Button->new($self, -1, "Save config...");
+        my $save_button = Wx::Button->new($self, -1, "Export config...");
         $buttons_sizer->Add($save_button, 0, wxRIGHT, 5);
         EVT_BUTTON($self, $save_button, sub { $self->save_config });
         
@@ -213,6 +214,7 @@ sub load_config {
         };
         Slic3r::GUI::catch_error($self);
         $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
+        $_->external_config_loaded($file) for values %{$self->{options_tabs}};
     }
     $dlg->Destroy;
 }
