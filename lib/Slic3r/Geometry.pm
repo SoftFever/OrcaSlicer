@@ -239,17 +239,23 @@ sub polygon_lines {
 
 sub nearest_point {
     my ($point, $points) = @_;
+    my $index = nearest_point_index(@_);
+    return $points->[$index];
+}
+
+sub nearest_point_index {
+    my ($point, $points) = @_;
     
-    my ($nearest_point, $distance) = ();
-    foreach my $p (@$points) {
-        my $d = distance_between_points($point, $p);
+    my ($nearest_point_index, $distance) = ();
+    for my $i (0..$#$points) {
+        my $d = distance_between_points($point, $points->[$i]);
         if (!defined $distance || $d < $distance) {
-            $nearest_point = $p;
+            $nearest_point_index = $i;
             $distance = $d;
-            return $p if $distance < epsilon;
+            return $i if $distance < epsilon;
         }
     }
-    return $nearest_point;
+    return $nearest_point_index;
 }
 
 # given a segment $p1-$p2, get the point at $distance from $p1 along segment

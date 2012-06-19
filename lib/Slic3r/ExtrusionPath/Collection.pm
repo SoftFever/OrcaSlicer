@@ -29,26 +29,19 @@ sub shortest_path {
     my @paths = ();
     my $start_at;
     my $endpoints = [ map $_->endpoints, @my_paths ];
-  CYCLE: while (@my_paths) {
+    while (@my_paths) {
         # find nearest point
-        $start_at = $start_near
-            ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, $endpoints))
-            : $self->endpoints->[0];
-        
-        # loop through paths to find the one that starts or ends at the point found
-        PATH: for (my $i = 0; $i <= $#my_paths; $i++) {
-            if ($start_at->id eq $my_paths[$i]->points->[0]->id) {
-                push @paths, splice @my_paths, $i, 1;
-            } elsif ($start_at->id eq $my_paths[$i]->points->[-1]->id) {
-                $my_paths[$i]->reverse;
-                push @paths, splice @my_paths, $i, 1;
-            } else {
-                next PATH;
-            }
-            splice @$endpoints, $i*2, 2;
-            $start_near = $paths[-1]->points->[-1];
-            next CYCLE;
+        my $start_index = $start_near
+            ? Slic3r::Geometry::nearest_point_index($start_near, $endpoints)
+            : 0;
+
+        my $path_index = int($start_index/2);
+        if ($start_index%2) { # index is end so reverse to make it the start
+            $my_paths[$path_index]->reverse;
         }
+        push @paths, splice @my_paths, $path_index, 1;
+        splice @$endpoints, $path_index*2, 2;
+        $start_near = $paths[-1]->points->[-1];
     }
     return @paths;
 }
