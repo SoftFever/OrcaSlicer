@@ -57,7 +57,7 @@ our $Options = {
     },
     'use_relative_e_distances' => {
         label   => 'Use relative E distances',
-        cli     => 'use-relative-e-distances',
+        cli     => 'use-relative-e-distances!',
         type    => 'bool',
     },
     'extrusion_axis' => {
@@ -72,17 +72,17 @@ our $Options = {
     },
     'gcode_arcs' => {
         label   => 'Use native G-code arcs',
-        cli     => 'gcode-arcs',
+        cli     => 'gcode-arcs!',
         type    => 'bool',
     },
     'g0' => {
         label   => 'Use G0 for travel moves',
-        cli     => 'g0',
+        cli     => 'g0!',
         type    => 'bool',
     },
     'gcode_comments' => {
         label   => 'Verbose G-code',
-        cli     => 'gcode-comments',
+        cli     => 'gcode-comments!',
         type    => 'bool',
     },
     
@@ -174,7 +174,7 @@ our $Options = {
     # acceleration options
     'acceleration' => {
         label   => 'Enable acceleration control',
-        cli     => 'acceleration',
+        cli     => 'acceleration!',
         type    => 'bool',
     },
     'perimeter_acceleration' => {
@@ -271,12 +271,12 @@ our $Options = {
     },
     'randomize_start' => {
         label   => 'Randomize starting points',
-        cli     => 'randomize-start',
+        cli     => 'randomize-start!',
         type    => 'bool',
     },
     'support_material' => {
         label   => 'Generate support material',
-        cli     => 'support-material',
+        cli     => 'support-material!',
         type    => 'bool',
     },
     'support_material_tool' => {
@@ -357,7 +357,7 @@ our $Options = {
     # cooling options
     'cooling' => {
         label   => 'Enable cooling',
-        cli     => 'cooling',
+        cli     => 'cooling!',
         type    => 'bool',
     },
     'min_fan_speed' => {
@@ -397,7 +397,7 @@ our $Options = {
     },
     'fan_always_on' => {
         label   => 'Keep fan always on',
-        cli     => 'fan-always-on',
+        cli     => 'fan-always-on!',
         type    => 'bool',
     },
     
@@ -465,7 +465,7 @@ our $Options = {
     # sequential printing options
     'complete_objects' => {
         label   => 'Complete individual objects (watch out for extruder collisions)',
-        cli     => 'complete-objects',
+        cli     => 'complete-objects!',
         type    => 'bool',
     },
     'extruder_clearance_radius' => {
