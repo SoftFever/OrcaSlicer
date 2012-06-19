@@ -94,6 +94,7 @@ sub new {
         $self->set_dirty(0);
         $self->load_presets;
         $self->{presets_choice}->SetSelection(1 + first { basename($self->{presets}[$_]) eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
+        $self->on_select_preset;
         $self->sync_presets;
     });
     
@@ -124,11 +125,12 @@ sub on_select_preset {
     }
     
     my $i = $self->{presets_choice}->GetSelection;
+    my $file;
     if ($i == 0) {
         Slic3r::Config->load_hash($Slic3r::Defaults, $self->{presets_group}, 1);
         $self->{btn_delete_preset}->Disable;
     } else {
-        my $file = $self->{presets}[$i-1];
+        $file = $self->{presets}[$i-1];
         if (!-e $file) {
             Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($file).");
             return;
@@ -138,6 +140,8 @@ sub on_select_preset {
     }
     $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks{@{$Slic3r::Config::Groups{$self->{presets_group}}}};
     $self->set_dirty(0);
+    $Slic3r::Settings->{presets}{$self->{presets_group}} = $file ? basename($file) : '';
+    Slic3r::Config->save_settings("$Slic3r::GUI::datadir/slic3r.ini");
 }
 
 sub add_options_page {
@@ -203,6 +207,13 @@ sub load_presets {
         push @{$self->{presets}}, "$Slic3r::GUI::datadir/$self->{presets_group}/$preset";
         $preset =~ s/\.ini$//i;
         $self->{presets_choice}->Append($preset);
+    }
+    {
+        my $i = first { basename($self->{presets}[$_]) eq ($Slic3r::Settings->{presets}{$self->{presets_group}} || '') } 0 .. $#{$self->{presets}};
+        if (defined $i) {
+            $self->{presets_choice}->SetSelection($i + 1);
+            $self->on_select_preset;
+        }
     }
     $self->sync_presets;
 }

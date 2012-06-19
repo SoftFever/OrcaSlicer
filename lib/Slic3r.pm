@@ -169,6 +169,7 @@ our $extruder_clearance_radius  = 20;     # mm
 our $extruder_clearance_height  = 20;     # mm
 
 our $Defaults = Slic3r::Config->current;
+our $Settings = { presets => {} };  # application settings
 
 sub parallelize {
     my %params = @_;

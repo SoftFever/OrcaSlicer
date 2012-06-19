@@ -655,20 +655,41 @@ sub deserialize {
         : set($opt_key, $value);
 }
 
+sub write_ini {
+    my $class = shift;
+    my ($file, $ini) = @_;
+    
+    open my $fh, '>', $file;
+    binmode $fh, ':utf8';
+    foreach my $category (sort keys %$ini) {
+        printf $fh "\n[%s]\n", $category if $category ne '_';
+        foreach my $key (sort keys %{$ini->{$category}}) {
+            printf $fh "%s = %s\n", $key, $ini->{$category}{$key};
+        }
+    }
+    close $fh;
+}
+
 sub save {
     my $class = shift;
     my ($file, $group) = @_;
     
-    open my $fh, '>', $file;
-    binmode $fh, ':utf8';
+    my $ini = { _ => {} };
     foreach my $opt (sort keys %$Options) {
         next if defined $group && not ($opt ~~ @{$Groups{$group}});
         next if $Options->{$opt}{gui_only};
         my $value = get($opt);
         $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
-        printf $fh "%s = %s\n", $opt, $value;
+        $ini->{_}{$opt} = $value;
     }
-    close $fh;
+    $class->write_ini($file, $ini);
+}
+
+sub save_settings {
+    my $class = shift;
+    my ($file) = @_;
+    
+    $class->write_ini($file, $Slic3r::Settings);
 }
 
 sub setenv {
@@ -701,6 +722,10 @@ sub read_ini {
         next if /^\s+/;
         next if /^$/;
         next if /^\s*#/;
+        if (/^\[(\w+)\]$/) {
+            $category = $1;
+            next;
+        }
         /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
         $ini->{$category}{$1} = $2;
     }

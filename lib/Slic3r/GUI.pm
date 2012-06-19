@@ -42,6 +42,12 @@ sub OnInit {
             unless -d $_;
     }
     
+    # load settings
+    if (-f "$datadir/slic3r.ini") {
+        my $ini = eval { Slic3r::Config->read_ini("$datadir/slic3r.ini") };
+        $Slic3r::Settings = $ini if $ini;
+    }
+    
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,500], wxDEFAULT_FRAME_STYLE);
