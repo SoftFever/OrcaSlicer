@@ -28,9 +28,9 @@ sub shortest_path {
     $_->deserialize for @my_paths;
     my @paths = ();
     my $start_at;
-    CYCLE: while (@my_paths) {
+    my $endpoints = [ map $_->endpoints, @my_paths ];
+  CYCLE: while (@my_paths) {
         # find nearest point
-        my $endpoints = [ map $_->endpoints, @my_paths ];
         $start_at = $start_near
             ? Slic3r::Point->new(Slic3r::Geometry::nearest_point($start_near, $endpoints))
             : $self->endpoints->[0];
@@ -45,6 +45,7 @@ sub shortest_path {
             } else {
                 next PATH;
             }
+            splice @$endpoints, $i*2, 2;
             $start_near = $paths[-1]->points->[-1];
             next CYCLE;
         }
