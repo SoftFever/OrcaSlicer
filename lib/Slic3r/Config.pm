@@ -136,7 +136,7 @@ our $Options = {
     },
     'small_perimeter_speed' => {
         label   => 'Small perimeters (mm/s or %)',
-        cli     => 'small-perimeter-speed=f',
+        cli     => 'small-perimeter-speed=s',
         type    => 'f',
         ratio_over => 'perimeter_speed',
     },
@@ -148,14 +148,14 @@ our $Options = {
     },
     'solid_infill_speed' => {
         label   => 'Solid infill (mm/s or %)',
-        cli     => 'solid-infill-speed=f',
+        cli     => 'solid-infill-speed=s',
         type    => 'f',
         ratio_over => 'infill_speed',
         aliases => [qw(solid_infill_feed_rate)],
     },
     'top_solid_infill_speed' => {
         label   => 'Top solid infill (mm/s or %)',
-        cli     => 'top-solid-infill-speed=f',
+        cli     => 'top-solid-infill-speed=s',
         type    => 'f',
         ratio_over => 'solid_infill_speed',
     },
