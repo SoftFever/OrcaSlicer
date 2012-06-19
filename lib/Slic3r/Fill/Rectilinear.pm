@@ -62,7 +62,7 @@ sub fill_surface {
         );
         @paths = ();
         
-        my $tolerance = scale epsilon;
+        my $tolerance = 10 * scale epsilon;
         my $diagonal_distance = $distance_between_lines * 5;
         my $can_connect = $is_line_pattern
             ? sub {
