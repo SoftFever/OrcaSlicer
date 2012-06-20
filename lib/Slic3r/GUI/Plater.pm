@@ -206,9 +206,9 @@ sub new {
         $self->{preset_choosers} = {};
         for my $group (qw(print filament printer)) {
             my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", [-1, -1], [-1, -1], wxALIGN_RIGHT);
-            $self->{preset_choosers}{$group} = Wx::Choice->new($self, -1, [-1, -1], [-1, -1], []);
-            $presets->Add($text, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-            $presets->Add($self->{preset_choosers}{$group}, 2, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+            $self->{preset_choosers}{$group} = Wx::Choice->new($self, -1, [-1, -1], [150, -1], []);
+            $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+            $presets->Add($self->{preset_choosers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
         }
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
