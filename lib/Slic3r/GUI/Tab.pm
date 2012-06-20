@@ -33,23 +33,26 @@ sub new {
     
     # preset chooser
     {
-        my $box = Wx::StaticBox->new($self, -1, "Presets:", [-1, -1], [$left_col_width, 50]);
-        $left_sizer->Add($box, 0, &Wx::wxEXPAND | &Wx::wxBOTTOM, 5);
         
         # choice menu
-        $self->{presets_choice} = Wx::Choice->new($box, -1, [-1, -1], [-1, -1], []);
+        $self->{presets_choice} = Wx::Choice->new($self, -1, [-1, -1], [-1, -1], []);
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
-        $self->{btn_save_preset} = Wx::BitmapButton->new($box, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_delete_preset} = Wx::BitmapButton->new($box, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
         $self->{btn_save_preset}->SetToolTipString("Save current settings");
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_save_preset}->Disable;
         $self->{btn_delete_preset}->Disable;
         
+        ### These cause GTK warnings:
+        ###my $box = Wx::StaticBox->new($self, -1, "Presets:", [-1, -1], [$left_col_width, 50]);
+        ###my $hsizer = Wx::StaticBoxSizer->new($box, &Wx::wxHORIZONTAL);
+        
         my $hsizer = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
-        $box->SetSizer($hsizer);
+        
+        $left_sizer->Add($hsizer, 0, &Wx::wxEXPAND | &Wx::wxBOTTOM, 5);
         $hsizer->Add($self->{presets_choice}, 1, &Wx::wxRIGHT | &Wx::wxALIGN_CENTER_VERTICAL, 3);
         $hsizer->Add($self->{btn_save_preset}, 0, &Wx::wxALIGN_CENTER_VERTICAL);
         $hsizer->Add($self->{btn_delete_preset}, 0, &Wx::wxALIGN_CENTER_VERTICAL);
