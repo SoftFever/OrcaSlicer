@@ -17,7 +17,7 @@ my $growler;
 our $datadir;
 
 our $small_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
-$small_font->SetPointSize(11);
+$small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $medium_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
 

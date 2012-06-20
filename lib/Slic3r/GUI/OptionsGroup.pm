@@ -26,7 +26,6 @@ sub new {
     my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
     my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $sidetext_font->SetPointSize(12);
     
     my $onChange = $p{on_change} || sub {};
     

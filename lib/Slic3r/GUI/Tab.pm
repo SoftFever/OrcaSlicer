@@ -183,12 +183,14 @@ sub set_dirty {
         $self->{btn_save_preset}->Enable;
         if ($text !~ / \(modified\)$/) {
             $self->{presets_choice}->SetString($i, "$text (modified)");
+            $self->{presets_choice}->SetSelection($i);  # wxMSW needs this after every SetString()
         }
     } else {
         $self->{dirty} = undef;
         $self->{btn_save_preset}->Disable;
         $text =~ s/ \(modified\)$//;
         $self->{presets_choice}->SetString($i, $text);
+        $self->{presets_choice}->SetSelection($i);  # wxMSW needs this after every SetString()
     }
     $self->sync_presets;
 }
