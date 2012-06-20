@@ -50,7 +50,7 @@ sub OnInit {
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
-    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,500], wxDEFAULT_FRAME_STYLE);
+    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,520], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG) );
     my $panel = Slic3r::GUI::SkeinPanel->new($frame);
 

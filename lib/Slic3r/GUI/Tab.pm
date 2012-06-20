@@ -213,10 +213,8 @@ sub load_presets {
     }
     {
         my $i = first { basename($self->{presets}[$_]) eq ($Slic3r::Settings->{presets}{$self->{presets_group}} || '') } 0 .. $#{$self->{presets}};
-        if (defined $i) {
-            $self->{presets_choice}->SetSelection($i + 1);
-            $self->on_select_preset;
-        }
+        $self->{presets_choice}->SetSelection(defined $i ? $i + 1 : 0);
+        $self->on_select_preset;
     }
     $self->sync_presets;
 }
