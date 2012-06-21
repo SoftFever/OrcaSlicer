@@ -63,7 +63,7 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(1, "Save Config…");
+        $fileMenu->Append(1, "Export Config…");
         $fileMenu->Append(2, "Open Config…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(3, "Slice…");
