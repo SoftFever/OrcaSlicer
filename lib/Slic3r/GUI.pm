@@ -37,6 +37,7 @@ sub OnInit {
     
     # locate or create data directory
     $datadir = Wx::StandardPaths::Get->GetUserDataDir;
+    Slic3r::debugf "Data directory: %s\n", $datadir;
     for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
         mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
             unless -d $_;
