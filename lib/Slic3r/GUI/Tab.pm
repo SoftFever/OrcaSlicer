@@ -43,7 +43,6 @@ sub new {
         $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
         $self->{btn_save_preset}->SetToolTipString("Save current settings");
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
-        $self->{btn_save_preset}->Disable;
         $self->{btn_delete_preset}->Disable;
         
         ### These cause GTK warnings:
@@ -180,14 +179,12 @@ sub set_dirty {
         
     if ($dirty) {
         $self->{dirty} = $i;
-        $self->{btn_save_preset}->Enable;
         if ($text !~ / \(modified\)$/) {
             $self->{presets_choice}->SetString($i, "$text (modified)");
             $self->{presets_choice}->SetSelection($i);  # wxMSW needs this after every SetString()
         }
     } else {
         $self->{dirty} = undef;
-        $self->{btn_save_preset}->Disable;
         $text =~ s/ \(modified\)$//;
         $self->{presets_choice}->SetString($i, $text);
         $self->{presets_choice}->SetSelection($i);  # wxMSW needs this after every SetString()
@@ -235,7 +232,6 @@ sub external_config_loaded {
     }
     $self->{presets_choice}->SetSelection(1 + $i);
     $self->set_dirty(0);
-    $self->{btn_save_preset}->Enable;
     $self->{btn_delete_preset}->Disable;
     $self->sync_presets;
 }
