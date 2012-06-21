@@ -480,7 +480,7 @@ sub append_optgroup {
 
 package Slic3r::GUI::SavePresetWindow;
 use Wx qw(:sizer);
-use Wx::Event qw(EVT_BUTTON);
+use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
 use base 'Wx::Dialog';
 
 sub new {
@@ -489,24 +489,30 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, "Save preset", [-1, -1], [-1, -1]);
     
     my $text = Wx::StaticText->new($self, -1, "Save settings as:", [-1, -1], [-1, -1]);
-    my $combo = Wx::ComboBox->new($self, -1, $params{default}, [-1, -1], [-1, -1], $params{values});
+    $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, [-1, -1], [-1, -1], $params{values},
+                                       &Wx::wxTE_PROCESS_ENTER);
     my $buttons = $self->CreateStdDialogButtonSizer(&Wx::wxOK | &Wx::wxCANCEL);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($text, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
-    $sizer->Add($combo, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
+    $sizer->Add($self->{combo}, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
     $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     
-    EVT_BUTTON($self, &Wx::wxID_OK, sub {
-        if (($self->{chosen_name} = $combo->GetValue) && $self->{chosen_name} =~ /^[a-z0-9 _-]+$/i) {
-            $self->EndModal(&Wx::wxID_OK);
-        }
-    });
+    EVT_BUTTON($self, &Wx::wxID_OK, \&accept);
+    EVT_TEXT_ENTER($self, $self->{combo}, \&accept);
     
     $self->SetSizer($sizer);
     $sizer->SetSizeHints($self);
     
     return $self;
+}
+
+sub accept {
+    my ($self, $event) = @_;
+
+    if (($self->{chosen_name} = $self->{combo}->GetValue) && $self->{chosen_name} =~ /^[a-z0-9 _-]+$/i) {
+        $self->EndModal(&Wx::wxID_OK);
+    }
 }
 
 sub get_name {
