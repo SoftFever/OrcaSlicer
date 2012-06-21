@@ -632,6 +632,14 @@ sub get {
     return $value;
 }
 
+sub get_raw {
+    my $class = @_ == 2 ? shift : undef;
+    my ($opt_key) = @_;
+    no strict 'refs';
+    my $value = ${"Slic3r::$opt_key"};
+    return $value;
+}
+
 sub set {
     my $class = @_ == 3 ? shift : undef;
     my ($opt_key, $value) = @_;
@@ -643,8 +651,8 @@ sub serialize {
     my $class = @_ == 2 ? shift : undef;
     my ($opt_key) = @_;
     return $Options->{$opt_key}{serialize}
-        ? $Options->{$opt_key}{serialize}->(get($opt_key))
-        : get($opt_key);
+        ? $Options->{$opt_key}{serialize}->(get_raw($opt_key))
+        : get_raw($opt_key);
 }
 
 sub deserialize {
@@ -678,7 +686,7 @@ sub save {
     foreach my $opt (sort keys %$Options) {
         next if defined $group && not ($opt ~~ @{$Groups{$group}});
         next if $Options->{$opt}{gui_only};
-        my $value = get($opt);
+        my $value = get_raw($opt);
         $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
         $ini->{_}{$opt} = $value;
     }
@@ -704,7 +712,7 @@ sub setenv {
 
 sub current {
     my $class = shift;
-    return { map +($_ => get($_)), sort keys %$Options };
+    return { map +($_ => get_raw($_)), sort keys %$Options };
 }
 
 sub read_ini {

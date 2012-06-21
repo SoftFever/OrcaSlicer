@@ -48,7 +48,7 @@ sub new {
             $style = &Wx::wxTE_MULTILINE if $opt->{multiline};
             my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             
-            my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get set);
+            my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get_raw set);
             
             if ($opt->{type} eq 'i') {
                 my $value = Slic3r::Config->$get($opt_key);
@@ -61,13 +61,13 @@ sub new {
             $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
         } elsif ($opt->{type} eq 'bool') {
             $field = Wx::CheckBox->new($parent, -1, "");
-            $field->SetValue(Slic3r::Config->get($opt_key));
+            $field->SetValue(Slic3r::Config->get_raw($opt_key));
             EVT_CHECKBOX($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue); $onChange->($opt_key) });
-            $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->get($opt_key)) };
+            $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->get_raw($opt_key)) };
         } elsif ($opt->{type} eq 'point') {
             $field = Wx::BoxSizer->new(wxHORIZONTAL);
             my $field_size = Wx::Size->new(40, -1);
-            my $value = Slic3r::Config->get($opt_key);
+            my $value = Slic3r::Config->get_raw($opt_key);
             my @items = (
                 Wx::StaticText->new($parent, -1, "x:"),
                 my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], Wx::wxDefaultPosition, $field_size),
@@ -80,14 +80,14 @@ sub new {
             }
             my $set_value = sub {
                 my ($i, $value) = @_;
-                my $val = Slic3r::Config->get($opt_key);
+                my $val = Slic3r::Config->get_raw($opt_key);
                 $val->[$i] = $value;
                 Slic3r::Config->set($opt_key, $val);
             };
             EVT_TEXT($parent, $x_field, sub { $set_value->(0, $x_field->GetValue); $onChange->($opt_key) });
             EVT_TEXT($parent, $y_field, sub { $set_value->(1, $y_field->GetValue); $onChange->($opt_key) });
             $reload_callbacks{$opt_key} = sub {
-                my $value = Slic3r::Config->get($opt_key);
+                my $value = Slic3r::Config->get_raw($opt_key);
                 $x_field->SetValue($value->[0]);
                 $y_field->SetValue($value->[1]);
             };
@@ -99,7 +99,7 @@ sub new {
                 $onChange->($opt_key);
             });
             $reload_callbacks{$opt_key} = sub {
-                my $value = Slic3r::Config->get($opt_key);
+                my $value = Slic3r::Config->get_raw($opt_key);
                 $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
             };
             $reload_callbacks{$opt_key}->();
