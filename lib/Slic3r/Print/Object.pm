@@ -486,49 +486,66 @@ sub generate_support_material {
     my $self = shift;
     my %params = @_;
     
-    my $distance_from_object = 3; # mm
+    my $distance_from_object    = scale $Slic3r::flow->width;
+    my $extra_margin            = scale 1;
     
     # determine unsupported surfaces
-    my %layers = ();
     my @unsupported_expolygons = ();
+    
+    # determine support regions in each layer (for upper layers)
+    Slic3r::debugf "Detecting regions\n";
+    my %layers = ();
     {
-        my (@a, @b) = ();
+        my @current_support_regions = ();   # expolygons we've started to support (i.e. below the empty interface layers)
+        my @queue = ();                     # the number of items of this array determines the number of empty interface layers
         for my $i (reverse 0 .. $#{$self->layers}) {
             my $layer = $self->layers->[$i];
-            my @c = ();
-            if (@b) {
-                @c = @{diff_ex(
-                    [ map @$_, @b ],
-                    [ map @$_, map $_->expolygon->offset_ex(scale $distance_from_object), @{$layer->slices} ],
+            my $upper_layer = $i < $#{$self->layers} ? $self->layers->[$i+1] : undef;
+            
+            # step 1: generate support material in current layer (for upper layers)
+            push @current_support_regions, @{ shift @queue } if @queue && $i < $#{$self->layers};
+            @current_support_regions = @{diff_ex(
+                [ map @$_, @current_support_regions ],
+                [ map @$_, map $_->expolygon->offset_ex($distance_from_object), @{$layer->slices} ],
+            )};
+            
+            $layers{$i} = [@current_support_regions];
+            
+            # step 2: get layer overhangs and put them into queue for adding support inside lower layers
+            # we need an angle threshold for this
+            my @overhangs = ();
+            if ($upper_layer) {
+                @overhangs = @{diff_ex(
+                    [ map @$_, map $_->expolygon->offset_ex($extra_margin), @{$upper_layer->slices} ],
+                    [ map @{$_->expolygon}, @{$layer->slices} ],
+                    1,
                 )};
-                $layers{$i} = [@c];
             }
-            @b = @{union_ex([ map @$_, @c, @a ])};
             
             # get unsupported surfaces for current layer as all bottom slices
             # minus the bridges offsetted to cover their perimeters.
             # actually, we are marking as bridges more than we should be, so 
             # better build support material for bridges too rather than ignoring
             # those parts. a visibility check algorithm is needed.
-            # @a = @{diff_ex(
-            #     [ map $_->p, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices} ],
+            # @overhangs = @{diff_ex(
+            #     [ map @$_, @overhangs ],
             #     [ map @$_, map $_->expolygon->offset_ex(scale $layer->flow->spacing * $Slic3r::perimeters),
             #         grep $_->surface_type == S_TYPE_BOTTOM && defined $_->bridge_angle,
             #         @{$layer->fill_surfaces} ],
             # )};
-            @a = map $_->expolygon->clone, grep $_->surface_type == S_TYPE_BOTTOM, @{$layer->slices};
+            push @queue, [ map $_->clone, @overhangs ];
             
-            $_->simplify(scale $layer->flow->spacing * 3) for @a;
-            push @unsupported_expolygons, @a;
+            $_->simplify(scale $layer->flow->spacing * 3) for @{ $queue[-1] };
+            push @unsupported_expolygons, @{ $queue[-1] };
         }
     }
     return if !@unsupported_expolygons;
     
     # generate paths for the pattern that we're going to use
+    Slic3r::debugf "Generating patterns\n";
     my $support_patterns = [];
     {
-        my @support_material_areas = map $_->offset_ex(scale 5),
-            @{union_ex([ map @$_, @unsupported_expolygons ])};
+        my @support_material_areas = @{union_ex([ map @$_, @unsupported_expolygons ])};
         
         my $fill = Slic3r::Fill->new(print => $params{print});
         foreach my $layer (map $self->layers->[$_], 0,1,2) {  # ugly hack
@@ -556,16 +573,18 @@ sub generate_support_material {
             $_->deserialize for @patterns;
             push @$support_patterns, [@patterns];
         }
-    }
     
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(undef, "support.svg",
-            polylines        => [ map $_->polyline, map @$_, @$support_patterns ],
-        );
+        if (0) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output(undef, "support_$_.svg",
+                polylines        => [ map $_->polyline, map @$_, $support_patterns->[$_] ],
+                polygons         => [ map @$_, @support_material_areas ],
+            ) for (0,1,2);
+        }
     }
     
     # apply the pattern to layers
+    Slic3r::debugf "Applying patterns\n";
     {
         my $clip_pattern = sub {
             my ($layer_id, $expolygons) = @_;
