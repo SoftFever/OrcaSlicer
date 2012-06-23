@@ -221,6 +221,10 @@ sub export_gcode {
     $status_cb->(20, "Generating perimeters");
     $_->make_perimeters for @{$self->objects};
     
+    # simplify slices, we only need the max resolution for perimeters
+    $_->simplify(scale $Slic3r::resolution)
+        for map @{$_->expolygon}, map @{$_->slices}, map @{$_->layers}, @{$self->objects};
+    
     # this will clip $layer->surfaces to the infill boundaries 
     # and split them in top/bottom/internal surfaces;
     $status_cb->(30, "Detecting solid surfaces");

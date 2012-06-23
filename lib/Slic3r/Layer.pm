@@ -4,7 +4,7 @@ use Moo;
 use Math::Clipper ':all';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale collinear X Y A B PI rad2deg_dir bounding_box_center shortest_path);
-use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex xor_ex is_counter_clockwise);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex xor_ex is_counter_clockwise);
 use Slic3r::Surface ':types';
 
 # a sequential number of layer, starting at 0
@@ -138,8 +138,7 @@ sub make_surfaces {
     
     {
         # merge everything
-        my $expolygons = union_ex($loops);
-        $_->simplify(scale $Slic3r::resolution) for @$expolygons;
+        my $expolygons = union_ex(safety_offset($loops, scale 0.1));
         
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
@@ -273,6 +272,7 @@ sub make_perimeters {
         # create one more offset to be used as boundary for fill
         {
             my @fill_boundaries = map $_->offset_ex(-$distance), @last_offsets;
+            $_->simplify(scale $Slic3r::resolution) for @fill_boundaries;
             push @{ $self->fill_boundaries }, @fill_boundaries;
             
             # detect the small gaps that we need to treat like thin polygons,

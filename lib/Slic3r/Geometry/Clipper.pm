@@ -23,8 +23,8 @@ sub explode_expolygons {
 }
 
 sub safety_offset {
-    my ($polygons) = @_;
-    return Math::Clipper::offset($polygons, scale 1e-05, 100, JT_MITER, 2);
+    my ($polygons, $factor) = @_;
+    return Math::Clipper::offset($polygons, $factor || (scale 1e-05), 100, JT_MITER, 2);
 }
 
 sub diff_ex {
