@@ -646,7 +646,7 @@ sub validate {
     # calculate flow
     $Slic3r::flow->calculate($Slic3r::extrusion_width);
     if ($Slic3r::first_layer_extrusion_width) {
-        $Slic3r::first_layer_flow = Slic3r::Flow->new;
+        $Slic3r::first_layer_flow = Slic3r::Flow->new(layer_height => $Slic3r::_first_layer_height);
         $Slic3r::first_layer_flow->calculate($Slic3r::first_layer_extrusion_width);
     }
     $Slic3r::perimeters_flow->calculate($Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
