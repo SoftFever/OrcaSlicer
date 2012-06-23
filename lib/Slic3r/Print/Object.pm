@@ -2,7 +2,7 @@ package Slic3r::Print::Object;
 use Moo;
 
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale unscale);
+use Slic3r::Geometry qw(scale unscale deg2rad);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
 use Slic3r::Surface ':types';
 
@@ -488,9 +488,10 @@ sub generate_support_material {
     my $self = shift;
     my %params = @_;
     
+    my $threshold_rad           = deg2rad($Slic3r::support_material_threshold + 1);   # +1 makes the threshold inclusive
+    my $overhang_width          = $threshold_rad == 0 ? undef : scale $Slic3r::layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
     my $distance_from_object    = scale $Slic3r::flow->width;
-    my $extra_margin            = scale 1;
-    
+    printf "width = %s\n", unscale $overhang_width;
     # determine unsupported surfaces
     my @unsupported_expolygons = ();
     
@@ -517,8 +518,8 @@ sub generate_support_material {
             # we need an angle threshold for this
             my @overhangs = ();
             if ($upper_layer) {
-                @overhangs = @{diff_ex(
-                    [ map @$_, map $_->expolygon->offset_ex($extra_margin), @{$upper_layer->slices} ],
+                @overhangs = map $_->offset_ex(2 * $overhang_width), @{diff_ex(
+                    [ map @$_, map $_->expolygon->offset_ex(-$overhang_width), @{$upper_layer->slices} ],
                     [ map @{$_->expolygon}, @{$layer->slices} ],
                     1,
                 )};
@@ -547,8 +548,9 @@ sub generate_support_material {
     Slic3r::debugf "Generating patterns\n";
     my $support_patterns = [];  # in case we want cross-hatching
     {
+        # 0.5 makes sure the paths don't get clipped externally when applying them to layers
         my @support_material_areas = map $_->offset_ex(- 0.5 * scale $Slic3r::flow->width),
-            @{union_ex([ map @$_, @unsupported_expolygons ])};
+            @{union_ex([ map $_->contour, @unsupported_expolygons ])};
         
         my $fill = Slic3r::Fill->new(print => $params{print});
         my $filler = $fill->filler($Slic3r::support_material_pattern);

@@ -123,6 +123,7 @@ our $fill_angle         = 45;
 our $extra_perimeters   = 1;
 our $randomize_start    = 1;
 our $support_material   = 0;
+our $support_material_threshold = 45;
 our $support_material_pattern = 'rectilinear';
 our $support_material_angle = 0;
 our $support_material_tool = 0;

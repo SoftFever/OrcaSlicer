@@ -284,6 +284,11 @@ our $Options = {
         cli     => 'support-material!',
         type    => 'bool',
     },
+    'support_material_threshold' => {
+        label   => 'Overhang threshold (°)',
+        cli     => 'support-material-threshold=i',
+        type    => 'i',
+    },
     'support_material_pattern' => {
         label   => 'Pattern',
         cli     => 'support-material-pattern=s',
@@ -292,7 +297,7 @@ our $Options = {
         labels  => [qw(rectilinear honeycomb)],
     },
     'support_material_angle' => {
-        label   => 'Angle (°)',
+        label   => 'Pattern angle (°)',
         cli     => 'support-material-angle=i',
         type    => 'i',
     },

@@ -209,6 +209,8 @@ $j
   
    Support material options:
     --support-material  Generate support material for overhangs
+    --support-material-threshold
+                        Overhang threshold angle (range: 0-90, default: $Slic3r::support_material_threshold)
     --support-material-pattern
                         Pattern to use for support material (default: $Slic3r::support_material_pattern)
     --support-material-angle

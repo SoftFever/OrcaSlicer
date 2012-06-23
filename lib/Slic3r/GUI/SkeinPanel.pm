@@ -86,7 +86,7 @@ sub new {
         },
         support_material => {
             title => 'Support material',
-            options => [qw(support_material support_material_tool)],
+            options => [qw(support_material support_material_threshold support_material_pattern support_material_angle support_material_tool)],
         },
     );
     $self->{panels} = \%panels;

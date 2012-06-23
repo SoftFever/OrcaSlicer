@@ -164,9 +164,11 @@ The author is Alessandro Ranellucci.
       
        Support material options:
         --support-material  Generate support material for overhangs
+        --support-material-threshold
+                            Overhang threshold angle (range: 0-90, default: 45)
         --support-material-pattern
                             Pattern to use for support material (default: rectilinear)
-       --support-material-angle
+        --support-material-angle
                             Support material angle in degrees (range: 0-90, default: 0)
       
        Retraction options:
