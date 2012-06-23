@@ -443,7 +443,7 @@ sub make_skirt {
             role => EXTR_ROLE_SKIRT,
         );
     }
-    push @{$self->skirt}, @skirt;
+    unshift @{$self->skirt}, @skirt;
 }
 
 sub write_gcode {
