@@ -422,9 +422,9 @@ our $Options = {
         cli     => 'skirt-height=i',
         type    => 'i',
     },
-    'brim_thickness' => {
-        label   => 'Brim thickness (mm)',
-        cli     => 'brim-thickness=f',
+    'brim_width' => {
+        label   => 'Brim width (mm)',
+        cli     => 'brim-width=f',
         type    => 'f',
     },
     

@@ -461,7 +461,7 @@ sub make_skirt {
 
 sub make_brim {
     my $self = shift;
-    return unless $Slic3r::brim_thickness > 0;
+    return unless $Slic3r::brim_width > 0;
     
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
@@ -472,7 +472,7 @@ sub make_brim {
     }
     
     my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
-    my $num_loops = sprintf "%.0f", $Slic3r::brim_thickness / $flow->width;
+    my $num_loops = sprintf "%.0f", $Slic3r::brim_width / $flow->width;
     for my $i (reverse 1 .. $num_loops) {
         push @{$self->brim}, Slic3r::ExtrusionLoop->new(
             polygon => Slic3r::Polygon->new($_),
@@ -567,7 +567,7 @@ sub write_gcode {
             $extruder->shift_y($shift[Y]);
             $gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
             # skip skirt if we have a large brim
-            if ($layer_id < $Slic3r::skirt_height && ($layer_id != 0 || $Slic3r::skirt_distance + ($Slic3r::skirts * $Slic3r::flow->width) > $Slic3r::brim_thickness)) {
+            if ($layer_id < $Slic3r::skirt_height && ($layer_id != 0 || $Slic3r::skirt_distance + ($Slic3r::skirts * $Slic3r::flow->width) > $Slic3r::brim_width)) {
                 $gcode .= $extruder->extrude_loop($_, 'skirt') for @{$self->skirt};
             }
             $skirt_done++;

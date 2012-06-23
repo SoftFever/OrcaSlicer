@@ -154,7 +154,7 @@ our $fan_always_on          = 0;
 our $skirts             = 1;
 our $skirt_distance     = 6;    # mm
 our $skirt_height       = 1;    # layers
-our $brim_thickness     = 0;    # mm
+our $brim_width         = 0;    # mm
 
 # transform options
 our $scale              = 1;

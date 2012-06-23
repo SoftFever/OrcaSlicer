@@ -57,7 +57,7 @@ sub new {
         },
         skirt => {
             title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height brim_thickness)],
+            options => [qw(skirts skirt_distance skirt_height brim_width)],
         },
         gcode => {
             title => 'G-code',

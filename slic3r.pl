@@ -238,8 +238,8 @@ $j
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $Slic3r::skirt_distance)
     --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: $Slic3r::skirt_height)
-    --brim-thickness    Thickness of the brim that will get added to each object to help adhesion
-                        (mm, default: $Slic3r::brim_thickness)
+    --brim-width        Width of the brim that will get added to each object to help adhesion
+                        (mm, default: $Slic3r::brim_width)
    
    Transform options:
     --scale             Factor for scaling input object (default: $Slic3r::scale)
