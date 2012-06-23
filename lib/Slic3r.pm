@@ -24,7 +24,7 @@ BEGIN {
 use FindBin;
 our $var = "$FindBin::Bin/var";
 
-use Moo;
+use Moo 0.091009;
 use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::Extruder;
