@@ -170,53 +170,55 @@ sub make_perimeters {
     # one additional inner perimeter, like the top of domed objects-
     
     # this algorithm makes sure that almost one perimeter is overlapping
-    for my $layer_id (0 .. $self->layer_count-2) {
-        my $layer = $self->layers->[$layer_id];
-        my $upper_layer = $self->layers->[$layer_id+1];
-        
-        my $overlap = $layer->perimeters_flow->spacing;  # one perimeter
-        
-        # compute polygons representing the thickness of the first external perimeter of
-        # the upper layer slices
-        my $upper = diff_ex(
-            [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * scale $layer->perimeters_flow->spacing), @{$upper_layer->slices} ],
-            [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * scale $layer->perimeters_flow->spacing)), @{$upper_layer->slices} ],
-        );
-        next if !@$upper;
-        
-        # we need to limit our detection to the areas which would actually benefit from 
-        # more perimeters. so, let's compute the area we want to ignore
-        my $ignore = [];
-        {
-            my $diff = diff_ex(
-                [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::perimeters-0.5) * scale $layer->perimeters_flow->spacing), @{$layer->slices} ],
-                [ map @{$_->expolygon}, @{$upper_layer->slices} ],
+    if ($Slic3r::extra_perimeters && $Slic3r::perimeters > 0) {
+        for my $layer_id (0 .. $self->layer_count-2) {
+            my $layer = $self->layers->[$layer_id];
+            my $upper_layer = $self->layers->[$layer_id+1];
+            
+            my $overlap = $layer->perimeters_flow->spacing;  # one perimeter
+            
+            # compute polygons representing the thickness of the first external perimeter of
+            # the upper layer slices
+            my $upper = diff_ex(
+                [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * scale $layer->perimeters_flow->spacing), @{$upper_layer->slices} ],
+                [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * scale $layer->perimeters_flow->spacing)), @{$upper_layer->slices} ],
             );
-            $ignore = [ map @$_, map $_->offset_ex(scale $layer->perimeters_flow->spacing), @$diff ];
-        }
-        
-        foreach my $slice (@{$layer->slices}) {
-            my $hypothetical_perimeter_num = $Slic3r::perimeters + 1;
-            CYCLE: while (1) {
-                # compute polygons representing the thickness of the hypotetical new internal perimeter
-                # of our slice
-                my $hypothetical_perimeter;
-                {
-                    my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * scale $layer->perimeters_flow->spacing) ];
-                    last CYCLE if !@$outer;
-                    my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * scale $layer->perimeters_flow->spacing) ];
-                    last CYCLE if !@$inner;
-                    $hypothetical_perimeter = diff_ex($outer, $inner);
+            next if !@$upper;
+            
+            # we need to limit our detection to the areas which would actually benefit from 
+            # more perimeters. so, let's compute the area we want to ignore
+            my $ignore = [];
+            {
+                my $diff = diff_ex(
+                    [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::perimeters-0.5) * scale $layer->perimeters_flow->spacing), @{$layer->slices} ],
+                    [ map @{$_->expolygon}, @{$upper_layer->slices} ],
+                );
+                $ignore = [ map @$_, map $_->offset_ex(scale $layer->perimeters_flow->spacing), @$diff ];
+            }
+            
+            foreach my $slice (@{$layer->slices}) {
+                my $hypothetical_perimeter_num = $Slic3r::perimeters + 1;
+                CYCLE: while (1) {
+                    # compute polygons representing the thickness of the hypotetical new internal perimeter
+                    # of our slice
+                    my $hypothetical_perimeter;
+                    {
+                        my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * scale $layer->perimeters_flow->spacing) ];
+                        last CYCLE if !@$outer;
+                        my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * scale $layer->perimeters_flow->spacing) ];
+                        last CYCLE if !@$inner;
+                        $hypothetical_perimeter = diff_ex($outer, $inner);
+                    }
+                    last CYCLE if !@$hypothetical_perimeter;
+                    
+                    
+                    my $intersection = intersection_ex([ map @$_, @$upper ], [ map @$_, @$hypothetical_perimeter ]);
+                    $intersection = diff_ex([ map @$_, @$intersection ], $ignore) if @$ignore;
+                    last CYCLE if !@{ $intersection };
+                    Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
+                    $slice->additional_inner_perimeters(($slice->additional_inner_perimeters || 0) + 1);
+                    $hypothetical_perimeter_num++;
                 }
-                last CYCLE if !@$hypothetical_perimeter;
-                
-                
-                my $intersection = intersection_ex([ map @$_, @$upper ], [ map @$_, @$hypothetical_perimeter ]);
-                $intersection = diff_ex([ map @$_, @$intersection ], $ignore) if @$ignore;
-                last CYCLE if !@{ $intersection };
-                Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
-                $slice->additional_inner_perimeters(($slice->additional_inner_perimeters || 0) + 1);
-                $hypothetical_perimeter_num++;
             }
         }
     }

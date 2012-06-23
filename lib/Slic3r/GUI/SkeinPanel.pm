@@ -78,7 +78,7 @@ sub new {
         },
         other => {
             title => 'Other',
-            options => [$Slic3r::have_threads ? qw(threads) : ()],
+            options => [ ($Slic3r::have_threads ? qw(threads) : ()), qw(extra_perimeters) ],
         },
         notes => {
             title => 'Notes',
@@ -112,7 +112,7 @@ sub new {
         $make_tab->([qw(cooling)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion other sequential_printing)], [qw(output)]),
+        $make_tab->([qw(extrusion sequential_printing)], [qw(output other)]),
     );
     
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");

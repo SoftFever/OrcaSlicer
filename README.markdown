@@ -160,6 +160,7 @@ The author is Alessandro Ranellucci.
                             home X axis [G28 X], disable motors [M84]).
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --support-material  Generate support material for overhangs
+        --extra-perimeters  Add more perimeters when needed (default: yes)
         --randomize-start   Randomize starting point across layers (default: yes)
       
        Retraction options:

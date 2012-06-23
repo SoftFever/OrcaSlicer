@@ -235,7 +235,7 @@ our $Options = {
     
     # print options
     'perimeters' => {
-        label   => 'Perimeters (minimum)',
+        label   => 'Perimeters',
         cli     => 'perimeters=i',
         type    => 'i',
         aliases => [qw(perimeter_offsets)],
@@ -268,6 +268,11 @@ our $Options = {
         label   => 'Fill angle (°)',
         cli     => 'fill-angle=i',
         type    => 'i',
+    },
+    'extra_perimeters' => {
+        label   => 'Generate extra perimeters when needed',
+        cli     => 'extra-perimeters!',
+        type    => 'bool',
     },
     'randomize_start' => {
         label   => 'Randomize starting points',
