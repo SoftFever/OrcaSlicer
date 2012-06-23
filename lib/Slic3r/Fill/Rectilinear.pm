@@ -67,13 +67,13 @@ sub fill_surface {
         my $can_connect = $is_line_pattern
             ? sub {
                 ($_[X] >= ($distance_between_lines - $line_oscillation) - $tolerance) && ($_[X] <= ($distance_between_lines + $line_oscillation) + $tolerance)
-                    && abs($_[Y]) <= $diagonal_distance
+                    && $_[Y] <= $diagonal_distance
             }
-            : sub { abs($_[X] - $distance_between_lines) <= $tolerance && abs($_[Y]) <= $diagonal_distance };
+            : sub { abs($_[X]) - $distance_between_lines <= $tolerance && $_[Y] <= $diagonal_distance };
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
-                my @distance = map +($path->points->[0][$_] - $paths[-1][-1][$_]), (X,Y);
+                my @distance = map abs($path->points->[0][$_] - $paths[-1][-1][$_]), (X,Y);
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
