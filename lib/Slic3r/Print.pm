@@ -568,7 +568,7 @@ sub write_gcode {
                     if $Slic3r::support_material_tool > 0;
             }
         }
-        last if !$gcode;
+        return if !$gcode;
         
         my $fan_speed = $Slic3r::fan_always_on ? $Slic3r::min_fan_speed : 0;
         my $speed_factor = 1;
