@@ -192,6 +192,11 @@ sub set_dirty {
     $self->sync_presets;
 }
 
+sub is_dirty {
+    my $self = shift;
+    return $self->{dirty};
+}
+
 sub load_presets {
     my $self = shift;
     my ($group) = @_;
