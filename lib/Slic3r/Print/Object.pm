@@ -547,7 +547,8 @@ sub generate_support_material {
     Slic3r::debugf "Generating patterns\n";
     my $support_patterns = [];  # in case we want cross-hatching
     {
-        my @support_material_areas = @{union_ex([ map @$_, @unsupported_expolygons ])};
+        my @support_material_areas = map $_->offset_ex(- 0.5 * scale $Slic3r::flow->width),
+            @{union_ex([ map @$_, @unsupported_expolygons ])};
         
         my $fill = Slic3r::Fill->new(print => $params{print});
         my $filler = $fill->filler($Slic3r::support_material_pattern);
@@ -579,7 +580,7 @@ sub generate_support_material {
             Slic3r::SVG::output(undef, "support_$_.svg",
                 polylines        => [ map $_->polyline, map @$_, $support_patterns->[$_] ],
                 polygons         => [ map @$_, @support_material_areas ],
-            ) for (0,1,2);
+            ) for 0 .. $#$support_patterns;
         }
     }
     
