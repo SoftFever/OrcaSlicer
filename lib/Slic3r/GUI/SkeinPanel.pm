@@ -44,7 +44,7 @@ sub new {
         },
         print => {
             title => 'Print settings',
-            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start support_material support_material_tool)],
+            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start support_material)],
         },
         retract => {
             title => 'Retraction',
@@ -57,7 +57,7 @@ sub new {
         },
         skirt => {
             title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height)],
+            options => [qw(skirts skirt_distance skirt_height brim_thickness)],
         },
         gcode => {
             title => 'G-code',
@@ -78,7 +78,7 @@ sub new {
         },
         other => {
             title => 'Other',
-            options => [ ($Slic3r::have_threads ? qw(threads) : ()), qw(extra_perimeters) ],
+            options => [ ($Slic3r::have_threads ? qw(threads) : ()), qw(extra_perimeters support_material_tool) ],
         },
         notes => {
             title => 'Notes',

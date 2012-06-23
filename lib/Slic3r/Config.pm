@@ -406,7 +406,7 @@ our $Options = {
         type    => 'bool',
     },
     
-    # skirt options
+    # skirt/brim options
     'skirts' => {
         label   => 'Loops',
         cli     => 'skirts=i',
@@ -415,12 +415,17 @@ our $Options = {
     'skirt_distance' => {
         label   => 'Distance from object (mm)',
         cli     => 'skirt-distance=f',
-        type    => 'i',
+        type    => 'f',
     },
     'skirt_height' => {
         label   => 'Skirt height (layers)',
         cli     => 'skirt-height=i',
         type    => 'i',
+    },
+    'brim_thickness' => {
+        label   => 'Brim thickness (mm)',
+        cli     => 'brim-thickness=f',
+        type    => 'f',
     },
     
     # transform options

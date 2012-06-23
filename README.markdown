@@ -193,6 +193,8 @@ The author is Alessandro Ranellucci.
         --skirt-distance    Distance in mm between innermost skirt and object 
                             (default: 6)
         --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: 1)
+        --brim-thickness    Thickness of the brim that will get added to each object to help adhesion
+                            (mm, default: 0)
        
        Transform options:
         --scale             Factor for scaling input object (default: 1)

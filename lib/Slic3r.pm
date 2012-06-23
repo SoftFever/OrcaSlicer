@@ -150,10 +150,11 @@ our $min_print_speed        = 10;
 our $disable_fan_first_layers = 1;
 our $fan_always_on          = 0;
 
-# skirt options
+# skirt/brim options
 our $skirts             = 1;
 our $skirt_distance     = 6;    # mm
 our $skirt_height       = 1;    # layers
+our $brim_thickness     = 0;    # mm
 
 # transform options
 our $scale              = 1;

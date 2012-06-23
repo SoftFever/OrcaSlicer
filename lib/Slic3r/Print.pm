@@ -20,6 +20,13 @@ has 'skirt' => (
     default => sub { [] },
 );
 
+# ordered collection of extrusion paths to build a brim
+has 'brim' => (
+    is      => 'rw',
+    #isa     => 'ArrayRef[Slic3r::ExtrusionLoop]',
+    default => sub { [] },
+);
+
 sub add_object_from_file {
     my $self = shift;
     my ($input_file) = @_;
@@ -306,6 +313,7 @@ sub export_gcode {
     # make skirt
     $status_cb->(88, "Generating skirt");
     $self->make_skirt;
+    $self->make_brim;
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath($params{output_file});
@@ -438,9 +446,10 @@ sub make_skirt {
     my $convex_hull = convex_hull(\@points);
     
     # draw outlines from outside to inside
+    my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
     my @skirt = ();
     for (my $i = $Slic3r::skirts; $i > 0; $i--) {
-        my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow->spacing * $i));
+        my $distance = scale ($Slic3r::skirt_distance + ($flow->spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
         push @skirt, Slic3r::ExtrusionLoop->new(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
@@ -448,6 +457,28 @@ sub make_skirt {
         );
     }
     unshift @{$self->skirt}, @skirt;
+}
+
+sub make_brim {
+    my $self = shift;
+    return unless $Slic3r::brim_thickness > 0;
+    
+    my @islands = (); # array of polygons
+    foreach my $obj_idx (0 .. $#{$self->objects}) {
+        my @object_islands = map $_->contour, @{ $self->objects->[$obj_idx]->layers->[0]->slices };
+        foreach my $copy (@{$self->copies->[$obj_idx]}) {
+            push @islands, map $_->clone->translate(@$copy), @object_islands;
+        }
+    }
+    
+    my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
+    my $num_loops = sprintf "%.0f", $Slic3r::brim_thickness / $flow->width;
+    for my $i (reverse 1 .. $num_loops) {
+        push @{$self->brim}, Slic3r::ExtrusionLoop->new(
+            polygon => Slic3r::Polygon->new($_),
+            role    => EXTR_ROLE_SKIRT,
+        ) for @{Math::Clipper::offset(\@islands, $i * scale $flow->spacing)};
+    }
 }
 
 sub write_gcode {
@@ -535,10 +566,16 @@ sub write_gcode {
             $extruder->shift_x($shift[X]);
             $extruder->shift_y($shift[Y]);
             $gcode .= $extruder->set_acceleration($Slic3r::perimeter_acceleration);
-            if ($layer_id < $Slic3r::skirt_height) {
+            # skip skirt if we have a large brim
+            if ($layer_id < $Slic3r::skirt_height && ($layer_id != 0 || $Slic3r::skirt_distance + ($Slic3r::skirts * $Slic3r::flow->width) > $Slic3r::brim_thickness)) {
                 $gcode .= $extruder->extrude_loop($_, 'skirt') for @{$self->skirt};
             }
             $skirt_done++;
+        }
+        
+        # extrude brim
+        if ($layer_id == 0) {
+            $gcode .= $extruder->extrude_loop($_, 'brim') for @{$self->brim};
         }
         
         for my $obj_copy (@$object_copies) {
