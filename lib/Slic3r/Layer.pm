@@ -221,24 +221,26 @@ sub make_perimeters {
         my $distance = 0;
         
         # experimental hole compensation (see ArcCompensation in the RepRap wiki)
-        foreach my $hole ($last_offsets[0]->holes) {
-            my $circumference = abs($hole->length);
-            next unless $circumference <= $Slic3r::small_perimeter_length;
-            # this compensation only works for circular holes, while it would 
-            # overcompensate for hexagons and other shapes having straight edges.
-            # so we require a minimum number of vertices.
-            next unless $circumference / @$hole >= scale 3 * $Slic3r::flow->width;
-            
-            # revert the compensation done in make_surfaces() and get the actual radius
-            # of the hole
-            my $radius = ($circumference / PI / 2) - scale $self->perimeters_flow->spacing/2;
-            my $new_radius = (scale($self->perimeters_flow->width) + sqrt((scale($self->perimeters_flow->width)**2) + (4*($radius**2)))) / 2;
-            # holes are always turned to contours, so reverse point order before and after
-            $hole->reverse;
-            my @offsetted = $hole->offset(+ ($new_radius - $radius));
-            # skip arc compensation when hole is not round (thus leads to multiple offsets)
-            @$hole = map Slic3r::Point->new($_), @{ $offsetted[0] } if @offsetted == 1;
-            $hole->reverse;
+        if (0) {
+            foreach my $hole ($last_offsets[0]->holes) {
+                my $circumference = abs($hole->length);
+                next unless $circumference <= $Slic3r::small_perimeter_length;
+                # this compensation only works for circular holes, while it would 
+                # overcompensate for hexagons and other shapes having straight edges.
+                # so we require a minimum number of vertices.
+                next unless $circumference / @$hole >= scale 3 * $Slic3r::flow->width;
+                
+                # revert the compensation done in make_surfaces() and get the actual radius
+                # of the hole
+                my $radius = ($circumference / PI / 2) - scale $self->perimeters_flow->spacing/2;
+                my $new_radius = (scale($self->perimeters_flow->width) + sqrt((scale($self->perimeters_flow->width)**2) + (4*($radius**2)))) / 2;
+                # holes are always turned to contours, so reverse point order before and after
+                $hole->reverse;
+                my @offsetted = $hole->offset(+ ($new_radius - $radius));
+                # skip arc compensation when hole is not round (thus leads to multiple offsets)
+                @$hole = map Slic3r::Point->new($_), @{ $offsetted[0] } if @offsetted == 1;
+                $hole->reverse;
+            }
         }
         
         my @gaps = ();
