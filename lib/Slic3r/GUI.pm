@@ -10,7 +10,7 @@ use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::Tab;
 
 use Wx 0.9901 qw(:sizer :frame wxID_EXIT wxID_ABOUT);
-use Wx::Event qw(EVT_MENU);
+use Wx::Event qw(EVT_MENU EVT_CLOSE);
 use base 'Wx::App';
 
 my $growler;
@@ -53,8 +53,7 @@ sub OnInit {
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,520], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG) );
-    my $panel = Slic3r::GUI::SkeinPanel->new($frame);
-
+    $frame->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
     
     # status bar
     $frame->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($frame, -1);
@@ -72,13 +71,13 @@ sub OnInit {
         $fileMenu->Append(6, "Export SVG…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit");
-        EVT_MENU($frame, 1, sub { $panel->save_config });
-        EVT_MENU($frame, 2, sub { $panel->load_config });
-        EVT_MENU($frame, 3, sub { $panel->do_slice });
-        EVT_MENU($frame, 4, sub { $panel->do_slice(reslice => 1) });
-        EVT_MENU($frame, 5, sub { $panel->do_slice(save_as => 1) });
-        EVT_MENU($frame, 6, sub { $panel->do_slice(save_as => 1, export_svg => 1) });
-        EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(1)});
+        EVT_MENU($frame, 1, sub { $frame->{skeinpanel}->save_config });
+        EVT_MENU($frame, 2, sub { $frame->{skeinpanel}->load_config });
+        EVT_MENU($frame, 3, sub { $frame->{skeinpanel}->do_slice });
+        EVT_MENU($frame, 4, sub { $frame->{skeinpanel}->do_slice(reslice => 1) });
+        EVT_MENU($frame, 5, sub { $frame->{skeinpanel}->do_slice(save_as => 1) });
+        EVT_MENU($frame, 6, sub { $frame->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
+        EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
     
     # Help menu
@@ -98,6 +97,8 @@ sub OnInit {
         $frame->SetMenuBar($menubar);
     }
     
+    EVT_CLOSE($frame, \&on_close);
+
     $frame->SetMinSize($frame->GetSize);
     $frame->Show;
     $frame->Layout;
@@ -115,6 +116,11 @@ sub About {
     $info->SetDescription('G-code generator for 3D printers');
     
     Wx::AboutBox($info);
+}
+
+sub on_close {
+    my ($frame, $event) = @_;
+    $event->CanVeto ? $event->Skip($frame->{skeinpanel}->on_close) : $event->Skip(1);
 }
 
 sub catch_error {

@@ -223,4 +223,22 @@ sub load_config {
     $dlg->Destroy;
 }
 
+sub on_close {
+    my $self = shift;
+
+    my @dirty;
+    foreach (keys %{$self->{options_tabs}}) {
+        push (@dirty, $_) if $self->{options_tabs}{$_}->is_dirty;
+    }
+
+    if (@dirty) {
+        my $titles = join ', ', @dirty;
+        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Exit anyway?",
+                                             'Unsaved Presets', wxICON_QUESTION | wxOK | wxCANCEL);
+        return ($confirm->ShowModal == wxID_OK);
+    }
+
+    return 1;
+}
+
 1;
