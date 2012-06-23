@@ -435,7 +435,7 @@ sub make_skirt {
     
     # draw outlines from outside to inside
     my @skirt = ();
-    for (my $i = $Slic3r::skirts - 1; $i >= 0; $i--) {
+    for (my $i = $Slic3r::skirts; $i > 0; $i--) {
         my $distance = scale ($Slic3r::skirt_distance + ($Slic3r::flow->spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
         push @skirt, Slic3r::ExtrusionLoop->new(
