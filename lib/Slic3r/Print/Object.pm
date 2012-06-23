@@ -545,20 +545,18 @@ sub generate_support_material {
     
     # generate paths for the pattern that we're going to use
     Slic3r::debugf "Generating patterns\n";
-    my $support_patterns = [];
+    my $support_patterns = [];  # in case we want cross-hatching
     {
         my @support_material_areas = @{union_ex([ map @$_, @unsupported_expolygons ])};
         
         my $fill = Slic3r::Fill->new(print => $params{print});
-        foreach my $layer (map $self->layers->[$_], 0,1,2) {  # ugly hack
-            $fill->filler('honeycomb')->layer($layer);
+        my $filler = $fill->filler($Slic3r::support_material_pattern);
+        $filler->angle($Slic3r::support_material_angle);
+        {
             my @patterns = ();
             foreach my $expolygon (@support_material_areas) {
-                my @paths = $fill->filler('honeycomb')->fill_surface(
-                    Slic3r::Surface->new(
-                        expolygon       => $expolygon,
-                        #bridge_angle    => $Slic3r::fill_angle + 45 + $angle,
-                    ),
+                my @paths = $filler->fill_surface(
+                    Slic3r::Surface->new(expolygon => $expolygon),
                     density         => 0.20,
                     flow_spacing    => $Slic3r::flow->spacing,
                 );

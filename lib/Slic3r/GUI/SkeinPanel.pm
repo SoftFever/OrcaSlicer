@@ -44,7 +44,7 @@ sub new {
         },
         print => {
             title => 'Print settings',
-            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start support_material)],
+            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start)],
         },
         retract => {
             title => 'Retraction',
@@ -53,7 +53,7 @@ sub new {
         cooling => {
             title => 'Cooling',
             options => [qw(cooling min_fan_speed max_fan_speed bridge_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed disable_fan_first_layers fan_always_on)],
-            label_width => 300,
+            label_width => 450,
         },
         skirt => {
             title => 'Skirt',
@@ -78,11 +78,15 @@ sub new {
         },
         other => {
             title => 'Other',
-            options => [ ($Slic3r::have_threads ? qw(threads) : ()), qw(extra_perimeters support_material_tool) ],
+            options => [ ($Slic3r::have_threads ? qw(threads) : ()), qw(extra_perimeters) ],
         },
         notes => {
             title => 'Notes',
             options => [qw(notes)],
+        },
+        support_material => {
+            title => 'Support material',
+            options => [qw(support_material support_material_tool)],
         },
     );
     $self->{panels} = \%panels;
@@ -108,8 +112,8 @@ sub new {
     };
     
     my @tabs = (
-        $make_tab->([qw(accuracy skirt retract)], [qw(print notes)]),
-        $make_tab->([qw(cooling)]),
+        $make_tab->([qw(accuracy skirt support_material)], [qw(print retract)]),
+        $make_tab->([qw(cooling notes)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
         $make_tab->([qw(extrusion sequential_printing)], [qw(output other)]),

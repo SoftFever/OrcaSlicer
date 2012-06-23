@@ -204,9 +204,15 @@ $j
                         the default commands (turn off temperature [M104 S0],
                         home X axis [G28 X], disable motors [M84]).
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
-    --support-material  Generate support material for overhangs
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
+  
+   Support material options:
+    --support-material  Generate support material for overhangs
+    --support-material-pattern
+                        Pattern to use for support material (default: $Slic3r::support_material_pattern)
+    --support-material-angle
+                        Support material angle in degrees (range: 0-90, default: $Slic3r::support_material_angle)
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 

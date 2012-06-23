@@ -5,6 +5,7 @@ use Moo;
 has 'print'               => (is => 'rw');
 has 'layer'               => (is => 'rw');
 has 'max_print_dimension' => (is => 'rw');
+has 'angle'               => (is => 'rw', default => sub { $Slic3r::fill_angle });
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -16,7 +17,7 @@ sub infill_direction {
     
     # set infill angle
     my (@rotate, @shift);
-    $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle);
+    $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);
     $rotate[1] = [ $self->max_print_dimension * sqrt(2) / 2, $self->max_print_dimension * sqrt(2) / 2 ];
     @shift = @{$rotate[1]};
     
@@ -24,7 +25,7 @@ sub infill_direction {
         # alternate fill direction
         my $layer_num = $self->layer->id / $surface->depth_layers;
         my $angle = $self->angles->[$layer_num % @{$self->angles}];
-        $rotate[0] = Slic3r::Geometry::deg2rad($Slic3r::fill_angle) + $angle if $angle;
+        $rotate[0] = Slic3r::Geometry::deg2rad($self->angle) + $angle if $angle;
     }
         
     # use bridge angle

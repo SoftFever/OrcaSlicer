@@ -69,7 +69,7 @@ sub fill_surface {
                 ($_[X] >= ($distance_between_lines - $line_oscillation) - $tolerance) && ($_[X] <= ($distance_between_lines + $line_oscillation) + $tolerance)
                     && $_[Y] <= $diagonal_distance
             }
-            : sub { abs($_[X]) - $distance_between_lines <= $tolerance && $_[Y] <= $diagonal_distance };
+            : sub { abs($_[X] - $distance_between_lines) <= $tolerance && $_[Y] <= $diagonal_distance };
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
