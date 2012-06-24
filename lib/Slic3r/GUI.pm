@@ -83,8 +83,8 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(wxID_ABOUT, "&About");
-        EVT_MENU($frame, wxID_ABOUT, \&About);
+        $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
+        EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     
     # menubar
@@ -106,7 +106,7 @@ sub OnInit {
     return 1;
 }
 
-sub About {
+sub about {
     my $frame = shift;
     
     my $info = Wx::AboutDialogInfo->new;
