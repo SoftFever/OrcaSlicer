@@ -43,7 +43,7 @@ sub new {
         # buttons
         $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", &Wx::wxBITMAP_TYPE_PNG));
         $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_save_preset}->SetToolTipString("Save current settings");
+        $self->{btn_save_preset}->SetToolTipString("Save current " . lc($title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
         
@@ -88,6 +88,7 @@ sub new {
         $default =~ s/\.ini$//i;
         
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
+            title => lc($title),
             default => $default,
             values  => [ map { my $filename = basename($_); $filename =~ /^(.*?)\.ini$/i; $1 } @{$self->{presets}} ],
         );
@@ -500,7 +501,7 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Save preset", [-1, -1], [-1, -1]);
     
-    my $text = Wx::StaticText->new($self, -1, "Save settings as:", [-1, -1], [-1, -1]);
+    my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", [-1, -1], [-1, -1]);
     $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, [-1, -1], [-1, -1], $params{values},
                                        &Wx::wxTE_PROCESS_ENTER);
     my $buttons = $self->CreateStdDialogButtonSizer(&Wx::wxOK | &Wx::wxCANCEL);
