@@ -787,6 +787,7 @@ sub shortest_path {
 
 sub douglas_peucker {
     my ($points, $tolerance) = @_;
+    no warnings "recursion";
     
     my $results = [];
     my $dmax = 0;
