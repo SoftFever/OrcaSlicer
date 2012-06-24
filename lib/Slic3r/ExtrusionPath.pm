@@ -27,12 +27,13 @@ has 'role'         => (is => 'rw', required => 1);
 use constant EXTR_ROLE_PERIMETER                    => 0;
 use constant EXTR_ROLE_SMALLPERIMETER               => 1;
 use constant EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 2;
-use constant EXTR_ROLE_FILL                         => 3;
-use constant EXTR_ROLE_SOLIDFILL                    => 4;
-use constant EXTR_ROLE_TOPSOLIDFILL                 => 5;
-use constant EXTR_ROLE_BRIDGE                       => 6;
-use constant EXTR_ROLE_SKIRT                        => 7;
-use constant EXTR_ROLE_SUPPORTMATERIAL              => 8;
+use constant EXTR_ROLE_EXTERNAL_PERIMETER           => 3;
+use constant EXTR_ROLE_FILL                         => 4;
+use constant EXTR_ROLE_SOLIDFILL                    => 5;
+use constant EXTR_ROLE_TOPSOLIDFILL                 => 6;
+use constant EXTR_ROLE_BRIDGE                       => 7;
+use constant EXTR_ROLE_SKIRT                        => 8;
+use constant EXTR_ROLE_SUPPORTMATERIAL              => 9;
 
 sub BUILD {
     my $self = shift;
