@@ -213,6 +213,8 @@ $j
                         Overhang threshold angle (range: 0-90, default: $Slic3r::support_material_threshold)
     --support-material-pattern
                         Pattern to use for support material (default: $Slic3r::support_material_pattern)
+    --support-material-spacing
+                        Spacing between pattern lines (mm, default: $Slic3r::support_material_spacing)
     --support-material-angle
                         Support material angle in degrees (range: 0-90, default: $Slic3r::support_material_angle)
   

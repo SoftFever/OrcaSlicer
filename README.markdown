@@ -168,6 +168,8 @@ The author is Alessandro Ranellucci.
                             Overhang threshold angle (range: 0-90, default: 45)
         --support-material-pattern
                             Pattern to use for support material (default: rectilinear)
+        --support-material-spacing
+                            Spacing between pattern lines (mm, default: 2.5)
         --support-material-angle
                             Support material angle in degrees (range: 0-90, default: 0)
       

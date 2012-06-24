@@ -296,6 +296,11 @@ our $Options = {
         values  => [qw(rectilinear honeycomb)],
         labels  => [qw(rectilinear honeycomb)],
     },
+    'support_material_spacing' => {
+        label   => 'Pattern spacing (mm)',
+        cli     => 'support-material-spacing=f',
+        type    => 'f',
+    },
     'support_material_angle' => {
         label   => 'Pattern angle (°)',
         cli     => 'support-material-angle=i',

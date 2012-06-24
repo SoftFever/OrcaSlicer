@@ -125,6 +125,7 @@ our $randomize_start    = 1;
 our $support_material   = 0;
 our $support_material_threshold = 45;
 our $support_material_pattern = 'rectilinear';
+our $support_material_spacing = 2.5;
 our $support_material_angle = 0;
 our $support_material_tool = 0;
 our $start_gcode = "G28 ; home all axes";
