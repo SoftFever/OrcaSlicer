@@ -11,8 +11,10 @@ use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
-    my ($parent, %params) = @_;
+    my ($parent, $title, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], &Wx::wxBK_LEFT);
+    
+    $self->{title} = $title;
     
     $self->{sync_presets_with} = $params{sync_presets_with};
     EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
@@ -197,6 +199,11 @@ sub is_dirty {
     return $self->{dirty};
 }
 
+sub title {
+    my $self = shift;
+    return $self->{title}
+}
+
 sub load_presets {
     my $self = shift;
     my ($group) = @_;
@@ -259,7 +266,7 @@ use base 'Slic3r::GUI::Tab';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, %params);
+    my $self = $class->SUPER::new($parent, 'Print Settings', %params);
     
     $self->add_options_page('Layers and perimeters', 'layers.png', optgroups => [
         {
@@ -365,7 +372,7 @@ use base 'Slic3r::GUI::Tab';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, %params);
+    my $self = $class->SUPER::new($parent, 'Filament Settings', %params);
     
     $self->add_options_page('Filament', 'spool.png', optgroups => [
         {
@@ -407,7 +414,7 @@ use base 'Slic3r::GUI::Tab';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, %params);
+    my $self = $class->SUPER::new($parent, 'Printer Settings', %params);
     
     $self->add_options_page('General', 'printer_empty.png', optgroups => [
         {

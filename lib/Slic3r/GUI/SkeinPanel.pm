@@ -28,9 +28,9 @@ sub new {
         filament    => Slic3r::GUI::Tab::Filament->new  ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
         printer     => Slic3r::GUI::Tab::Printer->new   ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
     };
-    $tabpanel->AddPage($self->{options_tabs}{print},    "Print settings");
-    $tabpanel->AddPage($self->{options_tabs}{filament}, "Filament settings");
-    $tabpanel->AddPage($self->{options_tabs}{printer},  "Printer settings");
+    $tabpanel->AddPage($self->{options_tabs}{print}, $self->{options_tabs}{print}->title);
+    $tabpanel->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
+    $tabpanel->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
     
     my $buttons_sizer;
     {
