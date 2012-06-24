@@ -242,7 +242,7 @@ sub retract {
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
-    if (!$Slic3r::use_relative_e_distances && $Slic3r::gcode_flavor ne 'mach3') {
+    if (!$Slic3r::use_relative_e_distances && $Slic3r::gcode_flavor !~ /^(?:mach3|makerbot)$/) {
         $gcode .= "G92 " . $Slic3r::extrusion_axis . "0\n" if $Slic3r::extrusion_axis;
         $self->extrusion_distance(0);
     }
