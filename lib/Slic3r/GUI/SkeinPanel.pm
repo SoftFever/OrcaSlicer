@@ -227,8 +227,8 @@ sub on_close {
     my $self = shift;
 
     my @dirty;
-    foreach (keys %{$self->{options_tabs}}) {
-        push (@dirty, $_) if $self->{options_tabs}{$_}->is_dirty;
+    foreach (values %{$self->{options_tabs}}) {
+        push (@dirty, $_->title) if $_->is_dirty;
     }
 
     if (@dirty) {
