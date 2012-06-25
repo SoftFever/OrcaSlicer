@@ -193,7 +193,7 @@ The author is Alessandro Ranellucci.
                             of seconds (default: 60)
         --slowdown-below-layer-time Slow down if layer print time is below this approximate number
                             of seconds (default: 15)
-        --min-print-speed   Minimum print speed speed (mm/s, default: 10)
+        --min-print-speed   Minimum print speed (mm/s, default: 10)
         --disable-fan-first-layers Disable fan for the first N layers (default: 1)
         --fan-always-on     Keep fan always on at min fan speed, even for layers that don't need
                             cooling

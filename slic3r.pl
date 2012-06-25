@@ -238,7 +238,7 @@ $j
                         of seconds (default: $Slic3r::fan_below_layer_time)
     --slowdown-below-layer-time Slow down if layer print time is below this approximate number
                         of seconds (default: $Slic3r::slowdown_below_layer_time)
-    --min-print-speed   Minimum print speed speed (mm/s, default: $Slic3r::min_print_speed)
+    --min-print-speed   Minimum print speed (mm/s, default: $Slic3r::min_print_speed)
     --disable-fan-first-layers Disable fan for the first N layers (default: $Slic3r::disable_fan_first_layers)
     --fan-always-on     Keep fan always on at min fan speed, even for layers that don't need
                         cooling
