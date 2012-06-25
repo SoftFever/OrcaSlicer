@@ -100,7 +100,7 @@ our $Options = {
     },
     'g0' => {
         label   => 'Use G0 for travel moves',
-        tooltip => 'Only enable this if your firmware supports G0 properly (thus decouples all axes using their maximum speeds instead of synchronizing them). Travel moves and retractions will be combined in single commands, speeding the print up.',
+        tooltip => 'Only enable this if your firmware supports G0 properly (thus decouples all axes using their maximum speeds instead of synchronizing them). Travel moves and retractions will be combined in single commands, speeding them print up.',
         cli     => 'g0',
         type    => 'bool',
     },
@@ -419,7 +419,7 @@ our $Options = {
     # retraction options
     'retract_length' => {
         label   => 'Length',
-        tooltip => 'When retraction is triggered, filament is pulled back for the specified amount (the length is measured on raw filament, before it enters the extruder).',
+        tooltip => 'When retraction is triggered, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).',
         sidetext => 'mm (zero to disable)',
         cli     => 'retract-length=f',
         type    => 'f',
