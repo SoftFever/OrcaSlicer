@@ -11,7 +11,7 @@ sub new {
     my ($parent) = @_;
     # TODO: Add instructional bitmaps
     my $self = $class->SUPER::new($parent, -1, 'Configuration Wizard',
-                                  Wx::Bitmap->new("$Slic3r::var/slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG));
+                                  Wx::Bitmap->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG));
 
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
