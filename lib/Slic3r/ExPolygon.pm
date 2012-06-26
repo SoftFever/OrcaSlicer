@@ -99,6 +99,15 @@ sub encloses_point {
             || grep($_->point_on_segment($point), $self->holes));
 }
 
+# A version of encloses_point for use when hole borders do not matter.
+# Useful because point_on_segment is slow
+sub encloses_point_quick {
+    my $self = shift;
+    my ($point) = @_;
+    return $self->contour->encloses_point($point)
+        && !grep($_->encloses_point($point), $self->holes);
+}
+
 sub encloses_line {
     my $self = shift;
     my ($line) = @_;
@@ -200,7 +209,7 @@ sub medial_axis {
         $a = $vertices->[$edge->[1]];
         $b = $vertices->[$edge->[2]];
         
-        next if !$self->encloses_point($a) || !$self->encloses_point($b);
+        next if !$self->encloses_point_quick($a) || !$self->encloses_point_quick($b);
         
         push @skeleton_lines, [$edge->[1], $edge->[2]];
     }
