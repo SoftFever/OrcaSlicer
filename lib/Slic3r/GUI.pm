@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use FindBin;
+use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
@@ -83,7 +84,9 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
+        $helpMenu->Append(7, "Configuration Wizard…");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
+        EVT_MENU($frame, 7, sub { $frame->{skeinpanel}->config_wizard });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     

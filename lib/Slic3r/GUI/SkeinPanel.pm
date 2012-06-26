@@ -223,6 +223,15 @@ sub load_config {
     $dlg->Destroy;
 }
 
+sub config_wizard {
+    my $self = shift;
+
+    if (Slic3r::GUI::ConfigWizard->new($self)->run) {
+        $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
+        $_->set_dirty(1) for values %{$self->{options_tabs}};
+    }
+}
+
 sub on_close {
     my $self = shift;
 
