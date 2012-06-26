@@ -16,7 +16,6 @@ sub new {
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Bed->new($self));
-    $self->add_page(Slic3r::GUI::ConfigWizard::Page::Cooling->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Filament->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Temperature->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::BedTemperature->new($self));
@@ -254,22 +253,6 @@ sub apply {
     # set print_center to centre of bed_size
     my $bed_size = Slic3r::Config->get_raw('bed_size');
     Slic3r::Config->set('print_center', [$bed_size->[0]/2, $bed_size->[1]/2]);
-}
-
-package Slic3r::GUI::ConfigWizard::Page::Cooling;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
-use base 'Slic3r::GUI::ConfigWizard::Page';
-
-sub new {
-    my $class = shift;
-    my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, 'Fan');
-
-    $self->append_text('If your printer has a fan for cooling the printed object, check the box below.');
-    $self->append_option('cooling');
-
-    return $self;
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Filament;
