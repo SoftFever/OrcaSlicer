@@ -672,13 +672,18 @@ sub validate {
         if $Slic3r::_first_layer_height > $Slic3r::nozzle_diameter;
     
     # calculate flow
+    $Slic3r::flow = Slic3r::Flow->new;
     $Slic3r::flow->calculate($Slic3r::extrusion_width);
     if ($Slic3r::first_layer_extrusion_width) {
         $Slic3r::first_layer_flow = Slic3r::Flow->new(layer_height => $Slic3r::_first_layer_height);
         $Slic3r::first_layer_flow->calculate($Slic3r::first_layer_extrusion_width);
     }
+    $Slic3r::perimeters_flow = Slic3r::Flow->new;
     $Slic3r::perimeters_flow->calculate($Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
+    
+    $Slic3r::infill_flow = Slic3r::Flow->new;
     $Slic3r::infill_flow->calculate($Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
+    
     Slic3r::debugf "Default flow width = %s, spacing = %s, min_spacing = %s\n",
         $Slic3r::flow->width, $Slic3r::flow->spacing, $Slic3r::flow->min_spacing;
     

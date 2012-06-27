@@ -109,10 +109,10 @@ our $perimeters_extrusion_width     = 0;
 our $infill_extrusion_width         = 0;
 our $bridge_flow_ratio              = 1;
 our $overlap_factor                 = 0.5;
-our $flow                           = Slic3r::Flow->new;
-our $first_layer_flow               = undef;
-our $perimeters_flow                = Slic3r::Flow->new;
-our $infill_flow                    = Slic3r::Flow->new;
+our $flow;
+our $first_layer_flow;
+our $perimeters_flow;
+our $infill_flow;
 
 # print options
 our $perimeters         = 3;
