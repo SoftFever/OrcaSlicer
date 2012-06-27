@@ -279,8 +279,9 @@ sub apply {
     my $self = shift;
     $self->SUPER::apply;
 
-    # set layer_height to nozzle_diameter - 0.1
+    # set first_layer_height + layer_height based on nozzle_diameter
     my $nozzle = Slic3r::Config->get_raw('nozzle_diameter');
+    Slic3r::Config->set('first_layer_height', $nozzle);
     Slic3r::Config->set('layer_height', $nozzle - 0.1);
 }
 
