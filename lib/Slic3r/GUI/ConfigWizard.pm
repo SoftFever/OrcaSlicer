@@ -211,7 +211,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard');
 
-    $self->append_text('Hello, welcome to Slic3r! This wizard will help you with the initial configuration; just a few settings and you will be ready to print.');
+    $self->append_text('Hello, welcome to Slic3r! This wizard helps you with the initial configuration; just a few settings and you will be ready to print.');
     $self->append_text('Configuration will be based on your current configuration.');
     $self->append_text('To continue, click Next.');
 
@@ -364,8 +364,9 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Congratulations!');
 
-    $self->append_text('Slic3r is now configured for your particular printer and filament.');
-    $self->append_text('Click Finish to apply the newly created configuration and close this wizard.');
+    $self->append_text('You have successfully completed the Slic3r Configuration Wizard. ' .
+                       'Slic3r is now configured for your printer and filament.');
+    $self->append_text('To close this wizard and apply the newly created configuration, click Finish.');
 
     return $self;
 }
