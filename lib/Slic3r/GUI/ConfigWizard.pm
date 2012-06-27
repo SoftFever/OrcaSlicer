@@ -16,6 +16,7 @@ sub new {
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Bed->new($self));
+    $self->add_page(Slic3r::GUI::ConfigWizard::Page::Nozzle->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Filament->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Temperature->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::BedTemperature->new($self));
@@ -253,6 +254,31 @@ sub apply {
     # set print_center to centre of bed_size
     my $bed_size = Slic3r::Config->get_raw('bed_size');
     Slic3r::Config->set('print_center', [$bed_size->[0]/2, $bed_size->[1]/2]);
+}
+
+package Slic3r::GUI::ConfigWizard::Page::Nozzle;
+use Wx qw(:sizer :progressdialog);
+use Wx::Event qw();
+use base 'Slic3r::GUI::ConfigWizard::Page';
+
+sub new {
+    my $class = shift;
+    my ($parent) = @_;
+    my $self = $class->SUPER::new($parent, 'Nozzle Diameter');
+
+    $self->append_text('Enter the diameter of your printers hot end nozzle below.');
+    $self->append_option('nozzle_diameter');
+
+    return $self;
+}
+
+sub apply {
+    my $self = shift;
+    $self->SUPER::apply;
+
+    # set layer_height to nozzle_diameter - 0.1
+    my $nozzle = Slic3r::Config->get_raw('nozzle_diameter');
+    Slic3r::Config->set('layer_height', $nozzle - 0.1);
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Filament;
