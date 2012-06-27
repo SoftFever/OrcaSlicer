@@ -211,8 +211,8 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard');
 
-    $self->append_text('This configuration wizard will guide you through the most important settings of Slic3r in a few easy steps. ' .
-                       'Configuration will be based on your current configuration.');
+    $self->append_text('This configuration wizard will guide you through the most important settings of Slic3r in a few easy steps.');
+    $self->append_text('Configuration will be based on your current configuration.');
     $self->append_text('To continue, click Next.');
 
     return $self;
