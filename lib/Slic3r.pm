@@ -81,6 +81,7 @@ our $first_layer_bed_temperature;
 our $travel_speed           = 130;      # mm/s
 our $perimeter_speed        = 30;       # mm/s
 our $small_perimeter_speed  = 30;       # mm/s or %
+our $external_perimeter_speed  = '100%';       # mm/s or %
 our $infill_speed           = 60;       # mm/s
 our $solid_infill_speed     = 60;       # mm/s or %
 our $top_solid_infill_speed = 50;       # mm/s or %

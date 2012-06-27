@@ -291,6 +291,7 @@ sub make_perimeters {
     foreach my $island (@perimeters) {
         # do holes starting from innermost one
         my @holes = ();
+        my %is_external = ();
         my @hole_depths = map [ map $_->holes, @$_ ], @$island;
         
         # organize the outermost hole loops using a shortest path search
@@ -303,6 +304,7 @@ sub make_perimeters {
             
             # take first available hole
             push @holes, shift @{$hole_depths[0]};
+            $is_external{$#holes} = 1;
             
             my $current_depth = 0;
             while (1) {
@@ -333,9 +335,12 @@ sub make_perimeters {
         }
         
         # do holes, then contours starting from innermost one
-        $self->add_perimeter($_) for reverse @holes;
+        $self->add_perimeter($holes[$_], $is_external{$_} ? EXTR_ROLE_EXTERNAL_PERIMETER : undef)
+            for reverse 0 .. $#holes;
         for my $depth (reverse 0 .. $#$island) {
-            my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER : EXTR_ROLE_PERIMETER;
+            my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
+                : $depth == 0 ? EXTR_ROLE_EXTERNAL_PERIMETER
+                : EXTR_ROLE_PERIMETER;
             $self->add_perimeter($_, $role) for map $_->contour, @{$island->[$depth]};
         }
     }

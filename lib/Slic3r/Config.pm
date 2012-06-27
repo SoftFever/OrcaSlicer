@@ -140,6 +140,12 @@ our $Options = {
         type    => 'f',
         ratio_over => 'perimeter_speed',
     },
+    'external_perimeter_speed' => {
+        label   => 'External perimeters (mm/s or %)',
+        cli     => 'external-perimeter-speed=s',
+        type    => 'f',
+        ratio_over => 'perimeter_speed',
+    },
     'infill_speed' => {
         label   => 'Infill (mm/s)',
         cli     => 'infill-speed=f',
