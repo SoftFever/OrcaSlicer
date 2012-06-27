@@ -39,6 +39,7 @@ sub OnInit {
     # locate or create data directory
     $datadir = Wx::StandardPaths::Get->GetUserDataDir;
     Slic3r::debugf "Data directory: %s\n", $datadir;
+    my $run_wizard = (-d $datadir) ? 0 : 1;
     for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
         mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
             unless -d $_;
@@ -105,6 +106,8 @@ sub OnInit {
     $frame->SetMinSize($frame->GetSize);
     $frame->Show;
     $frame->Layout;
+    
+    $frame->{skeinpanel}->config_wizard if $run_wizard;
     
     return 1;
 }
