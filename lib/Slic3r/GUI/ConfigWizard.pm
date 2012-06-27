@@ -147,6 +147,8 @@ sub new {
     $bold_font->SetPointSize(14);
     $text->SetFont($bold_font);
     $self->{vsizer}->Add($text, 0, &Wx::wxALIGN_LEFT | &Wx::wxALL, 10);
+    my $line = Wx::StaticLine->new($self, -1, &Wx::wxDefaultPosition, &Wx::wxDefaultSize, &Wx::wxLI_HORIZONTAL, '');
+    $self->{vsizer}->Add($line, 0, &Wx::wxEXPAND| &Wx::wxALL, 10);
 
     return $self;
 }
@@ -207,10 +209,11 @@ use base 'Slic3r::GUI::ConfigWizard::Page';
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, 'Welcome');
+    my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard');
 
     $self->append_text('This configuration wizard will guide you through the most important settings of Slic3r in a few easy steps. ' .
                        'Configuration will be based on your current configuration.');
+    $self->append_text('To continue, click Next.');
 
     return $self;
 }
@@ -225,7 +228,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Firmware Type');
 
-    $self->append_text('Choose the type of firmware used by your printer below.');
+    $self->append_text('Choose the type of firmware used by your printer, then click Next.');
     $self->append_option('gcode_flavor');
 
     return $self;
@@ -241,7 +244,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Bed Size');
 
-    $self->append_text('Enter the size of your printers bed below.');
+    $self->append_text('Enter the size of your printers bed, then click Next.');
     $self->append_option('bed_size');
 
     return $self;
@@ -266,7 +269,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Nozzle Diameter');
 
-    $self->append_text('Enter the diameter of your printers hot end nozzle below.');
+    $self->append_text('Enter the diameter of your printers hot end nozzle, then click Next.');
     $self->append_option('nozzle_diameter');
 
     return $self;
@@ -291,8 +294,8 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Filament Diameter');
 
-    $self->append_text('Enter your filament diameter below. ' .
-                       'Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.');
+    $self->append_text('Enter the diameter of your filament, then click Next.');
+    $self->append_text('Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.');
     $self->append_option('filament_diameter');
 
     return $self;
@@ -308,8 +311,8 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Extrusion Temperature');
 
-    $self->append_text('Enter the temperature needed for extruding your filament below. ' .
-                       'A rule of thumb is 160 to 230 °C for PLA and 215 to 250 °C for ABS. ');
+    $self->append_text('Enter the temperature needed for extruding your filament, then click Next.');
+    $self->append_text('A rule of thumb is 160 to 230 °C for PLA and 215 to 250 °C for ABS.');
     $self->append_option('temperature');
 
     return $self;
@@ -334,8 +337,8 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Bed Temperature');
 
-    $self->append_text('Enter the bed temperature needed for getting your filament to stick to your heated bed below. ' .
-                       'A rule of thumb is 60 °C for PLA and 110 °C for ABS.');
+    $self->append_text('Enter the bed temperature needed for getting your filament to stick to your heated bed, then click Next.');
+    $self->append_text('A rule of thumb is 60 °C for PLA and 110 °C for ABS.');
     $self->append_option('bed_temperature');
 
     return $self;
@@ -361,6 +364,7 @@ sub new {
     my $self = $class->SUPER::new($parent, 'Congratulations!');
 
     $self->append_text('Slic3r is now configured for your particular printer and filament.');
+    $self->append_text('Click Finish to apply the newly created configuration and close this wizard.');
 
     return $self;
 }
