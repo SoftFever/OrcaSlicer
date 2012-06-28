@@ -74,6 +74,10 @@ in development.
 Slic3r is licensed under the _GNU Affero General Public License, version 3_.
 The author is Alessandro Ranellucci.
 
+The [Silk icon set](http://www.famfamfam.com/lab/icons/silk/) used in Slic3r is
+licensed under the _Creative Commons Attribution 3.0 License_.
+The author of the Silk icon set is Mark James.
+
 ## How can I invoke slic3r.pl using the command line?
 
     Usage: slic3r.pl [ OPTIONS ] file.stl
