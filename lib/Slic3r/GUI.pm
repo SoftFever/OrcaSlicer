@@ -56,6 +56,7 @@ sub OnInit {
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,520], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG) );
     $frame->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
+    $self->SetTopWindow($frame);
     
     # status bar
     $frame->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($frame, -1);
