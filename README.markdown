@@ -240,6 +240,13 @@ The author is Alessandro Ranellucci.
         --support-material-extrusion-width
                             Set a different extrusion width for support material
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
+  
+       Multiple extruder options:
+        --perimeters-extruder
+                            Extruder to use for perimeters (1+, default: 1)
+        --infill-extruder   Extruder to use for infill (1+, default: 1)
+        --support-material-extruder
+                            Extruder to use for support material (1+, default: 1)
             
 
 

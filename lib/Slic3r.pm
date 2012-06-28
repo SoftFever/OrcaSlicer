@@ -81,6 +81,11 @@ our $extrusion_multiplier   = [1];
 our $temperature            = [200];
 our $first_layer_temperature= [];
 
+# extruder mapping (1-based indexes)
+our $perimeters_extruder        = 1;
+our $infill_extruder            = 1;
+our $support_material_extruder  = 1;
+
 # speed options
 our $travel_speed           = 130;      # mm/s
 our $perimeter_speed        = 30;       # mm/s
@@ -134,7 +139,6 @@ our $support_material_threshold = 45;
 our $support_material_pattern = 'rectilinear';
 our $support_material_spacing = 2.5;
 our $support_material_angle = 0;
-our $support_material_extruder = 0;
 our $start_gcode = "G28 ; home all axes";
 our $end_gcode = <<"END";
 M104 S0 ; turn off temperature

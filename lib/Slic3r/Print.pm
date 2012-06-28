@@ -596,9 +596,11 @@ sub write_gcode {
             $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
             
             # extrude perimeters
+            $gcode .= $gcodegen->set_tool($Slic3r::perimeters_extruder-1);
             $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layer->perimeters };
             
             # extrude fills
+            $gcode .= $gcodegen->set_tool($Slic3r::infill_extruder-1);
             $gcode .= $gcodegen->set_acceleration($Slic3r::infill_acceleration);
             for my $fill (@{ $layer->fills }) {
                 $gcode .= $gcodegen->extrude_path($_, 'fill') 
@@ -610,7 +612,6 @@ sub write_gcode {
                 $gcode .= $gcodegen->set_tool($Slic3r::support_material_extruder-1);
                 $gcode .= $gcodegen->extrude_path($_, 'support material') 
                     for $layer->support_fills->shortest_path($gcodegen->last_pos);
-                $gcode .= $gcodegen->set_tool(0);
             }
         }
         return if !$gcode;

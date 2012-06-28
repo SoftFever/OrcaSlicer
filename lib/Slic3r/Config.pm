@@ -121,6 +121,23 @@ our $Options = {
         deserialize => sub { [ split /,/, $_[0] ] },
     },
     
+    # extruder mapping
+    'perimeters_extruder' => {
+        label   => 'Perimeters extruder',
+        cli     => 'perimeters-extruder=i',
+        type    => 'i',
+    },
+    'infill_extruder' => {
+        label   => 'Infill extruder',
+        cli     => 'infill-extruder=i',
+        type    => 'i',
+    },
+    'support_material_extruder' => {
+        label   => 'Extruder',
+        cli     => 'support-material-extruder=i',
+        type    => 'i',
+    },
+    
     # filament options
     'first_layer_bed_temperature' => {
         label   => 'First layer bed temperature (°C)',
@@ -327,11 +344,6 @@ our $Options = {
     'support_material_angle' => {
         label   => 'Pattern angle (°)',
         cli     => 'support-material-angle=i',
-        type    => 'i',
-    },
-    'support_material_extruder' => {
-        label   => 'Extruder',
-        cli     => 'support-material-extruder=i',
         type    => 'i',
     },
     'start_gcode' => {
@@ -688,7 +700,7 @@ sub validate {
     
     # initialize extruder(s)
     $Slic3r::extruders = [];
-    for my $t (0, $Slic3r::support_material_extruder-1) {
+    for my $t (0, map $_-1, $Slic3r::perimeters_extruder, $Slic3r::infill_extruder, $Slic3r::support_material_extruder) {
         $Slic3r::extruders->[$t] ||= Slic3r::Extruder->new(
             map { $_ => Slic3r::Config->get($_)->[$t] // Slic3r::Config->get($_)->[0] } #/
                 qw(nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature)
@@ -703,9 +715,11 @@ sub validate {
             width        => $Slic3r::first_layer_extrusion_width,
         );
     }
-    $Slic3r::perimeters_flow        = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
-    $Slic3r::infill_flow            = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
-    $Slic3r::support_material_flow  = $Slic3r::extruders->[ $Slic3r::support_material_extruder ]
+    $Slic3r::perimeters_flow = $Slic3r::extruders->[ $Slic3r::perimeters_extruder-1 ]
+        ->make_flow(width => $Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::infill_flow = $Slic3r::extruders->[ $Slic3r::infill_extruder-1 ]
+        ->make_flow(width => $Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::support_material_flow = $Slic3r::extruders->[ $Slic3r::support_material_extruder-1 ]
         ->make_flow(width => $Slic3r::support_material_extrusion_width || $Slic3r::extrusion_width);
     
     Slic3r::debugf "Default flow width = %s, spacing = %s, min_spacing = %s\n",
