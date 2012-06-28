@@ -21,14 +21,15 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
+    no warnings 'qw';
     my %panels = (
         printer => {
             title => 'Printer',
-            options => [qw(nozzle_diameter bed_size print_center z_offset gcode_flavor use_relative_e_distances)],
+            options => [qw(nozzle_diameter#0 bed_size print_center z_offset gcode_flavor use_relative_e_distances)],
         },
         filament => {
             title => 'Filament',
-            options => [qw(filament_diameter extrusion_multiplier temperature first_layer_temperature bed_temperature first_layer_bed_temperature)],
+            options => [qw(filament_diameter#0 extrusion_multiplier#0 temperature first_layer_temperature bed_temperature first_layer_bed_temperature)],
         },
         print_speed => {
             title => 'Print speed',

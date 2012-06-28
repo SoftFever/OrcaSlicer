@@ -35,12 +35,6 @@ our $Options = {
     },
 
     # printer options
-    'nozzle_diameter' => {
-        label   => 'Nozzle diameter (mm)',
-        cli     => 'nozzle-diameter=f',
-        type    => 'f',
-        important => 1,
-    },
     'print_center' => {
         label   => 'Print center (mm)',
         cli     => 'print-center=s',
@@ -86,19 +80,33 @@ our $Options = {
         type    => 'bool',
     },
     
-    # filament options
-    'filament_diameter' => {
-        label   => 'Diameter (mm)',
-        cli     => 'filament-diameter=f',
+    # extruders options
+    'nozzle_diameter' => {
+        label   => 'Nozzle diameter (mm)',
+        cli     => 'nozzle-diameter=f@',
         type    => 'f',
         important => 1,
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
+    },
+    'filament_diameter' => {
+        label   => 'Diameter (mm)',
+        cli     => 'filament-diameter=f@',
+        type    => 'f',
+        important => 1,
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
     },
     'extrusion_multiplier' => {
         label   => 'Extrusion multiplier',
-        cli     => 'extrusion-multiplier=f',
+        cli     => 'extrusion-multiplier=f@',
         type    => 'f',
         aliases => [qw(filament_packing_density)],
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
     },
+    
+    # filament options
     'first_layer_temperature' => {
         label   => 'First layer temperature (°C)',
         cli     => 'first-layer-temperature=i',
@@ -661,28 +669,34 @@ sub validate {
     
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"
-        if $Slic3r::filament_diameter < 1;
+        if grep $_ < 1, @$Slic3r::filament_diameterì;
     
     # --nozzle-diameter
     die "Invalid value for --nozzle-diameter\n"
-        if $Slic3r::nozzle_diameter < 0;
+        if grep $_ < 0, @$Slic3r::nozzle_diameter;
     die "--layer-height can't be greater than --nozzle-diameter\n"
-        if $Slic3r::layer_height > $Slic3r::nozzle_diameter;
+        if grep $Slic3r::layer_height > $_, @$Slic3r::nozzle_diameter;
     die "First layer height can't be greater than --nozzle-diameter\n"
-        if $Slic3r::_first_layer_height > $Slic3r::nozzle_diameter;
+        if grep $Slic3r::_first_layer_height > $_, @$Slic3r::nozzle_diameter;
+    
+    # initialize extruder(s)
+    $Slic3r::extruders = [];
+    push @$Slic3r::extruders, Slic3r::Extruder->new(
+        nozzle_diameter         => $Slic3r::nozzle_diameter->[0],
+        filament_diameter       => $Slic3r::filament_diameter->[0],
+        extrusion_multiplier    => $Slic3r::extrusion_multiplier->[0],
+    );
     
     # calculate flow
-    $Slic3r::flow = Slic3r::Flow->new;
-    $Slic3r::flow->calculate($Slic3r::extrusion_width);
+    $Slic3r::flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::extrusion_width);
     if ($Slic3r::first_layer_extrusion_width) {
-        $Slic3r::first_layer_flow = Slic3r::Flow->new(layer_height => $Slic3r::_first_layer_height);
-        $Slic3r::first_layer_flow->calculate($Slic3r::first_layer_extrusion_width);
+        $Slic3r::first_layer_flow = $Slic3r::extruders->[0]->make_flow(
+            layer_height => $Slic3r::_first_layer_height,
+            width        => $Slic3r::first_layer_extrusion_width,
+        );
     }
-    $Slic3r::perimeters_flow = Slic3r::Flow->new;
-    $Slic3r::perimeters_flow->calculate($Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
-    
-    $Slic3r::infill_flow = Slic3r::Flow->new;
-    $Slic3r::infill_flow->calculate($Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::perimeters_flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::infill_flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
     
     Slic3r::debugf "Default flow width = %s, spacing = %s, min_spacing = %s\n",
         $Slic3r::flow->width, $Slic3r::flow->spacing, $Slic3r::flow->min_spacing;
@@ -717,8 +731,9 @@ sub validate {
     # --infill-every-layers
     die "Invalid value for --infill-every-layers\n"
         if $Slic3r::infill_every_layers !~ /^\d+$/ || $Slic3r::infill_every_layers < 1;
+    # TODO: this check should be limited to the extruder used for infill
     die "Maximum infill thickness can't exceed nozzle diameter\n"
-        if $Slic3r::infill_every_layers * $Slic3r::layer_height > $Slic3r::nozzle_diameter;
+        if grep $Slic3r::infill_every_layers * $Slic3r::layer_height > $_, @$Slic3r::nozzle_diameter;
     
     # --scale
     die "Invalid value for --scale\n"

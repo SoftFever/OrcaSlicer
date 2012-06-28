@@ -23,6 +23,7 @@ lib/Slic3r/Format/AMF.pm
 lib/Slic3r/Format/AMF/Parser.pm
 lib/Slic3r/Format/OBJ.pm
 lib/Slic3r/Format/STL.pm
+lib/Slic3r/GCode.pm
 lib/Slic3r/Geometry.pm
 lib/Slic3r/Geometry/Clipper.pm
 lib/Slic3r/GUI.pm

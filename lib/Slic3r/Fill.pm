@@ -147,7 +147,7 @@ sub make_fill {
             $filler = $Slic3r::solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
-                $flow_spacing = sqrt($Slic3r::bridge_flow_ratio * ($Slic3r::nozzle_diameter**2));
+                $flow_spacing = sqrt($Slic3r::bridge_flow_ratio * ($layer->infill_flow->nozzle_diameter**2));
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }

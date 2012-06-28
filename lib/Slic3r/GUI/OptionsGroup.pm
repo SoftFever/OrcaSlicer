@@ -26,6 +26,9 @@ sub new {
 
     
     foreach my $opt_key (@{$p{options}}) {
+        my $index;
+        $opt_key =~ s/#(\d+)$// and $index = $1;
+        
         my $opt = $Slic3r::Config::Options->{$opt_key};
         my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition,
             [$p{label_width} || 180, -1]);
@@ -44,12 +47,28 @@ sub new {
                 $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             }
             
-            my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get_raw set);
+            # if it's an array type but no index was specified, use the serialized version
+            my ($get_m, $set_m) = $opt->{type} =~ /\@$/ && !defined $index
+                ? qw(serialize deserialize)
+                : qw(get_raw set);
             
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key),
-                Wx::wxDefaultPosition, $size, $style);
-            EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue) });
-            push @reload_callbacks, sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
+            my $get = sub {
+                my $val = Slic3r::Config->$get_m($opt_key);
+                $val = $val->[$index] if defined $index;
+                return $val;
+            };
+            $field = Wx::TextCtrl->new($parent, -1, $get->(), Wx::wxDefaultPosition, $size, $style);
+            push @reload_callbacks, sub { $field->SetValue($get->()) };
+            
+            my $set = sub {
+                my $val = $field->GetValue;
+                if (defined $index) {
+                    Slic3r::Config->$get_m($opt_key)->[$index] = $val;
+                } else {
+                    Slic3r::Config->$set_m($opt_key, $val);
+                }
+            };
+            EVT_TEXT($parent, $field, sub { $set->() });
         } elsif ($opt->{type} eq 'bool') {
             $field = Wx::CheckBox->new($parent, -1, "");
             $field->SetValue(Slic3r::Config->get_raw($opt_key));

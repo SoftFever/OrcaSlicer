@@ -37,6 +37,7 @@ use Slic3r::Flow;
 use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
+use Slic3r::GCode;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
 use Slic3r::Line;
@@ -59,7 +60,6 @@ our $output_filename_format = '[input_filename_base].gcode';
 our $post_process       = [];
 
 # printer options
-our $nozzle_diameter    = 0.5;
 our $print_center       = [100,100];  # object will be centered around this point
 our $z_offset           = 0;
 our $gcode_flavor       = 'reprap';
@@ -70,12 +70,16 @@ our $g0                 = 0;
 our $gcode_comments     = 0;
 
 # filament options
-our $filament_diameter  = 3;    # mm
-our $extrusion_multiplier = 1;
 our $temperature        = 200;
 our $first_layer_temperature;
 our $bed_temperature    = 0;
 our $first_layer_bed_temperature;
+
+# extruders
+our $extruders              = [];
+our $nozzle_diameter        = [0.5];
+our $filament_diameter      = [3];    # mm
+our $extrusion_multiplier   = [1];
 
 # speed options
 our $travel_speed           = 130;      # mm/s
