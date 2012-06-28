@@ -111,12 +111,14 @@ our $extrusion_width                = 0;
 our $first_layer_extrusion_width    = 0;
 our $perimeters_extrusion_width     = 0;
 our $infill_extrusion_width         = 0;
+our $support_material_extrusion_width = 0;
 our $bridge_flow_ratio              = 1;
 our $overlap_factor                 = 0.5;
 our $flow;
 our $first_layer_flow;
 our $perimeters_flow;
 our $infill_flow;
+our $support_material_flow;
 
 # print options
 our $perimeters         = 3;

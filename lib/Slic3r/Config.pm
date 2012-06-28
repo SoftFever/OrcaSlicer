@@ -245,6 +245,11 @@ our $Options = {
         cli     => 'infill-extrusion-width=s',
         type    => 'f',
     },
+    'support_material_extrusion_width' => {
+        label   => 'Support material extrusion width (mm or % or 0 for default)',
+        cli     => 'support-material-extrusion-width=s',
+        type    => 'f',
+    },
     'bridge_flow_ratio' => {
         label   => 'Bridge flow ratio',
         cli     => 'bridge-flow-ratio=f',
@@ -698,8 +703,10 @@ sub validate {
             width        => $Slic3r::first_layer_extrusion_width,
         );
     }
-    $Slic3r::perimeters_flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
-    $Slic3r::infill_flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::perimeters_flow        = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::perimeters_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::infill_flow            = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
+    $Slic3r::support_material_flow  = $Slic3r::extruders->[ $Slic3r::support_material_extruder ]
+        ->make_flow(width => $Slic3r::support_material_extrusion_width || $Slic3r::extrusion_width);
     
     Slic3r::debugf "Default flow width = %s, spacing = %s, min_spacing = %s\n",
         $Slic3r::flow->width, $Slic3r::flow->spacing, $Slic3r::flow->min_spacing;

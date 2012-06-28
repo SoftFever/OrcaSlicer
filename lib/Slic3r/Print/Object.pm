@@ -490,7 +490,7 @@ sub generate_support_material {
     
     my $threshold_rad           = deg2rad($Slic3r::support_material_threshold + 1);   # +1 makes the threshold inclusive
     my $overhang_width          = $threshold_rad == 0 ? undef : scale $Slic3r::layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
-    my $distance_from_object    = 1.5 * scale $Slic3r::flow->width;
+    my $distance_from_object    = 1.5 * scale $Slic3r::support_material_flow->width;
     
     # determine support regions in each layer (for upper layers)
     Slic3r::debugf "Detecting regions\n";
@@ -514,7 +514,7 @@ sub generate_support_material {
                 [ map @$_, @current_support_regions ],
                 [ map @$_, map $_->expolygon->offset_ex($distance_from_object),  @{$layer->slices} ],
             );
-            $_->simplify(scale $layer->flow->spacing * 2) for @{$layers{$i}};
+            $_->simplify(scale $layer->support_material_flow->spacing * 2) for @{$layers{$i}};
             
             # step 2: get layer overhangs and put them into queue for adding support inside lower layers
             # we need an angle threshold for this
@@ -536,7 +536,7 @@ sub generate_support_material {
     my $support_patterns = [];  # in case we want cross-hatching
     {
         # 0.5 makes sure the paths don't get clipped externally when applying them to layers
-        my @support_material_areas = map $_->offset_ex(- 0.5 * scale $Slic3r::flow->width),
+        my @support_material_areas = map $_->offset_ex(- 0.5 * scale $Slic3r::support_material_flow->width),
             @{union_ex([ map $_->contour, map @$_, values %layers ])};
         
         my $fill = Slic3r::Fill->new(print => $params{print});
@@ -547,8 +547,8 @@ sub generate_support_material {
             foreach my $expolygon (@support_material_areas) {
                 my @paths = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon),
-                    density         => $Slic3r::flow->spacing / $Slic3r::support_material_spacing,
-                    flow_spacing    => $Slic3r::flow->spacing,
+                    density         => $Slic3r::support_material_flow->spacing / $Slic3r::support_material_spacing,
+                    flow_spacing    => $Slic3r::support_material_flow->spacing,
                 );
                 my $params = shift @paths;
                 

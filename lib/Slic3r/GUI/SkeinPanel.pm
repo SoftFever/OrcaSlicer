@@ -71,7 +71,7 @@ sub new {
         },
         extrusion => {
             title => 'Extrusion',
-            options => [qw(extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width bridge_flow_ratio)],
+            options => [qw(extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width support_material_extrusion_width bridge_flow_ratio)],
         },
         output => {
             title => 'Output',
@@ -117,7 +117,7 @@ sub new {
         $make_tab->([qw(cooling notes)]),
         $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
         $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion sequential_printing)], [qw(output other)]),
+        $make_tab->([qw(extrusion)], [qw(output other sequential_printing)]),
     );
     
     $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
