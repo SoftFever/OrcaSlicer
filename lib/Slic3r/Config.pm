@@ -669,7 +669,7 @@ sub validate {
     
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"
-        if grep $_ < 1, @$Slic3r::filament_diameterì;
+        if grep $_ < 1, @$Slic3r::filament_diameter;
     
     # --nozzle-diameter
     die "Invalid value for --nozzle-diameter\n"
