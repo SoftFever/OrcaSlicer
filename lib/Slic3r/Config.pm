@@ -320,12 +320,11 @@ our $Options = {
         cli     => 'support-material-angle=i',
         type    => 'i',
     },
-    'support_material_tool' => {
+    'support_material_extruder' => {
         label   => 'Extruder',
-        cli     => 'support-material-tool=i',
-        type    => 'select',
-        values  => [0,1],
-        labels  => [qw(Primary Secondary)],
+        cli     => 'support-material-extruder=i',
+        type    => 'i',
+        aliases => [qw(support_material_tool)],
     },
     'start_gcode' => {
         label   => 'Start G-code',

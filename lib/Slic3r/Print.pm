@@ -510,7 +510,7 @@ sub write_gcode {
     my $gcodegen = Slic3r::GCode->new;
     my $min_print_speed = 60 * $Slic3r::min_print_speed;
     my $dec = $gcodegen->dec;
-    if ($Slic3r::support_material && $Slic3r::support_material_tool > 0) {
+    if ($Slic3r::support_material && $Slic3r::support_material_extruder > 0) {
         print $fh $gcodegen->set_tool(0);
     }
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::cooling && $Slic3r::disable_fan_first_layers;
@@ -601,12 +601,12 @@ sub write_gcode {
             
             # extrude support material
             if ($layer->support_fills) {
-                $gcode .= $gcodegen->set_tool($Slic3r::support_material_tool)
-                    if $Slic3r::support_material_tool > 0;
+                $gcode .= $gcodegen->set_tool($Slic3r::support_material_extruder)
+                    if $Slic3r::support_material_extruder > 0;
                 $gcode .= $gcodegen->extrude_path($_, 'support material') 
                     for $layer->support_fills->shortest_path($gcodegen->last_pos);
                 $gcode .= $gcodegen->set_tool(0)
-                    if $Slic3r::support_material_tool > 0;
+                    if $Slic3r::support_material_extruder > 0;
             }
         }
         return if !$gcode;
