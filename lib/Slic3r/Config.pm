@@ -6,7 +6,7 @@ use utf8;
 use constant PI => 4 * atan2(1, 1);
 
 # cemetery of old config settings
-our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y);
+our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool);
 
 our $Options = {
 
@@ -105,23 +105,27 @@ our $Options = {
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
     },
-    
-    # filament options
+    'temperature' => {
+        label   => 'Temperature (°C)',
+        cli     => 'temperature=i@',
+        type    => 'i',
+        important => 1,
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
+    },
     'first_layer_temperature' => {
         label   => 'First layer temperature (°C)',
-        cli     => 'first-layer-temperature=i',
+        cli     => 'first-layer-temperature=i@',
         type    => 'i',
+        serialize   => sub { join ',', @{$_[0]} },
+        deserialize => sub { [ split /,/, $_[0] ] },
     },
+    
+    # filament options
     'first_layer_bed_temperature' => {
         label   => 'First layer bed temperature (°C)',
         cli     => 'first-layer-bed-temperature=i',
         type    => 'i',
-    },
-    'temperature' => {
-        label   => 'Temperature (°C)',
-        cli     => 'temperature=i',
-        type    => 'i',
-        important => 1,
     },
     'bed_temperature' => {
         label   => 'Bed Temperature (°C)',
@@ -324,7 +328,6 @@ our $Options = {
         label   => 'Extruder',
         cli     => 'support-material-extruder=i',
         type    => 'i',
-        aliases => [qw(support_material_tool)],
     },
     'start_gcode' => {
         label   => 'Start G-code',
@@ -680,11 +683,12 @@ sub validate {
     
     # initialize extruder(s)
     $Slic3r::extruders = [];
-    push @$Slic3r::extruders, Slic3r::Extruder->new(
-        nozzle_diameter         => $Slic3r::nozzle_diameter->[0],
-        filament_diameter       => $Slic3r::filament_diameter->[0],
-        extrusion_multiplier    => $Slic3r::extrusion_multiplier->[0],
-    );
+    for my $t (0, $Slic3r::support_material_extruder-1) {
+        $Slic3r::extruders->[$t] ||= Slic3r::Extruder->new(
+            map { $_ => Slic3r::Config->get($_)->[$t] // Slic3r::Config->get($_)->[0] } #/
+                qw(nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature)
+        );
+    }
     
     # calculate flow
     $Slic3r::flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::extrusion_width);
@@ -775,7 +779,8 @@ sub validate {
     die "Invalid value for --extruder-clearance-height\n"
         if $Slic3r::extruder_clearance_height <= 0;
     
-    $Slic3r::first_layer_temperature //= $Slic3r::temperature;          #/
+    $_->first_layer_temperature($_->temperature) for grep !defined $_->first_layer_temperature, @$Slic3r::extruders;
+    $Slic3r::first_layer_temperature->[$_] = $Slic3r::extruders->[$_]->first_layer_temperature for 0 .. $#$Slic3r::extruders;  # this is needed to provide a value to the legacy GUI and for config file re-serialization
     $Slic3r::first_layer_bed_temperature //= $Slic3r::bed_temperature;  #/
     
     # G-code flavors

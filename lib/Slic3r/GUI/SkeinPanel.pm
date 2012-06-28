@@ -29,7 +29,7 @@ sub new {
         },
         filament => {
             title => 'Filament',
-            options => [qw(filament_diameter#0 extrusion_multiplier#0 temperature first_layer_temperature bed_temperature first_layer_bed_temperature)],
+            options => [qw(filament_diameter#0 extrusion_multiplier#0 temperature#0 first_layer_temperature#0 bed_temperature first_layer_bed_temperature)],
         },
         print_speed => {
             title => 'Print speed',

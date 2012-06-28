@@ -497,9 +497,11 @@ sub write_gcode {
     print $fh "; $_\n" foreach split /\R/, $Slic3r::notes;
     print $fh "\n" if $Slic3r::notes;
     
-    for (qw(layer_height perimeters solid_layers fill_density nozzle_diameter filament_diameter
-        extrusion_multiplier perimeter_speed infill_speed travel_speed scale)) {
+    for (qw(layer_height perimeters solid_layers fill_density perimeter_speed infill_speed travel_speed scale)) {
         printf $fh "; %s = %s\n", $_, Slic3r::Config->get($_);
+    }
+    for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {
+        printf $fh "; %s = %s\n", $_, Slic3r::Config->get($_)->[0];
     }
     printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow->width;
     printf $fh "; first layer single wall width = %.2fmm\n", $Slic3r::first_layer_flow->width
@@ -510,19 +512,21 @@ sub write_gcode {
     my $gcodegen = Slic3r::GCode->new;
     my $min_print_speed = 60 * $Slic3r::min_print_speed;
     my $dec = $gcodegen->dec;
-    if ($Slic3r::support_material && $Slic3r::support_material_extruder > 0) {
-        print $fh $gcodegen->set_tool(0);
-    }
+    print $fh $gcodegen->set_tool(0) if @$Slic3r::extruders > 1;
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::cooling && $Slic3r::disable_fan_first_layers;
     
     # write start commands to file
     printf $fh $gcodegen->set_bed_temperature($Slic3r::first_layer_bed_temperature, 1),
             if $Slic3r::first_layer_bed_temperature && $Slic3r::start_gcode !~ /M190/i;
-    printf $fh $gcodegen->set_temperature($Slic3r::first_layer_temperature)
-        if $Slic3r::first_layer_temperature;
+    for my $t (grep $Slic3r::extruders->[$_], 0 .. $#$Slic3r::first_layer_temperature) {
+        printf $fh $gcodegen->set_temperature($Slic3r::extruders->[$t]->first_layer_temperature, 0, $t)
+            if $Slic3r::extruders->[$t]->first_layer_temperature;
+    }
     printf $fh "%s\n", Slic3r::Config->replace_options($Slic3r::start_gcode);
-    printf $fh $gcodegen->set_temperature($Slic3r::first_layer_temperature, 1)
-            if $Slic3r::first_layer_temperature && $Slic3r::start_gcode !~ /M109/i;
+    for my $t (grep $Slic3r::extruders->[$_], 0 .. $#$Slic3r::first_layer_temperature) {
+        printf $fh $gcodegen->set_temperature($Slic3r::extruders->[$t]->first_layer_temperature, 1, $t)
+            if $Slic3r::extruders->[$t]->first_layer_temperature && $Slic3r::start_gcode !~ /M109/i;
+    }
     print  $fh "G90 ; use absolute coordinates\n";
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::gcode_flavor =~ /^(?:reprap|teacup)$/) {
@@ -551,8 +555,10 @@ sub write_gcode {
         my $gcode = "";
         
         if ($layer_id == 1) {
-            $gcode .= $gcodegen->set_temperature($Slic3r::temperature)
-                if $Slic3r::temperature && $Slic3r::temperature != $Slic3r::first_layer_temperature;
+            for my $t (grep $Slic3r::extruders->[$_], 0 .. $#$Slic3r::temperature) {
+                $gcode .= $gcodegen->set_temperature($Slic3r::extruders->[$t]->temperature, 0, $t)
+                    if $Slic3r::extruders->[$t]->temperature && $Slic3r::extruders->[$t]->temperature != $Slic3r::extruders->[$t]->first_layer_temperature;
+            }
             $gcode .= $gcodegen->set_bed_temperature($Slic3r::bed_temperature)
                 if $Slic3r::first_layer_bed_temperature && $Slic3r::bed_temperature != $Slic3r::first_layer_bed_temperature;
         }
@@ -601,12 +607,10 @@ sub write_gcode {
             
             # extrude support material
             if ($layer->support_fills) {
-                $gcode .= $gcodegen->set_tool($Slic3r::support_material_extruder)
-                    if $Slic3r::support_material_extruder > 0;
+                $gcode .= $gcodegen->set_tool($Slic3r::support_material_extruder-1);
                 $gcode .= $gcodegen->extrude_path($_, 'support material') 
                     for $layer->support_fills->shortest_path($gcodegen->last_pos);
-                $gcode .= $gcodegen->set_tool(0)
-                    if $Slic3r::support_material_extruder > 0;
+                $gcode .= $gcodegen->set_tool(0);
             }
         }
         return if !$gcode;

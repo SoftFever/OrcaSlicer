@@ -3,9 +3,11 @@ use Moo;
 
 use Slic3r::Geometry qw(PI);
 
-has 'nozzle_diameter'       => (is => 'rw', required => 1);
-has 'filament_diameter'     => (is => 'rw', required => 1);
-has 'extrusion_multiplier'  => (is => 'rw', required => 1);
+has 'nozzle_diameter'           => (is => 'rw', required => 1);
+has 'filament_diameter'         => (is => 'rw', required => 1);
+has 'extrusion_multiplier'      => (is => 'rw', required => 1);
+has 'temperature'               => (is => 'rw', required => 1);
+has 'first_layer_temperature'   => (is => 'rw', required => 1);
 
 has 'e_per_mmc'             => (is => 'rw');
 

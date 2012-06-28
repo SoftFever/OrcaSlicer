@@ -10,7 +10,7 @@ has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
 has 'speed'              => (is => 'rw');
 
-has 'extruder'           => (is => 'rw', default => sub { $Slic3r::extruders->[0] });
+has 'extruder_idx'       => (is => 'rw', default => sub {0});
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
@@ -51,6 +51,11 @@ my %role_speeds = (
 );
 
 use Slic3r::Geometry qw(points_coincide PI X Y);
+
+sub extruder {
+    my $self = shift;
+    return $Slic3r::extruders->[$self->extruder_idx];
+}
 
 sub change_layer {
     my $self = shift;
@@ -374,6 +379,9 @@ sub set_tool {
     my $self = shift;
     my ($tool) = @_;
     
+    return "" if $self->extruder_idx == $tool;
+    
+    $self->extruder_idx($tool);
     return $self->retract . sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '');
 }
 
@@ -395,15 +403,16 @@ sub set_fan {
 
 sub set_temperature {
     my $self = shift;
-    my ($temperature, $wait) = @_;
+    my ($temperature, $wait, $tool) = @_;
     
     return "" if $wait && $Slic3r::gcode_flavor eq 'makerbot';
     
     my ($code, $comment) = $wait
         ? ('M109', 'wait for temperature to be reached')
         : ('M104', 'set temperature');
-    return sprintf "$code %s%d ; $comment\n",
-        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
+    return sprintf "$code %s%d %s; $comment\n",
+        ($Slic3r::gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature,
+        (defined $tool && $tool != $self->extruder_idx) ? "T$tool " : "";
 }
 
 sub set_bed_temperature {
