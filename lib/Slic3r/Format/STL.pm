@@ -47,11 +47,11 @@ sub read_file {
                 my $point_id = join ',', @{$facets->[$f][$_]};
                 if (exists $vertices_map{$point_id}) {
                     $facets->[$f][$_] = $vertices_map{$point_id};
-                    push @{$vertices_facets[$facets->[$f][$_]]}, $f;
+                    ### push @{$vertices_facets[$facets->[$f][$_]]}, $f;
                 } else {
                     push @$vertices, $facets->[$f][$_];
                     $facets->[$f][$_] = $vertices_map{$point_id} = $#$vertices;
-                    $vertices_facets[$#$vertices] = [$f];
+                    ### $vertices_facets[$#$vertices] = [$f];
                 }
             }
         }
@@ -62,6 +62,8 @@ sub read_file {
         # point in space. It enforces topological correctness which is needed by
         # the slicing algorithm.
         # I'm keeping it disabled until I find a good test case.
+        # The two lines above commented out with '###' need to be
+        # uncommented for this to work.
         if (0) {
             my $vertices_count = $#$vertices; # store it to avoid processing newly created vertices
             for (my $v = 0; $v <= $vertices_count; $v++) {
