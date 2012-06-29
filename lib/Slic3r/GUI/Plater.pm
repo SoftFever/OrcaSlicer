@@ -370,7 +370,8 @@ sub changescale {
     
     my $obj_idx = $self->selected_object_idx;
     my $scale = $self->{scale}[$obj_idx];
-    $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $scale*100, 0, 1000, $self);
+    # max scale factor should be above 2540 to allow importing files exported in inches
+    $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $scale*100, 0, 5000, $self);
     return if !$scale || $scale == -1;
     
     $self->statusbar->SetStatusText("Scaling object...");
