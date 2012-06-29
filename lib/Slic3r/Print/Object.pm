@@ -514,7 +514,7 @@ sub generate_support_material {
                 [ map @$_, @current_support_regions ],
                 [ map @$_, map $_->expolygon->offset_ex($distance_from_object),  @{$layer->slices} ],
             );
-            $_->simplify(scale $layer->support_material_flow->spacing * 2) for @{$layers{$i}};
+            $_->simplify(scale $Slic3r::support_material_flow->spacing * 2) for @{$layers{$i}};
             
             # step 2: get layer overhangs and put them into queue for adding support inside lower layers
             # we need an angle threshold for this
