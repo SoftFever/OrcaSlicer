@@ -587,6 +587,7 @@ sub write_gcode {
         for my $obj_copy (@$object_copies) {
             my ($obj_idx, $copy) = @$obj_copy;
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
+            $self->objects->[$obj_idx]->layers->[$layer_id] = undef;
             
             # retract explicitely because changing the shift_[xy] properties below
             # won't always trigger the automatic retraction
