@@ -128,12 +128,8 @@ sub make_fill {
         @surfaces = @new_surfaces;
     }
     
-    # organize infill surfaces using a shortest path search
-    @surfaces = @{shortest_path([
-        map [ $_->contour->[0], $_ ], @surfaces,
-    ])};
-    
     my @fills = ();
+    my @fills_ordering_points =  ();
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::fill_pattern;
         my $density         = $Slic3r::fill_density;
@@ -163,6 +159,7 @@ sub make_fill {
         my $params = shift @paths;
         
         # save into layer
+        next unless @paths;
         push @fills, Slic3r::ExtrusionPath::Collection->new(
             paths => [
                 map Slic3r::ExtrusionPath->new(
@@ -176,19 +173,22 @@ sub make_fill {
                     flow_spacing => $params->{flow_spacing},
                 ), @paths,
             ],
-        ) if @paths;
+        );
+        push @fills_ordering_points, $paths[0][0];
     }
     
     # add thin fill regions
-    push @fills, Slic3r::ExtrusionPath::Collection->new(
-        paths => [
-            map {
-                $_->isa('Slic3r::Polygon')
-                    ? Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_SOLIDFILL)->split_at_first_point
-                    : Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_SOLIDFILL)
-            } @{$layer->thin_fills},
-        ],
-    ) if @{$layer->thin_fills};
+    push @fills, map {
+            $_->isa('Slic3r::Polygon')
+                ? Slic3r::ExtrusionLoop->new(polygon  => $_, role => EXTR_ROLE_SOLIDFILL)->split_at_first_point
+                : Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_SOLIDFILL),
+        } @{$layer->thin_fills};
+    push @fills_ordering_points, map $_->[0], @{$layer->thin_fills};
+    
+    # organize infill paths using a shortest path search
+    @fills = @{shortest_path([
+        map [ $fills_ordering_points[$_], $fills[$_] ], 0..$#fills,
+    ])};
     
     return @fills;
 }
