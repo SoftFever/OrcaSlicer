@@ -128,7 +128,6 @@ sub new {
 
 package Slic3r::GUI::ConfigWizard::Page;
 use Wx qw(:font :misc :sizer :staticline :systemsettings);
-use Wx::Event qw();
 use base 'Wx::WizardPage';
 
 sub new {
