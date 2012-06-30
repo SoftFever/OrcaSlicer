@@ -605,7 +605,7 @@ sub write_gcode {
             $gcode .= $gcodegen->set_tool($Slic3r::infill_extruder-1);
             $gcode .= $gcodegen->set_acceleration($Slic3r::infill_acceleration);
             for my $fill (@{ $layer->fills }) {
-                $gcode .= $gcodegen->extrude_path($_, 'fill') 
+                $gcode .= $gcodegen->extrude($_, 'fill') 
                     for $fill->shortest_path($gcodegen->last_pos);
             }
             

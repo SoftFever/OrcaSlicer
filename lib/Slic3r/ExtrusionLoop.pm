@@ -22,6 +22,11 @@ sub deserialize {
     $self->polygon($self->polygon->deserialize);
 }
 
+sub shortest_path {
+    my $self = shift;
+    return $self;
+}
+
 sub split_at {
     my $self = shift;
     my ($point) = @_;

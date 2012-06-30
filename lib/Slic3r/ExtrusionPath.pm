@@ -47,6 +47,11 @@ sub deserialize {
     $self->polyline($self->polyline->deserialize);
 }
 
+sub shortest_path {
+    my $self = shift;
+    return $self;
+}
+
 sub clip_end {
     my $self = shift;
     my ($distance) = @_;
