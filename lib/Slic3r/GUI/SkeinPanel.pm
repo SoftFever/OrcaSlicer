@@ -71,7 +71,7 @@ sub new {
         },
         extrusion => {
             title => 'Extrusion',
-            options => [qw(extrusion_width first_layer_extrusion_width perimeters_extrusion_width infill_extrusion_width support_material_extrusion_width bridge_flow_ratio)],
+            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width infill_extrusion_width support_material_extrusion_width bridge_flow_ratio)],
         },
         output => {
             title => 'Output',

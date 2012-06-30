@@ -82,7 +82,7 @@ our $temperature            = [200];
 our $first_layer_temperature= [];
 
 # extruder mapping (1-based indexes)
-our $perimeters_extruder        = 1;
+our $perimeter_extruder         = 1;
 our $infill_extruder            = 1;
 our $support_material_extruder  = 1;
 
@@ -114,7 +114,7 @@ our $infill_every_layers    = 1;
 # flow options
 our $extrusion_width                = 0;
 our $first_layer_extrusion_width    = 0;
-our $perimeters_extrusion_width     = 0;
+our $perimeter_extrusion_width      = 0;
 our $infill_extrusion_width         = 0;
 our $support_material_extrusion_width = 0;
 our $bridge_flow_ratio              = 1;

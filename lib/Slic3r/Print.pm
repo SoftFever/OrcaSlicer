@@ -598,7 +598,7 @@ sub write_gcode {
             $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
             
             # extrude perimeters
-            $gcode .= $gcodegen->set_tool($Slic3r::perimeters_extruder-1);
+            $gcode .= $gcodegen->set_tool($Slic3r::perimeter_extruder-1);
             $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layer->perimeters };
             
             # extrude fills
