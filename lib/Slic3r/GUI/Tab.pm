@@ -197,7 +197,7 @@ sub set_dirty {
 
 sub is_dirty {
     my $self = shift;
-    return $self->{dirty};
+    return (defined $self->{dirty});
 }
 
 sub title {
