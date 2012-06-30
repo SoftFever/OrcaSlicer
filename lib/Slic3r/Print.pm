@@ -550,6 +550,7 @@ sub write_gcode {
     
     # prepare the logic to print one layer
     my $skirt_done = 0;  # count of skirt layers done
+    my $brim_done = 0;
     my $extrude_layer = sub {
         my ($layer_id, $object_copies) = @_;
         my $gcode = "";
@@ -580,8 +581,9 @@ sub write_gcode {
         }
         
         # extrude brim
-        if ($layer_id == 0) {
+        if ($layer_id == 0 && !$brim_done) {
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
+            $brim_done = 1;
         }
         
         for my $obj_copy (@$object_copies) {
