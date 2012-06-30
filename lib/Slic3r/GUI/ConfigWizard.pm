@@ -14,6 +14,7 @@ sub new {
                                   Wx::Bitmap->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG));
 
     # Start from sane defaults
+    $self->{old} = Slic3r::Config->current;
     Slic3r::Config->load_hash($Slic3r::Defaults, undef, 1);
 
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
@@ -43,13 +44,18 @@ sub add_page {
 sub run {
     my $self = shift;
 
-    my $finished = Wx::Wizard::RunWizard($self, $self->{pages}[0]);
-    if ($finished) {
+    my $modified;
+    if (Wx::Wizard::RunWizard($self, $self->{pages}[0])) {
         $_->apply for @{$self->{pages}};
+        $modified = 1;
+    } else {
+        Slic3r::Config->load_hash($self->{old}, undef, 1);
+        $modified = 0;
     }
+
     $self->Destroy;
 
-    return $finished;
+    return $modified;
 }
 
 package Slic3r::GUI::ConfigWizard::Option;
