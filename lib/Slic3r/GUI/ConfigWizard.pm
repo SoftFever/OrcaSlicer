@@ -13,6 +13,9 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, 'Configuration Wizard',
                                   Wx::Bitmap->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG));
 
+    # Start from sane defaults
+    Slic3r::Config->load_hash($Slic3r::Defaults, undef, 1);
+
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Bed->new($self));
@@ -209,7 +212,6 @@ sub new {
     my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard');
 
     $self->append_text('Hello, welcome to Slic3r! This wizard helps you with the initial configuration; just a few settings and you will be ready to print.');
-    $self->append_text('Configuration will be based on your current configuration.');
     $self->append_text('To continue, click Next.');
 
     return $self;
