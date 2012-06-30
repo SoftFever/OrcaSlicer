@@ -232,7 +232,7 @@ sub config_wizard {
     }
 }
 
-sub on_close {
+sub check_unsaved_changes {
     my $self = shift;
 
     my @dirty;
@@ -242,7 +242,7 @@ sub on_close {
 
     if (@dirty) {
         my $titles = join ', ', @dirty;
-        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Exit anyway?",
+        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
                                              'Unsaved Presets', wxICON_QUESTION | wxOK | wxCANCEL);
         return ($confirm->ShowModal == wxID_OK);
     }

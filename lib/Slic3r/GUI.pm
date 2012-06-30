@@ -127,7 +127,7 @@ sub about {
 
 sub on_close {
     my ($frame, $event) = @_;
-    $event->CanVeto ? $event->Skip($frame->{skeinpanel}->on_close) : $event->Skip(1);
+    $event->CanVeto ? $event->Skip($frame->{skeinpanel}->check_unsaved_changes) : $event->Skip(1);
 }
 
 sub catch_error {
