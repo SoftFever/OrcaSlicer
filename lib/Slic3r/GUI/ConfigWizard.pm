@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(:sizer :progressdialog);
+use Wx qw(:bitmap);
 use base 'Wx::Wizard';
 
 sub new {
@@ -11,7 +11,7 @@ sub new {
     my ($parent) = @_;
     # TODO: Add instructional bitmaps
     my $self = $class->SUPER::new($parent, -1, 'Configuration Wizard',
-                                  Wx::Bitmap->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG));
+                                  Wx::Bitmap->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG));
 
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
@@ -50,7 +50,7 @@ sub run {
 }
 
 package Slic3r::GUI::ConfigWizard::Option;
-use Wx qw(:sizer :progressdialog);
+use Wx qw(:combobox :misc :sizer :textctrl);
 use Wx::Event qw(EVT_SPINCTRL EVT_TEXT EVT_CHECKBOX EVT_COMBOBOX);
 use base 'Wx::StaticBoxSizer';
 
@@ -58,7 +58,7 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $box = Wx::StaticBox->new($parent, -1, '');
-    my $self = $class->SUPER::new($box, &Wx::wxHORIZONTAL);
+    my $self = $class->SUPER::new($box, wxHORIZONTAL);
 
     my $label_width = 200;
 
@@ -68,24 +68,24 @@ sub new {
     my $callback = $params{callback} || sub {};
 
     # label
-    my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", &Wx::wxDefaultPosition, [$label_width, -1]);
+    my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, [$label_width, -1]);
     $label->Wrap($label_width);
-    $self->Add($label, 1, &Wx::wxEXPAND);
+    $self->Add($label, 1, wxEXPAND);
 
     # input field(s) and unit
     my $field;
     if ($opt->{type} =~ /^(i|f|s|s@)$/) {
-        my $style = $opt->{multiline} ? &Wx::wxTE_MULTILINE : 0;
+        my $style = $opt->{multiline} ? wxTE_MULTILINE : 0;
         my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
 
         my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get_raw set);
 
         if ($opt->{type} eq 'i') {
             my $value = Slic3r::Config->$get($opt_key);
-            $field = Wx::SpinCtrl->new($parent, -1, $value, &Wx::wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
+            $field = Wx::SpinCtrl->new($parent, -1, $value, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
             EVT_SPINCTRL($parent, $field, sub { $callback->($opt_key, $field->GetValue) });
         } else {
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), Wx::wxDefaultPosition, $size, $style);
+            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), wxDefaultPosition, $size, $style);
             EVT_TEXT($parent, $field, sub { $callback->($opt_key, $field->GetValue) });
         }
     } elsif ($opt->{type} eq 'bool') {
@@ -93,20 +93,20 @@ sub new {
         $field->SetValue(Slic3r::Config->get_raw($opt_key));
         EVT_CHECKBOX($parent, $field, sub { $callback->($opt_key, $field->GetValue) });
     } elsif ($opt->{type} eq 'point') {
-        $field = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+        $field = Wx::BoxSizer->new(wxHORIZONTAL);
         my $field_size = Wx::Size->new(40, -1);
         my $value = Slic3r::Config->get_raw($opt_key);
         my @items = (
             Wx::StaticText->new($parent, -1, 'x:'),
-            my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], &Wx::wxDefaultPosition, $field_size),
+            my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], wxDefaultPosition, $field_size),
             Wx::StaticText->new($parent, -1, '  y:'),
-            my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], &Wx::wxDefaultPosition, $field_size),
+            my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], wxDefaultPosition, $field_size),
         );
         $field->Add($_) for @items;
         EVT_TEXT($parent, $x_field, sub { $callback->($opt_key, [$x_field->GetValue, $y_field->GetValue]) });
         EVT_TEXT($parent, $y_field, sub { $callback->($opt_key, [$x_field->GetValue, $y_field->GetValue]) });
     } elsif ($opt->{type} eq 'select') {
-        $field = Wx::ComboBox->new($parent, -1, '', &Wx::wxDefaultPosition, &Wx::wxDefaultSize, $opt->{labels} || $opt->{values}, &Wx::wxCB_READONLY);
+        $field = Wx::ComboBox->new($parent, -1, '', wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
         my $value = Slic3r::Config->get_raw($opt_key);
         $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
         EVT_COMBOBOX($parent, $field, sub { $callback->($opt_key, $opt->{values}[$field->GetSelection]) });
@@ -114,20 +114,20 @@ sub new {
         die 'Unsupported option type: ' . $opt->{type};
     }
     if ($opt->{sidetext}) {
-        my $sizer = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $sizer->Add($field);
-        my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, &Wx::wxDefaultPosition, [-1, -1]);
-        $sizer->Add($sidetext, 0, &Wx::wxLEFT | &Wx::wxALIGN_CENTER_VERTICAL, 4);
+        my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, wxDefaultPosition, [-1, -1]);
+        $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
         $self->Add($sizer);
     } else {
-        $self->Add($field, 0, $opt->{full_width} ? &Wx::wxEXPAND : 0);
+        $self->Add($field, 0, $opt->{full_width} ? wxEXPAND : 0);
     }
 
     return $self;
 }
 
 package Slic3r::GUI::ConfigWizard::Page;
-use Wx qw(:sizer :progressdialog);
+use Wx qw(:font :misc :sizer :staticline :systemsettings);
 use Wx::Event qw();
 use base 'Wx::WizardPage';
 
@@ -137,18 +137,18 @@ sub new {
     my $self = $class->SUPER::new($parent);
 
     $self->{width} = 400;
-    $self->{vsizer} = Wx::BoxSizer->new(&Wx::wxVERTICAL);
+    $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->SetSizer($self->{vsizer});
 
     # title
-    my $text = Wx::StaticText->new($self, -1, $title, &Wx::wxDefaultPosition, &Wx::wxDefaultSize, &Wx::wxALIGN_LEFT);
-    my $bold_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
-    $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
+    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    $bold_font->SetWeight(wxFONTWEIGHT_BOLD);
     $bold_font->SetPointSize(14);
     $text->SetFont($bold_font);
-    $self->{vsizer}->Add($text, 0, &Wx::wxALIGN_LEFT | &Wx::wxALL, 10);
-    my $line = Wx::StaticLine->new($self, -1, &Wx::wxDefaultPosition, &Wx::wxDefaultSize, &Wx::wxLI_HORIZONTAL, '');
-    $self->{vsizer}->Add($line, 0, &Wx::wxEXPAND| &Wx::wxALL, 10);
+    $self->{vsizer}->Add($text, 0, wxALIGN_LEFT | wxALL, 10);
+    my $line = Wx::StaticLine->new($self, -1, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL, '');
+    $self->{vsizer}->Add($line, 0, wxEXPAND| wxALL, 10);
 
     return $self;
 }
@@ -157,9 +157,9 @@ sub append_text {
     my $self = shift;
     my ($text) = @_;
 
-    my $para = Wx::StaticText->new($self, -1, $text, &Wx::wxDefaultPosition, &Wx::wxDefaultSize, &Wx::wxALIGN_LEFT);
+    my $para = Wx::StaticText->new($self, -1, $text, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     $para->Wrap($self->{width});
-    $self->{vsizer}->Add($para, 0, &Wx::wxALIGN_LEFT | &Wx::wxALL, 10);
+    $self->{vsizer}->Add($para, 0, wxALIGN_LEFT | wxALL, 10);
 }
 
 sub append_option {
@@ -171,7 +171,7 @@ sub append_option {
                                                             my ($opt_key, $value) = @_;
                                                             $self->{options}->{$opt_key} = $value;
                                                         });
-    $self->{vsizer}->Add($option, 0, &Wx::wxEXPAND | &Wx::wxALL, 10);
+    $self->{vsizer}->Add($option, 0, wxEXPAND | wxALL, 10);
 }
 
 sub apply {
@@ -202,8 +202,6 @@ sub GetNext {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Welcome;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -219,8 +217,6 @@ sub new {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Firmware;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -235,8 +231,6 @@ sub new {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Bed;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -260,8 +254,6 @@ sub apply {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Nozzle;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -286,8 +278,6 @@ sub apply {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Filament;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -303,8 +293,6 @@ sub new {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Temperature;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -329,8 +317,6 @@ sub apply {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::BedTemperature;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
@@ -355,8 +341,6 @@ sub apply {
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Finished;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
