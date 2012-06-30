@@ -226,6 +226,7 @@ sub load_config {
 sub config_wizard {
     my $self = shift;
 
+    return unless $self->check_unsaved_changes;
     if (Slic3r::GUI::ConfigWizard->new($self)->run) {
         $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
         $_->set_dirty(1) for values %{$self->{options_tabs}};
