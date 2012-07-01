@@ -11,9 +11,7 @@ use Slic3r::Geometry::Clipper qw(JT_MITER);
 
 sub lines {
     my $self = shift;
-    my @lines = polygon_lines($self);
-    bless $_, 'Slic3r::Line' for @lines;
-    return @lines;
+    return polygon_lines($self);
 }
 
 sub boost_linestring {
