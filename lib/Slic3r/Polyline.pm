@@ -51,15 +51,7 @@ sub id {
 
 sub lines {
     my $self = shift;
-    my @lines = ();
-    my $previous_point;
-    foreach my $point (@$self) {
-        if ($previous_point) {
-            push @lines, Slic3r::Line->new($previous_point, $point);
-        }
-        $previous_point = $point;
-    }
-    return @lines;
+    return polyline_lines($self);
 }
 
 sub boost_linestring {
