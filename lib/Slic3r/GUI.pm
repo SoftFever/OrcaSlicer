@@ -9,16 +9,16 @@ use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::Tab;
 
-use Wx 0.9901 qw(:sizer :frame wxID_EXIT wxID_ABOUT);
-use Wx::Event qw(EVT_MENU EVT_CLOSE);
+use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :systemsettings);
+use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
 my $growler;
 our $datadir;
 
-our $small_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
+our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
-our $medium_font = Wx::SystemSettings::GetFont(&Wx::wxSYS_DEFAULT_GUI_FONT);
+our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
 
 sub OnInit {
@@ -52,7 +52,7 @@ sub OnInit {
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,520], wxDEFAULT_FRAME_STYLE);
-    $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", &Wx::wxBITMAP_TYPE_PNG) );
+    $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
     $frame->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
     
     # status bar
@@ -127,7 +127,7 @@ sub catch_error {
     my ($self, $cb, $message_dialog) = @_;
     if (my $err = $@) {
         $cb->() if $cb;
-        my @params = ($err, 'Error', &Wx::wxOK | &Wx::wxICON_ERROR);
+        my @params = ($err, 'Error', wxOK | wxICON_ERROR);
         $message_dialog
             ? $message_dialog->(@params)
             : Wx::MessageDialog->new($self, @params)->ShowModal;
@@ -139,7 +139,7 @@ sub catch_error {
 sub show_error {
     my $self = shift;
     my ($message) = @_;
-    Wx::MessageDialog->new($self, $message, 'Error', &Wx::wxOK | &Wx::wxICON_ERROR)->ShowModal;
+    Wx::MessageDialog->new($self, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
 }
 
 sub fatal_error {
@@ -152,7 +152,7 @@ sub warning_catcher {
     my ($self, $message_dialog) = @_;
     return sub {
         my $message = shift;
-        my @params = ($message, 'Warning', &Wx::wxOK | &Wx::wxICON_WARNING);
+        my @params = ($message, 'Warning', wxOK | wxICON_WARNING);
         $message_dialog
             ? $message_dialog->(@params)
             : Wx::MessageDialog->new($self, @params)->ShowModal;
@@ -169,6 +169,7 @@ sub notify {
 }
 
 package Slic3r::GUI::ProgressStatusBar;
+use Wx qw(:gauge);
 use base 'Wx::StatusBar';
 
 sub new {
@@ -178,7 +179,7 @@ sub new {
     $self->{_changed} = 0;
     $self->{busy} = 0;
     $self->{timer} = Wx::Timer->new($self);
-    $self->{prog} = Wx::Gauge->new($self, &Wx::wxGA_HORIZONTAL, 100, [-1,-1], [-1,-1]);
+    $self->{prog} = Wx::Gauge->new($self, wxGA_HORIZONTAL, 100, [-1,-1], [-1,-1]);
     $self->{prog}->Hide;
     $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", [-1,-1], [-1,8]);
     $self->{cancelbutton}->Hide;

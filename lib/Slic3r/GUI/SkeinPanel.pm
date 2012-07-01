@@ -5,8 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use Slic3r::Geometry qw(X Y);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
-    wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
+use Wx qw(:dialog :filedialog :font :icon :id :misc :notebook :sizer);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
@@ -21,7 +20,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
+    my $tabpanel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
     $tabpanel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($tabpanel), "Plater");
     $self->{options_tabs} = {
         print       => Slic3r::GUI::Tab::Print->new     ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{print}),
@@ -49,7 +48,7 @@ sub new {
         $buttons_sizer->Add($load_button, 0, wxRIGHT, 5);
         EVT_BUTTON($self, $load_button, sub { $self->load_config });
         
-        my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);
+        my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
         my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
         $text->SetFont($font);
         $buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
@@ -94,7 +93,7 @@ sub do_slice {
 
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN | &Wx::wxFD_FILE_MUST_EXIST);
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
                 $dialog->Destroy;
                 return;
@@ -192,7 +191,7 @@ sub save_config {
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
-        $ini_wildcard, wxFD_SAVE | &Wx::wxFD_OVERWRITE_PROMPT);
+        $ini_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $last_config_dir = dirname($file);
@@ -207,7 +206,7 @@ sub load_config {
     
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-        $ini_wildcard, wxFD_OPEN | &Wx::wxFD_FILE_MUST_EXIST);
+        $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if ($dlg->ShowModal == wxID_OK) {
         my ($file) = $dlg->GetPaths;
         $last_config_dir = dirname($file);

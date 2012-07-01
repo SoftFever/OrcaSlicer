@@ -5,14 +5,14 @@ use utf8;
 
 use File::Basename qw(basename);
 use List::Util qw(first);
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw(EVT_TREE_SEL_CHANGED EVT_CHOICE EVT_BUTTON);
+use Wx qw(:bookctrl :dialog :icon :id :sizer :treectrl);
+use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
     my ($parent, $title, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], &Wx::wxBK_LEFT);
+    my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], wxBK_LEFT);
     
     $self->{title} = $title;
     
@@ -23,13 +23,13 @@ sub new {
     });
     
     # horizontal sizer
-    $self->{sizer} = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+    $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
     $self->{sizer}->SetSizeHints($self);
     $self->SetSizer($self->{sizer});
     
     # left vertical sizer
-    my $left_sizer = Wx::BoxSizer->new(&Wx::wxVERTICAL);
-    $self->{sizer}->Add($left_sizer, 0, &Wx::wxEXPAND);
+    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $self->{sizer}->Add($left_sizer, 0, wxEXPAND);
     
     my $left_col_width = 200;
     
@@ -41,27 +41,27 @@ sub new {
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
-        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", &Wx::wxBITMAP_TYPE_PNG));
-        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG));
+        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG));
+        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
         $self->{btn_save_preset}->SetToolTipString("Save current " . lc($title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
         
         ### These cause GTK warnings:
         ###my $box = Wx::StaticBox->new($self, -1, "Presets:", [-1, -1], [$left_col_width, 50]);
-        ###my $hsizer = Wx::StaticBoxSizer->new($box, &Wx::wxHORIZONTAL);
+        ###my $hsizer = Wx::StaticBoxSizer->new($box, wxHORIZONTAL);
         
-        my $hsizer = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         
-        $left_sizer->Add($hsizer, 0, &Wx::wxEXPAND | &Wx::wxBOTTOM, 5);
-        $hsizer->Add($self->{presets_choice}, 1, &Wx::wxRIGHT | &Wx::wxALIGN_CENTER_VERTICAL, 3);
-        $hsizer->Add($self->{btn_save_preset}, 0, &Wx::wxALIGN_CENTER_VERTICAL);
-        $hsizer->Add($self->{btn_delete_preset}, 0, &Wx::wxALIGN_CENTER_VERTICAL);
+        $left_sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 5);
+        $hsizer->Add($self->{presets_choice}, 1, wxRIGHT | wxALIGN_CENTER_VERTICAL, 3);
+        $hsizer->Add($self->{btn_save_preset}, 0, wxALIGN_CENTER_VERTICAL);
+        $hsizer->Add($self->{btn_delete_preset}, 0, wxALIGN_CENTER_VERTICAL);
     }
     
     # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, [-1, -1], [$left_col_width, -1], &Wx::wxTR_NO_BUTTONS | &Wx::wxTR_HIDE_ROOT | &Wx::wxTR_SINGLE | &Wx::wxTR_NO_LINES);
-    $left_sizer->Add($self->{treectrl}, 1, &Wx::wxEXPAND);
+    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, [-1, -1], [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES);
+    $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
     $self->{treectrl}->AssignImageList($self->{icons});
     $self->{iconcount} = -1;
@@ -73,7 +73,7 @@ sub new {
         $self->{sizer}->Remove(1);
         my $page = $self->{pages}->{ $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) };
         $page->Show;
-        $self->{sizer}->Add($page, 1, &Wx::wxEXPAND | &Wx::wxLEFT, 5);
+        $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
         $self->{sizer}->Layout;
     });
     
@@ -92,7 +92,7 @@ sub new {
             default => $default,
             values  => [ map { my $filename = basename($_); $filename =~ /^(.*?)\.ini$/i; $1 } @{$self->{presets}} ],
         );
-        return unless $dlg->ShowModal == &Wx::wxID_OK;
+        return unless $dlg->ShowModal == wxID_OK;
         
         my $file = sprintf "$Slic3r::GUI::datadir/$self->{presets_group}/%s.ini", $dlg->get_name;
         Slic3r::Config->save($file, $self->{presets_group});
@@ -106,8 +106,8 @@ sub new {
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
         my $i = $self->{presets_choice}->GetSelection;
         return if $i == 0;  # this shouldn't happen but let's trap it anyway
-        my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', &Wx::wxYES_NO | &Wx::wxNO_DEFAULT | &Wx::wxICON_QUESTION)->ShowModal;
-        return unless $res == &Wx::wxID_YES;
+        my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
+        return unless $res == wxID_YES;
         if (-e $self->{presets}[$i-1]) {
             unlink $self->{presets}[$i-1];
         }
@@ -159,7 +159,7 @@ sub add_options_page {
     });
     
     my $bitmap = $icon
-        ? Wx::Bitmap->new("$Slic3r::var/$icon", &Wx::wxBITMAP_TYPE_PNG)
+        ? Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG)
         : undef;
     if ($bitmap) {
         $self->{icons}->Add($bitmap);
@@ -260,8 +260,6 @@ sub sync_presets {
 }
 
 package Slic3r::GUI::Tab::Print;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::Tab';
 
 sub new {
@@ -366,8 +364,6 @@ sub new {
 }
 
 package Slic3r::GUI::Tab::Filament;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::Tab';
 
 sub new {
@@ -408,8 +404,6 @@ sub new {
 }
 
 package Slic3r::GUI::Tab::Printer;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
 use base 'Slic3r::GUI::Tab';
 
 sub new {
@@ -463,8 +457,7 @@ sub new {
 }
 
 package Slic3r::GUI::Tab::Page;
-use Wx qw(:sizer :progressdialog);
-use Wx::Event qw();
+use Wx qw(:sizer);
 use base 'Wx::ScrolledWindow';
 
 sub new {
@@ -474,7 +467,7 @@ sub new {
     
     $self->SetScrollbars(1, 1, 1, 1);
     
-    $self->{vsizer} = Wx::BoxSizer->new(&Wx::wxVERTICAL);
+    $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->SetSizer($self->{vsizer});
     
     if ($params{optgroups}) {
@@ -492,7 +485,7 @@ sub append_optgroup {
 }
 
 package Slic3r::GUI::SavePresetWindow;
-use Wx qw(:sizer);
+use Wx qw(:combobox :dialog :id :sizer);
 use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
 use base 'Wx::Dialog';
 
@@ -503,15 +496,15 @@ sub new {
     
     my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", [-1, -1], [-1, -1]);
     $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, [-1, -1], [-1, -1], $params{values},
-                                       &Wx::wxTE_PROCESS_ENTER);
-    my $buttons = $self->CreateStdDialogButtonSizer(&Wx::wxOK | &Wx::wxCANCEL);
+                                       wxTE_PROCESS_ENTER);
+    my $buttons = $self->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($text, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
     $sizer->Add($self->{combo}, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
     $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     
-    EVT_BUTTON($self, &Wx::wxID_OK, \&accept);
+    EVT_BUTTON($self, wxID_OK, \&accept);
     EVT_TEXT_ENTER($self, $self->{combo}, \&accept);
     
     $self->SetSizer($sizer);
@@ -524,7 +517,7 @@ sub accept {
     my ($self, $event) = @_;
 
     if (($self->{chosen_name} = $self->{combo}->GetValue) && $self->{chosen_name} =~ /^[a-z0-9 _-]+$/i) {
-        $self->EndModal(&Wx::wxID_OK);
+        $self->EndModal(wxID_OK);
     }
 }
 

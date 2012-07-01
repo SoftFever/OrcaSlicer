@@ -2,8 +2,8 @@ package Slic3r::GUI::OptionsGroup;
 use strict;
 use warnings;
 
-use Wx qw(:sizer wxSYS_DEFAULT_GUI_FONT);
-use Wx::Event qw(EVT_TEXT EVT_SPINCTRL EVT_CHECKBOX EVT_COMBOBOX);
+use Wx qw(:combobox :font :misc :sizer :systemsettings :textctrl);
+use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT);
 use base 'Wx::StaticBoxSizer';
 
 
@@ -19,12 +19,12 @@ sub new {
     my $self = $class->SUPER::new($box, wxVERTICAL);
     
     my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$p{options}}), 2, ($p{no_labels} ? 1 : 2), 0);
-    $grid_sizer->SetFlexibleDirection(&Wx::wxHORIZONTAL);
+    $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol($p{no_labels} ? 0 : 1);
     
     # grab the default font, to fix Windows font issues/keep things consistent
     my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $bold_font->SetWeight(&Wx::wxFONTWEIGHT_BOLD);
+    $bold_font->SetWeight(wxFONTWEIGHT_BOLD);
     my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     
     my $onChange = $p{on_change} || sub {};
@@ -33,7 +33,7 @@ sub new {
         my $opt = $Slic3r::Config::Options->{$opt_key};
         my $label;
         if (!$p{no_labels}) {
-            $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", Wx::wxDefaultPosition, [$p{label_width} || 180, -1]);
+            $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, [$p{label_width} || 180, -1]);
             $label->Wrap($p{label_width} || 180) ;  # needed to avoid Linux/GTK bug
             $grid_sizer->Add($label);
             
@@ -45,17 +45,17 @@ sub new {
         my $field;
         if ($opt->{type} =~ /^(i|f|s|s@)$/) {
             my $style = 0;
-            $style = &Wx::wxTE_MULTILINE if $opt->{multiline};
+            $style = wxTE_MULTILINE if $opt->{multiline};
             my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             
             my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get_raw set);
             
             if ($opt->{type} eq 'i') {
                 my $value = Slic3r::Config->$get($opt_key);
-                $field = Wx::SpinCtrl->new($parent, -1, $value, Wx::wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
+                $field = Wx::SpinCtrl->new($parent, -1, $value, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
                 EVT_SPINCTRL($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue); $onChange->($opt_key) });
             } else {
-                $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), Wx::wxDefaultPosition, $size, $style);
+                $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), wxDefaultPosition, $size, $style);
                 EVT_TEXT($parent, $field, sub { Slic3r::Config->$set($opt_key, $field->GetValue); $onChange->($opt_key) });
             }
             $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->$get($opt_key)) };
@@ -70,9 +70,9 @@ sub new {
             my $value = Slic3r::Config->get_raw($opt_key);
             my @items = (
                 Wx::StaticText->new($parent, -1, "x:"),
-                my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], Wx::wxDefaultPosition, $field_size),
+                my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], wxDefaultPosition, $field_size),
                 Wx::StaticText->new($parent, -1, "  y:"),
-                my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], Wx::wxDefaultPosition, $field_size),
+                my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], wxDefaultPosition, $field_size),
             );
             $field->Add($_) for @items;
             if ($opt->{tooltip}) {
@@ -93,7 +93,7 @@ sub new {
             };
             $fields{$opt_key} = [$x_field, $y_field];
         } elsif ($opt->{type} eq 'select') {
-            $field = Wx::ComboBox->new($parent, -1, "", Wx::wxDefaultPosition, Wx::wxDefaultSize, $opt->{labels} || $opt->{values}, &Wx::wxCB_READONLY);
+            $field = Wx::ComboBox->new($parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
             EVT_COMBOBOX($parent, $field, sub {
                 Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
                 $onChange->($opt_key);
@@ -109,14 +109,14 @@ sub new {
         $label->SetToolTipString($opt->{tooltip}) if $label && $opt->{tooltip};
         $field->SetToolTipString($opt->{tooltip}) if $opt->{tooltip} && $field->can('SetToolTipString');
         if ($opt->{sidetext}) {
-            my $sizer = Wx::BoxSizer->new(&Wx::wxHORIZONTAL);
+            my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
             $sizer->Add($field);
-            my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, Wx::wxDefaultPosition, [-1, -1]);
+            my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, wxDefaultPosition, [-1, -1]);
             $sidetext->SetFont($sidetext_font);
-            $sizer->Add($sidetext, 0, &Wx::wxLEFT | &Wx::wxALIGN_CENTER_VERTICAL , 4);
+            $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
             $grid_sizer->Add($sizer);
         } else {
-            $grid_sizer->Add($field, 0, $opt->{full_width} ? &Wx::wxEXPAND : 0);
+            $grid_sizer->Add($field, 0, $opt->{full_width} ? wxEXPAND : 0);
         }
         $fields{$opt_key} ||= [$field];
     }
