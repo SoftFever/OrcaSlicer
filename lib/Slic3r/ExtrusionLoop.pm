@@ -8,6 +8,8 @@ has 'polygon' => (
     handles     => [qw(is_printable nearest_point_to reverse)],
 );
 
+has 'flow_spacing' => (is => 'rw');
+
 # see EXTR_ROLE_* constants in ExtrusionPath.pm
 has 'role'         => (is => 'rw', required => 1);
 
@@ -52,6 +54,7 @@ sub split_at {
     return Slic3r::ExtrusionPath->new(
         polyline    => Slic3r::Polyline->new(\@new_points),
         role        => $self->role,
+        flow_spacing => $self->flow_spacing,
     );
 }
 
