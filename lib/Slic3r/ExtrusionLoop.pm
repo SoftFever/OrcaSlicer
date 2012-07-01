@@ -60,7 +60,6 @@ sub split_at {
 
 sub split_at_first_point {
     my $self = shift;
-    $self->deserialize;
     return $self->split_at($self->polygon->[0]);
 }
 
