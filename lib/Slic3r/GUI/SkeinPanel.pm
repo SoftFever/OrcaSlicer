@@ -40,11 +40,11 @@ sub new {
         $buttons_sizer->Add($slice_button, 0, wxRIGHT, 20);
         EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
-        my $save_button = Wx::Button->new($self, -1, "Export config...");
+        my $save_button = Wx::Button->new($self, -1, "Export config…");
         $buttons_sizer->Add($save_button, 0, wxRIGHT, 5);
         EVT_BUTTON($self, $save_button, sub { $self->save_config });
         
-        my $load_button = Wx::Button->new($self, -1, "Load config...");
+        my $load_button = Wx::Button->new($self, -1, "Load config…");
         $buttons_sizer->Add($load_button, 0, wxRIGHT, 5);
         EVT_BUTTON($self, $load_button, sub { $self->load_config });
         
@@ -139,7 +139,7 @@ sub do_slice {
         }
         
         # show processbar dialog
-        $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
+        $process_dialog = Wx::ProgressDialog->new('Slicing…', "Processing $input_file_basename…", 
             100, $self, 0);
         $process_dialog->Pulse;
         
@@ -151,7 +151,7 @@ sub do_slice {
                 status_cb   => sub {
                     my ($percent, $message) = @_;
                     if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
-                        $process_dialog->Update($percent, "$message...");
+                        $process_dialog->Update($percent, "$message…");
                     }
                 },
             );

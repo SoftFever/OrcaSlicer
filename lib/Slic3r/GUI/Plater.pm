@@ -60,9 +60,9 @@ sub new {
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate...", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate…", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
     } else {
@@ -146,7 +146,7 @@ sub new {
         my ($self, $event) = @_;
         my ($percent, $message) = @{$event->GetData};
         $self->statusbar->SetProgress($percent);
-        $self->statusbar->SetStatusText("$message...");
+        $self->statusbar->SetStatusText("$message…");
     });
     
     EVT_COMMAND($self, -1, $MESSAGE_DIALOG_EVENT, sub {
@@ -239,7 +239,7 @@ sub load_file {
     
     $Slic3r::GUI::SkeinPanel::last_input_file = $input_file;
     
-    my $process_dialog = Wx::ProgressDialog->new('Loading...', "Processing input file...", 100, $self, 0);
+    my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
     $self->{print}->add_object_from_file($input_file);
@@ -353,7 +353,7 @@ sub rotate {
         return if !$angle || $angle == -1;
     }
     
-    $self->statusbar->SetStatusText("Rotating object...");
+    $self->statusbar->SetStatusText("Rotating object…");
     $self->statusbar->StartBusy;
     
     # rotate, realign to 0,0 and update size
@@ -390,7 +390,7 @@ sub changescale {
     $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $scale*100, 0, 1000, $self);
     return if !$scale || $scale == -1;
     
-    $self->statusbar->SetStatusText("Scaling object...");
+    $self->statusbar->SetStatusText("Scaling object…");
     $self->statusbar->StartBusy;
     
     my $object = $self->{print}->objects->[$obj_idx];
@@ -487,7 +487,7 @@ sub export_gcode {
             progressbar => sub {
                 my ($percent, $message) = @_;
                 $self->statusbar->SetProgress($percent);
-                $self->statusbar->SetStatusText("$message...");
+                $self->statusbar->SetStatusText("$message…");
             },
             message_dialog => sub { Wx::MessageDialog->new($self, @_)->ShowModal },
             on_completed => sub { $self->on_export_completed(@_) },
