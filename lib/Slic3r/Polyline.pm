@@ -5,7 +5,7 @@ use warnings;
 use Math::Clipper qw();
 use Scalar::Util qw(reftype);
 use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
-    move_points same_point);
+    polyline_lines move_points same_point);
 
 # the constructor accepts an array(ref) of points
 sub new {
@@ -61,15 +61,12 @@ sub boost_linestring {
 
 sub merge_continuous_lines {
     my $self = shift;
-    
     polyline_remove_parallel_continuous_edges($self);
-    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub remove_acute_vertices {
     my $self = shift;
     polyline_remove_acute_vertices($self);
-    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub simplify {
