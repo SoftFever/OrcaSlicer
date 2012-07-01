@@ -60,7 +60,7 @@ sub run {
 
 package Slic3r::GUI::ConfigWizard::Option;
 use Wx qw(:combobox :misc :sizer :textctrl);
-use Wx::Event qw(EVT_SPINCTRL EVT_TEXT EVT_CHECKBOX EVT_COMBOBOX);
+use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT);
 use base 'Wx::StaticBoxSizer';
 
 sub new {
