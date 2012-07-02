@@ -57,10 +57,11 @@ sub fill_surface {
         $loop->polygon->make_counter_clockwise;
         
         # find the point of the loop that is closest to the current extruder position
-        $cur_pos = $loop->nearest_point_to($cur_pos);
+        my $index = $loop->nearest_point_index_to($cur_pos);
+        $cur_pos = $loop->polygon->[0];
         
         # split the loop at the starting point and make a path
-        my $path = $loop->split_at($cur_pos);
+        my $path = $loop->split_at_index($index);
         $path->deserialize;
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop

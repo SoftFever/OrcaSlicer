@@ -103,10 +103,10 @@ sub extrude_loop {
         $last_pos = Slic3r::Point->new(scale $Slic3r::print_center->[X], scale $Slic3r::bed_size->[Y]);
         $last_pos->rotate(rand(2*PI), $Slic3r::print_center);
     }
-    my $start_at = $loop->nearest_point_to($last_pos);
+    my $start_index = $loop->nearest_point_index_to($last_pos);
     
     # split the loop at the starting point and make a path
-    my $extrusion_path = $loop->split_at($start_at);
+    my $extrusion_path = $loop->split_at_index($start_index);
     $extrusion_path->deserialize;
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;

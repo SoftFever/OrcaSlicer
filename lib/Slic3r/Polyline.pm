@@ -97,6 +97,12 @@ sub nearest_point_to {
     return Slic3r::Point->new($point);
 }
 
+sub nearest_point_index_to {
+    my $self = shift;
+    my ($point) = @_;
+    return Slic3r::Geometry::nearest_point_index($point, $self);
+}
+
 sub has_segment {
     my $self = shift;
     my ($line) = @_;
