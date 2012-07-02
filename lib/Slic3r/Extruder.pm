@@ -9,11 +9,11 @@ has 'extrusion_multiplier'      => (is => 'rw', required => 1);
 has 'temperature'               => (is => 'rw', required => 1);
 has 'first_layer_temperature'   => (is => 'rw', required => 1);
 
-has 'e_per_mmc'             => (is => 'rw');
+has 'e_per_mm3'                 => (is => 'rw');
 
 sub BUILD {
     my $self = shift;
-    $self->e_per_mmc(
+    $self->e_per_mm3(
         $Slic3r::scaling_factor
         * $self->extrusion_multiplier
         * (4 / (($self->filament_diameter ** 2) * PI))
