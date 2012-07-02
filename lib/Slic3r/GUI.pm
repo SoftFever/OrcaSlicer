@@ -9,7 +9,7 @@ use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::Tab;
 
-use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :systemsettings);
+use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
@@ -51,7 +51,7 @@ sub OnInit {
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
-    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', [-1, -1], [760,520], wxDEFAULT_FRAME_STYLE);
+    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', wxDefaultPosition, [760,520], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
     $frame->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
     
@@ -169,7 +169,7 @@ sub notify {
 }
 
 package Slic3r::GUI::ProgressStatusBar;
-use Wx qw(:gauge);
+use Wx qw(:gauge :misc);
 use base 'Wx::StatusBar';
 
 sub new {
@@ -179,9 +179,9 @@ sub new {
     $self->{_changed} = 0;
     $self->{busy} = 0;
     $self->{timer} = Wx::Timer->new($self);
-    $self->{prog} = Wx::Gauge->new($self, wxGA_HORIZONTAL, 100, [-1,-1], [-1,-1]);
+    $self->{prog} = Wx::Gauge->new($self, wxGA_HORIZONTAL, 100, wxDefaultPosition, wxDefaultSize);
     $self->{prog}->Hide;
-    $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", [-1,-1], [-1,8]);
+    $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", wxDefaultPosition, [-1,8]);
     $self->{cancelbutton}->Hide;
     
     $self->SetFieldsCount(3);

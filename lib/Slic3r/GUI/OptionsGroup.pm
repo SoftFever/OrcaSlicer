@@ -111,7 +111,7 @@ sub new {
         if ($opt->{sidetext}) {
             my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
             $sizer->Add($field);
-            my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, wxDefaultPosition, [-1, -1]);
+            my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, wxDefaultPosition, wxDefaultSize);
             $sidetext->SetFont($sidetext_font);
             $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
             $grid_sizer->Add($sizer);

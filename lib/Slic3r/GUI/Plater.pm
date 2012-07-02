@@ -8,7 +8,7 @@ use Math::ConvexHull qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
-use Wx qw(:bitmap :brush :button :dialog :filedialog :font :icon :id :listctrl :pen :sizer :toolbar :window);
+use Wx qw(:bitmap :brush :button :dialog :filedialog :font :icon :id :listctrl :misc :pen :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL);
 use base 'Wx::Panel';
 
@@ -31,7 +31,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    $self->{canvas} = Wx::Panel->new($self, -1, [-1, -1], [300, 300]);
+    $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, [300, 300]);
     $self->{canvas}->SetBackgroundColour(Wx::wxWHITE);
     EVT_PAINT($self->{canvas}, \&repaint);
     EVT_MOUSE_EVENTS($self->{canvas}, \&mouse_event);
@@ -44,7 +44,7 @@ sub new {
     $self->{clearance_pen} = Wx::Pen->new(Wx::Colour->new(0,0,200), 1, wxSOLID);
     $self->{skirt_pen} = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, wxSOLID);
     
-    $self->{list} = Wx::ListView->new($self, -1, [-1, -1], [-1, 180], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_DEFAULT);
+    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [-1, 180], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_DEFAULT);
     $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 300);
     $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 50);
     $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
@@ -54,7 +54,7 @@ sub new {
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
-        $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], wxTB_HORIZONTAL | wxTB_HORZ_TEXT);
+        $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_HORZ_TEXT);
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
@@ -70,19 +70,19 @@ sub new {
             rotate => "Rotate…", changescale => "Scale…", split => "Split");
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
         for (qw(increase decrease rotate45ccw rotate45cw rotate changescale split)) {
-            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, [-1,-1], [-1,-1], wxBU_EXACTFIT);
+            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
     }
     
     # general buttons
-    $self->{btn_load} = Wx::Button->new($self, -1, "Add…", [-1,-1], [-1,-1], wxBU_LEFT);
-    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", [-1,-1], [-1,-1], wxBU_LEFT);
-    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", [-1,-1], [-1,-1], wxBU_LEFT);
-    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", [-1,-1], [-1,-1], wxBU_LEFT);
-    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", [-1,-1], [-1,-1], wxBU_LEFT);
+    $self->{btn_load} = Wx::Button->new($self, -1, "Add…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_export_gcode}->SetDefault;
-    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", [-1,-1], [-1,-1], wxBU_LEFT);
+    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     
     if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
         my %icons = qw(
@@ -203,8 +203,8 @@ sub new {
         );
         $self->{preset_choosers} = {};
         for my $group (qw(print filament printer)) {
-            my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", [-1, -1], [-1, -1], wxALIGN_RIGHT);
-            $self->{preset_choosers}{$group} = Wx::Choice->new($self, -1, [-1, -1], [150, -1], []);
+            my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+            $self->{preset_choosers}{$group} = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
             $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
             $presets->Add($self->{preset_choosers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
         }

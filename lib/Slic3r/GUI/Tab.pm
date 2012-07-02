@@ -5,14 +5,14 @@ use utf8;
 
 use File::Basename qw(basename);
 use List::Util qw(first);
-use Wx qw(:bookctrl :dialog :icon :id :sizer :treectrl);
+use Wx qw(:bookctrl :dialog :icon :id :misc :sizer :treectrl);
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
     my ($parent, $title, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, [-1,-1], [-1,-1], wxBK_LEFT);
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT);
     
     $self->{title} = $title;
     
@@ -37,7 +37,7 @@ sub new {
     {
         
         # choice menu
-        $self->{presets_choice} = Wx::Choice->new($self, -1, [-1, -1], [-1, -1], []);
+        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize, []);
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
@@ -48,7 +48,7 @@ sub new {
         $self->{btn_delete_preset}->Disable;
         
         ### These cause GTK warnings:
-        ###my $box = Wx::StaticBox->new($self, -1, "Presets:", [-1, -1], [$left_col_width, 50]);
+        ###my $box = Wx::StaticBox->new($self, -1, "Presets:", wxDefaultPosition, [$left_col_width, 50]);
         ###my $hsizer = Wx::StaticBoxSizer->new($box, wxHORIZONTAL);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -60,7 +60,7 @@ sub new {
     }
     
     # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, [-1, -1], [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES);
+    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES);
     $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
     $self->{treectrl}->AssignImageList($self->{icons});
@@ -485,17 +485,17 @@ sub append_optgroup {
 }
 
 package Slic3r::GUI::SavePresetWindow;
-use Wx qw(:combobox :dialog :id :sizer);
+use Wx qw(:combobox :dialog :id :misc :sizer);
 use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
 use base 'Wx::Dialog';
 
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, "Save preset", [-1, -1], [-1, -1]);
+    my $self = $class->SUPER::new($parent, -1, "Save preset", wxDefaultPosition, wxDefaultSize);
     
-    my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", [-1, -1], [-1, -1]);
-    $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, [-1, -1], [-1, -1], $params{values},
+    my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", wxDefaultPosition, wxDefaultSize);
+    $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, wxDefaultPosition, wxDefaultSize, $params{values},
                                        wxTE_PROCESS_ENTER);
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     
