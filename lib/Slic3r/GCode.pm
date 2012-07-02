@@ -162,7 +162,7 @@ sub extrude_path {
     my $h = $path->depth_layers * $self->layer->height;
     my $w = ($s - ($self->layer ? $self->layer->flow->min_spacing : $Slic3r::flow->min_spacing) * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
     
-    my $area;
+    my $area; # = mm^3 of extrudate per mm of tool movement 
     if ($path->role == EXTR_ROLE_BRIDGE) {
         $area = ($s**2) * PI/4;
     } elsif ($w >= ($self->extruder->nozzle_diameter + $h)) {
@@ -173,7 +173,7 @@ sub extrude_path {
         $area = $self->extruder->nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
     }
     
-    my $e = $self->extruder->e_per_mmc * $area;
+    my $e = $self->extruder->e_per_mm3 * $area;
     
     # extrude arc or line
     $self->speed( $role_speeds{$path->role} || die "Unknown role: " . $path->role );

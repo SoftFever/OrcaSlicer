@@ -43,7 +43,7 @@ sub BUILD {
         $min_flow_spacing = $flow_width - $self->layer_height * (1 - PI/4);
     } else {
         # rectangle with shrunk semicircles at the ends
-        $min_flow_spacing = $flow_width * (1 - PI/4) + $self->nozzle_diameter * PI/4;
+        $min_flow_spacing = $self->nozzle_diameter * (1 - PI/4) + $flow_width * PI/4;
     }
     $flow_spacing = $flow_width - $Slic3r::overlap_factor * ($flow_width - $min_flow_spacing);
     
