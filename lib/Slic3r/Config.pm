@@ -725,8 +725,8 @@ sub validate {
     $Slic3r::support_material_flow = $Slic3r::extruders->[ $Slic3r::support_material_extruder-1 ]
         ->make_flow(width => $Slic3r::support_material_extrusion_width || $Slic3r::extrusion_width);
     
-    Slic3r::debugf "Default flow width = %s, spacing = %s, min_spacing = %s\n",
-        $Slic3r::flow->width, $Slic3r::flow->spacing, $Slic3r::flow->min_spacing;
+    Slic3r::debugf "Default flow width = %s (spacing = %s)\n",
+        $Slic3r::flow->width, $Slic3r::flow->spacing;
     
     # --perimeters
     die "Invalid value for --perimeters\n"
