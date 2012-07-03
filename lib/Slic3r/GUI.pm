@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use FindBin;
+use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
@@ -38,6 +39,7 @@ sub OnInit {
     # locate or create data directory
     $datadir = Wx::StandardPaths::Get->GetUserDataDir;
     Slic3r::debugf "Data directory: %s\n", $datadir;
+    my $run_wizard = (-d $datadir) ? 0 : 1;
     for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
         mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
             unless -d $_;
@@ -54,6 +56,7 @@ sub OnInit {
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', wxDefaultPosition, [760,520], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
     $frame->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
+    $self->SetTopWindow($frame);
     
     # status bar
     $frame->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($frame, -1);
@@ -83,7 +86,9 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
+        $helpMenu->Append(7, "Configuration Wizard…");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
+        EVT_MENU($frame, 7, sub { $frame->{skeinpanel}->config_wizard });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     
@@ -103,6 +108,8 @@ sub OnInit {
     $frame->Show;
     $frame->Layout;
     
+    $frame->{skeinpanel}->config_wizard if $run_wizard;
+    
     return 1;
 }
 
@@ -120,7 +127,7 @@ sub about {
 
 sub on_close {
     my ($frame, $event) = @_;
-    $event->CanVeto ? $event->Skip($frame->{skeinpanel}->on_close) : $event->Skip(1);
+    $event->CanVeto ? $event->Skip($frame->{skeinpanel}->check_unsaved_changes) : $event->Skip(1);
 }
 
 sub catch_error {

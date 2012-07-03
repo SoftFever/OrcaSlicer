@@ -222,7 +222,17 @@ sub load_config {
     $dlg->Destroy;
 }
 
-sub on_close {
+sub config_wizard {
+    my $self = shift;
+
+    return unless $self->check_unsaved_changes;
+    if (Slic3r::GUI::ConfigWizard->new($self)->run) {
+        $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
+        $_->set_dirty(1) for values %{$self->{options_tabs}};
+    }
+}
+
+sub check_unsaved_changes {
     my $self = shift;
 
     my @dirty;
@@ -232,7 +242,7 @@ sub on_close {
 
     if (@dirty) {
         my $titles = join ', ', @dirty;
-        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Exit anyway?",
+        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
                                              'Unsaved Presets', wxICON_QUESTION | wxOK | wxCANCEL);
         return ($confirm->ShowModal == wxID_OK);
     }
