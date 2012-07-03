@@ -136,7 +136,7 @@ sub new {
 }
 
 package Slic3r::GUI::ConfigWizard::Index;
-use Wx qw(:bitmap :font :misc :sizer :systemsettings);
+use Wx qw(:bitmap :font :misc :sizer :systemsettings :window);
 use Wx::Event qw(EVT_ERASE_BACKGROUND);
 use base 'Wx::Panel';
 
@@ -154,6 +154,7 @@ sub new {
     my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
     $self->{sizer}->Add($text, 0, wxALIGN_CENTER_VERTICAL, 0);
 
+    $self->SetBackgroundStyle(wxBG_STYLE_CUSTOM) if &Wx::wxGTK;
     $self->{background} = Wx::Bitmap->new("$Slic3r::var/Slic3r_192px_transparent.png", wxBITMAP_TYPE_PNG);
     $self->SetMinSize(Wx::Size->new($self->{background}->GetWidth, $self->{background}->GetHeight));
     EVT_ERASE_BACKGROUND($self, \&on_erase_background);
@@ -174,7 +175,7 @@ sub on_erase_background {
     my $size = $self->GetClientSize;
     my $h = $self->{background}->GetHeight;
     my $w = $self->{background}->GetWidth;
-    $dc->DrawBitmap($self->{background}, ($size->GetWidth - $w) / 2, ($size->GetHeight - $h) / 2, 0);
+    $dc->DrawBitmap($self->{background}, ($size->GetWidth - $w) / 2, ($size->GetHeight - $h) / 2, 1);
 }
 
 sub prepend_title {
