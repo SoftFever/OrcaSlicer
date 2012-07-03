@@ -137,6 +137,7 @@ sub new {
 
 package Slic3r::GUI::ConfigWizard::Index;
 use Wx qw(:bitmap :font :misc :sizer :systemsettings);
+use Wx::Event qw(EVT_ERASE_BACKGROUND);
 use base 'Wx::Panel';
 
 sub new {
@@ -153,7 +154,27 @@ sub new {
     my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
     $self->{sizer}->Add($text, 0, wxALIGN_CENTER_VERTICAL, 0);
 
+    $self->{background} = Wx::Bitmap->new("$Slic3r::var/Slic3r_192px_transparent.png", wxBITMAP_TYPE_PNG);
+    $self->SetMinSize(Wx::Size->new($self->{background}->GetWidth, $self->{background}->GetHeight));
+    EVT_ERASE_BACKGROUND($self, \&on_erase_background);
+
     return $self;
+}
+
+sub on_erase_background {
+    my ($self, $event) = @_;
+
+    my $dc = $event->GetDC;
+    unless (defined $dc) {
+        $dc = Wx::ClientDC->new($self);
+        my $rect = $self->GetUpdateRegion->GetBox;
+        $dc->SetClippingRect($rect);
+    }
+
+    my $size = $self->GetClientSize;
+    my $h = $self->{background}->GetHeight;
+    my $w = $self->{background}->GetWidth;
+    $dc->DrawBitmap($self->{background}, ($size->GetWidth - $w) / 2, ($size->GetHeight - $h) / 2, 0);
 }
 
 sub prepend_title {
@@ -189,6 +210,8 @@ sub new {
     my $self = $class->SUPER::new($parent);
 
     my $sizer = Wx::FlexGridSizer->new(0, 2, 10, 10);
+    $sizer->AddGrowableCol(1, 1);
+    $sizer->AddGrowableRow(1, 1);
     $sizer->AddStretchSpacer(0);
     $self->SetSizer($sizer);
 
@@ -203,12 +226,12 @@ sub new {
     # index
     $self->{short_title} = $short_title ? $short_title : $title;
     $self->{index} = Slic3r::GUI::ConfigWizard::Index->new($self, $self->{short_title});
-    $sizer->Add($self->{index}, 0, wxTOP | wxRIGHT, 10);
+    $sizer->Add($self->{index}, 1, wxEXPAND | wxTOP | wxRIGHT, 10);
 
     # contents
     $self->{width} = 400;
     $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($self->{vsizer}, 0, wxEXPAND, 0);
+    $sizer->Add($self->{vsizer}, 1, wxEXPAND, 0);
 
     return $self;
 }
