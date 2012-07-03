@@ -65,17 +65,18 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(1, "Export Config…");
-        $fileMenu->Append(2, "Open Config…");
+        $fileMenu->Append(1, "Load Config…");
+        $fileMenu->Append(2, "Export Config…");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(3, "Slice…");
-        $fileMenu->Append(4, "Reslice");
-        $fileMenu->Append(5, "Slice and Save As…");
-        $fileMenu->Append(6, "Export SVG…");
+        $fileMenu->Append(3, "Quick Slice…");
+        $fileMenu->Append(4, "Quick Slice (last file)");
+        $fileMenu->Append(5, "Quick Slice and Save As…");
+        $fileMenu->AppendSeparator();
+        $fileMenu->Append(6, "Slice to SVG…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit");
-        EVT_MENU($frame, 1, sub { $frame->{skeinpanel}->save_config });
-        EVT_MENU($frame, 2, sub { $frame->{skeinpanel}->load_config });
+        EVT_MENU($frame, 1, sub { $frame->{skeinpanel}->load_config });
+        EVT_MENU($frame, 2, sub { $frame->{skeinpanel}->save_config });
         EVT_MENU($frame, 3, sub { $frame->{skeinpanel}->do_slice });
         EVT_MENU($frame, 4, sub { $frame->{skeinpanel}->do_slice(reslice => 1) });
         EVT_MENU($frame, 5, sub { $frame->{skeinpanel}->do_slice(save_as => 1) });
