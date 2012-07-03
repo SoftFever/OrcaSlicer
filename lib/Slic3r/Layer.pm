@@ -136,9 +136,10 @@ sub make_surfaces {
     my $self = shift;
     my ($loops) = @_;
     
+    my $safety_offset = scale 0.1;
     {
         # merge everything
-        my $expolygons = union_ex(safety_offset($loops, scale 0.1));
+        my $expolygons = union_ex(safety_offset($loops, $safety_offset));
         
         Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
             scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
@@ -157,7 +158,7 @@ sub make_surfaces {
             push @{$self->slices}, map Slic3r::Surface->new
                 (expolygon => $_, surface_type => S_TYPE_INTERNAL),
                 map $_->offset_ex(+$distance),
-                $surface->expolygon->offset_ex(-2*$distance);
+                $surface->expolygon->offset_ex(-2*$distance - $safety_offset);
         }
         
         # now detect thin walls by re-outgrowing offsetted surfaces and subtracting
