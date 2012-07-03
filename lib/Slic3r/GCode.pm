@@ -157,22 +157,17 @@ sub extrude_path {
     # compensate retraction
     $gcode .= $self->unretract if $self->retracted;
     
-    # calculate extrusion length per distance unit
-    my $s = $path->flow_spacing || ($self->layer ? $self->layer->flow->spacing : $Slic3r::flow->spacing);
-    my $h = $path->depth_layers * $self->layer->height;
-    my $w = ($s - ($self->layer ? $self->layer->flow->min_spacing : $Slic3r::flow->min_spacing) * $Slic3r::overlap_factor) / (1 - $Slic3r::overlap_factor);
-    
-    my $area; # = mm^3 of extrudate per mm of tool movement 
+    my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->role == EXTR_ROLE_BRIDGE) {
+        my $s = $path->flow_spacing || $self->extruder->nozzle_diameter;
         $area = ($s**2) * PI/4;
-    } elsif ($w >= ($self->extruder->nozzle_diameter + $h)) {
-        # rectangle with semicircles at the ends
-        $area = $w * $h + ($h**2) / 4 * (PI - 4);
     } else {
-        # rectangle with shrunk semicircles at the ends
-        $area = $self->extruder->nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
+        my $s = $path->flow_spacing || ($self->layer ? $self->layer->flow->spacing : $Slic3r::flow->spacing);
+        my $h = $path->depth_layers * $self->layer->height;
+        $area = $self->extruder->mm3_per_mm($s, $h);
     }
     
+    # calculate extrusion length per distance unit
     my $e = $self->extruder->e_per_mm3 * $area;
     
     # extrude arc or line
@@ -181,12 +176,12 @@ sub extrude_path {
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
         $path_length = $path->length;
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
-            $path->center, $e * $path_length, $description);
+            $path->center, $e * unscale $path_length, $description);
     } else {
         foreach my $line ($path->lines) {
             my $line_length = $line->length;
             $path_length += $line_length;
-            $gcode .= $self->G1($line->b, undef, $e * $line_length, $description);
+            $gcode .= $self->G1($line->b, undef, $e * unscale $line_length, $description);
         }
     }
     
