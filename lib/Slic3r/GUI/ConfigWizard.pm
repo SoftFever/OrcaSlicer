@@ -3,15 +3,13 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(:bitmap);
+use Wx;
 use base 'Wx::Wizard';
 
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    # TODO: Add instructional bitmaps
-    my $self = $class->SUPER::new($parent, -1, 'Configuration Wizard',
-                                  Wx::Bitmap->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG));
+    my $self = $class->SUPER::new($parent, -1, 'Configuration Wizard');
 
     # Start from sane defaults
     $self->{old} = Slic3r::Config->current;
@@ -25,6 +23,8 @@ sub new {
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Temperature->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::BedTemperature->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Finished->new($self));
+
+    $_->build_index for @{$self->{pages}};
 
     return $self;
 }
@@ -77,7 +77,7 @@ sub new {
     my $callback = $params{callback} || sub {};
 
     # label
-    my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, [$label_width, -1]);
+    my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, wxDefaultSize);
     $label->Wrap($label_width);
     $self->Add($label, 1, wxEXPAND);
 
@@ -135,18 +135,62 @@ sub new {
     return $self;
 }
 
-package Slic3r::GUI::ConfigWizard::Page;
-use Wx qw(:font :misc :sizer :staticline :systemsettings);
-use base 'Wx::WizardPage';
+package Slic3r::GUI::ConfigWizard::Index;
+use Wx qw(:bitmap :font :misc :sizer :systemsettings);
+use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
     my ($parent, $title) = @_;
     my $self = $class->SUPER::new($parent);
 
-    $self->{width} = 400;
-    $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
-    $self->SetSizer($self->{vsizer});
+    $self->{sizer} = Wx::FlexGridSizer->new(0, 2, 5, 0);
+    $self->SetSizer($self->{sizer});
+
+    my $bitmap = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/bullet_blue.png", wxBITMAP_TYPE_PNG));
+    $self->{sizer}->Add($bitmap, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
+    $self->{sizer}->Add($text, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+    return $self;
+}
+
+sub prepend_title {
+    my $self = shift;
+    my ($title) = @_;
+
+    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
+    $self->{sizer}->Prepend($text, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+    my $bitmap = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/bullet_black.png", wxBITMAP_TYPE_PNG));
+    $self->{sizer}->Prepend($bitmap, 0, wxALIGN_CENTER_VERTICAL, 0);
+}
+
+sub append_title {
+    my $self = shift;
+    my ($title) = @_;
+
+    my $bitmap = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/bullet_white.png", wxBITMAP_TYPE_PNG));
+    $self->{sizer}->Add($bitmap, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
+    $text->SetForegroundColour(Wx::Colour->new(128, 128, 128));
+    $self->{sizer}->Add($text, 0, wxALIGN_CENTER_VERTICAL, 0);
+}
+
+package Slic3r::GUI::ConfigWizard::Page;
+use Wx qw(:font :misc :sizer :staticline :systemsettings);
+use base 'Wx::WizardPage';
+
+sub new {
+    my $class = shift;
+    my ($parent, $title, $short_title) = @_;
+    my $self = $class->SUPER::new($parent);
+
+    my $sizer = Wx::FlexGridSizer->new(0, 2, 10, 10);
+    $sizer->AddStretchSpacer(0);
+    $self->SetSizer($sizer);
 
     # title
     my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
@@ -154,9 +198,17 @@ sub new {
     $bold_font->SetWeight(wxFONTWEIGHT_BOLD);
     $bold_font->SetPointSize(14);
     $text->SetFont($bold_font);
-    $self->{vsizer}->Add($text, 0, wxALIGN_LEFT | wxALL, 10);
-    my $line = Wx::StaticLine->new($self, -1, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL, '');
-    $self->{vsizer}->Add($line, 0, wxEXPAND| wxALL, 10);
+    $sizer->Add($text, 0, wxALIGN_LEFT, 0);
+
+    # index
+    $self->{short_title} = $short_title ? $short_title : $title;
+    $self->{index} = Slic3r::GUI::ConfigWizard::Index->new($self, $self->{short_title});
+    $sizer->Add($self->{index}, 0, wxTOP | wxRIGHT, 10);
+
+    # contents
+    $self->{width} = 400;
+    $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
+    $sizer->Add($self->{vsizer}, 0, wxEXPAND, 0);
 
     return $self;
 }
@@ -167,7 +219,8 @@ sub append_text {
 
     my $para = Wx::StaticText->new($self, -1, $text, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     $para->Wrap($self->{width});
-    $self->{vsizer}->Add($para, 0, wxALIGN_LEFT | wxALL, 10);
+    $para->SetMinSize([$self->{width}, -1]);
+    $self->{vsizer}->Add($para, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, 10);
 }
 
 sub append_option {
@@ -179,7 +232,7 @@ sub append_option {
                                                             my ($opt_key, $value) = @_;
                                                             $self->{options}->{$opt_key} = $value;
                                                         });
-    $self->{vsizer}->Add($option, 0, wxEXPAND | wxALL, 10);
+    $self->{vsizer}->Add($option, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 }
 
 sub apply {
@@ -209,13 +262,27 @@ sub GetNext {
     return $self->{next_page};
 }
 
+sub get_short_title {
+    my $self = shift;
+    return $self->{short_title};
+}
+
+sub build_index {
+    my $self = shift;
+
+    my $page = $self;
+    $self->{index}->prepend_title($page->get_short_title) while ($page = $page->GetPrev);
+    $page = $self;
+    $self->{index}->append_title($page->get_short_title) while ($page = $page->GetNext);
+}
+
 package Slic3r::GUI::ConfigWizard::Page::Welcome;
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard');
+    my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard', 'Welcome');
 
     $self->append_text('Hello, welcome to Slic3r! This wizard helps you with the initial configuration; just a few settings and you will be ready to print.');
     $self->append_text('To import an existing configuration instead, cancel this wizard and use the Open Config menu item found in the File menu.');
@@ -354,7 +421,7 @@ use base 'Slic3r::GUI::ConfigWizard::Page';
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, 'Congratulations!');
+    my $self = $class->SUPER::new($parent, 'Congratulations!', 'Finish');
 
     $self->append_text('You have successfully completed the Slic3r Configuration Wizard. ' .
                        'Slic3r is now configured for your printer and filament.');
