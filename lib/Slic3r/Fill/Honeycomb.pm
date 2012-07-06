@@ -87,7 +87,6 @@ sub fill_surface {
         $self->cache->{$cache_id},
         [ map @$_, $expolygon->offset_ex($overlap_distance) ],
     )};
-    # this shortest path search is probably unneeded or not effective
     my $collection = Slic3r::ExtrusionPath::Collection->new(
         paths => [ map Slic3r::ExtrusionPath->new(polyline => $_, role => -1), @paths ],
     );
