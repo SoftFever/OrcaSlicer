@@ -273,7 +273,7 @@ sub reset_e {
     my $self = shift;
     
     $self->extrusion_distance(0);
-    return "G92 %s0%s\n", $Slic3r::extrusion_axis, ($Slic3r::gcode_comments ? ' ; reset extrusion distance' : '')
+    return sprintf "G92 %s0%s\n", $Slic3r::extrusion_axis, ($Slic3r::gcode_comments ? ' ; reset extrusion distance' : '')
         if $Slic3r::extrusion_axis && !$Slic3r::use_relative_e_distances;
 }
 
