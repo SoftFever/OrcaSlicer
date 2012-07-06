@@ -247,10 +247,7 @@ sub retract {
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
-    if (!$Slic3r::use_relative_e_distances && $Slic3r::gcode_flavor !~ /^(?:mach3|makerbot)$/) {
-        $gcode .= "G92 " . $Slic3r::extrusion_axis . "0\n" if $Slic3r::extrusion_axis;
-        $self->extrusion_distance(0);
-    }
+    $gcode .= $self->reset_e if $Slic3r::gcode_flavor !~ /^(?:mach3|makerbot)$/;
     
     return $gcode;
 }
@@ -270,6 +267,14 @@ sub unretract {
         "compensate retraction");
     
     return $gcode;
+}
+
+sub reset_e {
+    my $self = shift;
+    
+    $self->extrusion_distance(0);
+    return "G92 %s0%s\n", $Slic3r::extrusion_axis, ($Slic3r::gcode_comments ? ' ; reset extrusion distance' : '')
+        if $Slic3r::extrusion_axis && !$Slic3r::use_relative_e_distances;
 }
 
 sub set_acceleration {
@@ -382,7 +387,10 @@ sub set_tool {
     return "" if $self->extruder_idx == $tool;
     
     $self->extruder_idx($tool);
-    return $self->retract . sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '');
+    return $self->retract
+        . sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '')
+        . $self->reset_e
+        . $self->unretract;
 }
 
 sub set_fan {
