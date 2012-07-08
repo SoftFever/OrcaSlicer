@@ -686,7 +686,7 @@ sub validate {
     
     # --first-layer-height
     die "Invalid value for --first-layer-height\n"
-        if $Slic3r::first_layer_height !~ /^(?:\d+(?:\.\d+)?)%?$/;
+        if $Slic3r::first_layer_height !~ /^(?:\d*(?:\.\d+)?)%?$/;
     $Slic3r::_first_layer_height = Slic3r::Config->get('first_layer_height');
     
     # --filament-diameter
