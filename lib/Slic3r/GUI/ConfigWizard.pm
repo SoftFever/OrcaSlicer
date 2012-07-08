@@ -136,8 +136,8 @@ sub new {
 }
 
 package Slic3r::GUI::ConfigWizard::Index;
-use Wx qw(:bitmap :font :misc :sizer :systemsettings :window);
-use Wx::Event qw(EVT_ERASE_BACKGROUND);
+use Wx qw(:bitmap :dc :font :misc :sizer :systemsettings :window);
+use Wx::Event qw(EVT_ERASE_BACKGROUND EVT_PAINT);
 use base 'Wx::Panel';
 
 sub new {
@@ -145,60 +145,68 @@ sub new {
     my ($parent, $title) = @_;
     my $self = $class->SUPER::new($parent);
 
-    $self->{sizer} = Wx::FlexGridSizer->new(0, 2, 5, 0);
-    $self->SetSizer($self->{sizer});
+    push @{$self->{titles}}, $title;
+    $self->{own_index} = 0;
 
-    my $bitmap = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/bullet_blue.png", wxBITMAP_TYPE_PNG));
-    $self->{sizer}->Add($bitmap, 0, wxALIGN_CENTER_VERTICAL, 0);
+    $self->{bullets}->{before} = Wx::Bitmap->new("$Slic3r::var/bullet_black.png", wxBITMAP_TYPE_PNG);
+    $self->{bullets}->{own}    = Wx::Bitmap->new("$Slic3r::var/bullet_blue.png",  wxBITMAP_TYPE_PNG);
+    $self->{bullets}->{after}  = Wx::Bitmap->new("$Slic3r::var/bullet_white.png", wxBITMAP_TYPE_PNG);
 
-    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
-    $self->{sizer}->Add($text, 0, wxALIGN_CENTER_VERTICAL, 0);
-
-    $self->SetBackgroundStyle(wxBG_STYLE_CUSTOM) if &Wx::wxGTK;
     $self->{background} = Wx::Bitmap->new("$Slic3r::var/Slic3r_192px_transparent.png", wxBITMAP_TYPE_PNG);
     $self->SetMinSize(Wx::Size->new($self->{background}->GetWidth, $self->{background}->GetHeight));
-    EVT_ERASE_BACKGROUND($self, \&on_erase_background);
+
+    EVT_PAINT($self, \&repaint);
 
     return $self;
 }
 
-sub on_erase_background {
+sub repaint {
     my ($self, $event) = @_;
+    my $size = $self->GetClientSize;
+    my $gab = 5;
 
-    my $dc = $event->GetDC;
-    unless (defined $dc) {
-        $dc = Wx::ClientDC->new($self);
-        my $rect = $self->GetUpdateRegion->GetBox;
-        $dc->SetClippingRect($rect);
+    my $dc = Wx::PaintDC->new($self);
+    $dc->SetBackgroundMode(wxTRANSPARENT);
+    $dc->SetFont($self->GetFont);
+    $dc->SetTextForeground($self->GetForegroundColour);
+
+    my $background_h = $self->{background}->GetHeight;
+    my $background_w = $self->{background}->GetWidth;
+    $dc->DrawBitmap($self->{background}, ($size->GetWidth - $background_w) / 2, ($size->GetHeight - $background_h) / 2, 1);
+
+    my $label_h = $self->{bullets}->{own}->GetHeight;
+    $label_h = $dc->GetCharHeight if $dc->GetCharHeight > $label_h;
+    my $label_w = $size->GetWidth;
+
+    my $i = 0;
+    foreach (@{$self->{titles}}) {
+        my $bullet = $self->{bullets}->{own};
+        $bullet = $self->{bullets}->{before} if $i < $self->{own_index};
+        $bullet = $self->{bullets}->{after} if $i > $self->{own_index};
+
+        $dc->SetTextForeground(Wx::Colour->new(128, 128, 128)) if $i > $self->{own_index};
+        $dc->DrawLabel($_, $bullet, Wx::Rect->new(0, $i * ($label_h + $gab), $label_w, $label_h));
+        $i++;
     }
 
-    my $size = $self->GetClientSize;
-    my $h = $self->{background}->GetHeight;
-    my $w = $self->{background}->GetWidth;
-    $dc->DrawBitmap($self->{background}, ($size->GetWidth - $w) / 2, ($size->GetHeight - $h) / 2, 1);
+    $event->Skip;
 }
 
 sub prepend_title {
     my $self = shift;
     my ($title) = @_;
 
-    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
-    $self->{sizer}->Prepend($text, 0, wxALIGN_CENTER_VERTICAL, 0);
-
-    my $bitmap = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/bullet_black.png", wxBITMAP_TYPE_PNG));
-    $self->{sizer}->Prepend($bitmap, 0, wxALIGN_CENTER_VERTICAL, 0);
+    unshift @{$self->{titles}}, $title;
+    $self->{own_index}++;
+    $self->Refresh;
 }
 
 sub append_title {
     my $self = shift;
     my ($title) = @_;
 
-    my $bitmap = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/bullet_white.png", wxBITMAP_TYPE_PNG));
-    $self->{sizer}->Add($bitmap, 0, wxALIGN_CENTER_VERTICAL, 0);
-
-    my $text = Wx::StaticText->new($self, -1, $title, wxDefaultPosition, wxDefaultSize);
-    $text->SetForegroundColour(Wx::Colour->new(128, 128, 128));
-    $self->{sizer}->Add($text, 0, wxALIGN_CENTER_VERTICAL, 0);
+    push @{$self->{titles}}, $title;
+    $self->Refresh;
 }
 
 package Slic3r::GUI::ConfigWizard::Page;
