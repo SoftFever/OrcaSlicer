@@ -183,7 +183,6 @@ sub new {
         
         my $list_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $list_sizer->Add($self->{list}, 1, wxEXPAND | wxALL, 0);
-        $list_sizer->Add($self->{vtoolbar}, 0, wxEXPAND, 0) if $self->{vtoolbar};
         
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $vertical_sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
