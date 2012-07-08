@@ -158,10 +158,12 @@ sub do_slice {
         undef $process_dialog;
         
         my $message = "$input_file_basename was successfully sliced";
-        $message .= sprintf " in %d minutes and %.3f seconds",
-            int($print->processing_time/60),
-            $print->processing_time - int($print->processing_time/60)*60
-                if $print->processing_time;
+        if ($print->processing_time) {
+            $message .= ' in';
+            my $minutes = int($print->processing_time/60);
+            $message .= sprintf " %d minutes and", $minutes if $minutes;
+            $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
+        }
         $message .= ".";
         Slic3r::GUI::notify($message);
         Wx::MessageDialog->new($self, $message, 'Done!', 
