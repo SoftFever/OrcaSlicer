@@ -189,7 +189,7 @@ sub new {
     $self->{timer} = Wx::Timer->new($self);
     $self->{prog} = Wx::Gauge->new($self, wxGA_HORIZONTAL, 100, wxDefaultPosition, wxDefaultSize);
     $self->{prog}->Hide;
-    $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", wxDefaultPosition, [-1,8]);
+    $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", wxDefaultPosition, wxDefaultSize);
     $self->{cancelbutton}->Hide;
     
     $self->SetFieldsCount(3);
@@ -214,19 +214,21 @@ sub DESTROY {
 sub _Reposition {
     my $self = shift;
     
+    my %fields = (
+        # 0 is reserved for status text
+        1 => $self->{cancelbutton},
+        2 => $self->{prog},
+    );
+
     ##if ($self->{_changed}) {
-    {
-        my $rect = $self->GetFieldRect($self->GetFieldsCount - 1);
-        my $prog_pos = [$rect->GetX + 2, $rect->GetY + 2];
-        $self->{prog}->Move($prog_pos);
-        $self->{prog}->SetSize($rect->GetWidth - 8, $rect->GetHeight - 4);
+    foreach (keys %fields) {
+        my $rect = $self->GetFieldRect($_);
+        my $offset = &Wx::wxGTK ? 1 : 0; # add a cosmetic 1 pixel offset on wxGTK
+        my $pos = [$rect->GetX + $offset, $rect->GetY + $offset];
+        $fields{$_}->Move($pos);
+        $fields{$_}->SetSize($rect->GetWidth - $offset, $rect->GetHeight);
     }
-    {
-        my $rect = $self->GetFieldRect($self->GetFieldsCount - 2);
-        my $pos = [$rect->GetX + 2, $rect->GetY + 2];
-        $self->{cancelbutton}->Move($pos);
-        $self->{cancelbutton}->SetSize($rect->GetWidth - 8, $rect->GetHeight - 4);
-    }
+
     $self->{_changed} = 0;
 }
 
