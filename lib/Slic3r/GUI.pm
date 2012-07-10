@@ -184,7 +184,6 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
     
-    $self->{_changed} = 0;
     $self->{busy} = 0;
     $self->{timer} = Wx::Timer->new($self);
     $self->{prog} = Wx::Gauge->new($self, wxGA_HORIZONTAL, 100, wxDefaultPosition, wxDefaultSize);
@@ -220,7 +219,6 @@ sub _Reposition {
         2 => $self->{prog},
     );
 
-    ##if ($self->{_changed}) {
     foreach (keys %fields) {
         my $rect = $self->GetFieldRect($_);
         my $offset = &Wx::wxGTK ? 1 : 0; # add a cosmetic 1 pixel offset on wxGTK
@@ -228,14 +226,11 @@ sub _Reposition {
         $fields{$_}->Move($pos);
         $fields{$_}->SetSize($rect->GetWidth - $offset, $rect->GetHeight);
     }
-
-    $self->{_changed} = 0;
 }
 
 sub OnSize {
     my ($self, $event) = @_;
     
-    $self->{_changed} = 1;
     $self->_Reposition;
     $event->Skip;
 }
