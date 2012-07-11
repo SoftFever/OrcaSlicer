@@ -196,7 +196,6 @@ sub new {
     $self->SetFieldsCount(3);
     $self->SetStatusWidths(-1, 150, 155);
     
-    Wx::Event::EVT_IDLE($self, sub { $self->_Reposition });
     Wx::Event::EVT_TIMER($self, \&OnTimer, $self->{timer});
     Wx::Event::EVT_SIZE($self, \&OnSize);
     Wx::Event::EVT_BUTTON($self, $self->{cancelbutton}, sub {
@@ -212,8 +211,8 @@ sub DESTROY {
     $self->{timer}->Stop if $self->{timer} && $self->{timer}->IsRunning;
 }
 
-sub _Reposition {
-    my $self = shift;
+sub OnSize {
+    my ($self, $event) = @_;
     
     my %fields = (
         # 0 is reserved for status text
@@ -228,12 +227,7 @@ sub _Reposition {
         $fields{$_}->Move($pos);
         $fields{$_}->SetSize($rect->GetWidth - $offset, $rect->GetHeight);
     }
-}
 
-sub OnSize {
-    my ($self, $event) = @_;
-    
-    $self->_Reposition;
     $event->Skip;
 }
 
@@ -293,7 +287,6 @@ sub ShowProgress {
     my $self = shift;
     my ($show) = @_;
     
-    $self->_Reposition;
     $self->{prog}->Show($show);
     $self->{prog}->Pulse;
 }
@@ -303,7 +296,6 @@ sub StartBusy {
     my $rate = shift || 100;
     
     $self->{_busy} = 1;
-    $self->_Reposition;
     $self->ShowProgress(1);
     if (!$self->{timer}->IsRunning) {
         $self->{timer}->Start($rate);
