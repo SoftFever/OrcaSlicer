@@ -388,7 +388,7 @@ sub set_tool {
     
     $self->extruder_idx($tool);
     return $self->retract
-        . sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : '')
+        . (sprintf "T%d%s\n", $tool, ($Slic3r::gcode_comments ? ' ; change tool' : ''))
         . $self->reset_e
         . $self->unretract;
 }
