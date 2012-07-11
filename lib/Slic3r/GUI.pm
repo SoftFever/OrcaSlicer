@@ -88,8 +88,10 @@ sub OnInit {
     my $helpMenu = Wx::Menu->new;
     {
         $helpMenu->Append(7, "Configuration Wizard…");
+        $helpMenu->Append(8, "Slic3r Website");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
         EVT_MENU($frame, 7, sub { $frame->{skeinpanel}->config_wizard });
+        EVT_MENU($frame, 8, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     
