@@ -142,7 +142,7 @@ $j
                         print rather than processed individually.
   
   Printer options:
-    --nozzle-diameter   Diameter of nozzle in mm (default: $Slic3r::nozzle_diameter)
+    --nozzle-diameter   Diameter of nozzle in mm (default: @$Slic3r::nozzle_diameter)
     --print-center      Coordinates in mm of the point to center the print around 
                         (default: $Slic3r::print_center->[0],$Slic3r::print_center->[1])
     --z-offset          Additional height in mm to add to vertical coordinates
@@ -157,15 +157,15 @@ $j
     --gcode-comments    Make G-code verbose by adding comments (default: no)
     
   Filament options:
-    --filament-diameter Diameter in mm of your raw filament (default: $Slic3r::filament_diameter)
+    --filament-diameter Diameter in mm of your raw filament (default: @$Slic3r::filament_diameter)
     --extrusion-multiplier
                         Change this to alter the amount of plastic extruded. There should be
                         very little need to change this value, which is only useful to 
-                        compensate for filament packing (default: $Slic3r::extrusion_multiplier)
-    --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: $Slic3r::temperature)
+                        compensate for filament packing (default: @$Slic3r::extrusion_multiplier)
+    --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: @$Slic3r::temperature)
     --first-layer-temperature Extrusion temperature for the first layer, in degree Celsius,
                         set 0 to disable (default: same as --temperature)
-    --bed-temperature   Heated bed temperature in degree Celsius, set 0 to disable (default: $Slic3r::temperature)
+    --bed-temperature   Heated bed temperature in degree Celsius, set 0 to disable (default: @$Slic3r::temperature)
     --first-layer-bed-temperature Heated bed temperature for the first layer, in degree Celsius,
                         set 0 to disable (default: same as --bed-temperature)
     
