@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use FindBin;
+use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::OptionsGroup;
@@ -119,13 +120,9 @@ sub OnInit {
 sub about {
     my $frame = shift;
     
-    my $info = Wx::AboutDialogInfo->new;
-    $info->SetName('Slic3r');
-    $info->AddDeveloper('Alessandro Ranellucci');
-    $info->SetVersion($Slic3r::VERSION);
-    $info->SetDescription('G-code generator for 3D printers');
-    
-    Wx::AboutBox($info);
+    my $about = Slic3r::GUI::AboutDialog->new($frame);
+    $about->ShowModal;
+    $about->Destroy;
 }
 
 sub on_close {
