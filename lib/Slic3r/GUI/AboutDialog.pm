@@ -5,6 +5,7 @@ use utf8;
 
 use Wx qw(:font :html :misc :sizer :systemsettings);
 use Wx::Event qw(EVT_HTML_LINK_CLICKED);
+use Wx::Print;
 use Wx::Html;
 use base 'Wx::Dialog';
 
