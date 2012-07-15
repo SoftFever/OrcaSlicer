@@ -236,7 +236,7 @@ sub load_file {
     my $self = shift;
     my ($input_file) = @_;
     
-    $Slic3r::GUI::SkeinPanel::last_input_file = $input_file;
+    $Slic3r::GUI::SkeinPanel::last_skein_dir = dirname($input_file);
     
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;
