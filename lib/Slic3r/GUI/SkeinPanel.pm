@@ -40,10 +40,12 @@ sub new {
         $buttons_sizer->Add($slice_button, 0, wxRIGHT, 20);
         EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
         
+        $buttons_sizer->AddStretchSpacer(1);
+        
         my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
         my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
         $text->SetFont($font);
-        $buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
+        $buttons_sizer->Add($text, 0, wxALIGN_RIGHT);
     }
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
