@@ -537,7 +537,6 @@ sub export_gcode2 {
             $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
         }
         $message .= ".";
-        &Wx::wxTheApp->notify($message);
         $params{on_completed}->($message);
         $print->cleanup;
     };
@@ -553,7 +552,7 @@ sub on_export_completed {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
-    Wx::MessageDialog->new($self, $message, 'Slicing Done!', wxOK | wxICON_INFORMATION)->ShowModal;
+    &Wx::wxTheApp->notify($message);
 }
 
 sub on_export_failed {

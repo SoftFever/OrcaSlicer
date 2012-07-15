@@ -172,6 +172,9 @@ sub notify {
     my $self = shift;
     my ($message) = @_;
 
+    my $frame = $self->GetTopWindow;
+    $frame->RequestUserAttention unless ($frame->IsActive);
+
     eval {
         $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
             if $self->{growler};
