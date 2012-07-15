@@ -15,7 +15,6 @@ use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
-my $growler;
 our $datadir;
 
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -32,8 +31,8 @@ sub OnInit {
     if (eval "use Growl::GNTP; 1") {
         # register growl notifications
         eval {
-            $growler = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => "$Slic3r::var/Slic3r.png");
-            $growler->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
+            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => "$Slic3r::var/Slic3r.png");
+            $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
         };
     }
     
@@ -170,11 +169,12 @@ sub warning_catcher {
 }
 
 sub notify {
+    my $self = shift;
     my ($message) = @_;
 
     eval {
-        $growler->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
-            if $growler;
+        $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
+            if $self->{growler};
     };
 }
 

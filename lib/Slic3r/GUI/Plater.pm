@@ -537,7 +537,7 @@ sub export_gcode2 {
             $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
         }
         $message .= ".";
-        Slic3r::GUI::notify($message);
+        &Wx::wxTheApp->notify($message);
         $params{on_completed}->($message);
         $print->cleanup;
     };

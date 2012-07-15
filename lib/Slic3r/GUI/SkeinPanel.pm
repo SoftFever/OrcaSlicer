@@ -149,7 +149,7 @@ sub do_slice {
             $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
         }
         $message .= ".";
-        Slic3r::GUI::notify($message);
+        &Wx::wxTheApp->notify($message);
         Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
