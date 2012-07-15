@@ -113,7 +113,7 @@ our $infill_every_layers    = 1;
 
 # flow options
 our $extrusion_width                = 0;
-our $first_layer_extrusion_width    = 0;
+our $first_layer_extrusion_width    = '200%';
 our $perimeter_extrusion_width      = 0;
 our $infill_extrusion_width         = 0;
 our $support_material_extrusion_width = 0;
