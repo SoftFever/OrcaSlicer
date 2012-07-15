@@ -66,12 +66,12 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(1, "Load Config…");
-        $fileMenu->Append(2, "Export Config…");
+        $fileMenu->Append(1, "Load Config…\tCtrl+L");
+        $fileMenu->Append(2, "Export Config…\tCtrl+E");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(3, "Quick Slice…");
-        $fileMenu->Append(4, "Repeat Last Quick Slice");
-        $fileMenu->Append(5, "Quick Slice and Save As…");
+        $fileMenu->Append(3, "Quick Slice…\tCtrl+U");
+        $fileMenu->Append(4, "Repeat Last Quick Slice\tCtrl+Shift+U");
+        $fileMenu->Append(5, "Quick Slice and Save As…\tCtrl+Alt+U");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(6, "Slice to SVG…");
         $fileMenu->AppendSeparator();
