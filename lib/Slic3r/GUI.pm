@@ -70,7 +70,7 @@ sub OnInit {
         $fileMenu->Append(2, "Export Config…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(3, "Quick Slice…");
-        $fileMenu->Append(4, "Quick Slice (last file)");
+        $fileMenu->Append(4, "Repeat Last Quick Slice");
         $fileMenu->Append(5, "Quick Slice and Save As…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(6, "Slice to SVG…");
