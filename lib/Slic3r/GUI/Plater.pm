@@ -553,7 +553,7 @@ sub on_export_completed {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
-    Wx::MessageDialog->new($self, $message, 'Done!', wxOK | wxICON_INFORMATION)->ShowModal;
+    Wx::MessageDialog->new($self, $message, 'Slicing Done!', wxOK | wxICON_INFORMATION)->ShowModal;
 }
 
 sub on_export_failed {
