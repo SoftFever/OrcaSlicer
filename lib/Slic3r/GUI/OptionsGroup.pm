@@ -22,9 +22,6 @@ sub new {
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol($p{no_labels} ? 0 : 1);
     
-    # grab the default font, to fix Windows font issues/keep things consistent
-    my $bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $bold_font->SetWeight(wxFONTWEIGHT_BOLD);
     my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     
     my $onChange = $p{on_change} || sub {};
@@ -36,10 +33,6 @@ sub new {
             $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, [$p{label_width} || 180, -1]);
             $label->Wrap($p{label_width} || 180) ;  # needed to avoid Linux/GTK bug
             $grid_sizer->Add($label);
-            
-            # set the bold font point size to the same size as all the other labels (for consistency)
-            $bold_font->SetPointSize($label->GetFont()->GetPointSize());
-            $label->SetFont($bold_font) if $opt->{important};
         }
         
         my $field;

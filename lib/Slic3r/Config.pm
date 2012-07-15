@@ -54,7 +54,6 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'nozzle-diameter=f',
         type    => 'f',
-        important => 1,
     },
     'print_center' => {
         label   => 'Print center',
@@ -118,7 +117,6 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'filament-diameter=f',
         type    => 'f',
-        important => 1,
     },
     'extrusion_multiplier' => {
         label   => 'Extrusion multiplier',
@@ -150,7 +148,6 @@ our $Options = {
         cli     => 'temperature=i',
         type    => 'i',
         max     => 300,
-        important => 1,
     },
     'bed_temperature' => {
         label   => 'Bed Temperature',
