@@ -535,8 +535,12 @@ sub new {
 sub accept {
     my ($self, $event) = @_;
 
-    if (($self->{chosen_name} = $self->{combo}->GetValue) && $self->{chosen_name} =~ /^[a-z0-9 _-]+$/i) {
-        $self->EndModal(wxID_OK);
+    if (($self->{chosen_name} = $self->{combo}->GetValue)) {
+        if ($self->{chosen_name} =~ /^[a-z0-9 _-]+$/i) {
+            $self->EndModal(wxID_OK);
+        } else {
+            Slic3r::GUI::show_error($self, "The supplied name is not valid.");
+        }
     }
 }
 
