@@ -558,13 +558,6 @@ our $Options = {
         type    => 'i',
         max     => 359,
     },
-    'duplicate_mode' => {
-        label   => 'Duplicate',
-        gui_only => 1,
-        type    => 'select',
-        values  => [qw(no autoarrange grid)],
-        labels  => ['No', 'Autoarrange', 'Grid'],
-    },
     'duplicate' => {
         label    => 'Copies (autoarrange)',
         cli      => 'duplicate=i',
