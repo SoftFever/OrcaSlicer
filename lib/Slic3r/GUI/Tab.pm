@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename);
 use List::Util qw(first);
-use Wx qw(:bookctrl :dialog :icon :id :misc :sizer :treectrl);
+use Wx qw(:bookctrl :dialog :icon :id :misc :sizer :treectrl :window);
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
@@ -29,9 +29,9 @@ sub new {
     
     # left vertical sizer
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $self->{sizer}->Add($left_sizer, 0, wxEXPAND);
+    $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
     
-    my $left_col_width = 200;
+    my $left_col_width = 210;
     
     # preset chooser
     {
@@ -60,7 +60,7 @@ sub new {
     }
     
     # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES);
+    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN);
     $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
     $self->{treectrl}->AssignImageList($self->{icons});
