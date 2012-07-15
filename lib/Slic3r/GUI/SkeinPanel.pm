@@ -31,25 +31,7 @@ sub new {
     $tabpanel->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
     $tabpanel->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
     
-    my $buttons_sizer;
-    {
-        $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        
-        my $slice_button = Wx::Button->new($self, -1, "Quick slice…");
-        $slice_button->SetDefault();
-        $buttons_sizer->Add($slice_button, 0, wxRIGHT, 20);
-        EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
-        
-        $buttons_sizer->AddStretchSpacer(1);
-        
-        my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-        my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
-        $text->SetFont($font);
-        $buttons_sizer->Add($text, 0, wxALIGN_RIGHT);
-    }
-    
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, 10);
     $sizer->Add($tabpanel, 1, wxEXPAND);
     
     $sizer->SetSizeHints($self);
