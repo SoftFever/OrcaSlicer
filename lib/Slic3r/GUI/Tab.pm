@@ -85,11 +85,12 @@ sub new {
     EVT_BUTTON($self, $self->{btn_save_preset}, sub {
         my $preset = $self->current_preset;
         my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
+        $default_name =~ s/\.ini$//i;
         
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
             title   => lc($title),
             default => $default_name,
-            values  => [ map { my $filename = basename($_->{file}); $filename =~ /^(.*?)\.ini$/i; $1 } @{$self->{presets}} ],
+            values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
         );
         return unless $dlg->ShowModal == wxID_OK;
         
@@ -97,7 +98,7 @@ sub new {
         Slic3r::Config->save($file, $self->{presets_group});
         $self->set_dirty(0);
         $self->load_presets;
-        $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
+        $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
         $self->on_select_preset;
         $self->sync_presets;
     });
