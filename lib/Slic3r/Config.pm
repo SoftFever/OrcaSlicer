@@ -722,7 +722,7 @@ sub read_ini {
     
     my $ini = { _ => {} };
     my $category = '_';
-    while (<$fh>) {
+    while (my $_ = <$fh>) {
         s/\R+$//;
         next if /^\s+/;
         next if /^$/;

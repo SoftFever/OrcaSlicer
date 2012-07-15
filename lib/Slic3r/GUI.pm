@@ -56,7 +56,7 @@ sub OnInit {
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', wxDefaultPosition, [760,520], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
-    $frame->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
+    $self->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
     $self->SetTopWindow($frame);
     
     # status bar
@@ -76,12 +76,12 @@ sub OnInit {
         $fileMenu->Append(6, "Slice to SVG…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit");
-        EVT_MENU($frame, 1, sub { $frame->{skeinpanel}->load_config });
-        EVT_MENU($frame, 2, sub { $frame->{skeinpanel}->save_config });
-        EVT_MENU($frame, 3, sub { $frame->{skeinpanel}->do_slice });
-        EVT_MENU($frame, 4, sub { $frame->{skeinpanel}->do_slice(reslice => 1) });
-        EVT_MENU($frame, 5, sub { $frame->{skeinpanel}->do_slice(save_as => 1) });
-        EVT_MENU($frame, 6, sub { $frame->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
+        EVT_MENU($frame, 1, sub { $self->{skeinpanel}->load_config });
+        EVT_MENU($frame, 2, sub { $self->{skeinpanel}->save_config });
+        EVT_MENU($frame, 3, sub { $self->{skeinpanel}->do_slice });
+        EVT_MENU($frame, 4, sub { $self->{skeinpanel}->do_slice(reslice => 1) });
+        EVT_MENU($frame, 5, sub { $self->{skeinpanel}->do_slice(save_as => 1) });
+        EVT_MENU($frame, 6, sub { $self->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
     
@@ -91,7 +91,7 @@ sub OnInit {
         $helpMenu->Append(7, "Configuration Wizard…");
         $helpMenu->Append(8, "Slic3r Website");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
-        EVT_MENU($frame, 7, sub { $frame->{skeinpanel}->config_wizard });
+        EVT_MENU($frame, 7, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, 8, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
@@ -106,13 +106,20 @@ sub OnInit {
         $frame->SetMenuBar($menubar);
     }
     
-    EVT_CLOSE($frame, \&on_close);
-
+    EVT_CLOSE($frame, sub {
+        my (undef, $event) = @_;
+        if ($event->CanVeto && !$self->{skeinpanel}->check_unsaved_changes) {
+            $event->Veto;
+            return;
+        }
+        $event->Skip;
+    });
+    
     $frame->SetMinSize($frame->GetSize);
     $frame->Show;
     $frame->Layout;
     
-    $frame->{skeinpanel}->config_wizard if $run_wizard;
+    $self->{skeinpanel}->config_wizard if $run_wizard;
     
     return 1;
 }
@@ -123,11 +130,6 @@ sub about {
     my $about = Slic3r::GUI::AboutDialog->new($frame);
     $about->ShowModal;
     $about->Destroy;
-}
-
-sub on_close {
-    my ($frame, $event) = @_;
-    $event->CanVeto ? $event->Skip($frame->{skeinpanel}->check_unsaved_changes) : $event->Skip(1);
 }
 
 sub catch_error {

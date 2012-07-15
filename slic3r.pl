@@ -72,8 +72,9 @@ Slic3r::Config->save($opt{save}) if $opt{save};
 # start GUI
 if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     no warnings 'once';
-    $Slic3r::GUI::SkeinPanel::last_config = $opt{load} ? $opt{load}[0] : undef;
-    Slic3r::GUI->new->MainLoop;
+    my $gui = Slic3r::GUI->new;
+    $gui->{skeinpanel}->load_config($opt{load}[0]) if $opt{load};
+    $gui->MainLoop;
     exit;
 }
 die $@ if $@ && $opt{gui};

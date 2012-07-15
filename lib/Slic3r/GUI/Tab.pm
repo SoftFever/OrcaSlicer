@@ -83,14 +83,13 @@ sub new {
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub {
-        my $i = $self->{presets_choice}->GetSelection;
-        my $default = $i == 0 ? 'Untitled' : basename($self->{presets}[$i-1]);
-        $default =~ s/\.ini$//i;
+        my $preset = $self->current_preset;
+        my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
         
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
-            title => lc($title),
-            default => $default,
-            values  => [ map { my $filename = basename($_); $filename =~ /^(.*?)\.ini$/i; $1 } @{$self->{presets}} ],
+            title   => lc($title),
+            default => $default_name,
+            values  => [ map { my $filename = basename($_->{file}); $filename =~ /^(.*?)\.ini$/i; $1 } @{$self->{presets}} ],
         );
         return unless $dlg->ShowModal == wxID_OK;
         
@@ -98,7 +97,7 @@ sub new {
         Slic3r::Config->save($file, $self->{presets_group});
         $self->set_dirty(0);
         $self->load_presets;
-        $self->{presets_choice}->SetSelection(1 + first { basename($self->{presets}[$_]) eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
+        $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 0 .. $#{$self->{presets}});
         $self->on_select_preset;
         $self->sync_presets;
     });
@@ -108,8 +107,8 @@ sub new {
         return if $i == 0;  # this shouldn't happen but let's trap it anyway
         my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         return unless $res == wxID_YES;
-        if (-e $self->{presets}[$i-1]) {
-            unlink $self->{presets}[$i-1];
+        if (-e $self->{presets}[$i-1]{file}) {
+            unlink $self->{presets}[$i-1]{file};
         }
         splice @{$self->{presets}}, $i-1, 1;
         $self->{presets_choice}->Delete($i);
@@ -121,6 +120,11 @@ sub new {
     return $self;
 }
 
+sub current_preset {
+    my $self = shift;
+    return $self->{presets}[ $self->{presets_choice}->GetSelection ];
+}
+
 sub on_select_preset {
     my $self = shift;
     
@@ -129,23 +133,28 @@ sub on_select_preset {
         $self->set_dirty(0);
     }
     
-    my $i = $self->{presets_choice}->GetSelection;
-    my $file;
-    if ($i == 0) {
+    my $preset = $self->current_preset;
+    if ($preset->{default}) {
+        # default settings: disable the delete button
         Slic3r::Config->load_hash($Slic3r::Defaults, $self->{presets_group}, 1);
         $self->{btn_delete_preset}->Disable;
     } else {
-        $file = $self->{presets}[$i-1];
-        if (!-e $file) {
-            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($file).");
+        if (!-e $preset->{file}) {
+            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
             return;
         }
-        Slic3r::Config->load($file, $self->{presets_group});
-        $self->{btn_delete_preset}->Enable;
+        eval {
+            local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
+            Slic3r::Config->load($preset->{file}, $self->{presets_group});
+        };
+        Slic3r::GUI::catch_error($self);
+        $preset->{external}
+            ? $self->{btn_delete_preset}->Disable
+            : $self->{btn_delete_preset}->Enable;
     }
     $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks{@{$Slic3r::Config::Groups{$self->{presets_group}}}};
     $self->set_dirty(0);
-    $Slic3r::Settings->{presets}{$self->{presets_group}} = $file ? basename($file) : '';
+    $Slic3r::Settings->{presets}{$self->{presets_group}} = $preset->{file} ? basename($preset->{file}) : '';
     Slic3r::Config->save_settings("$Slic3r::GUI::datadir/slic3r.ini");
 }
 
@@ -179,7 +188,7 @@ sub set_dirty {
     
     my $i = $self->{dirty} // $self->{presets_choice}->GetSelection; #/
     my $text = $self->{presets_choice}->GetString($i);
-        
+    
     if ($dirty) {
         $self->{dirty} = $i;
         if ($text !~ / \(modified\)$/) {
@@ -202,7 +211,7 @@ sub is_dirty {
 
 sub title {
     my $self = shift;
-    return $self->{title}
+    return $self->{title};
 }
 
 sub load_presets {
@@ -210,22 +219,28 @@ sub load_presets {
     my ($group) = @_;
     
     $self->{presets_group} ||= $group;
-    $self->{presets} = [];
+    $self->{presets} = [{
+        default => 1,
+        name    => '- default -',
+    }];
     
     opendir my $dh, "$Slic3r::GUI::datadir/$self->{presets_group}" or die "Failed to read directory $Slic3r::GUI::datadir/$self->{presets_group} (errno: $!)\n";
-    my @presets = sort grep /\.ini$/i, readdir $dh;
+    foreach my $file (sort grep /\.ini$/i, readdir $dh) {
+        my $name = basename($file);
+        $name =~ s/\.ini$//;
+        push @{$self->{presets}}, {
+            file => "$Slic3r::GUI::datadir/$self->{presets_group}/$file",
+            name => $name,
+        };
+    }
     closedir $dh;
     
     $self->{presets_choice}->Clear;
-    $self->{presets_choice}->Append("- default -");
-    foreach my $preset (@presets) {
-        push @{$self->{presets}}, "$Slic3r::GUI::datadir/$self->{presets_group}/$preset";
-        $preset =~ s/\.ini$//i;
-        $self->{presets_choice}->Append($preset);
-    }
+    $self->{presets_choice}->Append($_->{name}) for @{$self->{presets}};
     {
-        my $i = first { basename($self->{presets}[$_]) eq ($Slic3r::Settings->{presets}{$self->{presets_group}} || '') } 0 .. $#{$self->{presets}};
-        $self->{presets_choice}->SetSelection(defined $i ? $i + 1 : 0);
+        # load last used preset
+        my $i = first { basename($self->{presets}[$_]{file}) eq ($Slic3r::Settings->{presets}{$self->{presets_group}} || '') } 1 .. $#{$self->{presets}};
+        $self->{presets_choice}->SetSelection($i || 0);
         $self->on_select_preset;
     }
     $self->sync_presets;
@@ -236,16 +251,19 @@ sub external_config_loaded {
     my ($file) = @_;
     
     # look for the loaded config among the existing menu items
-    my $i = first { $self->{presets}[$_] eq $file } 0..$#{$self->{presets}};
+    my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
     if (!$i) {
-        push @{$self->{presets}}, $file;
-        my $preset_name = basename($file); # leave the .ini suffix
+        my $preset_name = basename($file);  # keep the .ini suffix
+        push @{$self->{presets}}, {
+            file        => $file,
+            name        => $preset_name,
+            external    => 1,
+        };
         $self->{presets_choice}->Append($preset_name);
         $i = $#{$self->{presets}};
     }
-    $self->{presets_choice}->SetSelection(1 + $i);
-    $self->set_dirty(0);
-    $self->{btn_delete_preset}->Disable;
+    $self->{presets_choice}->SetSelection($i);
+    $self->on_select_preset;
     $self->sync_presets;
 }
 

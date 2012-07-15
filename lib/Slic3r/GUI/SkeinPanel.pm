@@ -197,23 +197,19 @@ sub save_config {
 
 sub load_config {
     my $self = shift;
+    my ($file) = @_;
     
-    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
-    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-        $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    if ($dlg->ShowModal == wxID_OK) {
-        my ($file) = $dlg->GetPaths;
-        $last_config_dir = dirname($file);
-        $last_config = $file;
-        eval {
-            local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-            Slic3r::Config->load($file);
-        };
-        Slic3r::GUI::catch_error($self);
-        $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
-        $_->external_config_loaded($file) for values %{$self->{options_tabs}};
+    if (!$file) {
+        my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
+        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
+                $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        return unless $dlg->ShowModal == wxID_OK;
+        ($file) = $dlg->GetPaths;
+        $dlg->Destroy;
     }
-    $dlg->Destroy;
+    $last_config_dir = dirname($file);
+    $last_config = $file;
+    $_->external_config_loaded($file) for values %{$self->{options_tabs}};
 }
 
 sub config_wizard {
@@ -228,19 +224,15 @@ sub config_wizard {
 
 sub check_unsaved_changes {
     my $self = shift;
-
-    my @dirty;
-    foreach (values %{$self->{options_tabs}}) {
-        push (@dirty, $_->title) if $_->is_dirty;
-    }
-
+    
+    my @dirty = map $_->title, grep $_->is_dirty, values %{$self->{options_tabs}};
     if (@dirty) {
         my $titles = join ', ', @dirty;
         my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
                                              'Unsaved Presets', wxICON_QUESTION | wxOK | wxCANCEL);
         return ($confirm->ShowModal == wxID_OK);
     }
-
+    
     return 1;
 }
 
