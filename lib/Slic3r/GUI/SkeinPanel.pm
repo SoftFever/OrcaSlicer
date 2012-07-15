@@ -76,7 +76,7 @@ sub do_slice {
         $copies = $Slic3r::duplicate if $Slic3r::duplicate > 1;
         if ($copies > 1) {
             my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
-                                                      'Confirm', wxICON_QUESTION | wxOK | wxCANCEL);
+                                                      'Multiple Copies', wxICON_QUESTION | wxOK | wxCANCEL);
             return unless $confirmation->ShowModal == wxID_OK;
         }
         
@@ -95,13 +95,13 @@ sub do_slice {
             $last_input_file = $input_file;
         } else {
             if (!defined $last_input_file) {
-                Wx::MessageDialog->new($self, "No previously sliced file",
-                                       'Confirm', wxICON_ERROR | wxOK)->ShowModal();
+                Wx::MessageDialog->new($self, "No previously sliced file.",
+                                       'Error', wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
             if (! -e $last_input_file) {
-                Wx::MessageDialog->new($self, "Cannot find previously sliced file!",
-                                       'Confirm', wxICON_ERROR | wxOK)->ShowModal();
+                Wx::MessageDialog->new($self, "Previously sliced file ($last_input_file) not found.",
+                                       'File Not Found', wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
             $input_file = $last_input_file;
@@ -166,7 +166,7 @@ sub do_slice {
         }
         $message .= ".";
         Slic3r::GUI::notify($message);
-        Wx::MessageDialog->new($self, $message, 'Done!', 
+        Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
