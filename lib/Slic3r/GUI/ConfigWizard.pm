@@ -6,10 +6,14 @@ use utf8;
 use Wx;
 use base 'Wx::Wizard';
 
+# adhere to various human interface guidelines
+our $wizard = 'Wizard';
+$wizard = 'Assistant' if &Wx::wxMAC || &Wx::wxGTK;
+
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1, 'Configuration Wizard');
+    my $self = $class->SUPER::new($parent, -1, "Configuration $wizard");
 
     # Start from sane defaults
     $self->{old} = Slic3r::Config->current;
@@ -314,10 +318,10 @@ use base 'Slic3r::GUI::ConfigWizard::Page';
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, 'Welcome to the Slic3r Configuration Wizard', 'Welcome');
+    my $self = $class->SUPER::new($parent, "Welcome to the Slic3r Configuration $wizard", 'Welcome');
 
-    $self->append_text('Hello, welcome to Slic3r! This wizard helps you with the initial configuration; just a few settings and you will be ready to print.');
-    $self->append_text('To import an existing configuration instead, cancel this wizard and use the Open Config menu item found in the File menu.');
+    $self->append_text('Hello, welcome to Slic3r! This '.lc($wizard).' helps you with the initial configuration; just a few settings and you will be ready to print.');
+    $self->append_text('To import an existing configuration instead, cancel this '.lc($wizard).' and use the Open Config menu item found in the File menu.');
     $self->append_text('To continue, click Next.');
 
     return $self;
@@ -408,7 +412,7 @@ sub new {
     my $self = $class->SUPER::new($parent, 'Extrusion Temperature');
 
     $self->append_text('Enter the temperature needed for extruding your filament, then click Next.');
-    $self->append_text('A rule of thumb is 160 to 230 °C for PLA and 215 to 250 °C for ABS.');
+    $self->append_text('A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS.');
     $self->append_option('temperature');
 
     return $self;
@@ -455,9 +459,9 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, 'Congratulations!', 'Finish');
 
-    $self->append_text('You have successfully completed the Slic3r Configuration Wizard. ' .
+    $self->append_text("You have successfully completed the Slic3r Configuration $wizard. " .
                        'Slic3r is now configured for your printer and filament.');
-    $self->append_text('To close this wizard and apply the newly created configuration, click Finish.');
+    $self->append_text('To close this '.lc($wizard).' and apply the newly created configuration, click Finish.');
 
     return $self;
 }

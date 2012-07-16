@@ -88,7 +88,7 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(7, "Configuration Wizard…");
+        $helpMenu->Append(7, "Configuration $Slic3r::GUI::ConfigWizard::wizard…");
         $helpMenu->Append(8, "Slic3r Website");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
         EVT_MENU($frame, 7, sub { $self->{skeinpanel}->config_wizard });
