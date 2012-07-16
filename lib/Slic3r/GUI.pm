@@ -15,6 +15,15 @@ use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
+use constant MI_LOAD_CONF     => 1;
+use constant MI_EXPORT_CONF   => 2;
+use constant MI_QUICK_SLICE   => 3;
+use constant MI_REPEAT_QUICK  => 4;
+use constant MI_QUICK_SAVE_AS => 5;
+use constant MI_SLICE_SVG     => 6;
+use constant MI_CONF_WIZARD   => 7;
+use constant MI_WEBSITE       => 8;
+
 our $datadir;
 
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -66,33 +75,33 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(1, "&Load Config…\tCtrl+L");
-        $fileMenu->Append(2, "&Export Config…\tCtrl+E");
+        $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L");
+        $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(3, "Q&uick Slice…\tCtrl+U");
-        $fileMenu->Append(4, "&Repeat Last Quick Slice\tCtrl+Shift+U");
-        $fileMenu->Append(5, "Quick Slice and Save &As…\tCtrl+Alt+U");
+        $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U");
+        $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U");
+        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(6, "Slice to SV&G…\tCtrl+G");
+        $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit");
-        EVT_MENU($frame, 1, sub { $self->{skeinpanel}->load_config });
-        EVT_MENU($frame, 2, sub { $self->{skeinpanel}->save_config });
-        EVT_MENU($frame, 3, sub { $self->{skeinpanel}->do_slice });
-        EVT_MENU($frame, 4, sub { $self->{skeinpanel}->do_slice(reslice => 1) });
-        EVT_MENU($frame, 5, sub { $self->{skeinpanel}->do_slice(save_as => 1) });
-        EVT_MENU($frame, 6, sub { $self->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
+        EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config });
+        EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->save_config });
+        EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->do_slice });
+        EVT_MENU($frame, MI_REPEAT_QUICK, sub { $self->{skeinpanel}->do_slice(reslice => 1) });
+        EVT_MENU($frame, MI_QUICK_SAVE_AS, sub { $self->{skeinpanel}->do_slice(save_as => 1) });
+        EVT_MENU($frame, MI_SLICE_SVG, sub { $self->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
     
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(7, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…");
-        $helpMenu->Append(8, "Slic3r &Website");
+        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…");
+        $helpMenu->Append(MI_WEBSITE, "Slic3r &Website");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
-        EVT_MENU($frame, 7, sub { $self->{skeinpanel}->config_wizard });
-        EVT_MENU($frame, 8, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
+        EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
+        EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     
