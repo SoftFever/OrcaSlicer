@@ -73,7 +73,7 @@ sub OnInit {
         $fileMenu->Append(4, "&Repeat Last Quick Slice\tCtrl+Shift+U");
         $fileMenu->Append(5, "Quick Slice and Save &As…\tCtrl+Alt+U");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(6, "Slice to SV&G…");
+        $fileMenu->Append(6, "Slice to SV&G…\tCtrl+G");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit");
         EVT_MENU($frame, 1, sub { $self->{skeinpanel}->load_config });
