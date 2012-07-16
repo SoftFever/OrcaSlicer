@@ -66,14 +66,14 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(1, "Load Config…\tCtrl+L");
-        $fileMenu->Append(2, "Export Config…\tCtrl+E");
+        $fileMenu->Append(1, "&Load Config…\tCtrl+L");
+        $fileMenu->Append(2, "&Export Config…\tCtrl+E");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(3, "Quick Slice…\tCtrl+U");
-        $fileMenu->Append(4, "Repeat Last Quick Slice\tCtrl+Shift+U");
-        $fileMenu->Append(5, "Quick Slice and Save As…\tCtrl+Alt+U");
+        $fileMenu->Append(3, "Q&uick Slice…\tCtrl+U");
+        $fileMenu->Append(4, "&Repeat Last Quick Slice\tCtrl+Shift+U");
+        $fileMenu->Append(5, "Quick Slice and Save &As…\tCtrl+Alt+U");
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(6, "Slice to SVG…");
+        $fileMenu->Append(6, "Slice to SV&G…");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit");
         EVT_MENU($frame, 1, sub { $self->{skeinpanel}->load_config });
@@ -88,8 +88,8 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(7, "Configuration $Slic3r::GUI::ConfigWizard::wizard…");
-        $helpMenu->Append(8, "Slic3r Website");
+        $helpMenu->Append(7, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…");
+        $helpMenu->Append(8, "Slic3r &Website");
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
         EVT_MENU($frame, 7, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, 8, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
