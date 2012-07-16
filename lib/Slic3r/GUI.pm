@@ -37,13 +37,7 @@ sub OnInit {
     $self->SetAppName('Slic3r');
     Slic3r::debugf "wxWidgets version %s\n", &Wx::wxVERSION_STRING;
     
-    if (eval "use Growl::GNTP; 1") {
-        # register growl notifications
-        eval {
-            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => "$Slic3r::var/Slic3r.png");
-            $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
-        };
-    }
+    $self->{notifier} = Slic3r::GUI::Notifier->new;
     
     # locate or create data directory
     $datadir = Wx::StandardPaths::Get->GetUserDataDir;
@@ -184,10 +178,7 @@ sub notify {
     my $frame = $self->GetTopWindow;
     $frame->RequestUserAttention unless ($frame->IsActive);
 
-    eval {
-        $self->{growler}->notify(Event => 'SKEIN_DONE', Title => 'Slicing Done!', Message => $message)
-            if $self->{growler};
-    };
+    $self->{notifier}->notify($message);
 }
 
 package Slic3r::GUI::ProgressStatusBar;
@@ -326,6 +317,49 @@ sub StopBusy {
 sub IsBusy {
     my $self = shift;
     return $self->{_busy};
+}
+
+package Slic3r::GUI::Notifier;
+
+sub new {
+    my $class = shift;
+    my $self;
+
+    $self->{icon} = "$Slic3r::var/Slic3r.png";
+
+    if (eval 'use Growl::GNTP; 1') {
+        # register with growl
+        eval {
+            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => $self->{icon});
+            $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
+        };
+    }
+    if (eval 'use Gtk2::Notify; 1') {
+        # register with libnotify
+        eval {
+            Gtk2::Notify->init('Slic3r');
+            $self->{libnotify} = 1;
+        }
+    }
+
+    bless $self, $class;
+
+    return $self;
+}
+
+sub notify {
+    my ($self, $message) = @_;
+
+    my $title = 'Slicing Done!';
+
+
+    eval {
+        $self->{growler}->notify(Event => 'SKEIN_DONE', Title => $title, Message => $message)
+            if $self->{growler};
+    };
+    eval {
+        Gtk2::Notify->new($title, $message, $self->{icon})->show if $self->{libnotify};
+    };
 }
 
 1;

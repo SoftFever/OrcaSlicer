@@ -23,8 +23,9 @@ my $build = Module::Build->new(
         'Test::More' => '0.10',
     },
     recommends     => {
-        'Growl::GNTP' => '0.15',
-        'Wx'          => '0.9901',
+        'Growl::GNTP'  => '0.15',
+        'Gtk2::Notify' => '0.05',
+        'Wx'           => '0.9901',
     },
     script_files    => ['slic3r.pl'],
 );
