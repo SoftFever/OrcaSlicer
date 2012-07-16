@@ -334,13 +334,6 @@ sub new {
             $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
         };
     }
-    if (eval 'use Gtk2::Notify; 1') {
-        # register with libnotify
-        eval {
-            Gtk2::Notify->init('Slic3r');
-            $self->{libnotify} = 1;
-        }
-    }
 
     bless $self, $class;
 
@@ -355,8 +348,14 @@ sub notify {
         $self->{growler}->notify(Event => 'SKEIN_DONE', Title => $title, Message => $message)
             if $self->{growler};
     };
-    eval {
-        Gtk2::Notify->new($title, $message, $self->{icon})->show if $self->{libnotify};
+    if (eval 'use Net::DBus; 1') {
+        eval {
+            my $session = Net::DBus->session;
+            my $serv = $session->get_service('org.freedesktop.Notifications');
+            my $notifier = $serv->get_object('/org/freedesktop/Notifications',
+                                             'org.freedesktop.Notifications');
+            $notifier->Notify('Slic3r', 0, $self->{icon}, $title, $message, [], {}, 5);
+        }
     };
 }
 
