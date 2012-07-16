@@ -349,9 +349,7 @@ sub new {
 
 sub notify {
     my ($self, $message) = @_;
-
     my $title = 'Slicing Done!';
-
 
     eval {
         $self->{growler}->notify(Event => 'SKEIN_DONE', Title => $title, Message => $message)
