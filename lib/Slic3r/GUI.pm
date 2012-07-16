@@ -354,7 +354,7 @@ sub notify {
             my $serv = $session->get_service('org.freedesktop.Notifications');
             my $notifier = $serv->get_object('/org/freedesktop/Notifications',
                                              'org.freedesktop.Notifications');
-            $notifier->Notify('Slic3r', 0, $self->{icon}, $title, $message, [], {}, 5);
+            $notifier->Notify('Slic3r', 0, $self->{icon}, $title, $message, [], {}, 1500);
         }
     };
 }
