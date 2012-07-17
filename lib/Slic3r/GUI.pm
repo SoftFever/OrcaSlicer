@@ -73,9 +73,9 @@ sub OnInit {
         $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U");
+        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U");
         my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U");
         $repeat->Enable(0);
-        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G");
         $fileMenu->AppendSeparator();
