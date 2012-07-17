@@ -184,6 +184,7 @@ sub load_config {
     my ($file) = @_;
     
     if (!$file) {
+        return unless $self->check_unsaved_changes;
         my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
                 $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
