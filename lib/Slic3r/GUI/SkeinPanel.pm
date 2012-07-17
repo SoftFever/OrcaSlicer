@@ -214,8 +214,8 @@ sub check_unsaved_changes {
     if (@dirty) {
         my $titles = join ', ', @dirty;
         my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
-                                             'Unsaved Presets', wxICON_QUESTION | wxOK | wxCANCEL);
-        return ($confirm->ShowModal == wxID_OK);
+                                             'Unsaved Presets', wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+        return ($confirm->ShowModal == wxID_YES);
     }
     
     return 1;
