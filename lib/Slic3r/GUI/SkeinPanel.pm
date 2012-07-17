@@ -76,7 +76,7 @@ sub do_slice {
             }
             $input_file = $dialog->GetPaths;
             $dialog->Destroy;
-            $last_input_file = $input_file;
+            $last_input_file = $input_file unless $params{export_svg};
         } else {
             if (!defined $last_input_file) {
                 Wx::MessageDialog->new($self, "No previously sliced file.",
@@ -110,7 +110,8 @@ sub do_slice {
                 $dlg->Destroy;
                 return;
             }
-            $output_file = $last_output_file = $dlg->GetPath;
+            $output_file = $dlg->GetPath;
+            $last_output_file = $output_file unless $params{export_svg};
             $dlg->Destroy;
         }
         
