@@ -73,7 +73,8 @@ sub OnInit {
         $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U");
-        $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U");
+        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U");
+        $repeat->Enable(0);
         $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U");
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G");
@@ -81,9 +82,11 @@ sub OnInit {
         $fileMenu->Append(wxID_EXIT, "&Quit");
         EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config });
         EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->save_config });
-        EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->do_slice });
+        EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->do_slice;
+                                               $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
         EVT_MENU($frame, MI_REPEAT_QUICK, sub { $self->{skeinpanel}->do_slice(reslice => 1) });
-        EVT_MENU($frame, MI_QUICK_SAVE_AS, sub { $self->{skeinpanel}->do_slice(save_as => 1) });
+        EVT_MENU($frame, MI_QUICK_SAVE_AS, sub { $self->{skeinpanel}->do_slice(save_as => 1);
+                                                 $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
         EVT_MENU($frame, MI_SLICE_SVG, sub { $self->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
