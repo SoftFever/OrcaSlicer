@@ -31,13 +31,13 @@ sub new {
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
     
-    my $left_col_width = 210;
+    my $left_col_width = 150;
     
     # preset chooser
     {
         
         # choice menu
-        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize, []);
+        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [$left_col_width, -1], []);
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
