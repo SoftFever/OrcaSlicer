@@ -108,10 +108,10 @@ sub new {
         return if $i == 0;  # this shouldn't happen but let's trap it anyway
         my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         return unless $res == wxID_YES;
-        if (-e $self->{presets}[$i-1]{file}) {
-            unlink $self->{presets}[$i-1]{file};
+        if (-e $self->{presets}[$i]{file}) {
+            unlink $self->{presets}[$i]{file};
         }
-        splice @{$self->{presets}}, $i-1, 1;
+        splice @{$self->{presets}}, $i, 1;
         $self->{presets_choice}->Delete($i);
         $self->{presets_choice}->SetSelection(0);
         $self->on_select_preset;
