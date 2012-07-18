@@ -11,10 +11,8 @@ use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
-    my ($parent, $title, %params) = @_;
+    my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT);
-    
-    $self->{title} = $title;
     
     $self->{sync_presets_with} = $params{sync_presets_with};
     EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
@@ -43,7 +41,7 @@ sub new {
         # buttons
         $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG));
         $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
-        $self->{btn_save_preset}->SetToolTipString("Save current " . lc($title));
+        $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
         
@@ -66,12 +64,13 @@ sub new {
     $self->{treectrl}->AssignImageList($self->{icons});
     $self->{iconcount} = -1;
     $self->{treectrl}->AddRoot("root");
-    $self->{pages} = {};
+    $self->{pages} = [];
     $self->{treectrl}->SetIndent(0);
     EVT_TREE_SEL_CHANGED($parent, $self->{treectrl}, sub {
-        $_->Hide for values %{$self->{pages}};
+        my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
+            or return;
+        $_->Hide for @{$self->{pages}};
         $self->{sizer}->Remove(1);
-        my $page = $self->{pages}->{ $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) };
         $page->Show;
         $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
         $self->{sizer}->Layout;
@@ -89,7 +88,7 @@ sub new {
         $default_name =~ s/\.ini$//i;
         
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
-            title   => lc($title),
+            title   => lc($self->title),
             default => $default_name,
             values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
         );
@@ -119,6 +118,8 @@ sub new {
         $self->sync_presets;
     });
     
+    $self->build;
+    
     return $self;
 }
 
@@ -126,6 +127,9 @@ sub current_preset {
     my $self = shift;
     return $self->{presets}[ $self->{presets_choice}->GetSelection ];
 }
+
+sub on_value_change {}
+sub on_preset_loaded {}
 
 sub on_select_preset {
     my $self = shift;
@@ -154,6 +158,7 @@ sub on_select_preset {
             ? $self->{btn_delete_preset}->Disable
             : $self->{btn_delete_preset}->Enable;
     }
+    $self->on_preset_loaded;
     $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks{@{$Slic3r::Config::Groups{$self->{presets_group}}}};
     $self->set_dirty(0);
     $Slic3r::Settings->{presets}{$self->{presets_group}} = $preset->{file} ? basename($preset->{file}) : '';
@@ -162,25 +167,36 @@ sub on_select_preset {
 
 sub add_options_page {
     my $self = shift;
-    my $title = shift;
-    my $icon = (ref $_[1]) ? undef : shift;
-    my $page = Slic3r::GUI::Tab::Page->new($self, @_, on_change => sub {
-        $self->set_dirty(1);
-        $self->sync_presets;
-    });
+    my ($title, $icon, %params) = @_;
     
-    my $bitmap = $icon
-        ? Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG)
-        : undef;
-    if ($bitmap) {
+    if ($icon) {
+        my $bitmap = Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG);
         $self->{icons}->Add($bitmap);
         $self->{iconcount}++;
     }
+    
+    my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount}, %params, on_change => sub {
+        $self->on_value_change(@_);
+        $self->set_dirty(1);
+        $self->sync_presets;
+    });
     $page->Hide;
-    my $itemId = $self->{treectrl}->AppendItem($self->{treectrl}->GetRootItem, $title, $self->{iconcount});
-    $self->{pages}{$title} = $page;
-    if (keys %{$self->{pages}} == 1) {
-        $self->{treectrl}->SelectItem($itemId);
+    push @{$self->{pages}}, $page;
+    $self->update_tree;
+    return $page;
+}
+
+sub update_tree {
+    my $self = shift;
+    my ($select) = @_;
+    
+    $select //= 0; #/
+    
+    my $rootItem = $self->{treectrl}->GetRootItem;
+    $self->{treectrl}->DeleteChildren($rootItem);
+    foreach my $page (@{$self->{pages}}) {
+        my $itemId = $self->{treectrl}->AppendItem($rootItem, $page->{title}, $page->{iconID});
+        $self->{treectrl}->SelectItem($itemId) if $self->{treectrl}->GetChildrenCount($rootItem) == $select + 1;
     }
 }
 
@@ -209,11 +225,6 @@ sub set_dirty {
 sub is_dirty {
     my $self = shift;
     return (defined $self->{dirty});
-}
-
-sub title {
-    my $self = shift;
-    return $self->{title};
 }
 
 sub load_presets {
@@ -248,7 +259,7 @@ sub load_presets {
     $self->sync_presets;
 }
 
-sub external_config_loaded {
+sub load_external_config {
     my $self = shift;
     my ($file) = @_;
     
@@ -282,10 +293,10 @@ sub sync_presets {
 package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, 'Print Settings', %params);
+sub title { 'Print Settings' }
+
+sub build {
+    my $self = shift;
     
     $self->add_options_page('Layers and perimeters', 'layers.png', optgroups => [
         {
@@ -383,17 +394,15 @@ sub new {
     ]);
     
     $self->load_presets('print');
-    
-    return $self;
 }
 
 package Slic3r::GUI::Tab::Filament;
 use base 'Slic3r::GUI::Tab';
 
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, 'Filament Settings', %params);
+sub title { 'Filament Settings' }
+
+sub build {
+    my $self = shift;
     
     $self->add_options_page('Filament', 'spool.png', optgroups => [
         {
@@ -423,17 +432,15 @@ sub new {
     ]);
     
     $self->load_presets('filament');
-    
-    return $self;
 }
 
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
 
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, 'Printer Settings', %params);
+sub title { 'Printer Settings' }
+
+sub build {
+    my $self = shift;
     
     $self->add_options_page('General', 'printer_empty.png', optgroups => [
         {
@@ -444,16 +451,9 @@ sub new {
             title => 'Firmware',
             options => [qw(gcode_flavor use_relative_e_distances)],
         },
-    ]);
-    
-    $self->add_options_page('Extruder 1', 'funnel.png', optgroups => [
         {
-            title => 'Size',
-            options => ['nozzle_diameter#0'],
-        },
-        {
-            title => 'Retraction',
-            options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
+            title => 'Capabilities',
+            options => [qw(extruders_count)],
         },
     ]);
     
@@ -475,9 +475,86 @@ sub new {
         },
     ]);
     
-    $self->load_presets('printer');
+    $self->{extruder_pages} = [];
+    $self->build_extruder_pages;
     
-    return $self;
+    $self->load_presets('printer');
+}
+
+sub extruder_options { qw(nozzle_diameter) }
+
+sub build_extruder_pages {
+    my $self = shift;
+    
+    foreach my $extruder_idx (0 .. $Slic3r::extruders_count-1) {
+        # set default values
+        for my $opt_key ($self->extruder_options) {
+            Slic3r::Config->get_raw($opt_key)->[$extruder_idx] //= Slic3r::Config->get_raw($opt_key)->[0]; #/
+        }
+        
+        # build page if it doesn't exist
+        $self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png', optgroups => [
+            {
+                title => 'Size',
+                options => ['nozzle_diameter#' . $extruder_idx],
+            },
+            {
+                title => 'Retraction',
+                options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
+            },
+        ]);
+        $self->{extruder_pages}[$extruder_idx]{disabled} = 0;
+    }
+    
+    # rebuild page list
+    @{$self->{pages}} = (
+        (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}}),
+        @{$self->{extruder_pages}}[ 0 .. $Slic3r::extruders_count-1 ],
+    );
+}
+
+sub on_value_change {
+    my $self = shift;
+    my ($opt_key) = @_;
+    $self->SUPER::on_value_change(@_);
+    
+    if ($opt_key eq 'extruders_count') {
+        # remove unused pages from list
+        my @unused_pages = @{ $self->{extruder_pages} }[$Slic3r::extruders_count .. $#{$self->{extruder_pages}}];
+        for my $page (@unused_pages) {
+            @{$self->{pages}} = grep $_ ne $page, @{$self->{pages}};
+            $page->{disabled} = 1;
+        }
+        
+        # delete values for unused extruders
+        for my $opt_key ($self->extruder_options) {
+            my $values = Slic3r::Config->get_raw($opt_key);
+            splice @$values, $Slic3r::extruders_count if $Slic3r::extruders_count <= $#$values;
+        }
+        
+        # add extra pages
+        $self->build_extruder_pages;
+        
+        # update page list and select first page (General)
+        $self->update_tree(0);
+    }
+}
+
+# this gets executed after preset is loaded in repository and before GUI fields are updated
+sub on_preset_loaded {
+    my $self = shift;
+    
+    # update the extruders count field
+    {printf "nozzle count = %d\n", scalar @{ Slic3r::Config->get_raw('nozzle_diameter') };
+        # set value in repository according to the number of nozzle diameters supplied
+        Slic3r::Config->set('extruders_count', scalar @{ Slic3r::Config->get_raw('nozzle_diameter') });
+        
+        # update the GUI field
+        $Slic3r::GUI::OptionsGroup::reload_callbacks{extruders_count}->();
+        
+        # update extruder page list
+        $self->on_value_change('extruders_count');
+    }
 }
 
 package Slic3r::GUI::Tab::Page;
@@ -486,8 +563,11 @@ use base 'Wx::ScrolledWindow';
 
 sub new {
     my $class = shift;
-    my ($parent, %params) = @_;
+    my ($parent, $title, $iconID, %params) = @_;
     my $self = $class->SUPER::new($parent, -1);
+    $self->{opt_keys}  = [];
+    $self->{title}      = $title;
+    $self->{iconID}     = $iconID;
     
     $self->SetScrollbars(1, 1, 1, 1);
     
@@ -503,8 +583,9 @@ sub new {
 
 sub append_optgroup {
     my $self = shift;
+    my %params = @_;
     
-    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, label_width => 200, @_);
+    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, label_width => 200, %params);
     $self->{vsizer}->Add($optgroup, 0, wxEXPAND | wxALL, 5);
 }
 

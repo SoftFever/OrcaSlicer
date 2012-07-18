@@ -96,6 +96,13 @@ our $Options = {
         cli     => 'g0!',
         type    => 'bool',
     },
+    'extruders_count' => {
+        label   => 'Extruders',
+        tooltip => 'Number of extruders of the printer.',
+        gui_only=> 1,
+        type    => 'i',
+        min     => 1,
+    },
     'gcode_comments' => {
         label   => 'Verbose G-code',
         tooltip => 'Enable this to get a commented G-code file, with each line explained by a descriptive text. If you print from SD card, the additional weight of the file could make your firmware slow down.',
@@ -905,6 +912,7 @@ sub validate {
                 qw(nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature)
         );
     }
+    $Slic3r::extruders_count = $#$Slic3r::extruders + 1;
     
     # calculate flow
     $Slic3r::flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::extrusion_width);

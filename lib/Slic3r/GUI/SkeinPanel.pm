@@ -195,7 +195,7 @@ sub load_config {
     }
     $last_config_dir = dirname($file);
     $last_config = $file;
-    $_->external_config_loaded($file) for values %{$self->{options_tabs}};
+    $_->load_external_config($file) for values %{$self->{options_tabs}};
 }
 
 sub config_wizard {

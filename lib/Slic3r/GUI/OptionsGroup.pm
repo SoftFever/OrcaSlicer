@@ -25,20 +25,28 @@ sub new {
     my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     
     my $onChange = $p{on_change} || sub {};
+    my $make_cb = sub {
+        my $cb = shift;
+        return sub {
+            $cb->(@_) if !$parent->{disabled};
+        };
+    };
     
-    foreach my $opt_key (@{$p{options}}) {
+    foreach my $original_opt_key (@{$p{options}}) {
         my $index;
+        my $opt_key = $original_opt_key;  # leave original one untouched
         $opt_key =~ s/#(\d+)$// and $index = $1;
         
         my $opt = $Slic3r::Config::Options->{$opt_key};
         my $label;
-        if (!$p{no_labels}) {print $opt_key, "\n" if !defined $opt->{label};
+        if (!$p{no_labels}) {
             $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, [$p{label_width} || 180, -1]);
             $label->Wrap($p{label_width} || 180) ;  # needed to avoid Linux/GTK bug
             $grid_sizer->Add($label);
         }
         
         my $field;
+        $fields{$opt_key} = undef;
         if ($opt->{type} =~ /^(i|f|s|s@)$/) {
             my $style = 0;
             $style = wxTE_MULTILINE if $opt->{multiline};
@@ -51,13 +59,15 @@ sub new {
             
             my $get = sub {
                 my $val = Slic3r::Config->$get_m($opt_key);
-                $val = $val->[$index] if defined $index;
+                if (defined $index) {
+                    $val = $val->[$index]; #/
+                }
                 return $val;
             };
             $field = $opt->{type} eq 'i'
                 ? Wx::SpinCtrl->new($parent, -1, $get->(), wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $get->())
                 : Wx::TextCtrl->new($parent, -1, $get->(), wxDefaultPosition, $size, $style);
-            $reload_callbacks{$opt_key} = sub { $field->SetValue($get->()) };
+            $reload_callbacks{$opt_key} = $make_cb->(sub { $field->SetValue($get->()) });
             
             my $set = sub {
                 my $val = $field->GetValue;
@@ -74,8 +84,8 @@ sub new {
         } elsif ($opt->{type} eq 'bool') {
             $field = Wx::CheckBox->new($parent, -1, "");
             $field->SetValue(Slic3r::Config->get_raw($opt_key));
-            EVT_CHECKBOX($parent, $field, sub { Slic3r::Config->set($opt_key, $field->GetValue); $onChange->($opt_key) });
-            $reload_callbacks{$opt_key} = sub { $field->SetValue(Slic3r::Config->get_raw($opt_key)) };
+            EVT_CHECKBOX($parent, $field, $make_cb->(sub { Slic3r::Config->set($opt_key, $field->GetValue); $onChange->($opt_key) }));
+            $reload_callbacks{$opt_key} = $make_cb->(sub { $field->SetValue(Slic3r::Config->get_raw($opt_key)) });
         } elsif ($opt->{type} eq 'point') {
             $field = Wx::BoxSizer->new(wxHORIZONTAL);
             my $field_size = Wx::Size->new(40, -1);
@@ -96,24 +106,24 @@ sub new {
                 $val->[$i] = $value;
                 Slic3r::Config->set($opt_key, $val);
             };
-            EVT_TEXT($parent, $x_field, sub { $set_value->(0, $x_field->GetValue); $onChange->($opt_key) });
-            EVT_TEXT($parent, $y_field, sub { $set_value->(1, $y_field->GetValue); $onChange->($opt_key) });
-            $reload_callbacks{$opt_key} = sub {
+            EVT_TEXT($parent, $x_field, $make_cb->(sub { $set_value->(0, $x_field->GetValue); $onChange->($opt_key) }));
+            EVT_TEXT($parent, $y_field, $make_cb->(sub { $set_value->(1, $y_field->GetValue); $onChange->($opt_key) }));
+            $reload_callbacks{$opt_key} = $make_cb->(sub {
                 my $value = Slic3r::Config->get_raw($opt_key);
                 $x_field->SetValue($value->[0]);
                 $y_field->SetValue($value->[1]);
-            };
+            });
             $fields{$opt_key} = [$x_field, $y_field];
         } elsif ($opt->{type} eq 'select') {
             $field = Wx::ComboBox->new($parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
-            EVT_COMBOBOX($parent, $field, sub {
+            EVT_COMBOBOX($parent, $field, $make_cb->(sub {
                 Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
                 $onChange->($opt_key);
-            });
-            $reload_callbacks{$opt_key} = sub {
+            }));
+            $reload_callbacks{$opt_key} = $make_cb->(sub {
                 my $value = Slic3r::Config->get_raw($opt_key);
                 $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
-            };
+            });
             $reload_callbacks{$opt_key}->();
         } else {
             die "Unsupported option type: " . $opt->{type};
