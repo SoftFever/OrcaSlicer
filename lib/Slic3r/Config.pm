@@ -315,14 +315,14 @@ our $Options = {
     },
     'first_layer_extrusion_width' => {
         label   => 'First layer',
-        tooltip => 'Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) if will be computed over the default extrusion width (which could be calculated automatically or set manually using the option above).',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) if will be computed over layer height.',
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'first-layer-extrusion-width=s',
         type    => 'f',
     },
     'perimeter_extrusion_width' => {
         label   => 'Perimeters',
-        tooltip => 'Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 90%) if will be computed over the default extrusion width (which could be calculated automatically or set manually using the option above).',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.',
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'perimeter-extrusion-width=s',
         type    => 'f',
@@ -330,14 +330,14 @@ our $Options = {
     },
     'infill_extrusion_width' => {
         label   => 'Infill',
-        tooltip => 'Set this to a non-zero value to set a manual extrusion width for infill. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) if will be computed over the default extrusion width (which could be calculated automatically or set manually using the option above).',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for infill. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) if will be computed over layer height.',
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'infill-extrusion-width=s',
         type    => 'f',
     },
     'support_material_extrusion_width' => {
         label   => 'Support material',
-        tooltip => 'Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) if will be computed over the default extrusion width (which could be calculated automatically or set manually using the option above).',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) if will be computed over layer height.',
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'support-material-extrusion-width=s',
         type    => 'f',
