@@ -75,6 +75,7 @@ sub new {
         $page->Show;
         $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
         $self->{sizer}->Layout;
+        $self->Refresh;
     });
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
