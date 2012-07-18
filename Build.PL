@@ -24,6 +24,7 @@ my $build = Module::Build->new(
     },
     recommends     => {
         'Growl::GNTP' => '0.15',
+        'Net::DBus'   => '0',
         'Wx'          => '0.9901',
     },
     script_files    => ['slic3r.pl'],

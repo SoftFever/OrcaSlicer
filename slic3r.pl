@@ -9,6 +9,7 @@ BEGIN {
 }
 
 use Getopt::Long qw(:config no_auto_abbrev);
+use List::Util qw(first);
 use Slic3r;
 $|++;
 
@@ -57,26 +58,37 @@ if ($opt{load}) {
 }
 
 # validate command line options
+delete $cli_options{$_} for grep !defined $cli_options{$_}, keys %cli_options;
 Slic3r::Config->validate_cli(\%cli_options);
 
-# apply command line options
-Slic3r::Config->set($_ => $cli_options{$_})
-    for grep defined $cli_options{$_}, keys %cli_options;
+# initialize GUI
+my $gui;
+if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
+    $gui = Slic3r::GUI->new;
+    $gui->{skeinpanel}->load_config($opt{load}[0]) if $opt{load};
+}
+die $@ if $@ && $opt{gui};
 
-# validate configuration
+# apply command line options
+Slic3r::Config->set($_ => $cli_options{$_}) for keys %cli_options;
+
+# validate configuration, convert options like --print-center to arrayrefs, init extruders etc.
 Slic3r::Config->validate;
 
 # save configuration
 Slic3r::Config->save($opt{save}) if $opt{save};
 
-# start GUI
-if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
-    no warnings 'once';
-    $Slic3r::GUI::SkeinPanel::last_config = $opt{load} ? $opt{load}[0] : undef;
-    Slic3r::GUI->new->MainLoop;
+# apply command line options to GUI as well and start it
+if ($gui) {
+    for my $opt_key (keys %cli_options) {
+        no warnings 'once';
+        ( $Slic3r::GUI::OptionsGroup::reload_callbacks{$opt_key} || sub {} )->();
+        my $group = first { $opt_key ~~ @$_ } keys %Slic3r::Groups;
+        $gui->{skeinpanel}{options_tabs}{$group}->set_dirty(1) if $group;
+    }
+    $gui->MainLoop;
     exit;
 }
-die $@ if $@ && $opt{gui};
 
 if (@ARGV) {
     while (my $input_file = shift @ARGV) {

@@ -5,8 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use Slic3r::Geometry qw(X Y);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
-    wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
+use Wx qw(:dialog :filedialog :font :icon :id :misc :notebook :sizer);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
@@ -21,144 +20,23 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    no warnings 'qw';
-    my %panels = (
-        printer => {
-            title => 'Printer',
-            options => [qw(nozzle_diameter#0 bed_size print_center z_offset gcode_flavor use_relative_e_distances)],
-        },
-        filament => {
-            title => 'Filament',
-            options => [qw(filament_diameter#0 extrusion_multiplier#0 temperature#0 first_layer_temperature#0 bed_temperature first_layer_bed_temperature)],
-        },
-        print_speed => {
-            title => 'Print speed',
-            options => [qw(perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed)],
-        },
-        speed => {
-            title => 'Other speed settings',
-            options => [qw(travel_speed first_layer_speed)],
-        },
-        accuracy => {
-            title => 'Accuracy',
-            options => [qw(layer_height first_layer_height infill_every_layers)],
-        },
-        print => {
-            title => 'Print settings',
-            options => [qw(perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern randomize_start)],
-        },
-        retract => {
-            title => 'Retraction',
-            options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
-        },
-        cooling => {
-            title => 'Cooling',
-            options => [qw(cooling min_fan_speed max_fan_speed bridge_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed disable_fan_first_layers fan_always_on)],
-            label_width => 450,
-        },
-        skirt => {
-            title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height brim_width)],
-        },
-        gcode => {
-            title => 'G-code',
-            options => [qw(start_gcode end_gcode layer_gcode gcode_comments post_process)],
-            label_width => 260,
-        },
-        sequential_printing => {
-            title => 'Sequential printing',
-            options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
-        },
-        extrusion => {
-            title => 'Extrusion',
-            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width infill_extrusion_width support_material_extrusion_width bridge_flow_ratio)],
-        },
-        output => {
-            title => 'Output',
-            options => [qw(output_filename_format duplicate_distance)],
-        },
-        other => {
-            title => 'Other',
-            options => [ ($Slic3r::have_threads ? qw(threads) : ()), qw(extra_perimeters) ],
-        },
-        notes => {
-            title => 'Notes',
-            options => [qw(notes)],
-        },
-        support_material => {
-            title => 'Support material',
-            options => [qw(support_material support_material_threshold support_material_pattern support_material_spacing support_material_angle support_material_extruder)],
-        },
-    );
-    $self->{panels} = \%panels;
-    
-    my $tabpanel = Wx::Notebook->new($self, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, &Wx::wxNB_TOP);
-    my $make_tab = sub {
-        my @cols = @_;
-        
-        my $tab = Wx::Panel->new($tabpanel, -1);
-        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        foreach my $col (@cols) {
-            my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-            for my $optgroup (@$col) {
-                next unless @{ $panels{$optgroup}{options} };
-                my $optpanel = Slic3r::GUI::OptionsGroup->new($tab, %{$panels{$optgroup}});
-                $vertical_sizer->Add($optpanel, 0, wxEXPAND | wxALL, 10);
-            }
-            $sizer->Add($vertical_sizer);
-        }
-        
-        $tab->SetSizer($sizer);
-        return $tab;
+    my $tabpanel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+    $tabpanel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($tabpanel), "Plater");
+    $self->{options_tabs} = {
+        print       => Slic3r::GUI::Tab::Print->new     ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{print}),
+        filament    => Slic3r::GUI::Tab::Filament->new  ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
+        printer     => Slic3r::GUI::Tab::Printer->new   ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
     };
-    
-    my @tabs = (
-        $make_tab->([qw(accuracy skirt support_material)], [qw(print retract)]),
-        $make_tab->([qw(cooling notes)]),
-        $make_tab->([qw(printer filament)], [qw(print_speed speed)]),
-        $make_tab->([qw(gcode)]),
-        $make_tab->([qw(extrusion)], [qw(output other sequential_printing)]),
-    );
-    
-    $tabpanel->AddPage(Slic3r::GUI::Plater->new($tabpanel), "Plater");
-    $tabpanel->AddPage($tabs[0], "Print Settings");
-    $tabpanel->AddPage($tabs[1], "Cooling");
-    $tabpanel->AddPage($tabs[2], "Printer and Filament");
-    $tabpanel->AddPage($tabs[3], "G-code");
-    $tabpanel->AddPage($tabs[4], "Advanced");
-        
-    my $buttons_sizer;
-    {
-        $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        
-        my $slice_button = Wx::Button->new($self, -1, "Quick slice…");
-        $slice_button->SetDefault();
-        $buttons_sizer->Add($slice_button, 0, wxRIGHT, 20);
-        EVT_BUTTON($self, $slice_button, sub { $self->do_slice });
-        
-        my $save_button = Wx::Button->new($self, -1, "Save config...");
-        $buttons_sizer->Add($save_button, 0, wxRIGHT, 5);
-        EVT_BUTTON($self, $save_button, sub { $self->save_config });
-        
-        my $load_button = Wx::Button->new($self, -1, "Load config...");
-        $buttons_sizer->Add($load_button, 0, wxRIGHT, 5);
-        EVT_BUTTON($self, $load_button, sub { $self->load_config });
-        
-        my $text = Wx::StaticText->new($self, -1, "Remember to check for updates at http://slic3r.org/\nVersion: $Slic3r::VERSION", Wx::wxDefaultPosition, Wx::wxDefaultSize, wxALIGN_RIGHT);
-        my $font = Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL);
-        $text->SetFont($font);
-        $buttons_sizer->Add($text, 1, wxEXPAND | wxALIGN_RIGHT);
-    }
+    $tabpanel->AddPage($self->{options_tabs}{print}, $self->{options_tabs}{print}->title);
+    $tabpanel->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
+    $tabpanel->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, 10);
-    $sizer->Add($tabpanel);
+    $sizer->Add($tabpanel, 1, wxEXPAND);
     
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);
     $self->Layout;
-    
-    $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
     
     return $self;
 }
@@ -182,7 +60,7 @@ sub do_slice {
         $copies = $Slic3r::duplicate if $Slic3r::duplicate > 1;
         if ($copies > 1) {
             my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
-                                                      'Confirm', wxICON_QUESTION | wxOK | wxCANCEL);
+                                                      'Multiple Copies', wxICON_QUESTION | wxOK | wxCANCEL);
             return unless $confirmation->ShowModal == wxID_OK;
         }
         
@@ -191,23 +69,23 @@ sub do_slice {
 
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN | &Wx::wxFD_FILE_MUST_EXIST);
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
                 $dialog->Destroy;
                 return;
             }
             $input_file = $dialog->GetPaths;
             $dialog->Destroy;
-            $last_input_file = $input_file;
+            $last_input_file = $input_file unless $params{export_svg};
         } else {
             if (!defined $last_input_file) {
-                Wx::MessageDialog->new($self, "No previously sliced file",
-                                       'Confirm', wxICON_ERROR | wxOK)->ShowModal();
+                Wx::MessageDialog->new($self, "No previously sliced file.",
+                                       'Error', wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
             if (! -e $last_input_file) {
-                Wx::MessageDialog->new($self, "Cannot find previously sliced file!",
-                                       'Confirm', wxICON_ERROR | wxOK)->ShowModal();
+                Wx::MessageDialog->new($self, "Previously sliced file ($last_input_file) not found.",
+                                       'File Not Found', wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
             $input_file = $last_input_file;
@@ -232,12 +110,13 @@ sub do_slice {
                 $dlg->Destroy;
                 return;
             }
-            $output_file = $last_output_file = $dlg->GetPath;
+            $output_file = $dlg->GetPath;
+            $last_output_file = $output_file unless $params{export_svg};
             $dlg->Destroy;
         }
         
         # show processbar dialog
-        $process_dialog = Wx::ProgressDialog->new('Slicing...', "Processing $input_file_basename...", 
+        $process_dialog = Wx::ProgressDialog->new('Slicing…', "Processing $input_file_basename…", 
             100, $self, 0);
         $process_dialog->Pulse;
         
@@ -249,7 +128,7 @@ sub do_slice {
                 status_cb   => sub {
                     my ($percent, $message) = @_;
                     if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
-                        $process_dialog->Update($percent, "$message...");
+                        $process_dialog->Update($percent, "$message…");
                     }
                 },
             );
@@ -264,13 +143,15 @@ sub do_slice {
         undef $process_dialog;
         
         my $message = "$input_file_basename was successfully sliced";
-        $message .= sprintf " in %d minutes and %.3f seconds",
-            int($print->processing_time/60),
-            $print->processing_time - int($print->processing_time/60)*60
-                if $print->processing_time;
+        if ($print->processing_time) {
+            $message .= ' in';
+            my $minutes = int($print->processing_time/60);
+            $message .= sprintf " %d minutes and", $minutes if $minutes;
+            $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
+        }
         $message .= ".";
-        Slic3r::GUI::notify($message);
-        Wx::MessageDialog->new($self, $message, 'Done!', 
+        &Wx::wxTheApp->notify($message);
+        Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
@@ -289,7 +170,7 @@ sub save_config {
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
-        $ini_wildcard, wxFD_SAVE | &Wx::wxFD_OVERWRITE_PROMPT);
+        $ini_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $last_config_dir = dirname($file);
@@ -301,22 +182,44 @@ sub save_config {
 
 sub load_config {
     my $self = shift;
+    my ($file) = @_;
     
-    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
-    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-        $ini_wildcard, wxFD_OPEN | &Wx::wxFD_FILE_MUST_EXIST);
-    if ($dlg->ShowModal == wxID_OK) {
-        my ($file) = $dlg->GetPaths;
-        $last_config_dir = dirname($file);
-        $last_config = $file;
-        eval {
-            local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-            Slic3r::Config->load($file);
-        };
-        Slic3r::GUI::catch_error($self);
-        $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks;
+    if (!$file) {
+        return unless $self->check_unsaved_changes;
+        my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
+        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
+                $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        return unless $dlg->ShowModal == wxID_OK;
+        ($file) = $dlg->GetPaths;
+        $dlg->Destroy;
     }
-    $dlg->Destroy;
+    $last_config_dir = dirname($file);
+    $last_config = $file;
+    $_->external_config_loaded($file) for values %{$self->{options_tabs}};
+}
+
+sub config_wizard {
+    my $self = shift;
+
+    return unless $self->check_unsaved_changes;
+    if (Slic3r::GUI::ConfigWizard->new($self)->run) {
+        $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
+        $_->set_dirty(1) for values %{$self->{options_tabs}};
+    }
+}
+
+sub check_unsaved_changes {
+    my $self = shift;
+    
+    my @dirty = map $_->title, grep $_->is_dirty, values %{$self->{options_tabs}};
+    if (@dirty) {
+        my $titles = join ', ', @dirty;
+        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
+                                             'Unsaved Presets', wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+        return ($confirm->ShowModal == wxID_YES);
+    }
+    
+    return 1;
 }
 
 1;

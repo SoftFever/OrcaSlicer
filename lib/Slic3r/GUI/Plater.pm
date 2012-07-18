@@ -8,10 +8,8 @@ use Math::ConvexHull qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
-use Wx qw(:sizer :progressdialog wxOK wxICON_INFORMATION wxICON_WARNING wxICON_ERROR wxICON_QUESTION
-    wxOK wxCANCEL wxID_OK wxFD_OPEN wxFD_SAVE wxDEFAULT wxNORMAL);
-use Wx::Event qw(EVT_BUTTON EVT_PAINT EVT_MOUSE_EVENTS EVT_LIST_ITEM_SELECTED EVT_LIST_ITEM_DESELECTED
-    EVT_COMMAND EVT_TOOL);
+use Wx qw(:bitmap :brush :button :dialog :filedialog :font :icon :id :listctrl :misc :pen :sizer :toolbar :window);
+use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL);
 use base 'Wx::Panel';
 
 use constant TB_MORE    => 1;
@@ -33,58 +31,58 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    $self->{canvas} = Wx::Panel->new($self, -1, [-1, -1], [300, 300]);
+    $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, [300, 300]);
     $self->{canvas}->SetBackgroundColour(Wx::wxWHITE);
     EVT_PAINT($self->{canvas}, \&repaint);
     EVT_MOUSE_EVENTS($self->{canvas}, \&mouse_event);
     
-    $self->{objects_brush} = Wx::Brush->new(Wx::Colour->new(210,210,210), &Wx::wxSOLID);
-    $self->{selected_brush} = Wx::Brush->new(Wx::Colour->new(255,128,128), &Wx::wxSOLID);
-    $self->{transparent_brush} = Wx::Brush->new(Wx::Colour->new(0,0,0), &Wx::wxTRANSPARENT);
-    $self->{grid_pen} = Wx::Pen->new(Wx::Colour->new(230,230,230), 1, &Wx::wxSOLID);
-    $self->{print_center_pen} = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, &Wx::wxSOLID);
-    $self->{clearance_pen} = Wx::Pen->new(Wx::Colour->new(0,0,200), 1, &Wx::wxSOLID);
-    $self->{skirt_pen} = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, &Wx::wxSOLID);
+    $self->{objects_brush} = Wx::Brush->new(Wx::Colour->new(210,210,210), wxSOLID);
+    $self->{selected_brush} = Wx::Brush->new(Wx::Colour->new(255,128,128), wxSOLID);
+    $self->{transparent_brush} = Wx::Brush->new(Wx::Colour->new(0,0,0), wxTRANSPARENT);
+    $self->{grid_pen} = Wx::Pen->new(Wx::Colour->new(230,230,230), 1, wxSOLID);
+    $self->{print_center_pen} = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, wxSOLID);
+    $self->{clearance_pen} = Wx::Pen->new(Wx::Colour->new(0,0,200), 1, wxSOLID);
+    $self->{skirt_pen} = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, wxSOLID);
     
-    $self->{list} = Wx::ListView->new($self, -1, [-1, -1], [-1, 180], &Wx::wxLC_SINGLE_SEL | &Wx::wxLC_REPORT | &Wx::wxBORDER_DEFAULT);
-    $self->{list}->InsertColumn(0, "Name", &Wx::wxLIST_FORMAT_LEFT, 300);
-    $self->{list}->InsertColumn(1, "Copies", &Wx::wxLIST_FORMAT_CENTER, 50);
-    $self->{list}->InsertColumn(2, "Scale", &Wx::wxLIST_FORMAT_CENTER, 50);
+    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [-1, 180], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN);
+    $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 300);
+    $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 50);
+    $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
-        $self->{htoolbar} = Wx::ToolBar->new($self, -1, [-1, -1], [-1, -1], &Wx::wxTB_HORIZONTAL | &Wx::wxTB_HORZ_TEXT);
-        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", &Wx::wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$Slic3r::var/delete.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE);
+        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_LESS, "Less", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate...", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate…", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SCALE, "Scale...", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", &Wx::wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
             rotate => "Rotate…", changescale => "Scale…", split => "Split");
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
         for (qw(increase decrease rotate45ccw rotate45cw rotate changescale split)) {
-            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, [-1,-1], [-1,-1], &Wx::wxBU_EXACTFIT);
+            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
     }
     
     # general buttons
-    $self->{btn_load} = Wx::Button->new($self, -1, "Add…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
-    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_load} = Wx::Button->new($self, -1, "Add…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_export_gcode}->SetDefault;
-    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", [-1,-1], [-1,-1], &Wx::wxBU_LEFT);
+    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     
     if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
         my %icons = qw(
@@ -104,7 +102,7 @@ sub new {
             split           shape_ungroup.png
         );
         for (grep $self->{"btn_$_"}, keys %icons) {
-            $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icons{$_}", &Wx::wxBITMAP_TYPE_PNG));
+            $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icons{$_}", wxBITMAP_TYPE_PNG));
         }
     }
     $self->selection_changed(0);
@@ -148,7 +146,7 @@ sub new {
         my ($self, $event) = @_;
         my ($percent, $message) = @{$event->GetData};
         $self->statusbar->SetProgress($percent);
-        $self->statusbar->SetStatusText("$message...");
+        $self->statusbar->SetStatusText("$message…");
     });
     
     EVT_COMMAND($self, -1, $MESSAGE_DIALOG_EVENT, sub {
@@ -185,17 +183,35 @@ sub new {
         
         my $list_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $list_sizer->Add($self->{list}, 1, wxEXPAND | wxALL, 0);
-        $list_sizer->Add($self->{vtoolbar}, 0, wxEXPAND, 0) if $self->{vtoolbar};
         
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $vertical_sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
         $vertical_sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
-        $vertical_sizer->Add($list_sizer, 0, wxEXPAND | &Wx::wxBOTTOM, 10);
+        $vertical_sizer->Add($list_sizer, 0, wxEXPAND | wxBOTTOM, 10);
         $vertical_sizer->Add($buttons, 0, wxEXPAND);
         
-        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $sizer->Add($self->{canvas}, 0, wxALL, 10);
-        $sizer->Add($vertical_sizer, 1, wxEXPAND | wxALL, 10);
+        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $hsizer->Add($self->{canvas}, 0, wxALL, 10);
+        $hsizer->Add($vertical_sizer, 1, wxEXPAND | wxALL, 10);
+        
+        my $presets = Wx::BoxSizer->new(wxHORIZONTAL);
+        my %group_labels = (
+            print       => 'Print settings',
+            filament    => 'Filament',
+            printer     => 'Printer',
+        );
+        $self->{preset_choosers} = {};
+        for my $group (qw(print filament printer)) {
+            my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+            $self->{preset_choosers}{$group} = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
+            $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+            $presets->Add($self->{preset_choosers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+        }
+        
+        my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 10);
+        $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
+        
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
     }
@@ -206,7 +222,7 @@ sub load {
     my $self = shift;
     
     my $dir = $Slic3r::GUI::SkeinPanel::last_skein_dir || $Slic3r::GUI::SkeinPanel::last_config_dir || "";
-    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN | &Wx::wxFD_MULTIPLE | &Wx::wxFD_FILE_MUST_EXIST);
+    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;
@@ -222,7 +238,7 @@ sub load_file {
     
     $Slic3r::GUI::SkeinPanel::last_skein_dir = dirname($input_file);
     
-    my $process_dialog = Wx::ProgressDialog->new('Loading...', "Processing input file...", 100, $self, 0);
+    my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
     $self->{print}->add_object_from_file($input_file);
@@ -336,7 +352,7 @@ sub rotate {
         return if !$angle || $angle == -1;
     }
     
-    $self->statusbar->SetStatusText("Rotating object...");
+    $self->statusbar->SetStatusText("Rotating object…");
     $self->statusbar->StartBusy;
     
     # rotate, realign to 0,0 and update size
@@ -374,7 +390,7 @@ sub changescale {
     $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $scale*100, 0, 5000, $self);
     return if !$scale || $scale == -1;
     
-    $self->statusbar->SetStatusText("Scaling object...");
+    $self->statusbar->SetStatusText("Scaling object…");
     $self->statusbar->StartBusy;
     
     my $object = $self->{print}->objects->[$obj_idx];
@@ -425,7 +441,7 @@ sub export_gcode {
     my $self = shift;
     
     if ($self->{export_thread}) {
-        Wx::MessageDialog->new($self, "Another slicing job is currently running.", 'Error', wxOK | &Wx::wxICON_ERROR)->ShowModal;
+        Wx::MessageDialog->new($self, "Another slicing job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
         return;
     }
     
@@ -471,7 +487,7 @@ sub export_gcode {
             progressbar => sub {
                 my ($percent, $message) = @_;
                 $self->statusbar->SetProgress($percent);
-                $self->statusbar->SetStatusText("$message...");
+                $self->statusbar->SetStatusText("$message…");
             },
             message_dialog => sub { Wx::MessageDialog->new($self, @_)->ShowModal },
             on_completed => sub { $self->on_export_completed(@_) },
@@ -515,12 +531,13 @@ sub export_gcode2 {
         }
         
         my $message = "Your files were successfully sliced";
-        $message .= sprintf " in %d minutes and %.3f seconds",
-            int($print->processing_time/60),
-            $print->processing_time - int($print->processing_time/60)*60
-                if $print->processing_time;
+        if ($print->processing_time) {
+            $message .= ' in';
+            my $minutes = int($print->processing_time/60);
+            $message .= sprintf " %d minutes and", $minutes if $minutes;
+            $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
+        }
         $message .= ".";
-        Slic3r::GUI::notify($message);
         $params{on_completed}->($message);
         $print->cleanup;
     };
@@ -536,12 +553,11 @@ sub on_export_completed {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
-    Wx::MessageDialog->new($self, $message, 'Done!', wxOK | wxICON_INFORMATION)->ShowModal;
+    &Wx::wxTheApp->notify($message);
 }
 
 sub on_export_failed {
     my $self = shift;
-    my ($message) = @_;
     
     $self->{export_thread}->detach if $self->{export_thread};
     $self->{export_thread} = undef;
@@ -561,7 +577,7 @@ sub export_stl {
         $output_file = $print->expanded_output_filepath($output_file);
         $output_file =~ s/\.gcode$/.stl/i;
         my $dlg = Wx::FileDialog->new($self, 'Save STL file as:', dirname($output_file),
-            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | &Wx::wxFD_OVERWRITE_PROMPT);
+            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
@@ -674,12 +690,12 @@ sub repaint {
         $dc->DrawLine(0, $size[Y]/2, $size[X], $size[Y]/2);
         $dc->SetTextForeground(Wx::Colour->new(0,0,0));
         $dc->SetFont(Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel("X = " . $Slic3r::print_center->[X], Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), &Wx::wxALIGN_CENTER_HORIZONTAL | &Wx::wxALIGN_BOTTOM);
+        $dc->DrawLabel("X = " . $Slic3r::print_center->[X], Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
         $dc->DrawRotatedText("Y = " . $Slic3r::print_center->[Y], 0, $size[Y]/2+15, 90);
     }
     
     # draw frame
-    $dc->SetPen(Wx::wxBLACK_PEN);
+    $dc->SetPen(wxBLACK_PEN);
     $dc->SetBrush($parent->{transparent_brush});
     $dc->DrawRectangle(0, 0, @size);
     
@@ -687,11 +703,11 @@ sub repaint {
     if (!@{$print->objects}) {
         $dc->SetTextForeground(Wx::Colour->new(150,50,50));
         $dc->SetFont(Wx::Font->new(14, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel("Drag your objects here", Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), &Wx::wxALIGN_CENTER_HORIZONTAL | &Wx::wxALIGN_CENTER_VERTICAL);
+        $dc->DrawLabel("Drag your objects here", Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     }
     
     # draw thumbnails
-    $dc->SetPen(Wx::wxBLACK_PEN);
+    $dc->SetPen(wxBLACK_PEN);
     @{$parent->{object_previews}} = ();
     for my $obj_idx (0 .. $#{$print->objects}) {
         next unless $parent->{thumbnails}[$obj_idx];
@@ -834,7 +850,6 @@ sub _y {
 }
 
 package Slic3r::GUI::Plater::DropTarget;
-
 use Wx::DND;
 use base 'Wx::FileDropTarget';
 

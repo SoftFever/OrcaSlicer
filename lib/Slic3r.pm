@@ -70,16 +70,16 @@ our $g0                 = 0;
 our $gcode_comments     = 0;
 
 # filament options
-our $bed_temperature    = 0;
-our $first_layer_bed_temperature;
+our $filament_diameter      = [3];    # mm
+our $extrusion_multiplier   = [1];
+our $temperature            = [200];
+our $first_layer_temperature= [@$temperature];
+our $bed_temperature        = 0;
+our $first_layer_bed_temperature = $bed_temperature;
 
 # extruders
 our $extruders              = [];
 our $nozzle_diameter        = [0.5];
-our $filament_diameter      = [3];    # mm
-our $extrusion_multiplier   = [1];
-our $temperature            = [200];
-our $first_layer_temperature= [];
 
 # extruder mapping (1-based indexes)
 our $perimeter_extruder         = 1;
@@ -184,6 +184,9 @@ our $duplicate_distance = 6;    # mm
 our $complete_objects           = 0;
 our $extruder_clearance_radius  = 20;     # mm
 our $extruder_clearance_height  = 20;     # mm
+
+our $Defaults = Slic3r::Config->current;
+our $Settings = { presets => {} };  # application settings
 
 sub parallelize {
     my %params = @_;
