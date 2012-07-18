@@ -121,6 +121,7 @@ sub OnInit {
         $event->Skip;
     });
     
+    $frame->Fit;
     $frame->SetMinSize($frame->GetSize);
     $frame->Show;
     $frame->Layout;
