@@ -9,7 +9,7 @@ use constant PI => 4 * atan2(1, 1);
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool);
 
 our %Groups = (
-    print       => [qw(layer_height first_layer_height perimeters randomize_start solid_layers fill_density fill_angle fill_pattern solid_fill_pattern infill_every_layers perimeter_speed small_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed travel_speed first_layer_speed skirts skirt_distance skirt_height support_material notes complete_objects extruder_clearance_radius extruder_clearance_height gcode_comments output_filename_format post_process extrusion_width first_layer_extrusion_width infill_extrusion_width bridge_flow_ratio duplicate_distance)],
+    print       => [qw(layer_height first_layer_height perimeters randomize_start extra_perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern infill_every_layers perimeter_speed small_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed travel_speed first_layer_speed skirts skirt_distance skirt_height brim_width support_material support_material_threshold support_material_pattern support_material_pattern support_material_spacing support_material_angle notes complete_objects extruder_clearance_radius extruder_clearance_height gcode_comments output_filename_format post_process extrusion_width first_layer_extrusion_width infill_extrusion_width support_material_extrusion_width bridge_flow_ratio duplicate_distance)],
     filament    => [qw(filament_diameter extrusion_multiplier temperature first_layer_temperature bed_temperature first_layer_bed_temperature cooling min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on fan_below_layer_time slowdown_below_layer_time min_print_speed)],
     printer     => [qw(bed_size print_center z_offset gcode_flavor use_relative_e_distances nozzle_diameter retract_length retract_lift retract_speed retract_restart_extra retract_before_travel start_gcode end_gcode layer_gcode)],
 );
@@ -336,7 +336,9 @@ our $Options = {
         type    => 'f',
     },
     'support_material_extrusion_width' => {
-        label   => 'Support material extrusion width (mm or % or 0 for default)',
+        label   => 'Support material',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) if will be computed over the default extrusion width (which could be calculated automatically or set manually using the option above).',
+        sidetext => 'mm or % (leave 0 for default)',
         cli     => 'support-material-extrusion-width=s',
         type    => 'f',
     },
