@@ -76,6 +76,8 @@ sub new {
     my $label_width = 200;
 
     my $opt_key = $params{option};
+    my $index;
+    $opt_key =~ s/#(\d+)$// and $index = $1;
     my $opt = $Slic3r::Config::Options->{$opt_key};
 
     my $callback = $params{callback} || sub {};
@@ -91,8 +93,18 @@ sub new {
         my $style = $opt->{multiline} ? wxTE_MULTILINE : 0;
         my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
 
-        my ($get, $set) = $opt->{type} eq 's@' ? qw(serialize deserialize) : qw(get_raw set);
+        # if it's an array type but no index was specified, use the serialized version
+        my $get_m = $opt->{type} =~ /\@$/ && !defined $index
+            ? 'serialize'
+            : 'get_raw';
 
+        my $get = sub {
+            my $val = Slic3r::Config->$get_m($opt_key);
+            if (defined $index) {
+                $val = $val->[$index]; #/
+            }
+            return $val;
+        };
         if ($opt->{type} eq 'i') {
             my $value = Slic3r::Config->$get($opt_key);
             $field = Wx::SpinCtrl->new($parent, -1, $value, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
@@ -373,7 +385,7 @@ sub new {
     my $self = $class->SUPER::new($parent, 'Nozzle Diameter');
 
     $self->append_text('Enter the diameter of your printers hot end nozzle, then click Next.');
-    $self->append_option('nozzle_diameter');
+    $self->append_option('nozzle_diameter#0');
 
     return $self;
 }
@@ -384,8 +396,8 @@ sub apply {
 
     # set first_layer_height + layer_height based on nozzle_diameter
     my $nozzle = Slic3r::Config->get_raw('nozzle_diameter');
-    Slic3r::Config->set('first_layer_height', $nozzle);
-    Slic3r::Config->set('layer_height', $nozzle - 0.1);
+    Slic3r::Config->set('first_layer_height', $nozzle->[0]);
+    Slic3r::Config->set('layer_height', $nozzle->[0] - 0.1);
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Filament;
@@ -398,7 +410,7 @@ sub new {
 
     $self->append_text('Enter the diameter of your filament, then click Next.');
     $self->append_text('Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.');
-    $self->append_option('filament_diameter');
+    $self->append_option('filament_diameter#0');
 
     return $self;
 }
@@ -413,7 +425,7 @@ sub new {
 
     $self->append_text('Enter the temperature needed for extruding your filament, then click Next.');
     $self->append_text('A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS.');
-    $self->append_option('temperature');
+    $self->append_option('temperature#0');
 
     return $self;
 }
@@ -424,7 +436,7 @@ sub apply {
 
     # set first_layer_temperature to temperature + 5
     my $temperature = Slic3r::Config->get_raw('temperature');
-    Slic3r::Config->set('first_layer_temperature', $temperature + 5);
+    Slic3r::Config->set('first_layer_temperature', [$temperature->[0] + 5]);
 }
 
 package Slic3r::GUI::ConfigWizard::Page::BedTemperature;
