@@ -17,7 +17,7 @@ sub new {
         $self = [ @_ ];
     }
     
-    bless $self, $class;use XXX; ZZZ $self if !defined $self->[0];
+    bless $self, $class;
     bless $_, 'Slic3r::Point' for @$self;
     $self;
 }

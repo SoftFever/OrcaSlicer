@@ -545,7 +545,7 @@ sub on_preset_loaded {
     my $self = shift;
     
     # update the extruders count field
-    {Slic3r::debugf "nozzle count = %d\n", scalar @{ Slic3r::Config->get_raw('nozzle_diameter') };
+    {
         # set value in repository according to the number of nozzle diameters supplied
         Slic3r::Config->set('extruders_count', scalar @{ Slic3r::Config->get_raw('nozzle_diameter') });
         
