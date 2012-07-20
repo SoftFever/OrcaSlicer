@@ -1,19 +1,7 @@
 package Slic3r::ExtrusionPath::Collection;
 use Moo;
 
-
-has 'paths' => (
-    is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::ExtrusionPath]',
-    default => sub { [] },
-);
-
-sub add {
-    my $self = shift;
-    my ($path) = @_;
-    
-    push @{$self->paths}, $path;
-}
+has 'paths' => (is => 'rw', default => sub { [] });
 
 sub endpoints {
     my $self = shift;
@@ -24,8 +12,8 @@ sub shortest_path {
     my $self = shift;
     my ($start_near) = @_;
     
-    my @my_paths = @{$self->paths};
-    $_->deserialize for @my_paths;
+    my @my_paths = map $_->unpack, @{$self->paths};
+    
     my @paths = ();
     my $start_at;
     my $endpoints = [ map $_->endpoints, @my_paths ];

@@ -17,7 +17,7 @@ sub new {
         $self = [ @_ ];
     }
     
-    bless $self, $class;
+    bless $self, $class;use XXX; ZZZ $self if !defined $self->[0];
     bless $_, 'Slic3r::Point' for @$self;
     $self;
 }
@@ -29,19 +29,20 @@ sub clone {
 
 sub serialize {
     my $self = shift;
-    my $s = \ pack 'l*', map @$_, @$self;
-    bless $s, ref $self;
-    return $s;
+    return pack 'l*', map @$_, @$self;
 }
 
 sub deserialize {
+    my $class = shift;
+    my ($s) = @_;
+    
+    my @v = unpack '(l2)*', $s;
+    return $class->new(map [ $v[2*$_], $v[2*$_+1] ], 0 .. int($#v/2));
+}
+
+sub is_serialized {
     my $self = shift;
-    return $self if reftype $self ne 'SCALAR';
-    my @v = unpack '(l2)*', $$self;
-    my $o = [ map [ $v[2*$_], $v[2*$_+1] ], 0 .. int($#v/2) ];
-    bless $_, 'Slic3r::Point' for @$o;
-    bless $o, ref $self;
-    return $o;
+    return (reftype $self) eq 'SCALAR' ? 1 : 0;
 }
 
 sub id {

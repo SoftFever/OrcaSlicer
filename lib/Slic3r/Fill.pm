@@ -162,7 +162,7 @@ sub make_fill {
         next unless @paths;
         push @fills, Slic3r::ExtrusionPath::Collection->new(
             paths => [
-                map Slic3r::ExtrusionPath->new(
+                map Slic3r::ExtrusionPath->pack(
                     polyline => Slic3r::Polyline->new(@$_),
                     role => ($is_bridge
                         ? EXTR_ROLE_BRIDGE
@@ -185,8 +185,8 @@ sub make_fill {
         );
         push @fills, map {
             $_->isa('Slic3r::Polygon')
-                ? Slic3r::ExtrusionLoop->new(polygon  => $_, %args)->split_at_first_point
-                : Slic3r::ExtrusionPath->new(polyline => $_, %args),
+                ? Slic3r::ExtrusionLoop->pack(polygon  => $_, %args)->split_at_first_point
+                : Slic3r::ExtrusionPath->pack(polyline => $_, %args),
         } @{$layer->thin_fills};
     }
     push @fills_ordering_points, map $_->[0], @{$layer->thin_fills};

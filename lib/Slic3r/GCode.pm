@@ -79,12 +79,9 @@ sub change_layer {
 sub extrude {
     my $self = shift;
     
-    if ($_[0]->isa('Slic3r::ExtrusionLoop')) {
-        $self->extrude_loop(@_);
-    } else {
-        $_[0]->deserialize;
-        $self->extrude_path(@_);
-    }
+    $_[0]->isa('Slic3r::ExtrusionLoop::Packed')
+        ? $self->extrude_loop(@_)
+        : $self->extrude_path(@_);
 }
 
 sub extrude_loop {
@@ -92,7 +89,7 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
-    $loop->deserialize;
+    $loop = $loop->unpack;
     $loop->polygon->make_counter_clockwise;
     
     # find the point of the loop that is closest to the current extruder position
@@ -107,7 +104,6 @@ sub extrude_loop {
     
     # split the loop at the starting point and make a path
     my $extrusion_path = $loop->split_at_index($start_index);
-    $extrusion_path->deserialize;
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -123,13 +119,13 @@ sub extrude_path {
     my $self = shift;
     my ($path, $description, $recursive) = @_;
     
+    $path = $path->unpack if $path->isa('Slic3r::ExtrusionPath::Packed');
     $path->merge_continuous_lines;
     
     # detect arcs
     if ($Slic3r::gcode_arcs && !$recursive) {
         my $gcode = "";
         foreach my $arc_path ($path->detect_arcs) {
-            $arc_path->deserialize;
             $gcode .= $self->extrude_path($arc_path, $description, 1);
         }
         return $gcode;

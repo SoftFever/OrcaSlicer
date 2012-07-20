@@ -436,7 +436,7 @@ sub make_skirt {
         my @layer_points = (
             (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, @layers),
-            (map @{$_->polyline->deserialize}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
+            (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
         );
         push @points, map move_points($_, @layer_points), @{$self->copies->[$obj_idx]};
     }
@@ -451,7 +451,7 @@ sub make_skirt {
     for (my $i = $Slic3r::skirts; $i > 0; $i--) {
         my $distance = scale ($Slic3r::skirt_distance + ($flow->spacing * $i));
         my $outline = offset([$convex_hull], $distance, $Slic3r::scaling_factor * 100, JT_ROUND);
-        push @skirt, Slic3r::ExtrusionLoop->new(
+        push @skirt, Slic3r::ExtrusionLoop->pack(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
             role => EXTR_ROLE_SKIRT,
         );
@@ -474,7 +474,7 @@ sub make_brim {
     my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
     my $num_loops = sprintf "%.0f", $Slic3r::brim_width / $flow->width;
     for my $i (reverse 1 .. $num_loops) {
-        push @{$self->brim}, Slic3r::ExtrusionLoop->new(
+        push @{$self->brim}, Slic3r::ExtrusionLoop->pack(
             polygon => Slic3r::Polygon->new($_),
             role    => EXTR_ROLE_SKIRT,
         ) for @{Math::Clipper::offset(\@islands, $i * scale $flow->spacing)};

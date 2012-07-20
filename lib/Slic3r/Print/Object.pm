@@ -560,7 +560,6 @@ sub generate_support_material {
                         flow_spacing    => $params->{flow_spacing},
                     ), @paths;
             }
-            $_->deserialize for @patterns;
             push @$support_patterns, [@patterns];
         }
     
@@ -580,7 +579,9 @@ sub generate_support_material {
             my ($layer_id, $expolygons) = @_;
             my @paths = ();
             foreach my $expolygon (@$expolygons) {
-                push @paths, map { $_->deserialize; $_->clip_with_expolygon($expolygon) }
+                push @paths,
+                    map $_->pack,
+                    map $_->clip_with_expolygon($expolygon),
                     map $_->clip_with_polygon($expolygon->bounding_box_polygon),
                     @{$support_patterns->[ $layer_id % @$support_patterns ]};
             };

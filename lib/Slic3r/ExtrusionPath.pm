@@ -18,13 +18,11 @@ has 'polyline' => (
     handles     => [qw(merge_continuous_lines lines length reverse)],
 );
 
-# this integer represents the vertical thickness of the extrusion
-# expressed in layers
+# depth_layers is the vertical thickness of the extrusion expressed in layers
 has 'depth_layers' => (is => 'ro', default => sub {1});
-
 has 'flow_spacing' => (is => 'rw');
-
 has 'role'         => (is => 'rw', required => 1);
+
 use constant EXTR_ROLE_PERIMETER                    => 0;
 use constant EXTR_ROLE_SMALLPERIMETER               => 1;
 use constant EXTR_ROLE_EXTERNAL_PERIMETER           => 2;
@@ -36,16 +34,29 @@ use constant EXTR_ROLE_BRIDGE                       => 7;
 use constant EXTR_ROLE_SKIRT                        => 8;
 use constant EXTR_ROLE_SUPPORTMATERIAL              => 9;
 
-sub BUILD {
+use constant PACK_FMT => 'cfca*';
+
+# class or object method
+sub pack {
     my $self = shift;
-    bless $self->polyline, 'Slic3r::Polyline';
-    $self->polyline($self->polyline->serialize);
+    my %args = @_;
+    
+    if (ref $self) {
+        %args = map { $_ => $self->$_ } qw(depth_layers flow_spacing role polyline);
+    }
+    
+    my $o = \ pack PACK_FMT,
+        $args{depth_layers} || 1,
+        $args{flow_spacing} || -1,
+        $args{role}         // (die "Missing mandatory attribute 'role'"), #/
+        $args{polyline}->serialize;
+    
+    bless $o, 'Slic3r::ExtrusionPath::Packed';
+    return $o;
 }
 
-sub deserialize {
-    my $self = shift;
-    $self->polyline($self->polyline->deserialize);
-}
+# no-op, this allows to use both packed and non-packed objects in Collections
+sub unpack { $_[0] }
 
 sub shortest_path {
     my $self = shift;
@@ -152,7 +163,6 @@ sub detect_arcs {
     my $self = shift;
     my ($max_angle, $len_epsilon) = @_;
     
-    $self->deserialize;
     $max_angle = deg2rad($max_angle || 15);
     $len_epsilon ||= 10 / $Slic3r::scaling_factor;
     
@@ -263,6 +273,21 @@ sub detect_arcs {
     ) if @points > 1;
     
     return @paths;
+}
+
+package Slic3r::ExtrusionPath::Packed;
+sub unpack {
+    my $self = shift;
+    
+    my ($depth_layers, $flow_spacing, $role, $polyline_s)
+        = unpack Slic3r::ExtrusionPath::PACK_FMT, $$self;
+    
+    return Slic3r::ExtrusionPath->new(
+        depth_layers    => $depth_layers,
+        flow_spacing    => ($flow_spacing == -1) ? undef : $flow_spacing,
+        role            => $role,
+        polyline        => Slic3r::Polyline->deserialize($polyline_s),
+    );
 }
 
 1;

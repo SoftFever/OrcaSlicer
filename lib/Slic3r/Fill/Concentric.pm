@@ -53,7 +53,6 @@ sub fill_surface {
     );
     foreach my $loop (map Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_FILL), @loops) {
         # extrude all loops ccw
-        $loop->deserialize;
         $loop->polygon->make_counter_clockwise;
         
         # find the point of the loop that is closest to the current extruder position
@@ -62,7 +61,6 @@ sub fill_surface {
         
         # split the loop at the starting point and make a path
         my $path = $loop->split_at_index($index);
-        $path->deserialize;
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
         $path->clip_end(scale($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) * 0.15);

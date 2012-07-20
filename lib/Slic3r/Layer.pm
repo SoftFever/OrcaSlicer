@@ -351,9 +351,9 @@ sub make_perimeters {
         my @thin_paths = ();
         for (@{ $self->thin_walls }) {
             if ($_->isa('Slic3r::Polygon')) {
-                push @thin_paths, Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_PERIMETER);
+                push @thin_paths, Slic3r::ExtrusionLoop->pack(polygon => $_, role => EXTR_ROLE_PERIMETER);
             } else {
-                push @thin_paths, Slic3r::ExtrusionPath->new(polyline => $_, role => EXTR_ROLE_PERIMETER);
+                push @thin_paths, Slic3r::ExtrusionPath->pack(polyline => $_, role => EXTR_ROLE_PERIMETER);
             }
             $thin_paths[-1]->flow_spacing($self->perimeters_flow->spacing);
         }
@@ -367,7 +367,7 @@ sub add_perimeter {
     my ($polygon, $role) = @_;
     
     return unless $polygon->is_printable($self->perimeters_flow->width);
-    push @{ $self->perimeters }, Slic3r::ExtrusionLoop->new(
+    push @{ $self->perimeters }, Slic3r::ExtrusionLoop->pack(
         polygon         => $polygon,
         role            => (abs($polygon->length) <= $Slic3r::small_perimeter_length) ? EXTR_ROLE_SMALLPERIMETER : ($role // EXTR_ROLE_PERIMETER),  #/
         flow_spacing    => $self->perimeters_flow->spacing,
