@@ -33,11 +33,6 @@ sub pack {
     return $o;
 }
 
-sub shortest_path {
-    my $self = shift;
-    return $self;
-}
-
 sub split_at_index {
     my $self = shift;
     my ($index) = @_;

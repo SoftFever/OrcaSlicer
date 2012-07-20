@@ -58,11 +58,6 @@ sub pack {
 # no-op, this allows to use both packed and non-packed objects in Collections
 sub unpack { $_[0] }
 
-sub shortest_path {
-    my $self = shift;
-    return $self;
-}
-
 sub clip_end {
     my $self = shift;
     my ($distance) = @_;

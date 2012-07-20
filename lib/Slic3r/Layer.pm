@@ -349,13 +349,14 @@ sub make_perimeters {
     # add thin walls as perimeters
     {
         my @thin_paths = ();
+        my %properties = (
+            role            => EXTR_ROLE_PERIMETER,
+            flow_spacing    => $self->perimeters_flow->spacing,
+        );
         for (@{ $self->thin_walls }) {
-            if ($_->isa('Slic3r::Polygon')) {
-                push @thin_paths, Slic3r::ExtrusionLoop->pack(polygon => $_, role => EXTR_ROLE_PERIMETER);
-            } else {
-                push @thin_paths, Slic3r::ExtrusionPath->pack(polyline => $_, role => EXTR_ROLE_PERIMETER);
-            }
-            $thin_paths[-1]->flow_spacing($self->perimeters_flow->spacing);
+            push @thin_paths, $_->isa('Slic3r::Polygon')
+                ? Slic3r::ExtrusionLoop->pack(polygon => $_, %properties)
+                : Slic3r::ExtrusionPath->pack(polyline => $_, %properties);
         }
         my $collection = Slic3r::ExtrusionPath::Collection->new(paths => \@thin_paths);
         push @{ $self->perimeters }, $collection->shortest_path;
