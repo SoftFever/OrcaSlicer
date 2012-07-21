@@ -865,6 +865,10 @@ sub OnDropFiles {
     my $self = shift;
     my ($x, $y, $filenames) = @_;
     
+    # stop scalars leaking on older perl
+    # https://rt.perl.org/rt3/Public/Bug/Display.html?id=70602
+    @_ = ();
+    
     # only accept STL and AMF files
     return 0 if grep !/\.(?:stl|amf(?:\.xml)?)$/i, @$filenames;
     
