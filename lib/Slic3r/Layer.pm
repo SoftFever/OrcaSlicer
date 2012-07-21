@@ -379,6 +379,16 @@ sub prepare_fill_surfaces {
     my $self = shift;
     
     my @surfaces = @{$self->surfaces};
+    
+    # if no solid layers are requested, turn top/bottom surfaces to internal
+    if ($Slic3r::solid_layers == 0) {
+        $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
+    }
+    
+    # if hollow object is requested, remove internal surfaces
+    if ($Slic3r::fill_density == 0) {
+        @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
+    }
         
     # merge too small internal surfaces with their surrounding tops
     # (if they're too small, they can be treated as solid)
@@ -398,16 +408,6 @@ sub prepare_fill_surfaces {
         ]);
         my @top = map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_TOP), @$union;
         @surfaces = (grep($_->surface_type != S_TYPE_TOP, @surfaces), @top);
-    }
-    
-    # remove top/bottom surfaces
-    if ($Slic3r::solid_layers == 0) {
-        $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
-    }
-    
-    # remove internal surfaces
-    if ($Slic3r::fill_density == 0) {
-        @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
     }
     
     $self->fill_surfaces([@surfaces]);
