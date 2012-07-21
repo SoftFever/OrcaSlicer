@@ -23,7 +23,7 @@ use Slic3r::Geometry qw(scale);
     }
     my $polyline = Slic3r::Polyline->new($points);
     my $serialized = $polyline->serialize;
-    my $deserialized = $serialized->deserialize;
+    my $deserialized = Slic3r::Polyline->deserialize($serialized);
     is scalar(@$deserialized), scalar(@$points), 'number of deserialized points';
     is_deeply $deserialized, $points, 'deserialized points coordinates';
 }

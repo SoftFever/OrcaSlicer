@@ -59,8 +59,7 @@ use Slic3r::Geometry qw(epsilon scale X Y);
     
     isa_ok $collection1->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
     isa_ok $collection2->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
-
-    $_->deserialize for $collection1->paths->[0], $collection2->paths->[0];
+    
     my $expected_length = scale 7.06858347057701;
     ok abs($collection1->paths->[0]->length - $expected_length) < scale epsilon, 'cw oriented arc has correct length';
     ok abs($collection2->paths->[0]->length - $expected_length) < scale epsilon, 'ccw oriented arc has correct length';
