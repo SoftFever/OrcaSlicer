@@ -241,11 +241,6 @@ sub export_gcode {
     $status_cb->(35, "Preparing infill surfaces");
     $_->prepare_fill_surfaces for map @{$_->layers}, @{$self->objects};
     
-    # this will remove unprintable surfaces
-    # (those that are too tight for extrusion)
-    $status_cb->(40, "Cleaning up");
-    $_->remove_small_surfaces for map @{$_->layers}, @{$self->objects};
-    
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
     $status_cb->(45, "Detect bridges");

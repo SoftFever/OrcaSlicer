@@ -410,44 +410,42 @@ sub prepare_fill_surfaces {
         @surfaces = (grep($_->surface_type != S_TYPE_TOP, @surfaces), @top);
     }
     
+    # this will remove unprintable surfaces
+    # (those that are too tight for extrusion)
+    {
+        my $distance = scale $self->infill_flow->spacing / 2;
+        
+        foreach my $surface (@surfaces) {
+            # offset inwards
+            my @offsets = $surface->expolygon->offset_ex(-$distance);
+            
+            # offset the results outwards again and merge the results
+            @offsets = map $_->offset_ex($distance), @offsets;
+            @offsets = @{ union_ex([ map @$_, @offsets ], undef, 1) };
+            
+            push @{$self->fill_surfaces}, map Slic3r::Surface->new(
+                expolygon => $_,
+                surface_type => $surface->surface_type), @offsets;
+        }
+        
+        Slic3r::debugf "identified %d small surfaces at layer %d\n",
+            (@surfaces - @{$self->fill_surfaces}), $self->id 
+            if @{$self->fill_surfaces} != @surfaces;
+        
+        # the difference between @surfaces and $self->fill_surfaces
+        # is what's too small; we add it back as solid infill
+        if ($Slic3r::fill_density > 0) {
+            my $diff = diff_ex(
+                [ map $_->p, @surfaces ],
+                [ map $_->p, @{$self->fill_surfaces} ],
+            );
+            push @{$self->fill_surfaces}, map Slic3r::Surface->new(
+                expolygon => $_,
+                surface_type => S_TYPE_INTERNALSOLID), @$diff;
+        }
+    }
+    
     $self->fill_surfaces([@surfaces]);
-}
-
-sub remove_small_surfaces {
-    my $self = shift;
-    
-    my $distance = scale $self->infill_flow->spacing / 2;
-    
-    my @surfaces = @{$self->fill_surfaces};
-    @{$self->fill_surfaces} = ();
-    foreach my $surface (@surfaces) {
-        # offset inwards
-        my @offsets = $surface->expolygon->offset_ex(-$distance);
-        
-        # offset the results outwards again and merge the results
-        @offsets = map $_->offset_ex($distance), @offsets;
-        @offsets = @{ union_ex([ map @$_, @offsets ], undef, 1) };
-        
-        push @{$self->fill_surfaces}, map Slic3r::Surface->new(
-            expolygon => $_,
-            surface_type => $surface->surface_type), @offsets;
-    }
-    
-    Slic3r::debugf "identified %d small surfaces at layer %d\n",
-        (@surfaces - @{$self->fill_surfaces}), $self->id 
-        if @{$self->fill_surfaces} != @surfaces;
-    
-    # the difference between @surfaces and $self->fill_surfaces
-    # is what's too small; we add it back as solid infill
-    if ($Slic3r::fill_density > 0) {
-        my $diff = diff_ex(
-            [ map $_->p, @surfaces ],
-            [ map $_->p, @{$self->fill_surfaces} ],
-        );
-        push @{$self->fill_surfaces}, map Slic3r::Surface->new(
-            expolygon => $_,
-            surface_type => S_TYPE_INTERNALSOLID), @$diff;
-    }
 }
 
 # make bridges printable
