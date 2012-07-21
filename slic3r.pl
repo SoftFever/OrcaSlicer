@@ -73,7 +73,9 @@ die $@ if $@ && $opt{gui};
 Slic3r::Config->set($_ => $cli_options{$_}) for keys %cli_options;
 
 # validate configuration, convert options like --print-center to arrayrefs, init extruders etc.
-Slic3r::Config->validate;
+# ignore errors if we're launching the GUI
+eval { Slic3r::Config->validate };
+die $@ unless $gui;
 
 # save configuration
 Slic3r::Config->save($opt{save}) if $opt{save};
