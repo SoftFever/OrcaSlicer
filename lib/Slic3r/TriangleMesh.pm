@@ -131,8 +131,8 @@ sub check_manifoldness {
     my ($first_bad_edge_id) =
         grep { @{ $self->edges_facets->[$_] } != 2 } 0..$#{$self->edges_facets};
     if (defined $first_bad_edge_id) {
-        warn sprintf "Warning: The input file is not manifold near edge %f-%f. "
-            . "You might want to check the resulting G-code before printing.\n",
+        warn sprintf "Warning: The input file contains a hole near edge %f-%f (not manifold). "
+            . "You might want to repair it and retry, or to check the resulting G-code before printing anyway.\n",
             @{$self->edges->[$first_bad_edge_id]};
     }
 }
