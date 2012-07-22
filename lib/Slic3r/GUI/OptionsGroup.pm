@@ -9,7 +9,6 @@ use base 'Wx::StaticBoxSizer';
 
 # not very elegant, but this solution is temporary waiting for a better GUI
 our %reload_callbacks = (); # key => $cb
-our %fields = ();           # $key => [$control]
 
 sub new {
     my $class = shift;
@@ -46,7 +45,6 @@ sub new {
         }
         
         my $field;
-        $fields{$opt_key} = undef;
         if ($opt->{type} =~ /^(i|f|s|s@)$/) {
             my $style = 0;
             $style = wxTE_MULTILINE if $opt->{multiline};
@@ -113,7 +111,6 @@ sub new {
                 $x_field->SetValue($value->[0]);
                 $y_field->SetValue($value->[1]);
             });
-            $fields{$opt_key} = [$x_field, $y_field];
         } elsif ($opt->{type} eq 'select') {
             $field = Wx::ComboBox->new($parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
             EVT_COMBOBOX($parent, $field, $make_cb->(sub {
@@ -140,7 +137,6 @@ sub new {
         } else {
             $grid_sizer->Add($field, 0, $opt->{full_width} ? wxEXPAND : 0);
         }
-        $fields{$opt_key} ||= [$field];
     }
     
     $self->Add($grid_sizer, 0, wxEXPAND);
