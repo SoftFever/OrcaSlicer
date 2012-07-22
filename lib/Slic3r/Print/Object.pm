@@ -48,7 +48,7 @@ sub slice {
             my $lines = shift;
             foreach my $layer_id (keys %$lines) {
                 my $layer = $self->layer($layer_id);
-                $layer->add_line($_) for @{ $lines->{$layer_id} };
+                push @{$layer->lines}, @{$lines->{$layer_id}};
             }
         };
         Slic3r::parallelize(
@@ -84,7 +84,7 @@ sub slice {
     
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code below)
-    pop @{$self->layers} if !@{$self->layers->[-1]->surfaces} && !@{$self->layers->[-1]->lines};
+    pop @{$self->layers} if !@{$self->layers->[-1]->lines};
     
     foreach my $layer (@{ $self->layers }) {
         Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
@@ -291,19 +291,17 @@ sub detect_surfaces_type {
     
     # clip surfaces to the fill boundaries
     foreach my $layer (@{$self->layers}) {
+        my $fill_boundaries = [ map @$_, @{$layer->surfaces} ];
         @{$layer->surfaces} = ();
         foreach my $surface (@{$layer->slices}) {
             my $intersection = intersection_ex(
                 [ $surface->p ],
-                [ map @$_, @{$layer->fill_boundaries} ],
+                $fill_boundaries,
             );
             push @{$layer->surfaces}, map Slic3r::Surface->new
                 (expolygon => $_, surface_type => $surface->surface_type),
                 @$intersection;
         }
-        
-        # free memory
-        @{$layer->fill_boundaries} = ();
     }
 }
 
@@ -394,7 +392,7 @@ sub discover_horizontal_shells {
 }
 
 # combine fill surfaces across layers
-sub infill_every_layers {
+sub combine_infill {
     my $self = shift;
     return unless $Slic3r::infill_every_layers > 1 && $Slic3r::fill_density > 0;
     

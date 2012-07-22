@@ -252,11 +252,11 @@ sub export_gcode {
     $_->discover_horizontal_shells for @{$self->objects};
     
     # free memory
-    @{$_->surfaces} = () for map @{$_->layers}, @{$self->objects};
+    $_->surfaces(undef) for map @{$_->layers}, @{$self->objects};
     
     # combine fill surfaces to honor the "infill every N layers" option
     $status_cb->(70, "Combining infill");
-    $_->infill_every_layers for @{$self->objects};
+    $_->combine_infill for @{$self->objects};
     
     # this will generate extrusion paths for each layer
     $status_cb->(80, "Infilling layers");
@@ -284,13 +284,13 @@ sub export_gcode {
                 my $fills = shift;
                 foreach my $obj_idx (keys %$fills) {
                     foreach my $layer_id (keys %{$fills->{$obj_idx}}) {
-                        @{$self->objects->[$obj_idx]->layers->[$layer_id]->fills} = @{$fills->{$obj_idx}{$layer_id}};
+                        $self->objects->[$obj_idx]->layers->[$layer_id]->fills($fills->{$obj_idx}{$layer_id});
                     }
                 }
             },
             no_threads_cb => sub {
                 foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-                    @{$layer->fills} = $fill_maker->make_fill($layer);
+                    $layer->fills([ $fill_maker->make_fill($layer) ]);
                 }
             },
         );
@@ -303,7 +303,7 @@ sub export_gcode {
     }
     
     # free memory (note that support material needs fill_surfaces)
-    @{$_->fill_surfaces} = () for map @{$_->layers}, @{$self->objects};
+    $_->fill_surfaces(undef) for map @{$_->layers}, @{$self->objects};
     
     # make skirt
     $status_cb->(88, "Generating skirt");
