@@ -179,7 +179,7 @@ sub new {
 sub repaint {
     my ($self, $event) = @_;
     my $size = $self->GetClientSize;
-    my $gab = 5;
+    my $gap = 5;
 
     my $dc = Wx::PaintDC->new($self);
     $dc->SetBackgroundMode(wxTRANSPARENT);
@@ -201,7 +201,7 @@ sub repaint {
         $bullet = $self->{bullets}->{after} if $i > $self->{own_index};
 
         $dc->SetTextForeground(Wx::Colour->new(128, 128, 128)) if $i > $self->{own_index};
-        $dc->DrawLabel($_, $bullet, Wx::Rect->new(0, $i * ($label_h + $gab), $label_w, $label_h));
+        $dc->DrawLabel($_, $bullet, Wx::Rect->new(0, $i * ($label_h + $gap), $label_w, $label_h));
         $i++;
     }
 
