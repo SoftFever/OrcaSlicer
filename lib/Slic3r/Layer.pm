@@ -363,61 +363,12 @@ sub prepare_fill_surfaces {
         @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
     }
         
-    # merge too small internal surfaces with their surrounding tops
-    # (if they're too small, they can be treated as solid)
+    # turn too small internal regions into solid regions
     {
         my $min_area = ((7 * $self->infill_flow->spacing / $Slic3r::scaling_factor)**2) * PI;
-        my $small_internal = [
-            grep { $_->expolygon->contour->area <= $min_area }
-            grep { $_->surface_type == S_TYPE_INTERNAL }
-            @surfaces
-        ];
-        foreach my $s (@$small_internal) {
-            @surfaces = grep $_ ne $s, @surfaces;
-        }
-        my $union = union_ex([
-            (map $_->p, grep $_->surface_type == S_TYPE_TOP, @surfaces),
-            (map @$_, map $_->expolygon->safety_offset, @$small_internal),
-        ]);
-        my @top = map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_TOP), @$union;
-        @surfaces = (grep($_->surface_type != S_TYPE_TOP, @surfaces), @top);
-    }
-    
-    # this will remove unprintable surfaces
-    # (those that are too tight for extrusion)
-    {
-        my $distance = scale $self->infill_flow->spacing / 2;
-        my @fill_surfaces = ();
-        
-        foreach my $surface (@surfaces) {
-            # offset inwards
-            my @offsets = $surface->expolygon->offset_ex(-$distance);
-            
-            # offset the results outwards again and merge the results
-            @offsets = map $_->offset_ex($distance), @offsets;
-            @offsets = @{ union_ex([ map @$_, @offsets ], undef, 1) };
-            
-            push @fill_surfaces, map Slic3r::Surface->new(
-                expolygon => $_,
-                surface_type => $surface->surface_type), @offsets;
-        }
-        
-        Slic3r::debugf "identified %d small surfaces at layer %d\n",
-            (@surfaces - @fill_surfaces), $self->id 
-            if @fill_surfaces != @surfaces;
-        
-        # the difference between @surfaces and $self->fill_surfaces
-        # is what's too small; we add it back as solid infill
-        if ($Slic3r::fill_density > 0) {
-            my $diff = diff_ex(
-                [ map $_->p, @surfaces ],
-                [ map $_->p, @fill_surfaces ],
-            );
-            push @surfaces, map Slic3r::Surface->new(
-                expolygon => $_,
-                surface_type => S_TYPE_INTERNALSOLID
-            ), @$diff;
-        }
+        my @small = grep $_->surface_type == S_TYPE_INTERNAL && $_->expolygon->contour->area <= $min_area, @surfaces;
+        $_->surface_type(S_TYPE_INTERNALSOLID) for @small;
+        Slic3r::debugf "identified %d small surfaces at layer %d\n", scalar(@small), $self->id if @small > 0;
     }
     
     $self->fill_surfaces([@surfaces]);
