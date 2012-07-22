@@ -1,6 +1,8 @@
 package Slic3r::ExtrusionLoop;
 use Moo;
 
+use Slic3r::Geometry qw(same_point);
+
 # the underlying Slic3r::Polygon objects holds the geometry
 has 'polygon' => (
     is          => 'rw',
@@ -57,7 +59,7 @@ sub split_at {
     # find index of point
     my $i = -1;
     for (my $n = 0; $n <= $#{$self->polygon}; $n++) {
-        if ($point->id eq $self->polygon->[$n]->id) {
+        if (same_point($point, $self->polygon->[$n])) {
             $i = $n;
             last;
         }

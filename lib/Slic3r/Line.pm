@@ -17,16 +17,6 @@ sub new {
 sub a { $_[0][0] }
 sub b { $_[0][1] }
 
-sub id {
-    my $self = shift;
-    return $self->a->id . "-" . $self->b->id;
-}
-
-sub ordered_id {
-    my $self = shift;
-    return join('-', sort map $_->id, @$self);
-}
-
 sub coordinates {
     my $self = shift;
     return ($self->a->coordinates, $self->b->coordinates);

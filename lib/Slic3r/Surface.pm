@@ -73,18 +73,6 @@ sub offset {
     } $self->expolygon->offset_ex(@_);
 }
 
-sub add_hole {
-    my $self = shift;
-    my ($hole) = @_;
-    
-    push @$self, $hole;
-}
-
-sub id {
-    my $self = shift;
-    return $self->contour->id;
-}
-
 sub clipper_polygon {
     my $self = shift;
     

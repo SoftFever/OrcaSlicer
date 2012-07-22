@@ -45,11 +45,6 @@ sub is_serialized {
     return (reftype $self) eq 'SCALAR' ? 1 : 0;
 }
 
-sub id {
-    my $self = shift;
-    return join ' - ', sort map $_->id, @$self;
-}
-
 sub lines {
     my $self = shift;
     return polyline_lines($self);
