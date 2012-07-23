@@ -70,7 +70,7 @@ sub new {
         my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
             or return;
         $_->Hide for @{$self->{pages}};
-        $self->{sizer}->Remove(1);
+        $self->{sizer}->Detach(1);
         $page->Show;
         $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
         $self->{sizer}->Layout;
