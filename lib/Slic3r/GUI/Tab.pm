@@ -323,7 +323,7 @@ sub build {
     $self->add_options_page('Speed', 'time.png', optgroups => [
         {
             title => 'Speed for print moves',
-            options => [qw(perimeter_speed small_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed)],
+            options => [qw(perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed)],
         },
         {
             title => 'Speed for non-print moves',
