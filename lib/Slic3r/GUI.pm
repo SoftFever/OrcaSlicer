@@ -69,17 +69,17 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L");
-        $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E");
+        $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L", 'Load exported configuration file');
+        $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E", 'Export current configuration to file');
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U");
-        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U");
-        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U");
+        $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U", 'Slice file');
+        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as');
+        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice');
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G");
+        $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_EXIT, "&Quit");
+        $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
         EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config });
         EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->save_config });
         EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->do_slice;
@@ -94,9 +94,9 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…");
-        $helpMenu->Append(MI_WEBSITE, "Slic3r &Website");
-        $helpMenu->Append(wxID_ABOUT, "&About Slic3r");
+        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
+        $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
+        $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
         EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
