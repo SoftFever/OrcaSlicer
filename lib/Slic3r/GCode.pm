@@ -89,7 +89,7 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
-    $loop = $loop->unpack if $path->isa('Slic3r::ExtrusionLoop::Packed');
+    $loop = $loop->unpack if $loop->isa('Slic3r::ExtrusionLoop::Packed');
     $loop->polygon->make_counter_clockwise;
     
     # find the point of the loop that is closest to the current extruder position
