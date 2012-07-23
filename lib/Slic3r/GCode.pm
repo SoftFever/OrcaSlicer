@@ -79,7 +79,7 @@ sub change_layer {
 sub extrude {
     my $self = shift;
     
-    $_[0]->isa('Slic3r::ExtrusionLoop::Packed')
+    ($_[0]->isa('Slic3r::ExtrusionLoop') || $_[0]->isa('Slic3r::ExtrusionLoop::Packed'))
         ? $self->extrude_loop(@_)
         : $self->extrude_path(@_);
 }
@@ -89,7 +89,7 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
-    $loop = $loop->unpack;
+    $loop = $loop->unpack if $path->isa('Slic3r::ExtrusionLoop::Packed');
     $loop->polygon->make_counter_clockwise;
     
     # find the point of the loop that is closest to the current extruder position
