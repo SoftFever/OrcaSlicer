@@ -71,8 +71,8 @@ sub new {
             or return;
         $_->Hide for @{$self->{pages}};
         $self->{sizer}->Detach(1);
-        $page->Show;
         $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
+        $page->Show;
         $self->{sizer}->Layout;
         $self->Refresh;
     });
