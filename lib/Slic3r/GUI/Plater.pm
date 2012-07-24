@@ -188,6 +188,9 @@ sub new {
         $buttons->Add($self->{"btn_remove"}, 0, wxEXPAND | wxALL);
         $buttons->Add($self->{"btn_reset"}, 0, wxEXPAND | wxALL);
         $buttons->Add($self->{"btn_export_stl"}, 0, wxEXPAND | wxALL);
+        # force sane tab order
+        my @taborder = qw/btn_load btn_arrange btn_export_gcode btn_remove btn_reset btn_export_stl/;
+        $self->{$taborder[$_]}->MoveAfterInTabOrder($self->{$taborder[$_-1]}) for (1..$#taborder);
         
         my $list_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $list_sizer->Add($self->{list}, 1, wxEXPAND | wxALL, 0);
