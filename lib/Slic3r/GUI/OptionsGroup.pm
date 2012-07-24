@@ -212,7 +212,7 @@ sub _trigger_options {
             $opt = {
                 opt_key     => $full_key,
                 config      => 1,
-                (map { $_   => $config_opt->{$_} } qw(type label tooltip sidetext width height full_width min max labels values)),
+                (map { $_   => $config_opt->{$_} } qw(type label tooltip sidetext width height full_width min max labels values multiline)),
                 default     => $self->_get_config($opt_key, $index),
                 on_change   => sub { $self->_set_config($opt_key, $index, $_[0]) },
             };
