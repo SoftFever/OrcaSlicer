@@ -70,8 +70,6 @@ sub new {
         my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
             or return;
         $_->Hide for @{$self->{pages}};
-        $self->{sizer}->Detach(1);
-        $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
         $page->Show;
         $self->{sizer}->Layout;
         $self->Refresh;
@@ -181,6 +179,7 @@ sub add_options_page {
         $self->sync_presets;
     });
     $page->Hide;
+    $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
     $self->update_tree;
     return $page;
