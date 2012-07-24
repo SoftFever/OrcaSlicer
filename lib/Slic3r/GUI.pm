@@ -15,14 +15,20 @@ use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
-use constant MI_LOAD_CONF     => 1;
-use constant MI_EXPORT_CONF   => 2;
-use constant MI_QUICK_SLICE   => 3;
-use constant MI_REPEAT_QUICK  => 4;
-use constant MI_QUICK_SAVE_AS => 5;
-use constant MI_SLICE_SVG     => 6;
-use constant MI_CONF_WIZARD   => 7;
-use constant MI_WEBSITE       => 8;
+use constant MI_LOAD_CONF     =>  1;
+use constant MI_EXPORT_CONF   =>  2;
+use constant MI_QUICK_SLICE   =>  3;
+use constant MI_REPEAT_QUICK  =>  4;
+use constant MI_QUICK_SAVE_AS =>  5;
+use constant MI_SLICE_SVG     =>  6;
+
+use constant MI_TAB_PLATER    =>  7;
+use constant MI_TAB_PRINT     =>  8;
+use constant MI_TAB_FILAMENT  =>  9;
+use constant MI_TAB_PRINTER   => 10;
+
+use constant MI_CONF_WIZARD   => 11;
+use constant MI_WEBSITE       => 12;
 
 our $datadir;
 
@@ -91,6 +97,19 @@ sub OnInit {
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
     
+    # Window menu
+    my $windowMenu = Wx::Menu->new;
+    {
+        $windowMenu->Append(MI_TAB_PLATER, "Select &Plater Tab\tCtrl+1", 'Show the plater');
+        $windowMenu->Append(MI_TAB_PRINT, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings');
+        $windowMenu->Append(MI_TAB_FILAMENT, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings');
+        $windowMenu->Append(MI_TAB_PRINTER, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings');
+        EVT_MENU($frame, MI_TAB_PLATER, sub { $self->{skeinpanel}->select_tab(0) });
+        EVT_MENU($frame, MI_TAB_PRINT, sub { $self->{skeinpanel}->select_tab(1) });
+        EVT_MENU($frame, MI_TAB_FILAMENT, sub { $self->{skeinpanel}->select_tab(2) });
+        EVT_MENU($frame, MI_TAB_PRINTER, sub { $self->{skeinpanel}->select_tab(3) });
+    }
+    
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
@@ -108,6 +127,7 @@ sub OnInit {
     {
         my $menubar = Wx::MenuBar->new;
         $menubar->Append($fileMenu, "&File");
+        $menubar->Append($windowMenu, "&Window");
         $menubar->Append($helpMenu, "&Help");
         $frame->SetMenuBar($menubar);
     }

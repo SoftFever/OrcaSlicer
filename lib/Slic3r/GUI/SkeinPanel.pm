@@ -20,19 +20,19 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1);
     
-    my $tabpanel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
-    $tabpanel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($tabpanel), "Plater");
+    $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+    $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater");
     $self->{options_tabs} = {
-        print       => Slic3r::GUI::Tab::Print->new     ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{print}),
-        filament    => Slic3r::GUI::Tab::Filament->new  ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
-        printer     => Slic3r::GUI::Tab::Printer->new   ($tabpanel, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
+        print       => Slic3r::GUI::Tab::Print->new     ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{print}),
+        filament    => Slic3r::GUI::Tab::Filament->new  ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
+        printer     => Slic3r::GUI::Tab::Printer->new   ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
     };
-    $tabpanel->AddPage($self->{options_tabs}{print}, $self->{options_tabs}{print}->title);
-    $tabpanel->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
-    $tabpanel->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
+    $self->{tabpanel}->AddPage($self->{options_tabs}{print}, $self->{options_tabs}{print}->title);
+    $self->{tabpanel}->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
+    $self->{tabpanel}->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($tabpanel, 1, wxEXPAND);
+    $sizer->Add($self->{tabpanel}, 1, wxEXPAND);
     
     $sizer->SetSizeHints($self);
     $self->SetSizer($sizer);
@@ -220,6 +220,11 @@ sub check_unsaved_changes {
     }
     
     return 1;
+}
+
+sub select_tab {
+    my ($self, $tab) = @_;
+    $self->{tabpanel}->ChangeSelection($tab);
 }
 
 1;
