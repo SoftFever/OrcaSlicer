@@ -78,7 +78,6 @@ our $bed_temperature        = 0;
 our $first_layer_bed_temperature = $bed_temperature;
 
 # extruders
-our $extruders_count        = 1;
 our $extruders              = [];
 our $nozzle_diameter        = [0.5];
 

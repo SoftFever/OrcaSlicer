@@ -82,12 +82,7 @@ Slic3r::Config->save($opt{save}) if $opt{save};
 
 # apply command line options to GUI as well and start it
 if ($gui) {
-    for my $opt_key (keys %cli_options) {
-        no warnings 'once';
-        ( $Slic3r::GUI::OptionsGroup::reload_callbacks{$opt_key} || sub {} )->();
-        my $group = first { $opt_key ~~ @$_ } keys %Slic3r::Groups;
-        $gui->{skeinpanel}{options_tabs}{$group}->set_dirty(1) if $group;
-    }
+    $gui->{skeinpanel}->set_value($_, $cli_options{$_}) for keys %cli_options;
     $gui->MainLoop;
     exit;
 }

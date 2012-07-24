@@ -165,7 +165,7 @@ sub on_select_preset {
             : $self->{btn_delete_preset}->Enable;
     }
     $self->on_preset_loaded;
-    $_->() for @Slic3r::GUI::OptionsGroup::reload_callbacks{@{$Slic3r::Config::Groups{$self->{presets_group}}}};
+    $self->reload_values;
     $self->set_dirty(0);
     $Slic3r::Settings->{presets}{$self->{presets_group}} = $preset->{file} ? basename($preset->{file}) : '';
     Slic3r::Config->save_settings("$Slic3r::GUI::datadir/slic3r.ini");
@@ -191,6 +191,24 @@ sub add_options_page {
     push @{$self->{pages}}, $page;
     $self->update_tree;
     return $page;
+}
+
+sub set_value {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    
+    my $changed = 0;
+    foreach my $page (@{$self->{pages}}) {
+        $changed = 1 if $page->set_value($opt_key, $value);
+    }
+    return $changed;
+}
+
+sub reload_values {
+    my $self = shift;
+    
+    my $current = Slic3r::Config->current;
+    $self->set_value($_, $current->{$_}) for keys %$current;
 }
 
 sub update_tree {
@@ -449,6 +467,8 @@ sub title { 'Printer Settings' }
 sub build {
     my $self = shift;
     
+    $self->{extruders_count} = 1;
+    
     $self->add_options_page('General', 'printer_empty.png', optgroups => [
         {
             title => 'Size and coordinates',
@@ -460,7 +480,17 @@ sub build {
         },
         {
             title => 'Capabilities',
-            options => [qw(extruders_count)],
+            options => [
+                {
+                    opt_key => 'extruders_count',
+                    label   => 'Extruders',
+                    tooltip => 'Number of extruders of the printer.',
+                    type    => 'i',
+                    min     => 1,
+                    default => 1,
+                    on_change => sub { $self->{extruders_count} = $_[0] },
+                },
+            ],
         },
     ]);
     
@@ -493,7 +523,7 @@ sub extruder_options { qw(nozzle_diameter) }
 sub build_extruder_pages {
     my $self = shift;
     
-    foreach my $extruder_idx (0 .. $Slic3r::extruders_count-1) {
+    foreach my $extruder_idx (0 .. $self->{extruders_count}-1) {
         # set default values
         for my $opt_key ($self->extruder_options) {
             Slic3r::Config->get_raw($opt_key)->[$extruder_idx] //= Slic3r::Config->get_raw($opt_key)->[0]; #/
@@ -516,7 +546,7 @@ sub build_extruder_pages {
     # rebuild page list
     @{$self->{pages}} = (
         (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}}),
-        @{$self->{extruder_pages}}[ 0 .. $Slic3r::extruders_count-1 ],
+        @{$self->{extruder_pages}}[ 0 .. $self->{extruders_count}-1 ],
     );
 }
 
@@ -527,7 +557,7 @@ sub on_value_change {
     
     if ($opt_key eq 'extruders_count') {
         # remove unused pages from list
-        my @unused_pages = @{ $self->{extruder_pages} }[$Slic3r::extruders_count .. $#{$self->{extruder_pages}}];
+        my @unused_pages = @{ $self->{extruder_pages} }[$self->{extruders_count} .. $#{$self->{extruder_pages}}];
         for my $page (@unused_pages) {
             @{$self->{pages}} = grep $_ ne $page, @{$self->{pages}};
             $page->{disabled} = 1;
@@ -536,7 +566,7 @@ sub on_value_change {
         # delete values for unused extruders
         for my $opt_key ($self->extruder_options) {
             my $values = Slic3r::Config->get_raw($opt_key);
-            splice @$values, $Slic3r::extruders_count if $Slic3r::extruders_count <= $#$values;
+            splice @$values, $self->{extruders_count} if $self->{extruders_count} <= $#$values;
         }
         
         # add extra pages
@@ -553,11 +583,8 @@ sub on_preset_loaded {
     
     # update the extruders count field
     {
-        # set value in repository according to the number of nozzle diameters supplied
-        Slic3r::Config->set('extruders_count', scalar @{ Slic3r::Config->get_raw('nozzle_diameter') });
-        
-        # update the GUI field
-        $Slic3r::GUI::OptionsGroup::reload_callbacks{extruders_count}->();
+        # update the GUI field according to the number of nozzle diameters supplied
+        $self->set_value('extruders_count', scalar @{ Slic3r::Config->get_raw('nozzle_diameter') });
         
         # update extruder page list
         $self->on_value_change('extruders_count');
@@ -572,7 +599,7 @@ sub new {
     my $class = shift;
     my ($parent, $title, $iconID, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $self->{opt_keys}  = [];
+    $self->{optgroups}  = [];
     $self->{title}      = $title;
     $self->{iconID}     = $iconID;
     
@@ -592,8 +619,20 @@ sub append_optgroup {
     my $self = shift;
     my %params = @_;
     
-    my $optgroup = Slic3r::GUI::OptionsGroup->new($self, label_width => 200, %params);
-    $self->{vsizer}->Add($optgroup, 0, wxEXPAND | wxALL, 5);
+    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(parent => $self, label_width => 200, %params);
+    $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 5);
+    push @{$self->{optgroups}}, $optgroup;
+}
+
+sub set_value {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    
+    my $changed = 0;
+    foreach my $optgroup (@{$self->{optgroups}}) {
+        $changed = 1 if $optgroup->set_value($opt_key, $value);
+    }
+    return $changed;
 }
 
 package Slic3r::GUI::SavePresetWindow;

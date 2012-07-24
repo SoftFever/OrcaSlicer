@@ -1,46 +1,79 @@
 package Slic3r::GUI::OptionsGroup;
-use strict;
-use warnings;
+use Moo;
 
 use Wx qw(:combobox :font :misc :sizer :systemsettings :textctrl);
 use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT);
-use base 'Wx::StaticBoxSizer';
 
+=head1 NAME
 
-# not very elegant, but this solution is temporary waiting for a better GUI
-our %reload_callbacks = (); # key => $cb
+Slic3r::GUI::OptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containing one or more options
 
-sub new {
-    my $class = shift;
-    my ($parent, %p) = @_;
+=head1 SYNOPSIS
+
+    my $optgroup = Slic3r::GUI::OptionsGroup->new(
+        parent  => $self->parent,
+        title   => 'Layers',
+        options => [
+            {
+                opt_key     => 'layer_height',  # mandatory
+                type        => 'f',             # mandatory
+                label       => 'Layer height',
+                tooltip     => 'This setting controls the height (and thus the total number) of the slices/layers.',
+                sidetext    => 'mm',
+                width       => 200,
+                full_width  => 0,
+                height      => 50,
+                min         => 0,
+                max         => 100,
+                labels      => [],
+                values      => [],
+                default     => 0.4,             # mandatory
+                on_change   => sub { print "new value is $_[0]\n" },
+            },
+        ],
+        on_change   => sub { print "new value for $_[0] is $_[1]\n" },
+        no_labels   => 0,
+        label_width => 180,
+    );
+    $sizer->Add($optgroup->sizer);
+
+=cut
+
+has 'parent'        => (is => 'ro', required => 1);
+has 'title'         => (is => 'ro', required => 1);
+has 'options'       => (is => 'ro', required => 1, trigger => 1);
+has 'on_change'     => (is => 'ro', default => sub { sub {} });
+has 'no_labels'     => (is => 'ro', default => sub { 0 });
+has 'label_width'   => (is => 'ro', default => sub { 180 });
+
+has 'sizer'         => (is => 'rw');
+has '_triggers'     => (is => 'ro', default => sub { {} });
+has '_setters'      => (is => 'ro', default => sub { {} });
+
+sub _trigger_options {}
+
+sub BUILD {
+    my $self = shift;
     
-    my $box = Wx::StaticBox->new($parent, -1, $p{title});
-    my $self = $class->SUPER::new($box, wxVERTICAL);
+    {
+        my $box = Wx::StaticBox->new($self->parent, -1, $self->title);
+        $self->sizer(Wx::StaticBoxSizer->new($box, wxVERTICAL));
+    }
     
-    my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$p{options}}), 2, ($p{no_labels} ? 1 : 2), 0);
+    my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$self->options}), 2, ($self->no_labels ? 1 : 2), 0);
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    $grid_sizer->AddGrowableCol($p{no_labels} ? 0 : 1);
+    $grid_sizer->AddGrowableCol($self->no_labels ? 0 : 1);
     
     my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     
-    my $onChange = $p{on_change} || sub {};
-    my $make_cb = sub {
-        my $cb = shift;
-        return sub {
-            $cb->(@_) if !$parent->{disabled};
-        };
-    };
-    
-    foreach my $original_opt_key (@{$p{options}}) {
-        my $index;
-        my $opt_key = $original_opt_key;  # leave original one untouched
-        $opt_key =~ s/#(\d+)$// and $index = $1;
+    foreach my $opt (@{$self->options}) {
+        my $opt_key = $opt->{opt_key};
+        $self->_triggers->{$opt_key} = $opt->{on_change} || sub {};
         
-        my $opt = $Slic3r::Config::Options->{$opt_key};
         my $label;
-        if (!$p{no_labels}) {
-            $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, [$p{label_width} || 180, -1]);
-            $label->Wrap($p{label_width} || 180) ;  # needed to avoid Linux/GTK bug
+        if (!$self->no_labels) {
+            $label = Wx::StaticText->new($self->parent, -1, "$opt->{label}:", wxDefaultPosition, [$self->label_width, -1]);
+            $label->Wrap($self->label_width) ;  # needed to avoid Linux/GTK bug
             $grid_sizer->Add($label);
         }
         
@@ -50,78 +83,48 @@ sub new {
             $style = wxTE_MULTILINE if $opt->{multiline};
             my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             
-            # if it's an array type but no index was specified, use the serialized version
-            my ($get_m, $set_m) = $opt->{type} =~ /\@$/ && !defined $index
-                ? qw(serialize deserialize)
-                : qw(get_raw set);
-            
-            my $get = sub {
-                my $val = Slic3r::Config->$get_m($opt_key);
-                if (defined $index) {
-                    $val = $val->[$index]; #/
-                }
-                return $val;
-            };
             $field = $opt->{type} eq 'i'
-                ? Wx::SpinCtrl->new($parent, -1, $get->(), wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $get->())
-                : Wx::TextCtrl->new($parent, -1, $get->(), wxDefaultPosition, $size, $style);
-            $reload_callbacks{$opt_key} = $make_cb->(sub { $field->SetValue($get->()) });
+                ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $opt->{default})
+                : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
+            $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             
-            my $set = sub {
-                my $val = $field->GetValue;
-                if (defined $index) {
-                    Slic3r::Config->$get_m($opt_key)->[$index] = $val;
-                } else {
-                    Slic3r::Config->$set_m($opt_key, $val);
-                }
-                $onChange->($opt_key);
-            };
+            my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
             $opt->{type} eq 'i'
-                ? EVT_SPINCTRL($parent, $field, $set)
-                : EVT_TEXT($parent, $field, $set);
+                ? EVT_SPINCTRL  ($self->parent, $field, $on_change)
+                : EVT_TEXT      ($self->parent, $field, $on_change);
         } elsif ($opt->{type} eq 'bool') {
-            $field = Wx::CheckBox->new($parent, -1, "");
-            $field->SetValue(Slic3r::Config->get_raw($opt_key));
-            EVT_CHECKBOX($parent, $field, $make_cb->(sub { Slic3r::Config->set($opt_key, $field->GetValue); $onChange->($opt_key) }));
-            $reload_callbacks{$opt_key} = $make_cb->(sub { $field->SetValue(Slic3r::Config->get_raw($opt_key)) });
+            $field = Wx::CheckBox->new($self->parent, -1, "");
+            $field->SetValue($opt->{default});
+            EVT_CHECKBOX($self->parent, $field, sub { $self->_on_change($opt_key, $field->GetValue); });
+            $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
         } elsif ($opt->{type} eq 'point') {
             $field = Wx::BoxSizer->new(wxHORIZONTAL);
             my $field_size = Wx::Size->new(40, -1);
-            my $value = Slic3r::Config->get_raw($opt_key);
             my @items = (
-                Wx::StaticText->new($parent, -1, "x:"),
-                my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], wxDefaultPosition, $field_size),
-                Wx::StaticText->new($parent, -1, "  y:"),
-                my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], wxDefaultPosition, $field_size),
+                Wx::StaticText->new($self->parent, -1, "x:"),
+                    my $x_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[0], wxDefaultPosition, $field_size),
+                Wx::StaticText->new($self->parent, -1, "  y:"),
+                    my $y_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[1], wxDefaultPosition, $field_size),
             );
             $field->Add($_) for @items;
             if ($opt->{tooltip}) {
                 $_->SetToolTipString($opt->{tooltip}) for @items;
             }
-            my $set_value = sub {
-                my ($i, $value) = @_;
-                my $val = Slic3r::Config->get_raw($opt_key);
-                $val->[$i] = $value;
-                Slic3r::Config->set($opt_key, $val);
+            EVT_TEXT($self->parent, $_, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) })
+                for $x_field, $y_field;
+            $self->_setters->{$opt_key} = sub {
+                $x_field->SetValue($_[0][0]);
+                $y_field->SetValue($_[0][1]);
             };
-            EVT_TEXT($parent, $x_field, $make_cb->(sub { $set_value->(0, $x_field->GetValue); $onChange->($opt_key) }));
-            EVT_TEXT($parent, $y_field, $make_cb->(sub { $set_value->(1, $y_field->GetValue); $onChange->($opt_key) }));
-            $reload_callbacks{$opt_key} = $make_cb->(sub {
-                my $value = Slic3r::Config->get_raw($opt_key);
-                $x_field->SetValue($value->[0]);
-                $y_field->SetValue($value->[1]);
-            });
         } elsif ($opt->{type} eq 'select') {
-            $field = Wx::ComboBox->new($parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
-            EVT_COMBOBOX($parent, $field, $make_cb->(sub {
-                Slic3r::Config->set($opt_key, $opt->{values}[$field->GetSelection]);
-                $onChange->($opt_key);
-            }));
-            $reload_callbacks{$opt_key} = $make_cb->(sub {
-                my $value = Slic3r::Config->get_raw($opt_key);
-                $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
+            $field = Wx::ComboBox->new($self->parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
+            EVT_COMBOBOX($self->parent, $field, sub {
+                $self->_on_change($opt_key, $opt->{values}[$field->GetSelection]);
             });
-            $reload_callbacks{$opt_key}->();
+            $self->_setters->{$opt_key} = sub {
+                $field->SetSelection(grep $opt->{values}[$_] eq $_[0], 0..$#{$opt->{values}});
+            };
+            $self->_setters->{$opt_key}->($opt->{default});
         } else {
             die "Unsupported option type: " . $opt->{type};
         }
@@ -130,7 +133,7 @@ sub new {
         if ($opt->{sidetext}) {
             my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
             $sizer->Add($field);
-            my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, wxDefaultPosition, wxDefaultSize);
+            my $sidetext = Wx::StaticText->new($self->parent, -1, $opt->{sidetext}, wxDefaultPosition, wxDefaultSize);
             $sidetext->SetFont($sidetext_font);
             $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
             $grid_sizer->Add($sizer);
@@ -139,9 +142,142 @@ sub new {
         }
     }
     
-    $self->Add($grid_sizer, 0, wxEXPAND);
+    $self->sizer->Add($grid_sizer, 0, wxEXPAND);
+}
+
+sub _on_change {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
     
-    return $self;
+    return if $self->sizer->GetStaticBox->GetParent->{disabled};
+    $self->_triggers->{$opt_key}->($value);
+    $self->on_change->($opt_key, $value);
+}
+
+=head2 set_value
+
+This method accepts an option key and a value. If this option group contains the supplied
+option key, its field will be updated with the new value and the method will return a true
+value, otherwise it will return false.
+
+=cut
+
+sub set_value {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    
+    if ($self->_setters->{$opt_key}) {
+        $self->_setters->{$opt_key}->($value);
+        $self->_on_change($opt_key, $value);
+        return 1;
+    }
+    
+    return 0;
+}
+
+package Slic3r::GUI::ConfigOptionsGroup;
+use Moo;
+
+extends 'Slic3r::GUI::OptionsGroup';
+
+=head1 NAME
+
+Slic3r::GUI::ConfigOptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containing one or more config options
+
+=head1 SYNOPSIS
+
+    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+        parent      => $self->parent,
+        title       => 'Layers',
+        options     => ['layer_height'],
+        on_change   => sub { print "new value for $_[0] is $_[1]\n" },
+        no_labels   => 0,
+        label_width => 180,
+    );
+    $sizer->Add($optgroup->sizer);
+
+=cut
+
+use List::Util qw(first);
+
+sub _trigger_options {
+    my $self = shift;
+    
+    @{$self->options} = map {
+        my $opt = $_;
+        if (ref $opt ne 'HASH') {
+            my $full_key = $opt;
+            my ($opt_key, $index) = $self->_split_key($full_key);
+            my $config_opt = $Slic3r::Config::Options->{$opt_key};
+            $opt = {
+                opt_key     => $full_key,
+                config      => 1,
+                (map { $_   => $config_opt->{$_} } qw(type label tooltip sidetext width height full_width min max labels values)),
+                default     => $self->_get_config($opt_key, $index),
+                on_change   => sub { $self->_set_config($opt_key, $index, $_[0]) },
+            };
+        }
+        $opt;
+    } @{$self->options};
+}
+
+sub set_value {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    
+    if (first { $_->{opt_key} eq $opt_key && !$_->{config} } @{$self->options}) {
+        return $self->SUPER::set_value($opt_key, $value);
+    }
+    
+    my $changed = 0;
+    foreach my $full_key (keys %{$self->_setters}) {
+        my ($key, $index) = $self->_split_key($full_key);
+        
+        if ($key eq $opt_key) {
+            $self->SUPER::set_value($full_key, $self->_get_config($key, $index, $value));
+            $changed = 1;
+        }
+    }
+    return $changed;
+}
+
+sub _split_key {
+    my $self = shift;
+    my ($opt_key) = @_;
+    
+    my $index;
+    $opt_key =~ s/#(\d+)$// and $index = $1;
+    return ($opt_key, $index);
+}
+
+sub _get_config {
+    my $self = shift;
+    my ($opt_key, $index, $value) = @_;
+    
+    my ($get_m, $set_m) = $self->_config_methods($opt_key, $index);
+    $value ||= Slic3r::Config->$get_m($opt_key);
+    $value = $value->[$index] if defined $index;
+    return $value;
+}
+
+sub _set_config {
+    my $self = shift;
+    my ($opt_key, $index, $value) = @_;
+    
+    my ($get_m, $set_m) = $self->_config_methods($opt_key, $index);
+    defined $index
+        ? Slic3r::Config->$get_m($opt_key)->[$index] = $value
+        : Slic3r::Config->$set_m($opt_key, $value);
+}
+
+sub _config_methods {
+    my $self = shift;
+    my ($opt_key, $index) = @_;
+    
+    # if it's an array type but no index was specified, use the serialized version
+    return $Slic3r::Config::Options->{$opt_key}{type} =~ /\@$/ && !defined $index
+        ? qw(serialize deserialize)
+        : qw(get_raw set);
 }
 
 1;

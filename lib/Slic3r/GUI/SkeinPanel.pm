@@ -202,10 +202,20 @@ sub config_wizard {
     my $self = shift;
 
     return unless $self->check_unsaved_changes;
-    if (Slic3r::GUI::ConfigWizard->new($self)->run) {
-        $_->() for values %Slic3r::GUI::OptionsGroup::reload_callbacks;
-        $_->set_dirty(1) for values %{$self->{options_tabs}};
+    if (my %settings = Slic3r::GUI::ConfigWizard->new($self)->run) {
+        $self->set_value($_, $settings{$_}) for keys %settings;
     }
+}
+
+sub set_value {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    
+    my $changed = 0;
+    foreach my $tab (values %{$self->{options_tabs}}) {
+        $changed = 1 if $tab->set_value($opt_key, $value);
+    }
+    return $changed;
 }
 
 sub check_unsaved_changes {
