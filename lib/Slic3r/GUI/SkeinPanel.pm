@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use Slic3r::Geometry qw(X Y);
-use Wx qw(:dialog :filedialog :font :icon :id :misc :notebook :sizer);
+use Wx qw(:dialog :filedialog :font :icon :id :misc :notebook :panel :sizer);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
@@ -18,9 +18,9 @@ our $last_config;
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1);
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     
-    $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+    $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater");
     $self->{options_tabs} = {
         print       => Slic3r::GUI::Tab::Print->new     ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{print}),
