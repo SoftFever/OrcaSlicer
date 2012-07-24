@@ -5,14 +5,14 @@ use utf8;
 
 use File::Basename qw(basename);
 use List::Util qw(first);
-use Wx qw(:bookctrl :dialog :icon :id :misc :sizer :treectrl :window);
-use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_TREE_SEL_CHANGED);
+use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window);
+use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN);
 use base 'Wx::Panel';
 
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT);
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     
     $self->{sync_presets_with} = $params{sync_presets_with};
     EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
@@ -58,7 +58,7 @@ sub new {
     }
     
     # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN);
+    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
     $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
     $self->{treectrl}->AssignImageList($self->{icons});
@@ -73,6 +73,16 @@ sub new {
         $page->Show;
         $self->{sizer}->Layout;
         $self->Refresh;
+    });
+    EVT_TREE_KEY_DOWN($self->{treectrl}, $self->{treectrl}, sub {
+        my ($treectrl, $event) = @_;
+        # TODO: Once https://rt.cpan.org/Public/Bug/Display.html?id=78550 is fixed,
+        # add proper checks for Shift+Tab etc.
+        if ($event->GetKeyCode == WXK_TAB) {
+            $treectrl->Navigate(&Wx::wxNavigateForward);
+        } else {
+            $event->Skip;
+        }
     });
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
@@ -557,13 +567,13 @@ sub on_preset_loaded {
 }
 
 package Slic3r::GUI::Tab::Page;
-use Wx qw(:sizer);
+use Wx qw(:misc :panel :sizer);
 use base 'Wx::ScrolledWindow';
 
 sub new {
     my $class = shift;
     my ($parent, $title, $iconID, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1);
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{opt_keys}  = [];
     $self->{title}      = $title;
     $self->{iconID}     = $iconID;
