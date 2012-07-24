@@ -783,6 +783,7 @@ sub mouse_event {
         $parent->Refresh;
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
+        $self->SetCursor(wxSTANDARD_CURSOR);
     } elsif ($event->Dragging) {
         return if !$self->{drag_start_pos}; # concurrency problems
         for my $obj ($self->{drag_object}) {
