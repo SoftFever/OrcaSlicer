@@ -6,7 +6,7 @@ use utf8;
 use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window);
-use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN);
+use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
 sub new {
@@ -74,12 +74,10 @@ sub new {
         $self->{sizer}->Layout;
         $self->Refresh;
     });
-    EVT_TREE_KEY_DOWN($self->{treectrl}, $self->{treectrl}, sub {
+    EVT_KEY_DOWN($self->{treectrl}, sub {
         my ($treectrl, $event) = @_;
-        # TODO: Once https://rt.cpan.org/Public/Bug/Display.html?id=78550 is fixed,
-        # add proper checks for Shift+Tab etc.
         if ($event->GetKeyCode == WXK_TAB) {
-            $treectrl->Navigate(&Wx::wxNavigateForward);
+            $treectrl->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
         } else {
             $event->Skip;
         }
