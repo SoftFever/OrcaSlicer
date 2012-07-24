@@ -44,21 +44,6 @@ sub new {
     $self->{clearance_pen} = Wx::Pen->new(Wx::Colour->new(0,0,200), 1, wxSOLID);
     $self->{skirt_pen} = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, wxSOLID);
     
-    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [-1, 180], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
-    $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 300);
-    $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 50);
-    $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
-    EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
-    EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
-    EVT_KEY_DOWN($self->{list}, sub {
-        my ($list, $event) = @_;
-        if ($event->GetKeyCode == WXK_TAB) {
-            $list->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
-        } else {
-            $event->Skip;
-        }
-    });
-
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
@@ -82,6 +67,21 @@ sub new {
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
     }
+
+    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [-1, 180], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
+    $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 300);
+    $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 50);
+    $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
+    EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
+    EVT_KEY_DOWN($self->{list}, sub {
+        my ($list, $event) = @_;
+        if ($event->GetKeyCode == WXK_TAB) {
+            $list->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
+        } else {
+            $event->Skip;
+        }
+    });
     
     # general buttons
     $self->{btn_load} = Wx::Button->new($self, -1, "Add…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
