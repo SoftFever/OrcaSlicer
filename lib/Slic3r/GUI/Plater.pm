@@ -8,7 +8,7 @@ use Math::ConvexHull qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
-use Wx qw(:bitmap :brush :button :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
+use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL);
 use base 'Wx::Panel';
 
@@ -790,6 +790,15 @@ sub mouse_event {
             $copy->[$_] = $parent->to_scaled($pos->[$_] - $self->{drag_start_pos}[$_] - $parent->{shift}[$_]) for X,Y;
             $parent->Refresh;
         }
+    } elsif ($event->Moving) {
+        my $cursor = wxSTANDARD_CURSOR;
+        for my $preview (@{$parent->{object_previews}}) {
+            if ($preview->[2]->encloses_point($pos)) {
+                $cursor = Wx::Cursor->new(wxCURSOR_HAND);
+                last;
+            }
+        }
+        $self->SetCursor($cursor);
     }
 }
 
