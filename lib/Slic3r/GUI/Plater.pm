@@ -38,6 +38,7 @@ sub new {
     
     $self->{objects_brush} = Wx::Brush->new(Wx::Colour->new(210,210,210), wxSOLID);
     $self->{selected_brush} = Wx::Brush->new(Wx::Colour->new(255,128,128), wxSOLID);
+    $self->{dragged_brush} = Wx::Brush->new(Wx::Colour->new(128,128,255), wxSOLID);
     $self->{transparent_brush} = Wx::Brush->new(Wx::Colour->new(0,0,0), wxTRANSPARENT);
     $self->{grid_pen} = Wx::Pen->new(Wx::Colour->new(230,230,230), 1, wxSOLID);
     $self->{print_center_pen} = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, wxSOLID);
@@ -727,7 +728,10 @@ sub repaint {
             push @{$parent->{object_previews}}, [ $obj_idx, $copy_idx, $parent->{thumbnails}[$obj_idx]->clone ];
             $parent->{object_previews}->[-1][2]->translate(map $parent->to_pixel($copy->[$_]) + $parent->{shift}[$_], (X,Y));
             
-            if (grep { $_->[0] == $obj_idx } @{$parent->{selected_objects}}) {
+            my $drag_object = $self->{drag_object};
+            if (defined $drag_object && $obj_idx == $drag_object->[0] && $copy_idx == $drag_object->[1]) {
+                $dc->SetBrush($parent->{dragged_brush});
+            } elsif (grep { $_->[0] == $obj_idx } @{$parent->{selected_objects}}) {
                 $dc->SetBrush($parent->{selected_brush});
             } else {
                 $dc->SetBrush($parent->{objects_brush});
