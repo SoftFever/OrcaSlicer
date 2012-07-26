@@ -204,6 +204,7 @@ sub new {
         $hsizer->Add($vertical_sizer, 1, wxEXPAND | wxALL, 10);
         
         my $presets = Wx::BoxSizer->new(wxHORIZONTAL);
+        $presets->AddStretchSpacer(1);
         my %group_labels = (
             print       => 'Print settings',
             filament    => 'Filament',
@@ -216,10 +217,11 @@ sub new {
             $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
             $presets->Add($self->{preset_choosers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
         }
+        $presets->AddStretchSpacer(1);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 10);
-        $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
+        $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
         
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
