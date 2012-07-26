@@ -193,13 +193,10 @@ sub new {
         my @taborder = qw/btn_load btn_arrange btn_export_gcode btn_remove btn_reset btn_export_stl/;
         $self->{$taborder[$_]}->MoveAfterInTabOrder($self->{$taborder[$_-1]}) for (1..$#taborder);
         
-        my $list_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $list_sizer->Add($self->{list}, 1, wxEXPAND | wxALL, 0);
-        
         my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $vertical_sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
         $vertical_sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
-        $vertical_sizer->Add($list_sizer, 0, wxEXPAND | wxBOTTOM, 10);
+        $vertical_sizer->Add($self->{list}, 1, wxEXPAND | wxBOTTOM, 10);
         $vertical_sizer->Add($buttons, 0, wxEXPAND);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
