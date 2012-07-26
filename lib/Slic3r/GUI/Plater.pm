@@ -220,7 +220,7 @@ sub new {
         $presets->AddStretchSpacer(1);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 10);
+        $sizer->Add($hsizer, 1, wxEXPAND | wxBOTTOM, 10);
         $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
         
         $sizer->SetSizeHints($self);
