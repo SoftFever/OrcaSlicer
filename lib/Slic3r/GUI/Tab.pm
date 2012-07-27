@@ -118,6 +118,7 @@ sub new {
             unlink $self->{presets}[$i]{file};
         }
         splice @{$self->{presets}}, $i, 1;
+        $self->set_dirty(0);
         $self->{presets_choice}->Delete($i);
         $self->{presets_choice}->SetSelection(0);
         $self->on_select_preset;
