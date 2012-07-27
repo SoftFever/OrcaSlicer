@@ -858,7 +858,7 @@ sub get_value {
     
     no strict 'refs';
     my $value = $self->get($opt_key);
-    $value = $self->get($Options->{$opt_key}{ratio_over}) * $1/100
+    $value = $self->get_value($Options->{$opt_key}{ratio_over}) * $1/100
         if $Options->{$opt_key}{ratio_over} && $value =~ /^(\d+(?:\.\d+)?)%$/;
     return $value;
 }
