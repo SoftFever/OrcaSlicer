@@ -943,7 +943,7 @@ sub validate {
     die "Invalid value for --threads\n"
         if $self->threads < 1;
     die "Your perl wasn't built with multithread support\n"
-        if $self->threads > 1 && !$self->have_threads;
+        if $self->threads > 1 && !$Slic3r::have_threads;
 
     # --layer-height
     die "Invalid value for --layer-height\n"
