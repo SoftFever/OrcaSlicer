@@ -372,7 +372,7 @@ sub apply {
     $self->SUPER::apply;
 
     # set print_center to centre of bed_size
-    my $bed_size = Slic3r::Config->get_raw('bed_size');
+    my $bed_size = $Slic3r::Config->bed_size;
     Slic3r::Config->set('print_center', [$bed_size->[0]/2, $bed_size->[1]/2]);
 }
 
@@ -395,7 +395,7 @@ sub apply {
     $self->SUPER::apply;
 
     # set first_layer_height + layer_height based on nozzle_diameter
-    my $nozzle = Slic3r::Config->get_raw('nozzle_diameter');
+    my $nozzle = $Slic3r::Config->nozzle_diameter;
     Slic3r::Config->set('first_layer_height', $nozzle->[0]);
     Slic3r::Config->set('layer_height', $nozzle->[0] - 0.1);
 }
@@ -435,7 +435,7 @@ sub apply {
     $self->SUPER::apply;
 
     # set first_layer_temperature to temperature + 5
-    my $temperature = Slic3r::Config->get_raw('temperature');
+    my $temperature = $Slic3r::Config->temperature;
     Slic3r::Config->set('first_layer_temperature', [$temperature->[0] + 5]);
 }
 
@@ -459,7 +459,7 @@ sub apply {
     $self->SUPER::apply;
 
     # set first_layer_bed_temperature to temperature + 5
-    my $temperature = Slic3r::Config->get_raw('bed_temperature');
+    my $temperature = $Slic3r::Config->bed_temperature;
     Slic3r::Config->set('first_layer_bed_temperature', $temperature + 5);
 }
 

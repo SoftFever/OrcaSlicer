@@ -31,6 +31,7 @@ use constant MI_CONF_WIZARD   => 11;
 use constant MI_WEBSITE       => 12;
 
 our $datadir;
+our $Settings;
 
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
@@ -57,7 +58,7 @@ sub OnInit {
     # load settings
     if (-f "$datadir/slic3r.ini") {
         my $ini = eval { Slic3r::Config->read_ini("$datadir/slic3r.ini") };
-        $Slic3r::Settings = $ini if $ini;
+        $Settings = $ini if $ini;
     }
     
     # application frame
@@ -86,7 +87,7 @@ sub OnInit {
         $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
-        EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config });
+        EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config_file });
         EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->save_config });
         EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->do_slice;
                                                $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
@@ -203,6 +204,12 @@ sub notify {
     $frame->RequestUserAttention unless ($frame->IsActive);
 
     $self->{notifier}->notify($message);
+}
+
+sub save_settings {
+    my $self = shift;
+    
+    Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
 }
 
 package Slic3r::GUI::ProgressStatusBar;

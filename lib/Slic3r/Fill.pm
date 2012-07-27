@@ -39,7 +39,7 @@ sub BUILD {
     my $max_print_dimension = ($print_size->[X] > $print_size->[Y] ? $print_size->[X] : $print_size->[Y]) * sqrt(2);
     $self->max_print_dimension($max_print_dimension);
     
-    $self->filler($_) for ('rectilinear', $Slic3r::fill_pattern, $Slic3r::solid_fill_pattern);
+    $self->filler($_) for ('rectilinear', $Slic3r::Config->fill_pattern, $Slic3r::Config->solid_fill_pattern);
 }
 
 sub filler {
@@ -131,8 +131,8 @@ sub make_fill {
     my @fills = ();
     my @fills_ordering_points =  ();
     SURFACE: foreach my $surface (@surfaces) {
-        my $filler          = $Slic3r::fill_pattern;
-        my $density         = $Slic3r::fill_density;
+        my $filler          = $Slic3r::Config->fill_pattern;
+        my $density         = $Slic3r::Config->fill_density;
         my $flow_spacing    = $layer->infill_flow->spacing;
         my $is_bridge       = $layer->id > 0 && $surface->surface_type == S_TYPE_BOTTOM;
         my $is_solid        = (grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID) ? 1 : 0;
@@ -140,10 +140,10 @@ sub make_fill {
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type != S_TYPE_INTERNAL) {
             $density = 1;
-            $filler = $Slic3r::solid_fill_pattern;
+            $filler = $Slic3r::Config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
-                $flow_spacing = sqrt($Slic3r::bridge_flow_ratio * ($layer->infill_flow->nozzle_diameter**2));
+                $flow_spacing = sqrt($Slic3r::Config->bridge_flow_ratio * ($layer->infill_flow->nozzle_diameter**2));
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }
@@ -181,7 +181,7 @@ sub make_fill {
     {
         my %args = (
             role            => EXTR_ROLE_SOLIDFILL,
-            flow_spacing    => $layer->perimeters_flow->spacing,
+            flow_spacing    => $layer->perimeter_flow->spacing,
         );
         push @fills, map {
             $_->isa('Slic3r::Polygon')

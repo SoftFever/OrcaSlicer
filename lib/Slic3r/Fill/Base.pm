@@ -5,7 +5,7 @@ use Moo;
 has 'print'               => (is => 'rw');
 has 'layer'               => (is => 'rw');
 has 'max_print_dimension' => (is => 'rw');
-has 'angle'               => (is => 'rw', default => sub { $Slic3r::fill_angle });
+has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
 
 use constant PI => 4 * atan2(1, 1);
 

@@ -4,7 +4,7 @@ use Moo;
 use Slic3r::Geometry qw(PI);
 
 has 'nozzle_diameter'   => (is => 'ro', required => 1);
-has 'layer_height'      => (is => 'ro', default => sub { $Slic3r::layer_height });
+has 'layer_height'      => (is => 'ro', default => sub { $Slic3r::Config->layer_height });
 
 has 'width'             => (is => 'rwp', builder => 1);
 has 'spacing'           => (is => 'lazy');
@@ -52,7 +52,7 @@ sub _build_spacing {
         # rectangle with shrunk semicircles at the ends
         $min_flow_spacing = $self->nozzle_diameter * (1 - PI/4) + $self->width * PI/4;
     }
-    return $self->width - $Slic3r::overlap_factor * ($self->width - $min_flow_spacing);
+    return $self->width - &Slic3r::OVERLAP_FACTOR * ($self->width - $min_flow_spacing);
 }
 
 1;

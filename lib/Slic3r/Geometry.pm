@@ -39,8 +39,8 @@ our $parallel_degrees_limit = abs(deg2rad(3));
 
 sub epsilon () { 1E-4 }
 
-sub scale   ($) { $_[0] / $Slic3r::scaling_factor }
-sub unscale ($) { $_[0] * $Slic3r::scaling_factor }
+sub scale   ($) { $_[0] / &Slic3r::SCALING_FACTOR }
+sub unscale ($) { $_[0] * &Slic3r::SCALING_FACTOR }
 
 sub slope {
     my ($line) = @_;
@@ -893,8 +893,8 @@ sub arrange {
     
     # margin needed for the skirt
     my $skirt_margin;		
-    if ($Slic3r::skirts > 0) {
-        $skirt_margin = ($Slic3r::flow->spacing * $Slic3r::skirts + $Slic3r::skirt_distance) * 2;
+    if ($Slic3r::Config->skirts > 0) {
+        $skirt_margin = ($Slic3r::flow->spacing * $Slic3r::Config->skirts + $Slic3r::Config->skirt_distance) * 2;
     } else {
         $skirt_margin = 0;		
     }

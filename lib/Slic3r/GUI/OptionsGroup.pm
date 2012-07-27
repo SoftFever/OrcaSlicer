@@ -1,6 +1,7 @@
 package Slic3r::GUI::OptionsGroup;
 use Moo;
 
+use List::Util qw(first);
 use Wx qw(:combobox :font :misc :sizer :systemsettings :textctrl);
 use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT);
 
@@ -28,6 +29,7 @@ Slic3r::GUI::OptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containing one
                 labels      => [],
                 values      => [],
                 default     => 0.4,             # mandatory
+                readonly    => 0,
                 on_change   => sub { print "new value is $_[0]\n" },
             },
         ],
@@ -86,6 +88,7 @@ sub BUILD {
             $field = $opt->{type} eq 'i'
                 ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $opt->{default})
                 : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
+            $field->Disable if $opt->{readonly};
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             
             my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
@@ -145,6 +148,13 @@ sub BUILD {
     $self->sizer->Add($grid_sizer, 0, wxEXPAND);
 }
 
+sub _option {
+    my $self = shift;
+    my ($opt_key) = @_;
+    
+    return first { $_->{opt_key} eq $opt_key } @{$self->options};
+}
+
 sub _on_change {
     my $self = shift;
     my ($opt_key, $value) = @_;
@@ -189,6 +199,7 @@ Slic3r::GUI::ConfigOptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containi
     my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
         parent      => $self->parent,
         title       => 'Layers',
+        config      => $config,
         options     => ['layer_height'],
         on_change   => sub { print "new value for $_[0] is $_[1]\n" },
         no_labels   => 0,
@@ -198,7 +209,7 @@ Slic3r::GUI::ConfigOptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containi
 
 =cut
 
-use List::Util qw(first);
+has 'config' => (is => 'ro', required => 1);
 
 sub _trigger_options {
     my $self = shift;
@@ -212,7 +223,7 @@ sub _trigger_options {
             $opt = {
                 opt_key     => $full_key,
                 config      => 1,
-                (map { $_   => $config_opt->{$_} } qw(type label tooltip sidetext width height full_width min max labels values multiline)),
+                (map { $_   => $config_opt->{$_} } qw(type label tooltip sidetext width height full_width min max labels values multiline readonly)),
                 default     => $self->_get_config($opt_key, $index),
                 on_change   => sub { $self->_set_config($opt_key, $index, $_[0]) },
             };
@@ -225,7 +236,10 @@ sub set_value {
     my $self = shift;
     my ($opt_key, $value) = @_;
     
-    if (first { $_->{opt_key} eq $opt_key && !$_->{config} } @{$self->options}) {
+    my $opt = $self->_option($opt_key) or return 0; 
+    
+    # if user is setting a non-config option, forward the call to the parent
+    if (!$opt->{config}) {
         return $self->SUPER::set_value($opt_key, $value);
     }
     
@@ -234,7 +248,8 @@ sub set_value {
         my ($key, $index) = $self->_split_key($full_key);
         
         if ($key eq $opt_key) {
-            $self->SUPER::set_value($full_key, $self->_get_config($key, $index, $value));
+            $self->config->set($key, $value);
+            $self->SUPER::set_value($full_key, $self->_get_config($key, $index));
             $changed = 1;
         }
     }
@@ -252,11 +267,14 @@ sub _split_key {
 
 sub _get_config {
     my $self = shift;
-    my ($opt_key, $index, $value) = @_;
+    my ($opt_key, $index) = @_;
     
-    my ($get_m, $set_m) = $self->_config_methods($opt_key, $index);
-    $value ||= Slic3r::Config->$get_m($opt_key);
-    $value = $value->[$index] if defined $index;
+    my ($get_m, $serialized) = $self->_config_methods($opt_key, $index);
+    my $value = $self->config->$get_m($opt_key);
+    if (defined $index) {
+        $value->[$index] //= $value->[0]; #/
+        $value = $value->[$index];
+    }
     return $value;
 }
 
@@ -264,10 +282,10 @@ sub _set_config {
     my $self = shift;
     my ($opt_key, $index, $value) = @_;
     
-    my ($get_m, $set_m) = $self->_config_methods($opt_key, $index);
+    my ($get_m, $serialized) = $self->_config_methods($opt_key, $index);
     defined $index
-        ? Slic3r::Config->$get_m($opt_key)->[$index] = $value
-        : Slic3r::Config->$set_m($opt_key, $value);
+        ? $self->config->$get_m($opt_key)->[$index] = $value
+        : $self->config->set($opt_key, $value, $serialized);
 }
 
 sub _config_methods {
@@ -275,9 +293,9 @@ sub _config_methods {
     my ($opt_key, $index) = @_;
     
     # if it's an array type but no index was specified, use the serialized version
-    return $Slic3r::Config::Options->{$opt_key}{type} =~ /\@$/ && !defined $index
-        ? qw(serialize deserialize)
-        : qw(get_raw set);
+    return ($Slic3r::Config::Options->{$opt_key}{type} =~ /\@$/ && !defined $index)
+        ? qw(serialize 1)
+        : qw(get 0);
 }
 
 1;

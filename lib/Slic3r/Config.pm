@@ -8,12 +8,6 @@ use constant PI => 4 * atan2(1, 1);
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool);
 
-our %Groups = (
-    print       => [qw(layer_height first_layer_height perimeters randomize_start extra_perimeters solid_layers fill_density fill_angle fill_pattern solid_fill_pattern infill_every_layers perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed travel_speed first_layer_speed skirts skirt_distance skirt_height brim_width support_material support_material_threshold support_material_pattern support_material_pattern support_material_spacing support_material_angle notes complete_objects extruder_clearance_radius extruder_clearance_height gcode_comments output_filename_format post_process extrusion_width first_layer_extrusion_width infill_extrusion_width support_material_extrusion_width bridge_flow_ratio duplicate_distance)],
-    filament    => [qw(filament_diameter extrusion_multiplier temperature first_layer_temperature bed_temperature first_layer_bed_temperature cooling min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on fan_below_layer_time slowdown_below_layer_time min_print_speed)],
-    printer     => [qw(bed_size print_center z_offset gcode_flavor use_relative_e_distances nozzle_diameter retract_length retract_lift retract_speed retract_restart_extra retract_before_travel start_gcode end_gcode layer_gcode)],
-);
-
 our $Options = {
 
     # miscellaneous options
@@ -27,6 +21,7 @@ our $Options = {
         height  => 130,
         serialize   => sub { join '\n', split /\R/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
+        default => '',
     },
     'threads' => {
         label   => 'Threads',
@@ -36,6 +31,8 @@ our $Options = {
         type    => 'i',
         min     => 1,
         max     => 16,
+        default => $Slic3r::have_threads ? 2 : 1,
+        readonly => !$Slic3r::have_threads,
     },
 
     # output options
@@ -45,6 +42,7 @@ our $Options = {
         cli     => 'output-filename-format=s',
         type    => 's',
         full_width => 1,
+        default => '[input_filename_base].gcode',
     },
 
     # printer options
@@ -55,7 +53,8 @@ our $Options = {
         cli     => 'print-center=s',
         type    => 'point',
         serialize   => sub { join ',', @{$_[0]} },
-        deserialize => sub { [ split /,/, $_[0] ] },
+        deserialize => sub { [ split /[,x]/, $_[0] ] },
+        default => [100,100],
     },
     'gcode_flavor' => {
         label   => 'G-code flavor',
@@ -64,18 +63,21 @@ our $Options = {
         type    => 'select',
         values  => [qw(reprap teacup makerbot mach3 no-extrusion)],
         labels  => ['RepRap (Marlin/Sprinter)', 'Teacup', 'MakerBot', 'Mach3/EMC', 'No extrusion'],
+        default => 'reprap',
     },
     'use_relative_e_distances' => {
         label   => 'Use relative E distances',
         tooltip => 'If your firmware requires relative E values, check this, otherwise leave it unchecked. Most firmwares use absolute values.',
         cli     => 'use-relative-e-distances!',
         type    => 'bool',
+        default => 0,
     },
     'extrusion_axis' => {
         label   => 'Extrusion axis',
         tooltip => 'Use this option to set the axis letter associated to your printer\'s extruder (usually E but some printers use A).',
         cli     => 'extrusion-axis=s',
         type    => 's',
+        default => 'E',
     },
     'z_offset' => {
         label   => 'Z offset',
@@ -83,24 +85,28 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'z-offset=f',
         type    => 'f',
+        default => 0,
     },
     'gcode_arcs' => {
         label   => 'Use native G-code arcs',
         tooltip => 'This experimental feature tries to detect arcs from segments and generates G2/G3 arc commands instead of multiple straight G1 commands.',
         cli     => 'gcode-arcs!',
         type    => 'bool',
+        default => 0,
     },
     'g0' => {
         label   => 'Use G0 for travel moves',
         tooltip => 'Only enable this if your firmware supports G0 properly (thus decouples all axes using their maximum speeds instead of synchronizing them). Travel moves and retractions will be combined in single commands, speeding them print up.',
         cli     => 'g0!',
         type    => 'bool',
+        default => 0,
     },
     'gcode_comments' => {
         label   => 'Verbose G-code',
         tooltip => 'Enable this to get a commented G-code file, with each line explained by a descriptive text. If you print from SD card, the additional weight of the file could make your firmware slow down.',
         cli     => 'gcode-comments!',
         type    => 'bool',
+        default => 0,
     },
     
     # extruders options
@@ -112,6 +118,7 @@ our $Options = {
         sidetext => 'mm',
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
+        default => [0.5],
     },
     'filament_diameter' => {
         label   => 'Diameter',
@@ -121,6 +128,7 @@ our $Options = {
         type    => 'f',
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
+        default     => [3],
     },
     'extrusion_multiplier' => {
         label   => 'Extrusion multiplier',
@@ -129,6 +137,7 @@ our $Options = {
         type    => 'f',
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
+        default => [1],
     },
     'temperature' => {
         label   => 'Temperature',
@@ -139,6 +148,7 @@ our $Options = {
         max     => 300,
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
+        default => [200],
     },
     'first_layer_temperature' => {
         label   => 'First layer temperature',
@@ -149,6 +159,7 @@ our $Options = {
         serialize   => sub { join ',', @{$_[0]} },
         deserialize => sub { [ split /,/, $_[0] ] },
         max     => 300,
+        default => [200],
     },
     
     # extruder mapping
@@ -157,16 +168,19 @@ our $Options = {
         cli     => 'perimeter-extruder=i',
         type    => 'i',
         aliases => [qw(perimeters_extruder)],
+        default => 1,
     },
     'infill_extruder' => {
         label   => 'Infill extruder',
         cli     => 'infill-extruder=i',
         type    => 'i',
+        default => 1,
     },
     'support_material_extruder' => {
         label   => 'Extruder',
         cli     => 'support-material-extruder=i',
         type    => 'i',
+        default => 1,
     },
     
     # filament options
@@ -177,6 +191,7 @@ our $Options = {
         cli     => 'first-layer-bed-temperature=i',
         type    => 'i',
         max     => 300,
+        default => 0,
     },
     'bed_temperature' => {
         label   => 'Bed Temperature',
@@ -185,6 +200,7 @@ our $Options = {
         cli     => 'bed-temperature=i',
         type    => 'i',
         max     => 300,
+        default => 0,
     },
     
     # speed options
@@ -195,6 +211,7 @@ our $Options = {
         cli     => 'travel-speed=f',
         type    => 'f',
         aliases => [qw(travel_feed_rate)],
+        default => 130,
     },
     'perimeter_speed' => {
         label   => 'Perimeters',
@@ -203,6 +220,7 @@ our $Options = {
         cli     => 'perimeter-speed=f',
         type    => 'f',
         aliases => [qw(perimeter_feed_rate)],
+        default => 30,
     },
     'small_perimeter_speed' => {
         label   => 'Small perimeters',
@@ -211,6 +229,7 @@ our $Options = {
         cli     => 'small-perimeter-speed=s',
         type    => 'f',
         ratio_over => 'perimeter_speed',
+        default => 30,
     },
     'external_perimeter_speed' => {
         label   => 'External perimeters',
@@ -219,6 +238,7 @@ our $Options = {
         cli     => 'external-perimeter-speed=s',
         type    => 'f',
         ratio_over => 'perimeter_speed',
+        default => '100%',
     },
     'infill_speed' => {
         label   => 'Infill',
@@ -227,6 +247,7 @@ our $Options = {
         cli     => 'infill-speed=f',
         type    => 'f',
         aliases => [qw(print_feed_rate infill_feed_rate)],
+        default => 60,
     },
     'solid_infill_speed' => {
         label   => 'Solid infill',
@@ -236,6 +257,7 @@ our $Options = {
         type    => 'f',
         ratio_over => 'infill_speed',
         aliases => [qw(solid_infill_feed_rate)],
+        default => 60,
     },
     'top_solid_infill_speed' => {
         label   => 'Top solid infill',
@@ -244,6 +266,7 @@ our $Options = {
         cli     => 'top-solid-infill-speed=s',
         type    => 'f',
         ratio_over => 'solid_infill_speed',
+        default => 50,
     },
     'bridge_speed' => {
         label   => 'Bridges',
@@ -252,6 +275,7 @@ our $Options = {
         cli     => 'bridge-speed=f',
         type    => 'f',
         aliases => [qw(bridge_feed_rate)],
+        default => 60,
     },
     'first_layer_speed' => {
         label   => 'First layer speed',
@@ -259,6 +283,7 @@ our $Options = {
         sidetext => 'mm/s or %',
         cli     => 'first-layer-speed=s',
         type    => 'f',
+        default => '30%',
     },
     
     # acceleration options
@@ -266,18 +291,21 @@ our $Options = {
         label   => 'Enable acceleration control',
         cli     => 'acceleration!',
         type    => 'bool',
+        default => 0,
     },
     'perimeter_acceleration' => {
         label   => 'Perimeters',
         sidetext => 'mm/s²',
         cli     => 'perimeter-acceleration',
         type    => 'f',
+        default => 25,
     },
     'infill_acceleration' => {
         label   => 'Infill',
         sidetext => 'mm/s²',
         cli     => 'infill-acceleration',
         type    => 'f',
+        default => 50,
     },
     
     # accuracy options
@@ -287,6 +315,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'layer-height=f',
         type    => 'f',
+        default => 0.4,
     },
     'first_layer_height' => {
         label   => 'First layer height',
@@ -295,6 +324,7 @@ our $Options = {
         cli     => 'first-layer-height=s',
         type    => 'f',
         ratio_over => 'layer_height',
+        default => '100%',
     },
     'infill_every_layers' => {
         label   => 'Infill every',
@@ -303,6 +333,7 @@ our $Options = {
         cli     => 'infill-every-layers=i',
         type    => 'i',
         min     => 1,
+        default => 1,
     },
     
     # flow options
@@ -312,6 +343,7 @@ our $Options = {
         sidetext => 'mm or % (leave 0 for auto)',
         cli     => 'extrusion-width=s',
         type    => 'f',
+        default => 0,
     },
     'first_layer_extrusion_width' => {
         label   => 'First layer',
@@ -319,6 +351,7 @@ our $Options = {
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'first-layer-extrusion-width=s',
         type    => 'f',
+        default => '200%',
     },
     'perimeter_extrusion_width' => {
         label   => 'Perimeters',
@@ -327,6 +360,7 @@ our $Options = {
         cli     => 'perimeter-extrusion-width=s',
         type    => 'f',
         aliases => [qw(perimeters_extrusion_width)],
+        default => 0,
     },
     'infill_extrusion_width' => {
         label   => 'Infill',
@@ -334,6 +368,7 @@ our $Options = {
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'infill-extrusion-width=s',
         type    => 'f',
+        default => 0,
     },
     'support_material_extrusion_width' => {
         label   => 'Support material',
@@ -341,12 +376,14 @@ our $Options = {
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'support-material-extrusion-width=s',
         type    => 'f',
+        default => 0,
     },
     'bridge_flow_ratio' => {
         label   => 'Bridge flow ratio',
         tooltip => 'This factor affects the amount of plastic for bridging. You can decrease it slightly to pull the extrudates and prevent sagging, although default settings are usually good and you should experiment with cooling (use a fan) before tweaking this.',
         cli     => 'bridge-flow-ratio=f',
         type    => 'f',
+        default => 1,
     },
     
     # print options
@@ -356,12 +393,14 @@ our $Options = {
         cli     => 'perimeters=i',
         type    => 'i',
         aliases => [qw(perimeter_offsets)],
+        default => 3,
     },
     'solid_layers' => {
         label   => 'Solid layers',
         tooltip => 'Number of solid layers to generate on top and bottom.',
         cli     => 'solid-layers=i',
         type    => 'i',
+        default => 3,
     },
     'fill_pattern' => {
         label   => 'Fill pattern',
@@ -370,6 +409,7 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear line concentric honeycomb hilbertcurve archimedeanchords octagramspiral)],
         labels  => [qw(rectilinear line concentric honeycomb), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
+        default => 'rectilinear',
     },
     'solid_fill_pattern' => {
         label   => 'Top/bottom fill pattern',
@@ -378,12 +418,14 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear concentric hilbertcurve archimedeanchords octagramspiral)],
         labels  => [qw(rectilinear concentric), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
+        default => 'rectilinear',
     },
     'fill_density' => {
         label   => 'Fill density',
         tooltip => 'Density of internal infill, expressed in the range 0 - 1.',
         cli     => 'fill-density=f',
         type    => 'f',
+        default => 0.4,
     },
     'fill_angle' => {
         label   => 'Fill angle',
@@ -392,23 +434,27 @@ our $Options = {
         cli     => 'fill-angle=i',
         type    => 'i',
         max     => 359,
+        default => 45,
     },
     'extra_perimeters' => {
         label   => 'Generate extra perimeters when needed',
         cli     => 'extra-perimeters!',
         type    => 'bool',
+        default => 1,
     },
     'randomize_start' => {
         label   => 'Randomize starting points',
         tooltip => 'Start each layer from a different vertex to prevent plastic build-up on the same corner.',
         cli     => 'randomize-start!',
         type    => 'bool',
+        default => 1,
     },
     'support_material' => {
         label   => 'Generate support material',
         tooltip => 'Enable support material generation.',
         cli     => 'support-material!',
         type    => 'bool',
+        default => 0,
     },
     'support_material_threshold' => {
         label   => 'Overhang threshold',
@@ -416,6 +462,7 @@ our $Options = {
         sidetext => '°',
         cli     => 'support-material-threshold=i',
         type    => 'i',
+        default => 45,
     },
     'support_material_pattern' => {
         label   => 'Pattern',
@@ -424,6 +471,7 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear honeycomb)],
         labels  => [qw(rectilinear honeycomb)],
+        default => 'rectilinear',
     },
     'support_material_spacing' => {
         label   => 'Pattern spacing',
@@ -431,6 +479,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'support-material-spacing=f',
         type    => 'f',
+        default => 2.5,
     },
     'support_material_angle' => {
         label   => 'Pattern angle',
@@ -438,6 +487,7 @@ our $Options = {
         sidetext => '°',
         cli     => 'support-material-angle=i',
         type    => 'i',
+        default => 0,
     },
     'start_gcode' => {
         label   => 'Start G-code',
@@ -449,6 +499,7 @@ our $Options = {
         height  => 120,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
+        default => 'G28 ; home all axes',
     },
     'end_gcode' => {
         label   => 'End G-code',
@@ -460,6 +511,11 @@ our $Options = {
         height  => 120,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
+        default => <<'END',
+M104 S0 ; turn off temperature
+G28 X0  ; home X axis
+M84     ; disable motors
+END
     },
     'layer_gcode' => {
         label   => 'Layer change G-code',
@@ -471,6 +527,7 @@ our $Options = {
         height  => 50,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
+        default => '',
     },
     'post_process' => {
         label   => 'Post-processing scripts',
@@ -482,6 +539,7 @@ our $Options = {
         height  => 60,
         serialize   => sub { join '; ', @{$_[0]} },
         deserialize => sub { [ split /\s*;\s*/, $_[0] ] },
+        default => [],
     },
     
     # retraction options
@@ -491,6 +549,7 @@ our $Options = {
         sidetext => 'mm (zero to disable)',
         cli     => 'retract-length=f',
         type    => 'f',
+        default => 1,
     },
     'retract_speed' => {
         label   => 'Speed',
@@ -499,6 +558,7 @@ our $Options = {
         cli     => 'retract-speed=f',
         type    => 'i',
         max     => 1000,
+        default => 30,
     },
     'retract_restart_extra' => {
         label   => 'Extra length on restart',
@@ -506,6 +566,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'retract-restart-extra=f',
         type    => 'f',
+        default => 0,
     },
     'retract_before_travel' => {
         label   => 'Minimum travel after retraction',
@@ -513,6 +574,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'retract-before-travel=f',
         type    => 'f',
+        default => 2,
     },
     'retract_lift' => {
         label   => 'Lift Z',
@@ -520,6 +582,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'retract-lift=f',
         type    => 'f',
+        default => 0,
     },
     
     # cooling options
@@ -528,6 +591,7 @@ our $Options = {
         tooltip => 'This flag enables all the cooling features.',
         cli     => 'cooling!',
         type    => 'bool',
+        default => 0,
     },
     'min_fan_speed' => {
         label   => 'Min fan speed',
@@ -536,6 +600,7 @@ our $Options = {
         cli     => 'min-fan-speed=i',
         type    => 'i',
         max     => 1000,
+        default => 35,
     },
     'max_fan_speed' => {
         label   => 'Max fan speed',
@@ -544,6 +609,7 @@ our $Options = {
         cli     => 'max-fan-speed=i',
         type    => 'i',
         max     => 1000,
+        default => 100,
     },
     'bridge_fan_speed' => {
         label   => 'Bridge fan speed',
@@ -552,6 +618,7 @@ our $Options = {
         cli     => 'bridge-fan-speed=i',
         type    => 'i',
         max     => 1000,
+        default => 100,
     },
     'fan_below_layer_time' => {
         label   => 'Enable fan if layer print time is below',
@@ -561,6 +628,7 @@ our $Options = {
         type    => 'i',
         max     => 1000,
         width   => 60,
+        default => 60,
     },
     'slowdown_below_layer_time' => {
         label   => 'Slow down if layer print time is below',
@@ -570,6 +638,7 @@ our $Options = {
         type    => 'i',
         max     => 1000,
         width   => 60,
+        default => 15,
     },
     'min_print_speed' => {
         label   => 'Min print speed',
@@ -578,6 +647,7 @@ our $Options = {
         cli     => 'min-print-speed=f',
         type    => 'i',
         max     => 1000,
+        default => 10,
     },
     'disable_fan_first_layers' => {
         label   => 'Disable fan for the first',
@@ -586,12 +656,14 @@ our $Options = {
         cli     => 'disable-fan-first-layers=i',
         type    => 'i',
         max     => 1000,
+        default => 1,
     },
     'fan_always_on' => {
         label   => 'Keep fan always on',
         tooltip => 'If this is enabled, fan will never be disabled and will be kept running at least at its minimum speed. Useful for PLA, harmful for ABS.',
         cli     => 'fan-always-on!',
         type    => 'bool',
+        default => 0,
     },
     
     # skirt/brim options
@@ -600,6 +672,7 @@ our $Options = {
         tooltip => 'Number of loops for this skirt, in other words its thickness. Set this to zero to disable skirt.',
         cli     => 'skirts=i',
         type    => 'i',
+        default => 1,
     },
     'skirt_distance' => {
         label   => 'Distance from object',
@@ -607,6 +680,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'skirt-distance=f',
         type    => 'f',
+        default => 6,
     },
     'skirt_height' => {
         label   => 'Skirt height',
@@ -614,6 +688,7 @@ our $Options = {
         sidetext => 'layers',
         cli     => 'skirt-height=i',
         type    => 'i',
+        default => 1,
     },
     'brim_width' => {
         label   => 'Brim width',
@@ -621,6 +696,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'brim-width=f',
         type    => 'f',
+        default => 0,
     },
     
     # transform options
@@ -628,6 +704,7 @@ our $Options = {
         label   => 'Scale',
         cli     => 'scale=f',
         type    => 'f',
+        default => 1,
     },
     'rotate' => {
         label   => 'Rotate',
@@ -635,12 +712,14 @@ our $Options = {
         cli     => 'rotate=i',
         type    => 'i',
         max     => 359,
+        default => 0,
     },
     'duplicate' => {
-        label    => 'Copies (autoarrange)',
-        cli      => 'duplicate=i',
+        label   => 'Copies (autoarrange)',
+        cli     => 'duplicate=i',
         type    => 'i',
         min     => 1,
+        default => 1,
     },
     'bed_size' => {
         label   => 'Bed size',
@@ -649,14 +728,16 @@ our $Options = {
         cli     => 'bed-size=s',
         type    => 'point',
         serialize   => sub { join ',', @{$_[0]} },
-        deserialize => sub { [ split /,/, $_[0] ] },
+        deserialize => sub { [ split /[,x]/, $_[0] ] },
+        default => [200,200],
     },
     'duplicate_grid' => {
         label   => 'Copies (grid)',
         cli     => 'duplicate-grid=s',
         type    => 'point',
         serialize   => sub { join ',', @{$_[0]} },
-        deserialize => sub { [ split /,/, $_[0] ] },
+        deserialize => sub { [ split /[,x]/, $_[0] ] },
+        default => [1,1],
     },
     'duplicate_distance' => {
         label   => 'Distance between copies',
@@ -665,6 +746,7 @@ our $Options = {
         cli     => 'duplicate-distance=f',
         type    => 'f',
         aliases => [qw(multiply_distance)],
+        default => 6,
     },
     
     # sequential printing options
@@ -673,6 +755,7 @@ our $Options = {
         tooltip => 'When printing multiple objects or copies, this feature will complete each object before moving onto next one (and starting it from its bottom layer). This feature is useful to avoid the risk of ruined prints. Slic3r should warn and prevent you from extruder collisions, but beware.',
         cli     => 'complete-objects!',
         type    => 'bool',
+        default => 0,
     },
     'extruder_clearance_radius' => {
         label   => 'Extruder clearance radius',
@@ -680,6 +763,7 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'extruder-clearance-radius=f',
         type    => 'f',
+        default => 20,
     },
     'extruder_clearance_height' => {
         label   => 'Extruder clearance height',
@@ -687,49 +771,301 @@ our $Options = {
         sidetext => 'mm',
         cli     => 'extruder-clearance-height=f',
         type    => 'f',
+        default => 20,
     },
 };
 
-sub get {
-    my $class = @_ == 2 ? shift : undef;
-    my ($opt_key) = @_;
+# generate accessors
+{
     no strict 'refs';
-    my $value = ${"Slic3r::$opt_key"};
-    $value = get($Options->{$opt_key}{ratio_over}) * $1/100
+    for my $opt_key (keys %$Options) {
+        *{$opt_key} = sub { $_[0]{$opt_key} };
+    }
+}
+
+sub new {
+    my $class = shift;
+    my %args = @_;
+    
+    my $self = bless {}, $class;
+    $self->apply(%args);
+    return $self;
+}
+
+sub new_from_defaults {
+    my $class = shift;
+    my @opt_keys = 
+    return $class->new(map { $_ => $Options->{$_}{default} } (@_ ? @_ : keys %$Options));
+}
+
+sub new_from_cli {
+    my $class = shift;
+    my %args = @_;
+    
+    delete $args{$_} for grep !defined $args{$_}, keys %args;
+    
+    for (qw(start end layer)) {
+        my $opt_key = "${_}_gcode";
+        if ($args{$opt_key}) {
+            die "Invalid value for --${_}-gcode: file does not exist\n"
+                if !-e $args{$opt_key};
+            open my $fh, "<", $args{$opt_key}
+                or die "Failed to open $args{$opt_key}\n";
+            binmode $fh, ':utf8';
+            $args{$opt_key} = do { local $/; <$fh> };
+            close $fh;
+        }
+    }
+    
+    $args{$_} = $Options->{$_}{deserialize}->($args{$_})
+        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid);
+    
+    return $class->new(%args);
+}
+
+sub merge {
+    my $class = shift;
+    return $class->new(map %$_, @_);
+}
+
+sub load {
+    my $class = shift;
+    my ($file) = @_;
+    
+    my $ini = __PACKAGE__->read_ini($file);
+    my $config = __PACKAGE__->new;
+    $config->set($_, $ini->{_}{$_}, 1) for keys %{$ini->{_}};
+    return $config;
+}
+
+sub apply {
+    my $self = shift;
+    my %args = @_ == 1 ? %{$_[0]} : @_; # accept a single Config object too
+    
+    $self->set($_, $args{$_}) for keys %args;
+}
+
+sub clone {
+    my $self = shift;
+    my $new = __PACKAGE__->new(%$self);
+    $new->{$_} = [@{$new->{$_}}] for grep { ref $new->{$_} eq 'ARRAY' } keys %$new;
+    return $new;
+}
+
+sub get_value {
+    my $self = shift;
+    my ($opt_key) = @_;
+    
+    no strict 'refs';
+    my $value = $self->get($opt_key);
+    $value = $self->get($Options->{$opt_key}{ratio_over}) * $1/100
         if $Options->{$opt_key}{ratio_over} && $value =~ /^(\d+(?:\.\d+)?)%$/;
     return $value;
 }
 
-sub get_raw {
-    my $class = @_ == 2 ? shift : undef;
+sub get {
+    my $self = shift;
     my ($opt_key) = @_;
-    no strict 'refs';
-    my $value = ${"Slic3r::$opt_key"};
-    return $value;
+    
+    return $self->{$opt_key};
 }
 
 sub set {
-    my $class = @_ == 3 ? shift : undef;
-    my ($opt_key, $value) = @_;
-    no strict 'refs';
-    ${"Slic3r::$opt_key"} = $value;
+    my $self = shift;
+    my ($opt_key, $value, $deserialize) = @_;
+    
+    # handle legacy options
+    return if $opt_key ~~ @Ignore;
+    if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
+        $opt_key = $1;
+        $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
+        $value = $value =~ /^\d+(?:\.\d+)?$/ && $value != 0 ? ($value*100) . "%" : 0;
+    }
+    
+    if (!exists $Options->{$opt_key}) {
+        $opt_key = +(grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options)[0]
+            or warn "Unknown option $opt_key\n";
+    }
+    
+    # clone arrayrefs
+    $value = [@$value] if ref $value eq 'ARRAY';
+    
+    # deserialize if requested
+    $value = $Options->{$opt_key}{deserialize}->($value)
+        if $deserialize && $Options->{$opt_key}{deserialize};
+    
+    $self->{$opt_key} = $value;
+}
+
+sub set_ifndef {
+    my $self = shift;
+    my ($opt_key, $value, $deserialize) = @_;
+    
+    $self->set($opt_key, $value, $deserialize)
+        if !defined $self->get($opt_key);
 }
 
 sub serialize {
-    my $class = @_ == 2 ? shift : undef;
+    my $self = shift;
     my ($opt_key) = @_;
-    return $Options->{$opt_key}{serialize}
-        ? $Options->{$opt_key}{serialize}->(get_raw($opt_key))
-        : get_raw($opt_key);
+    
+    my $value = $self->get($opt_key);
+    $value = $Options->{$opt_key}{serialize}->($value) if $Options->{$opt_key}{serialize};
+    return $value;
 }
 
-sub deserialize {
-    my $class = @_ == 3 ? shift : undef;
-    my ($opt_key, $value) = @_;
-    return $Options->{$opt_key}{deserialize}
-        ? set($opt_key, $Options->{$opt_key}{deserialize}->($value))
-        : set($opt_key, $value);
+sub save {
+    my $self = shift;
+    my ($file) = @_;
+    
+    my $ini = { _ => {} };
+    foreach my $opt_key (sort keys %$self) {
+        next if $Options->{$opt_key}{gui_only};
+        $ini->{_}{$opt_key} = $self->serialize($opt_key);
+    }
+    __PACKAGE__->write_ini($file, $ini);
 }
+
+sub setenv {
+    my $self = shift;
+    
+    foreach my $opt_key (sort keys %$Options) {
+        next if $Options->{$opt_key}{gui_only};
+        $ENV{"SLIC3R_" . uc $opt_key} = $self->serialize($opt_key);
+    }
+}
+
+# this method is idempotent by design
+sub validate {
+    my $self = shift;
+    
+    # -j, --threads
+    die "Invalid value for --threads\n"
+        if $self->threads < 1;
+    die "Your perl wasn't built with multithread support\n"
+        if $self->threads > 1 && !$self->have_threads;
+
+    # --layer-height
+    die "Invalid value for --layer-height\n"
+        if $self->layer_height <= 0;
+    die "--layer-height must be a multiple of print resolution\n"
+        if $self->layer_height / &Slic3r::SCALING_FACTOR % 1 != 0;
+    
+    # --first-layer-height
+    die "Invalid value for --first-layer-height\n"
+        if $self->first_layer_height !~ /^(?:\d*(?:\.\d+)?)%?$/;
+    
+    # --filament-diameter
+    die "Invalid value for --filament-diameter\n"
+        if grep $_ < 1, @{$self->filament_diameter};
+    
+    # --nozzle-diameter
+    die "Invalid value for --nozzle-diameter\n"
+        if grep $_ < 0, @{$self->nozzle_diameter};
+    die "--layer-height can't be greater than --nozzle-diameter\n"
+        if grep $self->layer_height > $_, @{$self->nozzle_diameter};
+    die "First layer height can't be greater than --nozzle-diameter\n"
+        if grep $self->get_value('first_layer_height') > $_, @{$self->nozzle_diameter};
+    
+    # --perimeters
+    die "Invalid value for --perimeters\n"
+        if $self->perimeters < 0;
+    
+    # --solid-layers
+    die "Invalid value for --solid-layers\n"
+        if $self->solid_layers < 0;
+    
+    # --print-center
+    die "Invalid value for --print-center\n"
+        if !ref $self->print_center 
+            && (!$self->print_center || $self->print_center !~ /^\d+,\d+$/);
+    
+    # --fill-pattern
+    die "Invalid value for --fill-pattern\n"
+        if !exists $Slic3r::Fill::FillTypes{$self->fill_pattern};
+    
+    # --solid-fill-pattern
+    die "Invalid value for --solid-fill-pattern\n"
+        if !exists $Slic3r::Fill::FillTypes{$self->solid_fill_pattern};
+    
+    # --fill-density
+    die "Invalid value for --fill-density\n"
+        if $self->fill_density < 0 || $self->fill_density > 1;
+    
+    # --infill-every-layers
+    die "Invalid value for --infill-every-layers\n"
+        if $self->infill_every_layers !~ /^\d+$/ || $self->infill_every_layers < 1;
+    # TODO: this check should be limited to the extruder used for infill
+    die "Maximum infill thickness can't exceed nozzle diameter\n"
+        if grep $self->infill_every_layers * $self->layer_height > $_, @{$self->nozzle_diameter};
+    
+    # --scale
+    die "Invalid value for --scale\n"
+        if $self->scale <= 0;
+    
+    # --bed-size
+    die "Invalid value for --bed-size\n"
+        if !ref $self->bed_size 
+            && (!$self->bed_size || $self->bed_size !~ /^\d+,\d+$/);
+    
+    # --duplicate-grid
+    die "Invalid value for --duplicate-grid\n"
+        if !ref $self->duplicate_grid 
+            && (!$self->duplicate_grid || $self->duplicate_grid !~ /^\d+,\d+$/);
+    
+    # --duplicate
+    die "Invalid value for --duplicate or --duplicate-grid\n"
+        if !$self->duplicate || $self->duplicate < 1 || !$self->duplicate_grid
+            || (grep !$_, @{$self->duplicate_grid});
+    die "Use either --duplicate or --duplicate-grid (using both doesn't make sense)\n"
+        if $self->duplicate > 1 && $self->duplicate_grid && (grep $_ && $_ > 1, @{$self->duplicate_grid});
+    
+    # --skirt-height
+    die "Invalid value for --skirt-height\n"
+        if $self->skirt_height < 0;
+    
+    # --bridge-flow-ratio
+    die "Invalid value for --bridge-flow-ratio\n"
+        if $self->bridge_flow_ratio <= 0;
+    
+    # extruder clearance
+    die "Invalid value for --extruder-clearance-radius\n"
+        if $self->extruder_clearance_radius <= 0;
+    die "Invalid value for --extruder-clearance-height\n"
+        if $self->extruder_clearance_height <= 0;
+}
+
+sub replace_options {
+    my $self = shift;
+    my ($string, $more_variables) = @_;
+    
+    if ($more_variables) {
+        my $variables = join '|', keys %$more_variables;
+        $string =~ s/\[($variables)\]/$more_variables->{$1}/eg;
+    }
+    
+    my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
+    $string =~ s/\[timestamp\]/sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0]/egx;
+    $string =~ s/\[year\]/$lt[5]/eg;
+    $string =~ s/\[month\]/$lt[4]/eg;
+    $string =~ s/\[day\]/$lt[3]/eg;
+    $string =~ s/\[hour\]/$lt[2]/eg;
+    $string =~ s/\[minute\]/$lt[1]/eg;
+    $string =~ s/\[second\]/$lt[0]/eg;
+    $string =~ s/\[version\]/$Slic3r::VERSION/eg;
+    
+    # build a regexp to match the available options
+    my $options = join '|',
+        grep !$Slic3r::Config::Options->{$_}{multiline},
+        grep exists $self->{$_},
+        keys %{$Slic3r::Config::Options};
+    
+    # use that regexp to search and replace option names with option values
+    $string =~ s/\[($options)\]/$self->serialize($1)/eg;
+    return $string;
+}
+
+# CLASS METHODS:
 
 sub write_ini {
     my $class = shift;
@@ -738,7 +1074,7 @@ sub write_ini {
     open my $fh, '>', $file;
     binmode $fh, ':utf8';
     my $localtime = localtime;
-    printf $fh "# generated by Slic3r $Slic3r::VERSION on $localtime\n";
+    printf $fh "# generated by Slic3r $Slic3r::VERSION on %s\n", "$localtime";
     foreach my $category (sort keys %$ini) {
         printf $fh "\n[%s]\n", $category if $category ne '_';
         foreach my $key (sort keys %{$ini->{$category}}) {
@@ -746,43 +1082,6 @@ sub write_ini {
         }
     }
     close $fh;
-}
-
-sub save {
-    my $class = shift;
-    my ($file, $group) = @_;
-    
-    my $ini = { _ => {} };
-    foreach my $opt (sort keys %$Options) {
-        next if defined $group && not ($opt ~~ @{$Groups{$group}});
-        next if $Options->{$opt}{gui_only};
-        my $value = get_raw($opt);
-        $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
-        $ini->{_}{$opt} = $value;
-    }
-    $class->write_ini($file, $ini);
-}
-
-sub save_settings {
-    my $class = shift;
-    my ($file) = @_;
-    
-    $class->write_ini($file, $Slic3r::Settings);
-}
-
-sub setenv {
-    my $class = shift;
-    foreach my $opt (sort keys %$Options) {
-        next if $Options->{$opt}{gui_only};
-        my $value = get($opt);
-        $value = $Options->{$opt}{serialize}->($value) if $Options->{$opt}{serialize};
-        $ENV{"SLIC3R_" . uc $opt} = $value;
-    }
-}
-
-sub current {
-    my $class = shift;
-    return { map +($_ => get_raw($_)), sort keys %$Options };
 }
 
 sub read_ini {
@@ -810,238 +1109,6 @@ sub read_ini {
     close $fh;
     
     return $ini;
-}
-
-sub load_hash {
-    my $class = shift;
-    my ($hash, $group, $deserialized) = @_;
-    
-    my %ignore = map { $_ => 1 } @Ignore;
-    foreach my $key (sort keys %$hash) {
-        next if defined $group && not ($key ~~ @{$Groups{$group}});
-        my $val = $hash->{$key};
-        
-        # handle legacy options
-        next if $ignore{$key};
-        if ($key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
-            $key = $1;
-            $key =~ s/^bottom_layer_speed$/first_layer_speed/;
-            $val = $val =~ /^\d+(?:\.\d+)?$/ && $val != 0 ? ($val*100) . "%" : 0;
-        }
-        
-        if (!exists $Options->{$key}) {
-            $key = +(grep { $Options->{$_}{aliases} && grep $_ eq $key, @{$Options->{$_}{aliases}} }
-                keys %$Options)[0] or warn "Unknown option $key at line $.\n";
-        }
-        next unless $key;
-        my $opt = $Options->{$key};
-        set($key, ($opt->{deserialize} && !$deserialized) ? $opt->{deserialize}->($val) : $val);
-    }
-}
-
-sub load {
-    my $class = shift;
-    my ($file) = @_;
-    
-    my $ini = __PACKAGE__->read_ini($file);
-    __PACKAGE__->load_hash($ini->{_});
-}
-
-sub validate_cli {
-    my $class = shift;
-    my ($opt) = @_;
-    
-    for (qw(start end layer)) {
-        if (defined $opt->{$_."_gcode"}) {
-            if ($opt->{$_."_gcode"} eq "") {
-                set($_."_gcode", "");
-            } else {
-                die "Invalid value for --${_}-gcode: file does not exist"
-                    if !-e $opt->{$_."_gcode"};
-                open my $fh, "<", $opt->{$_."_gcode"};
-                $opt->{$_."_gcode"} = do { local $/; <$fh> };
-                close $fh;
-            }
-        }
-    }
-}
-
-sub validate {
-    my $class = shift;
-    
-    # -j, --threads
-    die "Invalid value for --threads\n"
-        if $Slic3r::threads < 1;
-    die "Your perl wasn't built with multithread support\n"
-        if $Slic3r::threads > 1 && !$Slic3r::have_threads;
-
-    # --layer-height
-    die "Invalid value for --layer-height\n"
-        if $Slic3r::layer_height <= 0;
-    die "--layer-height must be a multiple of print resolution\n"
-        if $Slic3r::layer_height / $Slic3r::scaling_factor % 1 != 0;
-    
-    # --first-layer-height
-    die "Invalid value for --first-layer-height\n"
-        if $Slic3r::first_layer_height !~ /^(?:\d*(?:\.\d+)?)%?$/;
-    $Slic3r::_first_layer_height = Slic3r::Config->get('first_layer_height');
-    
-    # --filament-diameter
-    die "Invalid value for --filament-diameter\n"
-        if grep $_ < 1, @$Slic3r::filament_diameter;
-    
-    # --nozzle-diameter
-    die "Invalid value for --nozzle-diameter\n"
-        if grep $_ < 0, @$Slic3r::nozzle_diameter;
-    die "--layer-height can't be greater than --nozzle-diameter\n"
-        if grep $Slic3r::layer_height > $_, @$Slic3r::nozzle_diameter;
-    die "First layer height can't be greater than --nozzle-diameter\n"
-        if grep $Slic3r::_first_layer_height > $_, @$Slic3r::nozzle_diameter;
-    
-    # initialize extruder(s)
-    $Slic3r::extruders = [];
-    for my $t (0, map $_-1, $Slic3r::perimeter_extruder, $Slic3r::infill_extruder, $Slic3r::support_material_extruder) {
-        $Slic3r::extruders->[$t] ||= Slic3r::Extruder->new(
-            map { $_ => Slic3r::Config->get($_)->[$t] // Slic3r::Config->get($_)->[0] } #/
-                qw(nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature)
-        );
-    }
-    
-    # calculate flow
-    $Slic3r::flow = $Slic3r::extruders->[0]->make_flow(width => $Slic3r::extrusion_width);
-    if ($Slic3r::first_layer_extrusion_width) {
-        $Slic3r::first_layer_flow = $Slic3r::extruders->[0]->make_flow(
-            layer_height => $Slic3r::_first_layer_height,
-            width        => $Slic3r::first_layer_extrusion_width,
-        );
-    }
-    $Slic3r::perimeters_flow = $Slic3r::extruders->[ $Slic3r::perimeter_extruder-1 ]
-        ->make_flow(width => $Slic3r::perimeter_extrusion_width || $Slic3r::extrusion_width);
-    $Slic3r::infill_flow = $Slic3r::extruders->[ $Slic3r::infill_extruder-1 ]
-        ->make_flow(width => $Slic3r::infill_extrusion_width || $Slic3r::extrusion_width);
-    $Slic3r::support_material_flow = $Slic3r::extruders->[ $Slic3r::support_material_extruder-1 ]
-        ->make_flow(width => $Slic3r::support_material_extrusion_width || $Slic3r::extrusion_width);
-    
-    Slic3r::debugf "Default flow width = %s (spacing = %s)\n",
-        $Slic3r::flow->width, $Slic3r::flow->spacing;
-    
-    # --perimeters
-    die "Invalid value for --perimeters\n"
-        if $Slic3r::perimeters < 0;
-    
-    # --solid-layers
-    die "Invalid value for --solid-layers\n"
-        if $Slic3r::solid_layers < 0;
-    
-    # --print-center
-    die "Invalid value for --print-center\n"
-        if !ref $Slic3r::print_center 
-            && (!$Slic3r::print_center || $Slic3r::print_center !~ /^\d+,\d+$/);
-    $Slic3r::print_center = [ split /[,x]/, $Slic3r::print_center ]
-        if !ref $Slic3r::print_center;
-    
-    # --fill-pattern
-    die "Invalid value for --fill-pattern\n"
-        if !exists $Slic3r::Fill::FillTypes{$Slic3r::fill_pattern};
-    
-    # --solid-fill-pattern
-    die "Invalid value for --solid-fill-pattern\n"
-        if !exists $Slic3r::Fill::FillTypes{$Slic3r::solid_fill_pattern};
-    
-    # --fill-density
-    die "Invalid value for --fill-density\n"
-        if $Slic3r::fill_density < 0 || $Slic3r::fill_density > 1;
-    
-    # --infill-every-layers
-    die "Invalid value for --infill-every-layers\n"
-        if $Slic3r::infill_every_layers !~ /^\d+$/ || $Slic3r::infill_every_layers < 1;
-    # TODO: this check should be limited to the extruder used for infill
-    die "Maximum infill thickness can't exceed nozzle diameter\n"
-        if grep $Slic3r::infill_every_layers * $Slic3r::layer_height > $_, @$Slic3r::nozzle_diameter;
-    
-    # --scale
-    die "Invalid value for --scale\n"
-        if $Slic3r::scale <= 0;
-    
-    # --bed-size
-    die "Invalid value for --bed-size\n"
-        if !ref $Slic3r::bed_size 
-            && (!$Slic3r::bed_size || $Slic3r::bed_size !~ /^\d+,\d+$/);
-    $Slic3r::bed_size = [ split /[,x]/, $Slic3r::bed_size ]
-        if !ref $Slic3r::bed_size;
-    
-    # --duplicate-grid
-    die "Invalid value for --duplicate-grid\n"
-        if !ref $Slic3r::duplicate_grid 
-            && (!$Slic3r::duplicate_grid || $Slic3r::duplicate_grid !~ /^\d+,\d+$/);
-    $Slic3r::duplicate_grid = [ split /[,x]/, $Slic3r::duplicate_grid ]
-        if !ref $Slic3r::duplicate_grid;
-    
-    # --duplicate
-    die "Invalid value for --duplicate or --duplicate-grid\n"
-        if !$Slic3r::duplicate || $Slic3r::duplicate < 1 || !$Slic3r::duplicate_grid
-            || (grep !$_, @$Slic3r::duplicate_grid);
-    die "Use either --duplicate or --duplicate-grid (using both doesn't make sense)\n"
-        if $Slic3r::duplicate > 1 && $Slic3r::duplicate_grid && (grep $_ && $_ > 1, @$Slic3r::duplicate_grid);
-    $Slic3r::duplicate_mode = 'autoarrange' if $Slic3r::duplicate > 1;
-    $Slic3r::duplicate_mode = 'grid' if grep $_ && $_ > 1, @$Slic3r::duplicate_grid;
-    
-    # --skirt-height
-    die "Invalid value for --skirt-height\n"
-        if $Slic3r::skirt_height < 0;
-    
-    # --bridge-flow-ratio
-    die "Invalid value for --bridge-flow-ratio\n"
-        if $Slic3r::bridge_flow_ratio <= 0;
-    
-    # extruder clearance
-    die "Invalid value for --extruder-clearance-radius\n"
-        if $Slic3r::extruder_clearance_radius <= 0;
-    die "Invalid value for --extruder-clearance-height\n"
-        if $Slic3r::extruder_clearance_height <= 0;
-    
-    $_->first_layer_temperature($_->temperature) for grep !defined $_->first_layer_temperature, @$Slic3r::extruders;
-    $Slic3r::first_layer_temperature->[$_] = $Slic3r::extruders->[$_]->first_layer_temperature for 0 .. $#$Slic3r::extruders;  # this is needed to provide a value to the legacy GUI and for config file re-serialization
-    $Slic3r::first_layer_bed_temperature //= $Slic3r::bed_temperature;  #/
-    
-    # G-code flavors
-    $Slic3r::extrusion_axis = 'A' if $Slic3r::gcode_flavor eq 'mach3';
-    $Slic3r::extrusion_axis = ''  if $Slic3r::gcode_flavor eq 'no-extrusion';
-    
-    # legacy with existing config files
-    $Slic3r::small_perimeter_speed ||= $Slic3r::perimeter_speed;
-    $Slic3r::bridge_speed ||= $Slic3r::infill_speed;
-    $Slic3r::solid_infill_speed ||= $Slic3r::infill_speed;
-    $Slic3r::top_solid_infill_speed ||= $Slic3r::solid_infill_speed;
-}
-
-sub replace_options {
-    my $class = shift;
-    my ($string, $more_variables) = @_;
-    
-    if ($more_variables) {
-        my $variables = join '|', keys %$more_variables;
-        $string =~ s/\[($variables)\]/$more_variables->{$1}/eg;
-    }
-    
-    my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
-    $string =~ s/\[timestamp\]/sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0]/egx;
-    $string =~ s/\[year\]/$lt[5]/eg;
-    $string =~ s/\[month\]/$lt[4]/eg;
-    $string =~ s/\[day\]/$lt[3]/eg;
-    $string =~ s/\[hour\]/$lt[2]/eg;
-    $string =~ s/\[minute\]/$lt[1]/eg;
-    $string =~ s/\[second\]/$lt[0]/eg;
-    $string =~ s/\[version\]/$Slic3r::VERSION/eg;
-    
-    # build a regexp to match the available options
-    my $options = join '|',
-        grep !$Slic3r::Config::Options->{$_}{multiline},
-        keys %$Slic3r::Config::Options;
-    
-    # use that regexp to search and replace option names with option values
-    $string =~ s/\[($options)\]/Slic3r::Config->serialize($1)/eg;
-    return $string;
 }
 
 1;

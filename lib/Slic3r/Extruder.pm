@@ -29,15 +29,15 @@ sub mm3_per_mm {
     my $cache_key = "${s}_${h}";
     if (!exists $self->_mm3_per_mm_cache->{$cache_key}) {
         my $w_threshold = $h + $self->nozzle_diameter;
-        my $s_threshold = $w_threshold - $Slic3r::overlap_factor * ($w_threshold - ($w_threshold - $h * (1 - PI/4)));
+        my $s_threshold = $w_threshold - &Slic3r::OVERLAP_FACTOR * ($w_threshold - ($w_threshold - $h * (1 - PI/4)));
         
         if ($s >= $s_threshold) {
             # rectangle with semicircles at the ends
-            my $w = $s + $Slic3r::overlap_factor * $h * (1 - PI/4);
+            my $w = $s + &Slic3r::OVERLAP_FACTOR * $h * (1 - PI/4);
             $self->_mm3_per_mm_cache->{$cache_key} = $w * $h + ($h**2) / 4 * (PI - 4);
         } else {
             # rectangle with shrunk semicircles at the ends
-            my $w = ($s + $self->nozzle_diameter * $Slic3r::overlap_factor * (PI/4 - 1)) / (1 + $Slic3r::overlap_factor * (PI/4 - 1));
+            my $w = ($s + $self->nozzle_diameter * &Slic3r::OVERLAP_FACTOR * (PI/4 - 1)) / (1 + &Slic3r::OVERLAP_FACTOR * (PI/4 - 1));
             $self->_mm3_per_mm_cache->{$cache_key} = $self->nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
         }
     }

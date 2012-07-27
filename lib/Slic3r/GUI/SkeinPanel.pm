@@ -27,6 +27,10 @@ sub new {
         filament    => Slic3r::GUI::Tab::Filament->new  ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
         printer     => Slic3r::GUI::Tab::Printer->new   ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
     };
+    
+    # propagate config change events to the plater
+    $_->{on_value_change} = sub { $self->{plater}->on_config_change(@_) } for values %{$self->{options_tabs}};
+    
     $self->{tabpanel}->AddPage($self->{options_tabs}{print}, $self->{options_tabs}{print}->title);
     $self->{tabpanel}->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
     $self->{tabpanel}->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
@@ -53,11 +57,12 @@ sub do_slice {
     my $process_dialog;
     eval {
         # validate configuration
-        Slic3r::Config->validate;
+        my $config = $self->config;
+        $config->validate;
 
         # confirm slicing of more than one copies
-        my $copies = $Slic3r::duplicate_grid->[X] * $Slic3r::duplicate_grid->[Y];
-        $copies = $Slic3r::duplicate if $Slic3r::duplicate > 1;
+        my $copies = $Slic3r::Config->duplicate_grid->[X] * $Slic3r::Config->duplicate_grid->[Y];
+        $copies = $Slic3r::Config->duplicate if $Slic3r::Config->duplicate > 1;
         if ($copies > 1) {
             my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
                                                       'Multiple Copies', wxICON_QUESTION | wxOK | wxCANCEL);
@@ -93,7 +98,7 @@ sub do_slice {
         my $input_file_basename = basename($input_file);
         $last_skein_dir = dirname($input_file);
         
-        my $print = Slic3r::Print->new;
+        my $print = Slic3r::Print->new(config => $config);
         $print->add_object_from_file($input_file);
         $print->validate;
 
@@ -160,12 +165,12 @@ sub do_slice {
 sub save_config {
     my $self = shift;
     
-    my $process_dialog;
+    my $config = $self->config;
     eval {
         # validate configuration
-        Slic3r::Config->validate;
+        $config->validate;
     };
-    Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog }) and return;
+    Slic3r::GUI::catch_error($self) and return;
     
     my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
     my $filename = $last_config ? basename($last_config) : "config.ini";
@@ -175,12 +180,12 @@ sub save_config {
         my $file = $dlg->GetPath;
         $last_config_dir = dirname($file);
         $last_config = $file;
-        Slic3r::Config->save($file);
+        $config->save($file);
     }
     $dlg->Destroy;
 }
 
-sub load_config {
+sub load_config_file {
     my $self = shift;
     my ($file) = @_;
     
@@ -198,13 +203,38 @@ sub load_config {
     $_->load_external_config($file) for values %{$self->{options_tabs}};
 }
 
+sub load_config {
+    my $self = shift;
+    my ($config) = @_;
+    
+    foreach my $tab (values %{$self->{options_tabs}}) {
+        $tab->set_value($_, $config->$_) for keys %$config;
+    }
+}
+
 sub config_wizard {
     my $self = shift;
 
     return unless $self->check_unsaved_changes;
-    if (my %settings = Slic3r::GUI::ConfigWizard->new($self)->run) {
-        $self->set_value($_, $settings{$_}) for keys %settings;
+    if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
+        # TODO: select the default preset in all tabs
+        $self->load_config($config);
     }
+}
+
+=head2 config
+
+This method collects all config values from the tabs and merges them into a single config object.
+
+=cut
+
+sub config {
+    my $self = shift;
+    
+    return Slic3r::Config->merge(
+        Slic3r::Config->new_from_defaults,
+        (map $_->config, values %{$self->{options_tabs}}),
+    );
 }
 
 sub set_value {

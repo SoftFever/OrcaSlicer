@@ -13,6 +13,7 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+    $self->{options} = []; # array of option names handled by this tab
     
     $self->{sync_presets_with} = $params{sync_presets_with};
     EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
@@ -100,8 +101,8 @@ sub new {
         );
         return unless $dlg->ShowModal == wxID_OK;
         
-        my $file = sprintf "$Slic3r::GUI::datadir/$self->{presets_group}/%s.ini", $dlg->get_name;
-        Slic3r::Config->save($file, $self->{presets_group});
+        my $file = sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $dlg->get_name;
+        $self->{config}->save($file);
         $self->set_dirty(0);
         $self->load_presets;
         $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
@@ -125,7 +126,13 @@ sub new {
         $self->sync_presets;
     });
     
+    $self->{config} = Slic3r::Config->new;
     $self->build;
+    if ($self->hidden_options) {
+        $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
+        push @{$self->{options}}, $self->hidden_options;
+    }
+    $self->load_presets;
     
     return $self;
 }
@@ -135,8 +142,15 @@ sub current_preset {
     return $self->{presets}[ $self->{presets_choice}->GetSelection ];
 }
 
-sub on_value_change {}
+# propagate event to the parent
+sub on_value_change {
+    my $self = shift;
+    $self->{on_value_change}->(@_) if $self->{on_value_change};
+}
+
 sub on_preset_loaded {}
+sub hidden_options {}
+sub config { $_[0]->{config}->clone }
 
 sub on_select_preset {
     my $self = shift;
@@ -155,7 +169,7 @@ sub on_select_preset {
     my $preset = $self->current_preset;
     if ($preset->{default}) {
         # default settings: disable the delete button
-        Slic3r::Config->load_hash($Slic3r::Defaults, $self->{presets_group}, 1);
+        $self->{config}->apply(Slic3r::Config->new_from_defaults(@{$self->{options}}));
         $self->{btn_delete_preset}->Disable;
     } else {
         if (!-e $preset->{file}) {
@@ -164,7 +178,7 @@ sub on_select_preset {
         }
         eval {
             local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-            Slic3r::Config->load($preset->{file}, $self->{presets_group});
+            $self->{config}->apply(Slic3r::Config->load($preset->{file}));
         };
         Slic3r::GUI::catch_error($self);
         $preset->{external}
@@ -174,8 +188,8 @@ sub on_select_preset {
     $self->on_preset_loaded;
     $self->reload_values;
     $self->set_dirty(0);
-    $Slic3r::Settings->{presets}{$self->{presets_group}} = $preset->{file} ? basename($preset->{file}) : '';
-    Slic3r::Config->save_settings("$Slic3r::GUI::datadir/slic3r.ini");
+    $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
+    Slic3r::GUI->save_settings("$Slic3r::GUI::datadir/slic3r.ini");
 }
 
 sub add_options_page {
@@ -186,6 +200,19 @@ sub add_options_page {
         my $bitmap = Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG);
         $self->{icons}->Add($bitmap);
         $self->{iconcount}++;
+    }
+    
+    {
+        # get all config options being added to the current page; remove indexes; associate defaults
+        my @options = map { $_ =~ s/#.+//; $_ } grep !ref($_), map @{$_->{options}}, @{$params{optgroups}};
+        my %defaults_to_set = map { $_ => 1 } @options;
+        
+        # apply default values for the options we don't have already
+        delete $defaults_to_set{$_} for @{$self->{options}};
+        $self->{config}->apply(Slic3r::Config->new_from_defaults(keys %defaults_to_set)) if %defaults_to_set;
+        
+        # append such options to our list
+        push @{$self->{options}}, @options;
     }
     
     my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount}, %params, on_change => sub {
@@ -214,8 +241,7 @@ sub set_value {
 sub reload_values {
     my $self = shift;
     
-    my $current = Slic3r::Config->current;
-    $self->set_value($_, $current->{$_}) for keys %$current;
+    $self->set_value($_, $self->{config}->get($_)) for keys %{$self->{config}};
 }
 
 sub update_tree {
@@ -262,20 +288,18 @@ sub is_dirty {
 
 sub load_presets {
     my $self = shift;
-    my ($group) = @_;
     
-    $self->{presets_group} ||= $group;
     $self->{presets} = [{
         default => 1,
         name    => '- default -',
     }];
     
-    opendir my $dh, "$Slic3r::GUI::datadir/$self->{presets_group}" or die "Failed to read directory $Slic3r::GUI::datadir/$self->{presets_group} (errno: $!)\n";
+    opendir my $dh, "$Slic3r::GUI::datadir/" . $self->name or die "Failed to read directory $Slic3r::GUI::datadir/" . $self->name . " (errno: $!)\n";
     foreach my $file (sort grep /\.ini$/i, readdir $dh) {
         my $name = basename($file);
         $name =~ s/\.ini$//;
         push @{$self->{presets}}, {
-            file => "$Slic3r::GUI::datadir/$self->{presets_group}/$file",
+            file => "$Slic3r::GUI::datadir/" . $self->name . "/$file",
             name => $name,
         };
     }
@@ -285,7 +309,7 @@ sub load_presets {
     $self->{presets_choice}->Append($_->{name}) for @{$self->{presets}};
     {
         # load last used preset
-        my $i = first { basename($self->{presets}[$_]{file}) eq ($Slic3r::Settings->{presets}{$self->{presets_group}} || '') } 1 .. $#{$self->{presets}};
+        my $i = first { basename($self->{presets}[$_]{file}) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
         $self->{presets_choice}->SetSelection($i || 0);
         $self->on_select_preset;
     }
@@ -326,6 +350,7 @@ sub sync_presets {
 package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
+sub name { 'print' }
 sub title { 'Print Settings' }
 
 sub build {
@@ -422,16 +447,17 @@ sub build {
         },
         {
             title => 'Other',
-            options => [qw(duplicate_distance), ($Slic3r::have_threads ? qw(threads) : ())],
+            options => [($Slic3r::have_threads ? qw(threads) : ())],
         },
     ]);
-    
-    $self->load_presets('print');
 }
+
+sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
 
 package Slic3r::GUI::Tab::Filament;
 use base 'Slic3r::GUI::Tab';
 
+sub name { 'filament' }
 sub title { 'Filament Settings' }
 
 sub build {
@@ -463,13 +489,12 @@ sub build {
             options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
         },
     ]);
-    
-    $self->load_presets('filament');
 }
 
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
 
+sub name { 'printer' }
 sub title { 'Printer Settings' }
 
 sub build {
@@ -521,22 +546,28 @@ sub build {
     ]);
     
     $self->{extruder_pages} = [];
-    $self->build_extruder_pages;
-    
-    $self->load_presets('printer');
+    $self->_build_extruder_pages;
 }
 
-sub extruder_options { qw(nozzle_diameter) }
+sub _extruder_options { qw(nozzle_diameter) }
 
-sub build_extruder_pages {
+sub config {
+    my $self = shift;
+    
+    my $config = $self->SUPER::config(@_);
+    
+    # remove all unused values
+    foreach my $opt_key ($self->_extruder_options) {
+        splice @{ $config->{$opt_key} }, $self->{extruders_count};
+    }
+    
+    return $config;
+}
+
+sub _build_extruder_pages {
     my $self = shift;
     
     foreach my $extruder_idx (0 .. $self->{extruders_count}-1) {
-        # set default values
-        for my $opt_key ($self->extruder_options) {
-            Slic3r::Config->get_raw($opt_key)->[$extruder_idx] //= Slic3r::Config->get_raw($opt_key)->[0]; #/
-        }
-        
         # build page if it doesn't exist
         $self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png', optgroups => [
             {
@@ -571,28 +602,22 @@ sub on_value_change {
             $page->{disabled} = 1;
         }
         
-        # delete values for unused extruders
-        for my $opt_key ($self->extruder_options) {
-            my $values = Slic3r::Config->get_raw($opt_key);
-            splice @$values, $self->{extruders_count} if $self->{extruders_count} <= $#$values;
-        }
-        
         # add extra pages
-        $self->build_extruder_pages;
+        $self->_build_extruder_pages;
         
         # update page list and select first page (General)
         $self->update_tree(0);
     }
 }
 
-# this gets executed after preset is loaded in repository and before GUI fields are updated
+# this gets executed after preset is loaded and before GUI fields are updated
 sub on_preset_loaded {
     my $self = shift;
     
     # update the extruders count field
     {
         # update the GUI field according to the number of nozzle diameters supplied
-        $self->set_value('extruders_count', scalar @{ Slic3r::Config->get_raw('nozzle_diameter') });
+        $self->set_value('extruders_count', scalar @{ $self->{config}->nozzle_diameter });
         
         # update extruder page list
         $self->on_value_change('extruders_count');
@@ -617,7 +642,11 @@ sub new {
     $self->SetSizer($self->{vsizer});
     
     if ($params{optgroups}) {
-        $self->append_optgroup(%$_, on_change => $params{on_change}) for @{$params{optgroups}};
+        $self->append_optgroup(
+            %$_,
+            config      => $parent->{config},
+            on_change   => $params{on_change},
+        ) for @{$params{optgroups}};
     }
     
     return $self;
@@ -627,7 +656,12 @@ sub append_optgroup {
     my $self = shift;
     my %params = @_;
     
-    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(parent => $self, label_width => 200, %params);
+    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+        parent      => $self,
+        config      => $self->GetParent->{config},
+        label_width => 200,
+        %params,
+    );
     $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 5);
     push @{$self->{optgroups}}, $optgroup;
 }

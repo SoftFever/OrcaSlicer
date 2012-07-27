@@ -8,12 +8,12 @@ use constant X => 0;
 use constant Y => 1;
 
 sub factor {
-    return $Slic3r::scaling_factor * 10;
+    return &Slic3r::SCALING_FACTOR * 10;
 }
 
 sub svg {
     my ($print) = @_;
-    $print ||= Slic3r::Print->new(x_length => 200 / $Slic3r::scaling_factor, y_length => 200 / $Slic3r::scaling_factor);
+    $print ||= Slic3r::Print->new(x_length => 200 / &Slic3r::SCALING_FACTOR, y_length => 200 / &Slic3r::SCALING_FACTOR);
     my $svg = SVG->new(width => 200 * 10, height => 200 * 10);
     
     my $marker_end = $svg->marker(

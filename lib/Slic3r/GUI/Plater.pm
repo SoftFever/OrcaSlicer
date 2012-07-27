@@ -26,10 +26,17 @@ my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
 my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 my $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
 
+use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
+    ? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
+    : 'Drag your objects here';
+
 sub new {
     my $class = shift;
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    $self->{config} = Slic3r::Config->new_from_defaults(qw(
+        bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance
+    ));
     
     $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, [300, 300], wxTAB_TRAVERSAL);
     $self->{canvas}->SetBackgroundColour(Wx::wxWHITE);
@@ -173,7 +180,7 @@ sub new {
         $self->on_export_failed;
     });
     
-    $self->update_bed_size;
+    $self->_update_bed_size;
     $self->{print} = Slic3r::Print->new;
     $self->{thumbnails} = [];       # polygons, each one aligned to 0,0
     $self->{scale} = [];
@@ -227,6 +234,11 @@ sub new {
         $self->SetSizer($sizer);
     }
     return $self;
+}
+
+sub skeinpanel {
+    my $self = shift;
+    return $self->GetParent->GetParent;
 }
 
 sub load {
@@ -428,7 +440,7 @@ sub split_object {
     my $current_object = $self->{print}->objects->[$obj_idx];
     my $current_copies_num = @{$self->{print}->copies->[$obj_idx]};
     my $mesh = $current_object->mesh->clone;
-    $mesh->scale($Slic3r::scaling_factor);
+    $mesh->scale(&Slic3r::SCALING_FACTOR);
     
     my @new_meshes = $mesh->split_mesh;
     if (@new_meshes == 1) {
@@ -517,10 +529,9 @@ sub export_gcode2 {
     } if $Slic3r::have_threads;
     
     eval {
-        # validate configuration
-        Slic3r::Config->validate;
-        
         my $print = $self->{print};
+        $print->config($self->skeinpanel->config);
+        $print->config->validate;
         $print->validate;
         
         {
@@ -607,7 +618,7 @@ sub export_stl {
             push @{$mesh->facets}, map [ $_->[0], map $vertices_offset + $_, @$_[-3..-1] ], @{$cloned_mesh->facets};
         }
     }
-    $mesh->scale($Slic3r::scaling_factor);
+    $mesh->scale(&Slic3r::SCALING_FACTOR);
     $mesh->align_to_origin;
     
     Slic3r::Format::STL->write_file($output_file, $mesh, 1);
@@ -657,14 +668,21 @@ sub recenter {
     ];
 }
 
-sub update_bed_size {
+sub on_config_change {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    $self->{config}->set($opt_key, $value) if exists $self->{config}{$opt_key};
+    $self->_update_bed_size;
+}
+
+sub _update_bed_size {
     my $self = shift;
     
     # supposing the preview canvas is square, calculate the scaling factor
     # to constrain print bed area inside preview
+    my $bed_size = $self->{config}->bed_size;
     my $canvas_side = $self->{canvas}->GetSize->GetWidth;
-    my $bed_largest_side = $Slic3r::bed_size->[X] > $Slic3r::bed_size->[Y]
-        ? $Slic3r::bed_size->[X] : $Slic3r::bed_size->[Y];
+    my $bed_largest_side = $bed_size->[X] > $bed_size->[Y] ? $bed_size->[X] : $bed_size->[Y];
     my $old_scaling_factor = $self->{scaling_factor};
     $self->{scaling_factor} = $canvas_side / $bed_largest_side;
     if (defined $old_scaling_factor && $self->{scaling_factor} != $old_scaling_factor) {
@@ -672,6 +690,7 @@ sub update_bed_size {
     }
 }
 
+# this is called on the canvas
 sub repaint {
     my ($self, $event) = @_;
     my $parent = $self->GetParent;
@@ -680,9 +699,6 @@ sub repaint {
     my $dc = Wx::PaintDC->new($self);
     my $size = $self->GetSize;
     my @size = ($size->GetWidth, $size->GetHeight);
-    
-    # calculate scaling factor for preview
-    $parent->update_bed_size;
     
     # draw grid
     $dc->SetPen($parent->{grid_pen});
@@ -701,8 +717,8 @@ sub repaint {
         $dc->DrawLine(0, $size[Y]/2, $size[X], $size[Y]/2);
         $dc->SetTextForeground(Wx::Colour->new(0,0,0));
         $dc->SetFont(Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel("X = " . $Slic3r::print_center->[X], Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
-        $dc->DrawRotatedText("Y = " . $Slic3r::print_center->[Y], 0, $size[Y]/2+15, 90);
+        $dc->DrawLabel("X = " . $parent->{config}->print_center->[X], Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
+        $dc->DrawRotatedText("Y = " . $parent->{config}->print_center->[Y], 0, $size[Y]/2+15, 90);
     }
     
     # draw frame
@@ -714,7 +730,7 @@ sub repaint {
     if (!@{$print->objects}) {
         $dc->SetTextForeground(Wx::Colour->new(150,50,50));
         $dc->SetFont(Wx::Font->new(14, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel("Drag your objects here", Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
+        $dc->DrawLabel(CANVAS_TEXT, Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     }
     
     # draw thumbnails
@@ -738,8 +754,8 @@ sub repaint {
             $dc->DrawPolygon($parent->_y($parent->{object_previews}->[-1][2]), 0, 0);
             
             # if sequential printing is enabled and we have more than one object
-            if ($Slic3r::complete_objects && (map @$_, @{$print->copies}) > 1) {
-                my $clearance = +($parent->{object_previews}->[-1][2]->offset($Slic3r::extruder_clearance_radius / 2 * $parent->{scaling_factor}, 1, JT_ROUND))[0];
+            if ($parent->{config}->complete_objects && (map @$_, @{$print->copies}) > 1) {
+                my $clearance = +($parent->{object_previews}->[-1][2]->offset($parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 1, JT_ROUND))[0];
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
                 $dc->DrawPolygon($parent->_y($clearance), 0, 0);
@@ -748,9 +764,9 @@ sub repaint {
     }
     
     # draw skirt
-    if (@{$parent->{object_previews}} && $Slic3r::skirts) {
+    if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
         my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->[2]}, @{$parent->{object_previews}} ]));
-        $convex_hull = +($convex_hull->offset($Slic3r::skirt_distance * $parent->{scaling_factor}, 1, JT_ROUND))[0];
+        $convex_hull = +($convex_hull->offset($parent->{config}->skirt_distance * $parent->{scaling_factor}, 1, JT_ROUND))[0];
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
         $dc->DrawPolygon($parent->_y($convex_hull), 0, 0) if $convex_hull;
@@ -853,7 +869,7 @@ sub selected_object_idx {
 
 sub statusbar {
     my $self = shift;
-    return $self->GetParent->GetParent->GetParent->{statusbar};
+    return $self->skeinpanel->GetParent->{statusbar};
 }
 
 sub to_pixel {

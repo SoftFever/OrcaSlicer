@@ -72,7 +72,7 @@ sub safety_offset {
 sub offset {
     my $self = shift;
     my ($distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= $Slic3r::scaling_factor * 1000000;
+    $scale      ||= &Slic3r::SCALING_FACTOR * 1000000;
     $joinType   = JT_MITER if !defined $joinType;
     $miterLimit ||= 2;
     

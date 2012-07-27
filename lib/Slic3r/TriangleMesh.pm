@@ -401,9 +401,9 @@ sub slice_facet {
     }
     
     # calculate the layer extents
-    my $min_layer = int((unscale($min_z) - ($Slic3r::_first_layer_height + $Slic3r::layer_height / 2)) / $Slic3r::layer_height) - 2;
+    my $min_layer = int((unscale($min_z) - ($Slic3r::Config->get_value('first_layer_height') + $Slic3r::Config->layer_height / 2)) / $Slic3r::Config->layer_height) - 2;
     $min_layer = 0 if $min_layer < 0;
-    my $max_layer = int((unscale($max_z) - ($Slic3r::_first_layer_height + $Slic3r::layer_height / 2)) / $Slic3r::layer_height) + 2;
+    my $max_layer = int((unscale($max_z) - ($Slic3r::Config->get_value('first_layer_height') + $Slic3r::Config->layer_height / 2)) / $Slic3r::Config->layer_height) + 2;
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     my $lines = {};  # layer_id => [ lines ]
