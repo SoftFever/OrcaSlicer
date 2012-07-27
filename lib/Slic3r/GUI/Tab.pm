@@ -229,20 +229,21 @@ sub set_dirty {
     my $self = shift;
     my ($dirty) = @_;
     
-    my $i = $self->{dirty} // $self->{presets_choice}->GetSelection; #/
+    my $selection = $self->{presets_choice}->GetSelection;
+    my $i = $self->{dirty} // $selection; #/
     my $text = $self->{presets_choice}->GetString($i);
     
     if ($dirty) {
         $self->{dirty} = $i;
         if ($text !~ / \(modified\)$/) {
             $self->{presets_choice}->SetString($i, "$text (modified)");
-            $self->{presets_choice}->SetSelection($i);  # wxMSW needs this after every SetString()
+            $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
         }
     } else {
         $self->{dirty} = undef;
         $text =~ s/ \(modified\)$//;
         $self->{presets_choice}->SetString($i, $text);
-        $self->{presets_choice}->SetSelection($i);  # wxMSW needs this after every SetString()
+        $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
     }
     $self->sync_presets;
 }
