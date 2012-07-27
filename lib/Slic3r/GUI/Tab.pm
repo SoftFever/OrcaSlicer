@@ -142,7 +142,12 @@ sub on_select_preset {
     my $self = shift;
     
     if (defined $self->{dirty}) {
-        # TODO: prompt user?
+        my $confirm = Wx::MessageDialog->new($self, 'You have unsaved changes. Discard changes and continue anyway?',
+                                             'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+        if ($confirm->ShowModal == wxID_NO) {
+            $self->{presets_choice}->SetSelection($self->{dirty});
+            return;
+        }
         $self->set_dirty(0);
     }
     
