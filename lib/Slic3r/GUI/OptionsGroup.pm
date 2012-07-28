@@ -209,6 +209,8 @@ Slic3r::GUI::ConfigOptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containi
 
 =cut
 
+use List::Util qw(first);
+
 has 'config' => (is => 'ro', required => 1);
 
 sub _trigger_options {
@@ -230,6 +232,13 @@ sub _trigger_options {
         }
         $opt;
     } @{$self->options};
+}
+
+sub _option {
+    my $self = shift;
+    my ($opt_key) = @_;
+    
+    return first { $_->{opt_key} =~ /^\Q$opt_key\E(#.+)?$/ } @{$self->options};
 }
 
 sub set_value {

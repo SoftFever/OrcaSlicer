@@ -194,7 +194,7 @@ sub on_select_preset {
     $self->reload_values;
     $self->set_dirty(0);
     $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
-    Slic3r::GUI->save_settings("$Slic3r::GUI::datadir/slic3r.ini");
+    Slic3r::GUI->save_settings;
 }
 
 sub add_options_page {
