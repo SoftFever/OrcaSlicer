@@ -15,9 +15,8 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, "Configuration $wizard");
 
-    # Start from sane defaults
-    $self->{old} = Slic3r::Config->current;
-    Slic3r::Config->load_hash($Slic3r::Defaults, undef, 1);
+    # initialize an empty repository
+    $self->{config} = Slic3r::Config->new;
 
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
@@ -47,108 +46,34 @@ sub add_page {
 
 sub run {
     my $self = shift;
-
-    my $modified;
+    
     if (Wx::Wizard::RunWizard($self, $self->{pages}[0])) {
-        $_->apply for @{$self->{pages}};
-        $modified = 1;
-    } else {
-        Slic3r::Config->load_hash($self->{old}, undef, 1);
-        $modified = 0;
-    }
-
-    $self->Destroy;
-
-    return $modified;
-}
-
-package Slic3r::GUI::ConfigWizard::Option;
-use Wx qw(:combobox :misc :sizer :textctrl);
-use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT);
-use base 'Wx::StaticBoxSizer';
-
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $box = Wx::StaticBox->new($parent, -1, '');
-    my $self = $class->SUPER::new($box, wxHORIZONTAL);
-
-    my $label_width = 200;
-
-    my $opt_key = $params{option};
-    my $index;
-    $opt_key =~ s/#(\d+)$// and $index = $1;
-    my $opt = $Slic3r::Config::Options->{$opt_key};
-
-    my $callback = $params{callback} || sub {};
-
-    # label
-    my $label = Wx::StaticText->new($parent, -1, "$opt->{label}:", wxDefaultPosition, wxDefaultSize);
-    $label->Wrap($label_width);
-    $self->Add($label, 1, wxEXPAND);
-
-    # input field(s) and unit
-    my $field;
-    if ($opt->{type} =~ /^(i|f|s|s@)$/) {
-        my $style = $opt->{multiline} ? wxTE_MULTILINE : 0;
-        my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
-
-        # if it's an array type but no index was specified, use the serialized version
-        my $get_m = $opt->{type} =~ /\@$/ && !defined $index
-            ? 'serialize'
-            : 'get_raw';
-
-        my $get = sub {
-            my $val = Slic3r::Config->$get_m($opt_key);
-            if (defined $index) {
-                $val = $val->[$index]; #/
-            }
-            return $val;
-        };
-        if ($opt->{type} eq 'i') {
-            my $value = Slic3r::Config->$get($opt_key);
-            $field = Wx::SpinCtrl->new($parent, -1, $value, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $value);
-            EVT_SPINCTRL($parent, $field, sub { $callback->($opt_key, $field->GetValue) });
-        } else {
-            $field = Wx::TextCtrl->new($parent, -1, Slic3r::Config->$get($opt_key), wxDefaultPosition, $size, $style);
-            EVT_TEXT($parent, $field, sub { $callback->($opt_key, $field->GetValue) });
+        
+        # it would be cleaner to have these defined inside each page class,
+        # in some event getting called before leaving the page
+        {
+            # set print_center to centre of bed_size
+            my $bed_size = $self->{config}->bed_size;
+            $self->{config}->set('print_center', [$bed_size->[0]/2, $bed_size->[1]/2]);
+            
+            # set first_layer_height + layer_height based on nozzle_diameter
+            my $nozzle = $self->{config}->nozzle_diameter;
+            $self->{config}->set('first_layer_height', $nozzle->[0]);
+            $self->{config}->set('layer_height', $nozzle->[0] - 0.1);
+            
+            # set first_layer_temperature to temperature + 5
+            $self->{config}->set('first_layer_temperature', [$self->{config}->temperature->[0] + 5]);
+            
+            # set first_layer_bed_temperature to temperature + 5
+            $self->{config}->set('first_layer_bed_temperature', $self->{config}->bed_temperature + 5);
         }
-    } elsif ($opt->{type} eq 'bool') {
-        $field = Wx::CheckBox->new($parent, -1, '');
-        $field->SetValue(Slic3r::Config->get_raw($opt_key));
-        EVT_CHECKBOX($parent, $field, sub { $callback->($opt_key, $field->GetValue) });
-    } elsif ($opt->{type} eq 'point') {
-        $field = Wx::BoxSizer->new(wxHORIZONTAL);
-        my $field_size = Wx::Size->new(40, -1);
-        my $value = Slic3r::Config->get_raw($opt_key);
-        my @items = (
-            Wx::StaticText->new($parent, -1, 'x:'),
-            my $x_field = Wx::TextCtrl->new($parent, -1, $value->[0], wxDefaultPosition, $field_size),
-            Wx::StaticText->new($parent, -1, '  y:'),
-            my $y_field = Wx::TextCtrl->new($parent, -1, $value->[1], wxDefaultPosition, $field_size),
-        );
-        $field->Add($_) for @items;
-        EVT_TEXT($parent, $x_field, sub { $callback->($opt_key, [$x_field->GetValue, $y_field->GetValue]) });
-        EVT_TEXT($parent, $y_field, sub { $callback->($opt_key, [$x_field->GetValue, $y_field->GetValue]) });
-    } elsif ($opt->{type} eq 'select') {
-        $field = Wx::ComboBox->new($parent, -1, '', wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
-        my $value = Slic3r::Config->get_raw($opt_key);
-        $field->SetSelection(grep $opt->{values}[$_] eq $value, 0..$#{$opt->{values}});
-        EVT_COMBOBOX($parent, $field, sub { $callback->($opt_key, $opt->{values}[$field->GetSelection]) });
+        
+        $self->Destroy;
+        return $self->{config};
     } else {
-        die 'Unsupported option type: ' . $opt->{type};
+        $self->Destroy;
+        return undef;
     }
-    if ($opt->{sidetext}) {
-        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $sizer->Add($field);
-        my $sidetext = Wx::StaticText->new($parent, -1, $opt->{sidetext}, wxDefaultPosition, wxDefaultSize);
-        $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
-        $self->Add($sizer);
-    } else {
-        $self->Add($field, 0, $opt->{full_width} ? wxEXPAND : 0);
-    }
-
-    return $self;
 }
 
 package Slic3r::GUI::ConfigWizard::Index;
@@ -273,19 +198,21 @@ sub append_text {
 
 sub append_option {
     my $self = shift;
-    my ($opt_key) = @_;
-
-    my $option = Slic3r::GUI::ConfigWizard::Option->new($self, option => $opt_key,
-                                                        callback => sub {
-                                                            my ($opt_key, $value) = @_;
-                                                            $self->{options}->{$opt_key} = $value;
-                                                        });
-    $self->{vsizer}->Add($option, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
-}
-
-sub apply {
-    my $self = shift;
-    Slic3r::Config->set($_, $self->{options}->{$_}) foreach (keys %{$self->{options}});
+    my ($full_key) = @_;
+    
+    # populate repository with the factory default
+    my $opt_key = $full_key;
+    $opt_key =~ s/#.+//;
+    $self->GetParent->{config}->apply(Slic3r::Config->new_from_defaults($opt_key));
+    
+    # draw the control
+    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+        parent      => $self,
+        title       => '',
+        config      => $self->GetParent->{config},
+        options     => [$full_key],
+    );
+    $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 }
 
 sub set_previous_page {
@@ -367,15 +294,6 @@ sub new {
     return $self;
 }
 
-sub apply {
-    my $self = shift;
-    $self->SUPER::apply;
-
-    # set print_center to centre of bed_size
-    my $bed_size = $Slic3r::Config->bed_size;
-    Slic3r::Config->set('print_center', [$bed_size->[0]/2, $bed_size->[1]/2]);
-}
-
 package Slic3r::GUI::ConfigWizard::Page::Nozzle;
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
@@ -388,16 +306,6 @@ sub new {
     $self->append_option('nozzle_diameter#0');
 
     return $self;
-}
-
-sub apply {
-    my $self = shift;
-    $self->SUPER::apply;
-
-    # set first_layer_height + layer_height based on nozzle_diameter
-    my $nozzle = $Slic3r::Config->nozzle_diameter;
-    Slic3r::Config->set('first_layer_height', $nozzle->[0]);
-    Slic3r::Config->set('layer_height', $nozzle->[0] - 0.1);
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Filament;
@@ -430,15 +338,6 @@ sub new {
     return $self;
 }
 
-sub apply {
-    my $self = shift;
-    $self->SUPER::apply;
-
-    # set first_layer_temperature to temperature + 5
-    my $temperature = $Slic3r::Config->temperature;
-    Slic3r::Config->set('first_layer_temperature', [$temperature->[0] + 5]);
-}
-
 package Slic3r::GUI::ConfigWizard::Page::BedTemperature;
 use base 'Slic3r::GUI::ConfigWizard::Page';
 
@@ -452,15 +351,6 @@ sub new {
     $self->append_option('bed_temperature');
 
     return $self;
-}
-
-sub apply {
-    my $self = shift;
-    $self->SUPER::apply;
-
-    # set first_layer_bed_temperature to temperature + 5
-    my $temperature = $Slic3r::Config->bed_temperature;
-    Slic3r::Config->set('first_layer_bed_temperature', $temperature + 5);
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Finished;

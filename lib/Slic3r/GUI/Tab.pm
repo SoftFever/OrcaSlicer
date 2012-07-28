@@ -152,6 +152,11 @@ sub on_preset_loaded {}
 sub hidden_options {}
 sub config { $_[0]->{config}->clone }
 
+sub select_default_preset {
+    my $self = shift;
+    $self->{presets_choice}->SetSelection(0);
+}
+
 sub on_select_preset {
     my $self = shift;
     
