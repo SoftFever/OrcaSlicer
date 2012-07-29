@@ -8,7 +8,7 @@ use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND);
 use Time::HiRes qw(gettimeofday tv_interval);
 
-has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults });
+has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'copies'                 => (is => 'rw', default => sub {[]});  # obj_idx => [copies...]
 has 'total_extrusion_length' => (is => 'rw');
@@ -29,6 +29,13 @@ has 'brim' => (
 );
 
 sub BUILD {
+    my $self = shift;
+    
+    # call this manually because the 'default' coderef doesn't trigger the trigger
+    $self->_trigger_config;
+}
+
+sub _trigger_config {
     my $self = shift;
     
     # store config in a handy place
