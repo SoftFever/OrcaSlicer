@@ -154,7 +154,12 @@ sub do_slice {
             $message .= sprintf " %d minutes and", $minutes if $minutes;
             $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
         }
-        $message .= ".";
+        $message .= ".\n";
+        
+        # Filament required
+        $message .= sprintf "Filament required: %.1fmm (%.1fcm3).",
+            $print->total_extrusion_length, $print->total_extrusion_volume;
+
         &Wx::wxTheApp->notify($message);
         Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
