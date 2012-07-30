@@ -244,7 +244,7 @@ sub skeinpanel {
 sub load {
     my $self = shift;
     
-    my $dir = $Slic3r::GUI::SkeinPanel::last_skein_dir || $Slic3r::GUI::SkeinPanel::last_config_dir || "";
+    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
     my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
@@ -259,7 +259,8 @@ sub load_file {
     my $self = shift;
     my ($input_file) = @_;
     
-    $Slic3r::GUI::SkeinPanel::last_skein_dir = dirname($input_file);
+    $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
+    Slic3r::GUI->save_settings;
     
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;

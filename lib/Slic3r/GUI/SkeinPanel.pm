@@ -9,8 +9,6 @@ use Wx qw(:dialog :filedialog :font :icon :id :misc :notebook :panel :sizer);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Panel';
 
-our $last_skein_dir;
-our $last_config_dir;
 our $last_input_file;
 our $last_output_file;
 our $last_config;
@@ -70,7 +68,7 @@ sub do_slice {
         }
         
         # select input file
-        my $dir = $last_skein_dir || $last_config_dir || "";
+        my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
 
         my $input_file;
         if (!$params{reslice}) {
@@ -96,7 +94,8 @@ sub do_slice {
             $input_file = $last_input_file;
         }
         my $input_file_basename = basename($input_file);
-        $last_skein_dir = dirname($input_file);
+        $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
+        Slic3r::GUI->save_settings;
         
         my $print = Slic3r::Print->new(config => $config);
         $print->add_object_from_file($input_file);
@@ -177,13 +176,14 @@ sub save_config {
     };
     Slic3r::GUI::catch_error($self) and return;
     
-    my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
+    my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
         $ini_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
-        $last_config_dir = dirname($file);
+        $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
+        Slic3r::GUI->save_settings;
         $last_config = $file;
         $config->save($file);
     }
@@ -196,14 +196,15 @@ sub load_config_file {
     
     if (!$file) {
         return unless $self->check_unsaved_changes;
-        my $dir = $last_config ? dirname($last_config) : $last_config_dir || $last_skein_dir || "";
+        my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
                 $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
         ($file) = $dlg->GetPaths;
         $dlg->Destroy;
     }
-    $last_config_dir = dirname($file);
+    $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
+    Slic3r::GUI->save_settings;
     $last_config = $file;
     $_->load_external_config($file) for values %{$self->{options_tabs}};
 }
