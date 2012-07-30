@@ -183,7 +183,7 @@ sub _write_binary {
     foreach my $facet (@{$mesh->facets}) {
         print $fh pack '(f<3)4S',
             @{_facet_normal($mesh, $facet)},
-            (map @{$mesh->vertices->[$_]}, @$facet[1,2,3]),
+            (map @{$mesh->vertices->[$_]}, @$facet[-3..-1]),
             0;
     }
 }
@@ -195,7 +195,7 @@ sub _write_ascii {
     foreach my $facet (@{$mesh->facets}) {
         printf $fh "   facet normal %f %f %f\n", @{_facet_normal($mesh, $facet)};
         printf $fh "      outer loop\n";
-        printf $fh "         vertex %f %f %f\n", @{$mesh->vertices->[$_]} for @$facet[1,2,3];
+        printf $fh "         vertex %f %f %f\n", @{$mesh->vertices->[$_]} for @$facet[-3..-1];
         printf $fh "      endloop\n";
         printf $fh "   endfacet\n";
     }
@@ -204,7 +204,7 @@ sub _write_ascii {
 
 sub _facet_normal {
     my ($mesh, $facet) = @_;
-    return triangle_normal(map $mesh->vertices->[$_], @$facet[1,2,3]);
+    return triangle_normal(map $mesh->vertices->[$_], @$facet[-3..-1]);
 }
 
 1;
