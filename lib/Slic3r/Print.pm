@@ -229,7 +229,7 @@ sub arrange_objects {
         : $Slic3r::Config->duplicate_distance;
     
     my @positions = Slic3r::Geometry::arrange
-        ($total_parts, $partx, $party, (map scale $_, @$Slic3r::Config->bed_size), scale $distance);
+        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $distance);
     
     for my $obj_idx (0..$#{$self->objects}) {
         @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};
