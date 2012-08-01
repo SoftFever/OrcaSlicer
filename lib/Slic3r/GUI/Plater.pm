@@ -469,6 +469,9 @@ sub export_gcode {
         return;
     }
     
+    # set this before spawning the thread because ->config needs GetParent and it's not available there
+    $self->{print}->config($self->skeinpanel->config);
+    
     # select output file
     $self->{output_file} = $main::opt{output};
     {
@@ -484,7 +487,6 @@ sub export_gcode {
     }
     
     $self->statusbar->StartBusy;
-    $self->{print}->config($self->skeinpanel->config);  # set this before spawning the thread because ->config needs GetParent and it's not available there
     if ($Slic3r::have_threads) {
         $self->{export_thread} = threads->create(sub {
             $self->export_gcode2(
