@@ -11,7 +11,7 @@ use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::Tab;
 
-use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings);
+use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
@@ -201,7 +201,9 @@ sub notify {
     my ($message) = @_;
 
     my $frame = $self->GetTopWindow;
-    $frame->RequestUserAttention unless ($frame->IsActive);
+    # try harder to attract user attention on OS X
+    $frame->RequestUserAttention(&Wx::wxMAC ? wxUSER_ATTENTION_ERROR : wxUSER_ATTENTION_INFO)
+        unless ($frame->IsActive);
 
     $self->{notifier}->notify($message);
 }
