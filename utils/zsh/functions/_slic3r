@@ -11,10 +11,10 @@ _arguments -S \
     '(- *)--version[output the version of Slic3r and exit]' \
     '--save[save configuration to file]:config output file:_files -g "*.(#i)ini(-.)"' \
     '*--load[load configuration from file]:config input file:_files -g "*.(#i)ini(-.)"' \
-    '(--output -o --output-filename-format)'{--output,-o}'[specify output file]:output file:_files -g "*.(#i)(gcode|svg)(-.)"' \
+    '(--output -o)'{--output,-o}'[specify output file]:output file:_files -g "*.(#i)(gcode|svg)(-.)"' \
     '(--threads -j)'{--threads,-j}'[specify number of threads to use]:number of threads' \
     \
-    '(--output -o)--output-filename-format[specify output filename format]:output filename format' \
+    '--output-filename-format[specify output filename format]:output filename format' \
     '*--post-process[specify post-processing script]:post-processing script file:_files' \
     '--export-svg[export SVG containing slices instead of G-code]' \
     '(--merge -m)'{--merge,-m}'[merge multiple input files into a single print]' \

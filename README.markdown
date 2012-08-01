@@ -87,8 +87,8 @@ The author of the Silk icon set is Mark James.
         --save <file>       Save configuration to the specified file
         --load <file>       Load configuration from the specified file. It can be used 
                             more than once to load options from multiple files.
-        -o, --output <file> File to output gcode to (by default, the file will be saved
-                            into the same directory as the input file using the 
+        -o, --output <file> File or directory to output gcode to (by default, the file will be
+                            saved into the same directory as the input file using the
                             --output-filename-format to generate the filename)
         -j, --threads <num> Number of threads to use (1+, default: 2)
     

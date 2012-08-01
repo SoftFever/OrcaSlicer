@@ -775,6 +775,10 @@ sub expanded_output_filepath {
     my $self = shift;
     my ($path) = @_;
     
+    # if output path is an existing directory, we take that and append
+    # the specified filename format
+    $path = File::Spec->join($path, $Slic3r::Config->output_filename_format) if ($path && -d $path);
+
     # if no explicit output file was defined, we take the input
     # file directory and append the specified filename format
     my $input_file = $self->objects->[0]->input_file;
