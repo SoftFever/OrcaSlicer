@@ -13,7 +13,7 @@ use List::Util qw(first);
 use Slic3r;
 $|++;
 
-my %opt = ();
+our %opt = ();
 my %cli_options = ();
 {
     my %options = (
