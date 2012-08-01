@@ -9,6 +9,7 @@ my $build = Module::Build->new(
     requires        => {
         'Boost::Geometry::Utils'    => '0',
         'File::Basename'            => '0',
+        'File::Spec'                => '0',
         'Getopt::Long'              => '0',
         'Math::Clipper'             => '1.09',
         'Math::ConvexHull'          => '1.0.4',
