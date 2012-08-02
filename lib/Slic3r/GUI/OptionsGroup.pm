@@ -145,7 +145,8 @@ sub BUILD {
         }
     }
     
-    $self->sizer->Add($grid_sizer, 0, wxEXPAND);
+    # TODO: border size may be related to wxWidgets 2.8.x vs. 2.9.x instead of wxMAC specific
+    $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
 }
 
 sub _option {
