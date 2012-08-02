@@ -181,7 +181,7 @@ sub new {
     # contents
     $self->{width} = 400;
     $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($self->{vsizer}, 1, wxEXPAND, 0);
+    $sizer->Add($self->{vsizer}, 1);
 
     return $self;
 }
