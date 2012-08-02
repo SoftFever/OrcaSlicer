@@ -15,20 +15,20 @@ use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :topleve
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
 
-use constant MI_LOAD_CONF     =>  1;
-use constant MI_EXPORT_CONF   =>  2;
-use constant MI_QUICK_SLICE   =>  3;
-use constant MI_REPEAT_QUICK  =>  4;
-use constant MI_QUICK_SAVE_AS =>  5;
-use constant MI_SLICE_SVG     =>  6;
+use constant MI_LOAD_CONF     => &Wx::NewId;
+use constant MI_EXPORT_CONF   => &Wx::NewId;
+use constant MI_QUICK_SLICE   => &Wx::NewId;
+use constant MI_REPEAT_QUICK  => &Wx::NewId;
+use constant MI_QUICK_SAVE_AS => &Wx::NewId;
+use constant MI_SLICE_SVG     => &Wx::NewId;
 
-use constant MI_TAB_PLATER    =>  7;
-use constant MI_TAB_PRINT     =>  8;
-use constant MI_TAB_FILAMENT  =>  9;
-use constant MI_TAB_PRINTER   => 10;
+use constant MI_TAB_PLATER    => &Wx::NewId;
+use constant MI_TAB_PRINT     => &Wx::NewId;
+use constant MI_TAB_FILAMENT  => &Wx::NewId;
+use constant MI_TAB_PRINTER   => &Wx::NewId;
 
-use constant MI_CONF_WIZARD   => 11;
-use constant MI_WEBSITE       => 12;
+use constant MI_CONF_WIZARD   => &Wx::NewId;
+use constant MI_WEBSITE       => &Wx::NewId;
 
 our $datadir;
 our $Settings;

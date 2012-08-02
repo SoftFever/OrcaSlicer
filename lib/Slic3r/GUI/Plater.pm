@@ -12,13 +12,13 @@ use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :ico
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL);
 use base 'Wx::Panel';
 
-use constant TB_MORE    => 1;
-use constant TB_LESS    => 2;
-use constant TB_45CW    => 3;
-use constant TB_45CCW   => 4;
-use constant TB_ROTATE  => 5;
-use constant TB_SCALE   => 6;
-use constant TB_SPLIT   => 7;
+use constant TB_MORE    => &Wx::NewId;
+use constant TB_LESS    => &Wx::NewId;
+use constant TB_45CW    => &Wx::NewId;
+use constant TB_45CCW   => &Wx::NewId;
+use constant TB_ROTATE  => &Wx::NewId;
+use constant TB_SCALE   => &Wx::NewId;
+use constant TB_SPLIT   => &Wx::NewId;
 
 my $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
 my $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
