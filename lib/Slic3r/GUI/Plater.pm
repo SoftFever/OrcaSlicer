@@ -866,7 +866,8 @@ sub selection_changed {
         for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split);
     
     if ($self->{htoolbar}) {
-        $self->{htoolbar}->EnableTool($_, $have_sel) for 1..$self->{htoolbar}->GetToolsCount;
+        $self->{htoolbar}->EnableTool($_, $have_sel)
+            for (TB_MORE, TB_LESS, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
     }
 }
 
