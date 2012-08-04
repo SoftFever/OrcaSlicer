@@ -42,7 +42,7 @@ sub OnInit {
     my $self = shift;
     
     $self->SetAppName('Slic3r');
-    Slic3r::debugf "wxWidgets version %s\n", &Wx::wxVERSION_STRING;
+    Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     
