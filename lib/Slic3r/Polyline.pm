@@ -85,6 +85,12 @@ sub length {
     return $length;
 }
 
+# this only applies to polylines
+sub grow {
+    my $self = shift;
+    return Slic3r::Polygon->new(@$self, CORE::reverse @$self[1..-2])->offset(@_);
+}
+
 sub nearest_point_to {
     my $self = shift;
     my ($point) = @_;

@@ -511,7 +511,12 @@ sub make_brim {
     
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
-        my @object_islands = map $_->contour, @{ $self->objects->[$obj_idx]->layers->[0]->slices };
+        my $layer0 = $self->objects->[$obj_idx]->layers->[0];
+        my @object_islands = (
+            (map $_->contour, @{$layer0->slices}),
+            (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow } @{$layer0->thin_walls}),
+            (map $_->unpack->polyline->grow, map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
+        );
         foreach my $copy (@{$self->copies->[$obj_idx]}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
         }
