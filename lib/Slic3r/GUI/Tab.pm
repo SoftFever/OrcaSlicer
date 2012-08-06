@@ -15,7 +15,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     $self->{options} = []; # array of option names handled by this tab
     
-    $self->{sync_presets_with} = $params{sync_presets_with};
+    $self->{$_} = $params{$_} for qw(sync_presets_with on_value_change);
     EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
         $self->{presets_choice}->SetSelection($self->{sync_presets_with}->GetSelection);
         $self->on_select_preset;

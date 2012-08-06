@@ -26,6 +26,7 @@ my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
 my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 my $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
 
+use constant CANVAS_SIZE => [300,300];
 use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
     ? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
     : 'Drag your objects here';
@@ -38,7 +39,7 @@ sub new {
         bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance
     ));
     
-    $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, [300, 300], wxTAB_TRAVERSAL);
+    $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, CANVAS_SIZE, wxTAB_TRAVERSAL);
     $self->{canvas}->SetBackgroundColour(Wx::wxWHITE);
     EVT_PAINT($self->{canvas}, \&repaint);
     EVT_MOUSE_EVENTS($self->{canvas}, \&mouse_event);
@@ -679,8 +680,10 @@ sub recenter {
 sub on_config_change {
     my $self = shift;
     my ($opt_key, $value) = @_;
-    $self->{config}->set($opt_key, $value) if exists $self->{config}{$opt_key};
-    $self->_update_bed_size;
+    if (exists $self->{config}{$opt_key}) {
+        $self->{config}->set($opt_key, $value);
+        $self->_update_bed_size if $opt_key eq 'bed_size';
+    }
 }
 
 sub _update_bed_size {
@@ -689,7 +692,7 @@ sub _update_bed_size {
     # supposing the preview canvas is square, calculate the scaling factor
     # to constrain print bed area inside preview
     my $bed_size = $self->{config}->bed_size;
-    my $canvas_side = $self->{canvas}->GetSize->GetWidth;
+    my $canvas_side = CANVAS_SIZE->[X];  # when the canvas is not rendered yet, its GetSize() method returns 0,0
     my $bed_largest_side = $bed_size->[X] > $bed_size->[Y] ? $bed_size->[X] : $bed_size->[Y];
     my $old_scaling_factor = $self->{scaling_factor};
     $self->{scaling_factor} = $canvas_side / $bed_largest_side;

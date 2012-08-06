@@ -20,18 +20,16 @@ sub new {
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater");
-    $self->{options_tabs} = {
-        print       => Slic3r::GUI::Tab::Print->new     ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{print}),
-        filament    => Slic3r::GUI::Tab::Filament->new  ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{filament}),
-        printer     => Slic3r::GUI::Tab::Printer->new   ($self->{tabpanel}, sync_presets_with => $self->{plater}{preset_choosers}{printer}),
-    };
+    $self->{options_tabs} = {};
     
-    # propagate config change events to the plater
-    $_->{on_value_change} = sub { $self->{plater}->on_config_change(@_) } for values %{$self->{options_tabs}};
-    
-    $self->{tabpanel}->AddPage($self->{options_tabs}{print}, $self->{options_tabs}{print}->title);
-    $self->{tabpanel}->AddPage($self->{options_tabs}{filament}, $self->{options_tabs}{filament}->title);
-    $self->{tabpanel}->AddPage($self->{options_tabs}{printer}, $self->{options_tabs}{printer}->title);
+    for my $tab_name (qw(print filament printer)) {
+        $self->{options_tabs}{$tab_name} = ("Slic3r::GUI::Tab::" . ucfirst $tab_name)->new(
+            $self->{tabpanel},
+            sync_presets_with   => $self->{plater}{preset_choosers}{$tab_name},
+            on_value_change     => sub { $self->{plater}->on_config_change(@_) }, # propagate config change events to the plater
+        );
+        $self->{tabpanel}->AddPage($self->{options_tabs}{$tab_name}, $self->{options_tabs}{$tab_name}->title);
+    }
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($self->{tabpanel}, 1, wxEXPAND);
