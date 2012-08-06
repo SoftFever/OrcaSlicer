@@ -5,7 +5,7 @@ use File::Basename qw(basename fileparse);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
-use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND);
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
@@ -520,10 +520,11 @@ sub make_brim {
     my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
     my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $flow->width;
     for my $i (reverse 1 .. $num_loops) {
+        # JT_SQUARE ensures no vertex is outside the given offset distance
         push @{$self->brim}, Slic3r::ExtrusionLoop->pack(
             polygon => Slic3r::Polygon->new($_),
             role    => EXTR_ROLE_SKIRT,
-        ) for @{Math::Clipper::offset(\@islands, $i * scale $flow->spacing)};
+        ) for @{Math::Clipper::offset(\@islands, $i * scale $flow->spacing, 100, JT_SQUARE)};
     }
 }
 
@@ -619,7 +620,7 @@ sub write_gcode {
             $gcodegen->shift_y($shift[Y]);
             $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
             # skip skirt if we have a large brim
-            if ($layer_id < $Slic3r::Config->skirt_height && ($layer_id != 0 || $Slic3r::Config->skirt_distance + ($Slic3r::Config->skirts * $Slic3r::flow->width) > $Slic3r::Config->brim_width)) {
+            if ($layer_id < $Slic3r::Config->skirt_height && ($layer_id != 0 || $Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::flow->spacing) > $Slic3r::Config->brim_width)) {
                 $gcode .= $gcodegen->extrude_loop($_, 'skirt') for @{$self->skirt};
             }
             $skirt_done++;
