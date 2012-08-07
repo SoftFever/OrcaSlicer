@@ -393,7 +393,11 @@ sub build {
     $self->add_options_page('Infill', 'shading.png', optgroups => [
         {
             title => 'Infill',
-            options => [qw(fill_density fill_angle fill_pattern solid_fill_pattern infill_every_layers)],
+            options => [qw(fill_density fill_pattern solid_fill_pattern)],
+        },
+        {
+            title => 'Advanced',
+            options => [qw(infill_every_layers fill_angle)],
         },
     ]);
     
@@ -471,10 +475,10 @@ sub build {
             title => 'Flow',
             options => [qw(bridge_flow_ratio)],
         },
-        {
+        $Slic3r::have_threads ? {
             title => 'Other',
-            options => [($Slic3r::have_threads ? qw(threads) : ())],
-        },
+            options => [qw(threads)],
+        } : (),
     ]);
 }
 
