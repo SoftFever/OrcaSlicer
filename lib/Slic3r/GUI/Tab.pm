@@ -14,12 +14,7 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     $self->{options} = []; # array of option names handled by this tab
-    
-    $self->{$_} = $params{$_} for qw(sync_presets_with on_value_change);
-    EVT_CHOICE($parent, $self->{sync_presets_with}, sub {
-        $self->{presets_choice}->SetSelection($self->{sync_presets_with}->GetSelection);
-        $self->on_select_preset;
-    });
+    $self->{$_} = $params{$_} for qw(plater on_value_change);
     
     # horizontal sizer
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -142,6 +137,11 @@ sub current_preset {
     return $self->{presets}[ $self->{presets_choice}->GetSelection ];
 }
 
+sub get_preset {
+    my $self = shift;
+    return $self->{presets}[ $_[0] ];
+}
+
 # propagate event to the parent
 sub on_value_change {
     my $self = shift;
@@ -155,6 +155,12 @@ sub config { $_[0]->{config}->clone }
 sub select_default_preset {
     my $self = shift;
     $self->{presets_choice}->SetSelection(0);
+}
+
+sub select_preset {
+    my $self = shift;
+    $self->{presets_choice}->SetSelection($_[0]);
+    $self->on_select_preset;
 }
 
 sub on_select_preset {
@@ -172,32 +178,42 @@ sub on_select_preset {
     }
     
     my $preset = $self->current_preset;
-    if ($preset->{default}) {
-        # default settings: disable the delete button
-        $self->{config}->apply(Slic3r::Config->new_from_defaults(@{$self->{options}}));
-        $self->{btn_delete_preset}->Disable;
-    } else {
-        if (!-e $preset->{file}) {
-            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
-            return;
+    my $preset_config = $self->get_preset_config($preset);
+    eval {
+        local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
+        foreach my $opt_key (@{$self->{options}}) {
+            $self->{config}->set($opt_key, $preset_config->get($opt_key));
         }
-        eval {
-            local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-            my $external_config = Slic3r::Config->load($preset->{file});
-            foreach my $opt_key (@{$self->{options}}) {
-                $self->{config}->set($opt_key, $external_config->get($opt_key));
-            }
-        };
-        Slic3r::GUI::catch_error($self);
-        $preset->{external}
-            ? $self->{btn_delete_preset}->Disable
-            : $self->{btn_delete_preset}->Enable;
-    }
+    };
+    Slic3r::GUI::catch_error($self);
+    ($preset->{default} || $preset->{external})
+        ? $self->{btn_delete_preset}->Disable
+        : $self->{btn_delete_preset}->Enable;
+    
     $self->on_preset_loaded;
     $self->reload_values;
     $self->set_dirty(0);
     $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
     Slic3r::GUI->save_settings;
+}
+
+sub get_preset_config {
+    my $self = shift;
+    my ($preset) = @_;
+    
+    my $config = Slic3r::Config->new_from_defaults(@{$self->{options}});
+    
+    if (!$preset->{default}) {
+        if (!-e $preset->{file}) {
+            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
+            return;
+        }
+        
+        # apply preset values on top of defaults
+        $config->apply(Slic3r::Config->load($preset->{file}));
+    }
+    
+    return $config;
 }
 
 sub add_options_page {
@@ -347,12 +363,7 @@ sub load_external_config {
 
 sub sync_presets {
     my $self = shift;
-    return unless $self->{sync_presets_with};
-    $self->{sync_presets_with}->Clear;
-    foreach my $item ($self->{presets_choice}->GetStrings) {
-        $self->{sync_presets_with}->Append($item);
-    }
-    $self->{sync_presets_with}->SetSelection($self->{presets_choice}->GetSelection);
+    $self->{plater}->update_presets($self->name, [$self->{presets_choice}->GetStrings], $self->{presets_choice}->GetSelection);
 }
 
 package Slic3r::GUI::Tab::Print;

@@ -25,7 +25,7 @@ sub new {
     for my $tab_name (qw(print filament printer)) {
         $self->{options_tabs}{$tab_name} = ("Slic3r::GUI::Tab::" . ucfirst $tab_name)->new(
             $self->{tabpanel},
-            sync_presets_with   => $self->{plater}{preset_choosers}{$tab_name},
+            plater              => $self->{plater},
             on_value_change     => sub { $self->{plater}->on_config_change(@_) }, # propagate config change events to the plater
         );
         $self->{tabpanel}->AddPage($self->{options_tabs}{$tab_name}, $self->{options_tabs}{$tab_name}->title);
@@ -235,9 +235,26 @@ This method collects all config values from the tabs and merges them into a sing
 sub config {
     my $self = shift;
     
+    # retrieve filament presets and build a single config object for them
+    my $filament_config;
+    foreach my $preset_idx ($self->{plater}->filament_presets) {
+        my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
+        my $config = $self->{options_tabs}{filament}->get_preset_config($preset);
+        if (!$filament_config) {
+            $filament_config = $config;
+            next;
+        }
+        foreach my $opt_key (keys %$config) {
+            next unless ref $filament_config->get($opt_key) eq 'ARRAY';
+            push @{ $filament_config->get($opt_key) }, $config->get($opt_key)->[0];
+        }
+    }
+    
     return Slic3r::Config->merge(
         Slic3r::Config->new_from_defaults,
-        (map $_->config, values %{$self->{options_tabs}}),
+        $self->{options_tabs}{print}->config,
+        $self->{options_tabs}{printer}->config,
+        $filament_config,
     );
 }
 
