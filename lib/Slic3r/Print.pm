@@ -2,6 +2,7 @@ package Slic3r::Print;
 use Moo;
 
 use File::Basename qw(basename fileparse);
+use File::Spec;
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
