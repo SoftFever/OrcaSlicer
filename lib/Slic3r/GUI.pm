@@ -88,7 +88,7 @@ sub OnInit {
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
         EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config_file });
-        EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->save_config });
+        EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->export_config });
         EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->do_slice;
                                                $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
         EVT_MENU($frame, MI_REPEAT_QUICK, sub { $self->{skeinpanel}->do_slice(reslice => 1) });

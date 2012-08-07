@@ -454,6 +454,13 @@ sub build {
         },
     ]);
     
+    $self->add_options_page('Multiple Extruders', 'funnel.png', optgroups => [
+        {
+            title => 'Extruders',
+            options => [qw(perimeter_extruder infill_extruder support_material_extruder)],
+        },
+    ]);
+    
     $self->add_options_page('Advanced', 'wrench.png', optgroups => [
         {
             title => 'Extrusion width',
@@ -641,6 +648,17 @@ sub on_preset_loaded {
         # update extruder page list
         $self->on_value_change('extruders_count');
     }
+}
+
+sub load_external_config {
+    my $self = shift;
+    $self->SUPER::load_external_config(@_);
+    
+    Slic3r::GUI::warning_catcher($self)->(
+        "Your configuration was imported. However, Slic3r is currently only able to import settings "
+        . "for the first defined filament. We recommend you don't use exported configuration files "
+        . "for multi-extruder setups and rely on the built-in preset management system instead.")
+        if @{ $self->{config}->nozzle_diameter } > 1;
 }
 
 package Slic3r::GUI::Tab::Page;

@@ -37,7 +37,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
-        bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance extruders_count
+        bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance
     ));
     
     $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, CANVAS_SIZE, wxTAB_TRAVERSAL);
@@ -227,7 +227,7 @@ sub new {
             $self->{preset_choosers}{$group} = [$choice];
             EVT_CHOICE($choice, $choice, sub {
                 my $choice = shift;  # avoid leaks
-                return if $group eq 'filament' && ($self->{config}->get('extruders_count') // 1) > 1; #/
+                return if $group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1; #/
                 $self->skeinpanel->{options_tabs}{$group}->select_preset($choice->GetSelection);
             });
             
@@ -711,22 +711,21 @@ sub recenter {
 sub on_config_change {
     my $self = shift;
     my ($opt_key, $value) = @_;
-    if (exists $self->{config}{$opt_key}) {
+    if ($opt_key eq 'extruders_count' && defined $value) {
+        my $choices = $self->{preset_choosers}{filament};
+        while (@$choices < $value) {
+            push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [$choices->[0]->GetStrings]);
+            $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        }
+        while (@$choices > $value) {
+            $self->{preset_choosers_sizers}{filament}->Remove(-1);
+            $choices->[-1]->Destroy;
+            pop @$choices;
+        }
+        $self->Layout;
+    } elsif (exists $self->{config}{$opt_key}) {
         $self->{config}->set($opt_key, $value);
         $self->_update_bed_size if $opt_key eq 'bed_size';
-        if ($opt_key eq 'extruders_count' && defined $value) {
-            my $choices = $self->{preset_choosers}{filament};
-            while (@$choices < $value) {
-                push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [$choices->[0]->GetStrings]);
-                $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-            }
-            while (@$choices > $value) {
-                $self->{preset_choosers_sizers}{filament}->Remove(-1);
-                $choices->[-1]->Destroy;
-                pop @$choices;
-            }
-            $self->Layout;
-        }
     }
 }
 

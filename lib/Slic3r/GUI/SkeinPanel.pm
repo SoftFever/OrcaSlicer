@@ -164,7 +164,7 @@ sub do_slice {
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
 }
 
-sub save_config {
+sub export_config {
     my $self = shift;
     
     my $config = $self->config;
