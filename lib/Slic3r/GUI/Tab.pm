@@ -557,6 +557,13 @@ sub build {
         },
     ]);
     
+    $self->add_options_page('Retraction', 'arrow_up.png', optgroups => [
+        {
+            title => 'Retraction',
+            options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
+        },
+    ]);
+    
     $self->add_options_page('Custom G-code', 'cog.png', optgroups => [
         {
             title => 'Start G-code',
@@ -603,10 +610,6 @@ sub _build_extruder_pages {
             {
                 title => 'Size',
                 options => ['nozzle_diameter#' . $extruder_idx],
-            },
-            {
-                title => 'Retraction',
-                options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
             },
         ]);
         $self->{extruder_pages}[$extruder_idx]{disabled} = 0;
