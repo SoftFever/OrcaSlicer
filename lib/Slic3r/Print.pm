@@ -509,20 +509,21 @@ sub make_brim {
     my $self = shift;
     return unless $Slic3r::Config->brim_width > 0;
     
+    my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
+    my $grow_distance = scale $flow->width / 2;
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my $layer0 = $self->objects->[$obj_idx]->layers->[0];
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
-            (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow } @{$layer0->thin_walls}),
-            (map $_->unpack->polyline->grow, map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
+            (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } @{$layer0->thin_walls}),
+            (map $_->unpack->polyline->grow($grow_distance), map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
         );
         foreach my $copy (@{$self->copies->[$obj_idx]}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
         }
     }
     
-    my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
     my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $flow->width;
     for my $i (reverse 1 .. $num_loops) {
         # JT_SQUARE ensures no vertex is outside the given offset distance
