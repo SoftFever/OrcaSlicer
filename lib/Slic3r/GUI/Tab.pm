@@ -606,7 +606,10 @@ sub _build_extruder_pages {
             },
             {
                 title => 'Retraction',
-                options => [qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)],
+                options => [
+                    map "${_}#${extruder_idx}",
+                        qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)
+                 ],
             },
         ]);
         $self->{extruder_pages}[$extruder_idx]{disabled} = 0;

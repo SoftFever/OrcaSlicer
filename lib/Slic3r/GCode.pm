@@ -33,7 +33,6 @@ has 'speeds' => (
         solid_infill        => 60 * $Slic3r::Config->get_value('solid_infill_speed'),
         top_solid_infill    => 60 * $Slic3r::Config->get_value('top_solid_infill_speed'),
         bridge              => 60 * $Slic3r::Config->get_value('bridge_speed'),
-        retract             => 60 * $Slic3r::Config->get_value('retract_speed'),
     }},
 );
 
@@ -137,7 +136,7 @@ sub extrude_path {
     # specified by the user *and* to the maximum distance between infill lines
     {
         my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * &Slic3r::SCALING_FACTOR;
-        my $distance_threshold = $Slic3r::Config->retract_before_travel;
+        my $distance_threshold = $self->extruder->retract_before_travel;
         $distance_threshold = 2 * ($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) / $Slic3r::Config->fill_density * sqrt(2)
             if 0 && $Slic3r::Config->fill_density > 0 && $description =~ /fill/;
     
@@ -198,15 +197,15 @@ sub retract {
     my $self = shift;
     my %params = @_;
     
-    return "" unless $Slic3r::Config->retract_length > 0 
+    return "" unless $self->extruder->retract_length > 0 
         && !$self->retracted;
     
     # prepare moves
     $self->speed('retract');
-    my $retract = [undef, undef, -$Slic3r::Config->retract_length, "retract"];
-    my $lift    = ($Slic3r::Config->retract_lift == 0 || defined $params{move_z})
+    my $retract = [undef, undef, -$self->extruder->retract_length, "retract"];
+    my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z})
         ? undef
-        : [undef, $self->z + $Slic3r::Config->retract_lift, 0, 'lift plate during retraction'];
+        : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during retraction'];
     
     my $gcode = "";
     if (($Slic3r::Config->g0 || $Slic3r::Config->gcode_flavor eq 'mach3') && $params{travel_to}) {
@@ -225,16 +224,16 @@ sub retract {
         $gcode .= $self->G0(@$travel);
     } else {
         $gcode .= $self->G1(@$retract);
-        if (defined $params{move_z} && $Slic3r::Config->retract_lift > 0) {
-            my $travel = [undef, $params{move_z} + $Slic3r::Config->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
+        if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
+            my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
             $gcode .= $self->G0(@$travel);
-            $self->lifted(1);
+            $self->lifted($self->extruder->retract_lift);
         } elsif ($lift) {
             $gcode .= $self->G1(@$lift);
         }
     }
     $self->retracted(1);
-    $self->lifted(1) if $lift;
+    $self->lifted($self->extruder->retract_lift) if $lift;
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
@@ -249,12 +248,12 @@ sub unretract {
     my $gcode = "";
     
     if ($self->lifted) {
-        $gcode .= $self->G0(undef, $self->z - $Slic3r::Config->retract_lift, 0, 'restore layer Z');
+        $gcode .= $self->G0(undef, $self->z - $self->lifted, 0, 'restore layer Z');
         $self->lifted(0);
     }
     
     $self->speed('retract');
-    $gcode .= $self->G0(undef, undef, ($Slic3r::Config->retract_length + $Slic3r::Config->retract_restart_extra), 
+    $gcode .= $self->G0(undef, undef, ($self->extruder->retract_length + $self->extruder->retract_restart_extra), 
         "compensate retraction");
     
     return $gcode;
@@ -346,7 +345,9 @@ sub _Gx {
         }
         
         # apply the speed reduction for print moves on bottom layer
-        my $speed_f = $self->speeds->{$speed};
+        my $speed_f = $speed eq 'retract'
+            ? ($self->extruder->retract_speed_mm_min)
+            : $self->speeds->{$speed};
         if ($e && $self->layer->id == 0 && $comment !~ /retract/) {
             $speed_f = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? ($speed_f * $1/100)

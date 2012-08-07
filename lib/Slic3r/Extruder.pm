@@ -5,15 +5,22 @@ use Slic3r::Geometry qw(PI);
 
 use constant OPTIONS => [qw(
     nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature
+    retract_length retract_lift retract_speed retract_restart_extra retract_before_travel
 )];
 has $_ => (is => 'ro', required => 1) for @{&OPTIONS};
 
 has 'e_per_mm3'                 => (is => 'lazy');
+has 'retract_speed_mm_min'      => (is => 'lazy');
 has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
 
 sub _build_e_per_mm3 {
     my $self = shift;
     return $self->extrusion_multiplier * (4 / (($self->filament_diameter ** 2) * PI));
+}
+
+sub _build_retract_speed_mm_min {
+    my $self = shift;
+    return $self->retract_speed * 60;
 }
 
 sub make_flow {
