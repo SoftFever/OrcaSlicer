@@ -3,11 +3,10 @@ use Moo;
 
 use Slic3r::Geometry qw(PI);
 
-has 'nozzle_diameter'           => (is => 'ro', required => 1);
-has 'filament_diameter'         => (is => 'ro', required => 1);
-has 'extrusion_multiplier'      => (is => 'ro', required => 1);
-has 'temperature'               => (is => 'ro', required => 1);
-has 'first_layer_temperature'   => (is => 'rw', required => 1);
+use constant OPTIONS => [qw(
+    nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature
+)];
+has $_ => (is => 'ro', required => 1) for @{&OPTIONS};
 
 has 'e_per_mm3'                 => (is => 'lazy');
 has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});

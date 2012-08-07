@@ -46,7 +46,7 @@ sub _trigger_config {
     for my $t (0, map $_-1, map $self->config->get($_), qw(perimeter_extruder infill_extruder support_material_extruder)) {
         $Slic3r::extruders->[$t] ||= Slic3r::Extruder->new(
             map { $_ =>  $self->config->get($_)->[$t] // $self->config->get($_)->[0] } #/
-                qw(nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature)
+                @{&Slic3r::Extruder::OPTIONS}
         );
     }
     
