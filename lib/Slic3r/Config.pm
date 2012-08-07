@@ -110,6 +110,16 @@ our $Options = {
     },
     
     # extruders options
+    'extruder_offset' => {
+        label   => 'Extruder offset',
+        tooltip => 'If your firmware doesn\'t handle the extruder displacement you need the G-code to take it into account. This option lets you specify the displacement of each extruder with respect to the first one. It expects positive coordinates (they will be subtracted from the XY coordinate).',
+        sidetext => 'mm',
+        cli     => 'extruder-offset=s@',
+        type    => 'point',
+        serialize   => sub { join ',', map { join 'x', @$_ } @{$_[0]} },
+        deserialize => sub { [ map [ split /x/, $_ ], (ref $_[0] eq 'ARRAY') ? @{$_[0]} : (split /,/, $_[0]) ] },
+        default => [[0,0]],
+    },
     'nozzle_diameter' => {
         label   => 'Nozzle diameter',
         tooltip => 'This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)',
@@ -818,7 +828,7 @@ sub new_from_cli {
     }
     
     $args{$_} = $Options->{$_}{deserialize}->($args{$_})
-        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid);
+        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid extruder_offset);
     
     return $class->new(%args);
 }

@@ -4,6 +4,7 @@ use Moo;
 use Slic3r::Geometry qw(PI);
 
 use constant OPTIONS => [qw(
+    extruder_offset
     nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature
 )];
 has $_ => (is => 'ro', required => 1) for @{&OPTIONS};

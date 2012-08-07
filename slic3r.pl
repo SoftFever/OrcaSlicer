@@ -291,6 +291,8 @@ $j
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $config->{bridge_flow_ratio})
   
    Multiple extruder options:
+    --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
+                        (can be specified multiple times, default: 0x0)
     --perimeters-extruder
                         Extruder to use for perimeters (1+, default: 1)
     --infill-extruder   Extruder to use for infill (1+, default: 1)

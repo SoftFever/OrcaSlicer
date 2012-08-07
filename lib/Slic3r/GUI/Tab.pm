@@ -611,6 +611,10 @@ sub _build_extruder_pages {
                 title => 'Size',
                 options => ['nozzle_diameter#' . $extruder_idx],
             },
+            {
+                title => 'Position (for multi-extruder printers)',
+                options => ['extruder_offset#' . $extruder_idx],
+            },
         ]);
         $self->{extruder_pages}[$extruder_idx]{disabled} = 0;
     }

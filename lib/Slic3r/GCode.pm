@@ -295,8 +295,8 @@ sub _G0_G1 {
     
     if ($point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
-            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x, 
-            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y; #**
+            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
+            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
         $self->last_pos($point);
     }
     if (defined $z && $z != $self->z) {
@@ -315,8 +315,8 @@ sub G2_G3 {
     my $gcode = $orientation eq 'cw' ? "G2" : "G3";
     
     $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
-        ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x, 
-        ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y; #**
+        ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
+        ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
     
     # XY distance of the center from the start position
     $gcode .= sprintf " I%.${dec}f J%.${dec}f",
