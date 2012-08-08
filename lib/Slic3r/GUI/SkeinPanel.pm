@@ -232,16 +232,22 @@ sub config {
     
     # retrieve filament presets and build a single config object for them
     my $filament_config;
-    foreach my $preset_idx ($self->{plater}->filament_presets) {
-        my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
-        my $config = $self->{options_tabs}{filament}->get_preset_config($preset);
-        if (!$filament_config) {
-            $filament_config = $config;
-            next;
-        }
-        foreach my $opt_key (keys %$config) {
-            next unless ref $filament_config->get($opt_key) eq 'ARRAY';
-            push @{ $filament_config->get($opt_key) }, $config->get($opt_key)->[0];
+    if ($self->{plater}->filament_presets == 1) {
+        $filament_config = $self->{options_tabs}{filament}->config;
+    } else {
+        # TODO: handle dirty presets.
+        # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
+        foreach my $preset_idx ($self->{plater}->filament_presets) {
+            my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
+            my $config = $self->{options_tabs}{filament}->get_preset_config($preset);
+            if (!$filament_config) {
+                $filament_config = $config;
+                next;
+            }
+            foreach my $opt_key (keys %$config) {
+                next unless ref $filament_config->get($opt_key) eq 'ARRAY';
+                push @{ $filament_config->get($opt_key) }, $config->get($opt_key)->[0];
+            }
         }
     }
     

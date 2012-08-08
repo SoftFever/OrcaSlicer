@@ -210,7 +210,8 @@ sub get_preset_config {
         }
         
         # apply preset values on top of defaults
-        $config->apply(Slic3r::Config->load($preset->{file}));
+        my $external_config = Slic3r::Config->load($preset->{file});
+        $config->set($_, $external_config->get($_)) for @{$self->{options}};
     }
     
     return $config;

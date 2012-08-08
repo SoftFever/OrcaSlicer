@@ -835,7 +835,9 @@ sub new_from_cli {
 
 sub merge {
     my $class = shift;
-    return $class->new(map %$_, @_);
+    my $config = $class->new;
+    $config->apply($_) for @_;
+    return $config;
 }
 
 sub load {
