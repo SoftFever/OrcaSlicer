@@ -605,10 +605,10 @@ sub _build_extruder_pages {
                 title => 'Size',
                 options => ['nozzle_diameter#' . $extruder_idx],
             },
-            {
-                title => 'Position (for multi-extruder printers)',
+            ($extruder_idx > 0) ? {
+                title => 'Position (relative to the primary extruder)',
                 options => ['extruder_offset#' . $extruder_idx],
-            },
+            } : (),
             {
                 title => 'Retraction',
                 options => [
