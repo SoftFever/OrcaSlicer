@@ -187,7 +187,7 @@ our $Options = {
         default => 1,
     },
     'support_material_extruder' => {
-        label   => 'Extruder',
+        label   => 'Support material extruder',
         cli     => 'support-material-extruder=i',
         type    => 'i',
         default => 1,
