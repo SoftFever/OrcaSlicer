@@ -86,7 +86,7 @@ sub BUILD {
             my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
             
             $field = $opt->{type} eq 'i'
-                ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 100, $opt->{default})
+                ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default})
                 : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
             $field->Disable if $opt->{readonly};
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
