@@ -182,7 +182,8 @@ sub on_select_preset {
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
         foreach my $opt_key (@{$self->{options}}) {
-            $self->{config}->set($opt_key, $preset_config->get($opt_key));
+            $self->{config}->set($opt_key, $preset_config->get($opt_key))
+                if $preset_config->has($opt_key);
         }
     };
     Slic3r::GUI::catch_error($self);
@@ -211,7 +212,8 @@ sub get_preset_config {
         
         # apply preset values on top of defaults
         my $external_config = Slic3r::Config->load($preset->{file});
-        $config->set($_, $external_config->get($_)) for @{$self->{options}};
+        $config->set($_, $external_config->get($_))
+            for grep $external_config->has($_), @{$self->{options}};
     }
     
     return $config;

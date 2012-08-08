@@ -717,7 +717,7 @@ sub on_config_change {
             pop @$choices;
         }
         $self->Layout;
-    } elsif (exists $self->{config}{$opt_key}) {
+    } elsif ($self->{config}->has($opt_key)) {
         $self->{config}->set($opt_key, $value);
         $self->_update_bed_size if $opt_key eq 'bed_size';
     }

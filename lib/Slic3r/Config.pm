@@ -930,6 +930,12 @@ sub set_ifndef {
         if !defined $self->get($opt_key);
 }
 
+sub has {
+    my $self = shift;
+    my ($opt_key) = @_;
+    return exists $self->{$opt_key};
+}
+
 sub serialize {
     my $self = shift;
     my ($opt_key) = @_;
@@ -1082,7 +1088,7 @@ sub replace_options {
     # build a regexp to match the available options
     my $options = join '|',
         grep !$Slic3r::Config::Options->{$_}{multiline},
-        grep exists $self->{$_},
+        grep $self->has($_),
         keys %{$Slic3r::Config::Options};
     
     # use that regexp to search and replace option names with option values
