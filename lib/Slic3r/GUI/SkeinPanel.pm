@@ -43,7 +43,7 @@ sub new {
 
 our $model_wildcard = "STL files (*.stl)|*.stl;*.STL|OBJ files (*.obj)|*.obj;*.OBJ|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
 our $ini_wildcard = "INI files *.ini|*.ini;*.INI";
-our $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE";
+our $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE|G-code files *.g|*.g;*.G";
 our $svg_wildcard = "SVG files *.svg|*.svg;*.SVG";
 
 sub do_slice {
