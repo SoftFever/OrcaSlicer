@@ -157,7 +157,7 @@ our $Options = {
         type    => 'i',
         max     => 300,
         serialize   => sub { join ',', @{$_[0]} },
-        deserialize => sub { [ split /,/, $_[0] ] },
+        deserialize => sub { $_[0] ? [ split /,/, $_[0] ] : [0] },
         default => [200],
     },
     'first_layer_temperature' => {
@@ -167,7 +167,7 @@ our $Options = {
         cli     => 'first-layer-temperature=i@',
         type    => 'i',
         serialize   => sub { join ',', @{$_[0]} },
-        deserialize => sub { [ split /,/, $_[0] ] },
+        deserialize => sub { $_[0] ? [ split /,/, $_[0] ] : [0] },
         max     => 300,
         default => [200],
     },
