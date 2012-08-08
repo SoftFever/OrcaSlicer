@@ -202,9 +202,9 @@ sub get_preset_config {
     my $self = shift;
     my ($preset) = @_;
     
-    my $config = Slic3r::Config->new_from_defaults(@{$self->{options}});
-    
-    if (!$preset->{default}) {
+    if ($preset->{default}) {
+        return Slic3r::Config->new_from_defaults(@{$self->{options}});
+    } else {
         if (!-e $preset->{file}) {
             Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
             return;
@@ -212,11 +212,12 @@ sub get_preset_config {
         
         # apply preset values on top of defaults
         my $external_config = Slic3r::Config->load($preset->{file});
+        my $config = Slic3r::Config->new;
         $config->set($_, $external_config->get($_))
             for grep $external_config->has($_), @{$self->{options}};
+        
+        return $config;
     }
-    
-    return $config;
 }
 
 sub add_options_page {

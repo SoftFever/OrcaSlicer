@@ -71,7 +71,7 @@ if ($opt{save}) {
 my $gui;
 if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     $gui = Slic3r::GUI->new;
-    $gui->{skeinpanel}->load_config_file($opt{load}[0]) if $opt{load};
+    $gui->{skeinpanel}->load_config_file($_) for @{$opt{load}};
     $gui->{skeinpanel}->load_config($cli_config);
     $gui->MainLoop;
     exit;
