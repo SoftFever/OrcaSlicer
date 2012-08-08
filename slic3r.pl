@@ -227,14 +227,14 @@ $j
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion 
-                        (default: $config->{retract_length})
-    --retract-speed     Speed for retraction in mm/s (default: $config->{retract_speed})
+                        (default: $config->{retract_length}[0])
+    --retract-speed     Speed for retraction in mm/s (default: $config->{retract_speed}[0])
     --retract-restart-extra
                         Additional amount of filament in mm to push after
-                        compensating retraction (default: $config->{retract_restart_extra})
+                        compensating retraction (default: $config->{retract_restart_extra}[0])
     --retract-before-travel
-                        Only retract before travel moves of this length in mm (default: $config->{retract_before_travel})
-    --retract-lift      Lift Z by the given distance in mm when retracting (default: $config->{retract_lift})
+                        Only retract before travel moves of this length in mm (default: $config->{retract_before_travel}[0])
+    --retract-lift      Lift Z by the given distance in mm when retracting (default: $config->{retract_lift}[0])
    
    Cooling options:
     --cooling           Enable fan and cooling control
