@@ -97,7 +97,7 @@ sub new {
         return unless $dlg->ShowModal == wxID_OK;
         
         my $file = sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $dlg->get_name;
-        $self->{config}->save($file);
+        $self->config->save($file);
         $self->set_dirty(0);
         $self->load_presets;
         $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
@@ -580,7 +580,7 @@ sub build {
     $self->_build_extruder_pages;
 }
 
-sub _extruder_options { qw(nozzle_diameter) }
+sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_speed retract_restart_extra retract_before_travel) }
 
 sub config {
     my $self = shift;
