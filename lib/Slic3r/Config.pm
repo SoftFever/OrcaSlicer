@@ -120,7 +120,7 @@ our $Options = {
         cli     => 'extruder-offset=s@',
         type    => 'point',
         serialize   => sub { join ',', map { join 'x', @$_ } @{$_[0]} },
-        deserialize => sub { [ map [ split /x/, $_ ], (ref $_[0] eq 'ARRAY') ? @{$_[0]} : (split /,/, $_[0]) ] },
+        deserialize => sub { [ map [ split /x/, $_ ], (ref $_[0] eq 'ARRAY') ? @{$_[0]} : (split /,/, $_[0] || '0x0') ] },
         default => [[0,0]],
     },
     'nozzle_diameter' => {

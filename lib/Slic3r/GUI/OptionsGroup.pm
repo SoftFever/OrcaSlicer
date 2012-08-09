@@ -115,7 +115,7 @@ sub BUILD {
             }
             EVT_TEXT($self->parent, $_, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) })
                 for $x_field, $y_field;
-            $self->_setters->{$opt_key} = sub {
+            $self->_setters->{$opt_key} = sub {use XXX; ZZZ $_[0] if !defined $_[0][0];
                 $x_field->SetValue($_[0][0]);
                 $y_field->SetValue($_[0][1]);
             };
