@@ -323,10 +323,16 @@ sub object_loaded {
 
 sub remove {
     my $self = shift;
+    my ($obj_idx) = @_;
     
-    foreach my $pobj (@{$self->{selected_objects}}) {
-        my ($obj_idx, $copy_idx) = ($pobj->[0], $pobj->[1]);
-        $self->{print}->copies->[$obj_idx][$copy_idx] = undef;
+    if (defined $obj_idx) {
+        $self->{print}->copies->[$obj_idx][$_] = undef
+            for 0 .. $#{ $self->{print}->copies->[$obj_idx] };
+    } else {
+        foreach my $pobj (@{$self->{selected_objects}}) {
+            my ($obj_idx, $copy_idx) = ($pobj->[0], $pobj->[1]);
+            $self->{print}->copies->[$obj_idx][$copy_idx] = undef;
+        }
     }
     
     my @objects_to_remove = ();
@@ -476,9 +482,15 @@ sub split_object {
     
     my @new_meshes = $mesh->split_mesh;
     if (@new_meshes == 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it contained already a single part.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it already contains a single part.");
         return;
     }
+    
+    # remove the original object before spawning the object_loaded event, otherwise 
+    # we'll pass the wrong $obj_idx to it (which won't be recognized after the
+    # thumbnail thread returns)
+    $self->remove($obj_idx);
+    
     foreach my $mesh (@new_meshes) {
         my $object = $self->{print}->add_object_from_mesh($mesh);
         $object->input_file($current_object->input_file);
@@ -487,8 +499,6 @@ sub split_object {
         $self->object_loaded($new_obj_idx, no_arrange => 1);
     }
     
-    $self->{list}->Select($obj_idx, 1);
-    $self->remove;
     $self->arrange;
 }
 
