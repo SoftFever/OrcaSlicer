@@ -323,8 +323,10 @@ sub object_loaded {
 
 sub remove {
     my $self = shift;
-    my ($obj_idx) = @_;
+    my ($obj) = @_;
     
+    my $obj_idx = $obj->GetInt();
+
     if (defined $obj_idx) {
         $self->{print}->copies->[$obj_idx][$_] = undef
             for 0 .. $#{ $self->{print}->copies->[$obj_idx] };
