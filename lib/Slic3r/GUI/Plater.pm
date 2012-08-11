@@ -125,7 +125,7 @@ sub new {
     $self->selection_changed(0);
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_load}, \&load);
-    EVT_BUTTON($self, $self->{btn_remove}, \&remove);
+    EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
     EVT_BUTTON($self, $self->{btn_reset}, \&reset);
     EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
