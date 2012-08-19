@@ -635,6 +635,8 @@ sub write_gcode {
         
         # extrude brim
         if ($layer_id == 0 && !$brim_done) {
+            $gcodegen->shift_x($shift[X]);
+            $gcodegen->shift_y($shift[Y]);
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
             $brim_done = 1;
         }
