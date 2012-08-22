@@ -607,6 +607,26 @@ END
         deserialize => $deserialize_comma,
         default => [0],
     },
+    'retract_length_toolchange' => {
+        label   => 'Length',
+        tooltip => 'When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).',
+        sidetext => 'mm (zero to disable)',
+        cli     => 'retract-length-toolchange=f@',
+        type    => 'f',
+        serialize   => $serialize_comma,
+        deserialize => $deserialize_comma,
+        default => [3],
+    },
+    'retract_restart_extra_toolchange' => {
+        label   => 'Extra length on restart',
+        tooltip => 'When the retraction is compensated after changing tool, the extruder will push this additional amount of filament.',
+        sidetext => 'mm',
+        cli     => 'retract-restart-extra-toolchange=f@',
+        type    => 'f',
+        serialize   => $serialize_comma,
+        deserialize => $deserialize_comma,
+        default => [0],
+    },
     
     # cooling options
     'cooling' => {

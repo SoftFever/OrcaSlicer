@@ -583,7 +583,8 @@ sub build {
     $self->_build_extruder_pages;
 }
 
-sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_speed retract_restart_extra retract_before_travel) }
+sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_speed retract_restart_extra retract_before_travel
+    retract_length_toolchange retract_restart_extra_toolchange) }
 
 sub config {
     my $self = shift;
@@ -617,6 +618,13 @@ sub _build_extruder_pages {
                 options => [
                     map "${_}#${extruder_idx}",
                         qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel)
+                ],
+            },
+            {
+                title => 'Retraction when tool is disabled (advanced settings for multi-extruder setups)',
+                options => [
+                    map "${_}#${extruder_idx}",
+                        qw(retract_length_toolchange retract_restart_extra_toolchange)
                 ],
             },
         ]);

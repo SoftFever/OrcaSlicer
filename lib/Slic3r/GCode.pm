@@ -196,12 +196,15 @@ sub retract {
     my $self = shift;
     my %params = @_;
     
-    return "" unless $self->extruder->retract_length > 0 
-        && !$self->extruder->retracted;
+    my ($length, $restart_extra) = $params{toolchange}
+        ? ($self->extruder->retract_length_toolchange,  $self->extruder->retract_restart_extra_toolchange)
+        : ($self->extruder->retract_length,             $self->extruder->retract_restart_extra);
+    
+    return "" unless $length > 0 && !$self->extruder->retracted;
     
     # prepare moves
     $self->speed('retract');
-    my $retract = [undef, undef, -$self->extruder->retract_length, "retract"];
+    my $retract = [undef, undef, -$length, "retract"];
     my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z})
         ? undef
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during retraction'];
@@ -231,7 +234,7 @@ sub retract {
             $gcode .= $self->G1(@$lift);
         }
     }
-    $self->extruder->retracted($self->extruder->retract_length + $self->extruder->retract_restart_extra);
+    $self->extruder->retracted($length + $restart_extra);
     $self->lifted($self->extruder->retract_lift) if $lift;
     
     # reset extrusion distance during retracts
@@ -378,7 +381,7 @@ sub set_tool {
     return "" if $self->extruder_idx == $tool;
     
     $self->extruder_idx($tool);
-    return $self->retract
+    return $self->retract(toolchange => 1)
         . (sprintf "T%d%s\n", $tool, ($Slic3r::Config->gcode_comments ? ' ; change tool' : ''))
         . $self->reset_e;
 }

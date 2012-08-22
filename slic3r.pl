@@ -226,8 +226,7 @@ $j
                         Support material angle in degrees (range: 0-90, default: $config->{support_material_angle})
   
    Retraction options:
-    --retract-length    Length of retraction in mm when pausing extrusion 
-                        (default: $config->{retract_length}[0])
+    --retract-length    Length of retraction in mm when pausing extrusion (default: $config->{retract_length}[0])
     --retract-speed     Speed for retraction in mm/s (default: $config->{retract_speed}[0])
     --retract-restart-extra
                         Additional amount of filament in mm to push after
@@ -235,6 +234,13 @@ $j
     --retract-before-travel
                         Only retract before travel moves of this length in mm (default: $config->{retract_before_travel}[0])
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $config->{retract_lift}[0])
+    
+   Retraction options for multi-extruder setups:
+    --retract-length-toolchange
+                        Length of retraction in mm when disabling tool (default: $config->{retract_length}[0])
+    --retract-restart-extra-toolchnage
+                        Additional amount of filament in mm to push after
+                        switching tool (default: $config->{retract_restart_extra}[0])
    
    Cooling options:
     --cooling           Enable fan and cooling control
