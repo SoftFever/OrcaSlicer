@@ -94,7 +94,7 @@ if (@ARGV) {  # slicing from command line
             output_file => $opt{output},
             status_cb   => sub {
                 my ($percent, $message) = @_;
-                printf "=> $message\n";
+                printf "=> %s\n", $message;
             },
         );
         if ($opt{export_svg}) {
