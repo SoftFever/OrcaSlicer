@@ -378,13 +378,25 @@ sub set_tool {
     my $self = shift;
     my ($tool) = @_;
     
+    # return nothing if this tool was already selected
     return "" if (defined $self->extruder_idx) && ($self->extruder_idx == $tool);
-    $self->extruder_idx($tool);
-    return "" if @{$Slic3r::extruders} == 1;
     
-    return $self->retract(toolchange => 1)
-        . (sprintf "T%d%s\n", $tool, ($Slic3r::Config->gcode_comments ? ' ; change tool' : ''))
-        . $self->reset_e;
+    # if we are running a single-extruder setup, just set the extruder and return nothing
+    if (@{$Slic3r::extruders} == 1) {
+        $self->extruder_idx($tool);
+        return "";
+    }
+    
+    # trigger retraction on the current tool (if any) 
+    my $gcode = "";
+    $gcode .= $self->retract(toolchange => 1) if defined $self->extruder_idx;
+    
+    # set the new tool
+    $self->extruder_idx($tool);
+    $gcode .= sprintf "T%d%s\n", $tool, ($Slic3r::Config->gcode_comments ? ' ; change tool' : '');
+    $gcode .= $self->reset_e;
+    
+    return $gcode;
 }
 
 sub set_fan {
