@@ -196,15 +196,18 @@ sub retract {
     my $self = shift;
     my %params = @_;
     
-    my ($length, $restart_extra) = $params{toolchange}
-        ? ($self->extruder->retract_length_toolchange,  $self->extruder->retract_restart_extra_toolchange)
-        : ($self->extruder->retract_length,             $self->extruder->retract_restart_extra);
+    # get the retraction length and abort if none
+    my ($length, $restart_extra, $comment) = $params{toolchange}
+        ? ($self->extruder->retract_length_toolchange,  $self->extruder->retract_restart_extra_toolchange,  "retract for tool change")
+        : ($self->extruder->retract_length,             $self->extruder->retract_restart_extra,             "retract");
     
-    return "" unless $length > 0 && !$self->extruder->retracted;
+    # if we already retracted, reduce the required amount of retraction
+    $length -= $self->extruder->retracted;
+    return "" unless $length > 0;
     
     # prepare moves
     $self->speed('retract');
-    my $retract = [undef, undef, -$length, "retract"];
+    my $retract = [undef, undef, -$length, $comment];
     my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z})
         ? undef
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during retraction'];
@@ -217,12 +220,12 @@ sub retract {
             $gcode .= $self->G0(@$lift);
         } else {
             # combine travel and retract
-            my $travel = [$params{travel_to}, undef, $retract->[2], 'travel and retract'];
+            my $travel = [$params{travel_to}, undef, $retract->[2], "travel and $comment"];
             $gcode .= $self->G0(@$travel);
         }
     } elsif (($Slic3r::Config->g0 || $Slic3r::Config->gcode_flavor eq 'mach3') && defined $params{move_z}) {
         # combine Z change and retraction
-        my $travel = [undef, $params{move_z}, $retract->[2], 'change layer and retract'];
+        my $travel = [undef, $params{move_z}, $retract->[2], "change layer and $comment"];
         $gcode .= $self->G0(@$travel);
     } else {
         $gcode .= $self->G1(@$retract);
@@ -234,7 +237,7 @@ sub retract {
             $gcode .= $self->G1(@$lift);
         }
     }
-    $self->extruder->retracted($length + $restart_extra);
+    $self->extruder->retracted($self->extruder->retracted + $length + $restart_extra);
     $self->lifted($self->extruder->retract_lift) if $lift;
     
     # reset extrusion distance during retracts
