@@ -381,8 +381,7 @@ sub set_tool {
     $self->extruder_idx($tool);
     return $self->retract
         . (sprintf "T%d%s\n", $tool, ($Slic3r::Config->gcode_comments ? ' ; change tool' : ''))
-        . $self->reset_e
-        . $self->unretract;
+        . $self->reset_e;
 }
 
 sub set_fan {
