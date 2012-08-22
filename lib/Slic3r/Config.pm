@@ -551,7 +551,7 @@ END
         full_width => 1,
         height  => 60,
         serialize   => sub { join '; ', @{$_[0]} },
-        deserialize => sub { [ split /\s*;\s*/, $_[0] ] },
+        deserialize => sub { [ split /\s*(?:;|\R)\s*/s, $_[0] ] },
         default => [],
     },
     
