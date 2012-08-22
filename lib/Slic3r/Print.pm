@@ -566,7 +566,7 @@ sub write_gcode {
     my $gcodegen = Slic3r::GCode->new;
     my $min_print_speed = 60 * $Slic3r::Config->min_print_speed;
     my $dec = $gcodegen->dec;
-    print $fh $gcodegen->set_tool(0) if @$Slic3r::extruders > 1;
+    print $fh $gcodegen->set_tool(0);
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
     # this spits out some platic at start from the first extruder

@@ -10,7 +10,7 @@ has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
 has 'speed'              => (is => 'rw');
 
-has 'extruder_idx'       => (is => 'rw', default => sub {0});
+has 'extruder_idx'       => (is => 'rw');
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
@@ -378,9 +378,10 @@ sub set_tool {
     my $self = shift;
     my ($tool) = @_;
     
-    return "" if $self->extruder_idx == $tool;
-    
+    return "" if (defined $self->extruder_idx) && ($self->extruder_idx == $tool);
     $self->extruder_idx($tool);
+    return "" if @{$Slic3r::extruders} == 1;
+    
     return $self->retract(toolchange => 1)
         . (sprintf "T%d%s\n", $tool, ($Slic3r::Config->gcode_comments ? ' ; change tool' : ''))
         . $self->reset_e;
