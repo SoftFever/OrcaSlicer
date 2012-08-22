@@ -571,11 +571,14 @@ sub write_gcode {
     
     # write start commands to file
     printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature, 1),
-            if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->start_gcode !~ /M190/i;
-    for my $t (grep $Slic3r::extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
-        printf $fh $gcodegen->set_temperature($Slic3r::extruders->[$t]->first_layer_temperature, 0, $t)
-            if $Slic3r::extruders->[$t]->first_layer_temperature;
-    }
+        if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->start_gcode !~ /M190/i;
+    my $print_first_layer_temperature = sub {
+        for my $t (grep $Slic3r::extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
+            printf $fh $gcodegen->set_temperature($Slic3r::extruders->[$t]->first_layer_temperature, 0, $t)
+                if $Slic3r::extruders->[$t]->first_layer_temperature;
+        }
+    };
+    $print_first_layer_temperature->();
     printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->start_gcode);
     for my $t (grep $Slic3r::extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
         printf $fh $gcodegen->set_temperature($Slic3r::extruders->[$t]->first_layer_temperature, 1, $t)
@@ -740,8 +743,7 @@ sub write_gcode {
                     if ($layer_id == 0 && $finished_objects > 0) {
                         printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature),
                             if $Slic3r::Config->first_layer_bed_temperature;
-                        printf $fh $gcodegen->set_temperature($Slic3r::Config->first_layer_temperature)
-                            if $Slic3r::Config->first_layer_temperature;
+                        $print_first_layer_temperature->();
                     }
                     print $fh $extrude_layer->($layer_id, [[ $obj_idx, $copy ]]);
                 }
