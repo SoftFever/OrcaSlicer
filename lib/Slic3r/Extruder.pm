@@ -10,6 +10,7 @@ use constant OPTIONS => [qw(
 )];
 has $_ => (is => 'ro', required => 1) for @{&OPTIONS};
 
+has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
 has 'retract_speed_mm_min'      => (is => 'lazy');
 has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});

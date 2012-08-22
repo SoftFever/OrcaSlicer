@@ -14,7 +14,6 @@ has 'extruder_idx'       => (is => 'rw', default => sub {0});
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
-has 'retracted'          => (is => 'rw', default => sub {1} );  # this spits out some plastic at start
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_speed'         => (is => 'rw', default => sub {""});
@@ -150,7 +149,7 @@ sub extrude_path {
         if !points_coincide($self->last_pos, $path->points->[0]);
     
     # compensate retraction
-    $gcode .= $self->unretract if $self->retracted;
+    $gcode .= $self->unretract if $self->extruder->retracted;
     
     my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->role == EXTR_ROLE_BRIDGE) {
@@ -198,7 +197,7 @@ sub retract {
     my %params = @_;
     
     return "" unless $self->extruder->retract_length > 0 
-        && !$self->retracted;
+        && !$self->extruder->retracted;
     
     # prepare moves
     $self->speed('retract');
@@ -232,7 +231,7 @@ sub retract {
             $gcode .= $self->G1(@$lift);
         }
     }
-    $self->retracted(1);
+    $self->extruder->retracted($self->extruder->retract_length + $self->extruder->retract_restart_extra);
     $self->lifted($self->extruder->retract_lift) if $lift;
     
     # reset extrusion distance during retracts
@@ -244,7 +243,7 @@ sub retract {
 
 sub unretract {
     my $self = shift;
-    $self->retracted(0);
+    
     my $gcode = "";
     
     if ($self->lifted) {
@@ -253,8 +252,8 @@ sub unretract {
     }
     
     $self->speed('retract');
-    $gcode .= $self->G0(undef, undef, ($self->extruder->retract_length + $self->extruder->retract_restart_extra), 
-        "compensate retraction");
+    $gcode .= $self->G0(undef, undef, $self->extruder->retracted, "compensate retraction");
+    $self->extruder->retracted(0);
     
     return $gcode;
 }
@@ -348,7 +347,7 @@ sub _Gx {
         my $speed_f = $speed eq 'retract'
             ? ($self->extruder->retract_speed_mm_min)
             : $self->speeds->{$speed};
-        if ($e && $self->layer->id == 0 && $comment !~ /retract/) {
+        if ($e && $self->layer && $self->layer->id == 0 && $comment !~ /retract/) {
             $speed_f = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? ($speed_f * $1/100)
                 : $Slic3r::Config->first_layer_speed * 60;

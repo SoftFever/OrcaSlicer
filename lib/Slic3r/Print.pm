@@ -569,6 +569,10 @@ sub write_gcode {
     print $fh $gcodegen->set_tool(0) if @$Slic3r::extruders > 1;
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
+    # this spits out some platic at start from the first extruder
+    # (TODO: make this consistent in multi-head setups)
+    $gcodegen->retract;
+    
     # write start commands to file
     printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature, 1),
         if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->start_gcode !~ /M190/i;
