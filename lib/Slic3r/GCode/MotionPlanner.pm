@@ -38,6 +38,7 @@ sub BUILD {
     my $crossing_edges = $self->_crossing_edges;
     my $tolerance = scale epsilon;
     
+    # given an expolygon, this subroutine connects all its visible points
     my $add_expolygon = sub {
         my ($expolygon, $crosses_perimeter) = @_;
         my @points = map @$_, @$expolygon;
@@ -55,13 +56,25 @@ sub BUILD {
         }
     };
     
+    # process individual islands
     for my $i (0 .. $#{$self->islands}) {
+        # simplify the island's contours
         $self->islands->[$i]->simplify($self->_inner_margin);
+        
+        # offset the island inwards to make the boundaries for internal movements
+        # so that no motion along external perimeters happens
         $self->_inner->[$i] = [ $self->islands->[$i]->offset_ex(-$self->_inner_margin) ]
             if !$self->no_internal;
+        
+        # offset the island outwards to make the boundaries for external movements
         $self->_outer->[$i] = [ $self->islands->[$i]->contour->offset($self->_outer_margin) ];
+        
+        # further simplification (isn't this a duplication of the one above?)
         $_->simplify($self->_inner_margin) for @{$self->_inner->[$i]}, @{$self->_outer->[$i]};
         
+        # if internal motion is enabled, build a set of utility expolygons representing
+        # the outer boundaries (as contours) and the inner boundaries (as holes). whenever
+        # we jump from a hole to a contour or viceversa, we know we're crossing a perimeter
         if (!$self->no_internal) {
             $self->_contours_ex->[$i] = diff_ex(
                 $self->_outer->[$i],
@@ -81,7 +94,7 @@ sub BUILD {
         my ($polygon, $line) = @_;
         @{Boost::Geometry::Utils::polygon_linestring_intersection(
             $polygon->boost_polygon,
-            Boost::Geometry::Utils::linestring($line),
+            $line->boost_linestring,
         )} > 0;
     };
     
@@ -148,10 +161,11 @@ sub BUILD {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output(undef, "space.svg",
             lines           => \@lines,
+            points          => [ values %{$self->_pointmap} ],
             no_arrows       => 1,
-            polygons        => [ map @$_, @{$self->islands} ],
-            red_polygons    => [ map $_->holes, map @$_, @{$self->_inner} ],
-            white_polygons    => [ map @$_, @{$self->_outer} ],
+            #polygons        => [ map @$_, @{$self->islands} ],
+            #red_polygons    => [ map $_->holes, map @$_, @{$self->_inner} ],
+            #white_polygons    => [ map @$_, @{$self->_outer} ],
         );
         printf "%d islands\n", scalar @{$self->islands};
     }

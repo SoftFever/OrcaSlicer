@@ -6,7 +6,7 @@ use warnings;
 
 use Boost::Geometry::Utils;
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon same_line);
+use Slic3r::Geometry qw(X Y A B point_in_polygon same_line scale epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
@@ -113,7 +113,7 @@ sub encloses_line {
     my ($line) = @_;
     
     my $clip = $self->clip_line($line);
-    return @$clip == 1 && same_line($clip->[0], $line);
+    return @$clip == 1 && abs($line->length - Slic3r::Geometry::line_length($clip->[0])) < scale epsilon;
 }
 
 sub point_on_segment {
