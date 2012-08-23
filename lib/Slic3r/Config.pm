@@ -462,6 +462,13 @@ our $Options = {
         type    => 'bool',
         default => 1,
     },
+    'avoid_crossing_perimeters' => {
+        label   => 'Avoid crossing perimeters',
+        tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down the processing times.',
+        cli     => 'avoid-crossing-perimeters!',
+        type    => 'bool',
+        default => 0,
+    },
     'support_material' => {
         label   => 'Generate support material',
         tooltip => 'Enable support material generation.',

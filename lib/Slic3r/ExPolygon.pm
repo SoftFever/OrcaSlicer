@@ -155,16 +155,19 @@ sub clip_line {
 sub simplify {
     my $self = shift;
     $_->simplify(@_) for @$self;
+    $self;
 }
 
 sub translate {
     my $self = shift;
     $_->translate(@_) for @$self;
+    $self;
 }
 
 sub rotate {
     my $self = shift;
     $_->rotate(@_) for @$self;
+    $self;
 }
 
 sub area {

@@ -613,9 +613,30 @@ sub write_gcode {
         $Slic3r::Config->print_center->[Y] - (unscale ($print_bb[Y2] - $print_bb[Y1]) / 2) - unscale $print_bb[Y1],
     );
     
+    # initialize a motion planner for object-to-object travel moves
+    my $external_motionplanner;
+    if ($Slic3r::Config->avoid_crossing_perimeters) {
+        my $distance_from_objects = 1;
+        # compute the offsetted convex hull for each object and repeat it for each copy.
+        my @islands = ();
+        foreach my $obj_idx (0 .. $#{$self->objects}) {
+            my @island = Slic3r::ExPolygon->new(convex_hull([
+                map @{$_->expolygon->contour}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
+            ]))->translate(map -$_, @shift)->offset_ex(scale $distance_from_objects);
+            foreach my $copy (@{$self->copies->[$obj_idx]}) {
+                push @islands, map $_->clone->translate(@$copy), @island;
+            }
+        }
+        $external_motionplanner = Slic3r::GCode::MotionPlanner->new(
+            islands     => union_ex([ map @$_, @islands ]),
+            no_internal => 1,
+        );
+    }
+    
     # prepare the logic to print one layer
     my $skirt_done = 0;  # count of skirt layers done
     my $brim_done = 0;
+    my $last_obj_copy = "";
     my $extrude_layer = sub {
         my ($layer_id, $object_copies) = @_;
         my $gcode = "";
@@ -635,8 +656,7 @@ sub write_gcode {
         
         # extrude skirt
         if ($skirt_done < $Slic3r::Config->skirt_height) {
-            $gcodegen->shift_x($shift[X]);
-            $gcodegen->shift_y($shift[Y]);
+            $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
             # skip skirt if we have a large brim
             if ($layer_id < $Slic3r::Config->skirt_height && ($layer_id != 0 || $Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::flow->spacing) > $Slic3r::Config->brim_width)) {
@@ -647,8 +667,7 @@ sub write_gcode {
         
         # extrude brim
         if ($layer_id == 0 && !$brim_done) {
-            $gcodegen->shift_x($shift[X]);
-            $gcodegen->shift_y($shift[Y]);
+            $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
             $brim_done = 1;
         }
@@ -661,8 +680,21 @@ sub write_gcode {
             # won't always trigger the automatic retraction
             $gcode .= $gcodegen->retract;
             
-            $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
-            $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
+            # travel to the first perimeter point using the external motion planner
+            if ($external_motionplanner && @{ $layer->perimeters } && !$gcodegen->straight_once && $last_obj_copy ne "${obj_idx}_${copy}") {
+                $gcodegen->set_shift(@shift);
+                my $layer_mp = $gcodegen->motionplanner;
+                $gcodegen->motionplanner($external_motionplanner);
+                my $first_perimeter = $layer->perimeters->[0]->unpack;
+                my $target = $first_perimeter->polygon->[0]->clone->translate(@$copy);
+                $gcode .= $gcodegen->travel_to($target, "move to first perimeter point");
+                $gcodegen->motionplanner($layer_mp);
+            }
+            
+            $gcodegen->set_shift(
+                $shift[X] + unscale $copy->[X],
+                $shift[Y] + unscale $copy->[Y],
+            );
             
             # extrude perimeters
             $gcode .= $gcodegen->set_tool($Slic3r::Config->perimeter_extruder-1);
@@ -686,6 +718,8 @@ sub write_gcode {
                 $gcode .= $gcodegen->extrude_path($_, 'support material') 
                     for $layer->support_fills->shortest_path($gcodegen->last_pos);
             }
+            
+            $last_obj_copy = "${obj_idx}_${copy}";
         }
         return if !$gcode;
         

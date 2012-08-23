@@ -392,6 +392,10 @@ sub build {
             title => 'Horizontal shells',
             options => [qw(solid_layers)],
         },
+        {
+            title => 'Advanced',
+            options => [qw(avoid_crossing_perimeters)],
+        },
     ]);
     
     $self->add_options_page('Infill', 'shading.png', optgroups => [
