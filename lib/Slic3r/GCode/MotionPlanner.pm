@@ -12,7 +12,7 @@ has '_edges'        => (is => 'rw', default => sub { {} });  # node_idx => { nod
 has '_crossing_edges' => (is => 'rw', default => sub { {} });  # edge_idx => bool
 
 use List::Util qw(first);
-use Slic3r::Geometry qw(scale epsilon nearest_point);
+use Slic3r::Geometry qw(A B scale epsilon nearest_point);
 use Slic3r::Geometry::Clipper qw(diff_ex JT_MITER);
 
 # clearance (in mm) from the perimeters
@@ -98,9 +98,19 @@ sub BUILD {
         )} > 0;
     };
     
-    # lines connecting outer polygons are visible
     {
         my @outer = (map @$_, @{$self->_outer});
+        
+        # lines of outer polygons connect visible points
+        for my $i (0 .. $#outer) {
+            foreach my $line ($outer[$i]->lines) {
+                my $dist = $line->length;
+                $edges->{$line->[A]}{$line->[B]} = $dist;
+                $edges->{$line->[B]}{$line->[A]} = $dist;
+            }
+        }
+        
+        # lines connecting outer polygons are visible
         for my $i (0 .. $#outer) {
             for my $j (($i+1) .. $#outer) {
                 for my $m (0 .. $#{$outer[$i]}) {
@@ -163,7 +173,7 @@ sub BUILD {
             lines           => \@lines,
             points          => [ values %{$self->_pointmap} ],
             no_arrows       => 1,
-            #polygons        => [ map @$_, @{$self->islands} ],
+            polygons        => [ map @$_, @{$self->islands} ],
             #red_polygons    => [ map $_->holes, map @$_, @{$self->_inner} ],
             #white_polygons    => [ map @$_, @{$self->_outer} ],
         );
