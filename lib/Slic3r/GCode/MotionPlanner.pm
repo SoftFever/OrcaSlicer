@@ -45,7 +45,7 @@ sub BUILD {
         for my $i (0 .. $#points) {
             for my $j (($i+1) .. $#points) {
                 my $line = Slic3r::Line->new($points[$i], $points[$j]);
-                if ($expolygon->encloses_line($line, scale Slic3r::Geometry::epsilon)) {
+                if ($expolygon->encloses_line($line, $tolerance)) {
                     my $dist = $line->length * ($crosses_perimeter ? CROSSING_FACTOR : 1);
                     $edges->{$points[$i]}{$points[$j]} = $dist;
                     $edges->{$points[$j]}{$points[$i]} = $dist;

@@ -11,8 +11,10 @@ has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
 has 'speed'              => (is => 'rw');
 
-has 'motionplanner'      => (is => 'rw');
-has 'straight_once'      => (is => 'rw');
+has 'external_mp'        => (is => 'rw');
+has 'layer_mp'           => (is => 'rw');
+has 'new_object'         => (is => 'rw', default => sub {0});
+has 'straight_once'      => (is => 'rw', default => sub {1});
 has 'extruder_idx'       => (is => 'rw');
 has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
@@ -76,7 +78,7 @@ sub change_layer {
     
     $self->layer($layer);
     if ($Slic3r::Config->avoid_crossing_perimeters) {
-        $self->motionplanner(Slic3r::GCode::MotionPlanner->new(
+        $self->layer_mp(Slic3r::GCode::MotionPlanner->new(
             islands => union_ex([ map @{$_->expolygon}, @{$layer->slices} ], undef, 1),
         ));
     }
@@ -216,13 +218,32 @@ sub travel_to {
     my ($point, $comment) = @_;
     
     return "" if points_coincide($self->last_pos, $point);
+    
+    my $gcode = "";
     if ($Slic3r::Config->avoid_crossing_perimeters && $self->last_pos->distance_to($point) > scale 5 && !$self->straight_once) {
-        return join '', map $self->G0($_->b, undef, 0, $comment || ""),
-            $self->motionplanner->shortest_path($self->last_pos, $point)->lines;
+        my $plan = sub {
+            my $mp = shift;
+            return join '', 
+                map $self->G0($_->b, undef, 0, $comment || ""),
+                $mp->shortest_path($self->last_pos, $point)->lines;
+        };
+        
+        if ($self->new_object) {
+            my @shift = ($self->shift_x, $self->shift_y);
+            $self->set_shift(0,0);
+            $point->translate(map scale $_, @shift);
+            $gcode .= $plan->($self->external_mp);
+            $self->new_object(0);
+            $self->set_shift(@shift);
+        } else {
+            $gcode .= $plan->($self->layer_mp);
+        }
     } else {
         $self->straight_once(0);
-        return $self->G0($point, undef, 0, $comment || "");
+        $gcode .= $self->G0($point, undef, 0, $comment || "");
     }
+    
+    return $gcode;
 }
 
 sub retract {

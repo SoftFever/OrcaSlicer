@@ -614,7 +614,6 @@ sub write_gcode {
     );
     
     # initialize a motion planner for object-to-object travel moves
-    my $external_motionplanner;
     if ($Slic3r::Config->avoid_crossing_perimeters) {
         my $distance_from_objects = 1;
         # compute the offsetted convex hull for each object and repeat it for each copy.
@@ -622,15 +621,15 @@ sub write_gcode {
         foreach my $obj_idx (0 .. $#{$self->objects}) {
             my @island = Slic3r::ExPolygon->new(convex_hull([
                 map @{$_->expolygon->contour}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
-            ]))->translate(map -$_, @shift)->offset_ex(scale $distance_from_objects);
+            ]))->translate(scale $shift[X], scale $shift[Y])->offset_ex(scale $distance_from_objects, 1, JT_SQUARE);
             foreach my $copy (@{$self->copies->[$obj_idx]}) {
                 push @islands, map $_->clone->translate(@$copy), @island;
             }
         }
-        $external_motionplanner = Slic3r::GCode::MotionPlanner->new(
+        $gcodegen->external_mp(Slic3r::GCode::MotionPlanner->new(
             islands     => union_ex([ map @$_, @islands ]),
             no_internal => 1,
-        );
+        ));
     }
     
     # prepare the logic to print one layer
@@ -663,6 +662,7 @@ sub write_gcode {
                 $gcode .= $gcodegen->extrude_loop($_, 'skirt') for @{$self->skirt};
             }
             $skirt_done++;
+            $gcodegen->straight_once(1);
         }
         
         # extrude brim
@@ -670,26 +670,17 @@ sub write_gcode {
             $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
             $brim_done = 1;
+            $gcodegen->straight_once(1);
         }
         
         for my $obj_copy (@$object_copies) {
             my ($obj_idx, $copy) = @$obj_copy;
+            $gcodegen->new_object(1) if $last_obj_copy && $last_obj_copy ne "${obj_idx}_${copy}";
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
             
             # retract explicitely because changing the shift_[xy] properties below
             # won't always trigger the automatic retraction
             $gcode .= $gcodegen->retract;
-            
-            # travel to the first perimeter point using the external motion planner
-            if ($external_motionplanner && @{ $layer->perimeters } && !$gcodegen->straight_once && $last_obj_copy ne "${obj_idx}_${copy}") {
-                $gcodegen->set_shift(@shift);
-                my $layer_mp = $gcodegen->motionplanner;
-                $gcodegen->motionplanner($external_motionplanner);
-                my $first_perimeter = $layer->perimeters->[0]->unpack;
-                my $target = $first_perimeter->polygon->[0]->clone->translate(@$copy);
-                $gcode .= $gcodegen->travel_to($target, "move to first perimeter point");
-                $gcodegen->motionplanner($layer_mp);
-            }
             
             $gcodegen->set_shift(
                 $shift[X] + unscale $copy->[X],
@@ -773,8 +764,10 @@ sub write_gcode {
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
-                    $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
-                    $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
+                    $gcodegen->set_shift(
+                        $shift[X] + unscale $copy->[X],
+                        $shift[Y] + unscale $copy->[Y],
+                    );
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
