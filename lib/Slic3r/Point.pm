@@ -32,11 +32,6 @@ sub cast {
     }
 }
 
-sub id {
-    my $self = shift;
-    return join ',', @$self;
-}
-
 sub coordinates {
     my $self = shift;
     return @$self;
