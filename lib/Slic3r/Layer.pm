@@ -191,7 +191,6 @@ sub make_perimeters {
     # for each island:
     foreach my $surface (@surfaces) {
         my @last_offsets = ($surface->expolygon);
-        my $distance = 0;
         
         # experimental hole compensation (see ArcCompensation in the RepRap wiki)
         if (0) {
@@ -216,32 +215,29 @@ sub make_perimeters {
             }
         }
         
+        my $distance = scale $self->perimeter_flow->spacing;
         my @gaps = ();
         
-        # generate perimeters inwards
+        # generate perimeters inwards (loop 0 is the external one)
         my $loop_number = $Slic3r::Config->perimeters + ($surface->additional_inner_perimeters || 0);
-        push @perimeters, [];
-        for (my $loop = 0; $loop < $loop_number; $loop++) {
+        push @perimeters, [[@last_offsets]];
+        for (my $loop = 1; $loop < $loop_number; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
-            if ($distance) {
-                my @new_offsets = ();
-                foreach my $expolygon (@last_offsets) {
-                    my @offsets = map $_->offset_ex(+0.5*$distance), $expolygon->offset_ex(-1.5*$distance);
-                    push @new_offsets, @offsets;
-                    
-                    my $diff = diff_ex(
-                        [ map @$_, $expolygon->offset_ex(-$distance) ],
-                        [ map @$_, @offsets ],
-                    );
-                    push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
-                }
-                @last_offsets = @new_offsets;
+            my @new_offsets = ();
+            foreach my $expolygon (@last_offsets) {
+                my @offsets = map $_->offset_ex(+0.5*$distance), $expolygon->offset_ex(-1.5*$distance);
+                push @new_offsets, @offsets;
+                
+                my $diff = diff_ex(
+                    [ map @$_, $expolygon->offset_ex(-$distance) ],
+                    [ map @$_, @offsets ],
+                );
+                push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
+            @last_offsets = @new_offsets;
+            
             last if !@last_offsets;
             push @{ $perimeters[-1] }, [@last_offsets];
-            
-            # offset distance for inner loops
-            $distance = scale $self->perimeter_flow->spacing;
         }
         
         # create one more offset to be used as boundary for fill
