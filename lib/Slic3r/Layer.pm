@@ -365,7 +365,7 @@ sub prepare_fill_surfaces {
         
     # turn too small internal regions into solid regions
     {
-        my $min_area = ((7 * $self->infill_flow->spacing / &Slic3r::SCALING_FACTOR)**2) * PI;
+        my $min_area = scale scale $Slic3r::Config->solid_infill_below_area; # scaling an area requires two calls!
         my @small = grep $_->surface_type == S_TYPE_INTERNAL && $_->expolygon->contour->area <= $min_area, @surfaces;
         $_->surface_type(S_TYPE_INTERNALSOLID) for @small;
         Slic3r::debugf "identified %d small surfaces at layer %d\n", scalar(@small), $self->id if @small > 0;

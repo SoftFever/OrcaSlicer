@@ -213,6 +213,9 @@ $j
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
+    --solid-infill-below-area
+                        Force solid infill when a region has a smaller area than this threshold
+                        (mm^2, default: $config->{solid_infill_below_area})
   
    Support material options:
     --support-material  Generate support material for overhangs
