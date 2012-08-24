@@ -14,9 +14,8 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my ($expolygon_off) = $expolygon->offset_ex(scale 0.3);
+    my ($expolygon_off) = $expolygon->offset_ex(scale $params{flow_spacing}/2);
     return {} if !$expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
-    my ($expolygon_epsilon_off) = $expolygon->offset_ex(scale epsilon);
     my $bounding_box = [ $expolygon->bounding_box ];
     
     my $min_spacing = scale $params{flow_spacing};
@@ -46,8 +45,11 @@ sub fill_surface {
         push @vertical_lines, $vertical_line;
         $x += $distance_between_lines;
     }
+    
+    # clip paths against a slightly offsetted expolygon, so that the first and last paths
+    # are kept even if the expolygon has vertical sides
     my @paths = @{ Boost::Geometry::Utils::polygon_linestring_intersection(
-        $expolygon_epsilon_off->boost_polygon,
+        +($expolygon->offset_ex(scale epsilon))[0]->boost_polygon,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
         Boost::Geometry::Utils::linestring(@vertical_lines),
     ) };
     for (@paths) {
@@ -78,7 +80,7 @@ sub fill_surface {
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
                 if ($can_connect->(@distance, $paths[-1][-1], $path->points->[0])
-                    && $expolygon_off->encloses_line(Slic3r::Line->new($paths[-1][-1], $path->points->[0]))) {
+                    && $expolygon_off->encloses_line(Slic3r::Line->new($paths[-1][-1], $path->points->[0]), $tolerance)) {
                     push @{$paths[-1]}, @{$path->points};
                     next;
                 }

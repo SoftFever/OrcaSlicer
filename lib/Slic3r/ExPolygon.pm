@@ -6,7 +6,7 @@ use warnings;
 
 use Boost::Geometry::Utils;
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon same_line);
+use Slic3r::Geometry qw(X Y A B point_in_polygon same_line line_length);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
@@ -110,10 +110,14 @@ sub encloses_point_quick {
 
 sub encloses_line {
     my $self = shift;
-    my ($line) = @_;
-    
+    my ($line, $tolerance) = @_;
     my $clip = $self->clip_line($line);
-    return @$clip == 1 && same_line($clip->[0], $line);
+    if (!defined $tolerance) {
+        # optimization
+        return @$clip == 1 && same_line($clip->[0], $line);
+    } else {
+        return @$clip == 1 && abs(line_length($clip->[0]) - $line->length) < $tolerance;
+    }
 }
 
 sub point_on_segment {
