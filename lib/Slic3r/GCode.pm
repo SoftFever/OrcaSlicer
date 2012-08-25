@@ -1,8 +1,9 @@
 package Slic3r::GCode;
 use Moo;
 
+use List::Util qw(first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale unscale);
+use Slic3r::Geometry qw(scale unscale points_coincide PI X Y);
 
 has 'layer'              => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
@@ -47,8 +48,6 @@ my %role_speeds = (
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
 );
-
-use Slic3r::Geometry qw(points_coincide PI X Y);
 
 sub extruder {
     my $self = shift;
