@@ -144,6 +144,7 @@ sub rotate {
     my $self = shift;
     my ($angle, $center) = @_;
     @$self = Slic3r::Geometry::rotate_points($angle, $center, @$self);
+    bless $_, 'Slic3r::Point' for @$self;
     return $self;
 }
 
@@ -151,6 +152,7 @@ sub translate {
     my $self = shift;
     my ($x, $y) = @_;
     @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
+    bless $_, 'Slic3r::Point' for @$self;
     return $self;
 }
 
