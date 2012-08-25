@@ -4,23 +4,13 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(explode_expolygon explode_expolygons safety_offset offset offset_ex
+our @EXPORT_OK = qw(safety_offset offset offset_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     JT_SQUARE is_counter_clockwise);
 
 use Math::Clipper 1.09 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
 use Slic3r::Geometry qw(scale);
 our $clipper = Math::Clipper->new;
-
-sub explode_expolygon {
-    my ($expolygon) = @_;
-    return ($expolygon->{outer}, @{ $expolygon->{holes} });
-}
-
-sub explode_expolygons {
-    my ($expolygons) = @_;
-    return map explode_expolygon($_), @$expolygons;
-}
 
 sub safety_offset {
     my ($polygons, $factor) = @_;
