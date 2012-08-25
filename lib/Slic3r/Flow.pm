@@ -55,4 +55,14 @@ sub _build_spacing {
     return $self->width - &Slic3r::OVERLAP_FACTOR * ($self->width - $min_flow_spacing);
 }
 
+sub clone {
+    my $self = shift;
+    
+    return (ref $self)->new(
+        nozzle_diameter => $self->nozzle_diameter,
+        layer_height    => $self->layer_height,
+        @_,
+    );
+}
+
 1;

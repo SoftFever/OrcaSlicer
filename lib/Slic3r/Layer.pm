@@ -225,12 +225,14 @@ sub make_perimeters {
             # offsetting a polygon can result in one or many offset polygons
             my @new_offsets = ();
             foreach my $expolygon (@last_offsets) {
-                my @offsets = map $_->offset_ex(+0.5*$distance), $expolygon->offset_ex(-1.5*$distance);
+                my @offsets = map $_->offset_ex(+0.5*$distance), $expolygon->noncollapsing_offset_ex(-1.5*$distance);
                 push @new_offsets, @offsets;
                 
+                # where the above check collapses the expolygon, then there's no room for an inner loop
+                # and we can extract the gap for later processing
                 my $diff = diff_ex(
-                    [ map @$_, $expolygon->offset_ex(-$distance) ],
-                    [ map @$_, @offsets ],
+                    [ map @$_, $expolygon->offset_ex(-0.5*$distance) ],
+                    [ map @$_, map $_->offset_ex(+0.5*$distance), @offsets ],  # should these be offsetted in a single pass?
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
@@ -245,14 +247,40 @@ sub make_perimeters {
             my @fill_boundaries = map $_->offset_ex(-$distance), @last_offsets;
             $_->simplify(scale &Slic3r::RESOLUTION) for @fill_boundaries;
             push @{ $self->surfaces }, @fill_boundaries;
-            
+        }
+        
+        # fill gaps using dynamic extrusion width
+        {
             # detect the small gaps that we need to treat like thin polygons,
             # thus generating the skeleton and using it to fill them
-            push @{ $self->thin_fills },
-                map $_->medial_axis(scale $self->perimeter_flow->width),
-                @gaps;
-            Slic3r::debugf "  %d gaps filled\n", scalar @{ $self->thin_fills }
-                if @{ $self->thin_fills };
+            my $w = $self->perimeter_flow->width;
+            my @widths = (1.5 * $w, $w, 0.5 * $w, 0.2 * $w);
+            foreach my $width (@widths) {
+                my $scaled_width = scale $width;
+                
+                # extract the gaps having this width
+                my @this_width = map $_->offset_ex(+0.5*$scaled_width), map $_->noncollapsing_offset_ex(-0.5*$scaled_width), @gaps;
+                
+                # fill them
+                my %path_args = (
+                    role            => EXTR_ROLE_SOLIDFILL,
+                    flow_spacing    => $self->perimeter_flow->clone(width => $width)->spacing,
+                );
+                push @{ $self->thin_fills }, map {
+                    $_->isa('Slic3r::Polygon')
+                        ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point)  # we should keep these as loops
+                        : Slic3r::ExtrusionPath->pack(polyline => $_, %path_args),
+                } map $_->medial_axis($scaled_width), @this_width;
+            
+                Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
+                    if @{ $self->thin_fills };
+                
+                # check what's left
+                @gaps = @{diff_ex(
+                    [ map @$_, @gaps ],
+                    [ map @$_, @this_width ],
+                )};
+            }
         }
     }
     

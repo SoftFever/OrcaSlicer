@@ -91,6 +91,13 @@ sub offset_ex {
     return @{ union_ex(\@offsets) };
 }
 
+sub noncollapsing_offset_ex {
+    my $self = shift;
+    my ($distance, @params) = @_;
+    
+    return $self->offset_ex($distance + 1, @params);
+}
+
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
