@@ -47,7 +47,7 @@ sub OnInit {
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     
     # locate or create data directory
-    $datadir = Wx::StandardPaths::Get->GetUserDataDir;
+    $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
     Slic3r::debugf "Data directory: %s\n", $datadir;
     my $run_wizard = (-d $datadir) ? 0 : 1;
     for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {

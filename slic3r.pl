@@ -27,6 +27,7 @@ my %cli_options = ();
         'save=s'                => \$opt{save},
         'load=s@'               => \$opt{load},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
+        'datadir=s'             => \$opt{datadir},
         'export-svg'            => \$opt{export_svg},
         'merge|m'               => \$opt{merge},
     );
@@ -71,6 +72,10 @@ if ($opt{save}) {
 my $gui;
 if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     $gui = Slic3r::GUI->new;
+    {
+        no warnings 'once';
+        $Slic3r::GUI::datadir = $opt{datadir} if $opt{datadir};
+    }
     $gui->{skeinpanel}->load_config_file($_) for @{$opt{load}};
     $gui->{skeinpanel}->load_config($cli_config);
     $gui->MainLoop;
