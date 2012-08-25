@@ -132,15 +132,13 @@ sub extrude_path {
     my $gcode = "";
     
     # retract if distance from previous position is greater or equal to the one
-    # specified by the user *and* to the maximum distance between infill lines
+    # specified by the user
     {
-        my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * &Slic3r::SCALING_FACTOR;
-        my $distance_threshold = $self->extruder->retract_before_travel;
-        $distance_threshold = 2 * ($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) / $Slic3r::Config->fill_density * sqrt(2)
-            if 0 && $Slic3r::Config->fill_density > 0 && $description =~ /fill/;
-    
-        if ($distance_from_last_pos >= $distance_threshold) {
-            $gcode .= $self->retract(travel_to => $path->points->[0]);
+        my $travel = Slic3r::Line->new($self->last_pos, $path->points->[0]);
+        if ($travel->length >= scale $self->extruder->retract_before_travel) {
+            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->expolygon->encloses_line($travel) } @{$self->layer->slices}) {
+                $gcode .= $self->retract(travel_to => $path->points->[0]);
+            }
         }
     }
     

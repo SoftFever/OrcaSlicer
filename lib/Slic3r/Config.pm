@@ -470,6 +470,13 @@ our $Options = {
         type    => 'bool',
         default => 1,
     },
+    'only_retract_when_crossing_perimeters' => {
+        label   => 'Only retract when crossing perimeters',
+        tooltip => 'Disables retraction when travelling between infill paths inside the same island.',
+        cli     => 'only-retract-when-crossing-perimeters!',
+        type    => 'bool',
+        default => 0,
+    },
     'support_material' => {
         label   => 'Generate support material',
         tooltip => 'Enable support material generation.',

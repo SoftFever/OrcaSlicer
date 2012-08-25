@@ -170,6 +170,9 @@ The author of the Silk icon set is Mark James.
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --extra-perimeters  Add more perimeters when needed (default: yes)
         --randomize-start   Randomize starting point across layers (default: yes)
+        --only-retract-when-crossing-perimeters
+                            Disable retraction when travelling between infill paths inside the same island.
+                            (default: no)
         --solid-infill-below-area
                             Force solid infill when a region has a smaller area than this threshold
                             (mm^2, default: 70)
