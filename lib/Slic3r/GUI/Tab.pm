@@ -405,7 +405,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(infill_every_layers fill_angle)],
+            options => [qw(infill_every_layers fill_angle solid_infill_below_area)],
         },
     ]);
     

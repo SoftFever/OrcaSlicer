@@ -214,6 +214,9 @@ $j
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
     --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
+    --solid-infill-below-area
+                        Force solid infill when a region has a smaller area than this threshold
+                        (mm^2, default: $config->{solid_infill_below_area})
   
    Support material options:
     --support-material  Generate support material for overhangs

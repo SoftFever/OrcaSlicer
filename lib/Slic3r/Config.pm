@@ -449,6 +449,14 @@ our $Options = {
         max     => 359,
         default => 45,
     },
+    'solid_infill_below_area' => {
+        label   => 'Solid infill threshold area',
+        tooltip => 'Force solid infill for regions having a smaller area than the specified threshold.',
+        sidetext => 'mm²',
+        cli     => 'solid-infill-below-area=f',
+        type    => 'f',
+        default => 70,
+    },
     'extra_perimeters' => {
         label   => 'Generate extra perimeters when needed',
         cli     => 'extra-perimeters!',
