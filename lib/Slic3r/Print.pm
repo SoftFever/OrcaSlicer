@@ -497,7 +497,7 @@ sub make_skirt {
     my @skirt = ();
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         my $distance = scale ($Slic3r::Config->skirt_distance + ($flow->spacing * $i));
-        my $outline = offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND);
+        my $outline = Math::Clipper::offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND);
         push @skirt, Slic3r::ExtrusionLoop->pack(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
             role => EXTR_ROLE_SKIRT,
