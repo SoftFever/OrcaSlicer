@@ -112,11 +112,9 @@ sub add_object_from_mesh {
     $mesh->align_to_origin;
     
     # initialize print object
-    my @size = $mesh->size;
     my $object = Slic3r::Print::Object->new(
-        mesh     => $mesh,
-        x_length => $size[X],
-        y_length => $size[Y],
+        mesh => $mesh,
+        size => [ $mesh->size ],
     );
     
     push @{$self->objects}, $object;
@@ -201,8 +199,8 @@ sub duplicate {
         for my $x_copy (1..$Slic3r::Config->duplicate_grid->[X]) {
             for my $y_copy (1..$Slic3r::Config->duplicate_grid->[Y]) {
                 push @{$self->copies->[0]}, [
-                    ($object->x_length + $dist) * ($x_copy-1),
-                    ($object->y_length + $dist) * ($y_copy-1),
+                    ($object->size->[X] + $dist) * ($x_copy-1),
+                    ($object->size->[Y] + $dist) * ($y_copy-1),
                 ];
             }
         }
@@ -220,8 +218,8 @@ sub arrange_objects {
     my $total_parts = scalar map @$_, @{$self->copies};
     my $partx = my $party = 0;
     foreach my $object (@{$self->objects}) {
-        $partx = $object->x_length if $object->x_length > $partx;
-        $party = $object->y_length if $object->y_length > $party;
+        $partx = $object->size->[X] if $object->size->[X] > $partx;
+        $party = $object->size->[Y] if $object->size->[Y] > $party;
     }
     
     # object distance is max(duplicate_distance, clearance_radius)
@@ -246,9 +244,9 @@ sub bounding_box {
         foreach my $copy (@{$self->copies->[$obj_idx]}) {
             push @points,
                 [ $copy->[X], $copy->[Y] ],
-                [ $copy->[X] + $object->x_length, $copy->[Y] ],
-                [ $copy->[X] + $object->x_length, $copy->[Y] + $object->y_length ],
-                [ $copy->[X], $copy->[Y] + $object->y_length ];
+                [ $copy->[X] + $object->size->[X], $copy->[Y] ],
+                [ $copy->[X] + $object->size->[X], $copy->[Y] + $object->size->[Y] ],
+                [ $copy->[X], $copy->[Y] + $object->size->[Y] ];
         }
     }
     return Slic3r::Geometry::bounding_box(\@points);

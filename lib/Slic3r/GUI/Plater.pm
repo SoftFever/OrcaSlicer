@@ -419,9 +419,7 @@ sub rotate {
     # rotate, realign to 0,0 and update size
     $object->mesh->rotate($angle);
     $object->mesh->align_to_origin;
-    my @size = $object->mesh->size;
-    $object->x_length($size[X]);
-    $object->y_length($size[Y]);
+    $object->size([ $object->mesh->size ]);
     
     $self->make_thumbnail($obj_idx);
     $self->recenter;
@@ -458,9 +456,7 @@ sub changescale {
     my $mesh = $object->mesh;
     $mesh->scale($scale/100 / $self->{scale}[$obj_idx]);
     $object->mesh->align_to_origin;
-    my @size = $object->mesh->size;
-    $object->x_length($size[X]);
-    $object->y_length($size[Y]);
+    $object->size([ $object->mesh->size ]);
     
     $self->{scale}[$obj_idx] = $scale/100;
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
