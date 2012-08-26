@@ -2,42 +2,39 @@ package Slic3r::Print::Object;
 use Moo;
 
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(Z scale unscale deg2rad);
+use Slic3r::Geometry qw(scale unscale deg2rad);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
 use Slic3r::Surface ':types';
 
 has 'input_file'        => (is => 'rw', required => 0);
 has 'mesh'              => (is => 'rw', required => 0);
 has 'size'              => (is => 'rw', required => 1);
-has 'layers'            => (is => 'rw', default => sub { [] } );
 
-sub BUILD {
-    my $self = shift;
-    
-    # make layers
-    while (!@{$self->layers} || $self->layers->[-1]->slice_z < $self->size->[Z]) {
-        push @{$self->layers}, Slic3r::Layer->new(id => $#{$self->layers} + 1);
-    }
-}
+has 'layers' => (
+    traits  => ['Array'],
+    is      => 'rw',
+    #isa     => 'ArrayRef[Slic3r::Layer]',
+    default => sub { [] },
+);
 
 sub layer_count {
     my $self = shift;
     return scalar @{ $self->layers };
 }
 
-sub get_layer_range {
+sub layer {
     my $self = shift;
-    my ($min_z, $max_z) = @_;
+    my ($layer_id) = @_;
     
-    my ($min_layer, $max_layer) = (0, undef);
-    for my $layer (@{$self->layers}) {
-        $min_layer = $layer->id if $layer->slice_z <= $min_z;
-        if ($layer->slice_z >= $max_z) {
-            $max_layer = $layer->id;
-            last;
+    # extend our print by creating all necessary layers
+    
+    if ($self->layer_count < $layer_id + 1) {
+        for (my $i = $self->layer_count; $i <= $layer_id; $i++) {
+            push @{ $self->layers }, Slic3r::Layer->new(id => $i);
         }
     }
-    return ($min_layer, $max_layer);
+    
+    return $self->layers->[$layer_id];
 }
 
 sub slice {
@@ -49,7 +46,7 @@ sub slice {
         my $apply_lines = sub {
             my $lines = shift;
             foreach my $layer_id (keys %$lines) {
-                my $layer = $self->layers->[$layer_id];
+                my $layer = $self->layer($layer_id);
                 push @{$layer->lines}, @{$lines->{$layer_id}};
             }
         };
@@ -402,7 +399,7 @@ sub combine_infill {
     
     # start from bottom, skip first layer
     for (my $i = 1; $i < $self->layer_count; $i++) {
-        my $layer = $self->layers->[$i];
+        my $layer = $self->layer($i);
         
         # skip layer if no internal fill surfaces
         next if !grep $_->surface_type == S_TYPE_INTERNAL, @{$layer->fill_surfaces};
@@ -411,7 +408,7 @@ sub combine_infill {
         # we do this from the greater depth to the smaller
         for (my $d = $Slic3r::Config->infill_every_layers - 1; $d >= 1; $d--) {
             next if ($i - $d) < 0;
-            my $lower_layer = $self->layers->[$i - 1];
+            my $lower_layer = $self->layer($i - 1);
             
             # select surfaces of the lower layer having the depth we're looking for
             my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type == S_TYPE_INTERNAL,

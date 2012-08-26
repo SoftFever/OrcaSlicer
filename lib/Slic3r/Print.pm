@@ -477,7 +477,7 @@ sub make_skirt {
     $skirt_height = $self->layer_count if $skirt_height > $self->layer_count;
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
-        my @layers = map $self->objects->[$obj_idx]->layers->[$_], 0..($skirt_height-1);
+        my @layers = map $self->objects->[$obj_idx]->layer($_), 0..($skirt_height-1);
         my @layer_points = (
             (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, @layers),
