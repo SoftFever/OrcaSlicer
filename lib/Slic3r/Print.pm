@@ -3,6 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
+use List::Util qw(max);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points);
@@ -83,10 +84,7 @@ sub add_objects_from_file {
     my $self = shift;
     my ($input_file) = @_;
     
-    my $model = $input_file =~ /\.stl$/i            ? Slic3r::Format::STL->read_file($input_file)
-              : $input_file =~ /\.obj$/i            ? Slic3r::Format::OBJ->read_file($input_file)
-              : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
-              : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
+    my $model = Slic3r::Model->read_from_file($input_file);
     
     my @print_objects = $self->add_model($model);
     $_->input_file($input_file) for @print_objects;
@@ -231,19 +229,11 @@ sub arrange_objects {
     my $self = shift;
 
     my $total_parts = scalar map @$_, @{$self->copies};
-    my $partx = my $party = 0;
-    foreach my $object (@{$self->objects}) {
-        $partx = $object->size->[X] if $object->size->[X] > $partx;
-        $party = $object->size->[Y] if $object->size->[Y] > $party;
-    }
-    
-    # object distance is max(duplicate_distance, clearance_radius)
-    my $distance = $Slic3r::Config->complete_objects && $Slic3r::Config->extruder_clearance_radius > $Slic3r::Config->duplicate_distance
-        ? $Slic3r::Config->extruder_clearance_radius
-        : $Slic3r::Config->duplicate_distance;
+    my $partx = max(map $_->size->[X], @{$self->objects});
+    my $party = max(map $_->size->[Y], @{$self->objects});
     
     my @positions = Slic3r::Geometry::arrange
-        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $distance);
+        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $Slic3r::Config->min_object_distance);
     
     for my $obj_idx (0..$#{$self->objects}) {
         @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};

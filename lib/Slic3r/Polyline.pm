@@ -4,7 +4,7 @@ use warnings;
 
 use Math::Clipper qw();
 use Scalar::Util qw(reftype);
-use Slic3r::Geometry qw(A B polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
+use Slic3r::Geometry qw(A B X Y MIN MAX polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polyline_lines move_points same_point);
 
 # the constructor accepts an array(ref) of points
@@ -138,6 +138,13 @@ sub clip_with_expolygon {
 sub bounding_box {
     my $self = shift;
     return Slic3r::Geometry::bounding_box($self);
+}
+
+sub size {
+    my $self = shift;
+    
+    my @extents = $self->bounding_box;
+    return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y);
 }
 
 sub rotate {
