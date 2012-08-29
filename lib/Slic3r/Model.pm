@@ -3,7 +3,7 @@ use Moo;
 
 use Slic3r::Geometry qw(X Y Z);
 
-has 'materials' => (is => 'ro', default => sub { [] });
+has 'materials' => (is => 'ro', default => sub { {} });
 has 'objects'   => (is => 'ro', default => sub { [] });
 
 sub add_object {

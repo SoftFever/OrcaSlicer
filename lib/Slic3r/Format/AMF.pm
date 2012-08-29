@@ -12,28 +12,12 @@ sub read_file {
     
     open my $fh, '<', $file or die "Failed to open $file\n";
     
-    my $vertices = [];
-    my $materials = {};
-    my $meshes_by_material = {};
+    my $model = Slic3r::Model->new;
     XML::SAX::PurePerl
-        ->new(Handler => Slic3r::Format::AMF::Parser->new(
-            _vertices           => $vertices,
-            _materials          => $materials,
-            _meshes_by_material => $meshes_by_material,
-         ))
+        ->new(Handler => Slic3r::Format::AMF::Parser->new(_model => $model))
         ->parse_file($fh);
-    
     close $fh;
     
-    my $model = Slic3r::Model->new;
-    my $object = $model->add_object(vertices => $vertices);
-    foreach my $material (keys %$meshes_by_material) {
-        push @{$model->materials}, $material;  # TODO: we should not add duplicate materials
-        $object->add_volume(
-            material_id => $#{$model->materials},
-            facets      => $meshes_by_material->{$material},
-        );
-    }
     return $model;
 }
 
@@ -48,8 +32,8 @@ sub write_file {
     printf $fh qq{<?xml version="1.0" encoding="UTF-8"?>\n};
     printf $fh qq{<amf unit="millimeter">\n};
     printf $fh qq{  <metadata type="cad">Slic3r %s</metadata>\n}, $Slic3r::VERSION;
-    for my $material_id (0 .. $#{ $model->materials }) {
-        my $material = $model->materials->[$material_id];
+    for my $material_id (sort keys %{ $model->materials }) {
+        my $material = $model->materials->{$material_id};
         printf $fh qq{  <material id="%d">\n}, $material_id;
         for (keys %$material) {
              printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->{$_};
