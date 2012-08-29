@@ -79,28 +79,43 @@ sub _trigger_config {
     $self->config->set_ifndef('top_solid_infill_speed', $self->config->solid_infill_speed);
 }
 
-sub add_object_from_file {
+sub add_objects_from_file {
     my $self = shift;
     my ($input_file) = @_;
     
-    my $object;
-    if ($input_file =~ /\.stl$/i) {
-        my $mesh = Slic3r::Format::STL->read_file($input_file);
+    my $model = $input_file =~ /\.stl$/i            ? Slic3r::Format::STL->read_file($input_file)
+              : $input_file =~ /\.obj$/i            ? Slic3r::Format::OBJ->read_file($input_file)
+              : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
+              : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
+    
+    my @print_objects = $self->add_model($model);
+    $_->input_file($input_file) for @print_objects;
+}
+
+sub add_model {
+    my $self = shift;
+    my ($model) = @_;
+    
+    my @print_objects = ();
+    foreach my $object (@{ $model->objects }) {
+        my $mesh = $object->volumes->[0]->mesh;
         $mesh->check_manifoldness;
-        $object = $self->add_object_from_mesh($mesh);
-    } elsif ($input_file =~ /\.obj$/i) {
-        my $mesh = Slic3r::Format::OBJ->read_file($input_file);
-        $mesh->check_manifoldness;
-        $object = $self->add_object_from_mesh($mesh);
-    } elsif ( $input_file =~ /\.amf(\.xml)?$/i) {
-        my ($materials, $meshes_by_material) = Slic3r::Format::AMF->read_file($input_file);
-        $_->check_manifoldness for values %$meshes_by_material;
-        $object = $self->add_object_from_mesh($meshes_by_material->{_} || +(values %$meshes_by_material)[0]);
-    } else {
-        die "Input file must have .stl, .obj or .amf(.xml) extension\n";
+        
+        if ($object->instances) {
+            # we ignore the per-instance rotation currently and only 
+            # consider the first one
+            $mesh->rotate($object->instances->[0]->rotation);
+        }
+        
+        push @print_objects, $self->add_object_from_mesh($mesh);
+        
+        if ($object->instances) {
+            # replace the default [0,0] instance with the custom ones
+            @{$self->copies->[-1]} = map [ scale $_->offset->[X], scale $_->offset->[X] ], @{$object->instances};
+        }
     }
-    $object->input_file($input_file);
-    return $object;
+    
+    return @print_objects;
 }
 
 sub add_object_from_mesh {

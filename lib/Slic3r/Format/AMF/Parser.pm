@@ -71,7 +71,7 @@ sub end_element {
     } elsif ($data->{LocalName} eq 'triangle') {
         push @{$self->{_volume}}, $self->{_triangle};
         $self->{_triangle} = undef;
-    } elsif ($self->{_vertex_idx} && $data->{LocalName} =~ /^v[123]$/) {
+    } elsif (defined $self->{_vertex_idx} && $data->{LocalName} =~ /^v[123]$/) {
         $self->{_vertex_idx} = undef;
     } elsif ($data->{LocalName} eq 'material') {
         $self->{_materials}{ $self->{_material_id} } = $self->{_material};

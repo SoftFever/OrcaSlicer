@@ -96,7 +96,7 @@ sub do_slice {
         Slic3r::GUI->save_settings;
         
         my $print = Slic3r::Print->new(config => $config);
-        $print->add_object_from_file($input_file);
+        $print->add_objects_from_file($input_file);
         $print->validate;
 
         # select output file

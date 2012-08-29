@@ -25,15 +25,21 @@ sub read_file {
     
     close $fh;
     
-    $_ = Slic3r::TriangleMesh->new(vertices => $vertices, facets => $_)
-        for values %$meshes_by_material;
-    
-    return $materials, $meshes_by_material;
+    my $model = Slic3r::Model->new;
+    my $object = $model->add_object(vertices => $vertices);
+    foreach my $material (keys %$meshes_by_material) {
+        push @{$model->materials}, $material;  # TODO: we should not add duplicate materials
+        $object->add_volume(
+            material_id => $#{$model->materials},
+            facets      => $meshes_by_material->{$material},
+        );
+    }
+    return $model;
 }
 
 sub write_file {
     my $self = shift;
-    my ($file, $materials, $meshes_by_material) = @_;
+    my ($file, $model, %params) = @_;
     
     my %vertices_offset = ();
     
@@ -42,20 +48,20 @@ sub write_file {
     printf $fh qq{<?xml version="1.0" encoding="UTF-8"?>\n};
     printf $fh qq{<amf unit="millimeter">\n};
     printf $fh qq{  <metadata type="cad">Slic3r %s</metadata>\n}, $Slic3r::VERSION;
-    foreach my $material_id (keys %$materials) {
-        printf $fh qq{  <material id="%s">\n}, $material_id;
-        for (keys %{$materials->{$material_id}}) {
-             printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $materials->{$material_id}{$_};
+    for my $material_id (0 .. $#{ $model->materials }) {
+        my $material = $model->materials->[$material_id];
+        printf $fh qq{  <material id="%d">\n}, $material_id;
+        for (keys %$material) {
+             printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->{$_};
         }
         printf $fh qq{  </material>\n};
     }
-    printf $fh qq{  <object id="0">\n};
-    printf $fh qq{    <mesh>\n};
-    printf $fh qq{      <vertices>\n};
-    my $vertices_count = 0;
-    foreach my $mesh (values %$meshes_by_material) {
-        $vertices_offset{$mesh} = $vertices_count;
-        foreach my $vertex (@{$mesh->vertices}, ) {
+    for my $object_id (0 .. $#{ $model->objects }) {
+        my $object = $model->objects->[$object_id];
+        printf $fh qq{  <object id="%d">\n}, $object_id;
+        printf $fh qq{    <mesh>\n};
+        printf $fh qq{      <vertices>\n};
+        foreach my $vertex (@{$object->vertices}, ) {
             printf $fh qq{        <vertex>\n};
             printf $fh qq{          <coordinates>\n};
             printf $fh qq{            <x>%s</x>\n}, $vertex->[X];
@@ -63,24 +69,21 @@ sub write_file {
             printf $fh qq{            <z>%s</z>\n}, $vertex->[Z];
             printf $fh qq{          </coordinates>\n};
             printf $fh qq{        </vertex>\n};
-            $vertices_count++;
         }
-    }
-    printf $fh qq{      </vertices>\n};
-    foreach my $material_id (sort keys %$meshes_by_material) {
-        my $mesh = $meshes_by_material->{$material_id};
-        printf $fh qq{      <volume%s>\n},
-            ($material_id eq '_') ? '' : " materialid=\"$material_id\"";
-        foreach my $facet (@{$mesh->facets}) {
-            printf $fh qq{        <triangle>\n};
-            printf $fh qq{          <v%d>%d</v%d>\n}, $_, $facet->[$_] + $vertices_offset{$mesh}, $_
-                for -3..-1;
-            printf $fh qq{        </triangle>\n};
+        printf $fh qq{      </vertices>\n};
+        foreach my $volume (@{ $object->volumes }) {
+            printf $fh qq{      <volume%s>\n},
+                (!defined $volume->material_id) ? '' : (sprintf ' materialid="%s"', $volume->material_id);
+            foreach my $facet (@{$volume->facets}) {
+                printf $fh qq{        <triangle>\n};
+                printf $fh qq{          <v%d>%d</v%d>\n}, $_, $facet->[$_], $_ for -3..-1;
+                printf $fh qq{        </triangle>\n};
+            }
+            printf $fh qq{      </volume>\n};
         }
-        printf $fh qq{      </volume>\n};
+        printf $fh qq{    </mesh>\n};
+        printf $fh qq{  </object>\n};
     }
-    printf $fh qq{    </mesh>\n};
-    printf $fh qq{  </object>\n};
     printf $fh qq{</amf>\n};
     close $fh;
 }
