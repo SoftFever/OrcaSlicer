@@ -56,6 +56,7 @@ sub write_file {
         }
         printf $fh qq{  </material>\n};
     }
+    my $instances = '';
     for my $object_id (0 .. $#{ $model->objects }) {
         my $object = $model->objects->[$object_id];
         printf $fh qq{  <object id="%d">\n}, $object_id;
@@ -76,13 +77,27 @@ sub write_file {
                 (!defined $volume->material_id) ? '' : (sprintf ' materialid="%s"', $volume->material_id);
             foreach my $facet (@{$volume->facets}) {
                 printf $fh qq{        <triangle>\n};
-                printf $fh qq{          <v%d>%d</v%d>\n}, $_, $facet->[$_], $_ for -3..-1;
+                printf $fh qq{          <v%d>%d</v%d>\n}, (4+$_), $facet->[$_], (4+$_) for -3..-1;
                 printf $fh qq{        </triangle>\n};
             }
             printf $fh qq{      </volume>\n};
         }
         printf $fh qq{    </mesh>\n};
         printf $fh qq{  </object>\n};
+        if ($object->instances) {
+            foreach my $instance (@{$object->instances}) {
+                $instances .= sprintf qq{    <instance objectid="%d">\n}, $object_id;
+                $instances .= sprintf qq{      <deltax>%s</deltax>\n}, $instance->offset->[X];
+                $instances .= sprintf qq{      <deltax>%s</deltax>\n}, $instance->offset->[Y];
+                $instances .= sprintf qq{      <rz>%s</rz>\n}, $instance->rotation;
+                $instances .= sprintf qq{    </instance>\n};
+            }
+        }
+    }
+    if ($instances) {
+        printf $fh qq{  <constellation id="1">\n};
+        printf $fh $instances;
+        printf $fh qq{  </constellation>\n};
     }
     printf $fh qq{</amf>\n};
     close $fh;

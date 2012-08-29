@@ -631,23 +631,39 @@ sub on_export_failed {
 sub export_stl {
     my $self = shift;
         
-    # select output file
+    my $output_file = $self->_get_export_file('STL') or return;
+    Slic3r::Format::STL->write_file($output_file, $self->make_model, binary => 1);
+    $self->statusbar->SetStatusText("STL file exported to $output_file");
+}
+
+sub export_amf {
+    my $self = shift;
+        
+    my $output_file = $self->_get_export_file('AMF') or return;
+    Slic3r::Format::AMF->write_file($output_file, $self->make_model);
+    $self->statusbar->SetStatusText("AMF file exported to $output_file");
+}
+
+sub _get_export_file {
+    my $self = shift;
+    my ($format) = @_;
+    
+    my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
+    
     my $output_file = $main::opt{output};
     {
         $output_file = $self->{print}->expanded_output_filepath($output_file);
-        $output_file =~ s/\.gcode$/.stl/i;
-        my $dlg = Wx::FileDialog->new($self, 'Save STL file as:', dirname($output_file),
+        $output_file =~ s/\.gcode$/$suffix/i;
+        my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
             basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
-            return;
+            return undef;
         }
         $output_file = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
-    
-    Slic3r::Format::STL->write_file($output_file, $self->make_model, binary => 1);
-    $self->statusbar->SetStatusText("STL file exported to $output_file");
+    return $output_file;
 }
 
 sub make_model {
