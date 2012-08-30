@@ -421,25 +421,34 @@ sub set_temperature {
     
     return "" if $wait && $Slic3r::Config->gcode_flavor eq 'makerbot';
     
-    my ($code, $comment) = $wait
+    my ($code, $comment) = ($wait && $Slic3r::Config->gcode_flavor ne 'teacup')
         ? ('M109', 'wait for temperature to be reached')
         : ('M104', 'set temperature');
-    return sprintf "$code %s%d %s; $comment\n",
+    my $gcode = sprintf "$code %s%d %s; $comment\n",
         ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature,
         (defined $tool && $tool != $self->extruder_idx) ? "T$tool " : "";
+    
+    $gcode .= "M116 ; wait for temperature to be reached\n"
+        if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
+    
+    return $gcode;
 }
 
 sub set_bed_temperature {
     my $self = shift;
     my ($temperature, $wait) = @_;
     
-    my ($code, $comment) = $wait
+    my ($code, $comment) = ($wait && $Slic3r::Config->gcode_flavor ne 'teacup')
         ? (($Slic3r::Config->gcode_flavor eq 'makerbot' ? 'M109'
-            : $Slic3r::Config->gcode_flavor eq 'teacup' ? 'M109 P1'
             : 'M190'), 'wait for bed temperature to be reached')
         : ('M140', 'set bed temperature');
-    return sprintf "$code %s%d ; $comment\n",
+    my $gcode = sprintf "$code %s%d ; $comment\n",
         ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
+    
+    $gcode .= "M116 ; wait for bed temperature to be reached\n"
+        if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
+    
+    return $gcode;
 }
 
 1;
