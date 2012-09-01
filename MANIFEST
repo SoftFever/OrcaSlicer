@@ -15,7 +15,6 @@ lib/Slic3r/Fill/Flowsnake.pm
 lib/Slic3r/Fill/HilbertCurve.pm
 lib/Slic3r/Fill/Honeycomb.pm
 lib/Slic3r/Fill/Line.pm
-lib/Slic3r/Fill/Model.pm
 lib/Slic3r/Fill/OctagramSpiral.pm
 lib/Slic3r/Fill/PlanePath.pm
 lib/Slic3r/Fill/Rectilinear.pm
@@ -36,6 +35,7 @@ lib/Slic3r/GUI/SkeinPanel.pm
 lib/Slic3r/GUI/Tab.pm
 lib/Slic3r/Layer.pm
 lib/Slic3r/Line.pm
+lib/Slic3r/Model.pm
 lib/Slic3r/Point.pm
 lib/Slic3r/Polygon.pm
 lib/Slic3r/Polyline.pm
