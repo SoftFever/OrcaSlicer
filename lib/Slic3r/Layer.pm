@@ -318,7 +318,7 @@ sub make_perimeters {
     {
         my @thin_paths = ();
         my %properties = (
-            role            => EXTR_ROLE_PERIMETER,
+            role            => EXTR_ROLE_EXTERNAL_PERIMETER,
             flow_spacing    => $self->perimeter_flow->spacing,
         );
         for (@{ $self->thin_walls }) {
