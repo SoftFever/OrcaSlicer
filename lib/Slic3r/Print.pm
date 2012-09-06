@@ -584,15 +584,6 @@ sub write_gcode {
     print $fh $gcodegen->set_tool(0);
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
-    # this spits out some platic at start from each extruder when they are first used;
-    # the primary extruder will compensate by the normal retraction length, while 
-    # the others will compensate for their toolchange length + restart extra.
-    # this is a temporary solution as all extruders should use some kind of skirt 
-    # to be put into a consistent state.
-    $_->retracted($_->retract_length_toolchange + $_->retract_restart_extra_toolchange)
-        for @{$Slic3r::extruders}[1 .. $#{$Slic3r::extruders}];
-    $gcodegen->retract;
-    
     # write start commands to file
     printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature, 1),
         if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->start_gcode !~ /M190/i;
