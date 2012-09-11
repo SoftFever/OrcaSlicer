@@ -59,6 +59,8 @@ has 'attributes'    => (is => 'rw', default => sub { {} });
 package Slic3r::Model::Object;
 use Moo;
 
+use Slic3r::Geometry qw(X Y Z);
+
 has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
 has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });

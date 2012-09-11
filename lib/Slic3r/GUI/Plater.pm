@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum);
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 scale unscale);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
 use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
@@ -368,7 +368,7 @@ sub increase {
     
     my ($obj_idx, $object) = $self->selected_object;
     my $instances = $object->instances;
-    push @$instances, [ $instances->[-1]->[X] + scale 10, $instances->[-1]->[Y] + scale 10 ];
+    push @$instances, [ $instances->[-1]->[X] + 10, $instances->[-1]->[Y] + 10 ];
     $self->{list}->SetItem($obj_idx, 1, $object->instances_count);
     $self->arrange;
 }
@@ -408,7 +408,7 @@ sub changescale {
     my ($obj_idx, $object) = $self->selected_object;
     
     # max scale factor should be above 2540 to allow importing files exported in inches
-    $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $object->scale*100, 0, 5000, $self);
+    my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $object->scale*100, 0, 5000, $self);
     return if !$scale || $scale == -1;
     
     $object->set_scale($scale);
@@ -642,8 +642,8 @@ sub make_model {
         # TODO: reload file
         my $mesh = $self->{print}->[$obj_idx]->mesh->clone;
         $mesh->scale(&Slic3r::SCALING_FACTOR);
-        my $object = $model->add_object(vertices => $mesh->vertices);
-        $object->add_volume(facets => $mesh->facets);
+        my $model_object = $model->add_object(vertices => $mesh->vertices);
+        $model_object->add_volume(facets => $mesh->facets);
         for my $copy (@{$self->{print}->copies->[$obj_idx]}) {
             $object->add_instance(rotation => 0, offset => [ map unscale $_, @$copy ]);
         }
@@ -683,7 +683,15 @@ sub recenter {
     
     # calculate displacement needed to center the print
     my @print_bb = (0,0,0,0);
-    @print_bb =  if !defined $print_bb[0];
+    foreach my $object (@{$self->{objects}}) {
+        foreach my $instance (@{$object->instances}) {
+            my @bb = (@$instance, map $instance->[$_] + $object->size->[$_], X,Y);
+            $print_bb[X1] = $bb[X1] if $bb[X1] < $print_bb[X1];
+            $print_bb[Y1] = $bb[Y1] if $bb[Y1] < $print_bb[Y1];
+            $print_bb[X2] = $bb[X2] if $bb[X2] > $print_bb[X2];
+            $print_bb[Y2] = $bb[Y2] if $bb[Y2] > $print_bb[Y2];
+        }
+    }
     $self->{shift} = [
         ($self->{canvas}->GetSize->GetWidth  - ($self->to_pixel($print_bb[X2] + $print_bb[X1]))) / 2,
         ($self->{canvas}->GetSize->GetHeight - ($self->to_pixel($print_bb[Y2] + $print_bb[Y1]))) / 2,
@@ -727,7 +735,6 @@ sub _update_bed_size {
 sub repaint {
     my ($self, $event) = @_;
     my $parent = $self->GetParent;
-    my $print = $parent->{print};
     
     my $dc = Wx::PaintDC->new($self);
     my $size = $self->GetSize;
@@ -744,7 +751,7 @@ sub repaint {
     }
     
     # draw print center
-    if (@{$print->objects}) {
+    if (@{$parent->{objects}}) {
         $dc->SetPen($parent->{print_center_pen});
         $dc->DrawLine($size[X]/2, 0, $size[X]/2, $size[Y]);
         $dc->DrawLine(0, $size[Y]/2, $size[X], $size[Y]/2);
@@ -760,7 +767,7 @@ sub repaint {
     $dc->DrawRectangle(0, 0, @size);
     
     # draw text if plate is empty
-    if (!@{$print->objects}) {
+    if (@{$parent->{objects}}) {
         $dc->SetTextForeground(Wx::Colour->new(150,50,50));
         $dc->SetFont(Wx::Font->new(14, wxDEFAULT, wxNORMAL, wxNORMAL));
         $dc->DrawLabel(CANVAS_TEXT, Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
@@ -769,7 +776,7 @@ sub repaint {
     # draw thumbnails
     $dc->SetPen(wxBLACK_PEN);
     @{$parent->{object_previews}} = ();
-    for my $obj_idx (0 .. $#{$print->objects}) {
+    for my $obj_idx (0 .. $#{$parent->{objects}}) {
         next unless $parent->{thumbnails}[$obj_idx];
         for my $copy_idx (0 .. $#{$print->copies->[$obj_idx]}) {
             my $copy = $print->copies->[$obj_idx][$copy_idx];
@@ -909,12 +916,12 @@ sub statusbar {
 
 sub to_pixel {
     my $self = shift;
-    return unscale $_[0] * $self->{scaling_factor};
+    return $_[0] * $self->{scaling_factor};
 }
 
 sub to_scaled {
     my $self = shift;
-    return scale $_[0] / $self->{scaling_factor};
+    return $_[0] / $self->{scaling_factor};
 }
 
 sub _y {
@@ -954,6 +961,7 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 use Math::ConvexHull qw(convex_hull);
+use Slic3r::Geometry qw(X Y);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
@@ -967,7 +975,7 @@ has 'thumbnail'             => (is => 'rw');
 
 sub _trigger_mesh {
     my $self = shift;
-    $self->size($mesh->size) if $self->mesh;
+    $self->size($self->mesh->size) if $self->mesh;
 }
 
 sub instances_count {
@@ -978,7 +986,7 @@ sub instances_count {
 sub make_thumbnail {
     my $self = shift;
     
-    my @points = map [ @$_[X,Y] ], @{$object->mesh->vertices};
+    my @points = map [ @$_[X,Y] ], @{$self->mesh->vertices};
     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
     for (@$convex_hull) {
         @$_ = map $self->to_pixel($_), @$_;
