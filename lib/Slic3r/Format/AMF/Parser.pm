@@ -107,7 +107,7 @@ sub end_document {
     
     foreach my $object_id (keys %{ $self->{_instances} }) {
         my $new_object_id = $self->{_objects_map}{$object_id};
-        if (!$new_object_id) {
+        if (!defined $new_object_id) {
             warn "Undefined object $object_id referenced in constellation\n";
             next;
         }
@@ -115,7 +115,7 @@ sub end_document {
         foreach my $instance (@{ $self->{_instances}{$object_id} }) {
             $self->{_model}->objects->[$new_object_id]->add_instance(
                 rotation => $instance->{rz} || 0,
-                offset   => [ $instance->{deltax} || 0, $instance->{deltay} ],
+                offset   => [ $instance->{deltax} || 0, $instance->{deltay} || 0 ],
             );
         }
     }

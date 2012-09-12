@@ -108,11 +108,11 @@ sub add_model {
             $mesh->rotate($object->instances->[0]->rotation);
         }
         
-        push @print_objects, $self->add_object_from_mesh($mesh);
+        push @print_objects, $self->add_object_from_mesh($mesh, input_file => $object->input_file);
         
         if ($object->instances) {
             # replace the default [0,0] instance with the custom ones
-            @{$self->copies->[-1]} = map [ scale $_->offset->[X], scale $_->offset->[X] ], @{$object->instances};
+            @{$self->copies->[-1]} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
         }
     }
     
@@ -121,7 +121,7 @@ sub add_model {
 
 sub add_object_from_mesh {
     my $self = shift;
-    my ($mesh) = @_;
+    my ($mesh, %attributes) = @_;
     
     $mesh->rotate($Slic3r::Config->rotate);
     $mesh->scale($Slic3r::Config->scale / &Slic3r::SCALING_FACTOR);
@@ -131,6 +131,7 @@ sub add_object_from_mesh {
     my $object = Slic3r::Print::Object->new(
         mesh => $mesh,
         size => [ $mesh->size ],
+        %attributes,
     );
     
     push @{$self->objects}, $object;
@@ -236,7 +237,7 @@ sub arrange_objects {
     my $party = max(map $_->size->[Y], @{$self->objects});
     
     my @positions = Slic3r::Geometry::arrange
-        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $Slic3r::Config->min_object_distance);
+        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $Slic3r::Config->min_object_distance, $self->config);
     
     for my $obj_idx (0..$#{$self->objects}) {
         @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};
@@ -788,11 +789,14 @@ sub total_extrusion_volume {
     return $self->total_extrusion_length * ($Slic3r::extruders->[0]->filament_diameter**2) * PI/4 / 1000;
 }
 
-# this method will return the value of $self->output_file after expanding its
+# this method will return the supplied input file path after expanding its
 # format variables with their values
 sub expanded_output_filepath {
     my $self = shift;
-    my ($path) = @_;
+    my ($path, $input_file) = @_;
+    
+    # if no input file was supplied, take the first one from our objects
+    $input_file ||= $self->objects->[0]->input_file;
     
     # if output path is an existing directory, we take that and append
     # the specified filename format
@@ -800,7 +804,6 @@ sub expanded_output_filepath {
 
     # if no explicit output file was defined, we take the input
     # file directory and append the specified filename format
-    my $input_file = $self->objects->[0]->input_file;
     $path ||= (fileparse($input_file))[1] . $Slic3r::Config->output_filename_format;
     
     my $input_filename = my $input_filename_base = basename($input_file);

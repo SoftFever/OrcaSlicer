@@ -30,24 +30,21 @@ sub add_object {
 sub mesh {
     my $self = shift;
     
-    my $vertices = [];
-    my $facets = [];
+    my @meshes = ();
     foreach my $object (@{$self->objects}) {
-        my $mesh = $object->mesh;
-        
-        my $v_offset = @$vertices;
-        push @$vertices, @{$mesh->vertices};
-        push @$facets, map {
-            my $f = [@$_];
-            $f->[$_] += $v_offset for -3..-1;
-            $f;
-        } @{$mesh->facets};
+        my @instances = $object->instances ? @{$object->instances} : (undef);
+        foreach my $instance (@instances) {
+            my $mesh = $object->mesh->clone;
+            if ($instance) {
+                $mesh->rotate($instance->rotation);
+                $mesh->align_to_origin;
+                $mesh->move(@{$instance->offset});
+            }
+            push @meshes, $mesh;
+        }
     }
     
-    return Slic3r::TriangleMesh->new(
-        vertices => $vertices,
-        facets   => $facets,
-    );
+    return Slic3r::TriangleMesh->merge(@meshes);
 }
 
 package Slic3r::Model::Material;
@@ -61,6 +58,7 @@ use Moo;
 
 use Slic3r::Geometry qw(X Y Z);
 
+has 'input_file' => (is => 'rw');
 has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
 has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });
@@ -88,38 +86,11 @@ sub mesh {
     my $vertices = [];
     my $facets = [];
     
-    my @instances = $self->instances ? @{$self->instances} : (undef);
-    foreach my $instance (@instances) {
-        my @vertices = @{$self->vertices};
-        if ($instance) {
-            # save Z coordinates, as rotation and translation discard them
-            my @z = map $_->[Z], @vertices;
-            
-            if ($instance->rotation) {
-                # transform vertex coordinates
-                my $rad = Slic3r::Geometry::deg2rad($instance->rotation);
-                @vertices = Slic3r::Geometry::rotate_points($rad, undef, @vertices);
-            }
-            @vertices = Slic3r::Geometry::move_points($instance->offset, @vertices);
-            
-            # reapply Z coordinates
-            $vertices[$_][Z] = $z[$_] for 0 .. $#z;
-        }
-        
-        my $v_offset = @$vertices;
-        push @$vertices, @vertices;
-        foreach my $volume (@{$self->volumes}) {
-            push @$facets, map {
-                my $f = [@$_];
-                $f->[$_] += $v_offset for -3..-1;
-                $f;
-            } @{$volume->facets};
-        }
-    }
+    
     
     return Slic3r::TriangleMesh->new(
-        vertices => $vertices,
-        facets   => $facets,
+        vertices => $self->vertices,
+        facets   => [ map @{$_->facets}, @{$self->volumes} ],
     );
 }
 

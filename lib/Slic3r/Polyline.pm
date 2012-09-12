@@ -4,7 +4,7 @@ use warnings;
 
 use Math::Clipper qw();
 use Scalar::Util qw(reftype);
-use Slic3r::Geometry qw(A B X Y MIN MAX polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
+use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polyline_lines move_points same_point);
 
 # the constructor accepts an array(ref) of points
@@ -144,7 +144,13 @@ sub size {
     my $self = shift;
     
     my @extents = $self->bounding_box;
-    return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y);
+    return [$extents[X2] - $extents[X1], $extents[Y2] - $extents[Y1]];
+}
+
+sub align_to_origin {
+    my $self = shift;
+    my @bb = $self->bounding_box;
+    return $self->translate(-$bb[X1], -$bb[Y1]);
 }
 
 sub rotate {
@@ -160,6 +166,18 @@ sub translate {
     my ($x, $y) = @_;
     @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
     bless $_, 'Slic3r::Point' for @$self;
+    return $self;
+}
+
+sub scale {
+    my $self = shift;
+    my ($factor) = @_;
+    return if $factor == 1;
+    
+    # transform point coordinates
+    foreach my $point (@$self) {
+        $point->[$_] *= $factor for X,Y;
+    }
     return $self;
 }
 
