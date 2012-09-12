@@ -9,8 +9,8 @@ A: Yes.
 Slic3r is a G-code generator for 3D printers. It's compatible with RepRaps,
 Makerbots, Ultimakers and many more machines.
 
-See the [project homepage](http://slic3r.org/) at slic3r.org
-for more information.
+See the [project homepage](http://slic3r.org/) at slic3r.org and the
+[documentation](https://github.com/alexrj/Slic3r/wiki/Documentation) on the Slic3r wiki for more information.
 
 ## What language is it written in?
 
@@ -275,38 +275,3 @@ If you want to change a preset file, just do
 If you want to slice a file overriding an option contained in your preset file:
 
     slic3r.pl --load config.ini --layer-height 0.25 file.stl
-
-## How can I integrate Slic3r with Pronterface?
-
-Put this into *slicecommand*:
-
-    slic3r.pl $s --load config.ini --output $o
-
-And this into *sliceoptscommand*:
-
-    slic3r.pl --load config.ini --ignore-nonexistent-config
-
-Replace `slic3r.pl` with the full path to the slic3r executable and `config.ini`
-with the full path of your config file (put it in your home directory or where
-you like).
-On Mac, the executable has a path like this:
-
-    /Applications/Slic3r.app/Contents/MacOS/slic3r
-
-## How can I specify a custom filename format for output G-code files?
-
-You can specify a filename format by using any of the config options. 
-Just enclose them in square brackets, and Slic3r will replace them upon
-exporting.
-The additional `[input_filename]` and `[input_filename_base]` options will
-be replaced by the input file name (in the second case, the .stl extension 
-is stripped).
-
-The default format is `[input_filename_base].gcode`, meaning that if you slice
-a *foo.stl* file, the output will be saved to *foo.gcode*.
-
-See below for more complex examples:
-
-    [input_filename_base]_h[layer_height]_p[perimeters]_s[solid_layers].gcode
-    [input_filename]_center[print_center]_[layer_height]layers.gcode
-
