@@ -71,13 +71,7 @@ sub safety_offset {
 
 sub offset {
     my $self = shift;
-    my ($distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= &Slic3r::SCALING_FACTOR * 1000000;
-    $joinType   = JT_MITER if !defined $joinType;
-    $miterLimit ||= 2;
-    
-    my $offsets = Math::Clipper::offset([$self], $distance, $scale, $joinType, $miterLimit);
-    return map Slic3r::Polygon->new($_), @$offsets;
+    return map Slic3r::Polygon->new($_), Slic3r::Geometry::Clipper::offset([$self], @_);
 }
 
 # this method subdivides the polygon segments to that no one of them

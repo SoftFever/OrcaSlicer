@@ -296,7 +296,7 @@ sub load_file {
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-    $self->{print}->add_object_from_file($input_file);
+    $self->{print}->add_objects_from_file($input_file);
     my $obj_idx = $#{$self->{print}->objects};
     $process_dialog->Destroy;
     
@@ -419,9 +419,7 @@ sub rotate {
     # rotate, realign to 0,0 and update size
     $object->mesh->rotate($angle);
     $object->mesh->align_to_origin;
-    my @size = $object->mesh->size;
-    $object->x_length($size[X]);
-    $object->y_length($size[Y]);
+    $object->size([ $object->mesh->size ]);
     
     $self->make_thumbnail($obj_idx);
     $self->recenter;
@@ -458,9 +456,7 @@ sub changescale {
     my $mesh = $object->mesh;
     $mesh->scale($scale/100 / $self->{scale}[$obj_idx]);
     $object->mesh->align_to_origin;
-    my @size = $object->mesh->size;
-    $object->x_length($size[X]);
-    $object->y_length($size[Y]);
+    $object->size([ $object->mesh->size ]);
     
     $self->{scale}[$obj_idx] = $scale/100;
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
@@ -512,6 +508,8 @@ sub export_gcode {
     
     # set this before spawning the thread because ->config needs GetParent and it's not available there
     $self->{print}->config($self->skeinpanel->config);
+    $self->{print}->extra_variables->{"${_}_preset"} = $self->skeinpanel->{options_tabs}{$_}->current_preset->{name}
+        for qw(print filament printer);
     
     # select output file
     $self->{output_file} = $main::opt{output};
@@ -634,39 +632,58 @@ sub on_export_failed {
 
 sub export_stl {
     my $self = shift;
-    
-    my $print = $self->{print};
         
-    # select output file
+    my $output_file = $self->_get_export_file('STL') or return;
+    Slic3r::Format::STL->write_file($output_file, $self->make_model, binary => 1);
+    $self->statusbar->SetStatusText("STL file exported to $output_file");
+}
+
+sub export_amf {
+    my $self = shift;
+        
+    my $output_file = $self->_get_export_file('AMF') or return;
+    Slic3r::Format::AMF->write_file($output_file, $self->make_model);
+    $self->statusbar->SetStatusText("AMF file exported to $output_file");
+}
+
+sub _get_export_file {
+    my $self = shift;
+    my ($format) = @_;
+    
+    my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
+    
     my $output_file = $main::opt{output};
     {
-        $output_file = $print->expanded_output_filepath($output_file);
-        $output_file =~ s/\.gcode$/.stl/i;
-        my $dlg = Wx::FileDialog->new($self, 'Save STL file as:', dirname($output_file),
+        $output_file = $self->{print}->expanded_output_filepath($output_file);
+        $output_file =~ s/\.gcode$/$suffix/i;
+        my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
             basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
-            return;
+            return undef;
         }
         $output_file = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
+    return $output_file;
+}
+
+sub make_model {
+    my $self = shift;
     
-    my $mesh = Slic3r::TriangleMesh->new(facets => [], vertices => []);
-    for my $obj_idx (0 .. $#{$print->objects}) {
-        for my $copy (@{$print->copies->[$obj_idx]}) {
-            my $cloned_mesh = $print->objects->[$obj_idx]->mesh->clone;
-            $cloned_mesh->move(@$copy);
-            my $vertices_offset = scalar @{$mesh->vertices};
-            push @{$mesh->vertices}, @{$cloned_mesh->vertices};
-            push @{$mesh->facets}, map [ $_->[0], map $vertices_offset + $_, @$_[-3..-1] ], @{$cloned_mesh->facets};
+    my $model = Slic3r::Model->new;
+    for my $obj_idx (0 .. $#{$self->{print}->objects}) {
+        my $mesh = $self->{print}->objects->[$obj_idx]->mesh->clone;
+        $mesh->scale(&Slic3r::SCALING_FACTOR);
+        my $object = $model->add_object(vertices => $mesh->vertices);
+        $object->add_volume(facets => $mesh->facets);
+        for my $copy (@{$self->{print}->copies->[$obj_idx]}) {
+            $object->add_instance(rotation => 0, offset => [ map unscale $_, @$copy ]);
         }
     }
-    $mesh->scale(&Slic3r::SCALING_FACTOR);
-    $mesh->align_to_origin;
+    # TODO: $model->align_to_origin;
     
-    Slic3r::Format::STL->write_file($output_file, $mesh, 1);
-    $self->statusbar->SetStatusText("STL file exported to $output_file");
+    return $model;
 }
 
 sub make_thumbnail {

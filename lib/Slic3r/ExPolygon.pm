@@ -61,13 +61,12 @@ sub boost_polygon {
 
 sub offset {
     my $self = shift;
-    my ($distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= &Slic3r::SCALING_FACTOR * 1000000;
-    $joinType   = JT_MITER if !defined $joinType;
-    $miterLimit ||= 2;
-    
-    my $offsets = Math::Clipper::offset($self, $distance, $scale, $joinType, $miterLimit);
-    return @$offsets;
+    return Slic3r::Geometry::Clipper::offset($self, @_);
+}
+
+sub offset_ex {
+    my $self = shift;
+    return Slic3r::Geometry::Clipper::offset_ex($self, @_);
 }
 
 sub safety_offset {

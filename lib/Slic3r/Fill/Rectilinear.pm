@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale unscale epsilon);
+use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale unscale scaled_epsilon);
 
 sub fill_surface {
     my $self = shift;
@@ -22,7 +22,7 @@ sub fill_surface {
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
-    my $flow_spacing;
+    my $flow_spacing = $params{flow_spacing};
     if ($params{density} == 1) {
         $distance_between_lines = $self->adjust_solid_spacing(
             width       => $bounding_box->[X2] - $bounding_box->[X1],
@@ -36,7 +36,7 @@ sub fill_surface {
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
     my @vertical_lines = ();
-    for (my $i = 0; $x <= $bounding_box->[X2] + scale epsilon; $i++) {
+    for (my $i = 0; $x <= $bounding_box->[X2] + scaled_epsilon; $i++) {
         my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
         if ($is_line_pattern && $i % 2) {
             $vertical_line->[A][X] += $line_oscillation;
@@ -49,7 +49,7 @@ sub fill_surface {
     # clip paths against a slightly offsetted expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
     my @paths = @{ Boost::Geometry::Utils::polygon_linestring_intersection(
-        +($expolygon->offset_ex(scale epsilon))[0]->boost_polygon,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
+        +($expolygon->offset_ex(scaled_epsilon))[0]->boost_polygon,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
         Boost::Geometry::Utils::linestring(@vertical_lines),
     ) };
     for (@paths) {
@@ -64,7 +64,7 @@ sub fill_surface {
         );
         @paths = ();
         
-        my $tolerance = 10 * scale epsilon;
+        my $tolerance = 10 * scaled_epsilon;
         my $diagonal_distance = $distance_between_lines * 5;
         my $can_connect = $is_line_pattern
             ? sub {

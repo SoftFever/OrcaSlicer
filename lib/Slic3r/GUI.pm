@@ -22,6 +22,10 @@ use constant MI_REPEAT_QUICK  => &Wx::NewId;
 use constant MI_QUICK_SAVE_AS => &Wx::NewId;
 use constant MI_SLICE_SVG     => &Wx::NewId;
 
+use constant MI_PLATER_EXPORT_GCODE => &Wx::NewId;
+use constant MI_PLATER_EXPORT_STL   => &Wx::NewId;
+use constant MI_PLATER_EXPORT_AMF   => &Wx::NewId;
+
 use constant MI_TAB_PLATER    => &Wx::NewId;
 use constant MI_TAB_PRINT     => &Wx::NewId;
 use constant MI_TAB_FILAMENT  => &Wx::NewId;
@@ -47,7 +51,7 @@ sub OnInit {
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     
     # locate or create data directory
-    $datadir = Wx::StandardPaths::Get->GetUserDataDir;
+    $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
     Slic3r::debugf "Data directory: %s\n", $datadir;
     my $run_wizard = (-d $datadir) ? 0 : 1;
     for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
@@ -98,6 +102,17 @@ sub OnInit {
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
     
+    # Plater menu
+    my $platerMenu = Wx::Menu->new;
+    {
+        $platerMenu->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
+        $platerMenu->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
+        $platerMenu->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
+        EVT_MENU($frame, MI_PLATER_EXPORT_GCODE, sub { $self->{skeinpanel}{plater}->export_gcode });
+        EVT_MENU($frame, MI_PLATER_EXPORT_STL, sub { $self->{skeinpanel}{plater}->export_stl });
+        EVT_MENU($frame, MI_PLATER_EXPORT_AMF, sub { $self->{skeinpanel}{plater}->export_amf });
+    }
+    
     # Window menu
     my $windowMenu = Wx::Menu->new;
     {
@@ -128,6 +143,7 @@ sub OnInit {
     {
         my $menubar = Wx::MenuBar->new;
         $menubar->Append($fileMenu, "&File");
+        $menubar->Append($platerMenu, "&Plater");
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($helpMenu, "&Help");
         $frame->SetMenuBar($menubar);
