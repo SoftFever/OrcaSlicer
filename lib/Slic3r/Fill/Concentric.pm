@@ -18,7 +18,7 @@ sub fill_surface {
     my $min_spacing = scale $params{flow_spacing};
     my $distance = $min_spacing / $params{density};
     
-    my $flow_spacing;
+    my $flow_spacing = $params{flow_spacing};
     if ($params{density} == 1) {
         $distance = $self->adjust_solid_spacing(
             width       => $bounding_box->[X2] - $bounding_box->[X1],

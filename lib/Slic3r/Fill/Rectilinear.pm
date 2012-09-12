@@ -22,7 +22,7 @@ sub fill_surface {
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
-    my $flow_spacing;
+    my $flow_spacing = $params{flow_spacing};
     if ($params{density} == 1) {
         $distance_between_lines = $self->adjust_solid_spacing(
             width       => $bounding_box->[X2] - $bounding_box->[X1],

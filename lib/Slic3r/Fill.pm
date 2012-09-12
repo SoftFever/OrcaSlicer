@@ -170,7 +170,7 @@ sub make_fill {
                             ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                             : EXTR_ROLE_FILL),
                     depth_layers => $surface->depth_layers,
-                    flow_spacing => $params->{flow_spacing} || $flow_spacing,
+                    flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
                 ), @paths,
             ],
         );
