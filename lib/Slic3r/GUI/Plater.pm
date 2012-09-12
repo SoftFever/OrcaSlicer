@@ -475,6 +475,8 @@ sub export_gcode {
     
     # set this before spawning the thread because ->config needs GetParent and it's not available there
     $self->{print}->config($self->skeinpanel->config);
+    $self->{print}->extra_variables->{"${_}_preset"} = $self->skeinpanel->{options_tabs}{$_}->current_preset->{name}
+        for qw(print filament printer);
     
     # select output file
     $self->{output_file} = $main::opt{output};

@@ -11,6 +11,7 @@ use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUN
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
+has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'copies'                 => (is => 'rw', default => sub {[]});  # obj_idx => [copies...]
 has 'total_extrusion_length' => (is => 'rw');
@@ -808,6 +809,7 @@ sub expanded_output_filepath {
     return $Slic3r::Config->replace_options($path, {
         input_filename      => $input_filename,
         input_filename_base => $input_filename_base,
+        %{ $self->extra_variables },
     });
 }
 
