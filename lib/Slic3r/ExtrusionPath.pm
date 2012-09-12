@@ -187,14 +187,10 @@ sub detect_arcs {
             my $s2_angle = $s2->atan;
             my $s3_angle = $s3->atan;
             $s1_angle += 2*PI if $s1_angle < 0;
+            $s2_angle += 2*PI if $s2_angle < 0;
+            $s3_angle += 2*PI if $s3_angle < 0;
             my $s1s2_angle = $s2_angle - $s1_angle;
             my $s2s3_angle = $s3_angle - $s2_angle;
-            # allow -ve angles but constrain angles differences to 0<difference<2PI
-            $s1s2_angle -= 2*PI if ($s1s2_angle > 2*PI);
-            $s1s2_angle += 2*PI if ($s1s2_angle < -2*PI);
-            $s2s3_angle -= 2*PI if ($s2s3_angle > 2*PI);
-            $s2s3_angle += 2*PI if ($s2s3_angle < -2*PI);
-
             next if abs($s1s2_angle - $s2s3_angle) > $Slic3r::Geometry::parallel_degrees_limit;
             next if abs($s1s2_angle) < $Slic3r::Geometry::parallel_degrees_limit;     # ignore parallel lines
             next if $s1s2_angle > $max_angle;  # ignore too sharp vertices
@@ -207,15 +203,10 @@ sub detect_arcs {
                 my $line = Slic3r::Line->new($points[$j], $points[$j+1]);
                 last if abs($line->length - $s1_len) > $len_epsilon;
                 my $line_angle = $line->atan;
+                $line_angle += 2*PI if $line_angle < 0;
                 my $anglediff = $line_angle - $last_line_angle;
-                # allow -ve angles but constrain angle differences to 0<difference<2PI
-                $anglediff -= 2*PI if ($anglediff > 2*PI);
-                $anglediff += 2*PI if ($anglediff < -2*PI);
-
                 last if abs($s1s2_angle - $anglediff) > $Slic3r::Geometry::parallel_degrees_limit;
-                # Do not try to be too ambitious. Just detect arcs up to 60 degrees.
-                # The algorithm for finding the center is not accurate enough for more than this
-                last if abs($s1_angle - $line_angle) > PI/6; 
+                
                 # point $j+1 belongs to the arc
                 $arc_points[-1] = $points[$j+1];
                 $last_j = $j+1;
