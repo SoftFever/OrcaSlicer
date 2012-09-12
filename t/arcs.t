@@ -11,7 +11,7 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(epsilon scale X Y);
+use Slic3r::Geometry qw(scaled_epsilon scale X Y);
 
 {
     my $path = Slic3r::ExtrusionPath->new(polyline => Slic3r::Polyline->new(
@@ -61,17 +61,17 @@ use Slic3r::Geometry qw(epsilon scale X Y);
     isa_ok $collection2->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
     
     my $expected_length = scale 7.06858347057701;
-    ok abs($collection1->paths->[0]->length - $expected_length) < scale epsilon, 'cw oriented arc has correct length';
-    ok abs($collection2->paths->[0]->length - $expected_length) < scale epsilon, 'ccw oriented arc has correct length';
+    ok abs($collection1->paths->[0]->length - $expected_length) < scaled_epsilon, 'cw oriented arc has correct length';
+    ok abs($collection2->paths->[0]->length - $expected_length) < scaled_epsilon, 'ccw oriented arc has correct length';
 
     is $collection1->paths->[0]->orientation, 'cw', 'cw orientation was correctly detected';
     is $collection2->paths->[0]->orientation, 'ccw', 'ccw orientation was correctly detected';
     
     my $center1 = [ map sprintf('%.0f', $_), @{ $collection1->paths->[0]->center } ];
-    ok abs($center1->[X] - scale 10) < scale epsilon && abs($center1->[Y] - scale 10) < scale epsilon, 'center was correctly detected';
+    ok abs($center1->[X] - scale 10) < scaled_epsilon && abs($center1->[Y] - scale 10) < scaled_epsilon, 'center was correctly detected';
     
     my $center2 = [ map sprintf('%.0f', $_), @{ $collection2->paths->[0]->center } ];
-    ok abs($center2->[X] - scale 10) < scale epsilon && abs($center1->[Y] - scale 10) < scale epsilon, 'center was correctly detected';
+    ok abs($center2->[X] - scale 10) < scaled_epsilon && abs($center1->[Y] - scale 10) < scaled_epsilon, 'center was correctly detected';
 }
 
 #==========================================================
