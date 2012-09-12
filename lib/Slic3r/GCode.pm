@@ -1,8 +1,9 @@
 package Slic3r::GCode;
 use Moo;
 
+use List::Util qw(first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(PI X Y scale unscale points_coincide);
+use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'layer'              => (is => 'rw');
@@ -154,15 +155,13 @@ sub extrude_path {
     my $gcode = "";
     
     # retract if distance from previous position is greater or equal to the one
-    # specified by the user *and* to the maximum distance between infill lines
+    # specified by the user
     {
-        my $distance_from_last_pos = $self->last_pos->distance_to($path->points->[0]) * &Slic3r::SCALING_FACTOR;
-        my $distance_threshold = $self->extruder->retract_before_travel;
-        $distance_threshold = 2 * ($self->layer ? $self->layer->flow->width : $Slic3r::flow->width) / $Slic3r::Config->fill_density * sqrt(2)
-            if 0 && $Slic3r::Config->fill_density > 0 && $description =~ /fill/;
-    
-        if ($distance_from_last_pos >= $distance_threshold) {
-            $gcode .= $self->retract(travel_to => $path->points->[0]);
+        my $travel = Slic3r::Line->new($self->last_pos, $path->points->[0]);
+        if ($travel->length >= scale $self->extruder->retract_before_travel) {
+            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->expolygon->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
+                $gcode .= $self->retract(travel_to => $path->points->[0]);
+            }
         }
     }
     
@@ -478,25 +477,34 @@ sub set_temperature {
     
     return "" if $wait && $Slic3r::Config->gcode_flavor eq 'makerbot';
     
-    my ($code, $comment) = $wait
+    my ($code, $comment) = ($wait && $Slic3r::Config->gcode_flavor ne 'teacup')
         ? ('M109', 'wait for temperature to be reached')
         : ('M104', 'set temperature');
-    return sprintf "$code %s%d %s; $comment\n",
+    my $gcode = sprintf "$code %s%d %s; $comment\n",
         ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature,
         (defined $tool && $tool != $self->extruder_idx) ? "T$tool " : "";
+    
+    $gcode .= "M116 ; wait for temperature to be reached\n"
+        if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
+    
+    return $gcode;
 }
 
 sub set_bed_temperature {
     my $self = shift;
     my ($temperature, $wait) = @_;
     
-    my ($code, $comment) = $wait
+    my ($code, $comment) = ($wait && $Slic3r::Config->gcode_flavor ne 'teacup')
         ? (($Slic3r::Config->gcode_flavor eq 'makerbot' ? 'M109'
-            : $Slic3r::Config->gcode_flavor eq 'teacup' ? 'M109 P1'
             : 'M190'), 'wait for bed temperature to be reached')
         : ('M140', 'set bed temperature');
-    return sprintf "$code %s%d ; $comment\n",
+    my $gcode = sprintf "$code %s%d ; $comment\n",
         ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
+    
+    $gcode .= "M116 ; wait for bed temperature to be reached\n"
+        if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
+    
+    return $gcode;
 }
 
 1;

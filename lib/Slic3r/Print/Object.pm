@@ -8,8 +8,7 @@ use Slic3r::Surface ':types';
 
 has 'input_file'        => (is => 'rw', required => 0);
 has 'mesh'              => (is => 'rw', required => 0);
-has 'x_length'          => (is => 'rw', required => 1);
-has 'y_length'          => (is => 'rw', required => 1);
+has 'size'              => (is => 'rw', required => 1);
 
 has 'layers' => (
     traits  => ['Array'],

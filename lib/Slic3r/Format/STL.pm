@@ -117,7 +117,10 @@ sub read_file {
         }
     }
     
-    return Slic3r::TriangleMesh->new(vertices => $vertices, facets => $facets);
+    my $model = Slic3r::Model->new;
+    my $object = $model->add_object(vertices => $vertices);
+    my $volume = $object->add_volume(facets => $facets);
+    return $model;
 }
 
 sub _read_ascii {
@@ -161,13 +164,13 @@ sub _read_binary {
 
 sub write_file {
     my $self = shift;
-    my ($file, $mesh, $binary) = @_;
+    my ($file, $model, %params) = @_;
     
     open my $fh, '>', $file;
     
-    $binary
-        ? _write_binary($fh, $mesh)
-        : _write_ascii($fh, $mesh);
+    $params{binary}
+        ? _write_binary($fh, $model->mesh)
+        : _write_ascii($fh, $model->mesh);
     
     close $fh;
 }

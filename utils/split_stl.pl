@@ -25,15 +25,20 @@ my %opt = ();
 }
 
 {
-    my $mesh = Slic3r::Format::STL->read_file($ARGV[0]);
+    my $model = Slic3r::Format::STL->read_file($ARGV[0]);
     my $basename = $ARGV[0];
     $basename =~ s/\.stl$//i;
     
     my $part_count = 0;
-    foreach my $new_mesh ($mesh->split_mesh) {
+    foreach my $new_mesh ($model->mesh->split_mesh) {
+        my $new_model = Slic3r::Model->new;
+        $new_model
+            ->add_object(vertices   => $new_mesh->vertices)
+            ->add_volume(facets     => $new_mesh->facets);
+        
         my $output_file = sprintf '%s_%02d.stl', $basename, ++$part_count;
         printf "Writing to %s\n", basename($output_file);
-        Slic3r::Format::STL->write_file($output_file, $new_mesh, !$opt{ascii});
+        Slic3r::Format::STL->write_file($output_file, $new_model, binary => !$opt{ascii});
     }
 }
 

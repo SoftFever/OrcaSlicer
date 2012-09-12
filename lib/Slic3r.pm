@@ -7,7 +7,7 @@ use strict;
 use warnings;
 require v5.10;
 
-our $VERSION = "0.9.2-dev";
+our $VERSION = "0.9.3-dev";
 
 our $debug = 0;
 sub debugf {
@@ -20,6 +20,9 @@ BEGIN {
     use Config;
     $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
 }
+
+warn "Running Slic3r under Perl >= 5.16 is not supported nor recommended\n"
+    if $^V >= v5.16;
 
 use FindBin;
 our $var = "$FindBin::Bin/var";
@@ -42,6 +45,7 @@ use Slic3r::GCode::MotionPlanner;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
 use Slic3r::Line;
+use Slic3r::Model;
 use Slic3r::Point;
 use Slic3r::Polygon;
 use Slic3r::Polyline;

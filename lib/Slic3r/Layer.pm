@@ -318,7 +318,7 @@ sub make_perimeters {
     {
         my @thin_paths = ();
         my %properties = (
-            role            => EXTR_ROLE_PERIMETER,
+            role            => EXTR_ROLE_EXTERNAL_PERIMETER,
             flow_spacing    => $self->perimeter_flow->spacing,
         );
         for (@{ $self->thin_walls }) {
@@ -358,13 +358,30 @@ sub prepare_fill_surfaces {
     if ($Slic3r::Config->fill_density == 0) {
         @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
     }
+    
+    # remove unprintable regions (they would slow down the infill process and also cause
+    # some weird failures during bridge neighbor detection)
+    {
+        my $distance = scale $self->infill_flow->spacing / 2;
+        @surfaces = map {
+            my $surface = $_;
+            
+            # offset inwards
+            my @offsets = $surface->expolygon->offset_ex(-$distance);
+            @offsets = @{union_ex(Math::Clipper::offset([ map @$_, @offsets ], $distance, 100, JT_MITER))};
+            map Slic3r::Surface->new(
+                expolygon => $_,
+                surface_type => $surface->surface_type,
+            ), @offsets;
+        } @surfaces;
+    }
         
     # turn too small internal regions into solid regions
     {
         my $min_area = scale scale $Slic3r::Config->solid_infill_below_area; # scaling an area requires two calls!
         my @small = grep $_->surface_type == S_TYPE_INTERNAL && $_->expolygon->contour->area <= $min_area, @surfaces;
         $_->surface_type(S_TYPE_INTERNALSOLID) for @small;
-        Slic3r::debugf "identified %d small surfaces at layer %d\n", scalar(@small), $self->id if @small > 0;
+        Slic3r::debugf "identified %d small solid surfaces at layer %d\n", scalar(@small), $self->id if @small > 0;
     }
     
     $self->fill_surfaces([@surfaces]);

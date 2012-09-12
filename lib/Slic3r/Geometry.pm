@@ -20,6 +20,7 @@ our @EXPORT_OK = qw(
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
+    scaled_epsilon
 );
 
 
@@ -38,6 +39,7 @@ use constant MAX => 1;
 our $parallel_degrees_limit = abs(deg2rad(3));
 
 sub epsilon () { 1E-4 }
+sub scaled_epsilon () { epsilon / &Slic3r::SCALING_FACTOR }
 
 sub scale   ($) { $_[0] / &Slic3r::SCALING_FACTOR }
 sub unscale ($) { $_[0] * &Slic3r::SCALING_FACTOR }

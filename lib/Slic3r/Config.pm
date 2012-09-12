@@ -178,6 +178,7 @@ our $Options = {
     # extruder mapping
     'perimeter_extruder' => {
         label   => 'Perimeter extruder',
+        tooltip => 'The extruder to use when printing perimeters.',
         cli     => 'perimeter-extruder=i',
         type    => 'i',
         aliases => [qw(perimeters_extruder)],
@@ -185,12 +186,14 @@ our $Options = {
     },
     'infill_extruder' => {
         label   => 'Infill extruder',
+        tooltip => 'The extruder to use when printing infill.',
         cli     => 'infill-extruder=i',
         type    => 'i',
         default => 1,
     },
     'support_material_extruder' => {
         label   => 'Support material extruder',
+        tooltip => 'The extruder to use when printing support material. This affects brim too.',
         cli     => 'support-material-extruder=i',
         type    => 'i',
         default => 1,
@@ -474,6 +477,13 @@ our $Options = {
         label   => 'Avoid crossing perimeters',
         tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down the processing times.',
         cli     => 'avoid-crossing-perimeters!',
+        type    => 'bool',
+        default => 0,
+    },
+    'only_retract_when_crossing_perimeters' => {
+        label   => 'Only retract when crossing perimeters',
+        tooltip => 'Disables retraction when travelling between infill paths inside the same island.',
+        cli     => 'only-retract-when-crossing-perimeters!',
         type    => 'bool',
         default => 0,
     },
