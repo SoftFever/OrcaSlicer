@@ -897,9 +897,9 @@ sub arrange {
     my $skirt_margin;		
     if ($Config->skirts > 0) {
         my $flow = Slic3r::Flow->new(
-            layer_height    => $Config->first_layer_height,
+            layer_height    => $Config->get_value('first_layer_height'),
             nozzle_diameter => $Config->nozzle_diameter->[0],  # TODO: actually look for the extruder used for skirt
-            width           => $Config->first_layer_extrusion_width,
+            width           => $Config->get_value('first_layer_extrusion_width'),
         );
         $skirt_margin = ($flow->spacing * $Config->skirts + $Config->skirt_distance) * 2;
     } else {
