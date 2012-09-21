@@ -882,7 +882,7 @@ sub douglas_peucker2 {
 }
 
 sub arrange {
-    my ($total_parts, $partx, $party, $areax, $areay, $dist) = @_;
+    my ($total_parts, $partx, $party, $areax, $areay, $dist, $Config) = @_;
     
     my $linint = sub {
         my ($value, $oldmin, $oldmax, $newmin, $newmax) = @_;
@@ -895,8 +895,13 @@ sub arrange {
     
     # margin needed for the skirt
     my $skirt_margin;		
-    if ($Slic3r::Config->skirts > 0) {
-        $skirt_margin = ($Slic3r::flow->spacing * $Slic3r::Config->skirts + $Slic3r::Config->skirt_distance) * 2;
+    if ($Config->skirts > 0) {
+        my $flow = Slic3r::Flow->new(
+            layer_height    => $Config->first_layer_height,
+            nozzle_diameter => $Config->nozzle_diameter->[0],  # TODO: actually look for the extruder used for skirt
+            width           => $Config->first_layer_extrusion_width,
+        );
+        $skirt_margin = ($flow->spacing * $Config->skirts + $Config->skirt_distance) * 2;
     } else {
         $skirt_margin = 0;		
     }

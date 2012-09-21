@@ -72,7 +72,7 @@ sub write_file {
             foreach my $instance (@{$object->instances}) {
                 $instances .= sprintf qq{    <instance objectid="%d">\n}, $object_id;
                 $instances .= sprintf qq{      <deltax>%s</deltax>\n}, $instance->offset->[X];
-                $instances .= sprintf qq{      <deltax>%s</deltax>\n}, $instance->offset->[Y];
+                $instances .= sprintf qq{      <deltay>%s</deltay>\n}, $instance->offset->[Y];
                 $instances .= sprintf qq{      <rz>%s</rz>\n}, $instance->rotation;
                 $instances .= sprintf qq{    </instance>\n};
             }
