@@ -944,6 +944,9 @@ sub set {
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
         $value = $value =~ /^\d+(?:\.\d+)?$/ && $value != 0 ? ($value*100) . "%" : 0;
     }
+    if ($opt_key eq 'threads' && !$Slic3r::have_threads) {
+        $value = 1;
+    }
     
     if (!exists $Options->{$opt_key}) {
         $opt_key = +(grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options)[0]
