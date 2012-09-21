@@ -83,11 +83,6 @@ sub add_instance {
 sub mesh {
     my $self = shift;
     
-    my $vertices = [];
-    my $facets = [];
-    
-    
-    
     return Slic3r::TriangleMesh->new(
         vertices => $self->vertices,
         facets   => [ map @{$_->facets}, @{$self->volumes} ],
