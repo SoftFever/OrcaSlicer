@@ -242,6 +242,7 @@ sub polygon_lines {
 sub nearest_point {
     my ($point, $points) = @_;
     my $index = nearest_point_index(@_);
+    return undef if !defined $index;
     return $points->[$index];
 }
 

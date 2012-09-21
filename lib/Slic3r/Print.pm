@@ -462,7 +462,8 @@ EOF
             foreach my $expolygon (@unsupported_slices) {
                 # look for the nearest point to this island among all
                 # supported points
-                my $support_point = nearest_point($expolygon->contour->[0], \@supported_points);
+                my $support_point = nearest_point($expolygon->contour->[0], \@supported_points)
+                    or next;
                 my $anchor_point = nearest_point($support_point, $expolygon->contour->[0]);
                 printf $fh qq{    <line x1="%s" y1="%s" x2="%s" y2="%s" style="stroke-width: 2; stroke: white" />\n},
                     map @$_, $support_point, $anchor_point;
