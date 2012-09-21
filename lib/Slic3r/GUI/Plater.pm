@@ -309,6 +309,7 @@ sub load_file {
                     : [0,0],
             ],
         );
+        $object->mesh->check_manifoldness;
         
         # we only consider the rotation of the first instance for now
         $object->set_rotation($model->objects->[$i]->instances->[0]->rotation)
