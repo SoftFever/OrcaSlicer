@@ -70,6 +70,26 @@ sub BUILD {
     }
 }
 
+sub merge {
+    my $class = shift;
+    my @meshes = @_;
+    
+    my $vertices = [];
+    my $facets = [];
+    
+    foreach my $mesh (@meshes) {
+        my $v_offset = @$vertices;
+        push @$vertices, @{$mesh->vertices};
+        push @$facets, map {
+            my $f = [@$_];
+            $f->[$_] += $v_offset for -3..-1;
+            $f;
+        } @{$mesh->facets};
+    }
+    
+    return $class->new(vertices => $vertices, facets => $facets);
+}
+
 sub clone {
     my $self = shift;
     return (ref $self)->new(
