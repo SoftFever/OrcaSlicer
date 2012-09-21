@@ -158,8 +158,8 @@ sub new {
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
-        $self->{objects}[$obj_idx]->thumbnail($thumbnail);
-        $self->mesh(undef);
+        $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
+        $self->{objects}[$obj_idx]->mesh(undef);
         $self->on_thumbnail_made;
     });
     
@@ -433,7 +433,7 @@ sub arrange {
     my $total_parts = sum(map $_->instances_count, @{$self->{objects}}) or return;
     my @size = ();
     for my $a (X,Y) {
-        $size[$a] = $self->to_units(max(map $_->thumbnail->size->[$a], @{$self->{objects}}));
+        $size[$a] = max(map $_->rotated_size->[$a], @{$self->{objects}});
     }
     
     eval {
@@ -529,7 +529,7 @@ sub export_gcode {
             );
         });
         $self->statusbar->SetCancelCallback(sub {
-            $self->{export_thread}->kill('KILL');
+            $self->{export_thread}->kill('KILL')->join;
             $self->{export_thread} = undef;
             $self->statusbar->StopBusy;
             $self->statusbar->SetStatusText("Export cancelled");
