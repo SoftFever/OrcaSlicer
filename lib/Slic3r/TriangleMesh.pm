@@ -355,7 +355,7 @@ sub align_to_origin {
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
-    my @extents = $self->bounding_box;
+    my @extents = $self->extents;
     $self->move(map -$extents[$_][MIN], X,Y,Z);
 }
 
@@ -379,7 +379,7 @@ sub duplicate {
     $self->BUILD;
 }
 
-sub bounding_box {
+sub extents {
     my $self = shift;
     my @extents = (map [undef, undef], X,Y,Z);
     foreach my $vertex (@{$self->vertices}) {
@@ -394,7 +394,7 @@ sub bounding_box {
 sub size {
     my $self = shift;
     
-    my @extents = $self->bounding_box;
+    my @extents = $self->extents;
     return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
 }
 

@@ -6,7 +6,7 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum);
 use Math::ConvexHull qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
 use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
@@ -456,6 +456,7 @@ sub split_object {
     my ($obj_idx, $current_object) = $self->selected_object;
     my $current_copies_num = $current_object->instances_count;
     my $mesh = $current_object->get_mesh;
+    $mesh->align_to_origin;
     
     my @new_meshes = $mesh->split_mesh;
     if (@new_meshes == 1) {
@@ -469,18 +470,20 @@ sub split_object {
     $self->remove($obj_idx);
     
     foreach my $mesh (@new_meshes) {
+        my @extents = $mesh->extents;
         my $object = Slic3r::GUI::Plater::Object->new(
             name                    => basename($current_object->input_file),
             input_file              => $current_object->input_file,
             input_file_object_id    => undef,
             mesh                    => $mesh,
-            instances               => [ map [0,0], 1..$current_copies_num ],
+            instances               => [ map [$extents[X][MIN], $extents[Y][MIN]], 1..$current_copies_num ],
         );
         push @{ $self->{objects} }, $object;
         $self->object_loaded($#{ $self->{objects} }, no_arrange => 1);
     }
     
-    $self->arrange;
+    $self->recenter;
+    $self->{canvas}->Refresh;
 }
 
 sub export_gcode {
