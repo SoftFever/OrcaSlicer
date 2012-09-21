@@ -1141,6 +1141,15 @@ sub replace_options {
     return $string;
 }
 
+# min object distance is max(duplicate_distance, clearance_radius)
+sub min_object_distance {
+    my $self = shift;
+    
+    return ($self->complete_objects && $self->extruder_clearance_radius > $self->duplicate_distance)
+        ? $self->extruder_clearance_radius
+        : $self->duplicate_distance;
+}
+
 # CLASS METHODS:
 
 sub write_ini {

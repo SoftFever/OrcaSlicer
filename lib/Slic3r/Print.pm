@@ -3,6 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
+use List::Util qw(max);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points nearest_point);
@@ -86,10 +87,7 @@ sub add_objects_from_file {
     my $self = shift;
     my ($input_file) = @_;
     
-    my $model = $input_file =~ /\.stl$/i            ? Slic3r::Format::STL->read_file($input_file)
-              : $input_file =~ /\.obj$/i            ? Slic3r::Format::OBJ->read_file($input_file)
-              : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
-              : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
+    my $model = Slic3r::Model->read_from_file($input_file);
     
     my @print_objects = $self->add_model($model);
     $_->input_file($input_file) for @print_objects;
@@ -110,11 +108,11 @@ sub add_model {
             $mesh->rotate($object->instances->[0]->rotation);
         }
         
-        push @print_objects, $self->add_object_from_mesh($mesh);
+        push @print_objects, $self->add_object_from_mesh($mesh, input_file => $object->input_file);
         
         if ($object->instances) {
             # replace the default [0,0] instance with the custom ones
-            @{$self->copies->[-1]} = map [ scale $_->offset->[X], scale $_->offset->[X] ], @{$object->instances};
+            @{$self->copies->[-1]} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
         }
     }
     
@@ -123,7 +121,7 @@ sub add_model {
 
 sub add_object_from_mesh {
     my $self = shift;
-    my ($mesh) = @_;
+    my ($mesh, %attributes) = @_;
     
     $mesh->rotate($Slic3r::Config->rotate);
     $mesh->scale($Slic3r::Config->scale / &Slic3r::SCALING_FACTOR);
@@ -133,6 +131,7 @@ sub add_object_from_mesh {
     my $object = Slic3r::Print::Object->new(
         mesh => $mesh,
         size => [ $mesh->size ],
+        %attributes,
     );
     
     push @{$self->objects}, $object;
@@ -234,19 +233,11 @@ sub arrange_objects {
     my $self = shift;
 
     my $total_parts = scalar map @$_, @{$self->copies};
-    my $partx = my $party = 0;
-    foreach my $object (@{$self->objects}) {
-        $partx = $object->size->[X] if $object->size->[X] > $partx;
-        $party = $object->size->[Y] if $object->size->[Y] > $party;
-    }
-    
-    # object distance is max(duplicate_distance, clearance_radius)
-    my $distance = $Slic3r::Config->complete_objects && $Slic3r::Config->extruder_clearance_radius > $Slic3r::Config->duplicate_distance
-        ? $Slic3r::Config->extruder_clearance_radius
-        : $Slic3r::Config->duplicate_distance;
+    my $partx = max(map $_->size->[X], @{$self->objects});
+    my $party = max(map $_->size->[Y], @{$self->objects});
     
     my @positions = Slic3r::Geometry::arrange
-        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $distance);
+        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $Slic3r::Config->min_object_distance, $self->config);
     
     for my $obj_idx (0..$#{$self->objects}) {
         @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};
@@ -826,11 +817,14 @@ sub total_extrusion_volume {
     return $self->total_extrusion_length * ($Slic3r::extruders->[0]->filament_diameter**2) * PI/4 / 1000;
 }
 
-# this method will return the value of $self->output_file after expanding its
+# this method will return the supplied input file path after expanding its
 # format variables with their values
 sub expanded_output_filepath {
     my $self = shift;
-    my ($path) = @_;
+    my ($path, $input_file) = @_;
+    
+    # if no input file was supplied, take the first one from our objects
+    $input_file ||= $self->objects->[0]->input_file;
     
     # if output path is an existing directory, we take that and append
     # the specified filename format
@@ -838,7 +832,6 @@ sub expanded_output_filepath {
 
     # if no explicit output file was defined, we take the input
     # file directory and append the specified filename format
-    my $input_file = $self->objects->[0]->input_file;
     $path ||= (fileparse($input_file))[1] . $Slic3r::Config->output_filename_format;
     
     my $input_filename = my $input_filename_base = basename($input_file);
