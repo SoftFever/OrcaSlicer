@@ -20,7 +20,7 @@ our @EXPORT_OK = qw(
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
-    scaled_epsilon
+    scaled_epsilon bounding_box_3D
 );
 
 
@@ -705,6 +705,20 @@ sub bounding_box_intersect {
     }
     
     return 1;
+}
+
+# 3D
+sub bounding_box_3D {
+    my ($points) = @_;
+    
+    my @extents = (map [undef, undef], X,Y,Z);
+    foreach my $point (@$points) {
+        for (X,Y,Z) {
+            $extents[$_][MIN] = $point->[$_] if !defined $extents[$_][MIN] || $point->[$_] < $extents[$_][MIN];
+            $extents[$_][MAX] = $point->[$_] if !defined $extents[$_][MAX] || $point->[$_] > $extents[$_][MAX];
+        }
+    }
+    return @extents;
 }
 
 sub angle3points {

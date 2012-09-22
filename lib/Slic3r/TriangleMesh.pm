@@ -381,14 +381,7 @@ sub duplicate {
 
 sub extents {
     my $self = shift;
-    my @extents = (map [undef, undef], X,Y,Z);
-    foreach my $vertex (@{$self->vertices}) {
-        for (X,Y,Z) {
-            $extents[$_][MIN] = $vertex->[$_] if !defined $extents[$_][MIN] || $vertex->[$_] < $extents[$_][MIN];
-            $extents[$_][MAX] = $vertex->[$_] if !defined $extents[$_][MAX] || $vertex->[$_] > $extents[$_][MAX];
-        }
-    }
-    return @extents;
+    return Slic3r::Geometry::bounding_box_3D($self->vertices);
 }
 
 sub size {
