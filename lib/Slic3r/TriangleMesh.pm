@@ -386,9 +386,7 @@ sub extents {
 
 sub size {
     my $self = shift;
-    
-    my @extents = $self->extents;
-    return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
+    return Slic3r::Geometry::size_3D($self->vertices);
 }
 
 sub slice_facet {

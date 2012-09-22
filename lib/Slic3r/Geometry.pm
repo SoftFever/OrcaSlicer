@@ -20,7 +20,7 @@ our @EXPORT_OK = qw(
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
-    scaled_epsilon bounding_box_3D
+    scaled_epsilon bounding_box_3D size_3D
 );
 
 
@@ -719,6 +719,13 @@ sub bounding_box_3D {
         }
     }
     return @extents;
+}
+
+sub size_3D {
+    my ($points) = @_;
+    
+    my @extents = bounding_box_3D($points);
+    return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
 }
 
 sub angle3points {
