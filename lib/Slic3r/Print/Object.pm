@@ -529,12 +529,12 @@ sub generate_support_material {
             
             @current_support_regions = @{diff_ex(
                 [ map @$_, @current_support_regions ],
-                [ map @{$_->expolygon}, @{$layer->slices} ],
+                [ map @$_, @{$layer->slices} ],
             )};
             
             $layers{$i} = diff_ex(
                 [ map @$_, @current_support_regions ],
-                [ map @$_, map $_->expolygon->offset_ex($distance_from_object),  @{$layer->slices} ],
+                [ map @$_, map $_->offset_ex($distance_from_object), @{$layer->slices} ],
             );
             $_->simplify(scale $Slic3r::support_material_flow->spacing * 2) for @{$layers{$i}};
             
@@ -543,8 +543,8 @@ sub generate_support_material {
             my @overhangs = ();
             if ($lower_layer) {
                 @overhangs = map $_->offset_ex(2 * $overhang_width), @{diff_ex(
-                    [ map @$_, map $_->expolygon->offset_ex(-$overhang_width), @{$layer->slices} ],
-                    [ map @{$_->expolygon}, @{$lower_layer->slices} ],
+                    [ map @$_, map $_->offset_ex(-$overhang_width), @{$layer->slices} ],
+                    [ map @$_, @{$lower_layer->slices} ],
                     1,
                 )};
             }

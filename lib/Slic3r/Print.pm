@@ -6,7 +6,7 @@ use File::Spec;
 use List::Util qw(max);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 PI scale unscale move_points nearest_point);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
 
@@ -115,20 +115,30 @@ sub add_model {
             
             $mesh->rotate($Slic3r::Config->rotate);
             $mesh->scale($Slic3r::Config->scale / &Slic3r::SCALING_FACTOR);
-            $mesh->align_to_origin;
         }
-            
+        
+        my $complete_mesh = Slic3r::TriangleMesh->merge(grep defined $_, @meshes);
+        
         # initialize print object
-        push @{$self->objects}, Slic3r::Print::Object->new(
+        my $print_object = Slic3r::Print::Object->new(
             print       => $self,
             meshes      => [ @meshes ],
-            size        => [ $object->mesh->size ],
+            size        => [ $complete_mesh->size ],
             input_file  => $object->input_file
         );
+        push @{$self->objects}, $print_object;
+        
+        # align object to origin
+        {
+            my @extents = $complete_mesh->extents;
+            foreach my $mesh (grep defined $_, @meshes) {
+                $mesh->move(map -$extents[$_][MIN], X,Y,Z);
+            }
+        }
         
         if ($object->instances) {
             # replace the default [0,0] instance with the custom ones
-            @{$self->objects->[-1]->copies} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
+            @{$print_object->copies} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
         }
     }
 }
