@@ -97,9 +97,10 @@ sub add_model {
         foreach my $volume (@{$object->volumes}) {
             # should the object contain multiple volumes of the same material, merge them
             my $material_id = $volume->material_id // 0; #/
+            my $mesh = $volume->mesh->clone;
             $meshes[$material_id] = $meshes[$material_id]
-                ? Slic3r::TriangleMesh->merge($meshes[$material_id], $volume->mesh)
-                : $volume->mesh;
+                ? Slic3r::TriangleMesh->merge($meshes[$material_id], $mesh)
+                : $mesh;
         }
         
         foreach my $mesh (@meshes) {
@@ -281,10 +282,10 @@ sub export_gcode {
     
     # simplify slices (both layer and material slices),
     # we only need the max resolution for perimeters
-    $_->simplify(scale &Slic3r::RESOLUTION)
-        for map @{$_->expolygon}, 
-            map { my $layer = $_; ((map @{$_->slices}, @{$layer->materials}), @{$layer->slices}) }
-            map @{$_->layers}, @{$self->objects};
+    foreach my $layer (map @{$_->layers}, @{$self->objects}) {
+        $_->simplify(scale &Slic3r::RESOLUTION)
+            for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->materials});
+    }
     
     # this will clip $layer->surfaces to the infill boundaries 
     # and split them in top/bottom/internal surfaces;
@@ -494,7 +495,7 @@ sub make_skirt {
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my @layers = map $self->objects->[$obj_idx]->layer($_), 0..($skirt_height-1);
         my @layer_points = (
-            (map @$_, map @{$_->expolygon}, map @{$_->slices}, @layers),
+            (map @$_, map @$_, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, map @{$_->materials}, @layers),
             (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
         );

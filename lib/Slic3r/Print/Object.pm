@@ -84,6 +84,9 @@ sub slice {
     pop @{$self->layers} if !map @{$_->lines}, @{$self->layers->[-1]->materials};
     
     foreach my $layer (@{ $self->layers }) {
+        # make sure all layers contain layer material objects for all materials
+        $layer->material($_) for 0 .. ($self->print->materials_count-1);
+        
         Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
             $layer->id, unscale $layer->slice_z if $Slic3r::debug;
         
