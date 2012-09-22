@@ -224,6 +224,8 @@ sub shortest_path {
     my $self = shift;
     my ($from, $to) = @_;
     
+    return Slic3r::Polyline->new($from, $to) if !@{$self->islands};
+    
     # find nearest nodes
     my $new_from = $self->find_node($from, $to);
     my $new_to = $self->find_node($to, $from);
