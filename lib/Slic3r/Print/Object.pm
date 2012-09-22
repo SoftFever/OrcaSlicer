@@ -9,6 +9,7 @@ use Slic3r::Surface ':types';
 has 'input_file'        => (is => 'rw', required => 0);
 has 'mesh'              => (is => 'rw', required => 0);
 has 'size'              => (is => 'rw', required => 1);
+has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]});
 
 has 'layers' => (
     traits  => ['Array'],

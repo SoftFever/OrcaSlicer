@@ -13,7 +13,6 @@ use Time::HiRes qw(gettimeofday tv_interval);
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
-has 'copies'                 => (is => 'rw', default => sub {[]});  # obj_idx => [copies...]
 has 'total_extrusion_length' => (is => 'rw');
 has 'processing_time'        => (is => 'rw', required => 0);
 
@@ -112,7 +111,7 @@ sub add_model {
         
         if ($object->instances) {
             # replace the default [0,0] instance with the custom ones
-            @{$self->copies->[-1]} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
+            @{$self->objects->[-1]->copies} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
         }
     }
     
@@ -135,7 +134,6 @@ sub add_object_from_mesh {
     );
     
     push @{$self->objects}, $object;
-    push @{$self->copies}, [[0, 0]];
     return $object;
 }
 
@@ -153,7 +151,7 @@ sub validate {
                     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
                     $clearance = +($convex_hull->offset(scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND))[0];
                 }
-                for my $copy (@{$self->copies->[$obj_idx]}) {
+                for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;
                     $copy_clearance->translate(@$copy);
                     if (@{ intersection_ex(\@a, [$copy_clearance]) }) {
@@ -179,7 +177,7 @@ sub object_copies {
     my $self = shift;
     my @oc = ();
     for my $obj_idx (0 .. $#{$self->objects}) {
-        push @oc, map [ $obj_idx, $_ ], @{$self->copies->[$obj_idx]};
+        push @oc, map [ $obj_idx, $_ ], @{$self->objects->[$obj_idx]->copies};
     }
     return @oc;
 }
@@ -212,18 +210,18 @@ sub duplicate {
         
         # generate offsets for copies
         my $dist = scale $Slic3r::Config->duplicate_distance;
-        @{$self->copies->[0]} = ();
+        @{$self->objects->[0]->copies} = ();
         for my $x_copy (1..$Slic3r::Config->duplicate_grid->[X]) {
             for my $y_copy (1..$Slic3r::Config->duplicate_grid->[Y]) {
-                push @{$self->copies->[0]}, [
+                push @{$self->objects->[0]->copies}, [
                     ($object->size->[X] + $dist) * ($x_copy-1),
                     ($object->size->[Y] + $dist) * ($y_copy-1),
                 ];
             }
         }
     } elsif ($Slic3r::Config->duplicate > 1) {
-        foreach my $copies (@{$self->copies}) {
-            @$copies = map [0,0], 1..$Slic3r::Config->duplicate;
+        foreach my $object (@{$self->objects}) {
+            @{$object->copies} = map [0,0], 1..$Slic3r::Config->duplicate;
         }
         $self->arrange_objects;
     }
@@ -232,16 +230,14 @@ sub duplicate {
 sub arrange_objects {
     my $self = shift;
 
-    my $total_parts = scalar map @$_, @{$self->copies};
+    my $total_parts = scalar map @{$_->copies}, @{$self->objects};
     my $partx = max(map $_->size->[X], @{$self->objects});
     my $party = max(map $_->size->[Y], @{$self->objects});
     
     my @positions = Slic3r::Geometry::arrange
         ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $Slic3r::Config->min_object_distance, $self->config);
     
-    for my $obj_idx (0..$#{$self->objects}) {
-        @{$self->copies->[$obj_idx]} = splice @positions, 0, scalar @{$self->copies->[$obj_idx]};
-    }
+    @{$_->copies} = splice @positions, 0, scalar @{$_->copies} for @{$self->objects};
 }
 
 sub bounding_box {
@@ -250,7 +246,7 @@ sub bounding_box {
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my $object = $self->objects->[$obj_idx];
-        foreach my $copy (@{$self->copies->[$obj_idx]}) {
+        foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
             push @points,
                 [ $copy->[X], $copy->[Y] ],
                 [ $copy->[X] + $object->size->[X], $copy->[Y] ],
@@ -436,7 +432,7 @@ EOF
             
             # sort slices so that the outermost ones come first
             my @slices = sort { $a->expolygon->contour->encloses_point($b->expolygon->contour->[0]) ? 0 : 1 } @{$layer->slices};
-            foreach my $copy (@{$self->copies->[$obj_idx]}) {
+            foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
                 foreach my $slice (@slices) {
                     my $expolygon = $slice->expolygon->clone;
                     $expolygon->translate(@$copy);
@@ -493,7 +489,7 @@ sub make_skirt {
             (map @$_, map @{$_->thin_walls}, @layers),
             (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
         );
-        push @points, map move_points($_, @layer_points), @{$self->copies->[$obj_idx]};
+        push @points, map move_points($_, @layer_points), @{$self->objects->[$obj_idx]->copies};
     }
     return if @points < 3;  # at least three points required for a convex hull
     
@@ -528,7 +524,7 @@ sub make_brim {
             (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } @{$layer0->thin_walls}),
             (map $_->unpack->polyline->grow($grow_distance), map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
         );
-        foreach my $copy (@{$self->copies->[$obj_idx]}) {
+        foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
         }
     }
@@ -734,7 +730,7 @@ sub write_gcode {
         
         my $finished_objects = 0;
         for my $obj_idx (@obj_idx) {
-            for my $copy (@{ $self->copies->[$obj_idx] }) {
+            for my $copy (@{ $self->objects->[$obj_idx]->copies }) {
                 # move to the origin position for the copy we're going to print.
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
@@ -763,7 +759,7 @@ sub write_gcode {
         for my $layer_id (0..$self->layer_count-1) {
             my @object_copies = ();
             for my $obj_idx (grep $self->objects->[$_]->layers->[$layer_id], 0..$#{$self->objects}) {
-                push @object_copies, map [ $obj_idx, $_ ], @{ $self->copies->[$obj_idx] };
+                push @object_copies, map [ $obj_idx, $_ ], @{ $self->objects->[$obj_idx]->copies };
             }
             print $fh $extrude_layer->($layer_id, \@object_copies);
         }
