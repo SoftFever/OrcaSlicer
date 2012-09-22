@@ -43,6 +43,7 @@ use Slic3r::Format::STL;
 use Slic3r::GCode;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
+use Slic3r::Layer::Material;
 use Slic3r::Line;
 use Slic3r::Model;
 use Slic3r::Point;
@@ -70,8 +71,9 @@ sub parallelize {
     my %params = @_;
     
     if (!$params{disable} && $Slic3r::have_threads && $Config->threads > 1) {
+        my @items = (ref $params{items} eq 'CODE') ? $params{items}->() : @{$params{items}};
         my $q = Thread::Queue->new;
-        $q->enqueue(@{ $params{items} }, (map undef, 1..$Config->threads));
+        $q->enqueue(@items, (map undef, 1..$Config->threads));
         
         my $thread_cb = sub { $params{thread_cb}->($q) };
         foreach my $th (map threads->create($thread_cb), 1..$Config->threads) {

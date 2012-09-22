@@ -88,9 +88,9 @@ if (@ARGV) {  # slicing from command line
     
     while (my $input_file = shift @ARGV) {
         my $print = Slic3r::Print->new(config => $config);
-        $print->add_objects_from_file($input_file);
+        $print->add_model(Slic3r::Model->read_from_file($input_file));
         if ($opt{merge}) {
-            $print->add_objects_from_file($_) for splice @ARGV, 0;
+            $print->add_model(Slic3r::Model->read_from_file($_)) for splice @ARGV, 0;
         }
         $print->duplicate;
         $print->arrange_objects if @{$print->objects} > 1;

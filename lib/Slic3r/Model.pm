@@ -15,6 +15,7 @@ sub read_from_file {
               : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
               : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
     
+    $_->input_file($input_file) for @{$model->objects};
     return $model;
 }
 
@@ -24,6 +25,16 @@ sub add_object {
     my $object = Slic3r::Model::Object->new(model => $self, @_);
     push @{$self->objects}, $object;
     return $object;
+}
+
+sub set_material {
+    my $self = shift;
+    my ($material_id, $attributes) = @_;
+    
+    return $self->materials->{$material_id} = Slic3r::Model::Material->new(
+        model       => $self,
+        attributes  => $attributes || {},
+    );
 }
 
 # flattens everything to a single mesh

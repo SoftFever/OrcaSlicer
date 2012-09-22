@@ -44,7 +44,7 @@ my %opt = ();
             } @{ $model->objects->[0]->volumes->[0]->facets };
             
             my $material_id = scalar keys %{$new_model->materials};
-            $new_model->materials->{$material_id} = { Name => basename($ARGV[$m]) };
+            $new_model->set_material($material_id, { Name => basename($ARGV[$m]) });
             $new_object->add_volume(
                 material_id => $material_id,
                 facets      => [@new_facets],
