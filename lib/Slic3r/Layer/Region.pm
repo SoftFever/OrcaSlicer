@@ -83,7 +83,7 @@ sub make_surfaces {
     
     # the contours must be offsetted by half extrusion width inwards
     {
-        my $distance = scale $self->perimeter_flow->width / 2;
+        my $distance = $self->perimeter_flow->scaled_width / 2;
         my @surfaces = @{$self->slices};
         @{$self->slices} = ();
         foreach my $surface (@surfaces) {
@@ -104,10 +104,10 @@ sub make_surfaces {
         
         $self->thin_walls([]);
         if (@$diff) {
-            my $area_threshold = scale($self->perimeter_flow->spacing) ** 2;
+            my $area_threshold = $self->perimeter_flow->scaled_spacing ** 2;
             @$diff = grep $_->area > ($area_threshold), @$diff;
             
-            @{$self->thin_walls} = map $_->medial_axis(scale $self->perimeter_flow->width), @$diff;
+            @{$self->thin_walls} = map $_->medial_axis($self->perimeter_flow->scaled_width), @$diff;
             
             Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls}) if @{$self->thin_walls};
         }
@@ -125,7 +125,7 @@ sub make_surfaces {
 sub make_perimeters {
     my $self = shift;
     
-    my $gap_area_threshold = scale($self->perimeter_flow->width)** 2;
+    my $gap_area_threshold = $self->perimeter_flow->scaled_width ** 2;
     
     # this array will hold one arrayref per original surface (island);
     # each item of this arrayref is an arrayref representing a depth (from outer
@@ -162,12 +162,12 @@ sub make_perimeters {
                 # this compensation only works for circular holes, while it would 
                 # overcompensate for hexagons and other shapes having straight edges.
                 # so we require a minimum number of vertices.
-                next unless $circumference / @$hole >= scale 3 * $Slic3r::flow->width;
+                next unless $circumference / @$hole >= 3 * $Slic3r::flow->scaled_width;
                 
                 # revert the compensation done in make_surfaces() and get the actual radius
                 # of the hole
-                my $radius = ($circumference / PI / 2) - scale $self->perimeter_flow->spacing/2;
-                my $new_radius = (scale($self->perimeter_flow->width) + sqrt((scale($self->perimeter_flow->width)**2) + (4*($radius**2)))) / 2;
+                my $radius = ($circumference / PI / 2) - $self->perimeter_flow->scaled_spacing/2;
+                my $new_radius = ($self->perimeter_flow->scaled_width + sqrt(($self->perimeter_flow->scaled_width ** 2) + (4*($radius**2)))) / 2;
                 # holes are always turned to contours, so reverse point order before and after
                 $hole->reverse;
                 my @offsetted = $hole->offset(+ ($new_radius - $radius));
@@ -177,7 +177,7 @@ sub make_perimeters {
             }
         }
         
-        my $distance = scale $self->perimeter_flow->spacing;
+        my $distance = $self->perimeter_flow->scaled_spacing;
         my @gaps = ();
         
         # generate perimeters inwards (loop 0 is the external one)
@@ -211,7 +211,7 @@ sub make_perimeters {
             # detect the small gaps that we need to treat like thin polygons,
             # thus generating the skeleton and using it to fill them
             push @{ $self->thin_fills },
-                map $_->medial_axis(scale $self->perimeter_flow->width),
+                map $_->medial_axis($self->perimeter_flow->scaled_width),
                 @gaps;
             Slic3r::debugf "  %d gaps filled\n", scalar @{ $self->thin_fills }
                 if @{ $self->thin_fills };
@@ -324,7 +324,7 @@ sub prepare_fill_surfaces {
     # remove unprintable regions (they would slow down the infill process and also cause
     # some weird failures during bridge neighbor detection)
     {
-        my $distance = scale $self->infill_flow->spacing / 2;
+        my $distance = $self->infill_flow->scaled_spacing / 2;
         @surfaces = map {
             my $surface = $_;
             

@@ -179,18 +179,17 @@ sub make_perimeters {
     if ($Slic3r::Config->extra_perimeters && $Slic3r::Config->perimeters > 0) {
         for my $region_id (0 .. ($self->print->regions_count-1)) {
             for my $layer_id (0 .. $self->layer_count-2) {
-                my $layerm                          = $self->layers->[$layer_id]->regions->[$region_id];
-                my $upper_layerm                    = $self->layers->[$layer_id+1]->regions->[$region_id];
-                my $perimeter_flow_spacing          = $layerm->perimeter_flow->spacing;
-                my $scaled_perimeter_flow_spacing   = scale $perimeter_flow_spacing;
+                my $layerm          = $self->layers->[$layer_id]->regions->[$region_id];
+                my $upper_layerm    = $self->layers->[$layer_id+1]->regions->[$region_id];
+                my $perimeter_flow  = $layerm->perimeter_flow;
                 
-                my $overlap = $perimeter_flow_spacing;  # one perimeter
+                my $overlap = $perimeter_flow->spacing;  # one perimeter
                 
                 # compute polygons representing the thickness of the first external perimeter of
                 # the upper layer slices
                 my $upper = diff_ex(
-                    [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * $scaled_perimeter_flow_spacing), @{$upper_layerm->slices} ],
-                    [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * $scaled_perimeter_flow_spacing)), @{$upper_layerm->slices} ],
+                    [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * $perimeter_flow->scaled_spacing), @{$upper_layerm->slices} ],
+                    [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * $perimeter_flow->scaled_spacing)), @{$upper_layerm->slices} ],
                 );
                 next if !@$upper;
                 
@@ -199,10 +198,10 @@ sub make_perimeters {
                 my $ignore = [];
                 {
                     my $diff = diff_ex(
-                        [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::Config->perimeters-0.5) * $scaled_perimeter_flow_spacing), @{$layerm->slices} ],
+                        [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::Config->perimeters-0.5) * $perimeter_flow->scaled_spacing), @{$layerm->slices} ],
                         [ map @{$_->expolygon}, @{$upper_layerm->slices} ],
                     );
-                    $ignore = [ map @$_, map $_->offset_ex($scaled_perimeter_flow_spacing), @$diff ];
+                    $ignore = [ map @$_, map $_->offset_ex($perimeter_flow->scaled_spacing), @$diff ];
                 }
                 
                 foreach my $slice (@{$layerm->slices}) {
@@ -212,9 +211,9 @@ sub make_perimeters {
                         # of our slice
                         my $hypothetical_perimeter;
                         {
-                            my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * $scaled_perimeter_flow_spacing) ];
+                            my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * $perimeter_flow->scaled_spacing) ];
                             last CYCLE if !@$outer;
-                            my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * $scaled_perimeter_flow_spacing) ];
+                            my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * $perimeter_flow->scaled_spacing) ];
                             last CYCLE if !@$inner;
                             $hypothetical_perimeter = diff_ex($outer, $inner);
                         }
@@ -325,7 +324,7 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
-    my $area_threshold = scale($Slic3r::flow->spacing) ** 2;
+    my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
@@ -333,7 +332,7 @@ sub discover_horizontal_shells {
             foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find surfaces of current type for current layer
                 # and offset them to take perimeters into account
-                my @surfaces = map $_->offset($Slic3r::Config->perimeters * scale $layerm->perimeter_flow->width),
+                my @surfaces = map $_->offset($Slic3r::Config->perimeters * $layerm->perimeter_flow->scaled_width),
                     grep $_->surface_type == $type, @{$layerm->fill_surfaces} or next;
                 my $surfaces_p = [ map $_->p, @surfaces ];
                 Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
@@ -413,7 +412,7 @@ sub combine_infill {
     my $self = shift;
     return unless $Slic3r::Config->infill_every_layers > 1 && $Slic3r::Config->fill_density > 0;
     
-    my $area_threshold = scale($Slic3r::flow->spacing) ** 2;
+    my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         # start from bottom, skip first layer
@@ -505,7 +504,7 @@ sub generate_support_material {
     my $flow                    = $self->print->support_material_flow;
     my $threshold_rad           = deg2rad($Slic3r::Config->support_material_threshold + 1);   # +1 makes the threshold inclusive
     my $overhang_width          = $threshold_rad == 0 ? undef : scale $Slic3r::Config->layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
-    my $distance_from_object    = 1.5 * scale $flow->width;
+    my $distance_from_object    = 1.5 * $flow->scaled_width;
     
     # determine support regions in each layer (for upper layers)
     Slic3r::debugf "Detecting regions\n";
@@ -529,7 +528,7 @@ sub generate_support_material {
                 [ map @$_, @current_support_regions ],
                 [ map @$_, map $_->offset_ex($distance_from_object), @{$layer->slices} ],
             );
-            $_->simplify(scale $flow->spacing * 2) for @{$layers{$i}};
+            $_->simplify($flow->scaled_spacing * 2) for @{$layers{$i}};
             
             # step 2: get layer overhangs and put them into queue for adding support inside lower layers
             # we need an angle threshold for this
@@ -551,7 +550,7 @@ sub generate_support_material {
     my $support_patterns = [];  # in case we want cross-hatching
     {
         # 0.5 makes sure the paths don't get clipped externally when applying them to layers
-        my @support_material_areas = map $_->offset_ex(- 0.5 * scale $flow->width),
+        my @support_material_areas = map $_->offset_ex(- 0.5 * $flow->scaled_width),
             @{union_ex([ map $_->contour, map @$_, values %layers ])};
         
         my $fill = Slic3r::Fill->new(print => $self->print);

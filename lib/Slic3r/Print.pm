@@ -573,7 +573,7 @@ sub make_brim {
     return unless $Slic3r::Config->brim_width > 0;
     
     my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
-    my $grow_distance = scale $flow->width / 2;
+    my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my $layer0 = $self->objects->[$obj_idx]->layers->[0];
@@ -593,7 +593,7 @@ sub make_brim {
         push @{$self->brim}, Slic3r::ExtrusionLoop->pack(
             polygon => Slic3r::Polygon->new($_),
             role    => EXTR_ROLE_SKIRT,
-        ) for @{Math::Clipper::offset(\@islands, $i * scale $flow->spacing, 100, JT_SQUARE)};
+        ) for @{Math::Clipper::offset(\@islands, $i * $flow->scaled_spacing, 100, JT_SQUARE)};
     }
 }
 
