@@ -50,6 +50,7 @@ use Slic3r::Point;
 use Slic3r::Polygon;
 use Slic3r::Polyline;
 use Slic3r::Print;
+use Slic3r::Print::Material;
 use Slic3r::Print::Object;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
@@ -64,8 +65,7 @@ use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 # process.  They should belong to the Print object, but we are keeping 
 # them here because it makes accessing them slightly faster.
 our $Config;
-our $extruders;
-our ($flow, $first_layer_flow, $perimeter_flow, $infill_flow, $support_material_flow);
+our $flow;
 
 sub parallelize {
     my %params = @_;

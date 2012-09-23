@@ -23,11 +23,8 @@ sub layer {
     my ($layer_id) = @_;
     
     # extend our print by creating all necessary layers
-    
-    if ($self->layer_count < $layer_id + 1) {
-        for (my $i = $self->layer_count; $i <= $layer_id; $i++) {
-            push @{ $self->layers }, Slic3r::Layer->new(id => $i);
-        }
+    for (my $i = $self->layer_count; $i <= $layer_id; $i++) {
+        push @{ $self->layers }, Slic3r::Layer->new(id => $i, object => $self);
     }
     
     return $self->layers->[$layer_id];
@@ -170,11 +167,6 @@ sub slice {
     
     warn "No layers were detected. You might want to repair your STL file and retry.\n"
         if !@{$self->layers};
-}
-
-sub cleanup {
-    my $self = shift;
-    @{$self->layers} = ();
 }
 
 sub make_perimeters {
@@ -510,9 +502,10 @@ sub combine_infill {
 sub generate_support_material {
     my $self = shift;
     
+    my $flow                    = $self->print->support_material_flow;
     my $threshold_rad           = deg2rad($Slic3r::Config->support_material_threshold + 1);   # +1 makes the threshold inclusive
     my $overhang_width          = $threshold_rad == 0 ? undef : scale $Slic3r::Config->layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
-    my $distance_from_object    = 1.5 * scale $Slic3r::support_material_flow->width;
+    my $distance_from_object    = 1.5 * scale $flow->width;
     
     # determine support regions in each layer (for upper layers)
     Slic3r::debugf "Detecting regions\n";
@@ -536,7 +529,7 @@ sub generate_support_material {
                 [ map @$_, @current_support_regions ],
                 [ map @$_, map $_->offset_ex($distance_from_object), @{$layer->slices} ],
             );
-            $_->simplify(scale $Slic3r::support_material_flow->spacing * 2) for @{$layers{$i}};
+            $_->simplify(scale $flow->spacing * 2) for @{$layers{$i}};
             
             # step 2: get layer overhangs and put them into queue for adding support inside lower layers
             # we need an angle threshold for this
@@ -558,7 +551,7 @@ sub generate_support_material {
     my $support_patterns = [];  # in case we want cross-hatching
     {
         # 0.5 makes sure the paths don't get clipped externally when applying them to layers
-        my @support_material_areas = map $_->offset_ex(- 0.5 * scale $Slic3r::support_material_flow->width),
+        my @support_material_areas = map $_->offset_ex(- 0.5 * scale $flow->width),
             @{union_ex([ map $_->contour, map @$_, values %layers ])};
         
         my $fill = Slic3r::Fill->new(print => $self->print);
@@ -569,8 +562,8 @@ sub generate_support_material {
             foreach my $expolygon (@support_material_areas) {
                 my @paths = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon),
-                    density         => $Slic3r::support_material_flow->spacing / $Slic3r::Config->support_material_spacing,
-                    flow_spacing    => $Slic3r::support_material_flow->spacing,
+                    density         => $flow->spacing / $Slic3r::Config->support_material_spacing,
+                    flow_spacing    => $flow->spacing,
                 );
                 my $params = shift @paths;
                 
@@ -603,6 +596,11 @@ sub generate_support_material {
             foreach my $expolygon (@$expolygons) {
                 push @paths,
                     map $_->pack,
+                    map {
+                        $_->flow_spacing($self->print->first_layer_support_material_flow->spacing)
+                            if $layer_id == 0;
+                        $_;
+                    }
                     map $_->clip_with_expolygon($expolygon),
                     map $_->clip_with_polygon($expolygon->bounding_box_polygon),
                     @{$support_patterns->[ $layer_id % @$support_patterns ]};

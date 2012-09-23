@@ -41,6 +41,7 @@ lib/Slic3r/Point.pm
 lib/Slic3r/Polygon.pm
 lib/Slic3r/Polyline.pm
 lib/Slic3r/Print.pm
+lib/Slic3r/Print/Material.pm
 lib/Slic3r/Print/Object.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm

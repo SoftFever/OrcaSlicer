@@ -601,7 +601,6 @@ sub export_gcode2 {
         }
         $message .= ".";
         $params{on_completed}->($message);
-        $print->cleanup;
     };
     $params{catch_error}->();
 }
