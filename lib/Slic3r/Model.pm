@@ -77,8 +77,20 @@ has 'instances' => (is => 'rw');
 
 sub add_volume {
     my $self = shift;
+    my %args = @_;
     
-    my $volume = Slic3r::Model::Volume->new(object => $self, @_);
+    if (my $vertices = delete $args{vertices}) {
+        my $v_offset = @{$self->vertices};
+        push @{$self->vertices}, @$vertices;
+        
+        @{$args{facets}} = map {
+            my $f = [@$_];
+            $f->[$_] += $v_offset for -3..-1;
+            $f;
+        } @{$args{facets}};
+    }
+    
+    my $volume = Slic3r::Model::Volume->new(object => $self, %args);
     push @{$self->volumes}, $volume;
     return $volume;
 }
