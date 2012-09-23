@@ -131,7 +131,7 @@ sub extrude_path {
     {
         my $travel = Slic3r::Line->new($self->last_pos, $path->points->[0]);
         if ($travel->length >= scale $self->extruder->retract_before_travel) {
-            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->expolygon->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
+            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
                 $gcode .= $self->retract(travel_to => $path->points->[0]);
             }
         }
