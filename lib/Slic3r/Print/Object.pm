@@ -8,7 +8,7 @@ use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'input_file'        => (is => 'rw', required => 0);
-has 'meshes'            => (is => 'rw', default => sub { [] });  # by material_id
+has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1);
 has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]});
 has 'layers'            => (is => 'rw', default => sub { [] });
@@ -35,13 +35,13 @@ sub slice {
     my %params = @_;
     
     # process facets
-    for my $material_id (0 .. $#{$self->meshes}) {
-        my $mesh = $self->meshes->[$material_id];  # ignore undef meshes
+    for my $region_id (0 .. $#{$self->meshes}) {
+        my $mesh = $self->meshes->[$region_id];  # ignore undef meshes
         
         my $apply_lines = sub {
             my $lines = shift;
             foreach my $layer_id (keys %$lines) {
-                my $layerm = $self->layer($layer_id)->material($material_id);
+                my $layerm = $self->layer($layer_id)->region($region_id);
                 push @{$layerm->lines}, @{$lines->{$layer_id}};
             }
         };
@@ -78,11 +78,11 @@ sub slice {
     
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code in TriangleMesh)
-    pop @{$self->layers} if !map @{$_->lines}, @{$self->layers->[-1]->materials};
+    pop @{$self->layers} if !map @{$_->lines}, @{$self->layers->[-1]->regions};
     
     foreach my $layer (@{ $self->layers }) {
-        # make sure all layers contain layer material objects for all materials
-        $layer->material($_) for 0 .. ($self->print->materials_count-1);
+        # make sure all layers contain layer region objects for all regions
+        $layer->region($_) for 0 .. ($self->print->regions_count-1);
         
         Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
             $layer->id, unscale $layer->slice_z if $Slic3r::debug;
@@ -95,7 +95,7 @@ sub slice {
         # inside a closed polyline)
         
         # build surfaces from sparse lines
-        foreach my $layerm (@{$layer->materials}) {
+        foreach my $layerm (@{$layer->regions}) {
             my ($slicing_errors, $loops) = Slic3r::TriangleMesh::make_loops($layerm->lines);
             $layer->slicing_errors(1) if $slicing_errors;
             $layerm->make_surfaces($loops);
@@ -104,7 +104,7 @@ sub slice {
             $layerm->lines(undef);
         }
         
-        # merge all materials' slices to get islands
+        # merge all regions' slices to get islands
         $layer->make_slices;
     }
     
@@ -123,19 +123,19 @@ sub slice {
         # neighbor layers
         Slic3r::debugf "Attempting to repair layer %d\n", $i;
         
-        foreach my $material_id (0 .. $#{$layer->materials}) {
-            my $layerm = $layer->material($material_id);
+        foreach my $region_id (0 .. $#{$layer->regions}) {
+            my $layerm = $layer->region($region_id);
             
             my (@upper_surfaces, @lower_surfaces);
             for (my $j = $i+1; $j <= $#{$self->layers}; $j++) {
                 if (!$self->layers->[$j]->slicing_errors) {
-                    @upper_surfaces = @{$self->layers->[$j]->material($material_id)->slices};
+                    @upper_surfaces = @{$self->layers->[$j]->region($region_id)->slices};
                     last;
                 }
             }
             for (my $j = $i-1; $j >= 0; $j--) {
                 if (!$self->layers->[$j]->slicing_errors) {
-                    @lower_surfaces = @{$self->layers->[$j]->material($material_id)->slices};
+                    @lower_surfaces = @{$self->layers->[$j]->region($region_id)->slices};
                     last;
                 }
             }
@@ -153,7 +153,7 @@ sub slice {
                 @$diff;
         }
             
-        # update layer slices after repairing the single materials
+        # update layer slices after repairing the single regions
         $layer->make_slices;
     }
     
@@ -177,10 +177,10 @@ sub make_perimeters {
     
     # this algorithm makes sure that almost one perimeter is overlapping
     if ($Slic3r::Config->extra_perimeters && $Slic3r::Config->perimeters > 0) {
-        for my $material_id (0 .. ($self->print->materials_count-1)) {
+        for my $region_id (0 .. ($self->print->regions_count-1)) {
             for my $layer_id (0 .. $self->layer_count-2) {
-                my $layerm                          = $self->layers->[$layer_id]->materials->[$material_id];
-                my $upper_layerm                    = $self->layers->[$layer_id+1]->materials->[$material_id];
+                my $layerm                          = $self->layers->[$layer_id]->regions->[$region_id];
+                my $upper_layerm                    = $self->layers->[$layer_id+1]->regions->[$region_id];
                 my $perimeter_flow_spacing          = $layerm->perimeter_flow->spacing;
                 my $scaled_perimeter_flow_spacing   = scale $perimeter_flow_spacing;
                 
@@ -253,11 +253,11 @@ sub detect_surfaces_type {
             @$expolygons;
     };
     
-    for my $material_id (0 .. ($self->print->materials_count-1)) {
+    for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
-            my $layerm = $self->layers->[$i]->materials->[$material_id];
+            my $layerm = $self->layers->[$i]->regions->[$region_id];
             
-            # comparison happens against the *full* slices (considering all materials)
+            # comparison happens against the *full* slices (considering all regions)
             my $upper_layer = $self->layers->[$i+1];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             
@@ -304,7 +304,7 @@ sub detect_surfaces_type {
         
         # clip surfaces to the fill boundaries
         foreach my $layer (@{$self->layers}) {
-            my $layerm = $layer->materials->[$material_id];
+            my $layerm = $layer->regions->[$region_id];
             my $fill_boundaries = [ map @$_, @{$layerm->surfaces} ];
             @{$layerm->surfaces} = ();
             foreach my $surface (@{$layerm->slices}) {
@@ -327,9 +327,9 @@ sub discover_horizontal_shells {
     
     my $area_threshold = scale($Slic3r::flow->spacing) ** 2;
     
-    for my $material_id (0 .. ($self->print->materials_count-1)) {
+    for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
-            my $layerm = $self->layers->[$i]->materials->[$material_id];
+            my $layerm = $self->layers->[$i]->regions->[$region_id];
             foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find surfaces of current type for current layer
                 # and offset them to take perimeters into account
@@ -346,8 +346,8 @@ sub discover_horizontal_shells {
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
-                    my @neighbor_surfaces       = @{$self->layers->[$n]->materials->[$material_id]->surfaces};
-                    my @neighbor_fill_surfaces  = @{$self->layers->[$n]->materials->[$material_id]->fill_surfaces};
+                    my @neighbor_surfaces       = @{$self->layers->[$n]->regions->[$region_id]->surfaces};
+                    my @neighbor_fill_surfaces  = @{$self->layers->[$n]->regions->[$region_id]->fill_surfaces};
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
@@ -378,7 +378,7 @@ sub discover_horizontal_shells {
                     # polygons as $internal; they will be removed by removed_small_features()
                     
                     # assign resulting inner surfaces to layer
-                    my $neighbor_fill_surfaces = $self->layers->[$n]->materials->[$material_id]->fill_surfaces;
+                    my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
                     @$neighbor_fill_surfaces = ();
                     push @$neighbor_fill_surfaces, Slic3r::Surface->new
                         (expolygon => $_, surface_type => S_TYPE_INTERNAL)
@@ -415,10 +415,10 @@ sub combine_infill {
     
     my $area_threshold = scale($Slic3r::flow->spacing) ** 2;
     
-    for my $material_id (0 .. ($self->print->materials_count-1)) {
+    for my $region_id (0 .. ($self->print->regions_count-1)) {
         # start from bottom, skip first layer
         for (my $i = 1; $i < $self->layer_count; $i++) {
-            my $layerm = $self->layers->[$i]->materials->[$material_id];
+            my $layerm = $self->layers->[$i]->regions->[$region_id];
             
             # skip layer if no internal fill surfaces
             next if !grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
@@ -427,7 +427,7 @@ sub combine_infill {
             # we do this from the greater depth to the smaller
             for (my $d = $Slic3r::Config->infill_every_layers - 1; $d >= 1; $d--) {
                 next if ($i - $d) < 0;
-                my $lower_layerm = $self->layer($i - 1)->materials->[$material_id];
+                my $lower_layerm = $self->layer($i - 1)->regions->[$region_id];
                 
                 # select surfaces of the lower layer having the depth we're looking for
                 my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type == S_TYPE_INTERNAL,

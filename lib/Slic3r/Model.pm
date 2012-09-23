@@ -31,7 +31,7 @@ sub set_material {
     my $self = shift;
     my ($material_id, $attributes) = @_;
     
-    return $self->materials->{$material_id} = Slic3r::Model::Material->new(
+    return $self->materials->{$material_id} = Slic3r::Model::Region->new(
         model       => $self,
         attributes  => $attributes || {},
     );
@@ -58,7 +58,7 @@ sub mesh {
     return Slic3r::TriangleMesh->merge(@meshes);
 }
 
-package Slic3r::Model::Material;
+package Slic3r::Model::Region;
 use Moo;
 
 has 'model'         => (is => 'ro', weak_ref => 1, required => 1);

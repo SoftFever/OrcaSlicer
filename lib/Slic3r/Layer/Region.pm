@@ -1,4 +1,4 @@
-package Slic3r::Layer::Material;
+package Slic3r::Layer::Region;
 use Moo;
 
 use Math::Clipper ':all';
@@ -13,7 +13,7 @@ has 'layer' => (
     required    => 1,
     handles     => [qw(id slice_z print_z height flow)],
 );
-has 'material'          => (is => 'ro', required => 1);
+has 'region'            => (is => 'ro', required => 1);
 has 'perimeter_flow'    => (is => 'lazy');
 has 'infill_flow'       => (is => 'lazy');
 
@@ -50,15 +50,15 @@ has 'fills' => (is => 'rw', default => sub { [] });
 sub _build_perimeter_flow {
     my $self = shift;
     return $self->id == 0
-        ? $self->material->first_layer_flows->{perimeter}
-        : $self->material->flows->{perimeter}
+        ? $self->region->first_layer_flows->{perimeter}
+        : $self->region->flows->{perimeter}
 }
 
 sub _build_infill_flow {
     my $self = shift;
     return $self->id == 0
-        ? $self->material->first_layer_flows->{infill}
-        : $self->material->flows->{infill}
+        ? $self->region->first_layer_flows->{infill}
+        : $self->region->flows->{infill}
 }
 
 # build polylines from lines

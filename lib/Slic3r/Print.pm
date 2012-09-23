@@ -16,7 +16,7 @@ has 'objects'                => (is => 'rw', default => sub {[]});
 has 'total_extrusion_length' => (is => 'rw');
 has 'processing_time'        => (is => 'rw');
 has 'extruders'              => (is => 'rw', default => sub {[]});
-has 'materials'              => (is => 'rw', default => sub {[]});
+has 'regions'                => (is => 'rw', default => sub {[]});
 has 'support_material_flow'  => (is => 'rw');
 has 'first_layer_support_material_flow' => (is => 'rw');
 
@@ -70,21 +70,21 @@ sub add_model {
     {
         my @material_ids = sort keys %{$model->materials};
         @material_ids = (0) if !@material_ids;
-        for (my $i = $self->materials_count; $i < @material_ids; $i++) {
-            push @{$self->materials}, Slic3r::Print::Material->new;
-            $materials{$material_ids[$i]} = $#{$self->materials};
+        for (my $i = $self->regions_count; $i < @material_ids; $i++) {
+            push @{$self->regions}, Slic3r::Print::Region->new;
+            $materials{$material_ids[$i]} = $#{$self->regions};
         }
     }
     
     foreach my $object (@{ $model->objects }) {
-        my @meshes = ();  # by material_id
+        my @meshes = ();  # by region_id
         
         foreach my $volume (@{$object->volumes}) {
             # should the object contain multiple volumes of the same material, merge them
-            my $material_id = defined $volume->material_id ? $materials{$volume->material_id} : 0;
+            my $region_id = defined $volume->material_id ? $materials{$volume->material_id} : 0;
             my $mesh = $volume->mesh->clone;
-            $meshes[$material_id] = $meshes[$material_id]
-                ? Slic3r::TriangleMesh->merge($meshes[$material_id], $mesh)
+            $meshes[$region_id] = $meshes[$region_id]
+                ? Slic3r::TriangleMesh->merge($meshes[$region_id], $mesh)
                 : $mesh;
         }
         
@@ -168,8 +168,8 @@ sub validate {
 sub init_extruders {
     my $self = shift;
     
-    # map materials to extruders (ghetto mapping for now)
-    my %extruder_mapping = map { $_ => $_ } 0..$#{$self->materials};
+    # map regions to extruders (ghetto mapping for now)
+    my %extruder_mapping = map { $_ => $_ } 0..$#{$self->regions};
     
     # initialize all extruder(s) we need
     my @used_extruders = (
@@ -185,20 +185,20 @@ sub init_extruders {
         );
     }
     
-    # calculate materials' flows
+    # calculate regions' flows
     $Slic3r::flow = $self->extruders->[0]->make_flow(width => $self->config->extrusion_width);
-    for my $material_id (0 .. $#{$self->materials}) {
-        my $material = $self->materials->[$material_id];
+    for my $region_id (0 .. $#{$self->regions}) {
+        my $region = $self->regions->[$region_id];
         
         # per-role extruders and flows
         for (qw(perimeter infill)) {
-            $material->extruders->{$_} = ($self->materials_count > 1)
-                ? $self->extruders->[$extruder_mapping{$material_id}]
+            $region->extruders->{$_} = ($self->regions_count > 1)
+                ? $self->extruders->[$extruder_mapping{$region_id}]
                 : $self->extruders->[$self->config->get("${_}_extruder")-1];
-            $material->flows->{$_} = $material->extruders->{$_}->make_flow(
+            $region->flows->{$_} = $region->extruders->{$_}->make_flow(
                 width => $self->config->get("${_}_extrusion_width") || $self->config->extrusion_width,
             );
-            $material->first_layer_flows->{$_} = $material->extruders->{$_}->make_flow(
+            $region->first_layer_flows->{$_} = $region->extruders->{$_}->make_flow(
                 layer_height    => $self->config->get_value('first_layer_height'),
                 width           => $self->config->first_layer_extrusion_width,
             );
@@ -239,9 +239,9 @@ sub layer_count {
     return $count;
 }
 
-sub materials_count {
+sub regions_count {
     my $self = shift;
-    return scalar @{$self->materials};
+    return scalar @{$self->regions};
 }
 
 sub duplicate {
@@ -328,11 +328,11 @@ sub export_gcode {
     $status_cb->(20, "Generating perimeters");
     $_->make_perimeters for @{$self->objects};
     
-    # simplify slices (both layer and material slices),
+    # simplify slices (both layer and region slices),
     # we only need the max resolution for perimeters
     foreach my $layer (map @{$_->layers}, @{$self->objects}) {
         $_->simplify(scale &Slic3r::RESOLUTION)
-            for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->materials});
+            for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->regions});
     }
     
     # this will clip $layer->surfaces to the infill boundaries 
@@ -342,12 +342,12 @@ sub export_gcode {
     
     # decide what surfaces are to be filled
     $status_cb->(35, "Preparing infill surfaces");
-    $_->prepare_fill_surfaces for map @{$_->materials}, map @{$_->layers}, @{$self->objects};
+    $_->prepare_fill_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
     $status_cb->(45, "Detect bridges");
-    $_->process_bridges for map @{$_->materials}, map @{$_->layers}, @{$self->objects};
+    $_->process_bridges for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
@@ -355,7 +355,7 @@ sub export_gcode {
     $_->discover_horizontal_shells for @{$self->objects};
     
     # free memory
-    $_->surfaces(undef) for map @{$_->materials}, map @{$_->layers}, @{$self->objects};
+    $_->surfaces(undef) for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # combine fill surfaces to honor the "infill every N layers" option
     $status_cb->(70, "Combining infill");
@@ -369,8 +369,8 @@ sub export_gcode {
             items => sub {
                 my @items = ();  # [obj_idx, layer_id]
                 for my $obj_idx (0 .. $#{$self->objects}) {
-                    for my $material_id (0 .. ($self->materials_count-1)) {
-                        push @items, map [$obj_idx, $_, $material_id], 0..($self->objects->[$obj_idx]->layer_count-1);
+                    for my $region_id (0 .. ($self->regions_count-1)) {
+                        push @items, map [$obj_idx, $_, $region_id], 0..($self->objects->[$obj_idx]->layer_count-1);
                     }
                 }
                 @items;
@@ -380,11 +380,11 @@ sub export_gcode {
                 $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
                 my $fills = {};
                 while (defined (my $obj_layer = $q->dequeue)) {
-                    my ($obj_idx, $layer_id, $material_id) = @$obj_layer;
+                    my ($obj_idx, $layer_id, $region_id) = @$obj_layer;
                     $fills->{$obj_idx} ||= {};
                     $fills->{$obj_idx}{$layer_id} ||= {};
-                    $fills->{$obj_idx}{$layer_id}{$material_id} = [
-                        $fill_maker->make_fill($self->objects->[$obj_idx]->layers->[$layer_id]->materials->[$material_id]),
+                    $fills->{$obj_idx}{$layer_id}{$region_id} = [
+                        $fill_maker->make_fill($self->objects->[$obj_idx]->layers->[$layer_id]->regions->[$region_id]),
                     ];
                 }
                 return $fills;
@@ -395,14 +395,14 @@ sub export_gcode {
                     my $object = $self->objects->[$obj_idx];
                     foreach my $layer_id (keys %{$fills->{$obj_idx}}) {
                         my $layer = $object->layers->[$layer_id];
-                        foreach my $material_id (keys %{$fills->{$obj_idx}{$layer_id}}) {
-                            $layer->materials->[$material_id]->fills($fills->{$obj_idx}{$layer_id}{$material_id});
+                        foreach my $region_id (keys %{$fills->{$obj_idx}{$layer_id}}) {
+                            $layer->regions->[$region_id]->fills($fills->{$obj_idx}{$layer_id}{$region_id});
                         }
                     }
                 }
             },
             no_threads_cb => sub {
-                foreach my $layerm (map @{$_->materials}, map @{$_->layers}, @{$self->objects}) {
+                foreach my $layerm (map @{$_->regions}, map @{$_->layers}, @{$self->objects}) {
                     $layerm->fills([ $fill_maker->make_fill($layerm) ]);
                 }
             },
@@ -416,7 +416,7 @@ sub export_gcode {
     }
     
     # free memory (note that support material needs fill_surfaces)
-    $_->fill_surfaces(undef) for map @{$_->materials}, map @{$_->layers}, @{$self->objects};
+    $_->fill_surfaces(undef) for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # make skirt
     $status_cb->(88, "Generating skirt");
@@ -544,7 +544,7 @@ sub make_skirt {
         my @layers = map $self->objects->[$obj_idx]->layer($_), 0..($skirt_height-1);
         my @layer_points = (
             (map @$_, map @$_, map @{$_->slices}, @layers),
-            (map @$_, map @{$_->thin_walls}, map @{$_->materials}, @layers),
+            (map @$_, map @{$_->thin_walls}, map @{$_->regions}, @layers),
             (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
         );
         push @points, map move_points($_, @layer_points), @{$self->objects->[$obj_idx]->copies};
@@ -579,7 +579,7 @@ sub make_brim {
         my $layer0 = $self->objects->[$obj_idx]->layers->[0];
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
-            (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } map @{$_->thin_walls}, @{$layer0->materials}),
+            (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } map @{$_->thin_walls}, @{$layer0->regions}),
             (map $_->unpack->polyline->grow($grow_distance), map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
         );
         foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
@@ -720,16 +720,16 @@ sub write_gcode {
             $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
             $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
             
-            foreach my $material_id (0 .. ($self->materials_count-1)) {
-                my $layerm = $layer->materials->[$material_id];
-                my $material = $self->materials->[$material_id];
+            foreach my $region_id (0 .. ($self->regions_count-1)) {
+                my $layerm = $layer->regions->[$region_id];
+                my $region = $self->regions->[$region_id];
                 
                 # extrude perimeters
-                $gcode .= $gcodegen->set_extruder($material->extruders->{perimeter});
+                $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
                 $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layerm->perimeters };
                 
                 # extrude fills
-                $gcode .= $gcodegen->set_extruder($material->extruders->{infill});
+                $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
                 $gcode .= $gcodegen->set_acceleration($Slic3r::Config->infill_acceleration);
                 for my $fill (@{ $layerm->fills }) {
                     if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
