@@ -16,7 +16,9 @@ use Slic3r::Surface qw(:types);
 sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
-    my $filler = Slic3r::Fill::Rectilinear->new(print => Slic3r::Print->new);
+    my $print = Slic3r::Print->new;
+    $print->init_extruders;
+    my $filler = Slic3r::Fill::Rectilinear->new(print => $print);
     my $surface_width = 250;
     my $distance = $filler->adjust_solid_spacing(
         width       => $surface_width,
