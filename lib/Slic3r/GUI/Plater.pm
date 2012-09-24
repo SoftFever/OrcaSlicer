@@ -556,7 +556,7 @@ sub _init_print {
     return Slic3r::Print->new(
         config => $self->skeinpanel->config,
         extra_variables => {
-            map { "${_}_preset" => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
+            map { +"${_}_preset" => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
         },
     );
 }
