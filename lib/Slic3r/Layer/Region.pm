@@ -330,7 +330,7 @@ sub prepare_fill_surfaces {
             
             # offset inwards
             my @offsets = $surface->expolygon->offset_ex(-$distance);
-            @offsets = @{union_ex(Math::Clipper::offset([ map @$_, @offsets ], $distance, 100, JT_MITER))};
+            @offsets = @{union_ex(Math::Clipper::offset([ map @$_, @offsets ], $distance, 100000, JT_MITER))};
             map Slic3r::Surface->new(
                 expolygon => $_,
                 surface_type => $surface->surface_type,
