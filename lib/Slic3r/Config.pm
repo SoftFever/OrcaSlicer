@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use utf8;
 
+use List::Util qw(first);
+
 use constant PI => 4 * atan2(1, 1);
 
 # cemetery of old config settings
@@ -1054,15 +1056,18 @@ sub validate {
     
     # --fill-pattern
     die "Invalid value for --fill-pattern\n"
-        if !exists $Slic3r::Fill::FillTypes{$self->fill_pattern};
+        if !first { $_ eq $self->fill_pattern } @{$Options->{fill_pattern}{values}};
     
     # --solid-fill-pattern
     die "Invalid value for --solid-fill-pattern\n"
-        if !exists $Slic3r::Fill::FillTypes{$self->solid_fill_pattern};
+        if !first { $_ eq $self->solid_fill_pattern } @{$Options->{solid_fill_pattern}{values}};
     
     # --fill-density
     die "Invalid value for --fill-density\n"
         if $self->fill_density < 0 || $self->fill_density > 1;
+    die "The selected fill pattern is not supposed to work at 100% density\n"
+        if $self->fill_density == 1
+            && !first { $_ eq $self->fill_pattern } @{$Options->{solid_fill_pattern}{values}};
     
     # --infill-every-layers
     die "Invalid value for --infill-every-layers\n"
