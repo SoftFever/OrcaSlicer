@@ -453,6 +453,10 @@ sub export_svg {
     my $self = shift;
     my %params = @_;
     
+    # this shouldn't be needed, but we're currently relying on ->make_surfaces() which
+    # calls ->perimeter_flow
+    $self->init_extruders;
+    
     $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
     $self->arrange_objects;
     
@@ -489,10 +493,10 @@ EOF
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id] or next;
             
             # sort slices so that the outermost ones come first
-            my @slices = sort { $a->expolygon->contour->encloses_point($b->expolygon->contour->[0]) ? 0 : 1 } @{$layer->slices};
+            my @slices = sort { $a->contour->encloses_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
             foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
                 foreach my $slice (@slices) {
-                    my $expolygon = $slice->expolygon->clone;
+                    my $expolygon = $slice->clone;
                     $expolygon->translate(@$copy);
                     $print_polygon->($expolygon->contour, 'contour');
                     $print_polygon->($_, 'hole') for $expolygon->holes;
@@ -518,7 +522,7 @@ EOF
                 # supported points
                 my $support_point = nearest_point($expolygon->contour->[0], \@supported_points)
                     or next;
-                my $anchor_point = nearest_point($support_point, $expolygon->contour->[0]);
+                my $anchor_point = nearest_point($support_point, $expolygon->contour);
                 printf $fh qq{    <line x1="%s" y1="%s" x2="%s" y2="%s" style="stroke-width: 2; stroke: white" />\n},
                     map @$_, $support_point, $anchor_point;
             }
