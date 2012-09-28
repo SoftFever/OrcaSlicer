@@ -329,6 +329,12 @@ sub discover_horizontal_shells {
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
+            
+            if ($Slic3r::Config->solid_infill_every_layers && ($i % $Slic3r::Config->solid_infill_every_layers) == 0) {
+                $_->surface_type(S_TYPE_INTERNALSOLID)
+                    for grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
+            }
+            
             foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find surfaces of current type for current layer
                 # and offset them to take perimeters into account

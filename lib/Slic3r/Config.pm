@@ -353,6 +353,15 @@ our $Options = {
         min     => 1,
         default => 1,
     },
+    'solid_infill_every_layers' => {
+        label   => 'Solid infill every',
+        tooltip => 'This feature allows to force a solid layer every given number of layers. Zero to disable.',
+        sidetext => 'layers',
+        cli     => 'solid-infill-every-layers=i',
+        type    => 'i',
+        min     => 0,
+        default => 0,
+    },
     
     # flow options
     'extrusion_width' => {

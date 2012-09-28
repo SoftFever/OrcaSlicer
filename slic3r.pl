@@ -201,6 +201,8 @@ $j
     --first-layer-height Layer height for first layer (mm or %, default: $config->{first_layer_height})
     --infill-every-layers
                         Infill every N layers (default: $config->{infill_every_layers})
+    --solid-infill-every-layers
+                        Force a solid layer every N layers (default: $config->{solid_infill_every_layers})
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 0+, default: $config->{perimeters})
