@@ -89,7 +89,6 @@ sub extrude_loop {
     # or randomize if requested
     my $last_pos = $self->last_pos;
     if ($Slic3r::Config->randomize_start && $loop->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER) {
-        srand $self->layer->id * 10;
         $last_pos = Slic3r::Point->new(scale $Slic3r::Config->print_center->[X], scale $Slic3r::Config->bed_size->[Y]);
         $last_pos->rotate(rand(2*PI), $Slic3r::Config->print_center);
     }
