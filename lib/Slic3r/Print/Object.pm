@@ -158,7 +158,7 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    while (@{$self->layers} && !@{$self->layers->[0]->slices} && !@{$self->layers->[0]->thin_walls}) {
+    while (@{$self->layers} && !@{$self->layers->[0]->slices} && !map @{$_->thin_walls}, @{$self->layers->[0]->regions}) {
         shift @{$self->layers};
         for (my $i = 0; $i <= $#{$self->layers}; $i++) {
             $self->layers->[$i]->id($i);
