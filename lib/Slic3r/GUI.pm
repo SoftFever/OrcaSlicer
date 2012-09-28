@@ -34,6 +34,7 @@ use constant MI_TAB_PRINTER   => &Wx::NewId;
 
 use constant MI_CONF_WIZARD   => &Wx::NewId;
 use constant MI_WEBSITE       => &Wx::NewId;
+use constant MI_DOCUMENTATION => &Wx::NewId;
 
 our $datadir;
 our $Settings;
@@ -134,10 +135,14 @@ sub OnInit {
     my $helpMenu = Wx::Menu->new;
     {
         $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
+        $helpMenu->AppendSeparator();
         $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
+        $helpMenu->Append(MI_DOCUMENTATION, "&Documentation", 'Open the Slic3r documentation in your browser');
+        $helpMenu->AppendSeparator();
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
         EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
+        EVT_MENU($frame, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('https://github.com/alexrj/Slic3r/wiki/Documentation') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     
