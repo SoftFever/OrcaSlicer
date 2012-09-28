@@ -594,6 +594,7 @@ sub make_brim {
             polygon => Slic3r::Polygon->new($_),
             role    => EXTR_ROLE_SKIRT,
         ) for @{Math::Clipper::offset(\@islands, $i * $flow->scaled_spacing, 100, JT_SQUARE)};
+        # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
     }
 }
 
