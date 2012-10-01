@@ -159,8 +159,7 @@ sub new {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
         $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
-        $self->{objects}[$obj_idx]->mesh(undef);
-        $self->on_thumbnail_made;
+        $self->on_thumbnail_made($obj_idx);
     });
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
@@ -700,7 +699,7 @@ sub make_thumbnail {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
             threads->exit;
         } else {
-            $self->on_thumbnail_made;
+            $self->on_thumbnail_made($obj_idx);
         }
     };
     
@@ -709,6 +708,9 @@ sub make_thumbnail {
 
 sub on_thumbnail_made {
     my $self = shift;
+    my ($obj_idx) = @_;
+    
+    $self->{objects}[$obj_idx]->free_mesh;
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -1014,6 +1016,14 @@ has 'thumbnail'             => (is => 'rw');
 sub _trigger_mesh {
     my $self = shift;
     $self->size([$self->mesh->size]) if $self->mesh;
+}
+
+sub free_mesh {
+    my $self = shift;
+    
+    # only delete mesh from memory if we can retrieve it from the original file
+    return unless $self->input_file && $self->input_file_object_id;
+    $self->mesh(undef);
 }
 
 sub get_mesh {
