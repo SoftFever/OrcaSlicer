@@ -388,7 +388,7 @@ sub set_extruder {
     
     # set the new extruder
     $self->extruder($extruder);
-    $gcode .= sprintf "T%d%s\n", $extruder, ($Slic3r::Config->gcode_comments ? ' ; change extruder' : '');
+    $gcode .= sprintf "T%d%s\n", $extruder->id, ($Slic3r::Config->gcode_comments ? ' ; change extruder' : '');
     $gcode .= $self->reset_e;
     
     return $gcode;
