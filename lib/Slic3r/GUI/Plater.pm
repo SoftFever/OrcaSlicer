@@ -158,9 +158,8 @@ sub new {
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
-        $self->{objects}[$obj_idx]->thumbnail($thumbnail);
-        $self->mesh(undef);
-        $self->on_thumbnail_made;
+        $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
+        $self->on_thumbnail_made($obj_idx);
     });
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
@@ -275,7 +274,7 @@ sub load {
     my $self = shift;
     
     my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;
@@ -433,7 +432,7 @@ sub arrange {
     my $total_parts = sum(map $_->instances_count, @{$self->{objects}}) or return;
     my @size = ();
     for my $a (X,Y) {
-        $size[$a] = $self->to_units(max(map $_->thumbnail->size->[$a], @{$self->{objects}}));
+        $size[$a] = max(map $_->rotated_size->[$a], @{$self->{objects}});
     }
     
     eval {
@@ -502,7 +501,7 @@ sub export_gcode {
     {
         $self->{output_file} = $print->expanded_output_filepath($self->{output_file}, $self->{objects}[0]->input_file);
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', dirname($self->{output_file}),
-            basename($self->{output_file}), $Slic3r::GUI::SkeinPanel::gcode_wildcard, wxFD_SAVE);
+            basename($self->{output_file}), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
@@ -529,7 +528,7 @@ sub export_gcode {
             );
         });
         $self->statusbar->SetCancelCallback(sub {
-            $self->{export_thread}->kill('KILL');
+            $self->{export_thread}->kill('KILL')->join;
             $self->{export_thread} = undef;
             $self->statusbar->StopBusy;
             $self->statusbar->SetStatusText("Export cancelled");
@@ -556,7 +555,7 @@ sub _init_print {
     return Slic3r::Print->new(
         config => $self->skeinpanel->config,
         extra_variables => {
-            map { $_ => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
+            map { +"${_}_preset" => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
         },
     );
 }
@@ -601,7 +600,6 @@ sub export_gcode2 {
         }
         $message .= ".";
         $params{on_completed}->($message);
-        $print->cleanup;
     };
     $params{catch_error}->();
 }
@@ -655,7 +653,7 @@ sub _get_export_file {
         $output_file = $self->_init_print->expanded_output_filepath($output_file, $self->{objects}[0]->input_file);
         $output_file =~ s/\.gcode$/$suffix/i;
         my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
-            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            basename($output_file), &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return undef;
@@ -701,7 +699,7 @@ sub make_thumbnail {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
             threads->exit;
         } else {
-            $self->on_thumbnail_made;
+            $self->on_thumbnail_made($obj_idx);
         }
     };
     
@@ -710,6 +708,9 @@ sub make_thumbnail {
 
 sub on_thumbnail_made {
     my $self = shift;
+    my ($obj_idx) = @_;
+    
+    $self->{objects}[$obj_idx]->free_mesh;
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -1015,6 +1016,14 @@ has 'thumbnail'             => (is => 'rw');
 sub _trigger_mesh {
     my $self = shift;
     $self->size([$self->mesh->size]) if $self->mesh;
+}
+
+sub free_mesh {
+    my $self = shift;
+    
+    # only delete mesh from memory if we can retrieve it from the original file
+    return unless $self->input_file && $self->input_file_object_id;
+    $self->mesh(undef);
 }
 
 sub get_mesh {

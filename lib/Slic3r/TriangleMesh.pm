@@ -167,9 +167,8 @@ sub unpack_line {
 }
 
 sub make_loops {
-    my ($layer) = @_;
-    
-    my @lines = map unpack_line($_), @{$layer->lines};
+    my ($lines) = @_;
+    my @lines = map unpack_line($_), @$lines;
     
     # remove tangent edges
     {
@@ -258,6 +257,7 @@ sub make_loops {
         (0..$#lines);
     
     my (@polygons, @failed_loops, %visited_lines) = ();
+    my $slicing_errors = 0;
     CYCLE: for (my $i = 0; $i <= $#lines; $i++) {
         my $line = $lines[$i];
         next if $visited_lines{$line};
@@ -272,24 +272,24 @@ sub make_loops {
                 $next_line = $lines[$by_a_id{$line->[I_B_ID]}];
             } else {
                 Slic3r::debugf "  line has no next_facet_index or b_id\n";
-                $layer->slicing_errors(1);
+                $slicing_errors = 1;
                 push @failed_loops, [@points] if @points;
                 next CYCLE;
             }
             
             if (!$next_line || $visited_lines{$next_line}) {
                 Slic3r::debugf "  failed to close this loop\n";
-                $layer->slicing_errors(1);
+                $slicing_errors = 1;
                 push @failed_loops, [@points] if @points;
                 next CYCLE;
             } elsif (defined $next_line->[I_PREV_FACET_INDEX] && $next_line->[I_PREV_FACET_INDEX] != $line->[I_FACET_INDEX]) {
                 Slic3r::debugf "  wrong prev_facet_index\n";
-                $layer->slicing_errors(1);
+                $slicing_errors = 1;
                 push @failed_loops, [@points] if @points;
                 next CYCLE;
             } elsif (defined $next_line->[I_A_ID] && $next_line->[I_A_ID] != $line->[I_B_ID]) {
                 Slic3r::debugf "  wrong a_id\n";
-                $layer->slicing_errors(1);
+                $slicing_errors = 1;
                 push @failed_loops, [@points] if @points;
                 next CYCLE;
             }
@@ -313,7 +313,7 @@ sub make_loops {
             if $Slic3r::debug;
     }
     
-    return [@polygons];
+    return ($slicing_errors, [@polygons]);
 }
 
 sub rotate {
@@ -381,21 +381,12 @@ sub duplicate {
 
 sub extents {
     my $self = shift;
-    my @extents = (map [undef, undef], X,Y,Z);
-    foreach my $vertex (@{$self->vertices}) {
-        for (X,Y,Z) {
-            $extents[$_][MIN] = $vertex->[$_] if !defined $extents[$_][MIN] || $vertex->[$_] < $extents[$_][MIN];
-            $extents[$_][MAX] = $vertex->[$_] if !defined $extents[$_][MAX] || $vertex->[$_] > $extents[$_][MAX];
-        }
-    }
-    return @extents;
+    return Slic3r::Geometry::bounding_box_3D($self->vertices);
 }
 
 sub size {
     my $self = shift;
-    
-    my @extents = $self->extents;
-    return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
+    return Slic3r::Geometry::size_3D($self->vertices);
 }
 
 sub slice_facet {

@@ -13,6 +13,16 @@ our $last_input_file;
 our $last_output_file;
 our $last_config;
 
+use constant FILE_WILDCARDS => {
+    stl     => 'STL files (*.stl)|*.stl;*.STL',
+    obj     => 'OBJ files (*.obj)|*.obj;*.OBJ',
+    amf     => 'AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML',
+    ini     => 'INI files *.ini|*.ini;*.INI',
+    gcode   => 'G-code files *.gcode|*.gcode;*.GCODE|G-code files *.g|*.g;*.G',
+    svg     => 'SVG files *.svg|*.svg;*.SVG',
+};
+use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(stl obj amf)};
+
 sub new {
     my $class = shift;
     my ($parent) = @_;
@@ -41,11 +51,6 @@ sub new {
     return $self;
 }
 
-our $model_wildcard = "STL files (*.stl)|*.stl;*.STL|OBJ files (*.obj)|*.obj;*.OBJ|AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
-our $ini_wildcard = "INI files *.ini|*.ini;*.INI";
-our $gcode_wildcard = "G-code files *.gcode|*.gcode;*.GCODE|G-code files *.g|*.g;*.G";
-our $svg_wildcard = "SVG files *.svg|*.svg;*.SVG";
-
 sub do_slice {
     my $self = shift;
     my %params = @_;
@@ -70,7 +75,7 @@ sub do_slice {
 
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", $model_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
                 $dialog->Destroy;
                 return;
@@ -96,7 +101,7 @@ sub do_slice {
         Slic3r::GUI->save_settings;
         
         my $print = Slic3r::Print->new(config => $config);
-        $print->add_objects_from_file($input_file);
+        $print->add_model(Slic3r::Model->read_from_file($input_file));
         $print->validate;
 
         # select output file
@@ -107,7 +112,7 @@ sub do_slice {
             $output_file = $print->expanded_output_filepath($output_file);
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:', dirname($output_file),
-                basename($output_file), $params{export_svg} ? $svg_wildcard : $gcode_wildcard, wxFD_SAVE);
+                basename($output_file), $params{export_svg} ? FILE_WILDCARDS->{svg} : FILE_WILDCARDS->{gcode}, wxFD_SAVE);
             if ($dlg->ShowModal != wxID_OK) {
                 $dlg->Destroy;
                 return;
@@ -172,7 +177,7 @@ sub export_config {
     my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
     my $filename = $last_config ? basename($last_config) : "config.ini";
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
-        $ini_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
@@ -191,7 +196,7 @@ sub load_config_file {
         return unless $self->check_unsaved_changes;
         my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-                $ini_wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+                FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
         ($file) = $dlg->GetPaths;
         $dlg->Destroy;
@@ -219,6 +224,58 @@ sub config_wizard {
         $_->select_default_preset for values %{$self->{options_tabs}};
         $self->load_config($config);
     }
+}
+
+sub combine_stls {
+    my $self = shift;
+    
+    # get input files
+    my @input_files = ();
+    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
+    {
+        my $dlg_message = 'Choose one or more files to combine (STL/OBJ)';
+        while (1) {
+            my $dialog = Wx::FileDialog->new($self, "$dlg_message:", $dir, "", MODEL_WILDCARD, 
+                wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+            if ($dialog->ShowModal != wxID_OK) {
+                $dialog->Destroy;
+                last;
+            }
+            push @input_files, $dialog->GetPaths;
+            $dialog->Destroy;
+            $dlg_message .= " or hit Cancel if you have finished";
+            $dir = dirname($input_files[0]);
+        }
+        return if !@input_files;
+    }
+    
+    # get output file
+    my $output_file = $input_files[0];
+    {
+        $output_file =~ s/\.(?:stl|obj)$/.amf.xml/i;
+        my $dlg = Wx::FileDialog->new($self, 'Save multi-material AMF file as:', dirname($output_file),
+            basename($output_file), FILE_WILDCARDS->{amf}, wxFD_SAVE);
+        if ($dlg->ShowModal != wxID_OK) {
+            $dlg->Destroy;
+            return;
+        }
+        $output_file = $dlg->GetPath;
+    }
+    
+    my @models = map Slic3r::Model->read_from_file($_), @input_files;
+    my $new_model = Slic3r::Model->new;
+    my $new_object = $new_model->add_object;
+    for my $m (0 .. $#models) {
+        my $model = $models[$m];
+        $new_model->set_material($m, { Name => basename($input_files[$m]) });
+        $new_object->add_volume(
+            material_id => $m,
+            facets      => $model->objects->[0]->volumes->[0]->facets,
+            vertices    => $model->objects->[0]->vertices,
+        );
+    }
+    
+    Slic3r::Format::AMF->write_file($output_file, $new_model);
 }
 
 =head2 config

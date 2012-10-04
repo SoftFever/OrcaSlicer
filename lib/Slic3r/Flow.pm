@@ -1,13 +1,15 @@
 package Slic3r::Flow;
 use Moo;
 
-use Slic3r::Geometry qw(PI);
+use Slic3r::Geometry qw(PI scale);
 
 has 'nozzle_diameter'   => (is => 'ro', required => 1);
 has 'layer_height'      => (is => 'ro', default => sub { $Slic3r::Config->layer_height });
 
 has 'width'             => (is => 'rwp', builder => 1);
 has 'spacing'           => (is => 'lazy');
+has 'scaled_width'      => (is => 'lazy');
+has 'scaled_spacing'    => (is => 'lazy');
 
 sub BUILD {
     my $self = shift;
@@ -63,6 +65,16 @@ sub clone {
         layer_height    => $self->layer_height,
         @_,
     );
+}
+
+sub _build_scaled_width {
+    my $self = shift;
+    return scale $self->width;
+}
+
+sub _build_scaled_spacing {
+    my $self = shift;
+    return scale $self->spacing;
 }
 
 1;

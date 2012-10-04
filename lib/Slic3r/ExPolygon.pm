@@ -82,14 +82,6 @@ sub safety_offset {
     );
 }
 
-sub offset_ex {
-    my $self = shift;
-    my @offsets = $self->offset(@_);
-    
-    # apply holes to the right contours
-    return @{ union_ex(\@offsets) };
-}
-
 sub noncollapsing_offset_ex {
     my $self = shift;
     my ($distance, @params) = @_;

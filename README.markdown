@@ -153,7 +153,9 @@ The author of the Silk icon set is Mark James.
         --first-layer-height Layer height for first layer (mm or %, default: 100%)
         --infill-every-layers
                             Infill every N layers (default: 1)
-      
+        --solid-infill-every-layers
+                            Force a solid layer every N layers (default: 0)
+    
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 0+, default: 3)
         --solid-layers      Number of solid layers to do for top/bottom surfaces

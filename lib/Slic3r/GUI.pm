@@ -21,6 +21,7 @@ use constant MI_QUICK_SLICE   => &Wx::NewId;
 use constant MI_REPEAT_QUICK  => &Wx::NewId;
 use constant MI_QUICK_SAVE_AS => &Wx::NewId;
 use constant MI_SLICE_SVG     => &Wx::NewId;
+use constant MI_COMBINE_STLS  => &Wx::NewId;
 
 use constant MI_PLATER_EXPORT_GCODE => &Wx::NewId;
 use constant MI_PLATER_EXPORT_STL   => &Wx::NewId;
@@ -33,6 +34,7 @@ use constant MI_TAB_PRINTER   => &Wx::NewId;
 
 use constant MI_CONF_WIZARD   => &Wx::NewId;
 use constant MI_WEBSITE       => &Wx::NewId;
+use constant MI_DOCUMENTATION => &Wx::NewId;
 
 our $datadir;
 our $Settings;
@@ -90,6 +92,8 @@ sub OnInit {
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
         $fileMenu->AppendSeparator();
+        $fileMenu->Append(MI_COMBINE_STLS, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file');
+        $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
         EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config_file });
         EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->export_config });
@@ -99,6 +103,7 @@ sub OnInit {
         EVT_MENU($frame, MI_QUICK_SAVE_AS, sub { $self->{skeinpanel}->do_slice(save_as => 1);
                                                  $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
         EVT_MENU($frame, MI_SLICE_SVG, sub { $self->{skeinpanel}->do_slice(save_as => 1, export_svg => 1) });
+        EVT_MENU($frame, MI_COMBINE_STLS, sub { $self->{skeinpanel}->combine_stls });
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
     }
     
@@ -130,10 +135,14 @@ sub OnInit {
     my $helpMenu = Wx::Menu->new;
     {
         $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
+        $helpMenu->AppendSeparator();
         $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
+        $helpMenu->Append(MI_DOCUMENTATION, "&Documentation", 'Open the Slic3r documentation in your browser');
+        $helpMenu->AppendSeparator();
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
         EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
+        EVT_MENU($frame, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('https://github.com/alexrj/Slic3r/wiki/Documentation') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     

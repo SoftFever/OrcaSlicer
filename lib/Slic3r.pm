@@ -7,7 +7,7 @@ use strict;
 use warnings;
 require v5.10;
 
-our $VERSION = "0.9.3-dev";
+our $VERSION = "0.9.4-dev";
 
 our $debug = 0;
 sub debugf {
@@ -43,6 +43,7 @@ use Slic3r::Format::STL;
 use Slic3r::GCode;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
+use Slic3r::Layer::Region;
 use Slic3r::Line;
 use Slic3r::Model;
 use Slic3r::Point;
@@ -50,6 +51,7 @@ use Slic3r::Polygon;
 use Slic3r::Polyline;
 use Slic3r::Print;
 use Slic3r::Print::Object;
+use Slic3r::Print::Region;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 eval "use Slic3r::Build";
@@ -63,15 +65,15 @@ use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 # process.  They should belong to the Print object, but we are keeping 
 # them here because it makes accessing them slightly faster.
 our $Config;
-our $extruders;
-our ($flow, $first_layer_flow, $perimeter_flow, $infill_flow, $support_material_flow);
+our $flow;
 
 sub parallelize {
     my %params = @_;
     
     if (!$params{disable} && $Slic3r::have_threads && $Config->threads > 1) {
+        my @items = (ref $params{items} eq 'CODE') ? $params{items}->() : @{$params{items}};
         my $q = Thread::Queue->new;
-        $q->enqueue(@{ $params{items} }, (map undef, 1..$Config->threads));
+        $q->enqueue(@items, (map undef, 1..$Config->threads));
         
         my $thread_cb = sub { $params{thread_cb}->($q) };
         foreach my $th (map threads->create($thread_cb), 1..$Config->threads) {
