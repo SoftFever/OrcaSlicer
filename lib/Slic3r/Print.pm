@@ -421,7 +421,7 @@ sub export_gcode {
     # make skirt
     $status_cb->(88, "Generating skirt");
     $self->make_skirt;
-    $self->make_brim;
+    $self->make_brim;  # must come after make_skirt
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath($params{output_file});
@@ -560,16 +560,14 @@ sub make_skirt {
     
     # draw outlines from outside to inside
     my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
-    my @skirt = ();
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         my $distance = scale ($Slic3r::Config->skirt_distance + ($flow->spacing * $i));
         my $outline = Math::Clipper::offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND);
-        push @skirt, Slic3r::ExtrusionLoop->pack(
+        push @{$self->skirt}, Slic3r::ExtrusionLoop->pack(
             polygon => Slic3r::Polygon->new(@{$outline->[0]}),
             role => EXTR_ROLE_SKIRT,
         );
     }
-    unshift @{$self->skirt}, @skirt;
 }
 
 sub make_brim {
@@ -589,6 +587,11 @@ sub make_brim {
         foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
         }
+    }
+    
+    # if brim touches skirt, make it around skirt too
+    if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::flow->spacing) <= $Slic3r::Config->brim_width) {
+        push @islands, map $_->unpack->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
     }
     
     my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $flow->width;
@@ -699,7 +702,7 @@ sub write_gcode {
             $gcodegen->shift_y($shift[Y]);
             $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
             # skip skirt if we have a large brim
-            if ($layer_id < $Slic3r::Config->skirt_height && ($layer_id != 0 || $Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::flow->spacing) > $Slic3r::Config->brim_width)) {
+            if ($layer_id < $Slic3r::Config->skirt_height) {
                 $gcode .= $gcodegen->extrude_loop($_, 'skirt') for @{$self->skirt};
             }
             $skirt_done++;
