@@ -66,6 +66,7 @@ use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 # them here because it makes accessing them slightly faster.
 our $Config;
 our $flow;
+our $first_layer_flow;
 
 sub parallelize {
     my %params = @_;

@@ -185,8 +185,16 @@ sub init_extruders {
         );
     }
     
+    # calculate default flows
+    $Slic3r::flow = $self->extruders->[0]->make_flow(
+        width           => $self->config->extrusion_width,
+    );
+    $Slic3r::first_layer_flow = $self->extruders->[0]->make_flow(
+        layer_height    => $self->config->get_value('first_layer_height'),
+        width           => $self->config->first_layer_extrusion_width,
+    );
+    
     # calculate regions' flows
-    $Slic3r::flow = $self->extruders->[0]->make_flow(width => $self->config->extrusion_width);
     for my $region_id (0 .. $#{$self->regions}) {
         my $region = $self->regions->[$region_id];
         
@@ -559,13 +567,13 @@ sub make_skirt {
     my $convex_hull = convex_hull(\@points);
     
     # draw outlines from outside to inside
-    my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
-        my $distance = scale ($Slic3r::Config->skirt_distance + ($flow->spacing * $i));
+        my $distance = scale ($Slic3r::Config->skirt_distance + ($Slic3r::first_layer_flow->spacing * $i));
         my $outline = Math::Clipper::offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND);
         push @{$self->skirt}, Slic3r::ExtrusionLoop->pack(
-            polygon => Slic3r::Polygon->new(@{$outline->[0]}),
-            role => EXTR_ROLE_SKIRT,
+            polygon         => Slic3r::Polygon->new(@{$outline->[0]}),
+            role            => EXTR_ROLE_SKIRT,
+            flow_spacing    => $Slic3r::first_layer_flow->spacing,
         );
     }
 }
@@ -574,8 +582,7 @@ sub make_brim {
     my $self = shift;
     return unless $Slic3r::Config->brim_width > 0;
     
-    my $flow = $Slic3r::first_layer_flow || $Slic3r::flow;
-    my $grow_distance = $flow->scaled_width / 2;
+    my $grow_distance = $Slic3r::first_layer_flow->scaled_width / 2;
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my $layer0 = $self->objects->[$obj_idx]->layers->[0];
@@ -590,17 +597,18 @@ sub make_brim {
     }
     
     # if brim touches skirt, make it around skirt too
-    if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::flow->spacing) <= $Slic3r::Config->brim_width) {
+    if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::first_layer_flow->spacing) <= $Slic3r::Config->brim_width) {
         push @islands, map $_->unpack->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
     }
     
-    my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $flow->width;
+    my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $Slic3r::first_layer_flow->width;
     for my $i (reverse 1 .. $num_loops) {
         # JT_SQUARE ensures no vertex is outside the given offset distance
         push @{$self->brim}, Slic3r::ExtrusionLoop->pack(
-            polygon => Slic3r::Polygon->new($_),
-            role    => EXTR_ROLE_SKIRT,
-        ) for @{Math::Clipper::offset(\@islands, $i * $flow->scaled_spacing, 100, JT_SQUARE)};
+            polygon         => Slic3r::Polygon->new($_),
+            role            => EXTR_ROLE_SKIRT,
+            flow_spacing    => $Slic3r::first_layer_flow->spacing,
+        ) for @{Math::Clipper::offset(\@islands, $i * $Slic3r::first_layer_flow->scaled_spacing, 100, JT_SQUARE)};
         # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
     }
 }
