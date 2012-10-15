@@ -384,6 +384,7 @@ sub decrease {
     my ($obj_idx, $object) = $self->selected_object;
     if ($object->instances_count >= 2) {
         pop @{$object->instances};
+        $self->{list}->SetItem($obj_idx, 1, $object->instances_count);
     } else {
         $self->remove;
     }
