@@ -1002,7 +1002,7 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 use Math::ConvexHull qw(convex_hull);
-use Slic3r::Geometry qw(X Y);
+use Slic3r::Geometry qw(X Y remove_coinciding_points);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
@@ -1045,6 +1045,7 @@ sub make_thumbnail {
     my %params = @_;
     
     my @points = map [ @$_[X,Y] ], @{$self->mesh->vertices};
+    remove_coinciding_points(\@points);
     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
     for (@$convex_hull) {
         @$_ = map $_ * $params{scaling_factor}, @$_;

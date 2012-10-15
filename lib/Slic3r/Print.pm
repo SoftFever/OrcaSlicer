@@ -6,7 +6,7 @@ use File::Spec;
 use List::Util qw(max);
 use Math::ConvexHull 1.0.4 qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point remove_coinciding_points);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
 
@@ -139,6 +139,7 @@ sub validate {
                 my $clearance;
                 {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
+                    remove_coinciding_points(\@points);
                     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
                     $clearance = +($convex_hull->offset(scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND))[0];
                 }
@@ -564,6 +565,7 @@ sub make_skirt {
     return if @points < 3;  # at least three points required for a convex hull
     
     # find out convex hull
+    remove_coinciding_points(\@points);
     my $convex_hull = convex_hull(\@points);
     
     # draw outlines from outside to inside
