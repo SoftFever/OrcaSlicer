@@ -37,6 +37,12 @@ sub set_material {
     );
 }
 
+sub scale {
+    my $self = shift;
+    
+    $_->scale(@_) for @{$self->objects};
+}
+
 # flattens everything to a single mesh
 sub mesh {
     my $self = shift;
@@ -110,6 +116,17 @@ sub mesh {
         vertices => $self->vertices,
         facets   => [ map @{$_->facets}, @{$self->volumes} ],
     );
+}
+
+sub scale {
+    my $self = shift;
+    my ($factor) = @_;
+    return if $factor == 1;
+    
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        $vertex->[$_] *= $factor for X,Y,Z;
+    }
 }
 
 package Slic3r::Model::Volume;

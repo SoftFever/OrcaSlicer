@@ -455,7 +455,14 @@ sub split_object {
     
     my ($obj_idx, $current_object) = $self->selected_object;
     my $current_copies_num = $current_object->instances_count;
-    my $mesh = $current_object->get_mesh;
+    my $model_object = $current_object->get_model_object;
+    
+    if (@{$model_object->volumes} > 1) {
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it contains more than one volume/material.");
+        return;
+    }
+    
+    my $mesh = $model_object->mesh;
     $mesh->align_to_origin;
     
     my @new_meshes = $mesh->split_mesh;
@@ -669,20 +676,24 @@ sub make_model {
     my $self = shift;
     
     my $model = Slic3r::Model->new;
-    foreach my $object (@{$self->{objects}}) {
-        my $mesh = $object->get_mesh;
-        $mesh->scale($object->scale);
-        my $model_object = $model->add_object(
-            vertices    => $mesh->vertices,
-            input_file  => $object->input_file,
+    foreach my $plater_object (@{$self->{objects}}) {
+        my $model_object = $plater_object->get_model_object;
+        my $new_model_object = $model->add_object(
+            vertices    => $model_object->vertices,
+            input_file  => $plater_object->input_file,
         );
-        $model_object->add_volume(
-            facets      => $mesh->facets,
-        );
-        $model_object->add_instance(
-            rotation    => $object->rotate,
+        foreach my $volume (@{$model_object->volumes}) {
+            $new_model_object->add_volume(
+                material_id => $volume->material_id,
+                facets      => $volume->facets,
+            );
+            $model->materials->{$volume->material_id || 0} ||= {};
+        }
+        $new_model_object->scale($plater_object->scale);
+        $new_model_object->add_instance(
+            rotation    => $plater_object->rotate,
             offset      => [ @$_ ],
-        ) for @{$object->instances};
+        ) for @{$plater_object->instances};
     }
     
     return $model;
@@ -1027,12 +1038,12 @@ sub free_mesh {
     $self->mesh(undef);
 }
 
-sub get_mesh {
+sub get_model_object {
     my $self = shift;
     
     return $self->mesh->clone if $self->mesh;
     my $model = Slic3r::Model->read_from_file($self->input_file);
-    return $model->objects->[$self->input_file_object_id]->mesh;
+    return $model->objects->[$self->input_file_object_id];
 }
 
 sub instances_count {
