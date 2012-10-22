@@ -301,7 +301,7 @@ sub load_file {
             name                    => basename($input_file),
             input_file              => $input_file,
             input_file_object_id    => $i,
-            mesh                    => $model->objects->[$i]->mesh,
+            model_object            => $model->objects->[$i],
             instances               => [
                 $model->objects->[$i]->instances
                     ? (map $_->offset, @{$model->objects->[$i]->instances})
@@ -722,7 +722,7 @@ sub on_thumbnail_made {
     my $self = shift;
     my ($obj_idx) = @_;
     
-    $self->{objects}[$obj_idx]->free_mesh;
+    $self->{objects}[$obj_idx]->free_model_object;
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -1017,31 +1017,31 @@ use Slic3r::Geometry qw(X Y remove_coinciding_points);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
-has 'input_file_object_id'  => (is => 'rw');  # undef means keep mesh
-has 'mesh'                  => (is => 'rw', required => 1, trigger => 1);
+has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
+has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
 has 'size'                  => (is => 'rw');
 has 'scale'                 => (is => 'rw', default => sub { 1 });
 has 'rotate'                => (is => 'rw', default => sub { 0 });
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
 has 'thumbnail'             => (is => 'rw');
 
-sub _trigger_mesh {
+sub _trigger_model_object {
     my $self = shift;
-    $self->size([$self->mesh->size]) if $self->mesh;
+    $self->size([$self->model_object->mesh->size]) if $self->model_object;
 }
 
-sub free_mesh {
+sub free_model_object {
     my $self = shift;
     
     # only delete mesh from memory if we can retrieve it from the original file
     return unless $self->input_file && $self->input_file_object_id;
-    $self->mesh(undef);
+    $self->model_object(undef);
 }
 
 sub get_model_object {
     my $self = shift;
     
-    return $self->mesh->clone if $self->mesh;
+    return $self->model_object if $self->model_object;
     my $model = Slic3r::Model->read_from_file($self->input_file);
     return $model->objects->[$self->input_file_object_id];
 }
@@ -1055,7 +1055,7 @@ sub make_thumbnail {
     my $self = shift;
     my %params = @_;
     
-    my @points = map [ @$_[X,Y] ], @{$self->mesh->vertices};
+    my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
     remove_coinciding_points(\@points);
     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
     for (@$convex_hull) {
@@ -1067,7 +1067,7 @@ sub make_thumbnail {
     $convex_hull->align_to_origin;
     
     $self->thumbnail($convex_hull);  # ignored in multi-threaded environments
-    $self->mesh(undef) if defined $self->input_file_object_id;
+    $self->free_model_object;
     
     return $convex_hull;
 }
