@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum);
-use Math::ConvexHull qw(convex_hull);
+use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
@@ -1012,8 +1012,8 @@ sub OnDropFiles {
 package Slic3r::GUI::Plater::Object;
 use Moo;
 
-use Math::ConvexHull qw(convex_hull);
-use Slic3r::Geometry qw(X Y remove_coinciding_points);
+use Math::ConvexHull::MonotoneChain qw(convex_hull);
+use Slic3r::Geometry qw(X Y);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
@@ -1056,7 +1056,6 @@ sub make_thumbnail {
     my %params = @_;
     
     my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
-    remove_coinciding_points(\@points);
     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
     for (@$convex_hull) {
         @$_ = map $_ * $params{scaling_factor}, @$_;
