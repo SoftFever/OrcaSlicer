@@ -276,6 +276,12 @@ sub make_perimeters {
         }
     }
     
+    # if brim will be printed, reverse the order of perimeters so that
+    # we continue inwards after having finished the brim
+    if ($self->layer->id == 0 && $Slic3r::Config->brim_width > 0) {
+        @{$self->perimeters} = reverse @{$self->perimeters};
+    }
+    
     # add thin walls as perimeters
     {
         my @thin_paths = ();
