@@ -211,31 +211,60 @@ sub make_perimeters {
             push @{ $self->surfaces }, @fill_boundaries;
         }
         
-        # fill gaps using dynamic extrusion width
+        # fill gaps
         {
-            # detect the small gaps that we need to treat like thin polygons,
-            # thus generating the skeleton and using it to fill them
+            my $filler = Slic3r::Fill->new(print => $self->layer->object->print)->filler('rectilinear');
+            
             my $w = $self->perimeter_flow->width;
-            my @widths = (1.5 * $w, $w, 0.5 * $w, 0.2 * $w);
+            my @widths = (1.5 * $w, $w, 0.5 * $w);  # worth trying 0.2 too?
             foreach my $width (@widths) {
-                my $scaled_width = scale $width;
+                my $flow = $self->perimeter_flow->clone(width => $width);
                 
                 # extract the gaps having this width
-                my @this_width = map $_->offset_ex(+0.5*$scaled_width), map $_->noncollapsing_offset_ex(-0.5*$scaled_width), @gaps;
+                my @this_width = map $_->offset_ex(+0.5*$flow->scaled_width),
+                    map $_->noncollapsing_offset_ex(-0.5*$flow->scaled_width),
+                    @gaps;
                 
-                # fill them
-                my %path_args = (
-                    role            => EXTR_ROLE_SOLIDFILL,
-                    flow_spacing    => $self->perimeter_flow->clone(width => $width)->spacing,
-                );
-                push @{ $self->thin_fills }, map {
-                    $_->isa('Slic3r::Polygon')
-                        ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point)  # we should keep these as loops
-                        : Slic3r::ExtrusionPath->pack(polyline => $_, %path_args),
-                } map $_->medial_axis($scaled_width), @this_width;
-            
-                Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
-                    if @{ $self->thin_fills };
+                if (0) {
+                    # fill gaps using dynamic extrusion width, by treating them like thin polygons,
+                    # thus generating the skeleton and using it to fill them
+                    my %path_args = (
+                        role            => EXTR_ROLE_SOLIDFILL,
+                        flow_spacing    => $flow->spacing,
+                    );
+                    push @{ $self->thin_fills }, map {
+                        $_->isa('Slic3r::Polygon')
+                            ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point)  # we should keep these as loops
+                            : Slic3r::ExtrusionPath->pack(polyline => $_, %path_args),
+                    } map $_->medial_axis($flow->scaled_width), @this_width;
+                
+                    Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
+                        if @{ $self->thin_fills };
+                    
+                } else {
+                    # fill gaps using zigzag infill
+                    
+                    # since this is infill, we have to offset by half-extrusion width inwards
+                    my @infill = map $_->offset_ex(-0.5*$flow->scaled_width), @this_width;
+                    
+                    foreach my $expolygon (@infill) {
+                        my @paths = $filler->fill_surface(
+                            Slic3r::Surface->new(expolygon => $expolygon),
+                            density         => 1,
+                            flow_spacing    => $flow->spacing,
+                            dont_connect    => 1,  # time-saver
+                        );
+                        my $params = shift @paths;
+                        
+                        push @{ $self->thin_fills },
+                            map Slic3r::ExtrusionPath->pack(
+                                polyline        => Slic3r::Polyline->new(@$_),
+                                role            => EXTR_ROLE_SOLIDFILL,
+                                depth_layers    => 1,
+                                flow_spacing    => $params->{flow_spacing},
+                            ), @paths;
+                    }
+                }
                 
                 # check what's left
                 @gaps = @{diff_ex(
