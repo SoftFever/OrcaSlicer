@@ -234,7 +234,7 @@ sub notify {
 }
 
 sub save_settings {
-    my $self = shift;
+    my $class = shift;
     
     Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
 }

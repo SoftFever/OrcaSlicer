@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
-use List::Util qw(max sum);
+use List::Util qw(max sum first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
@@ -222,11 +222,7 @@ sub new {
             my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
             my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
             $self->{preset_choosers}{$group} = [$choice];
-            EVT_CHOICE($choice, $choice, sub {
-                my $choice = shift;  # avoid leaks
-                return if $group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1; #/
-                $self->skeinpanel->{options_tabs}{$group}->select_preset($choice->GetSelection);
-            });
+            EVT_CHOICE($choice, $choice, sub { $self->on_select_preset($group, @_) });
             
             $self->{preset_choosers_sizers}{$group} = Wx::BoxSizer->new(wxVERTICAL);
             $self->{preset_choosers_sizers}{$group}->Add($choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
@@ -244,6 +240,21 @@ sub new {
         $self->SetSizer($sizer);
     }
     return $self;
+}
+
+sub on_select_preset {
+	my $self = shift;
+	my ($group, $choice) = @_;
+	
+	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
+		my @filament_presets = $self->filament_presets;
+		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0]) . ".ini";
+		$Slic3r::GUI::Settings->{presets}{"filament_${_}"} = $choice->GetString($filament_presets[$_])
+			for 1 .. $#filament_presets;
+		Slic3r::GUI->save_settings;
+		return;
+	}
+	$self->skeinpanel->{options_tabs}{$group}->select_preset($choice->GetSelection);
 }
 
 sub skeinpanel {
@@ -754,8 +765,12 @@ sub on_config_change {
     if ($opt_key eq 'extruders_count' && defined $value) {
         my $choices = $self->{preset_choosers}{filament};
         while (@$choices < $value) {
-            push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [$choices->[0]->GetStrings]);
+        	my @presets = $choices->[0]->GetStrings;
+            push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
             $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+            EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->on_select_preset('filament', @_) });
+            my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
+        	$choices->[-1]->SetSelection($i || 0);
         }
         while (@$choices > $value) {
             $self->{preset_choosers_sizers}{filament}->Remove(-1);
