@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum);
-use Math::ConvexHull qw(convex_hull);
+use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
@@ -158,9 +158,8 @@ sub new {
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
-        $self->{objects}[$obj_idx]->thumbnail($thumbnail);
-        $self->mesh(undef);
-        $self->on_thumbnail_made;
+        $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
+        $self->on_thumbnail_made($obj_idx);
     });
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
@@ -275,7 +274,7 @@ sub load {
     my $self = shift;
     
     my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;
@@ -302,7 +301,7 @@ sub load_file {
             name                    => basename($input_file),
             input_file              => $input_file,
             input_file_object_id    => $i,
-            mesh                    => $model->objects->[$i]->mesh,
+            model_object            => $model->objects->[$i],
             instances               => [
                 $model->objects->[$i]->instances
                     ? (map $_->offset, @{$model->objects->[$i]->instances})
@@ -386,6 +385,7 @@ sub decrease {
     my ($obj_idx, $object) = $self->selected_object;
     if ($object->instances_count >= 2) {
         pop @{$object->instances};
+        $self->{list}->SetItem($obj_idx, 1, $object->instances_count);
     } else {
         $self->remove;
     }
@@ -434,7 +434,7 @@ sub arrange {
     my $total_parts = sum(map $_->instances_count, @{$self->{objects}}) or return;
     my @size = ();
     for my $a (X,Y) {
-        $size[$a] = $self->to_units(max(map $_->thumbnail->size->[$a], @{$self->{objects}}));
+        $size[$a] = max(map $_->rotated_size->[$a], @{$self->{objects}});
     }
     
     eval {
@@ -456,7 +456,14 @@ sub split_object {
     
     my ($obj_idx, $current_object) = $self->selected_object;
     my $current_copies_num = $current_object->instances_count;
-    my $mesh = $current_object->get_mesh;
+    my $model_object = $current_object->get_model_object;
+    
+    if (@{$model_object->volumes} > 1) {
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it contains more than one volume/material.");
+        return;
+    }
+    
+    my $mesh = $model_object->mesh;
     $mesh->align_to_origin;
     
     my @new_meshes = $mesh->split_mesh;
@@ -503,7 +510,7 @@ sub export_gcode {
     {
         $self->{output_file} = $print->expanded_output_filepath($self->{output_file}, $self->{objects}[0]->input_file);
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', dirname($self->{output_file}),
-            basename($self->{output_file}), $Slic3r::GUI::SkeinPanel::gcode_wildcard, wxFD_SAVE);
+            basename($self->{output_file}), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
@@ -530,7 +537,7 @@ sub export_gcode {
             );
         });
         $self->statusbar->SetCancelCallback(sub {
-            $self->{export_thread}->kill('KILL');
+            $self->{export_thread}->kill('KILL')->join;
             $self->{export_thread} = undef;
             $self->statusbar->StopBusy;
             $self->statusbar->SetStatusText("Export cancelled");
@@ -557,7 +564,7 @@ sub _init_print {
     return Slic3r::Print->new(
         config => $self->skeinpanel->config,
         extra_variables => {
-            map { $_ => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
+            map { +"${_}_preset" => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
         },
     );
 }
@@ -602,7 +609,6 @@ sub export_gcode2 {
         }
         $message .= ".";
         $params{on_completed}->($message);
-        $print->cleanup;
     };
     $params{catch_error}->();
 }
@@ -656,7 +662,7 @@ sub _get_export_file {
         $output_file = $self->_init_print->expanded_output_filepath($output_file, $self->{objects}[0]->input_file);
         $output_file =~ s/\.gcode$/$suffix/i;
         my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
-            basename($output_file), $Slic3r::GUI::SkeinPanel::model_wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            basename($output_file), &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return undef;
@@ -671,20 +677,24 @@ sub make_model {
     my $self = shift;
     
     my $model = Slic3r::Model->new;
-    foreach my $object (@{$self->{objects}}) {
-        my $mesh = $object->get_mesh;
-        $mesh->scale($object->scale);
-        my $model_object = $model->add_object(
-            vertices    => $mesh->vertices,
-            input_file  => $object->input_file,
+    foreach my $plater_object (@{$self->{objects}}) {
+        my $model_object = $plater_object->get_model_object;
+        my $new_model_object = $model->add_object(
+            vertices    => $model_object->vertices,
+            input_file  => $plater_object->input_file,
         );
-        $model_object->add_volume(
-            facets      => $mesh->facets,
-        );
-        $model_object->add_instance(
-            rotation    => $object->rotate,
+        foreach my $volume (@{$model_object->volumes}) {
+            $new_model_object->add_volume(
+                material_id => $volume->material_id,
+                facets      => $volume->facets,
+            );
+            $model->materials->{$volume->material_id || 0} ||= {};
+        }
+        $new_model_object->scale($plater_object->scale);
+        $new_model_object->add_instance(
+            rotation    => $plater_object->rotate,
             offset      => [ @$_ ],
-        ) for @{$object->instances};
+        ) for @{$plater_object->instances};
     }
     
     return $model;
@@ -702,7 +712,7 @@ sub make_thumbnail {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
             threads->exit;
         } else {
-            $self->on_thumbnail_made;
+            $self->on_thumbnail_made($obj_idx);
         }
     };
     
@@ -711,6 +721,9 @@ sub make_thumbnail {
 
 sub on_thumbnail_made {
     my $self = shift;
+    my ($obj_idx) = @_;
+    
+    $self->{objects}[$obj_idx]->free_model_object;
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -1000,30 +1013,38 @@ sub OnDropFiles {
 package Slic3r::GUI::Plater::Object;
 use Moo;
 
-use Math::ConvexHull qw(convex_hull);
+use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
-has 'input_file_object_id'  => (is => 'rw');  # undef means keep mesh
-has 'mesh'                  => (is => 'rw', required => 1, trigger => 1);
+has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
+has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
 has 'size'                  => (is => 'rw');
 has 'scale'                 => (is => 'rw', default => sub { 1 });
 has 'rotate'                => (is => 'rw', default => sub { 0 });
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
 has 'thumbnail'             => (is => 'rw');
 
-sub _trigger_mesh {
+sub _trigger_model_object {
     my $self = shift;
-    $self->size([$self->mesh->size]) if $self->mesh;
+    $self->size([$self->model_object->mesh->size]) if $self->model_object;
 }
 
-sub get_mesh {
+sub free_model_object {
     my $self = shift;
     
-    return $self->mesh->clone if $self->mesh;
+    # only delete mesh from memory if we can retrieve it from the original file
+    return unless $self->input_file && $self->input_file_object_id;
+    $self->model_object(undef);
+}
+
+sub get_model_object {
+    my $self = shift;
+    
+    return $self->model_object if $self->model_object;
     my $model = Slic3r::Model->read_from_file($self->input_file);
-    return $model->objects->[$self->input_file_object_id]->mesh;
+    return $model->objects->[$self->input_file_object_id];
 }
 
 sub instances_count {
@@ -1035,7 +1056,7 @@ sub make_thumbnail {
     my $self = shift;
     my %params = @_;
     
-    my @points = map [ @$_[X,Y] ], @{$self->mesh->vertices};
+    my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
     for (@$convex_hull) {
         @$_ = map $_ * $params{scaling_factor}, @$_;
@@ -1046,7 +1067,7 @@ sub make_thumbnail {
     $convex_hull->align_to_origin;
     
     $self->thumbnail($convex_hull);  # ignored in multi-threaded environments
-    $self->mesh(undef) if defined $self->input_file_object_id;
+    $self->free_model_object;
     
     return $convex_hull;
 }

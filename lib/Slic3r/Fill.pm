@@ -99,7 +99,7 @@ sub make_fill {
     
     # add spacing between adjacent surfaces
     {
-        my $distance = scale $layer->infill_flow->spacing / 2;
+        my $distance = $layer->infill_flow->scaled_spacing / 2;
         my @offsets = ();
         foreach my $surface (@surfaces) {
             my $expolygon = $surface->expolygon;

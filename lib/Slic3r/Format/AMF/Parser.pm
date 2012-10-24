@@ -37,10 +37,10 @@ sub start_element {
         $self->{_vertex_idx} = $1-1;
     } elsif ($data->{LocalName} eq 'material') {
         my $material_id = $self->_get_attribute($data, 'id') || '_';
-        $self->{_material} = $self->{_model}->materials->{ $material_id } = {};
+        $self->{_material} = $self->{_model}->set_material($material_id);
     } elsif ($data->{LocalName} eq 'metadata' && $self->{_tree}[-1] eq 'material') {
         $self->{_material_metadata_type} = $self->_get_attribute($data, 'type');
-        $self->{_material}{ $self->{_material_metadata_type} } = "";
+        $self->{_material}->attributes->{ $self->{_material_metadata_type} } = "";
     } elsif ($data->{LocalName} eq 'constellation') {
         $self->{_constellation} = 1; # we merge all constellations as we don't support more than one
     } elsif ($data->{LocalName} eq 'instance' && $self->{_constellation}) {
@@ -63,7 +63,7 @@ sub characters {
     } elsif ($self->{_triangle} && defined $self->{_vertex_idx}) {
         $self->{_triangle}[ $self->{_vertex_idx} ] .= $data->{Data};
     } elsif ($self->{_material_metadata_type}) {
-        $self->{_material}{ $self->{_material_metadata_type} } .= $data->{Data};
+        $self->{_material}->attributes->{ $self->{_material_metadata_type} } .= $data->{Data};
     } elsif ($self->{_instance_property}) {
         $self->{_instance}{ $self->{_instance_property} } .= $data->{Data};
     }

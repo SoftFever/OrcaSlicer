@@ -25,12 +25,14 @@ my %opt = ();
 
 {
     my $input_file = $ARGV[0];
-    my $mesh;
-    $mesh = Slic3r::Format::STL->read_file($input_file) if $input_file =~ /\.stl$/i;
     die "This script doesn't support AMF yet\n" if $input_file =~ /\.amf$/i;
-    die "Unable to read file\n" if !$mesh;
+    
+    my $model;
+    $model = Slic3r::Format::STL->read_file($input_file) if $input_file =~ /\.stl$/i;
+    die "Unable to read file\n" if !$model;
     
     printf "Info about %s:\n", basename($input_file);
+    my $mesh = $model->mesh;
     $mesh->check_manifoldness;
     printf "  number of facets: %d\n", scalar @{$mesh->facets};
     printf "  size: x=%s y=%s z=%s\n", $mesh->size;

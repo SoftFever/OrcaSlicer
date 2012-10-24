@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use utf8;
 
+use List::Util qw(first);
+
 use constant PI => 4 * atan2(1, 1);
 
 # cemetery of old config settings
@@ -350,6 +352,15 @@ our $Options = {
         type    => 'i',
         min     => 1,
         default => 1,
+    },
+    'solid_infill_every_layers' => {
+        label   => 'Solid infill every',
+        tooltip => 'This feature allows to force a solid layer every given number of layers. Zero to disable.',
+        sidetext => 'layers',
+        cli     => 'solid-infill-every-layers=i',
+        type    => 'i',
+        min     => 0,
+        default => 0,
     },
     
     # flow options
@@ -951,6 +962,9 @@ sub set {
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
         $value = $value =~ /^\d+(?:\.\d+)?$/ && $value != 0 ? ($value*100) . "%" : 0;
     }
+    if ($opt_key eq 'threads' && !$Slic3r::have_threads) {
+        $value = 1;
+    }
     
     if (!exists $Options->{$opt_key}) {
         $opt_key = +(grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options)[0]
@@ -1058,15 +1072,18 @@ sub validate {
     
     # --fill-pattern
     die "Invalid value for --fill-pattern\n"
-        if !exists $Slic3r::Fill::FillTypes{$self->fill_pattern};
+        if !first { $_ eq $self->fill_pattern } @{$Options->{fill_pattern}{values}};
     
     # --solid-fill-pattern
     die "Invalid value for --solid-fill-pattern\n"
-        if !exists $Slic3r::Fill::FillTypes{$self->solid_fill_pattern};
+        if !first { $_ eq $self->solid_fill_pattern } @{$Options->{solid_fill_pattern}{values}};
     
     # --fill-density
     die "Invalid value for --fill-density\n"
         if $self->fill_density < 0 || $self->fill_density > 1;
+    die "The selected fill pattern is not supposed to work at 100% density\n"
+        if $self->fill_density == 1
+            && !first { $_ eq $self->fill_pattern } @{$Options->{solid_fill_pattern}{values}};
     
     # --infill-every-layers
     die "Invalid value for --infill-every-layers\n"

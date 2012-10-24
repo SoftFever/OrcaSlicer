@@ -15,6 +15,7 @@ sub read_from_file {
               : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
               : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
     
+    $_->input_file($input_file) for @{$model->objects};
     return $model;
 }
 
@@ -24,6 +25,22 @@ sub add_object {
     my $object = Slic3r::Model::Object->new(model => $self, @_);
     push @{$self->objects}, $object;
     return $object;
+}
+
+sub set_material {
+    my $self = shift;
+    my ($material_id, $attributes) = @_;
+    
+    return $self->materials->{$material_id} = Slic3r::Model::Region->new(
+        model       => $self,
+        attributes  => $attributes || {},
+    );
+}
+
+sub scale {
+    my $self = shift;
+    
+    $_->scale(@_) for @{$self->objects};
 }
 
 # flattens everything to a single mesh
@@ -47,7 +64,7 @@ sub mesh {
     return Slic3r::TriangleMesh->merge(@meshes);
 }
 
-package Slic3r::Model::Material;
+package Slic3r::Model::Region;
 use Moo;
 
 has 'model'         => (is => 'ro', weak_ref => 1, required => 1);
@@ -66,8 +83,20 @@ has 'instances' => (is => 'rw');
 
 sub add_volume {
     my $self = shift;
+    my %args = @_;
     
-    my $volume = Slic3r::Model::Volume->new(object => $self, @_);
+    if (my $vertices = delete $args{vertices}) {
+        my $v_offset = @{$self->vertices};
+        push @{$self->vertices}, @$vertices;
+        
+        @{$args{facets}} = map {
+            my $f = [@$_];
+            $f->[$_] += $v_offset for -3..-1;
+            $f;
+        } @{$args{facets}};
+    }
+    
+    my $volume = Slic3r::Model::Volume->new(object => $self, %args);
     push @{$self->volumes}, $volume;
     return $volume;
 }
@@ -87,6 +116,17 @@ sub mesh {
         vertices => $self->vertices,
         facets   => [ map @{$_->facets}, @{$self->volumes} ],
     );
+}
+
+sub scale {
+    my $self = shift;
+    my ($factor) = @_;
+    return if $factor == 1;
+    
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        $vertex->[$_] *= $factor for X,Y,Z;
+    }
 }
 
 package Slic3r::Model::Volume;

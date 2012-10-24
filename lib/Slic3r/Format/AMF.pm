@@ -35,8 +35,8 @@ sub write_file {
     for my $material_id (sort keys %{ $model->materials }) {
         my $material = $model->materials->{$material_id};
         printf $fh qq{  <material id="%d">\n}, $material_id;
-        for (keys %$material) {
-             printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->{$_};
+        for (keys %{$material->attributes}) {
+             printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->attributes->{$_};
         }
         printf $fh qq{  </material>\n};
     }

@@ -85,6 +85,12 @@ sub new {
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub {
+        
+        # since buttons (and choices too) don't get focus on Mac, we set focus manually
+        # to the treectrl so that the EVT_* events are fired for the input field having
+        # focus currently. is there anything better than this?
+        $self->{treectrl}->SetFocus;
+        
         my $preset = $self->current_preset;
         my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
         $default_name =~ s/\.ini$//i;
@@ -405,7 +411,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(infill_every_layers fill_angle solid_infill_below_area only_retract_when_crossing_perimeters)],
+            options => [qw(infill_every_layers solid_infill_every_layers fill_angle solid_infill_below_area only_retract_when_crossing_perimeters)],
         },
     ]);
     

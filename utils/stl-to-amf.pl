@@ -35,19 +35,11 @@ my %opt = ();
         my $new_object = $new_model->add_object;
         for my $m (0 .. $#models) {
             my $model = $models[$m];
-            my $v_offset = @{$new_object->vertices};
-            push @{$new_object->vertices}, @{$model->objects->[0]->vertices};
-            my @new_facets = map {
-                my $f = [@$_];
-                $f->[$_] += $v_offset for -3..-1;
-                $f;
-            } @{ $model->objects->[0]->volumes->[0]->facets };
-            
-            my $material_id = scalar keys %{$new_model->materials};
-            $new_model->materials->{$material_id} = { Name => basename($ARGV[$m]) };
+            $new_model->set_material($m, { Name => basename($ARGV[$m]) });
             $new_object->add_volume(
-                material_id => $material_id,
-                facets      => [@new_facets],
+                material_id => $m,
+                facets      => $model->objects->[0]->volumes->[0]->facets,
+                vertices    => $model->objects->[0]->vertices,
             );
         }
     } else {
