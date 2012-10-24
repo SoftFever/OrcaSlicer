@@ -36,7 +36,7 @@ use constant X2 => 2;
 use constant Y2 => 3;
 use constant MIN => 0;
 use constant MAX => 1;
-our $parallel_degrees_limit = abs(deg2rad(3));
+our $parallel_degrees_limit = abs(deg2rad(0.1));
 
 sub epsilon () { 1E-4 }
 sub scaled_epsilon () { epsilon / &Slic3r::SCALING_FACTOR }

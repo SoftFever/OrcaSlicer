@@ -160,6 +160,7 @@ sub detect_arcs {
     
     $max_angle = deg2rad($max_angle || 15);
     $len_epsilon ||= 10 / &Slic3r::SCALING_FACTOR;
+    my $parallel_degrees_limit = abs(Slic3r::Geometry::deg2rad(3));
     
     my @points = @{$self->points};
     my @paths = ();
@@ -191,8 +192,8 @@ sub detect_arcs {
             $s3_angle += 2*PI if $s3_angle < 0;
             my $s1s2_angle = $s2_angle - $s1_angle;
             my $s2s3_angle = $s3_angle - $s2_angle;
-            next if abs($s1s2_angle - $s2s3_angle) > $Slic3r::Geometry::parallel_degrees_limit;
-            next if abs($s1s2_angle) < $Slic3r::Geometry::parallel_degrees_limit;     # ignore parallel lines
+            next if abs($s1s2_angle - $s2s3_angle) > $parallel_degrees_limit;
+            next if abs($s1s2_angle) < $parallel_degrees_limit;     # ignore parallel lines
             next if $s1s2_angle > $max_angle;  # ignore too sharp vertices
             my @arc_points = ($points[$i], $points[$i+3]),  # first and last points
             
@@ -205,7 +206,7 @@ sub detect_arcs {
                 my $line_angle = $line->atan;
                 $line_angle += 2*PI if $line_angle < 0;
                 my $anglediff = $line_angle - $last_line_angle;
-                last if abs($s1s2_angle - $anglediff) > $Slic3r::Geometry::parallel_degrees_limit;
+                last if abs($s1s2_angle - $anglediff) > $parallel_degrees_limit;
                 
                 # point $j+1 belongs to the arc
                 $arc_points[-1] = $points[$j+1];
