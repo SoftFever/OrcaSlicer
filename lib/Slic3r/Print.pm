@@ -790,7 +790,7 @@ sub write_gcode {
             Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
             
             if ($speed_factor < 1) {
-                $gcode =~ s/^(?=.*? [XY])(?=.*? E)(G1 .*?F)(\d+(?:\.\d+)?)/
+                $gcode =~ s/^(?=.*? [XY])(?=.*? E)(?<!;_BRIDGE_FAN_START\n)(G1 .*?F)(\d+(?:\.\d+)?)/
                     my $new_speed = $2 * $speed_factor;
                     $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
                     /gexm;
