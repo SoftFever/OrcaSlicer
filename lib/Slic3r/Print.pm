@@ -697,7 +697,7 @@ sub write_gcode {
                     if $self->extruders->[$t]->temperature && $self->extruders->[$t]->temperature != $self->extruders->[$t]->first_layer_temperature;
             }
             $gcode .= $gcodegen->set_bed_temperature($Slic3r::Config->bed_temperature)
-                if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
+                if $Slic3r::Config->bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
         }
         
         # go to layer (just use the first one, we only need Z from it)
