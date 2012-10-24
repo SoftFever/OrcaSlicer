@@ -10,7 +10,7 @@ use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX);
 use Slic3r::Geometry::Clipper qw(JT_ROUND);
 use threads::shared qw(shared_clone);
 use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
-use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
+use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
 use base 'Wx::Panel';
 
 use constant TB_MORE    => &Wx::NewId;
@@ -87,6 +87,7 @@ sub new {
     $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
+    EVT_LIST_ITEM_ACTIVATED($self, $self->{list}, \&list_item_activated);
     EVT_KEY_DOWN($self->{list}, sub {
         my ($list, $event) = @_;
         if ($event->GetKeyCode == WXK_TAB) {
@@ -319,6 +320,7 @@ sub load_file {
                     : [0,0],
             ],
         );
+		$object->check_manifoldness;
         
         # we only consider the rotation of the first instance for now
         $object->set_rotation($model->objects->[$i]->instances->[0]->rotation)
@@ -908,6 +910,9 @@ sub mouse_event {
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);
+    } elsif ($event->ButtonDClick) {
+    	$parent->list_item_activated(undef, $parent->{selected_objects}->[0][0])
+    		if @{$parent->{selected_objects}};
     } elsif ($event->Dragging) {
         return if !$self->{drag_start_pos}; # concurrency problems
         for my $preview ($self->{drag_object}) {
@@ -946,6 +951,16 @@ sub list_item_selected {
     $self->{selected_objects} = [ grep $_->[0] == $obj_idx, @{$self->{object_previews}} ];
     $self->{canvas}->Refresh;
     $self->selection_changed(1);
+}
+
+sub list_item_activated {
+    my ($self, $event, $obj_idx) = @_;
+    
+    $obj_idx //= $event->GetIndex;
+	my $dlg = Slic3r::GUI::Plater::ObjectInfoDialog->new($self,
+		object => $self->{objects}[$obj_idx],
+	);
+	$dlg->ShowModal;
 }
 
 sub object_list_changed {
@@ -1028,7 +1043,7 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
-use Slic3r::Geometry qw(X Y);
+use Slic3r::Geometry qw(X Y Z);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
@@ -1040,9 +1055,28 @@ has 'rotate'                => (is => 'rw', default => sub { 0 });
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
 has 'thumbnail'             => (is => 'rw');
 
+# statistics
+has 'facets'                => (is => 'rw');
+has 'vertices'              => (is => 'rw');
+has 'materials'             => (is => 'rw');
+has 'is_manifold'           => (is => 'rw');
+
 sub _trigger_model_object {
     my $self = shift;
-    $self->size([$self->model_object->mesh->size]) if $self->model_object;
+    if ($self->model_object) {
+    	my $mesh = $self->model_object->mesh;
+	    $self->size([$mesh->size]);
+	    $self->facets(scalar @{$mesh->facets});
+	    $self->vertices(scalar @{$mesh->vertices});
+	    $self->materials($self->model_object->materials_count);
+	}
+}
+
+sub check_manifoldness {
+	my $self = shift;
+	
+	$self->is_manifold($self->get_model_object->mesh->check_manifoldness);
+	return $self->is_manifold;
 }
 
 sub free_model_object {
@@ -1103,7 +1137,7 @@ sub set_scale {
     
     my $factor = $scale / $self->scale;
     return if $factor == 1;
-    $self->size->[$_] *= $factor for X,Y;
+    $self->size->[$_] *= $factor for X,Y,Z;
     if ($self->thumbnail) {
         $self->thumbnail->scale($factor);
         $self->thumbnail->align_to_origin;
@@ -1117,6 +1151,61 @@ sub rotated_size {
     return Slic3r::Polygon->new([0,0], [$self->size->[X], 0], [@{$self->size}], [0, $self->size->[Y]])
         ->rotate(Slic3r::Geometry::deg2rad($self->rotate))
         ->size;
+}
+
+package Slic3r::GUI::Plater::ObjectInfoDialog;
+use Wx qw(:dialog :id :misc :sizer :propgrid :systemsettings);
+use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
+use base 'Wx::Dialog';
+
+sub new {
+    my $class = shift;
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, -1, "Object Info", wxDefaultPosition, wxDefaultSize);
+    $self->{object} = $params{object};
+
+    my $properties_box = Wx::StaticBox->new($self, -1, "Info", wxDefaultPosition, [400,200]);
+    my $grid_sizer = Wx::FlexGridSizer->new(3, 2, 10, 5);
+    $properties_box->SetSizer($grid_sizer);
+    $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
+    $grid_sizer->AddGrowableCol(1);
+    
+    my $label_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    $label_font->SetPointSize(10);
+    
+    my $properties = $self->get_properties;
+    foreach my $property (@$properties) {
+    	my $label = Wx::StaticText->new($properties_box, -1, $property->[0] . ":");
+    	my $value = Wx::StaticText->new($properties_box, -1, $property->[1]);
+    	$label->SetFont($label_font);
+	    $grid_sizer->Add($label, 1, wxALIGN_BOTTOM);
+	    $grid_sizer->Add($value, 0);
+    }
+    
+    my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
+    EVT_BUTTON($self, wxID_OK, sub { $self->EndModal(wxID_OK); });
+    
+    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $sizer->Add($properties_box, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+    $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    
+    $self->SetSizer($sizer);
+    $sizer->SetSizeHints($self);
+    
+    return $self;
+}
+
+sub get_properties {
+	my $self = shift;
+	
+	return [
+		['Name'			=> $self->{object}->name],
+		['Size'			=> sprintf "%.2f x %.2f x %.2f", @{$self->{object}->size}],
+		['Facets'		=> $self->{object}->facets],
+		['Vertices'		=> $self->{object}->vertices],
+		['Materials' 	=> $self->{object}->materials],
+		['Two-Manifold' => $self->{object}->is_manifold ? 'Yes' : 'No'],
+	];
 }
 
 1;

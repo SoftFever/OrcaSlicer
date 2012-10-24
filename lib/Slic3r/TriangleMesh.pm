@@ -154,7 +154,9 @@ sub check_manifoldness {
         warn sprintf "Warning: The input file contains a hole near edge %f-%f (not manifold). "
             . "You might want to repair it and retry, or to check the resulting G-code before printing anyway.\n",
             @{$self->edges->[$first_bad_edge_id]};
+        return 0;
     }
+    return 1;
 }
 
 sub unpack_line {
