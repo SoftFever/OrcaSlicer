@@ -178,18 +178,8 @@ sub make_fill {
     }
     
     # add thin fill regions
-    {
-        my %args = (
-            role            => EXTR_ROLE_SOLIDFILL,
-            flow_spacing    => $layer->perimeter_flow->spacing,
-        );
-        push @fills, map {
-            $_->isa('Slic3r::Polygon')
-                ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon  => $_, %args)->split_at_first_point)
-                : Slic3r::ExtrusionPath->pack(polyline => $_, %args),
-        } @{$layer->thin_fills};
-    }
-    push @fills_ordering_points, map $_->[0], @{$layer->thin_fills};
+    push @fills, @{$layer->thin_fills};
+    push @fills_ordering_points, map $_->unpack->points->[0], @{$layer->thin_fills};
     
     # organize infill paths using a shortest path search
     @fills = @{shortest_path([
