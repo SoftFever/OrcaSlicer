@@ -2,8 +2,6 @@ package Slic3r::Format::AMF::Parser;
 use strict;
 use warnings;
 
-use XML::SAX::PurePerl;
-
 use base 'XML::SAX::Base';
 
 my %xyz_index = (x => 0, y => 1, z => 2); #=
