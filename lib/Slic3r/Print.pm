@@ -711,7 +711,11 @@ sub write_gcode {
             $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
             # skip skirt if we have a large brim
             if ($layer_id < $Slic3r::Config->skirt_height) {
-                $gcode .= $gcodegen->extrude_loop($_, 'skirt') for @{$self->skirt};
+                # distribute skirt loops across all extruders
+                for my $i (0 .. $#{$self->skirt}) {
+                    $gcode .= $gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ]);
+                    $gcode .= $gcodegen->extrude_loop($self->skirt->[$i], 'skirt');
+                }
             }
             $skirt_done++;
         }
