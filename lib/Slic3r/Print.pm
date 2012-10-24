@@ -745,18 +745,22 @@ sub write_gcode {
                 my $region = $self->regions->[$region_id];
                 
                 # extrude perimeters
-                $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
-                $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layerm->perimeters };
+                if (@{ $layerm->perimeters }) {
+                    $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
+                    $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layerm->perimeters };
+                }
                 
                 # extrude fills
-                $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
-                $gcode .= $gcodegen->set_acceleration($Slic3r::Config->infill_acceleration);
-                for my $fill (@{ $layerm->fills }) {
-                    if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
-                        $gcode .= $gcodegen->extrude($_, 'fill') 
-                            for $fill->shortest_path($gcodegen->last_pos);
-                    } else {
-                        $gcode .= $gcodegen->extrude($fill, 'fill') ;
+                if (@{ $layerm->fills }) {
+                    $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
+                    $gcode .= $gcodegen->set_acceleration($Slic3r::Config->infill_acceleration);
+                    for my $fill (@{ $layerm->fills }) {
+                        if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
+                            $gcode .= $gcodegen->extrude($_, 'fill') 
+                                for $fill->shortest_path($gcodegen->last_pos);
+                        } else {
+                            $gcode .= $gcodegen->extrude($fill, 'fill') ;
+                        }
                     }
                 }
             }
