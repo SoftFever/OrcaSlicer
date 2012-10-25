@@ -397,6 +397,12 @@ sub build {
         {
             title => 'Horizontal shells',
             options => [qw(solid_layers)],
+            lines => [
+                {
+                    label   => 'Solid layers',
+                    options => [qw(solid_layers)],
+                },
+            ],
         },
     ]);
     
@@ -722,7 +728,8 @@ sub append_optgroup {
     my $self = shift;
     my %params = @_;
     
-    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+    my $class = $params{class} || 'Slic3r::GUI::ConfigOptionsGroup';
+    my $optgroup = $class->new(
         parent      => $self,
         config      => $self->GetParent->{config},
         label_width => 200,

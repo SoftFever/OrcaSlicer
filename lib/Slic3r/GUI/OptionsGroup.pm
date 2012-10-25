@@ -44,6 +44,7 @@ Slic3r::GUI::OptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containing one
 has 'parent'        => (is => 'ro', required => 1);
 has 'title'         => (is => 'ro', required => 1);
 has 'options'       => (is => 'ro', required => 1, trigger => 1);
+has 'lines'         => (is => 'lazy');
 has 'on_change'     => (is => 'ro', default => sub { sub {} });
 has 'no_labels'     => (is => 'ro', default => sub { 0 });
 has 'label_width'   => (is => 'ro', default => sub { 180 });
@@ -66,87 +67,119 @@ sub BUILD {
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol($self->no_labels ? 0 : 1);
     
-    my $sidetext_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    
-    foreach my $opt (@{$self->options}) {
-        my $opt_key = $opt->{opt_key};
-        $self->_triggers->{$opt_key} = $opt->{on_change} || sub {};
-        
-        my $label;
-        if (!$self->no_labels) {
-            $label = Wx::StaticText->new($self->parent, -1, "$opt->{label}:", wxDefaultPosition, [$self->label_width, -1]);
-            $label->Wrap($self->label_width) ;  # needed to avoid Linux/GTK bug
-            $grid_sizer->Add($label, 0, wxALIGN_CENTER_VERTICAL, 0);
-        }
-        
-        my $field;
-        if ($opt->{type} =~ /^(i|f|s|s@)$/) {
-            my $style = 0;
-            $style = wxTE_MULTILINE if $opt->{multiline};
-            my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
-            
-            $field = $opt->{type} eq 'i'
-                ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default})
-                : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
-            $field->Disable if $opt->{readonly};
-            $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
-            
-            my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
-            $opt->{type} eq 'i'
-                ? EVT_SPINCTRL  ($self->parent, $field, $on_change)
-                : EVT_TEXT      ($self->parent, $field, $on_change);
-        } elsif ($opt->{type} eq 'bool') {
-            $field = Wx::CheckBox->new($self->parent, -1, "");
-            $field->SetValue($opt->{default});
-            EVT_CHECKBOX($self->parent, $field, sub { $self->_on_change($opt_key, $field->GetValue); });
-            $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
-        } elsif ($opt->{type} eq 'point') {
-            $field = Wx::BoxSizer->new(wxHORIZONTAL);
-            my $field_size = Wx::Size->new(40, -1);
-            my @items = (
-                Wx::StaticText->new($self->parent, -1, "x:"),
-                    my $x_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[0], wxDefaultPosition, $field_size),
-                Wx::StaticText->new($self->parent, -1, "  y:"),
-                    my $y_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[1], wxDefaultPosition, $field_size),
-            );
-            $field->Add($_, 0, wxALIGN_CENTER_VERTICAL, 0) for @items;
-            if ($opt->{tooltip}) {
-                $_->SetToolTipString($opt->{tooltip}) for @items;
-            }
-            EVT_TEXT($self->parent, $_, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) })
-                for $x_field, $y_field;
-            $self->_setters->{$opt_key} = sub {
-                $x_field->SetValue($_[0][0]);
-                $y_field->SetValue($_[0][1]);
-            };
-        } elsif ($opt->{type} eq 'select') {
-            $field = Wx::ComboBox->new($self->parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
-            EVT_COMBOBOX($self->parent, $field, sub {
-                $self->_on_change($opt_key, $opt->{values}[$field->GetSelection]);
-            });
-            $self->_setters->{$opt_key} = sub {
-                $field->SetSelection(grep $opt->{values}[$_] eq $_[0], 0..$#{$opt->{values}});
-            };
-            $self->_setters->{$opt_key}->($opt->{default});
-        } else {
-            die "Unsupported option type: " . $opt->{type};
-        }
-        $label->SetToolTipString($opt->{tooltip}) if $label && $opt->{tooltip};
-        $field->SetToolTipString($opt->{tooltip}) if $opt->{tooltip} && $field->can('SetToolTipString');
-        if ($opt->{sidetext}) {
-            my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-            $sizer->Add($field, 0, wxALIGN_CENTER_VERTICAL, 0);
-            my $sidetext = Wx::StaticText->new($self->parent, -1, $opt->{sidetext}, wxDefaultPosition, wxDefaultSize);
-            $sidetext->SetFont($sidetext_font);
-            $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
-            $grid_sizer->Add($sizer);
-        } else {
-            $grid_sizer->Add($field, 0, ($opt->{full_width} ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-        }
-    }
+    $self->{sidetext_font} = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    $self->_build_line($_, $grid_sizer) for @{$self->lines};
     
     # TODO: border size may be related to wxWidgets 2.8.x vs. 2.9.x instead of wxMAC specific
     $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
+}
+
+# default behavior: one option per line
+sub _build_lines {
+    my $self = shift;
+    
+    my $lines = [];
+    foreach my $opt (@{$self->options}) {
+        push @$lines, {
+            label       => $opt->{label},
+            sidetext    => $opt->{sidetext},
+            full_width  => $opt->{full_width},
+            options     => [$opt->{opt_key}],
+        };
+    }
+    return $lines;
+}
+
+sub _build_line {
+    my $self = shift;
+    my ($line, $grid_sizer) = @_;
+    
+    my $label;
+    if (!$self->no_labels) {
+        $label = Wx::StaticText->new($self->parent, -1, "$line->{label}:", wxDefaultPosition, [$self->label_width, -1]);
+        $label->Wrap($self->label_width) ;  # needed to avoid Linux/GTK bug
+        $grid_sizer->Add($label, 0, wxALIGN_CENTER_VERTICAL, 0);
+        $label->SetToolTipString($line->{tooltip}) if $line->{tooltip};
+    }
+    
+    my @fields = ();
+    foreach my $opt_key (@{$line->{options}}) {
+        my $opt = first { $_->{opt_key} eq $opt_key } @{$self->options};
+        push @fields, $self->_build_field($opt);
+    }
+    if (@fields > 1 || $line->{sidetext}) {
+        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $sizer->Add($_, 0, wxALIGN_CENTER_VERTICAL, 0) for @fields;
+        my $sidetext = Wx::StaticText->new($self->parent, -1, $line->{sidetext}, wxDefaultPosition, wxDefaultSize);
+        $sidetext->SetFont($self->{sidetext_font});
+        $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
+        $grid_sizer->Add($sizer);
+    } else {
+        $grid_sizer->Add($fields[0], 0, ($line->{full_width} ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+    }
+}
+
+sub _build_field {
+    my $self = shift;
+    my ($opt) = @_;
+    
+    my $opt_key = $opt->{opt_key};
+    $self->_triggers->{$opt_key} = $opt->{on_change} || sub {};
+    
+    my $field;
+    if ($opt->{type} =~ /^(i|f|s|s@)$/) {
+        my $style = 0;
+        $style = wxTE_MULTILINE if $opt->{multiline};
+        my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
+        
+        $field = $opt->{type} eq 'i'
+            ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default})
+            : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
+        $field->Disable if $opt->{readonly};
+        $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
+        
+        my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
+        $opt->{type} eq 'i'
+            ? EVT_SPINCTRL  ($self->parent, $field, $on_change)
+            : EVT_TEXT      ($self->parent, $field, $on_change);
+    } elsif ($opt->{type} eq 'bool') {
+        $field = Wx::CheckBox->new($self->parent, -1, "");
+        $field->SetValue($opt->{default});
+        EVT_CHECKBOX($self->parent, $field, sub { $self->_on_change($opt_key, $field->GetValue); });
+        $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
+    } elsif ($opt->{type} eq 'point') {
+        $field = Wx::BoxSizer->new(wxHORIZONTAL);
+        my $field_size = Wx::Size->new(40, -1);
+        my @items = (
+            Wx::StaticText->new($self->parent, -1, "x:"),
+                my $x_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[0], wxDefaultPosition, $field_size),
+            Wx::StaticText->new($self->parent, -1, "  y:"),
+                my $y_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[1], wxDefaultPosition, $field_size),
+        );
+        $field->Add($_, 0, wxALIGN_CENTER_VERTICAL, 0) for @items;
+        if ($opt->{tooltip}) {
+            $_->SetToolTipString($opt->{tooltip}) for @items;
+        }
+        EVT_TEXT($self->parent, $_, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) })
+            for $x_field, $y_field;
+        $self->_setters->{$opt_key} = sub {
+            $x_field->SetValue($_[0][0]);
+            $y_field->SetValue($_[0][1]);
+        };
+    } elsif ($opt->{type} eq 'select') {
+        $field = Wx::ComboBox->new($self->parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
+        EVT_COMBOBOX($self->parent, $field, sub {
+            $self->_on_change($opt_key, $opt->{values}[$field->GetSelection]);
+        });
+        $self->_setters->{$opt_key} = sub {
+            $field->SetSelection(grep $opt->{values}[$_] eq $_[0], 0..$#{$opt->{values}});
+        };
+        $self->_setters->{$opt_key}->($opt->{default});
+    } else {
+        die "Unsupported option type: " . $opt->{type};
+    }
+    $field->SetToolTipString($opt->{tooltip}) if $opt->{tooltip} && $field->can('SetToolTipString');
+    return $field;
 }
 
 sub _option {
