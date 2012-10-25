@@ -424,8 +424,22 @@ our $Options = {
     },
     'solid_layers' => {
         label   => 'Solid layers',
-        tooltip => 'Number of solid layers to generate on top and bottom.',
+        tooltip => 'Number of solid layers to generate on top and bottom surfaces.',
         cli     => 'solid-layers=i',
+        type    => 'i',
+        shortcut => [qw(top_solid_layers bottom_solid_layers)],
+    },
+    'top_solid_layers' => {
+        label   => 'Top',
+        tooltip => 'Number of solid layers to generate on top surfaces.',
+        cli     => 'top-solid-layers=i',
+        type    => 'i',
+        default => 3,
+    },
+    'bottom_solid_layers' => {
+        label   => 'Bottom',
+        tooltip => 'Number of solid layers to generate on bottom surfaces.',
+        cli     => 'bottom-solid-layers=i',
         type    => 'i',
         default => 3,
     },
@@ -867,7 +881,11 @@ sub new {
 sub new_from_defaults {
     my $class = shift;
     my @opt_keys = 
-    return $class->new(map { $_ => $Options->{$_}{default} } (@_ ? @_ : keys %$Options));
+    return $class->new(
+        map { $_ => $Options->{$_}{default} }
+            grep !$Options->{$_}{shortcut},
+            (@_ ? @_ : keys %$Options)
+    );
 }
 
 sub new_from_cli {
@@ -972,6 +990,10 @@ sub set {
         if $deserialize && $Options->{$opt_key}{deserialize};
     
     $self->{$opt_key} = $value;
+    
+    if ($Options->{$opt_key}{shortcut}) {
+        $self->set($_, $value, $deserialize) for @{$Options->{$opt_key}{shortcut}};
+    }
 }
 
 sub set_ifndef {
@@ -1003,6 +1025,7 @@ sub save {
     
     my $ini = { _ => {} };
     foreach my $opt_key (sort keys %$self) {
+        next if $Options->{$opt_key}{shortcut};
         next if $Options->{$opt_key}{gui_only};
         $ini->{_}{$opt_key} = $self->serialize($opt_key);
     }
@@ -1055,8 +1078,9 @@ sub validate {
         if $self->perimeters < 0;
     
     # --solid-layers
-    die "Invalid value for --solid-layers\n"
-        if $self->solid_layers < 0;
+    die "Invalid value for --solid-layers\n" if defined $self->solid_layers && $self->solid_layers < 0;
+    die "Invalid value for --top-solid-layers\n"    if $self->top_solid_layers      < 0;
+    die "Invalid value for --bottom-solid-layers\n" if $self->bottom_solid_layers   < 0;
     
     # --print-center
     die "Invalid value for --print-center\n"

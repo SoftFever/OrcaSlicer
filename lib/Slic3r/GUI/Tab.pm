@@ -396,11 +396,11 @@ sub build {
         },
         {
             title => 'Horizontal shells',
-            options => [qw(solid_layers)],
+            options => [qw(top_solid_layers bottom_solid_layers)],
             lines => [
                 {
                     label   => 'Solid layers',
-                    options => [qw(solid_layers)],
+                    options => [qw(top_solid_layers bottom_solid_layers)],
                 },
             ],
         },

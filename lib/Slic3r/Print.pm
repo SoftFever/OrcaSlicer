@@ -54,6 +54,8 @@ sub _trigger_config {
     $self->config->set_ifndef('bridge_speed',           $self->config->infill_speed);
     $self->config->set_ifndef('solid_infill_speed',     $self->config->infill_speed);
     $self->config->set_ifndef('top_solid_infill_speed', $self->config->solid_infill_speed);
+    $self->config->set_ifndef('top_solid_layers',       $self->config->solid_layers);
+    $self->config->set_ifndef('bottom_solid_layers',    $self->config->solid_layers);
     
     # G-code flavors
     $self->config->set('extrusion_axis', 'A') if $self->config->gcode_flavor eq 'mach3';
@@ -629,7 +631,7 @@ sub write_gcode {
     print $fh "; $_\n" foreach split /\R/, $Slic3r::Config->notes;
     print $fh "\n" if $Slic3r::Config->notes;
     
-    for (qw(layer_height perimeters solid_layers fill_density perimeter_speed infill_speed travel_speed scale)) {
+    for (qw(layer_height perimeters top_solid_layers bottom_solid_layers fill_density perimeter_speed infill_speed travel_speed scale)) {
         printf $fh "; %s = %s\n", $_, $Slic3r::Config->$_;
     }
     for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {

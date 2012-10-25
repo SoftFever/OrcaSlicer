@@ -103,16 +103,27 @@ sub _build_line {
     }
     
     my @fields = ();
+    my @field_labels = ();
     foreach my $opt_key (@{$line->{options}}) {
         my $opt = first { $_->{opt_key} eq $opt_key } @{$self->options};
         push @fields, $self->_build_field($opt);
+        push @field_labels, $opt->{label};
     }
     if (@fields > 1 || $line->{sidetext}) {
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $sizer->Add($_, 0, wxALIGN_CENTER_VERTICAL, 0) for @fields;
-        my $sidetext = Wx::StaticText->new($self->parent, -1, $line->{sidetext}, wxDefaultPosition, wxDefaultSize);
-        $sidetext->SetFont($self->{sidetext_font});
-        $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
+        for my $i (0 .. $#fields) {
+            if (@fields > 1) {
+                my $field_label = Wx::StaticText->new($self->parent, -1, "$field_labels[$i]:", wxDefaultPosition, wxDefaultSize);
+                $field_label->SetFont($self->{sidetext_font});
+                $sizer->Add($field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
+            }
+            $sizer->Add($fields[$i], 0, wxALIGN_CENTER_VERTICAL, 0);
+        }
+        if ($line->{sidetext}) {
+            my $sidetext = Wx::StaticText->new($self->parent, -1, $line->{sidetext}, wxDefaultPosition, wxDefaultSize);
+            $sidetext->SetFont($self->{sidetext_font});
+            $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
+        }
         $grid_sizer->Add($sizer);
     } else {
         $grid_sizer->Add($fields[0], 0, ($line->{full_width} ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);

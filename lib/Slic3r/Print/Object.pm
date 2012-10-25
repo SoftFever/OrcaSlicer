@@ -344,8 +344,9 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
                     $i, scalar(@surfaces), ($type == S_TYPE_TOP ? 'top' : 'bottom');
                 
+                my $solid_layers = S_TYPE_TOP ? $Slic3r::Config->top_solid_layers : $Slic3r::Config->bottom_solid_layers;
                 for (my $n = $type == S_TYPE_TOP ? $i-1 : $i+1; 
-                        abs($n - $i) <= $Slic3r::Config->solid_layers-1; 
+                        abs($n - $i) <= $solid_layers-1; 
                         $type == S_TYPE_TOP ? $n-- : $n++) {
                     
                     next if $n < 0 || $n >= $self->layer_count;
