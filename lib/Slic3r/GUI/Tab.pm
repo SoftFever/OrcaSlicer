@@ -462,6 +462,13 @@ sub build {
         {
             title => 'Sequential printing',
             options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
+            lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('complete_objects'),
+                {
+                    label   => 'Extruder clearance (mm)',
+                    options => [qw(extruder_clearance_radius extruder_clearance_height)],
+                },
+            ],
         },
         {
             title => 'Output file',
@@ -515,8 +522,18 @@ sub build {
             options => ['filament_diameter#0', 'extrusion_multiplier#0'],
         },
         {
-            title => 'Temperature',
+            title => 'Temperature (°C)',
             options => ['temperature#0', 'first_layer_temperature#0', qw(bed_temperature first_layer_bed_temperature)],
+            lines => [
+                {
+                    label   => 'Extruder',
+                    options => ['first_layer_temperature#0', 'temperature#0'],
+                },
+                {
+                    label   => 'Bed',
+                    options => [qw(first_layer_bed_temperature bed_temperature)],
+                },
+            ],
         },
     ]);
     
@@ -528,6 +545,14 @@ sub build {
         {
             title => 'Fan settings',
             options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on)],
+            lines => [
+                {
+                    label   => 'Fan speed',
+                    options => [qw(min_fan_speed max_fan_speed bridge_fan_speed)],
+                },
+                Slic3r::GUI::OptionsGroup->single_option_line('disable_fan_first_layers'),
+                Slic3r::GUI::OptionsGroup->single_option_line('fan_always_on'),
+            ],
         },
         {
             title => 'Cooling thresholds',

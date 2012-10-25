@@ -90,6 +90,17 @@ sub _build_lines {
     return $lines;
 }
 
+sub single_option_line {
+    my $class = shift;
+    my ($opt_key) = @_;
+    
+    return {
+        label       => $Slic3r::Config::Options->{$opt_key}{label},
+        sidetext    => $Slic3r::Config::Options->{$opt_key}{sidetext},
+        options     => [$opt_key],
+    };
+}
+
 sub _build_line {
     my $self = shift;
     my ($line, $grid_sizer) = @_;
@@ -112,7 +123,7 @@ sub _build_line {
     if (@fields > 1 || $line->{sidetext}) {
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         for my $i (0 .. $#fields) {
-            if (@fields > 1) {
+            if (@fields > 1 && $field_labels[$i]) {
                 my $field_label = Wx::StaticText->new($self->parent, -1, "$field_labels[$i]:", wxDefaultPosition, wxDefaultSize);
                 $field_label->SetFont($self->{sidetext_font});
                 $sizer->Add($field_label, 0, wxALIGN_CENTER_VERTICAL, 0);

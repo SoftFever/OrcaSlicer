@@ -155,7 +155,7 @@ our $Options = {
         default => [1],
     },
     'temperature' => {
-        label   => 'Temperature',
+        label   => 'Other layers',
         tooltip => 'Extruder temperature for layers after the first one. Set this to zero to disable temperature control commands in the output.',
         sidetext => '°C',
         cli     => 'temperature=i@',
@@ -166,7 +166,7 @@ our $Options = {
         default => [200],
     },
     'first_layer_temperature' => {
-        label   => 'First layer temperature',
+        label   => 'First layer',
         tooltip => 'Extruder temperature for first layer. If you want to control temperature manually during print, set this to zero to disable temperature control commands in the output file.',
         sidetext => '°C',
         cli     => 'first-layer-temperature=i@',
@@ -203,7 +203,7 @@ our $Options = {
     
     # filament options
     'first_layer_bed_temperature' => {
-        label   => 'First layer bed temperature',
+        label   => 'First layer',
         tooltip => 'Heated build plate temperature for the first layer. Set this to zero to disable bed temperature control commands in the output.',
         sidetext => '°C',
         cli     => 'first-layer-bed-temperature=i',
@@ -212,7 +212,7 @@ our $Options = {
         default => 0,
     },
     'bed_temperature' => {
-        label   => 'Bed Temperature',
+        label   => 'Other layers',
         tooltip => 'Bed temperature for layers after the first one. Set this to zero to disable bed temperature control commands in the output.',
         sidetext => '°C',
         cli     => 'bed-temperature=i',
@@ -680,7 +680,7 @@ END
         default => 0,
     },
     'min_fan_speed' => {
-        label   => 'Min fan speed',
+        label   => 'Min',
         tooltip => 'This setting represents the minimum PWM your fan needs to work.',
         sidetext => '%',
         cli     => 'min-fan-speed=i',
@@ -689,7 +689,7 @@ END
         default => 35,
     },
     'max_fan_speed' => {
-        label   => 'Max fan speed',
+        label   => 'Max',
         tooltip => 'This setting represents the maximum speed of your fan.',
         sidetext => '%',
         cli     => 'max-fan-speed=i',
@@ -698,7 +698,7 @@ END
         default => 100,
     },
     'bridge_fan_speed' => {
-        label   => 'Bridge fan speed',
+        label   => 'Bridges',
         tooltip => 'This fan speed is enforced during all bridges.',
         sidetext => '%',
         cli     => 'bridge-fan-speed=i',
@@ -844,7 +844,7 @@ END
         default => 0,
     },
     'extruder_clearance_radius' => {
-        label   => 'Extruder clearance radius',
+        label   => 'Radius',
         tooltip => 'Set this to the clearance radius around your extruder. If the extruder is not centered, choose the largest value for safety. This setting is used to check for collisions and to display the graphical preview in the plater.',
         sidetext => 'mm',
         cli     => 'extruder-clearance-radius=f',
@@ -852,7 +852,7 @@ END
         default => 20,
     },
     'extruder_clearance_height' => {
-        label   => 'Extruder clearance height',
+        label   => 'Height',
         tooltip => 'Set this to the vertical distance between your nozzle tip and (usually) the X carriage rods. In other words, this is the height of the clearance cylinder around your extruder, and it represents the maximum depth the extruder can peek before colliding with other printed objects.',
         sidetext => 'mm',
         cli     => 'extruder-clearance-height=f',
