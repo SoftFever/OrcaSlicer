@@ -374,7 +374,7 @@ sub set_extruder {
     my ($extruder) = @_;
     
     # return nothing if this extruder was already selected
-    return "" if (defined $self->extruder) && ($self->extruder->id == $extruder);
+    return "" if (defined $self->extruder) && ($self->extruder->id == $extruder->id);
     
     # if we are running a single-extruder setup, just set the extruder and return nothing
     if (!$self->multiple_extruders) {
