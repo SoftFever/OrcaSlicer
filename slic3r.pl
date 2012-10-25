@@ -206,8 +206,9 @@ $j
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 0+, default: $config->{perimeters})
-    --solid-layers      Number of solid layers to do for top/bottom surfaces
-                        (range: 1+, default: $config->{solid_layers})
+    --top-solid-layers  Number of solid layers to do for top surfaces (range: 0+, default: $config->{top_solid_layers})
+    --bottom-solid-layers  Number of solid layers to do for bottom surfaces (range: 0+, default: $config->{bottom_solid_layers})
+    --solid-layers      Shortcut for setting the two options above at once
     --fill-density      Infill density (range: 0-1, default: $config->{fill_density})
     --fill-angle        Infill angle in degrees (range: 0-90, default: $config->{fill_angle})
     --fill-pattern      Pattern to use to fill non-solid layers (default: $config->{fill_pattern})

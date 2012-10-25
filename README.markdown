@@ -158,8 +158,9 @@ The author of the Silk icon set is Mark James.
     
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 0+, default: 3)
-        --solid-layers      Number of solid layers to do for top/bottom surfaces
-                            (range: 1+, default: 3)
+        --top-solid-layers  Number of solid layers to do for top surfaces (range: 0+, default: 3)
+        --bottom-solid-layers  Number of solid layers to do for bottom surfaces (range: 0+, default: 3)
+        --solid-layers      Shortcut for setting the two options above at once
         --fill-density      Infill density (range: 0-1, default: 0.4)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 45)
         --fill-pattern      Pattern to use to fill non-solid layers (default: rectilinear)
