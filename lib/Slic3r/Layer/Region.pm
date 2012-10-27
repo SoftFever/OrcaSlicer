@@ -234,7 +234,7 @@ sub make_perimeters {
                     map $_->noncollapsing_offset_ex(-0.5*$flow->scaled_width),
                     @gaps;
                 
-                if (0) {
+                if (0) {  # remember to re-enable t/dynamic.t
                     # fill gaps using dynamic extrusion width, by treating them like thin polygons,
                     # thus generating the skeleton and using it to fill them
                     my %path_args = (
