@@ -1154,7 +1154,7 @@ sub rotated_size {
 }
 
 package Slic3r::GUI::Plater::ObjectInfoDialog;
-use Wx qw(:dialog :id :misc :sizer :propgrid :systemsettings);
+use Wx qw(:dialog :id :misc :sizer :systemsettings);
 use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
 use base 'Wx::Dialog';
 
