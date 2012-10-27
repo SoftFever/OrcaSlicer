@@ -489,13 +489,18 @@ sub split_object {
     # thumbnail thread returns)
     $self->remove($obj_idx);
     
+    # create a bogus Model object, we only need to instantiate the new Model::Object objects
+    my $new_model = Slic3r::Model->new;
+    
     foreach my $mesh (@new_meshes) {
         my @extents = $mesh->extents;
+        my $model_object = $new_model->add_object(vertices => $mesh->vertices);
+        $model_object->add_volume(facets => $mesh->facets);
         my $object = Slic3r::GUI::Plater::Object->new(
             name                    => basename($current_object->input_file),
             input_file              => $current_object->input_file,
             input_file_object_id    => undef,
-            mesh                    => $mesh,
+            model_object            => $model_object,
             instances               => [ map [$extents[X][MIN], $extents[Y][MIN]], 1..$current_copies_num ],
         );
         push @{ $self->{objects} }, $object;
