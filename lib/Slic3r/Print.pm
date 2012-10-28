@@ -637,8 +637,11 @@ sub write_gcode {
     for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {
         printf $fh "; %s = %s\n", $_, $Slic3r::Config->$_->[0];
     }
-    printf $fh "; single wall width = %.2fmm\n", $Slic3r::flow->width;
-    printf $fh "; first layer single wall width = %.2fmm\n", $Slic3r::first_layer_flow->width
+    printf $fh "; perimeters extrusion width = %.2fmm\n", $self->regions->[0]->flows->{perimeter}->width;
+    printf $fh "; infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{infill}->width;
+    printf $fh "; support material extrusion width = %.2fmm\n", $self->support_material_flow->width
+        if $self->support_material_flow;
+    printf $fh "; first layer extrusion width = %.2fmm\n", $Slic3r::first_layer_flow->width
         if $Slic3r::first_layer_flow;
     print  $fh "\n";
     
