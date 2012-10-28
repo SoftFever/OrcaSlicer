@@ -279,7 +279,7 @@ sub make_perimeters {
                             map Slic3r::ExtrusionPath->pack(
                                 polyline        => Slic3r::Polyline->new(@$_),
                                 role            => EXTR_ROLE_SOLIDFILL,
-                                depth_layers    => 1,
+                                height          => $self->height,
                                 flow_spacing    => $params->{flow_spacing},
                             ), @paths;
                     }

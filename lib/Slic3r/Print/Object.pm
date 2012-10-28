@@ -579,7 +579,7 @@ sub generate_support_material {
                     map Slic3r::ExtrusionPath->new(
                         polyline        => Slic3r::Polyline->new(@$_),
                         role            => EXTR_ROLE_SUPPORTMATERIAL,
-                        depth_layers    => 1,
+                        height          => undef,
                         flow_spacing    => $params->{flow_spacing},
                     ), @paths;
             }

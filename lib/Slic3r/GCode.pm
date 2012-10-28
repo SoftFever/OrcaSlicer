@@ -149,7 +149,7 @@ sub extrude_path {
         $area = ($s**2) * PI/4;
     } else {
         my $s = $path->flow_spacing || ($self->layer ? $self->layer->flow->spacing : $Slic3r::flow->spacing);
-        my $h = $path->depth_layers * $self->layer->height;
+        my $h = $path->height // $self->layer->height;
         $area = $self->extruder->mm3_per_mm($s, $h);
     }
     
