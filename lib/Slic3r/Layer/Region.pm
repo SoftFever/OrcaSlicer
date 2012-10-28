@@ -48,8 +48,19 @@ has 'perimeters' => (is => 'rw', default => sub { [] });
 # ordered collection of extrusion paths to fill surfaces
 has 'fills' => (is => 'rw', default => sub { [] });
 
+sub BUILD {
+    my $self = shift;
+    $self->_update_flows;
+}
+
 sub _trigger_layer {
     my $self = shift;
+    $self->_update_flows;
+}
+
+sub _update_flows {
+    my $self = shift;
+    return if !$self->region;
     
     $self->perimeter_flow($self->id == 0
         ? $self->region->first_layer_flows->{perimeter}
