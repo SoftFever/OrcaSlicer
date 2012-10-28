@@ -112,7 +112,7 @@ sub extrude_loop {
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width * 0.15);
+    $extrusion_path->clip_end($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_WIDTH);
     return '' if !@{$extrusion_path->polyline};
     
     # extrude along the path
