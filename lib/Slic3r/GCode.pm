@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y);
+use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y A B);
 
 has 'multiple_extruders' => (is => 'ro', default => sub {0} );
 has 'layer'              => (is => 'rw');  # this is not very correct, we should replace it with explicit layer_id and avoid using $self->layer->flow at all here because it's too general
@@ -20,6 +20,7 @@ has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_speed'         => (is => 'rw', default => sub {""});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
+has 'last_path'          => (is => 'rw');
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # calculate speeds (mm/min)
@@ -142,6 +143,16 @@ sub extrude_path {
         my $travel = Slic3r::Line->new($self->last_pos, $path->points->[0]);
         if ($travel->length >= scale $self->extruder->retract_before_travel) {
             if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
+                if ($self->last_path && $self->last_path->role == &EXTR_ROLE_EXTERNAL_PERIMETER) {
+                    my @lines = $self->last_path->lines;
+                    my $last_line = $lines[-1];
+                    if (points_coincide($last_line->[B], $self->last_pos)) {
+                        my $point = Slic3r::Geometry::point_along_segment(@$last_line, $last_line->length + scale $self->layer->flow->spacing);
+                        bless $point, 'Slic3r::Point';
+                        $point->rotate(PI/4, $last_line->[B]);
+                        $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
+                    }
+                }
                 $gcode .= $self->retract(travel_to => $path->points->[0]);
             }
         }
@@ -191,6 +202,8 @@ sub extrude_path {
         }
         $self->elapsed_time($self->elapsed_time + $path_time);
     }
+    
+    $self->last_path($path);
     
     return $gcode;
 }
