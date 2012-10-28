@@ -3,7 +3,7 @@ use Moo;
 
 use Slic3r::Geometry::Clipper qw(union_ex);
 
-has 'id'                => (is => 'rw', required => 1); # sequential number of layer, 0-based
+has 'id'                => (is => 'rw', required => 1, trigger => 1); # sequential number of layer, 0-based
 has 'object'            => (is => 'ro', weak_ref => 1, required => 1);
 has 'regions'           => (is => 'ro', default => sub { [] });
 has 'slicing_errors'    => (is => 'rw');
@@ -19,6 +19,11 @@ has 'slices'            => (is => 'rw');
 
 # ordered collection of extrusion paths to fill surfaces for support material
 has 'support_fills'     => (is => 'rw');
+
+sub _trigger_id {
+    my $self = shift;
+    $_->_trigger_layer for @{$self->regions || []};
+}
 
 # Z used for slicing
 sub _build_slice_z {
