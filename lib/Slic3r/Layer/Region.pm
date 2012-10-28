@@ -196,7 +196,7 @@ sub make_perimeters {
         
         # generate perimeters inwards (loop 0 is the external one)
         my $loop_number = $Slic3r::Config->perimeters + ($surface->additional_inner_perimeters || 0);
-        push @perimeters, [[@last_offsets]];
+        push @perimeters, [[@last_offsets]] if $loop_number > 0;
         for (my $loop = 1; $loop < $loop_number; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
             my @new_offsets = ();
