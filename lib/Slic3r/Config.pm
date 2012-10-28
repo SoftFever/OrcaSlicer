@@ -1165,13 +1165,21 @@ sub replace_options {
     $string =~ s/\[version\]/$Slic3r::VERSION/eg;
     
     # build a regexp to match the available options
-    my $options = join '|',
-        grep !$Slic3r::Config::Options->{$_}{multiline},
+    my @options = grep !$Slic3r::Config::Options->{$_}{multiline},
         grep $self->has($_),
         keys %{$Slic3r::Config::Options};
+    my $options_regex = join '|', @options;
     
     # use that regexp to search and replace option names with option values
-    $string =~ s/\[($options)\]/$self->serialize($1)/eg;
+    $string =~ s/\[($options_regex)\]/$self->serialize($1)/eg;
+    foreach my $opt_key (grep ref $self->$_ eq 'ARRAY', @options) {
+        my $value = $self->$opt_key;
+        $string =~ s/\[${opt_key}_${_}\]/$value->[$_]/eg for 0 .. $#$value;
+        if ($Options->{$opt_key}{type} eq 'point') {
+            $string =~ s/\[${opt_key}_X\]/$value->[0]/eg;
+            $string =~ s/\[${opt_key}_Y\]/$value->[1]/eg;
+        }
+    }
     return $string;
 }
 
