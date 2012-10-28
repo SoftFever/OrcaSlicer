@@ -709,6 +709,8 @@ sub write_gcode {
         if ($skirt_done < $Slic3r::Config->skirt_height) {
             $gcodegen->shift_x($shift[X]);
             $gcodegen->shift_y($shift[Y]);
+            $gcode .= $gcodegen->set_extruder($self->extruders->[0]);  # move_z requires extruder
+            $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
             $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
             # skip skirt if we have a large brim
             if ($layer_id < $Slic3r::Config->skirt_height) {
@@ -723,6 +725,7 @@ sub write_gcode {
         
         # extrude brim
         if ($layer_id == 0 && !$brim_done) {
+            $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
             $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
             $gcodegen->shift_x($shift[X]);
             $gcodegen->shift_y($shift[Y]);

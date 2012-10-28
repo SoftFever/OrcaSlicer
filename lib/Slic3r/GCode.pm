@@ -9,7 +9,7 @@ has 'multiple_extruders' => (is => 'ro', default => sub {0} );
 has 'layer'              => (is => 'rw');  # this is not very correct, we should replace it with explicit layer_id and avoid using $self->layer->flow at all here because it's too general
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
-has 'z'                  => (is => 'rw', default => sub {0} );
+has 'z'                  => (is => 'rw');
 has 'speed'              => (is => 'rw');
 
 has 'extruder'           => (is => 'rw');
@@ -76,7 +76,7 @@ sub move_z {
     my $gcode = "";
     $gcode .= $self->retract(move_z => $z);
     $gcode .= $self->G0(undef, $z, 0, $comment || 'move to next layer (' . $self->layer->id . ')')
-        if $self->z != $z && !$self->lifted;
+        if (!defined $self->z || $self->z != $z) && !$self->lifted;
     
     return $gcode;
 }
@@ -319,7 +319,7 @@ sub _G0_G1 {
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
         $self->last_pos($point);
     }
-    if (defined $z && $z != $self->z) {
+    if (defined $z && (!defined $self->z || $z != $self->z)) {
         $self->z($z);
         $gcode .= sprintf " Z%.${dec}f", $z;
     }
