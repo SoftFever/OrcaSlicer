@@ -541,6 +541,13 @@ sub build {
         {
             title => 'Enable',
             options => [qw(cooling)],
+            lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('cooling'),
+                {
+                    label => '',
+                    widget => ($self->{description_line} = Slic3r::GUI::OptionsGroup::StaticTextLine->new),
+                },
+            ],
         },
         {
             title => 'Fan settings',
@@ -548,8 +555,9 @@ sub build {
             lines => [
                 {
                     label   => 'Fan speed',
-                    options => [qw(min_fan_speed max_fan_speed bridge_fan_speed)],
+                    options => [qw(min_fan_speed max_fan_speed)],
                 },
+                Slic3r::GUI::OptionsGroup->single_option_line('bridge_fan_speed'),
                 Slic3r::GUI::OptionsGroup->single_option_line('disable_fan_first_layers'),
                 Slic3r::GUI::OptionsGroup->single_option_line('fan_always_on'),
             ],
@@ -560,6 +568,36 @@ sub build {
             options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
         },
     ]);
+}
+
+sub _update_description {
+    my $self = shift;
+    
+    my $config = $self->config;
+    
+    my $msg = "";
+    if ($config->cooling) {
+        $msg = sprintf "If estimated layer time is below ~%ds, fan will run at 100%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
+            $config->slowdown_below_layer_time, $config->slowdown_below_layer_time, $config->min_print_speed;
+        if ($config->fan_below_layer_time > $config->slowdown_below_layer_time) {
+            $msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
+                $config->fan_below_layer_time, $config->max_fan_speed, $config->min_fan_speed;
+        }
+        if ($config->fan_always_on) {
+            $msg .= sprintf "\nDuring the other layers, fan will always run at %d%%.", $config->min_fan_speed;
+        } else {
+            $msg .= "\nDuring the other layers, fan will be turned off."
+        }
+    }
+    $self->{description_line}->SetText($msg);
+}
+
+sub on_value_change {
+    my $self = shift;
+    my ($opt_key) = @_;
+    $self->SUPER::on_value_change(@_);
+    
+    $self->_update_description;
 }
 
 package Slic3r::GUI::Tab::Printer;

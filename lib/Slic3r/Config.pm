@@ -698,7 +698,7 @@ END
         default => 100,
     },
     'bridge_fan_speed' => {
-        label   => 'Bridges',
+        label   => 'Bridges fan speed',
         tooltip => 'This fan speed is enforced during all bridges.',
         sidetext => '%',
         cli     => 'bridge-fan-speed=i',

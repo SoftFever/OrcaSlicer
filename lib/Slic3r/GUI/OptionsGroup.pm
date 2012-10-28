@@ -67,11 +67,19 @@ sub BUILD {
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol($self->no_labels ? 0 : 1);
     
-    $self->{sidetext_font} = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $self->_build_line($_, $grid_sizer) for @{$self->lines};
-    
     # TODO: border size may be related to wxWidgets 2.8.x vs. 2.9.x instead of wxMAC specific
     $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
+    
+    $self->{sidetext_font} = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    
+    foreach my $line (@{$self->lines}) {
+        if ($line->{widget}) {
+            my $window = $line->{widget}->GetWindow($self->parent);
+            $self->sizer->Add($window, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
+        } else {
+            $self->_build_line($line, $grid_sizer);
+        }
+    }
 }
 
 # default behavior: one option per line
@@ -107,7 +115,7 @@ sub _build_line {
     
     my $label;
     if (!$self->no_labels) {
-        $label = Wx::StaticText->new($self->parent, -1, "$line->{label}:", wxDefaultPosition, [$self->label_width, -1]);
+        $label = Wx::StaticText->new($self->parent, -1, $line->{label} ? "$line->{label}:" : "", wxDefaultPosition, [$self->label_width, -1]);
         $label->Wrap($self->label_width) ;  # needed to avoid Linux/GTK bug
         $grid_sizer->Add($label, 0, wxALIGN_CENTER_VERTICAL, 0);
         $label->SetToolTipString($line->{tooltip}) if $line->{tooltip};
@@ -361,6 +369,29 @@ sub _config_methods {
     return ($Slic3r::Config::Options->{$opt_key}{type} =~ /\@$/ && !defined $index)
         ? qw(serialize 1)
         : qw(get 0);
+}
+
+package Slic3r::GUI::OptionsGroup::StaticTextLine;
+use Moo;
+use Wx qw(:misc :systemsettings);
+
+sub GetWindow {
+    my $self = shift;
+    my ($parent) = @_;
+    
+    $self->{statictext} = Wx::StaticText->new($parent, -1, "foo", wxDefaultPosition, wxDefaultSize);
+    my $font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    $self->{statictext}->SetFont($font);
+    return $self->{statictext};
+}
+
+sub SetText {
+    my $self = shift;
+    my ($value) = @_;
+    
+    $self->{statictext}->SetLabel($value);
+    $self->{statictext}->Wrap(400);
+    $self->{statictext}->GetParent->Layout;
 }
 
 1;
