@@ -18,14 +18,15 @@ has 'flow'              => (is => 'ro', default => sub { $Slic3r::flow });
 has 'slices'            => (is => 'rw');
 
 # ordered collection of extrusion paths to fill surfaces for support material
-has 'support_fills'     => (is => 'rw');
+has 'support_fills'             => (is => 'rw');
+has 'support_interface_fills'   => (is => 'rw');
 
 sub _trigger_id {
     my $self = shift;
     $_->_trigger_layer for @{$self->regions || []};
 }
 
-# Z used for slicing
+# Z used for slicing in scaled coordinates
 sub _build_slice_z {
     my $self = shift;
     
@@ -36,15 +37,35 @@ sub _build_slice_z {
         / &Slic3r::SCALING_FACTOR;  #/
 }
 
-# Z used for printing
+# Z used for printing in scaled coordinates
 sub _build_print_z {
     my $self = shift;
     return ($Slic3r::Config->get_value('first_layer_height') + ($self->id * $Slic3r::Config->layer_height)) / &Slic3r::SCALING_FACTOR;
 }
 
+# layer height in unscaled coordinates
 sub _build_height {
     my $self = shift;
     return $self->id == 0 ? $Slic3r::Config->get_value('first_layer_height') : $Slic3r::Config->layer_height;
+}
+
+# layer height of interface paths in unscaled coordinates
+sub support_material_interface_height {
+    my $self = shift;
+    
+    return $self->height if $self->id == 0;
+    
+    # this is not very correct because:
+    # - we should sum our height with the actual upper layers height (which might be different)
+    # - we should use the actual flow of the upper layer bridges, not the default one
+    # ...but we're close enough for now
+    return 2*$self->height - $self->flow->nozzle_diameter;
+}
+
+# Z used for printing support material interface in scaled coordinates
+sub support_material_interface_z {
+    my $self = shift;
+    return $self->print_z - ($self->height - $self->support_material_interface_height) / &Slic3r::SCALING_FACTOR;
 }
 
 sub region {

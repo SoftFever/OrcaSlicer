@@ -702,8 +702,8 @@ sub write_gcode {
                 if $Slic3r::Config->bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
         }
         
-        # go to layer (just use the first one, we only need Z from it)
-        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
+        # set new layer, but don't move Z as support material interfaces may need an intermediate one
+        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id], dont_move_z => 1);
         $gcodegen->elapsed_time(0);
         
         # extrude skirt
@@ -742,6 +742,23 @@ sub write_gcode {
             $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
             $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
             
+            # extrude support material before other things because it might use a lower Z
+            # and also because we avoid travelling on other things when printing it
+            if ($Slic3r::Config->support_material) {
+                $gcode .= $gcodegen->move_z($layer->support_material_interface_z)
+                    if @{ $layer->support_interface_fills->paths };
+                $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
+                $gcode .= $gcodegen->extrude_path($_, 'support material interface') 
+                    for $layer->support_interface_fills->shortest_path($gcodegen->last_pos);
+                
+                $gcode .= $gcodegen->move_z($layer->print_z);
+                $gcode .= $gcodegen->extrude_path($_, 'support material') 
+                    for $layer->support_fills->shortest_path($gcodegen->last_pos);
+            }
+            
+            # set actual Z
+            $gcode .= $gcodegen->move_z($layer->print_z);
+            
             foreach my $region_id (0 .. ($self->regions_count-1)) {
                 my $layerm = $layer->regions->[$region_id];
                 my $region = $self->regions->[$region_id];
@@ -765,13 +782,6 @@ sub write_gcode {
                         }
                     }
                 }
-            }
-                
-            # extrude support material
-            if ($layer->support_fills) {
-                $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
-                $gcode .= $gcodegen->extrude_path($_, 'support material') 
-                    for $layer->support_fills->shortest_path($gcodegen->last_pos);
             }
         }
         return if !$gcode;

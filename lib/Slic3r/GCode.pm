@@ -6,7 +6,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y);
 
 has 'multiple_extruders' => (is => 'ro', default => sub {0} );
-has 'layer'              => (is => 'rw');
+has 'layer'              => (is => 'rw');  # this is not very correct, we should replace it with explicit layer_id and avoid using $self->layer->flow at all here because it's too general
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw', default => sub {0} );
@@ -52,19 +52,30 @@ my %role_speeds = (
 
 sub change_layer {
     my $self = shift;
-    my ($layer) = @_;
+    my ($layer, %params) = @_;
     
     $self->layer($layer);
-    my $z = $Slic3r::Config->z_offset + $layer->print_z * &Slic3r::SCALING_FACTOR;
     
     my $gcode = "";
-    
-    $gcode .= $self->retract(move_z => $z);
-    $gcode .= $self->G0(undef, $z, 0, 'move to next layer (' . $layer->id . ')')
-        if $self->z != $z && !$self->lifted;
+    $gcode .= $self->move_z($layer->print_z) unless $params{dont_move_z};
     
     $gcode .= $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
         if $Slic3r::Config->layer_gcode;
+    
+    return $gcode;
+}
+
+# this method accepts Z in scaled coordinates
+sub move_z {
+    my $self = shift;
+    my ($z, $comment) = @_;
+    
+    $z = $Slic3r::Config->z_offset + $z * &Slic3r::SCALING_FACTOR;
+    
+    my $gcode = "";
+    $gcode .= $self->retract(move_z => $z);
+    $gcode .= $self->G0(undef, $z, 0, $comment || 'move to next layer (' . $self->layer->id . ')')
+        if $self->z != $z && !$self->lifted;
     
     return $gcode;
 }

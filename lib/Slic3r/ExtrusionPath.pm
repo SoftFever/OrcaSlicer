@@ -19,7 +19,7 @@ has 'polyline' => (
 );
 
 # height is the vertical thickness of the extrusion expressed in mm
-has 'height'       => (is => 'ro');
+has 'height'       => (is => 'rw');
 has 'flow_spacing' => (is => 'rw');
 has 'role'         => (is => 'rw', required => 1);
 
