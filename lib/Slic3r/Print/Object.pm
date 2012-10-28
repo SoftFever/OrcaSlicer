@@ -434,7 +434,7 @@ sub combine_infill {
             # for each possible depth, look for intersections with the lower layer
             # we do this from the greater depth to the smaller
             for (my $d = $Slic3r::Config->infill_every_layers - 1; $d >= 1; $d--) {
-                next if ($i - $d) < 0;
+                next if ($i - $d) <= 0; # do not combine infill for bottom layer
                 my $lower_layerm = $self->layer($i - 1)->regions->[$region_id];
                 
                 # select surfaces of the lower layer having the depth we're looking for
