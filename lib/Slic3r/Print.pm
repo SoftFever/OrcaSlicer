@@ -705,6 +705,14 @@ sub write_gcode {
         }
     }
     
+    # apply Z offset
+    if ($Slic3r::Config->z_offset > 0) {
+        printf $fh "G1 Z%s ; set Z offset\n", $Slic3r::Config->z_offset;
+        print  $fh "G92 Z0 ; set Z offset\n";
+    } elsif ($Slic3r::Config->z_offset < 0) {
+        printf $fh "G92 Z%s ; set Z offset\n", 1*(-$Slic3r::Config->z_offset);
+    }
+    
     # calculate X,Y shift to center print around specified origin
     my @print_bb = $self->bounding_box;
     my @shift = (

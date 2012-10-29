@@ -71,7 +71,7 @@ sub move_z {
     my $self = shift;
     my ($z, $comment) = @_;
     
-    $z = $Slic3r::Config->z_offset + $z * &Slic3r::SCALING_FACTOR;
+    $z = $z * &Slic3r::SCALING_FACTOR;
     
     my $gcode = "";
     $gcode .= $self->retract(move_z => $z);
