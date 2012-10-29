@@ -435,7 +435,7 @@ sub build {
     $self->add_options_page('Skirt and brim', 'box.png', optgroups => [
         {
             title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height)],
+            options => [qw(skirts skirt_distance skirt_height min_skirt_length)],
         },
         {
             title => 'Brim',

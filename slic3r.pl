@@ -275,6 +275,8 @@ $j
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $config->{skirt_distance})
     --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: $config->{skirt_height})
+    --min-skirt-length  Generate no less than the number of loops required to consume this length
+                        of filament on the first layer, for each extruder (mm, 0+, default: $config->{min_skirt_length})
     --brim-width        Width of the brim that will get added to each object to help adhesion
                         (mm, default: $config->{brim_width})
    

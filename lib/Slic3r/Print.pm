@@ -3,7 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
-use List::Util qw(max);
+use List::Util qw(max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point);
@@ -568,16 +568,40 @@ sub make_skirt {
     # find out convex hull
     my $convex_hull = convex_hull(\@points);
     
+    my @extruded_length = ();  # for each extruder
+    my $spacing = $Slic3r::first_layer_flow->spacing;
+    my $first_layer_height = $Slic3r::Config->get_value('first_layer_height');
+    my @extruders_e_per_mm = ();
+    my $extruder_idx = 0;
+    
     # draw outlines from outside to inside
+    # loop while we have less skirts than required or any extruder hasn't reached the min length if any
+    my $distance = scale $Slic3r::Config->skirt_distance;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
-        my $distance = scale ($Slic3r::Config->skirt_distance + ($Slic3r::first_layer_flow->spacing * $i));
-        my $outline = Math::Clipper::offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND);
+        $distance += scale $spacing;
+        my $loop = Math::Clipper::offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND)->[0];
         push @{$self->skirt}, Slic3r::ExtrusionLoop->pack(
-            polygon         => Slic3r::Polygon->new(@{$outline->[0]}),
+            polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
-            flow_spacing    => $Slic3r::first_layer_flow->spacing,
+            flow_spacing    => $spacing,
         );
+        
+        if ($Slic3r::Config->min_skirt_length > 0) {
+            bless $loop, 'Slic3r::Polygon';
+            $extruded_length[$extruder_idx]     ||= 0;
+            $extruders_e_per_mm[$extruder_idx]  ||= $self->extruders->[$extruder_idx]->e_per_mm($spacing, $first_layer_height);
+            $extruded_length[$extruder_idx]     += unscale $loop->length * $extruders_e_per_mm[$extruder_idx];
+            $i++ if defined first { ($extruded_length[$_] // 0) < $Slic3r::Config->min_skirt_length } 0 .. $#{$self->extruders};
+            if ($extruded_length[$extruder_idx] >= $Slic3r::Config->min_skirt_length) {
+                if ($extruder_idx < $#{$self->extruders}) {
+                    $extruder_idx++;
+                    next;
+                }
+            }
+        }
     }
+    
+    @{$self->skirt} = reverse @{$self->skirt};
 }
 
 sub make_brim {

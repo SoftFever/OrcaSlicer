@@ -760,6 +760,15 @@ END
         type    => 'i',
         default => 1,
     },
+    'min_skirt_length' => {
+        label   => 'Minimum extrusion length',
+        tooltip => 'Generate no less than the number of skirt loops required to consume the specified amount of filament on the bottom layer. For multi-extruder machines, this minimum applies to each extruder.',
+        sidetext => 'mm',
+        cli     => 'min-skirt-length=f',
+        type    => 'f',
+        default => 0,
+        min     => 0,
+    },
     'skirt_distance' => {
         label   => 'Distance from object',
         tooltip => 'Distance between skirt and object(s). Set this to zero to attach the skirt to the object(s) and get a brim for better adhesion.',

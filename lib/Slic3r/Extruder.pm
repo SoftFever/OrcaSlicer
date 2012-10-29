@@ -55,4 +55,10 @@ sub mm3_per_mm {
     return $self->_mm3_per_mm_cache->{$cache_key};
 }
 
+sub e_per_mm {
+    my $self = shift;
+    my ($s, $h) = @_;
+    return $self->mm3_per_mm($s, $h) * $self->e_per_mm3;
+}
+
 1;

@@ -227,6 +227,8 @@ The author of the Silk icon set is Mark James.
         --skirt-distance    Distance in mm between innermost skirt and object 
                             (default: 6)
         --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: 1)
+        --min-skirt-length  Generate no less than the number of loops required to consume this length
+                            of filament on the first layer, for each extruder (mm, 0+, default: 0)
         --brim-width        Width of the brim that will get added to each object to help adhesion
                             (mm, default: 0)
        
