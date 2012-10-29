@@ -647,7 +647,8 @@ sub generate_support_material {
             },
             collect_cb => sub {
                 my $paths = shift;
-                ($layer_paths{$_}, $layer_interface_paths{$_}) = @{ $paths->{$_} } for keys %$paths;
+                $layer_paths{$_}            = $paths->[0]{$_} for keys %{$paths->[0]};
+                $layer_interface_paths{$_}  = $paths->[1]{$_} for keys %{$paths->[1]};
             },
             no_threads_cb => sub {
                 ($layer_paths{$_}, $layer_interface_paths{$_}) = $process_layer->($_) for keys %layers;
