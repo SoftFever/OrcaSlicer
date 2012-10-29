@@ -149,7 +149,7 @@ sub extrude_path {
                     if (points_coincide($last_line->[B], $self->last_pos)) {
                         my $point = Slic3r::Geometry::point_along_segment(@$last_line, $last_line->length + scale $self->layer->flow->spacing);
                         bless $point, 'Slic3r::Point';
-                        $point->rotate(PI/4, $last_line->[B]);
+                        $point->rotate(PI/6, $last_line->[B]);
                         $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
                     }
                 }
