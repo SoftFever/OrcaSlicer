@@ -14,14 +14,6 @@ sub new {
     return $self;
 }
 
-sub a { $_[0][0] }
-sub b { $_[0][1] }
-
-sub coordinates {
-    my $self = shift;
-    return ($self->a->coordinates, $self->b->coordinates);
-}
-
 sub boost_linestring {
     my $self = shift;
     return Boost::Geometry::Utils::linestring($self);
@@ -33,27 +25,6 @@ sub coincides_with {
     
     return ($self->a->coincides_with($line->a) && $self->b->coincides_with($line->b))
         || ($self->a->coincides_with($line->b) && $self->b->coincides_with($line->a));
-}
-
-sub has_endpoint {
-    my $self = shift;
-    my ($point) = @_;
-    return $point->coincides_with($self->a) || $point->coincides_with($self->b);
-}
-
-sub has_segment {
-    my $self = shift;
-    my ($line) = @_;
-    
-    # a segment belongs to another segment if its points belong to it
-    return Slic3r::Geometry::point_in_segment($line->[0], $self)
-        && Slic3r::Geometry::point_in_segment($line->[1], $self);
-}
-
-sub parallel_to {
-    my $self = shift;
-    my ($line) = @_;
-    return Slic3r::Geometry::lines_parallel($self, $line);
 }
 
 sub length {

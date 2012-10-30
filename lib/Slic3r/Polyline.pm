@@ -40,11 +40,6 @@ sub deserialize {
     return $class->new(map [ $v[2*$_], $v[2*$_+1] ], 0 .. int($#v/2));
 }
 
-sub is_serialized {
-    my $self = shift;
-    return (reftype $self) eq 'SCALAR' ? 1 : 0;
-}
-
 sub lines {
     my $self = shift;
     return polyline_lines($self);
@@ -103,16 +98,6 @@ sub nearest_point_index_to {
     my $self = shift;
     my ($point) = @_;
     return Slic3r::Geometry::nearest_point_index($point, $self);
-}
-
-sub has_segment {
-    my $self = shift;
-    my ($line) = @_;
-    
-    for ($self->lines) {
-        return 1 if $_->has_segment($line);
-    }
-    return 0;
 }
 
 sub clip_with_polygon {

@@ -178,7 +178,7 @@ sub extrude_path {
         foreach my $line ($path->lines) {
             my $line_length = $line->length;
             $path_length += $line_length;
-            $gcode .= $self->G1($line->b, undef, $e * unscale $line_length, $description);
+            $gcode .= $self->G1($line->[B], undef, $e * unscale $line_length, $description);
         }
     }
     
