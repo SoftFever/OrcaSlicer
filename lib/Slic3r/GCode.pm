@@ -53,13 +53,11 @@ my %role_speeds = (
 
 sub change_layer {
     my $self = shift;
-    my ($layer, %params) = @_;
+    my ($layer) = @_;
     
     $self->layer($layer);
     
     my $gcode = "";
-    $gcode .= $self->move_z($layer->print_z) unless $params{dont_move_z};
-    
     $gcode .= $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
         if $Slic3r::Config->layer_gcode;
     
@@ -74,9 +72,13 @@ sub move_z {
     $z = $z * &Slic3r::SCALING_FACTOR;
     
     my $gcode = "";
-    $gcode .= $self->retract(move_z => $z);
-    $gcode .= $self->G0(undef, $z, 0, $comment || 'move to next layer (' . $self->layer->id . ')')
-        if (!defined $self->z || $self->z != $z) && !$self->lifted;
+    
+    my $current_z = $self->z;
+    if (!defined $current_z || $current_z != ($z + $self->lifted)) {
+        $gcode .= $self->retract(move_z => $z);
+        $gcode .= $self->G0(undef, $z, 0, $comment || 'move to next layer (' . $self->layer->id . ')')
+            unless ($current_z // -1) != ($self->z // -1);
+    }
     
     return $gcode;
 }
@@ -226,7 +228,7 @@ sub retract {
     my $retract = [undef, undef, -$length, $comment];
     my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z})
         ? undef
-        : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during retraction'];
+        : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during travel'];
     
     my $gcode = "";
     if (($Slic3r::Config->g0 || $Slic3r::Config->gcode_flavor eq 'mach3') && $params{travel_to}) {

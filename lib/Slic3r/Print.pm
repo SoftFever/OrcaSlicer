@@ -737,7 +737,7 @@ sub write_gcode {
         }
         
         # set new layer, but don't move Z as support material interfaces may need an intermediate one
-        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id], dont_move_z => 1);
+        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
         $gcodegen->elapsed_time(0);
         
         # extrude skirt
@@ -772,10 +772,6 @@ sub write_gcode {
             my ($obj_idx, $copy) = @$obj_copy;
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
             
-            # retract explicitely because changing the shift_[xy] properties below
-            # won't always trigger the automatic retraction
-            $gcode .= $gcodegen->retract;
-            
             $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
             $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
             
@@ -793,7 +789,7 @@ sub write_gcode {
                     for $layer->support_fills->shortest_path($gcodegen->last_pos);
             }
             
-            # set actual Z
+            # set actual Z - this will force a retraction
             $gcode .= $gcodegen->move_z($layer->print_z);
             
             foreach my $region_id (0 .. ($self->regions_count-1)) {
