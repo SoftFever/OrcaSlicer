@@ -181,4 +181,39 @@ sub scale {
     return $self;
 }
 
+package Slic3r::Polyline::Collection;
+use Moo;
+
+has 'polylines' => (is => 'ro', default => sub { [] });
+
+# if the second argument is provided, this method will return its items sorted
+# instead of returning the actual sorted polylines
+sub shortest_path {
+    my $self = shift;
+    my ($start_near, $items) = @_;
+    
+    $items ||= $self->polylines;
+    my %items_map = map { $self->polylines->[$_] => $items->[$_] } 0 .. $#{$self->polylines};
+    my @my_paths = @{$self->polylines};
+    
+    my @paths = ();
+    my $start_at;
+    my $endpoints = [ map { $_->[0], $_->[-1] } @my_paths ];
+    while (@my_paths) {
+        # find nearest point
+        my $start_index = $start_near
+            ? Slic3r::Geometry::nearest_point_index($start_near, $endpoints)
+            : 0;
+
+        my $path_index = int($start_index/2);
+        if ($start_index%2) { # index is end so reverse to make it the start
+            $my_paths[$path_index]->reverse;
+        }
+        push @paths, splice @my_paths, $path_index, 1;
+        splice @$endpoints, $path_index*2, 2;
+        $start_near = $paths[-1][-1];
+    }
+    return map $items_map{"$_"}, @paths;
+}
+
 1;

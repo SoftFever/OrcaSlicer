@@ -12,26 +12,11 @@ sub shortest_path {
     my $self = shift;
     my ($start_near) = @_;
     
-    my @my_paths = map $_->unpack, @{$self->paths};
+    my $collection = Slic3r::Polyline::Collection->new(
+        polylines => [ map $_->unpack->polyline, @{$self->paths} ],
+    );
     
-    my @paths = ();
-    my $start_at;
-    my $endpoints = [ map $_->endpoints, @my_paths ];
-    while (@my_paths) {
-        # find nearest point
-        my $start_index = $start_near
-            ? Slic3r::Geometry::nearest_point_index($start_near, $endpoints)
-            : 0;
-
-        my $path_index = int($start_index/2);
-        if ($start_index%2) { # index is end so reverse to make it the start
-            $my_paths[$path_index]->reverse;
-        }
-        push @paths, splice @my_paths, $path_index, 1;
-        splice @$endpoints, $path_index*2, 2;
-        $start_near = $paths[-1]->points->[-1];
-    }
-    return @paths;
+    return $collection->shortest_path($start_near, $self->paths);
 }
 
 sub cleanup {
