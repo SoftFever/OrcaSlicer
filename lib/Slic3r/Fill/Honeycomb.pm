@@ -3,7 +3,8 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-has 'cache' => (is => 'rw', default => sub {{}});
+has 'bounding_box'  => (is => 'rw');
+has 'cache'         => (is => 'rw', default => sub {{}});
 
 use Slic3r::Geometry qw(PI X1 Y1 X2 Y2 X Y scale);
 use Slic3r::Geometry::Clipper qw(intersection_ex);
@@ -39,8 +40,8 @@ sub fill_surface {
         
         # adjust actual bounding box to the nearest multiple of our hex pattern
         # and align it so that it matches across layers
-        my $print_bounding_box = [ $self->print->bounding_box ];
-        my $bounding_box = [ 0, 0, $print_bounding_box->[X2], $print_bounding_box->[Y2] ];
+        $self->bounding_box([ $expolygon->bounding_box ]) if !defined $self->bounding_box;
+        my $bounding_box = [ 0, 0, $self->bounding_box->[X2], $self->bounding_box->[Y2] ];
         {
             my $bb_polygon = Slic3r::Polygon->new([
                 [ $bounding_box->[X1], $bounding_box->[Y1] ],
@@ -92,7 +93,6 @@ sub fill_surface {
     )};
     
     return { flow_spacing => $params{flow_spacing} },
-        map $_->polyline,
         Slic3r::Polyline::Collection->new(polylines => \@paths)->shortest_path;
 }
 

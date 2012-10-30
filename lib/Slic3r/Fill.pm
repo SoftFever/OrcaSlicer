@@ -45,9 +45,13 @@ sub BUILD {
 sub filler {
     my $self = shift;
     my ($filler) = @_;
+    
     if (!$self->fillers->{$filler}) {
-        $self->fillers->{$filler} = $FillTypes{$filler}->new(print => $self->print);
-        $self->fillers->{$filler}->max_print_dimension($self->max_print_dimension);
+        my $f = $FillTypes{$filler}->new(
+            max_print_dimension => $self->max_print_dimension
+        );
+        $f->bounding_box([ $self->print->bounding_box ]) if $filler->can('bounding_box');
+        $self->fillers->{$filler} = $f;
     }
     return $self->fillers->{$filler};
 }
