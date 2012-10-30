@@ -3,9 +3,7 @@ use Moo;
 
 use Slic3r::Geometry qw(PI);
 
-has 'print'               => (is => 'rw');
 has 'layer_id'            => (is => 'rw');
-has 'max_print_dimension' => (is => 'rw');
 has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
 
 sub angles () { [0, PI/2] }
@@ -17,7 +15,7 @@ sub infill_direction {
     # set infill angle
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);
-    $rotate[1] = [ $self->max_print_dimension * sqrt(2) / 2, $self->max_print_dimension * sqrt(2) / 2 ];
+    $rotate[1] = $surface->expolygon->bounding_box_center;
     @shift = @{$rotate[1]};
     
     if (defined $self->layer_id) {

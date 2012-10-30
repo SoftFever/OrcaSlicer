@@ -18,7 +18,6 @@ use Slic3r::Surface ':types';
 
 
 has 'print'     => (is => 'ro', required => 1);
-has 'max_print_dimension' => (is => 'rw');
 has 'fillers'   => (is => 'rw', default => sub { {} });
 
 our %FillTypes = (
@@ -32,26 +31,13 @@ our %FillTypes = (
     honeycomb           => 'Slic3r::Fill::Honeycomb',
 );
 
-sub BUILD {
-    my $self = shift;
-    
-    my $print_size = $self->print->size;
-    my $max_print_dimension = ($print_size->[X] > $print_size->[Y] ? $print_size->[X] : $print_size->[Y]) * sqrt(2);
-    $self->max_print_dimension($max_print_dimension);
-    
-    $self->filler($_) for ('rectilinear', $Slic3r::Config->fill_pattern, $Slic3r::Config->solid_fill_pattern);
-}
-
 sub filler {
     my $self = shift;
     my ($filler) = @_;
     
     if (!$self->fillers->{$filler}) {
-        my $f = $FillTypes{$filler}->new(
-            max_print_dimension => $self->max_print_dimension
-        );
+        my $f = $self->fillers->{$filler} = $FillTypes{$filler}->new;
         $f->bounding_box([ $self->print->bounding_box ]) if $filler->can('bounding_box');
-        $self->fillers->{$filler} = $f;
     }
     return $self->fillers->{$filler};
 }
@@ -155,7 +141,7 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
-        my @paths = $self->fillers->{$filler}->fill_surface(
+        my @paths = $self->filler($filler)->fill_surface(
             $surface,
             density         => $density,
             flow_spacing    => $flow_spacing,
