@@ -35,6 +35,10 @@ sub filler {
     my $self = shift;
     my ($filler) = @_;
     
+    if (!ref $self) {
+        return $FillTypes{$filler}->new;
+    }
+    
     if (!$self->fillers->{$filler}) {
         my $f = $self->fillers->{$filler} = $FillTypes{$filler}->new;
         $f->bounding_box([ $self->print->bounding_box ]) if $filler->can('bounding_box');

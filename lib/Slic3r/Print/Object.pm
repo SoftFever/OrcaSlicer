@@ -570,8 +570,7 @@ sub generate_support_material {
         my @support_material_areas = map $_->offset_ex(- 0.5 * $flow->scaled_width),
             @{union_ex([ map $_->contour, map @$_, values %layers ])};
         
-        my $fill = Slic3r::Fill->new(print => $self->print);
-        my $filler = $fill->filler($Slic3r::Config->support_material_pattern);
+        my $filler = Slic3r::Fill->filler($Slic3r::Config->support_material_pattern);
         $filler->angle($Slic3r::Config->support_material_angle);
         {
             my @patterns = ();
