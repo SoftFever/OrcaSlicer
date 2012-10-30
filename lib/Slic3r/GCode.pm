@@ -114,7 +114,7 @@ sub extrude_loop {
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end(($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_WIDTH);
+    $extrusion_path->clip_end(scale $extrusion_path->flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING);
     return '' if !@{$extrusion_path->polyline};
     
     # extrude along the path
@@ -149,7 +149,7 @@ sub extrude_path {
                     my @lines = $self->last_path->lines;
                     my $last_line = $lines[-1];
                     if (points_coincide($last_line->[B], $self->last_pos)) {
-                        my $point = Slic3r::Geometry::point_along_segment(@$last_line, $last_line->length + scale $self->layer->flow->spacing);
+                        my $point = Slic3r::Geometry::point_along_segment(@$last_line, $last_line->length + scale $path->flow_spacing);
                         bless $point, 'Slic3r::Point';
                         $point->rotate(PI/6, $last_line->[B]);
                         $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
@@ -169,10 +169,10 @@ sub extrude_path {
     
     my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->role == EXTR_ROLE_BRIDGE) {
-        my $s = $path->flow_spacing || $self->extruder->nozzle_diameter;
+        my $s = $path->flow_spacing;
         $area = ($s**2) * PI/4;
     } else {
-        my $s = $path->flow_spacing || ($self->layer ? $self->layer->flow->spacing : $Slic3r::flow->spacing);
+        my $s = $path->flow_spacing;
         my $h = $path->height // $self->layer->height;
         $area = $self->extruder->mm3_per_mm($s, $h);
     }

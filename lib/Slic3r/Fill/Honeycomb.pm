@@ -90,12 +90,10 @@ sub fill_surface {
         $self->cache->{$cache_id},
         [ map @$_, $expolygon->offset_ex($overlap_distance) ],
     )};
-    my $collection = Slic3r::ExtrusionPath::Collection->new(
-        paths => [ map Slic3r::ExtrusionPath->pack(polyline => $_, role => -1), @paths ],
-    );
     
     return { flow_spacing => $params{flow_spacing} },
-        map $_->polyline, $collection->shortest_path;
+        map $_->polyline,
+        Slic3r::Polyline::Collection->new(polylines => \@paths)->shortest_path;
 }
 
 1;

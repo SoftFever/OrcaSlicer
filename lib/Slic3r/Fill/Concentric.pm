@@ -63,7 +63,7 @@ sub fill_surface {
         my $path = $loop->split_at_index($index);
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
-        $path->clip_end(($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_WIDTH);
+        $path->clip_end(($self->layer ? $self->layer->flow->scaled_spacing : $Slic3r::flow->scaled_spacing) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING);
         
         push @paths, $path->points if @{$path->points};
     }
