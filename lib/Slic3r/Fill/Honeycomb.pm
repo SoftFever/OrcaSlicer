@@ -21,7 +21,7 @@ sub fill_surface {
     # infill math
     my $min_spacing = scale $params{flow_spacing};
     my $distance = $min_spacing / $params{density};
-    my $overlap_distance = ($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width) * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_WIDTH;
+    my $overlap_distance = scale $params{flow_spacing} * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING;
     
     my $cache_id = sprintf "d%s_s%s_a%s",
         $params{density}, $params{flow_spacing}, $rotate_vector->[0][0];
