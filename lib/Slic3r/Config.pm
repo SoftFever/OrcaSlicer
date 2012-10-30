@@ -5,8 +5,6 @@ use utf8;
 
 use List::Util qw(first);
 
-use constant PI => 4 * atan2(1, 1);
-
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool);
 

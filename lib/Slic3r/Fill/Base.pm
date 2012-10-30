@@ -1,13 +1,12 @@
 package Slic3r::Fill::Base;
 use Moo;
 
+use Slic3r::Geometry qw(PI);
 
 has 'print'               => (is => 'rw');
 has 'layer'               => (is => 'rw');
 has 'max_print_dimension' => (is => 'rw');
 has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
-
-use constant PI => 4 * atan2(1, 1);
 
 sub angles () { [0, PI/2] }
 
