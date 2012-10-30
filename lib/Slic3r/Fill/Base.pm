@@ -4,7 +4,7 @@ use Moo;
 use Slic3r::Geometry qw(PI);
 
 has 'print'               => (is => 'rw');
-has 'layer'               => (is => 'rw');
+has 'layer_id'            => (is => 'rw');
 has 'max_print_dimension' => (is => 'rw');
 has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
 
@@ -20,9 +20,9 @@ sub infill_direction {
     $rotate[1] = [ $self->max_print_dimension * sqrt(2) / 2, $self->max_print_dimension * sqrt(2) / 2 ];
     @shift = @{$rotate[1]};
     
-    if ($self->layer) {
+    if (defined $self->layer_id) {
         # alternate fill direction
-        my $layer_num = $self->layer->id / $surface->depth_layers;
+        my $layer_num = $self->layer_id / $surface->depth_layers;
         my $angle = $self->angles->[$layer_num % @{$self->angles}];
         $rotate[0] = Slic3r::Geometry::deg2rad($self->angle) + $angle if $angle;
     }

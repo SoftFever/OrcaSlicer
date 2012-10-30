@@ -56,7 +56,7 @@ sub make_fill {
     my $self = shift;
     my ($layer) = @_;
     
-    $_->layer($layer) for values %{$self->fillers};
+    $_->layer_id($layer->id) for values %{$self->fillers};
     
     Slic3r::debugf "Filling layer %d:\n", $layer->id;
     
