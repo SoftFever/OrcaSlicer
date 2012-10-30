@@ -737,8 +737,10 @@ sub write_gcode {
         }
         
         # set new layer, but don't move Z as support material interfaces may need an intermediate one
-        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
+        $gcodegen->layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
         $gcodegen->elapsed_time(0);
+        $gcode .= $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
+            if $Slic3r::Config->layer_gcode;
         
         # extrude skirt
         if ($skirt_done < $Slic3r::Config->skirt_height) {

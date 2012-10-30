@@ -6,7 +6,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y A B);
 
 has 'multiple_extruders' => (is => 'ro', default => sub {0} );
-has 'layer'              => (is => 'rw');  # this is not very correct, we should replace it with explicit layer_id and avoid using $self->layer->flow at all here because it's too general
+has 'layer'              => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -51,19 +51,6 @@ my %role_speeds = (
     &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
 );
 
-sub change_layer {
-    my $self = shift;
-    my ($layer) = @_;
-    
-    $self->layer($layer);
-    
-    my $gcode = "";
-    $gcode .= $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
-        if $Slic3r::Config->layer_gcode;
-    
-    return $gcode;
-}
-
 # this method accepts Z in scaled coordinates
 sub move_z {
     my $self = shift;
@@ -76,7 +63,7 @@ sub move_z {
     my $current_z = $self->z;
     if (!defined $current_z || $current_z != ($z + $self->lifted)) {
         $gcode .= $self->retract(move_z => $z);
-        $gcode .= $self->G0(undef, $z, 0, $comment || 'move to next layer (' . $self->layer->id . ')')
+        $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
             unless ($current_z // -1) != ($self->z // -1);
     }
     
