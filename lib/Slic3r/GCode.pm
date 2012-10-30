@@ -26,18 +26,14 @@ has 'dec'                => (is => 'ro', default => sub { 3 } );
 # calculate speeds (mm/min)
 has 'speeds' => (
     is      => 'ro',
-    default => sub {{
-        travel              => 60 * $Slic3r::Config->get_value('travel_speed'),
-        perimeter           => 60 * $Slic3r::Config->get_value('perimeter_speed'),
-        small_perimeter     => 60 * $Slic3r::Config->get_value('small_perimeter_speed'),
-        external_perimeter  => 60 * $Slic3r::Config->get_value('external_perimeter_speed'),
-        infill              => 60 * $Slic3r::Config->get_value('infill_speed'),
-        solid_infill        => 60 * $Slic3r::Config->get_value('solid_infill_speed'),
-        top_solid_infill    => 60 * $Slic3r::Config->get_value('top_solid_infill_speed'),
-        bridge              => 60 * $Slic3r::Config->get_value('bridge_speed'),
+    default => sub {+{
+        map { $_ => 60 * $Slic3r::Config->get_value("${_}_speed") }
+            qw(travel perimeter small_perimeter external_perimeter infill
+                solid_infill top_solid_infill bridge),
     }},
 );
 
+# assign speeds to roles
 my %role_speeds = (
     &EXTR_ROLE_PERIMETER                    => 'perimeter',
     &EXTR_ROLE_SMALLPERIMETER               => 'small_perimeter',
@@ -56,10 +52,9 @@ sub move_z {
     my $self = shift;
     my ($z, $comment) = @_;
     
-    $z = $z * &Slic3r::SCALING_FACTOR;
+    $z *= &Slic3r::SCALING_FACTOR;
     
     my $gcode = "";
-    
     my $current_z = $self->z;
     if (!defined $current_z || $current_z != ($z + $self->lifted)) {
         $gcode .= $self->retract(move_z => $z);
