@@ -10,7 +10,7 @@ has 'polygon' => (
     handles     => [qw(is_printable nearest_point_index_to reverse)],
 );
 
-has 'flow_spacing' => (is => 'rw');
+has 'flow_spacing' => (is => 'rw', required => 1);
 
 # see EXTR_ROLE_* constants in ExtrusionPath.pm
 has 'role'         => (is => 'rw', required => 1);
