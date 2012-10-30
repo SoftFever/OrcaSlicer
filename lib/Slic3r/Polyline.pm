@@ -181,6 +181,26 @@ sub scale {
     return $self;
 }
 
+sub clip_end {
+    my $self = shift;
+    my ($distance) = @_;
+    
+    while ($distance > 0) {
+        my $last_point = pop @$self;
+        last if !@$self;
+        
+        my $last_segment_length = $last_point->distance_to($self->[-1]);
+        if ($last_segment_length <= $distance) {
+            $distance -= $last_segment_length;
+            next;
+        }
+        
+        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->[-1], $distance);
+        push @$self, Slic3r::Point->new($new_point);
+        $distance = 0;
+    }
+}
+
 package Slic3r::Polyline::Collection;
 use Moo;
 

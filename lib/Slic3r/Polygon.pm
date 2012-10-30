@@ -119,4 +119,31 @@ sub is_valid {
     return @$self >= 3;
 }
 
+sub split_at_index {
+    my $self = shift;
+    my ($index) = @_;
+    
+    return (ref $self)->new(
+        @$self[$index .. $#$self], 
+        @$self[0 .. $index],
+    );
+}
+
+sub split_at {
+    my $self = shift;
+    my ($point) = @_;
+    
+    # find index of point
+    my $i = -1;
+    for (my $n = 0; $n <= $#$self; $n++) {
+        if (Slic3r::Geometry::same_point($point, $self->[$n])) {
+            $i = $n;
+            last;
+        }
+    }
+    die "Point not found" if $i == -1;
+    
+    return $self->split_at_index($i);
+}
+
 1;

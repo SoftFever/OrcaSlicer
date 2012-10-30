@@ -37,36 +37,22 @@ sub pack {
 
 sub split_at_index {
     my $self = shift;
-    my ($index) = @_;
-
-    my @new_points = ();
-    push @new_points, @{$self->polygon}[$index .. $#{$self->polygon}];
-    push @new_points, @{$self->polygon}[0 .. $index];
     
     return Slic3r::ExtrusionPath->new(
-        polyline    => Slic3r::Polyline->new(\@new_points),
-        role        => $self->role,
-        flow_spacing => $self->flow_spacing,
+        polyline        => $self->polygon->split_at_index(@_),
+        role            => $self->role,
+        flow_spacing    => $self->flow_spacing,
     );
 }
 
 sub split_at {
     my $self = shift;
-    my ($point) = @_;
     
-    $point = Slic3r::Point->new($point);
-    
-    # find index of point
-    my $i = -1;
-    for (my $n = 0; $n <= $#{$self->polygon}; $n++) {
-        if (same_point($point, $self->polygon->[$n])) {
-            $i = $n;
-            last;
-        }
-    }
-    die "Point not found" if $i == -1;
-    
-    return $self->split_at_index($i);
+    return Slic3r::ExtrusionPath->new(
+        polyline        => $self->polygon->split_at(@_),
+        role            => $self->role,
+        flow_spacing    => $self->flow_spacing,
+    );
 }
 
 sub split_at_first_point {
@@ -80,12 +66,6 @@ sub split_at_first_point {
 sub endpoints {
     my $self = shift;
     return ($self->polygon->[0], $self->polygon->[-1]);
-}
-
-# provided for ExtrusionPath::Collection->shortest_path()
-sub points {
-    my $self = shift;
-    return $self->polygon;
 }
 
 package Slic3r::ExtrusionLoop::Packed;

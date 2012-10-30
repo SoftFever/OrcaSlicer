@@ -15,7 +15,7 @@ use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 has 'polyline' => (
     is          => 'rw',
     required    => 1,
-    handles     => [qw(merge_continuous_lines lines length reverse)],
+    handles     => [qw(merge_continuous_lines lines length reverse clip_end)],
 );
 
 # height is the vertical thickness of the extrusion expressed in mm
@@ -57,26 +57,6 @@ sub pack {
 
 # no-op, this allows to use both packed and non-packed objects in Collections
 sub unpack { $_[0] }
-
-sub clip_end {
-    my $self = shift;
-    my ($distance) = @_;
-    
-    while ($distance > 0) {
-        my $last_point = pop @{$self->points};
-        last if !@{$self->points};
-        
-        my $last_segment_length = $last_point->distance_to($self->points->[-1]);
-        if ($last_segment_length <= $distance) {
-            $distance -= $last_segment_length;
-            next;
-        }
-        
-        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->points->[-1], $distance);
-        push @{$self->points}, Slic3r::Point->new($new_point);
-        $distance = 0;
-    }
-}
 
 sub clip_with_polygon {
     my $self = shift;
