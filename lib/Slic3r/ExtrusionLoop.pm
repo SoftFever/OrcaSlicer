@@ -60,14 +60,6 @@ sub split_at_first_point {
     return $self->split_at_index(0);
 }
 
-# although a loop doesn't have endpoints, this method is provided to allow
-# ExtrusionLoop objects to be added to an ExtrusionPath::Collection and
-# sorted by the ->shortest_path() method
-sub endpoints {
-    my $self = shift;
-    return ($self->polygon->[0], $self->polygon->[-1]);
-}
-
 package Slic3r::ExtrusionLoop::Packed;
 sub unpack {
     my $self = shift;

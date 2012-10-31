@@ -146,4 +146,9 @@ sub split_at {
     return $self->split_at_index($i);
 }
 
+sub split_at_first_point {
+    my $self = shift;
+    return $self->split_at_index(0);
+}
+
 1;
