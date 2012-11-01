@@ -197,7 +197,10 @@ sub make_perimeters {
         # generate perimeters inwards (loop 0 is the external one)
         my $loop_number = $Slic3r::Config->perimeters + ($surface->additional_inner_perimeters || 0);
         push @perimeters, [[@last_offsets]] if $loop_number > 0;
-        for (my $loop = 1; $loop < $loop_number; $loop++) {
+        
+        # do one more loop (<= instead of <) so that we can detect gaps even after the desired
+        # number of perimeters has been generated
+        for (my $loop = 1; $loop <= $loop_number; $loop++) {
             # offsetting a polygon can result in one or many offset polygons
             my @new_offsets = ();
             foreach my $expolygon (@last_offsets) {
@@ -217,9 +220,9 @@ sub make_perimeters {
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
-            @last_offsets = @new_offsets;
             
-            last if !@last_offsets;
+            last if !@new_offsets || $loop == $loop_number;
+            @last_offsets = @new_offsets;
             push @{ $perimeters[-1] }, [@last_offsets];
         }
         
