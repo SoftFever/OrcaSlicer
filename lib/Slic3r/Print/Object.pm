@@ -595,7 +595,7 @@ sub generate_support_material {
     
         if (0) {
             require "Slic3r/SVG.pm";
-            Slic3r::SVG::output(undef, "support_$_.svg",
+            Slic3r::SVG::output("support_$_.svg",
                 polylines        => [ map $_->polyline, map @$_, $support_patterns->[$_] ],
                 polygons         => [ map @$_, @support_material_areas ],
             ) for 0 .. $#$support_patterns;

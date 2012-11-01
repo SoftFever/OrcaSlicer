@@ -51,7 +51,7 @@ sub fill_surface {
     
     if (0) {
         require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(undef, "fill.svg",
+        Slic3r::SVG::output("fill.svg",
             polygons => $expolygon,
             polylines => [map $_->p, @paths],
         );

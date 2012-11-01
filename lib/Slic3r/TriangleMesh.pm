@@ -240,7 +240,7 @@ sub make_loops {
             Slic3r::debugf "  this shouldn't happen and should be further investigated\n";
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(undef, "same_point.svg",
+                Slic3r::SVG::output("same_point.svg",
                     lines       => [ map $_->line, grep !defined $_->[I_FACET_EDGE], @lines ],
                     red_lines   => [ map $_->line, grep defined $_->[I_FACET_EDGE], @lines ],
                     #points      => [ $self->vertices->[$point_id] ],

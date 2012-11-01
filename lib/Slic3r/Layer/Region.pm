@@ -129,7 +129,7 @@ sub make_surfaces {
     
     if (0) {
         require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(undef, "surfaces.svg",
+        Slic3r::SVG::output("surfaces.svg",
             polygons        => [ map $_->contour, @{$self->slices} ],
             red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->slices} ],
         );
@@ -462,7 +462,7 @@ sub process_bridges {
         
         if (0) {
             require "Slic3r/SVG.pm";
-            Slic3r::SVG::output(undef, "bridge_surfaces.svg",
+            Slic3r::SVG::output("bridge_surfaces.svg",
                 green_polygons  => [ map $_->p, @supporting_surfaces ],
                 red_polygons    => [ @$expolygon ],
             );
@@ -494,7 +494,7 @@ sub process_bridges {
             
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(undef, "bridge_edges.svg",
+                Slic3r::SVG::output("bridge_edges.svg",
                     polylines       => [ map $_->p, @edges ],
                 );
             }
