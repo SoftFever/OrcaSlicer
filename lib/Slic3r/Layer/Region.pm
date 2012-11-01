@@ -235,7 +235,7 @@ sub make_perimeters {
         
         # fill gaps
         {
-            my $filler = Slic3r::Fill::Rectilinear->new;
+            my $filler = Slic3r::Fill::Rectilinear->new(layer_id => $self->layer->id);
             
             my $w = $self->perimeter_flow->width;
             my @widths = (1.5 * $w, $w, 0.5 * $w);  # worth trying 0.2 too?
