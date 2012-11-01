@@ -41,7 +41,7 @@ sub filler {
     
     if (!$self->fillers->{$filler}) {
         my $f = $self->fillers->{$filler} = $FillTypes{$filler}->new;
-        $f->bounding_box([ $self->print->bounding_box ]) if $filler->can('bounding_box');
+        $f->bounding_box([ $self->print->bounding_box ]) if $f->can('bounding_box');
     }
     return $self->fillers->{$filler};
 }
