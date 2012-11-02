@@ -781,14 +781,18 @@ sub write_gcode {
             # and also because we avoid travelling on other things when printing it
             if ($Slic3r::Config->support_material) {
                 $gcode .= $gcodegen->move_z($layer->support_material_interface_z)
-                    if @{ $layer->support_interface_fills->paths };
+                    if ($layer->support_interface_fills && @{ $layer->support_interface_fills->paths });
                 $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
-                $gcode .= $gcodegen->extrude_path($_, 'support material interface') 
-                    for $layer->support_interface_fills->shortest_path($gcodegen->last_pos);
+                if ($layer->support_interface_fills) {
+                    $gcode .= $gcodegen->extrude_path($_, 'support material interface') 
+                        for $layer->support_interface_fills->shortest_path($gcodegen->last_pos); 
+                }
                 
                 $gcode .= $gcodegen->move_z($layer->print_z);
-                $gcode .= $gcodegen->extrude_path($_, 'support material') 
-                    for $layer->support_fills->shortest_path($gcodegen->last_pos);
+                if ($layer->support_fills) {
+                    $gcode .= $gcodegen->extrude_path($_, 'support material') 
+                        for $layer->support_fills->shortest_path($gcodegen->last_pos);
+                }
             }
             
             # set actual Z - this will force a retraction
