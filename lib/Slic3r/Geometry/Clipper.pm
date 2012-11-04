@@ -8,20 +8,20 @@ our @EXPORT_OK = qw(safety_offset offset offset_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     JT_SQUARE is_counter_clockwise);
 
-use Math::Clipper 1.09 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
+use Math::Clipper 1.14 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
 use Slic3r::Geometry qw(scale);
 our $clipper = Math::Clipper->new;
 
 sub safety_offset {
     my ($polygons, $factor) = @_;
-    return Math::Clipper::offset($polygons, $factor || (scale 1e-05), 1, JT_MITER, 2);
+    return Math::Clipper::offset($polygons, $factor || (scale 1e-05), 100000, JT_MITER, 2);
 }
 
 sub offset {
     my ($polygons, $distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= 1;
-    $joinType   = JT_MITER if !defined $joinType;
-    $miterLimit ||= 2;
+    $scale      ||= 100000;
+    $joinType   //= JT_MITER;
+    $miterLimit //= 2;
     
     my $offsets = Math::Clipper::offset($polygons, $distance, $scale, $joinType, $miterLimit);
     return @$offsets;

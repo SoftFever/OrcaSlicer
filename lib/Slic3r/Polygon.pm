@@ -21,7 +21,7 @@ sub boost_linestring {
 
 sub is_counter_clockwise {
     my $self = shift;
-    return Math::Clipper::is_counter_clockwise($self);
+    return Slic3r::Geometry::Clipper::is_counter_clockwise($self);
 }
 
 sub make_counter_clockwise {

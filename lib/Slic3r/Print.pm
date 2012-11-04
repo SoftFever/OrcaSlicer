@@ -579,7 +579,7 @@ sub make_skirt {
     my $distance = scale $Slic3r::Config->skirt_distance;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
-        my $loop = Math::Clipper::offset([$convex_hull], $distance, &Slic3r::SCALING_FACTOR * 100, JT_ROUND)->[0];
+        my ($loop) = Slic3r::Geometry::Clipper::offset([$convex_hull], $distance, 0.0001, JT_ROUND);
         push @{$self->skirt}, Slic3r::ExtrusionLoop->pack(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
@@ -634,7 +634,7 @@ sub make_brim {
             polygon         => Slic3r::Polygon->new($_),
             role            => EXTR_ROLE_SKIRT,
             flow_spacing    => $Slic3r::first_layer_flow->spacing,
-        ) for @{Math::Clipper::offset(\@islands, $i * $Slic3r::first_layer_flow->scaled_spacing, 100, JT_SQUARE)};
+        ) for Slic3r::Geometry::Clipper::offset(\@islands, $i * $Slic3r::first_layer_flow->scaled_spacing, undef, JT_SQUARE);
         # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
     }
 }

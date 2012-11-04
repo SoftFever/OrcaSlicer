@@ -1,7 +1,6 @@
 package Slic3r::Layer::Region;
 use Moo;
 
-use Math::Clipper ':all';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale shortest_path);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex);
@@ -109,7 +108,7 @@ sub make_surfaces {
         
         # now detect thin walls by re-outgrowing offsetted surfaces and subtracting
         # them from the original slices
-        my $outgrown = Math::Clipper::offset([ map $_->p, @{$self->slices} ], $distance);
+        my $outgrown = [ Slic3r::Geometry::Clipper::offset([ map $_->p, @{$self->slices} ], $distance) ];
         my $diff = diff_ex(
             [ map $_->p, @surfaces ],
             $outgrown,
@@ -410,7 +409,7 @@ sub prepare_fill_surfaces {
             
             # offset inwards
             my @offsets = $surface->expolygon->offset_ex(-$distance);
-            @offsets = @{union_ex(Math::Clipper::offset([ map @$_, @offsets ], $distance, 1, JT_MITER))};
+            @offsets = @{union_ex([ Slic3r::Geometry::Clipper::offset([ map @$_, @offsets ], $distance)] )}; # isn't the union_ex useless?
             map Slic3r::Surface->new(
                 expolygon => $_,
                 surface_type => $surface->surface_type,

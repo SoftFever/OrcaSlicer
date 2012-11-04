@@ -2,7 +2,6 @@ package Slic3r::Polyline;
 use strict;
 use warnings;
 
-use Math::Clipper qw();
 use Scalar::Util qw(reftype);
 use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polyline_lines move_points same_point);
