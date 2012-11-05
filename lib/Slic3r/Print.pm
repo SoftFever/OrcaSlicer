@@ -753,7 +753,11 @@ sub write_gcode {
             if ($layer_id < $Slic3r::Config->skirt_height) {
                 # distribute skirt loops across all extruders
                 for my $i (0 .. $#{$self->skirt}) {
-                    $gcode .= $gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ]);
+                    # when printing layers > 0 ignore 'min_skirt_length' and 
+                    # just use the 'skirts' setting; also just use the current extruder
+                    last if ($layer_id > 0) && ($i >= $Slic3r::Config->skirts);
+                    $gcode .= $gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ])
+                        if $layer_id == 0;
                     $gcode .= $gcodegen->extrude_loop($self->skirt->[$i], 'skirt');
                 }
             }
