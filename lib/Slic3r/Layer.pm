@@ -72,12 +72,13 @@ sub region {
     my $self = shift;
     my ($region_id) = @_;
     
-    if (!defined $self->regions->[$region_id]) {
-        $self->regions->[$region_id] = Slic3r::Layer::Region->new(
+    for (my $i = @{$self->regions}; $i <= $region_id; $i++) {
+        $self->regions->[$i] //= Slic3r::Layer::Region->new(
             layer   => $self,
-            region  => $self->object->print->regions->[$region_id],
+            region  => $self->object->print->regions->[$i],
         );
     }
+    
     return $self->regions->[$region_id];
 }
 
