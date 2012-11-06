@@ -19,6 +19,11 @@ sub boost_linestring {
     return Boost::Geometry::Utils::linestring([@$self, $self->[0]]);
 }
 
+sub wkt {
+    my $self = shift;
+    return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
+}
+
 sub is_counter_clockwise {
     my $self = shift;
     return Slic3r::Geometry::Clipper::is_counter_clockwise($self);
