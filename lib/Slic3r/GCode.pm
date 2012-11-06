@@ -47,6 +47,16 @@ my %role_speeds = (
     &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
 );
 
+sub set_shift {
+    my $self = shift;
+    my @shift = @_;
+    
+    $self->shift_x($shift[X]);
+    $self->shift_y($shift[Y]);
+    
+    $self->last_pos->translate(map -$_, @shift);
+}
+
 # this method accepts Z in scaled coordinates
 sub move_z {
     my $self = shift;

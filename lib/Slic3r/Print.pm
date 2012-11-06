@@ -744,8 +744,7 @@ sub write_gcode {
         
         # extrude skirt
         if ($skirt_done < $Slic3r::Config->skirt_height) {
-            $gcodegen->shift_x($shift[X]);
-            $gcodegen->shift_y($shift[Y]);
+            $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->set_extruder($self->extruders->[0]);  # move_z requires extruder
             $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
             $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
@@ -768,8 +767,7 @@ sub write_gcode {
         if ($layer_id == 0 && !$brim_done) {
             $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
             $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
-            $gcodegen->shift_x($shift[X]);
-            $gcodegen->shift_y($shift[Y]);
+            $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
             $brim_done = 1;
         }
@@ -778,8 +776,7 @@ sub write_gcode {
             my ($obj_idx, $copy) = @$obj_copy;
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
             
-            $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
-            $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
+            $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);
             
             # extrude support material before other things because it might use a lower Z
             # and also because we avoid travelling on other things when printing it
@@ -879,8 +876,7 @@ sub write_gcode {
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
-                    $gcodegen->shift_x($shift[X] + unscale $copy->[X]);
-                    $gcodegen->shift_y($shift[Y] + unscale $copy->[Y]);
+                    $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
