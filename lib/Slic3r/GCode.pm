@@ -63,6 +63,7 @@ sub move_z {
     my ($z, $comment) = @_;
     
     $z *= &Slic3r::SCALING_FACTOR;
+    $z += $Slic3r::Config->z_offset;
     
     my $gcode = "";
     my $current_z = $self->z;
