@@ -50,8 +50,6 @@ sub make_fill {
     my $self = shift;
     my ($layer) = @_;
     
-    $_->layer_id($layer->id) for values %{$self->fillers};
-    
     Slic3r::debugf "Filling layer %d:\n", $layer->id;
     
     # merge overlapping surfaces
@@ -145,11 +143,16 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
-        my @paths = $self->filler($filler)->fill_surface(
-            $surface,
-            density         => $density,
-            flow_spacing    => $flow_spacing,
-        );
+        my @paths;
+        {
+            my $f = $self->filler($filler);
+            $f->layer_id($layer->id);
+            @paths = $f->fill_surface(
+                $surface,
+                density         => $density,
+                flow_spacing    => $flow_spacing,
+            );
+        }
         my $params = shift @paths;
         
         # save into layer
