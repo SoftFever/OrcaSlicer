@@ -757,8 +757,8 @@ sub write_gcode {
         
         # extrude brim
         if ($layer_id == 0 && !$brim_done) {
+            $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);  # move_z requires extruder
             $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
-            $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
             $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
             $brim_done = 1;
