@@ -19,7 +19,7 @@ sub safety_offset {
 
 sub offset {
     my ($polygons, $distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= 100000;
+    $scale      ||= 10000;
     $joinType   //= JT_MITER;
     $miterLimit //= 2;
     
