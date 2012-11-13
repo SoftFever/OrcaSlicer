@@ -65,6 +65,8 @@ utils/file_info.pl
 utils/post-processing/filament-weight.pl
 utils/post-processing/prowl-notification.pl
 utils/post-processing/z-every-line.pl
+utils/post-processing/decimate.pl
+utils/post-processing/flowrate.pl
 utils/split_stl.pl
 utils/stl-to-amf.pl
 utils/zsh/functions/_slic3r
