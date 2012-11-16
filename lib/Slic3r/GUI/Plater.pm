@@ -705,7 +705,7 @@ sub make_model {
                 material_id => $volume->material_id,
                 facets      => $volume->facets,
             );
-            $model->materials->{$volume->material_id || 0} ||= {};
+            $model->set_material($volume->material_id || 0, {});
         }
         $new_model_object->scale($plater_object->scale);
         $new_model_object->add_instance(
