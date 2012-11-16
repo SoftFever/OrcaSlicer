@@ -12,7 +12,7 @@ use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y scale shortest_path);
+use Slic3r::Geometry qw(X Y PI scale shortest_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 use Slic3r::Surface ':types';
 
@@ -135,7 +135,8 @@ sub make_fill {
             $filler = $Slic3r::Config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
-                $flow_spacing = sqrt($Slic3r::Config->bridge_flow_ratio * ($layer->infill_flow->nozzle_diameter**2));
+                my $width = sqrt($Slic3r::Config->bridge_flow_ratio * ($layer->infill_flow->nozzle_diameter**2));
+                $flow_spacing = $width + &Slic3r::OVERLAP_FACTOR * ($width * PI / 4 - $width);  # this should be moved to Flow.pm
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }
