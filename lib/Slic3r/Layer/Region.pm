@@ -278,7 +278,11 @@ sub make_perimeters {
                         my $params = shift @paths;
                         
                         push @{ $self->thin_fills },
-                            map Slic3r::ExtrusionPath->pack(
+                            map {
+                                $_->polyline->simplify($flow->scaled_width / 3);
+                                $_->pack;
+                            }
+                            map Slic3r::ExtrusionPath->new(
                                 polyline        => Slic3r::Polyline->new(@$_),
                                 role            => EXTR_ROLE_SOLIDFILL,
                                 height          => $self->height,
