@@ -312,7 +312,7 @@ sub _G0_G1 {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        $self->last_pos($point);
+        $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
         $self->z($z);
