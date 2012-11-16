@@ -1156,9 +1156,11 @@ sub replace_options {
     my $self = shift;
     my ($string, $more_variables) = @_;
     
-    if ($more_variables) {
-        my $variables = join '|', keys %$more_variables;
-        $string =~ s/\[($variables)\]/$more_variables->{$1}/eg;
+    $more_variables ||= {};
+    $more_variables->{$_} = $ENV{$_} for grep /^SLIC3R_/, keys %ENV;
+    {
+        my $variables_regex = join '|', keys %$more_variables;
+        $string =~ s/\[($variables_regex)\]/$more_variables->{$1}/eg;
     }
     
     my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
