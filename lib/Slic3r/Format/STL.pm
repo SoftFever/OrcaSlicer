@@ -41,7 +41,6 @@ sub read_file {
     my $vertices = [];
     {
         my %vertices_map = ();    # given a vertex's coordinates, what's its index?
-        my @vertices_facets = (); # given a vertex index, what are the indexes of its tangent facets?
         for (my $f = 0; $f <= $#$facets; $f++) {
             for (-3..-1) {
                 my $point_id = join ',', @{$facets->[$f][$_]};
