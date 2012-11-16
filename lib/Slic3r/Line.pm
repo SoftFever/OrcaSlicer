@@ -67,4 +67,12 @@ sub reverse {
     @$self = reverse @$self;
 }
 
+sub translate {
+    my $self = shift;
+    my ($x, $y) = @_;
+    @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
+    bless $_, 'Slic3r::Point' for @$self;
+    return $self;
+}
+
 1;

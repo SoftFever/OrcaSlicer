@@ -135,8 +135,12 @@ sub extrude_path {
     # retract if distance from previous position is greater or equal to the one
     # specified by the user
     {
-        my $travel = Slic3r::Line->new($self->last_pos, $path->points->[0]);
+        my $travel = Slic3r::Line->new($self->last_pos->clone, $path->points->[0]->clone);
         if ($travel->length >= scale $self->extruder->retract_before_travel) {
+            # move travel back to original layer coordinates.
+            # note that we're only considering the current object's islands, while we should
+            # build a more complete configuration space
+            $travel->translate(-$self->shift_x, -$self->shift_y);
             if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
                 if ($self->last_path && $self->last_path->role == &EXTR_ROLE_EXTERNAL_PERIMETER) {
                     my @lines = $self->last_path->lines;
