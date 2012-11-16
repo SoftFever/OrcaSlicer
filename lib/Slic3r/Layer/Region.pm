@@ -395,8 +395,11 @@ sub prepare_fill_surfaces {
     
     # if no solid layers are requested, turn top/bottom surfaces to internal
     # note that this modifies $self->surfaces in place
-    if ($Slic3r::Config->top_solid_layers == 0 && $Slic3r::Config->bottom_solid_layers == 0) {
-        $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
+    if ($Slic3r::Config->top_solid_layers == 0) {
+        $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type == S_TYPE_TOP, @surfaces;
+    }
+    if ($Slic3r::Config->bottom_solid_layers == 0) {
+        $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type == S_TYPE_BOTTOM, @surfaces;
     }
     
     # if hollow object is requested, remove internal surfaces
