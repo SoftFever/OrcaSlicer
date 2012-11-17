@@ -184,42 +184,10 @@ sub extrude_path {
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
             $path->center, $e * unscale $path_length, $description);
     } else {
-        my @moves = ();
-        my @last_moves = ();
-        my $speed_mms = $self->speeds->{$self->speed} / 60;
         foreach my $line ($path->lines) {
             my $line_length = unscale $line->length;
             $path_length += $line_length;
-            
-            # apply frequency limit
-            # http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
-            if ($Slic3r::Config->vibration_limit && @{ $path->polyline } >= 4) { # optimization: resonance isn't triggered with less than three moves
-                my $freq = $speed_mms / $line_length;
-                if ($freq >= $Slic3r::Config->vibration_limit) {
-                    my $vector = $line->vector;
-                    if (@last_moves >= 1) {
-                        if ($vector->[B][X] * $last_moves[-1][B][X] > 0 && $vector->[B][Y] * $last_moves[-1][B][Y] > 0) {
-                            # if both X and Y have the same direction (sign), reset the buffer as there's no shaking
-                            @last_moves = ();
-                        }
-                    }
-                    push @last_moves, $vector;
-                    if (@last_moves >= 3) {
-                        my ($shortest_length) = reverse sort map $_->length, @last_moves;
-                        my $speed = $Slic3r::Config->vibration_limit * unscale $shortest_length;
-                        ###Slic3r::debugf "Reducing speed to %s mm/s (%s Hz vibration detected)\n", $speed, $freq;
-                        $self->speed($speed * 60);
-                    }
-                } else {
-                    @last_moves = ();
-                }
-            }
-            
-            push @moves, [ $line->[B], $e * unscale $line_length ];
-        }
-        
-        foreach my $move (@moves) {
-            $gcode .= $self->G1($move->[0], undef, $move->[1], $description);
+            $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
     }
     
@@ -496,6 +464,106 @@ sub set_bed_temperature {
     
     $gcode .= "M116 ; wait for bed temperature to be reached\n"
         if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
+    
+    return $gcode;
+}
+
+# http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
+sub limit_frequency {
+    my $self = shift;
+    my ($gcode) = @_;
+    
+    return $gcode if $Slic3r::Config->vibration_limit == 0;
+    
+    my $current_gcode = $gcode;
+    $gcode = '';
+    my ($X, $Y, $F);
+    my @last_moves = ();
+    my $longest_move;
+    my $buffer = '';
+    my $vibration_limit_min = $Slic3r::Config->vibration_limit * 60;
+    
+    my $flush_buffer = sub {
+        my ($line) = @_;
+        
+        if (@last_moves >= 3) {
+            $buffer =~ s/ F[0-9.]+//g;
+            my $new_speed = $vibration_limit_min * $longest_move;
+            $gcode .= "G1 F$new_speed ; limit vibrations\n";
+            $gcode .= $buffer;
+            $gcode .= "G1 F$F; restore previous speed\n";
+        } else {
+            $gcode .= $buffer;
+        }
+        $gcode .= "$line\n";
+        @last_moves = ();
+        $buffer = '';
+    };
+    
+    my $append_to_buffer = sub {
+        my ($line, $move, $freq) = @_;
+        
+        ###printf "move x = %s, y = %s\n",   map $_ // '/', @$move[X,Y];
+        ###printf "  freq x = %s, y = %s\n", map $_ // '/', @$freq[X,Y];
+        
+        $buffer .= "$line\n";
+        push @last_moves, [ map $freq->[$_] ? $_ : undef, @$move ];
+        for (grep defined $freq->[$_], X,Y) {
+            $longest_move = abs($move->[$_]) if $move->[$_] && (!defined $longest_move || abs($move->[$_]) > $longest_move);
+        }
+    };
+    
+    foreach my $line (split /\n/, $current_gcode) {
+        if ($line =~ /^G[01] /) {
+            my ($x, $y, $f);
+            $x = $1 if $line =~ /X([0-9.]+)/;
+            $y = $1 if $line =~ /Y([0-9.]+)/;
+            $f = $1 if $line =~ /F([0-9.]+)/;
+            
+            # calculate the move vector
+            my @move = (
+                (defined $x && $X) ? ($x - $X) : 0,
+                (defined $y && $Y) ? ($x - $Y) : 0,
+            );
+            
+            # calculate the frequency (how many times the move can happen in one minute) for each axis
+            # and only keep it for the axes exceeding the configured limit.
+            # (undef = infinite)
+            my @freq = ();
+            for (X,Y) {
+                next if !$move[$_];
+                my $freq = ($f // $F) / abs($move[$_]);
+                $freq[$_] = $freq if $freq >= $vibration_limit_min;
+            }
+            
+            # does our move exceed the limit?
+            if (grep defined $_, @freq) {
+                # if so, do we have a buffer already?
+                if (@last_moves) {
+                    # if we have a buffer, compare the direction (for each axis) with the previous one.
+                    if (($move[X] // 0) * ($last_moves[-1][X] // 0) < 0 || ($move[Y] // 0) * ($last_moves[-1][Y] // 0) < 0 && ($f // $F) == $F) {
+                        # this move has opposite direction on at least one axis, and has also same speed:
+                        # we can add it to the buffer
+                        $append_to_buffer->($line, \@move, \@freq);
+                    } else {
+                        $flush_buffer->($line);
+                    }
+                } else {
+                    # if we have no buffer, store this move inside it
+                    $append_to_buffer->($line, \@move, \@freq);
+                }
+            } else {
+                # if the move does not exceed any limit, flush the buffer and output this line
+                $flush_buffer->($line);
+            }
+            
+            $X = $x if defined $x;
+            $Y = $y if defined $y;
+            $F = $f if defined $f;
+        } else {
+            $gcode .= "$line\n";
+        }
+    }
     
     return $gcode;
 }

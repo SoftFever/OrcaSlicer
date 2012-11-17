@@ -3,7 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
-use List::Util qw(max first);
+use List::Util qw(min max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point);
@@ -850,6 +850,8 @@ sub write_gcode {
             $gcode =~ s/^;_BRIDGE_FAN_START\n/ $gcodegen->set_fan($Slic3r::Config->bridge_fan_speed, 1) /gmex;
             $gcode =~ s/^;_BRIDGE_FAN_END\n/ $gcodegen->set_fan($fan_speed, 1) /gmex;
         }
+        
+        $gcode = $gcodegen->limit_frequency($gcode);
         
         return $gcode;
     };
