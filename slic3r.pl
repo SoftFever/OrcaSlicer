@@ -311,6 +311,7 @@ $j
     --support-material-extrusion-width
                         Set a different extrusion width for support material
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $config->{bridge_flow_ratio})
+    --vibration-limit   Experimental frequency limit to avoid resonance (Hz, default: $config->{vibration_limit})
   
    Multiple extruder options:
     --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement

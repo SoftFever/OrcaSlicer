@@ -180,23 +180,55 @@ sub extrude_path {
     $self->speed( $role_speeds{$path->role} || die "Unknown role: " . $path->role );
     my $path_length = 0;
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
-        $path_length = $path->length;
+        $path_length = unscale $path->length;
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
             $path->center, $e * unscale $path_length, $description);
     } else {
+        my @moves = ();
+        my @last_moves = ();
+        my $speed_mms = $self->speeds->{$self->speed} / 60;
         foreach my $line ($path->lines) {
-            my $line_length = $line->length;
+            my $line_length = unscale $line->length;
             $path_length += $line_length;
-            $gcode .= $self->G1($line->[B], undef, $e * unscale $line_length, $description);
+            
+            # apply frequency limit
+            # http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
+            if ($Slic3r::Config->vibration_limit && @{ $path->polyline } >= 4) { # optimization: resonance isn't triggered with less than three moves
+                my $freq = $speed_mms / $line_length;
+                if ($freq >= $Slic3r::Config->vibration_limit) {
+                    my $vector = $line->vector;
+                    if (@last_moves >= 1) {
+                        if ($vector->[B][X] * $last_moves[-1][B][X] > 0 && $vector->[B][Y] * $last_moves[-1][B][Y] > 0) {
+                            # if both X and Y have the same direction (sign), reset the buffer as there's no shaking
+                            @last_moves = ();
+                        }
+                    }
+                    push @last_moves, $vector;
+                    if (@last_moves >= 3) {
+                        my ($shortest_length) = reverse sort map $_->length, @last_moves;
+                        my $speed = $Slic3r::Config->vibration_limit * unscale $shortest_length;
+                        ###Slic3r::debugf "Reducing speed to %s mm/s (%s Hz vibration detected)\n", $speed, $freq;
+                        $self->speed($speed * 60);
+                    }
+                } else {
+                    @last_moves = ();
+                }
+            }
+            
+            push @moves, [ $line->[B], $e * unscale $line_length ];
+        }
+        
+        foreach my $move (@moves) {
+            $gcode .= $self->G1($move->[0], undef, $move->[1], $description);
         }
     }
     
     if ($Slic3r::Config->cooling) {
-        my $path_time = unscale($path_length) / $self->speeds->{$self->last_speed} * 60;
+        my $path_time = $path_length / $self->speeds->{$self->last_speed} * 60;
         if ($self->layer->id == 0) {
             $path_time = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? $path_time / ($1/100)
-                : unscale($path_length) / $Slic3r::Config->first_layer_speed * 60;
+                : $path_length / $Slic3r::Config->first_layer_speed * 60;
         }
         $self->elapsed_time($self->elapsed_time + $path_time);
     }
@@ -366,7 +398,7 @@ sub _Gx {
         # apply the speed reduction for print moves on bottom layer
         my $speed_f = $speed eq 'retract'
             ? ($self->extruder->retract_speed_mm_min)
-            : $self->speeds->{$speed};
+            : $self->speeds->{$speed} // $speed;
         if ($e && $self->layer && $self->layer->id == 0 && $comment !~ /retract/) {
             $speed_f = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? ($speed_f * $1/100)
