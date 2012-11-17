@@ -634,6 +634,10 @@ sub build {
                 },
             ],
         },
+        {
+            title => 'Advanced',
+            options => [qw(vibration_limit)],
+        },
     ]);
     
     $self->add_options_page('Custom G-code', 'cog.png', optgroups => [

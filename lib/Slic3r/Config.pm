@@ -410,6 +410,14 @@ our $Options = {
         type    => 'f',
         default => 1,
     },
+    'vibration_limit' => {
+        label   => 'Vibration limit',
+        tooltip => 'This experimental option will slow down those parts hitting the configured frequency limit. The purpose of limiting vibrations is to avoid mechanical resonance.',
+        sidetext => 'Hz',
+        cli     => 'vibration-limit=f',
+        type    => 'f',
+        default => 15,
+    },
     
     # print options
     'perimeters' => {
