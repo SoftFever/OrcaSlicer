@@ -1,7 +1,7 @@
 package Slic3r::GCode;
 use Moo;
 
-use List::Util qw(first);
+use List::Util qw(min first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y A B);
 
@@ -477,93 +477,76 @@ sub limit_frequency {
     
     my $current_gcode = $gcode;
     $gcode = '';
-    my ($X, $Y, $F);
-    my @last_moves = ();
-    my $longest_move;
-    my $buffer = '';
-    my $vibration_limit_min = $Slic3r::Config->vibration_limit * 60;
+    my %last;
+    my $F;
     
-    my $flush_buffer = sub {
-        my ($line) = @_;
-        
-        if (@last_moves >= 3) {
-            $buffer =~ s/ F[0-9.]+//g;
-            my $new_speed = $vibration_limit_min * $longest_move;
-            $gcode .= "G1 F$new_speed ; limit vibrations\n";
-            $gcode .= $buffer;
-            $gcode .= "G1 F$F; restore previous speed\n";
-        } else {
-            $gcode .= $buffer;
-        }
-        $gcode .= "$line\n";
-        @last_moves = ();
-        $buffer = '';
-    };
-    
-    my $append_to_buffer = sub {
-        my ($line, $move, $freq) = @_;
-        
-        ###printf "move x = %s, y = %s\n",   map $_ // '/', @$move[X,Y];
-        ###printf "  freq x = %s, y = %s\n", map $_ // '/', @$freq[X,Y];
-        
-        $buffer .= "$line\n";
-        push @last_moves, [ map $freq->[$_] ? $_ : undef, @$move ];
-        for (grep defined $freq->[$_], X,Y) {
-            $longest_move = abs($move->[$_]) if $move->[$_] && (!defined $longest_move || abs($move->[$_]) > $longest_move);
-        }
-    };
+    my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);
+    my @buffer = ();
+    my %last_dir = ();
+    my %time = ();
+    my @axes = qw(X Y E);
     
     foreach my $line (split /\n/, $current_gcode) {
         if ($line =~ /^G[01] /) {
-            my ($x, $y, $f);
-            $x = $1 if $line =~ /X([0-9.]+)/;
-            $y = $1 if $line =~ /Y([0-9.]+)/;
+            my %cur;
+            my $f;
+            for (@axes) {
+                $cur{$_} = $1 if $line =~ /$_([0-9.]+)/;
+            }
             $f = $1 if $line =~ /F([0-9.]+)/;
             
             # calculate the move vector
-            my @move = (
-                (defined $x && $X) ? ($x - $X) : 0,
-                (defined $y && $Y) ? ($x - $Y) : 0,
+            my %move = (
+                map { $_ => (defined $cur{$_} && defined $last{$_}) ? ($cur{$_} - $last{$_}) : 0 } @axes
             );
             
-            # calculate the frequency (how many times the move can happen in one minute) for each axis
-            # and only keep it for the axes exceeding the configured limit.
-            # (undef = infinite)
-            my @freq = ();
-            for (X,Y) {
-                next if !$move[$_];
-                my $freq = ($f // $F) / abs($move[$_]);
-                $freq[$_] = $freq if $freq >= $vibration_limit_min;
-            }
+            # check move directions
+            my %dir = (
+                map { $_ => ($move{$_}) ? ($move{$_} > 0 ? 1 : -1) : undef } @axes
+            );
             
-            # does our move exceed the limit?
-            if (grep defined $_, @freq) {
-                # if so, do we have a buffer already?
-                if (@last_moves) {
-                    # if we have a buffer, compare the direction (for each axis) with the previous one.
-                    if (($move[X] // 0) * ($last_moves[-1][X] // 0) < 0 || ($move[Y] // 0) * ($last_moves[-1][Y] // 0) < 0 && ($f // $F) == $F) {
-                        # this move has opposite direction on at least one axis, and has also same speed:
-                        # we can add it to the buffer
-                        $append_to_buffer->($line, \@move, \@freq);
-                    } else {
-                        $flush_buffer->($line);
+            my @slowdown = ();
+            foreach my $axis (@axes) {
+                # are we changing direction on this axis?
+                # (actually: are we going positive while last move was negative?)
+                if (($last_dir{$axis} // 0) < 0 && ($dir{$axis} // 0) > 0) {
+                    # changing direction on this axis!
+                    if (defined $time{$axis} && $time{$axis} < $min_time) {
+                        # direction change was too fast! we need to slow down
+                        push @slowdown, $time{$axis} / $min_time;
                     }
-                } else {
-                    # if we have no buffer, store this move inside it
-                    $append_to_buffer->($line, \@move, \@freq);
+                    $time{$axis} = 0;
+                } elsif ($move{$axis}) {
+                    # not changing direction on this axis
+                    # then just calculate move time and sum it
+                    $time{$axis} //= 0;
+                    $time{$axis} += abs($move{$axis}) / ($f // $F);
                 }
+            }
+            if (@slowdown) {
+                my $factor = min(@slowdown);
+                printf  "SLOWDOWN! (slowdown = %d%%)\n", $factor * 100;
+                $gcode .= "; START SLOWDOWN ($factor)\n";
+                $gcode .= "$_\n" for @buffer;
+                @buffer = ();
+                $gcode .= "; END SLOWDOWN\n";
+                $gcode .= "$line\n";
             } else {
-                # if the move does not exceed any limit, flush the buffer and output this line
-                $flush_buffer->($line);
+                push @buffer, $line;
             }
             
-            $X = $x if defined $x;
-            $Y = $y if defined $y;
+            for (@axes) {
+                $last{$_}     = $cur{$_} if defined $cur{$_};
+                $last_dir{$_} = $dir{$_} if defined $dir{$_};
+            }
             $F = $f if defined $f;
+            
         } else {
-            $gcode .= "$line\n";
+            push @buffer, $line;
         }
     }
+    
+    $gcode .= "$_\n" for @buffer;
     
     return $gcode;
 }
