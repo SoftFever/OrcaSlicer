@@ -985,8 +985,12 @@ sub set {
     }
     
     if (!exists $Options->{$opt_key}) {
-        $opt_key = +(grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options)[0]
-            or warn "Unknown option $opt_key\n";
+        my @keys = grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options;
+        if (!@keys) {
+            warn "Unknown option $opt_key\n";
+            return;
+        }
+        $opt_key = $keys[0];
     }
     
     # clone arrayrefs
