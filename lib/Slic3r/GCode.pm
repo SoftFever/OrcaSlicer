@@ -1,7 +1,7 @@
 package Slic3r::GCode;
 use Moo;
 
-use List::Util qw(min first);
+use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y A B);
 
@@ -477,14 +477,15 @@ sub limit_frequency {
     
     my $current_gcode = $gcode;
     $gcode = '';
-    my %last;
-    my $F;
+    
+    # the following code is inspired by Marlin frequency limit implementation
     
     my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);
-    my @buffer = ();
-    my %last_dir = ();
-    my %time = ();
-    my @axes = qw(X Y E);
+    my @axes = qw(X Y);
+    my %segment_time = (map { $_ => [0,0,0] } @axes);
+    my %last         = (map { $_ => 0 } @axes);
+    my %last_dir     = (map { $_ => 0 } @axes);
+    my $F;
     
     foreach my $line (split /\n/, $current_gcode) {
         if ($line =~ /^G[01] /) {
@@ -502,51 +503,49 @@ sub limit_frequency {
             
             # check move directions
             my %dir = (
-                map { $_ => ($move{$_}) ? ($move{$_} > 0 ? 1 : -1) : undef } @axes
+                map { $_ => ($move{$_}) ? ($move{$_} > 0 ? 1 : -1) : 0 } @axes
             );
             
-            my @slowdown = ();
-            foreach my $axis (@axes) {
-                # are we changing direction on this axis?
-                # (actually: are we going positive while last move was negative?)
-                if (($last_dir{$axis} // 0) < 0 && ($dir{$axis} // 0) > 0) {
-                    # changing direction on this axis!
-                    if (defined $time{$axis} && $time{$axis} < $min_time) {
-                        # direction change was too fast! we need to slow down
-                        push @slowdown, $time{$axis} / $min_time;
+            my $factor = 1;
+            my $segment_time = abs(max(values %move)) / ($f // $F);
+            if ($segment_time > 0) {
+                my %max_segment_time = ();
+                foreach my $axis (@axes) {
+                    # are we changing direction on this axis?
+                    if ($last_dir{$axis} == $dir{$axis}) {
+                        $segment_time{$axis}[0] += $segment_time;
+                    } else {
+                        @{ $segment_time{$axis} } = ($segment_time, @{ $segment_time{$axis} }[0,1]);
                     }
-                    $time{$axis} = 0;
-                } elsif ($move{$axis}) {
-                    # not changing direction on this axis
-                    # then just calculate move time and sum it
-                    $time{$axis} //= 0;
-                    $time{$axis} += abs($move{$axis}) / ($f // $F);
+                    
+                    $max_segment_time{$axis} = max($segment_time{$axis}[0], max($segment_time{$axis}[1], $segment_time{$axis}[2]));
+                }
+                
+                my $min_segment_time = min(values %max_segment_time);
+                if ($min_segment_time < $min_time) {
+                    $factor = $min_segment_time / $min_time;
                 }
             }
-            if (@slowdown) {
-                my $factor = min(@slowdown);
-                printf  "SLOWDOWN! (slowdown = %d%%)\n", $factor * 100;
-                $gcode .= "; START SLOWDOWN ($factor)\n";
-                $gcode .= "$_\n" for @buffer;
-                @buffer = ();
-                $gcode .= "; END SLOWDOWN\n";
+            
+            if ($factor == 1) {
                 $gcode .= "$line\n";
             } else {
-                push @buffer, $line;
+                $line =~ s/ F[0-9.]+//;
+                my $new_speed = sprintf '%.3f', ($f // $F) * $factor;
+                $line =~ s/^(G[01]) /$1 F$new_speed /;
+                $gcode .= "$line\nG1 F" . ($f // $F) . "\n";
             }
             
             for (@axes) {
-                $last{$_}     = $cur{$_} if defined $cur{$_};
-                $last_dir{$_} = $dir{$_} if defined $dir{$_};
+                $last{$_}     = $cur{$_} if $cur{$_};
+                $last_dir{$_} = $dir{$_} if $dir{$_};
             }
             $F = $f if defined $f;
             
         } else {
-            push @buffer, $line;
+            $gcode .= "$line\n";
         }
     }
-    
-    $gcode .= "$_\n" for @buffer;
     
     return $gcode;
 }
