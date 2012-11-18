@@ -909,6 +909,16 @@ sub write_gcode {
     printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
         $self->total_extrusion_length, $self->total_extrusion_volume;
     
+    if ($Slic3r::Config->gcode_comments) {
+        # append full config
+        print $fh "\n";
+        foreach my $opt_key (sort keys %{$Slic3r::Config}) {
+            next if $Slic3r::Config::Options->{$opt_key}{shortcut};
+            next if $Slic3r::Config::Options->{$opt_key}{gui_only};
+            printf $fh "; %s = %s\n", $opt_key, $Slic3r::Config->serialize($opt_key);
+        }
+    }
+    
     # close our gcode file
     close $fh;
 }
