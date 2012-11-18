@@ -228,7 +228,7 @@ sub make_perimeters {
         # create one more offset to be used as boundary for fill
         {
             my @fill_boundaries = map $_->offset_ex(-$distance), @last_offsets;
-            $_->simplify(scale &Slic3r::RESOLUTION) for @fill_boundaries;
+            $_->simplify(&Slic3r::SCALED_RESOLUTION) for @fill_boundaries;
             push @{ $self->surfaces }, @fill_boundaries;
         }
         

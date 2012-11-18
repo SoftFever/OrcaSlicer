@@ -126,6 +126,7 @@ sub extrude_path {
     my ($path, $description, $recursive) = @_;
     
     $path = $path->unpack if $path->isa('Slic3r::ExtrusionPath::Packed');
+    $path->simplify(&Slic3r::SCALED_RESOLUTION);
     
     # detect arcs
     if ($Slic3r::Config->gcode_arcs && !$recursive) {
