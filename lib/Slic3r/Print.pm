@@ -851,8 +851,6 @@ sub write_gcode {
             $gcode =~ s/^;_BRIDGE_FAN_END\n/ $gcodegen->set_fan($fan_speed, 1) /gmex;
         }
         
-        $gcode = $gcodegen->limit_frequency($gcode);
-        
         return $gcode;
     };
     
