@@ -341,7 +341,7 @@ sub export_gcode {
     # simplify slices (both layer and region slices),
     # we only need the max resolution for perimeters
     foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-        $_->simplify(scale &Slic3r::RESOLUTION)
+        $_->simplify(&Slic3r::SCALED_RESOLUTION)
             for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->regions});
     }
     
