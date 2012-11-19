@@ -1,7 +1,7 @@
 package Slic3r::GCode;
 use Moo;
 
-use List::Util qw(first);
+use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y A B);
 
@@ -19,9 +19,15 @@ has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_speed'         => (is => 'rw', default => sub {""});
+has 'last_f'             => (is => 'rw', default => sub {""});
+has 'force_f'            => (is => 'rw', default => sub {0});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
 has 'last_path'          => (is => 'rw');
 has 'dec'                => (is => 'ro', default => sub { 3 } );
+
+# used for vibration limit:
+has 'last_dir'           => (is => 'ro', default => sub { [0,0] });
+has 'segment_time'       => (is => 'ro', default => sub { [ [0,0,0], [0,0,0] ] });
 
 # calculate speeds (mm/min)
 has 'speeds' => (
@@ -69,6 +75,7 @@ sub move_z {
     my $current_z = $self->z;
     if (!defined $current_z || $current_z != ($z + $self->lifted)) {
         $gcode .= $self->retract(move_z => $z);
+        $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
             unless ($current_z // -1) != ($self->z // -1);
     }
@@ -149,6 +156,7 @@ sub extrude_path {
                         my $point = Slic3r::Geometry::point_along_segment(@$last_line, $last_line->length + scale $path->flow_spacing);
                         bless $point, 'Slic3r::Point';
                         $point->rotate(PI/6, $last_line->[B]);
+                        $self->speed('travel');
                         $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
                     }
                 }
@@ -158,6 +166,7 @@ sub extrude_path {
     }
     
     # go to first point of extrusion path
+    $self->speed('travel');
     $gcode .= $self->G0($path->points->[0], undef, 0, "move to first $description point")
         if !points_coincide($self->last_pos, $path->points->[0]);
     
@@ -181,23 +190,23 @@ sub extrude_path {
     $self->speed( $role_speeds{$path->role} || die "Unknown role: " . $path->role );
     my $path_length = 0;
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
-        $path_length = $path->length;
+        $path_length = unscale $path->length;
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
             $path->center, $e * unscale $path_length, $description);
     } else {
         foreach my $line ($path->lines) {
-            my $line_length = $line->length;
+            my $line_length = unscale $line->length;
             $path_length += $line_length;
-            $gcode .= $self->G1($line->[B], undef, $e * unscale $line_length, $description);
+            $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
     }
     
     if ($Slic3r::Config->cooling) {
-        my $path_time = unscale($path_length) / $self->speeds->{$self->last_speed} * 60;
+        my $path_time = $path_length / $self->speeds->{$self->last_speed} * 60;
         if ($self->layer->id == 0) {
             $path_time = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? $path_time / ($1/100)
-                : unscale($path_length) / $Slic3r::Config->first_layer_speed * 60;
+                : $path_length / $Slic3r::Config->first_layer_speed * 60;
         }
         $self->elapsed_time($self->elapsed_time + $path_time);
     }
@@ -268,6 +277,7 @@ sub unretract {
     my $gcode = "";
     
     if ($self->lifted) {
+        $self->speed('travel');
         $gcode .= $self->G0(undef, $self->z - $self->lifted, 0, 'restore layer Z');
         $self->lifted(0);
     }
@@ -312,10 +322,12 @@ sub _G0_G1 {
     my ($gcode, $point, $z, $e, $comment) = @_;
     my $dec = $self->dec;
     
+    my $speed_factor;
     if ($point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
+        $speed_factor = $self->_limit_frequency($point);
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
@@ -323,7 +335,7 @@ sub _G0_G1 {
         $gcode .= sprintf " Z%.${dec}f", $z;
     }
     
-    return $self->_Gx($gcode, $e, $comment);
+    return $self->_Gx($gcode, $e, $speed_factor, $comment);
 }
 
 sub G2_G3 {
@@ -343,39 +355,45 @@ sub G2_G3 {
         ($center->[Y] - $self->last_pos->[Y]) * &Slic3r::SCALING_FACTOR;
     
     $self->last_pos($point);
-    return $self->_Gx($gcode, $e, $comment);
+    return $self->_Gx($gcode, $e, undef, $comment);
 }
 
 sub _Gx {
     my $self = shift;
-    my ($gcode, $e, $comment) = @_;
+    my ($gcode, $e, $speed_factor, $comment) = @_;
     my $dec = $self->dec;
-    
-    # determine speed
-    my $speed = ($e ? $self->speed : 'travel');
     
     # output speed if it's different from last one used
     # (goal: reduce gcode size)
     my $append_bridge_off = 0;
-    if ($speed ne $self->last_speed) {
-        if ($speed eq 'bridge') {
+    my $F;
+    if ($self->speed ne $self->last_speed) {
+        if ($self->speed eq 'bridge') {
             $gcode = ";_BRIDGE_FAN_START\n$gcode";
         } elsif ($self->last_speed eq 'bridge') {
             $append_bridge_off = 1;
         }
         
         # apply the speed reduction for print moves on bottom layer
-        my $speed_f = $speed eq 'retract'
+        $F = $self->speed eq 'retract'
             ? ($self->extruder->retract_speed_mm_min)
-            : $self->speeds->{$speed};
+            : $self->speeds->{$self->speed} // $self->speed;
         if ($e && $self->layer && $self->layer->id == 0 && $comment !~ /retract/) {
-            $speed_f = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
-                ? ($speed_f * $1/100)
+            $F = $Slic3r::Config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
+                ? ($F * $1/100)
                 : $Slic3r::Config->first_layer_speed * 60;
         }
-        $gcode .= sprintf " F%.${dec}f", $speed_f;
-        $self->last_speed($speed);
+        $self->last_speed($self->speed);
+        $self->last_f($F);
+        $F *= $speed_factor // 1;
+    } elsif (defined $speed_factor && $speed_factor != 1) {
+        $gcode .= sprintf " F%.${dec}f", ($self->last_f * $speed_factor);
+        $self->force_f(1);  # next move will need explicit F
+    } elsif ($self->force_f) {
+        $gcode .= sprintf " F%.${dec}f", $self->last_f;
+        $self->force_f(0);
     }
+    $gcode .= sprintf " F%.${dec}f", $F if defined $F;
     
     # output extrusion distance
     if ($e && $Slic3r::Config->extrusion_axis) {
@@ -470,6 +488,42 @@ sub set_bed_temperature {
         if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
     
     return $gcode;
+}
+
+# http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
+# the following implementation is inspired by Marlin code
+sub _limit_frequency {
+    my $self = shift;
+    my ($point) = @_;
+    
+    return if $Slic3r::Config->vibration_limit == 0;
+    my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);
+    
+    # calculate the move vector and move direction
+    my @move = map unscale $_, @{ Slic3r::Line->new($self->last_pos, $point)->vector->[B] };
+    my @dir = map { $move[$_] ? (($move[$_] > 0) ? 1 : -1) : 0 } X,Y;
+    
+    my $factor = 1;
+    my $segment_time = abs(max(@move)) / $self->speeds->{$self->speed};
+    if ($segment_time > 0) {
+        my @max_segment_time = ();
+        foreach my $axis (X,Y) {
+            if ($self->last_dir->[$axis] == $dir[$axis]) {
+                $self->segment_time->[$axis][0] += $segment_time;
+            } else {
+                @{ $self->segment_time->[$axis] } = ($segment_time, @{ $self->segment_time->[$axis] }[0,1]);
+            }
+            $max_segment_time[$axis] = max($self->segment_time->[$axis][0], max($self->segment_time->[$axis][1], $self->segment_time->[$axis][2]));
+            $self->last_dir->[$axis] = $dir[$axis] if $dir[$axis];
+        }
+        
+        my $min_segment_time = min(@max_segment_time);
+        if ($min_segment_time < $min_time) {
+            $factor = $min_segment_time / $min_time;
+        }
+    }
+    
+    return $factor;
 }
 
 1;
