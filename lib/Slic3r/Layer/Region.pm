@@ -273,7 +273,6 @@ sub make_perimeters {
                             Slic3r::Surface->new(expolygon => $expolygon),
                             density         => 1,
                             flow_spacing    => $flow->spacing,
-                            dont_connect    => 1,  # time-saver
                         );
                         my $params = shift @paths;
                         
