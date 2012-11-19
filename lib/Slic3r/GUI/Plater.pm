@@ -724,9 +724,10 @@ sub make_thumbnail {
     my $self = shift;
     my ($obj_idx) = @_;
     
+    my $object = $self->{objects}[$obj_idx];
+    $object->thumbnail_scaling_factor($self->{scaling_factor});
     my $cb = sub {
-        my $object = $self->{objects}[$obj_idx];
-        my $thumbnail = $object->make_thumbnail(scaling_factor => $self->{scaling_factor});
+        my $thumbnail = $object->make_thumbnail;
         
         if ($Slic3r::have_threads) {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
@@ -1111,13 +1112,11 @@ sub instances_count {
 
 sub make_thumbnail {
     my $self = shift;
-    my %params = @_;
     
     my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-    $self->thumbnail_scaling_factor($params{scaling_factor});
     for (@$convex_hull) {
-        @$_ = map $_ * $params{scaling_factor}, @$_;
+        @$_ = map $_ * $self->thumbnail_scaling_factor, @$_;
     }
     $convex_hull->simplify(0.3);
     $convex_hull->rotate(Slic3r::Geometry::deg2rad($self->rotate));
