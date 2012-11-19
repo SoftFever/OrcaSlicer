@@ -20,7 +20,7 @@ our @EXPORT_OK = qw(
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
-    scaled_epsilon bounding_box_3D size_3D
+    scaled_epsilon bounding_box_3D size_3D size_2D
 );
 
 
@@ -686,6 +686,14 @@ sub bounding_box_center {
     return Slic3r::Point->new(
         ($bounding_box[X2] - $bounding_box[X1]) / 2,
         ($bounding_box[Y2] - $bounding_box[Y1]) / 2,
+    );
+}
+
+sub size_2D {
+    my @bounding_box = bounding_box(@_);
+    return (
+        ($bounding_box[X2] - $bounding_box[X1]),
+        ($bounding_box[Y2] - $bounding_box[Y1]),
     );
 }
 

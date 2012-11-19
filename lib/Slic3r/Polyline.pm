@@ -126,9 +126,7 @@ sub bounding_box {
 
 sub size {
     my $self = shift;
-    
-    my @extents = $self->bounding_box;
-    return [$extents[X2] - $extents[X1], $extents[Y2] - $extents[Y1]];
+    return [ Slic3r::Geometry::size_2D($self) ];
 }
 
 sub align_to_origin {
