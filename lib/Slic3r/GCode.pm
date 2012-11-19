@@ -139,9 +139,9 @@ sub extrude_path {
     
     my $gcode = "";
     
-    # retract if distance from previous position is greater or equal to the one
-    # specified by the user
-    {
+    # skip retract for support material
+    if ($path->role != EXTR_ROLE_SUPPORTMATERIAL) {
+        # retract if distance from previous position is greater or equal to the one specified by the user
         my $travel = Slic3r::Line->new($self->last_pos->clone, $path->points->[0]->clone);
         if ($travel->length >= scale $self->extruder->retract_before_travel) {
             # move travel back to original layer coordinates.
