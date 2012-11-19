@@ -54,7 +54,7 @@ sub set_shift {
     $self->shift_x($shift[X]);
     $self->shift_y($shift[Y]);
     
-    $self->last_pos->translate(map -$_, @shift);
+    $self->last_pos->translate(map -(scale $_), @shift);
 }
 
 # this method accepts Z in scaled coordinates
