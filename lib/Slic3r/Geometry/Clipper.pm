@@ -21,7 +21,7 @@ sub offset {
     my ($polygons, $distance, $scale, $joinType, $miterLimit) = @_;
     $scale      ||= 100000;
     $joinType   //= JT_MITER;
-    $miterLimit //= 2;
+    $miterLimit //= 10;
     
     my $offsets = Math::Clipper::offset($polygons, $distance, $scale, $joinType, $miterLimit);
     return @$offsets;
