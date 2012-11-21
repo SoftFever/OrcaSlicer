@@ -26,6 +26,7 @@ has 'last_path'          => (is => 'rw');
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # used for vibration limit:
+has 'limit_frequency'    => (is => 'rw', default => sub { 0 });
 has 'last_dir'           => (is => 'ro', default => sub { [0,0] });
 has 'segment_time'       => (is => 'ro', default => sub { [ [0,0,0], [0,0,0] ] });
 
@@ -51,6 +52,7 @@ my %role_speeds = (
     &EXTR_ROLE_BRIDGE                       => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
+    &EXTR_ROLE_GAPFILL                      => 'solid_infill',
 );
 
 sub set_shift {
@@ -164,6 +166,9 @@ sub extrude_path {
             }
         }
     }
+    
+    # only apply vibration limiting to gap fill until the algorithm is more mature
+    $self->limit_frequency($path->role == EXTR_ROLE_GAPFILL);
     
     # go to first point of extrusion path
     $self->speed('travel');
@@ -327,7 +332,7 @@ sub _G0_G1 {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        $speed_factor = $self->_limit_frequency($point);
+        $speed_factor = $self->_limit_frequency($point) if $self->limit_frequency;
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {

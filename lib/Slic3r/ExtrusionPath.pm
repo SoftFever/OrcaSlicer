@@ -6,7 +6,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_SMALLPERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
     EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
     EXTR_ROLE_FILL EXTR_ROLE_SOLIDFILL EXTR_ROLE_TOPSOLIDFILL EXTR_ROLE_BRIDGE EXTR_ROLE_SKIRT 
-    EXTR_ROLE_SUPPORTMATERIAL);
+    EXTR_ROLE_SUPPORTMATERIAL EXTR_ROLE_GAPFILL);
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
 
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
@@ -33,6 +33,7 @@ use constant EXTR_ROLE_TOPSOLIDFILL                 => 6;
 use constant EXTR_ROLE_BRIDGE                       => 7;
 use constant EXTR_ROLE_SKIRT                        => 8;
 use constant EXTR_ROLE_SUPPORTMATERIAL              => 9;
+use constant EXTR_ROLE_GAPFILL                      => 10;
 
 use constant PACK_FMT => 'ffca*';
 
