@@ -434,9 +434,9 @@ sub export_gcode {
     $self->make_brim;  # must come after make_skirt
     
     # output everything to a G-code file
-    my $output_file = $self->expanded_output_filepath($params{output_file});
+    my $output_file = $params{output_file} ? $self->expanded_output_filepath($params{output_file}) : '';
     $status_cb->(90, "Exporting G-code to $output_file");
-    $self->write_gcode($output_file);
+    $self->write_gcode($params{output_fh} || $output_file);
     
     # run post-processing scripts
     if (@{$Slic3r::Config->post_process}) {
@@ -449,14 +449,16 @@ sub export_gcode {
     }
     
     # output some statistics
-    $self->processing_time(tv_interval($t0));
-    printf "Done. Process took %d minutes and %.3f seconds\n", 
-        int($self->processing_time/60),
-        $self->processing_time - int($self->processing_time/60)*60;
-    
-    # TODO: more statistics!
-    printf "Filament required: %.1fmm (%.1fcm3)\n",
-        $self->total_extrusion_length, $self->total_extrusion_volume;
+    unless ($params{quiet}) {
+        $self->processing_time(tv_interval($t0));
+        printf "Done. Process took %d minutes and %.3f seconds\n", 
+            int($self->processing_time/60),
+            $self->processing_time - int($self->processing_time/60)*60;
+        
+        # TODO: more statistics!
+        printf "Filament required: %.1fmm (%.1fcm3)\n",
+            $self->total_extrusion_length, $self->total_extrusion_volume;
+    }
 }
 
 sub export_svg {
@@ -643,9 +645,14 @@ sub write_gcode {
     my $self = shift;
     my ($file) = @_;
     
-    # open output gcode file
-    open my $fh, ">", $file
-        or die "Failed to open $file for writing\n";
+    # open output gcode file if we weren't supplied a file-handle
+    my $fh;
+    if (ref $file eq 'IO::Scalar') {
+        $fh = $file;
+    } else {
+        open $fh, ">", $file
+            or die "Failed to open $file for writing\n";
+    }
     
     # write some information
     my @lt = localtime;

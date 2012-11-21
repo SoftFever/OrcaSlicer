@@ -45,6 +45,7 @@ lib/Slic3r/Print/Region.pm
 lib/Slic3r/Print/Object.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm
+lib/Slic3r/Test.pm
 lib/Slic3r/TriangleMesh.pm
 MANIFEST			This list of files
 README.markdown
@@ -58,6 +59,7 @@ t/dynamic.t
 t/fill.t
 t/geometry.t
 t/polyclip.t
+t/retract.t
 t/serialize.t
 t/stl.t
 utils/amf-to-stl.pl
