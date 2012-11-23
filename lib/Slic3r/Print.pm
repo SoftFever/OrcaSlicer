@@ -434,8 +434,8 @@ sub export_gcode {
     $self->make_brim;  # must come after make_skirt
     
     # output everything to a G-code file
-    my $output_file = $params{output_file} ? $self->expanded_output_filepath($params{output_file}) : '';
-    $status_cb->(90, "Exporting G-code to $output_file");
+    my $output_file = $self->expanded_output_filepath($params{output_file});
+    $status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
     $self->write_gcode($params{output_fh} || $output_file);
     
     # run post-processing scripts
@@ -943,6 +943,7 @@ sub expanded_output_filepath {
     
     # if no input file was supplied, take the first one from our objects
     $input_file ||= $self->objects->[0]->input_file;
+    return undef if !defined $input_file;
     
     # if output path is an existing directory, we take that and append
     # the specified filename format
