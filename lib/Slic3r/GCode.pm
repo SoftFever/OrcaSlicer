@@ -52,7 +52,7 @@ my %role_speeds = (
     &EXTR_ROLE_BRIDGE                       => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_SUPPORTMATERIAL              => 'support_material',
-    &EXTR_ROLE_GAPFILL                      => 'solid_infill',
+    &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
 
 sub set_shift {
