@@ -284,6 +284,14 @@ our $Options = {
         ratio_over => 'solid_infill_speed',
         default => 50,
     },
+    'support_material_speed' => {
+        label   => 'Support material',
+        tooltip => 'Speed for printing support material.',
+        sidetext => 'mm/s',
+        cli     => 'support-material-speed=f',
+        type    => 'f',
+        default => 60,
+    },
     'bridge_speed' => {
         label   => 'Bridges',
         tooltip => 'Speed for printing bridges.',

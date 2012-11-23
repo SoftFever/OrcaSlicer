@@ -192,6 +192,8 @@ $j
                         (default: $config->{solid_infill_speed})
     --top-solid-infill-speed Speed of print moves for top surfaces in mm/s or % over solid infill speed
                         (default: $config->{top_solid_infill_speed})
+    --support-material-speed
+                        Speed of support material print moves in mm/s (default: $config->{support_material_speed})
     --bridge-speed      Speed of bridge print moves in mm/s (default: $config->{bridge_speed})
     --gap-fill-speed    Speed of gap fill print moves in mm/s (default: $config->{gap_fill_speed})
     --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
