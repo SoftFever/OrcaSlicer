@@ -145,6 +145,7 @@ The author of the Silk icon set is Mark James.
         --top-solid-infill-speed Speed of print moves for top surfaces in mm/s or % over solid infill speed
                             (default: 50)
         --bridge-speed      Speed of bridge print moves in mm/s (default: 60)
+        --gap-fill-speed    Speed of gap fill print moves in mm/s (default: 20)
         --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                             value or as a percentage over normal speeds (default: 30%)
         

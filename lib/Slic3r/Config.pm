@@ -293,6 +293,14 @@ our $Options = {
         aliases => [qw(bridge_feed_rate)],
         default => 60,
     },
+    'gap_fill_speed' => {
+        label   => 'Gap fill',
+        tooltip => 'Speed for filling small gaps using short zigzag moves. Keep this reasonably low to avoid too much shaking and resonance issues.',
+        sidetext => 'mm/s',
+        cli     => 'gap-fill-speed=f',
+        type    => 'f',
+        default => 20,
+    },
     'first_layer_speed' => {
         label   => 'First layer speed',
         tooltip => 'If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds.',

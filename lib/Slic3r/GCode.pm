@@ -36,7 +36,7 @@ has 'speeds' => (
     default => sub {+{
         map { $_ => 60 * $Slic3r::Config->get_value("${_}_speed") }
             qw(travel perimeter small_perimeter external_perimeter infill
-                solid_infill top_solid_infill bridge),
+                solid_infill top_solid_infill bridge gap_fill),
     }},
 );
 
@@ -52,7 +52,7 @@ my %role_speeds = (
     &EXTR_ROLE_BRIDGE                       => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_SUPPORTMATERIAL              => 'perimeter',
-    &EXTR_ROLE_GAPFILL                      => 'solid_infill',
+    &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
 
 sub set_shift {
