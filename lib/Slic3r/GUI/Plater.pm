@@ -727,6 +727,7 @@ sub make_thumbnail {
     my $object = $self->{objects}[$obj_idx];
     $object->thumbnail_scaling_factor($self->{scaling_factor});
     my $cb = sub {
+    	$Slic3r::Geometry::Clipper::clipper = Math::Clipper->new if $Slic3r::have_threads;
         my $thumbnail = $object->make_thumbnail;
         
         if ($Slic3r::have_threads) {
@@ -857,7 +858,8 @@ sub repaint {
         for my $instance_idx (0 .. $#{$object->instances}) {
             my $instance = $object->instances->[$instance_idx];
             push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $object->thumbnail->clone ];
-            $parent->{object_previews}->[-1][2]->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
+            $_->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y))
+            	for @{$parent->{object_previews}->[-1][2]->expolygons};
             
             my $drag_object = $self->{drag_object};
             if (defined $drag_object && $obj_idx == $drag_object->[0] && $instance_idx == $drag_object->[1]) {
@@ -867,11 +869,12 @@ sub repaint {
             } else {
                 $dc->SetBrush($parent->{objects_brush});
             }
-            $dc->DrawPolygon($parent->_y($parent->{object_previews}->[-1][2]), 0, 0);
+            $dc->DrawPolygon($parent->_y($_), 0, 0) for map $_->contour, @{ $parent->{object_previews}->[-1][2]->expolygons };
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
-                my $clearance = +($parent->{object_previews}->[-1][2]->offset($parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 1, JT_ROUND))[0];
+            	my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->contour}, @{$parent->{object_previews}->[-1][2]->expolygons} ]));
+                my $clearance = +($convex_hull->offset($parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 1, JT_ROUND))[0];
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
                 $dc->DrawPolygon($parent->_y($clearance), 0, 0);
@@ -881,7 +884,7 @@ sub repaint {
     
     # draw skirt
     if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
-        my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->[2]}, @{$parent->{object_previews}} ]));
+        my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->contour}, map @{$_->[2]->expolygons}, @{$parent->{object_previews}} ]));
         $convex_hull = +($convex_hull->offset($parent->{config}->skirt_distance * $parent->{scaling_factor}, 1, JT_ROUND))[0];
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
@@ -903,7 +906,7 @@ sub mouse_event {
         $parent->selection_changed(0);
         for my $preview (@{$parent->{object_previews}}) {
             my ($obj_idx, $instance_idx, $thumbnail) = @$preview;
-            if ($thumbnail->encloses_point($pos)) {
+            if (first { $_->contour->encloses_point($pos) } @{$thumbnail->expolygons}) {
                 $parent->{selected_objects} = [ [$obj_idx, $instance_idx] ];
                 $parent->{list}->Select($obj_idx, 1);
                 $parent->selection_changed(1);
@@ -934,7 +937,7 @@ sub mouse_event {
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
         for my $preview (@{$parent->{object_previews}}) {
-            if ($preview->[2]->encloses_point($pos)) {
+            if (first { $_->contour->encloses_point($pos) } @{ $preview->[2]->expolygons }) {
                 $cursor = Wx::Cursor->new(wxCURSOR_HAND);
                 last;
             }
@@ -1114,19 +1117,26 @@ sub make_thumbnail {
     my $self = shift;
     
     my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
-    my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-    for (@$convex_hull) {
+    my $mesh = $self->model_object->mesh;
+    my $thumbnail = Slic3r::ExPolygon::Collection->new(
+    	expolygons => (@{$mesh->facets} <= 2000)
+    		? $mesh->horizontal_projection
+    		: [ Slic3r::ExPolygon->new(convex_hull($mesh->vertices)) ],
+    );
+    for (map @$_, map @$_, @{$thumbnail->expolygons}) {
         @$_ = map $_ * $self->thumbnail_scaling_factor, @$_;
     }
-    $convex_hull->simplify(0.3);
-    $convex_hull->rotate(Slic3r::Geometry::deg2rad($self->rotate));
-    $convex_hull->scale($self->scale);
-    $convex_hull->align_to_origin;
+    for (@{$thumbnail->expolygons}) {
+	    $_->simplify(0.3);
+    	$_->rotate(Slic3r::Geometry::deg2rad($self->rotate));
+    	$_->scale($self->scale);
+    }
+    $thumbnail->align_to_origin;
     
-    $self->thumbnail($convex_hull);  # ignored in multi-threaded environments
+    $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
-    return $convex_hull;
+    return $thumbnail;
 }
 
 sub set_rotation {
@@ -1150,8 +1160,8 @@ sub set_scale {
     return if $factor == 1;
     $self->size->[$_] *= $factor for X,Y,Z;
     if ($self->thumbnail) {
-        $self->thumbnail->scale($factor);
-        $self->thumbnail->align_to_origin;
+	    $_->scale($factor) for @{$self->thumbnail->expolygons};
+		$self->thumbnail->align_to_origin;
     }
     $self->scale($scale);
 }

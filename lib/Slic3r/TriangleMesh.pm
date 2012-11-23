@@ -2,6 +2,7 @@ package Slic3r::TriangleMesh;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
+use Slic3r::Geometry::Clipper qw(union_ex);
 
 # public
 has 'vertices'      => (is => 'ro', required => 1);         # id => [$x,$y,$z]
@@ -576,6 +577,20 @@ sub split_mesh {
     }
     
     return @meshes;
+}
+
+sub horizontal_projection {
+    my $self = shift;
+    
+    my @f = ();
+    foreach my $facet (@{$self->facets}) {
+        push @f, [ map [ @{$self->vertices->[$_]}[X,Y] ], @$facet ];
+    }
+    
+    my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
+    my $union = union_ex([ Slic3r::Geometry::Clipper::offset(\@f, 1) ]);
+    Math::Clipper::unscale_coordinate_sets($scale_vector, $_) for @$union;
+    return $union;
 }
 
 1;

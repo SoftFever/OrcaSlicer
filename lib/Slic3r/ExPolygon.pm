@@ -164,6 +164,11 @@ sub simplify {
     $_->simplify(@_) for @$self;
 }
 
+sub scale {
+    my $self = shift;
+    $_->scale(@_) for @$self;
+}
+
 sub translate {
     my $self = shift;
     $_->translate(@_) for @$self;
@@ -298,6 +303,36 @@ sub medial_axis {
     }
     
     return @result;
+}
+
+package Slic3r::ExPolygon::Collection;
+use Moo;
+use Slic3r::Geometry qw(X1 Y1);
+
+has 'expolygons' => (is => 'ro', default => sub { [] });
+
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(
+        expolygons => [ map $_->clone, @{$self->expolygons} ],
+    );
+}
+
+sub align_to_origin {
+    my $self = shift;
+    
+    my @bb = Slic3r::Geometry::bounding_box([ map @$_, map @$_, @{$self->expolygons} ]);
+    $_->translate(-$bb[X1], -$bb[Y1]) for @{$self->expolygons};
+}
+
+sub rotate {
+    my $self = shift;
+    $_->rotate(@_) for @{$self->expolygons};
+}
+
+sub size {
+    my $self = shift;
+    return [ Slic3r::Geometry::size_2D([ map @$_, map @$_, @{$self->expolygons} ]) ];
 }
 
 1;
