@@ -22,6 +22,7 @@ my $build = Module::Build->new(
     },
     build_requires => {
         'Test::More' => '0.10',
+        'IO::Scalar' => '0.10',
     },
     recommends     => {
         'Growl::GNTP' => '0.15',
