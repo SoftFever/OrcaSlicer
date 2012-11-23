@@ -416,7 +416,7 @@ our $Options = {
         sidetext => 'Hz',
         cli     => 'vibration-limit=f',
         type    => 'f',
-        default => 25,
+        default => 0,
     },
     
     # print options
