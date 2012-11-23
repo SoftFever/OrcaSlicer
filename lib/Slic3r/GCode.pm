@@ -36,7 +36,7 @@ has 'speeds' => (
     default => sub {+{
         map { $_ => 60 * $Slic3r::Config->get_value("${_}_speed") }
             qw(travel perimeter small_perimeter external_perimeter infill
-                solid_infill top_solid_infill support_material bridge),
+                solid_infill top_solid_infill support_material bridge gap_fill),
     }},
 );
 
