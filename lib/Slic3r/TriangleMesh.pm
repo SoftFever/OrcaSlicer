@@ -584,11 +584,12 @@ sub horizontal_projection {
     
     my @f = ();
     foreach my $facet (@{$self->facets}) {
-        push @f, [ map [ @{$self->vertices->[$_]}[X,Y] ], @$facet ];
+        push @f, Slic3r::Polygon->new([ map [ @{$self->vertices->[$_]}[X,Y] ], @$facet ]);
     }
     
+    $_->make_counter_clockwise for @f;
     my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
-    my $union = union_ex([ Slic3r::Geometry::Clipper::offset(\@f, 1) ]);
+    my $union = union_ex([ Slic3r::Geometry::Clipper::offset(\@f, 10000) ]);
     Math::Clipper::unscale_coordinate_sets($scale_vector, $_) for @$union;
     return $union;
 }

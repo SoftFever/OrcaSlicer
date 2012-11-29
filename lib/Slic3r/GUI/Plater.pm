@@ -1119,20 +1119,21 @@ sub make_thumbnail {
     my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
     my $mesh = $self->model_object->mesh;
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
-    	expolygons => (@{$mesh->facets} <= 2000)
+    	expolygons => (@{$mesh->facets} <= 5000)
     		? $mesh->horizontal_projection
     		: [ Slic3r::ExPolygon->new(convex_hull($mesh->vertices)) ],
     );
     for (map @$_, map @$_, @{$thumbnail->expolygons}) {
         @$_ = map $_ * $self->thumbnail_scaling_factor, @$_;
     }
-    for (@{$thumbnail->expolygons}) {
-	    $_->simplify(0.3);
-    	$_->rotate(Slic3r::Geometry::deg2rad($self->rotate));
-    	$_->scale($self->scale);
+    foreach my $expolygon (@{$thumbnail->expolygons}) {
+    	@$expolygon = grep $_->area >= 1, @$expolygon;
+	    $expolygon->simplify(0.5);
+    	$expolygon->rotate(Slic3r::Geometry::deg2rad($self->rotate));
+    	$expolygon->scale($self->scale);
     }
+    @{$thumbnail->expolygons} = grep @$_, @{$thumbnail->expolygons};
     $thumbnail->align_to_origin;
-    
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
