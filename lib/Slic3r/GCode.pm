@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y A B);
+use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
 
 has 'multiple_extruders' => (is => 'ro', default => sub {0} );
 has 'layer'              => (is => 'rw');
@@ -22,7 +22,6 @@ has 'last_speed'         => (is => 'rw', default => sub {""});
 has 'last_f'             => (is => 'rw', default => sub {""});
 has 'force_f'            => (is => 'rw', default => sub {0});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
-has 'last_path'          => (is => 'rw');
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # used for vibration limit:
@@ -151,17 +150,6 @@ sub extrude_path {
             # build a more complete configuration space
             $travel->translate(-$self->shift_x, -$self->shift_y);
             if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
-                if ($self->last_path && $self->last_path->role == &EXTR_ROLE_EXTERNAL_PERIMETER) {
-                    my @lines = $self->last_path->lines;
-                    my $last_line = $lines[-1];
-                    if (points_coincide($last_line->[B], $self->last_pos)) {
-                        my $point = Slic3r::Geometry::point_along_segment(@$last_line, $last_line->length + scale $path->flow_spacing);
-                        bless $point, 'Slic3r::Point';
-                        $point->rotate(PI/6, $last_line->[B]);
-                        $self->speed('travel');
-                        $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
-                    }
-                }
                 $gcode .= $self->retract(travel_to => $path->points->[0]);
             }
         }
@@ -215,8 +203,6 @@ sub extrude_path {
         }
         $self->elapsed_time($self->elapsed_time + $path_time);
     }
-    
-    $self->last_path($path);
     
     return $gcode;
 }
