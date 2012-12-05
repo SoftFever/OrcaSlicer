@@ -175,7 +175,7 @@ sub extrude_path {
     }
     
     # only apply vibration limiting to gap fill until the algorithm is more mature
-    $self->limit_frequency($path->role == EXTR_ROLE_GAPFILL) if 0;
+    $self->limit_frequency($path->role == EXTR_ROLE_GAPFILL);
     
     # go to first point of extrusion path
     $self->speed('travel');
@@ -344,7 +344,9 @@ sub _G0_G1 {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        $speed_factor = $self->_limit_frequency($point) if $self->limit_frequency;
+        if ($self->limit_frequency) {
+            $gcode = $self->_limit_frequency($point) . $gcode;
+        }
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
@@ -514,14 +516,13 @@ sub _limit_frequency {
     my ($point) = @_;
     
     return if $Slic3r::Config->vibration_limit == 0;
-    my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);
+    my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);  # in minutes
     
     # calculate the move vector and move direction
     my @move = map unscale $_, @{ Slic3r::Line->new($self->last_pos, $point)->vector->[B] };
     my @dir = map { $move[$_] ? (($move[$_] > 0) ? 1 : -1) : 0 } X,Y;
     
-    my $factor = 1;
-    my $segment_time = abs(max(@move)) / $self->speeds->{$self->speed};
+    my $segment_time = abs(max(@move)) / $self->speeds->{$self->speed};  # in minutes
     if ($segment_time > 0) {
         my @max_segment_time = ();
         foreach my $axis (X,Y) {
@@ -536,11 +537,11 @@ sub _limit_frequency {
         
         my $min_segment_time = min(@max_segment_time);
         if ($min_segment_time < $min_time) {
-            $factor = $min_segment_time / $min_time;
+            return sprintf "G4 P%d\n", ($min_time - $min_segment_time) * 60 * 1000;
         }
     }
     
-    return $factor;
+    return '';
 }
 
 1;
