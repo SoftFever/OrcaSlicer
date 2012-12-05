@@ -44,6 +44,6 @@ $config->set('retract_before_travel',   [3]);
 ok $test->(), 'retraction';
 
 $config->set('retract_restart_extra',   [1]);
-ok $test->(), 'retraction with restart extra length';
+ok $test->(), 'restart extra length';
 
 __END__

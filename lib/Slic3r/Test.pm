@@ -58,7 +58,7 @@ has 'E' => (is => 'rw', default => sub {0});
 has 'F' => (is => 'rw', default => sub {0});
 
 our $Verbose = 0;
-my @AXES = qw(X Y Z E F);
+my @AXES = qw(X Y Z E);
 
 sub parse {
     my $self = shift;
@@ -100,7 +100,7 @@ sub parse {
         
         # update coordinates
         if ($command =~ /^(?:G[01]|G92)$/) {
-            for (@AXES) {
+            for (@AXES, 'F') {
                 $self->$_($args{$_}) if exists $args{$_};
             }
         }
