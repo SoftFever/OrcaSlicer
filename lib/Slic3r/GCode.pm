@@ -174,8 +174,7 @@ sub extrude_path {
         }
     }
     
-    # only apply vibration limiting to gap fill until the algorithm is more mature
-    $self->limit_frequency($path->role == EXTR_ROLE_GAPFILL);
+    $self->limit_frequency($path->role != EXTR_ROLE_PERIMETER && $path->role != EXTR_ROLE_EXTERNAL_PERIMETER && $path->role != EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER);
     
     # go to first point of extrusion path
     $self->speed('travel');
