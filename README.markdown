@@ -116,6 +116,8 @@ The author of the Silk icon set is Mark James.
         --g0                Use G0 commands for retraction (experimental, not supported by all
                             firmwares)
         --gcode-comments    Make G-code verbose by adding comments (default: no)
+        --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
+                            default: 0)
         
       Filament options:
         --filament-diameter Diameter in mm of your raw filament (default: 3)
