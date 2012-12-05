@@ -3,7 +3,7 @@ use Moo;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_SMALLPERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
+our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
     EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
     EXTR_ROLE_FILL EXTR_ROLE_SOLIDFILL EXTR_ROLE_TOPSOLIDFILL EXTR_ROLE_BRIDGE EXTR_ROLE_SKIRT 
     EXTR_ROLE_SUPPORTMATERIAL EXTR_ROLE_GAPFILL);
@@ -24,7 +24,6 @@ has 'flow_spacing' => (is => 'rw');
 has 'role'         => (is => 'rw', required => 1);
 
 use constant EXTR_ROLE_PERIMETER                    => 0;
-use constant EXTR_ROLE_SMALLPERIMETER               => 1;
 use constant EXTR_ROLE_EXTERNAL_PERIMETER           => 2;
 use constant EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 3;
 use constant EXTR_ROLE_FILL                         => 4;

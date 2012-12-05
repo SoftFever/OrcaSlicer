@@ -42,7 +42,6 @@ has 'speeds' => (
 # assign speeds to roles
 my %role_speeds = (
     &EXTR_ROLE_PERIMETER                    => 'perimeter',
-    &EXTR_ROLE_SMALLPERIMETER               => 'small_perimeter',
     &EXTR_ROLE_EXTERNAL_PERIMETER           => 'external_perimeter',
     &EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 'perimeter',
     &EXTR_ROLE_FILL                         => 'infill',
@@ -179,8 +178,15 @@ sub extrude_path {
     # calculate extrusion length per distance unit
     my $e = $self->extruder->e_per_mm3 * $area;
     
-    # extrude arc or line
+    # set speed
     $self->speed( $role_speeds{$path->role} || die "Unknown role: " . $path->role );
+    if ($path->role == EXTR_ROLE_PERIMETER || $path->role == EXTR_ROLE_EXTERNAL_PERIMETER || $path->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER) {
+        if (abs($path->length) <= &Slic3r::SMALL_PERIMETER_LENGTH) {
+            $self->speed('small_perimeter');
+        }
+    }
+    
+    # extrude arc or line
     my $path_length = 0;
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
         $path_length = unscale $path->length;

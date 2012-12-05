@@ -382,7 +382,7 @@ sub _add_perimeter {
     return unless $polygon->is_printable($self->perimeter_flow->width);
     push @{ $self->perimeters }, Slic3r::ExtrusionLoop->pack(
         polygon         => $polygon,
-        role            => (abs($polygon->length) <= &Slic3r::SMALL_PERIMETER_LENGTH) ? EXTR_ROLE_SMALLPERIMETER : ($role // EXTR_ROLE_PERIMETER),  #/
+        role            => ($role // EXTR_ROLE_PERIMETER),
         flow_spacing    => $self->perimeter_flow->spacing,
     );
 }
