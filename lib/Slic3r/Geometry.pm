@@ -736,6 +736,7 @@ sub size_3D {
     return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
 }
 
+# this assumes a CCW rotation from $p2 to $p3 around $p1
 sub angle3points {
     my ($p1, $p2, $p3) = @_;
     # p1 is the center

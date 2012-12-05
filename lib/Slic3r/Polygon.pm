@@ -31,12 +31,20 @@ sub is_counter_clockwise {
 
 sub make_counter_clockwise {
     my $self = shift;
-    $self->reverse if !$self->is_counter_clockwise;
+    if (!$self->is_counter_clockwise) {
+        $self->reverse;
+        return 1;
+    }
+    return 0;
 }
 
 sub make_clockwise {
     my $self = shift;
-    $self->reverse if $self->is_counter_clockwise;
+    if ($self->is_counter_clockwise) {
+        $self->reverse;
+        return 1;
+    }
+    return 0;
 }
 
 sub merge_continuous_lines {

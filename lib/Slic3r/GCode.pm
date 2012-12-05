@@ -97,7 +97,7 @@ sub extrude_loop {
     
     # extrude all loops ccw
     $loop = $loop->unpack if $loop->isa('Slic3r::ExtrusionLoop::Packed');
-    $loop->polygon->make_counter_clockwise;
+    my $was_clockwise = $loop->polygon->make_counter_clockwise;
     
     # find the point of the loop that is closest to the current extruder position
     # or randomize if requested
@@ -118,7 +118,27 @@ sub extrude_loop {
     return '' if !@{$extrusion_path->polyline};
     
     # extrude along the path
-    return $self->extrude_path($extrusion_path, $description);
+    my $gcode = $self->extrude_path($extrusion_path, $description);
+    
+    # make a little move inwards before leaving loop
+    if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
+        # detect angle between last and first segment
+        # the side depends on the original winding order of the polygon (left for contours, right for holes)
+        my @points = $was_clockwise ? (-2, 1) : (1, -2);
+        my $angle = Slic3r::Geometry::angle3points(@{$extrusion_path->polyline}[0, @points]) / 3;
+        $angle *= -1 if $was_clockwise;
+        
+        # create the destination point along the first segment and rotate it
+        my $point = Slic3r::Geometry::point_along_segment(@{$extrusion_path->polyline}[0,1], scale $extrusion_path->flow_spacing);
+        bless $point, 'Slic3r::Point';
+        $point->rotate($angle, $extrusion_path->polyline->[0]);
+        
+        # generate the travel move
+        $self->speed('travel');
+        $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
+    }
+    
+    return $gcode;
 }
 
 sub extrude_path {
