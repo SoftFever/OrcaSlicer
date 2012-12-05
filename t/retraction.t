@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 6;
 use strict;
 use warnings;
 
@@ -13,6 +13,9 @@ use Slic3r::Test;
 my $config = Slic3r::Config->new_from_defaults;
 
 my $test = sub {
+    my ($conf) = @_;
+    $conf ||= $config;
+    
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     
     my $retracted = 1;  # ignore the first travel move from home to first point
@@ -37,6 +40,8 @@ my $test = sub {
         if ($info->{retracting}) {
             fail 'retracted by the correct amount'
                 if !Slic3r::Test::compare(-$info->{dist_E}, $config->retract_length->[0]);
+            fail 'combining retraction and travel with G0'
+                if $cmd ne 'G0' && $config->g0 && ($info->{dist_Z} || $info->{dist_XY});
             $retracted = 1;
         }
         if ($info->{extruding}) {
@@ -57,12 +62,22 @@ my $test = sub {
 
 $config->set('retract_length',          [1.5]);
 $config->set('retract_before_travel',   [3]);
-ok $test->(), 'retraction';
 
-$config->set('retract_restart_extra',   [1]);
-ok $test->(), 'restart extra length';
+my $retract_tests = sub {
+    my ($descr) = @_;
+    
+    ok $test->(), "retraction$descr";
+    
+    my $conf = $config->clone;
+    $conf->set('retract_restart_extra',   [1]);
+    ok $test->($conf), "restart extra length$descr";
+    
+    $conf->set('retract_lift',            [1]);
+    ok $test->($conf), "lift$descr";
+};
 
-$config->set('retract_lift',            [1]);
-ok $test->(), 'lift';
+$retract_tests->('');
+$config->set('g0', 1);
+$retract_tests->(' (G0)');
 
 __END__
