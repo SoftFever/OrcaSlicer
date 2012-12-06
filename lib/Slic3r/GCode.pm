@@ -514,7 +514,7 @@ sub _limit_frequency {
     my $self = shift;
     my ($point) = @_;
     
-    return if $Slic3r::Config->vibration_limit == 0;
+    return '' if $Slic3r::Config->vibration_limit == 0;
     my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);  # in minutes
     
     # calculate the move vector and move direction
