@@ -1,7 +1,7 @@
 package Slic3r::GCode;
 use Moo;
 
-use List::Util qw(min max first);
+use List::Util qw(max first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
 
@@ -20,14 +20,12 @@ has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_speed'         => (is => 'rw', default => sub {""});
 has 'last_f'             => (is => 'rw', default => sub {""});
-has 'force_f'            => (is => 'rw', default => sub {0});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # used for vibration limit:
-has 'limit_frequency'    => (is => 'rw', default => sub { 0 });
 has 'last_dir'           => (is => 'ro', default => sub { [0,0] });
-has 'segment_time'       => (is => 'ro', default => sub { [ [0,0,0], [0,0,0] ] });
+has 'dir_time'           => (is => 'ro', default => sub { [0,0] });
 
 # calculate speeds (mm/min)
 has 'speeds' => (
@@ -57,10 +55,13 @@ sub set_shift {
     my $self = shift;
     my @shift = @_;
     
+    $self->last_pos->translate(
+        scale ($shift[X] - $self->shift_x),
+        scale ($shift[Y] - $self->shift_y),
+    );
+    
     $self->shift_x($shift[X]);
     $self->shift_y($shift[Y]);
-    
-    $self->last_pos->translate(map -(scale $_), @shift);
 }
 
 # this method accepts Z in scaled coordinates
@@ -173,8 +174,6 @@ sub extrude_path {
             }
         }
     }
-    
-    $self->limit_frequency($path->role != EXTR_ROLE_PERIMETER && $path->role != EXTR_ROLE_EXTERNAL_PERIMETER && $path->role != EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER);
     
     # go to first point of extrusion path
     $self->speed('travel');
@@ -338,14 +337,11 @@ sub _G0_G1 {
     my ($gcode, $point, $z, $e, $comment) = @_;
     my $dec = $self->dec;
     
-    my $speed_factor;
     if ($point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        if ($self->limit_frequency) {
-            $gcode = $self->_limit_frequency($point) . $gcode;
-        }
+        $gcode = $self->_limit_frequency($point) . $gcode;
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
@@ -353,7 +349,7 @@ sub _G0_G1 {
         $gcode .= sprintf " Z%.${dec}f", $z;
     }
     
-    return $self->_Gx($gcode, $e, $speed_factor, $comment);
+    return $self->_Gx($gcode, $e, $comment);
 }
 
 sub G2_G3 {
@@ -373,12 +369,12 @@ sub G2_G3 {
         ($center->[Y] - $self->last_pos->[Y]) * &Slic3r::SCALING_FACTOR;
     
     $self->last_pos($point);
-    return $self->_Gx($gcode, $e, undef, $comment);
+    return $self->_Gx($gcode, $e, $comment);
 }
 
 sub _Gx {
     my $self = shift;
-    my ($gcode, $e, $speed_factor, $comment) = @_;
+    my ($gcode, $e, $comment) = @_;
     my $dec = $self->dec;
     
     # output speed if it's different from last one used
@@ -403,13 +399,6 @@ sub _Gx {
         }
         $self->last_speed($self->speed);
         $self->last_f($F);
-        $F *= $speed_factor // 1;
-    } elsif (defined $speed_factor && $speed_factor != 1) {
-        $gcode .= sprintf " F%.${dec}f", ($self->last_f * $speed_factor);
-        $self->force_f(1);  # next move will need explicit F
-    } elsif ($self->force_f) {
-        $gcode .= sprintf " F%.${dec}f", $self->last_f;
-        $self->force_f(0);
     }
     $gcode .= sprintf " F%.${dec}f", $F if defined $F;
     
@@ -509,7 +498,6 @@ sub set_bed_temperature {
 }
 
 # http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
-# the following implementation is inspired by Marlin code
 sub _limit_frequency {
     my $self = shift;
     my ($point) = @_;
@@ -518,25 +506,28 @@ sub _limit_frequency {
     my $min_time = 1 / ($Slic3r::Config->vibration_limit * 60);  # in minutes
     
     # calculate the move vector and move direction
-    my @move = map unscale $_, @{ Slic3r::Line->new($self->last_pos, $point)->vector->[B] };
-    my @dir = map { $move[$_] ? (($move[$_] > 0) ? 1 : -1) : 0 } X,Y;
+    my $vector = Slic3r::Line->new($self->last_pos, $point)->vector;
+    my @dir = map { $vector->[B][$_] <=> 0 } X,Y;
     
-    my $segment_time = abs(max(@move)) / $self->speeds->{$self->speed};  # in minutes
-    if ($segment_time > 0) {
-        my @max_segment_time = ();
+    my $time = (unscale $vector->length) / $self->speeds->{$self->speed};  # in minutes
+    if ($time > 0) {
+        my @pause = ();
         foreach my $axis (X,Y) {
-            if ($self->last_dir->[$axis] == $dir[$axis]) {
-                $self->segment_time->[$axis][0] += $segment_time;
-            } else {
-                @{ $self->segment_time->[$axis] } = ($segment_time, @{ $self->segment_time->[$axis] }[0,1]);
+            if ($dir[$axis] != 0 && $self->last_dir->[$axis] != $dir[$axis]) {
+                if ($self->last_dir->[$axis] != 0) {
+                    # this axis is changing direction: check whether we need to pause
+                    if ($self->dir_time->[$axis] < $min_time) {
+                        push @pause, ($min_time - $self->dir_time->[$axis]);
+                    }
+                }
+                $self->last_dir->[$axis] = $dir[$axis];
+                $self->dir_time->[$axis] = 0;
             }
-            $max_segment_time[$axis] = max($self->segment_time->[$axis][0], max($self->segment_time->[$axis][1], $self->segment_time->[$axis][2]));
-            $self->last_dir->[$axis] = $dir[$axis] if $dir[$axis];
+            $self->dir_time->[$axis] += $time;
         }
         
-        my $min_segment_time = min(@max_segment_time);
-        if ($min_segment_time < $min_time) {
-            return sprintf "G4 P%d\n", ($min_time - $min_segment_time) * 60 * 1000;
+        if (@pause) {
+            return sprintf "G4 P%d\n", max(@pause) * 60 * 1000;
         }
     }
     

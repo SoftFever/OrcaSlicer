@@ -5,15 +5,21 @@ use warnings;
 use IO::Scalar;
 use Slic3r::Geometry qw(epsilon);
 
+my %cuboids = (
+    '20mm_cube' => [20,20,20],
+    '2x20x10'   => [2, 20,10],
+);
+
 sub init_print {
     my ($model_name, %params) = @_;
     
     my $model = Slic3r::Model->new;
     {
         my ($vertices, $facets);
-        if ($model_name eq '20mm_cube') {
+        if ($cuboids{$model_name}) {
+            my ($x, $y, $z) = @{ $cuboids{$model_name} };
             $vertices = [
-                [10,10,-10], [10,-10,-10], [-10,-10,-10], [-10,10,-10], [10,10,10], [-10,10,10], [-10,-10,10], [10,-10,10],
+                [$x,$y,0], [$x,0,0], [0,0,0], [0,$y,0], [$x,$y,$z], [0,$y,$z], [0,0,$z], [$x,0,$z],
             ];
             $facets = [
                 [0,1,2], [0,2,3], [4,5,6], [4,6,7], [0,4,7], [0,7,1], [1,7,6], [1,6,2], [2,6,5], [2,5,3], [4,0,3], [4,3,5],
@@ -65,6 +71,7 @@ sub parse {
     my ($cb) = @_;
     
     foreach my $line (split /\n/, $self->gcode) {
+        print "$line\n" if $Verbose || $ENV{SLIC3R_TESTS_GCODE};
         $line =~ s/\s*;(.*)//; # strip comment
         next if $line eq '';
         my $comment = $1;
@@ -95,7 +102,6 @@ sub parse {
         }
         
         # run callback
-        printf "$line\n" if $Verbose;
         $cb->($self, $command, \%args, \%info);
         
         # update coordinates

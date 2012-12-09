@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 9;
 use strict;
 use warnings;
 
@@ -77,7 +77,9 @@ my $retract_tests = sub {
 };
 
 $retract_tests->('');
+$config->set('duplicate', 2);
+$retract_tests->(' (duplicate)');
 $config->set('g0', 1);
-$retract_tests->(' (G0)');
+$retract_tests->(' (G0 and duplicate)');
 
 __END__
