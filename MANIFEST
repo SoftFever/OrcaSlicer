@@ -59,9 +59,10 @@ t/dynamic.t
 t/fill.t
 t/geometry.t
 t/polyclip.t
-t/retract.t
+t/retraction.t
 t/serialize.t
 t/stl.t
+t/vibrationlimit.t
 utils/amf-to-stl.pl
 utils/file_info.pl
 utils/post-processing/filament-weight.pl
