@@ -233,7 +233,7 @@ sub make_perimeters {
         }
         
         # fill gaps
-        {
+        if ($Slic3r::Config->gap_fill_speed > 0) {
             my $filler = Slic3r::Fill::Rectilinear->new(layer_id => $self->layer->id);
             
             my $w = $self->perimeter_flow->width;

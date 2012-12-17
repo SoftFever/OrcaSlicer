@@ -303,7 +303,7 @@ our $Options = {
     },
     'gap_fill_speed' => {
         label   => 'Gap fill',
-        tooltip => 'Speed for filling small gaps using short zigzag moves. Keep this reasonably low to avoid too much shaking and resonance issues.',
+        tooltip => 'Speed for filling small gaps using short zigzag moves. Keep this reasonably low to avoid too much shaking and resonance issues. Set zero to disable gaps filling.',
         sidetext => 'mm/s',
         cli     => 'gap-fill-speed=f',
         type    => 'f',
