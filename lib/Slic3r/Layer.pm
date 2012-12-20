@@ -1,6 +1,7 @@
 package Slic3r::Layer;
 use Moo;
 
+use List::Util qw(first);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'id'                => (is => 'rw', required => 1, trigger => 1); # sequential number of layer, 0-based
@@ -18,6 +19,7 @@ has 'flow'              => (is => 'ro', default => sub { $Slic3r::flow });
 has 'slices'            => (is => 'rw');
 
 # ordered collection of extrusion paths to fill surfaces for support material
+has 'support_islands'           => (is => 'rw');
 has 'support_fills'             => (is => 'rw');
 has 'support_interface_fills'   => (is => 'rw');
 
@@ -100,6 +102,12 @@ sub make_perimeters {
     my $self = shift;
     Slic3r::debugf "Making perimeters for layer %d\n", $self->id;
     $_->make_perimeters for @{$self->regions};
+}
+
+sub support_islands_enclose_line {
+    my $self = shift;
+    my ($line) = @_;
+    return (first { $_->encloses_line($line) } @{$self->support_islands}) ? 1 : 0;
 }
 
 1;

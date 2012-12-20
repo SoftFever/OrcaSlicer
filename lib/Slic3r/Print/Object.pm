@@ -626,39 +626,40 @@ sub generate_support_material {
             };
             return @paths;
         };
-        my %layer_paths = ();
-        my %layer_interface_paths = ();
+        my %layer_paths             = ();
+        my %layer_interface_paths   = ();
+        my %layer_islands           = ();
         my $process_layer = sub {
             my ($layer_id) = @_;
             
             my $layer = $self->layers->[$layer_id];
             my $paths           = [ $clip_pattern->($layer_id, $layers{$layer_id}, $layer->height) ];
             my $interface_paths = [ $clip_pattern->($layer_id, $layers_interfaces{$layer_id}, $layer->support_material_interface_height) ];
-            return ($paths, $interface_paths);
+            my $islands         = union_ex([ map @$_, map @$_, $layers{$layer_id}, $layers_interfaces{$layer_id} ]);
+            return ($paths, $interface_paths, $islands);
         };
         Slic3r::parallelize(
             items => [ keys %layers ],
             thread_cb => sub {
                 my $q = shift;
-                my $paths = {};
-                my $interface_paths = {};
+                my $result = {};
                 while (defined (my $layer_id = $q->dequeue)) {
-                    ($paths->{$layer_id}, $interface_paths->{$layer_id}) = $process_layer->($layer_id);
+                    $result->{$layer_id} = [ $process_layer->($layer_id) ];
                 }
-                return [ $paths, $interface_paths ];
+                return $result;
             },
             collect_cb => sub {
-                my $paths = shift;
-                $layer_paths{$_}            = $paths->[0]{$_} for keys %{$paths->[0]};
-                $layer_interface_paths{$_}  = $paths->[1]{$_} for keys %{$paths->[1]};
+                my $result = shift;
+                ($layer_paths{$_}, $layer_interface_paths{$_}, $layer_islands{$_}) = @{$result->{$_}} for keys %$result;
             },
             no_threads_cb => sub {
-                ($layer_paths{$_}, $layer_interface_paths{$_}) = $process_layer->($_) for keys %layers;
+                ($layer_paths{$_}, $layer_interface_paths{$_}, $layer_islands{$_}) = $process_layer->($_) for keys %layers;
             },
         );
         
         foreach my $layer_id (keys %layer_paths) {
             my $layer = $self->layers->[$layer_id];
+            $layer->support_islands($layer_islands{$layer_id});
             $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
             $layer->support_interface_fills(Slic3r::ExtrusionPath::Collection->new);
             push @{$layer->support_fills->paths}, @{$layer_paths{$layer_id}};
