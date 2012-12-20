@@ -738,8 +738,13 @@ sub write_gcode {
         # set new layer, but don't move Z as support material interfaces may need an intermediate one
         $gcodegen->layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
         $gcodegen->elapsed_time(0);
-        $gcode .= $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
-            if $Slic3r::Config->layer_gcode;
+        
+        # prepare callback to call as soon as a Z command is generated
+        $gcodegen->move_z_callback(sub {
+            $gcodegen->move_z_callback(undef);  # circular ref or not?
+            return $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
+                if $Slic3r::Config->layer_gcode;
+        });
         
         # extrude skirt
         if ($skirt_done < $Slic3r::Config->skirt_height) {

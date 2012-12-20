@@ -7,6 +7,7 @@ use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
 
 has 'multiple_extruders' => (is => 'ro', default => sub {0} );
 has 'layer'              => (is => 'rw');
+has 'move_z_callback'    => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -79,6 +80,7 @@ sub move_z {
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
             unless ($current_z // -1) != ($self->z // -1);
+        $gcode .= $self->move_z_callback->() if defined $self->move_z_callback;
     }
     
     return $gcode;

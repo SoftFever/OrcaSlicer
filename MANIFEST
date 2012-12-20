@@ -55,6 +55,7 @@ t/arcs.t
 t/clean_polylines.t
 t/clipper.t
 t/collinear.t
+t/custom_gcode.t
 t/dynamic.t
 t/fill.t
 t/geometry.t
