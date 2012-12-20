@@ -742,8 +742,8 @@ sub write_gcode {
         # prepare callback to call as soon as a Z command is generated
         $gcodegen->move_z_callback(sub {
             $gcodegen->move_z_callback(undef);  # circular ref or not?
-            return $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n"
-                if $Slic3r::Config->layer_gcode;
+            return "" if !$Slic3r::Config->layer_gcode;
+            return $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n";
         });
         
         # extrude skirt
