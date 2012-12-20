@@ -49,6 +49,11 @@ sub boost_linestring {
     return Boost::Geometry::Utils::linestring($self);
 }
 
+sub wkt {
+    my $self = shift;
+    return sprintf "LINESTRING((%s))", join ',', map "$_->[0] $_->[1]", @$self;
+}
+
 sub merge_continuous_lines {
     my $self = shift;
     polyline_remove_parallel_continuous_edges($self);
@@ -188,8 +193,9 @@ use Moo;
 
 has 'polylines' => (is => 'ro', default => sub { [] });
 
-# if the second argument is provided, this method will return its items sorted
-# instead of returning the actual sorted polylines
+# If the second argument is provided, this method will return its items sorted
+# instead of returning the actual sorted polylines. 
+# Note that our polylines will be reversed in place when necessary.
 sub shortest_path {
     my $self = shift;
     my ($start_near, $items) = @_;
