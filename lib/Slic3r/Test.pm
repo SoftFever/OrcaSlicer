@@ -2,6 +2,10 @@ package Slic3r::Test;
 use strict;
 use warnings;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(_eq);
+
 use IO::Scalar;
 use Slic3r::Geometry qw(epsilon);
 
@@ -30,6 +34,7 @@ sub init_print {
     
     my $config = Slic3r::Config->new_from_defaults;
     $config->apply($params{config}) if $params{config};
+    $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
     my $print = Slic3r::Print->new(config => $config);
     $print->add_model($model);
@@ -48,7 +53,7 @@ sub gcode {
     return $gcode;
 }
 
-sub compare {
+sub _eq {
     my ($a, $b) = @_;
     return abs($a - $b) < epsilon;
 }

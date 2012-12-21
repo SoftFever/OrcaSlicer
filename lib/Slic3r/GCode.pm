@@ -184,7 +184,7 @@ sub extrude_path {
         if !points_coincide($self->last_pos, $path->points->[0]);
     
     # compensate retraction
-    $gcode .= $self->unretract if $self->extruder->retracted;
+    $gcode .= $self->unretract;
     
     my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->role == EXTR_ROLE_BRIDGE) {
@@ -279,7 +279,8 @@ sub retract {
             $gcode .= $self->G1(@$lift);
         }
     }
-    $self->extruder->retracted($self->extruder->retracted + $length + $restart_extra);
+    $self->extruder->retracted($self->extruder->retracted + $length);
+    $self->extruder->restart_extra($restart_extra);
     $self->lifted($self->extruder->retract_lift) if $lift;
     
     # reset extrusion distance during retracts
@@ -300,9 +301,13 @@ sub unretract {
         $self->lifted(0);
     }
     
-    $self->speed('retract');
-    $gcode .= $self->G0(undef, undef, $self->extruder->retracted, "compensate retraction");
-    $self->extruder->retracted(0);
+    my $to_unretract = $self->extruder->retracted + $self->extruder->restart_extra;
+    if ($to_unretract) {
+        $self->speed('retract');
+        $gcode .= $self->G0(undef, undef, $to_unretract, "compensate retraction");
+        $self->extruder->retracted(0);
+        $self->extruder->restart_extra(0);
+    }
     
     return $gcode;
 }
