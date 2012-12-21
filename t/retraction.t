@@ -8,7 +8,7 @@ BEGIN {
 }
 
 use Slic3r;
-use Slic3r::Test;
+use Slic3r::Test qw(_eq);
 
 my $config = Slic3r::Config->new_from_defaults;
 
@@ -32,21 +32,21 @@ my $test = sub {
         
         if ($info->{dist_Z}) {
             # lift move or lift + change layer
-            if (Slic3r::Test::compare($info->{dist_Z}, $conf->retract_lift->[$tool])
-                || (Slic3r::Test::compare($info->{dist_Z}, $conf->layer_height + $conf->retract_lift->[$tool]) && $conf->retract_lift->[$tool] > 0)) {
+            if (_eq($info->{dist_Z}, $conf->retract_lift->[$tool])
+                || (_eq($info->{dist_Z}, $conf->layer_height + $conf->retract_lift->[$tool]) && $conf->retract_lift->[$tool] > 0)) {
                 fail 'only lifting while retracted' if !$retracted[$tool] && !($conf->g0 && $info->{retracting});
                 $lifted = 1;
             }
             if ($info->{dist_Z} < 0) {
                 fail 'going down only after lifting' if !$lifted;
                 fail 'going down by the same amount of the lift'
-                    if !Slic3r::Test::compare($info->{dist_Z}, -$conf->retract_lift->[$tool]);
+                    if !_eq($info->{dist_Z}, -$conf->retract_lift->[$tool]);
                 $lifted = 0;
             }
         }
         if ($info->{retracting}) {
             fail 'retracted by the correct amount'
-                if !Slic3r::Test::compare(-$info->{dist_E}, $conf->retract_length->[$tool]);
+                if !_eq(-$info->{dist_E}, $conf->retract_length->[$tool]);
             fail 'combining retraction and travel with G0'
                 if $cmd ne 'G0' && $conf->g0 && ($info->{dist_Z} || $info->{dist_XY});
             $retracted[$tool] = 1;
@@ -59,7 +59,7 @@ my $test = sub {
                     $expected_amount = $conf->retract_length_toolchange->[$tool] + $conf->retract_restart_extra_toolchange->[$tool];
                 }
                 fail 'unretracted by the correct amount'
-                    if !Slic3r::Test::compare($info->{dist_E}, $expected_amount);
+                    if !_eq($info->{dist_E}, $expected_amount);
                 $retracted[$tool] = 0;
             }
         }

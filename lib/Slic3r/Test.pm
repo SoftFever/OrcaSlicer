@@ -2,6 +2,10 @@ package Slic3r::Test;
 use strict;
 use warnings;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(_eq);
+
 use IO::Scalar;
 use Slic3r::Geometry qw(epsilon);
 
@@ -48,7 +52,7 @@ sub gcode {
     return $gcode;
 }
 
-sub compare {
+sub _eq {
     my ($a, $b) = @_;
     return abs($a - $b) < epsilon;
 }
