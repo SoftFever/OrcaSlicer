@@ -1,4 +1,4 @@
-use Test::More tests => 12;
+use Test::More tests => 16;
 use strict;
 use warnings;
 
@@ -95,6 +95,9 @@ my $retract_tests = sub {
     my $conf = $config->clone;
     $conf->set('retract_restart_extra',   [1]);
     ok $test->($conf), "restart extra length$descr";
+    
+    $conf->set('retract_restart_extra',   [-1]);
+    ok $test->($conf), "negative restart extra length$descr";
     
     $conf->set('retract_lift',            [1]);
     ok $test->($conf), "lift$descr";
