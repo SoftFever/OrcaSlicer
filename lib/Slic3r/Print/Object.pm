@@ -336,10 +336,8 @@ sub discover_horizontal_shells {
             }
             
             foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
-                # find surfaces of current type for current layer
-                # and offset them to take perimeters into account
-                my @surfaces = map $_->offset($Slic3r::Config->perimeters * $layerm->perimeter_flow->scaled_width),
-                    grep $_->surface_type == $type, @{$layerm->fill_surfaces} or next;
+                # find slices of current type for current layer
+                my @surfaces = grep $_->surface_type == $type, @{$layerm->slices} or next;
                 my $surfaces_p = [ map $_->p, @surfaces ];
                 Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
                     $i, scalar(@surfaces), ($type == S_TYPE_TOP ? 'top' : 'bottom');
