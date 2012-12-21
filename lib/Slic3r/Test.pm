@@ -34,6 +34,7 @@ sub init_print {
     
     my $config = Slic3r::Config->new_from_defaults;
     $config->apply($params{config}) if $params{config};
+    $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
     my $print = Slic3r::Print->new(config => $config);
     $print->add_model($model);
