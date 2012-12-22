@@ -345,8 +345,8 @@ sub export_gcode {
             for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->regions});
     }
     
-    # this will clip $layer->surfaces to the infill boundaries 
-    # and split them in top/bottom/internal surfaces;
+    # this will transform $layer->fill_surfaces from expolygon 
+    # to typed top/bottom/internal surfaces;
     $status_cb->(30, "Detecting solid surfaces");
     $_->detect_surfaces_type for @{$self->objects};
     
@@ -363,9 +363,6 @@ sub export_gcode {
     # they will be split in internal and internal-solid surfaces
     $status_cb->(60, "Generating horizontal shells");
     $_->discover_horizontal_shells for @{$self->objects};
-    
-    # free memory
-    $_->surfaces(undef) for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # combine fill surfaces to honor the "infill every N layers" option
     $status_cb->(70, "Combining infill");

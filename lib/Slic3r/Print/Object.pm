@@ -304,14 +304,14 @@ sub detect_surfaces_type {
         # clip surfaces to the fill boundaries
         foreach my $layer (@{$self->layers}) {
             my $layerm = $layer->regions->[$region_id];
-            my $fill_boundaries = [ map @$_, @{$layerm->surfaces} ];
-            @{$layerm->surfaces} = ();
+            my $fill_boundaries = [ map @$_, @{$layerm->fill_surfaces} ];
+            @{$layerm->fill_surfaces} = ();
             foreach my $surface (@{$layerm->slices}) {
                 my $intersection = intersection_ex(
                     [ $surface->p ],
                     $fill_boundaries,
                 );
-                push @{$layerm->surfaces}, map Slic3r::Surface->new
+                push @{$layerm->fill_surfaces}, map Slic3r::Surface->new
                     (expolygon => $_, surface_type => $surface->surface_type),
                     @$intersection;
             }
@@ -352,14 +352,13 @@ sub discover_horizontal_shells {
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
-                    my @neighbor_surfaces       = @{$self->layers->[$n]->regions->[$region_id]->surfaces};
                     my @neighbor_fill_surfaces  = @{$self->layers->[$n]->regions->[$region_id]->fill_surfaces};
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
                     my $new_internal_solid = intersection_ex(
                         $surfaces_p,
-                        [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_surfaces ],
+                        [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_fill_surfaces ],
                         undef, 1,
                     );
                     next if !@$new_internal_solid;
