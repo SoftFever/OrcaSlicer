@@ -607,6 +607,18 @@ END
         deserialize => sub { join "\n", split /\\n/, $_[0] },
         default => '',
     },
+    'toolchange_gcode' => {
+        label   => 'Tool change G-code',
+        tooltip => 'This custom code is inserted at every extruder change. Note that you can use placeholder variables for all Slic3r settings as well as [previous_extruder] and [next_extruder].',
+        cli     => 'toolchange-gcode=s',
+        type    => 's',
+        multiline => 1,
+        full_width => 1,
+        height  => 50,
+        serialize   => sub { join '\n', split /\R+/, $_[0] },
+        deserialize => sub { join "\n", split /\\n/, $_[0] },
+        default => '',
+    },
     'post_process' => {
         label   => 'Post-processing scripts',
         tooltip => 'If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Slic3r config settings by reading environment variables.',
@@ -925,7 +937,7 @@ sub new_from_cli {
     
     delete $args{$_} for grep !defined $args{$_}, keys %args;
     
-    for (qw(start end layer)) {
+    for (qw(start end layer toolchange)) {
         my $opt_key = "${_}_gcode";
         if ($args{$opt_key}) {
             die "Invalid value for --${_}-gcode: file does not exist\n"

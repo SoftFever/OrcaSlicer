@@ -656,6 +656,11 @@ sub build {
             no_labels => 1,
             options => [qw(layer_gcode)],
         },
+        {
+            title => 'Tool change G-code',
+            no_labels => 1,
+            options => [qw(toolchange_gcode)],
+        },
     ]);
     
     $self->{extruder_pages} = [];

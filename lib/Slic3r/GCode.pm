@@ -442,6 +442,14 @@ sub set_extruder {
     my $gcode = "";
     $gcode .= $self->retract(toolchange => 1) if defined $self->extruder;
     
+    # append custom toolchange G-code
+    if (defined $self->extruder && $Slic3r::Config->toolchange_gcode) {
+        $gcode .= sprintf "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->toolchange_gcode, {
+            previous_extruder   => $self->extruder->id,
+            next_extruder       => $extruder->id,
+        });
+    }
+    
     # set the new extruder
     $self->extruder($extruder);
     $gcode .= sprintf "T%d%s\n", $extruder->id, ($Slic3r::Config->gcode_comments ? ' ; change extruder' : '');

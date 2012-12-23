@@ -224,6 +224,7 @@ $j
                         the default commands (turn off temperature [M104 S0],
                         home X axis [G28 X], disable motors [M84]).
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
+    --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
     --only-retract-when-crossing-perimeters
