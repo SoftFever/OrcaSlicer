@@ -62,6 +62,7 @@ t/geometry.t
 t/polyclip.t
 t/retraction.t
 t/serialize.t
+t/shells.t
 t/stl.t
 t/vibrationlimit.t
 utils/amf-to-stl.pl

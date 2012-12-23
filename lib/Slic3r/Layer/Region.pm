@@ -396,11 +396,6 @@ sub prepare_fill_surfaces {
     if ($Slic3r::Config->bottom_solid_layers == 0) {
         $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type == S_TYPE_BOTTOM, @{$self->fill_surfaces};
     }
-    
-    # if hollow object is requested, remove internal surfaces
-    if ($Slic3r::Config->fill_density == 0) {
-        @{$self->fill_surfaces} = grep $_->surface_type != S_TYPE_INTERNAL, @{$self->fill_surfaces};
-    }
         
     # turn too small internal regions into solid regions
     {

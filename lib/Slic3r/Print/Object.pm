@@ -410,6 +410,15 @@ sub discover_horizontal_shells {
             
             @{$layerm->fill_surfaces} = grep $_->expolygon->area > $area_threshold, @{$layerm->fill_surfaces};
         }
+        
+        for (my $i = 0; $i < $self->layer_count; $i++) {
+            my $layerm = $self->layers->[$i]->regions->[$region_id];
+            
+            # if hollow object is requested, remove internal surfaces
+            if ($Slic3r::Config->fill_density == 0) {
+                @{$layerm->fill_surfaces} = grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
+            }
+        }
     }
 }
 
