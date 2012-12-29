@@ -63,7 +63,7 @@ t/polyclip.t
 t/retraction.t
 t/serialize.t
 t/shells.t
-t/stl.t
+t/slice.t
 t/vibrationlimit.t
 utils/amf-to-stl.pl
 utils/file_info.pl
