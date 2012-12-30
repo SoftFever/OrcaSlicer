@@ -14,7 +14,7 @@ our $clipper = Math::Clipper->new;
 
 sub safety_offset {
     my ($polygons, $factor) = @_;
-    return Math::Clipper::offset($polygons, $factor || (scale 1e-05), 100000, JT_MITER, 2);
+    return Math::Clipper::offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2);
 }
 
 sub offset {

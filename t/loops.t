@@ -13,6 +13,12 @@ use Slic3r;
 use Slic3r::Test;
 
 {
+    # We only need to slice at one height, so we'll build a non-manifold mesh
+    # that still produces complete loops at that height. Triangular walls are 
+    # enough for this purpose.
+    # Basically we want to check what happens when three concentric loops happen
+    # to be at the same height, the two external ones being ccw and the other being
+    # a hole, thus cw.
     my (@vertices, @facets) = ();
     Slic3r::Test::add_facet($_, \@vertices, \@facets) for
         # external surface below the slicing Z
@@ -39,7 +45,7 @@ use Slic3r::Test;
     is scalar(@$loops), 3, 'correct number of loops detected';
     is scalar(grep $_->is_counter_clockwise, @$loops), 2, 'correct number of ccw loops detected';
     
-    my @surfaces = Slic3r::Layer::Region::_merge_loops($loops);
+    my @surfaces = Slic3r::Layer::Region::_merge_loops($loops, 0);
     is scalar(@surfaces), 1, 'one surface detected';
     is scalar(@{$surfaces[0]->expolygon})-1, 1, 'surface has one hole';
 }

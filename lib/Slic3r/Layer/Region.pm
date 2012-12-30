@@ -118,11 +118,28 @@ sub make_surfaces {
 }
 
 sub _merge_loops {
-    my ($loops) = @_;
+    my ($loops, $safety_offset) = @_;
     
-    my $safety_offset = scale 0.1;
-    # merge everything
-    my $expolygons = [ map $_->offset_ex(-$safety_offset), @{union_ex(safety_offset($loops, $safety_offset))} ];
+    # Input loops are not suitable for evenodd nor nonzero fill types, as we might get
+    # two consecutive concentric loops having the same winding order - and we have to 
+    # respect such order. In that case, evenodd would create wrong inversions, and nonzero
+    # would ignore holes inside two concentric contours.
+    # So we're ordering loops and collapse consecutive concentric loops having the same 
+    # winding order.
+    # TODO: find a faster algorithm for this.
+    my @loops = sort { $a->encloses_point($b->[0]) ? 0 : 1 } @$loops;  # outer first
+    $safety_offset //= scale 0.1;
+    @loops = @{ safety_offset(\@loops, $safety_offset) };
+    my $expolygons = [];
+    while (my $loop = shift @loops) {
+        bless $loop, 'Slic3r::Polygon';
+        if ($loop->is_counter_clockwise) {
+            $expolygons = union_ex([ $loop, map @$_, @$expolygons ]);
+        } else {
+            $expolygons = diff_ex([ map @$_, @$expolygons ], [$loop]);
+        }
+    }
+    $expolygons = [ map $_->offset_ex(-$safety_offset), @$expolygons ];
     
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
         scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
