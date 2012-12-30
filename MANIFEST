@@ -59,6 +59,7 @@ t/custom_gcode.t
 t/dynamic.t
 t/fill.t
 t/geometry.t
+t/loops.t
 t/polyclip.t
 t/retraction.t
 t/serialize.t

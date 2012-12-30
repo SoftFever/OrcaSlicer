@@ -7,7 +7,8 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(_eq);
 
 use IO::Scalar;
-use Slic3r::Geometry qw(epsilon);
+use List::Util qw(first);
+use Slic3r::Geometry qw(epsilon X Y Z);
 
 my %cuboids = (
     '20mm_cube' => [20,20,20],
@@ -56,6 +57,20 @@ sub gcode {
 sub _eq {
     my ($a, $b) = @_;
     return abs($a - $b) < epsilon;
+}
+
+sub add_facet {
+    my ($facet, $vertices, $facets) = @_;
+    
+    push @$facets, [];
+    for my $i (0..2) {
+        my $v = first { $vertices->[$_][X] == $facet->[$i][X] && $vertices->[$_][Y] == $facet->[$i][Y] && $vertices->[$_][Z] == $facet->[$i][Z] } 0..$#$vertices;
+        if (!defined $v) {
+            push @$vertices, [ @{$facet->[$i]}[X,Y,Z] ];
+            $v = $#$vertices;
+        }
+        $facets->[-1][$i] = $v;
+    }
 }
 
 package Slic3r::Test::GCodeReader;

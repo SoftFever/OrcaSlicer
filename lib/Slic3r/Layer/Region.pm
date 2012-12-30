@@ -69,20 +69,8 @@ sub make_surfaces {
     my $self = shift;
     my ($loops) = @_;
     
-    return if !@$loops;    
-    {
-        my $safety_offset = scale 0.1;
-        # merge everything
-        my $expolygons = [ map $_->offset_ex(-$safety_offset), @{union_ex(safety_offset($loops, $safety_offset))} ];
-        
-        Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
-            scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
-        
-        $self->slices([
-            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),
-                @$expolygons
-        ]);
-    }
+    return if !@$loops;
+    $self->slices([ _merge_loops($loops) ]);
     
     # the contours must be offsetted by half extrusion width inwards
     {
@@ -127,6 +115,19 @@ sub make_surfaces {
             red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->slices} ],
         );
     }
+}
+
+sub _merge_loops {
+    my ($loops) = @_;
+    
+    my $safety_offset = scale 0.1;
+    # merge everything
+    my $expolygons = [ map $_->offset_ex(-$safety_offset), @{union_ex(safety_offset($loops, $safety_offset))} ];
+    
+    Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
+        scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
+    
+    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$expolygons;
 }
 
 sub make_perimeters {
