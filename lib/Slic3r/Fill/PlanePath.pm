@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(scale bounding_box X1 Y1 X2 Y2);
+use Slic3r::Geometry qw(scale X1 Y1 X2 Y2);
 
 sub multiplier () { 1 }
 
@@ -27,7 +27,7 @@ sub fill_surface {
     $self->rotate_points($expolygon, $rotate_vector);
     
     my $distance_between_lines = scale $params{flow_spacing} / $params{density} * $self->multiplier;
-    my $bounding_box = [ bounding_box(map @$_, $expolygon) ];
+    my $bounding_box = [ Slic3r::Geometry::bounding_box([map @$_, @$expolygon]) ];
     my $bounding_box_polygon = Slic3r::Polygon->new([
         [ $bounding_box->[X1], $bounding_box->[Y1] ],
         [ $bounding_box->[X2], $bounding_box->[Y1] ],
