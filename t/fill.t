@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 8;
+plan tests => 9;
 
 BEGIN {
     use FindBin;
@@ -12,6 +12,7 @@ BEGIN {
 use Slic3r;
 use Slic3r::Geometry qw(scale X Y);
 use Slic3r::Surface qw(:types);
+use Slic3r::Test;
 
 sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
@@ -85,6 +86,13 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         [ map $_->[X], map @{$_->unpack->polyline}, $collection->shortest_path(Slic3r::Point->new(30,0)) ],
         [reverse 4, 10, 15, 10, 15, 20],
         'shortest path';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('fill_pattern', 'hilbertcurve');
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'successful hilbertcurve infill generation';
 }
 
 __END__
