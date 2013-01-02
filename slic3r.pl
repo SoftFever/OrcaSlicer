@@ -237,7 +237,8 @@ $j
    Support material options:
     --support-material  Generate support material for overhangs
     --support-material-threshold
-                        Overhang threshold angle (range: 0-90, default: $config->{support_material_threshold})
+                        Overhang threshold angle (range: 0-90, set 0 for automatic detection,
+                        default: $config->{support_material_threshold})
     --support-material-pattern
                         Pattern to use for support material (default: $config->{support_material_pattern})
     --support-material-spacing

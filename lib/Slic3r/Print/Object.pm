@@ -2,7 +2,7 @@ package Slic3r::Print::Object;
 use Moo;
 
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(Z scale unscale deg2rad scaled_epsilon);
+use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
 use Slic3r::Surface ':types';
 
@@ -531,8 +531,12 @@ sub combine_infill {
 sub generate_support_material {
     my $self = shift;
     
+    my $threshold_rad = $Slic3r::Config->support_material_threshold
+                        ? deg2rad($Slic3r::Config->support_material_threshold + 1)  # +1 makes the threshold inclusive
+                        : PI/2 - atan2($self->layers->[1]->regions->[0]->perimeter_flow->width/$Slic3r::Config->layer_height/2, 1);
+    Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
+    
     my $flow                    = $self->print->support_material_flow;
-    my $threshold_rad           = deg2rad($Slic3r::Config->support_material_threshold + 1);   # +1 makes the threshold inclusive
     my $overhang_width          = $threshold_rad == 0 ? undef : scale $Slic3r::Config->layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
     my $distance_from_object    = 1.5 * $flow->scaled_width;
     my $pattern_spacing = ($Slic3r::Config->support_material_spacing > $flow->spacing)

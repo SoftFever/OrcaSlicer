@@ -189,7 +189,8 @@ The author of the Silk icon set is Mark James.
        Support material options:
         --support-material  Generate support material for overhangs
         --support-material-threshold
-                            Overhang threshold angle (range: 0-90, default: 45)
+                            Overhang threshold angle (range: 0-90, set 0 for automatic detection,
+                            default: 0)
         --support-material-pattern
                             Pattern to use for support material (default: rectilinear)
         --support-material-spacing

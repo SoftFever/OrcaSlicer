@@ -536,11 +536,11 @@ our $Options = {
     },
     'support_material_threshold' => {
         label   => 'Overhang threshold',
-        tooltip => 'Support material will not generated for overhangs whose slope angle is above the given threshold.',
+        tooltip => 'Support material will not generated for overhangs whose slope angle is above the given threshold. Set to zero for automatic detection.',
         sidetext => '°',
         cli     => 'support-material-threshold=i',
         type    => 'i',
-        default => 45,
+        default => 0,
     },
     'support_material_pattern' => {
         label   => 'Pattern',
