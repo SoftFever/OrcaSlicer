@@ -1,6 +1,7 @@
 package Slic3r::Flow;
 use Moo;
 
+use List::Util qw(max);
 use Slic3r::Geometry qw(PI scale);
 
 has 'nozzle_diameter'   => (is => 'ro', required => 1);
@@ -37,8 +38,11 @@ sub _build_width {
         $width = $self->nozzle_diameter * ($self->nozzle_diameter/$self->layer_height - 4/PI + 1);
     }
     
-    my $min = $self->nozzle_diameter * 1.05;
-    my $max = $self->nozzle_diameter * 1.4;
+    my $min = max(
+        ((($self->nozzle_diameter/2) ** 2) / $self->layer_height * 0.8),
+        ($self->nozzle_diameter * 1.05),
+    );
+    my $max = $self->nozzle_diameter * 1.6;
     $width = $max if $width > $max;
     $width = $min if $width < $min;
     
