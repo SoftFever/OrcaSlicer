@@ -25,18 +25,31 @@ use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(stl obj amf)};
 
 sub new {
     my $class = shift;
-    my ($parent) = @_;
+    my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    $self->{mode} = $params{mode};
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater");
     $self->{options_tabs} = {};
     
+    my $config;
+    $config = Slic3r::Config->load("$Slic3r::GUI::datadir/simple.ini")
+        if -e "$Slic3r::GUI::datadir/simple.ini";
+    
     for my $tab_name (qw(print filament printer)) {
         $self->{options_tabs}{$tab_name} = ("Slic3r::GUI::Tab::" . ucfirst $tab_name)->new(
             $self->{tabpanel},
+            mode                => $self->{mode},
             plater              => $self->{plater},
-            on_value_change     => sub { $self->{plater}->on_config_change(@_) }, # propagate config change events to the plater
+            config              => $config,
+            on_value_change     => sub {
+                $self->{plater}->on_config_change(@_); # propagate config change events to the plater
+                if ($self->{mode} eq 'simple') {
+                    # save config
+                    $self->config->save("$Slic3r::GUI::datadir/simple.ini");
+                }
+            },
         );
         $self->{tabpanel}->AddPage($self->{options_tabs}{$tab_name}, $self->{options_tabs}{$tab_name}->title);
     }
@@ -289,7 +302,7 @@ sub config {
     
     # retrieve filament presets and build a single config object for them
     my $filament_config;
-    if ($self->{plater}->filament_presets == 1) {
+    if ($self->{plater}->filament_presets == 1 || $self->{mode} eq 'simple') {
         $filament_config = $self->{options_tabs}{filament}->config;
     } else {
         # TODO: handle dirty presets.
@@ -308,12 +321,19 @@ sub config {
         }
     }
     
-    return Slic3r::Config->merge(
+    my $config = Slic3r::Config->merge(
         Slic3r::Config->new_from_defaults,
         $self->{options_tabs}{print}->config,
         $self->{options_tabs}{printer}->config,
         $filament_config,
     );
+    
+    if ($self->{mode} eq 'simple') {
+        # set some sensible defaults
+        $config->set('first_layer_height', $config->nozzle_diameter->[0]);
+    }
+    
+    return $config;
 }
 
 sub set_value {

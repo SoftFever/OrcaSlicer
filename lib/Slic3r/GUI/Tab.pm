@@ -14,126 +14,133 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     $self->{options} = []; # array of option names handled by this tab
-    $self->{$_} = $params{$_} for qw(plater on_value_change);
+    $self->{$_} = $params{$_} for qw(mode plater on_value_change);
     
     # horizontal sizer
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
     $self->{sizer}->SetSizeHints($self);
     $self->SetSizer($self->{sizer});
     
-    # left vertical sizer
-    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
-    
-    my $left_col_width = 150;
-    
-    # preset chooser
-    {
+    if ($self->{mode} eq 'expert') {
+        # left vertical sizer
+        my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
         
-        # choice menu
-        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [$left_col_width, -1], []);
-        $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
+        my $left_col_width = 150;
         
-        # buttons
-        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG));
-        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
-        $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
-        $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
-        $self->{btn_delete_preset}->Disable;
+        # preset chooser
+        {
+            
+            # choice menu
+            $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [$left_col_width, -1], []);
+            $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
+            
+            # buttons
+            $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG));
+            $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
+            $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
+            $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
+            $self->{btn_delete_preset}->Disable;
+            
+            ### These cause GTK warnings:
+            ###my $box = Wx::StaticBox->new($self, -1, "Presets:", wxDefaultPosition, [$left_col_width, 50]);
+            ###my $hsizer = Wx::StaticBoxSizer->new($box, wxHORIZONTAL);
+            
+            my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+            
+            $left_sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 5);
+            $hsizer->Add($self->{presets_choice}, 1, wxRIGHT | wxALIGN_CENTER_VERTICAL, 3);
+            $hsizer->Add($self->{btn_save_preset}, 0, wxALIGN_CENTER_VERTICAL);
+            $hsizer->Add($self->{btn_delete_preset}, 0, wxALIGN_CENTER_VERTICAL);
+        }
         
-        ### These cause GTK warnings:
-        ###my $box = Wx::StaticBox->new($self, -1, "Presets:", wxDefaultPosition, [$left_col_width, 50]);
-        ###my $hsizer = Wx::StaticBoxSizer->new($box, wxHORIZONTAL);
+        # tree
+        $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
+        $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
+        $self->{icons} = Wx::ImageList->new(16, 16, 1);
+        $self->{treectrl}->AssignImageList($self->{icons});
+        $self->{iconcount} = -1;
+        $self->{treectrl}->AddRoot("root");
+        $self->{pages} = [];
+        $self->{treectrl}->SetIndent(0);
+        EVT_TREE_SEL_CHANGED($parent, $self->{treectrl}, sub {
+            my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
+                or return;
+            $_->Hide for @{$self->{pages}};
+            $page->Show;
+            $self->{sizer}->Layout;
+            $self->Refresh;
+        });
+        EVT_KEY_DOWN($self->{treectrl}, sub {
+            my ($treectrl, $event) = @_;
+            if ($event->GetKeyCode == WXK_TAB) {
+                $treectrl->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
+            } else {
+                $event->Skip;
+            }
+        });
         
-        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        EVT_CHOICE($parent, $self->{presets_choice}, sub {
+            $self->on_select_preset;
+            $self->sync_presets;
+        });
         
-        $left_sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $hsizer->Add($self->{presets_choice}, 1, wxRIGHT | wxALIGN_CENTER_VERTICAL, 3);
-        $hsizer->Add($self->{btn_save_preset}, 0, wxALIGN_CENTER_VERTICAL);
-        $hsizer->Add($self->{btn_delete_preset}, 0, wxALIGN_CENTER_VERTICAL);
+        EVT_BUTTON($self, $self->{btn_save_preset}, sub {
+            
+            # since buttons (and choices too) don't get focus on Mac, we set focus manually
+            # to the treectrl so that the EVT_* events are fired for the input field having
+            # focus currently. is there anything better than this?
+            $self->{treectrl}->SetFocus;
+            
+            my $preset = $self->current_preset;
+            my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
+            $default_name =~ s/\.ini$//i;
+            
+            my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
+                title   => lc($self->title),
+                default => $default_name,
+                values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
+            );
+            return unless $dlg->ShowModal == wxID_OK;
+            
+            my $file = sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $dlg->get_name;
+            $self->config->save($file);
+            $self->set_dirty(0);
+            $self->load_presets;
+            $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
+            $self->on_select_preset;
+            $self->sync_presets;
+        });
+        
+        EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
+            my $i = $self->{presets_choice}->GetSelection;
+            return if $i == 0;  # this shouldn't happen but let's trap it anyway
+            my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
+            return unless $res == wxID_YES;
+            if (-e $self->{presets}[$i]{file}) {
+                unlink $self->{presets}[$i]{file};
+            }
+            splice @{$self->{presets}}, $i, 1;
+            $self->set_dirty(0);
+            $self->{presets_choice}->Delete($i);
+            $self->{presets_choice}->SetSelection(0);
+            $self->on_select_preset;
+            $self->sync_presets;
+        });
     }
     
-    # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
-    $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
-    $self->{icons} = Wx::ImageList->new(16, 16, 1);
-    $self->{treectrl}->AssignImageList($self->{icons});
-    $self->{iconcount} = -1;
-    $self->{treectrl}->AddRoot("root");
-    $self->{pages} = [];
-    $self->{treectrl}->SetIndent(0);
-    EVT_TREE_SEL_CHANGED($parent, $self->{treectrl}, sub {
-        my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
-            or return;
-        $_->Hide for @{$self->{pages}};
-        $page->Show;
-        $self->{sizer}->Layout;
-        $self->Refresh;
-    });
-    EVT_KEY_DOWN($self->{treectrl}, sub {
-        my ($treectrl, $event) = @_;
-        if ($event->GetKeyCode == WXK_TAB) {
-            $treectrl->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
-        } else {
-            $event->Skip;
+    if ($self->{mode} eq 'expert') {
+        $self->{config} = Slic3r::Config->new;
+        $self->build;
+        if ($self->hidden_options) {
+            $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
+            push @{$self->{options}}, $self->hidden_options;
         }
-    });
-    
-    EVT_CHOICE($parent, $self->{presets_choice}, sub {
-        $self->on_select_preset;
-        $self->sync_presets;
-    });
-    
-    EVT_BUTTON($self, $self->{btn_save_preset}, sub {
-        
-        # since buttons (and choices too) don't get focus on Mac, we set focus manually
-        # to the treectrl so that the EVT_* events are fired for the input field having
-        # focus currently. is there anything better than this?
-        $self->{treectrl}->SetFocus;
-        
-        my $preset = $self->current_preset;
-        my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
-        $default_name =~ s/\.ini$//i;
-        
-        my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
-            title   => lc($self->title),
-            default => $default_name,
-            values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
-        );
-        return unless $dlg->ShowModal == wxID_OK;
-        
-        my $file = sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $dlg->get_name;
-        $self->config->save($file);
-        $self->set_dirty(0);
         $self->load_presets;
-        $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
-        $self->on_select_preset;
-        $self->sync_presets;
-    });
-    
-    EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
-        my $i = $self->{presets_choice}->GetSelection;
-        return if $i == 0;  # this shouldn't happen but let's trap it anyway
-        my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
-        return unless $res == wxID_YES;
-        if (-e $self->{presets}[$i]{file}) {
-            unlink $self->{presets}[$i]{file};
-        }
-        splice @{$self->{presets}}, $i, 1;
-        $self->set_dirty(0);
-        $self->{presets_choice}->Delete($i);
-        $self->{presets_choice}->SetSelection(0);
-        $self->on_select_preset;
-        $self->sync_presets;
-    });
-    
-    $self->{config} = Slic3r::Config->new;
-    $self->build;
-    if ($self->hidden_options) {
-        $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
-        push @{$self->{options}}, $self->hidden_options;
+    } else {
+        $self->{config} = $params{config} || Slic3r::Config->new;
+        $self->build_simple;
     }
-    $self->load_presets;
     
     return $self;
 }
@@ -230,7 +237,7 @@ sub add_options_page {
     my $self = shift;
     my ($title, $icon, %params) = @_;
     
-    if ($icon) {
+    if ($icon && $self->{icons}) {
         my $bitmap = Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG);
         $self->{icons}->Add($bitmap);
         $self->{iconcount}++;
@@ -242,7 +249,7 @@ sub add_options_page {
         my %defaults_to_set = map { $_ => 1 } @options;
         
         # apply default values for the options we don't have already
-        delete $defaults_to_set{$_} for @{$self->{options}};
+        delete $defaults_to_set{$_} for @{$self->{options}}, keys %{$self->{config}};
         $self->{config}->apply(Slic3r::Config->new_from_defaults(keys %defaults_to_set)) if %defaults_to_set;
         
         # append such options to our list
@@ -254,7 +261,7 @@ sub add_options_page {
         $self->set_dirty(1);
         $self->sync_presets;
     });
-    $page->Hide;
+    $page->Hide if $self->{mode} eq 'expert';
     $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
     $self->update_tree;
@@ -281,6 +288,7 @@ sub reload_values {
 sub update_tree {
     my $self = shift;
     my ($select) = @_;
+    return if !$self->{treectrl};
     
     $select //= 0; #/
     
@@ -295,6 +303,7 @@ sub update_tree {
 sub set_dirty {
     my $self = shift;
     my ($dirty) = @_;
+    return if $self->{mode} ne 'expert';
     
     my $selection = $self->{presets_choice}->GetSelection;
     my $i = $self->{dirty} // $selection; #/
@@ -373,6 +382,7 @@ sub load_external_config {
 
 sub sync_presets {
     my $self = shift;
+    return if $self->{mode} ne 'expert';
     $self->{plater}->update_presets($self->name, [$self->{presets_choice}->GetStrings], $self->{presets_choice}->GetSelection);
 }
 
@@ -381,6 +391,58 @@ use base 'Slic3r::GUI::Tab';
 
 sub name { 'print' }
 sub title { 'Print Settings' }
+
+sub build_simple {
+    my $self = shift;
+    
+    $self->add_options_page('', '', optgroups => [
+        {
+            title => 'Layer height',
+            options => [qw(layer_height)],
+        },
+        {
+            title => 'Vertical shells',
+            options => [qw(perimeters)],
+        },
+        {
+            title => 'Horizontal shells',
+            options => [qw(top_solid_layers bottom_solid_layers)],
+            lines => [
+                {
+                    label   => 'Solid layers',
+                    options => [qw(top_solid_layers bottom_solid_layers)],
+                },
+            ],
+        },
+        {
+            title => 'Infill',
+            options => [qw(fill_density fill_pattern)],
+        },
+        {
+            title => 'Speed',
+            options => [qw(perimeter_speed infill_speed travel_speed)],
+        },
+        {
+            title => 'Brim',
+            options => [qw(brim_width)],
+        },
+        {
+            title => 'Support material',
+            options => [qw(support_material support_material_spacing)],
+        },
+        {
+            title => 'Sequential printing',
+            options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
+            lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('complete_objects'),
+                {
+                    label   => 'Extruder clearance (mm)',
+                    options => [qw(extruder_clearance_radius extruder_clearance_height)],
+                },
+            ],
+        },
+    ]);
+}
 
 sub build {
     my $self = shift;
@@ -513,6 +575,35 @@ use base 'Slic3r::GUI::Tab';
 sub name { 'filament' }
 sub title { 'Filament Settings' }
 
+sub build_simple {
+    my $self = shift;
+    
+    $self->add_options_page('', '', optgroups => [
+        {
+            title => 'Filament',
+            options => ['filament_diameter#0', 'extrusion_multiplier#0'],
+        },
+        {
+            title => 'Temperature (°C)',
+            options => ['temperature#0', 'first_layer_temperature#0', qw(bed_temperature first_layer_bed_temperature)],
+            lines => [
+                {
+                    label   => 'Extruder',
+                    options => ['first_layer_temperature#0', 'temperature#0'],
+                },
+                {
+                    label   => 'Bed',
+                    options => [qw(first_layer_bed_temperature bed_temperature)],
+                },
+            ],
+        },
+        {
+            title => 'Cooling',
+            options => [qw(cooling)],
+        },
+    ]);
+}
+
 sub build {
     my $self = shift;
     
@@ -606,6 +697,39 @@ use base 'Slic3r::GUI::Tab';
 sub name { 'printer' }
 sub title { 'Printer Settings' }
 
+sub build_simple {
+    my $self = shift;
+    
+    $self->add_options_page('', '', optgroups => [
+        {
+            title => 'Size and coordinates',
+            options => [qw(bed_size print_center z_offset)],
+        },
+        {
+            title => 'Firmware',
+            options => [qw(gcode_flavor)],
+        },
+        {
+            title => 'Extruder',
+            options => ['nozzle_diameter#0'],
+        },
+        {
+            title => 'Retraction',
+            options => ['retract_length#0', 'retract_lift#0'],
+        },
+        {
+            title => 'Start G-code',
+            no_labels => 1,
+            options => [qw(start_gcode)],
+        },
+        {
+            title => 'End G-code',
+            no_labels => 1,
+            options => [qw(end_gcode)],
+        },
+    ]);
+}
+
 sub build {
     my $self = shift;
     
@@ -675,9 +799,11 @@ sub config {
     
     my $config = $self->SUPER::config(@_);
     
-    # remove all unused values
-    foreach my $opt_key ($self->_extruder_options) {
-        splice @{ $config->{$opt_key} }, $self->{extruders_count};
+    if ($self->{mode} eq 'expert') {
+        # remove all unused values
+        foreach my $opt_key ($self->_extruder_options) {
+            splice @{ $config->{$opt_key} }, $self->{extruders_count};
+        }
     }
     
     return $config;

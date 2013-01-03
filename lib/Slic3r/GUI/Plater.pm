@@ -210,32 +210,34 @@ sub new {
         $hsizer->Add($self->{canvas}, 0, wxALL, 10);
         $hsizer->Add($vertical_sizer, 1, wxEXPAND | wxALL, 10);
         
-        my $presets = Wx::BoxSizer->new(wxHORIZONTAL);
-        $presets->AddStretchSpacer(1);
-        my %group_labels = (
-            print       => 'Print settings',
-            filament    => 'Filament',
-            printer     => 'Printer',
-        );
-        $self->{preset_choosers} = {};
-        $self->{preset_choosers_sizers} = {};
-        for my $group (qw(print filament printer)) {
-            my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-            my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
-            $self->{preset_choosers}{$group} = [$choice];
-            EVT_CHOICE($choice, $choice, sub { $self->on_select_preset($group, @_) });
-            
-            $self->{preset_choosers_sizers}{$group} = Wx::BoxSizer->new(wxVERTICAL);
-            $self->{preset_choosers_sizers}{$group}->Add($choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-            
-            $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-            $presets->Add($self->{preset_choosers_sizers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
-        }
-        $presets->AddStretchSpacer(1);
-        
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($hsizer, 1, wxEXPAND | wxBOTTOM, 10);
-        $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+        
+        if ($self->skeinpanel->{mode} eq 'expert') {
+            my $presets = Wx::BoxSizer->new(wxHORIZONTAL);
+            $presets->AddStretchSpacer(1);
+            my %group_labels = (
+                print       => 'Print settings',
+                filament    => 'Filament',
+                printer     => 'Printer',
+            );
+            $self->{preset_choosers} = {};
+            $self->{preset_choosers_sizers} = {};
+            for my $group (qw(print filament printer)) {
+                my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
+                $self->{preset_choosers}{$group} = [$choice];
+                EVT_CHOICE($choice, $choice, sub { $self->on_select_preset($group, @_) });
+                
+                $self->{preset_choosers_sizers}{$group} = Wx::BoxSizer->new(wxVERTICAL);
+                $self->{preset_choosers_sizers}{$group}->Add($choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+                
+                $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+                $presets->Add($self->{preset_choosers_sizers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+            }
+            $presets->AddStretchSpacer(1);
+            $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+        }
         
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
@@ -581,11 +583,15 @@ sub export_gcode {
 sub _init_print {
     my $self = shift;
     
+    my %extra_variables = ();
+    if ($self->skeinpanel->{mode} eq 'expert') {
+        $extra_variables{"${_}_preset"} = $self->skeinpanel->{options_tabs}{$_}->current_preset->{name}
+            for qw(print filament printer);
+    }
+    
     return Slic3r::Print->new(
         config => $self->skeinpanel->config,
-        extra_variables => {
-            map { +"${_}_preset" => $self->skeinpanel->{options_tabs}{$_}->current_preset->{name} } qw(print filament printer),
-        },
+        extra_variables => { %extra_variables },
     );
 }
 

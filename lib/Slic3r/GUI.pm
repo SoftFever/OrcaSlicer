@@ -38,7 +38,11 @@ use constant MI_WEBSITE       => &Wx::NewId;
 use constant MI_DOCUMENTATION => &Wx::NewId;
 
 our $datadir;
-our $Settings;
+our $Settings = {
+    _ => {
+        mode => 'simple',
+    },
+};
 
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
@@ -66,13 +70,14 @@ sub OnInit {
     if (-f "$datadir/slic3r.ini") {
         my $ini = eval { Slic3r::Config->read_ini("$datadir/slic3r.ini") };
         $Settings = $ini if $ini;
+        $Settings->{_}{mode} ||= 'expert';
     }
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     my $frame = Wx::Frame->new(undef, -1, 'Slic3r', wxDefaultPosition, [760, 470], wxDEFAULT_FRAME_STYLE);
     $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
-    $self->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame);
+    $self->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame, mode => $Settings->{_}{mode});
     $self->SetTopWindow($frame);
     
     # status bar
