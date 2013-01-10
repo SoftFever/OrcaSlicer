@@ -916,7 +916,6 @@ sub write_gcode {
     # write end commands to file
     print $fh $gcodegen->retract;
     print $fh $gcodegen->set_fan(0);
-    print $fh "M501 ; reset acceleration\n" if $Slic3r::Config->acceleration;
     printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->end_gcode);
     
     printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
