@@ -201,6 +201,17 @@ $j
     --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                         value or as a percentage over normal speeds (default: $config->{first_layer_speed})
     
+  Acceleration options:
+    --perimeter-acceleration
+                        Overrides firmware's default acceleration for perimeters. (mm/s^2, set zero
+                        to disable; default: $config->{perimeter_acceleration})
+    --infill-acceleration
+                        Overrides firmware's default acceleration for infill. (mm/s^2, set zero
+                        to disable; default: $config->{infill_acceleration})
+    --default-acceleration
+                        Acceleration will be reset to this value after the specific settings above
+                        have been applied. (mm/s^2, set zero to disable; default: $config->{travel_speed})
+    
   Accuracy options:
     --layer-height      Layer height in mm (default: $config->{layer_height})
     --first-layer-height Layer height for first layer (mm or %, default: $config->{first_layer_height})

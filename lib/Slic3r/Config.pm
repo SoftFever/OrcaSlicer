@@ -6,7 +6,7 @@ use utf8;
 use List::Util qw(first);
 
 # cemetery of old config settings
-our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool);
+our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration);
 
 my $serialize_comma     = sub { join ',', @{$_[0]} };
 my $deserialize_comma   = sub { [ split /,/, $_[0] ] };
@@ -319,25 +319,29 @@ our $Options = {
     },
     
     # acceleration options
-    'acceleration' => {
-        label   => 'Enable acceleration control',
-        cli     => 'acceleration!',
-        type    => 'bool',
+    'default_acceleration' => {
+        label   => 'Default',
+        tooltip => 'This is the acceleration your printer will be reset to after the role-specific acceleration values are used (perimeter/infill). Set zero to prevent resetting acceleration at all.',
+        sidetext => 'mm/s²',
+        cli     => 'default-acceleration',
+        type    => 'f',
         default => 0,
     },
     'perimeter_acceleration' => {
         label   => 'Perimeters',
+        tooltip => 'This is the acceleration your printer will use for perimeters. A high value like 9000 usually gives good results if your hardware is up to the job. Set zero to disable acceleration control for perimeters.',
         sidetext => 'mm/s²',
         cli     => 'perimeter-acceleration',
         type    => 'f',
-        default => 25,
+        default => 0,
     },
     'infill_acceleration' => {
         label   => 'Infill',
+        tooltip => 'This is the acceleration your printer will use for infill. Set zero to disable acceleration control for infill.',
         sidetext => 'mm/s²',
         cli     => 'infill-acceleration',
         type    => 'f',
-        default => 50,
+        default => 0,
     },
     
     # accuracy options

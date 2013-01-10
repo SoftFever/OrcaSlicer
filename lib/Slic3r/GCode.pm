@@ -323,9 +323,9 @@ sub reset_e {
 sub set_acceleration {
     my $self = shift;
     my ($acceleration) = @_;
-    return "" unless $Slic3r::Config->acceleration;
+    return "" if !$acceleration;
     
-    return sprintf "M201 E%s%s\n",
+    return sprintf "M204 S%s%s\n",
         $acceleration, ($Slic3r::Config->gcode_comments ? ' ; adjust acceleration' : '');
 }
 
