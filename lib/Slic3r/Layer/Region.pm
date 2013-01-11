@@ -227,7 +227,9 @@ sub make_perimeters {
                 # and we can extract the gap for later processing
                 my $diff = diff_ex(
                     [ map @$_, $expolygon->offset_ex(-0.5*$distance) ],
-                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$distance) ],
+                    # +2 on the offset here makes sure that Clipper float truncation 
+                    # won't shrink the clip polygon to be smaller than intended.
+                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$distance + 2) ],
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
