@@ -23,20 +23,6 @@ sub clone {
     return (ref $self)->new(@$self);
 }
 
-sub cast {
-    my $class = shift;
-    if (ref $_[0] eq 'Slic3r::Point') {
-        return $_[0];
-    } else {
-        return $class->new(@_);
-    }
-}
-
-sub coordinates {
-    my $self = shift;
-    return @$self;
-}
-
 sub coincides_with {
     my $self = shift;
     my ($point) = @_;

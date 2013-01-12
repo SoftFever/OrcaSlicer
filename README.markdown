@@ -116,6 +116,8 @@ The author of the Silk icon set is Mark James.
         --g0                Use G0 commands for retraction (experimental, not supported by all
                             firmwares)
         --gcode-comments    Make G-code verbose by adding comments (default: no)
+        --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
+                            default: 0)
         
       Filament options:
         --filament-diameter Diameter in mm of your raw filament (default: 3)
@@ -144,9 +146,23 @@ The author of the Silk icon set is Mark James.
                             (default: 60)
         --top-solid-infill-speed Speed of print moves for top surfaces in mm/s or % over solid infill speed
                             (default: 50)
+        --support-material-speed
+                            Speed of support material print moves in mm/s (default: 60)
         --bridge-speed      Speed of bridge print moves in mm/s (default: 60)
+        --gap-fill-speed    Speed of gap fill print moves in mm/s (default: 20)
         --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                             value or as a percentage over normal speeds (default: 30%)
+        
+      Acceleration options:
+        --perimeter-acceleration
+                            Overrides firmware's default acceleration for perimeters. (mm/s^2, set zero
+                            to disable; default: 0)
+        --infill-acceleration
+                            Overrides firmware's default acceleration for infill. (mm/s^2, set zero
+                            to disable; default: 0)
+        --default-acceleration
+                            Acceleration will be reset to this value after the specific settings above
+                            have been applied. (mm/s^2, set zero to disable; default: 130)
         
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.4)
@@ -158,8 +174,9 @@ The author of the Silk icon set is Mark James.
     
       Print options:
         --perimeters        Number of perimeters/horizontal skins (range: 0+, default: 3)
-        --solid-layers      Number of solid layers to do for top/bottom surfaces
-                            (range: 1+, default: 3)
+        --top-solid-layers  Number of solid layers to do for top surfaces (range: 0+, default: 3)
+        --bottom-solid-layers  Number of solid layers to do for bottom surfaces (range: 0+, default: 3)
+        --solid-layers      Shortcut for setting the two options above at once
         --fill-density      Infill density (range: 0-1, default: 0.4)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 45)
         --fill-pattern      Pattern to use to fill non-solid layers (default: rectilinear)
@@ -170,6 +187,7 @@ The author of the Silk icon set is Mark James.
                             the default commands (turn off temperature [M104 S0],
                             home X axis [G28 X], disable motors [M84]).
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
+        --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
         --extra-perimeters  Add more perimeters when needed (default: yes)
         --randomize-start   Randomize starting point across layers (default: yes)
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
@@ -183,7 +201,8 @@ The author of the Silk icon set is Mark James.
        Support material options:
         --support-material  Generate support material for overhangs
         --support-material-threshold
-                            Overhang threshold angle (range: 0-90, default: 45)
+                            Overhang threshold angle (range: 0-90, set 0 for automatic detection,
+                            default: 0)
         --support-material-pattern
                             Pattern to use for support material (default: rectilinear)
         --support-material-spacing
@@ -227,6 +246,8 @@ The author of the Silk icon set is Mark James.
         --skirt-distance    Distance in mm between innermost skirt and object 
                             (default: 6)
         --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: 1)
+        --min-skirt-length  Generate no less than the number of loops required to consume this length
+                            of filament on the first layer, for each extruder (mm, 0+, default: 0)
         --brim-width        Width of the brim that will get added to each object to help adhesion
                             (mm, default: 0)
        
@@ -261,7 +282,7 @@ The author of the Silk icon set is Mark James.
         --support-material-extrusion-width
                             Set a different extrusion width for support material
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
-      
+  
        Multiple extruder options:
         --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
                             (can be specified multiple times, default: 0x0)

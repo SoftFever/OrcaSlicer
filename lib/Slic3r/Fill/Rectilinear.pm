@@ -23,7 +23,7 @@ sub fill_surface {
     my $line_oscillation = $distance_between_lines - $min_spacing;
     
     my $flow_spacing = $params{flow_spacing};
-    if ($params{density} == 1) {
+    if ($params{density} == 1 && !$params{dont_adjust}) {
         $distance_between_lines = $self->adjust_solid_spacing(
             width       => $bounding_box->[X2] - $bounding_box->[X1],
             distance    => $distance_between_lines,
@@ -31,7 +31,7 @@ sub fill_surface {
         $flow_spacing = unscale $distance_between_lines;
     }
     
-    my $overlap_distance = ($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width) * 0.4;
+    my $overlap_distance = scale $params{flow_spacing} * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING;
     
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
@@ -58,9 +58,9 @@ sub fill_surface {
     }
     
     # connect lines
-    {
-        my $collection = Slic3r::ExtrusionPath::Collection->new(
-            paths => [ map Slic3r::ExtrusionPath->new(polyline => Slic3r::Polyline->new(@$_), role => -1), @paths ],
+    unless ($params{dont_connect}) {
+        my $collection = Slic3r::Polyline::Collection->new(
+            polylines => [ map Slic3r::Polyline->new(@$_), @paths ],
         );
         @paths = ();
         
@@ -75,17 +75,17 @@ sub fill_surface {
         
         foreach my $path ($collection->shortest_path) {
             if (@paths) {
-                my @distance = map abs($path->points->[0][$_] - $paths[-1][-1][$_]), (X,Y);
+                my @distance = map abs($path->[0][$_] - $paths[-1][-1][$_]), (X,Y);
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
-                if ($can_connect->(@distance, $paths[-1][-1], $path->points->[0])
-                    && $expolygon_off->encloses_line(Slic3r::Line->new($paths[-1][-1], $path->points->[0]), $tolerance)) {
-                    push @{$paths[-1]}, @{$path->points};
+                if ($can_connect->(@distance, $paths[-1][-1], $path->[0])
+                    && $expolygon_off->encloses_line(Slic3r::Line->new($paths[-1][-1], $path->[0]), $tolerance)) {
+                    push @{$paths[-1]}, @$path;
                     next;
                 }
             }
-            push @paths, $path->points;
+            push @paths, $path;
         }
     }
     

@@ -6,7 +6,7 @@ use warnings;
 
 use Boost::Geometry::Utils;
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon same_line line_length scale epsilon);
+use Slic3r::Geometry qw(X Y A B point_in_polygon same_line line_length epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
@@ -82,6 +82,13 @@ sub safety_offset {
     );
 }
 
+sub noncollapsing_offset_ex {
+    my $self = shift;
+    my ($distance, @params) = @_;
+    
+    return $self->offset_ex($distance + 1, @params);
+}
+
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
@@ -137,6 +144,11 @@ sub bounding_box_polygon {
     ]);
 }
 
+sub bounding_box_center {
+    my $self = shift;
+    return Slic3r::Geometry::bounding_box_center($self->contour);
+}
+
 sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
@@ -151,6 +163,11 @@ sub simplify {
     my $self = shift;
     $_->simplify(@_) for @$self;
     $self;
+}
+
+sub scale {
+    my $self = shift;
+    $_->scale(@_) for @$self;
 }
 
 sub translate {
@@ -289,6 +306,36 @@ sub medial_axis {
     }
     
     return @result;
+}
+
+package Slic3r::ExPolygon::Collection;
+use Moo;
+use Slic3r::Geometry qw(X1 Y1);
+
+has 'expolygons' => (is => 'ro', default => sub { [] });
+
+sub clone {
+    my $self = shift;
+    return (ref $self)->new(
+        expolygons => [ map $_->clone, @{$self->expolygons} ],
+    );
+}
+
+sub align_to_origin {
+    my $self = shift;
+    
+    my @bb = Slic3r::Geometry::bounding_box([ map @$_, map @$_, @{$self->expolygons} ]);
+    $_->translate(-$bb[X1], -$bb[Y1]) for @{$self->expolygons};
+}
+
+sub rotate {
+    my $self = shift;
+    $_->rotate(@_) for @{$self->expolygons};
+}
+
+sub size {
+    my $self = shift;
+    return [ Slic3r::Geometry::size_2D([ map @$_, map @$_, @{$self->expolygons} ]) ];
 }
 
 1;

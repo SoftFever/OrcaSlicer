@@ -396,7 +396,13 @@ sub build {
         },
         {
             title => 'Horizontal shells',
-            options => [qw(solid_layers)],
+            options => [qw(top_solid_layers bottom_solid_layers)],
+            lines => [
+                {
+                    label   => 'Solid layers',
+                    options => [qw(top_solid_layers bottom_solid_layers)],
+                },
+            ],
         },
         {
             title => 'Advanced',
@@ -418,7 +424,7 @@ sub build {
     $self->add_options_page('Speed', 'time.png', optgroups => [
         {
             title => 'Speed for print moves',
-            options => [qw(perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed bridge_speed)],
+            options => [qw(perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed support_material_speed bridge_speed gap_fill_speed)],
         },
         {
             title => 'Speed for non-print moves',
@@ -428,12 +434,16 @@ sub build {
             title => 'Modifiers',
             options => [qw(first_layer_speed)],
         },
+        {
+            title => 'Acceleration control (advanced)',
+            options => [qw(perimeter_acceleration infill_acceleration default_acceleration)],
+        },
     ]);
     
     $self->add_options_page('Skirt and brim', 'box.png', optgroups => [
         {
             title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height)],
+            options => [qw(skirts skirt_distance skirt_height min_skirt_length)],
         },
         {
             title => 'Brim',
@@ -460,6 +470,13 @@ sub build {
         {
             title => 'Sequential printing',
             options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
+            lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('complete_objects'),
+                {
+                    label   => 'Extruder clearance (mm)',
+                    options => [qw(extruder_clearance_radius extruder_clearance_height)],
+                },
+            ],
         },
         {
             title => 'Output file',
@@ -513,8 +530,18 @@ sub build {
             options => ['filament_diameter#0', 'extrusion_multiplier#0'],
         },
         {
-            title => 'Temperature',
+            title => 'Temperature (°C)',
             options => ['temperature#0', 'first_layer_temperature#0', qw(bed_temperature first_layer_bed_temperature)],
+            lines => [
+                {
+                    label   => 'Extruder',
+                    options => ['first_layer_temperature#0', 'temperature#0'],
+                },
+                {
+                    label   => 'Bed',
+                    options => [qw(first_layer_bed_temperature bed_temperature)],
+                },
+            ],
         },
     ]);
     
@@ -522,10 +549,26 @@ sub build {
         {
             title => 'Enable',
             options => [qw(cooling)],
+            lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('cooling'),
+                {
+                    label => '',
+                    widget => ($self->{description_line} = Slic3r::GUI::OptionsGroup::StaticTextLine->new),
+                },
+            ],
         },
         {
             title => 'Fan settings',
             options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on)],
+            lines => [
+                {
+                    label   => 'Fan speed',
+                    options => [qw(min_fan_speed max_fan_speed)],
+                },
+                Slic3r::GUI::OptionsGroup->single_option_line('bridge_fan_speed'),
+                Slic3r::GUI::OptionsGroup->single_option_line('disable_fan_first_layers'),
+                Slic3r::GUI::OptionsGroup->single_option_line('fan_always_on'),
+            ],
         },
         {
             title => 'Cooling thresholds',
@@ -533,6 +576,36 @@ sub build {
             options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
         },
     ]);
+}
+
+sub _update_description {
+    my $self = shift;
+    
+    my $config = $self->config;
+    
+    my $msg = "";
+    if ($config->cooling) {
+        $msg = sprintf "If estimated layer time is below ~%ds, fan will run at 100%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
+            $config->slowdown_below_layer_time, $config->slowdown_below_layer_time, $config->min_print_speed;
+        if ($config->fan_below_layer_time > $config->slowdown_below_layer_time) {
+            $msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
+                $config->fan_below_layer_time, $config->max_fan_speed, $config->min_fan_speed;
+        }
+        if ($config->fan_always_on) {
+            $msg .= sprintf "\nDuring the other layers, fan will always run at %d%%.", $config->min_fan_speed;
+        } else {
+            $msg .= "\nDuring the other layers, fan will be turned off."
+        }
+    }
+    $self->{description_line}->SetText($msg);
+}
+
+sub on_value_change {
+    my $self = shift;
+    my ($opt_key) = @_;
+    $self->SUPER::on_value_change(@_);
+    
+    $self->_update_description;
 }
 
 package Slic3r::GUI::Tab::Printer;
@@ -569,6 +642,10 @@ sub build {
                 },
             ],
         },
+        {
+            title => 'Advanced',
+            options => [qw(vibration_limit)],
+        },
     ]);
     
     $self->add_options_page('Custom G-code', 'cog.png', optgroups => [
@@ -586,6 +663,11 @@ sub build {
             title => 'Layer change G-code',
             no_labels => 1,
             options => [qw(layer_gcode)],
+        },
+        {
+            title => 'Tool change G-code',
+            no_labels => 1,
+            options => [qw(toolchange_gcode)],
         },
     ]);
     
@@ -726,7 +808,8 @@ sub append_optgroup {
     my $self = shift;
     my %params = @_;
     
-    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+    my $class = $params{class} || 'Slic3r::GUI::ConfigOptionsGroup';
+    my $optgroup = $class->new(
         parent      => $self,
         config      => $self->GetParent->{config},
         label_width => 200,

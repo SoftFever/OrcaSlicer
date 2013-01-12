@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 24;
+plan tests => 26;
 
 BEGIN {
     use FindBin;
@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
-use Slic3r::Geometry qw(line_atan line_direction rad2deg_dir PI);
+use Slic3r::Geometry qw(line_atan line_direction rad2deg_dir angle3points PI);
 
 #==========================================================
 
@@ -51,6 +51,13 @@ use Slic3r::Geometry qw(line_atan line_direction rad2deg_dir PI);
     is rad2deg_dir(PI*3/4),  135, 'NW (degrees)';
     is rad2deg_dir(PI/6),     60, '30°';
     is rad2deg_dir(PI/6*2),   30, '60°';
+}
+
+#==========================================================
+
+{
+    is angle3points([0,0], [10,0], [0,10]), PI/2, 'CW angle3points';
+    is angle3points([0,0], [0,10], [10,0]), PI/2*3, 'CCW angle3points';
 }
 
 #==========================================================

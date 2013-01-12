@@ -1,6 +1,7 @@
 package Slic3r::Flow;
 use Moo;
 
+use List::Util qw(max);
 use Slic3r::Geometry qw(PI scale);
 
 has 'nozzle_diameter'   => (is => 'ro', required => 1);
@@ -8,6 +9,8 @@ has 'layer_height'      => (is => 'ro', default => sub { $Slic3r::Config->layer_
 
 has 'width'             => (is => 'rwp', builder => 1);
 has 'spacing'           => (is => 'lazy');
+has 'bridge_width'      => (is => 'lazy');
+has 'bridge_spacing'    => (is => 'lazy');
 has 'scaled_width'      => (is => 'lazy');
 has 'scaled_spacing'    => (is => 'lazy');
 
@@ -35,8 +38,11 @@ sub _build_width {
         $width = $self->nozzle_diameter * ($self->nozzle_diameter/$self->layer_height - 4/PI + 1);
     }
     
-    my $min = $self->nozzle_diameter * 1.05;
-    my $max = $self->nozzle_diameter * 1.4;
+    my $min = max(
+        ((($self->nozzle_diameter/2) ** 2) / $self->layer_height * 0.8),
+        ($self->nozzle_diameter * 1.05),
+    );
+    my $max = $self->nozzle_diameter * 1.6;
     $width = $max if $width > $max;
     $width = $min if $width < $min;
     
@@ -55,6 +61,27 @@ sub _build_spacing {
         $min_flow_spacing = $self->nozzle_diameter * (1 - PI/4) + $self->width * PI/4;
     }
     return $self->width - &Slic3r::OVERLAP_FACTOR * ($self->width - $min_flow_spacing);
+}
+
+sub clone {
+    my $self = shift;
+    
+    return (ref $self)->new(
+        nozzle_diameter => $self->nozzle_diameter,
+        layer_height    => $self->layer_height,
+        @_,
+    );
+}
+
+sub _build_bridge_width {
+    my $self = shift;
+    return sqrt($Slic3r::Config->bridge_flow_ratio * ($self->nozzle_diameter**2));
+}
+
+sub _build_bridge_spacing {
+    my $self = shift;
+    my $width = $self->bridge_width;
+    return $width + &Slic3r::OVERLAP_FACTOR * ($width * PI / 4 - $width);
 }
 
 sub _build_scaled_width {

@@ -1,13 +1,10 @@
 package Slic3r::Fill::Base;
 use Moo;
 
+use Slic3r::Geometry qw(PI);
 
-has 'print'               => (is => 'rw');
-has 'layer'               => (is => 'rw');
-has 'max_print_dimension' => (is => 'rw');
+has 'layer_id'            => (is => 'rw');
 has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
-
-use constant PI => 4 * atan2(1, 1);
 
 sub angles () { [0, PI/2] }
 
@@ -18,12 +15,12 @@ sub infill_direction {
     # set infill angle
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);
-    $rotate[1] = [ $self->max_print_dimension * sqrt(2) / 2, $self->max_print_dimension * sqrt(2) / 2 ];
+    $rotate[1] = $surface->expolygon->bounding_box_center;
     @shift = @{$rotate[1]};
     
-    if ($self->layer) {
+    if (defined $self->layer_id) {
         # alternate fill direction
-        my $layer_num = $self->layer->id / $surface->depth_layers;
+        my $layer_num = $self->layer_id / $surface->depth_layers;
         my $angle = $self->angles->[$layer_num % @{$self->angles}];
         $rotate[0] = Slic3r::Geometry::deg2rad($self->angle) + $angle if $angle;
     }

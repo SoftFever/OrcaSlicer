@@ -3,7 +3,8 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-has 'cache' => (is => 'rw', default => sub {{}});
+has 'bounding_box'  => (is => 'rw');
+has 'cache'         => (is => 'rw', default => sub {{}});
 
 use Slic3r::Geometry qw(PI X1 Y1 X2 Y2 X Y scale);
 use Slic3r::Geometry::Clipper qw(intersection_ex);
@@ -21,7 +22,7 @@ sub fill_surface {
     # infill math
     my $min_spacing = scale $params{flow_spacing};
     my $distance = $min_spacing / $params{density};
-    my $overlap_distance = ($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width) * 0.4;
+    my $overlap_distance = scale $params{flow_spacing} * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING;
     
     my $cache_id = sprintf "d%s_s%s_a%s",
         $params{density}, $params{flow_spacing}, $rotate_vector->[0][0];
@@ -39,8 +40,8 @@ sub fill_surface {
         
         # adjust actual bounding box to the nearest multiple of our hex pattern
         # and align it so that it matches across layers
-        my $print_bounding_box = [ $self->print->bounding_box ];
-        my $bounding_box = [ 0, 0, $print_bounding_box->[X2], $print_bounding_box->[Y2] ];
+        $self->bounding_box([ $expolygon->bounding_box ]) if !defined $self->bounding_box;
+        my $bounding_box = [ 0, 0, $self->bounding_box->[X2], $self->bounding_box->[Y2] ];
         {
             my $bb_polygon = Slic3r::Polygon->new([
                 [ $bounding_box->[X1], $bounding_box->[Y1] ],
@@ -90,12 +91,9 @@ sub fill_surface {
         $self->cache->{$cache_id},
         [ map @$_, $expolygon->offset_ex($overlap_distance) ],
     )};
-    my $collection = Slic3r::ExtrusionPath::Collection->new(
-        paths => [ map Slic3r::ExtrusionPath->pack(polyline => $_, role => -1), @paths ],
-    );
     
     return { flow_spacing => $params{flow_spacing} },
-        map $_->polyline, $collection->shortest_path;
+        Slic3r::Polyline::Collection->new(polylines => \@paths)->shortest_path;
 }
 
 1;

@@ -14,14 +14,6 @@ sub new {
     return $self;
 }
 
-sub a { $_[0][0] }
-sub b { $_[0][1] }
-
-sub coordinates {
-    my $self = shift;
-    return ($self->a->coordinates, $self->b->coordinates);
-}
-
 sub boost_linestring {
     my $self = shift;
     return Boost::Geometry::Utils::linestring($self);
@@ -35,30 +27,14 @@ sub coincides_with {
         || ($self->a->coincides_with($line->b) && $self->b->coincides_with($line->a));
 }
 
-sub has_endpoint {
-    my $self = shift;
-    my ($point) = @_;
-    return $point->coincides_with($self->a) || $point->coincides_with($self->b);
-}
-
-sub has_segment {
-    my $self = shift;
-    my ($line) = @_;
-    
-    # a segment belongs to another segment if its points belong to it
-    return Slic3r::Geometry::point_in_segment($line->[0], $self)
-        && Slic3r::Geometry::point_in_segment($line->[1], $self);
-}
-
-sub parallel_to {
-    my $self = shift;
-    my ($line) = @_;
-    return Slic3r::Geometry::lines_parallel($self, $line);
-}
-
 sub length {
     my $self = shift;
     return Slic3r::Geometry::line_length($self);
+}
+
+sub vector {
+    my $self = shift;
+    return (ref $self)->new([0,0], [map $self->[B][$_] - $self->[A][$_], X,Y]);
 }
 
 sub atan {
@@ -94,6 +70,14 @@ sub midpoint {
 sub reverse {
     my $self = shift;
     @$self = reverse @$self;
+}
+
+sub translate {
+    my $self = shift;
+    my ($x, $y) = @_;
+    @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
+    bless $_, 'Slic3r::Point' for @$self;
+    return $self;
 }
 
 1;

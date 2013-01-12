@@ -46,6 +46,7 @@ lib/Slic3r/Print/Region.pm
 lib/Slic3r/Print/Object.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm
+lib/Slic3r/Test.pm
 lib/Slic3r/TriangleMesh.pm
 MANIFEST			This list of files
 README.markdown
@@ -55,16 +56,25 @@ t/arcs.t
 t/clean_polylines.t
 t/clipper.t
 t/collinear.t
+t/custom_gcode.t
+t/dynamic.t
 t/fill.t
 t/geometry.t
+t/layers.t
+t/loops.t
 t/polyclip.t
+t/retraction.t
 t/serialize.t
-t/stl.t
+t/shells.t
+t/slice.t
+t/vibrationlimit.t
 utils/amf-to-stl.pl
 utils/file_info.pl
 utils/post-processing/filament-weight.pl
 utils/post-processing/prowl-notification.pl
 utils/post-processing/z-every-line.pl
+utils/post-processing/decimate.pl
+utils/post-processing/flowrate.pl
 utils/split_stl.pl
 utils/stl-to-amf.pl
 utils/zsh/functions/_slic3r

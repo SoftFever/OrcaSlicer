@@ -20,7 +20,7 @@ our @EXPORT_OK = qw(
     shortest_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
-    scaled_epsilon bounding_box_3D size_3D
+    scaled_epsilon bounding_box_3D size_3D size_2D
 );
 
 
@@ -684,8 +684,16 @@ sub bounding_box {
 sub bounding_box_center {
     my @bounding_box = bounding_box(@_);
     return Slic3r::Point->new(
-        ($bounding_box[X2] - $bounding_box[X1]) / 2,
-        ($bounding_box[Y2] - $bounding_box[Y1]) / 2,
+        ($bounding_box[X2] + $bounding_box[X1]) / 2,
+        ($bounding_box[Y2] + $bounding_box[Y1]) / 2,
+    );
+}
+
+sub size_2D {
+    my @bounding_box = bounding_box(@_);
+    return (
+        ($bounding_box[X2] - $bounding_box[X1]),
+        ($bounding_box[Y2] - $bounding_box[Y1]),
     );
 }
 
@@ -728,6 +736,7 @@ sub size_3D {
     return map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z);
 }
 
+# this assumes a CCW rotation from $p2 to $p3 around $p1
 sub angle3points {
     my ($p1, $p2, $p3) = @_;
     # p1 is the center

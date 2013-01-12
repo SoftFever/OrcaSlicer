@@ -164,6 +164,8 @@ $j
     --g0                Use G0 commands for retraction (experimental, not supported by all
                         firmwares)
     --gcode-comments    Make G-code verbose by adding comments (default: no)
+    --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
+                        default: $config->{vibration_limit})
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $config->{filament_diameter}->[0])
@@ -192,9 +194,23 @@ $j
                         (default: $config->{solid_infill_speed})
     --top-solid-infill-speed Speed of print moves for top surfaces in mm/s or % over solid infill speed
                         (default: $config->{top_solid_infill_speed})
+    --support-material-speed
+                        Speed of support material print moves in mm/s (default: $config->{support_material_speed})
     --bridge-speed      Speed of bridge print moves in mm/s (default: $config->{bridge_speed})
+    --gap-fill-speed    Speed of gap fill print moves in mm/s (default: $config->{gap_fill_speed})
     --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                         value or as a percentage over normal speeds (default: $config->{first_layer_speed})
+    
+  Acceleration options:
+    --perimeter-acceleration
+                        Overrides firmware's default acceleration for perimeters. (mm/s^2, set zero
+                        to disable; default: $config->{perimeter_acceleration})
+    --infill-acceleration
+                        Overrides firmware's default acceleration for infill. (mm/s^2, set zero
+                        to disable; default: $config->{infill_acceleration})
+    --default-acceleration
+                        Acceleration will be reset to this value after the specific settings above
+                        have been applied. (mm/s^2, set zero to disable; default: $config->{travel_speed})
     
   Accuracy options:
     --layer-height      Layer height in mm (default: $config->{layer_height})
@@ -206,8 +222,9 @@ $j
   
   Print options:
     --perimeters        Number of perimeters/horizontal skins (range: 0+, default: $config->{perimeters})
-    --solid-layers      Number of solid layers to do for top/bottom surfaces
-                        (range: 1+, default: $config->{solid_layers})
+    --top-solid-layers  Number of solid layers to do for top surfaces (range: 0+, default: $config->{top_solid_layers})
+    --bottom-solid-layers  Number of solid layers to do for bottom surfaces (range: 0+, default: $config->{bottom_solid_layers})
+    --solid-layers      Shortcut for setting the two options above at once
     --fill-density      Infill density (range: 0-1, default: $config->{fill_density})
     --fill-angle        Infill angle in degrees (range: 0-90, default: $config->{fill_angle})
     --fill-pattern      Pattern to use to fill non-solid layers (default: $config->{fill_pattern})
@@ -218,6 +235,7 @@ $j
                         the default commands (turn off temperature [M104 S0],
                         home X axis [G28 X], disable motors [M84]).
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
+    --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
     --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
@@ -231,7 +249,8 @@ $j
    Support material options:
     --support-material  Generate support material for overhangs
     --support-material-threshold
-                        Overhang threshold angle (range: 0-90, default: $config->{support_material_threshold})
+                        Overhang threshold angle (range: 0-90, set 0 for automatic detection,
+                        default: $config->{support_material_threshold})
     --support-material-pattern
                         Pattern to use for support material (default: $config->{support_material_pattern})
     --support-material-spacing
@@ -275,6 +294,8 @@ $j
     --skirt-distance    Distance in mm between innermost skirt and object 
                         (default: $config->{skirt_distance})
     --skirt-height      Height of skirts to draw (expressed in layers, 0+, default: $config->{skirt_height})
+    --min-skirt-length  Generate no less than the number of loops required to consume this length
+                        of filament on the first layer, for each extruder (mm, 0+, default: $config->{min_skirt_length})
     --brim-width        Width of the brim that will get added to each object to help adhesion
                         (mm, default: $config->{brim_width})
    

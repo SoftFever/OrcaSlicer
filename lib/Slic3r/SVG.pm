@@ -12,9 +12,7 @@ sub factor {
 }
 
 sub svg {
-    my ($print) = @_;
     my $svg = SVG->new(width => 200 * 10, height => 200 * 10);
-    
     my $marker_end = $svg->marker(
         id => "endArrow",
         viewBox => "0 0 10 10",
@@ -34,9 +32,9 @@ sub svg {
 }
 
 sub output {
-    my ($print, $filename, %things) = @_;
+    my ($filename, %things) = @_;
     
-    my $svg = svg($print);
+    my $svg = svg();
     
     foreach my $type (qw(polygons polylines white_polygons green_polygons red_polygons red_polylines)) {
         if ($things{$type}) {

@@ -2,6 +2,7 @@ package Slic3r::TriangleMesh;
 use Moo;
 
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
+use Slic3r::Geometry::Clipper qw(union_ex);
 
 # public
 has 'vertices'      => (is => 'ro', required => 1);         # id => [$x,$y,$z]
@@ -154,7 +155,9 @@ sub check_manifoldness {
         warn sprintf "Warning: The input file contains a hole near edge %f-%f (not manifold). "
             . "You might want to repair it and retry, or to check the resulting G-code before printing anyway.\n",
             @{$self->edges->[$first_bad_edge_id]};
+        return 0;
     }
+    return 1;
 }
 
 sub unpack_line {
@@ -238,7 +241,7 @@ sub make_loops {
             Slic3r::debugf "  this shouldn't happen and should be further investigated\n";
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(undef, "same_point.svg",
+                Slic3r::SVG::output("same_point.svg",
                     lines       => [ map $_->line, grep !defined $_->[I_FACET_EDGE], @lines ],
                     red_lines   => [ map $_->line, grep defined $_->[I_FACET_EDGE], @lines ],
                     #points      => [ $self->vertices->[$point_id] ],
@@ -412,14 +415,12 @@ sub slice_facet {
     }
     
     # calculate the layer extents
-    my $min_layer = int((unscale($min_z) - ($Slic3r::Config->get_value('first_layer_height') + $Slic3r::Config->layer_height / 2)) / $Slic3r::Config->layer_height) - 2;
-    $min_layer = 0 if $min_layer < 0;
-    my $max_layer = int((unscale($max_z) - ($Slic3r::Config->get_value('first_layer_height') + $Slic3r::Config->layer_height / 2)) / $Slic3r::Config->layer_height) + 2;
+    my ($min_layer, $max_layer) = $print_object->get_layer_range($min_z, $max_z);
     Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
     
     my $lines = {};  # layer_id => [ lines ]
     for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
-        my $layer = $print_object->layer($layer_id);
+        my $layer = $print_object->layers->[$layer_id];
         $lines->{$layer_id} ||= [];
         push @{ $lines->{$layer_id} }, $self->intersect_facet($facet_id, $layer->slice_z);
     }
@@ -574,6 +575,21 @@ sub split_mesh {
     }
     
     return @meshes;
+}
+
+sub horizontal_projection {
+    my $self = shift;
+    
+    my @f = ();
+    foreach my $facet (@{$self->facets}) {
+        push @f, Slic3r::Polygon->new([ map [ @{$self->vertices->[$_]}[X,Y] ], @$facet ]);
+    }
+    
+    $_->make_counter_clockwise for @f;
+    my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
+    my $union = union_ex([ Slic3r::Geometry::Clipper::offset(\@f, 10000) ]);
+    Math::Clipper::unscale_coordinate_sets($scale_vector, $_) for @$union;
+    return $union;
 }
 
 1;

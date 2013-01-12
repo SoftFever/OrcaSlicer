@@ -24,19 +24,32 @@ sub boost_linestring {
     return Boost::Geometry::Utils::linestring([@$self, $self->[0]]);
 }
 
+sub wkt {
+    my $self = shift;
+    return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
+}
+
 sub is_counter_clockwise {
     my $self = shift;
-    return Math::Clipper::is_counter_clockwise($self);
+    return Slic3r::Geometry::Clipper::is_counter_clockwise($self);
 }
 
 sub make_counter_clockwise {
     my $self = shift;
-    $self->reverse if !$self->is_counter_clockwise;
+    if (!$self->is_counter_clockwise) {
+        $self->reverse;
+        return 1;
+    }
+    return 0;
 }
 
 sub make_clockwise {
     my $self = shift;
-    $self->reverse if $self->is_counter_clockwise;
+    if ($self->is_counter_clockwise) {
+        $self->reverse;
+        return 1;
+    }
+    return 0;
 }
 
 sub merge_continuous_lines {
@@ -122,6 +135,38 @@ sub is_printable {
 sub is_valid {
     my $self = shift;
     return @$self >= 3;
+}
+
+sub split_at_index {
+    my $self = shift;
+    my ($index) = @_;
+    
+    return (ref $self)->new(
+        @$self[$index .. $#$self], 
+        @$self[0 .. $index],
+    );
+}
+
+sub split_at {
+    my $self = shift;
+    my ($point) = @_;
+    
+    # find index of point
+    my $i = -1;
+    for (my $n = 0; $n <= $#$self; $n++) {
+        if (Slic3r::Geometry::same_point($point, $self->[$n])) {
+            $i = $n;
+            last;
+        }
+    }
+    die "Point not found" if $i == -1;
+    
+    return $self->split_at_index($i);
+}
+
+sub split_at_first_point {
+    my $self = shift;
+    return $self->split_at_index(0);
 }
 
 1;

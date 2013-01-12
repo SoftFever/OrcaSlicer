@@ -19,7 +19,7 @@ sub fill_surface {
     my $distance = $min_spacing / $params{density};
     
     my $flow_spacing = $params{flow_spacing};
-    if ($params{density} == 1) {
+    if ($params{density} == 1 && !$params{dont_adjust}) {
         $distance = $self->adjust_solid_spacing(
             width       => $bounding_box->[X2] - $bounding_box->[X1],
             distance    => $distance,
@@ -51,21 +51,21 @@ sub fill_surface {
         ($bounding_box->[X1] + $bounding_box->[X2]) / 2,
         ($bounding_box->[Y1] + $bounding_box->[Y2]) / 2,
     );
-    foreach my $loop (map Slic3r::ExtrusionLoop->new(polygon => $_, role => EXTR_ROLE_FILL), @loops) {
+    foreach my $loop (@loops) {
         # extrude all loops ccw
-        $loop->polygon->make_counter_clockwise;
+        $loop->make_counter_clockwise;
         
         # find the point of the loop that is closest to the current extruder position
         my $index = $loop->nearest_point_index_to($cur_pos);
-        $cur_pos = $loop->polygon->[0];
+        $cur_pos = $loop->[0];
         
         # split the loop at the starting point and make a path
         my $path = $loop->split_at_index($index);
         
         # clip the path to avoid the extruder to get exactly on the first point of the loop
-        $path->clip_end(($self->layer ? $self->layer->flow->scaled_width : $Slic3r::flow->scaled_width) * 0.15);
+        $path->clip_end(scale $flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING);
         
-        push @paths, $path->points if @{$path->points};
+        push @paths, $path if @$path;
     }
     
     return { flow_spacing => $flow_spacing }, @paths;

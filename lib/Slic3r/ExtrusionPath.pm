@@ -3,10 +3,10 @@ use Moo;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_SMALLPERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
+our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
     EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
     EXTR_ROLE_FILL EXTR_ROLE_SOLIDFILL EXTR_ROLE_TOPSOLIDFILL EXTR_ROLE_BRIDGE EXTR_ROLE_SKIRT 
-    EXTR_ROLE_SUPPORTMATERIAL);
+    EXTR_ROLE_SUPPORTMATERIAL EXTR_ROLE_GAPFILL);
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
 
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
@@ -15,16 +15,15 @@ use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
 has 'polyline' => (
     is          => 'rw',
     required    => 1,
-    handles     => [qw(merge_continuous_lines lines length reverse)],
+    handles     => [qw(merge_continuous_lines lines length reverse clip_end simplify)],
 );
 
-# depth_layers is the vertical thickness of the extrusion expressed in layers
-has 'depth_layers' => (is => 'ro', default => sub {1});
+# height is the vertical thickness of the extrusion expressed in mm
+has 'height'       => (is => 'rw');
 has 'flow_spacing' => (is => 'rw');
 has 'role'         => (is => 'rw', required => 1);
 
 use constant EXTR_ROLE_PERIMETER                    => 0;
-use constant EXTR_ROLE_SMALLPERIMETER               => 1;
 use constant EXTR_ROLE_EXTERNAL_PERIMETER           => 2;
 use constant EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 3;
 use constant EXTR_ROLE_FILL                         => 4;
@@ -33,8 +32,9 @@ use constant EXTR_ROLE_TOPSOLIDFILL                 => 6;
 use constant EXTR_ROLE_BRIDGE                       => 7;
 use constant EXTR_ROLE_SKIRT                        => 8;
 use constant EXTR_ROLE_SUPPORTMATERIAL              => 9;
+use constant EXTR_ROLE_GAPFILL                      => 10;
 
-use constant PACK_FMT => 'cfca*';
+use constant PACK_FMT => 'ffca*';
 
 # class or object method
 sub pack {
@@ -42,11 +42,11 @@ sub pack {
     my %args = @_;
     
     if (ref $self) {
-        %args = map { $_ => $self->$_ } qw(depth_layers flow_spacing role polyline);
+        %args = map { $_ => $self->$_ } qw(height flow_spacing role polyline);
     }
     
     my $o = \ pack PACK_FMT,
-        $args{depth_layers} || 1,
+        $args{height}       // -1,
         $args{flow_spacing} || -1,
         $args{role}         // (die "Missing mandatory attribute 'role'"), #/
         $args{polyline}->serialize;
@@ -57,26 +57,6 @@ sub pack {
 
 # no-op, this allows to use both packed and non-packed objects in Collections
 sub unpack { $_[0] }
-
-sub clip_end {
-    my $self = shift;
-    my ($distance) = @_;
-    
-    while ($distance > 0) {
-        my $last_point = pop @{$self->points};
-        last if !@{$self->points};
-        
-        my $last_segment_length = $last_point->distance_to($self->points->[-1]);
-        if ($last_segment_length <= $distance) {
-            $distance -= $last_segment_length;
-            next;
-        }
-        
-        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->points->[-1], $distance);
-        push @{$self->points}, Slic3r::Point->new($new_point);
-        $distance = 0;
-    }
-}
 
 sub clip_with_polygon {
     my $self = shift;
@@ -93,7 +73,7 @@ sub clip_with_expolygon {
     foreach my $polyline ($self->polyline->clip_with_expolygon($expolygon)) {
         push @paths, (ref $self)->new(
             polyline        => $polyline,
-            depth_layers    => $self->depth_layers,
+            height          => $self->height,
             flow_spacing    => $self->flow_spacing,
             role            => $self->role,
         );
@@ -137,7 +117,7 @@ sub split_at_acute_angles {
             push @paths, (ref $self)->new(
                 polyline        => Slic3r::Polyline->new(\@p),
                 role            => $self->role,
-                depth_layers    => $self->depth_layers,
+                height          => $self->height,
              );
             @p = ($p3);
             push @p, grep $_, shift @points or last;
@@ -148,7 +128,7 @@ sub split_at_acute_angles {
     push @paths, (ref $self)->new(
         polyline        => Slic3r::Polyline->new(\@p),
         role            => $self->role,
-        depth_layers    => $self->depth_layers,
+        height          => $self->height,
     ) if @p > 1;
     
     return @paths;
@@ -246,7 +226,7 @@ sub detect_arcs {
             push @paths, (ref $self)->new(
                 polyline        => Slic3r::Polyline->new(@points[0..$i]),
                 role            => $self->role,
-                depth_layers    => $self->depth_layers,
+                height          => $self->height,
             ) if $i > 0;
             
             # add our arc
@@ -265,7 +245,7 @@ sub detect_arcs {
     push @paths, (ref $self)->new(
         polyline        => Slic3r::Polyline->new(\@points),
         role            => $self->role,
-        depth_layers    => $self->depth_layers,
+        height          => $self->height,
     ) if @points > 1;
     
     return @paths;
@@ -275,11 +255,11 @@ package Slic3r::ExtrusionPath::Packed;
 sub unpack {
     my $self = shift;
     
-    my ($depth_layers, $flow_spacing, $role, $polyline_s)
+    my ($height, $flow_spacing, $role, $polyline_s)
         = unpack Slic3r::ExtrusionPath::PACK_FMT, $$self;
     
     return Slic3r::ExtrusionPath->new(
-        depth_layers    => $depth_layers,
+        height          => ($height == -1) ? undef : $height,
         flow_spacing    => ($flow_spacing == -1) ? undef : $flow_spacing,
         role            => $role,
         polyline        => Slic3r::Polyline->deserialize($polyline_s),

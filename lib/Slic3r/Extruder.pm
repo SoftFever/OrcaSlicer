@@ -14,6 +14,7 @@ has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
 
 has 'retracted'                 => (is => 'rw', default => sub {0} );
+has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
 has 'retract_speed_mm_min'      => (is => 'lazy');
 has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
@@ -53,6 +54,12 @@ sub mm3_per_mm {
         }
     }
     return $self->_mm3_per_mm_cache->{$cache_key};
+}
+
+sub e_per_mm {
+    my $self = shift;
+    my ($s, $h) = @_;
+    return $self->mm3_per_mm($s, $h) * $self->e_per_mm3;
 }
 
 1;

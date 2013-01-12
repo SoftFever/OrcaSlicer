@@ -7,7 +7,7 @@ use strict;
 use warnings;
 require v5.10;
 
-our $VERSION = "0.9.4-dev";
+our $VERSION = "0.9.8-dev";
 
 our $debug = 0;
 sub debugf {
@@ -58,9 +58,12 @@ use Slic3r::TriangleMesh;
 eval "use Slic3r::Build";
 
 use constant SCALING_FACTOR         => 0.000001;
-use constant RESOLUTION             => 0.01;
-use constant OVERLAP_FACTOR         => 0.5;
+use constant RESOLUTION             => 0.0125;
+use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
+use constant OVERLAP_FACTOR         => 1;
 use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
+use constant LOOP_CLIPPING_LENGTH_OVER_SPACING      => 0.15;
+use constant PERIMETER_INFILL_OVERLAP_OVER_SPACING  => 0.45;
 
 # The following variables hold the objects used throughout the slicing
 # process.  They should belong to the Print object, but we are keeping 

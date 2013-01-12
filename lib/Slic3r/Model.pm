@@ -129,6 +129,13 @@ sub scale {
     }
 }
 
+sub materials_count {
+    my $self = shift;
+    
+    my %materials = map { $_->material_id // '_default' => 1 } @{$self->volumes};
+    return scalar keys %materials;
+}
+
 package Slic3r::Model::Volume;
 use Moo;
 
