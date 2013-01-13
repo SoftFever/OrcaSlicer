@@ -7,7 +7,7 @@ sub read_file {
     my $self = shift;
     my ($file) = @_;
     
-    open my $fh, '<', $file or die "Failed to open $file\n";
+    Slic3r::open(\my $fh, '<', $file) or die "Failed to open $file\n";
     
     # let's detect whether file is ASCII or binary
     my $mode;
@@ -103,7 +103,7 @@ sub write_file {
     my $self = shift;
     my ($file, $model, %params) = @_;
     
-    open my $fh, '>', $file;
+    Slic3r::open(\my $fh, '>', $file);
     
     $params{binary}
         ? _write_binary($fh, $model->mesh)

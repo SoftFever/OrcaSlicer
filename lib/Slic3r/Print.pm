@@ -472,7 +472,7 @@ sub export_svg {
     my $output_file = $self->expanded_output_filepath($params{output_file});
     $output_file =~ s/\.gcode$/.svg/i;
     
-    open my $fh, ">", $output_file or die "Failed to open $output_file for writing\n";
+    Slic3r::open(\my $fh, ">", $output_file) or die "Failed to open $output_file for writing\n";
     print "Exporting to $output_file...";
     my $print_size = $self->size;
     print $fh sprintf <<"EOF", unscale($print_size->[X]), unscale($print_size->[Y]);
@@ -647,7 +647,7 @@ sub write_gcode {
     if (ref $file eq 'IO::Scalar') {
         $fh = $file;
     } else {
-        open $fh, ">", $file
+        Slic3r::open(\$fh, ">", $file)
             or die "Failed to open $file for writing\n";
     }
     

@@ -8,6 +8,7 @@ my $build = Module::Build->new(
     license         => 'perl',
     requires        => {
         'Boost::Geometry::Utils'    => '0',
+        'Encode::Locale'            => '0',
         'File::Basename'            => '0',
         'File::Spec'                => '0',
         'Getopt::Long'              => '0',
