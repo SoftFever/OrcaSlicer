@@ -445,8 +445,8 @@ sub combine_infill {
     my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        # start from bottom, skip first layer
-        for (my $i = 1; $i < $self->layer_count; $i++) {
+        # start from top, skip lowest layer
+        for (my $i = $self->layer_count - 1; $i > 0; $i--) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
             
             # skip layer if no internal fill surfaces
@@ -506,6 +506,13 @@ sub combine_infill {
                 {
                     my @new_surfaces = ();
                     push @new_surfaces, grep $_->surface_type != S_TYPE_INTERNAL, @{$lower_layerm->fill_surfaces};
+
+                    # offset for the two different flow spacings
+                    $intersection = [ map $_->offset_ex(
+                                          $lower_layerm->perimeter_flow->scaled_spacing / 2
+                                        + $layerm->perimeter_flow->scaled_spacing / 2
+                                        ), @$intersection];
+
                     foreach my $depth (1..$Slic3r::Config->infill_every_layers) {
                         push @new_surfaces, map Slic3r::Surface->new
                             (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $depth),
