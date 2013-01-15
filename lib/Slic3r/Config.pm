@@ -1024,6 +1024,17 @@ sub set {
         $value = 1;
     }
     
+    # For historical reasons, the world's full of configs having these very low values;
+    # to avoid unexpected behavior we need to ignore them.  Banning these two hard-coded
+    # values is a dirty hack and will need to be removed sometime in the future, but it
+    # will avoid lots of complaints for now.
+    if ($opt_key eq 'perimeter_acceleration' && $value == '25') {
+        $value = 0;
+    }
+    if ($opt_key eq 'infill_acceleration' && $value == '50') {
+        $value = 0;
+    }
+    
     if (!exists $Options->{$opt_key}) {
         my @keys = grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options;
         if (!@keys) {
