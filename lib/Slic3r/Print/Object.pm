@@ -509,8 +509,8 @@ sub combine_infill {
 
                     # offset for the two different flow spacings
                     $intersection = [ map $_->offset_ex(
-                                          $lower_layerm->perimeter_flow->scaled_spacing / 2
-                                        + $layerm->perimeter_flow->scaled_spacing / 2
+                                          $lower_layerm->infill_flow->scaled_spacing / 2
+                                        + $layerm->infill_flow->scaled_spacing / 2
                                         ), @$intersection];
 
                     foreach my $depth (1..$Slic3r::Config->infill_every_layers) {
