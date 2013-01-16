@@ -674,6 +674,7 @@ sub generate_support_material {
             items => [ keys %layers ],
             thread_cb => sub {
                 my $q = shift;
+                $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
                 my $result = {};
                 while (defined (my $layer_id = $q->dequeue)) {
                     $result->{$layer_id} = [ $process_layer->($layer_id) ];
