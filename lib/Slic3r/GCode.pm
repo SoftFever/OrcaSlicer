@@ -468,11 +468,18 @@ sub set_extruder {
     
     # set the new extruder
     $self->extruder($extruder);
-    $gcode .= sprintf "%s%d%s\n", 
+    my $toolchange_gcode = sprintf "%s%d%s\n", 
         ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/ ? 'M108 T' : 'T'),
         $extruder->id,
         ($Slic3r::Config->gcode_comments ? ' ; change extruder' : '');
-    $gcode .= $self->reset_e;
+    
+    if ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/) {
+        $gcode .= $self->reset_e;
+        $gcode .= $toolchange_gcode;
+    } else {
+        $gcode .= $toolchange_gcode;
+        $gcode .= $self->reset_e;
+    }
     
     return $gcode;
 }
