@@ -715,7 +715,7 @@ END
         tooltip => 'This flag enables all the cooling features.',
         cli     => 'cooling!',
         type    => 'bool',
-        default => 0,
+        default => 1,
     },
     'min_fan_speed' => {
         label   => 'Min',
