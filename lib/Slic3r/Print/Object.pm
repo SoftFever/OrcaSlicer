@@ -561,9 +561,14 @@ sub generate_support_material {
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             
+            my @current_layer_offsetted_slices = map $_->offset_ex($distance_from_object), @{$layer->slices};
+            
             # $queue[-1] contains the overhangs of the upper layer, regardless of any empty interface layers
             # $queue[0] contains the overhangs of the first upper layer above the empty interface layers
-            $layers_interfaces{$i} = [@{ $queue[-1] || [] }];
+            $layers_interfaces{$i} = diff_ex(
+                [ @{ $queue[-1] || [] } ],
+                [ map @$_, @current_layer_offsetted_slices ],
+            );
             
             # step 1: generate support material in current layer (for upper layers)
             push @current_support_regions, @{ shift @queue } if @queue && $i < $#{$self->layers};
@@ -576,11 +581,11 @@ sub generate_support_material {
             $layers{$i} = diff_ex(
                 [ map @$_, @current_support_regions ],
                 [
-                    (map @$_, map $_->offset_ex($distance_from_object), @{$layer->slices}),
+                    (map @$_, @current_layer_offsetted_slices),
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
-            $_->simplify($flow->scaled_spacing * 2) for @{$layers{$i}};
+            $_->simplify($flow->scaled_spacing) for @{$layers{$i}};
             
             # step 2: get layer overhangs and put them into queue for adding support inside lower layers
             # we need an angle threshold for this
