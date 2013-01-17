@@ -108,7 +108,7 @@ The author of the Silk icon set is Mark James.
                             (default: 100,100)
         --z-offset          Additional height in mm to add to vertical coordinates
                             (+/-, default: 0)
-        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/mach3/no-extrusion,
+        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/sailfish/mach3/no-extrusion,
                             default: reprap)
         --use-relative-e-distances Enable this to get relative E values
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported

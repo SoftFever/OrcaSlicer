@@ -242,11 +242,7 @@ sub object_copies {
 
 sub layer_count {
     my $self = shift;
-    my $count = 0;
-    foreach my $object (@{$self->objects}) {
-        $count = @{$object->layers} if @{$object->layers} > $count;
-    }
-    return $count;
+    return max(map { scalar @{$_->layers} } @{$self->objects});
 }
 
 sub regions_count {
@@ -675,7 +671,8 @@ sub write_gcode {
     
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
-        multiple_extruders => (@{$self->extruders} > 1),
+        multiple_extruders  => (@{$self->extruders} > 1),
+        layer_count         => $self->layer_count,
     );
     my $min_print_speed = 60 * $Slic3r::Config->min_print_speed;
     my $dec = $gcodegen->dec;
@@ -700,7 +697,7 @@ sub write_gcode {
     print  $fh "G21 ; set units to millimeters\n";
     if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
         printf $fh $gcodegen->reset_e;
-        if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|makerbot)$/) {
+        if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|makerbot|sailfish)$/) {
             if ($Slic3r::Config->use_relative_e_distances) {
                 print $fh "M83 ; use relative distances for extrusion\n";
             } else {
@@ -733,7 +730,7 @@ sub write_gcode {
         }
         
         # set new layer, but don't move Z as support material interfaces may need an intermediate one
-        $gcodegen->layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
+        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
         $gcodegen->elapsed_time(0);
         
         # prepare callback to call as soon as a Z command is generated
