@@ -8,7 +8,7 @@ our @EXPORT_OK = qw(safety_offset offset offset_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     JT_SQUARE is_counter_clockwise);
 
-use Math::Clipper 1.15 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
+use Math::Clipper 1.17 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
 use Slic3r::Geometry qw(scale);
 our $clipper = Math::Clipper->new;
 
