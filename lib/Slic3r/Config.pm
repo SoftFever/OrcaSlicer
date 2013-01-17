@@ -696,7 +696,7 @@ END
         type    => 'f',
         serialize   => $serialize_comma,
         deserialize => $deserialize_comma,
-        default => [3],
+        default => [10],
     },
     'retract_restart_extra_toolchange' => {
         label   => 'Extra length on restart',
