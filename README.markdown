@@ -274,7 +274,7 @@ The author of the Silk icon set is Mark James.
                             (like 0.65) or a percentage over layer height (like 200%)
         --first-layer-extrusion-width
                             Set a different extrusion width for first layer
-        --perimeters-extrusion-width
+        --perimeter-extrusion-width
                             Set a different extrusion width for perimeters
         --infill-extrusion-width
                             Set a different extrusion width for infill
@@ -285,7 +285,7 @@ The author of the Silk icon set is Mark James.
        Multiple extruder options:
         --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
                             (can be specified multiple times, default: 0x0)
-        --perimeters-extruder
+        --perimeter-extruder
                             Extruder to use for perimeters (1+, default: 1)
         --infill-extruder   Extruder to use for infill (1+, default: 1)
         --support-material-extruder
