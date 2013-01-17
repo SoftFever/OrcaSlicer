@@ -566,7 +566,7 @@ sub generate_support_material {
             # $queue[-1] contains the overhangs of the upper layer, regardless of any empty interface layers
             # $queue[0] contains the overhangs of the first upper layer above the empty interface layers
             $layers_interfaces{$i} = diff_ex(
-                [ @{ $queue[-1] || [] } ],
+                [ map @$_, @{ $queue[-1] || [] } ],
                 [ map @$_, @current_layer_offsetted_slices ],
             );
             
