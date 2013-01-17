@@ -47,12 +47,12 @@ sub new {
         '<html>' .
         '<body bgcolor="#ffffff" link="#808080">' .
         '<font color="#808080">' .
-        'Copyright &copy; 2011-2012 Alessandro Ranellucci. All rights reserved. ' .
+        'Copyright &copy; 2011-2013 Alessandro Ranellucci. All rights reserved. ' .
         '<a href="http://slic3r.org/">Slic3r</a> is licensed under the ' .
         '<a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License, version 3</a>.' .
         '<br /><br /><br />' .
         'Slic3r logo designed by Corey Daniels, <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon Set</a> designed by Mark James. ' .
-        'Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess and numerous others.' .
+        'Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Mike Sheldrake and numerous others.' .
         '</font>' .
         '</body>' .
         '</html>';
