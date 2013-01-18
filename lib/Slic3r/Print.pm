@@ -546,10 +546,10 @@ sub make_skirt {
     return unless $Slic3r::Config->skirts > 0;
     
     # collect points from all layers contained in skirt height
-    my $skirt_height = $Slic3r::Config->skirt_height;
-    $skirt_height = $self->layer_count if $skirt_height > $self->layer_count;
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
+        my $skirt_height = $Slic3r::Config->skirt_height;
+        $skirt_height = $self->objects->[$obj_idx]->layer_count if $skirt_height > $self->objects->[$obj_idx]->layer_count;
         my @layers = map $self->objects->[$obj_idx]->layers->[$_], 0..($skirt_height-1);
         my @layer_points = (
             (map @$_, map @$_, map @{$_->slices}, @layers),
