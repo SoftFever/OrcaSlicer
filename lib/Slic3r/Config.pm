@@ -158,7 +158,7 @@ our $Options = {
         sidetext => '°C',
         cli     => 'temperature=i@',
         type    => 'i',
-        max     => 300,
+        max     => 400,
         serialize   => $serialize_comma,
         deserialize => sub { $_[0] ? [ split /,/, $_[0] ] : [0] },
         default => [200],
@@ -171,7 +171,7 @@ our $Options = {
         type    => 'i',
         serialize   => $serialize_comma,
         deserialize => sub { $_[0] ? [ split /,/, $_[0] ] : [0] },
-        max     => 300,
+        max     => 400,
         default => [200],
     },
     
