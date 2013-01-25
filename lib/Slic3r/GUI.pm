@@ -413,6 +413,7 @@ sub notify {
             my $notifier = $serv->get_object('/org/freedesktop/Notifications',
                                              'org.freedesktop.Notifications');
             $notifier->Notify('Slic3r', 0, $self->{icon}, $title, $message, [], {}, -1);
+            undef $Net::DBus::bus_session;
         }
     };
 }
