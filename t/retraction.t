@@ -21,6 +21,7 @@ my $test = sub {
     my $tool = 0;
     my @toolchange_count = (); # track first usages so that we don't expect retract_length_toolchange when extruders are used for the first time
     my @retracted = (1);  # ignore the first travel move from home to first point
+    my @retracted_length = (0);
     my $lifted = 0;
     my $changed_tool = 0;
     my $wait_for_toolchange = 0;
@@ -52,21 +53,22 @@ my $test = sub {
             }
         }
         if ($info->{retracting}) {
-            if (_eq(-$info->{dist_E}, $print->extruders->[$tool]->retract_length)) {
+            $retracted[$tool] = 1;
+            $retracted_length[$tool] += -$info->{dist_E};
+            if (_eq($retracted_length[$tool], $print->extruders->[$tool]->retract_length)) {
                 # okay
-            } elsif (_eq(-$info->{dist_E}, $print->extruders->[$tool]->retract_length_toolchange)) {
+            } elsif (_eq($retracted_length[$tool], $print->extruders->[$tool]->retract_length_toolchange)) {
                 $wait_for_toolchange = 1;
             } else {
                 fail 'retracted by the correct amount';
             }
             fail 'combining retraction and travel with G0'
                 if $cmd ne 'G0' && $conf->g0 && ($info->{dist_Z} || $info->{dist_XY});
-            $retracted[$tool] = 1;
         }
         if ($info->{extruding}) {
             fail 'only extruding while not lifted' if $lifted;
             if ($retracted[$tool]) {
-                my $expected_amount = $print->extruders->[$tool]->retract_length + $print->extruders->[$tool]->retract_restart_extra;
+                my $expected_amount = $retracted_length[$tool] + $print->extruders->[$tool]->retract_restart_extra;
                 if ($changed_tool && $toolchange_count[$tool] > 1) {
                     $expected_amount = $print->extruders->[$tool]->retract_length_toolchange + $print->extruders->[$tool]->retract_restart_extra_toolchange;
                     $changed_tool = 0;
@@ -74,6 +76,7 @@ my $test = sub {
                 fail 'unretracted by the correct amount'
                     if !_eq($info->{dist_E}, $expected_amount);
                 $retracted[$tool] = 0;
+                $retracted_length[$tool] = 0;
             }
         }
         if ($info->{travel} && $info->{dist_XY} >= $print->extruders->[$tool]->retract_before_travel) {

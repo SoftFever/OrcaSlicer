@@ -445,8 +445,8 @@ sub combine_infill {
     my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        # start from bottom, skip first layer
-        for (my $i = 1; $i < $self->layer_count; $i++) {
+        # start from top, skip lowest layer
+        for (my $i = $self->layer_count - 1; $i > 0; $i--) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
             
             # skip layer if no internal fill surfaces
@@ -506,6 +506,13 @@ sub combine_infill {
                 {
                     my @new_surfaces = ();
                     push @new_surfaces, grep $_->surface_type != S_TYPE_INTERNAL, @{$lower_layerm->fill_surfaces};
+
+                    # offset for the two different flow spacings
+                    $intersection = [ map $_->offset_ex(
+                                          $lower_layerm->infill_flow->scaled_spacing / 2
+                                        + $layerm->infill_flow->scaled_spacing / 2
+                                        ), @$intersection];
+
                     foreach my $depth (1..$Slic3r::Config->infill_every_layers) {
                         push @new_surfaces, map Slic3r::Surface->new
                             (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $depth),
@@ -554,9 +561,14 @@ sub generate_support_material {
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             
+            my @current_layer_offsetted_slices = map $_->offset_ex($distance_from_object), @{$layer->slices};
+            
             # $queue[-1] contains the overhangs of the upper layer, regardless of any empty interface layers
             # $queue[0] contains the overhangs of the first upper layer above the empty interface layers
-            $layers_interfaces{$i} = [@{ $queue[-1] || [] }];
+            $layers_interfaces{$i} = diff_ex(
+                [ map @$_, @{ $queue[-1] || [] } ],
+                [ map @$_, @current_layer_offsetted_slices ],
+            );
             
             # step 1: generate support material in current layer (for upper layers)
             push @current_support_regions, @{ shift @queue } if @queue && $i < $#{$self->layers};
@@ -569,11 +581,11 @@ sub generate_support_material {
             $layers{$i} = diff_ex(
                 [ map @$_, @current_support_regions ],
                 [
-                    (map @$_, map $_->offset_ex($distance_from_object), @{$layer->slices}),
+                    (map @$_, @current_layer_offsetted_slices),
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
-            $_->simplify($flow->scaled_spacing * 2) for @{$layers{$i}};
+            $_->simplify($flow->scaled_spacing) for @{$layers{$i}};
             
             # step 2: get layer overhangs and put them into queue for adding support inside lower layers
             # we need an angle threshold for this
@@ -667,6 +679,7 @@ sub generate_support_material {
             items => [ keys %layers ],
             thread_cb => sub {
                 my $q = shift;
+                $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
                 my $result = {};
                 while (defined (my $layer_id = $q->dequeue)) {
                     $result->{$layer_id} = [ $process_layer->($layer_id) ];

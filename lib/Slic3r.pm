@@ -7,7 +7,7 @@ use strict;
 use warnings;
 require v5.10;
 
-our $VERSION = "0.9.8-dev";
+our $VERSION = "0.9.9-dev";
 
 our $debug = 0;
 sub debugf {
@@ -27,7 +27,10 @@ warn "Running Slic3r under Perl >= 5.16 is not supported nor recommended\n"
 use FindBin;
 our $var = "$FindBin::Bin/var";
 
+use Encode;
+use Encode::Locale;
 use Moo 0.091009;
+
 use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::Extruder;
@@ -87,6 +90,11 @@ sub parallelize {
     } else {
         $params{no_threads_cb}->();
     }
+}
+
+sub open {
+    my ($fh, $mode, $filename) = @_;
+    return CORE::open $$fh, $mode, encode('locale_fs', $filename);
 }
 
 1;

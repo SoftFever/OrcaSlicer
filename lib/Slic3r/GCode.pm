@@ -7,6 +7,7 @@ use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'multiple_extruders' => (is => 'ro', default => sub {0} );
+has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
 has 'move_z_callback'    => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
@@ -80,6 +81,14 @@ sub change_layer {
             islands => union_ex([ map @$_, @{$layer->slices} ], undef, 1),
         ));
     }
+    
+    my $gcode = "";
+    if ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/) {
+        $gcode .= sprintf "M73 P%s%s\n",
+            int(100 * ($layer->id / ($self->layer_count - 1))),
+            ($Slic3r::Config->gcode_comments ? ' ; update progress' : '');
+    }
+    return $gcode;
 }
 
 # this method accepts Z in scaled coordinates
@@ -502,8 +511,18 @@ sub set_extruder {
     
     # set the new extruder
     $self->extruder($extruder);
-    $gcode .= sprintf "T%d%s\n", $extruder->id, ($Slic3r::Config->gcode_comments ? ' ; change extruder' : '');
-    $gcode .= $self->reset_e;
+    my $toolchange_gcode = sprintf "%s%d%s\n", 
+        ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/ ? 'M108 T' : 'T'),
+        $extruder->id,
+        ($Slic3r::Config->gcode_comments ? ' ; change extruder' : '');
+    
+    if ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/) {
+        $gcode .= $self->reset_e;
+        $gcode .= $toolchange_gcode;
+    } else {
+        $gcode .= $toolchange_gcode;
+        $gcode .= $self->reset_e;
+    }
     
     return $gcode;
 }
@@ -517,11 +536,17 @@ sub set_fan {
         if ($speed == 0) {
             my $code = $Slic3r::Config->gcode_flavor eq 'teacup'
                 ? 'M106 S0'
-                : 'M107';
+                : $Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/
+                    ? 'M127'
+                    : 'M107';
             return sprintf "$code%s\n", ($Slic3r::Config->gcode_comments ? ' ; disable fan' : '');
         } else {
-            return sprintf "M106 %s%d%s\n", ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'),
-                (255 * $speed / 100), ($Slic3r::Config->gcode_comments ? ' ; enable fan' : '');
+            if ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/) {
+                return sprintf "M126%s\n", ($Slic3r::Config->gcode_comments ? ' ; enable fan' : '');
+            } else {
+                return sprintf "M106 %s%d%s\n", ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'),
+                    (255 * $speed / 100), ($Slic3r::Config->gcode_comments ? ' ; enable fan' : '');
+            }
         }
     }
     return "";
@@ -531,14 +556,14 @@ sub set_temperature {
     my $self = shift;
     my ($temperature, $wait, $tool) = @_;
     
-    return "" if $wait && $Slic3r::Config->gcode_flavor eq 'makerbot';
+    return "" if $wait && $Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/;
     
     my ($code, $comment) = ($wait && $Slic3r::Config->gcode_flavor ne 'teacup')
         ? ('M109', 'wait for temperature to be reached')
         : ('M104', 'set temperature');
     my $gcode = sprintf "$code %s%d %s; $comment\n",
         ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature,
-        (defined $tool && $self->multiple_extruders) ? "T$tool " : "";
+        (defined $tool && ($self->multiple_extruders || $Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/)) ? "T$tool " : "";
     
     $gcode .= "M116 ; wait for temperature to be reached\n"
         if $Slic3r::Config->gcode_flavor eq 'teacup' && $wait;
@@ -551,8 +576,7 @@ sub set_bed_temperature {
     my ($temperature, $wait) = @_;
     
     my ($code, $comment) = ($wait && $Slic3r::Config->gcode_flavor ne 'teacup')
-        ? (($Slic3r::Config->gcode_flavor eq 'makerbot' ? 'M109'
-            : 'M190'), 'wait for bed temperature to be reached')
+        ? (($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/ ? 'M109' : 'M190'), 'wait for bed temperature to be reached')
         : ('M140', 'set bed temperature');
     my $gcode = sprintf "$code %s%d ; $comment\n",
         ($Slic3r::Config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
