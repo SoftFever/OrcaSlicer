@@ -163,8 +163,7 @@ sub extrude_loop {
         $point->rotate($angle, $extrusion_path->polyline->[0]);
         
         # generate the travel move
-        $self->speed('travel');
-        $gcode .= $self->G0($point, undef, 0, "move inwards before travel");
+        $gcode .= $self->travel_to($point, "move inwards before travel");
     }
     
     return $gcode;
@@ -205,9 +204,7 @@ sub extrude_path {
     }
     
     # go to first point of extrusion path
-    $self->speed('travel');
-    $gcode .= $self->G0($path->points->[0], undef, 0, "move to first $description point")
-        if !points_coincide($self->last_pos, $path->points->[0]);
+    $gcode .= $self->travel_to($path->points->[0], "move to first $description point");
     
     # compensate retraction
     $gcode .= $self->unretract;
@@ -265,13 +262,14 @@ sub travel_to {
     my ($point, $comment) = @_;
     
     return "" if points_coincide($self->last_pos, $point);
-    
+    $self->speed('travel');
     my $gcode = "";
     if ($Slic3r::Config->avoid_crossing_perimeters && $self->last_pos->distance_to($point) > scale 5 && !$self->straight_once) {
+        $point = $point->clone;
         my $plan = sub {
             my $mp = shift;
             return join '', 
-                map $self->G0($_->b, undef, 0, $comment || ""),
+                map $self->G0($_->[B], undef, 0, $comment || ""),
                 $mp->shortest_path($self->last_pos, $point)->lines;
         };
         

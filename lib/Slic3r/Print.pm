@@ -794,6 +794,7 @@ sub write_gcode {
         for my $obj_copy (@$object_copies) {
             my ($obj_idx, $copy) = @$obj_copy;
             $gcodegen->new_object(1) if $last_obj_copy && $last_obj_copy ne "${obj_idx}_${copy}";
+            $last_obj_copy = "${obj_idx}_${copy}";
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
             
             $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);

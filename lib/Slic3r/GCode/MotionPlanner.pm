@@ -169,7 +169,7 @@ sub BUILD {
         }
         
         require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(undef, "space.svg",
+        Slic3r::SVG::output("space.svg",
             lines           => \@lines,
             points          => [ values %{$self->_pointmap} ],
             no_arrows       => 1,
