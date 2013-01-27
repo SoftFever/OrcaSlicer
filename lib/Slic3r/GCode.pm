@@ -63,8 +63,8 @@ sub set_shift {
     my @shift = @_;
     
     $self->last_pos->translate(
-        scale ($shift[X] - $self->shift_x),
-        scale ($shift[Y] - $self->shift_y),
+        scale ($self->shift_x - $shift[X]),
+        scale ($self->shift_y - $shift[Y]),
     );
     
     $self->shift_x($shift[X]);
@@ -265,7 +265,6 @@ sub travel_to {
     $self->speed('travel');
     my $gcode = "";
     if ($Slic3r::Config->avoid_crossing_perimeters && $self->last_pos->distance_to($point) > scale 5 && !$self->straight_once) {
-        $point = $point->clone;
         my $plan = sub {
             my $mp = shift;
             return join '', 
@@ -274,11 +273,16 @@ sub travel_to {
         };
         
         if ($self->new_object) {
-            my @shift = ($self->shift_x, $self->shift_y);
-            $self->set_shift(0,0);
-            $point->translate(map scale $_, @shift);
-            $gcode .= $plan->($self->external_mp);
             $self->new_object(0);
+            
+            # represent $point in G-code coordinates
+            $point = $point->clone;
+            my @shift = ($self->shift_x, $self->shift_y);
+            $point->translate(map scale $_, @shift);
+            
+            # calculate path (external_mp uses G-code coordinates so we temporary need a null shift)
+            $self->set_shift(0,0);
+            $gcode .= $plan->($self->external_mp);
             $self->set_shift(@shift);
         } else {
             $gcode .= $plan->($self->layer_mp);
