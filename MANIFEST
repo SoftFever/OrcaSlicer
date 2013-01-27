@@ -58,6 +58,7 @@ t/collinear.t
 t/custom_gcode.t
 t/dynamic.t
 t/fill.t
+t/gcode.t
 t/geometry.t
 t/layers.t
 t/loops.t

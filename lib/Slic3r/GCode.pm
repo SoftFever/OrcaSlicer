@@ -57,9 +57,10 @@ sub set_shift {
     my $self = shift;
     my @shift = @_;
     
+    # if shift increases (goes towards right), last_pos decreases because it goes towards left
     $self->last_pos->translate(
-        scale ($shift[X] - $self->shift_x),
-        scale ($shift[Y] - $self->shift_y),
+        scale ($self->shift_x - $shift[X]),
+        scale ($self->shift_x - $shift[Y]),
     );
     
     $self->shift_x($shift[X]);
