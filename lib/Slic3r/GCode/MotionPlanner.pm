@@ -92,10 +92,7 @@ sub BUILD {
     
     my $intersects = sub {
         my ($polygon, $line) = @_;
-        @{Boost::Geometry::Utils::polygon_linestring_intersection(
-            $polygon->boost_polygon,
-            $line->boost_linestring,
-        )} > 0;
+        @{Boost::Geometry::Utils::polygon_multi_linestring_intersection([$polygon], [$line])} > 0;
     };
     
     {

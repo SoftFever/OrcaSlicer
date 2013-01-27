@@ -153,10 +153,7 @@ sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
     
-    return Boost::Geometry::Utils::polygon_linestring_intersection(
-        $self->boost_polygon,
-        $line->boost_linestring,
-    );
+    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self, [$line]);
 }
 
 sub simplify {
