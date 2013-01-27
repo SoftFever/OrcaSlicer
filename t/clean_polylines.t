@@ -32,8 +32,9 @@ use Slic3r;
     my $polyline = Slic3r::Polyline->new([
         [0,0],[0.5,0.5],[1,0],[1.25,-0.25],[1.5,.5],
     ]);
-    $polyline->simplify(0.25);
-    is_deeply $polyline, [ [0, 0], [0.5, 0.5], [1.25, -0.25], [1.5, 0.5] ], 'Douglas-Peucker';
+    $polyline->scale(100);
+    $polyline->simplify(25);
+    is_deeply $polyline, [ [0, 0], [50, 50], [125, -25], [150, 50] ], 'Douglas-Peucker';
 }
 
 {

@@ -92,7 +92,7 @@ is_deeply $intersection, [ [12, 12], [18, 16] ], 'internal lines are preserved';
     {
         my $intersections = $expolygon->clip_line(Slic3r::Line->new(reverse @$line));
         is_deeply $intersections, [
-            [ [20, 15], [16, 15] ],
+            [ [20, 15], [15, 15] ],
             [ [14, 15], [10, 15] ],
         ], 'reverse line is clipped to square with hole';
     }
@@ -144,8 +144,8 @@ is_deeply $intersection, [ [12, 12], [18, 16] ], 'internal lines are preserved';
     
     my $intersections = $expolygon->clip_line($line);
     is_deeply $intersections, [
-        [ [152.742, 288.087], [152.742, 215.179],  ],
-        [ [152.742, 108.088], [152.742, 35.1665] ],
+        [ [152, 287], [152, 214],  ],
+        [ [152, 107], [152, 35] ],
     ], 'line is clipped to square with hole';
 }
 
