@@ -68,7 +68,7 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    @$self = @{ Slic3r::Geometry::douglas_peucker($self, $tolerance) };
+    @$self = @{ Boost::Geometry::Utils::linestring_simplify($self, $tolerance) };
     bless $_, 'Slic3r::Point' for @$self;
 }
 
