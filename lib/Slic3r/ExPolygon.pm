@@ -59,6 +59,12 @@ sub boost_polygon {
     return Boost::Geometry::Utils::polygon(@$self);
 }
 
+sub wkt {
+    my $self = shift;
+    return sprintf "POLYGON(%s)", 
+        join ',', map "($_)", map { join ',', map "$_->[0] $_->[1]", @$_ } @$self;
+}
+
 sub offset {
     my $self = shift;
     return Slic3r::Geometry::Clipper::offset($self, @_);
