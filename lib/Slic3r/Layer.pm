@@ -2,6 +2,7 @@ package Slic3r::Layer;
 use Moo;
 
 use List::Util qw(first);
+use Slic3r::Geometry qw(scale);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'id'                => (is => 'rw', required => 1, trigger => 1); # sequential number of layer, 0-based
@@ -32,11 +33,16 @@ sub _trigger_id {
 sub _build_slice_z {
     my $self = shift;
     
-    if ($self->id == 0) {
-        return $Slic3r::Config->get_value('first_layer_height') / 2 / &Slic3r::SCALING_FACTOR;
+    if ($Slic3r::Config->raft_layers == 0) {
+        if ($self->id == 0) {
+            return scale $Slic3r::Config->get_value('first_layer_height') / 2;
+        }
+        return scale($Slic3r::Config->get_value('first_layer_height') + ($self->id-1 + 0.5) * $Slic3r::Config->layer_height);
+    } else {
+        return -1 if $self->id < $Slic3r::Config->raft_layers;
+        my $object_layer_id = $self->id - $Slic3r::Config->raft_layers;
+        return scale ($object_layer_id + 0.5) * $Slic3r::Config->layer_height;
     }
-    return ($Slic3r::Config->get_value('first_layer_height') + (($self->id-1) * $Slic3r::Config->layer_height) + ($Slic3r::Config->layer_height/2))
-        / &Slic3r::SCALING_FACTOR;  #/
 }
 
 # Z used for printing in scaled coordinates

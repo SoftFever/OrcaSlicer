@@ -173,9 +173,10 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    while (@{$self->layers} && !@{$self->layers->[0]->slices} && !map @{$_->thin_walls}, @{$self->layers->[0]->regions}) {
-        shift @{$self->layers};
-        for (my $i = 0; $i <= $#{$self->layers}; $i++) {
+    my $first_object_layer_id = $Slic3r::Config->raft_layers;
+    while (@{$self->layers} && !@{$self->layers->[$first_object_layer_id]->slices} && !map @{$_->thin_walls}, @{$self->layers->[$first_object_layer_id]->regions}) {
+        splice @{$self->layers}, $first_object_layer_id, 1;
+        for (my $i = $first_object_layer_id; $i <= $#{$self->layers}; $i++) {
             $self->layers->[$i]->id($i);
         }
     }

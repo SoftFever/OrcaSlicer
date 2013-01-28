@@ -578,6 +578,14 @@ our $Options = {
         type    => 'i',
         default => 0,
     },
+    'raft_layers' => {
+        label   => 'Raft layers',
+        tooltip => 'Number of total raft layers to insert below the object(s).',
+        sidetext => 'layers',
+        cli     => 'raft-layers=i',
+        type    => 'i',
+        default => 0,
+    },
     'start_gcode' => {
         label   => 'Start G-code',
         tooltip => 'This start procedure is inserted at the beginning of the output file, right after the temperature control commands for extruder and bed. If Slic3r detects M104 or M190 in your custom codes, such commands will not be prepended automatically. Note that you can use placeholder variables for all Slic3r settings, so you can put a "M104 S[first_layer_temperature]" command wherever you want.',
