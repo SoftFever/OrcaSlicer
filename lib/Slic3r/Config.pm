@@ -524,6 +524,13 @@ our $Options = {
         type    => 'bool',
         default => 1,
     },
+    'avoid_crossing_perimeters' => {
+        label   => 'Avoid crossing perimeters',
+        tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.',
+        cli     => 'avoid-crossing-perimeters!',
+        type    => 'bool',
+        default => 0,
+    },
     'only_retract_when_crossing_perimeters' => {
         label   => 'Only retract when crossing perimeters',
         tooltip => 'Disables retraction when travelling between infill paths inside the same island.',

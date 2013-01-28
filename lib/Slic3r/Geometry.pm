@@ -7,6 +7,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
     PI X Y Z A B X1 Y1 X2 Y2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
+    comparable_distance_between_points
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
     point_along_segment polygon_segment_having_point polygon_has_subsegment
@@ -112,6 +113,11 @@ sub same_line {
 sub distance_between_points {
     my ($p1, $p2) = @_;
     return sqrt((($p1->[X] - $p2->[X])**2) + ($p1->[Y] - $p2->[Y])**2);
+}
+
+sub comparable_distance_between_points {
+    my ($p1, $p2) = @_;
+    return (($p1->[X] - $p2->[X])**2) + (($p1->[Y] - $p2->[Y])**2);
 }
 
 sub point_line_distance {
@@ -251,7 +257,7 @@ sub nearest_point_index {
     
     my ($nearest_point_index, $distance) = ();
     for my $i (0..$#$points) {
-        my $d = distance_between_points($point, $points->[$i]);
+        my $d = comparable_distance_between_points($point, $points->[$i]);
         if (!defined $distance || $d < $distance) {
             $nearest_point_index = $i;
             $distance = $d;

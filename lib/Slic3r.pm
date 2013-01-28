@@ -29,6 +29,7 @@ our $var = "$FindBin::Bin/var";
 
 use Encode;
 use Encode::Locale;
+use Boost::Geometry::Utils 0.06;
 use Moo 0.091009;
 
 use Slic3r::Config;
@@ -44,6 +45,7 @@ use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
 use Slic3r::GCode;
+use Slic3r::GCode::MotionPlanner;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
 use Slic3r::Layer::Region;

@@ -39,12 +39,14 @@ sub rotate {
     my $self = shift;
     my ($angle, $center) = @_;
     @$self = @{ +(Slic3r::Geometry::rotate_points($angle, $center, $self))[0] };
+    $self;
 }
 
 sub translate {
     my $self = shift;
     my ($x, $y) = @_;
     @$self = @{ +(Slic3r::Geometry::move_points([$x, $y], $self))[0] };
+    $self;
 }
 
 sub x { $_[0]->[0] }

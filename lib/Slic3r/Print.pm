@@ -713,9 +713,29 @@ sub write_gcode {
         $Slic3r::Config->print_center->[Y] - (unscale ($print_bb[Y2] - $print_bb[Y1]) / 2) - unscale $print_bb[Y1],
     );
     
+    # initialize a motion planner for object-to-object travel moves
+    if ($Slic3r::Config->avoid_crossing_perimeters) {
+        my $distance_from_objects = 1;
+        # compute the offsetted convex hull for each object and repeat it for each copy.
+        my @islands = ();
+        foreach my $obj_idx (0 .. $#{$self->objects}) {
+            my @island = Slic3r::ExPolygon->new(convex_hull([
+                map @{$_->contour}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
+            ]))->translate(scale $shift[X], scale $shift[Y])->offset_ex(scale $distance_from_objects, 1, JT_SQUARE);
+            foreach my $copy (@{ $self->objects->[$obj_idx]->copies }) {
+                push @islands, map $_->clone->translate(@$copy), @island;
+            }
+        }
+        $gcodegen->external_mp(Slic3r::GCode::MotionPlanner->new(
+            islands     => union_ex([ map @$_, @islands ]),
+            no_internal => 1,
+        ));
+    }
+    
     # prepare the logic to print one layer
     my $skirt_done = 0;  # count of skirt layers done
     my $brim_done = 0;
+    my $last_obj_copy = "";
     my $extrude_layer = sub {
         my ($layer_id, $object_copies) = @_;
         my $gcode = "";
@@ -758,6 +778,7 @@ sub write_gcode {
                 }
             }
             $skirt_done++;
+            $gcodegen->straight_once(1);
         }
         
         # extrude brim
@@ -767,10 +788,13 @@ sub write_gcode {
             $gcodegen->set_shift(@shift);
             $gcode .= $gcodegen->extrude_loop($_, 'brim') for @{$self->brim};
             $brim_done = 1;
+            $gcodegen->straight_once(1);
         }
         
         for my $obj_copy (@$object_copies) {
             my ($obj_idx, $copy) = @$obj_copy;
+            $gcodegen->new_object(1) if $last_obj_copy && $last_obj_copy ne "${obj_idx}_${copy}";
+            $last_obj_copy = "${obj_idx}_${copy}";
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
             
             $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);

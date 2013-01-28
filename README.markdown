@@ -190,6 +190,7 @@ The author of the Silk icon set is Mark James.
         --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
         --extra-perimeters  Add more perimeters when needed (default: yes)
         --randomize-start   Randomize starting point across layers (default: yes)
+        --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
         --only-retract-when-crossing-perimeters
                             Disable retraction when travelling between infill paths inside the same island.
                             (default: no)

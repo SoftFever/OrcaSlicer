@@ -68,7 +68,7 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    @$self = @{ Slic3r::Geometry::douglas_peucker($self, $tolerance) };
+    @$self = @{ Boost::Geometry::Utils::linestring_simplify($self, $tolerance) };
     bless $_, 'Slic3r::Point' for @$self;
 }
 
@@ -115,10 +115,7 @@ sub clip_with_expolygon {
     my $self = shift;
     my ($expolygon) = @_;
     
-    my $result = Boost::Geometry::Utils::polygon_linestring_intersection(
-        $expolygon->boost_polygon,
-        $self->boost_linestring,
-    );
+    my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon, [$self]);
     bless $_, 'Slic3r::Polyline' for @$result;
     bless $_, 'Slic3r::Point' for map @$_, @$result;
     return @$result;
