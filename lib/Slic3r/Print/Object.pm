@@ -247,7 +247,40 @@ sub make_perimeters {
         }
     }
     
-    $_->make_perimeters for @{$self->layers};
+    Slic3r::parallelize(
+        items => sub { 0 .. ($self->layer_count-1) },
+        thread_cb => sub {
+            my $q = shift;
+            $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
+            my $result = {};
+            while (defined (my $layer_id = $q->dequeue)) {
+                my $layer = $self->layers->[$layer_id];
+                $layer->make_perimeters;
+                $result->{$layer_id} ||= {};
+                foreach my $region_id (0 .. $#{$layer->regions}) {
+                    my $layerm = $layer->regions->[$region_id];
+                    $result->{$layer_id}{$region_id} = {
+                        perimeters      => $layerm->perimeters,
+                        fill_surfaces   => $layerm->fill_surfaces,
+                        thin_fills      => $layerm->thin_fills,
+                    };
+                }
+            }
+            return $result;
+        },
+        collect_cb => sub {
+            my $result = shift;
+            foreach my $layer_id (keys %$result) {
+                foreach my $region_id (keys %{$result->{$layer_id}}) {
+                    $self->layers->[$layer_id]->regions->[$region_id]->$_($result->{$layer_id}{$region_id}{$_})
+                        for qw(perimeters fill_surfaces thin_fills);
+                }
+            }
+        },
+        no_threads_cb => sub {
+            $_->make_perimeters for @{$self->layers};
+        },
+    );
 }
 
 sub detect_surfaces_type {
