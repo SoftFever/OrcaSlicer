@@ -558,8 +558,8 @@ our $Options = {
         tooltip => 'Pattern used to generate support material.',
         cli     => 'support-material-pattern=s',
         type    => 'select',
-        values  => [qw(rectilinear honeycomb)],
-        labels  => [qw(rectilinear honeycomb)],
+        values  => [qw(rectilinear rectilinear-grid honeycomb)],
+        labels  => ['rectilinear', 'rectilinear grid', 'honeycomb'],
         default => 'rectilinear',
     },
     'support_material_spacing' => {

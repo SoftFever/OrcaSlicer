@@ -643,9 +643,15 @@ sub generate_support_material {
         my @support_material_areas = map $_->offset_ex(- 0.5 * $flow->scaled_width),
             @{union_ex([ map $_->contour, map @$_, values %layers ])};
         
-        my $filler = Slic3r::Fill->filler($Slic3r::Config->support_material_pattern);
-        $filler->angle($Slic3r::Config->support_material_angle);
-        {
+        my $pattern = $Slic3r::Config->support_material_pattern;
+        my @angles = ($Slic3r::Config->support_material_angle);
+        if ($pattern eq 'rectilinear-grid') {
+            $pattern = 'rectilinear';
+            push @angles, $angles[0] + 90;
+        }
+        my $filler = Slic3r::Fill->filler($pattern);
+        foreach my $angle (@angles) {
+            $filler->angle($angle);
             my @patterns = ();
             foreach my $expolygon (@support_material_areas) {
                 my @paths = $filler->fill_surface(
