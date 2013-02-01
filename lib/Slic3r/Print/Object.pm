@@ -691,7 +691,7 @@ sub generate_support_material {
                         $_;
                     }
                     map $_->clip_with_expolygon($expolygon),
-                    map $_->clip_with_polygon($expolygon->bounding_box_polygon),
+                    ###map $_->clip_with_polygon($expolygon->bounding_box_polygon),  # currently disabled as a workaround for Boost failing at being idempotent
                     @{$support_patterns->[ $layer_id % @$support_patterns ]};
             };
             return @paths;
