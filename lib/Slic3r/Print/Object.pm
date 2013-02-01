@@ -701,11 +701,34 @@ sub generate_support_material {
         my %layer_islands           = ();
         my $process_layer = sub {
             my ($layer_id) = @_;
-            
             my $layer = $self->layers->[$layer_id];
-            my $paths           = [ $clip_pattern->($layer_id, $layers{$layer_id}, $layer->height) ];
-            my $interface_paths = [ $clip_pattern->($layer_id, $layers_interfaces{$layer_id}, $layer->support_material_interface_height) ];
-            my $islands         = union_ex([ map @$_, map @$_, $layers{$layer_id}, $layers_interfaces{$layer_id} ]);
+            
+            my ($paths, $interface_paths) = ([], []);
+            my $islands = union_ex([ map @$_, map @$_, $layers{$layer_id}, $layers_interfaces{$layer_id} ]);
+            
+            # make a solid base on bottom layer
+            if ($layer_id == 0) {
+                my $filler = Slic3r::Fill->filler('rectilinear');
+                $filler->angle($Slic3r::Config->support_material_angle + 90);
+                foreach my $expolygon (@$islands) {
+                    my @paths = $filler->fill_surface(
+                        Slic3r::Surface->new(expolygon => $expolygon),
+                        density         => 1,
+                        flow_spacing    => $self->print->first_layer_support_material_flow->spacing,
+                    );
+                    my $params = shift @paths;
+                    
+                    push @$paths, map Slic3r::ExtrusionPath->new(
+                        polyline        => Slic3r::Polyline->new(@$_),
+                        role            => EXTR_ROLE_SUPPORTMATERIAL,
+                        height          => undef,
+                        flow_spacing    => $params->{flow_spacing},
+                    ), @paths;
+                }
+            } else {
+                $paths           = [ $clip_pattern->($layer_id, $layers{$layer_id}, $layer->height) ];
+                $interface_paths = [ $clip_pattern->($layer_id, $layers_interfaces{$layer_id}, $layer->support_material_interface_height) ];
+            }
             return ($paths, $interface_paths, $islands);
         };
         Slic3r::parallelize(
