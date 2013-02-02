@@ -719,7 +719,7 @@ sub generate_support_material {
                 foreach my $expolygon (@$islands) {
                     my @paths = $filler->fill_surface(
                         Slic3r::Surface->new(expolygon => $expolygon),
-                        density         => 1,
+                        density         => 0.5,
                         flow_spacing    => $self->print->first_layer_support_material_flow->spacing,
                     );
                     my $params = shift @paths;
