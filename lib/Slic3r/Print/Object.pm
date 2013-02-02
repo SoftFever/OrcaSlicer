@@ -559,6 +559,8 @@ sub generate_support_material {
         my @current_support_regions = ();   # expolygons we've started to support (i.e. below the empty interface layers)
         my @queue = ();                     # the number of items of this array determines the number of empty interface layers
         for my $i (reverse 0 .. $#{$self->layers}) {
+            next unless $Slic3r::Config->support_material || ($i <= $Slic3r::Config->raft_layers);  # <= because we need to start from the first non-raft layer
+            
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             

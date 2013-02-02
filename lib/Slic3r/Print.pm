@@ -216,7 +216,7 @@ sub init_extruders {
     }
     
     # calculate support material flow
-    if ($self->config->support_material) {
+    if ($self->config->support_material || $self->config->raft_layers > 0) {
         my $extruder = $self->extruders->[$self->config->support_material_extruder-1];
         $self->support_material_flow($extruder->make_flow(
             width => $self->config->support_material_extrusion_width || $self->config->extrusion_width,
@@ -413,7 +413,7 @@ sub export_gcode {
     }
     
     # generate support material
-    if ($Slic3r::Config->support_material) {
+    if ($Slic3r::Config->support_material || $Slic3r::Config->raft_layers > 0) {
         $status_cb->(85, "Generating support material");
         $_->generate_support_material for @{$self->objects};
     }
@@ -510,7 +510,7 @@ EOF
             }
         }
         # generate support material
-        if ($Slic3r::Config->support_material && $layer_id > 0) {
+        if (($Slic3r::Config->support_material || $self->config->raft_layers > 0) && $layer_id > 0) {
             my (@supported_slices, @unsupported_slices) = ();
             foreach my $expolygon (@current_layer_slices) {
                 my $intersection = intersection_ex(
@@ -801,7 +801,7 @@ sub write_gcode {
             
             # extrude support material before other things because it might use a lower Z
             # and also because we avoid travelling on other things when printing it
-            if ($Slic3r::Config->support_material) {
+            if ($Slic3r::Config->support_material || $self->config->raft_layers > 0) {
                 $gcode .= $gcodegen->move_z($layer->support_material_interface_z)
                     if ($layer->support_interface_fills && @{ $layer->support_interface_fills->paths });
                 $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
