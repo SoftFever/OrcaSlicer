@@ -173,9 +173,10 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    while (@{$self->layers} && !@{$self->layers->[0]->slices} && !map @{$_->thin_walls}, @{$self->layers->[0]->regions}) {
-        shift @{$self->layers};
-        for (my $i = 0; $i <= $#{$self->layers}; $i++) {
+    my $first_object_layer_id = $Slic3r::Config->raft_layers;
+    while (@{$self->layers} && !@{$self->layers->[$first_object_layer_id]->slices} && !map @{$_->thin_walls}, @{$self->layers->[$first_object_layer_id]->regions}) {
+        splice @{$self->layers}, $first_object_layer_id, 1;
+        for (my $i = $first_object_layer_id; $i <= $#{$self->layers}; $i++) {
             $self->layers->[$i]->id($i);
         }
     }
@@ -591,6 +592,8 @@ sub generate_support_material {
         my @current_support_regions = ();   # expolygons we've started to support (i.e. below the empty interface layers)
         my @queue = ();                     # the number of items of this array determines the number of empty interface layers
         for my $i (reverse 0 .. $#{$self->layers}) {
+            next unless $Slic3r::Config->support_material || ($i <= $Slic3r::Config->raft_layers);  # <= because we need to start from the first non-raft layer
+            
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             

@@ -456,6 +456,10 @@ sub build {
             title => 'Support material',
             options => [qw(support_material support_material_threshold support_material_pattern support_material_spacing support_material_angle)],
         },
+        {
+            title => 'Raft',
+            options => [qw(raft_layers)],
+        },
     ]);
     
     $self->add_options_page('Notes', 'note.png', optgroups => [

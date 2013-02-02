@@ -257,6 +257,7 @@ $j
                         Spacing between pattern lines (mm, default: $config->{support_material_spacing})
     --support-material-angle
                         Support material angle in degrees (range: 0-90, default: $config->{support_material_angle})
+    --raft-layers       Number of layers to raise the printed objects by (range: 0+, default: $config->{raft_layers})
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion (default: $config->{retract_length}[0])
