@@ -454,11 +454,16 @@ sub build {
     $self->add_options_page('Support material', 'building.png', optgroups => [
         {
             title => 'Support material',
-            options => [qw(support_material support_material_threshold support_material_pattern support_material_spacing support_material_angle)],
+            options => [qw(support_material support_material_threshold)],
         },
         {
             title => 'Raft',
             options => [qw(raft_layers)],
+        },
+        {
+            title => 'Options for support material and raft',
+            options => [qw(support_material_pattern support_material_spacing support_material_angle
+                support_material_interface_layers support_material_interface_spacing)],
         },
     ]);
     

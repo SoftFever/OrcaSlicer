@@ -578,6 +578,22 @@ our $Options = {
         type    => 'i',
         default => 0,
     },
+    'support_material_interface_layers' => {
+        label   => 'Interface layers',
+        tooltip => 'Number of interface layers to insert between the object(s) and support material.',
+        sidetext => 'layers',
+        cli     => 'support-material-interface-layers=i',
+        type    => 'i',
+        default => 0,
+    },
+    'support_material_interface_spacing' => {
+        label   => 'Interface pattern spacing',
+        tooltip => 'Spacing between interface lines. Set zero to get a solid interface.',
+        sidetext => 'mm',
+        cli     => 'support-material-interface-spacing=f',
+        type    => 'f',
+        default => 0,
+    },
     'raft_layers' => {
         label   => 'Raft layers',
         tooltip => 'Number of total raft layers to insert below the object(s).',

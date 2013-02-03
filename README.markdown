@@ -209,6 +209,10 @@ The author of the Silk icon set is Mark James.
                             Spacing between pattern lines (mm, default: 2.5)
         --support-material-angle
                             Support material angle in degrees (range: 0-90, default: 0)
+        --support-material-interface-layers
+                            Number of perpendicular layers between support material and object (0+, default: 0)
+        --support-material-interface-spacing
+                            Spacing between interface pattern lines (mm, set 0 to get a solid layer, default: 0)
         --raft-layers       Number of layers to raise the printed objects by (range: 0+, default: 0)
       
        Retraction options:

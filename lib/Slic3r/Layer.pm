@@ -22,7 +22,7 @@ has 'slices'            => (is => 'rw');
 # ordered collection of extrusion paths to fill surfaces for support material
 has 'support_islands'           => (is => 'rw');
 has 'support_fills'             => (is => 'rw');
-has 'support_interface_fills'   => (is => 'rw');
+has 'support_contact_fills'     => (is => 'rw');
 
 sub _trigger_id {
     my $self = shift;
@@ -59,8 +59,8 @@ sub _build_height {
 
 sub _build_flow { $Slic3r::flow }
 
-# layer height of interface paths in unscaled coordinates
-sub support_material_interface_height {
+# layer height of contact paths in unscaled coordinates
+sub support_material_contact_height {
     my $self = shift;
     
     return $self->height if $self->id == 0;
@@ -72,10 +72,10 @@ sub support_material_interface_height {
     return 2*$self->height - $self->flow->nozzle_diameter;
 }
 
-# Z used for printing support material interface in scaled coordinates
-sub support_material_interface_z {
+# Z used for printing support material contact in scaled coordinates
+sub support_material_contact_z {
     my $self = shift;
-    return $self->print_z - ($self->height - $self->support_material_interface_height) / &Slic3r::SCALING_FACTOR;
+    return $self->print_z - ($self->height - $self->support_material_contact_height) / &Slic3r::SCALING_FACTOR;
 }
 
 sub region {

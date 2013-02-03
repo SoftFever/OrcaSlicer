@@ -257,6 +257,10 @@ $j
                         Spacing between pattern lines (mm, default: $config->{support_material_spacing})
     --support-material-angle
                         Support material angle in degrees (range: 0-90, default: $config->{support_material_angle})
+    --support-material-interface-layers
+                        Number of perpendicular layers between support material and object (0+, default: $config->{support_material_interface_layers})
+    --support-material-interface-spacing
+                        Spacing between interface pattern lines (mm, set 0 to get a solid layer, default: $config->{support_material_interface_spacing})
     --raft-layers       Number of layers to raise the printed objects by (range: 0+, default: $config->{raft_layers})
   
    Retraction options:

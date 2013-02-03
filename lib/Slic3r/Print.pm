@@ -749,7 +749,7 @@ sub write_gcode {
                 if $Slic3r::Config->bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
         }
         
-        # set new layer, but don't move Z as support material interfaces may need an intermediate one
+        # set new layer, but don't move Z as support material contact areas may need an intermediate one
         $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
         $gcodegen->elapsed_time(0);
         
@@ -802,12 +802,12 @@ sub write_gcode {
             # extrude support material before other things because it might use a lower Z
             # and also because we avoid travelling on other things when printing it
             if ($Slic3r::Config->support_material || $self->config->raft_layers > 0) {
-                $gcode .= $gcodegen->move_z($layer->support_material_interface_z)
-                    if ($layer->support_interface_fills && @{ $layer->support_interface_fills->paths });
+                $gcode .= $gcodegen->move_z($layer->support_material_contact_z)
+                    if ($layer->support_contact_fills && @{ $layer->support_contact_fills->paths });
                 $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
-                if ($layer->support_interface_fills) {
-                    $gcode .= $gcodegen->extrude_path($_, 'support material interface') 
-                        for $layer->support_interface_fills->shortest_path($gcodegen->last_pos); 
+                if ($layer->support_contact_fills) {
+                    $gcode .= $gcodegen->extrude_path($_, 'support material contact area') 
+                        for $layer->support_contact_fills->shortest_path($gcodegen->last_pos); 
                 }
                 
                 $gcode .= $gcodegen->move_z($layer->print_z);
