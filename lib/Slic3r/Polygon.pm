@@ -141,7 +141,7 @@ sub split_at_index {
     my $self = shift;
     my ($index) = @_;
     
-    return (ref $self)->new(
+    return Slic3r::Polyline->new(
         @$self[$index .. $#$self], 
         @$self[0 .. $index],
     );
