@@ -214,6 +214,9 @@ The author of the Silk icon set is Mark James.
         --support-material-interface-spacing
                             Spacing between interface pattern lines (mm, set 0 to get a solid layer, default: 0)
         --raft-layers       Number of layers to raise the printed objects by (range: 0+, default: 0)
+        --support-material-enforce-layers
+                            Enforce support material on the specified number of layers from bottom,
+                            regardless of --support-material and threshold (0+, default: 0)
       
        Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion (default: 1)

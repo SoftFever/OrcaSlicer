@@ -593,7 +593,9 @@ sub generate_support_material {
         my @current_support_regions = ();   # expolygons we've started to support (i.e. below the empty interface layers)
         my @upper_layers_overhangs = (map [], 1..$Slic3r::Config->support_material_interface_layers);
         for my $i (reverse 0 .. $#{$self->layers}) {
-            next unless $Slic3r::Config->support_material || ($i <= $Slic3r::Config->raft_layers);  # <= because we need to start from the first non-raft layer
+            next unless $Slic3r::Config->support_material
+                || ($i <= $Slic3r::Config->raft_layers)  # <= because we need to start from the first non-raft layer
+                || ($i <= $Slic3r::Config->support_material_enforce_layers + $Slic3r::Config->raft_layers);
             
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
@@ -635,7 +637,6 @@ sub generate_support_material {
                 [ map @$_, @current_support_regions ],
                 [
                     (map @$_, @current_layer_offsetted_slices),
-                    (map @$_, @{ $layers_contact_areas{$i} }),
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
@@ -645,6 +646,10 @@ sub generate_support_material {
             # we need an angle threshold for this
             my @overhangs = ();
             if ($lower_layer) {
+                # consider all overhangs regardless of their angle if we're told to enforce support on this layer
+                my $distance = $i <= ($Slic3r::Config->support_material_enforce_layers + $Slic3r::Config->raft_layers)
+                    ? 0
+                    : $overhang_width;
                 @overhangs = map $_->offset_ex(2 * $overhang_width), @{diff_ex(
                     [ map @$_, map $_->offset_ex(-$overhang_width), @{$layer->slices} ],
                     [ map @$_, @{$lower_layer->slices} ],
@@ -654,8 +659,8 @@ sub generate_support_material {
             push @upper_layers_overhangs, [@overhangs];
             
             if ($Slic3r::debug) {
-                printf "Layer %d has %d generic support areas, %d normal interface areas, %d contact areas\n",
-                    $i, scalar(@{$layers{$i}}), scalar(@{$layers_interfaces{$i}}), scalar(@{$layers_contact_areas{$i}});
+                printf "Layer %d (z = %.2f) has %d generic support areas, %d normal interface areas, %d contact areas\n",
+                    $i, unscale($layer->print_z), scalar(@{$layers{$i}}), scalar(@{$layers_interfaces{$i}}), scalar(@{$layers_contact_areas{$i}});
             }
         }
     }

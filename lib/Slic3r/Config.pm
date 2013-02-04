@@ -594,6 +594,14 @@ our $Options = {
         type    => 'f',
         default => 0,
     },
+    'support_material_enforce_layers' => {
+        label   => 'Enforce support for the first',
+        tooltip => 'Generate support material for the specified number of layers counting from bottom, regardless of whether normal support material is enabled or not and regardless of any angle threshold. This is useful for getting more adhesion of objects having a very thin or poor footprint on the build plate.',
+        sidetext => 'layers',
+        cli     => 'support-material-enforce-layers=f',
+        type    => 'i',
+        default => 0,
+    },
     'raft_layers' => {
         label   => 'Raft layers',
         tooltip => 'Number of total raft layers to insert below the object(s).',
