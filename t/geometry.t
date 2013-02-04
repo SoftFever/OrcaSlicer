@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 20;
+plan tests => 21;
 
 BEGIN {
     use FindBin;
@@ -152,6 +152,16 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     
     my $convex1 = [ [0,0], [10,0], [10,10], [0,10], [0,6], [4,6], [4,4], [0,4] ];
     is polygon_is_convex($convex1), 0, 'concave polygon';
+}
+
+#==========================================================
+
+{
+    my $polyline = Slic3r::Polyline->new([0, 0], [10, 0], [20, 0]);
+    is_deeply [$polyline->lines], [
+        [ [0, 0], [10, 0] ],
+        [ [10, 0], [20, 0] ],
+    ], 'polyline_lines';
 }
 
 #==========================================================
