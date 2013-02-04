@@ -522,7 +522,7 @@ our $Options = {
         tooltip => 'Start each layer from a different vertex to prevent plastic build-up on the same corner.',
         cli     => 'randomize-start!',
         type    => 'bool',
-        default => 1,
+        default => 0,
     },
     'avoid_crossing_perimeters' => {
         label   => 'Avoid crossing perimeters',
