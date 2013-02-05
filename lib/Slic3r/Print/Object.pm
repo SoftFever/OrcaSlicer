@@ -34,11 +34,18 @@ sub get_layer_range {
     my $self = shift;
     my ($min_z, $max_z) = @_;
     
+    # $min_layer is the uppermost layer having slice_z <= $min_z
+    # $max_layer is the lowermost layer having slice_z >= $max_z
     my ($min_layer, $max_layer) = (0, undef);
- 	for my $layer (@{$self->layers}) {
-        $min_layer = $layer->id if $layer->slice_z <= $min_z;
-        if ($layer->slice_z >= $max_z) {
-            $max_layer = $layer->id;
+    for my $i (0 .. $#{$self->layers}) {
+        if ($self->layers->[$i]->slice_z >= $min_z) {
+            $min_layer = $i - 1;
+            for my $k ($i .. $#{$self->layers}) {
+                if ($self->layers->[$k]->slice_z >= $max_z) {
+                    $max_layer = $k - 1;
+                    last;
+                }
+            }
             last;
         }
     }
