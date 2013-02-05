@@ -217,7 +217,7 @@ sub find_node {
     }
 }
 
-sub chained_path {
+sub shortest_path {
     my $self = shift;
     my ($from, $to) = @_;
     

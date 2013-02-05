@@ -270,7 +270,7 @@ sub travel_to {
             my $mp = shift;
             return join '', 
                 map $self->G0($_->[B], undef, 0, $comment || ""),
-                $mp->chained_path($self->last_pos, $point)->lines;
+                $mp->shortest_path($self->last_pos, $point)->lines;
         };
         
         if ($self->new_object) {
