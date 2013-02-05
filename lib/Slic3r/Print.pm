@@ -821,13 +821,13 @@ sub write_gcode {
                 $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
                 if ($layer->support_contact_fills) {
                     $gcode .= $gcodegen->extrude_path($_, 'support material contact area') 
-                        for $layer->support_contact_fills->shortest_path($gcodegen->last_pos); 
+                        for $layer->support_contact_fills->chained_path($gcodegen->last_pos); 
                 }
                 
                 $gcode .= $gcodegen->move_z($layer->print_z);
                 if ($layer->support_fills) {
                     $gcode .= $gcodegen->extrude_path($_, 'support material') 
-                        for $layer->support_fills->shortest_path($gcodegen->last_pos);
+                        for $layer->support_fills->chained_path($gcodegen->last_pos);
                 }
             }
             
@@ -854,7 +854,7 @@ sub write_gcode {
                     for my $fill (@{ $layerm->fills }) {
                         if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
                             $gcode .= $gcodegen->extrude($_, 'fill') 
-                                for $fill->shortest_path($gcodegen->last_pos);
+                                for $fill->chained_path($gcodegen->last_pos);
                         } else {
                             $gcode .= $gcodegen->extrude($fill, 'fill') ;
                         }

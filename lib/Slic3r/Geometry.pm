@@ -18,7 +18,7 @@ our @EXPORT_OK = qw(
     longest_segment angle3points three_points_aligned line_direction
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
-    shortest_path collinear scale unscale merge_collinear_lines
+    chained_path collinear scale unscale merge_collinear_lines
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
     scaled_epsilon bounding_box_3D size_3D size_2D
@@ -803,7 +803,7 @@ sub polyline_remove_short_segments {
 # item is the point to be used for the shortest path, and the second
 # one is the value to be returned in output (if the second item
 # is not provided, the point will be returned)
-sub shortest_path {
+sub chained_path {
     my ($items, $start_near) = @_;
     
     my %values = map +($_->[0] => $_->[1] || $_->[0]), @$items;

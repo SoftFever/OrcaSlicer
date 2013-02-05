@@ -2,7 +2,7 @@ package Slic3r::Layer::Region;
 use Moo;
 
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale shortest_path);
+use Slic3r::Geometry qw(scale chained_path);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex);
 use Slic3r::Surface ':types';
 
@@ -167,7 +167,7 @@ sub make_perimeters {
     my @perimeters = ();  # one item per depth; each item
     
     # organize islands using a shortest path search
-    my @surfaces = @{shortest_path([
+    my @surfaces = @{chained_path([
         map [ $_->contour->[0], $_ ], @{$self->slices},
     ])};
     
@@ -326,7 +326,7 @@ sub make_perimeters {
         my @hole_depths = map [ map $_->holes, @$_ ], @$island;
         
         # organize the outermost hole loops using a shortest path search
-        @{$hole_depths[0]} = @{shortest_path([
+        @{$hole_depths[0]} = @{chained_path([
             map [ $_->[0], $_ ], @{$hole_depths[0]},
         ])};
         
@@ -391,7 +391,7 @@ sub make_perimeters {
                 flow_spacing    => $self->perimeter_flow->spacing,
             );
         } @{ $self->thin_walls }
-    ])->shortest_path;
+    ])->chained_path;
 }
 
 sub _add_perimeter {

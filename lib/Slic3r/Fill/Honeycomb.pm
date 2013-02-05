@@ -93,7 +93,7 @@ sub fill_surface {
     )};
     
     return { flow_spacing => $params{flow_spacing} },
-        Slic3r::Polyline::Collection->new(polylines => \@paths)->shortest_path;
+        Slic3r::Polyline::Collection->new(polylines => \@paths)->chained_path;
 }
 
 1;

@@ -73,7 +73,7 @@ sub fill_surface {
             }
             : sub { abs($_[X] - $distance_between_lines) <= $tolerance && $_[Y] <= $diagonal_distance };
         
-        foreach my $path ($collection->shortest_path) {
+        foreach my $path ($collection->chained_path) {
             if (@paths) {
                 my @distance = map abs($path->[0][$_] - $paths[-1][-1][$_]), (X,Y);
                 

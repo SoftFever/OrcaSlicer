@@ -12,7 +12,7 @@ use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y PI scale shortest_path);
+use Slic3r::Geometry qw(X Y PI scale chained_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 use Slic3r::Surface ':types';
 
@@ -183,7 +183,7 @@ sub make_fill {
     push @fills_ordering_points, map $_->unpack->points->[0], @{$layer->thin_fills};
     
     # organize infill paths using a shortest path search
-    @fills = @{shortest_path([
+    @fills = @{chained_path([
         map [ $fills_ordering_points[$_], $fills[$_] ], 0..$#fills,
     ])};
     

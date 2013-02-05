@@ -193,7 +193,7 @@ has 'polylines' => (is => 'ro', default => sub { [] });
 # If the second argument is provided, this method will return its items sorted
 # instead of returning the actual sorted polylines. 
 # Note that our polylines will be reversed in place when necessary.
-sub shortest_path {
+sub chained_path {
     my $self = shift;
     my ($start_near, $items) = @_;
     
