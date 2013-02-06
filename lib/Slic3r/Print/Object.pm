@@ -578,6 +578,7 @@ sub combine_infill {
 
 sub generate_support_material {
     my $self = shift;
+    return if $self->layer_count < 2;
     
     my $threshold_rad = $Slic3r::Config->support_material_threshold
                         ? deg2rad($Slic3r::Config->support_material_threshold + 1)  # +1 makes the threshold inclusive
