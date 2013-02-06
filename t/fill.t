@@ -48,9 +48,9 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         Slic3r::Polyline->new([0,10], [0,8], [0,5]),
     ]);
     is_deeply
-        [ map $_->[Y], map @$_, $collection->shortest_path(Slic3r::Point->new(0,30)) ],
+        [ map $_->[Y], map @$_, $collection->chained_path(Slic3r::Point->new(0,30)) ],
         [20, 18, 15, 10, 8, 5],
-        'shortest path';
+        'chained path';
 }
 
 {
@@ -59,9 +59,9 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         Slic3r::Polyline->new([10,5], [15,5], [20,5]),
     ]);
     is_deeply
-        [ map $_->[X], map @$_, $collection->shortest_path(Slic3r::Point->new(30,0)) ],
+        [ map $_->[X], map @$_, $collection->chained_path(Slic3r::Point->new(30,0)) ],
         [reverse 4, 10, 15, 10, 15, 20],
-        'shortest path';
+        'chained path';
 }
 
 {
@@ -71,9 +71,9 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
             Slic3r::Polyline->new([0,10], [0,8], [0,5]),
     ]);
     is_deeply
-        [ map $_->[Y], map @{$_->unpack->polyline}, $collection->shortest_path(Slic3r::Point->new(0,30)) ],
+        [ map $_->[Y], map @{$_->unpack->polyline}, $collection->chained_path(Slic3r::Point->new(0,30)) ],
         [20, 18, 15, 10, 8, 5],
-        'shortest path';
+        'chained path';
 }
 
 {
@@ -83,9 +83,9 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
             Slic3r::Polyline->new([10,5], [15,5], [20,5]),
     ]);
     is_deeply
-        [ map $_->[X], map @{$_->unpack->polyline}, $collection->shortest_path(Slic3r::Point->new(30,0)) ],
+        [ map $_->[X], map @{$_->unpack->polyline}, $collection->chained_path(Slic3r::Point->new(30,0)) ],
         [reverse 4, 10, 15, 10, 15, 20],
-        'shortest path';
+        'chained path';
 }
 
 {
