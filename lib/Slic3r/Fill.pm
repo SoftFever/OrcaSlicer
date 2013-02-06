@@ -182,10 +182,8 @@ sub make_fill {
     push @fills, @{$layer->thin_fills};
     push @fills_ordering_points, map $_->unpack->points->[0], @{$layer->thin_fills};
     
-    # organize infill paths using a shortest path search
-    @fills = @{chained_path([
-        map [ $fills_ordering_points[$_], $fills[$_] ], 0..$#fills,
-    ])};
+    # organize infill paths using a nearest-neighbor search
+    @fills = @fills[ chained_path(\@fills_ordering_points) ];
     
     return @fills;
 }

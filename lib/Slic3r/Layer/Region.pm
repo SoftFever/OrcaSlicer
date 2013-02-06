@@ -2,7 +2,7 @@ package Slic3r::Layer::Region;
 use Moo;
 
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale chained_path);
+use Slic3r::Geometry qw(scale chained_path_items);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex);
 use Slic3r::Surface ':types';
 
@@ -167,7 +167,7 @@ sub make_perimeters {
     my @perimeters = ();  # one item per depth; each item
     
     # organize islands using a shortest path search
-    my @surfaces = @{chained_path([
+    my @surfaces = @{chained_path_items([
         map [ $_->contour->[0], $_ ], @{$self->slices},
     ])};
     
@@ -319,18 +319,24 @@ sub make_perimeters {
     }
     
     # process one island (original surface) at time
+    # islands are already sorted with a nearest-neighbor search
     foreach my $island (@perimeters) {
         # do holes starting from innermost one
         my @holes = ();
         my %is_external = ();
+        
+        # each item of @$island contains the expolygons having the same depth;
+        # for each depth we build an arrayref containing all the holes
         my @hole_depths = map [ map $_->holes, @$_ ], @$island;
         
-        # organize the outermost hole loops using a shortest path search
-        @{$hole_depths[0]} = @{chained_path([
+        # organize the outermost hole loops using a nearest-neighbor search
+        @{$hole_depths[0]} = @{chained_path_items([
             map [ $_->[0], $_ ], @{$hole_depths[0]},
         ])};
         
+        # loop while we have spare holes
         CYCLE: while (map @$_, @hole_depths) {
+            # remove first depth container if it contains no holes anymore
             shift @hole_depths while !@{$hole_depths[0]};
             
             # take first available hole

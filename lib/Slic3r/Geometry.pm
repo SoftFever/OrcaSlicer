@@ -7,7 +7,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
     PI X Y Z A B X1 Y1 X2 Y2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
-    comparable_distance_between_points
+    comparable_distance_between_points chained_path_items chained_path_points
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
     point_along_segment polygon_segment_having_point polygon_has_subsegment
@@ -799,29 +799,43 @@ sub polyline_remove_short_segments {
     }
 }
 
-# accepts an arrayref; each item should be an arrayref whose first
-# item is the point to be used for the shortest path, and the second
-# one is the value to be returned in output (if the second item
-# is not provided, the point will be returned)
+# accepts an arrayref of points; it returns a list of indices
+# according to a nearest-neighbor walk
 sub chained_path {
     my ($items, $start_near) = @_;
     
-    my %values = map +($_->[0] => $_->[1] || $_->[0]), @$items;
-    my @points = map $_->[0], @$items;
+    my @points = @$items;
+    my %indices = map { $points[$_] => $_ } 0 .. $#points;
     
-    my $result = [];
+    my @result = ();
     my $last_point;
     if (!$start_near) {
         $start_near = shift @points;
-        push @$result, $values{$start_near} if $start_near;
+        push @result, $indices{$start_near} if $start_near;
     }
     while (@points) {
         $start_near = nearest_point($start_near, [@points]);
         @points = grep $_ ne $start_near, @points;
-        push @$result, $values{$start_near};
+        push @result, $indices{$start_near};
     }
     
-    return $result;
+    return @result;
+}
+
+# accepts an arrayref; each item should be an arrayref whose first
+# item is the point to be used for the shortest path, and the second
+# one is the value to be returned in output (if the second item
+# is not provided, the point will be returned)
+sub chained_path_items {
+    my ($items, $start_near) = @_;
+    
+    my @indices = chained_path([ map $_->[0], @$items ], $start_near);
+    return [ map $_->[1], @$items[@indices] ];
+}
+
+sub chained_path_points {
+    my ($points, $start_near) = @_;
+    return [ @$points[ chained_path($points, $start_near) ] ];
 }
 
 sub douglas_peucker {
