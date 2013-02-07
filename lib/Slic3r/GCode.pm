@@ -86,7 +86,7 @@ sub change_layer {
     my $gcode = "";
     if ($Slic3r::Config->gcode_flavor =~ /^(?:makerbot|sailfish)$/) {
         $gcode .= sprintf "M73 P%s%s\n",
-            int(100 * ($layer->id / ($self->layer_count - 1))),
+            int(99 * ($layer->id / ($self->layer_count - 1))),
             ($Slic3r::Config->gcode_comments ? ' ; update progress' : '');
     }
     return $gcode;
