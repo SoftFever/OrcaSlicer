@@ -245,6 +245,8 @@ $j
     --solid-infill-below-area
                         Force solid infill when a region has a smaller area than this threshold
                         (mm^2, default: $config->{solid_infill_below_area})
+    --infill-only-where-needed
+                        Only infill under ceilings (default: no)
   
    Support material options:
     --support-material  Generate support material for overhangs

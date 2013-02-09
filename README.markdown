@@ -197,6 +197,8 @@ The author of the Silk icon set is Mark James.
         --solid-infill-below-area
                             Force solid infill when a region has a smaller area than this threshold
                             (mm^2, default: 70)
+        --infill-only-where-needed
+                            Only infill under ceilings (default: no)
       
        Support material options:
         --support-material  Generate support material for overhangs

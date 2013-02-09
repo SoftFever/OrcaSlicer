@@ -380,6 +380,13 @@ our $Options = {
         min     => 0,
         default => 0,
     },
+    'infill_only_where_needed' => {
+        label   => 'Only infill where needed',
+        tooltip => 'This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material).',
+        cli     => 'infill-only-where-needed!',
+        type    => 'bool',
+        default => 0,
+    },
     
     # flow options
     'extrusion_width' => {

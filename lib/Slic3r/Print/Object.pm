@@ -375,6 +375,53 @@ sub detect_surfaces_type {
     }
 }
 
+sub clip_fill_surfaces {
+    my $self = shift;
+    return unless $Slic3r::Config->infill_only_where_needed;
+    
+    # We only want infill under ceilings; this is almost like an
+    # internal support material.
+    
+    my $additional_margin = scale 3;
+    
+    my @overhangs = ();
+    for my $layer_id (reverse 0..$#{$self->layers}) {
+        my $layer = $self->layers->[$layer_id];
+        
+        # clip this layer's internal surfaces to @overhangs
+        foreach my $layerm (@{$layer->regions}) {
+            my @new_internal = map Slic3r::Surface->new(
+                    expolygon       => $_,
+                    surface_type    => S_TYPE_INTERNAL,
+                ),
+                @{intersection_ex(
+                    [ map @$_, @overhangs ],
+                    [ map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
+                )};
+            @{$layerm->fill_surfaces} = (
+                @new_internal,
+                (grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces}),
+            );
+        }
+        
+        # get this layer's overhangs
+        if ($layer_id > 0) {
+            my $lower_layer = $self->layers->[$layer_id-1];
+            # loop through layer regions so that we can use each region's
+            # specific overhang width
+            foreach my $layerm (@{$layer->regions}) {
+                my $overhang_width = $layerm->overhang_width;
+                # we want to support any solid surface, not just tops
+                # (internal solids might have been generated)
+                push @overhangs, map $_->offset_ex($additional_margin), @{intersection_ex(
+                    [ map @{$_->expolygon}, grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
+                    [ map @$_, map $_->offset_ex(-$overhang_width), @{$lower_layer->slices} ],
+                )};
+            }
+        }
+    }
+}
+
 sub discover_horizontal_shells {
     my $self = shift;
     
@@ -580,13 +627,15 @@ sub generate_support_material {
     my $self = shift;
     return if $self->layer_count < 2;
     
-    my $threshold_rad = $Slic3r::Config->support_material_threshold
-                        ? deg2rad($Slic3r::Config->support_material_threshold + 1)  # +1 makes the threshold inclusive
-                        : PI/2 - atan2($self->layers->[1]->regions->[0]->perimeter_flow->width/$Slic3r::Config->layer_height/2, 1);
-    Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
-    
+    my $overhang_width;
+    if ($Slic3r::Config->support_material_threshold) {
+        my $threshold_rad = deg2rad($Slic3r::Config->support_material_threshold + 1);  # +1 makes the threshold inclusive
+        Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
+        $overhang_width = scale $Slic3r::Config->layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
+    } else {
+        $overhang_width = $self->layers->[1]->regions->[0]->overhang_width;
+    }
     my $flow                    = $self->print->support_material_flow;
-    my $overhang_width          = $threshold_rad == 0 ? undef : scale $Slic3r::Config->layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
     my $distance_from_object    = 1.5 * $flow->scaled_width;
     my $pattern_spacing = ($Slic3r::Config->support_material_spacing > $flow->spacing)
         ? $Slic3r::Config->support_material_spacing

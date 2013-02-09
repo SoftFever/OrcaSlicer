@@ -367,6 +367,7 @@ sub export_gcode {
     # they will be split in internal and internal-solid surfaces
     $status_cb->(60, "Generating horizontal shells");
     $_->discover_horizontal_shells for @{$self->objects};
+    $_->clip_fill_surfaces for @{$self->objects};
     
     # combine fill surfaces to honor the "infill every N layers" option
     $status_cb->(70, "Combining infill");
