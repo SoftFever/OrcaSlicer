@@ -658,8 +658,8 @@ sub generate_support_material {
                 my $distance = $i <= ($Slic3r::Config->support_material_enforce_layers + $Slic3r::Config->raft_layers)
                     ? 0
                     : $overhang_width;
-                @overhangs = map $_->offset_ex(2 * $overhang_width), @{diff_ex(
-                    [ map @$_, map $_->offset_ex(-$overhang_width), @{$layer->slices} ],
+                @overhangs = map $_->offset_ex(2 * $distance), @{diff_ex(
+                    [ map @$_, map $_->offset_ex(-$distance), @{$layer->slices} ],
                     [ map @$_, @{$lower_layer->slices} ],
                     1,
                 )};
