@@ -530,93 +530,59 @@ sub combine_infill {
     my $self = shift;
     return unless $Slic3r::Config->infill_every_layers > 1 && $Slic3r::Config->fill_density > 0;
     
+    my $every = $Slic3r::Config->infill_every_layers;
     my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
     
+    my $layer_count = $self->layer_count;
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        # start from top, skip lowest layer
-        for (my $i = $self->layer_count - 1; $i > 0; $i--) {
-            my $layerm = $self->layers->[$i]->regions->[$region_id];
+        # skip bottom layer
+        for (my $layer_id = $every; $layer_id <= $layer_count-1; $layer_id += $every) {
+            # get the layers whose infill we want to combine (bottom-up)
+            my @layerms = map $self->layers->[$_]->regions->[$region_id],
+                ($layer_id - ($every-1)) .. $layer_id;
             
-            # skip layer if no internal fill surfaces
-            next if !grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
-            
-            # for each possible depth, look for intersections with the lower layer
-            # we do this from the greater depth to the smaller
-            for (my $d = $Slic3r::Config->infill_every_layers - 1; $d >= 1; $d--) {
-                next if ($i - $d) <= 0; # do not combine infill for bottom layer
-                my $lower_layerm = $self->layers->[$i - 1]->regions->[$region_id];
+            # process internal and internal-solid infill separately
+            for my $type (S_TYPE_INTERNAL, S_TYPE_INTERNALSOLID) {
+                # we need to perform a multi-layer intersection, so let's split it in pairs
                 
-                # select surfaces of the lower layer having the depth we're looking for
-                my @lower_surfaces = grep $_->depth_layers == $d && $_->surface_type == S_TYPE_INTERNAL,
-                    @{$lower_layerm->fill_surfaces};
-                next if !@lower_surfaces;
+                # initialize the intersection with the candidates of the lowest layer
+                my $intersection = [ map $_->expolygon, grep $_->surface_type == $type, @{$layerms[0]->fill_surfaces} ];
                 
-                # calculate intersection between our surfaces and theirs
-                my $intersection = intersection_ex(
-                    [ map $_->p, grep $_->depth_layers <= $d, @lower_surfaces ],
-                    [ map $_->p, grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
-                    undef, 1,
-                );
-                
-                # purge intersections, skip tiny regions
-                @$intersection = grep $_->area > $area_threshold, @$intersection;
-                next if !@$intersection;
-                
-                # new fill surfaces of the current layer are:
-                # - any non-internal surface
-                # - intersections found (with a $d + 1 depth)
-                # - any internal surface not belonging to the intersection (with its original depth)
-                {
-                    my @new_surfaces = ();
-                    push @new_surfaces, grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
-                    push @new_surfaces, map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $d + 1), @$intersection;
-                    
-                    foreach my $depth (reverse $d..$Slic3r::Config->infill_every_layers) {
-                        push @new_surfaces, map Slic3r::Surface->new
-                            (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $depth),
-                            
-                            # difference between our internal layers with depth == $depth
-                            # and the intersection found
-                            @{diff_ex(
-                                [
-                                    map $_->p, grep $_->surface_type == S_TYPE_INTERNAL && $_->depth_layers == $depth, 
-                                        @{$layerm->fill_surfaces},
-                                ],
-                                [ map @$_, @$intersection ],
-                                1,
-                            )};
-                    }
-                    @{$layerm->fill_surfaces} = @new_surfaces;
+                # start looping from the second layer and intersect the current intersection with it
+                for my $layerm (@layerms[1 .. $#layerms]) {
+                    $intersection = intersection_ex(
+                        [ map @$_, @$intersection ],
+                        [ map @{$_->expolygon}, grep $_->surface_type == $type, @{$layerm->fill_surfaces} ],
+                    );
                 }
                 
-                # now we remove the intersections from lower layer
-                {
-                    my @new_surfaces = ();
-                    push @new_surfaces, grep $_->surface_type != S_TYPE_INTERNAL, @{$lower_layerm->fill_surfaces};
-
-                    # offset for the two different flow spacings
-                    $intersection = [ map $_->offset_ex(
-                                          $lower_layerm->infill_flow->scaled_spacing / 2
-                                        + $layerm->infill_flow->scaled_spacing / 2
-                                        ), @$intersection];
-
-                    foreach my $depth (1..$Slic3r::Config->infill_every_layers) {
-                        push @new_surfaces, map Slic3r::Surface->new
-                            (expolygon => $_, surface_type => S_TYPE_INTERNAL, depth_layers => $depth),
-                            
-                            # difference between internal layers with depth == $depth
-                            # and the intersection found
-                            @{diff_ex(
-                                [
-                                    map $_->p, grep $_->surface_type == S_TYPE_INTERNAL && $_->depth_layers == $depth, 
-                                        @{$lower_layerm->fill_surfaces},
-                                ],
-                                [ map @$_, @$intersection ],
-                                1,
-                            )};
+                @$intersection = grep $_->area > $area_threshold, @$intersection;
+                next if !@$intersection;
+                Slic3r::debugf "  combining %d %s regions from layers %d-%d\n",
+                    scalar(@$intersection),
+                    ($type == S_TYPE_INTERNAL ? 'internal' : 'internal-solid'),
+                    $layer_id-($every-1), $layer_id;
+                
+                # $intersection now contains the regions that can be combined across the full amount of layers
+                # so let's remove those areas from all layers
+                foreach my $layerm (@layerms) {
+                    my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
+                    my @other_types = grep $_->surface_type != $type, @{$layerm->fill_surfaces};
+                    
+                    @this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
+                        @{diff_ex(
+                            [ map @{$_->expolygon}, @this_type ],
+                            [ map @$_, @$intersection ],
+                        )};
+                    
+                    # apply surfaces back with adjusted depth to the uppermost layer
+                    if ($layerm->id == $layer_id) {
+                        push @this_type,
+                            map Slic3r::Surface->new(expolygon => $_, surface_type => $type, depth_layers => $every),
+                            @$intersection;
                     }
-                    @{$lower_layerm->fill_surfaces} = @new_surfaces;
+                    
+                    @{$layerm->fill_surfaces} = (@this_type, @other_types);
                 }
             }
         }
