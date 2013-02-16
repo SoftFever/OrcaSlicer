@@ -565,6 +565,12 @@ sub combine_infill {
                 
                 # $intersection now contains the regions that can be combined across the full amount of layers
                 # so let's remove those areas from all layers
+                
+                my @intersection_with_clearance = map $_->offset(
+                      $layerms[-1]->infill_flow->scaled_width    / 2
+                    + $layerms[-1]->perimeter_flow->scaled_width / 2
+                    ), @$intersection;
+                
                 foreach my $layerm (@layerms) {
                     my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
                     my @other_types = grep $_->surface_type != $type, @{$layerm->fill_surfaces};
@@ -572,7 +578,7 @@ sub combine_infill {
                     @this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
                         @{diff_ex(
                             [ map @{$_->expolygon}, @this_type ],
-                            [ map @$_, @$intersection ],
+                            [ @intersection_with_clearance ],
                         )};
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
