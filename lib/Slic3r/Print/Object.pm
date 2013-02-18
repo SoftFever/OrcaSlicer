@@ -306,7 +306,7 @@ sub detect_surfaces_type {
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
             1,
         );
-        return grep $_->contour->is_printable($layerm->flow->width),
+        return grep $_->contour->is_printable($layerm->flow),
             map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };
@@ -430,8 +430,6 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
-    my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
-    
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
@@ -514,6 +512,7 @@ sub discover_horizontal_shells {
                 }
             }
             
+            my $area_threshold = $layerm->infill_area_threshold;
             @{$layerm->fill_surfaces} = grep $_->expolygon->area > $area_threshold, @{$layerm->fill_surfaces};
         }
         
@@ -534,7 +533,6 @@ sub combine_infill {
     return unless $Slic3r::Config->infill_every_layers > 1 && $Slic3r::Config->fill_density > 0;
     
     my $every = $Slic3r::Config->infill_every_layers;
-    my $area_threshold = $Slic3r::flow->scaled_spacing ** 2;
     
     my $layer_count = $self->layer_count;
     for my $region_id (0 .. ($self->print->regions_count-1)) {
@@ -559,6 +557,7 @@ sub combine_infill {
                     );
                 }
                 
+                my $area_threshold = $layerms[0]->infill_area_threshold;
                 @$intersection = grep $_->area > $area_threshold, @$intersection;
                 next if !@$intersection;
                 Slic3r::debugf "  combining %d %s regions from layers %d-%d\n",
