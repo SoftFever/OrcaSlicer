@@ -569,6 +569,11 @@ sub combine_infill {
                 my @intersection_with_clearance = map $_->offset(
                       $layerms[-1]->infill_flow->scaled_width    / 2
                     + $layerms[-1]->perimeter_flow->scaled_width / 2
+                    # Because fill areas for rectilinear and honeycomb are grown 
+                    # later to overlap perimeters, we need to counteract that too.
+                    + (($type == S_TYPE_INTERNALSOLID || $Slic3r::Config->fill_pattern =~ /(rectilinear|honeycomb)/)
+                      ? $layerms[-1]->infill_flow->scaled_width * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING
+                      : 0)
                     ), @$intersection;
                 
                 foreach my $layerm (@layerms) {
