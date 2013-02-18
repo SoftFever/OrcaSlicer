@@ -198,21 +198,24 @@ sub make_perimeters {
     # compare each layer to the one below, and mark those slices needing
     # one additional inner perimeter, like the top of domed objects-
     
-    # this algorithm makes sure that almost one perimeter is overlapping
-    if ($Slic3r::Config->extra_perimeters && $Slic3r::Config->perimeters > 0) {
+    # this algorithm makes sure that at least one perimeter is overlapping
+    # but we don't generate any extra perimeter if fill density is zero, as they would be floating
+    # inside the object - infill_only_where_needed should be the method of choice for printing
+    # hollow objects
+    if ($Slic3r::Config->extra_perimeters && $Slic3r::Config->perimeters > 0 && $Slic3r::Config->fill_density > 0) {
         for my $region_id (0 .. ($self->print->regions_count-1)) {
             for my $layer_id (0 .. $self->layer_count-2) {
                 my $layerm          = $self->layers->[$layer_id]->regions->[$region_id];
                 my $upper_layerm    = $self->layers->[$layer_id+1]->regions->[$region_id];
                 my $perimeter_flow  = $layerm->perimeter_flow;
                 
-                my $overlap = $perimeter_flow->spacing;  # one perimeter
+                my $overlap = $perimeter_flow->scaled_spacing;  # one perimeter
                 
                 # compute polygons representing the thickness of the first external perimeter of
                 # the upper layer slices
                 my $upper = diff_ex(
                     [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * $perimeter_flow->scaled_spacing), @{$upper_layerm->slices} ],
-                    [ map @$_, map $_->expolygon->offset_ex(- scale($overlap) + (0.5 * $perimeter_flow->scaled_spacing)), @{$upper_layerm->slices} ],
+                    [ map @$_, map $_->expolygon->offset_ex(- $overlap + (0.5 * $perimeter_flow->scaled_spacing)), @{$upper_layerm->slices} ],
                 );
                 next if !@$upper;
                 
