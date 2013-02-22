@@ -88,9 +88,14 @@ sub parallelize {
     }
 }
 
+sub encode_path {
+    my ($filename) = @_;
+    return encode('locale_fs', $filename);
+}
+
 sub open {
     my ($fh, $mode, $filename) = @_;
-    return CORE::open $$fh, $mode, encode('locale_fs', $filename);
+    return CORE::open $$fh, $mode, encode_path($filename);
 }
 
 1;

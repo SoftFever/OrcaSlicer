@@ -55,14 +55,15 @@ sub OnInit {
     # locate or create data directory
     $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
     Slic3r::debugf "Data directory: %s\n", $datadir;
-    my $run_wizard = (-d $datadir) ? 0 : 1;
-    for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
+    my $encoded_datadir = Slic3r::encode_path($datadir);
+    my $run_wizard = (-d $encoded_datadir) ? 0 : 1;
+    for ($encoded_datadir, "$encoded_datadir/print", "$encoded_datadir/filament", "$encoded_datadir/printer") {
         mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
             unless -d $_;
     }
     
     # load settings
-    if (-f "$datadir/slic3r.ini") {
+    if (-f "$encoded_datadir/slic3r.ini") {
         my $ini = eval { Slic3r::Config->read_ini("$datadir/slic3r.ini") };
         $Settings = $ini if $ini;
     }
