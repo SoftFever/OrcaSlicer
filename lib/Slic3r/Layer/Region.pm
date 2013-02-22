@@ -57,11 +57,15 @@ sub _update_flows {
     my $self = shift;
     return if !$self->region;
     
-    $self->perimeter_flow
-        ($self->region->first_layer_flows->{perimeter} || $self->region->flows->{perimeter});
-    
-    $self->infill_flow
-        ($self->region->first_layer_flows->{infill} || $self->region->flows->{infill});
+    if ($self->id == 0) {
+        $self->perimeter_flow
+            ($self->region->first_layer_flows->{perimeter} || $self->region->flows->{perimeter});
+        $self->infill_flow
+            ($self->region->first_layer_flows->{infill} || $self->region->flows->{infill});
+    } else {
+        $self->perimeter_flow($self->region->flows->{perimeter});
+        $self->infill_flow($self->region->flows->{infill});
+    }
 }
 
 sub _build_overhang_width {
