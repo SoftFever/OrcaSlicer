@@ -69,12 +69,7 @@ use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 use constant LOOP_CLIPPING_LENGTH_OVER_SPACING      => 0.15;
 use constant PERIMETER_INFILL_OVERLAP_OVER_SPACING  => 0.45;
 
-# The following variables hold the objects used throughout the slicing
-# process.  They should belong to the Print object, but we are keeping 
-# them here because it makes accessing them slightly faster.
 our $Config;
-our $flow;
-our $first_layer_flow;
 
 sub parallelize {
     my %params = @_;

@@ -195,15 +195,6 @@ sub init_extruders {
         );
     }
     
-    # calculate default flows
-    $Slic3r::flow = $self->extruders->[0]->make_flow(
-        width           => $self->config->extrusion_width,
-    );
-    $Slic3r::first_layer_flow = $self->extruders->[0]->make_flow(
-        layer_height    => $self->config->get_value('first_layer_height'),
-        width           => $self->config->first_layer_extrusion_width,
-    );
-    
     # calculate regions' flows
     for my $region_id (0 .. $#{$self->regions}) {
         my $region = $self->regions->[$region_id];
@@ -219,7 +210,7 @@ sub init_extruders {
             $region->first_layer_flows->{$_} = $region->extruders->{$_}->make_flow(
                 layer_height    => $self->config->get_value('first_layer_height'),
                 width           => $self->config->first_layer_extrusion_width,
-            );
+            ) if $self->config->first_layer_extrusion_width;
         }
     }
     
@@ -234,9 +225,6 @@ sub init_extruders {
             width           => $self->config->first_layer_extrusion_width,
         ));
     }
-    
-    Slic3r::debugf "Default flow width = %s (spacing = %s)\n",
-        $Slic3r::flow->width, $Slic3r::flow->spacing;
 }
 
 sub object_copies {
@@ -573,7 +561,10 @@ sub make_skirt {
     my $convex_hull = convex_hull(\@points);
     
     my @extruded_length = ();  # for each extruder
-    my $spacing = $Slic3r::first_layer_flow->spacing;
+    
+    # TODO: use each extruder's own flow
+    my $spacing = $self->objects->[0]->layers->[0]->regions->[0]->perimeter_flow->spacing;
+    
     my $first_layer_height = $Slic3r::Config->get_value('first_layer_height');
     my @extruders_e_per_mm = ();
     my $extruder_idx = 0;
@@ -612,7 +603,9 @@ sub make_brim {
     my $self = shift;
     return unless $Slic3r::Config->brim_width > 0;
     
-    my $grow_distance = $Slic3r::first_layer_flow->scaled_width / 2;
+    my $flow = $self->objects->[0]->layers->[0]->regions->[0]->perimeter_flow;
+    
+    my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my $layer0 = $self->objects->[$obj_idx]->layers->[0];
@@ -627,18 +620,19 @@ sub make_brim {
     }
     
     # if brim touches skirt, make it around skirt too
-    if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $Slic3r::first_layer_flow->spacing) <= $Slic3r::Config->brim_width) {
+    # TODO: calculate actual skirt width (using each extruder's flow in multi-extruder setups)
+    if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $flow->spacing) <= $Slic3r::Config->brim_width) {
         push @islands, map $_->unpack->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
     }
     
-    my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $Slic3r::first_layer_flow->width;
+    my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $flow->width;
     for my $i (reverse 1 .. $num_loops) {
         # JT_SQUARE ensures no vertex is outside the given offset distance
         push @{$self->brim}, Slic3r::ExtrusionLoop->pack(
             polygon         => Slic3r::Polygon->new($_),
             role            => EXTR_ROLE_SKIRT,
-            flow_spacing    => $Slic3r::first_layer_flow->spacing,
-        ) for Slic3r::Geometry::Clipper::offset(\@islands, $i * $Slic3r::first_layer_flow->scaled_spacing, undef, JT_SQUARE);
+            flow_spacing    => $flow->spacing,
+        ) for Slic3r::Geometry::Clipper::offset(\@islands, $i * $flow->scaled_spacing, undef, JT_SQUARE);
         # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
     }
 }
@@ -674,8 +668,8 @@ sub write_gcode {
     printf $fh "; infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{infill}->width;
     printf $fh "; support material extrusion width = %.2fmm\n", $self->support_material_flow->width
         if $self->support_material_flow;
-    printf $fh "; first layer extrusion width = %.2fmm\n", $Slic3r::first_layer_flow->width
-        if $Slic3r::first_layer_flow;
+    printf $fh "; first layer extrusion width = %.2fmm\n", $self->regions->[0]->first_layer_flows->{perimeter}->width
+        if $self->regions->[0]->first_layer_flows->{perimeter};
     print  $fh "\n";
     
     # set up our extruder object

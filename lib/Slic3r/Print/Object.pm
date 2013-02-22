@@ -306,7 +306,7 @@ sub detect_surfaces_type {
             [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
             1,
         );
-        return grep $_->contour->is_printable($layerm->flow),
+        return grep $_->contour->is_printable($layerm->infill_flow),
             map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };

@@ -57,13 +57,11 @@ sub _update_flows {
     my $self = shift;
     return if !$self->region;
     
-    $self->perimeter_flow($self->id == 0
-        ? $self->region->first_layer_flows->{perimeter}
-        : $self->region->flows->{perimeter});
+    $self->perimeter_flow
+        ($self->region->first_layer_flows->{perimeter} || $self->region->flows->{perimeter});
     
-    $self->infill_flow($self->id == 0
-        ? $self->region->first_layer_flows->{infill}
-        : $self->region->flows->{infill});
+    $self->infill_flow
+        ($self->region->first_layer_flows->{infill} || $self->region->flows->{infill});
 }
 
 sub _build_overhang_width {
@@ -471,7 +469,7 @@ sub process_bridges {
         # offset the contour and intersect it with the internal surfaces to discover 
         # which of them has contact with our bridge
         my @supporting_surfaces = ();
-        my ($contour_offset) = $expolygon->contour->offset(scale $self->flow->spacing * sqrt(2));
+        my ($contour_offset) = $expolygon->contour->offset(scale $self->infill_flow->spacing * sqrt(2));
         foreach my $internal_surface (@internal_surfaces) {
             my $intersection = intersection_ex([$contour_offset], [$internal_surface->p]);
             if (@$intersection) {
