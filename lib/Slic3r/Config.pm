@@ -1213,9 +1213,6 @@ sub validate {
     # --infill-every-layers
     die "Invalid value for --infill-every-layers\n"
         if $self->infill_every_layers !~ /^\d+$/ || $self->infill_every_layers < 1;
-    # TODO: this check should be limited to the extruder used for infill
-    die "Maximum infill thickness can't exceed nozzle diameter\n"
-        if grep $self->infill_every_layers * $self->layer_height > $_, @{$self->nozzle_diameter};
     
     # --scale
     die "Invalid value for --scale\n"

@@ -1,6 +1,7 @@
 package Slic3r::Print::Object;
 use Moo;
 
+use List::Util qw(min);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
@@ -532,10 +533,15 @@ sub combine_infill {
     my $self = shift;
     return unless $Slic3r::Config->infill_every_layers > 1 && $Slic3r::Config->fill_density > 0;
     
-    my $every = $Slic3r::Config->infill_every_layers;
-    
     my $layer_count = $self->layer_count;
     for my $region_id (0 .. ($self->print->regions_count-1)) {
+        # limit the number of combined layers to the maximum height allowed by this regions' nozzle
+        my $every = min(
+            $Slic3r::Config->infill_every_layers,
+            int($self->print->regions->[$region_id]->extruders->{infill}->nozzle_diameter/$Slic3r::Config->layer_height),
+        );
+        Slic3r::debugf "Infilling every %d layers\n", $every;
+        
         # skip bottom layer
         for (my $layer_id = $every; $layer_id <= $layer_count-1; $layer_id += $every) {
             # get the layers whose infill we want to combine (bottom-up)
