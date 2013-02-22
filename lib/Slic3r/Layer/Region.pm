@@ -165,6 +165,8 @@ sub _merge_loops {
 sub make_perimeters {
     my $self = shift;
     
+    my $perimeter_spacing   = $self->perimeter_flow->scaled_spacing;
+    my $infill_spacing      = $self->infill_flow->scaled_spacing;
     my $gap_area_threshold = $self->perimeter_flow->scaled_width ** 2;
     
     # this array will hold one arrayref per original surface (island);
@@ -217,7 +219,6 @@ sub make_perimeters {
             }
         }
         
-        my $distance = $self->perimeter_flow->scaled_spacing;
         my @gaps = ();
         
         # generate perimeters inwards (loop 0 is the external one)
@@ -232,8 +233,8 @@ sub make_perimeters {
             foreach my $expolygon (@last_offsets) {
                 my @offsets = @{union_ex([
                     Slic3r::Geometry::Clipper::offset(
-                        [Slic3r::Geometry::Clipper::offset($expolygon, -1.5*$distance)], 
-                        +0.5*$distance,
+                        [Slic3r::Geometry::Clipper::offset($expolygon, -1.5*$perimeter_spacing)], 
+                        +0.5*$perimeter_spacing,
                     ),
                 ])};
                 push @new_offsets, @offsets;
@@ -241,10 +242,10 @@ sub make_perimeters {
                 # where the above check collapses the expolygon, then there's no room for an inner loop
                 # and we can extract the gap for later processing
                 my $diff = diff_ex(
-                    [ map @$_, $expolygon->offset_ex(-0.5*$distance) ],
+                    [ map @$_, $expolygon->offset_ex(-0.5*$perimeter_spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
                     # won't shrink the clip polygon to be smaller than intended.
-                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$distance + 2) ],
+                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$perimeter_spacing + 2) ],
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
@@ -258,8 +259,8 @@ sub make_perimeters {
         {
             my @fill_boundaries = @{union_ex([
                 Slic3r::Geometry::Clipper::offset(
-                    [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -1.5*$distance)], 
-                    +0.5*$distance,
+                    [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
+                    +0.5*$infill_spacing,
                 ),
             ])};
             $_->simplify(&Slic3r::SCALED_RESOLUTION) for @fill_boundaries;
