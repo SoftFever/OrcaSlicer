@@ -254,7 +254,7 @@ our $Options = {
         cli     => 'external-perimeter-speed=s',
         type    => 'f',
         ratio_over => 'perimeter_speed',
-        default => '100%',
+        default => '70%',
     },
     'infill_speed' => {
         label   => 'Infill',
@@ -808,7 +808,7 @@ END
         type    => 'i',
         max     => 1000,
         width   => 60,
-        default => 15,
+        default => 30,
     },
     'min_print_speed' => {
         label   => 'Min print speed',

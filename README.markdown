@@ -140,7 +140,7 @@ The author of the Silk icon set is Mark James.
                             (default: 30)
         --external-perimeter-speed
                             Speed of print moves for the external perimeter in mm/s or % over perimeter speed
-                            (default: 100%)
+                            (default: 70%)
         --infill-speed      Speed of print moves in mm/s (default: 60)
         --solid-infill-speed Speed of print moves for solid surfaces in mm/s or % over infill speed
                             (default: 60)
@@ -245,7 +245,7 @@ The author of the Silk icon set is Mark James.
         --fan-below-layer-time Enable fan if layer print time is below this approximate number 
                             of seconds (default: 60)
         --slowdown-below-layer-time Slow down if layer print time is below this approximate number
-                            of seconds (default: 15)
+                            of seconds (default: 30)
         --min-print-speed   Minimum print speed (mm/s, default: 10)
         --disable-fan-first-layers Disable fan for the first N layers (default: 1)
         --fan-always-on     Keep fan always on at min fan speed, even for layers that don't need
