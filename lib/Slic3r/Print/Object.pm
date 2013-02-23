@@ -429,9 +429,6 @@ sub clip_fill_surfaces {
 sub bridge_over_infill {
     my $self = shift;
     
-    # calculate the number of layers to remove below each bridged one
-    my $skip = int();
-    
     for my $layer_id (1..$#{$self->layers}) {
         my $layer       = $self->layers->[$layer_id];
         my $lower_layer = $self->layers->[$layer_id-1];
