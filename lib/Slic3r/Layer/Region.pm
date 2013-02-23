@@ -87,28 +87,18 @@ sub make_surfaces {
     return if !@$loops;
     $self->slices([ _merge_loops($loops) ]);
     
-    # the contours must be offsetted by half extrusion width inwards
+    # detect thin walls by offsetting slices by half extrusion inwards
     {
-        my $distance = $self->perimeter_flow->scaled_width / 2;
-        my @surfaces = @{$self->slices};
-        @{$self->slices} = ();
-        foreach my $surface (@surfaces) {
-            push @{$self->slices}, map Slic3r::Surface->new
-                (expolygon => $_, surface_type => S_TYPE_INTERNAL),
-                @{union_ex([
-                    Slic3r::Geometry::Clipper::offset(
-                        [Slic3r::Geometry::Clipper::offset($surface->expolygon, -2*$distance)],
-                        +$distance,
-                    ),
-                ])};
-        }
-        
-        # now detect thin walls by re-outgrowing offsetted surfaces and subtracting
-        # them from the original slices
-        my $outgrown = [ Slic3r::Geometry::Clipper::offset([ map $_->p, @{$self->slices} ], $distance) ];
+        my $width = $self->perimeter_flow->scaled_width;
+        my $outgrown = union_ex([
+            Slic3r::Geometry::Clipper::offset(
+                [Slic3r::Geometry::Clipper::offset([ map @$_, map $_->expolygon, @{$self->slices} ], -$width)], 
+                +$width,
+            ),
+        ]);
         my $diff = diff_ex(
-            [ map $_->p, @surfaces ],
-            $outgrown,
+            [ map $_->p, @{$self->slices} ],
+            [ map @$_, @$outgrown ],
             1,
         );
         
@@ -223,18 +213,21 @@ sub make_perimeters {
         
         # generate perimeters inwards (loop 0 is the external one)
         my $loop_number = $Slic3r::Config->perimeters + ($surface->additional_inner_perimeters || 0);
-        push @perimeters, [[@last_offsets]] if $loop_number > 0;
+        push @perimeters, [] if $loop_number > 0;
         
         # do one more loop (<= instead of <) so that we can detect gaps even after the desired
         # number of perimeters has been generated
-        for (my $loop = 1; $loop <= $loop_number; $loop++) {
+        for (my $loop = 0; $loop <= $loop_number; $loop++) {
+            my $spacing = $perimeter_spacing;
+            $spacing /= 2 if $loop == 0;
+            
             # offsetting a polygon can result in one or many offset polygons
             my @new_offsets = ();
             foreach my $expolygon (@last_offsets) {
                 my @offsets = @{union_ex([
                     Slic3r::Geometry::Clipper::offset(
-                        [Slic3r::Geometry::Clipper::offset($expolygon, -1.5*$perimeter_spacing)], 
-                        +0.5*$perimeter_spacing,
+                        [Slic3r::Geometry::Clipper::offset($expolygon, -1.5*$spacing)], 
+                        +0.5*$spacing,
                     ),
                 ])};
                 push @new_offsets, @offsets;
@@ -242,10 +235,10 @@ sub make_perimeters {
                 # where the above check collapses the expolygon, then there's no room for an inner loop
                 # and we can extract the gap for later processing
                 my $diff = diff_ex(
-                    [ map @$_, $expolygon->offset_ex(-0.5*$perimeter_spacing) ],
+                    [ map @$_, $expolygon->offset_ex(-0.5*$spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
                     # won't shrink the clip polygon to be smaller than intended.
-                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$perimeter_spacing + 2) ],
+                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$spacing + 2) ],
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
