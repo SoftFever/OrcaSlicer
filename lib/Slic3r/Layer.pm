@@ -62,12 +62,9 @@ sub support_material_contact_height {
     
     return $self->height if $self->id == 0;
     
-    # this is not very correct because:
-    # - we should sum our height with the actual upper layers height (which might be different)
-    # - we should use the actual flow of the upper layer bridges, not the default one
-    # ...but we're close enough for now
+    # TODO: check what upper region applies instead of considering the first one
     my $upper_layer = $self->object->layers->[ $self->id + 1 ] // $self;
-    return 2*$self->height - $upper_layer->infill_flow->bridge_width;
+    return 2*$self->height - $upper_layer->regions->[0]->infill_flow->bridge_width;
 }
 
 # Z used for printing support material contact in scaled coordinates
