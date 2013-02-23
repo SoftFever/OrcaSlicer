@@ -426,6 +426,72 @@ sub clip_fill_surfaces {
     }
 }
 
+sub bridge_over_infill {
+    my $self = shift;
+    
+    # calculate the number of layers to remove below each bridged one
+    my $skip = int();
+    
+    for my $layer_id (1..$#{$self->layers}) {
+        my $layer       = $self->layers->[$layer_id];
+        my $lower_layer = $self->layers->[$layer_id-1];
+        
+        foreach my $layerm (@{$layer->regions}) {
+            # compute the areas needing bridge math 
+            my @internal_solid = grep $_->surface_type == S_TYPE_INTERNALSOLID, @{$layerm->fill_surfaces};
+            my @lower_internal = grep $_->surface_type == S_TYPE_INTERNAL, map @{$_->fill_surfaces}, @{$lower_layer->regions};
+            my $to_bridge = intersection_ex(
+                [ map $_->p, @internal_solid ],
+                [ map $_->p, @lower_internal ],
+            );
+            next unless @$to_bridge;
+            Slic3r::debugf "Bridging %d internal areas at layer %d\n", scalar(@$to_bridge), $layer_id;
+            
+            # build the new collection of fill_surfaces
+            {
+                my @new_surfaces = grep $_->surface_type != S_TYPE_INTERNALSOLID, @{$layerm->fill_surfaces};
+                push @new_surfaces, map Slic3r::Surface->new(
+                        expolygon       => $_,
+                        surface_type    => S_TYPE_INTERNALBRIDGE,
+                    ), @$to_bridge;
+                push @new_surfaces, map Slic3r::Surface->new(
+                        expolygon       => $_,
+                        surface_type    => S_TYPE_INTERNALSOLID,
+                    ), @{diff_ex(
+                        [ map $_->p, @internal_solid ],
+                        [ map @$_, @$to_bridge ],
+                    )};
+                @{$layerm->fill_surfaces} = @new_surfaces;
+            }
+            
+            # exclude infill from the layers below if needed
+            # see discussion at https://github.com/alexrj/Slic3r/issues/240
+            {
+                my $excess = $layerm->infill_flow->bridge_width - $layerm->height;
+                for (my $i = $layer_id-1; $excess >= $self->layers->[$i]->height; $i--) {
+                    Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
+                    foreach my $lower_layerm (@{$self->layers->[$i]->regions}) {
+                        my @new_surfaces = ();
+                        # subtract the area from all types of surfaces
+                        foreach my $group (Slic3r::Surface->group(@{$lower_layerm->fill_surfaces})) {
+                            push @new_surfaces, map Slic3r::Surface->new(
+                                expolygon       => $_,
+                                surface_type    => $group->[0]->surface_type,
+                            ), @{diff_ex(
+                                [ map $_->p, @$group ],
+                                [ map @$_, @$to_bridge ],
+                            )};
+                        }
+                        @{$lower_layerm->fill_surfaces} = @new_surfaces;
+                    }
+                    
+                    $excess -= $self->layers->[$i]->height;
+                }
+            }
+        }
+    }
+}
+
 sub discover_horizontal_shells {
     my $self = shift;
     

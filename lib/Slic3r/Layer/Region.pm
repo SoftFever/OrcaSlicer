@@ -458,7 +458,7 @@ sub process_bridges {
         ($_->surface_type == S_TYPE_BOTTOM && $self->id > 0) || $_->surface_type == S_TYPE_TOP
     } @{$self->fill_surfaces} or return;
     
-    my @internal_surfaces = grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @{$self->slices};
+    my @internal_surfaces = grep $_->is_internal, @{$self->slices};
     
     SURFACE: foreach my $surface (@solid_surfaces) {
         my $expolygon = $surface->expolygon->safety_offset;

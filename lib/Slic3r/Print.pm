@@ -356,6 +356,9 @@ sub export_gcode {
     $status_cb->(60, "Generating horizontal shells");
     $_->discover_horizontal_shells for @{$self->objects};
     $_->clip_fill_surfaces for @{$self->objects};
+    # the following step needs to be done before combination because it may need
+    # to remove only half of the combined infill
+    $_->bridge_over_infill for @{$self->objects};
     
     # combine fill surfaces to honor the "infill every N layers" option
     $status_cb->(70, "Combining infill");
