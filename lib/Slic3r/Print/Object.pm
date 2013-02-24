@@ -212,24 +212,15 @@ sub make_perimeters {
                 
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
-                # compute polygons representing the thickness of the first external perimeter of
-                # the upper layer slices
+                # compute the polygon used to trigger the additional perimeters: the hole represents
+                # the required overlap, while the contour represents how different should the slices be 
+                # (thus how horizontal should the slope be) before extra perimeters are not generated, and
+                # normal solid infill is used
                 my $upper = diff_ex(
-                    [ map @{$_->expolygon}, @{$upper_layerm->slices} ],
+                    [ map @$_, map $_->expolygon->offset_ex($overlap), @{$upper_layerm->slices} ],
                     [ map @$_, map $_->expolygon->offset_ex(-$overlap), @{$upper_layerm->slices} ],
                 );
                 next if !@$upper;
-                
-                # we need to limit our detection to the areas which would actually benefit from 
-                # more perimeters. so, let's compute the area we want to ignore
-                my $ignore = [];
-                {
-                    my $diff = diff_ex(
-                        [ map @$_, map $_->expolygon->offset_ex(- $Slic3r::Config->perimeters * $perimeter_spacing), @{$layerm->slices} ],
-                        [ map @$_, map $_->expolygon->offset_ex(- 0.5*$perimeter_spacing), @{$upper_layerm->slices} ],
-                    );
-                    $ignore = [ map @$_, map $_->offset_ex($perimeter_spacing), @$diff ];
-                }
                 
                 foreach my $slice (@{$layerm->slices}) {
                     my $hypothetical_perimeter_num = $Slic3r::Config->perimeters + 1;
@@ -246,9 +237,7 @@ sub make_perimeters {
                         }
                         last CYCLE if !@$hypothetical_perimeter;
                         
-                        
                         my $intersection = intersection_ex([ map @$_, @$upper ], [ map @$_, @$hypothetical_perimeter ]);
-                        $intersection = diff_ex([ map @$_, @$intersection ], $ignore) if @$ignore;
                         last CYCLE if !@{ $intersection };
                         Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
                         $slice->additional_inner_perimeters(($slice->additional_inner_perimeters || 0) + 1);
