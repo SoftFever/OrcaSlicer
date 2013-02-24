@@ -208,15 +208,15 @@ sub make_perimeters {
             for my $layer_id (0 .. $self->layer_count-2) {
                 my $layerm          = $self->layers->[$layer_id]->regions->[$region_id];
                 my $upper_layerm    = $self->layers->[$layer_id+1]->regions->[$region_id];
-                my $perimeter_flow  = $layerm->perimeter_flow;
+                my $perimeter_spacing       = $layerm->perimeter_flow->scaled_spacing;
                 
-                my $overlap = $perimeter_flow->scaled_spacing;  # one perimeter
+                my $overlap = $perimeter_spacing;  # one perimeter
                 
                 # compute polygons representing the thickness of the first external perimeter of
                 # the upper layer slices
                 my $upper = diff_ex(
-                    [ map @$_, map $_->expolygon->offset_ex(+ 0.5 * $perimeter_flow->scaled_spacing), @{$upper_layerm->slices} ],
-                    [ map @$_, map $_->expolygon->offset_ex(- $overlap + (0.5 * $perimeter_flow->scaled_spacing)), @{$upper_layerm->slices} ],
+                    [ map @{$_->expolygon}, @{$upper_layerm->slices} ],
+                    [ map @$_, map $_->expolygon->offset_ex(-$overlap), @{$upper_layerm->slices} ],
                 );
                 next if !@$upper;
                 
@@ -225,10 +225,10 @@ sub make_perimeters {
                 my $ignore = [];
                 {
                     my $diff = diff_ex(
-                        [ map @$_, map $_->expolygon->offset_ex(- ($Slic3r::Config->perimeters-0.5) * $perimeter_flow->scaled_spacing), @{$layerm->slices} ],
-                        [ map @{$_->expolygon}, @{$upper_layerm->slices} ],
+                        [ map @$_, map $_->expolygon->offset_ex(- $Slic3r::Config->perimeters * $perimeter_spacing), @{$layerm->slices} ],
+                        [ map @$_, map $_->expolygon->offset_ex(- 0.5*$perimeter_spacing), @{$upper_layerm->slices} ],
                     );
-                    $ignore = [ map @$_, map $_->offset_ex($perimeter_flow->scaled_spacing), @$diff ];
+                    $ignore = [ map @$_, map $_->offset_ex($perimeter_spacing), @$diff ];
                 }
                 
                 foreach my $slice (@{$layerm->slices}) {
@@ -238,9 +238,9 @@ sub make_perimeters {
                         # of our slice
                         my $hypothetical_perimeter;
                         {
-                            my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1.5) * $perimeter_flow->scaled_spacing - scaled_epsilon) ];
+                            my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1) * $perimeter_spacing - scaled_epsilon) ];
                             last CYCLE if !@$outer;
-                            my $inner = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-0.5) * $perimeter_flow->scaled_spacing) ];
+                            my $inner = [ map @$_, $slice->expolygon->offset_ex(- $hypothetical_perimeter_num * $perimeter_spacing) ];
                             last CYCLE if !@$inner;
                             $hypothetical_perimeter = diff_ex($outer, $inner);
                         }
