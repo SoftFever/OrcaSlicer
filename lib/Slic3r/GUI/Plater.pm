@@ -1088,7 +1088,7 @@ sub _trigger_model_object {
 sub check_manifoldness {
 	my $self = shift;
 	
-	$self->is_manifold($self->get_model_object->mesh->check_manifoldness);
+	$self->is_manifold($self->get_model_object->check_manifoldness);
 	return $self->is_manifold;
 }
 
