@@ -39,10 +39,10 @@ sub _build_width {
     }
     
     my $min = max(
-        ((($self->nozzle_diameter/2) ** 2) / $self->layer_height * 0.8),
+        ($volume / $self->layer_height),
         ($self->nozzle_diameter * 1.05),
     );
-    my $max = $self->nozzle_diameter * 1.6;
+    my $max = $self->nozzle_diameter * 2;
     $width = $max if $width > $max;
     $width = $min if $width < $min;
     
