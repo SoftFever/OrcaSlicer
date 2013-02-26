@@ -294,19 +294,19 @@ sub detect_surfaces_type {
     
     # prepare a reusable subroutine to make surface differences
     my $surface_difference = sub {
-        my ($subject_surfaces, $clip_surfaces, $result_type, $layerm) = @_;
+        my ($subject_surfaces, $clip_surfaces, $result_type, $layerm) = @_;use XXX; ZZZ "here" if grep ref eq 'Slic3r::Surface', @$subject_surfaces, @$clip_surfaces;
         my $expolygons = diff_ex(
-            [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$subject_surfaces ],
-            [ map { ref $_ eq 'ARRAY' ? $_ : ref $_ eq 'Slic3r::ExPolygon' ? @$_ : $_->p } @$clip_surfaces ],
+            [ map @$_, @$subject_surfaces ],
+            [ map @$_, @$clip_surfaces ],
             1,
         );
-        return grep $_->contour->is_printable($layerm->infill_flow),
+        return grep $_->contour->is_printable($layerm->perimeter_flow),
             map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        for (my $i = 0; $i < $self->layer_count; $i++) {
+        for my $i (0 .. ($self->layer_count-1)) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
             
             # comparison happens against the *full* slices (considering all regions)
@@ -318,7 +318,12 @@ sub detect_surfaces_type {
             # find top surfaces (difference between current surfaces
             # of current layer and upper one)
             if ($upper_layer) {
-                @top = $surface_difference->($layerm->slices, $upper_layer->slices, S_TYPE_TOP, $layerm);
+                @top = $surface_difference->(
+                    [ map $_->expolygon, @{$layerm->slices} ],
+                    $upper_layer->slices,
+                    S_TYPE_TOP,
+                    $layerm,
+                );
             } else {
                 # if no upper layer, all surfaces of this one are solid
                 @top = @{$layerm->slices};
@@ -328,7 +333,13 @@ sub detect_surfaces_type {
             # find bottom surfaces (difference between current surfaces
             # of current layer and lower one)
             if ($lower_layer) {
-                @bottom = $surface_difference->($layerm->slices, $lower_layer->slices, S_TYPE_BOTTOM, $layerm);
+                # lower layer's slices are already Surface objects
+                @bottom = $surface_difference->(
+                    [ map $_->expolygon, @{$layerm->slices} ],
+                    $lower_layer->slices,
+                    S_TYPE_BOTTOM,
+                    $layerm,
+                );
             } else {
                 # if no lower layer, all surfaces of this one are solid
                 @bottom = @{$layerm->slices};
@@ -341,11 +352,16 @@ sub detect_surfaces_type {
             if (@top && @bottom) {
                 my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
                 Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->id, scalar(@$overlapping);
-                @top = $surface_difference->([@top], $overlapping, S_TYPE_TOP, $layerm);
+                @top = $surface_difference->([map $_->expolygon, @top], $overlapping, S_TYPE_TOP, $layerm);
             }
             
             # find internal surfaces (difference between top/bottom surfaces and others)
-            @internal = $surface_difference->($layerm->slices, [@top, @bottom], S_TYPE_INTERNAL, $layerm);
+            @internal = $surface_difference->(
+                [ map $_->expolygon, @{$layerm->slices} ],
+                [ map $_->expolygon, @top, @bottom ],
+                S_TYPE_INTERNAL,
+                $layerm,
+            );
             
             # save surfaces to layer
             @{$layerm->slices} = (@bottom, @top, @internal);
