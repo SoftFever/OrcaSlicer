@@ -1,7 +1,7 @@
 package Slic3r::Print::Object;
 use Moo;
 
-use List::Util qw(min);
+use List::Util qw(min sum);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
@@ -237,8 +237,12 @@ sub make_perimeters {
                         }
                         last CYCLE if !@$hypothetical_perimeter;
                         
+                        # compute the area of the hypothetical perimeter
+                        my $hp_area = sum(map $_->area, @$hypothetical_perimeter);
+                        
+                        # only add the perimeter if the intersection is at least 20%, otherwise we'd get no benefit
                         my $intersection = intersection_ex([ map @$_, @$upper ], [ map @$_, @$hypothetical_perimeter ]);
-                        last CYCLE if !@{ $intersection };
+                        last CYCLE if (sum(map $_->area, @{ $intersection }) // 0) < $hp_area * 0.2;
                         Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
                         $slice->additional_inner_perimeters(($slice->additional_inner_perimeters || 0) + 1);
                         $hypothetical_perimeter_num++;
