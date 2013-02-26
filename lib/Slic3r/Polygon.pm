@@ -129,7 +129,7 @@ sub is_printable {
     # detect them and we would be discarding them.
     my $p = $self->clone;
     $p->make_counter_clockwise;
-    return $p->offset($flow->scaled_width / 2) ? 1 : 0;
+    return $p->offset(-$flow->scaled_width / 2) ? 1 : 0;
 }
 
 sub is_valid {
