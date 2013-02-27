@@ -538,7 +538,7 @@ sub process_bridges {
             } elsif (@edges) {
                 my $center = Slic3r::Geometry::bounding_box_center([ map @$_, @edges ]);
                 my $x = my $y = 0;
-                foreach my $point (map @$, @edges) {
+                foreach my $point (map @$_, @edges) {
                     my $line = Slic3r::Line->new($center, $point);
                     my $dir = $line->direction;
                     my $len = $line->length;
