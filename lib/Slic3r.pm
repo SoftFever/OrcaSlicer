@@ -18,7 +18,7 @@ sub debugf {
 our $have_threads;
 BEGIN {
     use Config;
-    $have_threads = $Config{useithreads} && eval "use threads; use Thread::Queue; 1";
+    $have_threads = $Config{useithreads} && eval "use threads; use threads::shared; use Thread::Queue; 1";
 }
 
 warn "Running Slic3r under Perl >= 5.16 is not supported nor recommended\n"
