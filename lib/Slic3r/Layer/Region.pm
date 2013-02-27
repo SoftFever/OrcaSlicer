@@ -173,7 +173,7 @@ sub make_perimeters {
     # )
     my @perimeters = ();  # one item per depth; each item
     
-    # organize islands using a shortest path search
+    # organize islands using a nearest-neighbor search
     my @surfaces = @{chained_path_items([
         map [ $_->contour->[0], $_ ], @{$self->slices},
     ])};
@@ -245,6 +245,12 @@ sub make_perimeters {
             
             last if !@new_offsets || $loop == $loop_number;
             @last_offsets = @new_offsets;
+            
+            # sort loops before storing them
+            @last_offsets = @{chained_path_items([
+                map [ $_->contour->[0], $_ ], @last_offsets,
+            ])};
+            
             push @{ $perimeters[-1] }, [@last_offsets];
         }
         
