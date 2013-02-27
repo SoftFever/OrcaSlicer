@@ -294,7 +294,7 @@ sub detect_surfaces_type {
     
     # prepare a reusable subroutine to make surface differences
     my $surface_difference = sub {
-        my ($subject_surfaces, $clip_surfaces, $result_type, $layerm) = @_;use XXX; ZZZ "here" if grep ref eq 'Slic3r::Surface', @$subject_surfaces, @$clip_surfaces;
+        my ($subject_surfaces, $clip_surfaces, $result_type, $layerm) = @_;
         my $expolygons = diff_ex(
             [ map @$_, @$subject_surfaces ],
             [ map @$_, @$clip_surfaces ],
