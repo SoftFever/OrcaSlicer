@@ -48,17 +48,17 @@ sub filler {
 
 sub make_fill {
     my $self = shift;
-    my ($layer) = @_;
+    my ($layerm) = @_;
     
-    Slic3r::debugf "Filling layer %d:\n", $layer->id;
+    Slic3r::debugf "Filling layer %d:\n", $layerm->id;
     
     # merge overlapping surfaces
     my @surfaces = ();
     {
-        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layer->fill_surfaces};
+        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
         
         # give priority to bridges
-        my @groups = Slic3r::Surface->group({merge_solid => 1}, @{$layer->fill_surfaces});
+        my @groups = Slic3r::Surface->group({merge_solid => 1}, @{$layerm->fill_surfaces});
         @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
         
         foreach my $group (@groups) {
@@ -91,7 +91,7 @@ sub make_fill {
     
     # add spacing between adjacent surfaces
     {
-        my $distance = $layer->infill_flow->scaled_spacing / 2;
+        my $distance = $layerm->infill_flow->scaled_spacing / 2;
         my @offsets = ();
         foreach my $surface (@surfaces) {
             my $expolygon = $surface->expolygon;
@@ -125,8 +125,8 @@ sub make_fill {
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::Config->fill_pattern;
         my $density         = $Slic3r::Config->fill_density;
-        my $flow_spacing    = $layer->infill_flow->spacing;
-        my $is_bridge       = $layer->id > 0 && $surface->is_bridge;
+        my $flow_spacing    = $layerm->infill_flow->spacing;
+        my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         
         # force 100% density and rectilinear fill for external surfaces
@@ -135,7 +135,7 @@ sub make_fill {
             $filler = $Slic3r::Config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
-                $flow_spacing = $layer->extruders->{infill}->bridge_flow->spacing;
+                $flow_spacing = $layerm->extruders->{infill}->bridge_flow->spacing;
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }
@@ -146,7 +146,7 @@ sub make_fill {
         my @paths;
         {
             my $f = $self->filler($filler);
-            $f->layer_id($layer->id);
+            $f->layer_id($layerm->id);
             @paths = $f->fill_surface(
                 $surface,
                 density         => $density,
@@ -157,7 +157,7 @@ sub make_fill {
         my $params = shift @paths;
         
         # ugly hack(tm) to get the right amount of flow (GCode.pm should be fixed)
-        $params->{flow_spacing} = $layer->extruders->{infill}->bridge_flow->width if $is_bridge;
+        $params->{flow_spacing} = $layerm->extruders->{infill}->bridge_flow->width if $is_bridge;
         
         # save into layer
         next unless @paths;
@@ -170,7 +170,7 @@ sub make_fill {
                         : $is_solid
                             ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                             : EXTR_ROLE_FILL),
-                    height => $surface->depth_layers * $layer->height,
+                    height => $surface->depth_layers * $layerm->height,
                     flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
                 ), @paths,
             ],
@@ -179,8 +179,8 @@ sub make_fill {
     }
     
     # add thin fill regions
-    push @fills, @{$layer->thin_fills};
-    push @fills_ordering_points, map $_->unpack->points->[0], @{$layer->thin_fills};
+    push @fills, @{$layerm->thin_fills};
+    push @fills_ordering_points, map $_->unpack->points->[0], @{$layerm->thin_fills};
     
     # organize infill paths using a nearest-neighbor search
     @fills = @fills[ chained_path(\@fills_ordering_points) ];
