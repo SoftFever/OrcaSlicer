@@ -64,7 +64,7 @@ sub support_material_contact_height {
     
     # TODO: check what upper region applies instead of considering the first one
     my $upper_layer = $self->object->layers->[ $self->id + 1 ] // $self;
-    my $h = ($self->height + $upper_layer->height) - $upper_layer->regions->[0]->infill_flow->bridge_width;
+    my $h = ($self->height + $upper_layer->height) - $upper_layer->regions->[0]->extruders->{infill}->bridge_flow->width;
     
     # If layer height is less than half the bridge width then we'll get a negative height for contact area.
     # The optimal solution would be to skip some layers during support material generation, but for now

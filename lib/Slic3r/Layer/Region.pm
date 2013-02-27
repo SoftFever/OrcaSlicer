@@ -13,7 +13,7 @@ has 'layer' => (
     trigger     => 1,
     handles     => [qw(id slice_z print_z height flow)],
 );
-has 'region'            => (is => 'ro', required => 1);
+has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'perimeter_flow'    => (is => 'rw');
 has 'infill_flow'       => (is => 'rw');
 has 'infill_area_threshold' => (is => 'lazy');
