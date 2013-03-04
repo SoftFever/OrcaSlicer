@@ -198,7 +198,7 @@ sub extrude_path {
             # note that we're only considering the current object's islands, while we should
             # build a more complete configuration space
             $travel->translate(-$self->shift_x, -$self->shift_y);
-            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || $path->role != EXTR_ROLE_FILL || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
+            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || !$path->is_fill || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
                 $gcode .= $self->retract(travel_to => $path->points->[0]);
             }
         }

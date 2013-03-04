@@ -93,6 +93,13 @@ sub endpoints {
 
 sub is_printable { 1 }
 
+sub is_fill {
+    my $self = shift;
+    return $self->role == EXTR_ROLE_FILL
+        || $self->role == EXTR_ROLE_SOLIDFILL
+        || $self->role == EXTR_ROLE_TOPSOLIDFILL;
+}
+
 sub split_at_acute_angles {
     my $self = shift;
     
