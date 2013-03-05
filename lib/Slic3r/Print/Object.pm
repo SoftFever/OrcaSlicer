@@ -466,6 +466,7 @@ sub bridge_over_infill {
                     ), @{diff_ex(
                         [ map $_->p, @internal_solid ],
                         [ map @$_, @$to_bridge ],
+                        1,
                     )};
                 @{$layerm->fill_surfaces} = @new_surfaces;
             }
