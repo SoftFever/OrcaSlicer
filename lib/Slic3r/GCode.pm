@@ -186,26 +186,9 @@ sub extrude_path {
         return $gcode;
     }
     
-    my $gcode = "";
-    
-    # skip retract for support material
-    {
-        # retract if distance from previous position is greater or equal to the one specified by the user
-        my $travel = Slic3r::Line->new($self->last_pos->clone, $path->points->[0]->clone);
-        if ($travel->length >= scale $self->extruder->retract_before_travel
-            && ($path->role != EXTR_ROLE_SUPPORTMATERIAL || !$self->layer->support_islands_enclose_line($travel))) {
-            # move travel back to original layer coordinates.
-            # note that we're only considering the current object's islands, while we should
-            # build a more complete configuration space
-            $travel->translate(-$self->shift_x, -$self->shift_y);
-            if (!$Slic3r::Config->only_retract_when_crossing_perimeters || !$path->is_fill || !first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}) {
-                $gcode .= $self->retract(travel_to => $path->points->[0]);
-            }
-        }
-    }
-    
     # go to first point of extrusion path
-    $gcode .= $self->travel_to($path->points->[0], "move to first $description point");
+    my $gcode = "";
+    $gcode .= $self->travel_to($path->points->[0], $path->role, "move to first $description point");
     
     # compensate retraction
     $gcode .= $self->unretract;
@@ -260,17 +243,54 @@ sub extrude_path {
 
 sub travel_to {
     my $self = shift;
-    my ($point, $comment) = @_;
+    my ($point, $role, $comment) = @_;
     
-    return "" if points_coincide($self->last_pos, $point);
     $self->speed('travel');
     my $gcode = "";
-    if ($Slic3r::Config->avoid_crossing_perimeters && $self->last_pos->distance_to($point) > scale 5 && !$self->straight_once) {
+    
+    my $travel = Slic3r::Line->new($self->last_pos->clone, $point->clone);
+    
+    # move travel back to original layer coordinates for the island check.
+    # note that we're only considering the current object's islands, while we should
+    # build a more complete configuration space
+    $travel->translate(-$self->shift_x, -$self->shift_y);
+    
+    if ($travel->length < scale $self->extruder->retract_before_travel
+        || ($Slic3r::Config->only_retract_when_crossing_perimeters && first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices})
+        || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
+        ) {
+        $self->straight_once(0);
+        $gcode .= $self->G0($point, undef, 0, $comment || "");
+    } elsif (!$Slic3r::Config->avoid_crossing_perimeters || $self->straight_once) {
+        $self->straight_once(0);
+        $gcode .= $self->retract(travel_to => $point);
+        $gcode .= $self->G0($point, undef, 0, $comment || "");
+    } else {
         my $plan = sub {
             my $mp = shift;
-            return join '', 
-                map $self->G0($_->[B], undef, 0, $comment || ""),
-                $mp->shortest_path($self->last_pos, $point)->lines;
+            
+            my $gcode = "";
+            my @travel = $mp->shortest_path($self->last_pos, $point)->lines;
+            
+            # if the path is not contained in a single island we need to retract
+            my $need_retract = !$Slic3r::Config->only_retract_when_crossing_perimeters;
+            if (!$need_retract) {
+                $need_retract = 1;
+                foreach my $slice (@{$self->layer->slices}) {
+                    # discard the island if at any line is not enclosed in it
+                    next if first { !$slice->encloses_line($_, scaled_epsilon) } @travel;
+                    # okay, this island encloses the full travel path
+                    $need_retract = 0;
+                    last;
+                }
+            }
+            
+            # do the retract (the travel_to argument is broken)
+            $gcode .= $self->retract(travel_to => $point) if $need_retract;
+            
+            # append the actual path and return
+            $gcode .= join '', map $self->G0($_->[B], undef, 0, $comment || ""), @travel;
+            return $gcode;
         };
         
         if ($self->new_object) {
@@ -288,9 +308,6 @@ sub travel_to {
         } else {
             $gcode .= $plan->($self->layer_mp);
         }
-    } else {
-        $self->straight_once(0);
-        $gcode .= $self->G0($point, undef, 0, $comment || "");
     }
     
     return $gcode;
