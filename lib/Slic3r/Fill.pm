@@ -52,7 +52,9 @@ sub make_fill {
     
     Slic3r::debugf "Filling layer %d:\n", $layerm->id;
     
-    # merge overlapping surfaces
+    # merge adjacent surfaces
+    # in case of bridge surfaces, the ones with defined angle will be attached to the ones
+    # without any angle (shouldn't this logic be moved to process_bridges()?)
     my @surfaces = ();
     {
         my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
@@ -89,35 +91,10 @@ sub make_fill {
         }
     }
     
-    # add spacing between adjacent surfaces
+    # add spacing between surfaces
     {
         my $distance = $layerm->infill_flow->scaled_spacing / 2;
-        my @offsets = ();
-        foreach my $surface (@surfaces) {
-            my $expolygon = $surface->expolygon;
-            my $diff = diff_ex(
-                [ $expolygon->offset($distance) ],
-                $expolygon,
-                1,
-            );
-            push @offsets, map @$_, @$diff;
-        }
-        
-        my @new_surfaces = ();
-        foreach my $surface (@surfaces) {
-            my $diff = diff_ex(
-                $surface->expolygon,
-                [ @offsets ],
-            );
-            
-            push @new_surfaces, map Slic3r::Surface->new(
-                expolygon => $_,
-                surface_type => $surface->surface_type,
-                bridge_angle => $surface->bridge_angle,
-                depth_layers => $surface->depth_layers,
-            ), @$diff;
-        }
-        @surfaces = @new_surfaces;
+        @surfaces = map $_->offset(-$distance), @surfaces;
     }
     
     my @fills = ();
