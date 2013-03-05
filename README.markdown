@@ -193,7 +193,7 @@ The author of the Silk icon set is Mark James.
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
         --only-retract-when-crossing-perimeters
                             Disable retraction when travelling between infill paths inside the same island.
-                            (default: no)
+                            (default: yes)
         --solid-infill-below-area
                             Force solid infill when a region has a smaller area than this threshold
                             (mm^2, default: 70)
