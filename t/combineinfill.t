@@ -48,7 +48,7 @@ use Slic3r::Test;
         }
         $_->detect_surfaces_type for @{$self->objects};
         $_->prepare_fill_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
-        $_->process_bridges for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
+        $_->process_external_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
         $_->discover_horizontal_shells for @{$self->objects};
         $_->combine_infill for @{$self->objects};
 

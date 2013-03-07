@@ -300,7 +300,7 @@ sub detect_surfaces_type {
             [ map @$_, @$clip_surfaces ],
             1,
         );
-        return grep $_->contour->is_printable($layerm->perimeter_flow),
+        return grep $_->contour->is_printable($layerm->perimeter_flow->scaled_width),
             map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type), 
             @$expolygons;
     };
@@ -515,7 +515,9 @@ sub discover_horizontal_shells {
             
             foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find slices of current type for current layer
-                my @surfaces = grep $_->surface_type == $type, @{$layerm->slices} or next;
+                # get both slices and fill_surfaces before the former contains the perimeters area
+                # and the latter contains the enlarged external surfaces
+                my @surfaces = grep $_->surface_type == $type, @{$layerm->slices}, @{$layerm->fill_surfaces} or next;
                 my $surfaces_p = [ map $_->p, @surfaces ];
                 Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
                     $i, scalar(@surfaces), ($type == S_TYPE_TOP ? 'top' : 'bottom');
@@ -548,7 +550,7 @@ sub discover_horizontal_shells {
                         ( map @$_, @$new_internal_solid ),
                     ]);
                     
-                    # subtract intersections from layer surfaces to get resulting inner surfaces
+                    # subtract intersections from layer surfaces to get resulting internal surfaces
                     my $internal = diff_ex(
                         [ map $_->p, grep $_->surface_type == S_TYPE_INTERNAL, @neighbor_fill_surfaces ],
                         [ map @$_, @$internal_solid ],
@@ -557,10 +559,7 @@ sub discover_horizontal_shells {
                     Slic3r::debugf "    %d internal-solid and %d internal surfaces found\n",
                         scalar(@$internal_solid), scalar(@$internal);
                     
-                    # Note: due to floating point math we're going to get some very small
-                    # polygons as $internal; they will be removed by removed_small_features()
-                    
-                    # assign resulting inner surfaces to layer
+                    # assign resulting internal surfaces to layer
                     my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
                     @$neighbor_fill_surfaces = ();
                     push @$neighbor_fill_surfaces, Slic3r::Surface->new
@@ -586,17 +585,7 @@ sub discover_horizontal_shells {
                 }
             }
             
-            my $area_threshold = $layerm->infill_area_threshold;
-            @{$layerm->fill_surfaces} = grep $_->expolygon->area > $area_threshold, @{$layerm->fill_surfaces};
-        }
-        
-        for (my $i = 0; $i < $self->layer_count; $i++) {
-            my $layerm = $self->layers->[$i]->regions->[$region_id];
-            
-            # if hollow object is requested, remove internal surfaces
-            if ($Slic3r::Config->fill_density == 0) {
-                @{$layerm->fill_surfaces} = grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
-            }
+            @{$layerm->fill_surfaces} = grep $_->expolygon->area > $layerm->infill_area_threshold, @{$layerm->fill_surfaces};
         }
     }
 }

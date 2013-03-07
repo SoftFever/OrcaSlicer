@@ -337,7 +337,8 @@ sub export_gcode {
             for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->regions});
     }
     
-    # this will transform $layer->fill_surfaces from expolygon 
+    # this will assign a type (top/bottom/internal) to $layerm->slices
+    # and transform $layerm->fill_surfaces from expolygon 
     # to typed top/bottom/internal surfaces;
     $status_cb->(30, "Detecting solid surfaces");
     $_->detect_surfaces_type for @{$self->objects};
@@ -349,7 +350,7 @@ sub export_gcode {
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
     $status_cb->(45, "Detect bridges");
-    $_->process_bridges for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
+    $_->process_external_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces

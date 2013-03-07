@@ -54,7 +54,7 @@ sub make_fill {
     
     # merge adjacent surfaces
     # in case of bridge surfaces, the ones with defined angle will be attached to the ones
-    # without any angle (shouldn't this logic be moved to process_bridges()?)
+    # without any angle (shouldn't this logic be moved to process_external_surfaces()?)
     my @surfaces = ();
     {
         my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
