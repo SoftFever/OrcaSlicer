@@ -89,6 +89,7 @@ my $test = sub {
 
 $config->set('retract_length',          [1.5]);
 $config->set('retract_before_travel',   [3]);
+$config->set('only_retract_when_crossing_perimeters', 0);
 
 my $retract_tests = sub {
     my ($descr) = @_;

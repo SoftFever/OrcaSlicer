@@ -437,11 +437,6 @@ sub _add_perimeter {
 sub prepare_fill_surfaces {
     my $self = shift;
     
-    # if hollow object is requested, remove internal surfaces
-    if ($Slic3r::Config->fill_density == 0) {
-        @{$self->fill_surfaces} = grep $_->surface_type != S_TYPE_INTERNAL, @{$self->fill_surfaces};
-    }
-    
     # if no solid layers are requested, turn top/bottom surfaces to internal
     if ($Slic3r::Config->top_solid_layers == 0) {
         $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type == S_TYPE_TOP, @{$self->fill_surfaces};

@@ -52,10 +52,17 @@ sub make_fill {
     
     Slic3r::debugf "Filling layer %d:\n", $layerm->id;
     
+    my @surfaces = ();
+    
+    # if hollow object is requested, remove internal surfaces
+    # (this needs to be done after internal-solid shells are created)
+    if ($Slic3r::Config->fill_density == 0) {
+        @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
+    }
+    
     # merge adjacent surfaces
     # in case of bridge surfaces, the ones with defined angle will be attached to the ones
     # without any angle (shouldn't this logic be moved to process_external_surfaces()?)
-    my @surfaces = ();
     {
         my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
         
