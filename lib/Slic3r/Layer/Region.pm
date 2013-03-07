@@ -16,6 +16,7 @@ has 'layer' => (
 has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'perimeter_flow'    => (is => 'rw');
 has 'infill_flow'       => (is => 'rw');
+has 'top_infill_flow'   => (is => 'rw');
 has 'infill_area_threshold' => (is => 'lazy');
 has 'overhang_width'    => (is => 'lazy');
 
@@ -62,9 +63,12 @@ sub _update_flows {
             ($self->region->first_layer_flows->{perimeter} || $self->region->flows->{perimeter});
         $self->infill_flow
             ($self->region->first_layer_flows->{infill} || $self->region->flows->{infill});
+        $self->top_infill_flow
+            ($self->region->first_layer_flows->{top_infill} || $self->region->flows->{top_infill});
     } else {
         $self->perimeter_flow($self->region->flows->{perimeter});
         $self->infill_flow($self->region->flows->{infill});
+        $self->top_infill_flow($self->region->flows->{top_infill});
     }
 }
 

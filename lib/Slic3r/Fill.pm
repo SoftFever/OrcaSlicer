@@ -102,7 +102,9 @@ sub make_fill {
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::Config->fill_pattern;
         my $density         = $Slic3r::Config->fill_density;
-        my $flow_spacing    = $layerm->infill_flow->spacing;
+        my $flow_spacing    = ($surface->surface_type == S_TYPE_TOP)
+            ? $layerm->top_infill_flow->spacing
+            : $layerm->infill_flow->spacing;
         my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         

@@ -200,10 +200,11 @@ sub init_extruders {
         my $region = $self->regions->[$region_id];
         
         # per-role extruders and flows
-        for (qw(perimeter infill)) {
+        for (qw(perimeter infill top_infill)) {
+            my $extruder_name = $_ eq 'top_infill' ? 'infill' : $_;
             $region->extruders->{$_} = ($self->regions_count > 1)
                 ? $self->extruders->[$extruder_mapping{$region_id}]
-                : $self->extruders->[$self->config->get("${_}_extruder")-1];
+                : $self->extruders->[$self->config->get("${extruder_name}_extruder")-1];
             $region->flows->{$_} = $region->extruders->{$_}->make_flow(
                 width => $self->config->get("${_}_extrusion_width") || $self->config->extrusion_width,
             );

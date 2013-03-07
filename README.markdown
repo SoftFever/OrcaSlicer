@@ -289,6 +289,8 @@ The author of the Silk icon set is Mark James.
                             Set a different extrusion width for perimeters
         --infill-extrusion-width
                             Set a different extrusion width for infill
+        --top-infill-extrusion-width
+                            Set a different extrusion width for top infill
         --support-material-extrusion-width
                             Set a different extrusion width for support material
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
