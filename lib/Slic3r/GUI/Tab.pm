@@ -178,6 +178,7 @@ sub select_preset {
 
 sub on_select_preset {
     my $self = shift;
+    return if $self->{mode} ne 'expert';
     
     if (defined $self->{dirty}) {
         my $name = $self->{dirty} == 0 ? 'Default preset' : "Preset \"$self->{presets}[$self->{dirty}]{name}\"";
@@ -363,21 +364,29 @@ sub load_external_config {
     my $self = shift;
     my ($file) = @_;
     
-    # look for the loaded config among the existing menu items
-    my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
-    if (!$i) {
-        my $preset_name = basename($file);  # keep the .ini suffix
-        push @{$self->{presets}}, {
-            file        => $file,
-            name        => $preset_name,
-            external    => 1,
-        };
-        $self->{presets_choice}->Append($preset_name);
-        $i = $#{$self->{presets}};
+    if ($self->{mode} eq 'expert') {
+        # look for the loaded config among the existing menu items
+        my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
+        if (!$i) {
+            my $preset_name = basename($file);  # keep the .ini suffix
+            push @{$self->{presets}}, {
+                file        => $file,
+                name        => $preset_name,
+                external    => 1,
+            };
+            $self->{presets_choice}->Append($preset_name) if $self->{presets_choice};
+            $i = $#{$self->{presets}};
+        }
+        $self->{presets_choice}->SetSelection($i) if $self->{presets_choice};
+        $self->on_select_preset;
+        $self->sync_presets;
+    } else {
+        my $config = Slic3r::Config->load($file);
+        foreach my $opt_key (keys %{$self->{config}}) {
+            $self->{config}->set($opt_key, $config->get($opt_key));
+        }
+        $self->reload_values;
     }
-    $self->{presets_choice}->SetSelection($i);
-    $self->on_select_preset;
-    $self->sync_presets;
 }
 
 sub sync_presets {
@@ -698,7 +707,7 @@ sub _update_description {
             $msg .= "\nDuring the other layers, fan will be turned off."
         }
     }
-    $self->{description_line}->SetText($msg);
+    $self->{description_line}->SetText($msg) if $self->{description_line};
 }
 
 sub on_value_change {
