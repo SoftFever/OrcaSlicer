@@ -406,17 +406,11 @@ sub build_simple {
     
     $self->add_options_page('', '', optgroups => [
         {
-            title => 'Layer height',
-            options => [qw(layer_height)],
-        },
-        {
-            title => 'Vertical shells',
-            options => [qw(perimeters)],
-        },
-        {
-            title => 'Horizontal shells',
-            options => [qw(top_solid_layers bottom_solid_layers)],
+            title => 'General',
+            options => [qw(layer_height perimeters top_solid_layers bottom_solid_layers)],
             lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('layer_height'),
+                Slic3r::GUI::OptionsGroup->single_option_line('perimeters'),
                 {
                     label   => 'Solid layers',
                     options => [qw(top_solid_layers bottom_solid_layers)],
@@ -428,16 +422,16 @@ sub build_simple {
             options => [qw(fill_density fill_pattern)],
         },
         {
+            title => 'Support material',
+            options => [qw(support_material support_material_spacing raft_layers)],
+        },
+        {
             title => 'Speed',
             options => [qw(perimeter_speed infill_speed travel_speed)],
         },
         {
             title => 'Brim',
             options => [qw(brim_width)],
-        },
-        {
-            title => 'Support material',
-            options => [qw(support_material support_material_spacing)],
         },
         {
             title => 'Sequential printing',

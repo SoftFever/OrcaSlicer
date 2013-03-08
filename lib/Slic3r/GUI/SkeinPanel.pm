@@ -331,6 +331,7 @@ sub config {
     if ($self->{mode} eq 'simple') {
         # set some sensible defaults
         $config->set('first_layer_height', $config->nozzle_diameter->[0]);
+        $config->set('avoid_crossing_perimeters', 1);
     }
     
     return $config;
