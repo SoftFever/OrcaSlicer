@@ -156,7 +156,7 @@ $j
                         (default: $config->{print_center}->[0],$config->{print_center}->[1])
     --z-offset          Additional height in mm to add to vertical coordinates
                         (+/-, default: $config->{z_offset})
-    --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/mach3/no-extrusion,
+    --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/sailfish/mach3/no-extrusion,
                         default: $config->{gcode_flavor})
     --use-relative-e-distances Enable this to get relative E values
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
@@ -201,6 +201,17 @@ $j
     --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute
                         value or as a percentage over normal speeds (default: $config->{first_layer_speed})
     
+  Acceleration options:
+    --perimeter-acceleration
+                        Overrides firmware's default acceleration for perimeters. (mm/s^2, set zero
+                        to disable; default: $config->{perimeter_acceleration})
+    --infill-acceleration
+                        Overrides firmware's default acceleration for infill. (mm/s^2, set zero
+                        to disable; default: $config->{infill_acceleration})
+    --default-acceleration
+                        Acceleration will be reset to this value after the specific settings above
+                        have been applied. (mm/s^2, set zero to disable; default: $config->{travel_speed})
+    
   Accuracy options:
     --layer-height      Layer height in mm (default: $config->{layer_height})
     --first-layer-height Layer height for first layer (mm or %, default: $config->{first_layer_height})
@@ -227,12 +238,15 @@ $j
     --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
+    --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
     --only-retract-when-crossing-perimeters
                         Disable retraction when travelling between infill paths inside the same island.
                         (default: no)
     --solid-infill-below-area
                         Force solid infill when a region has a smaller area than this threshold
                         (mm^2, default: $config->{solid_infill_below_area})
+    --infill-only-where-needed
+                        Only infill under ceilings (default: no)
   
    Support material options:
     --support-material  Generate support material for overhangs
@@ -245,6 +259,14 @@ $j
                         Spacing between pattern lines (mm, default: $config->{support_material_spacing})
     --support-material-angle
                         Support material angle in degrees (range: 0-90, default: $config->{support_material_angle})
+    --support-material-interface-layers
+                        Number of perpendicular layers between support material and object (0+, default: $config->{support_material_interface_layers})
+    --support-material-interface-spacing
+                        Spacing between interface pattern lines (mm, set 0 to get a solid layer, default: $config->{support_material_interface_spacing})
+    --raft-layers       Number of layers to raise the printed objects by (range: 0+, default: $config->{raft_layers})
+    --support-material-enforce-layers
+                        Enforce support material on the specified number of layers from bottom,
+                        regardless of --support-material and threshold (0+, default: $config->{support_material_enforce_layers})
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion (default: $config->{retract_length}[0])
@@ -311,10 +333,12 @@ $j
                         (like 0.65) or a percentage over layer height (like 200%)
     --first-layer-extrusion-width
                         Set a different extrusion width for first layer
-    --perimeters-extrusion-width
+    --perimeter-extrusion-width
                         Set a different extrusion width for perimeters
     --infill-extrusion-width
                         Set a different extrusion width for infill
+    --top-infill-extrusion-width
+                        Set a different extrusion width for top infill
     --support-material-extrusion-width
                         Set a different extrusion width for support material
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $config->{bridge_flow_ratio})
@@ -322,7 +346,7 @@ $j
    Multiple extruder options:
     --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
                         (can be specified multiple times, default: 0x0)
-    --perimeters-extruder
+    --perimeter-extruder
                         Extruder to use for perimeters (1+, default: 1)
     --infill-extruder   Extruder to use for infill (1+, default: 1)
     --support-material-extruder

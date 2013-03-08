@@ -6,7 +6,7 @@ use warnings;
 
 use Boost::Geometry::Utils;
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon same_line line_length);
+use Slic3r::Geometry qw(X Y A B point_in_polygon same_line line_length epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
 # the constructor accepts an array of polygons 
@@ -57,6 +57,12 @@ sub clipper_expolygon {
 sub boost_polygon {
     my $self = shift;
     return Boost::Geometry::Utils::polygon(@$self);
+}
+
+sub wkt {
+    my $self = shift;
+    return sprintf "POLYGON(%s)", 
+        join ',', map "($_)", map { join ',', map "$_->[0] $_->[1]", @$_ } @$self;
 }
 
 sub offset {
@@ -153,15 +159,13 @@ sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
     
-    return Boost::Geometry::Utils::polygon_linestring_intersection(
-        $self->boost_polygon,
-        $line->boost_linestring,
-    );
+    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self, [$line]);
 }
 
 sub simplify {
     my $self = shift;
     $_->simplify(@_) for @$self;
+    $self;
 }
 
 sub scale {
@@ -172,11 +176,13 @@ sub scale {
 sub translate {
     my $self = shift;
     $_->translate(@_) for @$self;
+    $self;
 }
 
 sub rotate {
     my $self = shift;
     $_->rotate(@_) for @$self;
+    $self;
 }
 
 sub area {

@@ -130,7 +130,7 @@ sub output_lines {
 sub write_svg {
     my ($svg, $filename) = @_;
     
-    open my $fh, '>', $filename;
+    Slic3r::open(\my $fh, '>', $filename);
     print $fh $svg->xmlify;
     close $fh;
     printf "SVG written to %s\n", $filename;

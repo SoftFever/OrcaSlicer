@@ -13,7 +13,7 @@ sub read_file {
     	1;
     } or die "AMF parsing requires XML::SAX\n";
     
-    open my $fh, '<', $file or die "Failed to open $file\n";
+    Slic3r::open(\my $fh, '<', $file) or die "Failed to open $file\n";
     
     my $model = Slic3r::Model->new;
     XML::SAX::ParserFactory
@@ -30,7 +30,7 @@ sub write_file {
     
     my %vertices_offset = ();
     
-    open my $fh, '>', $file;
+    Slic3r::open(\my $fh, '>', $file);
     binmode $fh, ':utf8';
     printf $fh qq{<?xml version="1.0" encoding="UTF-8"?>\n};
     printf $fh qq{<amf unit="millimeter">\n};

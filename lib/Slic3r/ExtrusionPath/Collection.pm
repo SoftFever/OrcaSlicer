@@ -8,19 +8,19 @@ sub endpoints {
     return [ map $_->endpoints, @{$self->paths} ];
 }
 
-sub shortest_path {
+sub chained_path {
     my $self = shift;
     my ($start_near) = @_;
     
     # make sure we pass the same path objects to the Collection constructor
-    # and the ->shortest_path() method because the latter will reverse the
+    # and the ->chained_path() method because the latter will reverse the
     # paths in-place when needed and we need to return them that way
     my @paths = map $_->unpack, @{$self->paths};
     my $collection = Slic3r::Polyline::Collection->new(
         polylines => [ map $_->polyline, @paths ],
     );
     
-    return $collection->shortest_path($start_near, \@paths);
+    return $collection->chained_path($start_near, \@paths);
 }
 
 sub cleanup {

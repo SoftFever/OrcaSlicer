@@ -40,8 +40,8 @@ use Slic3r::Test;
     };
     
     ok $test->(), "proper number of shells is applied";
-    
     $config->set('fill_density', 0);
+    
     ok $test->(), "proper number of shells is applied even when fill density is none";
 }
 

@@ -24,90 +24,90 @@ is Slic3r::Geometry::point_in_segment([20, 15], [ [10, 10], [20, 20] ]), 0, 'poi
 #==========================================================
 
 my $square = [  # ccw
-    [10, 10],
-    [20, 10],
-    [20, 20],
-    [10, 20],
+    [100, 100],
+    [200, 100],
+    [200, 200],
+    [100, 200],
 ];
 
-my $line = Slic3r::Line->new([5, 15], [30, 15]);
+my $line = Slic3r::Line->new([50, 150], [300, 150]);
 
 my $intersection = Slic3r::Geometry::clip_segment_polygon($line, $square);
-is_deeply $intersection, [ [10, 15], [20, 15] ], 'line is clipped to square';
+is_deeply $intersection, [ [100, 150], [200, 150] ], 'line is clipped to square';
 
 #==========================================================
 
-$intersection = Slic3r::Geometry::clip_segment_polygon([ [0, 15], [8, 15] ], $square);
+$intersection = Slic3r::Geometry::clip_segment_polygon([ [0, 150], [80, 150] ], $square);
 is $intersection, undef, 'external lines are ignored 1';
 
 #==========================================================
 
-$intersection = Slic3r::Geometry::clip_segment_polygon([ [30, 15], [40, 15] ], $square);
+$intersection = Slic3r::Geometry::clip_segment_polygon([ [300, 150], [400, 150] ], $square);
 is $intersection, undef, 'external lines are ignored 2';
 
 #==========================================================
 
-$intersection = Slic3r::Geometry::clip_segment_polygon([ [12, 12], [18, 16] ], $square);
-is_deeply $intersection, [ [12, 12], [18, 16] ], 'internal lines are preserved';
+$intersection = Slic3r::Geometry::clip_segment_polygon([ [120, 120], [180, 160] ], $square);
+is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserved';
 
 #==========================================================
 
 {
     my $hole_in_square = [  # cw
-        [14, 14],
-        [14, 16],
-        [16, 16],
-        [16, 14],
+        [140, 140],
+        [140, 160],
+        [160, 160],
+        [160, 140],
     ];
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
-    is $expolygon->encloses_point([10, 10]), 1, 'corner point is recognized';
-    is $expolygon->encloses_point([10, 18]), 1, 'point on contour is recognized';
-    is $expolygon->encloses_point([14, 15]), 1, 'point on hole contour is recognized';
-    is $expolygon->encloses_point([14, 14]), 1, 'point on hole corner is recognized';
+    is $expolygon->encloses_point([100, 100]), 1, 'corner point is recognized';
+    is $expolygon->encloses_point([100, 180]), 1, 'point on contour is recognized';
+    is $expolygon->encloses_point([140, 150]), 1, 'point on hole contour is recognized';
+    is $expolygon->encloses_point([140, 140]), 1, 'point on hole corner is recognized';
     {
-        my $intersections = $expolygon->clip_line(Slic3r::Line->new([15,18], [15,15]));
+        my $intersections = $expolygon->clip_line(Slic3r::Line->new([150,180], [150,150]));
         is_deeply $intersections, [
-            [ [15, 18], [15, 16] ],
+            [ [150, 180], [150, 160] ],
         ], 'line is clipped to square with hole';
     }
     {
-        my $intersections = $expolygon->clip_line(Slic3r::Line->new([15,15], [15,12]));
+        my $intersections = $expolygon->clip_line(Slic3r::Line->new([150,150], [150,120]));
         is_deeply $intersections, [
-            [ [15, 14], [15, 12] ],
+            [ [150, 140], [150, 120] ],
         ], 'line is clipped to square with hole';
     }
     {
-        my $intersections = $expolygon->clip_line(Slic3r::Line->new([12,18], [18,18]));
+        my $intersections = $expolygon->clip_line(Slic3r::Line->new([120,180], [180,180]));
         is_deeply $intersections, [
-            [ [12,18], [18,18] ],
+            [ [120,180], [180,180] ],
         ], 'line is clipped to square with hole';
     }
     {
         my $intersections = $expolygon->clip_line($line);
         is_deeply $intersections, [
-            [ [10, 15], [14, 15] ],
-            [ [16, 15], [20, 15] ],
+            [ [100, 150], [140, 150] ],
+            [ [160, 150], [200, 150] ],
         ], 'line is clipped to square with hole';
     }
     {
         my $intersections = $expolygon->clip_line(Slic3r::Line->new(reverse @$line));
         is_deeply $intersections, [
-            [ [20, 15], [16, 15] ],
-            [ [14, 15], [10, 15] ],
+            [ [200, 150], [160, 150] ],
+            [ [140, 150], [100, 150] ],
         ], 'reverse line is clipped to square with hole';
     }
     {
-        my $intersections = $expolygon->clip_line(Slic3r::Line->new([10,18], [20,18]));
+        my $intersections = $expolygon->clip_line(Slic3r::Line->new([100,180], [200,180]));
         is_deeply $intersections, [
-            [ [10, 18], [20, 18] ],
+            [ [100, 180], [200, 180] ],
         ], 'tangent line is clipped to square with hole';
     }
     {
-        my $polyline = Slic3r::Polyline->new([ [5, 18], [25, 18], [25, 15], [15, 15], [15, 12], [12, 12], [12, 5] ]);
+        my $polyline = Slic3r::Polyline->new([ [50, 180], [250, 180], [250, 150], [150, 150], [150, 120], [120, 120], [120, 50] ]);
         is_deeply [ map $_, $polyline->clip_with_expolygon($expolygon) ], [
-            [ [10, 18], [20, 18] ],
-            [ [20, 15], [16, 15] ],
-            [ [15, 14], [15, 12], [12, 12], [12, 10] ],
+            [ [100, 180], [200, 180] ],
+            [ [200, 150], [160, 150] ],
+            [ [150, 140], [150, 120], [120, 120], [120, 100] ],
         ], 'polyline is clipped to square with hole';
     }
 }
@@ -144,8 +144,8 @@ is_deeply $intersection, [ [12, 12], [18, 16] ], 'internal lines are preserved';
     
     my $intersections = $expolygon->clip_line($line);
     is_deeply $intersections, [
-        [ [152.742, 288.087], [152.742, 215.179],  ],
-        [ [152.742, 108.088], [152.742, 35.1665] ],
+        [ [152, 287], [152, 214],  ],
+        [ [152, 107], [152, 35] ],
     ], 'line is clipped to square with hole';
 }
 

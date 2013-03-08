@@ -18,7 +18,7 @@ use constant FILE_WILDCARDS => {
     obj     => 'OBJ files (*.obj)|*.obj;*.OBJ',
     amf     => 'AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML',
     ini     => 'INI files *.ini|*.ini;*.INI',
-    gcode   => 'G-code files *.gcode|*.gcode;*.GCODE|G-code files *.g|*.g;*.G',
+    gcode   => 'G-code files (*.gcode, *.gco, *.g)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G',
     svg     => 'SVG files *.svg|*.svg;*.SVG',
 };
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(stl obj amf)};

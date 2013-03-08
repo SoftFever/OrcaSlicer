@@ -12,7 +12,7 @@ use Slic3r::Fill::OctagramSpiral;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y PI scale shortest_path);
+use Slic3r::Geometry qw(X Y PI scale chained_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
 use Slic3r::Surface ':types';
 
@@ -48,17 +48,26 @@ sub filler {
 
 sub make_fill {
     my $self = shift;
-    my ($layer) = @_;
+    my ($layerm) = @_;
     
-    Slic3r::debugf "Filling layer %d:\n", $layer->id;
+    Slic3r::debugf "Filling layer %d:\n", $layerm->id;
     
-    # merge overlapping surfaces
     my @surfaces = ();
+    
+    # if hollow object is requested, remove internal surfaces
+    # (this needs to be done after internal-solid shells are created)
+    if ($Slic3r::Config->fill_density == 0) {
+        @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
+    }
+    
+    # merge adjacent surfaces
+    # in case of bridge surfaces, the ones with defined angle will be attached to the ones
+    # without any angle (shouldn't this logic be moved to process_external_surfaces()?)
     {
-        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layer->fill_surfaces};
+        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
         
         # give priority to bridges
-        my @groups = Slic3r::Surface->group({merge_solid => 1}, @{$layer->fill_surfaces});
+        my @groups = Slic3r::Surface->group({merge_solid => 1}, @{$layerm->fill_surfaces});
         @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
         
         foreach my $group (@groups) {
@@ -89,35 +98,10 @@ sub make_fill {
         }
     }
     
-    # add spacing between adjacent surfaces
+    # add spacing between surfaces
     {
-        my $distance = $layer->infill_flow->scaled_spacing / 2;
-        my @offsets = ();
-        foreach my $surface (@surfaces) {
-            my $expolygon = $surface->expolygon;
-            my $diff = diff_ex(
-                [ $expolygon->offset($distance) ],
-                $expolygon,
-                1,
-            );
-            push @offsets, map @$_, @$diff;
-        }
-        
-        my @new_surfaces = ();
-        foreach my $surface (@surfaces) {
-            my $diff = diff_ex(
-                $surface->expolygon,
-                [ @offsets ],
-            );
-            
-            push @new_surfaces, map Slic3r::Surface->new(
-                expolygon => $_,
-                surface_type => $surface->surface_type,
-                bridge_angle => $surface->bridge_angle,
-                depth_layers => $surface->depth_layers,
-            ), @$diff;
-        }
-        @surfaces = @new_surfaces;
+        my $distance = $layerm->infill_flow->scaled_spacing / 2;
+        @surfaces = map $_->offset(-$distance), @surfaces;
     }
     
     my @fills = ();
@@ -125,9 +109,11 @@ sub make_fill {
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::Config->fill_pattern;
         my $density         = $Slic3r::Config->fill_density;
-        my $flow_spacing    = $layer->infill_flow->spacing;
-        my $is_bridge       = $layer->id > 0 && $surface->surface_type == S_TYPE_BOTTOM;
-        my $is_solid        = (grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID) ? 1 : 0;
+        my $flow_spacing    = ($surface->surface_type == S_TYPE_TOP)
+            ? $layerm->top_infill_flow->spacing
+            : $layerm->infill_flow->spacing;
+        my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
+        my $is_solid        = $surface->is_solid;
         
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type != S_TYPE_INTERNAL) {
@@ -135,7 +121,7 @@ sub make_fill {
             $filler = $Slic3r::Config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
-                $flow_spacing = $layer->infill_flow->bridge_spacing;
+                $flow_spacing = $layerm->extruders->{infill}->bridge_flow->spacing;
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }
@@ -146,7 +132,7 @@ sub make_fill {
         my @paths;
         {
             my $f = $self->filler($filler);
-            $f->layer_id($layer->id);
+            $f->layer_id($layerm->id);
             @paths = $f->fill_surface(
                 $surface,
                 density         => $density,
@@ -157,7 +143,7 @@ sub make_fill {
         my $params = shift @paths;
         
         # ugly hack(tm) to get the right amount of flow (GCode.pm should be fixed)
-        $params->{flow_spacing} = $layer->infill_flow->bridge_width if $is_bridge;
+        $params->{flow_spacing} = $layerm->extruders->{infill}->bridge_flow->width if $is_bridge;
         
         # save into layer
         next unless @paths;
@@ -170,7 +156,7 @@ sub make_fill {
                         : $is_solid
                             ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                             : EXTR_ROLE_FILL),
-                    height => $surface->depth_layers * $layer->height,
+                    height => $surface->depth_layers * $layerm->height,
                     flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
                 ), @paths,
             ],
@@ -179,13 +165,11 @@ sub make_fill {
     }
     
     # add thin fill regions
-    push @fills, @{$layer->thin_fills};
-    push @fills_ordering_points, map $_->unpack->points->[0], @{$layer->thin_fills};
+    push @fills, @{$layerm->thin_fills};
+    push @fills_ordering_points, map $_->unpack->points->[0], @{$layerm->thin_fills};
     
-    # organize infill paths using a shortest path search
-    @fills = @{shortest_path([
-        map [ $fills_ordering_points[$_], $fills[$_] ], 0..$#fills,
-    ])};
+    # organize infill paths using a nearest-neighbor search
+    @fills = @fills[ chained_path(\@fills_ordering_points) ];
     
     return @fills;
 }

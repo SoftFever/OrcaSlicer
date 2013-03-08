@@ -22,7 +22,7 @@ _arguments -S \
     '*--nozzle-diameter[specify nozzle diameter]:nozzle diameter in mm' \
     '--print-center[specify print center coordinates]:print center coordinates in mm,mm' \
     '--z-offset[specify Z-axis offset]:Z-axis offset in mm' \
-    '--gcode-flavor[specify the type of G-code to generate]:G-code flavor:(reprap teacup makerbot mach3 no-extrusion)' \
+    '--gcode-flavor[specify the type of G-code to generate]:G-code flavor:(reprap teacup makerbot sailfish mach3 no-extrusion)' \
     '(--use-relative-e-distances --no-use-relative-e-distances)'--{no-,}use-relative-e-distances'[disable/enable relative E values]' \
     '--extrusion-axis[specify letter associated with the extrusion axis]:extrusion axis letter' \
     '(--gcode-arcs --no-gcode-arcs)'--{no-,}gcode-arcs'[disable/enable G2/G3 commands for native arcs]' \

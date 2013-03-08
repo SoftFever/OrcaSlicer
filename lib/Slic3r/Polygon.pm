@@ -14,6 +14,11 @@ sub lines {
     return polygon_lines($self);
 }
 
+sub boost_polygon {
+    my $self = shift;
+    return Boost::Geometry::Utils::polygon($self);
+}
+
 sub boost_linestring {
     my $self = shift;
     return Boost::Geometry::Utils::linestring([@$self, $self->[0]]);
@@ -113,7 +118,7 @@ sub subdivide {
 # returns false if the polyline is too tight to be printed
 sub is_printable {
     my $self = shift;
-    my ($flow_width) = @_;
+    my ($width) = @_;
     
     # try to get an inwards offset
     # for a distance equal to half of the extrusion width;
@@ -124,7 +129,7 @@ sub is_printable {
     # detect them and we would be discarding them.
     my $p = $self->clone;
     $p->make_counter_clockwise;
-    return $p->offset(Slic3r::Geometry::scale($flow_width || $Slic3r::flow->width) / 2) ? 1 : 0;
+    return $p->offset(-$width / 2) ? 1 : 0;
 }
 
 sub is_valid {
@@ -136,7 +141,7 @@ sub split_at_index {
     my $self = shift;
     my ($index) = @_;
     
-    return (ref $self)->new(
+    return Slic3r::Polyline->new(
         @$self[$index .. $#$self], 
         @$self[0 .. $index],
     );

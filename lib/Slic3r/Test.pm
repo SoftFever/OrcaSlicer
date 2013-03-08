@@ -15,30 +15,34 @@ my %cuboids = (
     '2x20x10'   => [2, 20,10],
 );
 
-sub init_print {
-    my ($model_name, %params) = @_;
+sub model {
+    my ($model_name) = @_;
+    
+    my ($vertices, $facets);
+    if ($cuboids{$model_name}) {
+        my ($x, $y, $z) = @{ $cuboids{$model_name} };
+        $vertices = [
+            [$x,$y,0], [$x,0,0], [0,0,0], [0,$y,0], [$x,$y,$z], [0,$y,$z], [0,0,$z], [$x,0,$z],
+        ];
+        $facets = [
+            [0,1,2], [0,2,3], [4,5,6], [4,6,7], [0,4,7], [0,7,1], [1,7,6], [1,6,2], [2,6,5], [2,5,3], [4,0,3], [4,3,5],
+        ],
+    }
     
     my $model = Slic3r::Model->new;
-    {
-        my ($vertices, $facets);
-        if ($cuboids{$model_name}) {
-            my ($x, $y, $z) = @{ $cuboids{$model_name} };
-            $vertices = [
-                [$x,$y,0], [$x,0,0], [0,0,0], [0,$y,0], [$x,$y,$z], [0,$y,$z], [0,0,$z], [$x,0,$z],
-            ];
-            $facets = [
-                [0,1,2], [0,2,3], [4,5,6], [4,6,7], [0,4,7], [0,7,1], [1,7,6], [1,6,2], [2,6,5], [2,5,3], [4,0,3], [4,3,5],
-            ],
-        }
-        $model->add_object(vertices => $vertices)->add_volume(facets => $facets);
-    }
+    $model->add_object(vertices => $vertices)->add_volume(facets => $facets);
+    return $model;
+}
+
+sub init_print {
+    my ($model_name, %params) = @_;
     
     my $config = Slic3r::Config->new_from_defaults;
     $config->apply($params{config}) if $params{config};
     $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
     my $print = Slic3r::Print->new(config => $config);
-    $print->add_model($model);
+    $print->add_model(model($model_name));
     $print->validate;
     
     return $print;

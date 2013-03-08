@@ -4,7 +4,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID);
+our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE);
 our %EXPORT_TAGS = (types => \@EXPORT_OK);
 
 use constant S_EXPOLYGON    => 0;
@@ -17,6 +17,7 @@ use constant S_TYPE_TOP             => 0;
 use constant S_TYPE_BOTTOM          => 1;
 use constant S_TYPE_INTERNAL        => 2;
 use constant S_TYPE_INTERNALSOLID   => 3;
+use constant S_TYPE_INTERNALBRIDGE  => 4;
 
 sub new {
     my $class = shift;
@@ -34,8 +35,8 @@ sub new {
 sub expolygon       { $_[0][S_EXPOLYGON] }
 sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if defined $_[1]; $_[0][S_SURFACE_TYPE] }
 sub depth_layers    { $_[0][S_DEPTH_LAYERS] } # this integer represents the thickness of the surface expressed in layers
-sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] }
-sub additional_inner_perimeters { $_[0][S_ADDITIONAL_INNER_PERIMETERS] = $_[1] if $_[1]; $_[0][S_ADDITIONAL_INNER_PERIMETERS] }
+sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] = $_[1] if defined $_[1]; $_[0][S_BRIDGE_ANGLE] }
+sub additional_inner_perimeters { $_[0][S_ADDITIONAL_INNER_PERIMETERS] = $_[1] if defined $_[1]; $_[0][S_ADDITIONAL_INNER_PERIMETERS] }
 
 # delegate handles
 sub encloses_point  { $_[0]->expolygon->encloses_point }
@@ -51,7 +52,7 @@ sub group {
     
     my %unique_types = ();
     foreach my $surface (@surfaces) {
-        my $type = ($params->{merge_solid} && grep { $surface->surface_type == $_ } S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_INTERNALSOLID)
+        my $type = ($params->{merge_solid} && $surface->is_solid)
             ? 'solid'
             : $surface->surface_type;
         $type .= "_" . ($surface->bridge_angle // ''); #/
@@ -87,6 +88,30 @@ sub clipper_polygon {
 sub p {
     my $self = shift;
     return @{$self->expolygon};
+}
+
+sub is_solid {
+    my $self = shift;
+    my $type = $self->surface_type;
+    # S_TYPE_INTERNALBRIDGE is not solid because we can't merge it with other solid types
+    return $type == S_TYPE_TOP
+        || $type == S_TYPE_BOTTOM
+        || $type == S_TYPE_INTERNALSOLID;
+}
+
+sub is_internal {
+    my $self = shift;
+    my $type = $self->surface_type;
+    return $type == S_TYPE_INTERNAL
+        || $type == S_TYPE_INTERNALSOLID
+        || $type == S_TYPE_INTERNALBRIDGE;
+}
+
+sub is_bridge {
+    my $self = shift;
+    my $type = $self->surface_type;
+    return $type == S_TYPE_BOTTOM
+        || $type == S_TYPE_INTERNALBRIDGE;
 }
 
 1;
