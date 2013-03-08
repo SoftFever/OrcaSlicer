@@ -63,7 +63,7 @@ sub BUILD {
         $self->sizer(Wx::StaticBoxSizer->new($box, wxVERTICAL));
     }
     
-    my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$self->options}), 2, ($self->no_labels ? 1 : 2), 0);
+    my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$self->options}), 2, 0, 0);
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol($self->no_labels ? 0 : 1);
     

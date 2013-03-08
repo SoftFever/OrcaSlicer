@@ -407,6 +407,7 @@ sub build_simple {
     $self->add_options_page('', '', optgroups => [
         {
             title => 'General',
+            column => 0,
             options => [qw(layer_height perimeters top_solid_layers bottom_solid_layers)],
             lines => [
                 Slic3r::GUI::OptionsGroup->single_option_line('layer_height'),
@@ -419,6 +420,7 @@ sub build_simple {
         },
         {
             title => 'Infill',
+            column => 0,
             options => [qw(fill_density fill_pattern)],
         },
         {
@@ -919,6 +921,8 @@ package Slic3r::GUI::Tab::Page;
 use Wx qw(:misc :panel :sizer);
 use base 'Wx::ScrolledWindow';
 
+use List::Util qw(max);
+
 sub new {
     my $class = shift;
     my ($parent, $title, $iconID, %params) = @_;
@@ -929,15 +933,21 @@ sub new {
     
     $self->SetScrollbars(1, 1, 1, 1);
     
-    $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
-    $self->SetSizer($self->{vsizer});
+    $self->{hsizer} = Wx::BoxSizer->new(wxHORIZONTAL);
+    $self->SetSizer($self->{hsizer});
     
     if ($params{optgroups}) {
-        $self->append_optgroup(
-            %$_,
-            config      => $parent->{config},
-            on_change   => $params{on_change},
-        ) for @{$params{optgroups}};
+        $_->{column} //= 0 for @{$params{optgroups}};
+        for my $col (0 .. max(map $_->{column}, @{$params{optgroups}})) {
+            my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
+            $self->{hsizer}->Add($vertical_sizer, 1, wxEXPAND | wxALL, 0);
+            $self->append_optgroup(
+                %$_,
+                sizer       => $vertical_sizer,
+                config      => $parent->{config},
+                on_change   => $params{on_change},
+            ) for grep $_->{column} == $col, @{$params{optgroups}};
+        }
     }
     
     return $self;
@@ -954,7 +964,7 @@ sub append_optgroup {
         label_width => 200,
         %params,
     );
-    $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 5);
+    $params{sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 5);
     push @{$self->{optgroups}}, $optgroup;
 }
 
