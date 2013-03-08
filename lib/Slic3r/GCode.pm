@@ -164,7 +164,7 @@ sub extrude_loop {
         $point->rotate($angle, $extrusion_path->polyline->[0]);
         
         # generate the travel move
-        $gcode .= $self->travel_to($point, "move inwards before travel");
+        $gcode .= $self->travel_to($point, $loop->role, "move inwards before travel");
     }
     
     return $gcode;
