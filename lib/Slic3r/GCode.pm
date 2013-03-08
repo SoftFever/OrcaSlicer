@@ -245,7 +245,6 @@ sub travel_to {
     my $self = shift;
     my ($point, $role, $comment) = @_;
     
-    $self->speed('travel');
     my $gcode = "";
     
     my $travel = Slic3r::Line->new($self->last_pos->clone, $point->clone);
@@ -260,10 +259,12 @@ sub travel_to {
         || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
         ) {
         $self->straight_once(0);
+        $self->speed('travel');
         $gcode .= $self->G0($point, undef, 0, $comment || "");
     } elsif (!$Slic3r::Config->avoid_crossing_perimeters || $self->straight_once) {
         $self->straight_once(0);
         $gcode .= $self->retract(travel_to => $point);
+        $self->speed('travel');
         $gcode .= $self->G0($point, undef, 0, $comment || "");
     } else {
         my $plan = sub {
@@ -289,6 +290,7 @@ sub travel_to {
             $gcode .= $self->retract(travel_to => $point) if $need_retract;
             
             # append the actual path and return
+            $self->speed('travel');
             $gcode .= join '', map $self->G0($_->[B], undef, 0, $comment || ""), @travel;
             return $gcode;
         };
