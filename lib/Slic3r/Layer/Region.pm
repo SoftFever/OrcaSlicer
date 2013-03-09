@@ -274,7 +274,7 @@ sub make_perimeters {
         }
         
         # fill gaps
-        if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
+        if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @gaps) {
             my $filler = Slic3r::Fill::Rectilinear->new(layer_id => $self->layer->id);
             
             # we should probably use this code to handle thin walls and remove that logic from
