@@ -197,6 +197,14 @@ sub extrude_path {
     # compensate retraction
     $gcode .= $self->unretract;
     
+    # adjust acceleration
+    my $acceleration;
+    $acceleration = $Slic3r::Config->perimeter_acceleration
+        if $Slic3r::Config->perimeter_acceleration && $path->is_perimeter;
+    $acceleration = $Slic3r::Config->infill_acceleration
+        if $Slic3r::Config->infill_acceleration && $path->is_fill;
+    $gcode .= $self->set_acceleration($acceleration) if $acceleration;
+    
     my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->role == EXTR_ROLE_BRIDGE) {
         my $s = $path->flow_spacing;
@@ -241,6 +249,10 @@ sub extrude_path {
         }
         $self->elapsed_time($self->elapsed_time + $path_time);
     }
+    
+    # reset acceleration
+    $gcode .= $self->set_acceleration($Slic3r::Config->default_acceleration)
+        if $acceleration && $Slic3r::Config->default_acceleration;
     
     return $gcode;
 }

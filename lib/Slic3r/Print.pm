@@ -853,16 +853,12 @@ sub write_gcode {
                 # extrude perimeters
                 if (@{ $layerm->perimeters }) {
                     $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
-                    $gcode .= $gcodegen->set_acceleration($Slic3r::Config->perimeter_acceleration);
                     $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layerm->perimeters };
-                    $gcode .= $gcodegen->set_acceleration($Slic3r::Config->default_acceleration)
-                        if $Slic3r::Config->perimeter_acceleration;
                 }
                 
                 # extrude fills
                 if (@{ $layerm->fills }) {
                     $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
-                    $gcode .= $gcodegen->set_acceleration($Slic3r::Config->infill_acceleration);
                     for my $fill (@{ $layerm->fills }) {
                         if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
                             $gcode .= $gcodegen->extrude($_, 'fill') 
@@ -871,8 +867,6 @@ sub write_gcode {
                             $gcode .= $gcodegen->extrude($fill, 'fill') ;
                         }
                     }
-                    $gcode .= $gcodegen->set_acceleration($Slic3r::Config->default_acceleration)
-                        if $Slic3r::Config->infill_acceleration;
                 }
             }
         }
