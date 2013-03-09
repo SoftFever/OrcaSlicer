@@ -157,6 +157,7 @@ sub _build_field {
     $self->_triggers->{$opt_key} = $opt->{on_change} || sub {};
     
     my $field;
+    my $tooltip = $opt->{tooltip};
     if ($opt->{type} =~ /^(i|f|s|s@)$/) {
         my $style = 0;
         $style = wxTE_MULTILINE if $opt->{multiline};
@@ -172,11 +173,13 @@ sub _build_field {
         $opt->{type} eq 'i'
             ? EVT_SPINCTRL  ($self->parent, $field, $on_change)
             : EVT_TEXT      ($self->parent, $field, $on_change);
+        $tooltip .= " (default: " . $opt->{default} .  ")" if ($opt->{default});
     } elsif ($opt->{type} eq 'bool') {
         $field = Wx::CheckBox->new($self->parent, -1, "");
         $field->SetValue($opt->{default});
         EVT_CHECKBOX($self->parent, $field, sub { $self->_on_change($opt_key, $field->GetValue); });
         $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
+        $tooltip .= " (default: " . ($opt->{default} ? 'yes' : 'no') .  ")" if defined($opt->{default});
     } elsif ($opt->{type} eq 'point') {
         $field = Wx::BoxSizer->new(wxHORIZONTAL);
         my $field_size = Wx::Size->new(40, -1);
@@ -187,8 +190,10 @@ sub _build_field {
                 my $y_field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}->[1], wxDefaultPosition, $field_size),
         );
         $field->Add($_, 0, wxALIGN_CENTER_VERTICAL, 0) for @items;
-        if ($opt->{tooltip}) {
-            $_->SetToolTipString($opt->{tooltip}) for @items;
+        if ($tooltip) {
+            $_->SetToolTipString(
+                $tooltip . " (default: " .  join(",", @{$opt->{default}}) .  ")"
+            ) for @items;
         }
         EVT_TEXT($self->parent, $_, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) })
             for $x_field, $y_field;
@@ -205,10 +210,16 @@ sub _build_field {
             $field->SetSelection(grep $opt->{values}[$_] eq $_[0], 0..$#{$opt->{values}});
         };
         $self->_setters->{$opt_key}->($opt->{default});
+
+        $tooltip .= " (default: " 
+                 . $opt->{labels}[ first { $opt->{values}[$_] eq $opt->{default} } 0..$#{$opt->{values}} ] 
+                 . ")" if ($opt->{default});
     } else {
         die "Unsupported option type: " . $opt->{type};
     }
-    $field->SetToolTipString($opt->{tooltip}) if $opt->{tooltip} && $field->can('SetToolTipString');
+    if ($tooltip && $field->can('SetToolTipString')) {
+        $field->SetToolTipString($tooltip);
+    }
     return $field;
 }
 
