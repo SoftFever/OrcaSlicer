@@ -28,9 +28,11 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{mode} = $params{mode};
+    $self->{mode} = 'expert' if $self->{mode} !~ /^(?:simple|expert)$/;
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
-    $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater");
+    $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater")
+        unless $params{no_plater};
     $self->{options_tabs} = {};
     
     my $simple_config;
@@ -44,17 +46,19 @@ sub new {
     for my $tab_name (qw(print filament printer)) {
         my $tab = $self->{options_tabs}{$tab_name} = ($class_prefix . ucfirst $tab_name)->new(
             $self->{tabpanel},
-            plater              => $self->{plater},
             on_value_change     => sub {
-                $self->{plater}->on_config_change(@_); # propagate config change events to the plater
+                $self->{plater}->on_config_change(@_) if $self->{plater}; # propagate config change events to the plater
                 if ($self->{mode} eq 'simple' && $init) {  # don't save while loading for the first time
                     # save config
                     $self->config->save("$Slic3r::GUI::datadir/simple.ini");
                 }
             },
+            on_presets_changed  => sub {
+                $self->{plater}->update_presets($tab_name, @_) if $self->{plater};
+            },
         );
         $self->{tabpanel}->AddPage($tab, $tab->title);
-        $tab->load_config($simple_config);
+        $tab->load_config($simple_config) if $simple_config;
     }
     $init = 1;
     

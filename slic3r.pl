@@ -27,6 +27,8 @@ my %cli_options = ();
         'save=s'                => \$opt{save},
         'load=s@'               => \$opt{load},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
+        'no-plater'             => \$opt{no_plater},
+        'gui-mode=s'            => \$opt{gui_mode},
         'datadir=s'             => \$opt{datadir},
         'export-svg'            => \$opt{export_svg},
         'merge|m'               => \$opt{merge},
@@ -73,7 +75,9 @@ my $gui;
 if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
-        $Slic3r::GUI::datadir = $opt{datadir} if $opt{datadir};
+        $Slic3r::GUI::datadir   = $opt{datadir};
+        $Slic3r::GUI::no_plater = $opt{no_plater};
+        $Slic3r::GUI::mode      = $opt{gui_mode};
     }
     $gui = Slic3r::GUI->new;
     $gui->{skeinpanel}->load_config_file($_) for @{$opt{load}};
@@ -139,6 +143,10 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
                         into the same directory as the input file using the 
                         --output-filename-format to generate the filename)
 $j
+  GUI options:
+    --no-plater         Disable the plater tab
+    --gui-mode          Overrides the configured mode (simple/expert)
+
   Output options:
     --output-filename-format
                         Output file name format; all config options enclosed in brackets

@@ -14,7 +14,7 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     $self->{options} = []; # array of option names handled by this tab
-    $self->{$_} = $params{$_} for qw(plater on_value_change);
+    $self->{$_} = $params{$_} for qw(on_value_change on_presets_changed);
     
     # horizontal sizer
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -81,7 +81,7 @@ sub new {
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
         $self->on_select_preset;
-        $self->sync_presets;
+        $self->on_presets_changed;
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub {
@@ -108,7 +108,7 @@ sub new {
         $self->load_presets;
         $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
         $self->on_select_preset;
-        $self->sync_presets;
+        $self->on_presets_changed;
     });
     
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
@@ -124,7 +124,7 @@ sub new {
         $self->{presets_choice}->Delete($i);
         $self->{presets_choice}->SetSelection(0);
         $self->on_select_preset;
-        $self->sync_presets;
+        $self->on_presets_changed;
     });
     
     $self->{config} = Slic3r::Config->new;
@@ -152,6 +152,12 @@ sub get_preset {
 sub on_value_change {
     my $self = shift;
     $self->{on_value_change}->(@_) if $self->{on_value_change};
+}
+
+sub on_presets_changed {
+    my $self = shift;
+    $self->{on_presets_changed}->([$self->{presets_choice}->GetStrings], $self->{presets_choice}->GetSelection)
+        if $self->{on_presets_changed};
 }
 
 sub on_preset_loaded {}
@@ -252,7 +258,7 @@ sub add_options_page {
     my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount}, %params, on_change => sub {
         $self->on_value_change(@_);
         $self->set_dirty(1);
-        $self->sync_presets;
+        $self->on_presets_changed;
     });
     $page->Hide;
     $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
@@ -312,7 +318,7 @@ sub set_dirty {
         $self->{presets_choice}->SetString($i, $text);
         $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
     }
-    $self->sync_presets;
+    $self->on_presets_changed;
 }
 
 sub is_dirty {
@@ -347,7 +353,7 @@ sub load_presets {
         $self->{presets_choice}->SetSelection($i || 0);
         $self->on_select_preset;
     }
-    $self->sync_presets;
+    $self->on_presets_changed;
 }
 
 sub load_config_file {
@@ -368,12 +374,7 @@ sub load_config_file {
     }
     $self->{presets_choice}->SetSelection($i);
     $self->on_select_preset;
-    $self->sync_presets;
-}
-
-sub sync_presets {
-    my $self = shift;
-    $self->{plater}->update_presets($self->name, [$self->{presets_choice}->GetStrings], $self->{presets_choice}->GetSelection);
+    $self->on_presets_changed;
 }
 
 package Slic3r::GUI::Tab::Print;
