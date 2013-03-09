@@ -84,7 +84,6 @@ sub length {
     return $length;
 }
 
-# this only applies to polylines
 sub grow {
     my $self = shift;
     return Slic3r::Polygon->new(@$self, CORE::reverse @$self[1..($#$self-1)])->offset(@_);

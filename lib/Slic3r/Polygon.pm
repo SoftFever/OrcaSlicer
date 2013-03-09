@@ -92,6 +92,11 @@ sub offset {
     return map Slic3r::Polygon->new($_), Slic3r::Geometry::Clipper::offset([$self], @_);
 }
 
+sub grow {
+    my $self = shift;
+    return $self->split_at_first_point->grow(@_);
+}
+
 # this method subdivides the polygon segments to that no one of them
 # is longer than the length provided
 sub subdivide {

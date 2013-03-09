@@ -277,6 +277,17 @@ sub make_perimeters {
         if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
             my $filler = Slic3r::Fill::Rectilinear->new(layer_id => $self->layer->id);
             
+            # we should probably use this code to handle thin walls and remove that logic from
+            # make_surfaces(), but we need to enable dynamic extrusion width before as we can't
+            # use zigzag for thin walls.
+            # in the mean time we subtract thin walls from the detected gaps so that we don't
+            # reprocess them, causing overlapping thin walls and zigzag.
+            @gaps = @{diff_ex(
+                [ map @$_, @gaps ],
+                [ map $_->grow($self->perimeter_flow->scaled_width), @{$self->{thin_walls}} ],
+                1,
+            )};
+            
             my $w = $self->perimeter_flow->width;
             my @widths = (1.5 * $w, $w, 0.5 * $w);  # worth trying 0.2 too?
             foreach my $width (@widths) {
