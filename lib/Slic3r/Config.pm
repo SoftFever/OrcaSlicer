@@ -635,7 +635,10 @@ our $Options = {
         height  => 120,
         serialize   => sub { join '\n', split /\R+/, $_[0] },
         deserialize => sub { join "\n", split /\\n/, $_[0] },
-        default => 'G28 ; home all axes',
+        default => <<'END',
+G28 ; home all axes
+G1 Z5 F5000 ; lift nozzle
+END
     },
     'end_gcode' => {
         label   => 'End G-code',
