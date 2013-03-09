@@ -232,6 +232,8 @@ The author of the Silk icon set is Mark James.
         --retract-before-travel
                             Only retract before travel moves of this length in mm (default: 2)
         --retract-lift      Lift Z by the given distance in mm when retracting (default: 0)
+        --retract-layer-change
+                            Enforce a retraction before each Z move (default: yes)
         
        Retraction options for multi-extruder setups:
         --retract-length-toolchange

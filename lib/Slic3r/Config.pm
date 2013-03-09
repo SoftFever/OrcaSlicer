@@ -745,6 +745,15 @@ END
         deserialize => $deserialize_comma,
         default => [0],
     },
+    'retract_layer_change' => {
+        label   => 'Retract on layer change',
+        tooltip => 'This flag enforces a retraction whenever a Z move is done.',
+        cli     => 'retract-layer-change!',
+        type    => 'bool',
+        serialize   => $serialize_comma,
+        deserialize => $deserialize_comma,
+        default => [1],
+    },
     'retract_length_toolchange' => {
         label   => 'Length',
         tooltip => 'When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).',
@@ -1012,7 +1021,7 @@ sub new_from_cli {
     }
     
     $args{$_} = $Options->{$_}{deserialize}->($args{$_})
-        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid extruder_offset);
+        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid extruder_offset retract_layer_change);
     
     return $class->new(%args);
 }

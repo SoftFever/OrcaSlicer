@@ -7,7 +7,7 @@ use constant OPTIONS => [qw(
     extruder_offset
     nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature
     retract_length retract_lift retract_speed retract_restart_extra retract_before_travel
-    retract_length_toolchange retract_restart_extra_toolchange
+    retract_layer_change retract_length_toolchange retract_restart_extra_toolchange
 )];
 
 has 'id'    => (is => 'rw', required => 1);

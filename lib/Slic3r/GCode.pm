@@ -103,7 +103,7 @@ sub move_z {
     my $gcode = "";
     my $current_z = $self->z;
     if (!defined $current_z || $current_z != ($z + $self->lifted)) {
-        $gcode .= $self->retract(move_z => $z);
+        $gcode .= $self->retract(move_z => $z) if $self->extruder->retract_layer_change;
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
             unless ($current_z // -1) != ($self->z // -1);
