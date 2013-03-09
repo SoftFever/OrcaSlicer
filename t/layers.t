@@ -42,6 +42,7 @@ my $test = sub {
     1;
 };
 
+$config->set('start_gcode',             '');  # to avoid dealing with the nozzle lift in start G-code
 $config->set('layer_height', 0.3);
 $config->set('first_layer_height', 0.2);
 ok $test->(), "absolute first layer height";

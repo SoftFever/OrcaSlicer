@@ -87,6 +87,7 @@ my $test = sub {
     1;
 };
 
+$config->set('start_gcode',             '');  # to avoid dealing with the nozzle lift in start G-code
 $config->set('retract_length',          [1.5]);
 $config->set('retract_before_travel',   [3]);
 $config->set('only_retract_when_crossing_perimeters', 0);
