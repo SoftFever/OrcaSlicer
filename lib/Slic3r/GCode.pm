@@ -1,7 +1,7 @@
 package Slic3r::GCode;
 use Moo;
 
-use List::Util qw(max first);
+use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
@@ -159,7 +159,11 @@ sub extrude_loop {
         $angle *= -1 if $was_clockwise;
         
         # create the destination point along the first segment and rotate it
-        my $point = Slic3r::Geometry::point_along_segment(@{$extrusion_path->polyline}[0,1], scale $extrusion_path->flow_spacing);
+        # we make sure we don't exceed the segment length because we don't know
+        # the rotation of the second segment so we might cross the object boundary
+        my $first_segment = Slic3r::Line->new(@{$extrusion_path->polyline}[0,1]);
+        my $distance = min(scale $extrusion_path->flow_spacing, $first_segment->length);
+        my $point = Slic3r::Geometry::point_along_segment(@$first_segment, $distance);
         bless $point, 'Slic3r::Point';
         $point->rotate($angle, $extrusion_path->polyline->[0]);
         
