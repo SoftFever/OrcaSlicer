@@ -33,26 +33,30 @@ sub new {
     $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater");
     $self->{options_tabs} = {};
     
-    my $config;
-    $config = Slic3r::Config->load("$Slic3r::GUI::datadir/simple.ini")
-        if -e "$Slic3r::GUI::datadir/simple.ini";
+    my $simple_config;
+    if ($self->{mode} eq 'simple') {
+        $simple_config = Slic3r::Config->load("$Slic3r::GUI::datadir/simple.ini")
+            if -e "$Slic3r::GUI::datadir/simple.ini";
+    }
     
+    my $class_prefix = $self->{mode} eq 'simple' ? "Slic3r::GUI::SimpleTab::" : "Slic3r::GUI::Tab::";
+    my $init = 0;
     for my $tab_name (qw(print filament printer)) {
-        $self->{options_tabs}{$tab_name} = ("Slic3r::GUI::Tab::" . ucfirst $tab_name)->new(
+        my $tab = $self->{options_tabs}{$tab_name} = ($class_prefix . ucfirst $tab_name)->new(
             $self->{tabpanel},
-            mode                => $self->{mode},
             plater              => $self->{plater},
-            config              => $config,
             on_value_change     => sub {
                 $self->{plater}->on_config_change(@_); # propagate config change events to the plater
-                if ($self->{mode} eq 'simple') {
+                if ($self->{mode} eq 'simple' && $init) {  # don't save while loading for the first time
                     # save config
                     $self->config->save("$Slic3r::GUI::datadir/simple.ini");
                 }
             },
         );
-        $self->{tabpanel}->AddPage($self->{options_tabs}{$tab_name}, $self->{options_tabs}{$tab_name}->title);
+        $self->{tabpanel}->AddPage($tab, $tab->title);
+        $tab->load_config($simple_config);
     }
+    $init = 1;
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($self->{tabpanel}, 1, wxEXPAND);
@@ -217,7 +221,7 @@ sub load_config_file {
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
     Slic3r::GUI->save_settings;
     $last_config = $file;
-    $_->load_external_config($file) for values %{$self->{options_tabs}};
+    $_->load_config_file($file) for values %{$self->{options_tabs}};
 }
 
 sub load_config {
