@@ -918,7 +918,7 @@ sub load_external_config {
 }
 
 package Slic3r::GUI::Tab::Page;
-use Wx qw(:misc :panel :sizer);
+use Wx qw(:misc :panel :sizer :systemsettings);
 use base 'Wx::ScrolledWindow';
 
 use List::Util qw(max);
@@ -933,8 +933,11 @@ sub new {
     
     $self->SetScrollbars(1, 1, 1, 1);
     
+    $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
+    $self->SetSizer($self->{vsizer});
+    
     $self->{hsizer} = Wx::BoxSizer->new(wxHORIZONTAL);
-    $self->SetSizer($self->{hsizer});
+    $self->{vsizer}->Add($self->{hsizer}, 0, wxEXPAND | wxALL, 0);
     
     if ($params{optgroups}) {
         $_->{column} //= 0 for @{$params{optgroups}};
@@ -948,6 +951,12 @@ sub new {
                 on_change   => $params{on_change},
             ) for grep $_->{column} == $col, @{$params{optgroups}};
         }
+    }
+    
+    if ($parent->{mode} ne 'expert') {
+        my $label = Wx::StaticText->new($self, -1, "Want more options? Switch to the Expert Mode.", wxDefaultPosition, wxDefaultSize);
+        $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+        $self->{vsizer}->Add($label, 0, wxEXPAND | wxALL, 10);
     }
     
     return $self;
