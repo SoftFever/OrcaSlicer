@@ -163,6 +163,9 @@ The author of the Silk icon set is Mark James.
         --infill-acceleration
                             Overrides firmware's default acceleration for infill. (mm/s^2, set zero
                             to disable; default: 0)
+        --bridge-acceleration
+                            Overrides firmware's default acceleration for bridges. (mm/s^2, set zero
+                            to disable; default: 0)
         --default-acceleration
                             Acceleration will be reset to this value after the specific settings above
                             have been applied. (mm/s^2, set zero to disable; default: 130)

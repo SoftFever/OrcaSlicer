@@ -199,10 +199,13 @@ sub extrude_path {
     
     # adjust acceleration
     my $acceleration;
-    $acceleration = $Slic3r::Config->perimeter_acceleration
-        if $Slic3r::Config->perimeter_acceleration && $path->is_perimeter;
-    $acceleration = $Slic3r::Config->infill_acceleration
-        if $Slic3r::Config->infill_acceleration && $path->is_fill;
+    if ($Slic3r::Config->perimeter_acceleration && $path->is_perimeter) {
+        $acceleration = $Slic3r::Config->perimeter_acceleration;
+    } elsif ($Slic3r::Config->infill_acceleration && $path->is_fill) {
+        $acceleration = $Slic3r::Config->infill_acceleration;
+    } elsif ($Slic3r::Config->infill_acceleration && $path->role == EXTR_ROLE_BRIDGE) {
+        $acceleration = $Slic3r::Config->bridge_acceleration;
+    }
     $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     
     my $area;  # mm^3 of extrudate per mm of tool movement 

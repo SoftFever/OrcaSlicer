@@ -343,6 +343,14 @@ our $Options = {
         type    => 'f',
         default => 0,
     },
+    'bridge_acceleration' => {
+        label   => 'Bridge',
+        tooltip => 'This is the acceleration your printer will use for bridges. Set zero to disable acceleration control for bridges.',
+        sidetext => 'mm/s²',
+        cli     => 'bridge-acceleration=f',
+        type    => 'f',
+        default => 0,
+    },
     
     # accuracy options
     'layer_height' => {
