@@ -614,21 +614,37 @@ sub discover_horizontal_shells {
 sub combine_infill {
     my $self = shift;
     return unless $Slic3r::Config->infill_every_layers > 1 && $Slic3r::Config->fill_density > 0;
+    my $every = $Slic3r::Config->infill_every_layers;
     
     my $layer_count = $self->layer_count;
+    my @layer_heights = map $self->layers->[$_]->height, 0 .. $layer_count-1;
+    
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         # limit the number of combined layers to the maximum height allowed by this regions' nozzle
-        my $every = min(
-            $Slic3r::Config->infill_every_layers,
-            int($self->print->regions->[$region_id]->extruders->{infill}->nozzle_diameter/$Slic3r::Config->layer_height),
-        );
-        Slic3r::debugf "Infilling every %d layers\n", $every;
+        my $nozzle_diameter = $self->print->regions->[$region_id]->extruders->{infill}->nozzle_diameter;
+        
+        # define the combinations
+        my @combine = ();   # layer_id => depth
+        {
+            my $current_height = my $layers = 0;
+            for my $layer_id (1 .. $#layer_heights) {
+                my $height = $self->layers->[$layer_id]->height;
+                
+                if ($current_height + $height >= $nozzle_diameter || $layers >= $every) {
+                    $combine[$layer_id-1] = $layers;
+                    $current_height = $layers = 0;
+                }
+                
+                $current_height += $height;
+                $layers++;
+            }
+        }
         
         # skip bottom layer
-        for (my $layer_id = $every; $layer_id <= $layer_count-1; $layer_id += $every) {
-            # get the layers whose infill we want to combine (bottom-up)
+        for my $layer_id (1 .. $#combine) {
+            next unless ($combine[$layer_id] // 1) > 1;
             my @layerms = map $self->layers->[$_]->regions->[$region_id],
-                ($layer_id - ($every-1)) .. $layer_id;
+                ($layer_id - ($combine[$layer_id]-1) .. $layer_id);
             
             # process internal and internal-solid infill separately
             for my $type (S_TYPE_INTERNAL, S_TYPE_INTERNALSOLID) {
