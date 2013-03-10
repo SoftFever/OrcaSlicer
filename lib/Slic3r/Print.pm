@@ -846,7 +846,15 @@ sub write_gcode {
             # set actual Z - this will force a retraction
             $gcode .= $gcodegen->move_z($layer->print_z);
             
-            foreach my $region_id (0 .. ($self->regions_count-1)) {
+            # tweak region ordering to save toolchanges
+            my @region_ids = 0 .. ($self->regions_count-1);
+            if ($gcodegen->multiple_extruders) {
+                my $last_extruder = $gcodegen->extruder;
+                my $best_region_id = first { $self->regions->[$_]->extruders->{perimeter} eq $last_extruder } @region_ids;
+                @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids);
+            }
+            
+            foreach my $region_id (@region_ids) {
                 my $layerm = $layer->regions->[$region_id];
                 my $region = $self->regions->[$region_id];
                 
