@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
+use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -236,37 +236,42 @@ sub make_perimeters {
                 
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
-                # compute the polygon used to trigger the additional perimeters: the hole represents
-                # the required overlap, while the contour represents how different should the slices be 
-                # (thus how horizontal should the slope be) before extra perimeters are not generated, and
-                # normal solid infill is used
-                my $upper = diff_ex(
-                    [ map @$_, map $_->expolygon->offset_ex($overlap), @{$upper_layerm->slices} ],
-                    [ map @$_, map $_->expolygon->offset_ex(-$overlap), @{$upper_layerm->slices} ],
+                my $diff = diff_ex(
+                    [ offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap) ],
+                    [ offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($Slic3r::Config->perimeters * $perimeter_spacing)) ],
                 );
-                next if !@$upper;
+                next if !@$diff;
+                
+                # if we need more perimeters, $diff should contain a narrow region that we can collapse
+                
+                $diff = diff_ex(
+                    [ map @$_, @$diff ],
+                    [ offset(
+                        [ offset([ map @$_, @$diff ], -$perimeter_spacing) ],
+                        +$perimeter_spacing
+                    ) ],
+                );
+                next if !@$diff;
+                
+                # diff contains the collapsed area
                 
                 foreach my $slice (@{$layerm->slices}) {
                     my $hypothetical_perimeter_num = $Slic3r::Config->perimeters + 1;
                     CYCLE: while (1) {
                         # compute polygons representing the thickness of the hypotetical new internal perimeter
                         # of our slice
-                        my $hypothetical_perimeter;
-                        {
-                            my $outer = [ map @$_, $slice->expolygon->offset_ex(- ($hypothetical_perimeter_num-1) * $perimeter_spacing - scaled_epsilon) ];
-                            last CYCLE if !@$outer;
-                            my $inner = [ map @$_, $slice->expolygon->offset_ex(- $hypothetical_perimeter_num * $perimeter_spacing) ];
-                            last CYCLE if !@$inner;
-                            $hypothetical_perimeter = diff_ex($outer, $inner);
-                        }
-                        last CYCLE if !@$hypothetical_perimeter;
+                        my $hypothetical_perimeter = diff_ex(
+                            [ offset($slice->expolygon, -($perimeter_spacing * ($hypothetical_perimeter_num-1))) ],
+                            [ offset($slice->expolygon, -($perimeter_spacing * $hypothetical_perimeter_num)) ],
+                        );
+                        last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
                         
-                        # compute the area of the hypothetical perimeter
-                        my $hp_area = sum(map $_->area, @$hypothetical_perimeter);
-                        
-                        # only add the perimeter if the intersection is at least 20%, otherwise we'd get no benefit
-                        my $intersection = intersection_ex([ map @$_, @$upper ], [ map @$_, @$hypothetical_perimeter ]);
-                        last CYCLE if (sum(map $_->area, @{ $intersection }) // 0) < $hp_area * 0.2;
+                        # only add the perimeter if there's an intersection with the collapsed area
+                        my $intersection = intersection_ex(
+                            [ map @$_, @$diff ],
+                            [ map @$_, @$hypothetical_perimeter ],
+                        );
+                        last CYCLE if !@$intersection;
                         Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
                         $slice->additional_inner_perimeters(($slice->additional_inner_perimeters || 0) + 1);
                         $hypothetical_perimeter_num++;
