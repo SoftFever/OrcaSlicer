@@ -890,13 +890,13 @@ sub write_gcode {
                 
                 foreach my $island (@islands) {
                     my $extrude_perimeters = sub {
-                        next if !@{ $island->{perimeters} };
+                        return if !@{ $island->{perimeters} };
                         $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
                         $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
                     };
                     
                     my $extrude_fills = sub {
-                        next if !@{ $island->{fills} };
+                        return if !@{ $island->{fills} };
                         $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
                         for my $fill (@{ $island->{fills} }) {
                             if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
