@@ -1,7 +1,7 @@
 package Slic3r::Print::Object;
 use Moo;
 
-use List::Util qw(min sum);
+use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex);
@@ -13,6 +13,7 @@ has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1);
 has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]});
 has 'layers'            => (is => 'rw', default => sub { [] });
+has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
 sub BUILD {
     my $self = shift;
@@ -21,9 +22,12 @@ sub BUILD {
     my $print_z = my $slice_z = my $raft_z = 0;
     while (!@{$self->layers} || $self->layers->[-1]->slice_z < $self->size->[Z]) {
         my $id = $#{$self->layers} + 1;
-        my $height = $id == 0
-            ? $Slic3r::Config->get_value('first_layer_height')
-            : $Slic3r::Config->layer_height;
+        my $height = $Slic3r::Config->layer_height;
+        $height = $Slic3r::Config->get_value('first_layer_height') if $id == 0;
+        if (my $range = first { $_->[0] <= ($print_z + $_->[2]) && $_->[1] >= ($print_z + $_->[2]) } @{$self->layer_height_ranges}) {
+            $height = $range->[2];
+        }
+        
         $print_z += $height;
         
         if ($id < $Slic3r::Config->raft_layers) {

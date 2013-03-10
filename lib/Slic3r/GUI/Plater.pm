@@ -708,6 +708,7 @@ sub make_model {
         my $new_model_object = $model->add_object(
             vertices    => $model_object->vertices,
             input_file  => $plater_object->input_file,
+            layer_height_ranges => $plater_object->layer_height_ranges,
         );
         foreach my $volume (@{$model_object->volumes}) {
             $new_model_object->add_volume(
@@ -1073,6 +1074,7 @@ has 'rotate'                => (is => 'rw', default => sub { 0 });
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
 has 'thumbnail'             => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw');
+has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
 # statistics
 has 'facets'                => (is => 'rw');
@@ -1109,9 +1111,12 @@ sub free_model_object {
 sub get_model_object {
     my $self = shift;
     
-    return $self->model_object if $self->model_object;
-    my $model = Slic3r::Model->read_from_file($self->input_file);
-    return $model->objects->[$self->input_file_object_id];
+    my $object = $self->model_object;
+    if (!$object) {
+        my $model = Slic3r::Model->read_from_file($self->input_file);
+        $object = $model->objects->[$self->input_file_object_id];
+    }
+    return $object;
 }
 
 sub instances_count {

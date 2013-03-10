@@ -119,7 +119,8 @@ sub add_model {
             print       => $self,
             meshes      => [ @meshes ],
             size        => [ $complete_mesh->size ],
-            input_file  => $object->input_file
+            input_file  => $object->input_file,
+            layer_height_ranges => $object->layer_height_ranges,
         );
         push @{$self->objects}, $print_object;
         
