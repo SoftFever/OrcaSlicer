@@ -3,9 +3,12 @@ use Moo;
 
 has 'paths' => (is => 'rw', default => sub { [] });
 
-sub endpoints {
+# no-op
+sub unpack { $_[0] }
+
+sub first_point {
     my $self = shift;
-    return [ map $_->endpoints, @{$self->paths} ];
+    return $self->paths->[0]->unpack->polyline->[0];
 }
 
 sub chained_path {

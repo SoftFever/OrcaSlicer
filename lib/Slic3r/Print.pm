@@ -850,21 +850,53 @@ sub write_gcode {
                 my $layerm = $layer->regions->[$region_id];
                 my $region = $self->regions->[$region_id];
                 
-                # extrude perimeters
-                if (@{ $layerm->perimeters }) {
-                    $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
-                    $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $layerm->perimeters };
+                my @islands = ();
+                if ($Slic3r::Config->avoid_crossing_perimeters) {
+                    push @islands, map +{ perimeters => [], fills => [] }, @{$layer->slices};
+                    PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
+                        $perimeter = $perimeter->unpack;
+                        for my $i (0 .. $#{$layer->slices}-1) {
+                            if ($layer->slices->[$i]->contour->encloses_point($perimeter->first_point)) {
+                                push @{ $islands[$i]{perimeters} }, $perimeter;
+                                next PERIMETER;
+                            }
+                        }
+                        push @{ $islands[-1]{perimeters} }, $perimeter; # optimization
+                    }
+                    FILL: foreach my $fill (@{$layerm->fills}) {
+                        for my $i (0 .. $#{$layer->slices}-1) {
+                            $fill = $fill->unpack;
+                            if ($layer->slices->[$i]->contour->encloses_point($fill->first_point)) {
+                                push @{ $islands[$i]{fills} }, $fill;
+                                next FILL;
+                            }
+                        }
+                        push @{ $islands[-1]{fills} }, $fill; # optimization
+                    }
+                } else {
+                    push @islands, {
+                        perimeters  => $layerm->perimeters,
+                        fills       => $layerm->fills,
+                    };
                 }
                 
-                # extrude fills
-                if (@{ $layerm->fills }) {
-                    $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
-                    for my $fill (@{ $layerm->fills }) {
-                        if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
-                            $gcode .= $gcodegen->extrude($_, 'fill') 
-                                for $fill->chained_path($gcodegen->last_pos);
-                        } else {
-                            $gcode .= $gcodegen->extrude($fill, 'fill') ;
+                foreach my $island (@islands) {
+                    # extrude perimeters
+                    if (@{ $island->{perimeters} }) {
+                        $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
+                        $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
+                    }
+                    
+                    # extrude fills
+                    if (@{ $island->{fills} }) {
+                        $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
+                        for my $fill (@{ $island->{fills} }) {
+                            if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
+                                $gcode .= $gcodegen->extrude($_, 'fill') 
+                                    for $fill->chained_path($gcodegen->last_pos);
+                            } else {
+                                $gcode .= $gcodegen->extrude($fill, 'fill') ;
+                            }
                         }
                     }
                 }

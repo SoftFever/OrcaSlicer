@@ -86,9 +86,9 @@ sub points {
     return $self->polyline;
 }
 
-sub endpoints {
+sub first_point {
     my $self = shift;
-    return ($self->points->[0], $self->points->[-1]);
+    return $self->polyline->[0];
 }
 
 sub is_printable { 1 }
