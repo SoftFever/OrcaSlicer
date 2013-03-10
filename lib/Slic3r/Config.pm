@@ -395,6 +395,13 @@ our $Options = {
         type    => 'bool',
         default => 0,
     },
+    'infill_first' => {
+        label   => 'Infill before perimeters',
+        tooltip => 'This option will switch the print order of perimeters and infill, making the latter first.',
+        cli     => 'infill-first!',
+        type    => 'bool',
+        default => 0,
+    },
     
     # flow options
     'extrusion_width' => {

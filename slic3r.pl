@@ -258,6 +258,7 @@ $j
                         (mm^2, default: $config->{solid_infill_below_area})
     --infill-only-where-needed
                         Only infill under ceilings (default: no)
+    --infill-first      Make infill before perimeters (default: no)
   
    Support material options:
     --support-material  Generate support material for overhangs
