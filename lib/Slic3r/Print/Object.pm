@@ -710,13 +710,10 @@ sub generate_support_material {
     my $self = shift;
     return if $self->layer_count < 2;
     
-    my $overhang_width;
+    my $threshold_rad;
     if ($Slic3r::Config->support_material_threshold) {
-        my $threshold_rad = deg2rad($Slic3r::Config->support_material_threshold + 1);  # +1 makes the threshold inclusive
+        $threshold_rad = deg2rad($Slic3r::Config->support_material_threshold + 1);  # +1 makes the threshold inclusive
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
-        $overhang_width = scale $Slic3r::Config->layer_height * ((cos $threshold_rad) / (sin $threshold_rad));
-    } else {
-        $overhang_width = $self->layers->[1]->regions->[0]->overhang_width;
     }
     my $flow                    = $self->print->support_material_flow;
     my $distance_from_object    = 1.5 * $flow->scaled_width;
@@ -739,6 +736,11 @@ sub generate_support_material {
             
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
+            
+            # overhang width must be computed on lower layer
+            my $overhang_width = $Slic3r::Config->support_material_threshold
+                ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
+                : $self->layers->[1]->regions->[0]->overhang_width;
             
             my @current_layer_offsetted_slices = map $_->offset_ex($distance_from_object), @{$layer->slices};
             
