@@ -18,10 +18,30 @@ sub BUILD {
     my $self = shift;
  	 
     # make layers
+    my $print_z = my $slice_z = my $raft_z = 0;
     while (!@{$self->layers} || $self->layers->[-1]->slice_z < $self->size->[Z]) {
+        my $id = $#{$self->layers} + 1;
+        my $height = $id == 0
+            ? $Slic3r::Config->get_value('first_layer_height')
+            : $Slic3r::Config->layer_height;
+        $print_z += $height;
+        
+        if ($id < $Slic3r::Config->raft_layers) {
+            # this is a raft layer
+            $raft_z += $height;
+            $slice_z = -1;
+        } else {
+            $slice_z = $print_z - ($height/2) - $raft_z;
+        }
+        
+        ### Slic3r::debugf "Layer %d: height = %s; slice_z = %s; print_z = %s\n", $id, $height, $slice_z, $print_z;
+        
         push @{$self->layers}, Slic3r::Layer->new(
             object  => $self,
-            id      => $#{$self->layers} + 1,
+            id      => $id,
+            height  => $height,
+            print_z => scale $print_z,
+            slice_z => scale $slice_z,
         );
     }
 }
