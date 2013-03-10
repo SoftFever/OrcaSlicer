@@ -762,12 +762,13 @@ sub write_gcode {
     # prepare the logic to print one layer
     my $skirt_done = 0;  # count of skirt layers done
     my $brim_done = 0;
+    my $second_layer_things_done = 0;
     my $last_obj_copy = "";
     my $extrude_layer = sub {
-        my ($layer_id, $object_copies) = @_;
+        my ($layer, $object_copies) = @_;
         my $gcode = "";
         
-        if ($layer_id == 1) {
+        if (!$second_layer_things_done && $layer->id == 1) {
             for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->temperature}) {
                 $gcode .= $gcodegen->set_temperature($self->extruders->[$t]->temperature, 0, $t)
                     if $self->extruders->[$t]->temperature && $self->extruders->[$t]->temperature != $self->extruders->[$t]->first_layer_temperature;
@@ -777,7 +778,7 @@ sub write_gcode {
         }
         
         # set new layer, but don't move Z as support material contact areas may need an intermediate one
-        $gcode .= $gcodegen->change_layer($self->objects->[$object_copies->[0][0]]->layers->[$layer_id]);
+        $gcode .= $gcodegen->change_layer($layer);
         $gcodegen->elapsed_time(0);
         
         # prepare callback to call as soon as a Z command is generated
@@ -793,14 +794,14 @@ sub write_gcode {
             $gcode .= $gcodegen->set_extruder($self->extruders->[0]);  # move_z requires extruder
             $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
             # skip skirt if we have a large brim
-            if ($layer_id < $Slic3r::Config->skirt_height) {
+            if ($layer->id < $Slic3r::Config->skirt_height) {
                 # distribute skirt loops across all extruders
                 for my $i (0 .. $#{$self->skirt}) {
                     # when printing layers > 0 ignore 'min_skirt_length' and 
                     # just use the 'skirts' setting; also just use the current extruder
-                    last if ($layer_id > 0) && ($i >= $Slic3r::Config->skirts);
+                    last if ($layer->id > 0) && ($i >= $Slic3r::Config->skirts);
                     $gcode .= $gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ])
-                        if $layer_id == 0;
+                        if $layer->id == 0;
                     $gcode .= $gcodegen->extrude_loop($self->skirt->[$i], 'skirt');
                 }
             }
@@ -809,7 +810,7 @@ sub write_gcode {
         }
         
         # extrude brim
-        if ($layer_id == 0 && !$brim_done) {
+        if (!$brim_done) {
             $gcode .= $gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);  # move_z requires extruder
             $gcode .= $gcodegen->move_z($gcodegen->layer->print_z);
             $gcodegen->set_shift(@shift);
@@ -818,11 +819,9 @@ sub write_gcode {
             $gcodegen->straight_once(1);
         }
         
-        for my $obj_copy (@$object_copies) {
-            my ($obj_idx, $copy) = @$obj_copy;
-            $gcodegen->new_object(1) if $last_obj_copy && $last_obj_copy ne "${obj_idx}_${copy}";
-            $last_obj_copy = "${obj_idx}_${copy}";
-            my $layer = $self->objects->[$obj_idx]->layers->[$layer_id];
+        for my $copy (@$object_copies) {
+            $gcodegen->new_object(1) if $last_obj_copy && $last_obj_copy ne "$copy";
+            $last_obj_copy = "$copy";
             
             $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);
             
@@ -877,7 +876,7 @@ sub write_gcode {
         my $speed_factor = 1;
         if ($Slic3r::Config->cooling) {
             my $layer_time = $gcodegen->elapsed_time;
-            Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $layer_id, $layer_time;
+            Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $layer->id, $layer_time;
             if ($layer_time < $Slic3r::Config->slowdown_below_layer_time) {
                 $fan_speed = $Slic3r::Config->max_fan_speed;
                 $speed_factor = $layer_time / $Slic3r::Config->slowdown_below_layer_time;
@@ -894,12 +893,12 @@ sub write_gcode {
                     $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
                     /gexm;
             }
-            $fan_speed = 0 if $layer_id < $Slic3r::Config->disable_fan_first_layers;
+            $fan_speed = 0 if $layer->id < $Slic3r::Config->disable_fan_first_layers;
         }
         $gcode = $gcodegen->set_fan($fan_speed) . $gcode;
         
         # bridge fan speed
-        if (!$Slic3r::Config->cooling || $Slic3r::Config->bridge_fan_speed == 0 || $layer_id < $Slic3r::Config->disable_fan_first_layers) {
+        if (!$Slic3r::Config->cooling || $Slic3r::Config->bridge_fan_speed == 0 || $layer->id < $Slic3r::Config->disable_fan_first_layers) {
             $gcode =~ s/^;_BRIDGE_FAN_(?:START|END)\n//gm;
         } else {
             $gcode =~ s/^;_BRIDGE_FAN_START\n/ $gcodegen->set_fan($Slic3r::Config->bridge_fan_speed, 1) /gmex;
@@ -928,28 +927,24 @@ sub write_gcode {
                     print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
                 
-                for my $layer_id (0..$#{$self->objects->[$obj_idx]->layers}) {
+                for my $layer (@{$self->objects->[$obj_idx]->layers}) {
                     # if we are printing the bottom layer of an object, and we have already finished
                     # another one, set first layer temperatures. this happens before the Z move
                     # is triggered, so machine has more time to reach such temperatures
-                    if ($layer_id == 0 && $finished_objects > 0) {
+                    if ($layer->id == 0 && $finished_objects > 0) {
                         printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature),
                             if $Slic3r::Config->first_layer_bed_temperature;
                         $print_first_layer_temperature->();
                     }
-                    print $fh $extrude_layer->($layer_id, [[ $obj_idx, $copy ]]);
+                    print $fh $extrude_layer->($layer, [$copy]);
                 }
                 $finished_objects++;
             }
         }
     } else {
-        for my $layer_id (0..$self->layer_count-1) {
-            my @object_copies = ();
-            for my $obj_idx (grep $self->objects->[$_]->layers->[$layer_id], 0..$#{$self->objects}) {
-                push @object_copies, map [ $obj_idx, $_ ], @{ $self->objects->[$obj_idx]->copies };
-            }
-            print $fh $extrude_layer->($layer_id, \@object_copies);
-        }
+        print $fh $extrude_layer->($_, $_->object->copies)
+            for sort { $a->print_z <=> $b->print_z }
+                map @{$_->layers}, @{$self->objects};
     }
     
     # save statistic data
