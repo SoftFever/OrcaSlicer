@@ -851,7 +851,7 @@ sub write_gcode {
             if ($gcodegen->multiple_extruders) {
                 my $last_extruder = $gcodegen->extruder;
                 my $best_region_id = first { $self->regions->[$_]->extruders->{perimeter} eq $last_extruder } @region_ids;
-                @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids);
+                @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids) if $best_region_id;
             }
             
             foreach my $region_id (@region_ids) {
@@ -889,14 +889,14 @@ sub write_gcode {
                 }
                 
                 foreach my $island (@islands) {
-                    # extrude perimeters
-                    if (@{ $island->{perimeters} }) {
+                    my $extrude_perimeters = sub {
+                        next if !@{ $island->{perimeters} };
                         $gcode .= $gcodegen->set_extruder($region->extruders->{perimeter});
                         $gcode .= $gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
-                    }
+                    };
                     
-                    # extrude fills
-                    if (@{ $island->{fills} }) {
+                    my $extrude_fills = sub {
+                        next if !@{ $island->{fills} };
                         $gcode .= $gcodegen->set_extruder($region->extruders->{infill});
                         for my $fill (@{ $island->{fills} }) {
                             if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
@@ -906,6 +906,15 @@ sub write_gcode {
                                 $gcode .= $gcodegen->extrude($fill, 'fill') ;
                             }
                         }
+                    };
+                    
+                    # give priority to infill if we were already using its extruder
+                    if ($gcodegen->multiple_extruders && $region->extruders->{infill} eq $gcodegen->extruder) {
+                        $extrude_fills->();
+                        $extrude_perimeters->();
+                    } else {
+                        $extrude_perimeters->();
+                        $extrude_fills->();
                     }
                 }
             }
