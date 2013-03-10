@@ -32,6 +32,7 @@ lib/Slic3r/GUI/AboutDialog.pm
 lib/Slic3r/GUI/ConfigWizard.pm
 lib/Slic3r/GUI/OptionsGroup.pm
 lib/Slic3r/GUI/Plater.pm
+lib/Slic3r/GUI/Plater/ObjectDialog.pm
 lib/Slic3r/GUI/Preferences.pm
 lib/Slic3r/GUI/SkeinPanel.pm
 lib/Slic3r/GUI/SimpleTab.pm
