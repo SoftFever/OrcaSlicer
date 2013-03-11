@@ -7,6 +7,8 @@ use SVG;
 use constant X => 0;
 use constant Y => 1;
 
+our $filltype = 'evenodd';
+
 sub factor {
     return &Slic3r::SCALING_FACTOR * 10;
 }
@@ -35,6 +37,25 @@ sub output {
     my ($filename, %things) = @_;
     
     my $svg = svg();
+    
+    foreach my $type (qw(expolygons red_expolygons green_expolygons)) {
+        next if !$things{$type};
+        my ($colour) = $type =~ /^(red|green)_/;
+        my $g = $svg->group(
+            style => {
+                'stroke-width' => 2,
+                'stroke' => $colour || 'black',
+                'fill' => ($type !~ /polygons/ ? 'none' : ($colour || 'grey')),
+                'fill-type' => $filltype,
+            },
+        );
+        foreach my $expolygon (@{$things{$type}}) {
+            my $points = join ' ', map "M $_ z", map join(" ", reverse map $_->[0]*factor() . " " . $_->[1]*factor(), @$_), @$expolygon;
+            $g->path(
+                d => $points,
+            );
+        }
+    }
     
     foreach my $type (qw(polygons polylines white_polygons green_polygons red_polygons red_polylines)) {
         if ($things{$type}) {

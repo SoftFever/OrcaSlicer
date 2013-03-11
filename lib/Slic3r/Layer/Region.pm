@@ -216,7 +216,7 @@ sub make_perimeters {
         my @gaps = ();
         
         # generate perimeters inwards (loop 0 is the external one)
-        my $loop_number = $Slic3r::Config->perimeters + ($surface->additional_inner_perimeters || 0);
+        my $loop_number = $Slic3r::Config->perimeters + ($surface->extra_perimeters || 0);
         push @perimeters, [] if $loop_number > 0;
         
         # do one more loop (<= instead of <) so that we can detect gaps even after the desired
