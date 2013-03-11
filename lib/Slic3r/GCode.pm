@@ -350,7 +350,7 @@ sub retract {
     # prepare moves
     $self->speed('retract');
     my $retract = [undef, undef, -$length, $comment];
-    my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z})
+    my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z}) && !$self->lifted
         ? undef
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during travel'];
     
@@ -371,12 +371,14 @@ sub retract {
         $gcode .= $self->G0(@$travel);
     } else {
         $gcode .= $self->G1(@$retract);
-        if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
-            my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
-            $gcode .= $self->G0(@$travel);
-            $self->lifted($self->extruder->retract_lift);
-        } elsif ($lift) {
-            $gcode .= $self->G1(@$lift);
+        if (!$self->lifted) {
+            if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
+                my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
+                $gcode .= $self->G0(@$travel);
+                $self->lifted($self->extruder->retract_lift);
+            } elsif ($lift) {
+                $gcode .= $self->G1(@$lift);
+            }
         }
     }
     $self->extruder->retracted($self->extruder->retracted + $length);

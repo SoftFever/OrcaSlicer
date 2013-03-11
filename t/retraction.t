@@ -43,6 +43,7 @@ my $test = sub {
             if (_eq($info->{dist_Z}, $print->extruders->[$tool]->retract_lift)
                 || (_eq($info->{dist_Z}, $conf->layer_height + $print->extruders->[$tool]->retract_lift) && $print->extruders->[$tool]->retract_lift > 0)) {
                 fail 'only lifting while retracted' if !$retracted[$tool] && !($conf->g0 && $info->{retracting});
+                fail 'double lift' if $lifted;
                 $lifted = 1;
             }
             if ($info->{dist_Z} < 0) {
