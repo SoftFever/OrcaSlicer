@@ -35,6 +35,9 @@ sub pack {
     return $o;
 }
 
+# no-op
+sub unpack { $_[0] }
+
 sub split_at_index {
     my $self = shift;
     
