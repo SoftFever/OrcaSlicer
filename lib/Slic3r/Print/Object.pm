@@ -237,11 +237,10 @@ sub make_perimeters {
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
                 my $diff = diff_ex(
-                    [ offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap) ],
                     [ offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($Slic3r::Config->perimeters * $perimeter_spacing)) ],
+                    [ offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap) ],
                 );
                 next if !@$diff;
-                
                 # if we need more perimeters, $diff should contain a narrow region that we can collapse
                 
                 $diff = diff_ex(
@@ -252,17 +251,17 @@ sub make_perimeters {
                     ) ],
                 );
                 next if !@$diff;
-                
                 # diff contains the collapsed area
                 
                 foreach my $slice (@{$layerm->slices}) {
-                    my $hypothetical_perimeter_num = $Slic3r::Config->perimeters + 1;
+                    my $extra_perimeters = 0;
                     CYCLE: while (1) {
                         # compute polygons representing the thickness of the hypotetical new internal perimeter
                         # of our slice
+                        $extra_perimeters++;
                         my $hypothetical_perimeter = diff_ex(
-                            [ offset($slice->expolygon, -($perimeter_spacing * ($hypothetical_perimeter_num-1))) ],
-                            [ offset($slice->expolygon, -($perimeter_spacing * $hypothetical_perimeter_num)) ],
+                            [ offset($slice->expolygon, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters-1))) ],
+                            [ offset($slice->expolygon, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters))) ],
                         );
                         last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
                         
@@ -273,8 +272,7 @@ sub make_perimeters {
                         );
                         last CYCLE if !@$intersection;
                         Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
-                        $slice->additional_inner_perimeters(($slice->additional_inner_perimeters || 0) + 1);
-                        $hypothetical_perimeter_num++;
+                        $slice->extra_perimeters($extra_perimeters);
                     }
                 }
             }

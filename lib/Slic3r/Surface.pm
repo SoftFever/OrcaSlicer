@@ -11,7 +11,7 @@ use constant S_EXPOLYGON    => 0;
 use constant S_SURFACE_TYPE => 1;
 use constant S_DEPTH_LAYERS => 2;
 use constant S_BRIDGE_ANGLE => 3;
-use constant S_ADDITIONAL_INNER_PERIMETERS => 4;
+use constant S_EXTRA_PERIMETERS => 4;
 
 use constant S_TYPE_TOP             => 0;
 use constant S_TYPE_BOTTOM          => 1;
@@ -24,7 +24,7 @@ sub new {
     my %args = @_;
     
     my $self = [
-        map delete $args{$_}, qw(expolygon surface_type depth_layers bridge_angle additional_inner_perimeters),
+        map delete $args{$_}, qw(expolygon surface_type depth_layers bridge_angle extra_perimeters),
     ];
     $self->[S_DEPTH_LAYERS] //= 1; #/
     
@@ -36,7 +36,7 @@ sub expolygon       { $_[0][S_EXPOLYGON] }
 sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if defined $_[1]; $_[0][S_SURFACE_TYPE] }
 sub depth_layers    { $_[0][S_DEPTH_LAYERS] } # this integer represents the thickness of the surface expressed in layers
 sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] = $_[1] if defined $_[1]; $_[0][S_BRIDGE_ANGLE] }
-sub additional_inner_perimeters { $_[0][S_ADDITIONAL_INNER_PERIMETERS] = $_[1] if defined $_[1]; $_[0][S_ADDITIONAL_INNER_PERIMETERS] }
+sub extra_perimeters { $_[0][S_EXTRA_PERIMETERS] = $_[1] if defined $_[1]; $_[0][S_EXTRA_PERIMETERS] }
 
 # delegate handles
 sub encloses_point  { $_[0]->expolygon->encloses_point }
