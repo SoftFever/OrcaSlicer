@@ -120,7 +120,9 @@ sub make_fill {
             $density = 1;
             $filler = $Slic3r::Config->solid_fill_pattern;
             if ($is_bridge) {
-                $filler = 'rectilinear';
+                $filler = $surface->surface_type == S_TYPE_INTERNALBRIDGE
+                    ? 'concentric'
+                    : 'rectilinear';
                 $flow_spacing = $layerm->extruders->{infill}->bridge_flow->spacing;
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
