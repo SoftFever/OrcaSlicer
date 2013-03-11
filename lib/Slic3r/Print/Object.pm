@@ -464,6 +464,7 @@ sub clip_fill_surfaces {
 
 sub bridge_over_infill {
     my $self = shift;
+    return if $Slic3r::Config->fill_density == 1;
     
     for my $layer_id (1..$#{$self->layers}) {
         my $layer       = $self->layers->[$layer_id];
