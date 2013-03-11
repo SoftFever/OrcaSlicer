@@ -544,10 +544,9 @@ sub discover_horizontal_shells {
                 # find slices of current type for current layer
                 # get both slices and fill_surfaces before the former contains the perimeters area
                 # and the latter contains the enlarged external surfaces
-                my @surfaces = grep $_->surface_type == $type, @{$layerm->slices}, @{$layerm->fill_surfaces} or next;
-                my $surfaces_p = [ map $_->p, @surfaces ];
-                Slic3r::debugf "Layer %d has %d surfaces of type '%s'\n",
-                    $i, scalar(@surfaces), ($type == S_TYPE_TOP ? 'top' : 'bottom');
+                my $solid = [ map $_->expolygon, grep $_->surface_type == $type, @{$layerm->slices}, @{$layerm->fill_surfaces} ];
+                next if !@$solid;
+                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP ? 'top' : 'bottom');
                 
                 my $solid_layers = ($type == S_TYPE_TOP)
                     ? $Slic3r::Config->top_solid_layers
@@ -559,16 +558,38 @@ sub discover_horizontal_shells {
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
-                    my @neighbor_fill_surfaces  = @{$self->layers->[$n]->regions->[$region_id]->fill_surfaces};
+                    my @neighbor_fill_surfaces = @{$self->layers->[$n]->regions->[$region_id]->fill_surfaces};
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
                     my $new_internal_solid = intersection_ex(
-                        $surfaces_p,
+                        [ map @$_, @$solid ],
                         [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_fill_surfaces ],
                         undef, 1,
                     );
                     next if !@$new_internal_solid;
+                    
+                    # make sure the new internal solid is wide enough, as it might get collapsed when
+                    # spacing is added in Fill.pm
+                    {
+                        my $margin = 3 * $layerm->infill_flow->scaled_width; # require at least this size
+                        my $too_narrow = diff_ex(
+                            [ map @$_, @$new_internal_solid ],
+                            [ offset([ offset([ map @$_, @$new_internal_solid ], -$margin) ], +$margin) ],
+                        );
+                        
+                        # if some parts are going to collapse, let's grow them and add the extra area to the neighbor layer
+                        # as well as to our original surfaces so that we support this additional area in the next shell too
+                        if (@$too_narrow) {
+                            # make sure our grown surfaces don't exceed the fill area
+                            my @grown = map @$_, @{intersection_ex(
+                                [ offset([ map @$_, @$too_narrow ], +$margin) ],
+                                [ map $_->p, @neighbor_fill_surfaces ],
+                            )};
+                            $new_internal_solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
+                            $solid = union_ex([ @grown, (map @$_, @$solid) ]);
+                        }
+                    }
                     
                     # internal-solid are the union of the existing internal-solid surfaces
                     # and new ones
@@ -611,8 +632,6 @@ sub discover_horizontal_shells {
                     }
                 }
             }
-            
-            @{$layerm->fill_surfaces} = grep $_->expolygon->area > $layerm->infill_area_threshold, @{$layerm->fill_surfaces};
         }
     }
 }
