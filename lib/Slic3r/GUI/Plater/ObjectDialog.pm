@@ -109,10 +109,10 @@ sub new {
     $grid->CreateGrid(0, 3);
     $grid->DisableDragRowSize;
     $grid->HideRowLabels if &Wx::wxVERSION_STRING !~ / 2\.8\./;
-    $grid->SetColLabelValue(0, "Min Z");
-    $grid->SetColLabelValue(1, "Max Z");
-    $grid->SetColLabelValue(2, "Layer height");
-    $grid->SetColSize($_, 100) for 0..2;
+    $grid->SetColLabelValue(0, "Min Z (mm)");
+    $grid->SetColLabelValue(1, "Max Z (mm)");
+    $grid->SetColLabelValue(2, "Layer height (mm)");
+    $grid->SetColSize($_, 135) for 0..2;
     $grid->SetDefaultCellAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
     
     # load data
