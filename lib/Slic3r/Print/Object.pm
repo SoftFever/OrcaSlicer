@@ -764,11 +764,6 @@ sub generate_support_material {
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             
-            # overhang width must be computed on lower layer
-            my $overhang_width = $Slic3r::Config->support_material_threshold
-                ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
-                : $self->layers->[1]->regions->[0]->overhang_width;
-            
             my @current_layer_offsetted_slices = map $_->offset_ex($distance_from_object), @{$layer->slices};
             
             # $upper_layers_overhangs[-1] contains the overhangs of the upper layer, regardless of any interface layers
@@ -818,7 +813,10 @@ sub generate_support_material {
                 # consider all overhangs regardless of their angle if we're told to enforce support on this layer
                 my $distance = $i <= ($Slic3r::Config->support_material_enforce_layers + $Slic3r::Config->raft_layers)
                     ? 0
-                    : $overhang_width;
+                    : $Slic3r::Config->support_material_threshold
+                        ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
+                        : $self->layers->[1]->regions->[0]->overhang_width;
+                
                 @overhangs = map $_->offset_ex(2 * $distance), @{diff_ex(
                     [ map @$_, map $_->offset_ex(-$distance), @{$layer->slices} ],
                     [ map @$_, @{$lower_layer->slices} ],
