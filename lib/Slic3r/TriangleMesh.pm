@@ -163,10 +163,10 @@ sub check_manifoldness {
 sub unpack_line {
     my ($packed) = @_;
     
-    my @data = unpack I_FMT, $packed;
-    splice @data, 0, 2, [ @data[0,1] ];
-    $data[$_] = undef for grep $data[$_] == -1, I_A_ID, I_B_ID, I_FACET_EDGE, I_PREV_FACET_INDEX, I_NEXT_FACET_INDEX;
-    return [@data];
+    my $data = [ unpack I_FMT, $packed ];
+    splice @$data, 0, 2, [ @$data[0,1] ];
+    $data->[$_] = undef for grep $data->[$_] == -1, I_A_ID, I_B_ID, I_FACET_EDGE, I_PREV_FACET_INDEX, I_NEXT_FACET_INDEX;
+    return $data;
 }
 
 sub make_loops {
