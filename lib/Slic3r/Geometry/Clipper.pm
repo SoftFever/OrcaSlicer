@@ -45,7 +45,15 @@ sub diff_ex {
 }
 
 sub diff {
-    return [ map @$_, diff_ex(@_) ];
+    my ($subject, $clip, $safety_offset) = @_;
+    
+    $clipper->clear;
+    $clipper->add_subject_polygons($subject);
+    $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
+    return [
+        map Slic3r::Polygon->new($_),
+            @{ $clipper->execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
+    ];
 }
 
 sub union_ex {

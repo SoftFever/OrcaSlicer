@@ -13,7 +13,7 @@ use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y PI scale chained_path);
-use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex offset);
+use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset);
 use Slic3r::Surface ':types';
 
 
@@ -109,19 +109,25 @@ sub make_fill {
     # any void neighbors
     my $distance_between_surfaces = $layerm->infill_flow->scaled_spacing;
     {
-        my $collapsed = diff_ex(
+        my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],
             [ offset(
                 [ offset([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2) ],
                 +$distance_between_surfaces/2
             ) ],
+            1,
         );
         push @surfaces, map Slic3r::Surface->new(
             expolygon       => $_,
             surface_type    => S_TYPE_INTERNALSOLID,
         ), @{intersection_ex(
-            [ offset([ map @$_, @$collapsed ], $distance_between_surfaces) ],
-            [ map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNALVOID, @surfaces ],
+            [ offset($collapsed, $distance_between_surfaces) ],
+            [
+                (map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNALVOID, @surfaces),
+                (@$collapsed),
+            ],
+            undef,
+            1,
         )};
     }
     
