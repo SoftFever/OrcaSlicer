@@ -991,7 +991,11 @@ END
 };
 
 # generate accessors
-{
+if (eval "use Class::XSAccessor; 1") {
+    Class::XSAccessor->import(
+        getters => { map { $_ => $_ } keys %$Options },
+    );
+} else {
     no strict 'refs';
     for my $opt_key (keys %$Options) {
         *{$opt_key} = sub { $_[0]{$opt_key} };
