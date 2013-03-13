@@ -39,6 +39,21 @@ sub depth_layers    { $_[0][S_DEPTH_LAYERS] } # this integer represents the thic
 sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] = $_[1] if defined $_[1]; $_[0][S_BRIDGE_ANGLE] }
 sub extra_perimeters { $_[0][S_EXTRA_PERIMETERS] = $_[1] if defined $_[1]; $_[0][S_EXTRA_PERIMETERS] }
 
+if (eval "use Class::XSAccessor::Array; 1") {
+    Class::XSAccessor::Array->import(
+        getters => {
+            expolygon           => S_EXPOLYGON,
+        },
+        accessors => {
+            surface_type        => S_SURFACE_TYPE,
+            depth_layers        => S_DEPTH_LAYERS,
+            bridge_angle        => S_BRIDGE_ANGLE,
+            extra_perimeters    => S_EXTRA_PERIMETERS,
+        },
+        replace => 1,
+    );
+}
+
 # delegate handles
 sub encloses_point  { $_[0]->expolygon->encloses_point }
 sub lines           { $_[0]->expolygon->lines }

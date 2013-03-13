@@ -26,6 +26,7 @@ my $build = Module::Build->new(
         'IO::Scalar' => '0.10',
     },
     recommends     => {
+        'Class::XSAccessor' => '0',
         'Growl::GNTP' => '0.15',
         'Net::DBus'   => '0',
         'XML::SAX::ExpatXS' => '0',
