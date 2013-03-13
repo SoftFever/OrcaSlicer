@@ -516,6 +516,13 @@ sub bridge_over_infill {
                                 [ map $_->p, @$group ],
                                 [ map @$_, @$to_bridge ],
                             )};
+                            push @new_surfaces, map Slic3r::Surface->new(
+                                expolygon       => $_,
+                                surface_type    => S_TYPE_INTERNALVOID,
+                            ), @{intersection_ex(
+                                [ map $_->p, @$group ],
+                                [ map @$_, @$to_bridge ],
+                            )};
                         }
                         @{$lower_layerm->fill_surfaces} = @new_surfaces;
                     }
@@ -713,7 +720,7 @@ sub combine_infill {
                     my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
                     my @other_types = grep $_->surface_type != $type, @{$layerm->fill_surfaces};
                     
-                    @this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
+                    my @new_this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
                         @{diff_ex(
                             [ map @{$_->expolygon}, @this_type ],
                             [ @intersection_with_clearance ],
@@ -721,12 +728,20 @@ sub combine_infill {
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
                     if ($layerm->id == $layer_id) {
-                        push @this_type,
+                        push @new_this_type,
                             map Slic3r::Surface->new(expolygon => $_, surface_type => $type, depth_layers => $every),
                             @$intersection;
+                    } else {
+                        # save void surfaces
+                        push @this_type,
+                            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNALVOID),
+                            @{intersection_ex(
+                                [ map @{$_->expolygon}, @this_type ],
+                                [ @intersection_with_clearance ],
+                            )};
                     }
                     
-                    @{$layerm->fill_surfaces} = (@this_type, @other_types);
+                    @{$layerm->fill_surfaces} = (@new_this_type, @other_types);
                 }
             }
         }
