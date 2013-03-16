@@ -774,8 +774,10 @@ sub generate_support_material {
                 [ map @$_, @{ $upper_layers_overhangs[-1] || [] } ],
                 [ map @$_, @current_layer_offsetted_slices ],
             );
-            $layers_contact_areas{$i} = collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width);
-            $_->simplify($flow->scaled_spacing) for @{$layers_contact_areas{$i}};
+            $layers_contact_areas{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width),
+            ];
             
             # to define interface regions of this layer we consider the overhangs of all the upper layers
             # minus the first one
@@ -786,8 +788,10 @@ sub generate_support_material {
                     (map @$_, @{ $layers_contact_areas{$i} }),
                 ],
             );
-            $layers_interfaces{$i} = collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width);
-            $_->simplify($flow->scaled_spacing) for @{$layers_interfaces{$i}};
+            $layers_interfaces{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width),
+            ];
             
             # generate support material in current layer (for upper layers)
             @current_support_regions = @{diff_ex(
@@ -806,8 +810,10 @@ sub generate_support_material {
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
-            $layers{$i} = collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width);
-            $_->simplify($flow->scaled_spacing) for @{$layers{$i}};
+            $layers{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width),
+            ];
             
             # get layer overhangs and put them into queue for adding support inside lower layers;
             # we need an angle threshold for this

@@ -97,6 +97,11 @@ sub grow {
     return $self->split_at_first_point->grow(@_);
 }
 
+sub simplify {
+    my $self = shift;
+    return Slic3r::Geometry::Clipper::simplify_polygon( $self->SUPER::simplify(@_) );
+}
+
 # this method subdivides the polygon segments to that no one of them
 # is longer than the length provided
 sub subdivide {

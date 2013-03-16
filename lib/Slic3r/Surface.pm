@@ -81,12 +81,22 @@ sub group {
 
 sub offset {
     my $self = shift;
-    return map {
-        (ref $self)->new(
-            expolygon => $_,
-            map { $_ => $self->$_ } qw(surface_type depth_layers bridge_angle),
-        )
-    } $self->expolygon->offset_ex(@_);
+    return map $self->_inflate_expolygon($_), $self->expolygon->offset_ex(@_);
+}
+
+sub simplify {
+    my $self = shift;
+    return map $self->_inflate_expolygon($_), $self->expolygon->simplify(@_);
+}
+
+sub _inflate_expolygon {
+    my $self = shift;
+    my ($expolygon) = @_;
+    
+    return (ref $self)->new(
+        expolygon => $expolygon,
+        map { $_ => $self->$_ } qw(surface_type depth_layers bridge_angle),
+    );
 }
 
 sub clipper_polygon {

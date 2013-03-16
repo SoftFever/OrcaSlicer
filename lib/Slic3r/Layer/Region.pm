@@ -263,14 +263,14 @@ sub make_perimeters {
             # we offset by half the perimeter spacing (to get to the actual infill boundary)
             # and then we offset back and forth by the infill spacing to only consider the
             # non-collapsing regions
-            my @fill_boundaries = @{union_ex([
-                Slic3r::Geometry::Clipper::offset(
-                    [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
-                    +$infill_spacing,
-                ),
-            ])};
-            $_->simplify(&Slic3r::SCALED_RESOLUTION) for @fill_boundaries;
-            push @{ $self->fill_surfaces }, @fill_boundaries;
+            push @{ $self->fill_surfaces },
+                map $_->simplify(&Slic3r::SCALED_RESOLUTION),
+                @{union_ex([
+                    Slic3r::Geometry::Clipper::offset(
+                        [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
+                        +$infill_spacing,
+                    ),
+                ])};
         }
         
         # fill gaps

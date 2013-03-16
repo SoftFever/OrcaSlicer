@@ -56,21 +56,19 @@ sub BUILD {
         }
     };
     
+    # simplify islands
+    @{$self->islands} = map $_->simplify($self->_inner_margin), @{$self->islands};
+    
     # process individual islands
-    for my $i (0 .. $#{$self->islands}) {
-        # simplify the island's contours
-        $self->islands->[$i]->simplify($self->_inner_margin);
-        
+    for my $i (0 .. $#{$self->islands}) {        
         # offset the island inwards to make the boundaries for internal movements
         # so that no motion along external perimeters happens
-        $self->_inner->[$i] = [ $self->islands->[$i]->offset_ex(-$self->_inner_margin) ]
-            if !$self->no_internal;
+        $self->_inner->[$i] = $self->no_internal
+            ? []
+            : [ $self->islands->[$i]->offset_ex(-$self->_inner_margin) ];
         
         # offset the island outwards to make the boundaries for external movements
         $self->_outer->[$i] = [ $self->islands->[$i]->contour->offset($self->_outer_margin) ];
-        
-        # further simplification (isn't this a duplication of the one above?)
-        $_->simplify($self->_inner_margin) for @{$self->_inner->[$i]}, @{$self->_outer->[$i]};
         
         # if internal motion is enabled, build a set of utility expolygons representing
         # the outer boundaries (as contours) and the inner boundaries (as holes). whenever
