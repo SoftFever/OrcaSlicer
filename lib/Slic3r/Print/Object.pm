@@ -121,7 +121,7 @@ sub slice {
     die "Invalid input file\n" if !@{$self->layers};
     
     # free memory
-    $self->meshes(undef) unless $params{keep_meshes};
+    $self->meshes(undef);
     
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code in TriangleMesh)

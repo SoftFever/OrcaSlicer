@@ -324,7 +324,7 @@ sub export_gcode {
     # skein the STL into layers
     # each layer has surfaces with holes
     $status_cb->(10, "Processing triangulated mesh");
-    $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
+    $_->slice for @{$self->objects};
     
     # make perimeters
     # this will add a set of extrusion loops to each layer
@@ -477,7 +477,7 @@ sub export_svg {
     # calls ->perimeter_flow
     $self->init_extruders;
     
-    $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
+    $_->slice for @{$self->objects};
     $self->arrange_objects;
     
     my $output_file = $self->expanded_output_filepath($params{output_file});

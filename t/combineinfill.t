@@ -40,7 +40,7 @@ use Slic3r::Test;
         # copy of Print::export_gcode() up to the point 
         # after fill surfaces are combined
         $self->init_extruders;
-        $_->slice(keep_meshes => 1) for @{$self->objects};
+        $_->slice for @{$self->objects};
         $_->make_perimeters for @{$self->objects};
         foreach my $layer (map @{$_->layers}, @{$self->objects}) {
             @$_ = map $_->simplify(&Slic3r::SCALED_RESOLUTION), @$_
