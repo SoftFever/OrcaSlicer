@@ -134,7 +134,7 @@ sub add_model {
         
         if ($object->instances) {
             # replace the default [0,0] instance with the custom ones
-            @{$print_object->copies} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
+            $print_object->copies([ map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances} ]);
         }
     }
 }

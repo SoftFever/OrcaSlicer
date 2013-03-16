@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
+use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex);
 use Slic3r::Surface ':types';
 
@@ -11,7 +11,7 @@ has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'input_file'        => (is => 'rw', required => 0);
 has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1);
-has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]});
+has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]}, trigger => 1);
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
@@ -48,6 +48,14 @@ sub BUILD {
             slice_z => scale $slice_z,
         );
     }
+}
+
+sub _trigger_copies {
+    my $self = shift;
+    return unless @{$self->copies} > 1;
+    
+    # order copies with a nearest neighbor search
+    @{$self->copies} = @{chained_path_points($self->copies)}
 }
 
 sub layer_count {
