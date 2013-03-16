@@ -156,11 +156,13 @@ sub make_fill {
             paths => [
                 map Slic3r::ExtrusionPath->pack(
                     polyline => Slic3r::Polyline->new(@$_),
-                    role => ($is_bridge
-                        ? EXTR_ROLE_BRIDGE
-                        : $is_solid
-                            ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
-                            : EXTR_ROLE_FILL),
+                    role => ($surface->surface_type == S_TYPE_INTERNALBRIDGE
+                        ? EXTR_ROLE_INTERNALBRIDGE
+                        : $is_bridge
+                            ? EXTR_ROLE_BRIDGE
+                            : $is_solid
+                                ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
+                                : EXTR_ROLE_FILL),
                     height => $surface->depth_layers * $layerm->height,
                     flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
                 ), @paths,
