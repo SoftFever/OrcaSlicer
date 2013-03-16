@@ -26,7 +26,7 @@ sub fill_surface {
     
     my $cache_id = sprintf "d%s_s%s_a%s",
         $params{density}, $params{flow_spacing}, $rotate_vector->[0][0];
-    if (!$self->cache->{$cache_id}) {
+    if (!$self->cache->{$cache_id} || !defined $self->bounding_box) {
         
         # hexagons math
         my $hex_side = $distance / (sqrt(3)/2);
@@ -40,15 +40,10 @@ sub fill_surface {
         
         # adjust actual bounding box to the nearest multiple of our hex pattern
         # and align it so that it matches across layers
-        $self->bounding_box([ $expolygon->bounding_box ]) if !defined $self->bounding_box;
-        my $bounding_box = [ 0, 0, $self->bounding_box->[X2], $self->bounding_box->[Y2] ];
+        my $bounding_box = [ $self->bounding_box ? @{$self->bounding_box} : $expolygon->bounding_box ];
+        $bounding_box->[$_] = 0 for X1, Y1;
         {
-            my $bb_polygon = Slic3r::Polygon->new([
-                [ $bounding_box->[X1], $bounding_box->[Y1] ],
-                [ $bounding_box->[X2], $bounding_box->[Y1] ],
-                [ $bounding_box->[X2], $bounding_box->[Y2] ],
-                [ $bounding_box->[X1], $bounding_box->[Y2] ],
-            ]);
+            my $bb_polygon = Slic3r::Polygon->new_from_bounding_box($bounding_box);
             $bb_polygon->rotate($rotate_vector->[0][0], $hex_center);
             $bounding_box = [ Slic3r::Geometry::bounding_box($bb_polygon) ];
             # $bounding_box->[X1] and [Y1] represent the displacement between new bounding box offset and old one

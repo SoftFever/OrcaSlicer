@@ -6,8 +6,21 @@ use warnings;
 use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
-    polygon_remove_acute_vertices polygon_segment_having_point point_in_polygon);
+    polygon_remove_acute_vertices polygon_segment_having_point point_in_polygon
+    X1 X2 Y1 Y2);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
+
+sub new_from_bounding_box {
+    my $class = shift;
+    my ($bounding_box) = @_;
+    
+    return $class->new([
+        [ $bounding_box->[X1], $bounding_box->[Y1] ],
+        [ $bounding_box->[X2], $bounding_box->[Y1] ],
+        [ $bounding_box->[X2], $bounding_box->[Y2] ],
+        [ $bounding_box->[X1], $bounding_box->[Y2] ],
+    ]);
+}
 
 sub lines {
     my $self = shift;

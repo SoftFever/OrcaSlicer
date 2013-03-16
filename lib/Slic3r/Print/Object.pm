@@ -857,7 +857,7 @@ sub generate_support_material {
     {
         # 0.5 ensures the paths don't get clipped externally when applying them to layers
         my @areas = map $_->offset_ex(- 0.5 * $flow->scaled_width),
-            @{union_ex([ map $_->contour, map @$_, values %layers ])};
+            @{union_ex([ map $_->contour, map @$_, values %layers, values %layers_interfaces, values %layers_contact_areas ])};
         
         my $pattern = $Slic3r::Config->support_material_pattern;
         my @angles = ($Slic3r::Config->support_material_angle);
@@ -865,7 +865,11 @@ sub generate_support_material {
             $pattern = 'rectilinear';
             push @angles, $angles[0] + 90;
         }
+        
         my $filler = Slic3r::Fill->filler($pattern);
+        $filler->bounding_box([ Slic3r::Geometry::bounding_box([ map @$_, map @$_, @areas ]) ])
+            if $filler->can('bounding_box');
+        
         my $make_pattern = sub {
             my ($expolygon, $density) = @_;
             
