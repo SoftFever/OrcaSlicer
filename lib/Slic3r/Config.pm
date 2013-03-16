@@ -37,6 +37,15 @@ our $Options = {
         default => $Slic3r::have_threads ? 2 : 1,
         readonly => !$Slic3r::have_threads,
     },
+    'resolution' => {
+        label   => 'Resolution',
+        tooltip => 'Minimum detail resolution, used to simplify the input file for speeding up the slicing job and reducing memory usage. High-resolution models often carry more detail than printers can render. Set to zero to disable any simplification and use full resolution from input.',
+        sidetext => 'mm',
+        cli     => 'resolution=f',
+        type    => 'f',
+        min     => 0,
+        default => 0,
+    },
 
     # output options
     'output_filename_format' => {
@@ -559,6 +568,13 @@ our $Options = {
         label   => 'Avoid crossing perimeters',
         tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.',
         cli     => 'avoid-crossing-perimeters!',
+        type    => 'bool',
+        default => 0,
+    },
+    'external_perimeters_first' => {
+        label   => 'External perimeters first',
+        tooltip => 'Print contour perimeters from the outermost one to the innermost one instead of the default inverse order.',
+        cli     => 'external-perimeters-first!',
         type    => 'bool',
         default => 0,
     },

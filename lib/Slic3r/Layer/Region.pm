@@ -263,14 +263,14 @@ sub make_perimeters {
             # we offset by half the perimeter spacing (to get to the actual infill boundary)
             # and then we offset back and forth by the infill spacing to only consider the
             # non-collapsing regions
-            my @fill_boundaries = @{union_ex([
-                Slic3r::Geometry::Clipper::offset(
-                    [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
-                    +$infill_spacing,
-                ),
-            ])};
-            $_->simplify(&Slic3r::SCALED_RESOLUTION) for @fill_boundaries;
-            push @{ $self->fill_surfaces }, @fill_boundaries;
+            push @{ $self->fill_surfaces },
+                map $_->simplify(&Slic3r::SCALED_RESOLUTION),
+                @{union_ex([
+                    Slic3r::Geometry::Clipper::offset(
+                        [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
+                        +$infill_spacing,
+                    ),
+                ])};
         }
         
         # fill gaps
@@ -404,10 +404,14 @@ sub make_perimeters {
             }
         }
         
-        # do holes, then contours starting from innermost one
+        # first do holes
         $self->_add_perimeter($holes[$_], $is_external{$_} ? EXTR_ROLE_EXTERNAL_PERIMETER : undef)
             for reverse 0 .. $#holes;
-        for my $depth (reverse 0 .. $#$island) {
+        
+        # then do contours according to the user settings
+        my @contour_order = 0 .. $#$island;
+        @contour_order = reverse @contour_order if !$Slic3r::Config->external_perimeters_first;
+        for my $depth (@contour_order) {
             my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
                 : $depth == 0 ? EXTR_ROLE_EXTERNAL_PERIMETER
                 : EXTR_ROLE_PERIMETER;

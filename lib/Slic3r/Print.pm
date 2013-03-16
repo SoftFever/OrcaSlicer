@@ -313,6 +313,16 @@ sub size {
     return [ $bb[X2] - $bb[X1], $bb[Y2] - $bb[Y1] ];
 }
 
+sub _simplify_slices {
+    my $self = shift;
+    my ($distance) = @_;
+    
+    foreach my $layer (map @{$_->layers}, @{$self->objects}) {
+        @$_ = map $_->simplify($distance), @$_
+            for $layer->slices, (map $_->slices, @{$layer->regions});
+    }
+}
+
 sub export_gcode {
     my $self = shift;
     my %params = @_;
@@ -324,7 +334,12 @@ sub export_gcode {
     # skein the STL into layers
     # each layer has surfaces with holes
     $status_cb->(10, "Processing triangulated mesh");
-    $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
+    $_->slice for @{$self->objects};
+    
+    if ($Slic3r::Config->resolution) {
+        $status_cb->(15, "Simplifying input");
+        $self->_simplify_slices(scale $Slic3r::Config->resolution);
+    }
     
     # make perimeters
     # this will add a set of extrusion loops to each layer
@@ -334,10 +349,7 @@ sub export_gcode {
     
     # simplify slices (both layer and region slices),
     # we only need the max resolution for perimeters
-    foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-        $_->simplify(&Slic3r::SCALED_RESOLUTION)
-            for @{$layer->slices}, (map $_->expolygon, map @{$_->slices}, @{$layer->regions});
-    }
+    $self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
     
     # this will assign a type (top/bottom/internal) to $layerm->slices
     # and transform $layerm->fill_surfaces from expolygon 
@@ -477,7 +489,7 @@ sub export_svg {
     # calls ->perimeter_flow
     $self->init_extruders;
     
-    $_->slice(keep_meshes => $params{keep_meshes}) for @{$self->objects};
+    $_->slice for @{$self->objects};
     $self->arrange_objects;
     
     my $output_file = $self->expanded_output_filepath($params{output_file});

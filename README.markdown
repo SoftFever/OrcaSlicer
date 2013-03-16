@@ -197,6 +197,7 @@ The author of the Silk icon set is Mark James.
         --extra-perimeters  Add more perimeters when needed (default: yes)
         --randomize-start   Randomize starting point across layers (default: yes)
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
+        --external-perimeters-first Reverse perimeter order. (default: no)
         --only-retract-when-crossing-perimeters
                             Disable retraction when travelling between infill paths inside the same island.
                             (default: yes)
@@ -288,6 +289,7 @@ The author of the Silk icon set is Mark James.
        
        Miscellaneous options:
         --notes             Notes to be added as comments to the output file
+        --resolution        Minimum detail resolution (mm, set zero for full resolution, default: 0)
       
        Flow options (advanced):
         --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm

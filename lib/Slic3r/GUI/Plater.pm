@@ -1137,9 +1137,8 @@ sub make_thumbnail {
     for (map @$_, map @$_, @{$thumbnail->expolygons}) {
         @$_ = map $_ * $self->thumbnail_scaling_factor, @$_;
     }
+    @{$thumbnail->expolygons} = map $_->simplify(0.5), grep $_->area >= 1, @{$thumbnail->expolygons};
     foreach my $expolygon (@{$thumbnail->expolygons}) {
-    	@$expolygon = grep $_->area >= 1, @$expolygon;
-	    $expolygon->simplify(0.5);
     	$expolygon->rotate(Slic3r::Geometry::deg2rad($self->rotate));
     	$expolygon->scale($self->scale);
     }

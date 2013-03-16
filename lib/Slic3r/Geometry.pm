@@ -12,7 +12,7 @@ our @EXPORT_OK = qw(
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
     point_along_segment polygon_segment_having_point polygon_has_subsegment
     polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
-    rotate_points move_points remove_coinciding_points clip_segment_polygon
+    rotate_points move_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect same_point same_line
     longest_segment angle3points three_points_aligned line_direction
@@ -373,15 +373,6 @@ sub rotate_points {
 sub move_points {
     my ($shift, @points) = @_;
     return map Slic3r::Point->new($shift->[X] + $_->[X], $shift->[Y] + $_->[Y]), @points;
-}
-
-# preserves order
-sub remove_coinciding_points {
-    my ($points) = @_;
-    
-    my %p = map { sprintf('%f,%f', @$_) => "$_" } @$points;
-    %p = reverse %p;
-    @$points = grep $p{"$_"}, @$points;
 }
 
 # implementation of Liang-Barsky algorithm

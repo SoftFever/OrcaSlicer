@@ -5,6 +5,7 @@ use warnings;
 # an ExPolygon is a polygon with holes
 
 use Boost::Geometry::Utils;
+use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line line_length epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
@@ -52,6 +53,13 @@ sub clipper_expolygon {
         outer => $self->contour,
         holes => [ $self->holes ],
     };
+}
+
+sub is_valid {
+    my $self = shift;
+    return (!first { !$_->is_valid } @$self)
+        && $self->contour->is_counter_clockwise
+        && (!first { $_->is_counter_clockwise } $self->holes);
 }
 
 sub boost_polygon {
@@ -164,8 +172,13 @@ sub clip_line {
 
 sub simplify {
     my $self = shift;
-    $_->simplify(@_) for @$self;
-    $self;
+    my ($tolerance) = @_;
+    
+    # it would be nice to have a multilinestring_simplify method in B::G::U
+    my @simplified = Slic3r::Geometry::Clipper::simplify_polygons(
+        [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @$self ],
+    );
+    return @{ Slic3r::Geometry::Clipper::union_ex([ @simplified ]) };
 }
 
 sub scale {

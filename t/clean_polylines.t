@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 6;
+plan tests => 7;
 
 BEGIN {
     use FindBin;
@@ -24,7 +24,7 @@ use Slic3r;
     my $polyline = Slic3r::Polyline->new([
         [0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1],[0,0],
     ]);
-    $polyline->simplify(1);
+    $polyline = $polyline->simplify(1);
     is_deeply $polyline, [ [0, 0], [2, 0], [2, 2], [0, 2], [0, 0] ], 'Douglas-Peucker';
 }
 
@@ -33,7 +33,7 @@ use Slic3r;
         [0,0],[0.5,0.5],[1,0],[1.25,-0.25],[1.5,.5],
     ]);
     $polyline->scale(100);
-    $polyline->simplify(25);
+    $polyline = $polyline->simplify(25);
     is_deeply $polyline, [ [0, 0], [50, 50], [125, -25], [150, 50] ], 'Douglas-Peucker';
 }
 
@@ -75,9 +75,10 @@ use Slic3r;
     ok @$polygon < @$gear, 'gear was simplified using merge_continuous_lines';
 
     my $num_points = scalar @$polygon;
-    $polygon->simplify;
-    note sprintf "original points: %d\nnew points: %d", $num_points, scalar(@$polygon);
-    ok @$polygon < $num_points, 'gear was further simplified using Douglas-Peucker';
+    my @simplified = $polygon->simplify;
+    ok @simplified == 1, 'gear simplified to a single polygon';
+    note sprintf "original points: %d\nnew points: %d", $num_points, scalar(@{$simplified[0]});
+    ok @{$simplified[0]} < $num_points, 'gear was further simplified using Douglas-Peucker';
 }
 
 {

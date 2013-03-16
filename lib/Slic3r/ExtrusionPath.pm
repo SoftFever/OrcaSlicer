@@ -81,6 +81,11 @@ sub clip_with_expolygon {
     return @paths;
 }
 
+sub simplify {
+    my $self = shift;
+    $self->polyline($self->polyline->simplify(@_));
+}
+
 sub points {
     my $self = shift;
     return $self->polyline;

@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset);
+use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -121,7 +121,7 @@ sub slice {
     die "Invalid input file\n" if !@{$self->layers};
     
     # free memory
-    $self->meshes(undef) unless $params{keep_meshes};
+    $self->meshes(undef);
     
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code in TriangleMesh)
@@ -789,7 +789,10 @@ sub generate_support_material {
                 [ map @$_, @{ $upper_layers_overhangs[-1] || [] } ],
                 [ map @$_, @current_layer_offsetted_slices ],
             );
-            $_->simplify($flow->scaled_spacing) for @{$layers_contact_areas{$i}};
+            $layers_contact_areas{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    @{collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width)},
+            ];
             
             # to define interface regions of this layer we consider the overhangs of all the upper layers
             # minus the first one
@@ -800,7 +803,10 @@ sub generate_support_material {
                     (map @$_, @{ $layers_contact_areas{$i} }),
                 ],
             );
-            $_->simplify($flow->scaled_spacing) for @{$layers_interfaces{$i}};
+            $layers_interfaces{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    @{collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width)},
+            ];
             
             # generate support material in current layer (for upper layers)
             @current_support_regions = @{diff_ex(
@@ -819,7 +825,10 @@ sub generate_support_material {
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
-            $_->simplify($flow->scaled_spacing) for @{$layers{$i}};
+            $layers{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    @{collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width)},
+            ];
             
             # get layer overhangs and put them into queue for adding support inside lower layers;
             # we need an angle threshold for this
