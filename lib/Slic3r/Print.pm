@@ -201,8 +201,9 @@ sub init_extruders {
         my $region = $self->regions->[$region_id];
         
         # per-role extruders and flows
-        for (qw(perimeter infill top_infill)) {
-            my $extruder_name = $_ eq 'top_infill' ? 'infill' : $_;
+        for (qw(perimeter infill solid_infill top_infill)) {
+            my $extruder_name = $_;
+            $extruder_name =~ s/^(?:solid|top)_//;
             $region->extruders->{$_} = ($self->regions_count > 1)
                 ? $self->extruders->[$extruder_mapping{$region_id}]
                 : $self->extruders->[$self->config->get("${extruder_name}_extruder")-1];

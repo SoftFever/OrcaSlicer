@@ -100,7 +100,7 @@ sub make_fill {
     
     # add spacing between surfaces
     {
-        my $distance = $layerm->infill_flow->scaled_spacing / 2;
+        my $distance = $layerm->solid_infill_flow->scaled_spacing / 2;
         @surfaces = map $_->offset(-$distance), @surfaces;
     }
     
@@ -109,9 +109,12 @@ sub make_fill {
     SURFACE: foreach my $surface (@surfaces) {
         my $filler          = $Slic3r::Config->fill_pattern;
         my $density         = $Slic3r::Config->fill_density;
-        my $flow_spacing    = ($surface->surface_type == S_TYPE_TOP)
-            ? $layerm->top_infill_flow->spacing
-            : $layerm->infill_flow->spacing;
+        my $flow            = ($surface->surface_type == S_TYPE_TOP)
+            ? $layerm->top_infill_flow
+            : $surface->is_solid
+                ? $layerm->solid_infill_flow
+                : $layerm->infill_flow;
+        my $flow_spacing    = $flow->spacing;
         my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         

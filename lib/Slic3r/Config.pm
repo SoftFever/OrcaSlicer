@@ -446,8 +446,16 @@ our $Options = {
         type    => 'f',
         default => 0,
     },
+    'solid_infill_extrusion_width' => {
+        label   => 'Solid infill',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.',
+        sidetext => 'mm or % (leave 0 for default)',
+        cli     => 'solid-infill-extrusion-width=s',
+        type    => 'f',
+        default => 0,
+    },
     'top_infill_extrusion_width' => {
-        label   => 'Top infill',
+        label   => 'Top solid infill',
         tooltip => 'Set this to a non-zero value to set a manual extrusion width for infill for top surfaces. You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. If expressed as percentage (for example 90%) if will be computed over layer height.',
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'top-infill-extrusion-width=s',

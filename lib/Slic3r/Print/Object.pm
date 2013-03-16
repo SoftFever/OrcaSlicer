@@ -581,7 +581,7 @@ sub discover_horizontal_shells {
                     # make sure the new internal solid is wide enough, as it might get collapsed when
                     # spacing is added in Fill.pm
                     {
-                        my $margin = 3 * $layerm->infill_flow->scaled_width; # require at least this size
+                        my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
                             [ offset([ offset([ map @$_, @$new_internal_solid ], -$margin) ], +$margin) ],
@@ -708,12 +708,12 @@ sub combine_infill {
                 # so let's remove those areas from all layers
                 
                 my @intersection_with_clearance = map $_->offset(
-                      $layerms[-1]->infill_flow->scaled_width    / 2
+                      $layerms[-1]->solid_infill_flow->scaled_width    / 2
                     + $layerms[-1]->perimeter_flow->scaled_width / 2
                     # Because fill areas for rectilinear and honeycomb are grown 
                     # later to overlap perimeters, we need to counteract that too.
                     + (($type == S_TYPE_INTERNALSOLID || $Slic3r::Config->fill_pattern =~ /(rectilinear|honeycomb)/)
-                      ? $layerms[-1]->infill_flow->scaled_width * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING
+                      ? $layerms[-1]->solid_infill_flow->scaled_width * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING
                       : 0)
                     ), @$intersection;
                 
