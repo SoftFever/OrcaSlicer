@@ -22,7 +22,6 @@ sub fill_surface {
     # infill math
     my $min_spacing = scale $params{flow_spacing};
     my $distance = $min_spacing / $params{density};
-    my $overlap_distance = scale $params{flow_spacing} * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING;
     
     my $cache_id = sprintf "d%s_s%s_a%s",
         $params{density}, $params{flow_spacing}, $rotate_vector->[0][0];
@@ -84,7 +83,7 @@ sub fill_surface {
     # path is more straight
     my @paths = map Slic3r::Polyline->new(@$_), map @$_, @{intersection_ex(
         $self->cache->{$cache_id},
-        [ map @$_, $expolygon->offset_ex($overlap_distance) ],
+        $expolygon,
     )};
     
     return { flow_spacing => $params{flow_spacing} },

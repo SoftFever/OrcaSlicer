@@ -101,7 +101,7 @@ sub make_fill {
     # add spacing between surfaces
     {
         my $distance = $layerm->solid_infill_flow->scaled_spacing / 2;
-        @surfaces = map $_->offset(-$distance), @surfaces;
+        @surfaces = map $_->offset(-$distance * &Slic3r::INFILL_OVERLAP_OVER_SPACING), @surfaces;
     }
     
     my @fills = ();
