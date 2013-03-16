@@ -517,10 +517,10 @@ sub build {
             title => 'Flow',
             options => [qw(bridge_flow_ratio)],
         },
-        $Slic3r::have_threads ? {
+        {
             title => 'Other',
-            options => [qw(threads)],
-        } : (),
+            options => [($Slic3r::have_threads ? qw(threads) : ()), qw(resolution)],
+        },
     ]);
 }
 

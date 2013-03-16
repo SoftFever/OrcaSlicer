@@ -37,6 +37,15 @@ our $Options = {
         default => $Slic3r::have_threads ? 2 : 1,
         readonly => !$Slic3r::have_threads,
     },
+    'resolution' => {
+        label   => 'Resolution',
+        tooltip => 'Minimum detail resolution, used to simplify the input file for speeding up the slicing job and reducing memory usage. High-resolution models often carry more detail than printers can render. Set to zero to disable any simplification and use full resolution from input.',
+        sidetext => 'mm',
+        cli     => 'resolution=f',
+        type    => 'f',
+        min     => 0,
+        default => 0,
+    },
 
     # output options
     'output_filename_format' => {

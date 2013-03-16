@@ -342,6 +342,7 @@ $j
    
    Miscellaneous options:
     --notes             Notes to be added as comments to the output file
+    --resolution        Minimum detail resolution (mm, set zero for full resolution, default: $config->{resolution})
   
    Flow options (advanced):
     --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm

@@ -289,6 +289,7 @@ The author of the Silk icon set is Mark James.
        
        Miscellaneous options:
         --notes             Notes to be added as comments to the output file
+        --resolution        Minimum detail resolution (mm, set zero for full resolution, default: 0)
       
        Flow options (advanced):
         --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm

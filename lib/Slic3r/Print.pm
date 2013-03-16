@@ -313,6 +313,16 @@ sub size {
     return [ $bb[X2] - $bb[X1], $bb[Y2] - $bb[Y1] ];
 }
 
+sub _simplify_slices {
+    my $self = shift;
+    my ($distance) = @_;
+    
+    foreach my $layer (map @{$_->layers}, @{$self->objects}) {
+        @$_ = map $_->simplify($distance), @$_
+            for $layer->slices, (map $_->slices, @{$layer->regions});
+    }
+}
+
 sub export_gcode {
     my $self = shift;
     my %params = @_;
@@ -326,6 +336,11 @@ sub export_gcode {
     $status_cb->(10, "Processing triangulated mesh");
     $_->slice for @{$self->objects};
     
+    if ($Slic3r::Config->resolution) {
+        $status_cb->(15, "Simplifying input");
+        $self->_simplify_slices(scale $Slic3r::Config->resolution);
+    }
+    
     # make perimeters
     # this will add a set of extrusion loops to each layer
     # as well as generate infill boundaries
@@ -334,10 +349,7 @@ sub export_gcode {
     
     # simplify slices (both layer and region slices),
     # we only need the max resolution for perimeters
-    foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-        @$_ = map $_->simplify(&Slic3r::SCALED_RESOLUTION), @$_
-            for $layer->slices, (map $_->slices, @{$layer->regions});
-    }
+    $self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
     
     # this will assign a type (top/bottom/internal) to $layerm->slices
     # and transform $layerm->fill_surfaces from expolygon 
