@@ -1,11 +1,11 @@
 package Slic3r::Flow;
 use Moo;
 
-use List::Util qw(max);
 use Slic3r::Geometry qw(PI scale);
 
 has 'nozzle_diameter'   => (is => 'ro', required => 1);
 has 'layer_height'      => (is => 'ro', default => sub { $Slic3r::Config->layer_height });
+has 'role'              => (is => 'ro', default => sub { '' });
 
 has 'width'             => (is => 'rwp', builder => 1);
 has 'spacing'           => (is => 'lazy');
@@ -36,12 +36,13 @@ sub _build_width {
         $width = $self->nozzle_diameter * ($self->nozzle_diameter/$self->layer_height - 4/PI + 1);
     }
     
-    my $min = max(
-        ($volume / $self->layer_height),
-        ($self->nozzle_diameter * 1.05),
-    );
-    my $max = $self->nozzle_diameter * 2;
-    $width = $max if $width > $max;
+    my $min = $self->nozzle_diameter * 1.05;
+    my $max;
+    if ($self->role ne 'infill') {
+        # do not limit width for sparse infill so that we use full native flow for it
+        $max = $self->nozzle_diameter * 1.7;
+    }
+    $width = $max if defined($max) && $width > $max;
     $width = $min if $width < $min;
     
     return $width;
