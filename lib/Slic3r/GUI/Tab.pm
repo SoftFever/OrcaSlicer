@@ -407,7 +407,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(avoid_crossing_perimeters)],
+            options => [qw(avoid_crossing_perimeters external_perimeters_first)],
         },
     ]);
     

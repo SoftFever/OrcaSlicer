@@ -562,6 +562,13 @@ our $Options = {
         type    => 'bool',
         default => 0,
     },
+    'external_perimeters_first' => {
+        label   => 'External perimeters first',
+        tooltip => 'Print contour perimeters from the outermost one to the innermost one instead of the default inverse order.',
+        cli     => 'external-perimeters-first!',
+        type    => 'bool',
+        default => 0,
+    },
     'only_retract_when_crossing_perimeters' => {
         label   => 'Only retract when crossing perimeters',
         tooltip => 'Disables retraction when travelling between infill paths inside the same island.',

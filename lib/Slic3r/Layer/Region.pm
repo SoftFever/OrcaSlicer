@@ -404,10 +404,14 @@ sub make_perimeters {
             }
         }
         
-        # do holes, then contours starting from innermost one
+        # first do holes
         $self->_add_perimeter($holes[$_], $is_external{$_} ? EXTR_ROLE_EXTERNAL_PERIMETER : undef)
             for reverse 0 .. $#holes;
-        for my $depth (reverse 0 .. $#$island) {
+        
+        # then do contours according to the user settings
+        my @contour_order = 0 .. $#$island;
+        @contour_order = reverse @contour_order if !$Slic3r::Config->external_perimeters_first;
+        for my $depth (@contour_order) {
             my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
                 : $depth == 0 ? EXTR_ROLE_EXTERNAL_PERIMETER
                 : EXTR_ROLE_PERIMETER;

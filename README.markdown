@@ -197,6 +197,7 @@ The author of the Silk icon set is Mark James.
         --extra-perimeters  Add more perimeters when needed (default: yes)
         --randomize-start   Randomize starting point across layers (default: yes)
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
+        --external-perimeters-first Reverse perimeter order. (default: no)
         --only-retract-when-crossing-perimeters
                             Disable retraction when travelling between infill paths inside the same island.
                             (default: yes)
