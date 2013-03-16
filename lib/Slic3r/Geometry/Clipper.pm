@@ -4,7 +4,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(safety_offset offset offset_ex
+our @EXPORT_OK = qw(safety_offset offset offset_ex collapse_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     JT_SQUARE is_counter_clockwise);
 
@@ -89,6 +89,15 @@ sub xor_ex {
         map Slic3r::ExPolygon->new($_),
             @{ $clipper->ex_execute(CT_XOR, $jointype, $jointype) },
     ];
+}
+
+sub collapse_ex {
+    my ($polygons, $width) = @_;
+    my @result = offset(
+        [ offset($polygons, -$width/2,) ],
+        +$width/2,
+    );
+    return union_ex([@result]);
 }
 
 1;

@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset);
+use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -789,6 +789,7 @@ sub generate_support_material {
                 [ map @$_, @{ $upper_layers_overhangs[-1] || [] } ],
                 [ map @$_, @current_layer_offsetted_slices ],
             );
+            $layers_contact_areas{$i} = collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width);
             $_->simplify($flow->scaled_spacing) for @{$layers_contact_areas{$i}};
             
             # to define interface regions of this layer we consider the overhangs of all the upper layers
@@ -800,6 +801,7 @@ sub generate_support_material {
                     (map @$_, @{ $layers_contact_areas{$i} }),
                 ],
             );
+            $layers_interfaces{$i} = collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width);
             $_->simplify($flow->scaled_spacing) for @{$layers_interfaces{$i}};
             
             # generate support material in current layer (for upper layers)
@@ -819,6 +821,7 @@ sub generate_support_material {
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
+            $layers{$i} = collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width);
             $_->simplify($flow->scaled_spacing) for @{$layers{$i}};
             
             # get layer overhangs and put them into queue for adding support inside lower layers;
