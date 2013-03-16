@@ -834,8 +834,8 @@ sub generate_support_material {
                         ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                         : $self->layers->[1]->regions->[0]->overhang_width;
                 
-                @overhangs = map $_->offset_ex(2 * $distance), @{diff_ex(
-                    [ map @$_, map $_->offset_ex(-$distance), @{$layer->slices} ],
+                @overhangs = map $_->offset_ex(+$distance), @{diff_ex(
+                    [ map @$_, @{$layer->slices} ],
                     [ map @$_, @{$lower_layer->slices} ],
                     1,
                 )};
