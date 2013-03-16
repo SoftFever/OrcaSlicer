@@ -523,7 +523,7 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear line concentric honeycomb hilbertcurve archimedeanchords octagramspiral)],
         labels  => [qw(rectilinear line concentric honeycomb), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
-        default => 'rectilinear',
+        default => 'honeycomb',
     },
     'solid_fill_pattern' => {
         label   => 'Top/bottom fill pattern',
