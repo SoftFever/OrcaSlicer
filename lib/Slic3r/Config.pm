@@ -377,7 +377,7 @@ our $Options = {
         cli     => 'first-layer-height=s',
         type    => 'f',
         ratio_over => 'layer_height',
-        default => '100%',
+        default => 0.35,
     },
     'infill_every_layers' => {
         label   => 'Infill every',
