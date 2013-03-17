@@ -134,7 +134,7 @@ sub add_model {
         
         if ($object->instances) {
             # replace the default [0,0] instance with the custom ones
-            @{$print_object->copies} = map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances};
+            $print_object->copies([ map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances} ]);
         }
     }
 }
@@ -201,17 +201,20 @@ sub init_extruders {
         my $region = $self->regions->[$region_id];
         
         # per-role extruders and flows
-        for (qw(perimeter infill top_infill)) {
-            my $extruder_name = $_ eq 'top_infill' ? 'infill' : $_;
+        for (qw(perimeter infill solid_infill top_infill)) {
+            my $extruder_name = $_;
+            $extruder_name =~ s/^(?:solid|top)_//;
             $region->extruders->{$_} = ($self->regions_count > 1)
                 ? $self->extruders->[$extruder_mapping{$region_id}]
                 : $self->extruders->[$self->config->get("${extruder_name}_extruder")-1];
             $region->flows->{$_} = $region->extruders->{$_}->make_flow(
                 width => $self->config->get("${_}_extrusion_width") || $self->config->extrusion_width,
+                role  => $_,
             );
             $region->first_layer_flows->{$_} = $region->extruders->{$_}->make_flow(
                 layer_height    => $self->config->get_value('first_layer_height'),
                 width           => $self->config->first_layer_extrusion_width,
+                role            => $_,
             ) if $self->config->first_layer_extrusion_width;
         }
     }
@@ -221,10 +224,12 @@ sub init_extruders {
         my $extruder = $self->extruders->[$self->config->support_material_extruder-1];
         $self->support_material_flow($extruder->make_flow(
             width => $self->config->support_material_extrusion_width || $self->config->extrusion_width,
+            role  => 'support_material',
         ));
         $self->first_layer_support_material_flow($extruder->make_flow(
             layer_height    => $self->config->get_value('first_layer_height'),
             width           => $self->config->first_layer_extrusion_width,
+            role            => 'support_material',
         ));
     }
 }
@@ -696,6 +701,8 @@ sub write_gcode {
     }
     printf $fh "; perimeters extrusion width = %.2fmm\n", $self->regions->[0]->flows->{perimeter}->width;
     printf $fh "; infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{infill}->width;
+    printf $fh "; solid infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{solid_infill}->width;
+    printf $fh "; top infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{top_infill}->width;
     printf $fh "; support material extrusion width = %.2fmm\n", $self->support_material_flow->width
         if $self->support_material_flow;
     printf $fh "; first layer extrusion width = %.2fmm\n", $self->regions->[0]->first_layer_flows->{perimeter}->width

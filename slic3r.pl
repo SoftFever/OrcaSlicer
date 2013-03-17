@@ -353,6 +353,8 @@ $j
                         Set a different extrusion width for perimeters
     --infill-extrusion-width
                         Set a different extrusion width for infill
+    --solid-infill-extrusion-width
+                        Set a different extrusion width for solid infill
     --top-infill-extrusion-width
                         Set a different extrusion width for top infill
     --support-material-extrusion-width

@@ -90,10 +90,11 @@ sub make_fill {
             );
             
             push @surfaces, map Slic3r::Surface->new(
-                expolygon => $_,
-                surface_type => $group->[0]->surface_type,
-                bridge_angle => $group->[0]->bridge_angle,
-                depth_layers => $group->[0]->depth_layers,
+                expolygon           => $_,
+                surface_type        => $group->[0]->surface_type,
+                bridge_angle        => $group->[0]->bridge_angle,
+                thickness           => $group->[0]->thickness,
+                thickness_layers    => $group->[0]->thickness_layers,
             ), @$union;
         }
     }
@@ -107,7 +108,7 @@ sub make_fill {
     # we are going to grow such regions by overlapping them with the void (if any)
     # TODO: detect and investigate whether there could be narrow regions without
     # any void neighbors
-    my $distance_between_surfaces = $layerm->infill_flow->scaled_spacing;
+    my $distance_between_surfaces = $layerm->solid_infill_flow->scaled_spacing;
     {
         my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],
@@ -132,7 +133,7 @@ sub make_fill {
     }
     
     # add spacing between surfaces
-    @surfaces = map $_->offset(-$distance_between_surfaces/2), @surfaces;
+    @surfaces = map $_->offset(-$distance_between_surfaces / 2 * &Slic3r::INFILL_OVERLAP_OVER_SPACING), @surfaces;
     
     my @fills = ();
     my @fills_ordering_points =  ();
@@ -140,9 +141,12 @@ sub make_fill {
         next if $surface->surface_type == S_TYPE_INTERNALVOID;
         my $filler          = $Slic3r::Config->fill_pattern;
         my $density         = $Slic3r::Config->fill_density;
-        my $flow_spacing    = ($surface->surface_type == S_TYPE_TOP)
-            ? $layerm->top_infill_flow->spacing
-            : $layerm->infill_flow->spacing;
+        my $flow            = ($surface->surface_type == S_TYPE_TOP)
+            ? $layerm->top_infill_flow
+            : $surface->is_solid
+                ? $layerm->solid_infill_flow
+                : $layerm->infill_flow;
+        my $flow_spacing    = $flow->spacing;
         my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         
@@ -184,12 +188,14 @@ sub make_fill {
             paths => [
                 map Slic3r::ExtrusionPath->pack(
                     polyline => Slic3r::Polyline->new(@$_),
-                    role => ($is_bridge
-                        ? EXTR_ROLE_BRIDGE
-                        : $is_solid
-                            ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
-                            : EXTR_ROLE_FILL),
-                    height => $surface->depth_layers * $layerm->height,
+                    role => ($surface->surface_type == S_TYPE_INTERNALBRIDGE
+                        ? EXTR_ROLE_INTERNALBRIDGE
+                        : $is_bridge
+                            ? EXTR_ROLE_BRIDGE
+                            : $is_solid
+                                ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
+                                : EXTR_ROLE_FILL),
+                    height => $surface->thickness,
                     flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
                 ), @paths,
             ],
