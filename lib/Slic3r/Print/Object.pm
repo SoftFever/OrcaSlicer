@@ -659,7 +659,7 @@ sub combine_infill {
         my $nozzle_diameter = $self->print->regions->[$region_id]->extruders->{infill}->nozzle_diameter;
         
         # define the combinations
-        my @combine = ();   # layer_id => depth
+        my @combine = ();   # layer_id => thickness in layers
         {
             my $current_height = my $layers = 0;
             for my $layer_id (1 .. $#layer_heights) {
@@ -731,7 +731,12 @@ sub combine_infill {
                     # apply surfaces back with adjusted depth to the uppermost layer
                     if ($layerm->id == $layer_id) {
                         push @this_type,
-                            map Slic3r::Surface->new(expolygon => $_, surface_type => $type, depth_layers => $every),
+                            map Slic3r::Surface->new(
+                                expolygon        => $_,
+                                surface_type     => $type,
+                                thickness        => sum(map $_->height, @layerms),
+                                thickness_layers => scalar(@layerms),
+                            ),
                             @$intersection;
                     }
                     

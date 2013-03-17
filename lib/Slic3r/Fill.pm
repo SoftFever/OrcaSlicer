@@ -90,10 +90,11 @@ sub make_fill {
             );
             
             push @surfaces, map Slic3r::Surface->new(
-                expolygon => $_,
-                surface_type => $group->[0]->surface_type,
-                bridge_angle => $group->[0]->bridge_angle,
-                depth_layers => $group->[0]->depth_layers,
+                expolygon           => $_,
+                surface_type        => $group->[0]->surface_type,
+                bridge_angle        => $group->[0]->bridge_angle,
+                thickness           => $group->[0]->thickness,
+                thickness_layers    => $group->[0]->thickness_layers,
             ), @$union;
         }
     }
@@ -163,7 +164,7 @@ sub make_fill {
                             : $is_solid
                                 ? ($surface->surface_type == S_TYPE_TOP ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                                 : EXTR_ROLE_FILL),
-                    height => $surface->depth_layers * $layerm->height,
+                    height => $surface->thickness,
                     flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
                 ), @paths,
             ],
