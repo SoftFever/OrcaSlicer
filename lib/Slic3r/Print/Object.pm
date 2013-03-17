@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon);
+use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
 use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex);
 use Slic3r::Surface ':types';
 
@@ -11,7 +11,7 @@ has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'input_file'        => (is => 'rw', required => 0);
 has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1);
-has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]});
+has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]}, trigger => 1);
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
@@ -48,6 +48,14 @@ sub BUILD {
             slice_z => scale $slice_z,
         );
     }
+}
+
+sub _trigger_copies {
+    my $self = shift;
+    return unless @{$self->copies} > 1;
+    
+    # order copies with a nearest neighbor search
+    @{$self->copies} = @{chained_path_points($self->copies)}
 }
 
 sub layer_count {
@@ -121,7 +129,7 @@ sub slice {
     die "Invalid input file\n" if !@{$self->layers};
     
     # free memory
-    $self->meshes(undef) unless $params{keep_meshes};
+    $self->meshes(undef);
     
     # remove last layer if empty
     # (we might have created it because of the $max_layer = ... + 1 code in TriangleMesh)
@@ -580,7 +588,7 @@ sub discover_horizontal_shells {
                     # make sure the new internal solid is wide enough, as it might get collapsed when
                     # spacing is added in Fill.pm
                     {
-                        my $margin = 3 * $layerm->infill_flow->scaled_width; # require at least this size
+                        my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
                             [ offset([ offset([ map @$_, @$new_internal_solid ], -$margin) ], +$margin) ],
@@ -658,7 +666,7 @@ sub combine_infill {
         my $nozzle_diameter = $self->print->regions->[$region_id]->extruders->{infill}->nozzle_diameter;
         
         # define the combinations
-        my @combine = ();   # layer_id => depth
+        my @combine = ();   # layer_id => thickness in layers
         {
             my $current_height = my $layers = 0;
             for my $layer_id (1 .. $#layer_heights) {
@@ -706,15 +714,16 @@ sub combine_infill {
                 # $intersection now contains the regions that can be combined across the full amount of layers
                 # so let's remove those areas from all layers
                 
-                my @intersection_with_clearance = map $_->offset(
-                      $layerms[-1]->infill_flow->scaled_width    / 2
-                    + $layerms[-1]->perimeter_flow->scaled_width / 2
-                    # Because fill areas for rectilinear and honeycomb are grown 
-                    # later to overlap perimeters, we need to counteract that too.
-                    + (($type == S_TYPE_INTERNALSOLID || $Slic3r::Config->fill_pattern =~ /(rectilinear|honeycomb)/)
-                      ? $layerms[-1]->infill_flow->scaled_width * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING
-                      : 0)
-                    ), @$intersection;
+                 my @intersection_with_clearance = map $_->offset(
+                       $layerms[-1]->solid_infill_flow->scaled_width    / 2
+                     + $layerms[-1]->perimeter_flow->scaled_width / 2
+                     # Because fill areas for rectilinear and honeycomb are grown 
+                     # later to overlap perimeters, we need to counteract that too.
+                     + (($type == S_TYPE_INTERNALSOLID || $Slic3r::Config->fill_pattern =~ /(rectilinear|honeycomb)/)
+                       ? $layerms[-1]->solid_infill_flow->scaled_width * &Slic3r::INFILL_OVERLAP_OVER_SPACING
+                       : 0)
+                     ), @$intersection;
+
                 
                 foreach my $layerm (@layerms) {
                     my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
@@ -729,7 +738,12 @@ sub combine_infill {
                     # apply surfaces back with adjusted depth to the uppermost layer
                     if ($layerm->id == $layer_id) {
                         push @new_this_type,
-                            map Slic3r::Surface->new(expolygon => $_, surface_type => $type, depth_layers => $every),
+                            map Slic3r::Surface->new(
+                                expolygon        => $_,
+                                surface_type     => $type,
+                                thickness        => sum(map $_->height, @layerms),
+                                thickness_layers => scalar(@layerms),
+                            ),
                             @$intersection;
                     } else {
                         # save void surfaces
@@ -789,8 +803,10 @@ sub generate_support_material {
                 [ map @$_, @{ $upper_layers_overhangs[-1] || [] } ],
                 [ map @$_, @current_layer_offsetted_slices ],
             );
-            $layers_contact_areas{$i} = collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width);
-            $_->simplify($flow->scaled_spacing) for @{$layers_contact_areas{$i}};
+            $layers_contact_areas{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    @{collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width)},
+            ];
             
             # to define interface regions of this layer we consider the overhangs of all the upper layers
             # minus the first one
@@ -801,8 +817,10 @@ sub generate_support_material {
                     (map @$_, @{ $layers_contact_areas{$i} }),
                 ],
             );
-            $layers_interfaces{$i} = collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width);
-            $_->simplify($flow->scaled_spacing) for @{$layers_interfaces{$i}};
+            $layers_interfaces{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    @{collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width)},
+            ];
             
             # generate support material in current layer (for upper layers)
             @current_support_regions = @{diff_ex(
@@ -821,8 +839,10 @@ sub generate_support_material {
                     (map @$_, @{ $layers_interfaces{$i} }),
                 ],
             );
-            $layers{$i} = collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width);
-            $_->simplify($flow->scaled_spacing) for @{$layers{$i}};
+            $layers{$i} = [
+                map $_->simplify($flow->scaled_spacing), 
+                    @{collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width)},
+            ];
             
             # get layer overhangs and put them into queue for adding support inside lower layers;
             # we need an angle threshold for this
@@ -835,8 +855,8 @@ sub generate_support_material {
                         ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                         : $self->layers->[1]->regions->[0]->overhang_width;
                 
-                @overhangs = map $_->offset_ex(2 * $distance), @{diff_ex(
-                    [ map @$_, map $_->offset_ex(-$distance), @{$layer->slices} ],
+                @overhangs = map $_->offset_ex(+$distance), @{diff_ex(
+                    [ map @$_, @{$layer->slices} ],
                     [ map @$_, @{$lower_layer->slices} ],
                     1,
                 )};
@@ -858,7 +878,7 @@ sub generate_support_material {
     {
         # 0.5 ensures the paths don't get clipped externally when applying them to layers
         my @areas = map $_->offset_ex(- 0.5 * $flow->scaled_width),
-            @{union_ex([ map $_->contour, map @$_, values %layers ])};
+            @{union_ex([ map $_->contour, map @$_, values %layers, values %layers_interfaces, values %layers_contact_areas ])};
         
         my $pattern = $Slic3r::Config->support_material_pattern;
         my @angles = ($Slic3r::Config->support_material_angle);
@@ -866,7 +886,11 @@ sub generate_support_material {
             $pattern = 'rectilinear';
             push @angles, $angles[0] + 90;
         }
+        
         my $filler = Slic3r::Fill->filler($pattern);
+        $filler->bounding_box([ Slic3r::Geometry::bounding_box([ map @$_, map @$_, @areas ]) ])
+            if $filler->can('bounding_box');
+        
         my $make_pattern = sub {
             my ($expolygon, $density) = @_;
             

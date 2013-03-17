@@ -100,4 +100,14 @@ sub collapse_ex {
     return union_ex([@result]);
 }
 
+sub simplify_polygon {
+    my ($polygon, $pft) = @_;
+    return @{ Math::Clipper::simplify_polygon($polygon, $pft // PFT_NONZERO) };
+}
+
+sub simplify_polygons {
+    my ($polygons, $pft) = @_;
+    return @{ Math::Clipper::simplify_polygons($polygons, $pft // PFT_NONZERO) };
+}
+
 1;

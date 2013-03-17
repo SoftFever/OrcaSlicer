@@ -407,7 +407,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(avoid_crossing_perimeters)],
+            options => [qw(avoid_crossing_perimeters external_perimeters_first)],
         },
     ]);
     
@@ -511,16 +511,16 @@ sub build {
         {
             title => 'Extrusion width',
             label_width => 180,
-            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width infill_extrusion_width top_infill_extrusion_width support_material_extrusion_width)],
+            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width top_infill_extrusion_width support_material_extrusion_width)],
         },
         {
             title => 'Flow',
             options => [qw(bridge_flow_ratio)],
         },
-        $Slic3r::have_threads ? {
+        {
             title => 'Other',
-            options => [qw(threads)],
-        } : (),
+            options => [($Slic3r::have_threads ? qw(threads) : ()), qw(resolution)],
+        },
     ]);
 }
 

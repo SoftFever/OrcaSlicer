@@ -37,6 +37,15 @@ our $Options = {
         default => $Slic3r::have_threads ? 2 : 1,
         readonly => !$Slic3r::have_threads,
     },
+    'resolution' => {
+        label   => 'Resolution',
+        tooltip => 'Minimum detail resolution, used to simplify the input file for speeding up the slicing job and reducing memory usage. High-resolution models often carry more detail than printers can render. Set to zero to disable any simplification and use full resolution from input.',
+        sidetext => 'mm',
+        cli     => 'resolution=f',
+        type    => 'f',
+        min     => 0,
+        default => 0,
+    },
 
     # output options
     'output_filename_format' => {
@@ -368,7 +377,7 @@ our $Options = {
         cli     => 'first-layer-height=s',
         type    => 'f',
         ratio_over => 'layer_height',
-        default => '100%',
+        default => 0.35,
     },
     'infill_every_layers' => {
         label   => 'Infill every',
@@ -437,8 +446,16 @@ our $Options = {
         type    => 'f',
         default => 0,
     },
+    'solid_infill_extrusion_width' => {
+        label   => 'Solid infill',
+        tooltip => 'Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.',
+        sidetext => 'mm or % (leave 0 for default)',
+        cli     => 'solid-infill-extrusion-width=s',
+        type    => 'f',
+        default => 0,
+    },
     'top_infill_extrusion_width' => {
-        label   => 'Top infill',
+        label   => 'Top solid infill',
         tooltip => 'Set this to a non-zero value to set a manual extrusion width for infill for top surfaces. You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. If expressed as percentage (for example 90%) if will be computed over layer height.',
         sidetext => 'mm or % (leave 0 for default)',
         cli     => 'top-infill-extrusion-width=s',
@@ -506,7 +523,7 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear line concentric honeycomb hilbertcurve archimedeanchords octagramspiral)],
         labels  => [qw(rectilinear line concentric honeycomb), 'hilbertcurve (slow)', 'archimedeanchords (slow)', 'octagramspiral (slow)'],
-        default => 'rectilinear',
+        default => 'honeycomb',
     },
     'solid_fill_pattern' => {
         label   => 'Top/bottom fill pattern',
@@ -559,6 +576,13 @@ our $Options = {
         label   => 'Avoid crossing perimeters',
         tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.',
         cli     => 'avoid-crossing-perimeters!',
+        type    => 'bool',
+        default => 0,
+    },
+    'external_perimeters_first' => {
+        label   => 'External perimeters first',
+        tooltip => 'Print contour perimeters from the outermost one to the innermost one instead of the default inverse order.',
+        cli     => 'external-perimeters-first!',
         type    => 'bool',
         default => 0,
     },

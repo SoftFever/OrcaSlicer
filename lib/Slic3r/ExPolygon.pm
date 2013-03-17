@@ -172,8 +172,13 @@ sub clip_line {
 
 sub simplify {
     my $self = shift;
-    $_->simplify(@_) for @$self;
-    $self;
+    my ($tolerance) = @_;
+    
+    # it would be nice to have a multilinestring_simplify method in B::G::U
+    my @simplified = Slic3r::Geometry::Clipper::simplify_polygons(
+        [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @$self ],
+    );
+    return @{ Slic3r::Geometry::Clipper::union_ex([ @simplified ]) };
 }
 
 sub scale {

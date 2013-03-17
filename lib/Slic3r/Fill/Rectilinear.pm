@@ -31,8 +31,6 @@ sub fill_surface {
         $flow_spacing = unscale $distance_between_lines;
     }
     
-    my $overlap_distance = scale $params{flow_spacing} * &Slic3r::PERIMETER_INFILL_OVERLAP_OVER_SPACING;
-    
     my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
     my @vertical_lines = ();
@@ -52,10 +50,6 @@ sub fill_surface {
         +($expolygon->offset_ex(scaled_epsilon))[0],  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
         [ @vertical_lines ],
     ) };
-    for (@paths) {
-        $_->[0][Y] += $overlap_distance;
-        $_->[-1][Y] -= $overlap_distance;
-    }
     
     # connect lines
     unless ($params{dont_connect}) {

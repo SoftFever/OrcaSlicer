@@ -68,8 +68,8 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    @$self = @{ Boost::Geometry::Utils::linestring_simplify($self, $tolerance) };
-    bless $_, 'Slic3r::Point' for @$self;
+    my $simplified = Boost::Geometry::Utils::linestring_simplify($self, $tolerance);
+    return (ref $self)->new($simplified);
 }
 
 sub reverse {

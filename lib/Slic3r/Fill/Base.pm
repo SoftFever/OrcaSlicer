@@ -20,7 +20,7 @@ sub infill_direction {
     
     if (defined $self->layer_id) {
         # alternate fill direction
-        my $layer_num = $self->layer_id / $surface->depth_layers;
+        my $layer_num = $self->layer_id / $surface->thickness_layers;
         my $angle = $self->angles->[$layer_num % @{$self->angles}];
         $rotate[0] = Slic3r::Geometry::deg2rad($self->angle) + $angle if $angle;
     }

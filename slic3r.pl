@@ -250,6 +250,7 @@ $j
     --extra-perimeters  Add more perimeters when needed (default: yes)
     --randomize-start   Randomize starting point across layers (default: yes)
     --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
+    --external-perimeters-first Reverse perimeter order. (default: no)
     --only-retract-when-crossing-perimeters
                         Disable retraction when travelling between infill paths inside the same island.
                         (default: no)
@@ -341,6 +342,7 @@ $j
    
    Miscellaneous options:
     --notes             Notes to be added as comments to the output file
+    --resolution        Minimum detail resolution (mm, set zero for full resolution, default: $config->{resolution})
   
    Flow options (advanced):
     --extrusion-width   Set extrusion width manually; it accepts either an absolute value in mm
@@ -351,6 +353,8 @@ $j
                         Set a different extrusion width for perimeters
     --infill-extrusion-width
                         Set a different extrusion width for infill
+    --solid-infill-extrusion-width
+                        Set a different extrusion width for solid infill
     --top-infill-extrusion-width
                         Set a different extrusion width for top infill
     --support-material-extrusion-width

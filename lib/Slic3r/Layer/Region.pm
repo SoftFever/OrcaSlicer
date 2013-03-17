@@ -16,6 +16,7 @@ has 'layer' => (
 has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'perimeter_flow'    => (is => 'rw');
 has 'infill_flow'       => (is => 'rw');
+has 'solid_infill_flow' => (is => 'rw');
 has 'top_infill_flow'   => (is => 'rw');
 has 'infill_area_threshold' => (is => 'lazy');
 has 'overhang_width'    => (is => 'lazy');
@@ -59,15 +60,15 @@ sub _update_flows {
     return if !$self->region;
     
     if ($self->id == 0) {
-        $self->perimeter_flow
-            ($self->region->first_layer_flows->{perimeter} || $self->region->flows->{perimeter});
-        $self->infill_flow
-            ($self->region->first_layer_flows->{infill} || $self->region->flows->{infill});
-        $self->top_infill_flow
-            ($self->region->first_layer_flows->{top_infill} || $self->region->flows->{top_infill});
+        for (qw(perimeter infill solid_infill top_infill)) {
+            my $method = "${_}_flow";
+            $self->$method
+                ($self->region->first_layer_flows->{$_} || $self->region->flows->{$_});
+        } 
     } else {
         $self->perimeter_flow($self->region->flows->{perimeter});
         $self->infill_flow($self->region->flows->{infill});
+        $self->solid_infill_flow($self->region->flows->{solid_infill});
         $self->top_infill_flow($self->region->flows->{top_infill});
     }
 }
@@ -80,7 +81,7 @@ sub _build_overhang_width {
 
 sub _build_infill_area_threshold {
     my $self = shift;
-    return $self->infill_flow->scaled_spacing ** 2;
+    return $self->solid_infill_flow->scaled_spacing ** 2;
 }
 
 # build polylines from lines
@@ -160,7 +161,7 @@ sub make_perimeters {
     my $self = shift;
     
     my $perimeter_spacing   = $self->perimeter_flow->scaled_spacing;
-    my $infill_spacing      = $self->infill_flow->scaled_spacing;
+    my $infill_spacing      = $self->solid_infill_flow->scaled_spacing;
     my $gap_area_threshold = $self->perimeter_flow->scaled_width ** 2;
     
     # this array will hold one arrayref per original surface (island);
@@ -263,14 +264,14 @@ sub make_perimeters {
             # we offset by half the perimeter spacing (to get to the actual infill boundary)
             # and then we offset back and forth by the infill spacing to only consider the
             # non-collapsing regions
-            my @fill_boundaries = @{union_ex([
-                Slic3r::Geometry::Clipper::offset(
-                    [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
-                    +$infill_spacing,
-                ),
-            ])};
-            $_->simplify(&Slic3r::SCALED_RESOLUTION) for @fill_boundaries;
-            push @{ $self->fill_surfaces }, @fill_boundaries;
+            push @{ $self->fill_surfaces },
+                map $_->simplify(&Slic3r::SCALED_RESOLUTION),
+                @{union_ex([
+                    Slic3r::Geometry::Clipper::offset(
+                        [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
+                        +$infill_spacing,
+                    ),
+                ])};
         }
         
         # fill gaps
@@ -404,10 +405,14 @@ sub make_perimeters {
             }
         }
         
-        # do holes, then contours starting from innermost one
+        # first do holes
         $self->_add_perimeter($holes[$_], $is_external{$_} ? EXTR_ROLE_EXTERNAL_PERIMETER : undef)
             for reverse 0 .. $#holes;
-        for my $depth (reverse 0 .. $#$island) {
+        
+        # then do contours according to the user settings
+        my @contour_order = 0 .. $#$island;
+        @contour_order = reverse @contour_order if !$Slic3r::Config->external_perimeters_first;
+        for my $depth (@contour_order) {
             my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
                 : $depth == 0 ? EXTR_ROLE_EXTERNAL_PERIMETER
                 : EXTR_ROLE_PERIMETER;
