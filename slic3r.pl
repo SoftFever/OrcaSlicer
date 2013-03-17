@@ -292,6 +292,7 @@ $j
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $config->{retract_lift}[0])
     --retract-layer-change
                         Enforce a retraction before each Z move (default: yes)
+    --wipe              Wipe the nozzle while doing a retraction (default: no)
     
    Retraction options for multi-extruder setups:
     --retract-length-toolchange

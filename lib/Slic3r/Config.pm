@@ -794,6 +794,15 @@ END
         deserialize => $deserialize_comma,
         default => [1],
     },
+    'wipe' => {
+        label   => 'Wipe before retract',
+        tooltip => 'This flag will move the nozzle while retracting to minimize the possible blob on leaky extruders.',
+        cli     => 'wipe!',
+        type    => 'bool',
+        serialize   => $serialize_comma,
+        deserialize => $deserialize_comma,
+        default => [0],
+    },
     'retract_length_toolchange' => {
         label   => 'Length',
         tooltip => 'When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).',
@@ -1065,7 +1074,7 @@ sub new_from_cli {
     }
     
     $args{$_} = $Options->{$_}{deserialize}->($args{$_})
-        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid extruder_offset retract_layer_change);
+        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid extruder_offset retract_layer_change wipe);
     
     return $class->new(%args);
 }
