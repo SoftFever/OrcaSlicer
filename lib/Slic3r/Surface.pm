@@ -28,7 +28,7 @@ sub new {
     my $self = [
         map delete $args{$_}, qw(expolygon surface_type thickness thickness_layers bridge_angle extra_perimeters),
     ];
-    $self->[$_] //= 1 for S_THICKNESS, S_THICKNESS_LAYERS;
+    $self->[S_THICKNESS_LAYERS] = 1;
     
     bless $self, $class;
     $self;
@@ -73,8 +73,8 @@ sub group {
     foreach my $surface (@surfaces) {
         my $type = join '_',
             ($params->{merge_solid} && $surface->is_solid) ? 'solid' : $surface->surface_type,
-            ($surface->bridge_angle // ''),
-            $surface->thickness,
+            $surface->bridge_angle // '',
+            $surface->thickness // '',
             $surface->thickness_layers;
         $unique_types{$type} ||= [];
         push @{ $unique_types{$type} }, $surface;
