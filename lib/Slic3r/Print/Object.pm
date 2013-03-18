@@ -593,6 +593,7 @@ sub discover_horizontal_shells {
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
                             [ offset([ offset([ map @$_, @$new_internal_solid ], -$margin) ], +$margin) ],
+                            1,
                         );
                         
                         # if some parts are going to collapse, let's grow them and add the extra area to the neighbor layer
