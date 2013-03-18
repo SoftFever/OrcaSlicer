@@ -509,7 +509,8 @@ sub bridge_over_infill {
             
             # exclude infill from the layers below if needed
             # see discussion at https://github.com/alexrj/Slic3r/issues/240
-            {
+            # Update: do not exclude any infill. Sparse infill is able to absorb the excess material.
+            if (0) {
                 my $excess = $layerm->extruders->{infill}->bridge_flow->width - $layerm->height;
                 for (my $i = $layer_id-1; $excess >= $self->layers->[$i]->height; $i--) {
                     Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
