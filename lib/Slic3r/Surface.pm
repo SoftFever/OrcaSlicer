@@ -4,7 +4,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE);
+our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE S_TYPE_INTERNALVOID);
 our %EXPORT_TAGS = (types => \@EXPORT_OK);
 
 use constant S_EXPOLYGON            => 0;
@@ -19,6 +19,7 @@ use constant S_TYPE_BOTTOM          => 1;
 use constant S_TYPE_INTERNAL        => 2;
 use constant S_TYPE_INTERNALSOLID   => 3;
 use constant S_TYPE_INTERNALBRIDGE  => 4;
+use constant S_TYPE_INTERNALVOID    => 5;
 
 sub new {
     my $class = shift;
@@ -27,7 +28,7 @@ sub new {
     my $self = [
         map delete $args{$_}, qw(expolygon surface_type thickness thickness_layers bridge_angle extra_perimeters),
     ];
-    $self->[$_] //= 1 for S_THICKNESS, S_THICKNESS_LAYERS;
+    $self->[S_THICKNESS_LAYERS] = 1;
     
     bless $self, $class;
     $self;
@@ -72,8 +73,8 @@ sub group {
     foreach my $surface (@surfaces) {
         my $type = join '_',
             ($params->{merge_solid} && $surface->is_solid) ? 'solid' : $surface->surface_type,
-            ($surface->bridge_angle // ''),
-            $surface->thickness,
+            $surface->bridge_angle // '',
+            $surface->thickness // '',
             $surface->thickness_layers;
         $unique_types{$type} ||= [];
         push @{ $unique_types{$type} }, $surface;
@@ -102,17 +103,6 @@ sub _inflate_expolygon {
     );
 }
 
-sub clipper_polygon {
-    my $self = shift;
-    
-    return {
-        outer => $self->contour->p,
-        holes => [
-            map $_->p, @{$self->holes}
-        ],
-    };
-}
-
 sub p {
     my $self = shift;
     return @{$self->expolygon};
@@ -125,14 +115,6 @@ sub is_solid {
     return $type == S_TYPE_TOP
         || $type == S_TYPE_BOTTOM
         || $type == S_TYPE_INTERNALSOLID;
-}
-
-sub is_internal {
-    my $self = shift;
-    my $type = $self->surface_type;
-    return $type == S_TYPE_INTERNAL
-        || $type == S_TYPE_INTERNALSOLID
-        || $type == S_TYPE_INTERNALBRIDGE;
 }
 
 sub is_bridge {

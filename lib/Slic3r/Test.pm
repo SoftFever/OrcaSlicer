@@ -119,9 +119,11 @@ sub parse {
             }
             $info{dist_XY} = Slic3r::Line->new([0,0], [@info{qw(dist_X dist_Y)}])->length;
             if (exists $args{E}) {
-                ($info{dist_E} > 0)
-                    ? ($info{extruding} = 1)
-                    : ($info{retracting} = 1);
+                if ($info{dist_E} > 0) {
+                    $info{extruding} = 1;
+                } elsif ($info{dist_E} < 0) {
+                    $info{retracting} = 1
+                }
             }
         }
         

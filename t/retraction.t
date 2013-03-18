@@ -88,6 +88,7 @@ my $test = sub {
     1;
 };
 
+$config->set('first_layer_height',      $config->layer_height);
 $config->set('start_gcode',             '');  # to avoid dealing with the nozzle lift in start G-code
 $config->set('retract_length',          [1.5]);
 $config->set('retract_before_travel',   [3]);
