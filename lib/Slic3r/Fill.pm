@@ -13,7 +13,7 @@ use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y PI scale chained_path);
-use Slic3r::Geometry::Clipper qw(union_ex diff_ex);
+use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset);
 use Slic3r::Surface ':types';
 
 
@@ -99,15 +99,46 @@ sub make_fill {
         }
     }
     
-    # add spacing between surfaces
+    # we need to detect any narrow surfaces that might collapse
+    # when adding spacing below
+    # such narrow surfaces are often generated in sloping walls
+    # by bridge_over_infill() and combine_infill() as a result of the
+    # subtraction of the combinable area from the layer infill area,
+    # which leaves small areas near the perimeters
+    # we are going to grow such regions by overlapping them with the void (if any)
+    # TODO: detect and investigate whether there could be narrow regions without
+    # any void neighbors
+    my $distance_between_surfaces = $layerm->solid_infill_flow->scaled_spacing;
     {
-        my $distance = $layerm->solid_infill_flow->scaled_spacing / 2;
-        @surfaces = map $_->offset(-$distance * &Slic3r::INFILL_OVERLAP_OVER_SPACING), @surfaces;
+        my $collapsed = diff(
+            [ map @{$_->expolygon}, @surfaces ],
+            [ offset(
+                [ offset([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2) ],
+                +$distance_between_surfaces/2
+            ) ],
+            1,
+        );
+        push @surfaces, map Slic3r::Surface->new(
+            expolygon       => $_,
+            surface_type    => S_TYPE_INTERNALSOLID,
+        ), @{intersection_ex(
+            [ offset($collapsed, $distance_between_surfaces) ],
+            [
+                (map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNALVOID, @surfaces),
+                (@$collapsed),
+            ],
+            undef,
+            1,
+        )};
     }
+    
+    # add spacing between surfaces
+    @surfaces = map $_->offset(-$distance_between_surfaces / 2 * &Slic3r::INFILL_OVERLAP_OVER_SPACING), @surfaces;
     
     my @fills = ();
     my @fills_ordering_points =  ();
     SURFACE: foreach my $surface (@surfaces) {
+        next if $surface->surface_type == S_TYPE_INTERNALVOID;
         my $filler          = $Slic3r::Config->fill_pattern;
         my $density         = $Slic3r::Config->fill_density;
         my $flow            = ($surface->surface_type == S_TYPE_TOP)
@@ -124,9 +155,7 @@ sub make_fill {
             $density = 1;
             $filler = $Slic3r::Config->solid_fill_pattern;
             if ($is_bridge) {
-                $filler = $surface->surface_type == S_TYPE_INTERNALBRIDGE
-                    ? 'concentric'
-                    : 'rectilinear';
+                $filler = 'rectilinear';
                 $flow_spacing = $layerm->extruders->{infill}->bridge_flow->spacing;
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';

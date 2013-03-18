@@ -4,7 +4,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE);
+our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE S_TYPE_INTERNALVOID);
 our %EXPORT_TAGS = (types => \@EXPORT_OK);
 
 use constant S_EXPOLYGON            => 0;
@@ -19,6 +19,7 @@ use constant S_TYPE_BOTTOM          => 1;
 use constant S_TYPE_INTERNAL        => 2;
 use constant S_TYPE_INTERNALSOLID   => 3;
 use constant S_TYPE_INTERNALBRIDGE  => 4;
+use constant S_TYPE_INTERNALVOID    => 5;
 
 sub new {
     my $class = shift;
@@ -102,17 +103,6 @@ sub _inflate_expolygon {
     );
 }
 
-sub clipper_polygon {
-    my $self = shift;
-    
-    return {
-        outer => $self->contour->p,
-        holes => [
-            map $_->p, @{$self->holes}
-        ],
-    };
-}
-
 sub p {
     my $self = shift;
     return @{$self->expolygon};
@@ -125,14 +115,6 @@ sub is_solid {
     return $type == S_TYPE_TOP
         || $type == S_TYPE_BOTTOM
         || $type == S_TYPE_INTERNALSOLID;
-}
-
-sub is_internal {
-    my $self = shift;
-    my $type = $self->surface_type;
-    return $type == S_TYPE_INTERNAL
-        || $type == S_TYPE_INTERNALSOLID
-        || $type == S_TYPE_INTERNALBRIDGE;
 }
 
 sub is_bridge {

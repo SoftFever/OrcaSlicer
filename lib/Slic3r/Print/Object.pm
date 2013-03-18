@@ -509,7 +509,8 @@ sub bridge_over_infill {
             
             # exclude infill from the layers below if needed
             # see discussion at https://github.com/alexrj/Slic3r/issues/240
-            {
+            # Update: do not exclude any infill. Sparse infill is able to absorb the excess material.
+            if (0) {
                 my $excess = $layerm->extruders->{infill}->bridge_flow->width - $layerm->height;
                 for (my $i = $layer_id-1; $excess >= $self->layers->[$i]->height; $i--) {
                     Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
@@ -521,6 +522,13 @@ sub bridge_over_infill {
                                 expolygon       => $_,
                                 surface_type    => $group->[0]->surface_type,
                             ), @{diff_ex(
+                                [ map $_->p, @$group ],
+                                [ map @$_, @$to_bridge ],
+                            )};
+                            push @new_surfaces, map Slic3r::Surface->new(
+                                expolygon       => $_,
+                                surface_type    => S_TYPE_INTERNALVOID,
+                            ), @{intersection_ex(
                                 [ map $_->p, @$group ],
                                 [ map @$_, @$to_bridge ],
                             )};
@@ -722,7 +730,7 @@ sub combine_infill {
                     my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
                     my @other_types = grep $_->surface_type != $type, @{$layerm->fill_surfaces};
                     
-                    @this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
+                    my @new_this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
                         @{diff_ex(
                             [ map @{$_->expolygon}, @this_type ],
                             [ @intersection_with_clearance ],
@@ -730,7 +738,7 @@ sub combine_infill {
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
                     if ($layerm->id == $layer_id) {
-                        push @this_type,
+                        push @new_this_type,
                             map Slic3r::Surface->new(
                                 expolygon        => $_,
                                 surface_type     => $type,
@@ -738,9 +746,17 @@ sub combine_infill {
                                 thickness_layers => scalar(@layerms),
                             ),
                             @$intersection;
+                    } else {
+                        # save void surfaces
+                        push @this_type,
+                            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNALVOID),
+                            @{intersection_ex(
+                                [ map @{$_->expolygon}, @this_type ],
+                                [ @intersection_with_clearance ],
+                            )};
                     }
                     
-                    @{$layerm->fill_surfaces} = (@this_type, @other_types);
+                    @{$layerm->fill_surfaces} = (@new_this_type, @other_types);
                 }
             }
         }
