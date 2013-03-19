@@ -168,11 +168,17 @@ sub BUILD {
             lines           => \@lines,
             points          => [ values %{$self->_pointmap} ],
             no_arrows       => 1,
-            polygons        => [ map @$_, @{$self->islands} ],
+            expolygons      => $self->islands,
             #red_polygons    => [ map $_->holes, map @$_, @{$self->_inner} ],
             #white_polygons    => [ map @$_, @{$self->_outer} ],
         );
         printf "%d islands\n", scalar @{$self->islands};
+        
+        eval "use Devel::Size";
+        print  "MEMORY USAGE:\n";
+        printf "  %-19s = %.1fMb\n", $_, Devel::Size::total_size($self->$_)/1024/1024
+            for qw(_inner _outer _contours_ex _pointmap _edges _crossing_edges islands last_crossings);
+        printf "  %-19s = %.1fMb\n", 'self', Devel::Size::total_size($self)/1024/1024;
     }
 }
 
