@@ -1052,8 +1052,8 @@ sub OnDropFiles {
     # https://rt.perl.org/rt3/Public/Bug/Display.html?id=70602
     @_ = ();
     
-    # only accept STL and AMF files
-    return 0 if grep !/\.(?:stl|amf(?:\.xml)?)$/i, @$filenames;
+    # only accept STL, OBJ and AMF files
+    return 0 if grep !/\.(?:stl|obj|amf(?:\.xml)?)$/i, @$filenames;
     
     $self->{window}->load_file($_) for @$filenames;
 }
