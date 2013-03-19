@@ -927,9 +927,10 @@ sub write_gcode {
                         }
                     };
                     
-                    # give priority to infill if we were already using its extruder
+                    # give priority to infill if we were already using its extruder and it wouldn't
+                    # be good for perimeters
                     if ($Slic3r::Config->infill_first
-                        || ($gcodegen->multiple_extruders && $region->extruders->{infill} eq $gcodegen->extruder)) {
+                        || ($gcodegen->multiple_extruders && $region->extruders->{infill} eq $gcodegen->extruder) && $region->extruders->{infill} ne $region->extruders->{perimeter}) {
                         $extrude_fills->();
                         $extrude_perimeters->();
                     } else {
