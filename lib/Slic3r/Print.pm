@@ -693,7 +693,7 @@ sub write_gcode {
     print $fh "; $_\n" foreach split /\R/, $Slic3r::Config->notes;
     print $fh "\n" if $Slic3r::Config->notes;
     
-    for (qw(layer_height perimeters top_solid_layers bottom_solid_layers fill_density perimeter_speed infill_speed travel_speed scale)) {
+    for (qw(layer_height perimeters top_solid_layers bottom_solid_layers fill_density perimeter_speed infill_speed travel_speed)) {
         printf $fh "; %s = %s\n", $_, $Slic3r::Config->$_;
     }
     for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {
