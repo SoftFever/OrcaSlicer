@@ -290,7 +290,7 @@ sub make_perimeters {
             )};
             
             my $w = $self->perimeter_flow->width;
-            my @widths = (1.5 * $w, $w, 0.5 * $w);  # worth trying 0.2 too?
+            my @widths = (1.5 * $w, $w, 0.4 * $w);  # worth trying 0.2 too?
             foreach my $width (@widths) {
                 my $flow = $self->perimeter_flow->clone(width => $width);
                 
