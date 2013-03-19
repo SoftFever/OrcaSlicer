@@ -14,6 +14,7 @@ our $last_output_file;
 our $last_config;
 
 use constant FILE_WILDCARDS => {
+    known   => 'Known files (*.stl, *.obj, *.amf, *.xml)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML',
     stl     => 'STL files (*.stl)|*.stl;*.STL',
     obj     => 'OBJ files (*.obj)|*.obj;*.OBJ',
     amf     => 'AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML',
@@ -21,7 +22,7 @@ use constant FILE_WILDCARDS => {
     gcode   => 'G-code files (*.gcode, *.gco, *.g)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G',
     svg     => 'SVG files *.svg|*.svg;*.SVG',
 };
-use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(stl obj amf)};
+use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf)};
 
 sub new {
     my $class = shift;
