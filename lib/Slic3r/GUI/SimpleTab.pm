@@ -172,11 +172,6 @@ sub build {
             },
         ],
     );
-    
-    $self->append_optgroup(
-        title => 'Cooling',
-        options => [qw(cooling)],
-    );
 }
 
 package Slic3r::GUI::SimpleTab::Printer;
