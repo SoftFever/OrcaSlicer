@@ -98,7 +98,7 @@ sub new {
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     
     {
-        my $label = Wx::StaticText->new($self, -1, "You can use this section to override the default layer height for parts of this object.",
+        my $label = Wx::StaticText->new($self, -1, "You can use this section to override the default layer height for parts of this object. Set layer height to zero to skip portions of the input file.",
             wxDefaultPosition, [-1, 25]);
         $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
         $sizer->Add($label, 0, wxEXPAND | wxALL, 10);
@@ -162,7 +162,7 @@ sub CanClose {
             Slic3r::GUI::show_error($self, "Invalid Z range $min-$max.");
             return 0;
         }
-        if ($height <= 0) {
+        if ($height < 0) {
             Slic3r::GUI::show_error($self, "Invalid layer height $height.");
             return 0;
         }

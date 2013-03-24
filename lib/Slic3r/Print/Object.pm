@@ -18,25 +18,49 @@ has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_m
 sub BUILD {
     my $self = shift;
  	 
-    # make layers
-    my $print_z = my $slice_z = my $raft_z = 0;
-    while (!@{$self->layers} || $self->layers->[-1]->slice_z < $self->size->[Z]) {
-        my $id = $#{$self->layers} + 1;
-        my $height = $Slic3r::Config->layer_height;
-        $height = $Slic3r::Config->get_value('first_layer_height') if $id == 0;
-        if (my $range = first { $_->[0] <= ($print_z + $_->[2]) && $_->[1] >= ($print_z + $_->[2]) } @{$self->layer_height_ranges}) {
-            $height = $range->[2];
-        }
+    # make layers taking custom heights into account
+    my $print_z = my $slice_z = my $height = 0;
+    
+    # add raft layers
+    for my $id (0 .. $Slic3r::Config->raft_layers-1) {
+        $height = ($id == 0)
+            ? $Slic3r::Config->get_value('first_layer_height')
+            : $Slic3r::Config->layer_height;
         
         $print_z += $height;
         
-        if ($id < $Slic3r::Config->raft_layers) {
-            # this is a raft layer
-            $raft_z += $height;
-            $slice_z = -1;
-        } else {
-            $slice_z = $print_z - ($height/2) - $raft_z;
+        push @{$self->layers}, Slic3r::Layer->new(
+            object  => $self,
+            id      => $id,
+            height  => $height,
+            print_z => scale $print_z,
+            slice_z => -1,
+        );
+    }
+    
+    # loop until we have at least one layer and the max slice_z reaches the object height
+    my $max_z = unscale $self->size->[Z];
+    while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
+        my $id = $#{$self->layers} + 1;
+        
+        # assign the default height to the layer according to the general settings
+        $height = ($id == 0)
+            ? $Slic3r::Config->get_value('first_layer_height')
+            : $Slic3r::Config->layer_height;
+        
+        # look for an applicable custom range
+        if (my $range = first { $_->[0] <= $slice_z && $_->[1] > $slice_z } @{$self->layer_height_ranges}) {
+            $height = $range->[2];
+        
+            # if user set custom height to zero we should just skip the range and resume slicing over it
+            if ($height == 0) {
+                $slice_z += $range->[1] - $range->[0];
+                next;
+            }
         }
+        
+        $print_z += $height;
+        $slice_z += $height/2;
         
         ### Slic3r::debugf "Layer %d: height = %s; slice_z = %s; print_z = %s\n", $id, $height, $slice_z, $print_z;
         
@@ -47,6 +71,8 @@ sub BUILD {
             print_z => scale $print_z,
             slice_z => scale $slice_z,
         );
+        
+        $slice_z += $height/2;   # add the other half layer
     }
 }
 
@@ -131,9 +157,8 @@ sub slice {
     # free memory
     $self->meshes(undef);
     
-    # remove last layer if empty
-    # (we might have created it because of the $max_layer = ... + 1 code in TriangleMesh)
-    pop @{$self->layers} if !map @{$_->lines}, @{$self->layers->[-1]->regions};
+    # remove last layer(s) if empty
+    pop @{$self->layers} while !map @{$_->lines}, @{$self->layers->[-1]->regions};
     
     foreach my $layer (@{ $self->layers }) {
         # make sure all layers contain layer region objects for all regions
@@ -806,8 +831,7 @@ sub generate_support_material {
                 [ map @$_, @current_layer_offsetted_slices ],
             );
             $layers_contact_areas{$i} = [
-                map $_->simplify($flow->scaled_spacing), 
-                    @{collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width)},
+                @{collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width)},
             ];
             
             # to define interface regions of this layer we consider the overhangs of all the upper layers
@@ -820,8 +844,7 @@ sub generate_support_material {
                 ],
             );
             $layers_interfaces{$i} = [
-                map $_->simplify($flow->scaled_spacing), 
-                    @{collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width)},
+                @{collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width)},
             ];
             
             # generate support material in current layer (for upper layers)
@@ -842,8 +865,7 @@ sub generate_support_material {
                 ],
             );
             $layers{$i} = [
-                map $_->simplify($flow->scaled_spacing), 
-                    @{collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width)},
+                @{collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width)},
             ];
             
             # get layer overhangs and put them into queue for adding support inside lower layers;
