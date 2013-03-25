@@ -65,10 +65,12 @@ sub set_shift {
     my @shift = @_;
     
     # if shift increases (goes towards right), last_pos decreases because it goes towards left
-    $self->last_pos->translate(
+    my @translate = (
         scale ($self->shift_x - $shift[X]),
         scale ($self->shift_y - $shift[Y]),
     );
+    $self->last_pos->translate(@translate);
+    $self->wipe_path->translate(@translate) if $self->wipe_path;
     
     $self->shift_x($shift[X]);
     $self->shift_y($shift[Y]);
@@ -245,7 +247,7 @@ sub extrude_path {
             $path_length += $line_length;
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
-        $self->wipe_path([ reverse @{$path->points}[0..$#{$path->points}] ])
+        $self->wipe_path(Slic3r::Polyline->new([ reverse @{$path->points} ]))
             if $Slic3r::Config->wipe;
     }
     
@@ -355,9 +357,9 @@ sub retract {
     my $gcode = "";
     
     # wipe
-    my $wipe_path = ();
+    my $wipe_path;
     if ($Slic3r::Config->wipe && $self->wipe_path) {
-        $wipe_path = Slic3r::Polyline->new([ $self->last_pos, @{$self->wipe_path} ])
+        $wipe_path = Slic3r::Polyline->new([ $self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}] ])
             ->clip_start($self->extruder->scaled_wipe_distance);
     }
     
@@ -387,6 +389,7 @@ sub retract {
             $self->speed('travel');
             # subdivide the retraction
             my $total_wipe_length = $wipe_path->length;
+            
             for (1 .. $#$wipe_path) {
                 my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
                 $gcode .= $self->G1($wipe_path->[$_], undef, $retract->[2] * ($segment_length / $total_wipe_length), $retract->[3] . ";_WIPE");

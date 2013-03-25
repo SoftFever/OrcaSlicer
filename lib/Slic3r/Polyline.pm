@@ -190,7 +190,7 @@ sub clip_start {
     my $self = shift;
     my ($distance) = @_;
     
-    my $points = [];
+    my $points = [ $self->[0] ];
     
     for (my $i = 1; $distance > 0 && $i <= $#$self; $i++) {
         my $point = $self->[$i];
