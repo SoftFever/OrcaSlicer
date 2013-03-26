@@ -151,7 +151,7 @@ sub validate {
                 {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
                     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-                    $clearance = +($convex_hull->offset(scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND))[0];
+                    ($clearance) = offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND);
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;

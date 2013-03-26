@@ -13,7 +13,7 @@ has '_crossing_edges' => (is => 'rw', default => sub { {} });  # edge_idx => boo
 
 use List::Util qw(first);
 use Slic3r::Geometry qw(A B scale epsilon nearest_point);
-use Slic3r::Geometry::Clipper qw(diff_ex JT_MITER);
+use Slic3r::Geometry::Clipper qw(diff_ex offset JT_MITER);
 
 # clearance (in mm) from the perimeters
 has '_inner_margin' => (is => 'ro', default => sub { scale 0.5 });
@@ -68,7 +68,8 @@ sub BUILD {
             : [ $self->islands->[$i]->offset_ex(-$self->_inner_margin) ];
         
         # offset the island outwards to make the boundaries for external movements
-        $self->_outer->[$i] = [ $self->islands->[$i]->contour->offset($self->_outer_margin) ];
+        $self->_outer->[$i] = [ offset([ $self->islands->[$i]->contour], $self->_outer_margin) ];
+        bless $_, 'Slic3r::Polygon' for @{ $self->_outer->[$i] };
         
         # if internal motion is enabled, build a set of utility expolygons representing
         # the outer boundaries (as contours) and the inner boundaries (as holes). whenever

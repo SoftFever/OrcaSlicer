@@ -86,7 +86,10 @@ sub length {
 
 sub grow {
     my $self = shift;
-    return Slic3r::Polygon->new(@$self, CORE::reverse @$self[1..($#$self-1)])->offset(@_);
+    return Slic3r::Geometry::Clipper::offset(
+        [ Slic3r::Polygon->new(@$self, CORE::reverse @$self[1..($#$self-1)]) ],
+        @_,
+    );
 }
 
 sub nearest_point_to {
