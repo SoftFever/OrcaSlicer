@@ -95,4 +95,22 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     ok Slic3r::Test::gcode($print), 'successful hilbertcurve infill generation';
 }
 
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 0);
+    $config->set('perimeters', 0);
+    $config->set('fill_density', 0);
+    $config->set('top_solid_layers', 0);
+    $config->set('bottom_solid_layers', 0);
+    $config->set('solid_infill_below_area', 20000000);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        fail "solid_infill_below_area should be ignored when fill_density is 0"
+            if $info->{extruding};
+    });
+}
+
 __END__
