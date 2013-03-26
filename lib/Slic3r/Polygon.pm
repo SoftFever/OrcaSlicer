@@ -95,16 +95,6 @@ sub area {
     return Slic3r::Geometry::Clipper::area($self);
 }
 
-sub safety_offset {
-    my $self = shift;
-    return (ref $self)->new(Slic3r::Geometry::Clipper::safety_offset([$self])->[0]);
-}
-
-sub offset {
-    my $self = shift;
-    return map Slic3r::Polygon->new($_), Slic3r::Geometry::Clipper::offset([$self], @_);
-}
-
 sub grow {
     my $self = shift;
     return $self->split_at_first_point->grow(@_);
@@ -152,7 +142,7 @@ sub is_printable {
     # detect them and we would be discarding them.
     my $p = $self->clone;
     $p->make_counter_clockwise;
-    return $p->offset(-$width / 2) ? 1 : 0;
+    return Slic3r::Geometry::Clipper::offset([$p], -$width / 2) ? 1 : 0;
 }
 
 sub is_valid {

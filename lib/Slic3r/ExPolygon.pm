@@ -85,15 +85,7 @@ sub offset_ex {
 
 sub safety_offset {
     my $self = shift;
-    
-    # we're offsetting contour and holes separately
-    # because Clipper doesn't return polygons in the same order as 
-    # we feed them to it
-    
-    return (ref $self)->new(
-        $self->contour->safety_offset,
-        @{ Slic3r::Geometry::Clipper::safety_offset([$self->holes]) },
-    );
+    return Slic3r::Geometry::Clipper::safety_offset_ex($self, @_);
 }
 
 sub noncollapsing_offset_ex {

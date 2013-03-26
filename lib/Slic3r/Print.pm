@@ -151,7 +151,7 @@ sub validate {
                 {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
                     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-                    $clearance = +($convex_hull->offset(scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND))[0];
+                    ($clearance) = offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND);
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;
@@ -693,7 +693,7 @@ sub write_gcode {
     print $fh "; $_\n" foreach split /\R/, $Slic3r::Config->notes;
     print $fh "\n" if $Slic3r::Config->notes;
     
-    for (qw(layer_height perimeters top_solid_layers bottom_solid_layers fill_density perimeter_speed infill_speed travel_speed scale)) {
+    for (qw(layer_height perimeters top_solid_layers bottom_solid_layers fill_density perimeter_speed infill_speed travel_speed)) {
         printf $fh "; %s = %s\n", $_, $Slic3r::Config->$_;
     }
     for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {
@@ -881,24 +881,24 @@ sub write_gcode {
                 if ($Slic3r::Config->avoid_crossing_perimeters) {
                     push @islands, map +{ perimeters => [], fills => [] }, @{$layer->slices};
                     PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
-                        $perimeter = $perimeter->unpack;
+                        my $p = $perimeter->unpack;
                         for my $i (0 .. $#{$layer->slices}-1) {
-                            if ($layer->slices->[$i]->contour->encloses_point($perimeter->first_point)) {
-                                push @{ $islands[$i]{perimeters} }, $perimeter;
+                            if ($layer->slices->[$i]->contour->encloses_point($p->first_point)) {
+                                push @{ $islands[$i]{perimeters} }, $p;
                                 next PERIMETER;
                             }
                         }
-                        push @{ $islands[-1]{perimeters} }, $perimeter; # optimization
+                        push @{ $islands[-1]{perimeters} }, $p; # optimization
                     }
                     FILL: foreach my $fill (@{$layerm->fills}) {
+                        my $f = $fill->unpack;
                         for my $i (0 .. $#{$layer->slices}-1) {
-                            $fill = $fill->unpack;
-                            if ($layer->slices->[$i]->contour->encloses_point($fill->first_point)) {
-                                push @{ $islands[$i]{fills} }, $fill;
+                            if ($layer->slices->[$i]->contour->encloses_point($f->first_point)) {
+                                push @{ $islands[$i]{fills} }, $f;
                                 next FILL;
                             }
                         }
-                        push @{ $islands[-1]{fills} }, $fill; # optimization
+                        push @{ $islands[-1]{fills} }, $f; # optimization
                     }
                 } else {
                     push @islands, {
@@ -927,9 +927,10 @@ sub write_gcode {
                         }
                     };
                     
-                    # give priority to infill if we were already using its extruder
+                    # give priority to infill if we were already using its extruder and it wouldn't
+                    # be good for perimeters
                     if ($Slic3r::Config->infill_first
-                        || ($gcodegen->multiple_extruders && $region->extruders->{infill} eq $gcodegen->extruder)) {
+                        || ($gcodegen->multiple_extruders && $region->extruders->{infill} eq $gcodegen->extruder) && $region->extruders->{infill} ne $region->extruders->{perimeter}) {
                         $extrude_fills->();
                         $extrude_perimeters->();
                     } else {

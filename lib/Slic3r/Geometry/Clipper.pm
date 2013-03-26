@@ -4,7 +4,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(safety_offset offset offset_ex collapse_ex
+our @EXPORT_OK = qw(safety_offset safety_offset_ex offset offset_ex collapse_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     JT_SQUARE is_counter_clockwise);
 
@@ -15,6 +15,11 @@ our $clipper = Math::Clipper->new;
 sub safety_offset {
     my ($polygons, $factor) = @_;
     return Math::Clipper::offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2);
+}
+
+sub safety_offset_ex {
+    # offset polygons and then apply holes to the right contours
+    return @{ union_ex([ safety_offset(@_) ]) };
 }
 
 sub offset {

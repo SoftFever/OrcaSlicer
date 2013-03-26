@@ -290,7 +290,7 @@ sub make_perimeters {
             )};
             
             my $w = $self->perimeter_flow->width;
-            my @widths = (1.5 * $w, $w, 0.5 * $w);  # worth trying 0.2 too?
+            my @widths = (1.5 * $w, $w, 0.4 * $w);  # worth trying 0.2 too?
             foreach my $width (@widths) {
                 my $flow = $self->perimeter_flow->clone(width => $width);
                 
@@ -462,7 +462,7 @@ sub prepare_fill_surfaces {
     }
         
     # turn too small internal regions into solid regions according to the user setting
-    {
+    if ($Slic3r::Config->fill_density > 0) {
         my $min_area = scale scale $Slic3r::Config->solid_infill_below_area; # scaling an area requires two calls!
         my @small = grep $_->surface_type == S_TYPE_INTERNAL && $_->expolygon->contour->area <= $min_area, @{$self->fill_surfaces};
         $_->surface_type(S_TYPE_INTERNALSOLID) for @small;
