@@ -28,7 +28,7 @@ sub new {
     my $self = [
         map delete $args{$_}, qw(expolygon surface_type thickness thickness_layers bridge_angle extra_perimeters),
     ];
-    $self->[S_THICKNESS_LAYERS] = 1;
+    $self->[S_THICKNESS_LAYERS] //= 1;
     
     bless $self, $class;
     $self;
