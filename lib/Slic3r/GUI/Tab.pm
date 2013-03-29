@@ -197,16 +197,21 @@ sub on_select_preset {
             $self->{config}->set($opt_key, $preset_config->get($opt_key))
                 if $preset_config->has($opt_key);
         }
+        ($preset->{default} || $preset->{external})
+            ? $self->{btn_delete_preset}->Disable
+            : $self->{btn_delete_preset}->Enable;
+        
+        $self->on_preset_loaded;
+        $self->reload_values;
+        $self->set_dirty(0);
+        $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
     };
-    Slic3r::GUI::catch_error($self);
-    ($preset->{default} || $preset->{external})
-        ? $self->{btn_delete_preset}->Disable
-        : $self->{btn_delete_preset}->Enable;
+    if ($@) {
+        $@ = "I was unable to load the selected config file: $@";
+        Slic3r::GUI::catch_error($self);
+        $self->select_default_preset;
+    }
     
-    $self->on_preset_loaded;
-    $self->reload_values;
-    $self->set_dirty(0);
-    $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
     Slic3r::GUI->save_settings;
 }
 
