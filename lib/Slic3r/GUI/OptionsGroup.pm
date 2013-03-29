@@ -167,12 +167,15 @@ sub _build_field {
             ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default})
             : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
         $field->Disable if $opt->{readonly};
-        $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
         
         my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
-        $opt->{type} eq 'i'
-            ? EVT_SPINCTRL  ($self->parent, $field, $on_change)
-            : EVT_TEXT      ($self->parent, $field, $on_change);
+        if ($opt->{type} eq 'i') {
+            $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
+            EVT_SPINCTRL ($self->parent, $field, $on_change);
+        } else {
+            $self->_setters->{$opt_key} = sub { $field->ChangeValue($_[0]) };
+            EVT_TEXT ($self->parent, $field, $on_change);
+        }
         $tooltip .= " (default: " . $opt->{default} .  ")" if ($opt->{default});
     } elsif ($opt->{type} eq 'bool') {
         $field = Wx::CheckBox->new($self->parent, -1, "");
