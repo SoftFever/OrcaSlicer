@@ -34,6 +34,17 @@ sub new {
     $self;
 }
 
+sub clone {
+    my $self = shift;
+    my %p = @_;
+    
+    return (ref $self)->new(
+        (map { $_ => $self->$_ } qw(surface_type thickness thickness_layers bridge_angle)),
+        expolygon => ($p{expolygon} ? delete $p{expolygon} : $self->expolygon->clone),
+        %p,
+    );
+}
+
 sub expolygon       { $_[0][S_EXPOLYGON] }
 sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if defined $_[1]; $_[0][S_SURFACE_TYPE] }
 sub thickness       { $_[0][S_THICKNESS] }
@@ -85,22 +96,12 @@ sub group {
 
 sub offset {
     my $self = shift;
-    return map $self->_inflate_expolygon($_), $self->expolygon->offset_ex(@_);
+    return map $self->clone(expolygon => $_), $self->expolygon->offset_ex(@_);
 }
 
 sub simplify {
     my $self = shift;
-    return map $self->_inflate_expolygon($_), $self->expolygon->simplify(@_);
-}
-
-sub _inflate_expolygon {
-    my $self = shift;
-    my ($expolygon) = @_;
-    
-    return (ref $self)->new(
-        expolygon => $expolygon,
-        map { $_ => $self->$_ } qw(surface_type thickness thickness_layers bridge_angle),
-    );
+    return map $self->clone(expolygon => $_), $self->expolygon->simplify(@_);
 }
 
 sub p {

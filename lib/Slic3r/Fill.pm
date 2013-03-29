@@ -89,13 +89,7 @@ sub make_fill {
                 1,
             );
             
-            push @surfaces, map Slic3r::Surface->new(
-                expolygon           => $_,
-                surface_type        => $group->[0]->surface_type,
-                bridge_angle        => $group->[0]->bridge_angle,
-                thickness           => $group->[0]->thickness,
-                thickness_layers    => $group->[0]->thickness_layers,
-            ), @$union;
+            push @surfaces, map $group->[0]->clone(expolygon => $_), @$union;
         }
     }
     
