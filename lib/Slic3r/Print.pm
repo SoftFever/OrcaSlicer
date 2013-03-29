@@ -1021,7 +1021,7 @@ sub write_gcode {
     $self->total_extrusion_length($gcodegen->total_extrusion_length);
     
     # write end commands to file
-    print $fh $gcodegen->retract;
+    print $fh $gcodegen->retract if $gcodegen->extruder;  # empty prints don't even set an extruder
     print $fh $gcodegen->set_fan(0);
     printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->end_gcode);
     
