@@ -1,8 +1,9 @@
 package Slic3r::Layer::Region;
 use Moo;
 
+use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(PI scale chained_path_items points_coincide);
+use Slic3r::Geometry qw(PI X1 X2 Y1 Y2 A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex);
 use Slic3r::Surface ':types';
 
@@ -556,9 +557,9 @@ sub process_external_surfaces {
             
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output("bridge.svg",
-                    polygons        => [ $surface->p ],
-                    red_polygons    => [ map @$_, @lower ],
+                Slic3r::SVG::output("bridge_$surface.svg",
+                    expolygons      => [ $surface->expolygon ],
+                    red_expolygons  => [ @lower ],
                     polylines       => [ @edges ],
                 );
             }
@@ -579,16 +580,51 @@ sub process_external_surfaces {
                     $bridge_angle = Slic3r::Geometry::rad2deg_dir($line->direction);
                 }
             } elsif (@edges) {
-                my $center = Slic3r::Geometry::bounding_box_center([ map @$_, @edges ]);
-                my $x = my $y = 0;
-                foreach my $point (map @$_, @edges) {
-                    my $line = Slic3r::Line->new($center, $point);
-                    my $dir = $line->direction;
-                    my $len = $line->length;
-                    $x += cos($dir) * $len;
-                    $y += sin($dir) * $len;
+                # inset the bridge expolygon; we'll use this one to clip our test lines
+                my $inset = [ $surface->expolygon->offset_ex($self->infill_flow->scaled_width) ];
+                
+                # detect anchors as intersection between our bridge expolygon and the lower slices
+                my $anchors = intersection_ex(
+                    [ $surface->p ],
+                    [ map @$_, @lower ],
+                );
+                
+                # we'll now try several directions using a rudimentary visibility check:
+                # bridge in several directions and then sum the length of lines having both
+                # endpoints within anchors
+                my %directions = ();  # angle => score
+                my $angle_increment = PI/36; # 5°
+                my $line_increment = $self->infill_flow->scaled_width;
+                for (my $angle = 0; $angle <= PI; $angle += $angle_increment) {
+                    # rotate everything - the center point doesn't matter
+                    $_->rotate($angle, [0,0]) for @$inset, @$anchors;
+                    
+                    # generate lines in this direction
+                    my $bounding_box = [ Slic3r::Geometry::bounding_box([ map @$_, map @$_, @$anchors ]) ];
+                    my @lines = ();
+                    for (my $x = $bounding_box->[X1]; $x <= $bounding_box->[X2]; $x += $line_increment) {
+                        push @lines, [ [$x, $bounding_box->[Y1]], [$x, $bounding_box->[Y2]] ];
+                    }
+                    
+                    # TODO: use a multi_polygon_multi_linestring_intersection() call
+                    my @clipped_lines = map @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection($_, \@lines) }, @$inset;
+                    
+                    # remove any line not having both endpoints within anchors
+                    @clipped_lines = grep {
+                        my $line = $_;
+                        !(first { $_->encloses_point_quick($line->[A]) } @$anchors)
+                            && !(first { $_->encloses_point_quick($line->[B]) } @$anchors);
+                    } @clipped_lines;
+                    
+                    # sum length of bridged lines
+                    $directions{-$angle} = sum(map Slic3r::Geometry::line_length($_), @clipped_lines) // 0;
                 }
-                $bridge_angle = Slic3r::Geometry::rad2deg_dir(atan2($y, $x));
+                
+                # this could be slightly optimized with a max search instead of the sort
+                my @sorted_directions = sort { $directions{$a} <=> $directions{$b} } keys %directions;
+                
+                # the best direction is the one causing most lines to be bridged
+                $bridge_angle = Slic3r::Geometry::rad2deg_dir($sorted_directions[-1]);
             }
             
             Slic3r::debugf "  Optimal infill angle of bridge on layer %d is %d degrees\n",
