@@ -97,8 +97,6 @@ sub first_point {
     return $self->polyline->[0];
 }
 
-sub is_printable { 1 }
-
 sub is_perimeter {
     my $self = shift;
     return $self->role == EXTR_ROLE_PERIMETER

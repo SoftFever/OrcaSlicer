@@ -128,7 +128,7 @@ sub subdivide {
     }
 }
 
-# returns false if the polyline is too tight to be printed
+# returns false if the polygon is too tight to be printed
 sub is_printable {
     my $self = shift;
     my ($width) = @_;

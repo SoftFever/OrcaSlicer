@@ -62,6 +62,17 @@ sub is_valid {
         && (!first { $_->is_counter_clockwise } $self->holes);
 }
 
+# returns false if the expolygon is too tight to be printed
+sub is_printable {
+    my $self = shift;
+    my ($width) = @_;
+    
+    # try to get an inwards offset
+    # for a distance equal to half of the extrusion width;
+    # if no offset is possible, then expolygon is not printable.
+    return Slic3r::Geometry::Clipper::offset($self, -$width / 2) ? 1 : 0;
+}
+
 sub boost_polygon {
     my $self = shift;
     return Boost::Geometry::Utils::polygon(@$self);
