@@ -29,7 +29,7 @@ sub coincides_with {
 
 sub length {
     my $self = shift;
-    return Slic3r::Geometry::line_length($self);
+    return Boost::Geometry::Utils::linestring_length($self);
 }
 
 sub vector {

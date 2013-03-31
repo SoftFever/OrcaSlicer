@@ -79,9 +79,7 @@ sub reverse {
 
 sub length {
     my $self = shift;
-    my $length = 0;
-    $length += $_->length for $self->lines;
-    return $length;
+    return Boost::Geometry::Utils::linestring_length($self);
 }
 
 sub grow {
