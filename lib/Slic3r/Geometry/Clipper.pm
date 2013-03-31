@@ -14,12 +14,13 @@ our $clipper = Math::Clipper->new;
 
 sub safety_offset {
     my ($polygons, $factor) = @_;
-    return Math::Clipper::offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2);
+    return Math::Clipper::int_offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2);
 }
 
 sub safety_offset_ex {
-    # offset polygons and then apply holes to the right contours
-    return @{ union_ex([ safety_offset(@_) ]) };
+    my ($polygons, $factor) = @_;
+    return map Slic3r::ExPolygon->new($_),
+        @{Math::Clipper::ex_int_offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2)};
 }
 
 sub offset {
@@ -28,13 +29,18 @@ sub offset {
     $joinType   //= JT_MITER;
     $miterLimit //= 3;
     
-    my $offsets = Math::Clipper::offset($polygons, $distance, $scale, $joinType, $miterLimit);
+    my $offsets = Math::Clipper::int_offset($polygons, $distance, $scale, $joinType, $miterLimit);
     return @$offsets;
 }
 
 sub offset_ex {
-    # offset polygons and then apply holes to the right contours
-    return @{ union_ex([ offset(@_) ]) };
+    my ($polygons, $distance, $scale, $joinType, $miterLimit) = @_;
+    $scale      ||= 100000;
+    $joinType   //= JT_MITER;
+    $miterLimit //= 3;
+    
+    my $offsets = Math::Clipper::ex_int_offset($polygons, $distance, $scale, $joinType, $miterLimit);
+    return map Slic3r::ExPolygon->new($_), @$offsets;
 }
 
 sub diff_ex {
@@ -96,13 +102,19 @@ sub xor_ex {
     ];
 }
 
+sub ex_int_offset2 {
+    my ($polygons, $delta1, $delta2, $scale, $joinType, $miterLimit) = @_;
+    $scale      ||= 100000;
+    $joinType   //= JT_MITER;
+    $miterLimit //= 3;
+    
+    my $offsets = Math::Clipper::ex_int_offset2($polygons, $delta1, $delta2, $scale, $joinType, $miterLimit);
+    return map Slic3r::ExPolygon->new($_), @$offsets;
+}
+
 sub collapse_ex {
     my ($polygons, $width) = @_;
-    my @result = offset(
-        [ offset($polygons, -$width/2,) ],
-        +$width/2,
-    );
-    return union_ex([@result]);
+    return ex_int_offset2($polygons, -$width/2, +$width/2);
 }
 
 sub simplify_polygon {

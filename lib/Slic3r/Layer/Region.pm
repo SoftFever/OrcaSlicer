@@ -96,12 +96,9 @@ sub make_surfaces {
     # detect thin walls by offsetting slices by half extrusion inwards
     {
         my $width = $self->perimeter_flow->scaled_width;
-        my $outgrown = union_ex([
-            Slic3r::Geometry::Clipper::offset(
-                [Slic3r::Geometry::Clipper::offset([ map @$_, map $_->expolygon, @{$self->slices} ], -$width)], 
-                +$width,
-            ),
-        ]);
+        my $outgrown = [
+            Slic3r::Geometry::Clipper::ex_int_offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width),
+        ];
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],
             [ map @$_, @$outgrown ],
@@ -230,12 +227,7 @@ sub make_perimeters {
             # offsetting a polygon can result in one or many offset polygons
             my @new_offsets = ();
             foreach my $expolygon (@last_offsets) {
-                my @offsets = @{union_ex([
-                    Slic3r::Geometry::Clipper::offset(
-                        [Slic3r::Geometry::Clipper::offset($expolygon, -1.5*$spacing)], 
-                        +0.5*$spacing,
-                    ),
-                ])};
+                my @offsets = Slic3r::Geometry::Clipper::ex_int_offset2($expolygon, -1.5*$spacing,  +0.5*$spacing);
                 push @new_offsets, @offsets;
                 
                 # where the above check collapses the expolygon, then there's no room for an inner loop

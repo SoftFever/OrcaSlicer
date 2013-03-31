@@ -5,9 +5,9 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum first);
+use Math::Clipper qw(offset JT_ROUND);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX);
-use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
 use threads::shared qw(shared_clone);
 use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
