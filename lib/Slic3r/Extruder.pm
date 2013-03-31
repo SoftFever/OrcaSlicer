@@ -1,13 +1,13 @@
 package Slic3r::Extruder;
 use Moo;
 
-use Slic3r::Geometry qw(PI);
+use Slic3r::Geometry qw(PI scale);
 
 use constant OPTIONS => [qw(
     extruder_offset
     nozzle_diameter filament_diameter extrusion_multiplier temperature first_layer_temperature
     retract_length retract_lift retract_speed retract_restart_extra retract_before_travel
-    retract_layer_change retract_length_toolchange retract_restart_extra_toolchange
+    retract_layer_change retract_length_toolchange retract_restart_extra_toolchange wipe
 )];
 
 has 'id'    => (is => 'rw', required => 1);
@@ -18,6 +18,7 @@ has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
 has 'retract_speed_mm_min'      => (is => 'lazy');
+has 'scaled_wipe_distance'      => (is => 'lazy'); # scaled mm
 has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
 
 sub _build_bridge_flow {
@@ -33,6 +34,11 @@ sub _build_e_per_mm3 {
 sub _build_retract_speed_mm_min {
     my $self = shift;
     return $self->retract_speed * 60;
+}
+
+sub _build_scaled_wipe_distance {
+    my $self = shift;
+    return scale $self->retract_length / $self->retract_speed * $Slic3r::Config->travel_speed;
 }
 
 sub make_flow {

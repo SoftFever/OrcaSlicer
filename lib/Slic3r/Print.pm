@@ -958,7 +958,7 @@ sub write_gcode {
             Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
             
             if ($speed_factor < 1) {
-                $gcode =~ s/^(?=.*? [XY])(?=.*? E)(?<!;_BRIDGE_FAN_START\n)(G1 .*?F)(\d+(?:\.\d+)?)/
+                $gcode =~ s/^(?=.*? [XY])(?=.*? E)(?!;_WIPE)(?<!;_BRIDGE_FAN_START\n)(G1 .*?F)(\d+(?:\.\d+)?)/
                     my $new_speed = $2 * $speed_factor;
                     $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
                     /gexm;
@@ -974,6 +974,7 @@ sub write_gcode {
             $gcode =~ s/^;_BRIDGE_FAN_START\n/ $gcodegen->set_fan($Slic3r::Config->bridge_fan_speed, 1) /gmex;
             $gcode =~ s/^;_BRIDGE_FAN_END\n/ $gcodegen->set_fan($fan_speed, 1) /gmex;
         }
+        $gcode =~ s/;_WIPE//g;
         
         return $gcode;
     };

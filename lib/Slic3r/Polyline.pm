@@ -168,6 +168,7 @@ sub scale {
     return $self;
 }
 
+# removes the given distance from the end of the polyline
 sub clip_end {
     my $self = shift;
     my ($distance) = @_;
@@ -186,6 +187,30 @@ sub clip_end {
         push @$self, Slic3r::Point->new($new_point);
         $distance = 0;
     }
+}
+
+# only keeps the given distance at the beginning of the polyline
+sub clip_start {
+    my $self = shift;
+    my ($distance) = @_;
+    
+    my $points = [ $self->[0] ];
+    
+    for (my $i = 1; $distance > 0 && $i <= $#$self; $i++) {
+        my $point = $self->[$i];
+        my $segment_length = $point->distance_to($self->[$i-1]);
+        if ($segment_length <= $distance) {
+            $distance -= $segment_length;
+            push @$points, $point;
+            next;
+        }
+        
+        my $new_point = Slic3r::Geometry::point_along_segment($self->[$i-1], $point, $distance);
+        push @$points, Slic3r::Point->new($new_point);
+        $distance = 0;
+    }
+    
+    return (ref $self)->new($points);
 }
 
 package Slic3r::Polyline::Collection;

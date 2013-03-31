@@ -28,6 +28,7 @@ has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0
 has 'last_speed'         => (is => 'rw', default => sub {""});
 has 'last_f'             => (is => 'rw', default => sub {""});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
+has 'wipe_path'          => (is => 'rw');
 has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 # used for vibration limit:
@@ -64,10 +65,12 @@ sub set_shift {
     my @shift = @_;
     
     # if shift increases (goes towards right), last_pos decreases because it goes towards left
-    $self->last_pos->translate(
+    my @translate = (
         scale ($self->shift_x - $shift[X]),
         scale ($self->shift_y - $shift[Y]),
     );
+    $self->last_pos->translate(@translate);
+    $self->wipe_path->translate(@translate) if $self->wipe_path;
     
     $self->shift_x($shift[X]);
     $self->shift_y($shift[Y]);
@@ -150,6 +153,7 @@ sub extrude_loop {
     
     # extrude along the path
     my $gcode = $self->extrude_path($extrusion_path, $description);
+    $self->wipe_path($extrusion_path->polyline);
     
     # make a little move inwards before leaving loop
     if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
@@ -236,12 +240,15 @@ sub extrude_path {
         $path_length = unscale $path->length;
         $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
             $path->center, $e * unscale $path_length, $description);
+        $self->wipe_path(undef);
     } else {
         foreach my $line ($path->lines) {
             my $line_length = unscale $line->length;
             $path_length += $line_length;
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
+        $self->wipe_path(Slic3r::Polyline->new([ reverse @{$path->points} ]))
+            if $Slic3r::Config->wipe;
     }
     
     if ($Slic3r::Config->cooling) {
@@ -347,6 +354,14 @@ sub retract {
     # if we already retracted, reduce the required amount of retraction
     $length -= $self->extruder->retracted;
     return "" unless $length > 0;
+    my $gcode = "";
+    
+    # wipe
+    my $wipe_path;
+    if ($Slic3r::Config->wipe && $self->wipe_path) {
+        $wipe_path = Slic3r::Polyline->new([ $self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}] ])
+            ->clip_start($self->extruder->scaled_wipe_distance);
+    }
     
     # prepare moves
     $self->speed('retract');
@@ -355,7 +370,6 @@ sub retract {
         ? undef
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during travel'];
     
-    my $gcode = "";
     if (($Slic3r::Config->g0 || $Slic3r::Config->gcode_flavor eq 'mach3') && $params{travel_to}) {
         if ($lift) {
             # combine lift and retract
@@ -371,7 +385,18 @@ sub retract {
         my $travel = [undef, $params{move_z}, $retract->[2], "change layer and $comment"];
         $gcode .= $self->G0(@$travel);
     } else {
-        $gcode .= $self->G1(@$retract);
+        if ($wipe_path) {
+            $self->speed('travel');
+            # subdivide the retraction
+            my $total_wipe_length = $wipe_path->length;
+            
+            for (1 .. $#$wipe_path) {
+                my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
+                $gcode .= $self->G1($wipe_path->[$_], undef, $retract->[2] * ($segment_length / $total_wipe_length), $retract->[3] . ";_WIPE");
+            }
+        } else {
+            $gcode .= $self->G1(@$retract);
+        }
         if (!$self->lifted) {
             if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
                 my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
