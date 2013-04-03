@@ -794,6 +794,7 @@ sub write_gcode {
             }
             $gcode .= $gcodegen->set_bed_temperature($Slic3r::Config->bed_temperature)
                 if $Slic3r::Config->bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
+            $second_layer_things_done = 1;
         }
         
         # set new layer, but don't move Z as support material contact areas may need an intermediate one
