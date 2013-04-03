@@ -248,7 +248,7 @@ sub extrude_path {
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
         $self->wipe_path(Slic3r::Polyline->new([ reverse @{$path->points} ]))
-            if $Slic3r::Config->wipe;
+            if $self->extruder->wipe;
     }
     
     if ($Slic3r::Config->cooling) {
@@ -358,7 +358,7 @@ sub retract {
     
     # wipe
     my $wipe_path;
-    if ($Slic3r::Config->wipe && $self->wipe_path) {
+    if ($self->extruder->wipe && $self->wipe_path) {
         $wipe_path = Slic3r::Polyline->new([ $self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}] ])
             ->clip_start($self->extruder->scaled_wipe_distance);
     }
@@ -385,11 +385,11 @@ sub retract {
         my $travel = [undef, $params{move_z}, $retract->[2], "change layer and $comment"];
         $gcode .= $self->G0(@$travel);
     } else {
-        if ($wipe_path) {
+        # check that we have a positive wipe length
+        if ($wipe_path && (my $total_wipe_length = $wipe_path->length)) {
             $self->speed('travel');
-            # subdivide the retraction
-            my $total_wipe_length = $wipe_path->length;
             
+            # subdivide the retraction
             for (1 .. $#$wipe_path) {
                 my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
                 $gcode .= $self->G1($wipe_path->[$_], undef, $retract->[2] * ($segment_length / $total_wipe_length), $retract->[3] . ";_WIPE");
