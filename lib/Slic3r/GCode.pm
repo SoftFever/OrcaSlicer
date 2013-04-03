@@ -248,7 +248,7 @@ sub extrude_path {
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
         $self->wipe_path(Slic3r::Polyline->new([ reverse @{$path->points} ]))
-            if $Slic3r::Config->wipe;
+            if $self->extruder->wipe;
     }
     
     if ($Slic3r::Config->cooling) {
@@ -358,7 +358,7 @@ sub retract {
     
     # wipe
     my $wipe_path;
-    if ($Slic3r::Config->wipe && $self->wipe_path) {
+    if ($self->extruder->wipe && $self->wipe_path) {
         $wipe_path = Slic3r::Polyline->new([ $self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}] ])
             ->clip_start($self->extruder->scaled_wipe_distance);
     }
