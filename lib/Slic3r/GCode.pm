@@ -385,11 +385,11 @@ sub retract {
         my $travel = [undef, $params{move_z}, $retract->[2], "change layer and $comment"];
         $gcode .= $self->G0(@$travel);
     } else {
-        if ($wipe_path) {
+        # check that we have a positive wipe length
+        if ($wipe_path && (my $total_wipe_length = $wipe_path->length)) {
             $self->speed('travel');
-            # subdivide the retraction
-            my $total_wipe_length = $wipe_path->length;
             
+            # subdivide the retraction
             for (1 .. $#$wipe_path) {
                 my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
                 $gcode .= $self->G1($wipe_path->[$_], undef, $retract->[2] * ($segment_length / $total_wipe_length), $retract->[3] . ";_WIPE");
