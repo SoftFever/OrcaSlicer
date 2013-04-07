@@ -252,7 +252,7 @@ sub nearest_point_index {
         if (!defined $distance || $d < $distance) {
             $nearest_point_index = $i;
             $distance = $d;
-            return $i if $distance < epsilon;
+            last if $distance < epsilon;
         }
     }
     return $nearest_point_index;
