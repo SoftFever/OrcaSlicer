@@ -243,8 +243,12 @@ sub nearest_point_index {
     my ($point, $points) = @_;
     
     my ($nearest_point_index, $distance) = ();
+
+    my $point_x = $point->[X];
+    my $point_y = $point->[Y];
+
     for my $i (0..$#$points) {
-        my $d = (($point->[X] - $points->[$i]->[X])**2) + (($point->[Y] - $points->[$i]->[Y])**2);
+        my $d = (($point_x - $points->[$i]->[X])**2) + (($point_y - $points->[$i]->[Y])**2);
         if (!defined $distance || $d < $distance) {
             $nearest_point_index = $i;
             $distance = $d;
