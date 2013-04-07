@@ -116,8 +116,7 @@ sub distance_between_points {
 }
 
 sub comparable_distance_between_points {
-    my ($p1, $p2) = @_;
-    return (($p1->[X] - $p2->[X])**2) + (($p1->[Y] - $p2->[Y])**2);
+    return (($_[0]->[X] - $_[1]->[X])**2) + (($_[0]->[Y] - $_[1]->[Y])**2);
 }
 
 sub point_line_distance {
