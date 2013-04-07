@@ -248,13 +248,22 @@ sub nearest_point_index {
     my $point_y = $point->[Y];
 
     for my $i (0..$#$points) {
-        my $d = (($point_x - $points->[$i]->[X])**2) + (($point_y - $points->[$i]->[Y])**2);
-        if (!defined $distance || $d < $distance) {
-            $nearest_point_index = $i;
-            $distance = $d;
-            last if $distance < epsilon;
-        }
+        my $d = ($point_x - $points->[$i]->[X])**2;
+        # If the X distance of the candidate is > than the total distance of the
+        # best previous candidate, we know we don't want it
+        next if (defined $distance && $d > $distance);
+   
+        # If the total distance of the candidate is > than the total distance of the
+        # best previous candidate, we know we don't want it
+        $d += ($point_y - $points->[$i]->[Y])**2;
+        next if (defined $distance && $d > $distance);
+
+        $nearest_point_index = $i;
+        $distance = $d;
+        
+        last if $distance < epsilon;
     }
+
     return $nearest_point_index;
 }
 
