@@ -364,13 +364,13 @@ sub retract {
     }
     
     # prepare moves
-    $self->speed('retract');
     my $retract = [undef, undef, -$length, $comment];
     my $lift    = ($self->extruder->retract_lift == 0 || defined $params{move_z}) && !$self->lifted
         ? undef
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during travel'];
     
     if (($Slic3r::Config->g0 || $Slic3r::Config->gcode_flavor eq 'mach3') && $params{travel_to}) {
+        $self->speed('travel');
         if ($lift) {
             # combine lift and retract
             $lift->[2] = $retract->[2];
@@ -382,6 +382,7 @@ sub retract {
         }
     } elsif (($Slic3r::Config->g0 || $Slic3r::Config->gcode_flavor eq 'mach3') && defined $params{move_z}) {
         # combine Z change and retraction
+        $self->speed('travel');
         my $travel = [undef, $params{move_z}, $retract->[2], "change layer and $comment"];
         $gcode .= $self->G0(@$travel);
     } else {
@@ -395,9 +396,11 @@ sub retract {
                 $gcode .= $self->G1($wipe_path->[$_], undef, $retract->[2] * ($segment_length / $total_wipe_length), $retract->[3] . ";_WIPE");
             }
         } else {
+            $self->speed('retract');
             $gcode .= $self->G1(@$retract);
         }
         if (!$self->lifted) {
+            $self->speed('travel');
             if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
                 my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
                 $gcode .= $self->G0(@$travel);

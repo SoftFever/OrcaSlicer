@@ -52,6 +52,7 @@ my $test = sub {
                     if !_eq($info->{dist_Z}, -$print->extruders->[$tool]->retract_lift);
                 $lifted = 0;
             }
+            fail 'move Z at travel speed' if ($args->{F} // $self->F) != $conf->travel_speed * 60;
         }
         if ($info->{retracting}) {
             $retracted[$tool] = 1;
@@ -89,6 +90,7 @@ my $test = sub {
 };
 
 $config->set('first_layer_height',      $config->layer_height);
+$config->set('first_layer_speed',       '100%');
 $config->set('start_gcode',             '');  # to avoid dealing with the nozzle lift in start G-code
 $config->set('retract_length',          [1.5]);
 $config->set('retract_before_travel',   [3]);
