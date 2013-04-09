@@ -39,11 +39,6 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         $surface->expolygon->rotate(Slic3r::Geometry::deg2rad($angle), [0,0]);
         my ($params, @paths) = $filler->fill_surface($surface, flow_spacing => 0.69, density => 0.4);
         is scalar @paths, 1, 'one continuous path';
-        use Slic3r::SVG;
-        Slic3r::SVG::output("fill.svg",
-            expolygons => [$surface->expolygon],
-            polylines => [@paths],
-        );exit;
     }
 }
 
