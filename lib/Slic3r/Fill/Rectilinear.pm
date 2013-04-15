@@ -3,9 +3,6 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-has 'bounding_box'  => (is => 'rw');
-has 'cache'         => (is => 'rw', default => sub {{}});
-
 use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale unscale scaled_epsilon);
 
 sub fill_surface {
@@ -21,44 +18,37 @@ sub fill_surface {
     return {} if !$expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
     my $bounding_box = [ $expolygon->bounding_box ];
     
-    my $flow_spacing = $params{flow_spacing};
     my $min_spacing = scale $params{flow_spacing};
     my $distance_between_lines = $min_spacing / $params{density};
     my $line_oscillation = $distance_between_lines - $min_spacing;
+    
+    my $flow_spacing = $params{flow_spacing};
+    if ($params{density} == 1 && !$params{dont_adjust}) {
+        $distance_between_lines = $self->adjust_solid_spacing(
+            width       => $bounding_box->[X2] - $bounding_box->[X1],
+            distance    => $distance_between_lines,
+        );
+        $flow_spacing = unscale $distance_between_lines;
+    }
+    
+    my $x = $bounding_box->[X1];
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
-    
-    my $cache_id = sprintf "d%s_s%s_a%s",
-        $params{density}, $params{flow_spacing}, $rotate_vector->[0][0];
-    
-    if (!$self->cache->{$cache_id} || !defined $self->bounding_box) {
-        if ($params{density} == 1 && !$params{dont_adjust}) {
-            $distance_between_lines = $self->adjust_solid_spacing(
-                width       => $bounding_box->[X2] - $bounding_box->[X1],
-                distance    => $distance_between_lines,
-            );
-            $flow_spacing = unscale $distance_between_lines;
+    my @vertical_lines = ();
+    for (my $i = 0; $x <= $bounding_box->[X2] + scaled_epsilon; $i++) {
+        my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
+        if ($is_line_pattern && $i % 2) {
+            $vertical_line->[A][X] += $line_oscillation;
+            $vertical_line->[B][X] -= $line_oscillation;
         }
-        
-        my $x = $bounding_box->[X1];
-        my @vertical_lines = ();
-        for (my $i = 0; $x <= $bounding_box->[X2] + scaled_epsilon; $i++) {
-            my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
-            if ($is_line_pattern && $i % 2) {
-                $vertical_line->[A][X] += $line_oscillation;
-                $vertical_line->[B][X] -= $line_oscillation;
-            }
-            push @vertical_lines, $vertical_line;
-            $x += $distance_between_lines;
-        }
-        
-        $self->cache->{$cache_id} = [@vertical_lines];
+        push @vertical_lines, $vertical_line;
+        $x += $distance_between_lines;
     }
     
     # clip paths against a slightly offsetted expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
     my @paths = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
         +($expolygon->offset_ex(scaled_epsilon))[0],  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
-        [ @{ $self->cache->{$cache_id} } ],
+        [ @vertical_lines ],
     ) };
     
     # connect lines
