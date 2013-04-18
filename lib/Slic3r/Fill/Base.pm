@@ -5,6 +5,7 @@ use Slic3r::Geometry qw(PI);
 
 has 'layer_id'            => (is => 'rw');
 has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
+has 'bounding_box'        => (is => 'ro', required => 1);
 
 sub angles () { [0, PI/2] }
 
@@ -15,7 +16,7 @@ sub infill_direction {
     # set infill angle
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);
-    $rotate[1] = $surface->expolygon->bounding_box_center;
+    $rotate[1] = Slic3r::Geometry::bounding_box_center($self->bounding_box);
     @shift = @{$rotate[1]};
     
     if (defined $self->layer_id) {
@@ -38,26 +39,20 @@ sub infill_direction {
 sub rotate_points {
     my $self = shift;
     my ($expolygon, $rotate_vector) = @_;
-    my @rotate = @{$rotate_vector->[0]};
-    my @shift  = @{$rotate_vector->[1]};
     
-    # rotate points as needed
-    if ($rotate[0]) {
-        $expolygon->rotate(@rotate);
-        $expolygon->translate(@shift);
-    }
+    # rotate points
+    $expolygon->rotate(@{$rotate_vector->[0]});
+    $expolygon->translate(@{$rotate_vector->[1]});
 }
 
 sub rotate_points_back {
     my $self = shift;
     my ($paths, $rotate_vector) = @_;
-    my @rotate = @{$rotate_vector->[0]};
-    my @shift  = @{$rotate_vector->[1]};
+    my @rotate = (-$rotate_vector->[0][0], $rotate_vector->[0][1]);
+    my $shift  = [ map -$_, @{$rotate_vector->[1]} ];
     
-    if ($rotate[0]) {
-        @$paths = map [ Slic3r::Geometry::rotate_points(-$rotate[0], $rotate[1], @$_) ], 
-            map [ Slic3r::Geometry::move_points([map -$_, @shift], @$_) ], @$paths;
-    }
+    @$paths = map [ Slic3r::Geometry::rotate_points(@rotate, @$_) ], 
+        map [ Slic3r::Geometry::move_points($shift, @$_) ], @$paths;
 }
 
 sub adjust_solid_spacing {

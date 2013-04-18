@@ -151,7 +151,9 @@ sub validate {
                 {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
                     my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-                    ($clearance) = offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND);
+                    ($clearance) = map Slic3r::Polygon->new($_), 
+                                        Slic3r::Geometry::Clipper::offset(
+                                            [$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND);
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;
@@ -714,8 +716,6 @@ sub write_gcode {
         multiple_extruders  => (@{$self->extruders} > 1),
         layer_count         => $self->layer_count,
     );
-    my $min_print_speed = 60 * $Slic3r::Config->min_print_speed;
-    my $dec = $gcodegen->dec;
     print $fh "G21 ; set units to millimeters\n";
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
@@ -794,11 +794,11 @@ sub write_gcode {
             }
             $gcode .= $gcodegen->set_bed_temperature($Slic3r::Config->bed_temperature)
                 if $Slic3r::Config->bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
+            $second_layer_things_done = 1;
         }
         
         # set new layer, but don't move Z as support material contact areas may need an intermediate one
         $gcode .= $gcodegen->change_layer($layer);
-        $gcodegen->elapsed_time(0);
         
         # prepare callback to call as soon as a Z command is generated
         $gcodegen->move_z_callback(sub {
@@ -940,42 +940,6 @@ sub write_gcode {
                 }
             }
         }
-        return if !$gcode;
-        
-        my $fan_speed = $Slic3r::Config->fan_always_on ? $Slic3r::Config->min_fan_speed : 0;
-        my $speed_factor = 1;
-        if ($Slic3r::Config->cooling) {
-            my $layer_time = $gcodegen->elapsed_time;
-            Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $layer->id, $layer_time;
-            if ($layer_time < $Slic3r::Config->slowdown_below_layer_time) {
-                $fan_speed = $Slic3r::Config->max_fan_speed;
-                $speed_factor = $layer_time / $Slic3r::Config->slowdown_below_layer_time;
-            } elsif ($layer_time < $Slic3r::Config->fan_below_layer_time) {
-                $fan_speed = $Slic3r::Config->max_fan_speed - ($Slic3r::Config->max_fan_speed - $Slic3r::Config->min_fan_speed)
-                    * ($layer_time - $Slic3r::Config->slowdown_below_layer_time)
-                    / ($Slic3r::Config->fan_below_layer_time - $Slic3r::Config->slowdown_below_layer_time); #/
-            }
-            Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
-            
-            if ($speed_factor < 1) {
-                $gcode =~ s/^(?=.*? [XY])(?=.*? E)(?!;_WIPE)(?<!;_BRIDGE_FAN_START\n)(G1 .*?F)(\d+(?:\.\d+)?)/
-                    my $new_speed = $2 * $speed_factor;
-                    $1 . sprintf("%.${dec}f", $new_speed < $min_print_speed ? $min_print_speed : $new_speed)
-                    /gexm;
-            }
-            $fan_speed = 0 if $layer->id < $Slic3r::Config->disable_fan_first_layers;
-        }
-        $gcode = $gcodegen->set_fan($fan_speed) . $gcode;
-        
-        # bridge fan speed
-        if (!$Slic3r::Config->cooling || $Slic3r::Config->bridge_fan_speed == 0 || $layer->id < $Slic3r::Config->disable_fan_first_layers) {
-            $gcode =~ s/^;_BRIDGE_FAN_(?:START|END)\n//gm;
-        } else {
-            $gcode =~ s/^;_BRIDGE_FAN_START\n/ $gcodegen->set_fan($Slic3r::Config->bridge_fan_speed, 1) /gmex;
-            $gcode =~ s/^;_BRIDGE_FAN_END\n/ $gcodegen->set_fan($fan_speed, 1) /gmex;
-        }
-        $gcode =~ s/;_WIPE//g;
-        
         return $gcode;
     };
     
@@ -998,6 +962,11 @@ sub write_gcode {
                     print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
                 
+                my $buffer = Slic3r::GCode::CoolingBuffer->new(
+                    config      => $Slic3r::Config,
+                    gcodegen    => $gcodegen,
+                );
+                
                 for my $layer (@{$self->objects->[$obj_idx]->layers}) {
                     # if we are printing the bottom layer of an object, and we have already finished
                     # another one, set first layer temperatures. this happens before the Z move
@@ -1007,15 +976,20 @@ sub write_gcode {
                             if $Slic3r::Config->first_layer_bed_temperature;
                         $print_first_layer_temperature->();
                     }
-                    print $fh $extrude_layer->($layer, [$copy]);
+                    print $fh $buffer->append($extrude_layer->($layer, [$copy]), $layer);
                 }
+                print $fh $buffer->flush;
                 $finished_objects++;
             }
         }
     } else {
-        print $fh $extrude_layer->($_, $_->object->copies)
-            for sort { $a->print_z <=> $b->print_z }
-                map @{$_->layers}, @{$self->objects};
+        my $buffer = Slic3r::GCode::CoolingBuffer->new(
+            config      => $Slic3r::Config,
+            gcodegen    => $gcodegen,
+        );
+        print $fh $buffer->append($extrude_layer->($_, $_->object->copies), $_)
+            for sort { $a->print_z <=> $b->print_z } map @{$_->layers}, @{$self->objects};
+        print $fh $buffer->flush;
     }
     
     # save statistic data

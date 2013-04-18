@@ -144,8 +144,8 @@ is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserv
     
     my $intersections = $expolygon->clip_line($line);
     is_deeply $intersections, [
-        [ [152, 287], [152, 214],  ],
-        [ [152, 107], [152, 35] ],
+        [ [152.742, 288.086660915295], [152.742, 215.178843238354],  ],
+        [ [152.742, 108.087506777797], [152.742, 35.1664774739315] ],
     ], 'line is clipped to square with hole';
 }
 
