@@ -679,10 +679,10 @@ sub bounding_box {
 }
 
 sub bounding_box_center {
-    my @bounding_box = bounding_box(@_);
+    my ($bounding_box) = @_;
     return Slic3r::Point->new(
-        ($bounding_box[X2] + $bounding_box[X1]) / 2,
-        ($bounding_box[Y2] + $bounding_box[Y1]) / 2,
+        ($bounding_box->[X2] + $bounding_box->[X1]) / 2,
+        ($bounding_box->[Y2] + $bounding_box->[Y1]) / 2,
     );
 }
 

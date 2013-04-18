@@ -894,6 +894,7 @@ sub generate_support_material {
     
     # generate paths for the pattern that we're going to use
     Slic3r::debugf "Generating patterns\n";
+    my $fill = Slic3r::Fill->new(print => $self->print);
     my $support_patterns = [];
     my $support_interface_patterns = [];
     {
@@ -908,10 +909,7 @@ sub generate_support_material {
             push @angles, $angles[0] + 90;
         }
         
-        my $filler = Slic3r::Fill->filler($pattern);
-        $filler->bounding_box([ Slic3r::Geometry::bounding_box([ map @$_, map @$_, @areas ]) ])
-            if $filler->can('bounding_box');
-        
+        my $filler = $fill->filler($pattern);
         my $make_pattern = sub {
             my ($expolygon, $density) = @_;
             
@@ -996,7 +994,7 @@ sub generate_support_material {
             
             # make a solid base on bottom layer
             if ($layer_id == 0) {
-                my $filler = Slic3r::Fill->filler('rectilinear');
+                my $filler = $fill->filler('rectilinear');
                 $filler->angle($Slic3r::Config->support_material_angle + 90);
                 foreach my $expolygon (@$islands) {
                     my @paths = $filler->fill_surface(
