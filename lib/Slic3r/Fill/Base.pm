@@ -39,22 +39,20 @@ sub infill_direction {
 sub rotate_points {
     my $self = shift;
     my ($expolygon, $rotate_vector) = @_;
-    my @rotate = @{$rotate_vector->[0]};
-    my @shift  = @{$rotate_vector->[1]};
     
     # rotate points
-    $expolygon->rotate(@rotate);
-    $expolygon->translate(@shift);
+    $expolygon->rotate(@{$rotate_vector->[0]});
+    $expolygon->translate(@{$rotate_vector->[1]});
 }
 
 sub rotate_points_back {
     my $self = shift;
     my ($paths, $rotate_vector) = @_;
-    my @rotate = @{$rotate_vector->[0]};
-    my @shift  = @{$rotate_vector->[1]};
+    my @rotate = (-$rotate_vector->[0][0], $rotate_vector->[0][1]);
+    my $shift  = [ map -$_, @{$rotate_vector->[1]} ];
     
-    @$paths = map [ Slic3r::Geometry::rotate_points(-$rotate[0], $rotate[1], @$_) ], 
-        map [ Slic3r::Geometry::move_points([map -$_, @shift], @$_) ], @$paths;
+    @$paths = map [ Slic3r::Geometry::rotate_points(@rotate, @$_) ], 
+        map [ Slic3r::Geometry::move_points($shift, @$_) ], @$paths;
 }
 
 sub adjust_solid_spacing {
