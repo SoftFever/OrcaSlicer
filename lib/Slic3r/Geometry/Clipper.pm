@@ -113,7 +113,7 @@ sub ex_int_offset2 {
 }
 
 sub collapse_ex {
-    my ($polygons, $width) = @_;use XXX; YYY 
+    my ($polygons, $width) = @_;
     return [ ex_int_offset2($polygons, -$width/2, +$width/2) ];
 }
 
