@@ -243,7 +243,9 @@ sub config_wizard {
 
     return unless $self->check_unsaved_changes;
     if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
-        $_->select_default_preset for values %{$self->{options_tabs}};
+        if ($self->{mode} eq 'expert') {
+            $_->select_default_preset for values %{$self->{options_tabs}};
+        }
         $self->load_config($config);
     }
 }

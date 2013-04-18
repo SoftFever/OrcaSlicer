@@ -136,7 +136,7 @@ sub _merge_loops {
     # winding order.
     # TODO: find a faster algorithm for this.
     my @loops = sort { $a->encloses_point($b->[0]) ? 0 : 1 } @$loops;  # outer first
-    $safety_offset //= scale 0.1;
+    $safety_offset //= scale 0.0499;
     @loops = @{ safety_offset(\@loops, $safety_offset) };
     my $expolygons = [];
     while (my $loop = shift @loops) {

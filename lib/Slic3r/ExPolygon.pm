@@ -161,11 +161,6 @@ sub bounding_box_polygon {
     ]);
 }
 
-sub bounding_box_center {
-    my $self = shift;
-    return Slic3r::Geometry::bounding_box_center($self->contour);
-}
-
 sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object

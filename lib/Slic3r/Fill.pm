@@ -39,10 +39,9 @@ sub filler {
         return $FillTypes{$filler}->new;
     }
     
-    if (!$self->fillers->{$filler}) {
-        my $f = $self->fillers->{$filler} = $FillTypes{$filler}->new;
-        $f->bounding_box([ $self->print->bounding_box ]) if $f->can('bounding_box');
-    }
+    $self->fillers->{$filler} ||= $FillTypes{$filler}->new(
+        bounding_box => [ $self->print->bounding_box ],
+    );
     return $self->fillers->{$filler};
 }
 
