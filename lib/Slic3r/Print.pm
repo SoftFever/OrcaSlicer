@@ -118,7 +118,8 @@ sub add_model {
             $mesh->scale($Slic3r::Config->scale / &Slic3r::SCALING_FACTOR);
         }
         
-        my $complete_mesh = Slic3r::TriangleMesh->merge(grep defined $_, @meshes);
+        my @defined_meshes = grep defined $_, @meshes;
+        my $complete_mesh = @defined_meshes == 1 ? $defined_meshes[0] : Slic3r::TriangleMesh->merge(@defined_meshes);
         
         # initialize print object
         my $print_object = Slic3r::Print::Object->new(
