@@ -95,17 +95,32 @@ sub get_layer_range {
     
     # $min_layer is the uppermost layer having slice_z <= $min_z
     # $max_layer is the lowermost layer having slice_z >= $max_z
-    my ($min_layer, $max_layer) = (0, undef);
-    for my $i (0 .. $#{$self->layers}) {
-        if ($self->layers->[$i]->slice_z >= $min_z) {
-            $min_layer = $i - 1;
-            for my $k ($i .. $#{$self->layers}) {
-                if ($self->layers->[$k]->slice_z >= $max_z) {
-                    $max_layer = $k - 1;
-                    last;
-                }
-            }
+    my ($min_layer, $max_layer);
+
+    my ($bottom, $top) = (0, $#{$self->layers});
+    while (1) {
+        my $mid = $bottom+int(($top - $bottom)/2);
+        if ($mid == $top || $mid == $bottom) {
+            $min_layer = $mid;
             last;
+        }
+        if ($self->layers->[$mid]->slice_z >= $min_z) {
+            $top = $mid;
+        } else {
+            $bottom = $mid;
+        }
+    }
+    $top = $#{$self->layers};
+    while (1) {
+        my $mid = $bottom+int(($top - $bottom)/2);
+        if ($mid == $top || $mid == $bottom) {
+            $max_layer = $mid;
+            last;
+        }
+        if ($self->layers->[$mid]->slice_z < $max_z) {
+            $bottom = $mid;
+        } else {
+            $top = $mid;
         }
     }
     return ($min_layer, $max_layer);
