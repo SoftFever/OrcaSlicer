@@ -4,6 +4,7 @@ use Moo;
 has 'config'    => (is => 'ro', required => 1);
 has 'gcodegen'  => (is => 'ro', required => 1);
 has 'gcode'     => (is => 'rw', default => sub {""});
+has 'elapsed_time' => (is => 'rw', default => sub {0});
 has 'layer_id'  => (is => 'rw');
 has 'last_z'    => (is => 'rw');
 has 'min_print_speed' => (is => 'lazy');
@@ -20,12 +21,13 @@ sub append {
     my $return = "";
     if (defined $self->last_z && $self->last_z != $layer->print_z) {
         $return = $self->flush;
-        $self->gcodegen->elapsed_time(0);
     }
     
     $self->layer_id($layer->id);
     $self->last_z($layer->print_z);
     $self->gcode($self->gcode . $gcode);
+    $self->elapsed_time($self->elapsed_time + $self->gcodegen->elapsed_time);
+    $self->gcodegen->elapsed_time(0);
     
     return $return;
 }
@@ -34,19 +36,20 @@ sub flush {
     my $self = shift;
     
     my $gcode = $self->gcode;
+    my $elapsed = $self->elapsed_time;
     $self->gcode("");
+    $self->elapsed_time(0);
     
     my $fan_speed = $self->config->fan_always_on ? $self->config->min_fan_speed : 0;
     my $speed_factor = 1;
     if ($self->config->cooling) {
-        my $layer_time = $self->gcodegen->elapsed_time;
-        Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $self->layer_id, $layer_time;
-        if ($layer_time < $self->config->slowdown_below_layer_time) {
+        Slic3r::debugf "Layer %d estimated printing time: %d seconds\n", $self->layer_id, $elapsed;
+        if ($elapsed < $self->config->slowdown_below_layer_time) {
             $fan_speed = $self->config->max_fan_speed;
-            $speed_factor = $layer_time / $self->config->slowdown_below_layer_time;
-        } elsif ($layer_time < $self->config->fan_below_layer_time) {
+            $speed_factor = $elapsed / $self->config->slowdown_below_layer_time;
+        } elsif ($elapsed < $self->config->fan_below_layer_time) {
             $fan_speed = $self->config->max_fan_speed - ($self->config->max_fan_speed - $self->config->min_fan_speed)
-                * ($layer_time - $self->config->slowdown_below_layer_time)
+                * ($elapsed - $self->config->slowdown_below_layer_time)
                 / ($self->config->fan_below_layer_time - $self->config->slowdown_below_layer_time); #/
         }
         Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
