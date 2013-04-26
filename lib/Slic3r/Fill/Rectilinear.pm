@@ -30,7 +30,8 @@ sub fill_surface {
     
     if (!$self->cache->{$cache_id}) {
         # compute bounding box
-        my $bounding_box = $self->bounding_box;
+        my $bounding_box = [ @{$self->bounding_box} ];  # clone
+        $bounding_box->[$_] = 0 for X1, Y1;
         {
             my $bb_expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_from_bounding_box($bounding_box));
             $self->rotate_points($bb_expolygon, $rotate_vector);
