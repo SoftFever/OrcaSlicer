@@ -7,7 +7,7 @@ use SVG;
 
 has 'scale' => (is => 'ro', default => sub {30});
 has 'print' => (is => 'ro', required => 1);
-has 'y_percent' => (is => 'ro', required => 1, default => sub {0.5});
+has 'y_percent' => (is => 'ro', default => sub {0.5});
 has 'line'  => (is => 'lazy');
 has 'height' => (is => 'rw');
 
