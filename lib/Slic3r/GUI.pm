@@ -37,6 +37,7 @@ use constant MI_TAB_PRINTER   => &Wx::NewId;
 
 use constant MI_CONF_WIZARD   => &Wx::NewId;
 use constant MI_WEBSITE       => &Wx::NewId;
+use constant MI_VERSIONCHECK  => &Wx::NewId;
 use constant MI_DOCUMENTATION => &Wx::NewId;
 
 our $datadir;
@@ -46,6 +47,7 @@ our $mode;
 our $Settings = {
     _ => {
         mode => 'simple',
+        version_check => 1,
     },
 };
 
@@ -155,11 +157,14 @@ sub OnInit {
         $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
         $helpMenu->AppendSeparator();
         $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
+        my $versioncheck = $helpMenu->Append(MI_VERSIONCHECK, "Check for &Updates...", 'Check for new Slic3r versions');
+        $versioncheck->Enable(Slic3r::GUI->have_version_check);
         $helpMenu->Append(MI_DOCUMENTATION, "&Documentation", 'Open the Slic3r documentation in your browser');
         $helpMenu->AppendSeparator();
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
         EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
+        EVT_MENU($frame, MI_VERSIONCHECK, sub { Slic3r::GUI->check_version(manual => 1) });
         EVT_MENU($frame, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('https://github.com/alexrj/Slic3r/wiki/Documentation') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
@@ -192,6 +197,11 @@ sub OnInit {
     
     $self->{skeinpanel}->config_wizard if $run_wizard;
     
+    Slic3r::GUI->check_version
+        if Slic3r::GUI->have_version_check
+            && ($Settings->{_}{version_check} // 1)
+            && (!$Settings->{_}{last_version_check} || (time - $Settings->{_}{last_version_check}) >= 86400);
+    
     return 1;
 }
 
@@ -220,6 +230,12 @@ sub show_error {
     my $self = shift;
     my ($message) = @_;
     Wx::MessageDialog->new($self, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+}
+
+sub show_info {
+    my $self = shift;
+    my ($message, $title) = @_;
+    Wx::MessageDialog->new($self, $message, $title || 'Notice', wxOK | wxICON_INFORMATION)->ShowModal;
 }
 
 sub fatal_error {
@@ -255,6 +271,37 @@ sub save_settings {
     my $class = shift;
     
     Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
+}
+
+sub have_version_check {
+    my $class = shift;
+    
+    return $Slic3r::have_threads && $Slic3r::build && eval "use LWP::UserAgent; 1";
+}
+
+sub check_version {
+    my $class = shift;
+    my %p = @_;
+    Slic3r::debugf "Checking for updates...\n";
+    
+    threads->create(sub {
+        my $ua = LWP::UserAgent->new;
+        $ua->timeout(10);
+        my $response = $ua->get('http://slic3r.org/updatecheck');
+        if ($response->is_success) {
+            if ($response->decoded_content =~ /^obsolete ?= ?([a-z0-9.-]+,)*\Q$Slic3r::VERSION\E(?:,|$)/) {
+                my $res = Wx::MessageDialog->new(undef, "A new version is available. Do you want to open the Slic3r website now?",
+                    'Update', wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxICON_INFORMATION | wxICON_ERROR)->ShowModal;
+                Wx::LaunchDefaultBrowser('http://slic3r.org/') if $res == wxID_YES;
+            } else {
+                Slic3r::GUI::show_info(undef, "You're using the latest version. No updates are available.") if $p{manual};
+            }
+            $Settings->{_}{last_version_check} = time();
+            Slic3r::GUI->save_settings;
+        } else {
+            Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $p{manual};
+        }
+    })->detach;
 }
 
 package Slic3r::GUI::ProgressStatusBar;

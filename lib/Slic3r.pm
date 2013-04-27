@@ -60,7 +60,7 @@ use Slic3r::Print::Object;
 use Slic3r::Print::Region;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
-eval "use Slic3r::Build";
+our $build = eval "use Slic3r::Build; 1";
 
 use constant SCALING_FACTOR         => 0.000001;
 use constant RESOLUTION             => 0.0125;

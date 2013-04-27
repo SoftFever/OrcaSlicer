@@ -180,6 +180,7 @@ sub _build_field {
     } elsif ($opt->{type} eq 'bool') {
         $field = Wx::CheckBox->new($self->parent, -1, "");
         $field->SetValue($opt->{default});
+        $field->Disable if $opt->{readonly};
         EVT_CHECKBOX($self->parent, $field, sub { $self->_on_change($opt_key, $field->GetValue); });
         $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
         $tooltip .= " (default: " . ($opt->{default} ? 'yes' : 'no') .  ")" if defined($opt->{default});
