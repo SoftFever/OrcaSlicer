@@ -27,16 +27,6 @@ sub lines {
     return polygon_lines($self);
 }
 
-sub boost_polygon {
-    my $self = shift;
-    return Boost::Geometry::Utils::polygon($self);
-}
-
-sub boost_linestring {
-    my $self = shift;
-    return Boost::Geometry::Utils::linestring([@$self, $self->[0]]);
-}
-
 sub wkt {
     my $self = shift;
     return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;

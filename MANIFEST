@@ -51,6 +51,7 @@ lib/Slic3r/Print/Object.pm
 lib/Slic3r/Surface.pm
 lib/Slic3r/SVG.pm
 lib/Slic3r/Test.pm
+lib/Slic3r/Test/SectionCut.pm
 lib/Slic3r/TriangleMesh.pm
 MANIFEST			This list of files
 README.markdown

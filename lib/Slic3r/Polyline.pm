@@ -5,6 +5,7 @@ use warnings;
 use Scalar::Util qw(reftype);
 use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polyline_lines move_points same_point);
+use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 
 # the constructor accepts an array(ref) of points
 sub new {
@@ -44,11 +45,6 @@ sub lines {
     return polyline_lines($self);
 }
 
-sub boost_linestring {
-    my $self = shift;
-    return Boost::Geometry::Utils::linestring($self);
-}
-
 sub wkt {
     my $self = shift;
     return sprintf "LINESTRING((%s))", join ',', map "$_->[0] $_->[1]", @$self;
@@ -84,10 +80,13 @@ sub length {
 
 sub grow {
     my $self = shift;
+    my ($distance, $scale, $joinType, $miterLimit) = @_;
+    $joinType //= JT_SQUARE;
+    
     return map Slic3r::Polygon->new($_),
         Slic3r::Geometry::Clipper::offset(
             [ Slic3r::Polygon->new(@$self, CORE::reverse @$self[1..($#$self-1)]) ],
-            @_,
+            $distance, $scale, $joinType, $miterLimit,
         );
 }
 

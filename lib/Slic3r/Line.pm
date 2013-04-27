@@ -2,7 +2,9 @@ package Slic3r::Line;
 use strict;
 use warnings;
 
-use Boost::Geometry::Utils;
+# a line is a two-points line
+use parent 'Slic3r::Polyline';
+
 use Slic3r::Geometry qw(A B X Y);
 
 sub new {
@@ -14,22 +16,12 @@ sub new {
     return $self;
 }
 
-sub boost_linestring {
-    my $self = shift;
-    return Boost::Geometry::Utils::linestring($self);
-}
-
 sub coincides_with {
     my $self = shift;
     my ($line) = @_;
     
     return ($self->a->coincides_with($line->a) && $self->b->coincides_with($line->b))
         || ($self->a->coincides_with($line->b) && $self->b->coincides_with($line->a));
-}
-
-sub length {
-    my $self = shift;
-    return Boost::Geometry::Utils::linestring_length($self);
 }
 
 sub vector {
@@ -65,19 +57,6 @@ sub midpoint {
         ($self->[A][X] + $self->[B][X]) / 2,
         ($self->[A][Y] + $self->[B][Y]) / 2,
     );
-}
-
-sub reverse {
-    my $self = shift;
-    @$self = reverse @$self;
-}
-
-sub translate {
-    my $self = shift;
-    my ($x, $y) = @_;
-    @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
-    bless $_, 'Slic3r::Point' for @$self;
-    return $self;
 }
 
 1;

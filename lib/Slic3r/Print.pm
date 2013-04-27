@@ -466,6 +466,10 @@ sub export_gcode {
         printf "  fills         = %.1fMb\n", List::Util::sum(map Devel::Size::total_size($_->fills), map @{$_->regions}, map @{$_->layers}, @{$self->objects})/1024/1024;
         printf "  print object  = %.1fMb\n", Devel::Size::total_size($self)/1024/1024;
     }
+    if (0) {
+        eval "use Slic3r::Test::SectionCut";
+        Slic3r::Test::SectionCut->new(print => $self)->export_svg("section_cut.svg");
+    }
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath($params{output_file});

@@ -73,11 +73,6 @@ sub is_printable {
     return Slic3r::Geometry::Clipper::offset($self, -$width / 2) ? 1 : 0;
 }
 
-sub boost_polygon {
-    my $self = shift;
-    return Boost::Geometry::Utils::polygon(@$self);
-}
-
 sub wkt {
     my $self = shift;
     return sprintf "POLYGON(%s)", 
