@@ -304,6 +304,15 @@ sub check_version {
     })->detach;
 }
 
+sub output_path {
+    my $class = shift;
+    my ($dir) = @_;
+    
+    return ($Settings->{_}{last_output_path} && $Settings->{_}{remember_output_path})
+        ? $Settings->{_}{last_output_path}
+        : $dir;
+}
+
 package Slic3r::GUI::ProgressStatusBar;
 use Wx qw(:gauge :misc);
 use base 'Wx::StatusBar';

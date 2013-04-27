@@ -531,12 +531,14 @@ sub export_gcode {
     $self->{output_file} = $main::opt{output};
     {
         $self->{output_file} = $print->expanded_output_filepath($self->{output_file}, $self->{objects}[0]->input_file);
-        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', dirname($self->{output_file}),
+        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', Slic3r::GUI->output_path(dirname($self->{output_file})),
             basename($self->{output_file}), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
         }
+        $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
+        Slic3r::GUI->save_settings;
         $self->{output_file} = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }

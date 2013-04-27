@@ -133,7 +133,8 @@ sub do_slice {
         } elsif ($params{save_as}) {
             $output_file = $print->expanded_output_filepath($output_file);
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
-            my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:', dirname($output_file),
+            my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
+                Slic3r::GUI->output_path(dirname($output_file)),
                 basename($output_file), $params{export_svg} ? FILE_WILDCARDS->{svg} : FILE_WILDCARDS->{gcode}, wxFD_SAVE);
             if ($dlg->ShowModal != wxID_OK) {
                 $dlg->Destroy;
@@ -141,6 +142,8 @@ sub do_slice {
             }
             $output_file = $dlg->GetPath;
             $last_output_file = $output_file unless $params{export_svg};
+            $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($output_file);
+            Slic3r::GUI->save_settings;
             $dlg->Destroy;
         }
         

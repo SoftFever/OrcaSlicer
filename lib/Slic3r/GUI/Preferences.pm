@@ -30,6 +30,13 @@ sub new {
                 default     => $Slic3r::GUI::Settings->{_}{version_check} // 1,
                 readonly    => !Slic3r::GUI->have_version_check,
             },
+            {
+                opt_key     => 'remember_output_path',
+                type        => 'bool',
+                label       => 'Remember output directory',
+                tooltip     => 'If this is enabled, Slic3r will prompt the last output directory instead of the one containing the input files.',
+                default     => $Slic3r::GUI::Settings->{_}{remember_output_path},
+            },
         ],
         on_change => sub { $self->{values}{$_[0]} = $_[1] },
         label_width => 100,
