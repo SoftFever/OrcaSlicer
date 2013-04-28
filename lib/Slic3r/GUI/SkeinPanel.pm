@@ -122,7 +122,7 @@ sub do_slice {
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
         Slic3r::GUI->save_settings;
         
-        my $print = Slic3r::Print->new(config => $config);
+        my $print = $self->init_print;
         $print->add_model(Slic3r::Model->read_from_file($input_file));
         $print->validate;
 
@@ -187,6 +187,21 @@ sub do_slice {
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
+}
+
+sub init_print {
+    my $self = shift;
+    
+    my %extra_variables = ();
+    if ($self->{mode} eq 'expert') {
+        $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->current_preset->{name}
+            for qw(print filament printer);
+    }
+    
+    return Slic3r::Print->new(
+        config          => $self->config,
+        extra_variables => { %extra_variables },
+    );
 }
 
 sub export_config {

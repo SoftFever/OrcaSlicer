@@ -525,7 +525,7 @@ sub export_gcode {
     }
     
     # get config before spawning the thread because ->config needs GetParent and it's not available there
-    my $print = $self->_init_print;
+    my $print = $self->skeinpanel->init_print;
     
     # select output file
     $self->{output_file} = $main::opt{output};
@@ -580,21 +580,6 @@ sub export_gcode {
             catch_error => sub { Slic3r::GUI::catch_error($self, @_) && $self->on_export_failed },
         );
     }
-}
-
-sub _init_print {
-    my $self = shift;
-    
-    my %extra_variables = ();
-    if ($self->skeinpanel->{mode} eq 'expert') {
-        $extra_variables{"${_}_preset"} = $self->skeinpanel->{options_tabs}{$_}->current_preset->{name}
-            for qw(print filament printer);
-    }
-    
-    return Slic3r::Print->new(
-        config => $self->skeinpanel->config,
-        extra_variables => { %extra_variables },
-    );
 }
 
 sub export_gcode2 {
@@ -687,7 +672,7 @@ sub _get_export_file {
     
     my $output_file = $main::opt{output};
     {
-        $output_file = $self->_init_print->expanded_output_filepath($output_file, $self->{objects}[0]->input_file);
+        $output_file = $self->skeinpanel->init_print->expanded_output_filepath($output_file, $self->{objects}[0]->input_file);
         $output_file =~ s/\.gcode$/$suffix/i;
         my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
             basename($output_file), &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
