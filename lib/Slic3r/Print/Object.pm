@@ -637,10 +637,15 @@ sub discover_horizontal_shells {
                         # if some parts are going to collapse, let's grow them and add the extra area to the neighbor layer
                         # as well as to our original surfaces so that we support this additional area in the next shell too
                         if (@$too_narrow) {
+                            # consider the actual fill area
+                            my @fill_boundaries = $Slic3r::Config->fill_density > 0
+                                ? @neighbor_fill_surfaces
+                                : grep $_->surface_type != S_TYPE_INTERNAL, @neighbor_fill_surfaces;
+                            
                             # make sure our grown surfaces don't exceed the fill area
                             my @grown = map @$_, @{intersection_ex(
                                 [ offset([ map @$_, @$too_narrow ], +$margin) ],
-                                [ map $_->p, @neighbor_fill_surfaces ],
+                                [ map $_->p, @fill_boundaries ],
                             )};
                             $new_internal_solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
                             $solid = union_ex([ @grown, (map @$_, @$solid) ]);

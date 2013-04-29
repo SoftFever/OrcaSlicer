@@ -473,17 +473,23 @@ sub process_external_surfaces {
         my @top     = grep $_->surface_type == S_TYPE_TOP, @{$self->fill_surfaces};
         my @bottom  = grep $_->surface_type == S_TYPE_BOTTOM, @{$self->fill_surfaces};
         
+        # if we're slicing with no infill, we can't extend external surfaces
+        # over non-existent infill
+        my @fill_boundaries = $Slic3r::Config->fill_density > 0
+            ? @{$self->fill_surfaces}
+            : grep $_->surface_type != S_TYPE_INTERNAL, @{$self->fill_surfaces};
+        
         # offset them and intersect the results with the actual fill boundaries
         my $margin = scale 3;  # TODO: ensure this is greater than the total thickness of the perimeters
         @top = @{intersection_ex(
             [ Slic3r::Geometry::Clipper::offset([ map $_->p, @top ], +$margin) ],
-            [ map $_->p, @{$self->fill_surfaces} ],
+            [ map $_->p, @fill_boundaries ],
             undef,
             1,  # to ensure adjacent expolygons are unified
         )};
         @bottom = @{intersection_ex(
             [ Slic3r::Geometry::Clipper::offset([ map $_->p, @bottom ], +$margin) ],
-            [ map $_->p, @{$self->fill_surfaces} ],
+            [ map $_->p, @fill_boundaries ],
             undef,
             1,  # to ensure adjacent expolygons are unified
         )};
