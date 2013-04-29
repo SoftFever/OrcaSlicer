@@ -28,7 +28,6 @@ my $build = Module::Build->new(
     recommends     => {
         'Class::XSAccessor' => '0',
         'Growl::GNTP' => '0.15',
-        'Net::DBus'   => '0',
         'XML::SAX::ExpatXS' => '0',
         'Wx'          => '0.9901',
     },

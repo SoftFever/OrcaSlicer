@@ -480,7 +480,8 @@ sub notify {
         $self->{growler}->notify(Event => 'SKEIN_DONE', Title => $title, Message => $message)
             if $self->{growler};
     };
-    if (eval 'use Net::DBus; 1') {
+    # Net::DBus is broken in multithreaded environment
+    if (0 && eval 'use Net::DBus; 1') {
         eval {
             my $session = Net::DBus->session;
             my $serv = $session->get_service('org.freedesktop.Notifications');
