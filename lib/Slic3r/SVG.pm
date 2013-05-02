@@ -9,7 +9,7 @@ use constant Y => 1;
 
 our $filltype = 'evenodd';
 
-sub factor {
+sub factor {return 30;
     return &Slic3r::SCALING_FACTOR * 10;
 }
 

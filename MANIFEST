@@ -78,6 +78,7 @@ t/support.t
 t/vibrationlimit.t
 utils/amf-to-stl.pl
 utils/file_info.pl
+utils/gcode_sectioncut.pl
 utils/post-processing/filament-weight.pl
 utils/post-processing/prowl-notification.pl
 utils/post-processing/z-every-line.pl

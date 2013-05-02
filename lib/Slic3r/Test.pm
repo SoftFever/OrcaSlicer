@@ -94,7 +94,7 @@ sub parse {
     my $self = shift;
     my ($cb) = @_;
     
-    foreach my $line (split /\n/, $self->gcode) {
+    foreach my $line (split /\R+/, $self->gcode) {
         print "$line\n" if $Verbose || $ENV{SLIC3R_TESTS_GCODE};
         $line =~ s/\s*;(.*)//; # strip comment
         next if $line eq '';
@@ -107,15 +107,14 @@ sub parse {
         
         # check retraction
         if ($command =~ /^G[01]$/) {
-            if (!exists $args{E}) {
-                $info{travel} = 1;
-            }
             foreach my $axis (@AXES) {
-                if (!exists $args{$axis}) {
+                if (exists $args{$axis}) {
+                    $info{"dist_$axis"} = $args{$axis} - $self->$axis;
+                    $info{"new_$axis"}  = $args{$axis};
+                } else {
                     $info{"dist_$axis"} = 0;
-                    next;
+                    $info{"new_$axis"}  = $self->$axis;
                 }
-                $info{"dist_$axis"} = $args{$axis} - $self->$axis;
             }
             $info{dist_XY} = Slic3r::Line->new([0,0], [@info{qw(dist_X dist_Y)}])->length;
             if (exists $args{E}) {
@@ -124,6 +123,8 @@ sub parse {
                 } elsif ($info{dist_E} < 0) {
                     $info{retracting} = 1
                 }
+            } else {
+                $info{travel} = 1;
             }
         }
         
