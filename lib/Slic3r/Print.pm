@@ -6,8 +6,8 @@ use File::Spec;
 use List::Util qw(max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point);
-use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex offset JT_ROUND JT_SQUARE);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point chained_path_items);
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset JT_ROUND JT_SQUARE PFT_EVENODD);
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
@@ -673,16 +673,39 @@ sub make_brim {
         push @islands, map $_->unpack->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
     }
     
+    my @loops = ();
     my $num_loops = sprintf "%.0f", $Slic3r::Config->brim_width / $flow->width;
     for my $i (reverse 1 .. $num_loops) {
         # JT_SQUARE ensures no vertex is outside the given offset distance
-        push @{$self->brim}, Slic3r::ExtrusionLoop->pack(
-            polygon         => Slic3r::Polygon->new($_),
-            role            => EXTR_ROLE_SKIRT,
-            flow_spacing    => $flow->spacing,
-        ) for Slic3r::Geometry::Clipper::offset(\@islands, ($i - 0.5) * $flow->scaled_spacing, undef, JT_SQUARE); # -0.5 because islands are not represented by their centerlines
+        # -0.5 because islands are not represented by their centerlines
         # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
+        push @loops, offset(\@islands, ($i - 0.5) * $flow->scaled_spacing, undef, JT_SQUARE);
     }
+    
+    # prepare a subroutine to traverse the tree and return inner perimeters first
+    my $traverse;
+    $traverse = sub {
+        my ($loops) = @_;
+        
+        # use a nearest neighbor search to order these children
+        # TODO: supply second argument to chained_path_items() too?
+        @$loops = @{chained_path_items(
+            [ map [ ($_->{outer} ? $_->{outer}[0] : $_->{hole}[0]), $_ ], @$loops ],
+        )};
+        
+        my @polygons = ();
+        foreach my $loop (@$loops) {
+            push @polygons, $traverse->($loop->{children});
+            push @polygons, Slic3r::ExtrusionLoop->pack(
+                polygon         => Slic3r::Polygon->new($loop->{outer} // [ reverse @{$loop->{hole}} ]),
+                role            => EXTR_ROLE_SKIRT,
+                flow_spacing    => $flow->spacing,
+            );
+        }
+        return @polygons;
+    };
+    
+    @{$self->brim} = reverse $traverse->( union_pt(\@loops, PFT_EVENODD) );
 }
 
 sub write_gcode {
