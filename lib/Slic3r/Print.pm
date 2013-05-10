@@ -8,7 +8,7 @@ use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point chained_path_items);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset
-    ex_int_offset2 offset2 JT_ROUND JT_SQUARE PFT_EVENODD);
+    offset2 JT_ROUND JT_SQUARE PFT_EVENODD);
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
