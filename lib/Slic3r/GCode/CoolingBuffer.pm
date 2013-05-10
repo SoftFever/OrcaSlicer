@@ -61,8 +61,8 @@ sub flush {
                 $1 . sprintf("%.${dec}f", $new_speed < $self->min_print_speed ? $self->min_print_speed : $new_speed)
                 /gexm;
         }
-        $fan_speed = 0 if $self->layer_id < $self->config->disable_fan_first_layers;
     }
+    $fan_speed = 0 if $self->layer_id < $self->config->disable_fan_first_layers;
     $gcode = $self->gcodegen->set_fan($fan_speed) . $gcode;
     
     # bridge fan speed

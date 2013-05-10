@@ -826,8 +826,8 @@ END
     
     # cooling options
     'cooling' => {
-        label   => 'Enable cooling',
-        tooltip => 'This flag enables all the cooling features.',
+        label   => 'Enable auto cooling',
+        tooltip => 'This flag enables the automatic cooling logic that adjusts print speed and fan speed according to layer printing time.',
         cli     => 'cooling!',
         type    => 'bool',
         default => 1,

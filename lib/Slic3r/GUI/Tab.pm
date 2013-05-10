@@ -600,6 +600,15 @@ sub _update_description {
     my $config = $self->config;
     
     my $msg = "";
+    my $fan_other_layers = $config->fan_always_on
+        ? sprintf "will always run at %d%%%s.", $config->min_fan_speed,
+                ($config->disable_fan_first_layers > 1
+                    ? " except for the first " . $config->disable_fan_first_layers . " layers"
+                    : $config->disable_fan_first_layers == 1
+                        ? " except for the first layer"
+                        : "")
+        : "will be turned off.";
+    
     if ($config->cooling) {
         $msg = sprintf "If estimated layer time is below ~%ds, fan will run at 100%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
             $config->slowdown_below_layer_time, $config->slowdown_below_layer_time, $config->min_print_speed;
@@ -607,11 +616,9 @@ sub _update_description {
             $msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
                 $config->fan_below_layer_time, $config->max_fan_speed, $config->min_fan_speed;
         }
-        if ($config->fan_always_on) {
-            $msg .= sprintf "\nDuring the other layers, fan will always run at %d%%.", $config->min_fan_speed;
-        } else {
-            $msg .= "\nDuring the other layers, fan will be turned off."
-        }
+        $msg .= "\nDuring the other layers, fan $fan_other_layers"
+    } else {
+        $msg = "Fan $fan_other_layers";
     }
     $self->{description_line}->SetText($msg);
 }
