@@ -6,7 +6,7 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(safety_offset safety_offset_ex offset offset_ex collapse_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
-    JT_SQUARE is_counter_clockwise union_pt);
+    JT_SQUARE is_counter_clockwise union_pt ex_int_offset2 offset2);
 
 use Math::Clipper 1.17 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
 use Slic3r::Geometry qw(scale);
@@ -30,6 +30,16 @@ sub offset {
     $miterLimit //= 3;
     
     my $offsets = Math::Clipper::int_offset($polygons, $distance, $scale, $joinType, $miterLimit);
+    return @$offsets;
+}
+
+sub offset2 {
+    my ($polygons, $distance1, $distance2, $scale, $joinType, $miterLimit) = @_;
+    $scale      ||= 100000;
+    $joinType   //= JT_MITER;
+    $miterLimit //= 3;
+    
+    my $offsets = Math::Clipper::int_offset2($polygons, $distance1, $distance2, $scale, $joinType, $miterLimit);
     return @$offsets;
 }
 
