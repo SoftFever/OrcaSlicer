@@ -111,6 +111,12 @@ sub is_fill {
         || $self->role == EXTR_ROLE_TOPSOLIDFILL;
 }
 
+sub is_bridge {
+    my $self = shift;
+    return $self->role == EXTR_ROLE_BRIDGE
+        || $self->role == EXTR_ROLE_INTERNALBRIDGE;
+}
+
 sub split_at_acute_angles {
     my $self = shift;
     

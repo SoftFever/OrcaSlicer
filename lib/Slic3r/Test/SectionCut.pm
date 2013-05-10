@@ -1,6 +1,7 @@
 package Slic3r::Test::SectionCut;
 use Moo;
 
+use List::Util qw(first max);
 use Slic3r::Geometry qw(X Y A B X1 Y1 X2 Y2 unscale);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use SVG;
@@ -24,7 +25,7 @@ sub export_svg {
     my ($filename) = @_;
     
     my $print_size = $self->print->size;
-    $self->height(unscale($print_size->[X]));
+    $self->height(unscale max(map $_->print_z, map @{$_->layers}, @{$self->print->objects}));
     my $svg = SVG->new(
         width  => $self->scale * unscale($print_size->[X]),
         height => $self->scale * $self->height,
@@ -33,7 +34,9 @@ sub export_svg {
     my $group = sub {
         my %p = @_;
         my $g = $svg->group(style => $p{style});
-        $g->rectangle(%$_) for $self->_get_rectangles($p{filter});
+        my $items = $self->_plot($p{filter});
+        $g->rectangle(%$_) for @{ $items->{rectangles} };
+        $g->circle(%$_)    for @{ $items->{circles} };
     };
     
     $group->(
@@ -69,11 +72,11 @@ sub export_svg {
     printf "Section cut SVG written to %s\n", $filename;
 }
 
-sub _get_rectangles {
+sub _plot {
     my $self = shift;
     my ($filter) = @_;
     
-    my @rectangles = ();
+    my (@rectangles, @circles) = ();
     
     foreach my $object (@{$self->print->objects}) {
         foreach my $copy (@{$object->copies}) {
@@ -93,26 +96,53 @@ sub _get_rectangles {
                             Slic3r::ExPolygon->new($line->grow(Slic3r::Geometry::scale $path->flow_spacing/2)),
                             [ $self->line ],
                         ) };
+                        die "Intersection has more than two points!\n" if first { @$_ > 2 } @intersections;
                         
-                        push @rectangles, map {
-                            die "Intersection has more than two points!\n" if @$_ > 2;
-                            my $height = $path->height // $layer->height;
-                            {
-                                'x'         => $self->scale * unscale $_->[A][X],
-                                'y'         => $self->scale * $self->_y(unscale($layer->print_z)),
-                                'width'     => $self->scale * unscale(abs($_->[B][X] - $_->[A][X])),
-                                'height'    => $self->scale * $height,
-                                'rx'        => $self->scale * $height * 0.35,
-                                'ry'        => $self->scale * $height * 0.35,
-                            };
-                        } @intersections;
+                        if ($path->is_bridge) {
+                            foreach my $line (@intersections) {
+                                my $radius = $path->flow_spacing / 2;
+                                my $width = abs($line->[B][X] - $line->[A][X]);
+                                if ((10 * Slic3r::Geometry::scale $radius) < $width) {
+                                    # we're cutting the path in the longitudinal direction, so we've got a rectangle
+                                    push @rectangles, {
+                                        'x'         => $self->scale * unscale $line->[A][X],
+                                        'y'         => $self->scale * $self->_y(unscale($layer->print_z)),
+                                        'width'     => $self->scale * unscale(abs($line->[B][X] - $line->[A][X])),
+                                        'height'    => $self->scale * $radius * 2,
+                                        'rx'        => $self->scale * $radius * 0.35,
+                                        'ry'        => $self->scale * $radius * 0.35,
+                                    };
+                                } else {
+                                    push @circles, {
+                                        'cx'        => $self->scale * unscale($line->[A][X] + $radius),
+                                        'cy'        => $self->scale * $self->_y(unscale($layer->print_z - $radius)),
+                                        'r'         => $self->scale * unscale $radius,
+                                    };
+                                }
+                            }
+                        } else {
+                            push @rectangles, map {
+                                my $height = $path->height // $layer->height;
+                                {
+                                    'x'         => $self->scale * unscale $_->[A][X],
+                                    'y'         => $self->scale * $self->_y(unscale($layer->print_z)),
+                                    'width'     => $self->scale * unscale(abs($_->[B][X] - $_->[A][X])),
+                                    'height'    => $self->scale * $height,
+                                    'rx'        => $self->scale * $height * 0.35,
+                                    'ry'        => $self->scale * $height * 0.35,
+                                };
+                            } @intersections;
+                        }
                     }
                 }
             }
         }
     }
     
-    return @rectangles;
+    return {
+        rectangles  => \@rectangles,
+        circles     => \@circles,
+    };
 }
 
 sub _y {
