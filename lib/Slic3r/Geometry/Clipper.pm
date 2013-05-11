@@ -6,7 +6,7 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(safety_offset safety_offset_ex offset offset_ex collapse_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
-    JT_SQUARE is_counter_clockwise union_pt offset2 offset2_ex);
+    JT_SQUARE is_counter_clockwise union_pt offset2 offset2_ex traverse_pt);
 
 use Math::Clipper 1.21 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
 use Slic3r::Geometry qw(scale);
@@ -143,6 +143,23 @@ sub simplify_polygon {
 sub simplify_polygons {
     my ($polygons, $pft) = @_;
     return @{ Math::Clipper::simplify_polygons($polygons, $pft // PFT_NONZERO) };
+}
+
+sub traverse_pt {
+    my ($polynodes) = @_;
+    
+    # use a nearest neighbor search to order these children
+    # TODO: supply second argument to chained_path_items() too?
+    my @nodes = @{Slic3r::Geometry::chained_path_items(
+        [ map [ ($_->{outer} ? $_->{outer}[0] : $_->{hole}[0]), $_ ], @$polynodes ],
+    )};
+    
+    my @polygons = ();
+    foreach my $polynode (@$polynodes) {
+        push @polygons, traverse_pt($polynode->{children});
+        push @polygons, $polynode->{outer} // [ reverse @{$polynode->{hole}} ]
+    }
+    return @polygons;
 }
 
 1;
