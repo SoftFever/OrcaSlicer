@@ -4,7 +4,8 @@ use Moo;
 use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI X1 X2 Y1 Y2 A B scale chained_path_items points_coincide);
-use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex offset2_ex);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
+    offset offset2_ex);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -225,18 +226,16 @@ sub make_perimeters {
             $spacing /= 2 if $loop == 0;
             
             # offsetting a polygon can result in one or many offset polygons
-            my @new_offsets = ();
-            foreach my $expolygon (@last_offsets) {
-                my @offsets = offset2_ex($expolygon, -1.5*$spacing,  +0.5*$spacing);
-                push @new_offsets, @offsets;
-                
-                # where the above check collapses the expolygon, then there's no room for an inner loop
-                # and we can extract the gap for later processing
+            my @new_offsets = offset2_ex([ map @$_, @last_offsets ], -1.5*$spacing,  +0.5*$spacing);
+            
+            # where the above check collapses the expolygon, then there's no room for an inner loop
+            # and we can extract the gap for later processing
+            {
                 my $diff = diff_ex(
-                    [ map @$_, $expolygon->offset_ex(-0.5*$spacing) ],
+                    [ offset([ map @$_, @last_offsets ], -0.5*$spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
                     # won't shrink the clip polygon to be smaller than intended.
-                    [ Slic3r::Geometry::Clipper::offset([map @$_, @offsets], +0.5*$spacing + 2) ],
+                    [ offset([ map @$_, @new_offsets ], +0.5*$spacing + 2) ],
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
