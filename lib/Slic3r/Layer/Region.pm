@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI X1 X2 Y1 Y2 A B scale chained_path_items points_coincide);
-use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex);
+use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex offset2_ex);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -97,7 +97,7 @@ sub make_surfaces {
     {
         my $width = $self->perimeter_flow->scaled_width;
         my $outgrown = [
-            Slic3r::Geometry::Clipper::ex_int_offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width),
+            offset2_ex([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width),
         ];
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],
@@ -227,7 +227,7 @@ sub make_perimeters {
             # offsetting a polygon can result in one or many offset polygons
             my @new_offsets = ();
             foreach my $expolygon (@last_offsets) {
-                my @offsets = Slic3r::Geometry::Clipper::ex_int_offset2($expolygon, -1.5*$spacing,  +0.5*$spacing);
+                my @offsets = offset2_ex($expolygon, -1.5*$spacing,  +0.5*$spacing);
                 push @new_offsets, @offsets;
                 
                 # where the above check collapses the expolygon, then there's no room for an inner loop
