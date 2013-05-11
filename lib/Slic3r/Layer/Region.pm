@@ -335,38 +335,62 @@ sub make_perimeters {
     my $contours_pt = union_pt(\@contours, PFT_EVENODD);
     my $holes_pt    = union_pt(\@holes, PFT_EVENODD);
     
-    # find external perimeters
-    my $other_contours_pt = [  ];
-    
+    # prepare a coderef for traversing the PolyTree object
     # external contours are root items of $contours_pt
     # internal contours are the ones next to external
-    my @external_contours   = map $self->_perimeter($_, EXTR_ROLE_EXTERNAL_PERIMETER), traverse_pt($contours_pt, 0, 0);
-    my @internal_contours   = map $self->_perimeter($_, EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER), traverse_pt($contours_pt, 1, 1);
-    my @other_contours      = map $self->_perimeter($_), traverse_pt($contours_pt, 2);
-    my @external_holes      = map $self->_perimeter($_, EXTR_ROLE_EXTERNAL_PERIMETER), traverse_pt($holes_pt, 0, 0);
-    my @other_holes         = map $self->_perimeter($_), traverse_pt($holes_pt, 1);
-    
-    my @loops = (
-        @other_holes,
-        @external_holes,
-        @other_contours,
-        @internal_contours,
-        @external_contours,
-    );
-    @loops = reverse @loops if $Slic3r::Config->external_perimeters_first;
-    
-    push @{ $self->perimeters }, @loops;
-}
+    my $traverse;
+    $traverse = sub {
+        my ($polynodes, $depth, $is_contour) = @_;
+        
+        # use a nearest neighbor search to order these children
+        # TODO: supply second argument to chained_path_items() too?
+        my @nodes = @{Slic3r::Geometry::chained_path_items(
+            [ map [ ($_->{outer} ? $_->{outer}[0] : $_->{hole}[0]), $_ ], @$polynodes ],
+        )};
+        
+        my @loops = ();
+        foreach my $polynode (@$polynodes) {
+            push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
 
-sub _perimeter {
-    my $self = shift;
-    my ($polygon, $role) = @_;
+            my $role = EXTR_ROLE_PERIMETER;
+            if ($depth == 0) {
+                $role = EXTR_ROLE_EXTERNAL_PERIMETER;
+            } elsif ($depth == 1 && $is_contour) {
+                $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
+            }
+            push @loops, Slic3r::ExtrusionLoop->pack(
+                polygon         => Slic3r::Polygon->new($polynode->{outer} // [ reverse @{$polynode->{hole}} ]),
+                role            => $role,
+                flow_spacing    => $self->perimeter_flow->spacing,
+            );
+        }
+        return @loops;
+    };
     
-    return Slic3r::ExtrusionLoop->pack(
-        polygon         => Slic3r::Polygon->new($polygon),
-        role            => ($role // EXTR_ROLE_PERIMETER),
-        flow_spacing    => $self->perimeter_flow->spacing,
+    # order loops from inner to outer (in terms of object slices)
+    my @loops = (
+        (reverse $traverse->($holes_pt, 0)),
+        $traverse->($contours_pt, 0, 1),
     );
+    
+    # if brim will be printed, reverse the order of perimeters so that
+    # we continue inwards after having finished the brim
+    # TODO: add test for perimeter order
+    @loops = reverse @loops
+        if $Slic3r::Config->external_perimeters_first
+            || $self->layer->id == 0 && $Slic3r::Config->brim_width > 0;
+    push @{ $self->perimeters }, @loops;
+    
+    # add thin walls as perimeters
+    push @{ $self->perimeters }, Slic3r::ExtrusionPath::Collection->new(paths => [
+        map {
+            Slic3r::ExtrusionPath->pack(
+                polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_),
+                role            => EXTR_ROLE_EXTERNAL_PERIMETER,
+                flow_spacing    => $self->perimeter_flow->spacing,
+            );
+        } @{ $self->thin_walls }
+    ])->chained_path;
 }
 
 sub prepare_fill_surfaces {
