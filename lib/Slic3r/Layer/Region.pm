@@ -5,7 +5,7 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI X1 X2 Y1 Y2 A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2_ex);
+    offset offset2_ex PFT_EVENODD union_pt traverse_pt);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -161,37 +161,22 @@ sub make_perimeters {
     
     my $perimeter_spacing   = $self->perimeter_flow->scaled_spacing;
     my $infill_spacing      = $self->solid_infill_flow->scaled_spacing;
-    my $gap_area_threshold = $self->perimeter_flow->scaled_width ** 2;
-    
-    # this array will hold one arrayref per original surface (island);
-    # each item of this arrayref is an arrayref representing a depth (from outer
-    # perimeters to inner); each item of this arrayref is an ExPolygon:
-    # @perimeters = (
-    #    [ # first island
-    #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #depth 0: outer loop
-    #        [ Slic3r::ExPolygon, Slic3r::ExPolygon... ],  #depth 1: inner loop
-    #    ],
-    #    [ # second island
-    #        ...
-    #    ]
-    # )
-    my @perimeters = ();  # one item per depth; each item
-    
-    # organize islands using a nearest-neighbor search
-    my @surfaces = @{chained_path_items([
-        map [ $_->contour->[0], $_ ], @{$self->slices},
-    ])};
+    my $gap_area_threshold  = $self->perimeter_flow->scaled_width ** 2;
     
     $self->perimeters([]);
     $self->fill_surfaces([]);
     $self->thin_fills([]);
     
+    my @contours    = ();    # array of Polygons with ccw orientation
+    my @holes       = ();    # array of Polygons with cw orientation
+    my @gaps        = ();    # array of ExPolygons
+    
     # for each island:
-    foreach my $surface (@surfaces) {
-        my @last_offsets = ($surface->expolygon);
+    foreach my $surface (@{$self->slices}) {
         
         # experimental hole compensation (see ArcCompensation in the RepRap wiki)
         if (0) {
+            my @last_offsets = (); # dumb instantiation
             foreach my $hole ($last_offsets[0]->holes) {
                 my $circumference = abs($hole->length);
                 next unless $circumference <= &Slic3r::SMALL_PERIMETER_LENGTH;
@@ -213,42 +198,40 @@ sub make_perimeters {
             }
         }
         
-        my @gaps = ();
-        
-        # generate perimeters inwards (loop 0 is the external one)
+        # detect how many perimeters must be generated for this island
         my $loop_number = $Slic3r::Config->perimeters + ($surface->extra_perimeters || 0);
-        push @perimeters, [] if $loop_number > 0;
         
-        # do one more loop (<= instead of <) so that we can detect gaps even after the desired
-        # number of perimeters has been generated
-        for (my $loop = 0; $loop <= $loop_number; $loop++) {
-            my $spacing = $perimeter_spacing;
-            $spacing /= 2 if $loop == 0;
+        # generate loops
+        # (one more than necessary so that we can detect gaps even after the desired
+        # number of perimeters has been generated)
+        my @last = @{$surface->expolygon};
+        for my $i (0 .. $loop_number) {
+            # external loop only needs half inset distance
+            my $spacing = ($i == 0)
+                ? $perimeter_spacing / 2
+                : $perimeter_spacing;
             
-            # offsetting a polygon can result in one or many offset polygons
-            my @new_offsets = offset2_ex([ map @$_, @last_offsets ], -1.5*$spacing,  +0.5*$spacing);
+            my @offsets = offset2_ex(\@last, -1.5*$spacing,  +0.5*$spacing);
+            my @contours_offsets    = map $_->contour, @offsets;
+            my @holes_offsets       = map $_->holes, @offsets;
+            @offsets = (@contours_offsets, @holes_offsets);     # turn @offsets from ExPolygons to Polygons
             
-            # where the above check collapses the expolygon, then there's no room for an inner loop
+            # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
             {
                 my $diff = diff_ex(
-                    [ offset([ map @$_, @last_offsets ], -0.5*$spacing) ],
+                    [ offset(\@last, -0.5*$spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
                     # won't shrink the clip polygon to be smaller than intended.
-                    [ offset([ map @$_, @new_offsets ], +0.5*$spacing + 2) ],
+                    [ offset(\@offsets, +0.5*$spacing + 2) ],
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
             
-            last if !@new_offsets || $loop == $loop_number;
-            @last_offsets = @new_offsets;
-            
-            # sort loops before storing them
-            @last_offsets = @{chained_path_items([
-                map [ $_->contour->[0], $_ ], @last_offsets,
-            ])};
-            
-            push @{ $perimeters[-1] }, [@last_offsets];
+            last if !@offsets || $i == $loop_number;
+            push @contours, @contours_offsets;
+            push @holes,    @holes_offsets;
+            @last = @offsets;
         }
         
         # create one more offset to be used as boundary for fill
@@ -259,7 +242,7 @@ sub make_perimeters {
             push @{ $self->fill_surfaces },
                 map $_->simplify(&Slic3r::SCALED_RESOLUTION),
                     offset2_ex(
-                        [ map @$_, @last_offsets ],
+                        \@last,
                         -($perimeter_spacing/2 + $infill_spacing),
                         +$infill_spacing,
                     );
@@ -344,99 +327,43 @@ sub make_perimeters {
         }
     }
     
-    # process one island (original surface) at time
-    # islands are already sorted with a nearest-neighbor search
-    foreach my $island (@perimeters) {
-        # do holes starting from innermost one
-        my @holes = ();
-        my %is_external = ();
-        
-        # each item of @$island contains the expolygons having the same depth;
-        # for each depth we build an arrayref containing all the holes
-        my @hole_depths = map [ map $_->holes, @$_ ], @$island;
-        
-        # organize the outermost hole loops using a nearest-neighbor search
-        @{$hole_depths[0]} = @{chained_path_items([
-            map [ $_->[0], $_ ], @{$hole_depths[0]},
-        ])};
-        
-        # loop while we have spare holes
-        CYCLE: while (map @$_, @hole_depths) {
-            # remove first depth container if it contains no holes anymore
-            shift @hole_depths while !@{$hole_depths[0]};
-            
-            # take first available hole
-            push @holes, shift @{$hole_depths[0]};
-            $is_external{$#holes} = 1;
-            
-            my $current_depth = 0;
-            while (1) {
-                $current_depth++;
-                
-                # look for the hole containing this one if any
-                next CYCLE if !$hole_depths[$current_depth];
-                my $parent_hole;
-                for (@{$hole_depths[$current_depth]}) {
-                    if ($_->encloses_point($holes[-1]->[0])) {
-                        $parent_hole = $_;
-                        last;
-                    }
-                }
-                next CYCLE if !$parent_hole;
-                
-                # look for other holes contained in such parent
-                for (@{$hole_depths[$current_depth-1]}) {
-                    if ($parent_hole->encloses_point($_->[0])) {
-                        # we have a sibling, so let's move onto next iteration
-                        next CYCLE;
-                    }
-                }
-                
-                push @holes, $parent_hole;
-                @{$hole_depths[$current_depth]} = grep $_ ne $parent_hole, @{$hole_depths[$current_depth]};
-            }
-        }
-        
-        # first do holes
-        $self->_add_perimeter($holes[$_], $is_external{$_} ? EXTR_ROLE_EXTERNAL_PERIMETER : undef)
-            for reverse 0 .. $#holes;
-        
-        # then do contours according to the user settings
-        my @contour_order = 0 .. $#$island;
-        @contour_order = reverse @contour_order if !$Slic3r::Config->external_perimeters_first;
-        for my $depth (@contour_order) {
-            my $role = $depth == $#$island ? EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
-                : $depth == 0 ? EXTR_ROLE_EXTERNAL_PERIMETER
-                : EXTR_ROLE_PERIMETER;
-            $self->_add_perimeter($_, $role) for map $_->contour, @{$island->[$depth]};
-        }
-    }
+    # TODO: can these be removed?
+    @contours   = grep $_->is_printable($self->perimeter_flow->scaled_width), @contours;
+    @holes      = grep $_->is_printable($self->perimeter_flow->scaled_width), @holes;
     
-    # if brim will be printed, reverse the order of perimeters so that
-    # we continue inwards after having finished the brim
-    if ($self->layer->id == 0 && $Slic3r::Config->brim_width > 0) {
-        @{$self->perimeters} = reverse @{$self->perimeters};
-    }
+    # find nesting hierarchies separately for contours and holes
+    my $contours_pt = union_pt(\@contours, PFT_EVENODD);
+    my $holes_pt    = union_pt(\@holes, PFT_EVENODD);
     
-    # add thin walls as perimeters
-    push @{ $self->perimeters }, Slic3r::ExtrusionPath::Collection->new(paths => [
-        map {
-            Slic3r::ExtrusionPath->pack(
-                polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_),
-                role            => EXTR_ROLE_EXTERNAL_PERIMETER,
-                flow_spacing    => $self->perimeter_flow->spacing,
-            );
-        } @{ $self->thin_walls }
-    ])->chained_path;
+    # find external perimeters
+    my $other_contours_pt = [  ];
+    
+    # external contours are root items of $contours_pt
+    # internal contours are the ones next to external
+    my @external_contours   = map $self->_perimeter($_, EXTR_ROLE_EXTERNAL_PERIMETER), traverse_pt($contours_pt, 0, 0);
+    my @internal_contours   = map $self->_perimeter($_, EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER), traverse_pt($contours_pt, 1, 1);
+    my @other_contours      = map $self->_perimeter($_), traverse_pt($contours_pt, 2);
+    my @external_holes      = map $self->_perimeter($_, EXTR_ROLE_EXTERNAL_PERIMETER), traverse_pt($holes_pt, 0, 0);
+    my @other_holes         = map $self->_perimeter($_), traverse_pt($holes_pt, 1);
+    
+    my @loops = (
+        @other_holes,
+        @external_holes,
+        @other_contours,
+        @internal_contours,
+        @external_contours,
+    );
+    @loops = reverse @loops if $Slic3r::Config->external_perimeters_first;
+    
+    push @{ $self->perimeters }, @loops;
 }
 
-sub _add_perimeter {
+sub _perimeter {
     my $self = shift;
     my ($polygon, $role) = @_;
     
-    return unless $polygon->is_printable($self->perimeter_flow->scaled_width);
-    push @{ $self->perimeters }, Slic3r::ExtrusionLoop->pack(
-        polygon         => $polygon,
+    return Slic3r::ExtrusionLoop->pack(
+        polygon         => Slic3r::Polygon->new($polygon),
         role            => ($role // EXTR_ROLE_PERIMETER),
         flow_spacing    => $self->perimeter_flow->spacing,
     );

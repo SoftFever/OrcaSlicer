@@ -146,7 +146,7 @@ sub simplify_polygons {
 }
 
 sub traverse_pt {
-    my ($polynodes) = @_;
+    my ($polynodes, $min_depth, $max_depth) = @_;
     
     # use a nearest neighbor search to order these children
     # TODO: supply second argument to chained_path_items() too?
@@ -156,8 +156,14 @@ sub traverse_pt {
     
     my @polygons = ();
     foreach my $polynode (@$polynodes) {
-        push @polygons, traverse_pt($polynode->{children});
+        # traverse the next depth
+        push @polygons, traverse_pt(
+            $polynode->{children},
+            (defined $min_depth ? $min_depth-1 : undef),
+            (defined $max_depth ? $max_depth-1 : undef),
+        ) if !defined $max_depth || $max_depth >= 1;
         push @polygons, $polynode->{outer} // [ reverse @{$polynode->{hole}} ]
+            if !defined $min_depth || $min_depth <= 0;
     }
     return @polygons;
 }
