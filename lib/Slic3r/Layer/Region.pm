@@ -258,12 +258,11 @@ sub make_perimeters {
             # non-collapsing regions
             push @{ $self->fill_surfaces },
                 map $_->simplify(&Slic3r::SCALED_RESOLUTION),
-                @{union_ex([
-                    Slic3r::Geometry::Clipper::offset(
-                        [Slic3r::Geometry::Clipper::offset([ map @$_, @last_offsets ], -($perimeter_spacing/2 + $infill_spacing))], 
+                    offset2_ex(
+                        [ map @$_, @last_offsets ],
+                        -($perimeter_spacing/2 + $infill_spacing),
                         +$infill_spacing,
-                    ),
-                ])};
+                    );
         }
         
         # fill gaps
