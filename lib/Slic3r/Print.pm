@@ -70,6 +70,7 @@ sub _trigger_config {
         $self->config->set('fill_density', 0);
         $self->config->set('top_solid_layers', 0);
         $self->config->set('support_material', 0);
+        $self->config->set('retract_layer_change', [0]);  # TODO: only apply this to the spiral layers
     }
 }
 
@@ -196,6 +197,9 @@ sub validate {
     if ($Slic3r::Config->spiral_vase) {
         if ((map @{$_->copies}, @{$self->objects}) > 1) {
             die "The Spiral Vase option can only be used when printing a single object.\n";
+        }
+        if (@{$self->regions} > 1) {
+            die "The Spiral Vase option can only be used when printing single material objects.\n";
         }
     }
 }
