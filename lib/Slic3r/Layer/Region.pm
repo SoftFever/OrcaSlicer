@@ -353,7 +353,9 @@ sub make_perimeters {
             push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
 
             my $role = EXTR_ROLE_PERIMETER;
-            if ($depth == 0) {
+            if ($is_contour ? $depth == 0 : !@{ $polynode->{children} }) {
+                # external perimeters are root level in case of contours
+                # and items with no children in case of holes
                 $role = EXTR_ROLE_EXTERNAL_PERIMETER;
             } elsif ($depth == 1 && $is_contour) {
                 $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
