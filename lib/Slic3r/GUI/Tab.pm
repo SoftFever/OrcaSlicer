@@ -412,7 +412,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(avoid_crossing_perimeters external_perimeters_first)],
+            options => [qw(avoid_crossing_perimeters external_perimeters_first spiral_vase)],
         },
     ]);
     

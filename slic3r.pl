@@ -251,6 +251,8 @@ $j
     --randomize-start   Randomize starting point across layers (default: yes)
     --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
     --external-perimeters-first Reverse perimeter order. (default: no)
+    --spiral-vase       Experimental option to raise Z gradually when printing single-walled vases
+                        (default: no)
     --only-retract-when-crossing-perimeters
                         Disable retraction when travelling between infill paths inside the same island.
                         (default: no)

@@ -63,6 +63,14 @@ sub _trigger_config {
     # G-code flavors
     $self->config->set('extrusion_axis', 'A') if $self->config->gcode_flavor eq 'mach3';
     $self->config->set('extrusion_axis', '')  if $self->config->gcode_flavor eq 'no-extrusion';
+    
+    # enforce some settings when spiral_vase is set
+    if ($self->config->spiral_vase) {
+        $self->config->set('perimeters', 1);
+        $self->config->set('fill_density', 0);
+        $self->config->set('top_solid_layers', 0);
+        $self->config->set('support_material', 0);
+    }
 }
 
 sub _build_has_support_material {
@@ -182,6 +190,12 @@ sub validate {
             if (grep { +($_->size)[Z] > $scaled_clearance } map @{$self->objects->[$_->[0]]->meshes}, @obj_copies) {
                 die "Some objects are too tall and cannot be printed without extruder collisions.\n";
             }
+        }
+    }
+    
+    if ($Slic3r::Config->spiral_vase) {
+        if ((map @{$_->copies}, @{$self->objects}) > 1) {
+            die "The Spiral Vase option can only be used when printing a single object.\n";
         }
     }
 }
@@ -794,6 +808,11 @@ sub write_gcode {
         ));
     }
     
+    # prepare the SpiralVase processor if it's possible
+    my $spiralvase = $Slic3r::Config->spiral_vase
+        ? Slic3r::GCode::SpiralVase->new
+        : undef;
+    
     # prepare the logic to print one layer
     my $skirt_done = 0;  # count of skirt layers done
     my $brim_done = 0;
@@ -956,6 +975,14 @@ sub write_gcode {
                 }
             }
         }
+        
+        # apply spiral vase post-processing if this layer contains suitable geometry
+        $gcode = $spiralvase->process_layer($gcode, $layer)
+            if defined $spiralvase
+            && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
+            && ($layer->id >= $Slic3r::Config->skirt_height)
+            && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+        
         return $gcode;
     };
     

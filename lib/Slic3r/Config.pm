@@ -586,6 +586,13 @@ our $Options = {
         type    => 'bool',
         default => 0,
     },
+    'spiral_vase' => {
+        label   => 'Spiral vase',
+        tooltip => 'This experimental feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. By enabling this option other settings will be overridden to enforce a single perimeter, no infill, no top solid layers, no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won\'t work when printing more than an object.',
+        cli     => 'spiral-vase!',
+        type    => 'bool',
+        default => 0,
+    },
     'only_retract_when_crossing_perimeters' => {
         label   => 'Only retract when crossing perimeters',
         tooltip => 'Disables retraction when travelling between infill paths inside the same island.',
