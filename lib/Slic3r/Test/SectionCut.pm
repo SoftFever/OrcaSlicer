@@ -101,22 +101,22 @@ sub _plot {
                         if ($path->is_bridge) {
                             foreach my $line (@intersections) {
                                 my $radius = $path->flow_spacing / 2;
-                                my $width = abs($line->[B][X] - $line->[A][X]);
+                                my $width = unscale abs($line->[B][X] - $line->[A][X]);
                                 if ((10 * Slic3r::Geometry::scale $radius) < $width) {
                                     # we're cutting the path in the longitudinal direction, so we've got a rectangle
                                     push @rectangles, {
                                         'x'         => $self->scale * unscale $line->[A][X],
                                         'y'         => $self->scale * $self->_y(unscale($layer->print_z)),
-                                        'width'     => $self->scale * unscale(abs($line->[B][X] - $line->[A][X])),
+                                        'width'     => $self->scale * $width,
                                         'height'    => $self->scale * $radius * 2,
                                         'rx'        => $self->scale * $radius * 0.35,
                                         'ry'        => $self->scale * $radius * 0.35,
                                     };
                                 } else {
                                     push @circles, {
-                                        'cx'        => $self->scale * unscale($line->[A][X] + $radius),
-                                        'cy'        => $self->scale * $self->_y(unscale($layer->print_z - $radius)),
-                                        'r'         => $self->scale * unscale $radius,
+                                        'cx'        => $self->scale * unscale($line->[A][X]) + $radius,
+                                        'cy'        => $self->scale * $self->_y(unscale($layer->print_z) - $radius),
+                                        'r'         => $self->scale * $radius,
                                     };
                                 }
                             }
