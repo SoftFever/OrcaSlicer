@@ -3,6 +3,7 @@ use Moo;
 
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 use Slic3r::Geometry::Clipper qw(union_ex);
+use Storable;
 
 # public
 has 'vertices'      => (is => 'ro', required => 1);         # id => [$x,$y,$z]
@@ -92,11 +93,7 @@ sub merge {
 }
 
 sub clone {
-    my $self = shift;
-    return (ref $self)->new(
-        vertices => [ map [ @$_ ], @{$self->vertices} ],
-        facets   => [ map [ @$_ ], @{$self->facets} ],
-    );
+  Storable::dclone($_[0])
 }
 
 sub _facet_edges {
