@@ -171,33 +171,9 @@ sub make_perimeters {
     my @holes       = ();    # array of Polygons with cw orientation
     my @gaps        = ();    # array of ExPolygons
     
-    # for each island:
+    # we need to process each island separately because we might have different
+    # extra perimeters for each one
     foreach my $surface (@{$self->slices}) {
-        
-        # experimental hole compensation (see ArcCompensation in the RepRap wiki)
-        if (0) {
-            my @last_offsets = (); # dumb instantiation
-            foreach my $hole ($last_offsets[0]->holes) {
-                my $circumference = abs($hole->length);
-                next unless $circumference <= &Slic3r::SMALL_PERIMETER_LENGTH;
-                # this compensation only works for circular holes, while it would 
-                # overcompensate for hexagons and other shapes having straight edges.
-                # so we require a minimum number of vertices.
-                next unless $circumference / @$hole >= 3 * $self->perimeter_flow->scaled_width;
-                
-                # revert the compensation done in make_surfaces() and get the actual radius
-                # of the hole
-                my $radius = ($circumference / PI / 2) - $self->perimeter_flow->scaled_spacing/2;
-                my $new_radius = ($self->perimeter_flow->scaled_width + sqrt(($self->perimeter_flow->scaled_width ** 2) + (4*($radius**2)))) / 2;
-                # holes are always turned to contours, so reverse point order before and after
-                $hole->reverse;
-                my @offsetted = $hole->offset(+ ($new_radius - $radius));
-                # skip arc compensation when hole is not round (thus leads to multiple offsets)
-                @$hole = map Slic3r::Point->new($_), @{ $offsetted[0] } if @offsetted == 1;
-                $hole->reverse;
-            }
-        }
-        
         # detect how many perimeters must be generated for this island
         my $loop_number = $Slic3r::Config->perimeters + ($surface->extra_perimeters || 0);
         
@@ -235,18 +211,16 @@ sub make_perimeters {
         }
         
         # create one more offset to be used as boundary for fill
-        {
-            # we offset by half the perimeter spacing (to get to the actual infill boundary)
-            # and then we offset back and forth by the infill spacing to only consider the
-            # non-collapsing regions
-            push @{ $self->fill_surfaces },
-                map $_->simplify(&Slic3r::SCALED_RESOLUTION),
-                    offset2_ex(
-                        \@last,
-                        -($perimeter_spacing/2 + $infill_spacing),
-                        +$infill_spacing,
-                    );
-        }
+        # we offset by half the perimeter spacing (to get to the actual infill boundary)
+        # and then we offset back and forth by the infill spacing to only consider the
+        # non-collapsing regions
+        push @{ $self->fill_surfaces },
+            map $_->simplify(&Slic3r::SCALED_RESOLUTION),
+                offset2_ex(
+                    \@last,
+                    -($perimeter_spacing/2 + $infill_spacing),
+                    +$infill_spacing,
+                );
     }
     
     $self->_fill_gaps(\@gaps);
@@ -304,7 +278,9 @@ sub make_perimeters {
     # TODO: add test for perimeter order
     @loops = reverse @loops
         if $Slic3r::Config->external_perimeters_first
-            || $self->layer->id == 0 && $Slic3r::Config->brim_width > 0;
+            || ($self->layer->id == 0 && $Slic3r::Config->brim_width > 0);
+    
+    # append perimeters
     push @{ $self->perimeters }, @loops;
     
     # add thin walls as perimeters
