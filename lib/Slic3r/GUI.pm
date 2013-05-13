@@ -128,8 +128,9 @@ sub OnInit {
     }
     
     # Plater menu
-    my $platerMenu = Wx::Menu->new;
-    {
+    my $platerMenu;
+    unless ($no_plater) {
+        $platerMenu = Wx::Menu->new;
         $platerMenu->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
         $platerMenu->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
         $platerMenu->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
@@ -141,14 +142,15 @@ sub OnInit {
     # Window menu
     my $windowMenu = Wx::Menu->new;
     {
-        $windowMenu->Append(MI_TAB_PLATER, "Select &Plater Tab\tCtrl+1", 'Show the plater');
+        my $tab_count = $no_plater ? 3 : 4;
+        $windowMenu->Append(MI_TAB_PLATER, "Select &Plater Tab\tCtrl+1", 'Show the plater') unless $no_plater;
         $windowMenu->Append(MI_TAB_PRINT, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings');
         $windowMenu->Append(MI_TAB_FILAMENT, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings');
         $windowMenu->Append(MI_TAB_PRINTER, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings');
-        EVT_MENU($frame, MI_TAB_PLATER, sub { $self->{skeinpanel}->select_tab(0) });
-        EVT_MENU($frame, MI_TAB_PRINT, sub { $self->{skeinpanel}->select_tab(1) });
-        EVT_MENU($frame, MI_TAB_FILAMENT, sub { $self->{skeinpanel}->select_tab(2) });
-        EVT_MENU($frame, MI_TAB_PRINTER, sub { $self->{skeinpanel}->select_tab(3) });
+        EVT_MENU($frame, MI_TAB_PLATER, sub { $self->{skeinpanel}->select_tab(0) }) unless $no_plater;
+        EVT_MENU($frame, MI_TAB_PRINT, sub { $self->{skeinpanel}->select_tab($tab_count-3) });
+        EVT_MENU($frame, MI_TAB_FILAMENT, sub { $self->{skeinpanel}->select_tab($tab_count-2) });
+        EVT_MENU($frame, MI_TAB_PRINTER, sub { $self->{skeinpanel}->select_tab($tab_count-1) });
     }
     
     # Help menu
@@ -175,7 +177,7 @@ sub OnInit {
     {
         my $menubar = Wx::MenuBar->new;
         $menubar->Append($fileMenu, "&File");
-        $menubar->Append($platerMenu, "&Plater");
+        $menubar->Append($platerMenu, "&Plater") if $platerMenu;
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($helpMenu, "&Help");
         $frame->SetMenuBar($menubar);
