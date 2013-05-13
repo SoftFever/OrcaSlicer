@@ -2,6 +2,7 @@ package Slic3r::ExtrusionPath::Collection;
 use Moo;
 
 has 'paths' => (is => 'rw', default => sub { [] });
+has 'no_sort' => (is => 'rw');
 
 # no-op
 sub unpack { $_[0] }
@@ -14,6 +15,8 @@ sub first_point {
 sub chained_path {
     my $self = shift;
     my ($start_near) = @_;
+    
+    return @{$self->paths} if $self->no_sort;
     
     # make sure we pass the same path objects to the Collection constructor
     # and the ->chained_path() method because the latter will reverse the

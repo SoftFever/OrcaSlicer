@@ -176,6 +176,7 @@ sub make_fill {
         # save into layer
         next unless @paths;
         push @fills, Slic3r::ExtrusionPath::Collection->new(
+            no_sort => $params->{no_sort},
             paths => [
                 map Slic3r::ExtrusionPath->pack(
                     polyline => Slic3r::Polyline->new(@$_),
