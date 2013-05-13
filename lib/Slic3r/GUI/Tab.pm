@@ -564,8 +564,9 @@ sub build {
     $self->add_options_page('Cooling', 'hourglass.png', optgroups => [
         {
             title => 'Enable',
-            options => [qw(cooling)],
+            options => [qw(fan_always_on cooling)],
             lines => [
+                Slic3r::GUI::OptionsGroup->single_option_line('fan_always_on'),
                 Slic3r::GUI::OptionsGroup->single_option_line('cooling'),
                 {
                     label => '',
@@ -575,7 +576,7 @@ sub build {
         },
         {
             title => 'Fan settings',
-            options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers fan_always_on)],
+            options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers)],
             lines => [
                 {
                     label   => 'Fan speed',
@@ -583,7 +584,6 @@ sub build {
                 },
                 Slic3r::GUI::OptionsGroup->single_option_line('bridge_fan_speed'),
                 Slic3r::GUI::OptionsGroup->single_option_line('disable_fan_first_layers'),
-                Slic3r::GUI::OptionsGroup->single_option_line('fan_always_on'),
             ],
         },
         {
