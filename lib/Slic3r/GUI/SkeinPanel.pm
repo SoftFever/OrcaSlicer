@@ -331,7 +331,7 @@ sub config {
     
     # retrieve filament presets and build a single config object for them
     my $filament_config;
-    if ($self->{plater}->filament_presets == 1 || $self->{mode} eq 'simple') {
+    if (!$self->{plater} || $self->{plater}->filament_presets == 1 || $self->{mode} eq 'simple') {
         $filament_config = $self->{options_tabs}{filament}->config;
     } else {
         # TODO: handle dirty presets.
