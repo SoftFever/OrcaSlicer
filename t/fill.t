@@ -111,7 +111,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     $config->set('solid_infill_below_area', 20000000);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
         my ($self, $cmd, $args, $info) = @_;
         
         fail "solid_infill_below_area should be ignored when fill_density is 0"

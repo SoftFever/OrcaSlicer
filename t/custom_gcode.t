@@ -20,7 +20,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('2x20x10', config => $conf);
         
         my $last_move_was_z_change = 0;
-        Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($last_move_was_z_change && $cmd ne $config->layer_gcode) {

@@ -21,7 +21,7 @@ my $test = sub {
     
     my @z = ();
     my @increments = ();
-    Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($info->{dist_Z}) {

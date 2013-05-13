@@ -25,7 +25,7 @@ my $test = sub {
     my $lifted = 0;
     my $changed_tool = 0;
     my $wait_for_toolchange = 0;
-    Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($cmd =~ /^T(\d+)/) {

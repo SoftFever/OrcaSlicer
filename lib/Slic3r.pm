@@ -47,6 +47,7 @@ use Slic3r::Format::STL;
 use Slic3r::GCode;
 use Slic3r::GCode::CoolingBuffer;
 use Slic3r::GCode::MotionPlanner;
+use Slic3r::GCode::Reader;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Layer;
 use Slic3r::Layer::Region;

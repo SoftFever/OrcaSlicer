@@ -23,7 +23,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
         
         my %layers_with_shells = ();  # Z => $count
-        Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($self->Z > 0) {

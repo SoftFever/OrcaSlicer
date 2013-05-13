@@ -28,7 +28,7 @@ my $test = sub {
     my %dir_time        = (X => 0, Y => 0);
     my %dir_sleep_time  = (X => 0, Y => 0);
     my $last_cmd_pause  = 0;
-    Slic3r::Test::GCodeReader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($cmd !~ /^G[01]$/) {
