@@ -247,85 +247,9 @@ sub make_perimeters {
                         +$infill_spacing,
                     );
         }
-        
-        # fill gaps
-        if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @gaps) {
-            my $filler = $self->layer->object->print->fill_maker->filler('rectilinear');
-            $filler->layer_id($self->layer->id);
-            
-            # we should probably use this code to handle thin walls and remove that logic from
-            # make_surfaces(), but we need to enable dynamic extrusion width before as we can't
-            # use zigzag for thin walls.
-            # in the mean time we subtract thin walls from the detected gaps so that we don't
-            # reprocess them, causing overlapping thin walls and zigzag.
-            @gaps = @{diff_ex(
-                [ map @$_, @gaps ],
-                [ map $_->grow($self->perimeter_flow->scaled_width), @{$self->{thin_walls}} ],
-                1,
-            )};
-            
-            my $w = $self->perimeter_flow->width;
-            my @widths = (1.5 * $w, $w, 0.4 * $w);  # worth trying 0.2 too?
-            foreach my $width (@widths) {
-                my $flow = $self->perimeter_flow->clone(width => $width);
-                
-                # extract the gaps having this width
-                my @this_width = map $_->offset_ex(+0.5*$flow->scaled_width),
-                    map $_->noncollapsing_offset_ex(-0.5*$flow->scaled_width),
-                    @gaps;
-                
-                if (0) {  # remember to re-enable t/dynamic.t
-                    # fill gaps using dynamic extrusion width, by treating them like thin polygons,
-                    # thus generating the skeleton and using it to fill them
-                    my %path_args = (
-                        role            => EXTR_ROLE_SOLIDFILL,
-                        flow_spacing    => $flow->spacing,
-                    );
-                    push @{ $self->thin_fills }, map {
-                        $_->isa('Slic3r::Polygon')
-                            ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point)  # we should keep these as loops
-                            : Slic3r::ExtrusionPath->pack(polyline => $_, %path_args),
-                    } map $_->medial_axis($flow->scaled_width), @this_width;
-                
-                    Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
-                        if @{ $self->thin_fills };
-                    
-                } else {
-                    # fill gaps using zigzag infill
-                    
-                    # since this is infill, we have to offset by half-extrusion width inwards
-                    my @infill = map $_->offset_ex(-0.5*$flow->scaled_width), @this_width;
-                    
-                    foreach my $expolygon (@infill) {
-                        my @paths = $filler->fill_surface(
-                            Slic3r::Surface->new(expolygon => $expolygon),
-                            density         => 1,
-                            flow_spacing    => $flow->spacing,
-                        );
-                        my $params = shift @paths;
-                        
-                        push @{ $self->thin_fills },
-                            map {
-                                $_->polyline->simplify($flow->scaled_width / 3);
-                                $_->pack;
-                            }
-                            map Slic3r::ExtrusionPath->new(
-                                polyline        => Slic3r::Polyline->new(@$_),
-                                role            => EXTR_ROLE_GAPFILL,
-                                height          => $self->height,
-                                flow_spacing    => $params->{flow_spacing},
-                            ), @paths;
-                    }
-                }
-                
-                # check what's left
-                @gaps = @{diff_ex(
-                    [ map @$_, @gaps ],
-                    [ map @$_, @this_width ],
-                )};
-            }
-        }
     }
+    
+    $self->_fill_gaps(\@gaps);
     
     # TODO: can these be removed?
     @contours   = grep $_->is_printable($self->perimeter_flow->scaled_width), @contours;
@@ -393,6 +317,88 @@ sub make_perimeters {
             );
         } @{ $self->thin_walls }
     ])->chained_path;
+}
+
+sub _fill_gaps {
+    my $self = shift;
+    my ($gaps) = @_;
+    
+    return unless $Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @$gaps;
+    
+    my $filler = $self->layer->object->print->fill_maker->filler('rectilinear');
+    $filler->layer_id($self->layer->id);
+    
+    # we should probably use this code to handle thin walls and remove that logic from
+    # make_surfaces(), but we need to enable dynamic extrusion width before as we can't
+    # use zigzag for thin walls.
+    # in the mean time we subtract thin walls from the detected gaps so that we don't
+    # reprocess them, causing overlapping thin walls and zigzag.
+    @$gaps = @{diff_ex(
+        [ map @$_, @$gaps ],
+        [ map $_->grow($self->perimeter_flow->scaled_width), @{$self->{thin_walls}} ],
+        1,
+    )};
+    
+    my $w = $self->perimeter_flow->width;
+    my @widths = (1.5 * $w, $w, 0.4 * $w);  # worth trying 0.2 too?
+    foreach my $width (@widths) {
+        my $flow = $self->perimeter_flow->clone(width => $width);
+        
+        # extract the gaps having this width
+        my @this_width = map $_->offset_ex(+0.5*$flow->scaled_width),
+            map $_->noncollapsing_offset_ex(-0.5*$flow->scaled_width),
+            @$gaps;
+        
+        if (0) {  # remember to re-enable t/dynamic.t
+            # fill gaps using dynamic extrusion width, by treating them like thin polygons,
+            # thus generating the skeleton and using it to fill them
+            my %path_args = (
+                role            => EXTR_ROLE_SOLIDFILL,
+                flow_spacing    => $flow->spacing,
+            );
+            push @{ $self->thin_fills }, map {
+                $_->isa('Slic3r::Polygon')
+                    ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point)  # we should keep these as loops
+                    : Slic3r::ExtrusionPath->pack(polyline => $_, %path_args),
+            } map $_->medial_axis($flow->scaled_width), @this_width;
+        
+            Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
+                if @{ $self->thin_fills };
+            
+        } else {
+            # fill gaps using zigzag infill
+            
+            # since this is infill, we have to offset by half-extrusion width inwards
+            my @infill = map $_->offset_ex(-0.5*$flow->scaled_width), @this_width;
+            
+            foreach my $expolygon (@infill) {
+                my @paths = $filler->fill_surface(
+                    Slic3r::Surface->new(expolygon => $expolygon),
+                    density         => 1,
+                    flow_spacing    => $flow->spacing,
+                );
+                my $params = shift @paths;
+                
+                push @{ $self->thin_fills },
+                    map {
+                        $_->polyline->simplify($flow->scaled_width / 3);
+                        $_->pack;
+                    }
+                    map Slic3r::ExtrusionPath->new(
+                        polyline        => Slic3r::Polyline->new(@$_),
+                        role            => EXTR_ROLE_GAPFILL,
+                        height          => $self->height,
+                        flow_spacing    => $params->{flow_spacing},
+                    ), @paths;
+            }
+        }
+        
+        # check what's left
+        @$gaps = @{diff_ex(
+            [ map @$_, @$gaps ],
+            [ map @$_, @this_width ],
+        )};
+    }
 }
 
 sub prepare_fill_surfaces {
