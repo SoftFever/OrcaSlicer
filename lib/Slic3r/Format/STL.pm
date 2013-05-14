@@ -55,8 +55,8 @@ sub _read_ascii {
     seek $fh, 0, 0;
     while (my $_ = <$fh>) {
         if (!$facet) {
-            /^\s*facet\s+normal\s+$point_re/ or next;
-            $facet = [];  # ignore normal: [$1, $2, $3]
+            /^\s*facet\s+normal\s+/ or next;
+            $facet = [];  # ignore normal
         } else {
             if (/^\s*endfacet/) {
                 push @$facets, $facet;
