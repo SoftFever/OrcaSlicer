@@ -114,7 +114,7 @@ sub _plot {
                                     };
                                 } else {
                                     push @circles, {
-                                        'cx'        => $self->scale * unscale($line->[A][X]) + $radius,
+                                        'cx'        => $self->scale * (unscale($line->[A][X]) + $radius),
                                         'cy'        => $self->scale * $self->_y(unscale($layer->print_z) - $radius),
                                         'r'         => $self->scale * $radius,
                                     };
