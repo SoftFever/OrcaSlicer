@@ -692,6 +692,12 @@ sub make_model {
     my $model = Slic3r::Model->new;
     foreach my $plater_object (@{$self->{objects}}) {
         my $model_object = $plater_object->get_model_object;
+        
+        # if we need to alter the mesh, clone it first
+        if ($plater_object->scale != 1) {
+            $model_object = $model_object->clone;
+        }
+        
         my $new_model_object = $model->add_object(
             vertices    => $model_object->vertices,
             input_file  => $plater_object->input_file,
@@ -1091,7 +1097,7 @@ sub free_model_object {
     my $self = shift;
     
     # only delete mesh from memory if we can retrieve it from the original file
-    return unless $self->input_file && $self->input_file_object_id;
+    return unless $self->input_file && defined $self->input_file_object_id;
     $self->model_object(undef);
 }
 

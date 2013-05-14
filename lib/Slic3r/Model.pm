@@ -75,6 +75,7 @@ use Moo;
 
 use List::Util qw(first);
 use Slic3r::Geometry qw(X Y Z);
+use Storable qw(dclone);
 
 has 'input_file' => (is => 'rw');
 has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
@@ -144,6 +145,8 @@ sub check_manifoldness {
     my $self = shift;
     return (first { !$_->mesh->check_manifoldness } @{$self->volumes}) ? 0 : 1;
 }
+
+sub clone { dclone($_[0]) }
 
 package Slic3r::Model::Volume;
 use Moo;

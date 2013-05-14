@@ -19,6 +19,7 @@ my $build = Module::Build->new(
         'Moo'                       => '0.091009',
         'perl'                      => '5.10.0',
         'Scalar::Util'              => '0',
+        'Storable'                  => '0',
         'Time::HiRes'               => '0',
     },
     build_requires => {
