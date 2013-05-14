@@ -5,7 +5,7 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI X1 X2 Y1 Y2 A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2_ex PFT_EVENODD union_pt traverse_pt);
+    offset offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -233,6 +233,11 @@ sub make_perimeters {
     my $contours_pt = union_pt(\@contours, PFT_EVENODD);
     my $holes_pt    = union_pt(\@holes, PFT_EVENODD);
     
+    # get lower layer slices for overhang check
+    my @lower_slices = $self->id == 0
+        ? ()
+        : map @$_, @{$self->layer->object->layers->[$self->id-1]->slices};
+    
     # prepare a coderef for traversing the PolyTree object
     # external contours are root items of $contours_pt
     # internal contours are the ones next to external
@@ -249,7 +254,9 @@ sub make_perimeters {
         my @loops = ();
         foreach my $polynode (@$polynodes) {
             push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
-
+            
+            my $polygon = Slic3r::Polygon->new($polynode->{outer} // [ reverse @{$polynode->{hole}} ]);
+            
             my $role = EXTR_ROLE_PERIMETER;
             if ($is_contour ? $depth == 0 : !@{ $polynode->{children} }) {
                 # external perimeters are root level in case of contours
@@ -258,8 +265,17 @@ sub make_perimeters {
             } elsif ($depth == 1 && $is_contour) {
                 $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
+            
+            if ($self->id > 0) {
+                my $is_overhang = $is_contour
+                    ? @{diff([$polygon], \@lower_slices)}
+                    : !@{intersection([$polygon], \@lower_slices)};
+                
+                $role = EXTR_ROLE_OVERHANG_PERIMETER if $is_overhang;
+            }
+            
             push @loops, Slic3r::ExtrusionLoop->pack(
-                polygon         => Slic3r::Polygon->new($polynode->{outer} // [ reverse @{$polynode->{hole}} ]),
+                polygon         => $polygon,
                 role            => $role,
                 flow_spacing    => $self->perimeter_flow->spacing,
             );

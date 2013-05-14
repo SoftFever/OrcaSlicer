@@ -6,7 +6,8 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(safety_offset safety_offset_ex offset offset_ex collapse_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
-    JT_SQUARE is_counter_clockwise union_pt offset2 offset2_ex traverse_pt);
+    JT_SQUARE is_counter_clockwise union_pt offset2 offset2_ex traverse_pt
+    intersection);
 
 use Math::Clipper 1.21 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockwise area);
 use Slic3r::Geometry qw(scale);
@@ -115,6 +116,18 @@ sub intersection_ex {
     return [
         map Slic3r::ExPolygon->new($_),
             @{ $clipper->ex_execute(CT_INTERSECTION, $jointype, $jointype) },
+    ];
+}
+
+sub intersection {
+    my ($subject, $clip, $jointype, $safety_offset) = @_;
+    $jointype = PFT_NONZERO unless defined $jointype;
+    $clipper->clear;
+    $clipper->add_subject_polygons($subject);
+    $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
+    return [
+        map Slic3r::Polygon->new($_),
+            @{ $clipper->execute(CT_INTERSECTION, $jointype, $jointype) },
     ];
 }
 

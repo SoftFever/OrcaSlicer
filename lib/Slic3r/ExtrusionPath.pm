@@ -4,7 +4,7 @@ use Moo;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
-    EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER
+    EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER EXTR_ROLE_OVERHANG_PERIMETER
     EXTR_ROLE_FILL EXTR_ROLE_SOLIDFILL EXTR_ROLE_TOPSOLIDFILL EXTR_ROLE_BRIDGE 
     EXTR_ROLE_INTERNALBRIDGE EXTR_ROLE_SKIRT EXTR_ROLE_SUPPORTMATERIAL EXTR_ROLE_GAPFILL);
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
@@ -24,7 +24,8 @@ has 'flow_spacing' => (is => 'rw');
 has 'role'         => (is => 'rw', required => 1);
 
 use constant EXTR_ROLE_PERIMETER                    => 0;
-use constant EXTR_ROLE_EXTERNAL_PERIMETER           => 2;
+use constant EXTR_ROLE_EXTERNAL_PERIMETER           => 1;
+use constant EXTR_ROLE_OVERHANG_PERIMETER           => 2;
 use constant EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 3;
 use constant EXTR_ROLE_FILL                         => 4;
 use constant EXTR_ROLE_SOLIDFILL                    => 5;
@@ -101,6 +102,7 @@ sub is_perimeter {
     my $self = shift;
     return $self->role == EXTR_ROLE_PERIMETER
         || $self->role == EXTR_ROLE_EXTERNAL_PERIMETER
+        || $self->role == EXTR_ROLE_OVERHANG_PERIMETER
         || $self->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
 }
 
@@ -114,7 +116,8 @@ sub is_fill {
 sub is_bridge {
     my $self = shift;
     return $self->role == EXTR_ROLE_BRIDGE
-        || $self->role == EXTR_ROLE_INTERNALBRIDGE;
+        || $self->role == EXTR_ROLE_INTERNALBRIDGE
+        || $self->role == EXTR_ROLE_OVERHANG_PERIMETER;
 }
 
 sub split_at_acute_angles {

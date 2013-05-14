@@ -49,6 +49,7 @@ has 'speeds' => (
 my %role_speeds = (
     &EXTR_ROLE_PERIMETER                    => 'perimeter',
     &EXTR_ROLE_EXTERNAL_PERIMETER           => 'external_perimeter',
+    &EXTR_ROLE_OVERHANG_PERIMETER           => 'external_perimeter',
     &EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 'perimeter',
     &EXTR_ROLE_FILL                         => 'infill',
     &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
@@ -208,13 +209,13 @@ sub extrude_path {
         $acceleration = $Slic3r::Config->perimeter_acceleration;
     } elsif ($Slic3r::Config->infill_acceleration && $path->is_fill) {
         $acceleration = $Slic3r::Config->infill_acceleration;
-    } elsif ($Slic3r::Config->infill_acceleration && ($path->role == EXTR_ROLE_BRIDGE || $path->role == EXTR_ROLE_INTERNALBRIDGE)) {
+    } elsif ($Slic3r::Config->infill_acceleration && $path->is_bridge) {
         $acceleration = $Slic3r::Config->bridge_acceleration;
     }
     $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     
     my $area;  # mm^3 of extrudate per mm of tool movement 
-    if ($path->role == EXTR_ROLE_BRIDGE || $path->role == EXTR_ROLE_INTERNALBRIDGE) {
+    if ($path->is_bridge) {
         my $s = $path->flow_spacing;
         $area = ($s**2) * PI/4;
     } else {
