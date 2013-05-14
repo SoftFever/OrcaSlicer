@@ -48,7 +48,7 @@ sub read_file {
 sub _read_ascii {
     my ($fh, $facets, $vertices) = @_;
     
-    my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)/;
+    my $point_re = qr/(([^ ]+)\s+([^ ]+)\s+([^ ]+))/;
     
     my $facet;
     my %vertices_map = ();
@@ -63,12 +63,12 @@ sub _read_ascii {
                 undef $facet;
             } else {
                 /^\s*vertex\s+$point_re/o or next;
-                my $vertex_id = join ',', $1, $2, $3;
+                my $vertex_id = $1;
                 my $vertex_idx;
                 if (exists $vertices_map{$vertex_id}) {
                     $vertex_idx = $vertices_map{$vertex_id};
                 } else {
-                    push @$vertices, [map $_ * 1, $1, $2, $3];
+                    push @$vertices, [map $_ * 1, $2, $3, $4];
                     $vertex_idx = $vertices_map{$vertex_id} = $#$vertices;
                 }
                 push @$facet, $vertex_idx;
