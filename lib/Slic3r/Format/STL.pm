@@ -33,26 +33,11 @@ sub read_file {
     }
     
     my $facets = [];
-    $mode eq 'ascii'
-        ? _read_ascii($fh, $facets)
-        : _read_binary($fh, $facets);
-    close $fh;
-    
     my $vertices = [];
-    {
-        my %vertices_map = ();    # given a vertex's coordinates, what's its index?
-        for (my $f = 0; $f <= $#$facets; $f++) {
-            for (-3..-1) {
-                my $point_id = join ',', @{$facets->[$f][$_]};
-                if (exists $vertices_map{$point_id}) {
-                    $facets->[$f][$_] = $vertices_map{$point_id};
-                } else {
-                    push @$vertices, $facets->[$f][$_];
-                    $facets->[$f][$_] = $vertices_map{$point_id} = $#$vertices;
-                }
-            }
-        }
-    }
+    $mode eq 'ascii'
+        ? _read_ascii($fh, $facets, $vertices)
+        : _read_binary($fh, $facets, $vertices);
+    close $fh;
     
     my $model = Slic3r::Model->new;
     my $object = $model->add_object(vertices => $vertices);
@@ -61,11 +46,12 @@ sub read_file {
 }
 
 sub _read_ascii {
-    my ($fh, $facets) = @_;
+    my ($fh, $facets, $vertices) = @_;
     
     my $point_re = qr/([^ ]+)\s+([^ ]+)\s+([^ ]+)/;
     
     my $facet;
+    my %vertices_map = ();
     seek $fh, 0, 0;
     while (my $_ = <$fh>) {
         if (!$facet) {
@@ -77,7 +63,15 @@ sub _read_ascii {
                 undef $facet;
             } else {
                 /^\s*vertex\s+$point_re/o or next;
-                push @$facet, [map $_ * 1, $1, $2, $3];
+                my $vertex_id = join ',', $1, $2, $3;
+                my $vertex_idx;
+                if (exists $vertices_map{$vertex_id}) {
+                    $vertex_idx = $vertices_map{$vertex_id};
+                } else {
+                    push @$vertices, [map $_ * 1, $1, $2, $3];
+                    $vertex_idx = $vertices_map{$vertex_id} = $#$vertices;
+                }
+                push @$facet, $vertex_idx;
             }
         }
     }
@@ -87,15 +81,25 @@ sub _read_ascii {
 }
 
 sub _read_binary {
-    my ($fh, $facets) = @_;
+    my ($fh, $facets, $vertices) = @_;
     
     die "bigfloat" unless length(pack "f", 1) == 4;
     
+    my %vertices_map = ();
     binmode $fh;
     seek $fh, 80 + 4, 0;
     while (read $fh, my $_, 4*4*3+2) {
-        my @v = unpack '(f<3)4';
-        push @$facets, [ [@v[3..5]], [@v[6..8]], [@v[9..11]] ];  # ignore normal: [@v[0..2]]
+        push @$facets, my $facet = [];
+        for (unpack 'x[f3](a[f3])3') {  # ignore normal
+            my $vertex_idx;
+            if (exists $vertices_map{$_}) {
+                $vertex_idx = $vertices_map{$_};
+            } else {
+                push @$vertices, [ unpack 'f<3', $_ ];
+                $vertex_idx = $vertices_map{$_} = $#$vertices;
+            }
+            push @$facet, $vertex_idx;
+        }
     }
 }
 
