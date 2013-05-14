@@ -70,6 +70,7 @@ sub _trigger_config {
         $self->config->set('fill_density', 0);
         $self->config->set('top_solid_layers', 0);
         $self->config->set('support_material', 0);
+        $self->config->set('support_material_enforce_layers', 0);
         $self->config->set('retract_layer_change', [0]);  # TODO: only apply this to the spiral layers
     }
 }
