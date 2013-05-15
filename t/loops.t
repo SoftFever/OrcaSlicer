@@ -40,6 +40,7 @@ use Slic3r::Test;
         [ [5,5,0],    [5,15,10],  [5,5,10]    ];
     
     my $mesh = Slic3r::TriangleMesh->new(vertices => \@vertices, facets => \@facets);
+    $mesh->analyze;
     my @lines = map $mesh->intersect_facet($_, 10), 0..$#facets;
     my $loops = Slic3r::TriangleMesh::make_loops(\@lines);
     is scalar(@$loops), 3, 'correct number of loops detected';
