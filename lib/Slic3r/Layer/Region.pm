@@ -268,7 +268,7 @@ sub make_perimeters {
             
             if ($self->id > 0) {
                 my $is_overhang = $is_contour
-                    ? @{diff([$polygon], \@lower_slices)}
+                    ? @{diff([$polygon], [ @lower_slices, offset([$polygon], -$self->perimeter_flow->scaled_width) ])}
                     : !@{intersection([$polygon], \@lower_slices)};
                 
                 $role = EXTR_ROLE_OVERHANG_PERIMETER if $is_overhang;
