@@ -136,12 +136,32 @@ sub draw_mesh {
     my $self = shift;
     
     my $mesh = $self->mesh;
-    $mesh->align_to_origin;
-    glBegin(GL_TRIANGLES);
-    for my $facet (@{$mesh->facets}) {
-        glVertex3f( map 0.1 * $_, @{ $mesh->vertices->[$_] } ) for @$facet;
-    }
-    glEnd();
+    
+    #glEnable(GL_CULL_FACE);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    #glEnableClientState(GL_NORMAL_ARRAY);
+    
+    my @verts = map 0.1 * $_, map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
+    my $verts = OpenGL::Array->new_list(GL_FLOAT, @verts);
+    
+    #my @norms = map @$_, map {my $f = $_; Slic3r::Geometry::triangle_normal(map $mesh->vertices->[$_], @$f) } @{$mesh->facets};
+    #my $norms = OpenGL::Array->new_list(GL_FLOAT, @norms);
+    
+    #my @inv_norms = map @$_, map {my $f = $_; Slic3r::Geometry::triangle_normal(reverse map $mesh->vertices->[$_], @$f) } @{$mesh->facets};
+    #my $inv_norms = OpenGL::Array->new_list(GL_FLOAT, @inv_norms);
+    
+    glVertexPointer_p(3, $verts);
+    
+    #glCullFace(GL_BACK);
+    #glNormalPointer_p($norms);
+    glDrawArrays(GL_TRIANGLES, 0, scalar @verts);
+    
+    #glCullFace(GL_FRONT);
+    #glNormalPointer_p($inv_norms);
+    #glDrawArrays(GL_TRIANGLES, 0, scalar @verts);
+    
+    #glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
  
 sub InitGL {
@@ -151,9 +171,32 @@ sub InitGL {
     return unless $self->GetContext;
     $self->init( 1 );
  
+    $self->mesh->align_to_origin;
+ 
     glDisable( GL_LIGHTING );
     glDepthFunc( GL_LESS );
     glEnable( GL_DEPTH_TEST );
+    
+    if (0) {
+        # Settings for our light.
+        my @Light_Ambient  = ( 0.1, 0.1, 0.1, 1.0 );
+        my @Light_Diffuse  = ( 1.2, 1.2, 1.2, 1.0 );
+        my @Light_Position = ( 2.0, 2.0, 0.0, 1.0 );
+    
+        
+            # Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
+          glShadeModel(GL_SMOOTH);
+        
+          # Set up a light, turn it on.
+          glLightfv_p(GL_LIGHT1, GL_POSITION, @Light_Position);
+          glLightfv_p(GL_LIGHT1, GL_AMBIENT,  @Light_Ambient);
+          glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  @Light_Diffuse);
+          glEnable(GL_LIGHT1);
+          
+          # A handy trick -- have surface material mirror the color.
+        glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_COLOR_MATERIAL);
+    }
 }
  
 sub Render {
