@@ -68,6 +68,7 @@ use constant SCALING_FACTOR         => 0.000001;
 use constant RESOLUTION             => 0.0125;
 use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
 use constant OVERLAP_FACTOR         => 1;
+use constant BRIDGE_OVERLAP_FACTOR  => 0.2;
 use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 use constant LOOP_CLIPPING_LENGTH_OVER_SPACING      => 0.15;
 use constant INFILL_OVERLAP_OVER_SPACING  => 0.45;

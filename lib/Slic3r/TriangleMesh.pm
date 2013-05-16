@@ -543,6 +543,8 @@ sub get_connected_facets {
 sub split_mesh {
     my $self = shift;
     
+    $self->analyze;
+    
     my @meshes = ();
     
     # loop while we have remaining facets

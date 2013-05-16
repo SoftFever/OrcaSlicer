@@ -111,7 +111,7 @@ sub vertices {
 
 sub add_facet {
     push @{$mesh->facets}, [ [0,0,0], @{vertices(@_)} ];
-    $mesh->BUILD;
+    $mesh->analyze;
 }
 
 sub intersect {
