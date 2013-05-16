@@ -699,7 +699,7 @@ sub make_brim {
         # JT_SQUARE ensures no vertex is outside the given offset distance
         # -0.5 because islands are not represented by their centerlines
         # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
-        push @loops, offset2(\@islands, ($i - 2) * $flow->scaled_spacing, ($i + 1.5) * $flow->scaled_spacing, undef, JT_SQUARE);
+        push @loops, offset2(\@islands, ($i - 1.5) * $flow->scaled_spacing, +1.0 * $flow->scaled_spacing, undef, JT_SQUARE);
     }
     
     @{$self->brim} = map Slic3r::ExtrusionLoop->pack(
