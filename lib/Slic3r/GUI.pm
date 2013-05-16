@@ -10,6 +10,7 @@ use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::ObjectDialog;
 use Slic3r::GUI::Preferences;
 use Slic3r::GUI::OptionsGroup;
+use Slic3r::GUI::PreviewCanvas;
 use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;

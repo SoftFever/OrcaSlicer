@@ -14,6 +14,7 @@ sub new {
     $self->{object} = $params{object};
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    $self->{tabpanel}->AddPage($self->{preview} = Slic3r::GUI::Plater::ObjectDialog::PreviewTab->new($self->{tabpanel}, object => $self->{object}), "Preview");
     $self->{tabpanel}->AddPage($self->{info} = Slic3r::GUI::Plater::ObjectDialog::InfoTab->new($self->{tabpanel}, object => $self->{object}), "Info");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}, object => $self->{object}), "Layers");
     
@@ -81,6 +82,24 @@ sub get_properties {
 		['Materials' 	=> $object->materials],
 		['Two-Manifold' => $object->is_manifold ? 'Yes' : 'No'],
 	];
+}
+
+package Slic3r::GUI::Plater::ObjectDialog::PreviewTab;
+use Wx qw(:dialog :id :misc :sizer :systemsettings);
+use base 'Wx::Panel';
+
+sub new {
+    my $class = shift;
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
+    $self->{object} = $params{object};
+    
+    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $sizer->Add(Slic3r::GUI::PreviewCanvas::Cube->new($self, $self->{object}->get_model_object->mesh), 1, wxEXPAND, 0);
+    $self->SetSizer($sizer);
+    $sizer->SetSizeHints($self);
+    
+    return $self;
 }
 
 package Slic3r::GUI::Plater::ObjectDialog::LayersTab;
