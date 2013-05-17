@@ -37,6 +37,7 @@ lib/Slic3r/GUI/OptionsGroup.pm
 lib/Slic3r/GUI/Plater.pm
 lib/Slic3r/GUI/Plater/ObjectDialog.pm
 lib/Slic3r/GUI/Preferences.pm
+lib/Slic3r/GUI/PreviewCanvas.pm
 lib/Slic3r/GUI/SkeinPanel.pm
 lib/Slic3r/GUI/SimpleTab.pm
 lib/Slic3r/GUI/Tab.pm
@@ -88,6 +89,7 @@ utils/post-processing/decimate.pl
 utils/post-processing/flowrate.pl
 utils/split_stl.pl
 utils/stl-to-amf.pl
+utils/view-mesh.pl
 utils/zsh/functions/_slic3r
 utils/zsh/README.markdown
 var/add.png

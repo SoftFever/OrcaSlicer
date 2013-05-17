@@ -365,6 +365,19 @@ sub align_to_origin {
     $self->move(map -$extents[$_][MIN], X,Y,Z);
 }
 
+sub center_around_origin {
+    my $self = shift;
+    
+    $self->move(map -$_, @{ $self->center });
+}
+
+sub center {
+    my $self = shift;
+    
+    my @extents = $self->extents;
+    return [ map +($extents[$_][MAX] + $extents[$_][MIN])/2, X,Y,Z ];
+}
+
 sub duplicate {
     my $self = shift;
     my (@shifts) = @_;

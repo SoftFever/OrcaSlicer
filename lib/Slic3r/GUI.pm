@@ -14,6 +14,8 @@ use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 
+our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
+
 use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::App';
