@@ -10,6 +10,7 @@ has '_contours_ex'  => (is => 'rw', default => sub { [] });  # arrayref of array
 has '_pointmap'     => (is => 'rw', default => sub { {} });  # { id => $point }
 has '_edges'        => (is => 'rw', default => sub { {} });  # node_idx => { node_idx => distance, ... }
 has '_crossing_edges' => (is => 'rw', default => sub { {} });  # edge_idx => bool
+has '_tolerance'    => (is => 'lazy');
 
 use List::Util qw(first);
 use Slic3r::Geometry qw(A B scale epsilon nearest_point);
@@ -30,31 +31,14 @@ use constant CROSSING_FACTOR => 20;
 
 use constant INFINITY => 'inf';
 
+sub _build__tolerance { scale epsilon }
+
 # setup our configuration space
 sub BUILD {
     my $self = shift;
     
     my $edges = $self->_edges;
     my $crossing_edges = $self->_crossing_edges;
-    my $tolerance = scale epsilon;
-    
-    # given an expolygon, this subroutine connects all its visible points
-    my $add_expolygon = sub {
-        my ($expolygon, $crosses_perimeter) = @_;
-        my @points = map @$_, @$expolygon;
-        for my $i (0 .. $#points) {
-            for my $j (($i+1) .. $#points) {
-                my $line = Slic3r::Line->new($points[$i], $points[$j]);
-                if ($expolygon->encloses_line($line, $tolerance)) {
-                    my $dist = $line->length * ($crosses_perimeter ? CROSSING_FACTOR : 1);
-                    $edges->{$points[$i]}{$points[$j]} = $dist;
-                    $edges->{$points[$j]}{$points[$i]} = $dist;
-                    $crossing_edges->{$points[$i]}{$points[$j]} = 1;
-                    $crossing_edges->{$points[$j]}{$points[$i]} = 1;
-                }
-            }
-        }
-    };
     
     # simplify islands
     @{$self->islands} = map $_->simplify($self->_inner_margin), @{$self->islands};
@@ -81,18 +65,13 @@ sub BUILD {
             );
             
             # lines enclosed in inner expolygons are visible
-            $add_expolygon->($_) for @{ $self->_inner->[$i] };
+            $self->_add_expolygon($_) for @{ $self->_inner->[$i] };
             
             # lines enclosed in expolygons covering perimeters are visible
             # (but discouraged)
-            $add_expolygon->($_, 1) for @{ $self->_contours_ex->[$i] };
+            $self->_add_expolygon($_, 1) for @{ $self->_contours_ex->[$i] };
         }
     }
-    
-    my $intersects = sub {
-        my ($polygon, $line) = @_;
-        @{Boost::Geometry::Utils::polygon_multi_linestring_intersection([$polygon], [$line])} > 0;
-    };
     
     {
         my @outer = (map @$_, @{$self->_outer});
@@ -112,7 +91,7 @@ sub BUILD {
                 for my $m (0 .. $#{$outer[$i]}) {
                     for my $n (0 .. $#{$outer[$j]}) {
                         my $line = Slic3r::Line->new($outer[$i][$m], $outer[$j][$n]);
-                        if (!first { $intersects->($_, $line) } @outer) {
+                        if (!first { $_->intersects_line($line) } @outer) {
                             # this line does not cross any polygon
                             my $dist = $line->length;
                             $edges->{$outer[$i][$m]}{$outer[$j][$n]} = $dist;
@@ -132,7 +111,7 @@ sub BUILD {
                 for my $m (0 .. $#{$inner[$i]}) {
                     for my $n (0 .. $#{$inner[$j]}) {
                         my $line = Slic3r::Line->new($inner[$i][$m], $inner[$j][$n]);
-                        if (!first { $intersects->($_, $line) } @inner) {
+                        if (!first { $_->intersects_line($line) } @inner) {
                             # this line does not cross any polygon
                             my $dist = $line->length * CROSSING_FACTOR;
                             $edges->{$inner[$i][$m]}{$inner[$j][$n]} = $dist;
@@ -180,6 +159,29 @@ sub BUILD {
         printf "  %-19s = %.1fMb\n", $_, Devel::Size::total_size($self->$_)/1024/1024
             for qw(_inner _outer _contours_ex _pointmap _edges _crossing_edges islands last_crossings);
         printf "  %-19s = %.1fMb\n", 'self', Devel::Size::total_size($self)/1024/1024;
+    }
+}
+
+# given an expolygon, this subroutine connects all its visible points
+sub _add_expolygon {
+    my $self = shift;
+    my ($expolygon, $crosses_perimeter) = @_;
+    
+    my $edges = $self->_edges;
+    my $crossing_edges = $self->_crossing_edges;
+    
+    my @points = map @$_, @$expolygon;
+    for my $i (0 .. $#points) {
+        for my $j (($i+1) .. $#points) {
+            my $line = Slic3r::Line->new($points[$i], $points[$j]);
+            if ($expolygon->encloses_line($line, $self->_tolerance)) {
+                my $dist = $line->length * ($crosses_perimeter ? CROSSING_FACTOR : 1);
+                $edges->{$points[$i]}{$points[$j]} = $dist;
+                $edges->{$points[$j]}{$points[$i]} = $dist;
+                $crossing_edges->{$points[$i]}{$points[$j]} = 1;
+                $crossing_edges->{$points[$j]}{$points[$i]} = 1;
+            }
+        }
     }
 }
 
