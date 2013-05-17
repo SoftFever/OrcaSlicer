@@ -7,7 +7,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
     PI X Y Z A B X1 Y1 X2 Y2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
-    chained_path_items chained_path_points
+    chained_path_items chained_path_points normalize tan
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
     point_along_segment polygon_segment_having_point polygon_has_subsegment
@@ -44,6 +44,11 @@ sub scaled_epsilon () { epsilon / &Slic3r::SCALING_FACTOR }
 
 sub scale   ($) { $_[0] / &Slic3r::SCALING_FACTOR }
 sub unscale ($) { $_[0] * &Slic3r::SCALING_FACTOR }
+
+sub tan {
+    my ($angle) = @_;
+    return (sin $angle) / (cos $angle);
+}
 
 sub slope {
     my ($line) = @_;
@@ -459,6 +464,14 @@ sub triangle_normal {
     my $v = [ map +($v3->[$_] - $v1->[$_]), (X,Y,Z) ];
     
     return normal($u, $v);
+}
+
+sub normalize {
+    my ($line) = @_;
+    
+    my $len = sqrt( ($line->[X]**2) + ($line->[Y]**2) + ($line->[Z]**2) )
+        or return [0, 0, 0];  # to avoid illegal division by zero
+    return [ map $_ / $len, @$line ];
 }
 
 # 2D dot product

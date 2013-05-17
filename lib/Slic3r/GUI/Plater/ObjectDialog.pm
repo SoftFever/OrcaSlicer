@@ -10,11 +10,12 @@ use base 'Wx::Dialog';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, "Object", wxDefaultPosition, [500,350]);
+    my $self = $class->SUPER::new($parent, -1, "Object", wxDefaultPosition, [500,350], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->{object} = $params{object};
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
-    $self->{tabpanel}->AddPage($self->{preview} = Slic3r::GUI::Plater::ObjectDialog::PreviewTab->new($self->{tabpanel}, object => $self->{object}), "Preview");
+    $self->{tabpanel}->AddPage($self->{preview} = Slic3r::GUI::Plater::ObjectDialog::PreviewTab->new($self->{tabpanel}, object => $self->{object}), "Preview")
+        if $Slic3r::GUI::have_OpenGL;
     $self->{tabpanel}->AddPage($self->{info} = Slic3r::GUI::Plater::ObjectDialog::InfoTab->new($self->{tabpanel}, object => $self->{object}), "Info");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}, object => $self->{object}), "Layers");
     
@@ -34,6 +35,7 @@ sub new {
     $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     
     $self->SetSizer($sizer);
+    $self->SetMinSize($self->GetSize);
     
     return $self;
 }
@@ -95,7 +97,7 @@ sub new {
     $self->{object} = $params{object};
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::PreviewCanvas::Cube->new($self, $self->{object}->get_model_object->mesh), 1, wxEXPAND, 0);
+    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($self, $self->{object}->get_model_object->mesh), 1, wxEXPAND, 0);
     $self->SetSizer($sizer);
     $sizer->SetSizeHints($self);
     
