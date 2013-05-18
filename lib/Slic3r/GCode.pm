@@ -294,34 +294,6 @@ sub travel_to {
         $self->speed('travel');
         $gcode .= $self->G0($point, undef, 0, $comment || "");
     } else {
-        my $plan = sub {
-            my $mp = shift;
-            
-            my $gcode = "";
-            my @travel = $mp->shortest_path($self->last_pos, $point)->lines;
-            
-            # if the path is not contained in a single island we need to retract
-            my $need_retract = !$Slic3r::Config->only_retract_when_crossing_perimeters;
-            if (!$need_retract) {
-                $need_retract = 1;
-                foreach my $slice (@{$self->layer->slices}) {
-                    # discard the island if at any line is not enclosed in it
-                    next if first { !$slice->encloses_line($_, scaled_epsilon) } @travel;
-                    # okay, this island encloses the full travel path
-                    $need_retract = 0;
-                    last;
-                }
-            }
-            
-            # do the retract (the travel_to argument is broken)
-            $gcode .= $self->retract(travel_to => $point) if $need_retract;
-            
-            # append the actual path and return
-            $self->speed('travel');
-            $gcode .= join '', map $self->G0($_->[B], undef, 0, $comment || ""), @travel;
-            return $gcode;
-        };
-        
         if ($self->new_object) {
             $self->new_object(0);
             
@@ -332,13 +304,42 @@ sub travel_to {
             
             # calculate path (external_mp uses G-code coordinates so we temporary need a null shift)
             $self->set_shift(0,0);
-            $gcode .= $plan->($self->external_mp);
+            $gcode .= $self->_plan($self->external_mp, $point, $comment);
             $self->set_shift(@shift);
         } else {
-            $gcode .= $plan->($self->layer_mp);
+            $gcode .= $self->_plan($self->layer_mp, $point, $comment);
         }
     }
     
+    return $gcode;
+}
+
+sub _plan {
+    my $self = shift;
+    my ($mp, $point, $comment) = @_;
+    
+    my $gcode = "";
+    my @travel = $mp->shortest_path($self->last_pos, $point)->lines;
+    
+    # if the path is not contained in a single island we need to retract
+    my $need_retract = !$Slic3r::Config->only_retract_when_crossing_perimeters;
+    if (!$need_retract) {
+        $need_retract = 1;
+        foreach my $slice (@{$self->layer->slices}) {
+            # discard the island if at any line is not enclosed in it
+            next if first { !$slice->encloses_line($_, scaled_epsilon) } @travel;
+            # okay, this island encloses the full travel path
+            $need_retract = 0;
+            last;
+        }
+    }
+    
+    # do the retract (the travel_to argument is broken)
+    $gcode .= $self->retract(travel_to => $point) if $need_retract;
+    
+    # append the actual path and return
+    $self->speed('travel');
+    $gcode .= join '', map $self->G0($_->[B], undef, 0, $comment || ""), @travel;
     return $gcode;
 }
 

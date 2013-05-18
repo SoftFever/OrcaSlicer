@@ -25,6 +25,7 @@ lib/Slic3r/Format/OBJ.pm
 lib/Slic3r/Format/STL.pm
 lib/Slic3r/GCode.pm
 lib/Slic3r/GCode/CoolingBuffer.pm
+lib/Slic3r/GCode/Layer.pm
 lib/Slic3r/GCode/MotionPlanner.pm
 lib/Slic3r/GCode/Reader.pm
 lib/Slic3r/GCode/SpiralVase.pm

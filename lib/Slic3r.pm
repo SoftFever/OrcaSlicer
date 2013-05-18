@@ -46,6 +46,7 @@ use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
 use Slic3r::GCode;
 use Slic3r::GCode::CoolingBuffer;
+use Slic3r::GCode::Layer;
 use Slic3r::GCode::MotionPlanner;
 use Slic3r::GCode::Reader;
 use Slic3r::GCode::SpiralVase;
