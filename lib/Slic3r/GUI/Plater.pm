@@ -715,6 +715,7 @@ sub make_model {
             rotation    => $plater_object->rotate,
             offset      => [ @$_ ],
         ) for @{$plater_object->instances};
+        $new_model_object->align_to_origin;
     }
     
     return $model;

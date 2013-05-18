@@ -16,8 +16,6 @@ my @lines;
 my $z = 20;
 my @points = ([3, 4], [8, 5], [1, 9]);  # XY coordinates of the facet vertices
 
-my $mesh = Slic3r::TriangleMesh->new(facets => [], vertices => []);
-
 # NOTE:
 # the first point of the intersection lines is replaced by -1 because TriangleMesh.pm
 # is saving memory and doesn't store point A anymore since it's not actually needed.
@@ -104,19 +102,21 @@ my @upper = intersect(20, 20, 10);
 is $lower[0][Slic3r::TriangleMesh::I_FACET_EDGE], Slic3r::TriangleMesh::FE_BOTTOM, 'bottom edge on layer';
 is $upper[0][Slic3r::TriangleMesh::I_FACET_EDGE], Slic3r::TriangleMesh::FE_TOP, 'upper edge on layer';
 
+my $mesh;
+
+sub intersect {
+    $mesh = Slic3r::TriangleMesh->new(
+        facets      => [],
+        vertices    => [],
+    );
+    push @{$mesh->facets}, [ [0,0,0], @{vertices(@_)} ];
+    $mesh->analyze;
+    return map Slic3r::TriangleMesh::unpack_line($_), $mesh->intersect_facet($#{$mesh->facets}, $z);
+}
+
 sub vertices {
     push @{$mesh->vertices}, map [ @{$points[$_]}, $_[$_] ], 0..2;
     [ ($#{$mesh->vertices}-2) .. $#{$mesh->vertices} ]
-}
-
-sub add_facet {
-    push @{$mesh->facets}, [ [0,0,0], @{vertices(@_)} ];
-    $mesh->analyze;
-}
-
-sub intersect {
-    add_facet(@_);
-    return map Slic3r::TriangleMesh::unpack_line($_), $mesh->intersect_facet($#{$mesh->facets}, $z);
 }
 
 sub lines {

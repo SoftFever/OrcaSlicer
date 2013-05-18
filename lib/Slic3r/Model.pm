@@ -1,7 +1,8 @@
 package Slic3r::Model;
 use Moo;
 
-use Slic3r::Geometry qw(X Y Z);
+use List::Util qw(first max);
+use Slic3r::Geometry qw(X Y Z MIN move_points);
 
 has 'materials' => (is => 'ro', default => sub { {} });
 has 'objects'   => (is => 'ro', default => sub { [] });
@@ -17,6 +18,38 @@ sub read_from_file {
     
     $_->input_file($input_file) for @{$model->objects};
     return $model;
+}
+
+sub merge {
+    my $class = shift;
+    my @models = @_;
+    
+    my $new_model = $class->new;
+    foreach my $model (@models) {
+        # merge material attributes (should we rename them in case of duplicates?)
+        $new_model->set_material($_, { %{$model->materials->{$_}}, %{$model->materials->{$_} || {}} })
+            for keys %{$model->materials};
+        
+        foreach my $object (@{$model->objects}) {
+            my $new_object = $new_model->add_object(
+                input_file          => $object->input_file,
+                vertices            => $object->vertices,
+                layer_height_ranges => $object->layer_height_ranges,
+            );
+            
+            $new_object->add_volume(
+                material_id         => $_->material_id,
+                facets              => $_->facets,
+            ) for @{$object->volumes};
+            
+            $new_object->add_instance(
+                offset              => $_->offset,
+                rotation            => $_->rotation,
+            ) for @{ $object->instances // [] };
+        }
+    }
+    
+    return $new_model;
 }
 
 sub add_object {
@@ -39,8 +72,120 @@ sub set_material {
 
 sub scale {
     my $self = shift;
-    
     $_->scale(@_) for @{$self->objects};
+}
+
+sub arrange_objects {
+    my $self = shift;
+    my ($config) = @_;
+    
+    # do we have objects with no position?
+    if (first { !defined $_->instances } @{$self->objects}) {
+        # we shall redefine positions for all objects
+        
+        my ($copies, @positions) = $self->_arrange(
+            config  => $config,
+            items   => $self->objects,
+        );
+        
+        # apply positions to objects
+        foreach my $object (@{$self->objects}) {
+            $object->align_to_origin;
+            
+            $object->instances([]);
+            $object->add_instance(
+                offset      => $_,
+                rotation    => 0,
+            ) for splice @positions, 0, $copies;
+        }
+        
+    } else {
+        # we only have objects with defined position
+        
+        # align the whole model to origin as it is
+        $self->align_to_origin;
+        
+        # arrange this model as a whole
+        my ($copies, @positions) = $self->_arrange(
+            config  => $config,
+            items   => [$self],
+        );
+        
+        # apply positions to objects by translating the current positions
+        foreach my $object (@{$self->objects}) {
+            my @old_instances = @{$object->instances};
+            $object->instances([]);
+            foreach my $instance (@old_instances) {
+                $object->add_instance(
+                    offset      => $_,
+                    rotation    => $instance->rotation,
+                ) for move_points($instance->offset, @positions);
+            }
+        }
+    }
+}
+
+sub _arrange {
+    my $self = shift;
+    my %params = @_;
+    
+    my $config  = $params{config};
+    my @items   = @{$params{items}};  # can be Model or Object objects, they have to implement size()
+    
+    if ($config->duplicate_grid->[X] > 1 || $config->duplicate_grid->[Y] > 1) {
+        if (@items > 1) {
+            die "Grid duplication is not supported with multiple objects\n";
+        }
+        my @positions = ();
+        my $size = $items[0]->size;
+        my $dist = $config->duplicate_distance;
+        for my $x_copy (1..$config->duplicate_grid->[X]) {
+            for my $y_copy (1..$config->duplicate_grid->[Y]) {
+                push @positions, [
+                    ($size->[X] + $dist) * ($x_copy-1),
+                    ($size->[Y] + $dist) * ($y_copy-1),
+                ];
+            }
+        }
+        return ($config->duplicate_grid->[X] * $config->duplicate_grid->[Y]), @positions;
+    } else {
+        my $total_parts = $config->duplicate * @items;
+        my $partx = max(map $_->size->[X], @items);
+        my $party = max(map $_->size->[Y], @items);
+        return $config->duplicate,
+            Slic3r::Geometry::arrange
+                ($total_parts, $partx, $party, (map $_, @{$config->bed_size}),
+                $config->min_object_distance, $config);
+    }
+}
+
+sub vertices {
+    my $self = shift;
+    return [ map @{$_->vertices}, @{$self->objects} ];
+}
+
+sub size {
+    my $self = shift;
+    return [ Slic3r::Geometry::size_3D($self->vertices) ];
+}
+
+sub extents {
+    my $self = shift;
+    return Slic3r::Geometry::bounding_box_3D($self->vertices);
+}
+
+sub align_to_origin {
+    my $self = shift;
+    
+    # calculate the displacements needed to 
+    # have lowest value for each axis at coordinate 0
+    my @extents = $self->extents;
+    $self->move(map -$extents[$_][MIN], X,Y,Z);
+}
+
+sub move {
+    my $self = shift;
+    $_->move(@_) for @{$self->objects};
 }
 
 # flattens everything to a single mesh
@@ -64,6 +209,47 @@ sub mesh {
     return Slic3r::TriangleMesh->merge(@meshes);
 }
 
+# this method splits objects into multiple distinct objects by walking their meshes
+sub split_meshes {
+    my $self = shift;
+    
+    my @objects = @{$self->objects};
+    @{$self->objects} = ();
+    
+    foreach my $object (@objects) {
+        if (@{$object->volumes} > 1) {
+            # We can't split meshes if there's more than one material, because
+            # we can't group the resulting meshes by object afterwards
+            push @{$self->objects}, $object;
+            next;
+        }
+        
+        my $volume = $object->volumes->[0];
+        foreach my $mesh ($volume->mesh->split_mesh) {
+            my $new_object = $self->add_object(
+                input_file          => $object->input_file,
+                layer_height_ranges => $object->layer_height_ranges,
+            );
+            $new_object->add_volume(
+                vertices    => $mesh->vertices,
+                facets      => $mesh->facets,
+                material_id => $volume->material_id,
+            );
+            
+            # let's now align the new object to the origin and put its displacement
+            # (extents) in the instances info
+            my @extents = $mesh->extents;
+            $new_object->align_to_origin;
+            
+            # add one instance per original instance applying the displacement
+            $new_object->add_instance(
+                offset      => [ $_->offset->[X] + $extents[X][MIN], $_->offset->[Y] + $extents[Y][MIN] ],
+                rotation    => $_->rotation,
+            ) for @{ $object->instances // [] };
+        }
+    }
+}
+
 package Slic3r::Model::Region;
 use Moo;
 
@@ -74,7 +260,7 @@ package Slic3r::Model::Object;
 use Moo;
 
 use List::Util qw(first);
-use Slic3r::Geometry qw(X Y Z);
+use Slic3r::Geometry qw(X Y Z MIN move_points_3D);
 use Storable qw(dclone);
 
 has 'input_file' => (is => 'rw');
@@ -123,6 +309,30 @@ sub mesh {
     );
 }
 
+sub size {
+    my $self = shift;
+    return [ Slic3r::Geometry::size_3D($self->vertices) ];
+}
+
+sub extents {
+    my $self = shift;
+    return Slic3r::Geometry::bounding_box_3D($self->vertices);
+}
+
+sub align_to_origin {
+    my $self = shift;
+    
+    # calculate the displacements needed to 
+    # have lowest value for each axis at coordinate 0
+    my @extents = $self->extents;
+    $self->move(map -$extents[$_][MIN], X,Y,Z);
+}
+
+sub move {
+    my $self = shift;
+    @{$self->vertices} = move_points_3D([ @_ ], @{$self->vertices});
+}
+
 sub scale {
     my $self = shift;
     my ($factor) = @_;
@@ -131,6 +341,19 @@ sub scale {
     # transform vertex coordinates
     foreach my $vertex (@{$self->vertices}) {
         $vertex->[$_] *= $factor for X,Y,Z;
+    }
+}
+
+sub rotate {
+    my $self = shift;
+    my ($deg) = @_;
+    return if $deg == 0;
+    
+    my $rad = Slic3r::Geometry::deg2rad($deg);
+    
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
     }
 }
 

@@ -91,13 +91,19 @@ if (@ARGV) {  # slicing from command line
     $config->validate;
     
     while (my $input_file = shift @ARGV) {
-        my $print = Slic3r::Print->new(config => $config);
-        $print->add_model(Slic3r::Model->read_from_file($input_file));
+        my $model;
         if ($opt{merge}) {
-            $print->add_model(Slic3r::Model->read_from_file($_)) for splice @ARGV, 0;
+            my @models = map Slic3r::Model->read_from_file($_), $input_file, (splice @ARGV, 0);
+            $model = Slic3r::Model->merge(@models);
+        } else {
+            $model = Slic3r::Model->read_from_file($input_file);
         }
-        $print->duplicate;
-        $print->arrange_objects if @{$print->objects} > 1;
+        $_->scale($config->scale) for @{$model->objects};
+        $_->rotate($config->rotate) for @{$model->objects};
+        $model->arrange_objects($config);
+        
+        my $print = Slic3r::Print->new(config => $config);
+        $print->add_model($model);
         $print->validate;
         my %params = (
             output_file => $opt{output},

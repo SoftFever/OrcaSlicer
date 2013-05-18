@@ -7,7 +7,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
     PI X Y Z A B X1 Y1 X2 Y2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
-    chained_path_items chained_path_points normalize tan
+    chained_path_items chained_path_points normalize tan move_points_3D
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
     point_along_segment polygon_segment_having_point polygon_has_subsegment
@@ -386,6 +386,15 @@ sub rotate_points {
 sub move_points {
     my ($shift, @points) = @_;
     return map Slic3r::Point->new($shift->[X] + $_->[X], $shift->[Y] + $_->[Y]), @points;
+}
+
+sub move_points_3D {
+    my ($shift, @points) = @_;
+    return map [
+        $shift->[X] + $_->[X],
+        $shift->[Y] + $_->[Y],
+        $shift->[Z] + $_->[Z],
+    ], @points;
 }
 
 # implementation of Liang-Barsky algorithm

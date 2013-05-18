@@ -87,6 +87,8 @@ sub _build_fill_maker {
     return Slic3r::Fill->new(print => $self);
 }
 
+# caller is responsible for supplying models whose objects don't collide
+# and have explicit instance positions
 sub add_model {
     my $self = shift;
     my ($model) = @_;
@@ -103,13 +105,18 @@ sub add_model {
         }
     }
     
+    # optimization: if avoid_crossing_perimeters is enabled, split
+    # this mesh into distinct objects so that we reduce the complexity
+    # of the graphs 
+    $model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
+    
     foreach my $object (@{ $model->objects }) {
+        # extract meshes by material
         my @meshes = ();  # by region_id
-        
         foreach my $volume (@{$object->volumes}) {
-            # should the object contain multiple volumes of the same material, merge them
             my $region_id = defined $volume->material_id ? $materials{$volume->material_id} : 0;
             my $mesh = $volume->mesh->clone;
+            # should the object contain multiple volumes of the same material, merge them
             $meshes[$region_id] = $meshes[$region_id]
                 ? Slic3r::TriangleMesh->merge($meshes[$region_id], $mesh)
                 : $mesh;
@@ -119,41 +126,22 @@ sub add_model {
             next unless $mesh;
             $mesh->check_manifoldness;
             
-            if ($object->instances) {
-                # we ignore the per-instance rotation currently and only 
-                # consider the first one
-                $mesh->rotate($object->instances->[0]->rotation);
-            }
+            # we ignore the per-instance rotation currently and only 
+            # consider the first one
+            $mesh->rotate($object->instances->[0]->rotation);
             
-            $mesh->rotate($Slic3r::Config->rotate);
-            $mesh->scale($Slic3r::Config->scale / &Slic3r::SCALING_FACTOR);
+            $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
         }
         
-        my @defined_meshes = grep defined $_, @meshes;
-        my $complete_mesh = @defined_meshes == 1 ? $defined_meshes[0] : Slic3r::TriangleMesh->merge(@defined_meshes);
-        
         # initialize print object
-        my $print_object = Slic3r::Print::Object->new(
+        push @{$self->objects}, Slic3r::Print::Object->new(
             print       => $self,
             meshes      => [ @meshes ],
-            size        => [ $complete_mesh->size ],
+            copies      => [ map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances} ],
+            size        => [ map scale $_, @{ $object->size } ],
             input_file  => $object->input_file,
             layer_height_ranges => $object->layer_height_ranges,
         );
-        push @{$self->objects}, $print_object;
-        
-        # align object to origin
-        {
-            my @extents = $complete_mesh->extents;
-            foreach my $mesh (grep defined $_, @meshes) {
-                $mesh->move(map -$extents[$_][MIN], X,Y,Z);
-            }
-        }
-        
-        if ($object->instances) {
-            # replace the default [0,0] instance with the custom ones
-            $print_object->copies([ map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances} ]);
-        }
     }
 }
 
@@ -282,54 +270,12 @@ sub regions_count {
     return scalar @{$self->regions};
 }
 
-sub duplicate {
-    my $self = shift;
-    
-    if ($Slic3r::Config->duplicate_grid->[X] > 1 || $Slic3r::Config->duplicate_grid->[Y] > 1) {
-        if (@{$self->objects} > 1) {
-            die "Grid duplication is not supported with multiple objects\n";
-        }
-        my $object = $self->objects->[0];
-        
-        # generate offsets for copies
-        my $dist = scale $Slic3r::Config->duplicate_distance;
-        @{$self->objects->[0]->copies} = ();
-        for my $x_copy (1..$Slic3r::Config->duplicate_grid->[X]) {
-            for my $y_copy (1..$Slic3r::Config->duplicate_grid->[Y]) {
-                push @{$self->objects->[0]->copies}, [
-                    ($object->size->[X] + $dist) * ($x_copy-1),
-                    ($object->size->[Y] + $dist) * ($y_copy-1),
-                ];
-            }
-        }
-    } elsif ($Slic3r::Config->duplicate > 1) {
-        foreach my $object (@{$self->objects}) {
-            @{$object->copies} = map [0,0], 1..$Slic3r::Config->duplicate;
-        }
-        $self->arrange_objects;
-    }
-}
-
-sub arrange_objects {
-    my $self = shift;
-
-    my $total_parts = scalar map @{$_->copies}, @{$self->objects};
-    my $partx = max(map $_->size->[X], @{$self->objects});
-    my $party = max(map $_->size->[Y], @{$self->objects});
-    
-    my @positions = Slic3r::Geometry::arrange
-        ($total_parts, $partx, $party, (map scale $_, @{$Slic3r::Config->bed_size}), scale $Slic3r::Config->min_object_distance, $self->config);
-    
-    @{$_->copies} = splice @positions, 0, scalar @{$_->copies} for @{$self->objects};
-}
-
 sub bounding_box {
     my $self = shift;
     
     my @points = ();
-    foreach my $obj_idx (0 .. $#{$self->objects}) {
-        my $object = $self->objects->[$obj_idx];
-        foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
+    foreach my $object (@{$self->objects}) {
+        foreach my $copy (@{$object->copies}) {
             push @points,
                 [ $copy->[X], $copy->[Y] ],
                 [ $copy->[X] + $object->size->[X], $copy->[Y] ],

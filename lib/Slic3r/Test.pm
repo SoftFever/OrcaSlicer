@@ -30,7 +30,9 @@ sub model {
     }
     
     my $model = Slic3r::Model->new;
-    $model->add_object(vertices => $vertices)->add_volume(facets => $facets);
+    my $object = $model->add_object(vertices => $vertices);
+    $object->add_volume(facets => $facets);
+    $object->add_instance(offset => [0,0]);
     return $model;
 }
 

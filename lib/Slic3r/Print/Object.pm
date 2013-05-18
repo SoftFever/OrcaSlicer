@@ -11,7 +11,7 @@ has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'input_file'        => (is => 'rw', required => 0);
 has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1);
-has 'copies'            => (is => 'rw', default => sub {[ [0,0] ]}, trigger => 1);
+has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
@@ -76,6 +76,7 @@ sub BUILD {
     }
 }
 
+# This should be probably moved in Print.pm at the point where we sort Layer objects
 sub _trigger_copies {
     my $self = shift;
     return unless @{$self->copies} > 1;
@@ -166,6 +167,8 @@ sub slice {
                 }
             },
         );
+        
+        $self->meshes->[$region_id] = undef;  # free memory
     }
     die "Invalid input file\n" if !@{$self->layers};
     

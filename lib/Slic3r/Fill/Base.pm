@@ -36,6 +36,7 @@ sub infill_direction {
     return [\@rotate, \@shift];
 }
 
+# this method accepts any object that implements rotate() and translate()
 sub rotate_points {
     my $self = shift;
     my ($expolygon, $rotate_vector) = @_;

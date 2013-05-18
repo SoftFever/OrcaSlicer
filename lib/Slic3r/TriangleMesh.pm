@@ -10,9 +10,9 @@ has 'vertices'      => (is => 'ro', required => 1);         # id => [$x,$y,$z]
 has 'facets'        => (is => 'ro', required => 1);         # id => [ $v1_id, $v2_id, $v3_id ]
 
 # private
-has 'edges'         => (is => 'ro', default => sub { [] }); # id => [ $v1_id, $v2_id ]
-has 'facets_edges'  => (is => 'ro', default => sub { [] }); # id => [ $e1_id, $e2_id, $e3_id ]
-has 'edges_facets'  => (is => 'ro', default => sub { [] }); # id => [ $f1_id, $f2_id, (...) ]
+has 'edges'         => (is => 'rw'); # id => [ $v1_id, $v2_id ]
+has 'facets_edges'  => (is => 'rw'); # id => [ $e1_id, $e2_id, $e3_id ]
+has 'edges_facets'  => (is => 'rw'); # id => [ $f1_id, $f2_id, (...) ]
 
 use constant MIN => 0;
 use constant MAX => 1;
@@ -29,13 +29,13 @@ use constant I_FACET_EDGE       => 6;
 use constant FE_TOP             => 0;
 use constant FE_BOTTOM          => 1;
 
-# always make sure this method is idempotent
 sub analyze {
     my $self = shift;
     
-    @{$self->edges} = ();
-    @{$self->facets_edges} = ();
-    @{$self->edges_facets} = ();
+    return if defined $self->edges;
+    $self->edges([]);
+    $self->facets_edges([]);
+    $self->edges_facets([]);
     my %table = ();  # edge_coordinates => edge_id
     
     for (my $facet_id = 0; $facet_id <= $#{$self->facets}; $facet_id++) {
