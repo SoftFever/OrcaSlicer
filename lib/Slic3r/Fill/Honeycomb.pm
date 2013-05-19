@@ -38,10 +38,12 @@ sub fill_surface {
         
         # adjust actual bounding box to the nearest multiple of our hex pattern
         # and align it so that it matches across layers
+        
         my $bounding_box = [ @{$self->bounding_box} ];  # clone
         $bounding_box->[$_] = 0 for X1, Y1;
         {
             my $bb_polygon = Slic3r::Polygon->new_from_bounding_box($bounding_box);
+            $bb_polygon->scale(sqrt 2);
             $bb_polygon->rotate($rotate_vector->[0][0], $hex_center);
             $bounding_box = [ Slic3r::Geometry::bounding_box($bb_polygon) ];
             # $bounding_box->[X1] and [Y1] represent the displacement between new bounding box offset and old one
