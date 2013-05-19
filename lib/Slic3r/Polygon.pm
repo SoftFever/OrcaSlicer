@@ -172,10 +172,4 @@ sub split_at_first_point {
     return $self->split_at_index(0);
 }
 
-sub intersects_line {
-    my $self = shift;
-    my ($line) = @_;
-    return @{Boost::Geometry::Utils::polygon_multi_linestring_intersection([$self], [$line])} > 0;
-}
-
 1;
