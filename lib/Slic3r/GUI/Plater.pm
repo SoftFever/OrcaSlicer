@@ -545,6 +545,7 @@ sub export_gcode {
     
     $self->statusbar->StartBusy;
     if ($Slic3r::have_threads) {
+        @_ = ();
         $self->{export_thread} = threads->create(sub {
             $self->export_gcode2(
                 $print,
@@ -739,6 +740,7 @@ sub make_thumbnail {
         }
     };
     
+    @_ = ();
     $Slic3r::have_threads ? threads->create($cb)->detach : $cb->();
 }
 

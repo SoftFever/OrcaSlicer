@@ -288,6 +288,7 @@ sub check_version {
     my %p = @_;
     Slic3r::debugf "Checking for updates...\n";
     
+    @_ = ();
     threads->create(sub {
         my $ua = LWP::UserAgent->new;
         $ua->timeout(10);
