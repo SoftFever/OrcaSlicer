@@ -1,6 +1,7 @@
 package Slic3r::GCode::Layer;
 use Moo;
 
+use List::Util qw(first);
 use Slic3r::Geometry qw(X Y unscale);
 
 has 'print'                         => (is => 'ro', required => 1, handles => [qw(extruders)]);
