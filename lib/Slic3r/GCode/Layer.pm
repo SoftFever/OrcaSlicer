@@ -176,8 +176,11 @@ sub _extrude_perimeters {
     my ($island, $region) = @_;
     
     return "" if !@{ $island->{perimeters} };
-    return $self->gcodegen->set_extruder($region->extruders->{perimeter})
-        . $self->gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
+    
+    my $gcode = "";
+    $gcode .= $self->gcodegen->set_extruder($region->extruders->{perimeter});
+    $gcode .= $self->gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
+    return $gcode;
 }
 
 sub _extrude_infill {
