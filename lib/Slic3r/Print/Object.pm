@@ -14,6 +14,7 @@ has 'size'              => (is => 'rw', required => 1);
 has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has 'fill_maker'        => (is => 'lazy');
 
 sub BUILD {
     my $self = shift;
@@ -76,6 +77,11 @@ sub BUILD {
     }
 }
 
+sub _build_fill_maker {
+    my $self = shift;
+    return Slic3r::Fill->new(object => $self);
+}
+
 # This should be probably moved in Print.pm at the point where we sort Layer objects
 sub _trigger_copies {
     my $self = shift;
@@ -125,6 +131,13 @@ sub get_layer_range {
         }
     }
     return ($min_layer, $max_layer);
+}
+
+sub bounding_box {
+    my $self = shift;
+    
+    # since the object is aligned to origin, bounding box coincides with size
+    return Slic3r::Geometry::bounding_box([ [0,0], $self->size ]);
 }
 
 sub slice {
@@ -931,7 +944,7 @@ sub generate_support_material {
             push @angles, $angles[0] + 90;
         }
         
-        my $filler = $self->print->fill_maker->filler($pattern);
+        my $filler = $self->fill_maker->filler($pattern);
         my $make_pattern = sub {
             my ($expolygon, $density) = @_;
             
@@ -1016,7 +1029,7 @@ sub generate_support_material {
             
             # make a solid base on bottom layer
             if ($layer_id == 0) {
-                my $filler = $self->print->fill_maker->filler('rectilinear');
+                my $filler = $self->fill_maker->filler('rectilinear');
                 $filler->angle($Slic3r::Config->support_material_angle + 90);
                 foreach my $expolygon (@$islands) {
                     my @paths = $filler->fill_surface(

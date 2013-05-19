@@ -301,7 +301,7 @@ sub _fill_gaps {
     
     return unless $Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @$gaps;
     
-    my $filler = $self->layer->object->print->fill_maker->filler('rectilinear');
+    my $filler = $self->layer->object->fill_maker->filler('rectilinear');
     $filler->layer_id($self->layer->id);
     
     # we should probably use this code to handle thin walls and remove that logic from

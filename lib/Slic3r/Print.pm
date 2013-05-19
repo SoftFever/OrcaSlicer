@@ -21,7 +21,6 @@ has 'regions'                => (is => 'rw', default => sub {[]});
 has 'support_material_flow'  => (is => 'rw');
 has 'first_layer_support_material_flow' => (is => 'rw');
 has 'has_support_material'   => (is => 'lazy');
-has 'fill_maker'             => (is => 'lazy');
 
 # ordered collection of extrusion paths to build skirt loops
 has 'skirt' => (
@@ -80,11 +79,6 @@ sub _build_has_support_material {
     return $self->config->support_material
         || $self->config->raft_layers > 0
         || $self->config->support_material_enforce_layers > 0;
-}
-
-sub _build_fill_maker {
-    my $self = shift;
-    return Slic3r::Fill->new(print => $self);
 }
 
 # caller is responsible for supplying models whose objects don't collide
@@ -362,7 +356,6 @@ sub export_gcode {
     # this will generate extrusion paths for each layer
     $status_cb->(80, "Infilling layers");
     {
-        my $fill_maker = $self->fill_maker;
         Slic3r::parallelize(
             items => sub {
                 my @items = ();  # [obj_idx, layer_id]
@@ -379,10 +372,11 @@ sub export_gcode {
                 my $fills = {};
                 while (defined (my $obj_layer = $q->dequeue)) {
                     my ($obj_idx, $layer_id, $region_id) = @$obj_layer;
+                    my $object = $self->objects->[$obj_idx];
                     $fills->{$obj_idx} ||= {};
                     $fills->{$obj_idx}{$layer_id} ||= {};
                     $fills->{$obj_idx}{$layer_id}{$region_id} = [
-                        $fill_maker->make_fill($self->objects->[$obj_idx]->layers->[$layer_id]->regions->[$region_id]),
+                        $object->fill_maker->make_fill($object->layers->[$layer_id]->regions->[$region_id]),
                     ];
                 }
                 return $fills;
@@ -401,7 +395,7 @@ sub export_gcode {
             },
             no_threads_cb => sub {
                 foreach my $layerm (map @{$_->regions}, map @{$_->layers}, @{$self->objects}) {
-                    $layerm->fills([ $fill_maker->make_fill($layerm) ]);
+                    $layerm->fills([ $layerm->layer->object->fill_maker->make_fill($layerm) ]);
                 }
             },
         );
