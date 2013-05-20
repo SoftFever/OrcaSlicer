@@ -73,7 +73,7 @@ sub new {
     return $self;
 }
 
-sub do_slice {
+sub quick_slice {
     my $self = shift;
     my %params = @_;
     
