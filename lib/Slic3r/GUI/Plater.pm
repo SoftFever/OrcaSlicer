@@ -544,6 +544,11 @@ sub export_gcode {
     }
     
     $self->statusbar->StartBusy;
+    
+    # It looks like declaring a local $SIG{__WARN__} prevents the ugly
+    # "Attempt to free unreferenced scalar" warning...
+    local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
+    
     if ($Slic3r::have_threads) {
         @_ = ();
         $self->{export_thread} = threads->create(sub {
