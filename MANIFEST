@@ -78,6 +78,7 @@ t/retraction.t
 t/serialize.t
 t/shells.t
 t/slice.t
+t/skirt_brim.t
 t/support.t
 t/vibrationlimit.t
 utils/amf-to-stl.pl

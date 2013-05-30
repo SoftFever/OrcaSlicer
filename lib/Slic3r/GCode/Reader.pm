@@ -26,7 +26,7 @@ sub parse {
         my ($command, @args) = split /\s+/, $line;
         my %args = map { /([A-Z])(.*)/; ($1 => $2) } @args;
         
-        # check retraction
+        # check motion
         if ($command =~ /^G[01]$/) {
             foreach my $axis (@AXES) {
                 if (exists $args{$axis}) {

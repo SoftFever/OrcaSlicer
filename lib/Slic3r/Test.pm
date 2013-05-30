@@ -44,7 +44,9 @@ sub init_print {
     $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
     my $print = Slic3r::Print->new(config => $config);
-    $print->add_model(model($model_name));
+    
+    $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
+    $print->add_model(model($_)) for @$model_name;
     $print->validate;
     
     return $print;

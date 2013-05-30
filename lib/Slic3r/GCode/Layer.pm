@@ -9,7 +9,7 @@ has 'gcodegen'                      => (is => 'ro', required => 1);
 has 'shift'                         => (is => 'ro', required => 1);
 
 has 'spiralvase'                    => (is => 'lazy');
-has 'skirt_done'                    => (is => 'rw', default => sub {0});  # count of skirt layers done
+has 'skirt_done'                    => (is => 'rw', default => sub { {} });  # print_z => 1
 has 'brim_done'                     => (is => 'rw');
 has 'second_layer_things_done'      => (is => 'rw');
 has '_last_obj_copy'                => (is => 'rw');
@@ -48,10 +48,10 @@ sub process_layer {
     });
     
     # extrude skirt
-    if ($self->skirt_done < $Slic3r::Config->skirt_height) {
+    if ((values %{$self->skirt_done}) < $Slic3r::Config->skirt_height && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->set_extruder($self->extruders->[0]);  # move_z requires extruder
-        $gcode .= $self->gcodegen->move_z($self->gcodegen->layer->print_z);
+        $gcode .= $self->gcodegen->move_z($layer->print_z);
         # skip skirt if we have a large brim
         if ($layer->id < $Slic3r::Config->skirt_height) {
             # distribute skirt loops across all extruders
@@ -64,14 +64,14 @@ sub process_layer {
                 $gcode .= $self->gcodegen->extrude_loop($self->print->skirt->[$i], 'skirt');
             }
         }
-        $self->skirt_done($self->skirt_done + 1);
+        $self->skirt_done->{$layer->print_z} = 1;
         $self->gcodegen->straight_once(1);
     }
     
     # extrude brim
     if (!$self->brim_done) {
         $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);  # move_z requires extruder
-        $gcode .= $self->gcodegen->move_z($self->gcodegen->layer->print_z);
+        $gcode .= $self->gcodegen->move_z($layer->print_z);
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->extrude_loop($_, 'brim') for @{$self->print->brim};
         $self->brim_done(1);
