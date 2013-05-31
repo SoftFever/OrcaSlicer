@@ -1328,6 +1328,10 @@ sub validate {
         if $self->extruder_clearance_radius <= 0;
     die "Invalid value for --extruder-clearance-height\n"
         if $self->extruder_clearance_height <= 0;
+    
+    # --extrusion-multiplier
+    die "Invalid value for --extrusion-multiplier\n"
+        if defined first { $_ <= 0 } @{$self->extrusion_multiplier};
 }
 
 sub replace_options {
