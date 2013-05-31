@@ -794,7 +794,12 @@ sub write_gcode {
                             if $Slic3r::Config->first_layer_bed_temperature;
                         $print_first_layer_temperature->();
                     }
-                    print $fh $buffer->append($layer_gcode->process_layer($layer, [$copy]), $layer);
+                    print $fh $buffer->append(
+                        $layer_gcode->process_layer($layer, [$copy]),
+                        $layer->object."",
+                        $layer->id,
+                        $layer->print_z,
+                    );
                 }
                 print $fh $buffer->flush;
                 $finished_objects++;
@@ -807,7 +812,12 @@ sub write_gcode {
         );
         my @layers = sort { $a->print_z <=> $b->print_z } map @{$_->layers}, @{$self->objects};
         foreach my $layer (@layers) {
-            print $fh $buffer->append($layer_gcode->process_layer($layer, $layer->object->copies), $layer);
+            print $fh $buffer->append(
+                $layer_gcode->process_layer($layer, $layer->object->copies),
+                $layer->object."",
+                $layer->id,
+                $layer->print_z,
+            );
         }
         print $fh $buffer->flush;
     }

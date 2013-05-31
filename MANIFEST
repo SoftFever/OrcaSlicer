@@ -66,6 +66,7 @@ t/clean_polylines.t
 t/clipper.t
 t/collinear.t
 t/combineinfill.t
+t/cooling.t
 t/custom_gcode.t
 t/dynamic.t
 t/fill.t

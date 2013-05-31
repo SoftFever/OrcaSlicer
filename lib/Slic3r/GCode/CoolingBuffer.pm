@@ -6,7 +6,7 @@ has 'gcodegen'  => (is => 'ro', required => 1);
 has 'gcode'     => (is => 'rw', default => sub {""});
 has 'elapsed_time' => (is => 'rw', default => sub {0});
 has 'layer_id'  => (is => 'rw');
-has 'last_z'    => (is => 'rw');
+has 'last_z'    => (is => 'rw', default => sub { {} });  # obj_id => z (basically a 'last seen' table)
 has 'min_print_speed' => (is => 'lazy');
 
 sub _build_min_print_speed {
@@ -16,15 +16,17 @@ sub _build_min_print_speed {
 
 sub append {
     my $self = shift;
-    my ($gcode, $layer) = @_;
+    my ($gcode, $obj_id, $layer_id, $print_z) = @_;
+    
+    # TODO: differentiate $obj_id between normal layers and support layers
     
     my $return = "";
-    if (defined $self->last_z && $self->last_z != $layer->print_z) {
+    if (exists $self->last_z->{$obj_id} && $self->last_z->{$obj_id} != $print_z) {
         $return = $self->flush;
     }
     
-    $self->layer_id($layer->id);
-    $self->last_z($layer->print_z);
+    $self->layer_id($layer_id);
+    $self->last_z->{$obj_id} = $print_z;
     $self->gcode($self->gcode . $gcode);
     $self->elapsed_time($self->elapsed_time + $self->gcodegen->elapsed_time);
     $self->gcodegen->elapsed_time(0);
@@ -39,6 +41,7 @@ sub flush {
     my $elapsed = $self->elapsed_time;
     $self->gcode("");
     $self->elapsed_time(0);
+    $self->last_z({});  # reset the whole table otherwise we would compute overlapping times
     
     my $fan_speed = $self->config->fan_always_on ? $self->config->min_fan_speed : 0;
     my $speed_factor = 1;
