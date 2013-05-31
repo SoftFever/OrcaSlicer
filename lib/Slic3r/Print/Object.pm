@@ -313,6 +313,7 @@ sub make_perimeters {
                         [ offset([ map @$_, @$diff ], -$perimeter_spacing) ],
                         +$perimeter_spacing
                     ) ],
+                    1,
                 );
                 next if !@$diff;
                 # diff contains the collapsed area
