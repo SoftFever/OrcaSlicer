@@ -4,7 +4,8 @@ use Moo;
 use List::Util qw(min sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
-use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex);
+use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex
+    offset2 diff intersection);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -300,19 +301,16 @@ sub make_perimeters {
                 
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
-                my $diff = diff_ex(
+                my $diff = diff(
                     [ offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($Slic3r::Config->perimeters * $perimeter_spacing)) ],
                     [ offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap) ],
                 );
                 next if !@$diff;
                 # if we need more perimeters, $diff should contain a narrow region that we can collapse
                 
-                $diff = diff_ex(
-                    [ map @$_, @$diff ],
-                    [ offset(
-                        [ offset([ map @$_, @$diff ], -$perimeter_spacing) ],
-                        +$perimeter_spacing
-                    ) ],
+                $diff = diff(
+                    $diff,
+                    [ offset2($diff, -$perimeter_spacing, +$perimeter_spacing) ],
                     1,
                 );
                 next if !@$diff;
@@ -324,18 +322,14 @@ sub make_perimeters {
                         # compute polygons representing the thickness of the hypotetical new internal perimeter
                         # of our slice
                         $extra_perimeters++;
-                        my $hypothetical_perimeter = diff_ex(
+                        my $hypothetical_perimeter = diff(
                             [ offset($slice->expolygon, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters-1))) ],
                             [ offset($slice->expolygon, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters))) ],
                         );
                         last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
                         
                         # only add the perimeter if there's an intersection with the collapsed area
-                        my $intersection = intersection_ex(
-                            [ map @$_, @$diff ],
-                            [ map @$_, @$hypothetical_perimeter ],
-                        );
-                        last CYCLE if !@$intersection;
+                        last CYCLE if !@{ intersection($diff, $hypothetical_perimeter) };
                         Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
                         $slice->extra_perimeters($extra_perimeters);
                     }
