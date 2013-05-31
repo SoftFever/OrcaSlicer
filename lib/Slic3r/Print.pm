@@ -688,6 +688,7 @@ sub write_gcode {
     
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
+        config              => $self->config,
         multiple_extruders  => (@{$self->extruders} > 1),
         layer_count         => $self->layer_count,
     );
