@@ -718,7 +718,7 @@ sub make_model {
         }
         $new_model_object->scale($plater_object->scale);
         $new_model_object->add_instance(
-            rotation    => $plater_object->rotate,
+            rotation    => $plater_object->rotate,  # around center point
             offset      => [ @$_ ],
         ) for @{$plater_object->instances};
         $new_model_object->align_to_origin;
@@ -1128,7 +1128,6 @@ sub instances_count {
 sub make_thumbnail {
     my $self = shift;
     
-    my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
     my $mesh = $self->model_object->mesh;
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
     	expolygons => (@{$mesh->facets} <= 5000)

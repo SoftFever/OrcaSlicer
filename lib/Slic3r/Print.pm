@@ -122,7 +122,7 @@ sub add_model {
             
             # we ignore the per-instance rotation currently and only 
             # consider the first one
-            $mesh->rotate($object->instances->[0]->rotation);
+            $mesh->rotate($object->instances->[0]->rotation, $mesh->center);
             
             $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
         }

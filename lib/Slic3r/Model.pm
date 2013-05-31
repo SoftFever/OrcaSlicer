@@ -390,7 +390,7 @@ package Slic3r::Model::Instance;
 use Moo;
 
 has 'object'    => (is => 'ro', weak_ref => 1, required => 1);
-has 'rotation'  => (is => 'rw', default => sub { 0 });
+has 'rotation'  => (is => 'rw', default => sub { 0 });  # around mesh center point
 has 'offset'    => (is => 'rw');
 
 1;

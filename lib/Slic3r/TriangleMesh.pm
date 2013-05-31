@@ -324,14 +324,14 @@ sub make_loops {
 
 sub rotate {
     my $self = shift;
-    my ($deg) = @_;
+    my ($deg, $center) = @_;
     return if $deg == 0;
     
     my $rad = Slic3r::Geometry::deg2rad($deg);
     
     # transform vertex coordinates
     foreach my $vertex (@{$self->vertices}) {
-        @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
+        @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, $center, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
     }
 }
 
