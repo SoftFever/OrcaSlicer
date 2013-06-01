@@ -252,7 +252,9 @@ sub load_config {
     my ($config) = @_;
     
     foreach my $tab (values %{$self->{options_tabs}}) {
-        $tab->set_value($_, $config->$_) for keys %$config;
+        if ($self->{mode} eq 'expert') {
+            $tab->set_value($_, $config->$_) for keys %$config;
+        }
     }
 }
 
