@@ -476,7 +476,7 @@ sub split_object {
     my $model_object = $current_object->get_model_object;
     
     if (@{$model_object->volumes} > 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it contains more than one volume/material.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains more than one volume/material.");
         return;
     }
     
@@ -485,7 +485,7 @@ sub split_object {
     
     my @new_meshes = $mesh->split_mesh;
     if (@new_meshes == 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it already contains a single part.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
         return;
     }
     
