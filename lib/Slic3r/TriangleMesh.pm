@@ -398,14 +398,19 @@ sub duplicate {
     $self->BUILD;
 }
 
+sub used_vertices {
+    my $self = shift;
+    return [ map $self->vertices->[$_], map @$_, @{$self->facets} ];
+}
+
 sub extents {
     my $self = shift;
-    return Slic3r::Geometry::bounding_box_3D($self->vertices);
+    return Slic3r::Geometry::bounding_box_3D($self->used_vertices);
 }
 
 sub size {
     my $self = shift;
-    return Slic3r::Geometry::size_3D($self->vertices);
+    return Slic3r::Geometry::size_3D($self->used_vertices);
 }
 
 sub slice_facet {

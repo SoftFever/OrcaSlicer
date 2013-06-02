@@ -164,14 +164,19 @@ sub vertices {
     return [ map @{$_->vertices}, @{$self->objects} ];
 }
 
+sub used_vertices {
+    my $self = shift;
+    return [ map @{$_->used_vertices}, @{$self->objects} ];
+}
+
 sub size {
     my $self = shift;
-    return [ Slic3r::Geometry::size_3D($self->vertices) ];
+    return [ Slic3r::Geometry::size_3D($self->used_vertices) ];
 }
 
 sub extents {
     my $self = shift;
-    return Slic3r::Geometry::bounding_box_3D($self->vertices);
+    return Slic3r::Geometry::bounding_box_3D($self->used_vertices);
 }
 
 sub align_to_origin {
@@ -179,8 +184,17 @@ sub align_to_origin {
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
-    my @extents = $self->extents;
-    $self->move(map -$extents[$_][MIN], X,Y,Z);
+    {
+        my @extents = $self->extents;
+        $self->move(map -$extents[$_][MIN], X,Y,Z);
+    }
+    
+    # align all instances to 0,0 as well
+    {
+        my @instances = map @{$_->instances}, @{$self->objects};
+        my @extents = Slic3r::Geometry::bounding_box_3D([ map $_->offset, @instances ]);
+        $_->offset->translate(-$extents[X][MIN], -$extents[Y][MIN]) for @instances;
+    }
 }
 
 sub move {
@@ -260,7 +274,7 @@ package Slic3r::Model::Object;
 use Moo;
 
 use List::Util qw(first);
-use Slic3r::Geometry qw(X Y Z MIN move_points_3D);
+use Slic3r::Geometry qw(X Y Z MIN move_points move_points_3D);
 use Storable qw(dclone);
 
 has 'input_file' => (is => 'rw');
@@ -309,14 +323,19 @@ sub mesh {
     );
 }
 
+sub used_vertices {
+    my $self = shift;
+    return [ map $self->vertices->[$_], map @$_, map @{$_->facets}, @{$self->volumes} ];
+}
+
 sub size {
     my $self = shift;
-    return [ Slic3r::Geometry::size_3D($self->vertices) ];
+    return [ Slic3r::Geometry::size_3D($self->used_vertices) ];
 }
 
 sub extents {
     my $self = shift;
-    return Slic3r::Geometry::bounding_box_3D($self->vertices);
+    return Slic3r::Geometry::bounding_box_3D($self->used_vertices);
 }
 
 sub align_to_origin {
@@ -391,6 +410,6 @@ use Moo;
 
 has 'object'    => (is => 'ro', weak_ref => 1, required => 1);
 has 'rotation'  => (is => 'rw', default => sub { 0 });  # around mesh center point
-has 'offset'    => (is => 'rw');
+has 'offset'    => (is => 'rw');  # must be Slic3r::Point object
 
 1;

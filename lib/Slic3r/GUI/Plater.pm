@@ -719,11 +719,11 @@ sub make_model {
         $new_model_object->scale($plater_object->scale);
         $new_model_object->add_instance(
             rotation    => $plater_object->rotate,  # around center point
-            offset      => [ @$_ ],
+            offset      => Slic3r::Point->new($_),
         ) for @{$plater_object->instances};
-        $new_model_object->align_to_origin;
     }
     
+    $model->align_to_origin;
     return $model;
 }
 

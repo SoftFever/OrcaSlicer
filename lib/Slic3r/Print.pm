@@ -6,7 +6,7 @@ use File::Spec;
 use List::Util qw(max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN PI scale unscale move_points nearest_point);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points nearest_point);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset
     offset2 traverse_pt JT_ROUND JT_SQUARE PFT_EVENODD);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -116,8 +116,7 @@ sub add_model {
                 : $mesh;
         }
         
-        foreach my $mesh (@meshes) {
-            next unless $mesh;
+        foreach my $mesh (grep $_, @meshes) {
             $mesh->check_manifoldness;
             
             # we ignore the per-instance rotation currently and only 
@@ -127,12 +126,22 @@ sub add_model {
             $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
         }
         
+        # align the object to origin; not sure this is required by the toolpath generation
+        # algorithms, but it's good practice to avoid negative coordinates; it probably 
+        # provides also some better performance in infill generation
+        my @extents = Slic3r::Geometry::bounding_box_3D([ map @{$_->used_vertices}, grep $_, @meshes ]);
+        foreach my $mesh (grep $_, @meshes) {
+            $mesh->move(map -$extents[$_][MIN], X,Y,Z);
+        }
+        
         # initialize print object
         push @{$self->objects}, Slic3r::Print::Object->new(
             print       => $self,
             meshes      => [ @meshes ],
-            copies      => [ map [ scale $_->offset->[X], scale $_->offset->[Y] ], @{$object->instances} ],
-            size        => [ map scale $_, @{ $object->size } ],
+            copies      => [
+                map [ (scale $_->offset->[X]) + $extents[X][MIN], (scale $_->offset->[Y]) + $extents[Y][MIN] ], @{$object->instances},
+            ],
+            size        => [ map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z) ],
             input_file  => $object->input_file,
             layer_height_ranges => $object->layer_height_ranges,
         );
