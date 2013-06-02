@@ -93,6 +93,7 @@ The author of the Silk icon set is Mark James.
       GUI options:
         --no-plater         Disable the plater tab
         --gui-mode          Overrides the configured mode (simple/expert)
+        --autosave <file>   Automatically export current configuration to the specified file
     
       Output options:
         --output-filename-format

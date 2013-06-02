@@ -49,9 +49,12 @@ sub new {
             $self->{tabpanel},
             on_value_change     => sub {
                 $self->{plater}->on_config_change(@_) if $self->{plater}; # propagate config change events to the plater
-                if ($self->{mode} eq 'simple' && $init) {  # don't save while loading for the first time
-                    # save config
-                    $self->config->save("$Slic3r::GUI::datadir/simple.ini");
+                if ($init) {  # don't save while loading for the first time
+                    if ($self->{mode} eq 'simple') {
+                        # save config
+                        $self->config->save("$Slic3r::GUI::datadir/simple.ini");
+                    }
+                    $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave;
                 }
             },
             on_presets_changed  => sub {

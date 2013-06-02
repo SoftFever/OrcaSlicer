@@ -26,6 +26,7 @@ my %cli_options = ();
         
         'save=s'                => \$opt{save},
         'load=s@'               => \$opt{load},
+        'autosave=s'            => \$opt{autosave},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
         'no-plater'             => \$opt{no_plater},
         'gui-mode=s'            => \$opt{gui_mode},
@@ -78,6 +79,7 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
         $Slic3r::GUI::datadir   = $opt{datadir};
         $Slic3r::GUI::no_plater = $opt{no_plater};
         $Slic3r::GUI::mode      = $opt{gui_mode};
+        $Slic3r::GUI::autosave  = $opt{autosave};
     }
     $gui = Slic3r::GUI->new;
     $gui->{skeinpanel}->load_config_file($_) for @{$opt{load}};
@@ -152,6 +154,7 @@ $j
   GUI options:
     --no-plater         Disable the plater tab
     --gui-mode          Overrides the configured mode (simple/expert)
+    --autosave <file>   Automatically export current configuration to the specified file
 
   Output options:
     --output-filename-format

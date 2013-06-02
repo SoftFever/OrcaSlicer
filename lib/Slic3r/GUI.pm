@@ -45,6 +45,7 @@ use constant MI_DOCUMENTATION => &Wx::NewId;
 our $datadir;
 our $no_plater;
 our $mode;
+our $autosave;
 
 our $Settings = {
     _ => {
