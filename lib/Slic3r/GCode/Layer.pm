@@ -119,7 +119,8 @@ sub process_layer {
             
             my @islands = ();
             if ($Slic3r::Config->avoid_crossing_perimeters) {
-                push @islands, map +{ perimeters => [], fills => [] }, @{$layer->slices};
+                push @islands, { perimeters => [], fills => [] }
+                    for 1 .. (@{$layer->slices} || 1);  # make sure we have at least one island hash to avoid failure of the -1 subscript below
                 PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
                     my $p = $perimeter->unpack;
                     for my $i (0 .. $#{$layer->slices}-1) {
