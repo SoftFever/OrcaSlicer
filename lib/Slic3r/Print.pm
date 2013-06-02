@@ -121,7 +121,8 @@ sub add_model {
             
             # we ignore the per-instance rotation currently and only 
             # consider the first one
-            $mesh->rotate($object->instances->[0]->rotation, $mesh->center);
+            $mesh->rotate($object->instances->[0]->rotation, $mesh->center)
+                if @{ $object->instances // [] };
             
             $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
         }
@@ -139,7 +140,9 @@ sub add_model {
             print       => $self,
             meshes      => [ @meshes ],
             copies      => [
-                map [ (scale $_->offset->[X]) + $extents[X][MIN], (scale $_->offset->[Y]) + $extents[Y][MIN] ], @{$object->instances},
+                $object->instances
+                    ? (map [ (scale $_->offset->[X]) + $extents[X][MIN], (scale $_->offset->[Y]) + $extents[Y][MIN] ], @{$object->instances})
+                    : [0,0],
             ],
             size        => [ map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z) ],
             input_file  => $object->input_file,
