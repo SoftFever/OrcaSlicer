@@ -419,6 +419,8 @@ sub retract {
     # this makes sure we leave sufficient precision in the firmware
     $gcode .= $self->reset_e;
     
+    $gcode .= "M103 ; extruder off\n" if $self->config->gcode_flavor eq 'makerbot';
+    
     return $gcode;
 }
 
@@ -426,6 +428,7 @@ sub unretract {
     my $self = shift;
     
     my $gcode = "";
+    $gcode .= "M101 ; extruder on\n" if $self->config->gcode_flavor eq 'makerbot';
     
     if ($self->lifted) {
         $self->speed('travel');
