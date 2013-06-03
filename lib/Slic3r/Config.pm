@@ -596,7 +596,7 @@ our $Options = {
     },
     'only_retract_when_crossing_perimeters' => {
         label   => 'Only retract when crossing perimeters',
-        tooltip => 'Disables retraction when travelling between infill paths inside the same island.',
+        tooltip => 'Disables retraction when the travel path does not exceed the upper layer\'s perimeters (and thus any ooze will be probably invisible).',
         cli     => 'only-retract-when-crossing-perimeters!',
         type    => 'bool',
         default => 1,
