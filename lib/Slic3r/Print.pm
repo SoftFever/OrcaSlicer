@@ -732,12 +732,10 @@ sub write_gcode {
     print  $fh "G90 ; use absolute coordinates\n" if $Slic3r::Config->gcode_flavor ne 'makerbot';
     if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
         printf $fh $gcodegen->reset_e;
-        if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|teacup|makerbot|sailfish)$/) {
-            if ($Slic3r::Config->use_relative_e_distances) {
-                print $fh "M83 ; use relative distances for extrusion\n";
-            } else {
-                print $fh "M82 ; use absolute distances for extrusion\n";
-            }
+        if ($Slic3r::Config->use_relative_e_distances) {
+            print $fh "M83 ; use relative distances for extrusion\n";
+        } else {
+            print $fh "M82 ; use absolute distances for extrusion\n";
         }
     }
     
