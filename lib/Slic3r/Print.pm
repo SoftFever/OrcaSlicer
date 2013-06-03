@@ -6,7 +6,8 @@ use File::Spec;
 use List::Util qw(max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points nearest_point);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points
+    nearest_point chained_path);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset
     offset2 traverse_pt JT_ROUND JT_SQUARE PFT_EVENODD);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -823,18 +824,32 @@ sub write_gcode {
             }
         }
     } else {
+        # order objects using a nearest neighbor search
+        my @obj_idx = chained_path([ map $_->copies->[0], @{$self->objects} ]);
+        
+        # sort layers by Z
+        my %layers = ();  # print_z => [ layer, layer, layer ]  by obj_idx
+        foreach my $obj_idx (0 .. $#{$self->objects}) {
+            foreach my $layer (@{$self->objects->[$obj_idx]->layers}) {
+                $layers{ $layer->print_z } ||= [];
+                $layers{ $layer->print_z }[$obj_idx] = $layer;  # turn this into [$layer] when merging support layers
+            }
+        }
+        
         my $buffer = Slic3r::GCode::CoolingBuffer->new(
             config      => $Slic3r::Config,
             gcodegen    => $gcodegen,
         );
-        my @layers = sort { $a->print_z <=> $b->print_z } map @{$_->layers}, @{$self->objects};
-        foreach my $layer (@layers) {
-            print $fh $buffer->append(
-                $layer_gcode->process_layer($layer, $layer->object->copies),
-                $layer->object."",
-                $layer->id,
-                $layer->print_z,
-            );
+        foreach my $print_z (sort { $a <=> $b } keys %layers) {
+            foreach my $obj_idx (@obj_idx) {
+                next unless my $layer = $layers{$print_z}[$obj_idx];
+                print $fh $buffer->append(
+                    $layer_gcode->process_layer($layer, $layer->object->copies),
+                    $layer->object."",
+                    $layer->id,
+                    $layer->print_z,
+                );
+            }
         }
         print $fh $buffer->flush;
     }
