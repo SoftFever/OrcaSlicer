@@ -59,6 +59,7 @@ sub upper_layer_slices {
     
     my $upper_layer = $self->object->layers->[ $self->id + 1 ] or return [];
     return $upper_layer->slices;
+}
 
 sub region {
     my $self = shift;
