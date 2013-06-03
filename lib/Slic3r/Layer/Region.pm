@@ -247,7 +247,7 @@ sub make_perimeters {
         )};
         
         my @loops = ();
-        foreach my $polynode (@$polynodes) {
+        foreach my $polynode (@nodes) {
             push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
 
             my $role = EXTR_ROLE_PERIMETER;
