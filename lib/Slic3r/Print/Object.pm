@@ -11,7 +11,7 @@ use Slic3r::Surface ':types';
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'input_file'        => (is => 'rw', required => 0);
 has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
-has 'size'              => (is => 'rw', required => 1);
+has 'size'              => (is => 'rw', required => 1); # XYZ in scaled coordinates
 has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]

@@ -783,7 +783,7 @@ sub write_gcode {
         
         # print objects from the smallest to the tallest to avoid collisions
         # when moving onto next object starting point
-        my @obj_idx = sort { $self->objects->[$a]->layer_count <=> $self->objects->[$b]->layer_count } 0..$#{$self->objects};
+        my @obj_idx = sort { $self->objects->[$a]->size->[Z] <=> $self->objects->[$b]->size->[Z] } 0..$#{$self->objects};
         
         my $finished_objects = 0;
         for my $obj_idx (@obj_idx) {
