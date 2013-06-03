@@ -14,6 +14,7 @@ has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
 
 has 'bridge_flow'               => (is => 'lazy');
+has 'e'                         => (is => 'rw', default => sub {0} );
 has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');

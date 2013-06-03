@@ -22,7 +22,6 @@ has 'layer_mp'           => (is => 'rw');
 has 'new_object'         => (is => 'rw', default => sub {0});
 has 'straight_once'      => (is => 'rw', default => sub {1});
 has 'extruder'           => (is => 'rw');
-has 'extrusion_distance' => (is => 'rw', default => sub {0} );
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
 has 'lifted'             => (is => 'rw', default => sub {0} );
@@ -418,7 +417,7 @@ sub retract {
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
-    $gcode .= $self->reset_e if $self->config->gcode_flavor !~ /^(?:mach3|makerbot)$/;
+    $gcode .= $self->reset_e;
     
     return $gcode;
 }
@@ -447,8 +446,9 @@ sub unretract {
 
 sub reset_e {
     my $self = shift;
+    return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerbot)$/;
     
-    $self->extrusion_distance(0);
+    $self->extruder->e(0) if $self->extruder;
     return sprintf "G92 %s0%s\n", $self->config->extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '')
         if $self->config->extrusion_axis && !$self->config->use_relative_e_distances;
 }
@@ -545,10 +545,10 @@ sub _Gx {
     
     # output extrusion distance
     if ($e && $self->config->extrusion_axis) {
-        $self->extrusion_distance(0) if $self->config->use_relative_e_distances;
-        $self->extrusion_distance($self->extrusion_distance + $e);
+        $self->extruder->e(0) if $self->config->use_relative_e_distances;
+        $self->extruder->e($self->extruder->e + $e);
         $self->total_extrusion_length($self->total_extrusion_length + $e);
-        $gcode .= sprintf " %s%.5f", $self->config->extrusion_axis, $self->extrusion_distance;
+        $gcode .= sprintf " %s%.5f", $self->config->extrusion_axis, $self->extruder->e;
     }
     
     $gcode .= sprintf " ; %s", $comment if $comment && $self->config->gcode_comments;
