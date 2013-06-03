@@ -322,6 +322,13 @@ sub export_gcode {
     $status_cb->(10, "Processing triangulated mesh");
     $_->slice for @{$self->objects};
     
+    # remove empty layers and abort if there are no more
+    # as some algorithms assume all objects have at least one layer
+    # note: this will change object indexes
+    @{$self->objects} = grep @{$_->layers}, @{$self->objects};
+    die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
+        if !@{$self->objects};
+    
     if ($Slic3r::Config->resolution) {
         $status_cb->(15, "Simplifying input");
         $self->_simplify_slices(scale $Slic3r::Config->resolution);

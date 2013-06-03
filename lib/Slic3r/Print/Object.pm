@@ -190,7 +190,6 @@ sub slice {
     
     # remove last layer(s) if empty
     pop @{$self->layers} while @{$self->layers} && (!map @{$_->lines}, @{$self->layers->[-1]->regions});
-    die "Invalid or too thin input file: no layers could be generated\n" if !@{$self->layers};
     
     foreach my $layer (@{ $self->layers }) {
         # make sure all layers contain layer region objects for all regions
@@ -277,9 +276,6 @@ sub slice {
             $self->layers->[$i]->id($i);
         }
     }
-    
-    warn "No layers were detected. You might want to repair your STL file and retry.\n"
-        if !@{$self->layers};
 }
 
 sub make_perimeters {
