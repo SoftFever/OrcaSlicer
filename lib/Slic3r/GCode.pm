@@ -588,18 +588,16 @@ sub set_extruder {
     
     # set the new extruder
     $self->extruder($extruder);
-    my $toolchange_gcode = sprintf "%s%d%s\n", 
-        ($self->config->gcode_flavor =~ /^(?:makerbot|sailfish)$/ ? 'M108 T' : 'T'),
+    $gcode .= sprintf "%s%d%s\n", 
+        ($self->config->gcode_flavor eq 'makerbot'
+            ? 'M135 T'
+            : $self->config->gcode_flavor eq 'sailfish'
+                ? 'M108 T'
+                : 'T'),
         $extruder->id,
         ($self->config->gcode_comments ? ' ; change extruder' : '');
     
-    if ($self->config->gcode_flavor =~ /^(?:makerbot|sailfish)$/) {
-        $gcode .= $self->reset_e;
-        $gcode .= $toolchange_gcode;
-    } else {
-        $gcode .= $toolchange_gcode;
-        $gcode .= $self->reset_e;
-    }
+    $gcode .= $self->reset_e;
     
     return $gcode;
 }
