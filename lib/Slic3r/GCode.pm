@@ -283,7 +283,7 @@ sub travel_to {
     $travel->translate(-$self->shift_x, -$self->shift_y);
     
     if ($travel->length < scale $self->extruder->retract_before_travel
-        || ($self->config->only_retract_when_crossing_perimeters && first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices})
+        || ($self->config->only_retract_when_crossing_perimeters && first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
         || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
         ) {
         $self->straight_once(0);
@@ -326,7 +326,7 @@ sub _plan {
     my $need_retract = !$self->config->only_retract_when_crossing_perimeters;
     if (!$need_retract) {
         $need_retract = 1;
-        foreach my $slice (@{$self->layer->slices}) {
+        foreach my $slice (@{$self->layer->upper_layer_slices}) {
             # discard the island if at any line is not enclosed in it
             next if first { !$slice->encloses_line($_, scaled_epsilon) } @travel;
             # okay, this island encloses the full travel path
