@@ -439,7 +439,8 @@ sub unretract {
     my $to_unretract = $self->extruder->retracted + $self->extruder->restart_extra;
     if ($to_unretract) {
         $self->speed('retract');
-        $gcode .= $self->G0(undef, undef, $to_unretract, "compensate retraction");
+        # use G1 instead of G0 because G0 will blend the restart with the previous travel move
+        $gcode .= $self->G1(undef, undef, $to_unretract, "compensate retraction");
         $self->extruder->retracted(0);
         $self->extruder->restart_extra(0);
     }
