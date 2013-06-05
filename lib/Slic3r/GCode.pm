@@ -339,7 +339,8 @@ sub _plan {
     
     # append the actual path and return
     $self->speed('travel');
-    $gcode .= join '', map $self->G0($_->[B], undef, 0, $comment || ""), @travel;
+    # use G1 because we rely on paths being straight (G0 may make round paths)
+    $gcode .= join '', map $self->G1($_->[B], undef, 0, $comment || ""), @travel;
     return $gcode;
 }
 
