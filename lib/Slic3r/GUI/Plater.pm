@@ -717,6 +717,7 @@ sub make_model {
             $model->set_material($volume->material_id || 0, {});
         }
         $new_model_object->scale($plater_object->scale);
+        $new_model_object->align_to_origin;
         $new_model_object->add_instance(
             rotation    => $plater_object->rotate,  # around center point
             offset      => Slic3r::Point->new($_),
