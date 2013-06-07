@@ -253,6 +253,7 @@ sub warning_catcher {
     my ($self, $message_dialog) = @_;
     return sub {
         my $message = shift;
+        return if $message =~ /GLUquadricObjPtr|Attempt to free unreferenced scalar/;
         my @params = ($message, 'Warning', wxOK | wxICON_WARNING);
         $message_dialog
             ? $message_dialog->(@params)

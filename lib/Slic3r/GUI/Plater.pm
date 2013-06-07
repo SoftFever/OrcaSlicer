@@ -159,6 +159,7 @@ sub new {
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
+        return if !$self->{objects}[$obj_idx];  # object was deleted before thumbnail generation completed
         $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
         $self->on_thumbnail_made($obj_idx);
     });
