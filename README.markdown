@@ -7,7 +7,7 @@ A: Yes.
 ## What's it?
 
 Slic3r is a G-code generator for 3D printers. It's compatible with RepRaps,
-Makerbots, Ultimakers and many more machines.
+makerwares, Ultimakers and many more machines.
 
 See the [project homepage](http://slic3r.org/) at slic3r.org and the
 [documentation](https://github.com/alexrj/Slic3r/wiki/Documentation) on the Slic3r wiki for more information.
@@ -112,7 +112,7 @@ The author of the Silk icon set is Mark James.
                             (default: 100,100)
         --z-offset          Additional height in mm to add to vertical coordinates
                             (+/-, default: 0)
-        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/sailfish/mach3/no-extrusion,
+        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerware/sailfish/mach3/no-extrusion,
                             default: reprap)
         --use-relative-e-distances Enable this to get relative E values
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported

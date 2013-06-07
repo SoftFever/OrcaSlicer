@@ -714,7 +714,7 @@ sub write_gcode {
         multiple_extruders  => (@{$self->extruders} > 1),
         layer_count         => $self->layer_count,
     );
-    print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerbot';
+    print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
     # write start commands to file
@@ -732,7 +732,7 @@ sub write_gcode {
         printf $fh $gcodegen->set_temperature($self->extruders->[$t]->first_layer_temperature, 1, $t)
             if $self->extruders->[$t]->first_layer_temperature && $Slic3r::Config->start_gcode !~ /M(?:109|104)/i;
     }
-    print  $fh "G90 ; use absolute coordinates\n" if $Slic3r::Config->gcode_flavor ne 'makerbot';
+    print  $fh "G90 ; use absolute coordinates\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
     if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
         printf $fh $gcodegen->reset_e;
         if ($Slic3r::Config->use_relative_e_distances) {

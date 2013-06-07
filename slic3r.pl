@@ -173,7 +173,7 @@ $j
                         (default: $config->{print_center}->[0],$config->{print_center}->[1])
     --z-offset          Additional height in mm to add to vertical coordinates
                         (+/-, default: $config->{z_offset})
-    --gcode-flavor      The type of G-code to generate (reprap/teacup/makerbot/sailfish/mach3/no-extrusion,
+    --gcode-flavor      The type of G-code to generate (reprap/teacup/makerware/sailfish/mach3/no-extrusion,
                         default: $config->{gcode_flavor})
     --use-relative-e-distances Enable this to get relative E values
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
