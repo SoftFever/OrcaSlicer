@@ -51,6 +51,8 @@ use Slic3r::GCode::MotionPlanner;
 use Slic3r::GCode::Reader;
 use Slic3r::GCode::SpiralVase;
 use Slic3r::Geometry qw(PI);
+use Slic3r::Geometry::BoundingBox;
+use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
 use Slic3r::Layer::Region;
 use Slic3r::Line;

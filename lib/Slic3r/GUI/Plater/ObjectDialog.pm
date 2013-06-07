@@ -78,7 +78,7 @@ sub get_properties {
 	my $object = $self->{object};
 	return [
 		['Name'			=> $object->name],
-		['Size'			=> sprintf "%.2f x %.2f x %.2f", @{$object->size}],
+		['Size'			=> sprintf "%.2f x %.2f x %.2f", @{$object->transformed_size}],
 		['Facets'		=> $object->facets],
 		['Vertices'		=> $object->vertices],
 		['Materials' 	=> $object->materials],

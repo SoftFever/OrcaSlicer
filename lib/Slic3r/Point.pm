@@ -35,6 +35,13 @@ sub distance_to {
     return Slic3r::Geometry::distance_between_points($self, $point);
 }
 
+sub scale {
+    my $self = shift;
+    my ($factor) = @_;
+    $_ *= $factor for @$self;
+    $self;
+}
+
 sub rotate {
     my $self = shift;
     my ($angle, $center) = @_;

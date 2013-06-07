@@ -452,7 +452,7 @@ sub arrange {
     my $total_parts = sum(map $_->instances_count, @{$self->{objects}}) or return;
     my @size = ();
     for my $a (X,Y) {
-        $size[$a] = max(map $_->size->[$a], @{$self->{objects}});
+        $size[$a] = max(map $_->transformed_size->[$a], @{$self->{objects}});
     }
     
     eval {
@@ -769,10 +769,9 @@ sub recenter {
     my @print_bb = Slic3r::Geometry::bounding_box([
         map {
             my $obj = $_;
-            map {
-                my $instance = $_;
-                $instance, [ map $instance->[$_] + $obj->size->[$_], X,Y ];
-            } @{$obj->instances};
+            my $bb = $obj->transformed_bounding_box;
+            my @points = ($bb->min_point, $bb->max_point);
+            map Slic3r::Geometry::move_points($_, @points), @{$obj->instances};
         } @{$self->{objects}},
     ]);
     $self->{shift} = [
@@ -867,9 +866,12 @@ sub repaint {
         next unless $object->thumbnail && @{$object->thumbnail->expolygons};
         for my $instance_idx (0 .. $#{$object->instances}) {
             my $instance = $object->instances->[$instance_idx];
-            push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $object->thumbnail->clone ];
-            $_->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y))
-            	for @{$parent->{object_previews}->[-1][2]->expolygons};
+            
+            my $thumbnail = $object->thumbnail
+                ->clone
+                ->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
+            
+            push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $thumbnail ];
             
             my $drag_object = $self->{drag_object};
             if (defined $drag_object && $obj_idx == $drag_object->[0] && $instance_idx == $drag_object->[1]) {
@@ -1065,15 +1067,15 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z);
+use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
 has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
-has 'size'                  => (is => 'rw');
+has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
 has 'scale'                 => (is => 'rw', default => sub { 1 });
-has 'rotate'                => (is => 'rw', default => sub { 0 });
+has 'rotate'                => (is => 'rw', default => sub { 0 }); # around object center point
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
 has 'thumbnail'             => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw');
@@ -1088,8 +1090,9 @@ has 'is_manifold'           => (is => 'rw');
 sub _trigger_model_object {
     my $self = shift;
     if ($self->model_object) {
+        $self->model_object->align_to_origin;
     	my $mesh = $self->model_object->mesh;
-	    $self->size([$mesh->size]);
+	    $self->bounding_box($mesh->bounding_box);
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
 	    $self->materials($self->model_object->materials_count);
@@ -1131,22 +1134,22 @@ sub make_thumbnail {
     my $self = shift;
     
     my $mesh = $self->model_object->mesh;
+    $mesh->align_to_origin;
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
     	expolygons => (@{$mesh->facets} <= 5000)
     		? $mesh->horizontal_projection
     		: [ Slic3r::ExPolygon->new(convex_hull($mesh->vertices)) ],
     );
-    for (map @$_, map @$_, @{$thumbnail->expolygons}) {
-        @$_ = map $_ * $self->thumbnail_scaling_factor, @$_;
-    }
+    $thumbnail->scale($self->thumbnail_scaling_factor);
+    
     # only simplify expolygons larger than the threshold
-    @{$thumbnail->expolygons} = map { ($_->area >= 1) ? $_->simplify(0.5) : $_ } @{$thumbnail->expolygons};
-    foreach my $expolygon (@{$thumbnail->expolygons}) {
-    	$expolygon->rotate(Slic3r::Geometry::deg2rad($self->rotate));
-    	$expolygon->scale($self->scale);
-    }
-    @{$thumbnail->expolygons} = grep @$_, @{$thumbnail->expolygons};
-    $thumbnail->align_to_origin;
+    @{$thumbnail->expolygons} = grep @$_,
+        map { ($_->area >= 1) ? $_->simplify(0.5) : $_ }
+        @{$thumbnail->expolygons};
+    
+    $thumbnail->rotate(deg2rad($self->rotate));  # TODO: around center
+    $thumbnail->scale($self->scale);
+    
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
@@ -1158,10 +1161,8 @@ sub set_rotation {
     my ($angle) = @_;
     
     if ($self->thumbnail) {
-        $self->thumbnail->rotate(Slic3r::Geometry::deg2rad($angle - $self->rotate));
-        $self->thumbnail->align_to_origin;
-        my $z_size = $self->size->[Z];
-        $self->size([ (map $_ / $self->thumbnail_scaling_factor, @{$self->thumbnail->size}), $z_size ]);
+        # rotate around object centerpoint
+        $self->thumbnail->rotate(deg2rad($angle - $self->rotate), $self->bounding_box->center_2D->clone->scale($self->thumbnail_scaling_factor));
     }
     $self->rotate($angle);
 }
@@ -1170,14 +1171,25 @@ sub set_scale {
     my $self = shift;
     my ($scale) = @_;
     
-    my $factor = $scale / $self->scale;
-    return if $factor == 1;
-    $self->size->[$_] *= $factor for X,Y,Z;
     if ($self->thumbnail) {
-	    $_->scale($factor) for @{$self->thumbnail->expolygons};
-		$self->thumbnail->align_to_origin;
+	    $self->thumbnail->scale($scale / $self->scale);
     }
     $self->scale($scale);
+}
+
+# bounding box with applied rotation and scaling
+sub transformed_bounding_box {
+    my $self = shift;
+    
+    return $self->bounding_box
+        ->clone
+        ->rotate(deg2rad($self->rotate), $self->bounding_box->center)
+        ->scale($self->scale);
+}
+
+sub transformed_size {
+    my $self = shift;
+    return $self->transformed_bounding_box->size;
 }
 
 1;

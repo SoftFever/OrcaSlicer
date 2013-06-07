@@ -408,6 +408,11 @@ sub extents {
     return Slic3r::Geometry::bounding_box_3D($self->used_vertices);
 }
 
+sub bounding_box {
+    my $self = shift;
+    return Slic3r::Geometry::BoundingBox->new(extents => [ $self->extents ]);
+}
+
 sub size {
     my $self = shift;
     return Slic3r::Geometry::size_3D($self->used_vertices);

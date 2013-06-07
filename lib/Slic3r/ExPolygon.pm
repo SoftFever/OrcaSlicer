@@ -335,11 +335,25 @@ sub align_to_origin {
     
     my @bb = Slic3r::Geometry::bounding_box([ map @$_, map @$_, @{$self->expolygons} ]);
     $_->translate(-$bb[X1], -$bb[Y1]) for @{$self->expolygons};
+    $self;
+}
+
+sub scale {
+    my $self = shift;
+    $_->scale(@_) for @{$self->expolygons};
+    $self;
 }
 
 sub rotate {
     my $self = shift;
     $_->rotate(@_) for @{$self->expolygons};
+    $self;
+}
+
+sub translate {
+    my $self = shift;
+    $_->translate(@_) for @{$self->expolygons};
+    $self;
 }
 
 sub size {
