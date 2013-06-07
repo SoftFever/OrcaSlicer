@@ -81,6 +81,7 @@ t/shells.t
 t/slice.t
 t/skirt_brim.t
 t/support.t
+t/svg.t
 t/vibrationlimit.t
 utils/amf-to-stl.pl
 utils/file_info.pl

@@ -488,13 +488,15 @@ sub export_svg {
     $self->init_extruders;
     
     $_->slice for @{$self->objects};
-    $self->arrange_objects;
     
-    my $output_file = $self->expanded_output_filepath($params{output_file});
-    $output_file =~ s/\.gcode$/.svg/i;
+    my $fh = $params{output_fh};
+    if ($params{output_file}) {
+        my $output_file = $self->expanded_output_filepath($params{output_file});
+        $output_file =~ s/\.gcode$/.svg/i;
+        Slic3r::open(\$fh, ">", $output_file) or die "Failed to open $output_file for writing\n";
+        print "Exporting to $output_file..." unless $params{quiet};
+    }
     
-    Slic3r::open(\my $fh, ">", $output_file) or die "Failed to open $output_file for writing\n";
-    print "Exporting to $output_file...";
     my $print_size = $self->size;
     print $fh sprintf <<"EOF", unscale($print_size->[X]), unscale($print_size->[Y]);
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -563,7 +565,7 @@ EOF
     
     print $fh "</svg>\n";
     close $fh;
-    print "Done.\n";
+    print "Done.\n" unless $params{quiet};
 }
 
 sub make_skirt {
