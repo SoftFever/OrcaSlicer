@@ -7,6 +7,26 @@ has 'extents' => (is => 'ro', required => 1);
 
 sub clone { Storable::dclone($_[0]) }
 
+# 2D
+sub new_from_points {
+    my $class = shift;
+    my ($points) = @_;
+    
+    my $bb = [ Slic3r::Geometry::bounding_box($points) ];
+    return $class->new(extents => [
+        [ $bb->[X1], $bb->[X2] ],
+        [ $bb->[Y1], $bb->[Y2] ],
+    ]);
+}
+
+# 3D
+sub new_from_points_3D {
+    my $class = shift;
+    my ($points) = @_;
+    
+    return $class->new(extents => [ Slic3r::Geometry::bounding_box_3D($points) ]);
+}
+
 # four-arguments 2D bb
 sub bb {
     my $self = shift;
@@ -39,9 +59,9 @@ sub scale {
     my $self = shift;
     my ($factor) = @_;
     
-    $_ *= $factor
-        for map @$_[MIN,MAX],
-            grep $_, @{$self->extents}[X,Y,Z];
+    for (@{$self->extents}) {
+        $_ *= $factor for @$_[MIN,MAX];
+    }
     
     $self;
 }
