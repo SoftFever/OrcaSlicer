@@ -326,7 +326,7 @@ sub load_file {
 		$object->check_manifoldness;
         
         # we only consider the rotation of the first instance for now
-        $object->set_rotation($model->objects->[$i]->instances->[0]->rotation)
+        $object->rotate($model->objects->[$i]->instances->[0]->rotation)
             if $model->objects->[$i]->instances;
         
         push @{ $self->{objects} }, $object;
@@ -427,7 +427,7 @@ sub rotate {
         return if !$angle || $angle == -1;
     }
     
-    $object->set_rotation($object->rotate + $angle);
+    $object->rotate($object->rotate + $angle);
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -437,12 +437,15 @@ sub changescale {
     
     my ($obj_idx, $object) = $self->selected_object;
     
+    # we need thumbnail to be computed before allowing scaling
+    return if !$object->thumbnail;
+    
     # max scale factor should be above 2540 to allow importing files exported in inches
     my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $object->scale*100, 0, 100000, $self);
     return if !$scale || $scale == -1;
     
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
-    $object->set_scale($scale / 100);
+    $object->scale($scale / 100);
     $self->arrange;
 }
 
@@ -867,7 +870,7 @@ sub repaint {
         for my $instance_idx (0 .. $#{$object->instances}) {
             my $instance = $object->instances->[$instance_idx];
             
-            my $thumbnail = $object->thumbnail
+            my $thumbnail = $object->transformed_thumbnail
                 ->clone
                 ->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
             
@@ -1074,10 +1077,11 @@ has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
 has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
 has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
-has 'scale'                 => (is => 'rw', default => sub { 1 });
-has 'rotate'                => (is => 'rw', default => sub { 0 }); # around object center point
+has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => 1);
+has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => 1); # around object center point
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
-has 'thumbnail'             => (is => 'rw');
+has 'thumbnail'             => (is => 'rw', trigger => 1);
+has 'transformed_thumbnail' => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw');
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
@@ -1097,6 +1101,21 @@ sub _trigger_model_object {
 	    $self->vertices(scalar @{$mesh->vertices});
 	    $self->materials($self->model_object->materials_count);
 	}
+}
+
+sub _trigger_scale {
+    my $self = shift;
+    $self->_transform_thumbnail;
+}
+
+sub _trigger_rotate {
+    my $self = shift;
+    $self->_transform_thumbnail;
+}
+
+sub _trigger_thumbnail {
+    my $self = shift;
+    $self->_transform_thumbnail;
 }
 
 sub check_manifoldness {
@@ -1147,34 +1166,23 @@ sub make_thumbnail {
         map { ($_->area >= 1) ? $_->simplify(0.5) : $_ }
         @{$thumbnail->expolygons};
     
-    $thumbnail->rotate(deg2rad($self->rotate));  # TODO: around center
-    $thumbnail->scale($self->scale);
-    
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
     return $thumbnail;
 }
 
-sub set_rotation {
+sub _transform_thumbnail {
     my $self = shift;
-    my ($angle) = @_;
     
-    if ($self->thumbnail) {
-        # rotate around object centerpoint
-        $self->thumbnail->rotate(deg2rad($angle - $self->rotate), $self->bounding_box->center_2D->clone->scale($self->thumbnail_scaling_factor));
-    }
-    $self->rotate($angle);
-}
-
-sub set_scale {
-    my $self = shift;
-    my ($scale) = @_;
+    # the order of these transformations MUST be the same everywhere, including
+    # in Slic3r::Print->add_model()
+    my $t = $self->thumbnail
+        ->clone
+        ->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D->clone->scale($self->thumbnail_scaling_factor))
+        ->scale($self->scale);
     
-    if ($self->thumbnail) {
-	    $self->thumbnail->scale($scale / $self->scale);
-    }
-    $self->scale($scale);
+    $self->transformed_thumbnail($t);
 }
 
 # bounding box with applied rotation and scaling
@@ -1183,7 +1191,7 @@ sub transformed_bounding_box {
     
     return $self->bounding_box
         ->clone
-        ->rotate(deg2rad($self->rotate), $self->bounding_box->center)
+        ->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D)
         ->scale($self->scale);
 }
 

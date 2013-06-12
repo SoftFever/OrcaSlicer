@@ -120,6 +120,9 @@ sub add_model {
         foreach my $mesh (grep $_, @meshes) {
             $mesh->check_manifoldness;
             
+            # the order of these transformations must be the same as the one used in plater
+            # to make the object positioning consistent with the visual preview
+            
             # we ignore the per-instance rotation currently and only 
             # consider the first one
             $mesh->rotate($object->instances->[0]->rotation, $mesh->center)
