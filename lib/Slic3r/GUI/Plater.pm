@@ -704,11 +704,6 @@ sub make_model {
     foreach my $plater_object (@{$self->{objects}}) {
         my $model_object = $plater_object->get_model_object;
         
-        # if we need to alter the mesh, clone it first
-        if ($plater_object->scale != 1) {
-            $model_object = $model_object->clone;
-        }
-        
         my $new_model_object = $model->add_object(
             vertices    => $model_object->vertices,
             input_file  => $plater_object->input_file,
@@ -721,10 +716,10 @@ sub make_model {
             );
             $model->set_material($volume->material_id || 0, {});
         }
-        $new_model_object->scale($plater_object->scale);
         $new_model_object->align_to_origin;
         $new_model_object->add_instance(
             rotation    => $plater_object->rotate,  # around center point
+            scaling_factor => $plater_object->scale,
             offset      => Slic3r::Point->new($_),
         ) for @{$plater_object->instances};
     }
@@ -778,9 +773,12 @@ sub recenter {
             map Slic3r::Geometry::move_points($_, @points), @{$obj->instances};
         } @{$self->{objects}},
     ]);
+    
+    # $self->{shift} contains the offset in pixels to add to object instances in order to center them
+    # it is expressed in upwards Y
     $self->{shift} = [
-        ($self->{canvas}->GetSize->GetWidth  - $self->to_pixel($print_bb[X2] + $print_bb[X1])) / 2,
-        ($self->{canvas}->GetSize->GetHeight - $self->to_pixel($print_bb[Y2] + $print_bb[Y1])) / 2,
+        $self->to_pixel(-$print_bb[X1]) + ($self->{canvas}->GetSize->GetWidth  - $self->to_pixel($print_bb[X2] - $print_bb[X1])) / 2,
+        $self->to_pixel(-$print_bb[Y1]) + ($self->{canvas}->GetSize->GetHeight - $self->to_pixel($print_bb[Y2] - $print_bb[Y1])) / 2,
     ];
 }
 
@@ -814,10 +812,8 @@ sub _update_bed_size {
     
     # supposing the preview canvas is square, calculate the scaling factor
     # to constrain print bed area inside preview
-    my $bed_size = $self->{config}->bed_size;
-    my $canvas_side = CANVAS_SIZE->[X];  # when the canvas is not rendered yet, its GetSize() method returns 0,0
-    my $bed_largest_side = $bed_size->[X] > $bed_size->[Y] ? $bed_size->[X] : $bed_size->[Y];
-    $self->{scaling_factor} = $canvas_side / $bed_largest_side;
+    # when the canvas is not rendered yet, its GetSize() method returns 0,0
+    $self->{scaling_factor} = CANVAS_SIZE->[X] / max(@{ $self->{config}->bed_size });
     $_->change_thumbnail_scaling_factor($self->{scaling_factor}) for @{ $self->{objects} };
     $self->recenter;
 }
@@ -949,7 +945,6 @@ sub mouse_event {
             my ($obj_idx, $instance_idx, $thumbnail) = @$preview;
             my $instance = $parent->{objects}[$obj_idx]->instances->[$instance_idx];
             $instance->[$_] = $parent->to_units($pos->[$_] - $self->{drag_start_pos}[$_] - $parent->{shift}[$_]) for X,Y;
-            $instance = $parent->_y([$instance])->[0];
             $parent->Refresh;
         }
     } elsif ($event->Moving) {
@@ -1098,10 +1093,12 @@ sub _trigger_model_object {
     my $self = shift;
     if ($self->model_object) {
         $self->model_object->align_to_origin;
+	    $self->bounding_box($self->model_object->bounding_box);
+	    
     	my $mesh = $self->model_object->mesh;
-	    $self->bounding_box($mesh->bounding_box);
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
+	    
 	    $self->materials($self->model_object->materials_count);
 	}
 }
@@ -1140,8 +1137,7 @@ sub instances_count {
 sub make_thumbnail {
     my $self = shift;
     
-    my $mesh = $self->model_object->mesh;
-    $mesh->align_to_origin;
+    my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
     	expolygons => (@{$mesh->facets} <= 5000)
     		? $mesh->horizontal_projection

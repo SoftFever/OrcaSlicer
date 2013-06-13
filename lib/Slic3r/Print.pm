@@ -106,6 +106,8 @@ sub add_model {
     $model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
     foreach my $object (@{ $model->objects }) {
+        my @align = $object->align_to_origin;
+        
         # extract meshes by material
         my @meshes = ();  # by region_id
         foreach my $volume (@{$object->volumes}) {
@@ -123,21 +125,18 @@ sub add_model {
             # the order of these transformations must be the same as the one used in plater
             # to make the object positioning consistent with the visual preview
             
-            # we ignore the per-instance rotation currently and only 
+            # we ignore the per-instance transformations currently and only 
             # consider the first one
-            $mesh->rotate($object->instances->[0]->rotation, $mesh->center)
-                if @{ $object->instances // [] };
+            if ($object->instances && @{$object->instances}) {
+                $mesh->rotate($object->instances->[0]->rotation, $object->center);
+                $mesh->scale($object->instances->[0]->scaling_factor);
+            }
             
             $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
         }
         
-        # align the object to origin; not sure this is required by the toolpath generation
-        # algorithms, but it's good practice to avoid negative coordinates; it probably 
-        # provides also some better performance in infill generation
-        my @extents = Slic3r::Geometry::bounding_box_3D([ map @{$_->used_vertices}, grep $_, @meshes ]);
-        foreach my $mesh (grep $_, @meshes) {
-            $mesh->move(map -$extents[$_][MIN], X,Y,Z);
-        }
+        # calculate transformed size
+        my $size = [ Slic3r::Geometry::size_3D([ map @{$_->used_vertices}, grep $_, @meshes ]) ];
         
         # initialize print object
         push @{$self->objects}, Slic3r::Print::Object->new(
@@ -145,10 +144,10 @@ sub add_model {
             meshes      => [ @meshes ],
             copies      => [
                 $object->instances
-                    ? (map [ (scale $_->offset->[X]) + $extents[X][MIN], (scale $_->offset->[Y]) + $extents[Y][MIN] ], @{$object->instances})
+                    ? (map [ scale($_->offset->[X] - $align[X]), scale($_->offset->[Y] - $align[Y]) ], @{$object->instances})
                     : [0,0],
             ],
-            size        => [ map $extents[$_][MAX] - $extents[$_][MIN], (X,Y,Z) ],
+            size        => $size,
             input_file  => $object->input_file,
             layer_height_ranges => $object->layer_height_ranges,
         );
