@@ -425,6 +425,7 @@ sub rotate {
     if (!defined $angle) {
         $angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate", $object->rotate, -364, 364, $self);
         return if !$angle || $angle == -1;
+        $angle = 0 - $angle;  # rotate clockwise (be consistent with button icon)
     }
     
     $object->rotate($object->rotate + $angle);
