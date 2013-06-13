@@ -818,6 +818,8 @@ sub _update_bed_size {
     my $canvas_side = CANVAS_SIZE->[X];  # when the canvas is not rendered yet, its GetSize() method returns 0,0
     my $bed_largest_side = $bed_size->[X] > $bed_size->[Y] ? $bed_size->[X] : $bed_size->[Y];
     $self->{scaling_factor} = $canvas_side / $bed_largest_side;
+    $_->change_thumbnail_scaling_factor($self->{scaling_factor}) for @{ $self->{objects} };
+    $self->recenter;
 }
 
 # this is called on the canvas
@@ -1078,10 +1080,10 @@ has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
 has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
 has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
-has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => 1);
-has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => 1); # around object center point
+has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => \&_transform_thumbnail);
+has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => \&_transform_thumbnail); # around object center point
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
-has 'thumbnail'             => (is => 'rw', trigger => 1);
+has 'thumbnail'             => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'transformed_thumbnail' => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw');
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
@@ -1102,21 +1104,6 @@ sub _trigger_model_object {
 	    $self->vertices(scalar @{$mesh->vertices});
 	    $self->materials($self->model_object->materials_count);
 	}
-}
-
-sub _trigger_scale {
-    my $self = shift;
-    $self->_transform_thumbnail;
-}
-
-sub _trigger_rotate {
-    my $self = shift;
-    $self->_transform_thumbnail;
-}
-
-sub _trigger_thumbnail {
-    my $self = shift;
-    $self->_transform_thumbnail;
 }
 
 sub check_manifoldness {
@@ -1199,6 +1186,16 @@ sub transformed_bounding_box {
 sub transformed_size {
     my $self = shift;
     return $self->transformed_bounding_box->size;
+}
+
+sub change_thumbnail_scaling_factor {
+    my $self = shift;
+    my ($new_factor) = @_;
+    
+    return unless $self->thumbnail;
+    $self->thumbnail->scale($new_factor / $self->thumbnail_scaling_factor);
+    $self->transformed_thumbnail->scale($new_factor / $self->thumbnail_scaling_factor);
+    $self->thumbnail_scaling_factor($new_factor);
 }
 
 1;
