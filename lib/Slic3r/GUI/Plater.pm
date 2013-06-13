@@ -1194,8 +1194,8 @@ sub change_thumbnail_scaling_factor {
     
     return unless $self->thumbnail;
     $self->thumbnail->scale($new_factor / $self->thumbnail_scaling_factor);
-    $self->transformed_thumbnail->scale($new_factor / $self->thumbnail_scaling_factor);
     $self->thumbnail_scaling_factor($new_factor);
+    $self->_transform_thumbnail;
 }
 
 1;
