@@ -814,7 +814,7 @@ sub _update_bed_size {
     # to constrain print bed area inside preview
     # when the canvas is not rendered yet, its GetSize() method returns 0,0
     $self->{scaling_factor} = CANVAS_SIZE->[X] / max(@{ $self->{config}->bed_size });
-    $_->change_thumbnail_scaling_factor($self->{scaling_factor}) for @{ $self->{objects} };
+    $_->thumbnail_scaling_factor($self->{scaling_factor}) for @{ $self->{objects} };
     $self->recenter;
 }
 
@@ -1080,7 +1080,7 @@ has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => \&_
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
 has 'thumbnail'             => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'transformed_thumbnail' => (is => 'rw');
-has 'thumbnail_scaling_factor' => (is => 'rw');
+has 'thumbnail_scaling_factor' => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
 # statistics
@@ -1143,7 +1143,6 @@ sub make_thumbnail {
     		? $mesh->horizontal_projection
     		: [ Slic3r::ExPolygon->new(convex_hull($mesh->vertices)) ],
     );
-    $thumbnail->scale($self->thumbnail_scaling_factor);
     
     # only simplify expolygons larger than the threshold
     @{$thumbnail->expolygons} = grep @$_,
@@ -1159,12 +1158,9 @@ sub make_thumbnail {
 sub _transform_thumbnail {
     my $self = shift;
     
-    # the order of these transformations MUST be the same everywhere, including
-    # in Slic3r::Print->add_model()
-    my $t = $self->thumbnail
-        ->clone
-        ->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D->clone->scale($self->thumbnail_scaling_factor))
-        ->scale($self->scale);
+    return unless $self->thumbnail;
+    my $t = $self->_apply_transform($self->thumbnail);
+    $t->scale($self->thumbnail_scaling_factor);
     
     $self->transformed_thumbnail($t);
 }
@@ -1172,8 +1168,16 @@ sub _transform_thumbnail {
 # bounding box with applied rotation and scaling
 sub transformed_bounding_box {
     my $self = shift;
+    return $self->_apply_transform($self->bounding_box);
+}
+
+sub _apply_transform {
+    my $self = shift;
+    my ($entity) = @_;    # can be anything that implements ->clone(), ->rotate() and ->scale()
     
-    return $self->bounding_box
+    # the order of these transformations MUST be the same everywhere, including
+    # in Slic3r::Print->add_model()
+    return $entity
         ->clone
         ->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D)
         ->scale($self->scale);
@@ -1182,16 +1186,6 @@ sub transformed_bounding_box {
 sub transformed_size {
     my $self = shift;
     return $self->transformed_bounding_box->size;
-}
-
-sub change_thumbnail_scaling_factor {
-    my $self = shift;
-    my ($new_factor) = @_;
-    
-    return unless $self->thumbnail;
-    $self->thumbnail->scale($new_factor / $self->thumbnail_scaling_factor);
-    $self->thumbnail_scaling_factor($new_factor);
-    $self->_transform_thumbnail;
 }
 
 1;
