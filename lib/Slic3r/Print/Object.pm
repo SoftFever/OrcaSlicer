@@ -597,7 +597,8 @@ sub discover_horizontal_shells {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
             
-            if ($Slic3r::Config->solid_infill_every_layers && ($i % $Slic3r::Config->solid_infill_every_layers) == 0) {
+            if ($Slic3r::Config->solid_infill_every_layers && $Slic3r::Config->fill_density > 0
+                && ($i % $Slic3r::Config->solid_infill_every_layers) == 0) {
                 $_->surface_type(S_TYPE_INTERNALSOLID)
                     for grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
             }
