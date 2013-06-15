@@ -1067,7 +1067,7 @@ sub OnDropFiles {
 package Slic3r::GUI::Plater::Object;
 use Moo;
 
-use Math::ConvexHull::MonotoneChain qw(convex_hull);
+use Math::ConvexHull::MonotoneChain qw();
 use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 
 has 'name'                  => (is => 'rw', required => 1);
@@ -1075,6 +1075,7 @@ has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
 has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
 has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
+has 'convex_hull'           => (is => 'rw');  # 2D convex hull of original object (aligned to origin) with no rotation or scaling
 has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => \&_transform_thumbnail);
 has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => \&_transform_thumbnail); # around object center point
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
@@ -1138,10 +1139,11 @@ sub make_thumbnail {
     my $self = shift;
     
     my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
+    $self->convex_hull(Slic3r::Polygon->new(Math::ConvexHull::MonotoneChain::convex_hull($mesh->vertices)));
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
     	expolygons => (@{$mesh->facets} <= 5000)
     		? $mesh->horizontal_projection
-    		: [ Slic3r::ExPolygon->new(convex_hull($mesh->vertices)) ],
+    		: [ Slic3r::ExPolygon->new($self->convex_hull) ],
     );
     
     # only simplify expolygons larger than the threshold
@@ -1168,7 +1170,10 @@ sub _transform_thumbnail {
 # bounding box with applied rotation and scaling
 sub transformed_bounding_box {
     my $self = shift;
-    return $self->_apply_transform($self->bounding_box);
+    
+    my $bb = Slic3r::Geometry::BoundingBox->new_from_points($self->_apply_transform($self->convex_hull));
+    $bb->extents->[Z] = $self->bounding_box->clone->extents->[Z];
+    return $bb;
 }
 
 sub _apply_transform {

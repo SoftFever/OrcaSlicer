@@ -39,20 +39,9 @@ sub polygon {
     return Slic3r::Polygon->new_from_bounding_box($self->bb);
 }
 
+# note to $self
 sub rotate {
-    my $self = shift;
-    my ($angle, $center) = @_;
-    
-    # rotate the 2D bounding box polygon and leave Z unaltered
-    my $bb_p = $self->polygon;
-    $bb_p->rotate($angle, $center);
-    my @bb = $bb_p->bounding_box;
-    $self->extents->[X][MIN] = $bb[X1];
-    $self->extents->[Y][MIN] = $bb[Y1];
-    $self->extents->[X][MAX] = $bb[X2];
-    $self->extents->[Y][MAX] = $bb[Y2];
-    
-    $self;
+    die "Rotating an axis-aligned bounding box doesn't make any sense";
 }
 
 sub scale {

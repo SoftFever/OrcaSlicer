@@ -156,11 +156,12 @@ sub translate {
 sub scale {
     my $self = shift;
     my ($factor) = @_;
-    return if $factor == 1;
     
     # transform point coordinates
-    foreach my $point (@$self) {
-        $point->[$_] *= $factor for X,Y;
+    if ($factor != 1) {
+        foreach my $point (@$self) {
+            $point->[$_] *= $factor for X,Y;
+        }
     }
     return $self;
 }
