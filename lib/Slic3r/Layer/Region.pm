@@ -361,7 +361,7 @@ sub _fill_gaps {
                 
                 push @{ $self->thin_fills },
                     map {
-                        $_->polyline->simplify($flow->scaled_width / 3);
+                        $_->simplify($flow->scaled_width/3);
                         $_->pack;
                     }
                     map Slic3r::ExtrusionPath->new(
