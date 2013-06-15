@@ -1097,6 +1097,7 @@ sub _trigger_model_object {
 	    $self->bounding_box($self->model_object->bounding_box);
 	    
     	my $mesh = $self->model_object->mesh;
+        $self->convex_hull(Slic3r::Polygon->new(Math::ConvexHull::MonotoneChain::convex_hull($mesh->used_vertices)));
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
 	    
@@ -1139,7 +1140,6 @@ sub make_thumbnail {
     my $self = shift;
     
     my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
-    $self->convex_hull(Slic3r::Polygon->new(Math::ConvexHull::MonotoneChain::convex_hull($mesh->vertices)));
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
     	expolygons => (@{$mesh->facets} <= 5000)
     		? $mesh->horizontal_projection
