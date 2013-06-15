@@ -16,7 +16,7 @@ my %cuboids = (
 );
 
 sub model {
-    my ($model_name) = @_;
+    my ($model_name, %params) = @_;
     
     my ($vertices, $facets);
     if ($cuboids{$model_name}) {
@@ -32,7 +32,10 @@ sub model {
     my $model = Slic3r::Model->new;
     my $object = $model->add_object(vertices => $vertices);
     $object->add_volume(facets => $facets);
-    $object->add_instance(offset => [0,0]);
+    $object->add_instance(
+        offset      => [0,0],
+        rotation    => $params{rotation},
+    );
     return $model;
 }
 
@@ -46,7 +49,7 @@ sub init_print {
     my $print = Slic3r::Print->new(config => $config);
     
     $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
-    $print->add_model(model($_)) for @$model_name;
+    $print->add_model(model($_, %params)) for @$model_name;
     $print->validate;
     
     return $print;

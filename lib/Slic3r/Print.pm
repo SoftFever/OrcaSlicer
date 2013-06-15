@@ -106,6 +106,7 @@ sub add_model {
     $model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
     foreach my $object (@{ $model->objects }) {
+        # we align object to origin before applying transformations
         my @align = $object->align_to_origin;
         
         # extract meshes by material
@@ -135,8 +136,11 @@ sub add_model {
             $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
         }
         
-        # calculate transformed size
-        my $size = [ Slic3r::Geometry::size_3D([ map @{$_->used_vertices}, grep $_, @meshes ]) ];
+        # we also align object after transformations so that we only work with positive coordinates
+        # and the assumption that bounding_box === size works
+        my $bb = Slic3r::Geometry::BoundingBox->new_from_points_3D([ map @{$_->used_vertices}, grep $_, @meshes ]);
+        my @align2 = map -$bb->extents->[$_][MIN], (X,Y,Z);
+        $_->move(@align2) for grep $_, @meshes;
         
         # initialize print object
         push @{$self->objects}, Slic3r::Print::Object->new(
@@ -144,10 +148,10 @@ sub add_model {
             meshes      => [ @meshes ],
             copies      => [
                 $object->instances
-                    ? (map [ scale($_->offset->[X] - $align[X]), scale($_->offset->[Y] - $align[Y]) ], @{$object->instances})
+                    ? (map [ scale($_->offset->[X] - $align[X]) - $align2[X], scale($_->offset->[Y] - $align[Y]) - $align2[Y] ], @{$object->instances})
                     : [0,0],
             ],
-            size        => $size,
+            size        => $bb->size,  # transformed size
             input_file  => $object->input_file,
             layer_height_ranges => $object->layer_height_ranges,
         );

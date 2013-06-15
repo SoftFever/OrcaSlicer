@@ -76,6 +76,7 @@ t/geometry.t
 t/layers.t
 t/loops.t
 t/polyclip.t
+t/print.t
 t/retraction.t
 t/serialize.t
 t/shells.t
