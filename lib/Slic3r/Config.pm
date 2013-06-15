@@ -1141,7 +1141,7 @@ sub set {
     my ($opt_key, $value, $deserialize) = @_;
     
     # handle legacy options
-    return if $opt_key ~~ @Ignore;
+    return if first { $_ eq $opt_key } @Ignore;
     if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
         $opt_key = $1;
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
@@ -1420,7 +1420,7 @@ sub read_ini {
     
     my $ini = { _ => {} };
     my $category = '_';
-    while (my $_ = <$fh>) {
+    while (<$fh>) {
         s/\R+$//;
         next if /^\s+/;
         next if /^$/;

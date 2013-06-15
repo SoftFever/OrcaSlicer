@@ -53,7 +53,7 @@ sub _read_ascii {
     my $facet;
     my %vertices_map = ();
     seek $fh, 0, 0;
-    while (my $_ = <$fh>) {
+    while (<$fh>) {
         if (!$facet) {
             /^\s*facet\s+normal\s+/ or next;
             $facet = [];  # ignore normal
@@ -88,7 +88,7 @@ sub _read_binary {
     my %vertices_map = ();
     binmode $fh;
     seek $fh, 80 + 4, 0;
-    while (read $fh, my $_, 4*4*3+2) {
+    while (read $fh, $_, 4*4*3+2) {
         push @$facets, my $facet = [];
         for (unpack 'x[f3](a[f3])3') {  # ignore normal
             my $vertex_idx;

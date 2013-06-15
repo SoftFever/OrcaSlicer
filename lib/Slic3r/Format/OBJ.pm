@@ -8,7 +8,7 @@ sub read_file {
     Slic3r::open(\my $fh, '<', $file) or die "Failed to open $file\n";
     my $vertices = [];
     my $facets = [];
-    while (my $_ = <$fh>) {
+    while (<$fh>) {
         if (/^v ([^ ]+)\s+([^ ]+)\s+([^ ]+)/) {
             push @$vertices, [$1, $2, $3];
         } elsif (/^f (\d+).*? (\d+).*? (\d+).*?/) {
