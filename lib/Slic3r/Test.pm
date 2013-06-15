@@ -34,7 +34,7 @@ sub model {
     $object->add_volume(facets => $facets);
     $object->add_instance(
         offset      => [0,0],
-        rotation    => $params{rotation},
+        rotation    => $params{rotation} // 0,
     );
     return $model;
 }
