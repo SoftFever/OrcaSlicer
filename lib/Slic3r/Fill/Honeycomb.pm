@@ -79,13 +79,14 @@ sub fill_surface {
         $self->cache->{$cache_id} = [@polygons];
     }
     
-    # build polylines from polygons without re-appending the initial point:
+    # consider polygons as polylines without re-appending the initial point:
     # this cuts the last segment on purpose, so that the jump to the next 
     # path is more straight
-    my @paths = map Slic3r::Polyline->new(@$_), map @$_, @{intersection_ex(
-        $self->cache->{$cache_id},
-        $expolygon,
-    )};
+    my @paths = map Slic3r::Polyline->new($_),
+        @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
+            $expolygon,
+            $self->cache->{$cache_id},
+        ) };
     
     return { flow_spacing => $params{flow_spacing} },
         Slic3r::Polyline::Collection->new(polylines => \@paths)->chained_path;
