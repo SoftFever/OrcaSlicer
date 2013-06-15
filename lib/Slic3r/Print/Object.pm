@@ -383,7 +383,6 @@ sub detect_surfaces_type {
             1,
         );
         return map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type),
-            grep $_->is_printable($layerm->perimeter_flow->scaled_width),
             @$expolygons;
     };
     
