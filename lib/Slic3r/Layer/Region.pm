@@ -315,8 +315,12 @@ sub _fill_gaps {
         1,
     )};
     
+    # medial axis-based gap fill should benefit from detection of larger gaps too, so 
+    # we could try with 1.5*$w for example, but that doesn't work well for zigzag fill
+    # because it tends to create very sparse points along the gap when the infill direction
+    # is not parallel to the gap (1.5*$w thus may only work well with a straight line)
     my $w = $self->perimeter_flow->width;
-    my @widths = (1.5 * $w, $w, 0.4 * $w);  # worth trying 0.2 too?
+    my @widths = ($w, 0.4 * $w);  # worth trying 0.2 too?
     foreach my $width (@widths) {
         my $flow = $self->perimeter_flow->clone(width => $width);
         
