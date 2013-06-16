@@ -267,8 +267,9 @@ sub make_perimeters {
             }
             
             if ($self->id > 0) {
+                # A perimeter is considered overhang if its centerline exceeds the lower layer slices
                 my $is_overhang = $is_contour
-                    ? @{diff([$polygon], [ @lower_slices, offset([$polygon], -$self->perimeter_flow->scaled_width) ])}
+                    ? @{diff([$polygon], \@lower_slices)}
                     : !@{intersection([$polygon], \@lower_slices)};
                 
                 $role = EXTR_ROLE_OVERHANG_PERIMETER if $is_overhang;
