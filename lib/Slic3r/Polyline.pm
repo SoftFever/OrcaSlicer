@@ -123,7 +123,7 @@ sub clip_with_expolygon {
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::bounding_box($self);
+    return Slic3r::Geometry::BoundingBox->new_from_points($self);
 }
 
 sub size {
@@ -133,8 +133,8 @@ sub size {
 
 sub align_to_origin {
     my $self = shift;
-    my @bb = $self->bounding_box;
-    return $self->translate(-$bb[X1], -$bb[Y1]);
+    my $bb = $self->bounding_box;
+    return $self->translate(-$bb->x_min, -$bb->y_min);
 }
 
 sub rotate {

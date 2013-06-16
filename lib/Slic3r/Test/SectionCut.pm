@@ -15,9 +15,9 @@ has 'height' => (is => 'rw');
 sub _build_line {
     my $self = shift;
     
-    my @bb = $self->print->bounding_box;
-    my $y = ($bb[Y2]-$bb[Y1]) * $self->y_percent;
-    return [ [ $bb[X1], $y ], [ $bb[X2], $y ] ]
+    my $bb = $self->print->bounding_box;
+    my $y = $bb->size->[Y] * $self->y_percent;
+    return [ [ $bb->x_min, $y ], [ $bb->x_max, $y ] ]
 }
 
 sub export_svg {

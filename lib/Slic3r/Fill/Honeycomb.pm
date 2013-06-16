@@ -5,7 +5,7 @@ extends 'Slic3r::Fill::Base';
 
 has 'cache'         => (is => 'rw', default => sub {{}});
 
-use Slic3r::Geometry qw(PI X1 Y1 X2 Y2 X Y scale);
+use Slic3r::Geometry qw(PI X Y MIN MAX scale);
 use Slic3r::Geometry::Clipper qw(intersection_ex);
 
 sub angles () { [0, PI/3, PI/3*2] }
@@ -39,28 +39,28 @@ sub fill_surface {
         # adjust actual bounding box to the nearest multiple of our hex pattern
         # and align it so that it matches across layers
         
-        my $bounding_box = [ @{$self->bounding_box} ];  # clone
-        $bounding_box->[$_] = 0 for X1, Y1;
+        my $bounding_box = $self->bounding_box->clone;
+        $bounding_box->extents->[$_][MIN] = 0 for X, Y;
         {
-            my $bb_polygon = Slic3r::Polygon->new_from_bounding_box($bounding_box);
+            my $bb_polygon = $bounding_box->polygon;
             $bb_polygon->scale(sqrt 2);
             $bb_polygon->rotate($rotate_vector->[0][0], $hex_center);
-            $bounding_box = [ Slic3r::Geometry::bounding_box($bb_polygon) ];
-            # $bounding_box->[X1] and [Y1] represent the displacement between new bounding box offset and old one
-            $bounding_box->[X1] -= $bounding_box->[X1] % $hex_width;
-            $bounding_box->[Y1] -= $bounding_box->[Y1] % $pattern_height;
+            $bounding_box = $bb_polygon->bounding_box;
+            # $bounding_box->y_min and $bounding_box->y_max represent the displacement between new bounding box offset and old one
+            $bounding_box->extents->[X][MIN] -= $bounding_box->x_min % $hex_width;
+            $bounding_box->extents->[Y][MAX] -= $bounding_box->y_min % $pattern_height;
         }
         
         my @polygons = ();
-        my $x = $bounding_box->[X1];
-        while ($x <= $bounding_box->[X2]) {
+        my $x = $bounding_box->x_min;
+        while ($x <= $bounding_box->x_max) {
             my $p = [];
             
             my @x = ($x + $x_offset, $x + $distance - $x_offset);
             for (1..2) {
                 @$p = reverse @$p; # turn first half upside down
                 my @p = ();
-                for (my $y = $bounding_box->[Y1]; $y <= $bounding_box->[Y2]; $y += $y_short + $hex_side + $y_short + $hex_side) {
+                for (my $y = $bounding_box->x_min; $y <= $bounding_box->y_max; $y += $y_short + $hex_side + $y_short + $hex_side) {
                     push @$p,
                         [ $x[1], $y + $y_offset ],
                         [ $x[0], $y + $y_short - $y_offset ],

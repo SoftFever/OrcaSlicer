@@ -5,7 +5,7 @@ extends 'Slic3r::Fill::Base';
 
 has 'cache'         => (is => 'rw', default => sub {{}});
 
-use Slic3r::Geometry qw(X1 Y1 X2 Y2 A B X Y scale unscale scaled_epsilon);
+use Slic3r::Geometry qw(A B X Y scale unscale scaled_epsilon);
 
 sub fill_surface {
     my $self = shift;
@@ -32,26 +32,26 @@ sub fill_surface {
         # compute bounding box
         my $bounding_box;
         {
-            my $bb_polygon = Slic3r::Polygon->new_from_bounding_box($self->bounding_box);
+            my $bb_polygon = $self->bounding_box->polygon;
             $bb_polygon->scale(sqrt 2);
             $self->rotate_points($bb_polygon, $rotate_vector);
-            $bounding_box = [ $bb_polygon->bounding_box ];
+            $bounding_box = $bb_polygon->bounding_box;
         }
         
         # define flow spacing according to requested density
         if ($params{density} == 1 && !$params{dont_adjust}) {
             $distance_between_lines = $self->adjust_solid_spacing(
-                width       => $bounding_box->[X2] - $bounding_box->[X1],
+                width       => $bounding_box->size->[X],
                 distance    => $distance_between_lines,
             );
             $flow_spacing = unscale $distance_between_lines;
         }
         
         # generate the basic pattern
-        my $x = $bounding_box->[X1];
+        my $x = $bounding_box->x_min;
         my @vertical_lines = ();
-        for (my $i = 0; $x <= $bounding_box->[X2] + scaled_epsilon; $i++) {
-            my $vertical_line = Slic3r::Line->new([$x, $bounding_box->[Y2]], [$x, $bounding_box->[Y1]]);
+        for (my $i = 0; $x <= $bounding_box->x_max + scaled_epsilon; $i++) {
+            my $vertical_line = Slic3r::Line->new([$x, $bounding_box->y_max], [$x, $bounding_box->y_min]);
             if ($is_line_pattern && $i % 2) {
                 $vertical_line->[A][X] += $line_oscillation;
                 $vertical_line->[B][X] -= $line_oscillation;

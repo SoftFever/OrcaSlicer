@@ -142,18 +142,7 @@ sub point_on_segment {
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::bounding_box($self->contour);
-}
-
-sub bounding_box_polygon {
-    my $self = shift;
-    my @bb = $self->bounding_box;
-    return Slic3r::Polygon->new([
-        [ $bb[0], $bb[1] ],
-        [ $bb[2], $bb[1] ],
-        [ $bb[2], $bb[3] ],
-        [ $bb[0], $bb[3] ],
-    ]);
+    return $self->contour->bounding_box;
 }
 
 sub clip_line {

@@ -36,7 +36,14 @@ sub bb {
 
 sub polygon {
     my $self = shift;
-    return Slic3r::Polygon->new_from_bounding_box($self->bb);
+    
+    my $e = $self->extents;
+    return Slic3r::Polygon->new([
+        [ $e->[X][MIN], $e->[Y][MIN] ],
+        [ $e->[X][MAX], $e->[Y][MIN] ],
+        [ $e->[X][MAX], $e->[Y][MAX] ],
+        [ $e->[X][MIN], $e->[Y][MAX] ],
+    ]);
 }
 
 # note to $self
@@ -82,6 +89,26 @@ sub min_point {
 sub max_point {
     my $self = shift;
     return Slic3r::Point->new($self->extents->[X][MAX], $self->extents->[Y][MAX]);
+}
+
+sub x_min {
+    my $self = shift;
+    return $self->extents->[X][MIN];
+}
+
+sub x_max {
+    my $self = shift;
+    return $self->extents->[X][MAX];
+}
+
+sub y_min {
+    my $self = shift;
+    return $self->extents->[Y][MIN];
+}
+
+sub y_max {
+    my $self = shift;
+    return $self->extents->[Y][MAX];
 }
 
 1;

@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(scale unscale X1 X2);
+use Slic3r::Geometry qw(scale unscale X);
 use Slic3r::Geometry::Clipper qw(offset2 union_pt traverse_pt PFT_EVENODD);
 
 sub fill_surface {
@@ -13,7 +13,7 @@ sub fill_surface {
     # no rotation is supported for this infill pattern
     
     my $expolygon = $surface->expolygon;
-    my $bounding_box = [ $expolygon->bounding_box ];
+    my $bounding_box = $expolygon->bounding_box;
     
     my $min_spacing = scale $params{flow_spacing};
     my $distance = $min_spacing / $params{density};
@@ -21,7 +21,7 @@ sub fill_surface {
     my $flow_spacing = $params{flow_spacing};
     if ($params{density} == 1 && !$params{dont_adjust}) {
         $distance = $self->adjust_solid_spacing(
-            width       => $bounding_box->[X2] - $bounding_box->[X1],
+            width       => $bounding_box->size->[X],
             distance    => $distance,
         );
         $flow_spacing = unscale $distance;

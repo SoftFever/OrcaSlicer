@@ -54,23 +54,19 @@ my %opt = (
     });
     
     # calculate print extents
-    my @bounding_box = Slic3r::Geometry::bounding_box([ map @$_, map @$_, values %paths ]);
-    my @size = (
-        ($bounding_box[X2] - $bounding_box[X1]),
-        ($bounding_box[Y2] - $bounding_box[Y1]),
-    );
+    my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, values %paths ]);
     
     # calculate section line
-    my $section_y = ($bounding_box[Y2] + $bounding_box[Y1]) / 2;
+    my $section_y = $bounding_box->center->[Y];
     my $section_line = [
-        [ $bounding_box[X1], $section_y ],
-        [ $bounding_box[X2], $section_y ],
+        [ $bounding_box->x_min, $section_y ],
+        [ $bounding_box->x_max, $section_y ],
     ];
     
     # initialize output
     my $max_z = max(keys %paths);
     my $svg = SVG->new(
-        width  => $opt{scale} * $size[X],
+        width  => $opt{scale} * $bounding_box->size->[X],
         height => $opt{scale} * $max_z,
     );
     
@@ -90,7 +86,7 @@ my %opt = (
             ) };
             
             $g->rectangle(
-                'x'         => $opt{scale} * ($_->[A][X] - $bounding_box[X1]),
+                'x'         => $opt{scale} * ($_->[A][X] - $bounding_box->x_min),
                 'y'         => $opt{scale} * ($max_z - $z),
                 'width'     => $opt{scale} * abs($_->[B][X] - $_->[A][X]),
                 'height'    => $opt{scale} * $opt{layer_height},

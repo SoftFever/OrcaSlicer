@@ -21,7 +21,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     $print->init_extruders;
     my $filler = Slic3r::Fill::Rectilinear->new(
         print           => $print,
-        bounding_box    => [ 0, 0, 10, 10 ],
+        bounding_box    => Slic3r::Geometry::BoundingBox->new_from_points([ [0, 0], [10, 10] ]),
     );
     my $surface_width = 250;
     my $distance = $filler->adjust_solid_spacing(
@@ -35,7 +35,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 {
     my $expolygon = Slic3r::ExPolygon->new([ scale_points [0,0], [50,0], [50,50], [0,50] ]);
     my $filler = Slic3r::Fill::Rectilinear->new(
-        bounding_box => [ $expolygon->bounding_box ],
+        bounding_box => $expolygon->bounding_box,
     );
     my $surface = Slic3r::Surface->new(
         surface_type    => S_TYPE_TOP,

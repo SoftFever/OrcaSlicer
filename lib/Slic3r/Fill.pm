@@ -40,7 +40,7 @@ sub filler {
     }
     
     $self->fillers->{$filler} ||= $FillTypes{$filler}->new(
-        bounding_box => [ $self->object->bounding_box ],
+        bounding_box => $self->object->bounding_box,
     );
     return $self->fillers->{$filler};
 }

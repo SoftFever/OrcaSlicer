@@ -361,8 +361,8 @@ sub align_to_origin {
     
     # calculate the displacements needed to 
     # have lowest value for each axis at coordinate 0
-    my @extents = $self->extents;
-    $self->move(map -$extents[$_][MIN], X,Y,Z);
+    my $bb = $self->bounding_box;
+    $self->move(map -$bb->extents->[$_][MIN], X,Y,Z);
 }
 
 sub center_around_origin {
@@ -373,9 +373,7 @@ sub center_around_origin {
 
 sub center {
     my $self = shift;
-    
-    my @extents = $self->extents;
-    return [ map +($extents[$_][MAX] + $extents[$_][MIN])/2, X,Y,Z ];
+    return $self->bounding_box->center;
 }
 
 sub duplicate {
@@ -403,19 +401,14 @@ sub used_vertices {
     return [ map $self->vertices->[$_], map @$_, @{$self->facets} ];
 }
 
-sub extents {
-    my $self = shift;
-    return Slic3r::Geometry::bounding_box_3D($self->used_vertices);
-}
-
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::BoundingBox->new(extents => [ $self->extents ]);
+    return Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices);
 }
 
 sub size {
     my $self = shift;
-    return Slic3r::Geometry::size_3D($self->used_vertices);
+    return $self->bounding_box->size;
 }
 
 sub slice_facet {

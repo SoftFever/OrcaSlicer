@@ -27,17 +27,11 @@ sub fill_surface {
     $self->rotate_points($expolygon, $rotate_vector);
     
     my $distance_between_lines = scale $params{flow_spacing} / $params{density} * $self->multiplier;
-    my $bounding_box = [ Slic3r::Geometry::bounding_box([map @$_, @$expolygon]) ];
-    my $bounding_box_polygon = Slic3r::Polygon->new([
-        [ $bounding_box->[X1], $bounding_box->[Y1] ],
-        [ $bounding_box->[X2], $bounding_box->[Y1] ],
-        [ $bounding_box->[X2], $bounding_box->[Y2] ],
-        [ $bounding_box->[X1], $bounding_box->[Y2] ],
-    ]);
+    my $bounding_box = $expolygon->bounding_box;
     
     (ref $self) =~ /::([^:]+)$/;
     my $path = "Math::PlanePath::$1"->new;
-    my @n = $self->get_n($path, [map +($_ / $distance_between_lines), @$bounding_box]);
+    my @n = $self->get_n($path, [ map +($_ / $distance_between_lines), @{$bounding_box->bb} ]);
     
     my $polyline = Slic3r::Polyline->new([
         map [ map {$_*$distance_between_lines} $path->n_to_xy($_) ], @n,
@@ -47,7 +41,7 @@ sub fill_surface {
     $self->process_polyline($polyline, $bounding_box);
     
     my @paths = map $_->clip_with_expolygon($expolygon),
-        $polyline->clip_with_polygon($bounding_box_polygon);
+        $polyline->clip_with_polygon($bounding_box->polygon);
     
     if (0) {
         require "Slic3r/SVG.pm";

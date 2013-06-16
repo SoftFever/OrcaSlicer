@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(PI X1 X2 Y1 Y2 A B scale chained_path_items points_coincide);
+use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
     offset offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
 use Slic3r::Surface ':types';
@@ -557,10 +557,10 @@ sub _detect_bridges {
                 $_->rotate($angle, [0,0]) for @$inset, @$anchors;
                 
                 # generate lines in this direction
-                my $bounding_box = [ Slic3r::Geometry::bounding_box([ map @$_, map @$_, @$anchors ]) ];
+                my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
                 my @lines = ();
-                for (my $x = $bounding_box->[X1]; $x <= $bounding_box->[X2]; $x += $line_increment) {
-                    push @lines, [ [$x, $bounding_box->[Y1]], [$x, $bounding_box->[Y2]] ];
+                for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
+                    push @lines, [ [$x, $bounding_box->y_min], [$x, $bounding_box->y_max] ];
                 }
                 
                 # TODO: use a multi_polygon_multi_linestring_intersection() call
