@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 23;
+plan tests => 24;
 
 BEGIN {
     use FindBin;
@@ -171,6 +171,14 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     my $result = $polyline->split_at_index(1);
     is ref($result), 'Slic3r::Polyline', 'split_at_index returns polyline';
     is_deeply $result, [ [10, 0], [5, 5], [0, 0], [10, 0] ], 'split_at_index';
+}
+
+#==========================================================
+
+{
+    my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ [0, 1], [10, 2], [20, 2] ]);
+    $bb->scale(2);
+    is_deeply $bb->extents, [ [0,40], [2,4] ], 'bounding box is scaled correctly';
 }
 
 #==========================================================

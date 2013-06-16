@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 9;
+plan tests => 10;
 
 BEGIN {
     use FindBin;
@@ -109,14 +109,17 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     $config->set('top_solid_layers', 0);
     $config->set('bottom_solid_layers', 0);
     $config->set('solid_infill_below_area', 20000000);
+    $config->set('solid_infill_every_layers', 2);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my %layers_with_extrusion = ();
     Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
         my ($self, $cmd, $args, $info) = @_;
-        
-        fail "solid_infill_below_area should be ignored when fill_density is 0"
-            if $info->{extruding};
+        $layers_with_extrusion{$self->Z} = 1 if $info->{extruding};
     });
+    
+    ok !%layers_with_extrusion,
+        "solid_infill_below_area and solid_infill_every_layers are ignored when fill_density is 0";
 }
 
 __END__

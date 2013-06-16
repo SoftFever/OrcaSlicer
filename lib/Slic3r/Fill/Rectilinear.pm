@@ -25,17 +25,17 @@ sub fill_surface {
     my $line_oscillation = $distance_between_lines - $min_spacing;
     my $is_line_pattern = $self->isa('Slic3r::Fill::Line');
     
-    my $cache_id = sprintf "d%s_s%s_a%s",
+    my $cache_id = sprintf "d%s_s%.2f_a%.2f",
         $params{density}, $params{flow_spacing}, $rotate_vector->[0][0];
     
     if (!$self->cache->{$cache_id}) {
         # compute bounding box
-        my $bounding_box = [ @{$self->bounding_box} ];  # clone
-        $bounding_box->[$_] = 0 for X1, Y1;
+        my $bounding_box;
         {
-            my $bb_expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_from_bounding_box($bounding_box));
-            $self->rotate_points($bb_expolygon, $rotate_vector);
-            $bounding_box = [ $bb_expolygon->bounding_box ];
+            my $bb_polygon = Slic3r::Polygon->new_from_bounding_box($self->bounding_box);
+            $bb_polygon->scale(sqrt 2);
+            $self->rotate_points($bb_polygon, $rotate_vector);
+            $bounding_box = [ $bb_polygon->bounding_box ];
         }
         
         # define flow spacing according to requested density

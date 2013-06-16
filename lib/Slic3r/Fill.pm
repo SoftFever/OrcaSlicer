@@ -17,7 +17,7 @@ use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset);
 use Slic3r::Surface ':types';
 
 
-has 'print'     => (is => 'ro', required => 1, weak_ref => 1);
+has 'object'    => (is => 'ro', required => 1, weak_ref => 1);
 has 'fillers'   => (is => 'rw', default => sub { {} });
 
 our %FillTypes = (
@@ -40,7 +40,7 @@ sub filler {
     }
     
     $self->fillers->{$filler} ||= $FillTypes{$filler}->new(
-        bounding_box => [ $self->print->bounding_box ],
+        bounding_box => [ $self->object->bounding_box ],
     );
     return $self->fillers->{$filler};
 }

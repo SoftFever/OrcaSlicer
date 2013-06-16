@@ -25,10 +25,12 @@ lib/Slic3r/Format/OBJ.pm
 lib/Slic3r/Format/STL.pm
 lib/Slic3r/GCode.pm
 lib/Slic3r/GCode/CoolingBuffer.pm
+lib/Slic3r/GCode/Layer.pm
 lib/Slic3r/GCode/MotionPlanner.pm
 lib/Slic3r/GCode/Reader.pm
 lib/Slic3r/GCode/SpiralVase.pm
 lib/Slic3r/Geometry.pm
+lib/Slic3r/Geometry/BoundingBox.pm
 lib/Slic3r/Geometry/Clipper.pm
 lib/Slic3r/GUI.pm
 lib/Slic3r/GUI/AboutDialog.pm
@@ -37,6 +39,7 @@ lib/Slic3r/GUI/OptionsGroup.pm
 lib/Slic3r/GUI/Plater.pm
 lib/Slic3r/GUI/Plater/ObjectDialog.pm
 lib/Slic3r/GUI/Preferences.pm
+lib/Slic3r/GUI/PreviewCanvas.pm
 lib/Slic3r/GUI/SkeinPanel.pm
 lib/Slic3r/GUI/SimpleTab.pm
 lib/Slic3r/GUI/Tab.pm
@@ -64,6 +67,7 @@ t/clean_polylines.t
 t/clipper.t
 t/collinear.t
 t/combineinfill.t
+t/cooling.t
 t/custom_gcode.t
 t/dynamic.t
 t/fill.t
@@ -72,11 +76,14 @@ t/geometry.t
 t/layers.t
 t/loops.t
 t/polyclip.t
+t/print.t
 t/retraction.t
 t/serialize.t
 t/shells.t
 t/slice.t
+t/skirt_brim.t
 t/support.t
+t/svg.t
 t/vibrationlimit.t
 utils/amf-to-stl.pl
 utils/file_info.pl
@@ -88,6 +95,7 @@ utils/post-processing/decimate.pl
 utils/post-processing/flowrate.pl
 utils/split_stl.pl
 utils/stl-to-amf.pl
+utils/view-mesh.pl
 utils/zsh/functions/_slic3r
 utils/zsh/README.markdown
 var/add.png

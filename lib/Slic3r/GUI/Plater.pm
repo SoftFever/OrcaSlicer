@@ -159,6 +159,7 @@ sub new {
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
         my ($obj_idx, $thumbnail) = @{$event->GetData};
+        return if !$self->{objects}[$obj_idx];  # object was deleted before thumbnail generation completed
         $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
         $self->on_thumbnail_made($obj_idx);
     });
@@ -325,7 +326,7 @@ sub load_file {
 		$object->check_manifoldness;
         
         # we only consider the rotation of the first instance for now
-        $object->set_rotation($model->objects->[$i]->instances->[0]->rotation)
+        $object->rotate($model->objects->[$i]->instances->[0]->rotation)
             if $model->objects->[$i]->instances;
         
         push @{ $self->{objects} }, $object;
@@ -424,9 +425,10 @@ sub rotate {
     if (!defined $angle) {
         $angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate", $object->rotate, -364, 364, $self);
         return if !$angle || $angle == -1;
+        $angle = 0 - $angle;  # rotate clockwise (be consistent with button icon)
     }
     
-    $object->set_rotation($object->rotate + $angle);
+    $object->rotate($object->rotate + $angle);
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -436,12 +438,15 @@ sub changescale {
     
     my ($obj_idx, $object) = $self->selected_object;
     
+    # we need thumbnail to be computed before allowing scaling
+    return if !$object->thumbnail;
+    
     # max scale factor should be above 2540 to allow importing files exported in inches
     my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $object->scale*100, 0, 100000, $self);
     return if !$scale || $scale == -1;
     
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
-    $object->set_scale($scale / 100);
+    $object->scale($scale / 100);
     $self->arrange;
 }
 
@@ -451,7 +456,7 @@ sub arrange {
     my $total_parts = sum(map $_->instances_count, @{$self->{objects}}) or return;
     my @size = ();
     for my $a (X,Y) {
-        $size[$a] = max(map $_->size->[$a], @{$self->{objects}});
+        $size[$a] = max(map $_->transformed_size->[$a], @{$self->{objects}});
     }
     
     eval {
@@ -476,7 +481,7 @@ sub split_object {
     my $model_object = $current_object->get_model_object;
     
     if (@{$model_object->volumes} > 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it contains more than one volume/material.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains more than one volume/material.");
         return;
     }
     
@@ -485,7 +490,7 @@ sub split_object {
     
     my @new_meshes = $mesh->split_mesh;
     if (@new_meshes == 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be splitted because it already contains a single part.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
         return;
     }
     
@@ -544,7 +549,13 @@ sub export_gcode {
     }
     
     $self->statusbar->StartBusy;
+    
+    # It looks like declaring a local $SIG{__WARN__} prevents the ugly
+    # "Attempt to free unreferenced scalar" warning...
+    local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
+    
     if ($Slic3r::have_threads) {
+        @_ = ();
         $self->{export_thread} = threads->create(sub {
             $self->export_gcode2(
                 $print,
@@ -693,11 +704,6 @@ sub make_model {
     foreach my $plater_object (@{$self->{objects}}) {
         my $model_object = $plater_object->get_model_object;
         
-        # if we need to alter the mesh, clone it first
-        if ($plater_object->scale != 1) {
-            $model_object = $model_object->clone;
-        }
-        
         my $new_model_object = $model->add_object(
             vertices    => $model_object->vertices,
             input_file  => $plater_object->input_file,
@@ -710,13 +716,15 @@ sub make_model {
             );
             $model->set_material($volume->material_id || 0, {});
         }
-        $new_model_object->scale($plater_object->scale);
+        $new_model_object->align_to_origin;
         $new_model_object->add_instance(
-            rotation    => $plater_object->rotate,
-            offset      => [ @$_ ],
+            rotation    => $plater_object->rotate,  # around center point
+            scaling_factor => $plater_object->scale,
+            offset      => Slic3r::Point->new($_),
         ) for @{$plater_object->instances};
     }
     
+    $model->align_to_origin;
     return $model;
 }
 
@@ -738,6 +746,7 @@ sub make_thumbnail {
         }
     };
     
+    @_ = ();
     $Slic3r::have_threads ? threads->create($cb)->detach : $cb->();
 }
 
@@ -759,15 +768,17 @@ sub recenter {
     my @print_bb = Slic3r::Geometry::bounding_box([
         map {
             my $obj = $_;
-            map {
-                my $instance = $_;
-                $instance, [ map $instance->[$_] + $obj->size->[$_], X,Y ];
-            } @{$obj->instances};
+            my $bb = $obj->transformed_bounding_box;
+            my @points = ($bb->min_point, $bb->max_point);
+            map Slic3r::Geometry::move_points($_, @points), @{$obj->instances};
         } @{$self->{objects}},
     ]);
+    
+    # $self->{shift} contains the offset in pixels to add to object instances in order to center them
+    # it is expressed in upwards Y
     $self->{shift} = [
-        ($self->{canvas}->GetSize->GetWidth  - $self->to_pixel($print_bb[X2] + $print_bb[X1])) / 2,
-        ($self->{canvas}->GetSize->GetHeight - $self->to_pixel($print_bb[Y2] + $print_bb[Y1])) / 2,
+        $self->to_pixel(-$print_bb[X1]) + ($self->{canvas}->GetSize->GetWidth  - $self->to_pixel($print_bb[X2] - $print_bb[X1])) / 2,
+        $self->to_pixel(-$print_bb[Y1]) + ($self->{canvas}->GetSize->GetHeight - $self->to_pixel($print_bb[Y2] - $print_bb[Y1])) / 2,
     ];
 }
 
@@ -801,10 +812,10 @@ sub _update_bed_size {
     
     # supposing the preview canvas is square, calculate the scaling factor
     # to constrain print bed area inside preview
-    my $bed_size = $self->{config}->bed_size;
-    my $canvas_side = CANVAS_SIZE->[X];  # when the canvas is not rendered yet, its GetSize() method returns 0,0
-    my $bed_largest_side = $bed_size->[X] > $bed_size->[Y] ? $bed_size->[X] : $bed_size->[Y];
-    $self->{scaling_factor} = $canvas_side / $bed_largest_side;
+    # when the canvas is not rendered yet, its GetSize() method returns 0,0
+    $self->{scaling_factor} = CANVAS_SIZE->[X] / max(@{ $self->{config}->bed_size });
+    $_->thumbnail_scaling_factor($self->{scaling_factor}) for @{ $self->{objects} };
+    $self->recenter;
 }
 
 # this is called on the canvas
@@ -857,9 +868,12 @@ sub repaint {
         next unless $object->thumbnail && @{$object->thumbnail->expolygons};
         for my $instance_idx (0 .. $#{$object->instances}) {
             my $instance = $object->instances->[$instance_idx];
-            push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $object->thumbnail->clone ];
-            $_->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y))
-            	for @{$parent->{object_previews}->[-1][2]->expolygons};
+            
+            my $thumbnail = $object->transformed_thumbnail
+                ->clone
+                ->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
+            
+            push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $thumbnail ];
             
             my $drag_object = $self->{drag_object};
             if (defined $drag_object && $obj_idx == $drag_object->[0] && $instance_idx == $drag_object->[1]) {
@@ -874,7 +888,7 @@ sub repaint {
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
             	my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->contour}, @{$parent->{object_previews}->[-1][2]->expolygons} ]));
-                my ($clearance) = offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 1, JT_ROUND);
+                my ($clearance) = @{offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 100, JT_ROUND)};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
                 $dc->DrawPolygon($parent->_y($clearance), 0, 0);
@@ -885,7 +899,7 @@ sub repaint {
     # draw skirt
     if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
         my $convex_hull = Slic3r::Polygon->new(convex_hull([ map @{$_->contour}, map @{$_->[2]->expolygons}, @{$parent->{object_previews}} ]));
-        ($convex_hull) = offset([$convex_hull], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 1, JT_ROUND);
+        ($convex_hull) = @{offset([$convex_hull], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
         $dc->DrawPolygon($parent->_y($convex_hull), 0, 0) if $convex_hull;
@@ -931,7 +945,6 @@ sub mouse_event {
             my ($obj_idx, $instance_idx, $thumbnail) = @$preview;
             my $instance = $parent->{objects}[$obj_idx]->instances->[$instance_idx];
             $instance->[$_] = $parent->to_units($pos->[$_] - $self->{drag_start_pos}[$_] - $parent->{shift}[$_]) for X,Y;
-            $instance = $parent->_y([$instance])->[0];
             $parent->Refresh;
         }
     } elsif ($event->Moving) {
@@ -1054,19 +1067,21 @@ sub OnDropFiles {
 package Slic3r::GUI::Plater::Object;
 use Moo;
 
-use Math::ConvexHull::MonotoneChain qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z);
+use Math::ConvexHull::MonotoneChain qw();
+use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
 has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
-has 'size'                  => (is => 'rw');
-has 'scale'                 => (is => 'rw', default => sub { 1 });
-has 'rotate'                => (is => 'rw', default => sub { 0 });
+has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
+has 'convex_hull'           => (is => 'rw');  # 2D convex hull of original object (aligned to origin) with no rotation or scaling
+has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => \&_transform_thumbnail);
+has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => \&_transform_thumbnail); # around object center point
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
-has 'thumbnail'             => (is => 'rw');
-has 'thumbnail_scaling_factor' => (is => 'rw');
+has 'thumbnail'             => (is => 'rw', trigger => \&_transform_thumbnail);
+has 'transformed_thumbnail' => (is => 'rw');
+has 'thumbnail_scaling_factor' => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
 # statistics
@@ -1078,10 +1093,14 @@ has 'is_manifold'           => (is => 'rw');
 sub _trigger_model_object {
     my $self = shift;
     if ($self->model_object) {
+        $self->model_object->align_to_origin;
+	    $self->bounding_box($self->model_object->bounding_box);
+	    
     	my $mesh = $self->model_object->mesh;
-	    $self->size([$mesh->size]);
+        $self->convex_hull(Slic3r::Polygon->new(Math::ConvexHull::MonotoneChain::convex_hull($mesh->used_vertices)));
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
+	    
 	    $self->materials($self->model_object->materials_count);
 	}
 }
@@ -1120,55 +1139,58 @@ sub instances_count {
 sub make_thumbnail {
     my $self = shift;
     
-    my @points = map [ @$_[X,Y] ], @{$self->model_object->mesh->vertices};
-    my $mesh = $self->model_object->mesh;
+    my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
     my $thumbnail = Slic3r::ExPolygon::Collection->new(
     	expolygons => (@{$mesh->facets} <= 5000)
     		? $mesh->horizontal_projection
-    		: [ Slic3r::ExPolygon->new(convex_hull($mesh->vertices)) ],
+    		: [ Slic3r::ExPolygon->new($self->convex_hull) ],
     );
-    for (map @$_, map @$_, @{$thumbnail->expolygons}) {
-        @$_ = map $_ * $self->thumbnail_scaling_factor, @$_;
-    }
+    
     # only simplify expolygons larger than the threshold
-    @{$thumbnail->expolygons} = map { ($_->area >= 1) ? $_->simplify(0.5) : $_ } @{$thumbnail->expolygons};
-    foreach my $expolygon (@{$thumbnail->expolygons}) {
-    	$expolygon->rotate(Slic3r::Geometry::deg2rad($self->rotate));
-    	$expolygon->scale($self->scale);
-    }
-    @{$thumbnail->expolygons} = grep @$_, @{$thumbnail->expolygons};
-    $thumbnail->align_to_origin;
+    @{$thumbnail->expolygons} = grep @$_,
+        map { ($_->area >= 1) ? $_->simplify(0.5) : $_ }
+        @{$thumbnail->expolygons};
+    
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
     return $thumbnail;
 }
 
-sub set_rotation {
+sub _transform_thumbnail {
     my $self = shift;
-    my ($angle) = @_;
     
-    if ($self->thumbnail) {
-        $self->thumbnail->rotate(Slic3r::Geometry::deg2rad($angle - $self->rotate));
-        $self->thumbnail->align_to_origin;
-        my $z_size = $self->size->[Z];
-        $self->size([ (map $_ / $self->thumbnail_scaling_factor, @{$self->thumbnail->size}), $z_size ]);
-    }
-    $self->rotate($angle);
+    return unless $self->thumbnail;
+    my $t = $self->_apply_transform($self->thumbnail);
+    $t->scale($self->thumbnail_scaling_factor);
+    
+    $self->transformed_thumbnail($t);
 }
 
-sub set_scale {
+# bounding box with applied rotation and scaling
+sub transformed_bounding_box {
     my $self = shift;
-    my ($scale) = @_;
     
-    my $factor = $scale / $self->scale;
-    return if $factor == 1;
-    $self->size->[$_] *= $factor for X,Y,Z;
-    if ($self->thumbnail) {
-	    $_->scale($factor) for @{$self->thumbnail->expolygons};
-		$self->thumbnail->align_to_origin;
-    }
-    $self->scale($scale);
+    my $bb = Slic3r::Geometry::BoundingBox->new_from_points($self->_apply_transform($self->convex_hull));
+    $bb->extents->[Z] = $self->bounding_box->clone->extents->[Z];
+    return $bb;
+}
+
+sub _apply_transform {
+    my $self = shift;
+    my ($entity) = @_;    # can be anything that implements ->clone(), ->rotate() and ->scale()
+    
+    # the order of these transformations MUST be the same everywhere, including
+    # in Slic3r::Print->add_model()
+    return $entity
+        ->clone
+        ->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D)
+        ->scale($self->scale);
+}
+
+sub transformed_size {
+    my $self = shift;
+    return $self->transformed_bounding_box->size;
 }
 
 1;

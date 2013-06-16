@@ -252,7 +252,7 @@ sub make_perimeters {
         )};
         
         my @loops = ();
-        foreach my $polynode (@$polynodes) {
+        foreach my $polynode (@nodes) {
             push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
             
             my $polygon = Slic3r::Polygon->new($polynode->{outer} // [ reverse @{$polynode->{hole}} ]);
@@ -317,7 +317,7 @@ sub _fill_gaps {
     
     return unless $Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @$gaps;
     
-    my $filler = $self->layer->object->print->fill_maker->filler('rectilinear');
+    my $filler = $self->layer->object->fill_maker->filler('rectilinear');
     $filler->layer_id($self->layer->id);
     
     # we should probably use this code to handle thin walls and remove that logic from
@@ -331,8 +331,12 @@ sub _fill_gaps {
         1,
     )};
     
+    # medial axis-based gap fill should benefit from detection of larger gaps too, so 
+    # we could try with 1.5*$w for example, but that doesn't work well for zigzag fill
+    # because it tends to create very sparse points along the gap when the infill direction
+    # is not parallel to the gap (1.5*$w thus may only work well with a straight line)
     my $w = $self->perimeter_flow->width;
-    my @widths = (1.5 * $w, $w, 0.4 * $w);  # worth trying 0.2 too?
+    my @widths = ($w, 0.4 * $w);  # worth trying 0.2 too?
     foreach my $width (@widths) {
         my $flow = $self->perimeter_flow->clone(width => $width);
         
@@ -373,7 +377,7 @@ sub _fill_gaps {
                 
                 push @{ $self->thin_fills },
                     map {
-                        $_->polyline->simplify($flow->scaled_width / 3);
+                        $_->simplify($flow->scaled_width/3);
                         $_->pack;
                     }
                     map Slic3r::ExtrusionPath->new(

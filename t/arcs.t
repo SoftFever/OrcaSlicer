@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 12;
+plan tests => 13;
 
 BEGIN {
     use FindBin;
@@ -20,7 +20,7 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
         [306517.1,219034.23], [286979.42,248012.49], [258001.16,267550.17], [222515.14,274714.47], 
         [187029.11,267550.17], [158050.85,248012.49], [138513.17,219034.23], [131348.87,183548.2], 
         [86948.77,175149.09], [119825.35,100585],
-    ), role => EXTR_ROLE_FILL);
+    ), role => EXTR_ROLE_FILL, flow_spacing => 0.5);
     
     my $collection = Slic3r::ExtrusionPath::Collection->new(paths => [$path]);
     $collection->detect_arcs(30);
@@ -42,10 +42,12 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
     my $path1 = Slic3r::ExtrusionPath->new(
         polyline    => Slic3r::Polyline->new(@points),
         role        => EXTR_ROLE_FILL,
+        flow_spacing => 0.5,
     );
     my $path2 = Slic3r::ExtrusionPath->new(
         polyline    => Slic3r::Polyline->new(reverse @points),
         role        => EXTR_ROLE_FILL,
+        flow_spacing => 0.5,
     );
     
     my $collection1 = Slic3r::ExtrusionPath::Collection->new(paths => [$path1]);
@@ -66,6 +68,7 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
 
     is $collection1->paths->[0]->orientation, 'cw', 'cw orientation was correctly detected';
     is $collection2->paths->[0]->orientation, 'ccw', 'ccw orientation was correctly detected';
+    is $collection1->paths->[0]->flow_spacing, $path1->flow_spacing, 'flow spacing was correctly preserved';
     
     my $center1 = [ map sprintf('%.0f', $_), @{ $collection1->paths->[0]->center } ];
     ok abs($center1->[X] - scale 10) < scaled_epsilon && abs($center1->[Y] - scale 10) < scaled_epsilon, 'center was correctly detected';

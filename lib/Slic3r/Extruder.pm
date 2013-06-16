@@ -14,6 +14,7 @@ has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
 
 has 'bridge_flow'               => (is => 'lazy');
+has 'e'                         => (is => 'rw', default => sub {0} );
 has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
@@ -38,7 +39,9 @@ sub _build_retract_speed_mm_min {
 
 sub _build_scaled_wipe_distance {
     my $self = shift;
-    return scale $self->retract_length / $self->retract_speed * $Slic3r::Config->travel_speed;
+    # reduce feedrate a bit; travel speed is often too high to move on existing material
+    # too fast = ripping of existing material; too slow = short wipe path, thus more blob
+    return scale($self->retract_length / $self->retract_speed * $Slic3r::Config->travel_speed * 0.8);
 }
 
 sub make_flow {

@@ -54,6 +54,13 @@ sub support_material_contact_z {
     return $self->print_z - ($self->height - $self->support_material_contact_height) / &Slic3r::SCALING_FACTOR;
 }
 
+sub upper_layer_slices {
+    my $self = shift;
+    
+    my $upper_layer = $self->object->layers->[ $self->id + 1 ] or return [];
+    return $upper_layer->slices;
+}
+
 sub region {
     my $self = shift;
     my ($region_id) = @_;
