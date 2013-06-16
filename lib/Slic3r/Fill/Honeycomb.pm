@@ -5,7 +5,7 @@ extends 'Slic3r::Fill::Base';
 
 has 'cache'         => (is => 'rw', default => sub {{}});
 
-use Slic3r::Geometry qw(PI X Y MIN MAX scale);
+use Slic3r::Geometry qw(PI X Y MIN MAX scale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(intersection_ex);
 
 sub angles () { [0, PI/3, PI/3*2] }
@@ -86,8 +86,32 @@ sub fill_surface {
             \@polygons,
         ) };
     
-    return { flow_spacing => $params{flow_spacing} },
-        Slic3r::Polyline::Collection->new(polylines => \@paths)->chained_path;
+    # connect paths
+    {
+        my $collection = Slic3r::Polyline::Collection->new(polylines => [@paths]);
+        @paths = ();
+        foreach my $path ($collection->chained_path) {
+            if (@paths) {
+                # distance between first point of this path and last point of last path
+                my $distance = $paths[-1][-1]->distance_to($path->[0]);
+                
+                if ($distance <= $m->{hex_width}) {
+                    push @{$paths[-1]}, @$path;
+                    next;
+                }
+            }
+            push @paths, $path;
+        }
+    }
+    
+    # clip paths again to prevent connection segments from crossing the expolygon boundaries
+    @paths = map Slic3r::Polyline->new($_),
+        @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
+            [ $surface->expolygon->offset_ex(scaled_epsilon) ],
+            [ @paths ],
+        ) };
+    
+    return { flow_spacing => $params{flow_spacing} }, @paths;
 }
 
 1;
