@@ -35,7 +35,7 @@ my %opt = ();
     my $mesh = $model->mesh;
     $mesh->check_manifoldness;
     printf "  number of facets: %d\n", scalar @{$mesh->facets};
-    printf "  size: x=%s y=%s z=%s\n", $mesh->size;
+    printf "  size: x=%s y=%s z=%s\n", @{$mesh->size};
 }
 
 
