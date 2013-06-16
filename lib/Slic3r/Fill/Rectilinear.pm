@@ -78,13 +78,13 @@ sub fill_surface {
         @paths = ();
         
         my $tolerance = 10 * scaled_epsilon;
-        my $diagonal_distance = $distance_between_lines * 5;
+        my $diagonal_distance = $distance_between_lines * 2;
         my $can_connect = $is_line_pattern
             ? sub {
                 ($_[X] >= ($distance_between_lines - $line_oscillation) - $tolerance) && ($_[X] <= ($distance_between_lines + $line_oscillation) + $tolerance)
                     && $_[Y] <= $diagonal_distance
             }
-            : sub { abs($_[X] - $distance_between_lines) <= $tolerance && $_[Y] <= $diagonal_distance };
+            : sub { $_[X] <= $diagonal_distance && $_[Y] <= $diagonal_distance };
         
         foreach my $path ($collection->chained_path) {
             if (@paths) {
