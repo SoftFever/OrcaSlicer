@@ -103,7 +103,8 @@ sub add_model {
     # optimization: if avoid_crossing_perimeters is enabled, split
     # this mesh into distinct objects so that we reduce the complexity
     # of the graphs 
-    $model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
+    # -- Disabling this one because there are too many legit objects having nested shells
+    ###$model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
     foreach my $object (@{ $model->objects }) {
         # we align object to origin before applying transformations
