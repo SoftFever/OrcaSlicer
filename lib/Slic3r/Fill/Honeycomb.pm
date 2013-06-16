@@ -117,7 +117,7 @@ sub fill_surface {
             @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
                 [ $surface->expolygon->offset_ex(scaled_epsilon) ],
                 [ @paths ],
-            ) };
+            ) } if @paths;  # this temporary check is a workaround for the multilinestring bug in B::G::U
     }
     
     return { flow_spacing => $params{flow_spacing} }, @paths;
