@@ -282,7 +282,8 @@ sub save_settings {
 sub have_version_check {
     my $class = shift;
     
-    return $Slic3r::have_threads && $Slic3r::build && eval "use LWP::UserAgent; 1";
+    # return an explicit 0
+    return ($Slic3r::have_threads && $Slic3r::build && eval "use LWP::UserAgent; 1") || 0;
 }
 
 sub check_version {
