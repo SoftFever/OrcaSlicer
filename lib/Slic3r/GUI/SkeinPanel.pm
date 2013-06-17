@@ -247,7 +247,9 @@ sub load_config_file {
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
     Slic3r::GUI->save_settings;
     $last_config = $file;
-    $_->load_config_file($file) for values %{$self->{options_tabs}};
+    for my $tab (values %{$self->{options_tabs}}) {
+        $tab->load_config_file($file);
+    }
 }
 
 sub load_config {
@@ -265,7 +267,9 @@ sub config_wizard {
     return unless $self->check_unsaved_changes;
     if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
         if ($self->{mode} eq 'expert') {
-            $_->select_default_preset for values %{$self->{options_tabs}};
+            for my $tab (values %{$self->{options_tabs}}) {
+                $tab->select_default_preset;
+            }
         }
         $self->load_config($config);
     }
