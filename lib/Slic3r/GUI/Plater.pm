@@ -503,7 +503,7 @@ sub split_object {
     my $new_model = Slic3r::Model->new;
     
     foreach my $mesh (@new_meshes) {
-        my @extents = $mesh->extents;
+        my $bb = $mesh->bounding_box;
         my $model_object = $new_model->add_object(vertices => $mesh->vertices);
         $model_object->add_volume(facets => $mesh->facets);
         my $object = Slic3r::GUI::Plater::Object->new(
@@ -511,7 +511,7 @@ sub split_object {
             input_file              => $current_object->input_file,
             input_file_object_id    => undef,
             model_object            => $model_object,
-            instances               => [ map [$extents[X][MIN], $extents[Y][MIN]], 1..$current_copies_num ],
+            instances               => [ map $bb->min_point, 1..$current_copies_num ],
         );
         push @{ $self->{objects} }, $object;
         $self->object_loaded($#{ $self->{objects} }, no_arrange => 1);
