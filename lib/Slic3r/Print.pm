@@ -749,8 +749,8 @@ sub write_gcode {
     my $print_bb = $self->bounding_box;
     my $print_size = $print_bb->size;
     my @shift = (
-        $Slic3r::Config->print_center->[X] - unscale($print_size->[X]/2 - $print_bb->x_min),
-        $Slic3r::Config->print_center->[Y] - unscale($print_size->[Y]/2 - $print_bb->y_min),
+        $Slic3r::Config->print_center->[X] - unscale($print_size->[X]/2 + $print_bb->x_min),
+        $Slic3r::Config->print_center->[Y] - unscale($print_size->[Y]/2 + $print_bb->y_min),
     );
     
     # initialize a motion planner for object-to-object travel moves
