@@ -188,10 +188,16 @@ sub validate {
         
         # check vertical clearance
         {
-            my @obj_copies = $self->object_copies;
-            pop @obj_copies;  # ignore the last copy: its height doesn't matter
-            my $scaled_clearance = scale $Slic3r::Config->extruder_clearance_height;
-            if (grep { +($_->size)[Z] > $scaled_clearance } map @{$self->objects->[$_->[0]]->meshes}, @obj_copies) {
+            my @object_height = ();
+            foreach my $object (@{$self->objects}) {
+                my $height = $object->size->[Z];
+                push @object_height, $height for @{$object->copies};
+            }
+            @object_height = sort { $a <=> $b } @object_height;
+            # ignore the tallest *copy* (this is why we repeat height for all of them):
+            # it will be printed as last one so its height doesn't matter
+            pop @object_height;
+            if (max(@object_height) > scale $Slic3r::Config->extruder_clearance_height) {
                 die "Some objects are too tall and cannot be printed without extruder collisions.\n";
             }
         }
@@ -263,15 +269,6 @@ sub init_extruders {
             role            => 'support_material',
         ));
     }
-}
-
-sub object_copies {
-    my $self = shift;
-    my @oc = ();
-    for my $obj_idx (0 .. $#{$self->objects}) {
-        push @oc, map [ $obj_idx, $_ ], @{$self->objects->[$obj_idx]->copies};
-    }
-    return @oc;
 }
 
 sub layer_count {
