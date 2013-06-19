@@ -197,7 +197,7 @@ sub validate {
             # ignore the tallest *copy* (this is why we repeat height for all of them):
             # it will be printed as last one so its height doesn't matter
             pop @object_height;
-            if (max(@object_height) > scale $Slic3r::Config->extruder_clearance_height) {
+            if (@object_height && max(@object_height) > scale $Slic3r::Config->extruder_clearance_height) {
                 die "Some objects are too tall and cannot be printed without extruder collisions.\n";
             }
         }
