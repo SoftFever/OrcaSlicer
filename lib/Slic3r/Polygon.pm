@@ -56,12 +56,6 @@ sub remove_acute_vertices {
     bless $_, 'Slic3r::Point' for @$self;
 }
 
-sub point_on_segment {
-    my $self = shift;
-    my ($point) = @_;
-    return polygon_segment_having_point($self, $point);
-}
-
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;

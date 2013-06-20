@@ -128,16 +128,6 @@ sub encloses_line {
     }
 }
 
-sub point_on_segment {
-    my $self = shift;
-    my ($point) = @_;
-    for (@$self) {
-        my $line = $_->point_on_segment($point);
-        return $line if $line;
-    }
-    return undef;
-}
-
 sub bounding_box {
     my $self = shift;
     return $self->contour->bounding_box;
