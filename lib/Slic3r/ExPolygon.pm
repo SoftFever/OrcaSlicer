@@ -104,18 +104,16 @@ sub noncollapsing_offset_ex {
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
-    return $self->contour->encloses_point($point)
-        && (!grep($_->encloses_point($point), $self->holes)
-            || grep($_->point_on_segment($point), $self->holes));
+    return Boost::Geometry::Utils::point_covered_by_polygon($point, $self);
 }
 
 # A version of encloses_point for use when hole borders do not matter.
-# Useful because point_on_segment is slow
+# Useful because point_on_segment is probably slower (this was true
+# before the switch to Boost.Geometry, not sure about now)
 sub encloses_point_quick {
     my $self = shift;
     my ($point) = @_;
-    return $self->contour->encloses_point($point)
-        && !grep($_->encloses_point($point), $self->holes);
+    return Boost::Geometry::Utils::point_within_polygon($point, $self);
 }
 
 sub encloses_line {
