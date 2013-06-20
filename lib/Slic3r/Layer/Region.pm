@@ -267,15 +267,6 @@ sub make_perimeters {
                 $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
             
-            if ($self->id > 0) {
-                # A perimeter is considered overhang if its centerline exceeds the lower layer slices
-                my $is_overhang = $is_contour
-                    ? @{diff([$polygon], \@lower_slices)}
-                    : !@{intersection([$polygon], \@lower_slices)};
-                
-                $role = EXTR_ROLE_OVERHANG_PERIMETER if $is_overhang;
-            }
-            
             push @loops, Slic3r::ExtrusionLoop->pack(
                 polygon         => $polygon,
                 role            => $role,
