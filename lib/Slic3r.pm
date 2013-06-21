@@ -29,7 +29,7 @@ our $var = "$FindBin::Bin/var";
 
 use Encode;
 use Encode::Locale;
-use Boost::Geometry::Utils 0.12;
+use Boost::Geometry::Utils 0.15;
 use Moo 0.091009;
 
 use Slic3r::Config;
