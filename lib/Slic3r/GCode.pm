@@ -590,7 +590,7 @@ sub _Gx {
     
     $gcode .= sprintf " ; %s", $comment if $comment && $self->config->gcode_comments;
     if ($append_bridge_off) {
-        $gcode .= "\n;_BRIDGE_FAN_END";
+        $gcode = ";_BRIDGE_FAN_END\n$gcode";
     }
     return "$gcode\n";
 }

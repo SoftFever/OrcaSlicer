@@ -860,7 +860,7 @@ END
     },
     'bridge_fan_speed' => {
         label   => 'Bridges fan speed',
-        tooltip => 'This fan speed is enforced during all bridges.',
+        tooltip => 'This fan speed is enforced during all bridges and overhangs.',
         sidetext => '%',
         cli     => 'bridge-fan-speed=i',
         type    => 'i',
