@@ -846,7 +846,7 @@ END
         sidetext => '%',
         cli     => 'min-fan-speed=i',
         type    => 'i',
-        max     => 1000,
+        max     => 100,
         default => 35,
     },
     'max_fan_speed' => {
@@ -855,7 +855,7 @@ END
         sidetext => '%',
         cli     => 'max-fan-speed=i',
         type    => 'i',
-        max     => 1000,
+        max     => 100,
         default => 100,
     },
     'bridge_fan_speed' => {
@@ -864,7 +864,7 @@ END
         sidetext => '%',
         cli     => 'bridge-fan-speed=i',
         type    => 'i',
-        max     => 1000,
+        max     => 100,
         default => 100,
     },
     'fan_below_layer_time' => {
