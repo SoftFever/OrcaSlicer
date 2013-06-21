@@ -141,6 +141,25 @@ sub extrude_loop {
     $loop = $loop->unpack if $loop->isa('Slic3r::ExtrusionLoop::Packed');
     my $was_clockwise = $loop->polygon->make_counter_clockwise;
     
+    # find candidate starting points
+    # start looking for concave vertices not being overhangs
+    my @concave = $loop->polygon->concave_points;
+    my @candidates = grep Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
+        @concave;
+    if (!@candidates) {
+        # if none, look for any concave vertex
+        @candidates = @concave;
+        if (!@candidates) {
+            # if none, look for any non-overhang vertex
+            @candidates = grep Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
+                @{$loop->polygon};
+            if (!@candidates) {
+                # if none, all points are valid candidates
+                @candidates = @{$loop->polygon};
+            }
+        }
+    }
+    
     # find the point of the loop that is closest to the current extruder position
     # or randomize if requested
     my $last_pos = $self->last_pos;
@@ -148,10 +167,9 @@ sub extrude_loop {
         $last_pos = Slic3r::Point->new(scale $self->config->print_center->[X], scale $self->config->bed_size->[Y]);
         $last_pos->rotate(rand(2*PI), $self->config->print_center);
     }
-    my $start_index = $loop->nearest_point_index_to($last_pos);
     
     # split the loop at the starting point and make a path
-    my $extrusion_path = $loop->split_at_index($start_index);
+    my $extrusion_path = $loop->split_at(Slic3r::Geometry::nearest_point($last_pos, \@candidates));
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
