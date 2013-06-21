@@ -51,7 +51,7 @@ sub _build_speeds {
 my %role_speeds = (
     &EXTR_ROLE_PERIMETER                    => 'perimeter',
     &EXTR_ROLE_EXTERNAL_PERIMETER           => 'external_perimeter',
-    &EXTR_ROLE_OVERHANG_PERIMETER           => 'external_perimeter',
+    &EXTR_ROLE_OVERHANG_PERIMETER           => 'bridge',
     &EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 'perimeter',
     &EXTR_ROLE_FILL                         => 'infill',
     &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
@@ -176,13 +176,19 @@ sub extrude_loop {
         # inwards move consider the new actual starting point)
         @paths = Slic3r::ExtrusionPath::Collection
             ->new(paths => [@paths])
-            ->chained_path($last_pos);
+            ->chained_path($last_pos, 1);
     } else {
         push @paths, $extrusion_path;
     }
     
+    # apply the small perimeter speed
+    my %params = ();
+    if ($extrusion_path->is_perimeter && abs($extrusion_path->length) <= &Slic3r::SMALL_PERIMETER_LENGTH) {
+        $params{speed} = 'small_perimeter';
+    }
+    
     # extrude along the path
-    my $gcode = join '', map $self->extrude_path($_, $description), @paths;
+    my $gcode = join '', map $self->extrude_path($_, $description, %params), @paths;
     $self->wipe_path($extrusion_path->polyline);
     
     # make a little move inwards before leaving loop
@@ -211,23 +217,24 @@ sub extrude_loop {
 
 sub extrude_path {
     my $self = shift;
-    my ($path, $description, $recursive) = @_;
+    my ($path, $description, %params) = @_;
     
     $path = $path->unpack if $path->isa('Slic3r::ExtrusionPath::Packed');
     $path->simplify(&Slic3r::SCALED_RESOLUTION);
     
     # detect arcs
-    if ($self->config->gcode_arcs && !$recursive) {
+    if ($self->config->gcode_arcs && !$params{dont_detect_arcs}) {
         my $gcode = "";
         foreach my $arc_path ($path->detect_arcs) {
-            $gcode .= $self->extrude_path($arc_path, $description, 1);
+            $gcode .= $self->extrude_path($arc_path, $description, %params, dont_detect_arcs => 1);
         }
         return $gcode;
     }
     
     # go to first point of extrusion path
     my $gcode = "";
-    $gcode .= $self->travel_to($path->points->[0], $path->role, "move to first $description point");
+    $gcode .= $self->travel_to($path->points->[0], $path->role, "move to first $description point")
+        if !$self->last_pos || !$self->last_pos->coincides_with($path->points->[0]);
     
     # compensate retraction
     $gcode .= $self->unretract;
@@ -257,12 +264,7 @@ sub extrude_path {
     my $e = $self->extruder->e_per_mm3 * $area;
     
     # set speed
-    $self->speed( $role_speeds{$path->role} || die "Unknown role: " . $path->role );
-    if ($path->role == EXTR_ROLE_PERIMETER || $path->role == EXTR_ROLE_EXTERNAL_PERIMETER || $path->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER) {
-        if (abs($path->length) <= &Slic3r::SMALL_PERIMETER_LENGTH) {
-            $self->speed('small_perimeter');
-        }
-    }
+    $self->speed( $params{speed} || $role_speeds{$path->role} || die "Unknown role: " . $path->role );
     
     # extrude arc or line
     my $path_length = 0;

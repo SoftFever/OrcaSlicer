@@ -14,7 +14,7 @@ sub first_point {
 
 sub chained_path {
     my $self = shift;
-    my ($start_near) = @_;
+    my ($start_near, $no_reverse) = @_;
     
     return @{$self->paths} if $self->no_sort;
     
@@ -26,7 +26,7 @@ sub chained_path {
         polylines => [ map $_->polyline, @paths ],
     );
     
-    return $collection->chained_path($start_near, \@paths);
+    return $collection->chained_path($start_near, \@paths, $no_reverse);
 }
 
 sub cleanup {

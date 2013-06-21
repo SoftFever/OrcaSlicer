@@ -75,6 +75,7 @@ t/gcode.t
 t/geometry.t
 t/layers.t
 t/loops.t
+t/perimeters.t
 t/polyclip.t
 t/print.t
 t/retraction.t

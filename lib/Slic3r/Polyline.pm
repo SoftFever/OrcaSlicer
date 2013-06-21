@@ -221,7 +221,7 @@ has 'polylines' => (is => 'ro', default => sub { [] });
 # Note that our polylines will be reversed in place when necessary.
 sub chained_path {
     my $self = shift;
-    my ($start_near, $items) = @_;
+    my ($start_near, $items, $no_reverse) = @_;
     
     $items ||= $self->polylines;
     my %items_map = map { $self->polylines->[$_] => $items->[$_] } 0 .. $#{$self->polylines};
@@ -229,7 +229,9 @@ sub chained_path {
     
     my @paths = ();
     my $start_at;
-    my $endpoints = [ map { $_->[0], $_->[-1] } @my_paths ];
+    my $endpoints = $no_reverse
+        ? [ map { $_->[0], $_->[0]  } @my_paths ]
+        : [ map { $_->[0], $_->[-1] } @my_paths ];
     while (@my_paths) {
         # find nearest point
         my $start_index = $start_near
@@ -237,7 +239,7 @@ sub chained_path {
             : 0;
 
         my $path_index = int($start_index/2);
-        if ($start_index%2) { # index is end so reverse to make it the start
+        if ($start_index % 2 && !$no_reverse) { # index is end so reverse to make it the start
             $my_paths[$path_index]->reverse;
         }
         push @paths, splice @my_paths, $path_index, 1;
