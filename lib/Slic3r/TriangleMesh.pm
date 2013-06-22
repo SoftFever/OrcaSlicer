@@ -1,7 +1,7 @@
 package Slic3r::TriangleMesh;
 use Moo;
 
-use List::Util qw(reduce);
+use List::Util qw(reduce min max);
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use Storable;
@@ -424,13 +424,11 @@ sub slice_facet {
         if $Slic3r::debug;
     
     # find the vertical extents of the facet
-    my ($min_z, $max_z) = (99999999999, -99999999999);
-    foreach my $vertex (@vertices) {
-        my $vertex_z = $self->vertices->[$vertex][Z];
-        $min_z = $vertex_z if $vertex_z < $min_z;
-        $max_z = $vertex_z if $vertex_z > $max_z;
-    }
-    Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z;
+    my @z = map $_->[Z], @{$self->vertices}[@vertices];
+    my $min_z = min(@z);
+    my $max_z = max(@z);
+    Slic3r::debugf "z: min = %.0f, max = %.0f\n", $min_z, $max_z
+        if $Slic3r::debug;
     
     if ($max_z == $min_z) {
         Slic3r::debugf "Facet is horizontal; ignoring\n";
@@ -439,10 +437,11 @@ sub slice_facet {
     
     # calculate the layer extents
     my ($min_layer, $max_layer) = $print_object->get_layer_range($min_z, $max_z);
-    Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer;
+    Slic3r::debugf "layers: min = %s, max = %s\n", $min_layer, $max_layer
+        if $Slic3r::debug;
     
     my $lines = {};  # layer_id => [ lines ]
-    for (my $layer_id = $min_layer; $layer_id <= $max_layer; $layer_id++) {
+    for my $layer_id ($min_layer .. $max_layer) {
         my $layer = $print_object->layers->[$layer_id];
         $lines->{$layer_id} ||= [];
         push @{ $lines->{$layer_id} }, $self->intersect_facet($facet_id, $layer->slice_z);
