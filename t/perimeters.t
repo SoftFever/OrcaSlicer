@@ -1,4 +1,4 @@
-use Test::More tests => 2;
+use Test::More tests => 3;
 use strict;
 use warnings;
 
@@ -8,6 +8,7 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::Geometry qw(PI);
 use Slic3r::Test;
 
 {
@@ -27,7 +28,7 @@ use Slic3r::Test;
         Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
             my ($self, $cmd, $args, $info) = @_;
             
-            if ($info->{extruding}) {
+            if ($info->{extruding} && $info->{dist_XY} > 0) {
                 $cur_loop ||= [ [$self->X, $self->Y] ];
                 push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
             } else {
@@ -38,6 +39,27 @@ use Slic3r::Test;
             }
         });
         ok !$has_cw_loops, 'all perimeters extruded ccw';
+    }
+    
+    {
+        my $print = Slic3r::Test::init_print('L', config => $config);
+        my $loop_starts_from_convex_point = 0;
+        my $cur_loop;
+        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+            my ($self, $cmd, $args, $info) = @_;
+            
+            if ($info->{extruding} && $info->{dist_XY} > 0) {
+                $cur_loop ||= [ [$self->X, $self->Y] ];
+                push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
+            } else {
+                if ($cur_loop) {
+                    $loop_starts_from_convex_point = 1
+                        if Slic3r::Geometry::angle3points(@$cur_loop[0,-1,1]) >= PI;
+                    $cur_loop = undef;
+                }
+            }
+        });
+        ok !$loop_starts_from_convex_point, 'avoid starting from convex points';
     }
     
     {

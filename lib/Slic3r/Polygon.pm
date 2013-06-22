@@ -154,6 +154,7 @@ sub split_at_first_point {
     return $self->split_at_index(0);
 }
 
+# for cw polygons this will return convex points!
 sub concave_points {
     my $self = shift;
     
