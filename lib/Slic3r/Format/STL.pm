@@ -55,7 +55,7 @@ sub _read_ascii {
     seek $fh, 0, 0;
     while (<$fh>) {
         if (!$facet) {
-            /^\s*facet\s+normal\s+/ or next;
+            /^\s*facet/ or next;  # be tolerant with malformed STL files not having the "normal" word
             $facet = [];  # ignore normal
         } else {
             if (/^\s*endfacet/) {
