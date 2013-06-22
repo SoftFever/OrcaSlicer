@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 5;
 use strict;
 use warnings;
 
@@ -39,6 +39,37 @@ use Slic3r::Test;
             }
         });
         ok !$has_cw_loops, 'all perimeters extruded ccw';
+    }
+    
+    {
+        $config->set('external_perimeter_speed', 68);
+        my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
+        my $has_cw_loops = my $has_outwards_move = 0;
+        my $cur_loop;
+        my %external_loops = ();  # print_z => count of external loops
+        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+            my ($self, $cmd, $args, $info) = @_;
+            
+            if ($info->{extruding} && $info->{dist_XY} > 0) {
+                $cur_loop ||= [ [$self->X, $self->Y] ];
+                push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
+            } else {
+                if ($cur_loop) {
+                    $has_cw_loops = 1 if !Slic3r::Geometry::Clipper::is_counter_clockwise($cur_loop);
+                    if ($self->F == $config->external_perimeter_speed*60) {
+                        my $move_dest = [ @$info{qw(new_X new_Y)} ];
+                        $external_loops{$self->Z}++;
+                        $has_outwards_move = 1
+                            if !Slic3r::Polygon->new(@$cur_loop)->encloses_point($move_dest)
+                                ? ($external_loops{$self->Z} == 2)  # contour should include destination
+                                : ($external_loops{$self->Z} == 1); # hole should not
+                    }
+                    $cur_loop = undef;
+                }
+            }
+        });
+        ok !$has_cw_loops, 'all perimeters extruded ccw';
+        ok !$has_outwards_move, 'move inwards after completing external loop';
     }
     
     {
