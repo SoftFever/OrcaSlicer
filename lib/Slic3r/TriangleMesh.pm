@@ -459,10 +459,9 @@ sub intersect_facet {
     my @edge_ids            = @{$self->facets_edges->[$facet_id]};
     my @edge_vertices_ids   = $self->_facet_edges($facet_id);
     
-    my (@lines, @points, @intersection_points, @points_on_layer) = ();
+    my (@points, @intersection_points, @points_on_layer) = ();
         
     for my $e (0..2) {
-        my $edge_id         = $edge_ids[$e];
         my ($a_id, $b_id)   = @{$edge_vertices_ids[$e]};
         my ($a, $b)         = @vertices{$a_id, $b_id};
         #printf "Az = %f, Bz = %f, z = %f\n", $a->[Z], $b->[Z], $z;
@@ -474,7 +473,9 @@ sub intersect_facet {
                 ($a, $b) = ($b, $a);
                 ($a_id, $b_id) = ($b_id, $a_id);
             }
-            push @lines, pack I_FMT, (
+            # We assume that this method is never being called for horizontal
+            # facets, so no other edge is going to be on this layer.
+            return pack I_FMT, (
                 $b->[X], $b->[Y],       # I_B
                 $a_id,                  # I_A_ID
                 $b_id,                  # I_B_ID
@@ -504,14 +505,13 @@ sub intersect_facet {
                 $b->[X] + ($a->[X] - $b->[X]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
                 $b->[Y] + ($a->[Y] - $b->[Y]) * ($z - $b->[Z]) / ($a->[Z] - $b->[Z]),
                 undef,
-                $edge_id,
+                $edge_ids[$e],
             ];
             push @intersection_points, $#points;
             #print "Intersects at $z!\n";
         }
     }
     
-    return @lines if @lines;
     if (@points_on_layer == 2 && @intersection_points == 1) {
         $points[ $points_on_layer[1] ] = undef;
         @points = grep $_, @points;
