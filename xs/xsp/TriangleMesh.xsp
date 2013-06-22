@@ -1,0 +1,14 @@
+%module{Slic3r::TriangleMesh::XS};
+%package{Slic3r::TriangleMesh::XS};
+
+%{
+PROTOTYPES: DISABLE
+
+std::string
+hello_world()
+  CODE:
+    RETVAL = "Hello world!";
+  OUTPUT:
+    RETVAL
+
+%}

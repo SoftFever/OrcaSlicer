@@ -1,0 +1,11 @@
+Build.PL
+lib/Slic3r/TriangleMesh/XS.pm
+lib/Slic3r/XS.pm
+MANIFEST			This list of files
+src/myinit.h
+src/ppport.h
+t/01_trianglemesh.t
+xsp/mytype.map
+xsp/TriangleMesh.xsp
+xsp/typemap.xspt
+xsp/XS.xsp

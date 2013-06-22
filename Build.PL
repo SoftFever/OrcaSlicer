@@ -59,6 +59,7 @@ foreach my $module (sort keys %modules) {
     my $version = $modules{$module};
     system $cpanm, '--sudo', "$module~$version";
 }
+system $cpanm, '--sudo', '--reinstall', './xs';
 
 if (eval "use App::Prove; 1") {
     App::Prove->new->run;
