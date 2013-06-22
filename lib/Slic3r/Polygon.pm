@@ -7,7 +7,7 @@ use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
     polygon_remove_acute_vertices polygon_segment_having_point point_in_polygon
-    PI X1 X2 Y1 Y2);
+    PI X1 X2 Y1 Y2 epsilon);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
 
 sub lines {
@@ -159,7 +159,7 @@ sub concave_points {
     my $self = shift;
     
     return map $self->[$_],
-        grep Slic3r::Geometry::angle3points(@$self[$_, $_-1, $_+1]) < PI,
+        grep Slic3r::Geometry::angle3points(@$self[$_, $_-1, $_+1]) < PI - epsilon,
         -1 .. ($#$self-1);
 }
 
