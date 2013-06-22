@@ -12,7 +12,7 @@ our @EXPORT_OK = qw(
     point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
     point_along_segment polygon_segment_having_point polygon_has_subsegment
     polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
-    rotate_points move_points clip_segment_polygon
+    rotate_points move_points clip_segment_polygon nearest_point_index
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect same_point same_line
     longest_segment angle3points three_points_aligned line_direction

@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(scale unscale X);
+use Slic3r::Geometry qw(scale unscale X nearest_point_index);
 use Slic3r::Geometry::Clipper qw(offset offset2 union_pt traverse_pt PFT_EVENODD);
 
 sub fill_surface {
@@ -36,8 +36,16 @@ sub fill_surface {
     
     # generate paths from the outermost to the innermost, to avoid 
     # adhesion problems of the first central tiny loops
-    my @paths = map Slic3r::Polygon->new(@$_)->split_at_first_point,
+    @loops = map Slic3r::Polygon->new(@$_),
         reverse traverse_pt( union_pt(\@loops, PFT_EVENODD) );
+    
+    # order paths using a nearest neighbor search
+    my @paths = ();
+    my $last_pos = [0,0];
+    foreach my $loop (@loops) {
+        push @paths, $loop->split_at_index(nearest_point_index($last_pos, $loop));
+        $last_pos = $paths[-1][-1];
+    }
     
     # clip the paths to avoid the extruder to get exactly on the first point of the loop
     my $clip_length = scale $flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING;
