@@ -4,7 +4,7 @@ use Moo;
 extends 'Slic3r::Fill::Base';
 
 use Slic3r::Geometry qw(scale unscale X);
-use Slic3r::Geometry::Clipper qw(offset2 union_pt traverse_pt PFT_EVENODD);
+use Slic3r::Geometry::Clipper qw(offset offset2 union_pt traverse_pt PFT_EVENODD);
 
 sub fill_surface {
     my $self = shift;
@@ -27,7 +27,9 @@ sub fill_surface {
         $flow_spacing = unscale $distance;
     }
     
-    my @loops = my @last = @$expolygon;
+    # compensate the overlap which is good for rectilinear but harmful for concentric
+    # where the perimeter/infill spacing should be equal to any other loop spacing
+    my @loops = my @last = offset($expolygon, -&Slic3r::INFILL_OVERLAP_OVER_SPACING * $min_spacing / 2);
     while (@last) {
         push @loops, @last = offset2(\@last, -1.5*$distance,  +0.5*$distance);
     }
