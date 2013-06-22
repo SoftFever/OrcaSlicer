@@ -1,6 +1,7 @@
 package Slic3r::TriangleMesh;
 use Moo;
 
+use List::Util qw(reduce);
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use Storable;
@@ -37,6 +38,7 @@ sub analyze {
     $self->facets_edges([]);
     $self->edges_facets([]);
     my %table = ();  # edge_coordinates => edge_id
+    my $vertices = $self->vertices;  # save method calls
     
     for (my $facet_id = 0; $facet_id <= $#{$self->facets}; $facet_id++) {
         my $facet = $self->facets->[$facet_id];
@@ -46,8 +48,10 @@ sub analyze {
         # this is needed to get all intersection lines in a consistent order
         # (external on the right of the line)
         {
-            my @z_order = sort { $self->vertices->[$facet->[$a]][Z] <=> $self->vertices->[$facet->[$b]][Z] } -3..-1;
-            @$facet[-3..-1] = (@$facet[$z_order[0]..-1], @$facet[-3..($z_order[0]-1)]);
+            my $lowest_vertex_idx = reduce {
+                $vertices->[ $facet->[$a] ][Z] < $vertices->[ $facet->[$b] ][Z] ? $a : $b
+            } -3 .. -1;
+            @$facet[-3..-1] = (@$facet[$lowest_vertex_idx..-1], @$facet[-3..($lowest_vertex_idx-1)]);
         }
         
         # ignore the normal if provided
@@ -451,6 +455,7 @@ sub intersect_facet {
     my ($facet_id, $z) = @_;
     
     my @vertices_ids        = @{$self->facets->[$facet_id]}[-3..-1];
+    my %vertices            = map { $_ => $self->vertices->[$_] } @vertices_ids;  # cache vertices
     my @edge_ids            = @{$self->facets_edges->[$facet_id]};
     my @edge_vertices_ids   = $self->_facet_edges($facet_id);
     
@@ -459,12 +464,12 @@ sub intersect_facet {
     for my $e (0..2) {
         my $edge_id         = $edge_ids[$e];
         my ($a_id, $b_id)   = @{$edge_vertices_ids[$e]};
-        my ($a, $b)         = map $self->vertices->[$_], ($a_id, $b_id);
+        my ($a, $b)         = @vertices{$a_id, $b_id};
         #printf "Az = %f, Bz = %f, z = %f\n", $a->[Z], $b->[Z], $z;
         
         if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
             # edge is horizontal and belongs to the current layer
-            my $edge_type = (grep $self->vertices->[$_][Z] < $z, @vertices_ids) ? FE_TOP : FE_BOTTOM;
+            my $edge_type = (grep $vertices{$_}[Z] < $z, @vertices_ids) ? FE_TOP : FE_BOTTOM;
             if ($edge_type == FE_TOP) {
                 ($a, $b) = ($b, $a);
                 ($a_id, $b_id) = ($b_id, $a_id);
