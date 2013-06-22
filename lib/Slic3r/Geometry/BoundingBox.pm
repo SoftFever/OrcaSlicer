@@ -62,6 +62,18 @@ sub scale {
     $self;
 }
 
+sub translate {
+    my $self = shift;
+    my @shift = @_;
+    
+    for my $axis (X .. $#{$self->extents}) {
+        $self->extents->[$axis][MIN] += $shift[$axis];
+        $self->extents->[$axis][MAX] += $shift[$axis];
+    }
+    
+    $self;
+}
+
 sub size {
     my $self = shift;
     
