@@ -1,49 +1,58 @@
 %module{Slic3r::XS};
-%package{Slic3r::Object::XS};
-
-#include <list>
-#include <vector>
 
 %{
-PROTOTYPES: DISABLE
+#include <myinit.h>
+#include <vector>
+%}
 
+%name{Slic3r::Object::XS::ZTable} class ZTable {
+    ZTable(std::vector<unsigned int>* z_array);
+
+%{
 std::vector<unsigned int>
-get_layer_range(z_array, min_z, max_z)
-    std::vector<unsigned int>* z_array;
+get_range(THIS, min_z, max_z)
+    ZTable* THIS;
     unsigned int min_z;
     unsigned int max_z;
     CODE:
         RETVAL.resize(2);
         
         unsigned int bottom = 0;
-        unsigned int top = z_array->size()-1;
+        unsigned int top = THIS->z.size()-1;
         while (1) {
             unsigned int mid = bottom + floor((top - bottom)/2.0);
             if (mid == top || mid == bottom) {
                 RETVAL[0] = mid;
                 break;
             }
-            if ((*z_array)[mid] > min_z) {
+            if (THIS->z[mid] > min_z) {
                 top = mid;
             } else {
                 bottom = mid;
             }
         }
-        top = z_array->size()-1;
+        top = THIS->z.size()-1;
         while (1) {
             unsigned int mid = bottom + ceil((top - bottom)/2.0);
             if (mid == top || mid == bottom) {
                 RETVAL[1] = mid;
                 break;
             }
-            if ((*z_array)[mid] < max_z) {
+            if (THIS->z[mid] < max_z) {
                 bottom = mid;
             } else {
                 top = mid;
             }
         }
-        delete z_array;
     OUTPUT:
         RETVAL
+%}
 
+};
+
+%package{Slic3r::Object::XS};
+
+%{
+#include <myinit.h>
+#include <vector>
 %}

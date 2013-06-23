@@ -16,6 +16,7 @@ has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'fill_maker'        => (is => 'lazy');
+has '_z_table'          => (is => 'lazy');
 
 sub BUILD {
     my $self = shift;
@@ -83,6 +84,11 @@ sub _build_fill_maker {
     return Slic3r::Fill->new(object => $self);
 }
 
+sub _build__z_table {
+    my $self = shift;
+    return Slic3r::Object::XS::ZTable->new([ map $_->slice_z, @{$self->layers} ]);
+}
+
 # This should be probably moved in Print.pm at the point where we sort Layer objects
 sub _trigger_copies {
     my $self = shift;
@@ -99,9 +105,7 @@ sub layer_count {
 
 sub get_layer_range {
     my $self = shift;
-    my ($min_z, $max_z) = @_;
-    
-    return @{ Slic3r::Object::XS::get_layer_range([ map $_->slice_z, @{$self->layers} ], $min_z, $max_z) };
+    return @{ $self->_z_table->get_range(@_) };
 }
 
 sub bounding_box {

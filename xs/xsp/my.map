@@ -1,1 +1,2 @@
-std::map<uint32_t, uint32_t>*           T_PTR
+ZTable*         O_OBJECT
+std::vector< unsigned int >*	T_STD_VECTOR_UINT_PTR
