@@ -90,6 +90,8 @@ The author of the Silk icon set is Mark James.
         -o, --output <file> File to output gcode to (by default, the file will be saved
                             into the same directory as the input file using the 
                             --output-filename-format to generate the filename)
+        --repair            Automatically repair given STL files and saves them as _fixed.obj
+        
       GUI options:
         --no-plater         Disable the plater tab
         --gui-mode          Overrides the configured mode (simple/expert)

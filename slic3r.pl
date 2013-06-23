@@ -33,6 +33,7 @@ my %cli_options = ();
         'datadir=s'             => \$opt{datadir},
         'export-svg'            => \$opt{export_svg},
         'merge|m'               => \$opt{merge},
+        'repair'                => \$opt{repair},
     );
     foreach my $opt_key (keys %{$Slic3r::Config::Options}) {
         my $cli = $Slic3r::Config::Options->{$opt_key}->{cli} or next;
@@ -92,6 +93,18 @@ die $@ if $@ && $opt{gui};
 if (@ARGV) {  # slicing from command line
     $config->validate;
     
+    if ($opt{repair}) {
+        foreach my $file (@ARGV) {
+            die "Repair is currently supported only on STL files\n"
+                if $file !~ /\.stl$/i;
+            
+            my $output_file = $file;
+            $output_file =~ s/\.(stl)$/_fixed.obj/i;
+            Slic3r::TriangleMesh::XS::stl_repair($file, $output_file);
+        }
+        exit;
+    }
+    
     while (my $input_file = shift @ARGV) {
         my $model;
         if ($opt{merge}) {
@@ -150,6 +163,7 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     -o, --output <file> File to output gcode to (by default, the file will be saved
                         into the same directory as the input file using the 
                         --output-filename-format to generate the filename)
+    --repair            Automatically repair given STL files and saves them as _fixed.obj
 $j
   GUI options:
     --no-plater         Disable the plater tab

@@ -192,6 +192,38 @@ sub quick_slice {
     Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
 }
 
+sub repair_stl {
+    my $self = shift;
+    
+    my $input_file;
+    {
+        my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
+        my $dialog = Wx::FileDialog->new($self, 'Select the STL file to repair:', $dir, "", FILE_WILDCARDS->{stl}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        if ($dialog->ShowModal != wxID_OK) {
+            $dialog->Destroy;
+            return;
+        }
+        $input_file = $dialog->GetPaths;
+        $dialog->Destroy;
+    }
+    
+    my $output_file = $input_file;
+    {
+        $output_file =~ s/\.stl$/_fixed.obj/i;
+        my $dlg = Wx::FileDialog->new($self, "Save OBJ file (less prone to coordinate errors than STL) as:", dirname($output_file),
+            basename($output_file), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{obj}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if ($dlg->ShowModal != wxID_OK) {
+            $dlg->Destroy;
+            return undef;
+        }
+        $output_file = $dlg->GetPath;
+        $dlg->Destroy;
+    }
+    
+    Slic3r::TriangleMesh::XS::stl_repair($input_file, $output_file);
+    Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
+}
+
 sub init_print {
     my $self = shift;
     

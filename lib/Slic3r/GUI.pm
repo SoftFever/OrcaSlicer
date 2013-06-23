@@ -26,6 +26,7 @@ use constant MI_QUICK_SLICE   => &Wx::NewId;
 use constant MI_REPEAT_QUICK  => &Wx::NewId;
 use constant MI_QUICK_SAVE_AS => &Wx::NewId;
 use constant MI_SLICE_SVG     => &Wx::NewId;
+use constant MI_REPAIR_STL    => &Wx::NewId;
 use constant MI_COMBINE_STLS  => &Wx::NewId;
 
 use constant MI_PLATER_EXPORT_GCODE => &Wx::NewId;
@@ -112,6 +113,7 @@ sub OnInit {
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
         $fileMenu->AppendSeparator();
+        $fileMenu->Append(MI_REPAIR_STL, "Repair STL file…", 'Automatically repair an STL file');
         $fileMenu->Append(MI_COMBINE_STLS, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file');
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_PREFERENCES, "Preferences…", 'Application preferences');
@@ -125,6 +127,7 @@ sub OnInit {
         EVT_MENU($frame, MI_QUICK_SAVE_AS, sub { $self->{skeinpanel}->quick_slice(save_as => 1);
                                                  $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
         EVT_MENU($frame, MI_SLICE_SVG, sub { $self->{skeinpanel}->quick_slice(save_as => 1, export_svg => 1) });
+        EVT_MENU($frame, MI_REPAIR_STL, sub { $self->{skeinpanel}->repair_stl });
         EVT_MENU($frame, MI_COMBINE_STLS, sub { $self->{skeinpanel}->combine_stls });
         EVT_MENU($frame, wxID_PREFERENCES, sub { Slic3r::GUI::Preferences->new($frame)->ShowModal });
         EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
