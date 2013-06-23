@@ -44,7 +44,9 @@ sub process_layer {
     $self->gcodegen->move_z_callback(sub {
         $self->gcodegen->move_z_callback(undef);  # circular ref or not?
         return "" if !$Slic3r::Config->layer_gcode;
-        return $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode) . "\n";
+        return $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode, {
+            layer_num => $self->gcodegen->layer->id,
+        }) . "\n";
     });
     
     # extrude skirt
