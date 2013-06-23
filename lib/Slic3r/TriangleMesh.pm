@@ -1,7 +1,7 @@
 package Slic3r::TriangleMesh;
 use Moo;
 
-use List::Util qw(reduce min max);
+use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use Storable;
@@ -151,9 +151,11 @@ sub check_manifoldness {
     
     $self->analyze;
     
-    # look for any edges not connected to exactly two facets
+    # look for any edges belonging to an odd number of facets
+    # we should actually check that each pair of facets belonging to this edge
+    # has compatible winding order
     my ($first_bad_edge_id) =
-        grep { @{ $self->edges_facets->[$_] } != 2 } 0..$#{$self->edges_facets};
+        grep { @{ $self->edges_facets->[$_] } % 2 } 0..$#{$self->edges_facets};
     if (defined $first_bad_edge_id) {
         warn sprintf "Warning: The input file contains a hole near edge %f,%f,%f-%f,%f,%f (not manifold). "
             . "You might want to repair it and retry, or to check the resulting G-code before printing anyway.\n",
@@ -254,61 +256,38 @@ sub make_loops {
         }
     }
     
-    # optimization: build indexes of lines
-    my %by_edge_a_id = map { $lines[$_][I_EDGE_A_ID] => $_ }
-        grep defined $lines[$_][I_EDGE_A_ID],
-        (0..$#lines);
-    my %by_a_id = map { $lines[$_][I_A_ID] => $_ }
-        grep defined $lines[$_][I_A_ID],
-        (0..$#lines);
-    
-    my (@polygons, @failed_loops, %visited_lines) = ();
-    my $slicing_errors = 0;
-    CYCLE: for (my $i = 0; $i <= $#lines; $i++) {
-        my $line = my $first_line = $lines[$i];
-        next if $visited_lines{$line};
-        my @points = ();
+    my (@polygons, @failed_loops) = ();
+    CYCLE: while (@lines) {
+        # take first spare line and start a new loop
+        my @loop = (shift @lines);
         
-        do {
-            my $next_line;
-            if (defined $line->[I_EDGE_B_ID] && exists $by_edge_a_id{$line->[I_EDGE_B_ID]}) {
-                $next_line = $lines[ $by_edge_a_id{$line->[I_EDGE_B_ID]} ];
-            } elsif (defined $line->[I_B_ID] && exists $by_a_id{$line->[I_B_ID]}) {
-                $next_line = $lines[ $by_a_id{$line->[I_B_ID]} ];
-            } else {
-                Slic3r::debugf "  line has no next_facet_index or b_id\n";
-                $slicing_errors = 1;
-                push @failed_loops, [@points] if @points;
+        while (1) {
+            # find a line starting where last one finishes
+            my $line_idx;
+            $line_idx = first { defined $lines[$_][I_EDGE_A_ID] && $lines[$_][I_EDGE_A_ID] == $loop[-1][I_EDGE_B_ID] } 0..$#lines
+                if defined $loop[-1][I_EDGE_B_ID];
+            $line_idx ||= first { defined $lines[$_][I_A_ID] && $lines[$_][I_A_ID] == $loop[-1][I_B_ID] } 0..$#lines
+                if defined $loop[-1][I_B_ID];
+            
+            if (!defined $line_idx) {
+                # check whether we closed this loop
+                if ((defined $loop[0][I_EDGE_A_ID] && defined $loop[-1][I_EDGE_B_ID] && $loop[0][I_EDGE_A_ID] == $loop[-1][I_EDGE_B_ID])
+                    || (defined $loop[0][I_A_ID] && defined $loop[-1][I_B_ID] && $loop[0][I_A_ID] == $loop[-1][I_B_ID])) {
+                    # loop is complete!
+                    push @polygons, Slic3r::Polygon->new([ map $_->[I_A], @loop ]);
+                    Slic3r::debugf "  Discovered %s polygon of %d points\n",
+                        ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@{$polygons[-1]})
+                        if $Slic3r::debug;
+                    next CYCLE;
+                }
+                
+                # we can't close this loop!
+                push @failed_loops, [@loop];
                 next CYCLE;
             }
-            
-            if (!$next_line || $visited_lines{$next_line}) {
-                Slic3r::debugf "  failed to close this loop\n";
-                $slicing_errors = 1;
-                push @failed_loops, [@points] if @points;
-                next CYCLE;
-            #} elsif (defined $next_line->[I_PREV_FACET_INDEX] && $next_line->[I_PREV_FACET_INDEX] != $line->[I_FACET_INDEX]) {
-            #    Slic3r::debugf "  wrong prev_facet_index\n";
-            #    $slicing_errors = 1;
-            #    push @failed_loops, [@points] if @points;
-            #    next CYCLE;
-            } elsif (defined $next_line->[I_A_ID] && $next_line->[I_A_ID] != $line->[I_B_ID]) {
-                Slic3r::debugf "  wrong a_id\n";
-                $slicing_errors = 1;
-                push @failed_loops, [@points] if @points;
-                next CYCLE;
-            }
-            
-            push @points, $next_line->[I_B];
-            $visited_lines{$next_line} = 1;
-            $line = $next_line;
-        } while ($line ne $first_line);
-    
-        push @polygons, Slic3r::Polygon->new(@points);
-        Slic3r::debugf "  Discovered %s polygon of %d points\n",
-            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@points)
-            if $Slic3r::debug;
-    }
+            push @loop, splice @lines, $line_idx, 1;
+        }
+    };
     
     # TODO: we should try to combine failed loops
     for (grep @$_ >= 3, @failed_loops) {
@@ -318,7 +297,7 @@ sub make_loops {
             if $Slic3r::debug;
     }
     
-    return ($slicing_errors, [@polygons]);
+    return (@failed_loops ? 1 : 0, [@polygons]);
 }
 
 sub rotate {
