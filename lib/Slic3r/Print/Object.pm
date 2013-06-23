@@ -741,8 +741,8 @@ sub combine_infill {
             my @layerms = map $self->layers->[$_]->regions->[$region_id],
                 ($layer_id - ($combine[$layer_id]-1) .. $layer_id);
             
-            # process internal and internal-solid infill separately
-            for my $type (S_TYPE_INTERNAL, S_TYPE_INTERNALSOLID) {
+            # only combine internal infill
+            for my $type (S_TYPE_INTERNAL) {
                 # we need to perform a multi-layer intersection, so let's split it in pairs
                 
                 # initialize the intersection with the candidates of the lowest layer
