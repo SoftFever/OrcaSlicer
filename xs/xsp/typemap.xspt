@@ -1,2 +1,1 @@
-%typemap{std::string}{simple};
-%typemap{std::string&}{reference};
+%typemap{std::string};

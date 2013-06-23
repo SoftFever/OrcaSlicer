@@ -101,37 +101,7 @@ sub get_layer_range {
     my $self = shift;
     my ($min_z, $max_z) = @_;
     
-    # $min_layer is the uppermost layer having slice_z <= $min_z
-    # $max_layer is the lowermost layer having slice_z >= $max_z
-    my ($min_layer, $max_layer);
-
-    my ($bottom, $top) = (0, $#{$self->layers});
-    while (1) {
-        my $mid = $bottom+int(($top - $bottom)/2);
-        if ($mid == $top || $mid == $bottom) {
-            $min_layer = $mid;
-            last;
-        }
-        if ($self->layers->[$mid]->slice_z >= $min_z) {
-            $top = $mid;
-        } else {
-            $bottom = $mid;
-        }
-    }
-    $top = $#{$self->layers};
-    while (1) {
-        my $mid = $bottom+int(($top - $bottom)/2);
-        if ($mid == $top || $mid == $bottom) {
-            $max_layer = $mid;
-            last;
-        }
-        if ($self->layers->[$mid]->slice_z < $max_z) {
-            $bottom = $mid;
-        } else {
-            $top = $mid;
-        }
-    }
-    return ($min_layer, $max_layer);
+    return @{ Slic3r::Object::XS::get_layer_range([ map $_->slice_z, @{$self->layers} ], $min_z, $max_z) };
 }
 
 sub bounding_box {

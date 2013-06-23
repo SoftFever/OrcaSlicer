@@ -65,6 +65,7 @@ use Slic3r::Print::Object;
 use Slic3r::Print::Region;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
+use Slic3r::XS;
 our $build = eval "use Slic3r::Build; 1";
 
 use constant SCALING_FACTOR         => 0.000001;

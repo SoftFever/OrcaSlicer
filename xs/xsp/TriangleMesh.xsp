@@ -1,4 +1,4 @@
-%module{Slic3r::TriangleMesh::XS};
+%module{Slic3r::XS};
 %package{Slic3r::TriangleMesh::XS};
 
 %{

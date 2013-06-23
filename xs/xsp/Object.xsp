@@ -1,0 +1,49 @@
+%module{Slic3r::XS};
+%package{Slic3r::Object::XS};
+
+#include <list>
+#include <vector>
+
+%{
+PROTOTYPES: DISABLE
+
+std::vector<unsigned int>
+get_layer_range(z_array, min_z, max_z)
+    std::vector<unsigned int>* z_array;
+    unsigned int min_z;
+    unsigned int max_z;
+    CODE:
+        RETVAL.resize(2);
+        
+        unsigned int bottom = 0;
+        unsigned int top = z_array->size()-1;
+        while (1) {
+            unsigned int mid = bottom + floor((top - bottom)/2.0);
+            if (mid == top || mid == bottom) {
+                RETVAL[0] = mid;
+                break;
+            }
+            if ((*z_array)[mid] > min_z) {
+                top = mid;
+            } else {
+                bottom = mid;
+            }
+        }
+        top = z_array->size()-1;
+        while (1) {
+            unsigned int mid = bottom + ceil((top - bottom)/2.0);
+            if (mid == top || mid == bottom) {
+                RETVAL[1] = mid;
+                break;
+            }
+            if ((*z_array)[mid] < max_z) {
+                bottom = mid;
+            } else {
+                top = mid;
+            }
+        }
+        delete z_array;
+    OUTPUT:
+        RETVAL
+
+%}
