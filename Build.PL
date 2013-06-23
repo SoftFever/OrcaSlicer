@@ -69,7 +69,7 @@ EOF
 my %modules = (%prereqs, %recommends);
 foreach my $module (sort keys %modules) {
     my $version = $modules{$module};
-    system $cpanm, '--sudo', "$module~$version";
+    system $cpanm, "$module~$version";
 }
 system $cpanm, '--sudo', '--reinstall', './xs';
 

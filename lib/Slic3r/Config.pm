@@ -1071,13 +1071,13 @@ sub new_from_cli {
     for (qw(start end layer toolchange)) {
         my $opt_key = "${_}_gcode";
         if ($args{$opt_key}) {
-            die "Invalid value for --${_}-gcode: file does not exist\n"
-                if !-e $args{$opt_key};
-            Slic3r::open(\my $fh, "<", $args{$opt_key})
-                or die "Failed to open $args{$opt_key}\n";
-            binmode $fh, ':utf8';
-            $args{$opt_key} = do { local $/; <$fh> };
-            close $fh;
+            if (-e $args{$opt_key}) {
+                Slic3r::open(\my $fh, "<", $args{$opt_key})
+                    or die "Failed to open $args{$opt_key}\n";
+                binmode $fh, ':utf8';
+                $args{$opt_key} = do { local $/; <$fh> };
+                close $fh;
+            }
         }
     }
     
