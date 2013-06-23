@@ -27,18 +27,28 @@ my %recommends = qw(
     Class::XSAccessor               0
     Growl::GNTP                     0.15
     XML::SAX::ExpatXS               0
-    Wx                              0.9901
+);
+
+# removed:
+# Wx 0.9901
+
+my @try = (
+    $ENV{CPANM} // (),
+    File::Spec->catfile($Config{sitebin}, 'cpanm'),
+    File::Spec->catfile($Config{installscript}, 'cpanm'),
 );
 
 my $cpanm;
-if (defined $ENV{CPANM} && -x $ENV{CPANM}) {
-    $cpanm = $ENV{CPANM};
-} elsif (-x (my $c = File::Spec->catfile($Config{sitebin}, 'cpanm'))) {
-    $cpanm = $c;
-} elsif (-x (my $c = File::Spec->catfile($Config{installscript}, 'cpanm'))) {
-    $cpanm = $c;
-} elsif ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
-    $cpanm = 'cpanm';
+foreach my $path (@try) {
+    if (-e $path) {  # don't use -x because it fails on Windows
+        $cpanm = $path;
+        last;
+    }
+}
+if (!$cpanm) {
+    if ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
+        $cpanm = 'cpanm';
+    }
 }
 die <<'EOF'
 cpanm was not found. Please install it before running this script.
