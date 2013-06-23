@@ -18,13 +18,13 @@ has 'edges_facets'  => (is => 'rw'); # id => [ $f1_id, $f2_id, (...) ]
 use constant MIN => 0;
 use constant MAX => 1;
 
-use constant I_FMT              => 'ffllLllc';
-use constant I_B                => 0;
-use constant I_A_ID             => 1;
-use constant I_B_ID             => 2;
-use constant I_FACET_INDEX      => 3;
-use constant I_PREV_FACET_INDEX => 4;
-use constant I_NEXT_FACET_INDEX => 5;
+use constant I_FMT              => 'ffffllllc';
+use constant I_A                => 0;
+use constant I_B                => 1;
+use constant I_A_ID             => 2;
+use constant I_B_ID             => 3;
+use constant I_EDGE_A_ID        => 4;
+use constant I_EDGE_B_ID        => 5;
 use constant I_FACET_EDGE       => 6;
 
 use constant FE_TOP             => 0;
@@ -171,8 +171,8 @@ sub unpack_line {
     my ($packed) = @_;
     
     my $data = [ unpack I_FMT, $packed ];
-    splice @$data, 0, 2, [ @$data[0,1] ];
-    $data->[$_] = undef for grep $data->[$_] == -1, I_A_ID, I_B_ID, I_FACET_EDGE, I_PREV_FACET_INDEX, I_NEXT_FACET_INDEX;
+    splice @$data, 0, 4, [ @$data[0,1] ], [ @$data[2,3] ];
+    $data->[$_] = undef for grep $data->[$_] == -1, I_A_ID, I_B_ID, I_EDGE_A_ID, I_EDGE_B_ID, I_FACET_EDGE;
     return $data;
 }
 
@@ -217,12 +217,8 @@ sub make_loops {
     @lines = grep $_, @lines;
     
     # count relationships
-    my %prev_count = ();  # how many lines have the same prev_facet_index
     my %a_count    = ();  # how many lines have the same a_id
     foreach my $line (@lines) {
-        if (defined $line->[I_PREV_FACET_INDEX]) {
-            $prev_count{$line->[I_PREV_FACET_INDEX]}++;
-        }
         if (defined $line->[I_A_ID]) {
             $a_count{$line->[I_A_ID]}++;
         }
@@ -259,8 +255,8 @@ sub make_loops {
     }
     
     # optimization: build indexes of lines
-    my %by_facet_index = map { $lines[$_][I_FACET_INDEX] => $_ }
-        grep defined $lines[$_][I_FACET_INDEX],
+    my %by_edge_a_id = map { $lines[$_][I_EDGE_A_ID] => $_ }
+        grep defined $lines[$_][I_EDGE_A_ID],
         (0..$#lines);
     my %by_a_id = map { $lines[$_][I_A_ID] => $_ }
         grep defined $lines[$_][I_A_ID],
@@ -269,17 +265,16 @@ sub make_loops {
     my (@polygons, @failed_loops, %visited_lines) = ();
     my $slicing_errors = 0;
     CYCLE: for (my $i = 0; $i <= $#lines; $i++) {
-        my $line = $lines[$i];
+        my $line = my $first_line = $lines[$i];
         next if $visited_lines{$line};
         my @points = ();
-        my $first_facet_index = $line->[I_FACET_INDEX];
         
         do {
             my $next_line;
-            if (defined $line->[I_NEXT_FACET_INDEX] && exists $by_facet_index{$line->[I_NEXT_FACET_INDEX]}) {
-                $next_line = $lines[$by_facet_index{$line->[I_NEXT_FACET_INDEX]}];
+            if (defined $line->[I_EDGE_B_ID] && exists $by_edge_a_id{$line->[I_EDGE_B_ID]}) {
+                $next_line = $lines[ $by_edge_a_id{$line->[I_EDGE_B_ID]} ];
             } elsif (defined $line->[I_B_ID] && exists $by_a_id{$line->[I_B_ID]}) {
-                $next_line = $lines[$by_a_id{$line->[I_B_ID]}];
+                $next_line = $lines[ $by_a_id{$line->[I_B_ID]} ];
             } else {
                 Slic3r::debugf "  line has no next_facet_index or b_id\n";
                 $slicing_errors = 1;
@@ -292,11 +287,11 @@ sub make_loops {
                 $slicing_errors = 1;
                 push @failed_loops, [@points] if @points;
                 next CYCLE;
-            } elsif (defined $next_line->[I_PREV_FACET_INDEX] && $next_line->[I_PREV_FACET_INDEX] != $line->[I_FACET_INDEX]) {
-                Slic3r::debugf "  wrong prev_facet_index\n";
-                $slicing_errors = 1;
-                push @failed_loops, [@points] if @points;
-                next CYCLE;
+            #} elsif (defined $next_line->[I_PREV_FACET_INDEX] && $next_line->[I_PREV_FACET_INDEX] != $line->[I_FACET_INDEX]) {
+            #    Slic3r::debugf "  wrong prev_facet_index\n";
+            #    $slicing_errors = 1;
+            #    push @failed_loops, [@points] if @points;
+            #    next CYCLE;
             } elsif (defined $next_line->[I_A_ID] && $next_line->[I_A_ID] != $line->[I_B_ID]) {
                 Slic3r::debugf "  wrong a_id\n";
                 $slicing_errors = 1;
@@ -307,7 +302,7 @@ sub make_loops {
             push @points, $next_line->[I_B];
             $visited_lines{$next_line} = 1;
             $line = $next_line;
-        } while ($first_facet_index != $line->[I_FACET_INDEX]);
+        } while ($line ne $first_line);
     
         push @polygons, Slic3r::Polygon->new(@points);
         Slic3r::debugf "  Discovered %s polygon of %d points\n",
@@ -475,16 +470,13 @@ sub intersect_facet {
             # We assume that this method is never being called for horizontal
             # facets, so no other edge is going to be on this layer.
             return pack I_FMT, (
+                $a->[X], $a->[Y],       # I_A
                 $b->[X], $b->[Y],       # I_B
                 $a_id,                  # I_A_ID
                 $b_id,                  # I_B_ID
-                $facet_id,              # I_FACET_INDEX
-                -1,                     # I_PREV_FACET_INDEX
-                -1,                     # I_NEXT_FACET_INDEX
+                -1,                     # I_EDGE_A_ID
+                -1,                     # I_EDGE_B_ID
                 $edge_type,             # I_FACET_EDGE
-                
-                # Unused data:
-                # a             => [$a->[X], $a->[Y]],
             );
             #print "Horizontal edge at $z!\n";
             
@@ -511,35 +503,25 @@ sub intersect_facet {
         }
     }
     
-    if (@points_on_layer == 2 && @intersection_points == 1) {
-        $points[ $points_on_layer[1] ] = undef;
-        @points = grep $_, @points;
-    }
-    if (@points_on_layer == 2 && @intersection_points == 0) {
-        if (same_point(map $points[$_], @points_on_layer)) {
-            return ();
+    if (@points_on_layer == 2) {
+        if (@intersection_points == 1) {
+            splice @points, $points_on_layer[1], 1;
+        } elsif (@intersection_points == 0) {
+            return if same_point(@points[@points_on_layer]);
         }
     }
     
     if (@points) {
-        
         # defensive programming:
         die "Facets must intersect each plane 0 or 2 times" if @points != 2;
         
-        # connect points:
-        my ($prev_facet_index, $next_facet_index) = (undef, undef);
-        $prev_facet_index = +(grep $_ != $facet_id, @{$self->edges_facets->[$points[B][3]]})[0]
-            if defined $points[B][3];
-        $next_facet_index = +(grep $_ != $facet_id, @{$self->edges_facets->[$points[A][3]]})[0]
-            if defined $points[A][3];
-        
         return pack I_FMT, (
+            $points[B][X], $points[B][Y],   # I_A
             $points[A][X], $points[A][Y],   # I_B
             $points[B][2] // -1,            # I_A_ID /
             $points[A][2] // -1,            # I_B_ID /
-            $facet_id,                      # I_FACET_INDEX
-            $prev_facet_index // -1,        # I_PREV_FACET_INDEX  /
-            $next_facet_index // -1,        # I_NEXT_FACET_INDEX  /
+            $points[B][3] // -1,            # I_EDGE_A_ID  /
+            $points[A][3] // -1,            # I_EDGE_B_ID  /
             -1,                             # I_FACET_EDGE
         );
         #printf "  intersection points at z = %f: %f,%f - %f,%f\n", $z, map @$_, @intersection_points;
