@@ -1,6 +1,13 @@
 Build.PL
 lib/Slic3r/XS.pm
 MANIFEST			This list of files
+src/admesh/connect.c
+src/admesh/normals.c
+src/admesh/shared.c
+src/admesh/stl.h
+src/admesh/stl_io.c
+src/admesh/stlinit.c
+src/admesh/util.c
 src/myinit.h
 src/ppport.h
 t/01_trianglemesh.t

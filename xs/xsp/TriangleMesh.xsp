@@ -4,11 +4,34 @@
 %{
 PROTOTYPES: DISABLE
 
+#include <myinit.h>
+
 std::string
 hello_world()
   CODE:
     RETVAL = "Hello world!";
   OUTPUT:
     RETVAL
+
+float
+stl_volume(filename)
+    char* filename;
+    CODE:
+        stl_file stl_in;
+        stl_open(&stl_in, filename);
+        
+        stl_check_facets_exact(&stl_in);
+        stl_in.stats.facets_w_1_bad_edge = (stl_in.stats.connected_facets_2_edge - stl_in.stats.connected_facets_3_edge);
+        stl_in.stats.facets_w_2_bad_edge = (stl_in.stats.connected_facets_1_edge - stl_in.stats.connected_facets_2_edge);
+        stl_in.stats.facets_w_3_bad_edge = (stl_in.stats.number_of_facets - stl_in.stats.connected_facets_1_edge);
+        
+        stl_fix_normal_directions(&stl_in);
+        stl_fix_normal_values(&stl_in);
+        
+        stl_calculate_volume(&stl_in);
+        RETVAL = stl_in.stats.volume;
+        stl_close(&stl_in);
+    OUTPUT:
+        RETVAL
 
 %}

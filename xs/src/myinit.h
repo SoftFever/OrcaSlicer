@@ -18,4 +18,6 @@ ZTable::ZTable(std::vector<unsigned int>* ztable) :
 {
 }
 
+#include <admesh/stl.h>
+
 #endif
