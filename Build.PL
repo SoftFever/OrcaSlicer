@@ -33,6 +33,8 @@ my %recommends = qw(
 my $cpanm;
 if (defined $ENV{CPANM} && -x $ENV{CPANM}) {
     $cpanm = $ENV{CPANM};
+} elsif (-x (my $c = File::Spec->catfile($Config{sitebin}, 'cpanm'))) {
+    $cpanm = $c;
 } elsif (-x (my $c = File::Spec->catfile($Config{installscript}, 'cpanm'))) {
     $cpanm = $c;
 } elsif ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
