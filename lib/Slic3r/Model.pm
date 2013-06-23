@@ -6,6 +6,7 @@ use Slic3r::Geometry qw(X Y Z MIN move_points);
 
 has 'materials' => (is => 'ro', default => sub { {} });
 has 'objects'   => (is => 'ro', default => sub { [] });
+has '_bounding_box' => (is => 'rw');
 
 sub read_from_file {
     my $class = shift;
@@ -57,6 +58,7 @@ sub add_object {
     
     my $object = Slic3r::Model::Object->new(model => $self, @_);
     push @{$self->objects}, $object;
+    $self->_bounding_box(undef);
     return $object;
 }
 
@@ -68,11 +70,6 @@ sub set_material {
         model       => $self,
         attributes  => $attributes || {},
     );
-}
-
-sub scale {
-    my $self = shift;
-    $_->scale(@_) for @{$self->objects};
 }
 
 sub arrange_objects {
@@ -151,8 +148,9 @@ sub _arrange {
         return ($config->duplicate_grid->[X] * $config->duplicate_grid->[Y]), @positions;
     } else {
         my $total_parts = $config->duplicate * @items;
-        my $partx = max(map $_->size->[X], @items);
-        my $party = max(map $_->size->[Y], @items);
+        my @sizes = map $_->size, @items;
+        my $partx = max(map $_->[X], @sizes);
+        my $party = max(map $_->[Y], @sizes);
         return $config->duplicate,
             Slic3r::Geometry::arrange
                 ($total_parts, $partx, $party, (map $_, @{$config->bed_size}),
@@ -172,12 +170,16 @@ sub used_vertices {
 
 sub size {
     my $self = shift;
-    return [ Slic3r::Geometry::size_3D($self->used_vertices) ];
+    return $self->bounding_box->size;
 }
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices);
+    
+    if (!defined $self->_bounding_box) {
+        $self->_bounding_box(Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices));
+    }
+    return $self->_bounding_box;
 }
 
 sub align_to_origin {
@@ -198,9 +200,18 @@ sub align_to_origin {
     }
 }
 
+sub scale {
+    my $self = shift;
+    $_->scale(@_) for @{$self->objects};
+    $self->_bounding_box->scale(@_) if defined $self->_bounding_box;
+}
+
 sub move {
     my $self = shift;
-    $_->move(@_) for @{$self->objects};
+    my @shift = @_;
+    
+    $_->move(@shift) for @{$self->objects};
+    $self->_bounding_box->translate(@shift) if defined $self->_bounding_box;
 }
 
 # flattens everything to a single mesh
@@ -286,6 +297,7 @@ has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw');
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has '_bounding_box' => (is => 'rw');
 
 sub add_volume {
     my $self = shift;
@@ -304,6 +316,8 @@ sub add_volume {
     
     my $volume = Slic3r::Model::Volume->new(object => $self, %args);
     push @{$self->volumes}, $volume;
+    $self->_bounding_box(undef);
+    $self->model->_bounding_box(undef);
     return $volume;
 }
 
@@ -312,6 +326,7 @@ sub add_instance {
     
     $self->instances([]) if !defined $self->instances;
     push @{$self->instances}, Slic3r::Model::Instance->new(object => $self, @_);
+    $self->model->_bounding_box(undef);
     return $self->instances->[-1];
 }
 
@@ -333,7 +348,7 @@ sub used_vertices {
 
 sub size {
     my $self = shift;
-    return [ Slic3r::Geometry::size_3D($self->used_vertices) ];
+    return $self->bounding_box->size;
 }
 
 sub center {
@@ -343,7 +358,11 @@ sub center {
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices);
+    
+    if (!defined $self->_bounding_box) {
+        $self->_bounding_box(Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices));
+    }
+    return $self->_bounding_box;
 }
 
 sub align_to_origin {
@@ -359,7 +378,10 @@ sub align_to_origin {
 
 sub move {
     my $self = shift;
-    @{$self->vertices} = move_points_3D([ @_ ], @{$self->vertices});
+    my @shift = @_;
+    
+    @{$self->vertices} = move_points_3D([ @shift ], @{$self->vertices});
+    $self->_bounding_box->translate(@shift) if defined $self->_bounding_box;
 }
 
 sub scale {
@@ -371,6 +393,8 @@ sub scale {
     foreach my $vertex (@{$self->vertices}) {
         $vertex->[$_] *= $factor for X,Y,Z;
     }
+    
+    $self->_bounding_box->scale($factor) if defined $self->_bounding_box;
 }
 
 sub rotate {
@@ -384,6 +408,8 @@ sub rotate {
     foreach my $vertex (@{$self->vertices}) {
         @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
     }
+    
+    $self->_bounding_box(undef);
 }
 
 sub materials_count {

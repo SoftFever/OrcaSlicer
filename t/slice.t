@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 17;
+plan tests => 16;
 
 BEGIN {
     use FindBin;
@@ -20,11 +20,13 @@ my @points = ([3, 4], [8, 5], [1, 9]);  # XY coordinates of the facet vertices
 # the first point of the intersection lines is replaced by -1 because TriangleMesh.pm
 # is saving memory and doesn't store point A anymore since it's not actually needed.
 
-is_deeply lines(20, 20, 20), [
-    [ -1, $points[1] ],  # $points[0]
-    [ -1, $points[2] ],  # $points[1]
-    [ -1, $points[0] ],  # $points[2]
-], 'horizontal';
+# We disable this test because intersect_facet() now assumes we never feed a horizontal
+# facet to it.
+# is_deeply lines(20, 20, 20), [
+#     [ -1, $points[1] ],  # $points[0]
+#     [ -1, $points[2] ],  # $points[1]
+#     [ -1, $points[0] ],  # $points[2]
+# ], 'horizontal';
 
 is_deeply lines(22, 20, 20), [ [ -1, $points[2] ] ], 'lower edge on layer';  # $points[1]
 is_deeply lines(20, 20, 22), [ [ -1, $points[1] ] ], 'lower edge on layer';  # $points[0]

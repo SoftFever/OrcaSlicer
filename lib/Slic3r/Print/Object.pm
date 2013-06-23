@@ -145,6 +145,12 @@ sub slice {
     my $self = shift;
     my %params = @_;
     
+    # make sure all layers contain layer region objects for all regions
+    my $regions_count = $self->print->regions_count;
+    foreach my $layer (@{ $self->layers }) {
+        $layer->region($_) for 0 .. ($regions_count-1);
+    }
+    
     # process facets
     for my $region_id (0 .. $#{$self->meshes}) {
         my $mesh = $self->meshes->[$region_id];  # ignore undef meshes
@@ -152,8 +158,7 @@ sub slice {
         my $apply_lines = sub {
             my $lines = shift;
             foreach my $layer_id (keys %$lines) {
-                my $layerm = $self->layers->[$layer_id]->region($region_id);
-                push @{$layerm->lines}, @{$lines->{$layer_id}};
+                push @{$self->layers->[$layer_id]->regions->[$region_id]->lines}, @{$lines->{$layer_id}};
             }
         };
         Slic3r::parallelize(
@@ -192,9 +197,6 @@ sub slice {
     pop @{$self->layers} while @{$self->layers} && (!map @{$_->lines}, @{$self->layers->[-1]->regions});
     
     foreach my $layer (@{ $self->layers }) {
-        # make sure all layers contain layer region objects for all regions
-        $layer->region($_) for 0 .. ($self->print->regions_count-1);
-        
         Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
             $layer->id, unscale $layer->slice_z if $Slic3r::debug;
         

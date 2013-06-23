@@ -190,8 +190,6 @@ sub extrude_loop {
             $extrusion_path->intersect_expolygons($self->_layer_overhangs);
         
         # reapply the nearest point search for starting point
-        # (TODO: choose the nearest point not on an overhang - make sure wipe and
-        # inwards move consider the new actual starting point)
         @paths = Slic3r::ExtrusionPath::Collection
             ->new(paths => [@paths])
             ->chained_path($last_pos, 1);
@@ -443,9 +441,16 @@ sub retract {
             $self->speed('travel');
             
             # subdivide the retraction
+            my $retracted = 0;
             for (1 .. $#$wipe_path) {
                 my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
-                $gcode .= $self->G1($wipe_path->[$_], undef, $retract->[2] * ($segment_length / $total_wipe_length), $retract->[3] . ";_WIPE");
+                $retracted += my $e = $retract->[2] * ($segment_length / $total_wipe_length);
+                $gcode .= $self->G1($wipe_path->[$_], undef, $e, $retract->[3] . ";_WIPE");
+            }
+            if ($retracted > $retract->[2]) {
+                # if we retracted less than we had to, retract the remainder
+                # TODO: add regression test
+                $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $comment);
             }
         } else {
             $self->speed('retract');
