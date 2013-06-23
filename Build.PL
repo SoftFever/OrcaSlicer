@@ -69,8 +69,14 @@ EOF
 my %modules = (%prereqs, %recommends);
 foreach my $module (sort keys %modules) {
     my $version = $modules{$module};
-    system $cpanm, "$module~$version";
+    if ($ENV{SLIC3R_NO_AUTO}) {
+        print "Missing prerequisite $module $version\n"
+            if !eval "use $module $version; 1";
+    } else {
+        system $cpanm, "$module~$version";
+    }
 }
+exit if $ENV{SLIC3R_NO_AUTO};
 system $cpanm, '--sudo', '--reinstall', './xs';
 
 if (eval "use App::Prove; 1") {
