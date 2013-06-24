@@ -32,6 +32,21 @@ my %recommends = qw(
 # removed:
 # Wx 0.9901
 
+my $skip_tests = 0;
+if ($ENV{SLIC3R_NO_AUTO}) {
+    foreach my $module (sort keys %prereqs) {
+        my $version = $prereqs{$module};
+        next if eval "use $module $version; 1";
+        $skip_tests = 1 if exists $prereqs{$module};
+        print "Missing prerequisite $module $version\n";
+    }
+    foreach my $module (sort keys %recommends) {
+        my $version = $recommends{$module};
+        next if eval "use $module $version; 1";
+        print "Missing optional $module $version\n";
+    }
+}
+
 my @try = (
     $ENV{CPANM} // (),
     File::Spec->catfile($Config{sitebin}, 'cpanm'),
@@ -69,16 +84,11 @@ EOF
 my %modules = (%prereqs, %recommends);
 foreach my $module (sort keys %modules) {
     my $version = $modules{$module};
-    if ($ENV{SLIC3R_NO_AUTO}) {
-        print "Missing prerequisite $module $version\n"
-            if !eval "use $module $version; 1";
-    } else {
-        system $cpanm, "$module~$version";
-    }
+    my $res = system $cpanm, "$module~$version";
+    $skip_tests = 1 if $res != 0;
 }
-exit if $ENV{SLIC3R_NO_AUTO};
 
-if (eval "use App::Prove; 1") {
+if (eval "use App::Prove; 1" && !$skip_tests) {
     App::Prove->new->run;
 }
 
