@@ -32,25 +32,39 @@ my %recommends = qw(
 # removed:
 # Wx 0.9901
 
-my @try = (
-    $ENV{CPANM} // (),
-    File::Spec->catfile($Config{sitebin}, 'cpanm'),
-    File::Spec->catfile($Config{installscript}, 'cpanm'),
-);
-
-my $cpanm;
-foreach my $path (@try) {
-    if (-e $path) {  # don't use -x because it fails on Windows
-        $cpanm = $path;
-        last;
+my $missing_prereqs = 0;
+if ($ENV{SLIC3R_NO_AUTO}) {
+    foreach my $module (sort keys %prereqs) {
+        my $version = $prereqs{$module};
+        next if eval "use $module $version; 1";
+        $missing_prereqs = 1 if exists $prereqs{$module};
+        print "Missing prerequisite $module $version\n";
     }
-}
-if (!$cpanm) {
-    if ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
-        $cpanm = 'cpanm';
+    foreach my $module (sort keys %recommends) {
+        my $version = $recommends{$module};
+        next if eval "use $module $version; 1";
+        print "Missing optional $module $version\n";
     }
-}
-die <<'EOF'
+} else {
+    my @try = (
+        $ENV{CPANM} // (),
+        File::Spec->catfile($Config{sitebin}, 'cpanm'),
+        File::Spec->catfile($Config{installscript}, 'cpanm'),
+    );
+    
+    my $cpanm;
+    foreach my $path (@try) {
+        if (-e $path) {  # don't use -x because it fails on Windows
+            $cpanm = $path;
+            last;
+        }
+    }
+    if (!$cpanm) {
+        if ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
+            $cpanm = 'cpanm';
+        }
+    }
+    die <<'EOF'
 cpanm was not found. Please install it before running this script.
 
 There are several ways to install cpanm, try one of these:
@@ -64,23 +78,21 @@ If it is installed in a non-standard location you can do:
     CPANM=/path/to/cpanm perl Build.PL
 
 EOF
-    if !$cpanm;
-
-my %modules = (%prereqs, %recommends);
-foreach my $module (sort keys %modules) {
-    my $version = $modules{$module};
-    if ($ENV{SLIC3R_NO_AUTO}) {
-        print "Missing prerequisite $module $version\n"
-            if !eval "use $module $version; 1";
-    } else {
-        system $cpanm, "$module~$version";
+        if !$cpanm;
+    
+    my %modules = (%prereqs, %recommends);
+    foreach my $module (sort keys %modules) {
+        my $version = $modules{$module};
+        my $res = system $cpanm, "$module~$version";
+        $missing_prereqs = 1 if $res != 0 && exists $prereqs{$module};
     }
 }
-exit if $ENV{SLIC3R_NO_AUTO};
 system $cpanm, '--reinstall', './xs';
 
-if (eval "use App::Prove; 1") {
+if (eval "use App::Prove; 1" && !$missing_prereqs) {
     App::Prove->new->run;
 }
+
+exit 1 if $missing_prereqs;
 
 __END__
