@@ -32,12 +32,12 @@ my %recommends = qw(
 # removed:
 # Wx 0.9901
 
-my $skip_tests = 0;
+my $missing_prereqs = 0;
 if ($ENV{SLIC3R_NO_AUTO}) {
     foreach my $module (sort keys %prereqs) {
         my $version = $prereqs{$module};
         next if eval "use $module $version; 1";
-        $skip_tests = 1 if exists $prereqs{$module};
+        $missing_prereqs = 1 if exists $prereqs{$module};
         print "Missing prerequisite $module $version\n";
     }
     foreach my $module (sort keys %recommends) {
@@ -84,12 +84,14 @@ EOF
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
         my $res = system $cpanm, "$module~$version";
-        $skip_tests = 1 if $res != 0 && exists $prereqs{$module};
+        $missing_prereqs = 1 if $res != 0 && exists $prereqs{$module};
     }
 }
 
-if (eval "use App::Prove; 1" && !$skip_tests) {
+if (eval "use App::Prove; 1" && !$missing_prereqs) {
     App::Prove->new->run;
 }
+
+exit 1 if $missing_prereqs;
 
 __END__
