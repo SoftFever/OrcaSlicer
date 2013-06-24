@@ -10,6 +10,7 @@
     void ReadSTLFile(char* input_file);
     void Repair();
     void WriteOBJFile(char* output_file);
+    AV* ToPerl();
 };
 
 %package{Slic3r::TriangleMesh::XS};
