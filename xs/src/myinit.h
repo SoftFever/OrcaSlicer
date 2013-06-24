@@ -3,8 +3,7 @@
 
 #include <vector>
 
-typedef std::vector<unsigned int> Ztable2;
-
+////////////////
 class ZTable
 {
     public:
@@ -17,7 +16,8 @@ ZTable::ZTable(std::vector<unsigned int>* ztable) :
     z(*ztable)
 {
 }
+////////////////
 
-#include <admesh/stl.h>
+#include "TriangleMesh.hpp"
 
 #endif

@@ -220,7 +220,10 @@ sub repair_stl {
         $dlg->Destroy;
     }
     
-    Slic3r::TriangleMesh::XS::stl_repair($input_file, $output_file);
+    my $tmesh = Slic3r::TriangleMesh::XS->new();
+    $tmesh->ReadSTLFile($input_file);
+    $tmesh->Repair;
+    $tmesh->WriteOBJFile($output_file);
     Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
 }
 

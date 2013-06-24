@@ -1,2 +1,3 @@
 ZTable*         O_OBJECT
+TriangleMesh*         O_OBJECT
 std::vector< unsigned int >*	T_STD_VECTOR_UINT_PTR
