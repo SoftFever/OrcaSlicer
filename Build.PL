@@ -84,7 +84,7 @@ EOF
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
         my $res = system $cpanm, "$module~$version";
-        $skip_tests = 1 if $res != 0;
+        $skip_tests = 1 if $res != 0 && exists $prereqs{$module};
     }
 }
 
