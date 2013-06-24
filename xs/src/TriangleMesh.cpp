@@ -28,40 +28,31 @@ TriangleMesh::Repair() {
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
         for (i = 0; i < iterations; i++) {
             if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
-                printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
+                //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
                 stl_check_facets_nearby(&stl, tolerance);
-                printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
+                //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
                 last_edges_fixed = stl.stats.edges_fixed;
                 tolerance += increment;
             } else {
-                printf("All facets connected.  No further nearby check necessary.\n");
                 break;
             }
         }
-    } else {
-        printf("All facets connected.  No nearby check necessary.\n");
     }
     
     // remove_unconnected
     if (stl.stats.connected_facets_3_edge <  stl.stats.number_of_facets) {
-        printf("Removing unconnected facets...\n");
         stl_remove_unconnected_facets(&stl);
-    } else
-        printf("No unconnected need to be removed.\n");
+    }
     
     // fill_holes
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
-        printf("Filling holes...\n");
         stl_fill_holes(&stl);
-    } else
-        printf("No holes need to be filled.\n");
+    }
     
     // normal_directions
-    printf("Checking normal directions...\n");
     stl_fix_normal_directions(&stl);
     
     // normal_values
-    printf("Checking normal values...\n");
     stl_fix_normal_values(&stl);
 }
 
