@@ -77,7 +77,7 @@ foreach my $module (sort keys %modules) {
     }
 }
 exit if $ENV{SLIC3R_NO_AUTO};
-system $cpanm, '--sudo', '--reinstall', './xs';
+system $cpanm, '--reinstall', './xs';
 
 if (eval "use App::Prove; 1") {
     App::Prove->new->run;
