@@ -45,27 +45,26 @@ if ($ENV{SLIC3R_NO_AUTO}) {
         next if eval "use $module $version; 1";
         print "Missing optional $module $version\n";
     }
-}
-
-my @try = (
-    $ENV{CPANM} // (),
-    File::Spec->catfile($Config{sitebin}, 'cpanm'),
-    File::Spec->catfile($Config{installscript}, 'cpanm'),
-);
-
-my $cpanm;
-foreach my $path (@try) {
-    if (-e $path) {  # don't use -x because it fails on Windows
-        $cpanm = $path;
-        last;
+} else {
+    my @try = (
+        $ENV{CPANM} // (),
+        File::Spec->catfile($Config{sitebin}, 'cpanm'),
+        File::Spec->catfile($Config{installscript}, 'cpanm'),
+    );
+    
+    my $cpanm;
+    foreach my $path (@try) {
+        if (-e $path) {  # don't use -x because it fails on Windows
+            $cpanm = $path;
+            last;
+        }
     }
-}
-if (!$cpanm) {
-    if ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
-        $cpanm = 'cpanm';
+    if (!$cpanm) {
+        if ($^O =~ /^(?:darwin|linux)$/ && system(qw(which cpanm)) == 0) {
+            $cpanm = 'cpanm';
+        }
     }
-}
-die <<'EOF'
+    die <<'EOF'
 cpanm was not found. Please install it before running this script.
 
 There are several ways to install cpanm, try one of these:
@@ -79,13 +78,14 @@ If it is installed in a non-standard location you can do:
     CPANM=/path/to/cpanm perl Build.PL
 
 EOF
-    if !$cpanm;
-
-my %modules = (%prereqs, %recommends);
-foreach my $module (sort keys %modules) {
-    my $version = $modules{$module};
-    my $res = system $cpanm, "$module~$version";
-    $skip_tests = 1 if $res != 0;
+        if !$cpanm;
+    
+    my %modules = (%prereqs, %recommends);
+    foreach my $module (sort keys %modules) {
+        my $version = $modules{$module};
+        my $res = system $cpanm, "$module~$version";
+        $skip_tests = 1 if $res != 0;
+    }
 }
 
 if (eval "use App::Prove; 1" && !$skip_tests) {
