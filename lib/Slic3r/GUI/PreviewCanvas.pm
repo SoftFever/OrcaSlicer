@@ -15,7 +15,9 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mesh_center
 sub new {
     my ($class, $parent, $mesh) = @_;
     my $self = $class->SUPER::new($parent);
-    
+   
+    $self->quat((0, 0, 0, 1));
+
     # prepare mesh
     {
         $self->mesh_center($mesh->center);
@@ -26,9 +28,6 @@ sub new {
         my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $mesh->vertices->[$_], @$_)), @{$mesh->facets};
         $self->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
     }
-    
-    $self->x_rot(0);
-    $self->y_rot(0);
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
@@ -66,6 +65,38 @@ sub new {
     });
     
     return $self;
+}
+
+sub trackball {
+  return (0, 0, 0, 1);
+}
+
+sub mulquat {
+  my ($self, @q1, @rq) = @_;
+  return ($q1[3] * $rq[0] + $q1[0] * $rq[3] + $q1[1] * $rq[2] - $q1[2] * $rq[1],
+          $q1[3] * $rq[1] + $q1[1] * $rq[3] + $q1[2] * $rq[0] - $q1[0] * $rq[2],
+          $q1[3] * $rq[2] + $q1[2] * $rq[3] + $q1[0] * $rq[1] - $q1[1] * $rq[0],
+          $q1[3] * $rq[3] - $q1[0] * $rq[0] - $q1[1] * $rq[1] - $q1[2] * $rq[2])
+}
+
+sub handle_rotation {
+  my ($self, $e) = @_;
+
+  if (not defined $self->initpos) {
+    $self->initpos($e->GetPosition());
+  } else {
+    my ($orig, $new, $size, @quat);
+    $orig = $self->initpos;
+    $new = $e->GetPosition();
+    $size = $self->GetClientSize();
+    @quat = $self->trackball($orig->x / ($size->width / 2) - 1,
+                             1 - $orig->y / ($size->height / 2),
+                             $new->x / ($size->width / 2) - 1,
+                             1 - $new->y / ($size->height / 2));
+    $self->quat($self->mulquat($self->quat, @quat));
+    $self->initpos($new);
+    $self->Refresh;
+  }
 }
 
 sub handle_translation {
@@ -203,9 +234,6 @@ sub Render {
  
     glPushMatrix();
     
-    # this needs to get a lot better...
-    glRotatef( $self->x_rot, 1, 0, 0 );
-    glRotatef( $self->y_rot, 0, 0, 1 );
     glTranslatef(map -$_, @{ $self->mesh_center });
  
     $self->draw_mesh; 
