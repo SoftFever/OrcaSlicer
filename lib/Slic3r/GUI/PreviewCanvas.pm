@@ -87,20 +87,9 @@ sub Resize {
  
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    my_gluPerspective(45, $x/$y, .5, 100);
+    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 100);
  
     glMatrixMode(GL_MODELVIEW);
-}
- 
-sub my_gluPerspective {
-    my ($fov, $ratio, $near, $far) = @_;
- 
-    my $top = tan(deg2rad($fov)*0.5) * $near;
-    my $bottom = -$top;
-    my $left = $ratio * $bottom;
-    my $right = $ratio * $top;
- 
-    glFrustum( $left, $right, $bottom, $top, $near, $far );
 }
  
 sub DESTROY {
