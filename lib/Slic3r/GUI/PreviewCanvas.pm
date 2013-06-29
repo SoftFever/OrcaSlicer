@@ -28,9 +28,6 @@ sub new {
         $self->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
     }
     
-    my $timer = $self->timer( Wx::Timer->new($self) );
-    $timer->Start(50);
-    
     $self->x_rot(0);
     $self->y_rot(0);
     
@@ -44,15 +41,6 @@ sub new {
         return if !$self->IsShownOnScreen;
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
-    });
-    EVT_TIMER($self, -1, sub {
-        my ($self, $e) = @_;
-        
-        $self->x_rot( $self->x_rot - 1 );
-        $self->y_rot( $self->y_rot + 2 );
-        
-        $self->dirty(1);
-        Wx::WakeUpIdle;
     });
     EVT_MOUSEWHEEL($self, sub {
         my ($self, $e) = @_;
