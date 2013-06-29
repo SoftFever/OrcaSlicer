@@ -94,9 +94,6 @@ sub Resize {
  
 sub DESTROY {
     my $self = shift;
- 
-    $self->timer->Stop;
-    $self->timer(undef);
 }
  
 sub InitGL {
