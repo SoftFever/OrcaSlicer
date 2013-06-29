@@ -4,7 +4,7 @@ use warnings;
  
 use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_TIMER EVT_MOUSEWHEEL);
 # must load OpenGL *before* Wx::GLCanvas
-use OpenGL qw(:glconstants :glfunctions);
+use OpenGL qw(:glconstants :glfunctions :glufunctions);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan);
 use Wx::GLCanvas qw(:all);
@@ -19,9 +19,8 @@ sub new {
     # prepare mesh
     {
         $self->mesh_center($mesh->center);
-        $self->zoom(0.1);
         
-        my @verts = map $self->zoom * $_, map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
+        my @verts = map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
         $self->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
         
         my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $mesh->vertices->[$_], @$_)), @{$mesh->facets};
@@ -45,17 +44,52 @@ sub new {
     EVT_MOUSEWHEEL($self, sub {
         my ($self, $e) = @_;
         
-        my $zoom = $self->zoom * (1.0 - $e->GetWheelRotation() / $e->GetWheelDelta() / 10);
-        $zoom = 0.001 if $zoom < 0.001;
-        $zoom = 0.1 if $zoom > 0.1;
-        $self->zoom($zoom);
+        my $zoom = ($e->GetWheelRotation() / $e->GetWheelDelta() / 10);
+        $zoom = $zoom > 0 ?  (1.0 + $zoom) : 1 / (1.0 - $zoom);
+        my @pos3d = $self->mouse_to_3d($e->GetX(), $e->GetY());
+        $self->ZoomTo($zoom, $pos3d[0], $pos3d[1]);
         
         $self->Refresh;
     });
     
     return $self;
 }
- 
+
+
+sub mouse_to_3d {
+  my ($self, $x, $y) = @_;
+
+  my @viewport = glGetIntegerv_p(GL_VIEWPORT);
+  my @mview = glGetDoublev_p(GL_MODELVIEW_MATRIX);
+  my @proj = glGetDoublev_p(GL_PROJECTION_MATRIX);
+
+  my @projected = gluUnProject_p($x, $viewport[3] - $y, 1.0,
+                                 $mview[0], $mview[1], $mview[2], $mview[3],
+                                 $mview[4], $mview[5], $mview[6], $mview[7],
+                                 $mview[8], $mview[9], $mview[10], $mview[11],
+                                 $mview[12], $mview[13], $mview[14], $mview[15],
+                                 $proj[0], $proj[1], $proj[2], $proj[3],
+                                 $proj[4], $proj[5], $proj[6], $proj[7],
+                                 $proj[8], $proj[9], $proj[10], $proj[11],
+                                 $proj[12], $proj[13], $proj[14], $proj[15],
+                                 $viewport[0], $viewport[1], $viewport[2], $viewport[3]);
+
+  return @projected;
+}
+
+sub ZoomTo {
+  my ($self, $factor, $tox, $toy) =  @_;
+  glTranslatef($tox, $toy, 0);
+  glMatrixMode(GL_MODELVIEW);
+  $self->Zoom($factor);
+  glTranslatef(-$tox, -$toy, 0);
+}
+
+sub Zoom {
+  my ($self, $factor) =  @_;
+  glScalef($factor, $factor, 1);
+}
+
 sub GetContext {
     my ($self) = @_;
     
@@ -139,12 +173,11 @@ sub Render {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
  
     glPushMatrix();
-    glTranslatef( 0, 0, -5 );
     
     # this needs to get a lot better...
     glRotatef( $self->x_rot, 1, 0, 0 );
     glRotatef( $self->y_rot, 0, 0, 1 );
-    glTranslatef(map -$_ * $self->zoom, @{ $self->mesh_center });
+    glTranslatef(map -$_, @{ $self->mesh_center });
  
     $self->draw_mesh; 
 
