@@ -2,15 +2,15 @@ package Slic3r::GUI::PreviewCanvas;
 use strict;
 use warnings;
  
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_TIMER EVT_MOUSEWHEEL);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan);
 use Wx::GLCanvas qw(:all);
  
-__PACKAGE__->mk_accessors( qw(timer x_rot y_rot dirty init mesh_center zoom
-                            verts norms) );
+__PACKAGE__->mk_accessors( qw(quat dirty init mesh_center
+                            verts norms initpos) );
  
 sub new {
     my ($class, $parent, $mesh) = @_;
@@ -51,10 +51,39 @@ sub new {
         
         $self->Refresh;
     });
+    EVT_MOUSE_EVENTS($self, sub {
+      my ($self, $e) = @_;
+
+      if ($e->Dragging() && $e->LeftIsDown()) {
+        $self->handle_rotation($e);
+      } elsif ($e->Dragging() && $e->RightIsDown()) {
+        $self->handle_translation($e);
+      } elsif ($e->LeftUp() || $e->RightUp()) {
+        $self->initpos(undef);
+      } else {
+        $e->Skip();
+      }
+    });
     
     return $self;
 }
 
+sub handle_translation {
+  my ($self, $e) = @_;
+
+  if (not defined $self->initpos) {
+    $self->initpos($e->GetPosition());
+  } else {
+    my ($orig, @orig3d, $new, @new3d);
+    $new = $e->GetPosition();
+    $orig = $self->initpos;
+    @orig3d = $self->mouse_to_3d($orig->x, $orig->y);
+    @new3d = $self->mouse_to_3d($new->x, $new->y);
+    glTranslatef($new3d[0] - $orig3d[0], $new3d[1] - $orig3d[1], 0);
+    $self->initpos($new);
+    $self->Refresh;
+  }
+}
 
 sub mouse_to_3d {
   my ($self, $x, $y) = @_;
