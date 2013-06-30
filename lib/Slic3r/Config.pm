@@ -1340,6 +1340,33 @@ sub validate {
     # --extrusion-multiplier
     die "Invalid value for --extrusion-multiplier\n"
         if defined first { $_ <= 0 } @{$self->extrusion_multiplier};
+    
+    # general validation, quick and dirty
+    foreach my $opt_key (keys %$Options) {
+        my $opt = $Options->{$opt_key};
+        next unless defined $self->$opt_key;
+        next unless defined $opt->{cli} && $opt->{cli} =~ /=(.+)$/;
+        my $type = $1;
+        my @values = ();
+        if ($type =~ s/\@$//) {
+            die "Invalid value for $opt_key\n" if ref($self->$opt_key) ne 'ARRAY';
+            @values = @{ $self->$opt_key };
+        } else {
+            @values = ($self->$opt_key);
+        }
+        foreach my $value (@values) {
+            if ($type eq 'i' || $type eq 'f') {
+                die "Invalid value for $opt_key\n"
+                    if ($type eq 'i' && $value !~ /^\d+$/)
+                    || ($type eq 'f' && $value !~ /^(?:\d+|\d*\.\d+)$/)
+                    || (defined $opt->{min} && $value < $opt->{min})
+                    || (defined $opt->{max} && $value > $opt->{max});
+            } elsif ($type eq 's' && $opt->{type} eq 'select') {
+                die "Invalid value for $opt_key\n"
+                    unless first { $_ eq $value } @{ $opt->{values} };
+            }
+        }
+    }
 }
 
 sub replace_options {
