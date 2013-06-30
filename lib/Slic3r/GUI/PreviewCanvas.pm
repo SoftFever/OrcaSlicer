@@ -1,16 +1,19 @@
 package Slic3r::GUI::PreviewCanvas;
 use strict;
 use warnings;
- 
+
 use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions);
 use base qw(Wx::GLCanvas Class::Accessor);
+use Math::Trig qw(asin);
+use List::Util qw(reduce min max);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan);
 use Wx::GLCanvas qw(:all);
  
-__PACKAGE__->mk_accessors( qw(quat dirty init mesh_center
-                            verts norms initpos) );
+__PACKAGE__->mk_accessors( qw(quat dirty init mview_init
+                              mesh_center mesh_size
+                              verts norms initpos) );
  
 sub new {
     my ($class, $parent, $mesh) = @_;
@@ -21,6 +24,7 @@ sub new {
     # prepare mesh
     {
         $self->mesh_center($mesh->center);
+        $self->mesh_size($mesh->size);
         
         my @verts = map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
         $self->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
@@ -67,16 +71,85 @@ sub new {
     return $self;
 }
 
-sub trackball {
-  return (0, 0, 0, 1);
+sub axis_to_quat {
+  my ($ax, $phi) = @_;
+  my $lena = sqrt(reduce { $a + $b } (map { $_ * $_ } @$ax));
+  my @q = map { $_ * (1 / $lena) } @$ax;
+  @q = map { $_ * sin($phi / 2.0) } @q;
+  $q[$#q + 1] = cos($phi / 2.0);
+  return @q;
 }
 
-sub mulquat {
-  my ($self, @q1, @rq) = @_;
-  return ($q1[3] * $rq[0] + $q1[0] * $rq[3] + $q1[1] * $rq[2] - $q1[2] * $rq[1],
-          $q1[3] * $rq[1] + $q1[1] * $rq[3] + $q1[2] * $rq[0] - $q1[0] * $rq[2],
-          $q1[3] * $rq[2] + $q1[2] * $rq[3] + $q1[0] * $rq[1] - $q1[1] * $rq[0],
-          $q1[3] * $rq[3] - $q1[0] * $rq[0] - $q1[1] * $rq[1] - $q1[2] * $rq[2])
+sub project_to_sphere {
+  my ($r, $x, $y) = @_;
+  my $d = sqrt($x * $x + $y * $y);
+  if ($d < $r * 0.70710678118654752440) {
+        return sqrt($r * $r - $d * $d);
+  } else {
+    my $t = $r / 1.41421356237309504880;
+    return $t * $t / $d;
+  }
+}
+
+sub cross {
+  my ($v1, $v2) = @_;
+  return (@$v1[1] * @$v2[2] - @$v1[2] * @$v2[1],
+          @$v1[2] * @$v2[0] - @$v1[0] * @$v2[2],
+          @$v1[0] * @$v2[1] - @$v1[1] * @$v2[0]);
+}
+
+sub trackball {
+  my ($p1x, $p1y, $p2x, $p2y, $r) = @_;
+
+    if ($p1x == $p2x && $p1y == $p2y) {
+      return (0.0, 0.0, 0.0, 1.0);
+    }
+
+    my @p1 = ($p1x, $p1y, project_to_sphere($r, $p1x, $p1y));
+    my @p2 = ($p2x, $p2y, project_to_sphere($r, $p2x, $p2y));
+    my @a = cross(\@p2, \@p1);
+
+    my @d = map { $_ * $_ } (map { $p1[$_] - $p2[$_] } 0 .. $#p1);
+    my $t = sqrt(reduce { $a + $b } @d) / (2.0 * $r);
+
+    $t = 1.0 if ($t > 1.0);
+    $t = -1.0 if ($t < -1.0);
+    my $phi = 2.0 * asin($t);
+
+    return axis_to_quat(\@a, $phi);
+}
+
+sub quat_to_rotmatrix {
+  my ($q) = @_;
+  my (@m);
+  $m[0] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[2] * @$q[2]);
+  $m[1] = 2.0 * (@$q[0] * @$q[1] - @$q[2] * @$q[3]);
+  $m[2] = 2.0 * (@$q[2] * @$q[0] + @$q[1] * @$q[3]);
+  $m[3] = 0.0;
+
+  $m[4] = 2.0 * (@$q[0] * @$q[1] + @$q[2] * @$q[3]);
+  $m[5] = 1.0 - 2.0 * (@$q[2] * @$q[2] + @$q[0] * @$q[0]);
+  $m[6] = 2.0 * (@$q[1] * @$q[2] - @$q[0] * @$q[3]);
+  $m[7] = 0.0;
+
+  $m[8] = 2.0 * (@$q[2] * @$q[0] - @$q[1] * @$q[3]);
+  $m[9] = 2.0 * (@$q[1] * @$q[2] + @$q[0] * @$q[3]);
+  $m[10] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[0] * @$q[0]);
+  $m[11] = 0.0;
+
+  $m[12] = 0.0;
+  $m[13] = 0.0;
+  $m[14] = 0.0;
+  $m[15] = 1.0;
+  return @m;
+}
+
+sub mulquats {
+  my ($q1, $rq) = @_;
+  return (@$q1[3] * @$rq[0] + @$q1[0] * @$rq[3] + @$q1[1] * @$rq[2] - @$q1[2] * @$rq[1],
+          @$q1[3] * @$rq[1] + @$q1[1] * @$rq[3] + @$q1[2] * @$rq[0] - @$q1[0] * @$rq[2],
+          @$q1[3] * @$rq[2] + @$q1[2] * @$rq[3] + @$q1[0] * @$rq[1] - @$q1[1] * @$rq[0],
+          @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
 }
 
 sub handle_rotation {
@@ -89,11 +162,12 @@ sub handle_rotation {
     $orig = $self->initpos;
     $new = $e->GetPosition();
     $size = $self->GetClientSize();
-    @quat = $self->trackball($orig->x / ($size->width / 2) - 1,
-                             1 - $orig->y / ($size->height / 2),
-                             $new->x / ($size->width / 2) - 1,
-                             1 - $new->y / ($size->height / 2));
-    $self->quat($self->mulquat($self->quat, @quat));
+    @quat = trackball($orig->x / ($size->width / 2) - 1,
+                      1 - $orig->y / ($size->height / 2),
+                      $new->x / ($size->width / 2) - 1,
+                      1 - $new->y / ($size->height / 2),
+                      0.8);
+    $self->quat(mulquats($self->quat, \@quat));
     $self->initpos($new);
     $self->Refresh;
   }
@@ -169,7 +243,17 @@ sub SetCurrent {
         return $self->SUPER::SetCurrent;
     }
 }
- 
+
+sub ResetModelView {
+    my ($self, $factor) = @_;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    my $mesh_size = $self->mesh_size;
+    my $win_size = $self->GetClientSize();
+    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@$mesh_size[0..1]);
+    glScalef($ratio, $ratio, 1);
+}
+
 sub Resize {
     my ($self, $x, $y) = @_;
  
@@ -181,9 +265,14 @@ sub Resize {
  
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 100);
+    my $mesh_size = $self->mesh_size;
+    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@$mesh_size[0..1]));
  
     glMatrixMode(GL_MODELVIEW);
+    unless ($self->mview_init) {
+      $self->mview_init(1);
+      $self->ResetModelView(0.9);
+    }
 }
  
 sub DESTROY {
@@ -229,14 +318,21 @@ sub Render {
     return unless $self->GetContext;
     $self->SetCurrent($self->GetContext);
     $self->InitGL;
- 
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 
+
     glPushMatrix();
-    
+
+    my $mesh_size = $self->mesh_size;
+    glTranslatef(0, 0, -max(@$mesh_size[0..1]));
+    my @rotmat = quat_to_rotmatrix($self->quat);
+    glMultMatrixd_p($rotmat[0], $rotmat[1], $rotmat[2], $rotmat[3],
+                    $rotmat[4], $rotmat[5], $rotmat[6], $rotmat[7],
+                    $rotmat[8], $rotmat[9], $rotmat[10], $rotmat[11],
+                    $rotmat[12], $rotmat[13], $rotmat[14], $rotmat[15]);
     glTranslatef(map -$_, @{ $self->mesh_center });
- 
-    $self->draw_mesh; 
+
+    $self->draw_mesh;
 
     glPopMatrix();
     glFlush();
