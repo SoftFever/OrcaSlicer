@@ -12,6 +12,7 @@ BEGIN {
 use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
 use Slic3r::GUI;
+use Slic3r::GUI::PreviewCanvas;
 $|++;
 
 my %opt = ();
