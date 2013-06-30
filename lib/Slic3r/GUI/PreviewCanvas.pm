@@ -250,7 +250,7 @@ sub ResetModelView {
     glLoadIdentity();
     my $mesh_size = $self->mesh_size;
     my $win_size = $self->GetClientSize();
-    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@$mesh_size[0..1]);
+    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@$mesh_size);
     glScalef($ratio, $ratio, 1);
 }
 
@@ -266,7 +266,7 @@ sub Resize {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     my $mesh_size = $self->mesh_size;
-    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@$mesh_size[0..1]));
+    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@$mesh_size));
  
     glMatrixMode(GL_MODELVIEW);
     unless ($self->mview_init) {
