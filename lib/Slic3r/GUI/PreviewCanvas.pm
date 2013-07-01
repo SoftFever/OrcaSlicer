@@ -55,51 +55,54 @@ sub new {
         $self->Refresh;
     });
     EVT_MOUSE_EVENTS($self, sub {
-      my ($self, $e) = @_;
+        my ($self, $e) = @_;
 
-      if ($e->Dragging() && $e->LeftIsDown()) {
-        $self->handle_rotation($e);
-      } elsif ($e->Dragging() && $e->RightIsDown()) {
-        $self->handle_translation($e);
-      } elsif ($e->LeftUp() || $e->RightUp()) {
-        $self->initpos(undef);
-      } else {
-        $e->Skip();
-      }
+        if ($e->Dragging() && $e->LeftIsDown()) {
+            $self->handle_rotation($e);
+        } elsif ($e->Dragging() && $e->RightIsDown()) {
+            $self->handle_translation($e);
+        } elsif ($e->LeftUp() || $e->RightUp()) {
+            $self->initpos(undef);
+        } else {
+            $e->Skip();
+        }
     });
     
     return $self;
 }
 
 sub axis_to_quat {
-  my ($ax, $phi) = @_;
-  my $lena = sqrt(reduce { $a + $b } (map { $_ * $_ } @$ax));
-  my @q = map { $_ * (1 / $lena) } @$ax;
-  @q = map { $_ * sin($phi / 2.0) } @q;
-  $q[$#q + 1] = cos($phi / 2.0);
-  return @q;
+    my ($ax, $phi) = @_;
+    
+    my $lena = sqrt(reduce { $a + $b } (map { $_ * $_ } @$ax));
+    my @q = map { $_ * (1 / $lena) } @$ax;
+    @q = map { $_ * sin($phi / 2.0) } @q;
+    $q[$#q + 1] = cos($phi / 2.0);
+    return @q;
 }
 
 sub project_to_sphere {
-  my ($r, $x, $y) = @_;
-  my $d = sqrt($x * $x + $y * $y);
-  if ($d < $r * 0.70710678118654752440) {
+    my ($r, $x, $y) = @_;
+    
+    my $d = sqrt($x * $x + $y * $y);
+    if ($d < $r * 0.70710678118654752440) {
         return sqrt($r * $r - $d * $d);
-  } else {
-    my $t = $r / 1.41421356237309504880;
-    return $t * $t / $d;
-  }
+    } else {
+        my $t = $r / 1.41421356237309504880;
+        return $t * $t / $d;
+    }
 }
 
 sub cross {
-  my ($v1, $v2) = @_;
-  return (@$v1[1] * @$v2[2] - @$v1[2] * @$v2[1],
-          @$v1[2] * @$v2[0] - @$v1[0] * @$v2[2],
-          @$v1[0] * @$v2[1] - @$v1[1] * @$v2[0]);
+    my ($v1, $v2) = @_;
+  
+    return (@$v1[1] * @$v2[2] - @$v1[2] * @$v2[1],
+            @$v1[2] * @$v2[0] - @$v1[0] * @$v2[2],
+            @$v1[0] * @$v2[1] - @$v1[1] * @$v2[0]);
 }
 
 sub trackball {
-  my ($p1x, $p1y, $p2x, $p2y, $r) = @_;
+    my ($p1x, $p1y, $p2x, $p2y, $r) = @_;
 
     if ($p1x == $p2x && $p1y == $p2y) {
       return (0.0, 0.0, 0.0, 1.0);
@@ -120,108 +123,101 @@ sub trackball {
 }
 
 sub quat_to_rotmatrix {
-  my ($q) = @_;
-  my @m;
-  $m[0] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[2] * @$q[2]);
-  $m[1] = 2.0 * (@$q[0] * @$q[1] - @$q[2] * @$q[3]);
-  $m[2] = 2.0 * (@$q[2] * @$q[0] + @$q[1] * @$q[3]);
-  $m[3] = 0.0;
+    my ($q) = @_;
+  
+    my @m = ();
+  
+    $m[0] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[2] * @$q[2]);
+    $m[1] = 2.0 * (@$q[0] * @$q[1] - @$q[2] * @$q[3]);
+    $m[2] = 2.0 * (@$q[2] * @$q[0] + @$q[1] * @$q[3]);
+    $m[3] = 0.0;
 
-  $m[4] = 2.0 * (@$q[0] * @$q[1] + @$q[2] * @$q[3]);
-  $m[5] = 1.0 - 2.0 * (@$q[2] * @$q[2] + @$q[0] * @$q[0]);
-  $m[6] = 2.0 * (@$q[1] * @$q[2] - @$q[0] * @$q[3]);
-  $m[7] = 0.0;
+    $m[4] = 2.0 * (@$q[0] * @$q[1] + @$q[2] * @$q[3]);
+    $m[5] = 1.0 - 2.0 * (@$q[2] * @$q[2] + @$q[0] * @$q[0]);
+    $m[6] = 2.0 * (@$q[1] * @$q[2] - @$q[0] * @$q[3]);
+    $m[7] = 0.0;
 
-  $m[8] = 2.0 * (@$q[2] * @$q[0] - @$q[1] * @$q[3]);
-  $m[9] = 2.0 * (@$q[1] * @$q[2] + @$q[0] * @$q[3]);
-  $m[10] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[0] * @$q[0]);
-  $m[11] = 0.0;
+    $m[8] = 2.0 * (@$q[2] * @$q[0] - @$q[1] * @$q[3]);
+    $m[9] = 2.0 * (@$q[1] * @$q[2] + @$q[0] * @$q[3]);
+    $m[10] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[0] * @$q[0]);
+    $m[11] = 0.0;
 
-  $m[12] = 0.0;
-  $m[13] = 0.0;
-  $m[14] = 0.0;
-  $m[15] = 1.0;
-  return @m;
+    $m[12] = 0.0;
+    $m[13] = 0.0;
+    $m[14] = 0.0;
+    $m[15] = 1.0;
+  
+    return @m;
 }
 
 sub mulquats {
-  my ($q1, $rq) = @_;
-  return (@$q1[3] * @$rq[0] + @$q1[0] * @$rq[3] + @$q1[1] * @$rq[2] - @$q1[2] * @$rq[1],
-          @$q1[3] * @$rq[1] + @$q1[1] * @$rq[3] + @$q1[2] * @$rq[0] - @$q1[0] * @$rq[2],
-          @$q1[3] * @$rq[2] + @$q1[2] * @$rq[3] + @$q1[0] * @$rq[1] - @$q1[1] * @$rq[0],
-          @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
+    my ($q1, $rq) = @_;
+  
+    return (@$q1[3] * @$rq[0] + @$q1[0] * @$rq[3] + @$q1[1] * @$rq[2] - @$q1[2] * @$rq[1],
+            @$q1[3] * @$rq[1] + @$q1[1] * @$rq[3] + @$q1[2] * @$rq[0] - @$q1[0] * @$rq[2],
+            @$q1[3] * @$rq[2] + @$q1[2] * @$rq[3] + @$q1[0] * @$rq[1] - @$q1[1] * @$rq[0],
+            @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
 }
 
 sub handle_rotation {
-  my ($self, $e) = @_;
+    my ($self, $e) = @_;
 
-  if (not defined $self->initpos) {
-    $self->initpos($e->GetPosition());
-  } else {
-    my ($orig, $new, $size, @quat);
-    $orig = $self->initpos;
-    $new = $e->GetPosition();
-    $size = $self->GetClientSize();
-    @quat = trackball($orig->x / ($size->width / 2) - 1,
-                      1 - $orig->y / ($size->height / 2),
-                      $new->x / ($size->width / 2) - 1,
-                      1 - $new->y / ($size->height / 2),
-                      0.8);
-    $self->quat(mulquats($self->quat, \@quat));
-    $self->initpos($new);
-    $self->Refresh;
-  }
+    if (not defined $self->initpos) {
+        $self->initpos($e->GetPosition());
+    } else {
+        my $orig = $self->initpos;
+        my $new = $e->GetPosition();
+        my $size = $self->GetClientSize();
+        my @quat = trackball($orig->x / ($size->width / 2) - 1,
+                        1 - $orig->y / ($size->height / 2),       #/
+                        $new->x / ($size->width / 2) - 1,
+                        1 - $new->y / ($size->height / 2),        #/
+                        0.8);
+        $self->quat(mulquats($self->quat, \@quat));
+        $self->initpos($new);
+        $self->Refresh;
+    }
 }
 
 sub handle_translation {
-  my ($self, $e) = @_;
+    my ($self, $e) = @_;
 
-  if (not defined $self->initpos) {
-    $self->initpos($e->GetPosition());
-  } else {
-    my ($orig, @orig3d, $new, @new3d);
-    $new = $e->GetPosition();
-    $orig = $self->initpos;
-    @orig3d = $self->mouse_to_3d($orig->x, $orig->y);
-    @new3d = $self->mouse_to_3d($new->x, $new->y);
-    glTranslatef($new3d[0] - $orig3d[0], $new3d[1] - $orig3d[1], 0);
-    $self->initpos($new);
-    $self->Refresh;
-  }
+    if (not defined $self->initpos) {
+        $self->initpos($e->GetPosition());
+    } else {
+        my $new = $e->GetPosition();
+        my $orig = $self->initpos;
+        my @orig3d = $self->mouse_to_3d($orig->x, $orig->y);             #)()
+        my @new3d = $self->mouse_to_3d($new->x, $new->y);                #)()
+        glTranslatef($new3d[0] - $orig3d[0], $new3d[1] - $orig3d[1], 0);
+        $self->initpos($new);
+        $self->Refresh;
+    }
 }
 
 sub mouse_to_3d {
-  my ($self, $x, $y) = @_;
+    my ($self, $x, $y) = @_;
 
-  my @viewport = glGetIntegerv_p(GL_VIEWPORT);
-  my @mview = glGetDoublev_p(GL_MODELVIEW_MATRIX);
-  my @proj = glGetDoublev_p(GL_PROJECTION_MATRIX);
+    my @viewport    = glGetIntegerv_p(GL_VIEWPORT);             # 4 items
+    my @mview       = glGetDoublev_p(GL_MODELVIEW_MATRIX);      # 16 items
+    my @proj        = glGetDoublev_p(GL_PROJECTION_MATRIX);     # 16 items
 
-  my @projected = gluUnProject_p($x, $viewport[3] - $y, 1.0,
-                                 $mview[0], $mview[1], $mview[2], $mview[3],
-                                 $mview[4], $mview[5], $mview[6], $mview[7],
-                                 $mview[8], $mview[9], $mview[10], $mview[11],
-                                 $mview[12], $mview[13], $mview[14], $mview[15],
-                                 $proj[0], $proj[1], $proj[2], $proj[3],
-                                 $proj[4], $proj[5], $proj[6], $proj[7],
-                                 $proj[8], $proj[9], $proj[10], $proj[11],
-                                 $proj[12], $proj[13], $proj[14], $proj[15],
-                                 $viewport[0], $viewport[1], $viewport[2], $viewport[3]);
-
-  return @projected;
+    my @projected = gluUnProject_p($x, $viewport[3] - $y, 1.0, @mview, @proj, @viewport);
+    return @projected;
 }
 
 sub ZoomTo {
-  my ($self, $factor, $tox, $toy) =  @_;
-  glTranslatef($tox, $toy, 0);
-  glMatrixMode(GL_MODELVIEW);
-  $self->Zoom($factor);
-  glTranslatef(-$tox, -$toy, 0);
+    my ($self, $factor, $tox, $toy) =  @_;
+    
+    glTranslatef($tox, $toy, 0);
+    glMatrixMode(GL_MODELVIEW);
+    $self->Zoom($factor);
+    glTranslatef(-$tox, -$toy, 0);
 }
 
 sub Zoom {
-  my ($self, $factor) =  @_;
-  glScalef($factor, $factor, 1);
+    my ($self, $factor) =  @_;
+    glScalef($factor, $factor, 1);
 }
 
 sub GetContext {
@@ -246,11 +242,11 @@ sub SetCurrent {
 
 sub ResetModelView {
     my ($self, $factor) = @_;
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    my $mesh_size = $self->mesh_size;
     my $win_size = $self->GetClientSize();
-    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@$mesh_size);
+    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@{ $self->mesh_size });
     glScalef($ratio, $ratio, 1);
 }
 
@@ -270,8 +266,8 @@ sub Resize {
  
     glMatrixMode(GL_MODELVIEW);
     unless ($self->mview_init) {
-      $self->mview_init(1);
-      $self->ResetModelView(0.9);
+        $self->mview_init(1);
+        $self->ResetModelView(0.9);
     }
 }
  
@@ -326,10 +322,7 @@ sub Render {
     my $mesh_size = $self->mesh_size;
     glTranslatef(0, 0, -max(@$mesh_size[0..1]));
     my @rotmat = quat_to_rotmatrix($self->quat);
-    glMultMatrixd_p($rotmat[0], $rotmat[1], $rotmat[2], $rotmat[3],
-                    $rotmat[4], $rotmat[5], $rotmat[6], $rotmat[7],
-                    $rotmat[8], $rotmat[9], $rotmat[10], $rotmat[11],
-                    $rotmat[12], $rotmat[13], $rotmat[14], $rotmat[15]);
+    glMultMatrixd_p(@rotmat[0..15]);
     glTranslatef(map -$_, @{ $self->mesh_center });
 
     $self->draw_mesh;
