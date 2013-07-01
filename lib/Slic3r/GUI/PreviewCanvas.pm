@@ -14,7 +14,9 @@ use Wx::GLCanvas qw(:all);
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               mesh_center mesh_size
                               verts norms initpos) );
- 
+
+use constant TRACKBALLSIZE => 0.8;
+
 sub new {
     my ($class, $parent, $mesh) = @_;
     my $self = $class->SUPER::new($parent);
@@ -71,6 +73,7 @@ sub new {
     return $self;
 }
 
+# Given an axis and angle, compute quaternion.
 sub axis_to_quat {
     my ($ax, $phi) = @_;
     
@@ -81,13 +84,16 @@ sub axis_to_quat {
     return @q;
 }
 
+# Project a point on the virtual trackball. 
+# If it is inside the sphere, map it to the sphere, if it outside map it
+# to a hyperbola.
 sub project_to_sphere {
     my ($r, $x, $y) = @_;
     
     my $d = sqrt($x * $x + $y * $y);
-    if ($d < $r * 0.70710678118654752440) {
+    if ($d < $r * 0.70710678118654752440) {     # Inside sphere
         return sqrt($r * $r - $d * $d);
-    } else {
+    } else {                                    # On hyperbola
         my $t = $r / 1.41421356237309504880;
         return $t * $t / $d;
     }
@@ -101,20 +107,34 @@ sub cross {
             @$v1[0] * @$v2[1] - @$v1[1] * @$v2[0]);
 }
 
+# Simulate a track-ball. Project the points onto the virtual trackball, 
+# then figure out the axis of rotation, which is the cross product of 
+# P1 P2 and O P1 (O is the center of the ball, 0,0,0) Note: This is a 
+# deformed trackball-- is a trackball in the center, but is deformed 
+# into a hyperbolic sheet of rotation away from the center. 
+# It is assumed that the arguments to this routine are in the range 
+# (-1.0 ... 1.0).
 sub trackball {
-    my ($p1x, $p1y, $p2x, $p2y, $r) = @_;
-
+    my ($p1x, $p1y, $p2x, $p2y) = @_;
+    
     if ($p1x == $p2x && $p1y == $p2y) {
-      return (0.0, 0.0, 0.0, 1.0);
+        # zero rotation
+        return (0.0, 0.0, 0.0, 1.0);
     }
-
-    my @p1 = ($p1x, $p1y, project_to_sphere($r, $p1x, $p1y));
-    my @p2 = ($p2x, $p2y, project_to_sphere($r, $p2x, $p2y));
+    
+    # First, figure out z-coordinates for projection of P1 and P2 to
+    # deformed sphere
+    my @p1 = ($p1x, $p1y, project_to_sphere(TRACKBALLSIZE, $p1x, $p1y));
+    my @p2 = ($p2x, $p2y, project_to_sphere(TRACKBALLSIZE, $p2x, $p2y));
+    
+    # axis of rotation (cross product of P1 and P2)
     my @a = cross(\@p2, \@p1);
 
+    # Figure out how much to rotate around that axis.
     my @d = map { $_ * $_ } (map { $p1[$_] - $p2[$_] } 0 .. $#p1);
-    my $t = sqrt(reduce { $a + $b } @d) / (2.0 * $r);
-
+    my $t = sqrt(reduce { $a + $b } @d) / (2.0 * TRACKBALLSIZE);
+    
+    # Avoid problems with out-of-control values...
     $t = 1.0 if ($t > 1.0);
     $t = -1.0 if ($t < -1.0);
     my $phi = 2.0 * asin($t);
@@ -122,6 +142,7 @@ sub trackball {
     return axis_to_quat(\@a, $phi);
 }
 
+# Build a rotation matrix, given a quaternion rotation.
 sub quat_to_rotmatrix {
     my ($q) = @_;
   
@@ -172,7 +193,7 @@ sub handle_rotation {
                         1 - $orig->y / ($size->height / 2),       #/
                         $new->x / ($size->width / 2) - 1,
                         1 - $new->y / ($size->height / 2),        #/
-                        0.8);
+                        );
         $self->quat(mulquats($self->quat, \@quat));
         $self->initpos($new);
         $self->Refresh;
