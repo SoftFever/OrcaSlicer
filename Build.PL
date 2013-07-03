@@ -86,8 +86,8 @@ EOF
         my $res = system $cpanm, "$module~$version";
         $missing_prereqs = 1 if $res != 0 && exists $prereqs{$module};
     }
+    system $cpanm, '--reinstall', './xs';
 }
-system $cpanm, '--reinstall', './xs';
 
 if (eval "use App::Prove; 1" && !$missing_prereqs) {
     App::Prove->new->run;
