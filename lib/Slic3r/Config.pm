@@ -1357,8 +1357,8 @@ sub validate {
         foreach my $value (@values) {
             if ($type eq 'i' || $type eq 'f') {
                 die "Invalid value for $opt_key\n"
-                    if ($type eq 'i' && $value !~ /^\d+$/)
-                    || ($type eq 'f' && $value !~ /^(?:\d+|\d*\.\d+)$/)
+                    if ($type eq 'i' && $value !~ /^-?\d+$/)
+                    || ($type eq 'f' && $value !~ /^-?(?:\d+|\d*\.\d+)$/)
                     || (defined $opt->{min} && $value < $opt->{min})
                     || (defined $opt->{max} && $value > $opt->{max});
             } elsif ($type eq 's' && $opt->{type} eq 'select') {
