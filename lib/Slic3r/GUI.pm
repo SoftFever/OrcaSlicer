@@ -14,7 +14,7 @@ use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 
-our $have_OpenGL = 0 && eval "use Slic3r::GUI::PreviewCanvas; 1";
+our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
@@ -173,7 +173,7 @@ sub OnInit {
         EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
         EVT_MENU($frame, MI_VERSIONCHECK, sub { Slic3r::GUI->check_version(manual => 1) });
-        EVT_MENU($frame, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('https://manual.slic3r.org/') });
+        EVT_MENU($frame, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('http://manual.slic3r.org/') });
         EVT_MENU($frame, wxID_ABOUT, \&about);
     }
     
