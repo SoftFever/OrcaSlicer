@@ -57,9 +57,15 @@ sub model {
         ],
     }
     
+    my $mesh = Slic3r::TriangleMesh->new(
+        vertices    => $vertices,
+        facets      => $facets,
+    );
+    $mesh->scale($params{scale}) if $params{scale};
+    
     my $model = Slic3r::Model->new;
-    my $object = $model->add_object(vertices => $vertices);
-    $object->add_volume(facets => $facets);
+    my $object = $model->add_object(vertices => $mesh->vertices);
+    $object->add_volume(facets => $mesh->facets);
     $object->add_instance(
         offset      => [0,0],
         rotation    => $params{rotation} // 0,
