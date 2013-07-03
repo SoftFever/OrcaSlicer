@@ -31,17 +31,11 @@
 #define SEEK_END 2
 #endif
 
-static void stl_initialize(stl_file *stl, char *file);
-static void stl_allocate(stl_file *stl);
-static void stl_read(stl_file *stl, int first_facet, int first);
-static void stl_reallocate(stl_file *stl);
-static int stl_get_little_int(FILE *fp);
-static float stl_get_little_float(FILE *fp);
-
 void
 stl_open(stl_file *stl, char *file)
 {
-  stl_initialize(stl, file);
+  stl_initialize(stl);
+  stl_count_facets(stl, file);
   stl_allocate(stl);
   stl_read(stl, 0, 1);
   fclose(stl->fp);
@@ -75,17 +69,9 @@ stl_get_little_float(FILE *fp)
 }
 
 
-static void
-stl_initialize(stl_file *stl, char *file)
+void
+stl_initialize(stl_file *stl)
 {
-  long           file_size;
-  int            header_num_facets;
-  int            num_facets;
-  int            i, j;
-  unsigned char  chtest[128];
-  int            num_lines = 1;
-  char           *error_msg;
-
   stl->stats.degenerate_facets = 0;
   stl->stats.edges_fixed  = 0;
   stl->stats.facets_added = 0;
@@ -101,8 +87,19 @@ stl_initialize(stl_file *stl, char *file)
   stl->facet_start = NULL;
   stl->v_indices = NULL;
   stl->v_shared = NULL;
+}
 
-
+static void
+stl_count_facets(stl_file *stl, char *file)
+{
+  long           file_size;
+  int            header_num_facets;
+  int            num_facets;
+  int            i, j;
+  unsigned char  chtest[128];
+  int            num_lines = 1;
+  char           *error_msg;
+  
   /* Open the file */
   stl->fp = fopen(file, "r");
   if(stl->fp == NULL)
@@ -189,7 +186,7 @@ stl_initialize(stl_file *stl, char *file)
   stl->stats.original_num_facets = stl->stats.number_of_facets;
 }
 
-static void
+void
 stl_allocate(stl_file *stl)
 {
   /*  Allocate memory for the entire .STL file */
@@ -210,7 +207,8 @@ stl_open_merge(stl_file *stl, char *file)
   int first_facet;
   
   first_facet = stl->stats.number_of_facets;
-  stl_initialize(stl, file);
+  stl_initialize(stl);
+  stl_count_facets(stl, file);
   stl_reallocate(stl);
   stl_read(stl, first_facet, 0);
 }
@@ -236,12 +234,7 @@ stl_read(stl_file *stl, int first_facet, int first)
 {
   stl_facet facet;
   int   i;
-  float diff_x;
-  float diff_y;
-  float diff_z;
-  float max_diff;
 
-  
   if(stl->stats.type == binary)
     {
       fseek(stl->fp, HEADER_SIZE, SEEK_SET);
@@ -291,59 +284,69 @@ stl_read(stl_file *stl, int first_facet, int first)
       /* Write the facet into memory. */
       stl->facet_start[i] = facet;
       
-      /* while we are going through all of the facets, let's find the  */
-      /* maximum and minimum values for x, y, and z  */
-
-      /* Initialize the max and min values the first time through*/
-      if(first)
-	{
-	  stl->stats.max.x = facet.vertex[0].x;
-	  stl->stats.min.x = facet.vertex[0].x;
-	  stl->stats.max.y = facet.vertex[0].y;
-	  stl->stats.min.y = facet.vertex[0].y;
-	  stl->stats.max.z = facet.vertex[0].z;
-	  stl->stats.min.z = facet.vertex[0].z;
-	  
-	  diff_x = ABS(facet.vertex[0].x - facet.vertex[1].x);
-	  diff_y = ABS(facet.vertex[0].y - facet.vertex[1].y);
-	  diff_z = ABS(facet.vertex[0].z - facet.vertex[1].z);
-	  max_diff = STL_MAX(diff_x, diff_y);
-	  max_diff = STL_MAX(diff_z, max_diff);
-	  stl->stats.shortest_edge = max_diff;
-
-	  first = 0;
-	}
-      /* now find the max and min values */
-      stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[0].x);
-      stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[0].x);
-      stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[0].y);
-      stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[0].y);
-      stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[0].z);
-      stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[0].z);
-
-      stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[1].x);
-      stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[1].x);
-      stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[1].y);
-      stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[1].y);
-      stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[1].z);
-      stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[1].z);
-
-      stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[2].x);
-      stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[2].x);
-      stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[2].y);
-      stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[2].y);
-      stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[2].z);
-      stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[2].z);
+      stl_facet_stats(stl, facet, first);
     }
-  stl->stats.size.x = stl->stats.max.x - stl->stats.min.x;
-  stl->stats.size.y = stl->stats.max.y - stl->stats.min.y;
-  stl->stats.size.z = stl->stats.max.z - stl->stats.min.z;
-  stl->stats.bounding_diameter = 
-    sqrt(stl->stats.size.x * stl->stats.size.x +
-	 stl->stats.size.y * stl->stats.size.y +
-	 stl->stats.size.z * stl->stats.size.z);
+    stl->stats.size.x = stl->stats.max.x - stl->stats.min.x;
+    stl->stats.size.y = stl->stats.max.y - stl->stats.min.y;
+    stl->stats.size.z = stl->stats.max.z - stl->stats.min.z;
+    stl->stats.bounding_diameter = sqrt(
+        stl->stats.size.x * stl->stats.size.x +
+        stl->stats.size.y * stl->stats.size.y +
+        stl->stats.size.z * stl->stats.size.z
+        );
 }
 
+void
+stl_facet_stats(stl_file *stl, stl_facet facet, int first)
+{
+    float diff_x;
+    float diff_y;
+    float diff_z;
+    float max_diff;
+    /* while we are going through all of the facets, let's find the  */
+    /* maximum and minimum values for x, y, and z  */
+    
+    /* Initialize the max and min values the first time through*/
+    if (first) {
+        stl->stats.max.x = facet.vertex[0].x;
+        stl->stats.min.x = facet.vertex[0].x;
+        stl->stats.max.y = facet.vertex[0].y;
+        stl->stats.min.y = facet.vertex[0].y;
+        stl->stats.max.z = facet.vertex[0].z;
+        stl->stats.min.z = facet.vertex[0].z;
+        
+        diff_x = ABS(facet.vertex[0].x - facet.vertex[1].x);
+        diff_y = ABS(facet.vertex[0].y - facet.vertex[1].y);
+        diff_z = ABS(facet.vertex[0].z - facet.vertex[1].z);
+        max_diff = STL_MAX(diff_x, diff_y);
+        max_diff = STL_MAX(diff_z, max_diff);
+        stl->stats.shortest_edge = max_diff;
+        
+        first = 0;
+    }
+    
+    /* now find the max and min values */
+    stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[0].x);
+    stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[0].x);
+    stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[0].y);
+    stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[0].y);
+    stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[0].z);
+    stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[0].z);
+    
+    stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[1].x);
+    stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[1].x);
+    stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[1].y);
+    stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[1].y);
+    stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[1].z);
+    stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[1].z);
+    
+    stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[2].x);
+    stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[2].x);
+    stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[2].y);
+    stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[2].y);
+    stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[2].z);
+    stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[2].z);
+}
 
 void
 stl_close(stl_file *stl)

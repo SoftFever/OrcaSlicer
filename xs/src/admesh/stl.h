@@ -55,7 +55,7 @@ typedef struct
 }stl_facet;
 #define SIZEOF_STL_FACET       50
 
-typedef enum {binary, ascii} stl_type;
+typedef enum {binary, ascii, inmemory} stl_type;
 
 typedef struct
 {
@@ -172,3 +172,11 @@ extern void stl_calculate_normal(float normal[], stl_facet *facet);
 extern void stl_normalize_vector(float v[]);
 extern void stl_calculate_volume(stl_file *stl);
 
+extern void stl_initialize(stl_file *stl);
+static void stl_count_facets(stl_file *stl, char *file);
+extern void stl_allocate(stl_file *stl);
+static void stl_read(stl_file *stl, int first_facet, int first);
+static void stl_facet_stats(stl_file *stl, stl_facet facet, int first);
+static void stl_reallocate(stl_file *stl);
+static int stl_get_little_int(FILE *fp);
+static float stl_get_little_float(FILE *fp);
