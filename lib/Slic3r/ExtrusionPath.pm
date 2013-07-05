@@ -160,14 +160,14 @@ sub split_at_acute_angles {
             # if the angle between $p[-2], $p[-1], $p3 is too acute
             # then consider $p3 only as a starting point of a new
             # path and stop the current one as it is
-            push @paths, $self->clone(polyline => Slic3r::Polyline->new(\@p));
+            push @paths, $self->clone(polyline => Slic3r::Polyline->new(@p));
             @p = ($p3);
             push @p, grep $_, shift @points or last;
         } else {
             push @p, $p3;
         }
     }
-    push @paths, $self->clone(polyline => Slic3r::Polyline->new(\@p))
+    push @paths, $self->clone(polyline => Slic3r::Polyline->new(@p))
         if @p > 1;
     
     return @paths;
@@ -254,7 +254,7 @@ sub detect_arcs {
             }
             
             my $arc = Slic3r::ExtrusionPath::Arc->new(
-                polyline    => Slic3r::Polyline->new(\@arc_points),
+                polyline    => Slic3r::Polyline->new(@arc_points),
                 role        => $self->role,
                 flow_spacing => $self->flow_spacing,
                 orientation => $orientation,
@@ -279,7 +279,7 @@ sub detect_arcs {
     }
     
     # remaining points form a linear path
-    push @paths, $self->clone(polyline => Slic3r::Polyline->new(\@points))
+    push @paths, $self->clone(polyline => Slic3r::Polyline->new(@points))
         if @points > 1;
     
     return @paths;

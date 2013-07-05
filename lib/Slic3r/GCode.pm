@@ -8,7 +8,9 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
 has 'config'             => (is => 'ro', required => 1);
-has 'multiple_extruders' => (is => 'ro', default => sub {0} );
+has 'extruders'          => (is => 'ro', default => sub {0}, required => 1);
+has 'multiple_extruders' => (is => 'lazy');
+has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
 has '_layer_overhangs'   => (is => 'rw');
@@ -62,6 +64,16 @@ my %role_speeds = (
     &EXTR_ROLE_SUPPORTMATERIAL              => 'support_material',
     &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
+
+sub _build_multiple_extruders {
+    my $self = shift;
+    return @{$self->extruders} > 1;
+}
+
+sub _build_enable_wipe {
+    my $self = shift;
+    return (first { $_->wipe } @{$self->extruders}) ? 1 : 0;
+}
 
 sub set_shift {
     my $self = shift;
@@ -144,14 +156,14 @@ sub extrude_loop {
     # find candidate starting points
     # start looking for concave vertices not being overhangs
     my @concave = $loop->polygon->concave_points;
-    my @candidates = grep Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
+    my @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
         @concave;
     if (!@candidates) {
         # if none, look for any concave vertex
         @candidates = @concave;
         if (!@candidates) {
             # if none, look for any non-overhang vertex
-            @candidates = grep Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
+            @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
                 @{$loop->polygon};
             if (!@candidates) {
                 # if none, all points are valid candidates
@@ -169,7 +181,8 @@ sub extrude_loop {
     }
     
     # split the loop at the starting point and make a path
-    my $extrusion_path = $loop->split_at(Slic3r::Geometry::nearest_point($last_pos, \@candidates));
+    my $start_at = Slic3r::Geometry::nearest_point($last_pos, \@candidates);
+    my $extrusion_path = $loop->split_at($start_at);
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -192,7 +205,7 @@ sub extrude_loop {
         # reapply the nearest point search for starting point
         @paths = Slic3r::ExtrusionPath::Collection
             ->new(paths => [@paths])
-            ->chained_path($last_pos, 1);
+            ->chained_path($start_at, 1);
     } else {
         push @paths, $extrusion_path;
     }
@@ -205,7 +218,7 @@ sub extrude_loop {
     
     # extrude along the path
     my $gcode = join '', map $self->extrude_path($_, $description, %params), @paths;
-    $self->wipe_path($extrusion_path->polyline);
+    $self->wipe_path($extrusion_path->polyline) if $self->enable_wipe;
     
     # make a little move inwards before leaving loop
     if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER && $self->config->perimeters > 1) {
@@ -295,8 +308,8 @@ sub extrude_path {
             $path_length += $line_length;
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
-        $self->wipe_path(Slic3r::Polyline->new([ reverse @{$path->points} ]))
-            if $self->extruder->wipe;
+        $self->wipe_path(Slic3r::Polyline->new(reverse @{$path->points}))
+            if $self->enable_wipe;
     }
     
     if ($self->config->cooling) {
@@ -409,7 +422,7 @@ sub retract {
     # wipe
     my $wipe_path;
     if ($self->extruder->wipe && $self->wipe_path) {
-        $wipe_path = Slic3r::Polyline->new([ $self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}] ])
+        $wipe_path = Slic3r::Polyline->new($self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}])
             ->clip_start($self->extruder->scaled_wipe_distance);
     }
     

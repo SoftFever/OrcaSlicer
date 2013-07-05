@@ -9,6 +9,7 @@ use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
+use Storable qw();
 
 # the constructor accepts an array of polygons 
 # or a Math::Clipper ExPolygon (hashref)
@@ -17,19 +18,18 @@ sub new {
     my $self;
     if (@_ == 1 && ref $_[0] eq 'HASH') {
         $self = [
-            Slic3r::Polygon->new($_[0]{outer}),
-            map Slic3r::Polygon->new($_), @{$_[0]{holes}},
+            Slic3r::Polygon->new(@{$_[0]{outer}}),
+            map Slic3r::Polygon->new(@$_), @{$_[0]{holes}},
         ];
     } else {
-        $self = [ map Slic3r::Polygon->new($_), @_ ];
+        $self = [ map Slic3r::Polygon->new(@$_), @_ ];
     }
     bless $self, $class;
     $self;
 }
 
 sub clone {
-    my $self = shift;
-    return (ref $self)->new(map $_->clone, @$self);
+    Storable::dclone($_[0])
 }
 
 sub contour {
@@ -287,7 +287,7 @@ sub medial_axis {
             next if @$polyline == 2;
             push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
         } else {
-            push @result, Slic3r::Polyline->new($polyline);
+            push @result, Slic3r::Polyline->new(@$polyline);
         }
     }
     

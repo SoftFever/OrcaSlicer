@@ -170,8 +170,8 @@ sub validate {
                 my $clearance;
                 {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
-                    my $convex_hull = Slic3r::Polygon->new(convex_hull(\@points));
-                    ($clearance) = map Slic3r::Polygon->new($_), 
+                    my $convex_hull = Slic3r::Polygon->new(@{convex_hull(\@points)});
+                    ($clearance) = map Slic3r::Polygon->new(@$_), 
                                         Slic3r::Geometry::Clipper::offset(
                                             [$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND);
                 }
@@ -665,7 +665,7 @@ sub make_brim {
     }
     
     @{$self->brim} = map Slic3r::ExtrusionLoop->pack(
-        polygon         => Slic3r::Polygon->new($_),
+        polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
         flow_spacing    => $flow->spacing,
     ), reverse traverse_pt( union_pt(\@loops, PFT_EVENODD) );
@@ -711,7 +711,7 @@ sub write_gcode {
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
         config              => $self->config,
-        multiple_extruders  => (@{$self->extruders} > 1),
+        extruders           => $self->extruders,
         layer_count         => $self->layer_count,
     );
     print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerware';

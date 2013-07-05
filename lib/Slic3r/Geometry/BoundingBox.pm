@@ -38,12 +38,12 @@ sub polygon {
     my $self = shift;
     
     my $e = $self->extents;
-    return Slic3r::Polygon->new([
+    return Slic3r::Polygon->new(
         [ $e->[X][MIN], $e->[Y][MIN] ],
         [ $e->[X][MAX], $e->[Y][MIN] ],
         [ $e->[X][MAX], $e->[Y][MAX] ],
         [ $e->[X][MIN], $e->[Y][MAX] ],
-    ]);
+    );
 }
 
 # note to $self

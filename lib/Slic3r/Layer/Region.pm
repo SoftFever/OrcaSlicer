@@ -5,7 +5,7 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
+    offset offset2 offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -98,12 +98,9 @@ sub make_surfaces {
     # detect thin walls by offsetting slices by half extrusion inwards
     {
         my $width = $self->perimeter_flow->scaled_width;
-        my $outgrown = [
-            offset2_ex([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width),
-        ];
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],
-            [ map @$_, @$outgrown ],
+            [ offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width) ],
             1,
         );
         
@@ -195,7 +192,7 @@ sub make_perimeters {
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
-            {
+            if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
                 my $diff = diff_ex(
                     [ offset(\@last, -0.5*$spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
@@ -226,18 +223,9 @@ sub make_perimeters {
     
     $self->_fill_gaps(\@gaps);
     
-    # TODO: can these be removed?
-    @contours   = grep $_->is_printable($self->perimeter_flow->scaled_width), @contours;
-    @holes      = grep $_->is_printable($self->perimeter_flow->scaled_width), @holes;
-    
     # find nesting hierarchies separately for contours and holes
     my $contours_pt = union_pt(\@contours, PFT_EVENODD);
     my $holes_pt    = union_pt(\@holes, PFT_EVENODD);
-    
-    # get lower layer slices for overhang check
-    my @lower_slices = $self->id == 0
-        ? ()
-        : map @$_, @{$self->layer->object->layers->[$self->id-1]->slices};
     
     # prepare a coderef for traversing the PolyTree object
     # external contours are root items of $contours_pt
@@ -259,7 +247,7 @@ sub make_perimeters {
             # return ccw contours and cw holes
             # GCode.pm will convert all of them to ccw, but it needs to know
             # what the holes are in order to compute the correct inwards move
-            my $polygon = Slic3r::Polygon->new($polynode->{outer} // [ reverse @{$polynode->{hole}} ]);
+            my $polygon = Slic3r::Polygon->new(defined $polynode->{outer} ? @{$polynode->{outer}} : reverse @{$polynode->{hole}});
             $polygon->reverse if !$is_contour;
             
             my $role = EXTR_ROLE_PERIMETER;
@@ -312,7 +300,7 @@ sub _fill_gaps {
     my $self = shift;
     my ($gaps) = @_;
     
-    return unless $Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @$gaps;
+    return unless @$gaps;
     
     my $filler = $self->layer->object->fill_maker->filler('rectilinear');
     $filler->layer_id($self->layer->id);

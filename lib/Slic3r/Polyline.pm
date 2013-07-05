@@ -6,25 +6,20 @@ use Scalar::Util qw(reftype);
 use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polyline_lines move_points same_point);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
+use Storable qw();
 
 # the constructor accepts an array(ref) of points
 sub new {
     my $class = shift;
-    my $self;
-    if (@_ == 1) {
-        $self = [ @{$_[0]} ];
-    } else {
-        $self = [ @_ ];
-    }
     
+    my $self = [ @_ ];
     bless $self, $class;
     bless $_, 'Slic3r::Point' for @$self;
     $self;
 }
 
 sub clone {
-    my $self = shift;
-    return (ref $self)->new(map $_->clone, @$self);
+    Storable::dclone($_[0])
 }
 
 sub serialize {
@@ -65,7 +60,7 @@ sub simplify {
     my $tolerance = shift || 10;
     
     my $simplified = Boost::Geometry::Utils::linestring_simplify($self, $tolerance);
-    return (ref $self)->new($simplified);
+    return (ref $self)->new(@$simplified);
 }
 
 sub reverse {
@@ -83,9 +78,9 @@ sub grow {
     my ($distance, $scale, $joinType, $miterLimit) = @_;
     $joinType //= JT_SQUARE;
     
-    return map Slic3r::Polygon->new($_),
+    return map Slic3r::Polygon->new(@$_),
         Slic3r::Geometry::Clipper::offset(
-            [ Slic3r::Polygon->new(@$self, CORE::reverse @$self[1..($#$self-1)]) ],
+            [ [ @$self, CORE::reverse @$self[1..($#$self-1)] ] ],
             $distance, $scale, $joinType, $miterLimit,
         );
 }
