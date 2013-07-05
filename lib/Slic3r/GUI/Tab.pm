@@ -398,7 +398,7 @@ sub build {
         },
         {
             title => 'Vertical shells',
-            options => [qw(perimeters randomize_start extra_perimeters)],
+            options => [qw(perimeters)],
         },
         {
             title => 'Horizontal shells',
@@ -411,8 +411,12 @@ sub build {
             ],
         },
         {
+            title => 'Quality (slower slicing)',
+            options => [qw(extra_perimeters avoid_crossing_perimeters)],
+        },
+        {
             title => 'Advanced',
-            options => [qw(avoid_crossing_perimeters external_perimeters_first spiral_vase)],
+            options => [qw(randomize_start external_perimeters_first spiral_vase)],
         },
     ]);
     

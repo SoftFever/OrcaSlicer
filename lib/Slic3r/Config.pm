@@ -560,7 +560,7 @@ our $Options = {
         default => 70,
     },
     'extra_perimeters' => {
-        label   => 'Generate extra perimeters when needed',
+        label   => 'Extra perimeters if needed',
         tooltip => 'Add more perimeters when needed for avoiding gaps in sloping walls.',
         cli     => 'extra-perimeters!',
         type    => 'bool',
