@@ -5,7 +5,7 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
+    offset offset2 offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -98,12 +98,9 @@ sub make_surfaces {
     # detect thin walls by offsetting slices by half extrusion inwards
     {
         my $width = $self->perimeter_flow->scaled_width;
-        my $outgrown = [
-            offset2_ex([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width),
-        ];
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],
-            [ map @$_, @$outgrown ],
+            [ offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width) ],
             1,
         );
         
