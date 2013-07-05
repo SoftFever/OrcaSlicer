@@ -398,7 +398,7 @@ sub build {
         },
         {
             title => 'Vertical shells',
-            options => [qw(perimeters)],
+            options => [qw(perimeters spiral_vase)],
         },
         {
             title => 'Horizontal shells',
@@ -426,7 +426,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(randomize_start external_perimeters_first spiral_vase)],
+            options => [qw(randomize_start external_perimeters_first)],
         },
     ]);
     
