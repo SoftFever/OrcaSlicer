@@ -156,7 +156,7 @@ sub extrude_loop {
     # find candidate starting points
     # start looking for concave vertices not being overhangs
     my @concave = $loop->polygon->concave_points;
-    my @candidates = grep Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
+    my @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
         @concave;
     if (!@candidates) {
         # if none, look for any concave vertex
