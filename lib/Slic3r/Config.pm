@@ -573,6 +573,20 @@ our $Options = {
         type    => 'bool',
         default => 0,
     },
+    'start_perimeters_at_concave_points' => {
+        label   => 'Concave points',
+        tooltip => 'Prefer to start perimeters at a concave point.',
+        cli     => 'start-perimeters-at-concave-points!',
+        type    => 'bool',
+        default => 0,
+    },
+    'start_perimeters_at_non_overhang' => {
+        label   => 'Non-overhang points',
+        tooltip => 'Prefer to start perimeters at non-overhanging points.',
+        cli     => 'start-perimeters-at-non-overhang!',
+        type    => 'bool',
+        default => 0,
+    },
     'avoid_crossing_perimeters' => {
         label   => 'Avoid crossing perimeters',
         tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.',
