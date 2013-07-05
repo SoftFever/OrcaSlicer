@@ -8,7 +8,9 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
 has 'config'             => (is => 'ro', required => 1);
-has 'multiple_extruders' => (is => 'ro', default => sub {0} );
+has 'extruders'          => (is => 'ro', default => sub {0}, required => 1);
+has 'multiple_extruders' => (is => 'lazy');
+has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
 has '_layer_overhangs'   => (is => 'rw');
@@ -62,6 +64,16 @@ my %role_speeds = (
     &EXTR_ROLE_SUPPORTMATERIAL              => 'support_material',
     &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
+
+sub _build_multiple_extruders {
+    my $self = shift;
+    return @{$self->extruders} > 1;
+}
+
+sub _build_enable_wipe {
+    my $self = shift;
+    return (first { $_->wipe } @{$self->extruders}) ? 1 : 0;
+}
 
 sub set_shift {
     my $self = shift;
@@ -205,7 +217,7 @@ sub extrude_loop {
     
     # extrude along the path
     my $gcode = join '', map $self->extrude_path($_, $description, %params), @paths;
-    $self->wipe_path($extrusion_path->polyline);
+    $self->wipe_path($extrusion_path->polyline) if $self->enable_wipe;
     
     # make a little move inwards before leaving loop
     if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER && $self->config->perimeters > 1) {
@@ -296,7 +308,7 @@ sub extrude_path {
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
         $self->wipe_path(Slic3r::Polyline->new(reverse @{$path->points}))
-            if $self->extruder->wipe;
+            if $self->enable_wipe;
     }
     
     if ($self->config->cooling) {
