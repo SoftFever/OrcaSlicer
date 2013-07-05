@@ -412,7 +412,7 @@ sub build {
         },
         {
             title => 'Quality (slower slicing)',
-            options => [qw(extra_perimeters avoid_crossing_perimeters start_perimeters_at_concave_points start_perimeters_at_non_overhang)],
+            options => [qw(extra_perimeters avoid_crossing_perimeters start_perimeters_at_concave_points start_perimeters_at_non_overhang thin_walls)],
             lines => [
                 Slic3r::GUI::OptionsGroup->single_option_line('extra_perimeters'),
                 Slic3r::GUI::OptionsGroup->single_option_line('avoid_crossing_perimeters'),
@@ -420,6 +420,7 @@ sub build {
                     label   => 'Start perimeters at',
                     options => [qw(start_perimeters_at_concave_points start_perimeters_at_non_overhang)],
                 },
+                Slic3r::GUI::OptionsGroup->single_option_line('thin_walls'),
             ],
         },
         {

@@ -96,7 +96,7 @@ sub make_surfaces {
     $self->slices([ _merge_loops($loops) ]);
     
     # detect thin walls by offsetting slices by half extrusion inwards
-    {
+    if ($Slic3r::Config->thin_walls) {
         my $width = $self->perimeter_flow->scaled_width;
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],

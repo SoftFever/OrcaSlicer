@@ -277,6 +277,7 @@ $j
                         Try to start perimeters at concave points if any (default: no)
     --start-perimeters-at-non-overhang
                         Try to start perimeters at non-overhang points if any (default: no)
+    --thin-walls        Detect single-width walls (default: yes)
   
    Support material options:
     --support-material  Generate support material for overhangs

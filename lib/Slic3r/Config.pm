@@ -587,6 +587,13 @@ our $Options = {
         type    => 'bool',
         default => 0,
     },
+    'thin_walls' => {
+        label   => 'Detect thin walls',
+        tooltip => 'Detect single-width walls (parts where two extrusions don\'t fit and we need to collapse them into a single trace).',
+        cli     => 'thin-walls!',
+        type    => 'bool',
+        default => 1,
+    },
     'avoid_crossing_perimeters' => {
         label   => 'Avoid crossing perimeters',
         tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.',
