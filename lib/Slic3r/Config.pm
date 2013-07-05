@@ -594,6 +594,13 @@ our $Options = {
         type    => 'bool',
         default => 1,
     },
+    'adjust_overhang_flow' => {
+        label   => 'Adjust overhang flow',
+        tooltip => 'Experimental option to adjust flow for overhangs (bridge flow will be used).',
+        cli     => 'adjust-overhang-flow!',
+        type    => 'bool',
+        default => 1,
+    },
     'avoid_crossing_perimeters' => {
         label   => 'Avoid crossing perimeters',
         tooltip => 'Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.',

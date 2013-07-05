@@ -197,7 +197,7 @@ sub extrude_loop {
     
     my @paths = ();
     # detect overhanging/bridging perimeters
-    if ($extrusion_path->is_perimeter && @{$self->_layer_overhangs}) {
+    if ($Slic3r::Config->adjust_overhang_flow && $extrusion_path->is_perimeter && @{$self->_layer_overhangs}) {
         # get non-overhang paths by subtracting overhangs from the loop
         push @paths,
             $extrusion_path->subtract_expolygons($self->_layer_overhangs);
