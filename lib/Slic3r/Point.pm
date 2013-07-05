@@ -2,6 +2,8 @@ package Slic3r::Point;
 use strict;
 use warnings;
 
+use Storable qw();
+
 sub new {
     my $class = shift;
     my $self;
@@ -19,8 +21,7 @@ sub new {
 }
 
 sub clone {
-    my $self = shift;
-    return (ref $self)->new(@$self);
+    Storable::dclone($_[0])
 }
 
 sub coincides_with {
