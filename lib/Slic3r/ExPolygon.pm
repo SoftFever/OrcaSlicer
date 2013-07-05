@@ -9,6 +9,7 @@ use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
+use Storable qw();
 
 # the constructor accepts an array of polygons 
 # or a Math::Clipper ExPolygon (hashref)
@@ -28,8 +29,7 @@ sub new {
 }
 
 sub clone {
-    my $self = shift;
-    return (ref $self)->new(map $_->clone, @$self);
+    Storable::dclone($_[0])
 }
 
 sub contour {
