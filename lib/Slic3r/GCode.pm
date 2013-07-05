@@ -181,7 +181,8 @@ sub extrude_loop {
     }
     
     # split the loop at the starting point and make a path
-    my $extrusion_path = $loop->split_at(Slic3r::Geometry::nearest_point($last_pos, \@candidates));
+    my $start_at = Slic3r::Geometry::nearest_point($last_pos, \@candidates);
+    my $extrusion_path = $loop->split_at($start_at);
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -204,7 +205,7 @@ sub extrude_loop {
         # reapply the nearest point search for starting point
         @paths = Slic3r::ExtrusionPath::Collection
             ->new(paths => [@paths])
-            ->chained_path($last_pos, 1);
+            ->chained_path($start_at, 1);
     } else {
         push @paths, $extrusion_path;
     }
