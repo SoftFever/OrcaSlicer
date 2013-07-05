@@ -83,7 +83,7 @@ sub diff {
     $clipper->add_subject_polygons($subject);
     $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
     return [
-        map Slic3r::Polygon->new($_),
+        map Slic3r::Polygon->new(@$_),
             @{ $clipper->execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
     ];
 }
@@ -126,7 +126,7 @@ sub intersection {
     $clipper->add_subject_polygons($subject);
     $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
     return [
-        map Slic3r::Polygon->new($_),
+        map Slic3r::Polygon->new(@$_),
             @{ $clipper->execute(CT_INTERSECTION, $jointype, $jointype) },
     ];
 }

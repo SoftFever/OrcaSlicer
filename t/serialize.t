@@ -21,7 +21,7 @@ use Slic3r::Geometry qw(scale);
     foreach my $point (@$points) {
         @$point = map scale $_, @$point;
     }
-    my $polyline = Slic3r::Polyline->new($points);
+    my $polyline = Slic3r::Polyline->new(@$points);
     my $serialized = $polyline->serialize;
     my $deserialized = Slic3r::Polyline->deserialize($serialized);
     is scalar(@$deserialized), scalar(@$points), 'number of deserialized points';

@@ -17,11 +17,11 @@ sub new {
     my $self;
     if (@_ == 1 && ref $_[0] eq 'HASH') {
         $self = [
-            Slic3r::Polygon->new($_[0]{outer}),
-            map Slic3r::Polygon->new($_), @{$_[0]{holes}},
+            Slic3r::Polygon->new(@{$_[0]{outer}}),
+            map Slic3r::Polygon->new(@$_), @{$_[0]{holes}},
         ];
     } else {
-        $self = [ map Slic3r::Polygon->new($_), @_ ];
+        $self = [ map Slic3r::Polygon->new(@$_), @_ ];
     }
     bless $self, $class;
     $self;
@@ -287,7 +287,7 @@ sub medial_axis {
             next if @$polyline == 2;
             push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
         } else {
-            push @result, Slic3r::Polyline->new($polyline);
+            push @result, Slic3r::Polyline->new(@$polyline);
         }
     }
     

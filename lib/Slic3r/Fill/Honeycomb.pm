@@ -71,7 +71,7 @@ sub fill_surface {
                 $x += $m->{distance};
             }
             
-            push @polygons, Slic3r::Polygon->new($p);
+            push @polygons, Slic3r::Polygon->new(@$p);
         }
         
         $_->rotate(-$rotate_vector->[0][0], $m->{hex_center}) for @polygons;
@@ -88,7 +88,7 @@ sub fill_surface {
         # consider polygons as polylines without re-appending the initial point:
         # this cuts the last segment on purpose, so that the jump to the next 
         # path is more straight
-        @paths = map Slic3r::Polyline->new($_),
+        @paths = map Slic3r::Polyline->new(@$_),
             @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
                 $surface->expolygon,
                 \@polygons,
@@ -113,7 +113,7 @@ sub fill_surface {
         }
         
         # clip paths again to prevent connection segments from crossing the expolygon boundaries
-        @paths = map Slic3r::Polyline->new($_),
+        @paths = map Slic3r::Polyline->new(@$_),
             @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
                 [ $surface->expolygon->offset_ex(scaled_epsilon) ],
                 [ @paths ],

@@ -247,7 +247,7 @@ sub make_perimeters {
             # return ccw contours and cw holes
             # GCode.pm will convert all of them to ccw, but it needs to know
             # what the holes are in order to compute the correct inwards move
-            my $polygon = Slic3r::Polygon->new($polynode->{outer} // [ reverse @{$polynode->{hole}} ]);
+            my $polygon = Slic3r::Polygon->new(defined $polynode->{outer} ? @{$polynode->{outer}} : reverse @{$polynode->{hole}});
             $polygon->reverse if !$is_contour;
             
             my $role = EXTR_ROLE_PERIMETER;

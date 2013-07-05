@@ -33,9 +33,9 @@ sub fill_surface {
     my $path = "Math::PlanePath::$1"->new;
     my @n = $self->get_n($path, [ map +($_ / $distance_between_lines), @{$bounding_box->bb} ]);
     
-    my $polyline = Slic3r::Polyline->new([
+    my $polyline = Slic3r::Polyline->new(
         map [ map {$_*$distance_between_lines} $path->n_to_xy($_) ], @n,
-    ]);
+    );
     return {} if !@$polyline;
     
     $self->process_polyline($polyline, $bounding_box);
