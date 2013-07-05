@@ -195,7 +195,7 @@ sub make_perimeters {
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
-            {
+            if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
                 my $diff = diff_ex(
                     [ offset(\@last, -0.5*$spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
@@ -303,7 +303,7 @@ sub _fill_gaps {
     my $self = shift;
     my ($gaps) = @_;
     
-    return unless $Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0 && @$gaps;
+    return unless @$gaps;
     
     my $filler = $self->layer->object->fill_maker->filler('rectilinear');
     $filler->layer_id($self->layer->id);
