@@ -226,18 +226,9 @@ sub make_perimeters {
     
     $self->_fill_gaps(\@gaps);
     
-    # TODO: can these be removed?
-    @contours   = grep $_->is_printable($self->perimeter_flow->scaled_width), @contours;
-    @holes      = grep $_->is_printable($self->perimeter_flow->scaled_width), @holes;
-    
     # find nesting hierarchies separately for contours and holes
     my $contours_pt = union_pt(\@contours, PFT_EVENODD);
     my $holes_pt    = union_pt(\@holes, PFT_EVENODD);
-    
-    # get lower layer slices for overhang check
-    my @lower_slices = $self->id == 0
-        ? ()
-        : map @$_, @{$self->layer->object->layers->[$self->id-1]->slices};
     
     # prepare a coderef for traversing the PolyTree object
     # external contours are root items of $contours_pt
