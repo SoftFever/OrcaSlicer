@@ -6,3 +6,5 @@ _build
 blib
 xs/buildtmp
 *.o
+MANIFEST.bak
+xs/MANIFEST.bak
