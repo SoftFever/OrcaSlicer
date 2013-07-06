@@ -8,7 +8,7 @@ sub read_file {
     my ($file) = @_;
     
     my $tmesh = Slic3r::TriangleMesh::XS->new;
-    $tmesh->ReadSTLFile($file);
+    $tmesh->ReadSTLFile(Slic3r::encode_path($file));
     $tmesh->Repair;
     my ($vertices, $facets) = @{$tmesh->ToPerl};
     
