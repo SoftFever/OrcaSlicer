@@ -607,7 +607,7 @@ sub horizontal_projection {
     
     my @f = ();
     foreach my $facet (@{$self->facets}) {
-        push @f, Slic3r::Polygon->new([ map [ @{$self->vertices->[$_]}[X,Y] ], @$facet ]);
+        push @f, Slic3r::Polygon->new(map [ @{$self->vertices->[$_]}[X,Y] ], @$facet);
     }
     
     my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
