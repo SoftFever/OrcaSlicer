@@ -18,6 +18,7 @@ src/admesh/stlinit.c
 src/admesh/stlinit.o
 src/admesh/util.c
 src/admesh/util.o
+src/ExPolygon.hpp
 src/myinit.h
 src/Point.cpp
 src/Point.hpp
@@ -30,6 +31,8 @@ src/ZTable.hpp
 t/01_trianglemesh.t
 t/02_object.t
 t/03_point.t
+t/04_expolygon.t
+xsp/ExPolygon.xsp
 xsp/my.map
 xsp/mytype.map
 xsp/Object.xsp

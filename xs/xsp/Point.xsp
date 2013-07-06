@@ -6,7 +6,7 @@
 %}
 
 %name{Slic3r::Point::XS} class Point {
-    Point(unsigned long _x, unsigned long _y);
+    Point(unsigned long _x = 0, unsigned long _y = 0);
     ~Point();
     SV* _toPerl();
 };

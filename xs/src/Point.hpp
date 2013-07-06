@@ -13,7 +13,7 @@ class Point
     public:
     unsigned long x;
     unsigned long y;
-    Point(unsigned long _x, unsigned long _y): x(_x), y(_y) {};
+    Point(unsigned long _x = 0, unsigned long _y = 0): x(_x), y(_y) {};
     ~Point();
     SV* _toPerl();
 };

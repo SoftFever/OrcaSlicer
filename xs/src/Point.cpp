@@ -1,7 +1,6 @@
 #include "myinit.h"
 #include "Point.hpp"
 
-Point::Point(unsigned long x, unsigned long y) {}
 Point::~Point() {}
 
 

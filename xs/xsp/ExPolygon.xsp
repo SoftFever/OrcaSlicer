@@ -1,0 +1,51 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "ExPolygon.hpp"
+%}
+
+%name{Slic3r::ExPolygon::XS} class ExPolygon {
+%{
+
+ExPolygon*
+ExPolygon::new(...)
+    CODE:
+        RETVAL = new ExPolygon ();
+        // ST(0) is class name, ST(1) is contour and others are holes
+        RETVAL->contour = *perl2polygon(ST(1));
+        for (unsigned int i = 2; i < items; i++) {
+            RETVAL->holes.push_back(*perl2polygon(ST(i)));
+        }
+    OUTPUT:
+        RETVAL
+
+SV*
+ExPolygon::_toPerl()
+    CODE:
+        const unsigned int num_holes = THIS->holes.size();
+        AV* av = newAV();
+        av_fill(av, num_holes);  // -1 +1
+        av_store(av, 0, polygon2perl(THIS->contour));
+        for (unsigned int i = 0; i < num_holes; i++) {
+            av_store(av, i+1, polygon2perl(THIS->holes[i]));
+        }
+        RETVAL = (SV*)newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+%}
+};
+
+%package{Slic3r::ExPolygon::XS};
+
+%{
+PROTOTYPES: DISABLE
+
+std::string
+hello_world()
+  CODE:
+    RETVAL = "Hello world!";
+  OUTPUT:
+    RETVAL
+%}

@@ -11,4 +11,8 @@ package Slic3r::Point::XS;
 use overload
     '@{}' => sub { $_[0]->_toPerl };
 
+package Slic3r::ExPolygon::XS;
+use overload
+    '@{}' => sub { $_[0]->_toPerl };
+
 1;
