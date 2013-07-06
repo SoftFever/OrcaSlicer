@@ -24,6 +24,11 @@ sub clone {
     Storable::dclone($_[0])
 }
 
+sub threadsafe_clone {
+    my $self = shift;
+    return (ref $self)->new(@$self);
+}
+
 sub coincides_with {
     my $self = shift;
     my ($point) = @_;
