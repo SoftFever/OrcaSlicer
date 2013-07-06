@@ -7,8 +7,16 @@
 
 %name{Slic3r::Point::XS} class Point {
     Point(unsigned long _x = 0, unsigned long _y = 0);
-    ~Point();
-    SV* _toPerl();
+%{
+
+SV*
+Point::_toPerl()
+    CODE:
+        RETVAL = point2perl(*THIS);
+    OUTPUT:
+        RETVAL
+
+%}
 };
 
 %package{Slic3r::Point::XS};

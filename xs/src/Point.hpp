@@ -14,8 +14,14 @@ class Point
     unsigned long x;
     unsigned long y;
     Point(unsigned long _x = 0, unsigned long _y = 0): x(_x), y(_y) {};
-    ~Point();
-    SV* _toPerl();
 };
+
+SV*
+point2perl(Point& point) {
+    AV* av = newAV();
+    av_fill(av, 1);
+    av_store_point_xy(av, point.x, point.y);
+    return (SV*)newRV_noinc((SV*)av);
+}
 
 #endif

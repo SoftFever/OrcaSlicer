@@ -44,7 +44,7 @@ polygon2perl(Polygon& poly) {
     AV* av = newAV();
     av_extend(av, num_points-1);
     for (unsigned int i = 0; i < num_points; i++) {
-        av_store(av, i, poly[i]._toPerl());
+        av_store(av, i, point2perl(poly[i]));
     }
     return (SV*)newRV_noinc((SV*)av);
 }

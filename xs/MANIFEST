@@ -20,9 +20,7 @@ src/admesh/util.c
 src/admesh/util.o
 src/ExPolygon.hpp
 src/myinit.h
-src/Point.cpp
 src/Point.hpp
-src/Point.o
 src/ppport.h
 src/TriangleMesh.cpp
 src/TriangleMesh.hpp
