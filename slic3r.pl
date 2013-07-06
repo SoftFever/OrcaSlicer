@@ -278,8 +278,8 @@ $j
     --start-perimeters-at-non-overhang
                         Try to start perimeters at non-overhang points if any (default: no)
     --thin-walls        Detect single-width walls (default: yes)
-    --adjust-overhang-flow
-                        Experimental option to use bridge flow for overhangs (default: yes)
+    --overhangs         Experimental option to use bridge flow, speed and fan for overhangs
+                        (default: yes)
   
    Support material options:
     --support-material  Generate support material for overhangs

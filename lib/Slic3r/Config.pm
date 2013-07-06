@@ -6,7 +6,8 @@ use utf8;
 use List::Util qw(first);
 
 # cemetery of old config settings
-our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration);
+our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
+    adjust_overhang_flow);
 
 my $serialize_comma     = sub { join ',', @{$_[0]} };
 my $serialize_comma_bool = sub { join ',', map $_ // 0, @{$_[0]} };
@@ -594,10 +595,10 @@ our $Options = {
         type    => 'bool',
         default => 1,
     },
-    'adjust_overhang_flow' => {
-        label   => 'Adjust overhang flow',
-        tooltip => 'Experimental option to adjust flow for overhangs (bridge flow will be used).',
-        cli     => 'adjust-overhang-flow!',
+    'overhangs' => {
+        label   => 'Detect overhangs',
+        tooltip => 'Experimental option to adjust flow for overhangs (bridge flow will be used), to apply bridge speed to them and enable fan.',
+        cli     => 'overhangs!',
         type    => 'bool',
         default => 1,
     },
