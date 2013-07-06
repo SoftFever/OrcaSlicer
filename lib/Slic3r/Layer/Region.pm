@@ -525,6 +525,8 @@ sub _detect_bridges {
             my $anchors = intersection_ex(
                 [ $surface->p ],
                 [ map @$_, @lower ],
+                undef,
+                1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
             );
             
             # we'll now try several directions using a rudimentary visibility check:
