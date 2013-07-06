@@ -28,6 +28,15 @@ my %recommends = qw(
     Growl::GNTP                     0.15
     XML::SAX::ExpatXS               0
 );
+if ($ARGV[0] eq '--gui') {
+    %prereqs = (%prereqs, qw(
+    Wx                              0.9901
+    ));
+    %recommends = (%recommends, qw(
+    Wx::GLCanvas                    0
+    OpenGL                          0
+    ));
+}
 
 # removed:
 # Wx 0.9901
@@ -79,6 +88,9 @@ If it is installed in a non-standard location you can do:
 
 EOF
         if !$cpanm;
+    
+    # make sure our cpanm is updated (old ones don't support the ~ syntax)
+    system $cpanm, 'App::cpanminus';
     
     my %modules = (%prereqs, %recommends);
     foreach my $module (sort keys %modules) {
