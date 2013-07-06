@@ -233,7 +233,7 @@ sub make_loops {
                 if ((defined $loop[0][I_EDGE_A_ID] && defined $loop[-1][I_EDGE_B_ID] && $loop[0][I_EDGE_A_ID] == $loop[-1][I_EDGE_B_ID])
                     || (defined $loop[0][I_A_ID] && defined $loop[-1][I_B_ID] && $loop[0][I_A_ID] == $loop[-1][I_B_ID])) {
                     # loop is complete!
-                    push @polygons, Slic3r::Polygon->new([ map $_->[I_A], @loop ]);
+                    push @polygons, Slic3r::Polygon->new(map $_->[I_A], @loop);
                     Slic3r::debugf "  Discovered %s polygon of %d points\n",
                         ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@{$polygons[-1]})
                         if $Slic3r::debug;
