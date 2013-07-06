@@ -73,6 +73,7 @@ use Slic3r::Test;
     }
     
     {
+        $config->set('start_perimeters_at_concave_points', 1);
         my $print = Slic3r::Test::init_print('L', config => $config);
         my $loop_starts_from_convex_point = 0;
         my $cur_loop;
@@ -102,6 +103,7 @@ use Slic3r::Test;
         $config->set('fan_below_layer_time', 0);
         $config->set('slowdown_below_layer_time', 0);
         $config->set('bridge_fan_speed', 100);
+        $config->set('overhangs', 1);
         my $print = Slic3r::Test::init_print('overhang', config => $config);
         my %layer_speeds = ();  # print Z => [ speeds ]
         my $fan_speed = 0;

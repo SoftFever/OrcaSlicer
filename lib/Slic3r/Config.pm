@@ -6,7 +6,8 @@ use utf8;
 use List::Util qw(first);
 
 # cemetery of old config settings
-our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration);
+our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
+    adjust_overhang_flow);
 
 my $serialize_comma     = sub { join ',', @{$_[0]} };
 my $serialize_comma_bool = sub { join ',', map $_ // 0, @{$_[0]} };
@@ -560,7 +561,7 @@ our $Options = {
         default => 70,
     },
     'extra_perimeters' => {
-        label   => 'Generate extra perimeters when needed',
+        label   => 'Extra perimeters if needed',
         tooltip => 'Add more perimeters when needed for avoiding gaps in sloping walls.',
         cli     => 'extra-perimeters!',
         type    => 'bool',
@@ -572,6 +573,34 @@ our $Options = {
         cli     => 'randomize-start!',
         type    => 'bool',
         default => 0,
+    },
+    'start_perimeters_at_concave_points' => {
+        label   => 'Concave points',
+        tooltip => 'Prefer to start perimeters at a concave point.',
+        cli     => 'start-perimeters-at-concave-points!',
+        type    => 'bool',
+        default => 0,
+    },
+    'start_perimeters_at_non_overhang' => {
+        label   => 'Non-overhang points',
+        tooltip => 'Prefer to start perimeters at non-overhanging points.',
+        cli     => 'start-perimeters-at-non-overhang!',
+        type    => 'bool',
+        default => 0,
+    },
+    'thin_walls' => {
+        label   => 'Detect thin walls',
+        tooltip => 'Detect single-width walls (parts where two extrusions don\'t fit and we need to collapse them into a single trace).',
+        cli     => 'thin-walls!',
+        type    => 'bool',
+        default => 1,
+    },
+    'overhangs' => {
+        label   => 'Detect overhangs',
+        tooltip => 'Experimental option to adjust flow for overhangs (bridge flow will be used), to apply bridge speed to them and enable fan.',
+        cli     => 'overhangs!',
+        type    => 'bool',
+        default => 1,
     },
     'avoid_crossing_perimeters' => {
         label   => 'Avoid crossing perimeters',
