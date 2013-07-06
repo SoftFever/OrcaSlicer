@@ -29,17 +29,14 @@ my %recommends = qw(
     XML::SAX::ExpatXS               0
 );
 if ($ARGV[0] eq '--gui') {
-    %prereqs = (%prereqs, qw(
+    %prereqs = qw(
     Wx                              0.9901
-    ));
-    %recommends = (%recommends, qw(
+    );
+    %recommends = qw(
     Wx::GLCanvas                    0
     OpenGL                          0
-    ));
+    );
 }
-
-# removed:
-# Wx 0.9901
 
 my $missing_prereqs = 0;
 if ($ENV{SLIC3R_NO_AUTO}) {
