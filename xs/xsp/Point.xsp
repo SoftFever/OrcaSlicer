@@ -1,0 +1,25 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "Point.hpp"
+%}
+
+%name{Slic3r::Point::XS} class Point {
+    Point(unsigned long _x, unsigned long _y);
+    ~Point();
+    SV* _toPerl();
+};
+
+%package{Slic3r::Point::XS};
+
+%{
+PROTOTYPES: DISABLE
+
+std::string
+hello_world()
+  CODE:
+    RETVAL = "Hello world!";
+  OUTPUT:
+    RETVAL
+%}

@@ -2,6 +2,7 @@
 
 %{
 #include <myinit.h>
+#include "ZTable.hpp"
 #include <vector>
 %}
 

@@ -1,3 +1,6 @@
+#ifndef slic3r_TriangleMesh_hpp_
+#define slic3r_TriangleMesh_hpp_
+
 #include <admesh/stl.h>
 
 extern "C" {
@@ -21,4 +24,4 @@ class TriangleMesh
     stl_file stl;
 };
 
-
+#endif
