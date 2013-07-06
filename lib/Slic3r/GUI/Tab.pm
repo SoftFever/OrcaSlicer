@@ -436,7 +436,7 @@ sub build {
             options => [qw(fill_density fill_pattern solid_fill_pattern)],
         },
         {
-            title => 'Reducing Printing Time',
+            title => 'Reducing printing time',
             options => [qw(infill_every_layers infill_only_where_needed)],
         },
         {
