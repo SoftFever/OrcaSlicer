@@ -95,6 +95,10 @@ EOF
         my $res = system $cpanm, "$module~$version";
         $missing_prereqs = 1 if $res != 0 && exists $prereqs{$module};
     }
+    
+    # temporarily require this dev version until this upstream bug
+    # is resolved: https://rt.cpan.org/Ticket/Display.html?id=86367
+    system $cpanm, 'SMUELLER/ExtUtils-ParseXS-3.18_04.tar.gz';
     system $cpanm, '--reinstall', './xs';
 }
 
