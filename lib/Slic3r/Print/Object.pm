@@ -129,10 +129,12 @@ sub slice {
     for my $region_id (0 .. $#{$self->meshes}) {
         my $mesh = $self->meshes->[$region_id];  # ignore undef meshes
         
+        my %lines = ();  # layer_id => [ lines ]
         my $apply_lines = sub {
             my $lines = shift;
             foreach my $layer_id (keys %$lines) {
-                push @{$self->layers->[$layer_id]->regions->[$region_id]->lines}, @{$lines->{$layer_id}};
+                $lines{$layer_id} ||= [];
+                push @{$lines{$layer_id}}, @{$lines->{$layer_id}};
             }
         };
         Slic3r::parallelize(
@@ -161,36 +163,31 @@ sub slice {
             },
         );
         
-        $self->meshes->[$region_id] = undef;  # free memory
+        # free memory
+        undef $mesh;
+        undef $self->meshes->[$region_id];
+        
+        foreach my $layer (@{ $self->layers }) {
+            Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
+                $layer->id, unscale $layer->slice_z if $Slic3r::debug;
+            
+            my $layerm = $layer->regions->[$region_id];
+            my ($slicing_errors, $loops) = Slic3r::TriangleMesh::make_loops($lines{$layer->id});
+            $layer->slicing_errors(1) if $slicing_errors;
+            $layerm->make_surfaces($loops);
+            
+            # free memory
+            delete $lines{$layer->id};
+        }
     }
     
     # free memory
     $self->meshes(undef);
     
     # remove last layer(s) if empty
-    pop @{$self->layers} while @{$self->layers} && (!map @{$_->lines}, @{$self->layers->[-1]->regions});
+    pop @{$self->layers} while @{$self->layers} && (!map @{$_->slices}, @{$self->layers->[-1]->regions});
     
     foreach my $layer (@{ $self->layers }) {
-        Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
-            $layer->id, unscale $layer->slice_z if $Slic3r::debug;
-        
-        # layer currently has many lines representing intersections of
-        # model facets with the layer plane. there may also be lines
-        # that we need to ignore (for example, when two non-horizontal
-        # facets share a common edge on our plane, we get a single line;
-        # however that line has no meaning for our layer as it's enclosed
-        # inside a closed polyline)
-        
-        # build surfaces from sparse lines
-        foreach my $layerm (@{$layer->regions}) {
-            my ($slicing_errors, $loops) = Slic3r::TriangleMesh::make_loops($layerm->lines);
-            $layer->slicing_errors(1) if $slicing_errors;
-            $layerm->make_surfaces($loops);
-            
-            # free memory
-            $layerm->lines(undef);
-        }
-        
         # merge all regions' slices to get islands
         $layer->make_slices;
     }
