@@ -7,6 +7,7 @@
 
 %name{Slic3r::ExPolygon::XS} class ExPolygon {
     %name{_clone} ExPolygon(ExPolygon& self);
+    ~ExPolygon();
 %{
 
 ExPolygon*
@@ -14,9 +15,10 @@ ExPolygon::new(...)
     CODE:
         RETVAL = new ExPolygon ();
         // ST(0) is class name, ST(1) is contour and others are holes
-        RETVAL->contour = *perl2polygon(ST(1));
+        perl2polygon(ST(1), RETVAL->contour);
+        RETVAL->holes.resize(items-2);
         for (unsigned int i = 2; i < items; i++) {
-            RETVAL->holes.push_back(*perl2polygon(ST(i)));
+            perl2polygon(ST(i), RETVAL->holes[i-2]);
         }
     OUTPUT:
         RETVAL
