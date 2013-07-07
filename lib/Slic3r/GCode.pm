@@ -96,8 +96,10 @@ sub change_layer {
     my ($layer) = @_;
     
     $self->layer($layer);
+    
+    # avoid computing overhangs if they're not needed
     $self->_layer_overhangs(
-        $layer->id > 0
+        $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
             ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
             : []
         );
