@@ -21,7 +21,7 @@ ExPolygon::new(...)
         RETVAL
 
 SV*
-ExPolygon::_toPerl()
+ExPolygon::arrayref()
     CODE:
         const unsigned int num_holes = THIS->holes.size();
         AV* av = newAV();

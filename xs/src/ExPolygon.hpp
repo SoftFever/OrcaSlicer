@@ -18,7 +18,7 @@ class ExPolygon
     public:
     Polygon contour;
     Polygons holes;
-    SV* _toPerl();
+    SV* arrayref();
 };
 
 Polygon*

@@ -10,7 +10,7 @@
 %{
 
 SV*
-Point::_toPerl()
+Point::arrayref()
     CODE:
         RETVAL = point2perl(*THIS);
     OUTPUT:

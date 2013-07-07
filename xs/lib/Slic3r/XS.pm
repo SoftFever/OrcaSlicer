@@ -9,10 +9,10 @@ XSLoader::load(__PACKAGE__, $VERSION);
 
 package Slic3r::Point::XS;
 use overload
-    '@{}' => sub { $_[0]->_toPerl };
+    '@{}' => sub { $_[0]->arrayref };
 
 package Slic3r::ExPolygon::XS;
 use overload
-    '@{}' => sub { $_[0]->_toPerl };
+    '@{}' => sub { $_[0]->arrayref };
 
 1;
