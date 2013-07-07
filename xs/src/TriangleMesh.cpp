@@ -1,5 +1,7 @@
 #include "TriangleMesh.hpp"
 
+namespace Slic3r {
+
 TriangleMesh::TriangleMesh() {}
 TriangleMesh::~TriangleMesh() {
     stl_close(&stl);
@@ -129,4 +131,6 @@ TriangleMesh::ToPerl() {
     av_store(result, 0, newRV_noinc((SV*)vertices));
     av_store(result, 1, newRV_noinc((SV*)facets));
     return result;
+}
+
 }

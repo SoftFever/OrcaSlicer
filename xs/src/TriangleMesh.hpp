@@ -10,6 +10,8 @@ extern "C" {
 #include "ppport.h"
 }
 
+namespace Slic3r {
+
 class TriangleMesh
 {
     public:
@@ -23,5 +25,7 @@ class TriangleMesh
     private:
     stl_file stl;
 };
+
+}
 
 #endif

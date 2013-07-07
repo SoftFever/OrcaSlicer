@@ -8,6 +8,8 @@ extern "C" {
 #include "ppport.h"
 }
 
+namespace Slic3r {
+
 class Point
 {
     public:
@@ -22,6 +24,8 @@ point2perl(Point& point) {
     av_fill(av, 1);
     av_store_point_xy(av, point.x, point.y);
     return (SV*)newRV_noinc((SV*)av);
+}
+
 }
 
 #endif

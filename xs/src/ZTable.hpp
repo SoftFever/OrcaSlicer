@@ -8,6 +8,8 @@ extern "C" {
 #include "ppport.h"
 }
 
+namespace Slic3r {
+
 class ZTable
 {
     public:
@@ -19,6 +21,8 @@ class ZTable
 ZTable::ZTable(std::vector<unsigned int>* ztable) :
     z(*ztable)
 {
+}
+
 }
 
 #endif
