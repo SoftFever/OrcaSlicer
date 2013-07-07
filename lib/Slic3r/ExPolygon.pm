@@ -121,7 +121,7 @@ sub encloses_point {
 sub encloses_point_quick {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_within_polygon($point, $self);
+    return Boost::Geometry::Utils::point_within_polygon($point, $self->arrayref);
 }
 
 sub encloses_line {
