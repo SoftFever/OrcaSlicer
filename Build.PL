@@ -28,7 +28,7 @@ my %recommends = qw(
     Growl::GNTP                     0.15
     XML::SAX::ExpatXS               0
 );
-if ($ARGV[0] eq '--gui') {
+if (defined $ARGV[0] && $ARGV[0] eq '--gui') {
     %prereqs = qw(
     Wx                              0.9901
     );
