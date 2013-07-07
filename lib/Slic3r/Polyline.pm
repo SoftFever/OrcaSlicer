@@ -22,11 +22,6 @@ sub clone {
     Storable::dclone($_[0])
 }
 
-sub threadsafe_clone {
-    my $self = shift;
-    return (ref $self)->new(map $_->threadsafe_clone, @$self);
-}
-
 sub serialize {
     my $self = shift;
     return pack 'l*', map @$_, @$self;

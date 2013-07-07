@@ -35,11 +35,6 @@ sub clone {
 # no-op for legacy with ::XS
 sub arrayref { $_[0] }
 
-sub threadsafe_clone {
-    my $self = shift;
-    return (ref $self)->new(map $_->threadsafe_clone, @$self);
-}
-
 sub contour {
     my $self = shift;
     return $self->[0];
@@ -314,7 +309,7 @@ has 'expolygons' => (is => 'ro', default => sub { [] });
 sub clone {
     my $self = shift;
     return (ref $self)->new(
-        expolygons => [ map $_->threadsafe_clone, @{$self->expolygons} ],
+        expolygons => [ map $_->clone, @{$self->expolygons} ],
     );
 }
 

@@ -86,7 +86,14 @@ sub parallelize {
         my $q = Thread::Queue->new;
         $q->enqueue(@items, (map undef, 1..$Config->threads));
         
-        my $thread_cb = sub { $params{thread_cb}->($q) };
+        my $thread_cb = sub {
+            # prevent destruction of shared objects
+            no warnings 'redefine';
+            *Slic3r::ExPolygon::XS::DESTROY = sub {};
+            
+            return $params{thread_cb}->($q);
+        };
+            
         @_ = ();
         foreach my $th (map threads->create($thread_cb), 1..$Config->threads) {
             $params{collect_cb}->($th->join);
