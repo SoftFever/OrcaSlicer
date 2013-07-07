@@ -32,6 +32,9 @@ sub clone {
     Storable::dclone($_[0])
 }
 
+# no-op for legacy with ::XS
+sub arrayref { $_[0] }
+
 sub threadsafe_clone {
     my $self = shift;
     return (ref $self)->new(map $_->threadsafe_clone, @$self);
@@ -142,7 +145,7 @@ sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
     
-    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self, [$line]);
+    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self->arrayref, [$line]);
 }
 
 sub simplify {

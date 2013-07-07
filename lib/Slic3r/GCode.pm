@@ -98,7 +98,7 @@ sub change_layer {
     $self->layer($layer);
     $self->_layer_overhangs(
         $layer->id > 0
-            ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
+            ? [ map $_->expolygon->arrayref, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
             : []
         );
     if ($self->config->avoid_crossing_perimeters) {
@@ -348,7 +348,7 @@ sub travel_to {
     $travel->translate(-$self->shift_x, -$self->shift_y);
     
     if ($travel->length < scale $self->extruder->retract_before_travel
-        || ($self->config->only_retract_when_crossing_perimeters && first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
+        || ($self->config->only_retract_when_crossing_perimeters && defined first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
         || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
         ) {
         $self->straight_once(0);

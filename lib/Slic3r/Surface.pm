@@ -40,7 +40,7 @@ sub clone {
     
     return (ref $self)->new(
         (map { $_ => $self->$_ } qw(surface_type thickness thickness_layers bridge_angle)),
-        expolygon => ($p{expolygon} ? delete $p{expolygon} : $self->expolygon->clone),
+        expolygon => (defined $p{expolygon} ? delete $p{expolygon} : $self->expolygon->clone),
         %p,
     );
 }

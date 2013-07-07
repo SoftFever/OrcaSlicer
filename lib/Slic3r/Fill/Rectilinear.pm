@@ -17,7 +17,7 @@ sub fill_surface {
     $self->rotate_points($expolygon, $rotate_vector);
     
     my ($expolygon_off) = $expolygon->offset_ex(scale $params{flow_spacing}/2);
-    return {} if !$expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
+    return {} if !defined $expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
     
     my $flow_spacing = $params{flow_spacing};
     my $min_spacing = scale $params{flow_spacing};
@@ -66,7 +66,7 @@ sub fill_surface {
     # clip paths against a slightly offsetted expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
     my @paths = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-        +($expolygon->offset_ex(scaled_epsilon))[0],  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
+        +($expolygon->offset_ex(scaled_epsilon))[0]->arrayref,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
         [ @{ $self->cache->{$cache_id} } ],
     ) };
     

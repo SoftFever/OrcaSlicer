@@ -6,6 +6,7 @@
 %}
 
 %name{Slic3r::ExPolygon::XS} class ExPolygon {
+    %name{_clone} ExPolygon(ExPolygon& self);
 %{
 
 ExPolygon*
