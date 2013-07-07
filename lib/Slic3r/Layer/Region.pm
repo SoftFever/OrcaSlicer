@@ -147,7 +147,7 @@ sub _merge_loops {
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
         scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
     
-    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$expolygons;
+    return map Slic3r::Surface->new(expolygon => Slic3r::ExPolygon::XS->new(@$_), surface_type => S_TYPE_INTERNAL), @$expolygons;
 }
 
 sub make_perimeters {

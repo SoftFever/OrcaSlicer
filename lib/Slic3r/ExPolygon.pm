@@ -299,6 +299,9 @@ sub medial_axis {
     return @result;
 }
 
+package Slic3r::ExPolygon::XS;
+use base 'Slic3r::ExPolygon';
+
 package Slic3r::ExPolygon::Collection;
 use Moo;
 use Slic3r::Geometry qw(X1 Y1);

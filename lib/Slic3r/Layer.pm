@@ -78,7 +78,9 @@ sub region {
 # merge all regions' slices to get islands
 sub make_slices {
     my $self = shift;
-    $self->slices(union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]));
+    
+    my $slices = union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]);
+    $self->slices([ map Slic3r::ExPolygon::XS->new(@$_), @$slices ]);
 }
 
 sub make_perimeters {
