@@ -46,7 +46,7 @@ polygon2perl(Polygon& poly) {
     for (unsigned int i = 0; i < num_points; i++) {
         av_store(av, i, point2perl(poly[i]));
     }
-    return (SV*)newRV_noinc((SV*)av);
+    return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Polygon", GV_ADD));
 }
 
 #endif

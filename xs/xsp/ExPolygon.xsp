@@ -30,7 +30,7 @@ ExPolygon::arrayref()
         for (unsigned int i = 0; i < num_holes; i++) {
             av_store(av, i+1, polygon2perl(THIS->holes[i]));
         }
-        RETVAL = (SV*)newRV_noinc((SV*)av);
+        RETVAL = sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::ExPolygon", GV_ADD));
     OUTPUT:
         RETVAL
 

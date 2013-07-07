@@ -21,7 +21,7 @@ point2perl(Point& point) {
     AV* av = newAV();
     av_fill(av, 1);
     av_store_point_xy(av, point.x, point.y);
-    return (SV*)newRV_noinc((SV*)av);
+    return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Point", GV_ADD));
 }
 
 #endif
