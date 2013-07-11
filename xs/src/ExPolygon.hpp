@@ -19,7 +19,23 @@ class ExPolygon
     Polygon contour;
     Polygons holes;
     SV* arrayref();
+    void scale(double factor);
 };
+
+#define scale_polygon(poly, factor) \
+    for (Polygon::iterator pit = (poly).begin(); pit != (poly).end(); ++pit) { \
+        (*pit).x *= factor; \
+        (*pit).y *= factor; \
+    }
+
+void
+ExPolygon::scale(double factor)
+{
+    scale_polygon(contour, factor);
+    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
+        scale_polygon(*it, factor);
+    }
+}
 
 void
 perl2polygon(SV* poly_sv, Polygon& poly)

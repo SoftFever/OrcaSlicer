@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 my $square = [  # ccw
     [100, 100],
@@ -29,5 +29,11 @@ isa_ok $expolygon->[0][0], 'Slic3r::Point', 'Perl polygon points are blessed';
 my $clone = $expolygon->clone;
 is_deeply [ @$clone ], [$square, $hole_in_square], 'clone';
 # TODO: check that modifying the clone doesn't modify the original one
+
+$expolygon->scale(1.5);
+is_deeply [ @$expolygon ], [
+    [map [ 1.5*$_->[0], 1.5*$_->[1] ], @$square],
+    [map [ 1.5*$_->[0], 1.5*$_->[1] ], @$hole_in_square]
+    ], 'scale';
 
 __END__
