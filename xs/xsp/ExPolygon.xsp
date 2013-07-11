@@ -29,12 +29,12 @@ ExPolygon::new(...)
 SV*
 ExPolygon::arrayref()
     CODE:
-        const unsigned int num_holes = THIS->holes.size();
         AV* av = newAV();
-        av_fill(av, num_holes);  // -1 +1
+        av_fill(av, THIS->holes.size());  // -1 +1
         av_store(av, 0, polygon2perl(THIS->contour));
-        for (unsigned int i = 0; i < num_holes; i++) {
-            av_store(av, i+1, polygon2perl(THIS->holes[i]));
+        int i = 0;
+        for (Polygons::iterator it = THIS->holes.begin(); it != THIS->holes.end(); ++it) {
+            av_store(av, ++i, polygon2perl(*it));
         }
         RETVAL = sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::ExPolygon", GV_ADD));
     OUTPUT:

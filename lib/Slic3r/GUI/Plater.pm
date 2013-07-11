@@ -741,12 +741,11 @@ sub make_thumbnail {
         
         if ($Slic3r::have_threads) {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
+            Slic3r::thread_cleanup();
             threads->exit;
         } else {
             $self->on_thumbnail_made($obj_idx);
         }
-        
-        Slic3r::thread_cleanup() if $Slic3r::have_threads;
     };
     
     @_ = ();
