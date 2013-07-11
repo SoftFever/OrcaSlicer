@@ -20,6 +20,7 @@ class ExPolygon
     Polygons holes;
     SV* arrayref();
     void scale(double factor);
+    void translate(double x, double y);
 };
 
 #define scale_polygon(poly, factor) \
@@ -28,12 +29,27 @@ class ExPolygon
         (*pit).y *= factor; \
     }
 
+#define translate_polygon(poly, x, y) \
+    for (Polygon::iterator pit = (poly).begin(); pit != (poly).end(); ++pit) { \
+        (*pit).x += x; \
+        (*pit).y += y; \
+    }
+
 void
 ExPolygon::scale(double factor)
 {
     scale_polygon(contour, factor);
     for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
         scale_polygon(*it, factor);
+    }
+}
+
+void
+ExPolygon::translate(double x, double y)
+{
+    translate_polygon(contour, x, y);
+    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
+        translate_polygon(*it, x, y);
     }
 }
 

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 my $square = [  # ccw
     [100, 100],
@@ -30,10 +30,17 @@ my $clone = $expolygon->clone;
 is_deeply [ @$clone ], [$square, $hole_in_square], 'clone';
 # TODO: check that modifying the clone doesn't modify the original one
 
-$expolygon->scale(1.5);
+$expolygon->scale(2.5);
 is_deeply [ @$expolygon ], [
-    [map [ 1.5*$_->[0], 1.5*$_->[1] ], @$square],
-    [map [ 1.5*$_->[0], 1.5*$_->[1] ], @$hole_in_square]
+    [map [ 2.5*$_->[0], 2.5*$_->[1] ], @$square],
+    [map [ 2.5*$_->[0], 2.5*$_->[1] ], @$hole_in_square]
     ], 'scale';
+
+$expolygon->scale(1/2.5);
+$expolygon->translate(10, -5);
+is_deeply [ @$expolygon ], [
+    [map [ $_->[0]+10, $_->[1]-5 ], @$square],
+    [map [ $_->[0]+10, $_->[1]-5 ], @$hole_in_square]
+    ], 'translate';
 
 __END__
