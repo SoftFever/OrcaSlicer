@@ -570,6 +570,7 @@ sub export_gcode {
                     });
                 },
             );
+            Slic3r::thread_cleanup();
         });
         $self->statusbar->SetCancelCallback(sub {
             $self->{export_thread}->kill('KILL')->join;
@@ -744,6 +745,8 @@ sub make_thumbnail {
         } else {
             $self->on_thumbnail_made($obj_idx);
         }
+        
+        Slic3r::thread_cleanup() if $Slic3r::have_threads;
     };
     
     @_ = ();
