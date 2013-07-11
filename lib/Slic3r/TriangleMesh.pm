@@ -533,6 +533,7 @@ sub horizontal_projection {
     my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
     $_->make_counter_clockwise for @f;  # do this after scaling, as winding order might change while doing that
     my $union = union_ex([ Slic3r::Geometry::Clipper::offset(\@f, 10000) ]);
+    $union = [ map $_->arrayref, @$union ];
     Math::Clipper::unscale_coordinate_sets($scale_vector, $_) for @$union;
     return $union;
 }

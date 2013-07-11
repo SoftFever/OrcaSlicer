@@ -94,6 +94,7 @@ sub union_ex {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
+    $polygons = $polygons->arrayref if ref $polygons eq 'Slic3r::ExPolygon::XS';
     $clipper->add_subject_polygons($safety_offset ? safety_offset($polygons) : $polygons);
     return [
         map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}),

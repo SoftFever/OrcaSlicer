@@ -13,9 +13,9 @@ extern "C" {
 class Point
 {
     public:
-    unsigned long x;
-    unsigned long y;
-    Point(unsigned long _x = 0, unsigned long _y = 0): x(_x), y(_y) {};
+    long x;
+    long y;
+    Point(long _x = 0, long _y = 0): x(_x), y(_y) {};
     void rotate(double angle, Point* center);
 };
 
@@ -24,8 +24,8 @@ Point::rotate(double angle, Point* center)
 {
     double cur_x = (double)x;
     double cur_y = (double)y;
-    x = (unsigned long)( (double)center->x + cos(angle) * (cur_x - (double)center->x) - sin(angle) * (cur_y - (double)center->y) );
-    y = (unsigned long)( (double)center->y + cos(angle) * (cur_y - (double)center->y) + sin(angle) * (cur_x - (double)center->x) );
+    x = (long)( (double)center->x + cos(angle) * (cur_x - (double)center->x) - sin(angle) * (cur_y - (double)center->y) );
+    y = (long)( (double)center->y + cos(angle) * (cur_y - (double)center->y) + sin(angle) * (cur_x - (double)center->x) );
 }
 
 SV*
