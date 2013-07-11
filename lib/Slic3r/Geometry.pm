@@ -374,7 +374,7 @@ sub rad2deg_dir {
 
 sub rotate_points {
     my ($radians, $center, @points) = @_;
-    $center ||= [0,0];
+    $center //= [0,0];
     return map {
         [
             $center->[X] + cos($radians) * ($_->[X] - $center->[X]) - sin($radians) * ($_->[Y] - $center->[Y]),
