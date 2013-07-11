@@ -2,3 +2,4 @@
 %typemap{std::vector<unsigned int>*};
 %typemap{SV*};
 %typemap{AV*};
+%typemap{Point*};

@@ -329,10 +329,7 @@ sub scale {
 
 sub rotate {
     my $self = shift;
-    my ($angle, $center) = @_;
-    
-    $center = Slic3r::Point::XS->new(@$center) if ref($center) ne 'Slic3r::Point::XS';
-    $_->rotate($angle, $center) for @{$self->expolygons};
+    $_->rotate(@_) for @{$self->expolygons};
     $self;
 }
 

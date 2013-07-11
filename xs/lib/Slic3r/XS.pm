@@ -17,4 +17,13 @@ use overload
 
 sub clone { (ref $_[0])->_clone($_[0]) }
 
+# to handle legacy code
+sub rotate {
+    my $self = shift;
+    my ($angle, $center) = @_;
+    
+    $center = Slic3r::Point::XS->new(@$center) if ref($center) ne 'Slic3r::Point::XS';
+    $self->_rotate($angle, $center);
+}
+
 1;

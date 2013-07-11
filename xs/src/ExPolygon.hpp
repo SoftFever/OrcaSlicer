@@ -21,6 +21,7 @@ class ExPolygon
     SV* arrayref();
     void scale(double factor);
     void translate(double x, double y);
+    void _rotate(double angle, Point* center);
 };
 
 #define scale_polygon(poly, factor) \
@@ -34,6 +35,14 @@ class ExPolygon
         (*pit).x += x; \
         (*pit).y += y; \
     }
+
+inline void
+rotate_polygon(Polygon* poly, double angle, Point* center)
+{
+    for (Polygon::iterator pit = (*poly).begin(); pit != (*poly).end(); ++pit) { \
+        (*pit).rotate(angle, center);
+    }
+}
 
 void
 ExPolygon::scale(double factor)
@@ -50,6 +59,15 @@ ExPolygon::translate(double x, double y)
     translate_polygon(contour, x, y);
     for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
         translate_polygon(*it, x, y);
+    }
+}
+
+void
+ExPolygon::_rotate(double angle, Point* center)
+{
+    rotate_polygon(&contour, angle, center);
+    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
+        rotate_polygon(&*it, angle, center);
     }
 }
 

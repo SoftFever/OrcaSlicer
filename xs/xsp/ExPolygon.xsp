@@ -9,6 +9,8 @@
     %name{_clone} ExPolygon(ExPolygon& self);
     ~ExPolygon();
     void scale(double factor);
+    void translate(double x, double y);
+    void _rotate(double angle, Point* center);
 %{
 
 ExPolygon*
