@@ -22,7 +22,6 @@ class TriangleMesh
     void Repair();
     void WriteOBJFile(char* output_file);
     AV* ToPerl();
-    private:
     stl_file stl;
 };
 
