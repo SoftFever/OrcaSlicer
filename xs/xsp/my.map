@@ -2,3 +2,4 @@ ZTable*         O_OBJECT
 TriangleMesh*         O_OBJECT
 Point*         O_OBJECT
 ExPolygon*      O_OBJECT
+ExPolygonCollection*    O_OBJECT

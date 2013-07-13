@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -69,6 +69,17 @@ isa_ok $expolygon->[0][0], 'Slic3r::Point', 'Perl polygon points are blessed';
         [ @$square[1,2,3,0] ],
         [ @$hole_in_square[3,0,1,2] ]
         ], 'rotate around pure-Perl Point';
+}
+
+{
+    my $expolygon2 = $expolygon->clone;
+    $expolygon2->scale(2);
+    my $collection = Slic3r::ExPolygon::Collection->new($expolygon->arrayref, $expolygon2->arrayref);
+    is_deeply [ @$collection ], [ $expolygon->arrayref, $expolygon2->arrayref ],
+        'expolygon collection';
+    my $collection2 = Slic3r::ExPolygon::Collection->new($expolygon, $expolygon2);
+    is_deeply [ @$collection ], [ @$collection2 ],
+        'expolygon collection with XS expolygons';
 }
 
 __END__

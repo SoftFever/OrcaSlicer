@@ -26,4 +26,10 @@ sub rotate {
     $self->_rotate($angle, $center);
 }
 
+package Slic3r::ExPolygon::Collection;
+use overload
+    '@{}' => sub { $_[0]->arrayref };
+
+sub clone { (ref $_[0])->_clone($_[0]) }
+
 1;

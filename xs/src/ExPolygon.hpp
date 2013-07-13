@@ -100,6 +100,33 @@ polygon2perl(Polygon& poly) {
     return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Polygon", GV_ADD));
 }
 
+void
+perl2expolygon(SV* expoly_sv, ExPolygon& expoly)
+{
+    AV* expoly_av = (AV*)SvRV(expoly_sv);
+    const unsigned int num_polygons = av_len(expoly_av)+1;
+    expoly.holes.resize(num_polygons-1);
+    
+    SV** polygon_sv = av_fetch(expoly_av, 0, 0);
+    perl2polygon(*polygon_sv, expoly.contour);
+    for (unsigned int i = 0; i < num_polygons-1; i++) {
+        polygon_sv = av_fetch(expoly_av, i+1, 0);
+        perl2polygon(*polygon_sv, expoly.holes[i]);
+    }
+}
+
+SV*
+expolygon2perl(ExPolygon& expoly) {
+    const unsigned int num_holes = expoly.holes.size();
+    AV* av = newAV();
+    av_extend(av, num_holes);  // -1 +1
+    av_store(av, 0, polygon2perl(expoly.contour));
+    for (unsigned int i = 0; i < num_holes; i++) {
+        av_store(av, i+1, polygon2perl(expoly.holes[i]));
+    }
+    return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::ExPolygon", GV_ADD));
+}
+
 }
 
 #endif

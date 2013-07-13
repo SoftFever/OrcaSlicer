@@ -8,6 +8,8 @@
 %name{Slic3r::ExPolygon::XS} class ExPolygon {
     %name{_clone} ExPolygon(ExPolygon& self);
     ~ExPolygon();
+    SV* arrayref()
+        %code{% RETVAL = expolygon2perl(*THIS); %};
     void scale(double factor);
     void translate(double x, double y);
     void _rotate(double angle, Point* center);
@@ -23,20 +25,6 @@ ExPolygon::new(...)
         for (unsigned int i = 2; i < items; i++) {
             perl2polygon(ST(i), RETVAL->holes[i-2]);
         }
-    OUTPUT:
-        RETVAL
-
-SV*
-ExPolygon::arrayref()
-    CODE:
-        AV* av = newAV();
-        av_fill(av, THIS->holes.size());  // -1 +1
-        av_store(av, 0, polygon2perl(THIS->contour));
-        int i = 0;
-        for (Polygons::iterator it = THIS->holes.begin(); it != THIS->holes.end(); ++it) {
-            av_store(av, ++i, polygon2perl(*it));
-        }
-        RETVAL = sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::ExPolygon", GV_ADD));
     OUTPUT:
         RETVAL
 
