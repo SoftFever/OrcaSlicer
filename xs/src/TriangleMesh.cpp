@@ -88,6 +88,12 @@ TriangleMesh::Repair() {
     
     // normal_values
     stl_fix_normal_values(&stl);
+    
+    // always calculate the volume and reverse all normals if volume is negative
+    stl_calculate_volume(&stl);
+    
+    // neighbors
+    stl_verify_neighbors(&stl);
 }
 
 void
