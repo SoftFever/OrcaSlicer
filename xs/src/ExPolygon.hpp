@@ -10,6 +10,8 @@ extern "C" {
 
 #include "Point.hpp"
 
+namespace Slic3r {
+
 typedef std::vector<Point> Polygon;
 typedef std::vector<Polygon> Polygons;
 
@@ -96,6 +98,8 @@ polygon2perl(Polygon& poly) {
         av_store(av, i, point2perl(poly[i]));
     }
     return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Polygon", GV_ADD));
+}
+
 }
 
 #endif

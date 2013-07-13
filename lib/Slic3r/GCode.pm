@@ -96,9 +96,13 @@ sub change_layer {
     my ($layer) = @_;
     
     $self->layer($layer);
+    
+    # avoid computing overhangs if they're not needed
     $self->_layer_overhangs(
-        $layer->id > 0
+        $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
             ? [ map $_->expolygon->arrayref, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
+        $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
+            ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
             : []
         );
     if ($self->config->avoid_crossing_perimeters) {
@@ -168,8 +172,9 @@ sub extrude_loop {
         @candidates = @concave;
         if (!@candidates) {
             # if none, look for any non-overhang vertex
-            @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs),
-                @{$loop->polygon};
+            if ($Slic3r::Config->start_perimeters_at_non_overhang) {
+                @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs), @{$loop->polygon};
+            }
             if (!@candidates) {
                 # if none, all points are valid candidates
                 @candidates = @{$loop->polygon};

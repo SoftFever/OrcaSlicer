@@ -10,6 +10,8 @@ extern "C" {
 #include "ppport.h"
 }
 
+namespace Slic3r {
+
 class TriangleMesh
 {
     public:
@@ -20,8 +22,9 @@ class TriangleMesh
     void Repair();
     void WriteOBJFile(char* output_file);
     AV* ToPerl();
-    private:
     stl_file stl;
 };
+
+}
 
 #endif

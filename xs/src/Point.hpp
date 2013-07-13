@@ -10,6 +10,8 @@ extern "C" {
 
 #include <math.h>
 
+namespace Slic3r {
+
 class Point
 {
     public:
@@ -34,6 +36,8 @@ point2perl(Point& point) {
     av_fill(av, 1);
     av_store_point_xy(av, point.x, point.y);
     return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Point", GV_ADD));
+}
+
 }
 
 #endif

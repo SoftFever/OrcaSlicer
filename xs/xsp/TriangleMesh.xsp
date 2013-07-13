@@ -13,6 +13,27 @@
     void Repair();
     void WriteOBJFile(char* output_file);
     AV* ToPerl();
+%{
+
+SV*
+TriangleMesh::stats()
+    CODE:
+        HV* hv = newHV();
+        (void)hv_stores( hv, "number_of_facets",    newSViv(THIS->stl.stats.number_of_facets) );
+        (void)hv_stores( hv, "number_of_parts",     newSViv(THIS->stl.stats.number_of_parts) );
+        (void)hv_stores( hv, "volume",              newSVnv(THIS->stl.stats.volume) );
+        (void)hv_stores( hv, "degenerate_facets",   newSViv(THIS->stl.stats.degenerate_facets) );
+        (void)hv_stores( hv, "edges_fixed",         newSViv(THIS->stl.stats.edges_fixed) );
+        (void)hv_stores( hv, "facets_removed",      newSViv(THIS->stl.stats.facets_removed) );
+        (void)hv_stores( hv, "facets_added",        newSViv(THIS->stl.stats.facets_added) );
+        (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stl.stats.facets_reversed) );
+        (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stl.stats.backwards_edges) );
+        (void)hv_stores( hv, "normals_fixed",       newSViv(THIS->stl.stats.normals_fixed) );
+        RETVAL = (SV*)newRV_noinc((SV*)hv);
+    OUTPUT:
+        RETVAL
+
+%}
 };
 
 %package{Slic3r::TriangleMesh::XS};

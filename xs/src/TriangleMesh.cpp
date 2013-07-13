@@ -1,5 +1,7 @@
 #include "TriangleMesh.hpp"
 
+namespace Slic3r {
+
 TriangleMesh::TriangleMesh() {}
 TriangleMesh::~TriangleMesh() {
     stl_close(&stl);
@@ -86,6 +88,12 @@ TriangleMesh::Repair() {
     
     // normal_values
     stl_fix_normal_values(&stl);
+    
+    // always calculate the volume and reverse all normals if volume is negative
+    stl_calculate_volume(&stl);
+    
+    // neighbors
+    stl_verify_neighbors(&stl);
 }
 
 void
@@ -129,4 +137,6 @@ TriangleMesh::ToPerl() {
     av_store(result, 0, newRV_noinc((SV*)vertices));
     av_store(result, 1, newRV_noinc((SV*)facets));
     return result;
+}
+
 }

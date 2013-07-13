@@ -297,6 +297,7 @@ has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw');
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has 'mesh_stats' => (is => 'rw');
 has '_bounding_box' => (is => 'rw');
 
 sub add_volume {
