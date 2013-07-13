@@ -13,7 +13,7 @@ sub read_file {
     my ($vertices, $facets) = @{$tmesh->ToPerl};
     
     my $model = Slic3r::Model->new;
-    my $object = $model->add_object(vertices => $vertices);
+    my $object = $model->add_object(vertices => $vertices, mesh_stats => $tmesh->stats);
     my $volume = $object->add_volume(facets => $facets);
     return $model;
 }

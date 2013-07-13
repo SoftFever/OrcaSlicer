@@ -29,7 +29,6 @@ TriangleMesh::stats()
         (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stl.stats.facets_reversed) );
         (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stl.stats.backwards_edges) );
         (void)hv_stores( hv, "normals_fixed",       newSViv(THIS->stl.stats.normals_fixed) );
-        (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stl.stats.facets_reversed) );
         RETVAL = (SV*)newRV_noinc((SV*)hv);
     OUTPUT:
         RETVAL

@@ -10,7 +10,7 @@ use base 'Wx::Dialog';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, "Object", wxDefaultPosition, [500,350], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    my $self = $class->SUPER::new($parent, -1, "Object", wxDefaultPosition, [500,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->{object} = $params{object};
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
@@ -50,7 +50,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
     $self->{object} = $params{object};
     
-    my $grid_sizer = Wx::FlexGridSizer->new(3, 2, 10, 5);
+    my $grid_sizer = Wx::FlexGridSizer->new(3, 2, 5, 5);
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol(1);
     
@@ -76,14 +76,34 @@ sub get_properties {
 	my $self = shift;
 	
 	my $object = $self->{object};
-	return [
+	my $properties = [
 		['Name'			=> $object->name],
 		['Size'			=> sprintf "%.2f x %.2f x %.2f", @{$object->transformed_size}],
 		['Facets'		=> $object->facets],
 		['Vertices'		=> $object->vertices],
 		['Materials' 	=> $object->materials],
-		['Two-Manifold' => $object->is_manifold ? 'Yes' : 'No'],
 	];
+	
+	if (my $stats = $object->mesh_stats) {
+	    push @$properties,
+	        [ 'Shells'              => $stats->{number_of_parts} ],
+	        [ 'Volume'              => sprintf('%.2f', $stats->{volume} * ($object->scale**3)) ],
+	        [ 'Degenerate facets'   => $stats->{degenerate_facets} ],
+	        [ 'Edges fixed'         => $stats->{edges_fixed} ],
+	        [ 'Facets removed'      => $stats->{facets_removed} ],
+	        [ 'Facets added'        => $stats->{facets_added} ],
+	        [ 'Facets reversed'     => $stats->{facets_reversed} ],
+	        [ 'Backwards edges'     => $stats->{backwards_edges} ],
+	        # we don't show normals_fixed because we never provide normals
+	        # to admesh, so it generates normals for all facets
+	        ;
+	} else {
+	    push @$properties,
+	        ['Two-Manifold' => $object->is_manifold ? 'Yes' : 'No'],
+	        ;
+	}
+	
+	return $properties;
 }
 
 package Slic3r::GUI::Plater::ObjectDialog::PreviewTab;

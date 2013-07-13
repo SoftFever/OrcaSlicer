@@ -317,6 +317,7 @@ sub load_file {
             input_file              => $input_file,
             input_file_object_id    => $i,
             model_object            => $model->objects->[$i],
+            mesh_stats              => $model->objects->[$i]->mesh_stats,  # so that we can free model_object
             instances               => [
                 $model->objects->[$i]->instances
                     ? (map $_->offset, @{$model->objects->[$i]->instances})
@@ -1084,6 +1085,7 @@ has 'thumbnail'             => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'transformed_thumbnail' => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has 'mesh_stats'            => (is => 'rw');
 
 # statistics
 has 'facets'                => (is => 'rw');
