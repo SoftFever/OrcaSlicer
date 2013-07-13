@@ -1069,6 +1069,7 @@ sub OnDropFiles {
 package Slic3r::GUI::Plater::Object;
 use Moo;
 
+use List::Util qw(first);
 use Math::ConvexHull::MonotoneChain qw();
 use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 
@@ -1111,7 +1112,18 @@ sub _trigger_model_object {
 sub check_manifoldness {
 	my $self = shift;
 	
-	$self->is_manifold($self->get_model_object->check_manifoldness);
+	if ($self->mesh_stats) {
+	    if (first { $self->mesh_stats->{$_} > 0 } qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)) {
+	        warn "Warning: the input file contains manifoldness errors. "
+	            . "Slic3r repaired it successfully by guessing what the correct shape should be, "
+	            . "but you might still want to inspect the G-code before printing.\n";
+	        $self->is_manifold(0);
+	    } else {
+	        $self->is_manifold(1);
+	    }
+	} else {
+    	$self->is_manifold($self->get_model_object->check_manifoldness);
+    }
 	return $self->is_manifold;
 }
 
