@@ -232,9 +232,12 @@ sub slice {
                 [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
             );
             
-            @{$layerm->slices} = map Slic3r::Surface->new
-                (expolygon => $_, surface_type => S_TYPE_INTERNAL),
-                @$diff;
+            $layerm->slices->clear;
+            $layerm->slices->append(
+                map Slic3r::Surface->new
+                    (expolygon => $_, surface_type => S_TYPE_INTERNAL),
+                    @$diff
+            );
         }
             
         # update layer slices after repairing the single regions
@@ -418,7 +421,8 @@ sub detect_surfaces_type {
             );
             
             # save surfaces to layer
-            @{$layerm->slices} = (@bottom, @top, @internal);
+            $layerm->slices->clear;
+            $layerm->slices->append(@bottom, @top, @internal);
             
             Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
                 $layerm->id, scalar(@bottom), scalar(@top), scalar(@internal);

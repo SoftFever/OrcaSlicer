@@ -42,10 +42,6 @@ use Slic3r::Test;
         $self->init_extruders;
         $_->slice for @{$self->objects};
         $_->make_perimeters for @{$self->objects};
-        foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-            @$_ = map $_->simplify(&Slic3r::SCALED_RESOLUTION), @$_
-                for $layer->slices, (map $_->slices, @{$layer->regions});
-        }
         $_->detect_surfaces_type for @{$self->objects};
         $_->prepare_fill_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
         $_->process_external_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
