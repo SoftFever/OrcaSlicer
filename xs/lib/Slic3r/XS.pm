@@ -15,8 +15,6 @@ package Slic3r::ExPolygon::XS;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 
-sub clone { (ref $_[0])->_clone($_[0]) }
-
 # to handle legacy code
 sub rotate {
     my $self = shift;
@@ -29,8 +27,6 @@ sub rotate {
 package Slic3r::ExPolygon::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref };
-
-sub clone { (ref $_[0])->_clone($_[0]) }
 
 package Slic3r::Surface;
 

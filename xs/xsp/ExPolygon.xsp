@@ -6,8 +6,9 @@
 %}
 
 %name{Slic3r::ExPolygon::XS} class ExPolygon {
-    %name{_clone} ExPolygon(ExPolygon& self);
     ~ExPolygon();
+    ExPolygon* clone()
+        %code{% const char* CLASS = "Slic3r::ExPolygon::XS"; RETVAL = new ExPolygon(*THIS); %};
     SV* arrayref()
         %code{% RETVAL = expolygon2perl(*THIS); %};
     void scale(double factor);

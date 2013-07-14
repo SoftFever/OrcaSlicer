@@ -6,8 +6,9 @@
 %}
 
 %name{Slic3r::ExPolygon::Collection} class ExPolygonCollection {
-    %name{_clone} ExPolygonCollection(ExPolygonCollection& self);
     ~ExPolygonCollection();
+    ExPolygonCollection* clone()
+        %code{% const char* CLASS = "Slic3r::ExPolygon::Collection"; RETVAL = new ExPolygonCollection(*THIS); %};
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
