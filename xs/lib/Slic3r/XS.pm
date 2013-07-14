@@ -32,4 +32,36 @@ use overload
 
 sub clone { (ref $_[0])->_clone($_[0]) }
 
+package Slic3r::Surface;
+
+sub new {
+    my ($class, %args) = @_;
+    
+    # defensive programming: make sure no negative bridge_angle is supplied
+    die "Error: invalid negative bridge_angle\n"
+        if defined $args{bridge_angle} && $args{bridge_angle} < 0;
+    
+    return $class->_new(
+        delete $args{expolygon},                # required
+        delete $args{surface_type},             # required
+        delete $args{thickness}         // -1,
+        delete $args{thickness_layers}  // 1,
+        delete $args{bridge_angle}      // -1,
+        delete $args{extra_perimeters}  // 0,
+    );
+}
+
+sub clone {
+    my ($self, %args) = @_;
+    
+    return (ref $self)->_new(
+        delete $args{expolygon}         // $self->expolygon->clone,
+        delete $args{surface_type}      // $self->surface_type,
+        delete $args{thickness}         // $self->thickness,
+        delete $args{thickness_layers}  // $self->thickness_layers,
+        delete $args{bridge_angle}      // $self->bridge_angle,
+        delete $args{extra_perimeters}  // $self->extra_perimeters,
+    );
+}
+
 1;

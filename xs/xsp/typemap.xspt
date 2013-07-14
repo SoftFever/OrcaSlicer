@@ -3,3 +3,10 @@
 %typemap{SV*};
 %typemap{AV*};
 %typemap{Point*};
+%typemap{ExPolygon*};
+%typemap{SurfaceType}{parsed}{
+  %cpp_type{SurfaceType};
+  %precall_code{%
+    $CVar = (SurfaceType)SvUV($PerlVar);
+  %};
+};

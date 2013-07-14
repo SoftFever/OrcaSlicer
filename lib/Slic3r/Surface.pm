@@ -7,67 +7,6 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE S_TYPE_INTERNALVOID);
 our %EXPORT_TAGS = (types => \@EXPORT_OK);
 
-use constant S_EXPOLYGON            => 0;
-use constant S_SURFACE_TYPE         => 1;
-use constant S_THICKNESS            => 2;  # in mm
-use constant S_THICKNESS_LAYERS     => 3;  # in layers
-use constant S_BRIDGE_ANGLE         => 4;
-use constant S_EXTRA_PERIMETERS     => 5;
-
-use constant S_TYPE_TOP             => 0;
-use constant S_TYPE_BOTTOM          => 1;
-use constant S_TYPE_INTERNAL        => 2;
-use constant S_TYPE_INTERNALSOLID   => 3;
-use constant S_TYPE_INTERNALBRIDGE  => 4;
-use constant S_TYPE_INTERNALVOID    => 5;
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    
-    my $self = [
-        map delete $args{$_}, qw(expolygon surface_type thickness thickness_layers bridge_angle extra_perimeters),
-    ];
-    $self->[S_THICKNESS_LAYERS] //= 1;
-    
-    bless $self, $class;
-    $self;
-}
-
-sub clone {
-    my $self = shift;
-    my %p = @_;
-    
-    return (ref $self)->new(
-        (map { $_ => $self->$_ } qw(surface_type thickness thickness_layers bridge_angle)),
-        expolygon => (defined $p{expolygon} ? delete $p{expolygon} : $self->expolygon->clone),
-        %p,
-    );
-}
-
-sub expolygon       { $_[0][S_EXPOLYGON] }
-sub surface_type    { $_[0][S_SURFACE_TYPE] = $_[1] if defined $_[1]; $_[0][S_SURFACE_TYPE] }
-sub thickness       { $_[0][S_THICKNESS] }
-sub thickness_layers    { $_[0][S_THICKNESS_LAYERS] }
-sub bridge_angle    { $_[0][S_BRIDGE_ANGLE] = $_[1] if defined $_[1]; $_[0][S_BRIDGE_ANGLE] }
-sub extra_perimeters { $_[0][S_EXTRA_PERIMETERS] = $_[1] if defined $_[1]; $_[0][S_EXTRA_PERIMETERS] }
-
-if (eval "use Class::XSAccessor::Array; 1") {
-    Class::XSAccessor::Array->import(
-        getters => {
-            expolygon           => S_EXPOLYGON,
-        },
-        accessors => {
-            surface_type        => S_SURFACE_TYPE,
-            thickness           => S_THICKNESS,
-            thickness_layers    => S_THICKNESS_LAYERS,
-            bridge_angle        => S_BRIDGE_ANGLE,
-            extra_perimeters    => S_EXTRA_PERIMETERS,
-        },
-        replace => 1,
-    );
-}
-
 # delegate handles
 sub encloses_point  { $_[0]->expolygon->encloses_point }
 sub lines           { $_[0]->expolygon->lines }

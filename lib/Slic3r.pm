@@ -32,6 +32,7 @@ use Encode::Locale;
 use Boost::Geometry::Utils 0.15;
 use Moo 0.091009;
 
+use Slic3r::XS;   # import all symbols (constants etc.) before they get parsed
 use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::Extruder;
@@ -65,7 +66,6 @@ use Slic3r::Print::Object;
 use Slic3r::Print::Region;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
-use Slic3r::XS;
 our $build = eval "use Slic3r::Build; 1";
 
 use constant SCALING_FACTOR         => 0.000001;
@@ -113,6 +113,7 @@ sub thread_cleanup {
     *Slic3r::ExPolygon::Collection::DESTROY = sub {};
     *Slic3r::ExPolygon::XS::DESTROY = sub {};
     *Slic3r::Point::XS::DESTROY     = sub {};
+    *Slic3r::Surface::DESTROY       = sub {};
 }
 
 sub encode_path {
