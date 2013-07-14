@@ -20,7 +20,7 @@ class ExPolygon
     SV* arrayref();
     void scale(double factor);
     void translate(double x, double y);
-    void _rotate(double angle, Point* center);
+    void rotate(double angle, Point* center);
 };
 
 typedef std::vector<ExPolygon> ExPolygons;
@@ -44,11 +44,11 @@ ExPolygon::translate(double x, double y)
 }
 
 void
-ExPolygon::_rotate(double angle, Point* center)
+ExPolygon::rotate(double angle, Point* center)
 {
-    contour._rotate(angle, center);
+    contour.rotate(angle, center);
     for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it)._rotate(angle, center);
+        (*it).rotate(angle, center);
     }
 }
 

@@ -40,6 +40,14 @@ point2perl(Point& point) {
     return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Point", GV_ADD));
 }
 
+void
+perl2point(SV* point_sv, Point& point)
+{
+    AV*  point_av = (AV*)SvRV(point_sv);
+    point.x = (unsigned long)SvIV(*av_fetch(point_av, 0, 0));
+    point.y = (unsigned long)SvIV(*av_fetch(point_av, 1, 0));
+}
+
 }
 
 #endif

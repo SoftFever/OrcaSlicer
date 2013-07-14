@@ -42,7 +42,7 @@ void
 ExPolygonCollection::rotate(double angle, Point* center)
 {
     for (ExPolygons::iterator it = expolygons.begin(); it != expolygons.end(); ++it) {
-        (*it)._rotate(angle, center);
+        (*it).rotate(angle, center);
     }
 }
 

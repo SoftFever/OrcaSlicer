@@ -13,7 +13,6 @@
         %code{% RETVAL = expolygon2perl(*THIS); %};
     void scale(double factor);
     void translate(double x, double y);
-    void _rotate(double angle, Point* center);
 %{
 
 ExPolygon*
@@ -28,6 +27,22 @@ ExPolygon::new(...)
         }
     OUTPUT:
         RETVAL
+
+void
+ExPolygon::rotate(angle, center_sv)
+    double  angle;
+    SV*     center_sv;
+    CODE:
+        Point* center;
+        if (sv_isobject(center_sv) && (SvTYPE(SvRV(center_sv)) == SVt_PVMG)) {
+            center = (Point*)SvIV((SV*)SvRV( center_sv ));
+            THIS->rotate(angle, center);
+        } else {
+            center = new Point;
+            perl2point(center_sv, *center);
+            THIS->rotate(angle, center);
+            delete center;
+        }
 
 %}
 };

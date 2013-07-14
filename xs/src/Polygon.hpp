@@ -18,7 +18,7 @@ class Polygon
     Points points;
     void scale(double factor);
     void translate(double x, double y);
-    void _rotate(double angle, Point* center);
+    void rotate(double angle, Point* center);
 };
 
 typedef std::vector<Polygon> Polygons;
@@ -42,7 +42,7 @@ Polygon::translate(double x, double y)
 }
 
 void
-Polygon::_rotate(double angle, Point* center)
+Polygon::rotate(double angle, Point* center)
 {
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
         (*it).rotate(angle, center);
@@ -58,10 +58,7 @@ perl2polygon(SV* poly_sv, Polygon& poly)
     
     for (unsigned int i = 0; i < num_points; i++) {
         SV** point_sv = av_fetch(poly_av, i, 0);
-        AV*  point_av = (AV*)SvRV(*point_sv);
-        Point& p = poly.points[i];
-        p.x = (unsigned long)SvIV(*av_fetch(point_av, 0, 0));
-        p.y = (unsigned long)SvIV(*av_fetch(point_av, 1, 0));
+        perl2point(*point_sv, poly.points[i]);
     }
 }
 

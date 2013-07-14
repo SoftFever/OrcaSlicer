@@ -15,15 +15,6 @@ package Slic3r::ExPolygon::XS;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 
-# to handle legacy code
-sub rotate {
-    my $self = shift;
-    my ($angle, $center) = @_;
-    
-    $center = Slic3r::Point::XS->new(@$center) if ref($center) ne 'Slic3r::Point::XS';
-    $self->_rotate($angle, $center);
-}
-
 package Slic3r::ExPolygon::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref };
