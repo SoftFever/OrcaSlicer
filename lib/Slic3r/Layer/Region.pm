@@ -36,7 +36,7 @@ has 'thin_walls' => (is => 'rw', default => sub { [] });
 has 'thin_fills' => (is => 'rw', default => sub { [] });
 
 # collection of surfaces for infill generation
-has 'fill_surfaces' => (is => 'rw', default => sub { [] });
+has 'fill_surfaces' => (is => 'rw', default => sub { Slic3r::Surface::Collection->new });
 
 # ordered collection of extrusion paths/loops to build all perimeters
 has 'perimeters' => (is => 'rw', default => sub { [] });
@@ -158,7 +158,7 @@ sub make_perimeters {
     my $gap_area_threshold  = $self->perimeter_flow->scaled_width ** 2;
     
     $self->perimeters([]);
-    $self->fill_surfaces([]);
+    $self->fill_surfaces->clear;
     $self->thin_fills([]);
     
     my @contours    = ();    # array of Polygons with ccw orientation
@@ -208,12 +208,14 @@ sub make_perimeters {
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
         # and then we offset back and forth by the infill spacing to only consider the
         # non-collapsing regions
-        push @{ $self->fill_surfaces },
-            offset2_ex(
+        # use a bogus surface_type
+        $self->fill_surfaces->append(
+            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_TOP), offset2_ex(
                 [ map $_->simplify(&Slic3r::SCALED_RESOLUTION), @last ],
                 -($perimeter_spacing/2 + $infill_spacing),
                 +$infill_spacing,
-            );
+            )
+        );
     }
     
     $self->_fill_gaps(\@gaps);
@@ -452,7 +454,8 @@ sub process_external_surfaces {
                 [ map $_->p, @new_surfaces ],
             )};
         }
-        @{$self->fill_surfaces} = @new_surfaces;
+        $self->fill_surfaces->clear;
+        $self->fill_surfaces->append(@new_surfaces);
     }
     
     # detect bridge direction (skip bottom layer)

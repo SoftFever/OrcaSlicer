@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 6;
+use Test::More tests => 10;
 
 my $square = [  # ccw
     [100, 100],
@@ -39,5 +39,16 @@ is $surface->bridge_angle, 30, 'bridge_angle';
 
 $surface->extra_perimeters(2);
 is $surface->extra_perimeters, 2, 'extra_perimeters';
+
+{
+    my $collection = Slic3r::Surface::Collection->new($surface, $surface->clone);
+    is scalar(@$collection), 2, 'collection has the right number of items';
+    is_deeply $collection->[0]->expolygon->arrayref, [$square, $hole_in_square],
+        'collection returns a correct surface expolygon';
+    $collection->clear;
+    is scalar(@$collection), 0, 'clear collection';
+    $collection->append($surface);
+    is scalar(@$collection), 1, 'append to collection';
+}
 
 __END__

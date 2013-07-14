@@ -1,0 +1,49 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "SurfaceCollection.hpp"
+%}
+
+%name{Slic3r::Surface::Collection} class SurfaceCollection {
+    ~SurfaceCollection();
+    void clear()
+        %code{% THIS->surfaces.clear(); %};
+%{
+
+SurfaceCollection*
+SurfaceCollection::new(...)
+    CODE:
+        RETVAL = new SurfaceCollection ();
+        // ST(0) is class name, others are surfaces
+        RETVAL->surfaces.resize(items-1);
+        for (unsigned int i = 1; i < items; i++) {
+            RETVAL->surfaces[i-1] = *(Surface *)SvIV((SV*)SvRV( ST(i) ));
+        }
+    OUTPUT:
+        RETVAL
+
+SV*
+SurfaceCollection::arrayref()
+    CODE:
+        AV* av = newAV();
+        av_fill(av, THIS->surfaces.size()-1);
+        int i = 0;
+        for (Surfaces::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
+            SV* sv = newSV(0);
+            sv_setref_pv( sv, "Slic3r::Surface", new Surface(*it) );
+            av_store(av, i++, sv);
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+void
+SurfaceCollection::append(...)
+    CODE:
+        for (unsigned int i = 1; i < items; i++) {
+            THIS->surfaces.push_back(*(Surface *)SvIV((SV*)SvRV( ST(i) )));
+        }
+
+%}
+};

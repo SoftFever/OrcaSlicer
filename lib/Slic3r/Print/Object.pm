@@ -427,16 +427,16 @@ sub detect_surfaces_type {
         # clip surfaces to the fill boundaries
         foreach my $layer (@{$self->layers}) {
             my $layerm = $layer->regions->[$region_id];
-            my $fill_boundaries = [ map @$_, @{$layerm->fill_surfaces} ];
-            @{$layerm->fill_surfaces} = ();
+            my $fill_boundaries = [ map $_->p, @{$layerm->fill_surfaces} ];
+            $layerm->fill_surfaces->clear;
             foreach my $surface (@{$layerm->slices}) {
                 my $intersection = intersection_ex(
                     [ $surface->p ],
                     $fill_boundaries,
                 );
-                push @{$layerm->fill_surfaces}, map Slic3r::Surface->new
+                $layerm->fill_surfaces->append(map Slic3r::Surface->new
                     (expolygon => $_, surface_type => $surface->surface_type),
-                    @$intersection;
+                    @$intersection);
             }
         }
     }
@@ -465,10 +465,12 @@ sub clip_fill_surfaces {
                     [ map @$_, @overhangs ],
                     [ map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
                 )};
-            @{$layerm->fill_surfaces} = (
+            my @new_surfaces = (
                 @new_internal,
                 (grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces}),
             );
+            $layerm->fill_surfaces->clear;
+            $layerm->fill_surfaces->append(@new_surfaces);
         }
         
         # get this layer's overhangs
@@ -523,7 +525,8 @@ sub bridge_over_infill {
                         [ map @$_, @$to_bridge ],
                         1,
                     )};
-                @{$layerm->fill_surfaces} = @new_surfaces;
+                $layerm->fill_surfaces->clear;
+                $layerm->fill_surfaces->append(@new_surfaces);
             }
             
             # exclude infill from the layers below if needed
@@ -550,7 +553,8 @@ sub bridge_over_infill {
                                 [ map @$_, @$to_bridge ],
                             )};
                         }
-                        @{$lower_layerm->fill_surfaces} = @new_surfaces;
+                        $lower_layerm->fill_surfaces->clear;
+                        $lower_layerm->fill_surfaces->append(@new_surfaces);
                     }
                     
                     $excess -= $self->layers->[$i]->height;
@@ -779,7 +783,8 @@ sub combine_infill {
                             )};
                     }
                     
-                    @{$layerm->fill_surfaces} = (@new_this_type, @other_types);
+                    $layerm->fill_surfaces->clear;
+                    $layerm->fill_surfaces->append(@new_this_type, @other_types);
                 }
             }
         }

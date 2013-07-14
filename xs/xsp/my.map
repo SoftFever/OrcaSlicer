@@ -5,3 +5,4 @@ ExPolygon*      O_OBJECT
 ExPolygonCollection*    O_OBJECT
 SurfaceType     T_UV
 Surface*        O_OBJECT
+SurfaceCollection*      O_OBJECT

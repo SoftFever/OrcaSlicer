@@ -428,7 +428,7 @@ sub export_gcode {
     }
     
     # free memory (note that support material needs fill_surfaces)
-    $_->fill_surfaces(undef) for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
+    $_->fill_surfaces->clear for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
     
     # make skirt
     $status_cb->(88, "Generating skirt");
