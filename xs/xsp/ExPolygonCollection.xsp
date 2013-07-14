@@ -9,6 +9,8 @@
     ~ExPolygonCollection();
     ExPolygonCollection* clone()
         %code{% const char* CLASS = "Slic3r::ExPolygon::Collection"; RETVAL = new ExPolygonCollection(*THIS); %};
+    void clear()
+        %code{% THIS->expolygons.clear(); %};
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
@@ -44,6 +46,13 @@ ExPolygonCollection::arrayref()
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
         RETVAL
+
+void
+ExPolygonCollection::append(...)
+    CODE:
+        for (unsigned int i = 1; i < items; i++) {
+            THIS->expolygons.push_back(*(ExPolygon *)SvIV((SV*)SvRV( ST(i) )));
+        }
 
 %}
 };

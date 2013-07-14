@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -80,6 +80,11 @@ isa_ok $expolygon->[0][0], 'Slic3r::Point', 'Perl polygon points are blessed';
     my $collection2 = Slic3r::ExPolygon::Collection->new($expolygon, $expolygon2);
     is_deeply [ @$collection ], [ @$collection2 ],
         'expolygon collection with XS expolygons';
+    
+    $collection->clear;
+    is scalar(@$collection), 0, 'clear collection';
+    $collection->append($expolygon);
+    is scalar(@$collection), 1, 'append to collection';
 }
 
 __END__
