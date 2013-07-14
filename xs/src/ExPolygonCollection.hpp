@@ -12,8 +12,6 @@ extern "C" {
 
 namespace Slic3r {
 
-typedef std::vector<ExPolygon> ExPolygons;
-
 class ExPolygonCollection
 {
     public:

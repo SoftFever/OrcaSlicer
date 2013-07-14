@@ -21,6 +21,8 @@ class Point
     void rotate(double angle, Point* center);
 };
 
+typedef std::vector<Point> Points;
+
 void
 Point::rotate(double angle, Point* center)
 {
