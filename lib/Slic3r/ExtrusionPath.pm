@@ -40,7 +40,7 @@ sub clip_with_expolygon {
     my ($expolygon) = @_;
     
     return map $self->clone(polyline => $_),
-        $self->polyline->clip_with_expolygon($expolygon);
+        $self->as_polyline->clip_with_expolygon($expolygon);
 }
 
 sub intersect_expolygons {

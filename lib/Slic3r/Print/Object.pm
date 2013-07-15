@@ -383,7 +383,8 @@ sub detect_surfaces_type {
                 );
             } else {
                 # if no upper layer, all surfaces of this one are solid
-                @top = @{$layerm->slices};
+                # we clone surfaces because we're going to clear the slices collection
+                @top = map $_->clone, @{$layerm->slices};
                 $_->surface_type(S_TYPE_TOP) for @top;
             }
             
@@ -399,7 +400,8 @@ sub detect_surfaces_type {
                 );
             } else {
                 # if no lower layer, all surfaces of this one are solid
-                @bottom = @{$layerm->slices};
+                # we clone surfaces because we're going to clear the slices collection
+                @bottom = map $_->clone, @{$layerm->slices};
                 $_->surface_type(S_TYPE_BOTTOM) for @bottom;
             }
             
@@ -431,7 +433,7 @@ sub detect_surfaces_type {
         # clip surfaces to the fill boundaries
         foreach my $layer (@{$self->layers}) {
             my $layerm = $layer->regions->[$region_id];
-            my $fill_boundaries = [ map $_->p, @{$layerm->fill_surfaces} ];
+            my $fill_boundaries = [ map $_->clone->p, @{$layerm->fill_surfaces} ];
             $layerm->fill_surfaces->clear;
             foreach my $surface (@{$layerm->slices}) {
                 my $intersection = intersection_ex(
@@ -471,7 +473,7 @@ sub clip_fill_surfaces {
                 )};
             my @new_surfaces = (
                 @new_internal,
-                (grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces}),
+                (map $_->clone, grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces}),
             );
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append(@new_surfaces);
@@ -516,7 +518,7 @@ sub bridge_over_infill {
             
             # build the new collection of fill_surfaces
             {
-                my @new_surfaces = grep $_->surface_type != S_TYPE_INTERNALSOLID, @{$layerm->fill_surfaces};
+                my @new_surfaces = map $_->clone, grep $_->surface_type != S_TYPE_INTERNALSOLID, @{$layerm->fill_surfaces};
                 push @new_surfaces, map Slic3r::Surface->new(
                         expolygon       => $_,
                         surface_type    => S_TYPE_INTERNALBRIDGE,
@@ -756,7 +758,7 @@ sub combine_infill {
                 
                 foreach my $layerm (@layerms) {
                     my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
-                    my @other_types = grep $_->surface_type != $type, @{$layerm->fill_surfaces};
+                    my @other_types = map $_->clone, grep $_->surface_type != $type, @{$layerm->fill_surfaces};
                     
                     my @new_this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
                         @{diff_ex(
@@ -919,7 +921,7 @@ sub generate_support_material {
             my ($expolygon, $density) = @_;
             
             my @paths = $filler->fill_surface(
-                Slic3r::Surface->new(expolygon => $expolygon),
+                Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                 density         => $density,
                 flow_spacing    => $flow->spacing,
             );
@@ -1003,7 +1005,7 @@ sub generate_support_material {
                 $filler->angle($Slic3r::Config->support_material_angle + 90);
                 foreach my $expolygon (@$islands) {
                     my @paths = $filler->fill_surface(
-                        Slic3r::Surface->new(expolygon => $expolygon),
+                        Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                         density         => 0.5,
                         flow_spacing    => $self->print->first_layer_support_material_flow->spacing,
                     );

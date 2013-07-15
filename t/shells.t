@@ -42,11 +42,11 @@ use Slic3r::Test;
         fail "insufficient number of bottom solid layers"
             unless !defined(first { !$_ } @shells[0..$config->bottom_solid_layers-1]);
         fail "excessive number of bottom solid layers"
-            unless scalar(grep $_, @shells[0 .. $#shells/2]) != $config->bottom_solid_layers;
+            unless scalar(grep $_, @shells[0 .. $#shells/2]) == $config->bottom_solid_layers;
         fail "insufficient number of top solid layers"
             unless !defined(first { !$_ } @shells[-$config->top_solid_layers..-1]);
         fail "excessive number of top solid layers"
-            unless scalar(grep $_, @shells[($#shells/2)..$#shells]) != $config->top_solid_layers;
+            unless scalar(grep $_, @shells[($#shells/2)..$#shells]) == $config->top_solid_layers;
         1;
     };
     

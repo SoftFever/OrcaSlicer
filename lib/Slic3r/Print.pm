@@ -305,11 +305,11 @@ sub _simplify_slices {
     my ($distance) = @_;
     
     foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-        my @new = map $_->simplify($distance), @{$layer->slices};
+        my @new = map $_->simplify($distance), map $_->clone, @{$layer->slices};
         $layer->slices->clear;
         $layer->slices->append(@new);
         foreach my $layerm (@{$layer->regions}) {
-            my @new = map $_->simplify($distance), @{$layerm->slices};
+            my @new = map $_->simplify($distance), map $_->clone, @{$layerm->slices};
             $layerm->slices->clear;
             $layerm->slices->append(@new);
         }

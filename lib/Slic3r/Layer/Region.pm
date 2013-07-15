@@ -450,7 +450,7 @@ sub process_external_surfaces {
         # subtract the new top surfaces from the other non-top surfaces and re-add them
         my @other = grep $_->surface_type != S_TYPE_TOP && $_->surface_type != S_TYPE_BOTTOM, @{$self->fill_surfaces};
         foreach my $group (Slic3r::Surface->group(@other)) {
-            push @new_surfaces, map $group->[0]->clone(expolygon => $_), @{diff_ex(
+            push @new_surfaces, map $_->clone, map $group->[0]->clone(expolygon => $_), @{diff_ex(
                 [ map $_->p, @$group ],
                 [ map $_->p, @new_surfaces ],
             )};
