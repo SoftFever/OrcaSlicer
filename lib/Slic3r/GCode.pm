@@ -270,7 +270,7 @@ sub extrude_path {
     # go to first point of extrusion path
     my $gcode = "";
     $gcode .= $self->travel_to($path->points->[0], $path->role, "move to first $description point")
-        if !$self->last_pos || !$self->last_pos->coincides_with($path->points->[0]);
+        if !defined $self->last_pos || !$self->last_pos->coincides_with($path->points->[0]);
     
     # compensate retraction
     $gcode .= $self->unretract;

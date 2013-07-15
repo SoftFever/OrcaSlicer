@@ -8,16 +8,36 @@
 %name{Slic3r::Point::XS} class Point {
     Point(unsigned long _x = 0, unsigned long _y = 0);
     ~Point();
+    Point* clone()
+        %code{% const char* CLASS = "Slic3r::Point::XS"; RETVAL = new Point(*THIS); %};
+    void scale(double factor);
+    void translate(double x, double y);
+    SV* arrayref()
+        %code{% RETVAL = point2perl(*THIS); %};
+
 %{
 
-SV*
-Point::arrayref()
+void
+Point::rotate(angle, center_sv)
+    double  angle;
+    SV*     center_sv;
     CODE:
-        RETVAL = point2perl(*THIS);
+        Point center;
+        perl2point_check(center_sv, center);
+        THIS->rotate(angle, &center);
+
+bool
+Point::coincides_with(point_sv)
+    SV*     point_sv;
+    CODE:
+        Point point;
+        perl2point_check(point_sv, point);
+        RETVAL = THIS->coincides_with(&point);
     OUTPUT:
         RETVAL
 
 %}
+
 };
 
 %package{Slic3r::Point::XS};

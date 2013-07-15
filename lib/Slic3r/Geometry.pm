@@ -386,7 +386,10 @@ sub rotate_points {
 
 sub move_points {
     my ($shift, @points) = @_;
-    return map Slic3r::Point->new($shift->[X] + $_->[X], $shift->[Y] + $_->[Y]), @points;
+    return map {
+        my @p = @$_;
+        Slic3r::Point->new($shift->[X] + $p[X], $shift->[Y] + $p[Y]);
+    } @points;
 }
 
 sub move_points_3D {

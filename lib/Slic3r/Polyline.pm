@@ -243,7 +243,7 @@ sub chained_path {
         : [ map { $_->[0], $_->[-1] } @my_paths ];
     while (@my_paths) {
         # find nearest point
-        my $start_index = $start_near
+        my $start_index = defined $start_near
             ? Slic3r::Geometry::nearest_point_index($start_near, $endpoints)
             : 0;
 

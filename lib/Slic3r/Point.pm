@@ -21,7 +21,7 @@ sub new {
 }
 
 sub clone {
-    Storable::dclone($_[0])
+    return Slic3r::Point::XS->new(@{$_[0]});
 }
 
 sub threadsafe_clone {

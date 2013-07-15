@@ -29,8 +29,7 @@ void
 Polyline::scale(double factor)
 {
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        (*it).x *= factor;
-        (*it).y *= factor;
+        (*it).scale(factor);
     }
 }
 
@@ -38,8 +37,7 @@ void
 Polyline::translate(double x, double y)
 {
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        (*it).x += x;
-        (*it).y += y;
+        (*it).translate(x, y);
     }
 }
 

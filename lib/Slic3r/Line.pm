@@ -12,7 +12,6 @@ sub new {
     my $self;
     $self = [ @_ ];
     bless $self, $class;
-    bless $_, 'Slic3r::Point' for @$self;
     return $self;
 }
 
