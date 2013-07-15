@@ -14,7 +14,7 @@ my $square = [  # ccw
 ];
 
 my $polygon = Slic3r::Polygon->new(@$square);
-is_deeply [ @{$polygon->pp} ], [ @$square ], 'polygon roundtrip';
+is_deeply $polygon->pp, $square, 'polygon roundtrip';
 
 is ref($polygon->arrayref), 'ARRAY', 'polygon arrayref is unblessed';
 isa_ok $polygon->[0], 'Slic3r::Point', 'polygon point is blessed';

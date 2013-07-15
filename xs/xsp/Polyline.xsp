@@ -16,6 +16,7 @@
     void pop_back()
         %code{% THIS->points.pop_back(); %};
     void reverse();
+    Lines lines();
 %{
 
 Polyline*

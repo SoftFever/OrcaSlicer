@@ -13,3 +13,17 @@ SurfaceCollection*      O_OBJECT
 
 ExtrusionRole     T_UV
 SurfaceType     T_UV
+
+Lines           T_LINES
+Lines*          T_LINES_PTR
+
+INPUT
+
+OUTPUT
+
+T_LINES
+	$arg = lines2perl(aTHX_ $var);
+
+T_LINES_PTR
+	$arg = lines2perl(aTHX_ *$var);
+	delete $var;

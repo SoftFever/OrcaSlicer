@@ -23,6 +23,7 @@ class Line
     void from_SV(SV* line_sv);
     void from_SV_check(SV* line_sv);
     SV* to_SV();
+    SV* to_SV_ref();
     SV* to_SV_pureperl();
     void scale(double factor);
     void translate(double x, double y);
@@ -94,12 +95,32 @@ Line::to_SV() {
 }
 
 SV*
+Line::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Line", new Line(*this) );
+    return sv;
+}
+
+SV*
 Line::to_SV_pureperl() {
     AV* av = newAV();
     av_extend(av, 1);
     av_store(av, 0, this->a.to_SV_pureperl());
     av_store(av, 1, this->b.to_SV_pureperl());
     return newRV_noinc((SV*)av);
+}
+
+SV*
+lines2perl(pTHX_ Lines& lines)
+{
+    AV* av = newAV();
+    av_extend(av, lines.size()-1);
+    int i = 0;
+    for (Lines::iterator it = lines.begin(); it != lines.end(); ++it) {
+        SV* sv = (*it).to_SV_ref();
+        av_store(av, i++, sv);
+    }
+    return (SV*)newRV_noinc((SV*)av);
 }
 
 }

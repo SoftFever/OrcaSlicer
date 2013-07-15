@@ -6,6 +6,8 @@
 %typemap{ExPolygon*};
 %typemap{Polyline*};
 %typemap{Polygon*};
+%typemap{Lines};
+
 %typemap{SurfaceType}{parsed}{
   %cpp_type{SurfaceType};
   %precall_code{%
