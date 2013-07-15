@@ -228,8 +228,9 @@ sub point_is_on_left_of_segment {
 }
 
 sub polyline_lines {
-    my ($polygon) = @_;
-    return map Slic3r::Line->new($polygon->[$_], $polygon->[$_+1]), 0 .. $#$polygon-1;
+    my ($polyline) = @_;
+    my @points = @$polyline;
+    return map Slic3r::Line->new(@points[$_, $_+1]), 0 .. $#points-1;
 }
 
 sub polygon_lines {

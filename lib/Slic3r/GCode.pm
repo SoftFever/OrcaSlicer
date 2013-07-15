@@ -256,7 +256,6 @@ sub extrude_path {
     my $self = shift;
     my ($path, $description, %params) = @_;
     
-    $path = $path->unpack if $path->isa('Slic3r::ExtrusionPath::Packed');
     $path->simplify(&Slic3r::SCALED_RESOLUTION);
     
     # detect arcs
@@ -293,7 +292,7 @@ sub extrude_path {
         $area = ($s**2) * PI/4;
     } else {
         my $s = $path->flow_spacing;
-        my $h = $path->height // $self->layer->height;
+        my $h = (defined $path->height && $path->height != -1) ? $path->height : $self->layer->height;
         $area = $self->extruder->mm3_per_mm($s, $h);
     }
     

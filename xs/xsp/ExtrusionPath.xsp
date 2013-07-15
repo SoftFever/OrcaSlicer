@@ -1,0 +1,126 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "ExtrusionEntity.hpp"
+%}
+
+%name{Slic3r::ExtrusionPath} class ExtrusionPath {
+    ~ExtrusionPath();
+    SV* arrayref()
+        %code{% RETVAL = polyline2perl(THIS->polyline); %};
+    void pop_back()
+        %code{% THIS->polyline.points.pop_back(); %};
+    void reverse();
+%{
+
+ExtrusionPath*
+_new(CLASS, polyline_sv, role, height, flow_spacing)
+    char*           CLASS;
+    SV*             polyline_sv;
+    ExtrusionRole   role;
+    double          height;
+    double          flow_spacing;
+    CODE:
+        RETVAL = new ExtrusionPath ();
+        if (sv_isobject(polyline_sv) && (SvTYPE(SvRV(polyline_sv)) == SVt_PVMG)) {
+            RETVAL->polyline = *(Polyline*)SvIV((SV*)SvRV( polyline_sv ));
+        } else {
+            perl2polyline(polyline_sv, RETVAL->polyline);
+        }
+        RETVAL->role            = role;
+        RETVAL->height          = height;
+        RETVAL->flow_spacing    = flow_spacing;
+    OUTPUT:
+        RETVAL
+
+Polyline*
+ExtrusionPath::as_polyline()
+    PREINIT:
+        const char* CLASS = "Slic3r::Polyline::XS";
+    CODE:
+        RETVAL = new Polyline(THIS->polyline);
+    OUTPUT:
+        RETVAL
+
+void
+ExtrusionPath::set_polyline(polyline_sv)
+    SV* polyline_sv;
+    CODE:
+        if (sv_isobject(polyline_sv) && (SvTYPE(SvRV(polyline_sv)) == SVt_PVMG)) {
+            THIS->polyline = *(Polyline*)SvIV((SV*)SvRV( polyline_sv ));
+        } else {
+            perl2polyline(polyline_sv, THIS->polyline);
+        }
+
+ExtrusionRole
+ExtrusionPath::role(...)
+    CODE:
+        if (items > 1) {
+            THIS->role = (ExtrusionRole)SvUV(ST(1));
+        }
+        RETVAL = THIS->role;
+    OUTPUT:
+        RETVAL
+
+double
+ExtrusionPath::height(...)
+    CODE:
+        if (items > 1) {
+            THIS->height = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->height;
+    OUTPUT:
+        RETVAL
+
+double
+ExtrusionPath::flow_spacing(...)
+    CODE:
+        if (items > 1) {
+            THIS->flow_spacing = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->flow_spacing;
+    OUTPUT:
+        RETVAL
+
+void
+ExtrusionPath::append(...)
+    CODE:
+        for (unsigned int i = 1; i < items; i++) {
+            Point p;
+            if (sv_isobject(ST(i)) && (SvTYPE(SvRV(ST(i))) == SVt_PVMG)) {
+                p = *(Point*)SvIV((SV*)SvRV( ST(i) ));
+            } else {
+                perl2point(ST(i), p);
+            }
+            THIS->polyline.points.push_back(p);
+        }
+
+%}
+};
+
+%package{Slic3r::ExtrusionPath};
+%{
+
+IV
+_constant()
+  ALIAS:
+    EXTR_ROLE_PERIMETER                    = erPerimeter
+    EXTR_ROLE_EXTERNAL_PERIMETER           = erExternalPerimeter
+    EXTR_ROLE_OVERHANG_PERIMETER           = erOverhangPerimeter
+    EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   = erContourInternalPerimeter
+    EXTR_ROLE_FILL                         = erFill
+    EXTR_ROLE_SOLIDFILL                    = erSolidFill
+    EXTR_ROLE_TOPSOLIDFILL                 = erTopSolidFill
+    EXTR_ROLE_BRIDGE                       = erBrige
+    EXTR_ROLE_INTERNALBRIDGE               = erInternalBridge
+    EXTR_ROLE_SKIRT                        = erSkirt
+    EXTR_ROLE_SUPPORTMATERIAL              = erSupportMaterial
+    EXTR_ROLE_GAPFILL                      = erGapFill
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
+%}
+

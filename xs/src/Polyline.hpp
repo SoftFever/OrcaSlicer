@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include "Point.hpp"
+#include <algorithm>
 
 namespace Slic3r {
 
@@ -19,6 +20,7 @@ class Polyline
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
+    void reverse();
 };
 
 typedef std::vector<Polyline> Polylines;
@@ -47,6 +49,12 @@ Polyline::rotate(double angle, Point* center)
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
         (*it).rotate(angle, center);
     }
+}
+
+void
+Polyline::reverse()
+{
+    std::reverse(this->points.begin(), this->points.end());
 }
 
 void

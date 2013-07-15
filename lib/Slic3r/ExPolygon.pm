@@ -298,7 +298,7 @@ sub medial_axis {
 }
 
 package Slic3r::ExPolygon::XS;
-use base 'Slic3r::ExPolygon';
+use parent 'Slic3r::ExPolygon';
 
 package Slic3r::ExPolygon::Collection;
 use Slic3r::Geometry qw(X1 Y1);

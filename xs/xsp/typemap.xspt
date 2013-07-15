@@ -4,9 +4,17 @@
 %typemap{AV*};
 %typemap{Point*};
 %typemap{ExPolygon*};
+%typemap{Polyline*};
+%typemap{Polygon*};
 %typemap{SurfaceType}{parsed}{
   %cpp_type{SurfaceType};
   %precall_code{%
     $CVar = (SurfaceType)SvUV($PerlVar);
+  %};
+};
+%typemap{ExtrusionRole}{parsed}{
+  %cpp_type{ExtrusionRole};
+  %precall_code{%
+    $CVar = (ExtrusionRole)SvUV($PerlVar);
   %};
 };

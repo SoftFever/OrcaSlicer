@@ -589,14 +589,14 @@ sub discover_horizontal_shells {
                 # and the latter contains the enlarged external surfaces
                 my $solid = [ map $_->expolygon, grep $_->surface_type == $type, @{$layerm->slices}, @{$layerm->fill_surfaces} ];
                 next if !@$solid;
-                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP ? 'top' : 'bottom');
+                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
                 my $solid_layers = ($type == S_TYPE_TOP)
                     ? $Slic3r::Config->top_solid_layers
                     : $Slic3r::Config->bottom_solid_layers;
-                for (my $n = $type == S_TYPE_TOP ? $i-1 : $i+1; 
+                for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
                         abs($n - $i) <= $solid_layers-1; 
-                        $type == S_TYPE_TOP ? $n-- : $n++) {
+                        ($type == S_TYPE_TOP) ? $n-- : $n++) {
                     
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
@@ -607,7 +607,7 @@ sub discover_horizontal_shells {
                     # intersections have contours and holes
                     my $new_internal_solid = intersection_ex(
                         [ map @$_, @$solid ],
-                        [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_fill_surfaces ],
+                        [ map $_->p, grep { ($_->surface_type == S_TYPE_INTERNAL) || ($_->surface_type == S_TYPE_INTERNALSOLID) } @neighbor_fill_surfaces ],
                         undef, 1,
                     );
                     next if !@$new_internal_solid;
@@ -658,25 +658,22 @@ sub discover_horizontal_shells {
                     
                     # assign resulting internal surfaces to layer
                     my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
-                    @$neighbor_fill_surfaces = ();
-                    push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                        (expolygon => $_, surface_type => S_TYPE_INTERNAL)
-                        for @$internal;
+                    $neighbor_fill_surfaces->clear;
+                    $neighbor_fill_surfaces->append(map Slic3r::Surface->new
+                        (expolygon => $_, surface_type => S_TYPE_INTERNAL), @$internal);
                     
                     # assign new internal-solid surfaces to layer
-                    push @$neighbor_fill_surfaces, Slic3r::Surface->new
-                        (expolygon => $_, surface_type => S_TYPE_INTERNALSOLID)
-                        for @$internal_solid;
+                    $neighbor_fill_surfaces->append(map Slic3r::Surface->new
+                        (expolygon => $_, surface_type => S_TYPE_INTERNALSOLID), @$internal_solid);
                     
                     # assign top and bottom surfaces to layer
-                    foreach my $s (Slic3r::Surface->group(grep { $_->surface_type == S_TYPE_TOP || $_->surface_type == S_TYPE_BOTTOM } @neighbor_fill_surfaces)) {
+                    foreach my $s (Slic3r::Surface->group(grep { ($_->surface_type == S_TYPE_TOP) || ($_->surface_type == S_TYPE_BOTTOM) } @neighbor_fill_surfaces)) {
                         my $solid_surfaces = diff_ex(
                             [ map $_->p, @$s ],
                             [ map @$_, @$internal_solid, @$internal ],
                             1,
                         );
-                        push @$neighbor_fill_surfaces, $s->[0]->clone(expolygon => $_)
-                            for @$solid_surfaces;
+                        $neighbor_fill_surfaces->append(map $s->[0]->clone(expolygon => $_), @$solid_surfaces);
                     }
                 }
             }

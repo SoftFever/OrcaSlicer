@@ -352,7 +352,7 @@ sub _fill_gaps {
             
             foreach my $expolygon (@infill) {
                 my @paths = $filler->fill_surface(
-                    Slic3r::Surface->new(expolygon => $expolygon),
+                    Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNALSOLID),
                     density         => 1,
                     flow_spacing    => $flow->spacing,
                 );
@@ -573,7 +573,7 @@ sub _detect_bridges {
         Slic3r::debugf "  Optimal infill angle of bridge on layer %d is %d degrees\n",
             $self->id, $bridge_angle if defined $bridge_angle;
         
-        $surface->bridge_angle($bridge_angle);
+        $surface->bridge_angle($bridge_angle // -1);
     }
 }
 

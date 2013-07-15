@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 my $square = [  # ccw
     [100, 100],
@@ -49,6 +49,10 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
     is scalar(@$collection), 0, 'clear collection';
     $collection->append($surface);
     is scalar(@$collection), 1, 'append to collection';
+    
+    my $item = $collection->[0];
+    $item->surface_type(Slic3r::Surface::S_TYPE_INTERNAL);
+    is $item->surface_type, $collection->[0]->surface_type, 'changing item affects actual item';
 }
 
 __END__

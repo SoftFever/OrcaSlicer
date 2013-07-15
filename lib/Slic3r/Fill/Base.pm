@@ -27,7 +27,7 @@ sub infill_direction {
     }
         
     # use bridge angle
-    if (defined $surface->bridge_angle) {
+    if ($surface->bridge_angle != -1) {
         Slic3r::debugf "Filling bridge with angle %d\n", $surface->bridge_angle;
         $rotate[0] = Slic3r::Geometry::deg2rad($surface->bridge_angle);
     }

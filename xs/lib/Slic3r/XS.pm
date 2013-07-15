@@ -15,9 +15,77 @@ package Slic3r::ExPolygon::XS;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 
+package Slic3r::Polyline::XS;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
+package Slic3r::Polygon::XS;
+use overload
+    '@{}' => sub { $_[0]->arrayref };
+
 package Slic3r::ExPolygon::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref };
+
+package Slic3r::ExtrusionLoop;
+
+sub new {
+    my ($class, %args) = @_;
+    
+    my $polygon = ref($args{polygon}) eq 'Slic3r::Polygon::XS'
+        ? $args{polygon}
+        : Slic3r::Polygon::XS->new(@{$args{polygon}});
+    
+    return $class->_new(
+        $polygon,            # required
+        $args{role},         # required
+        $args{height}        // -1,
+        $args{flow_spacing}  // -1,
+    );
+}
+
+sub clone {
+    my ($self, %args) = @_;
+    
+    return (ref $self)->_new(
+        $args{polygon}       // $self->polygon->clone,
+        $args{role}          // $self->role,
+        $args{height}        // $self->height,
+        $args{flow_spacing}  // $self->flow_spacing,
+    );
+}
+
+package Slic3r::ExtrusionPath;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
+sub new {
+    my ($class, %args) = @_;
+    
+    my $polyline = ref($args{polyline}) eq 'Slic3r::Polyline::XS'
+        ? $args{polyline}
+        : Slic3r::Polyline::XS->new(@{$args{polyline}});
+    
+    return $class->_new(
+        $polyline,                  # required
+        $args{role},         # required
+        $args{height}        // -1,
+        $args{flow_spacing}  // -1,
+    );
+}
+
+sub clone {
+    my ($self, %args) = @_;
+    
+    return (ref $self)->_new(
+        $args{polyline}      // $self->as_polyline,
+        $args{role}          // $self->role,
+        $args{height}        // $self->height,
+        $args{flow_spacing}  // $self->flow_spacing,
+    );
+}
 
 package Slic3r::Surface;
 
@@ -29,12 +97,12 @@ sub new {
         if defined $args{bridge_angle} && $args{bridge_angle} < 0;
     
     return $class->_new(
-        delete $args{expolygon},                # required
-        delete $args{surface_type},             # required
-        delete $args{thickness}         // -1,
-        delete $args{thickness_layers}  // 1,
-        delete $args{bridge_angle}      // -1,
-        delete $args{extra_perimeters}  // 0,
+        $args{expolygon}         // (die "Missing required expolygon\n"),
+        $args{surface_type}      // (die "Missing required surface_type\n"),
+        $args{thickness}         // -1,
+        $args{thickness_layers}  // 1,
+        $args{bridge_angle}      // -1,
+        $args{extra_perimeters}  // 0,
     );
 }
 

@@ -22,6 +22,9 @@ sub clone {
     Storable::dclone($_[0])
 }
 
+# compability with ::XS
+sub arrayref { $_[0] }
+
 sub serialize {
     my $self = shift;
     return pack 'l*', map @$_, @$self;
@@ -59,7 +62,7 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    my $simplified = Boost::Geometry::Utils::linestring_simplify($self, $tolerance);
+    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->arrayref, $tolerance);
     return (ref $self)->new(@$simplified);
 }
 
@@ -70,7 +73,7 @@ sub reverse {
 
 sub length {
     my $self = shift;
-    return Boost::Geometry::Utils::linestring_length($self);
+    return Boost::Geometry::Utils::linestring_length($self->arrayref);
 }
 
 sub grow {
@@ -161,14 +164,25 @@ sub scale {
     return $self;
 }
 
+sub pop_back {
+    my $self = shift;
+    return pop @$self;
+}
+
+sub append {
+    my $self = shift;
+    push @$self, @_;
+}
+
 # removes the given distance from the end of the polyline
 sub clip_end {
     my $self = shift;
     my ($distance) = @_;
     
     while ($distance > 0) {
-        my $last_point = pop @$self;
-        last if !@$self;
+        my $last_point = $self->[-1];
+        $self->pop_back;
+        last if @$self == 0;
         
         my $last_segment_length = $last_point->distance_to($self->[-1]);
         if ($last_segment_length <= $distance) {
@@ -177,7 +191,7 @@ sub clip_end {
         }
         
         my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->[-1], $distance);
-        push @$self, Slic3r::Point->new($new_point);
+        $self->append(Slic3r::Point->new($new_point));
         $distance = 0;
     }
 }
@@ -243,5 +257,8 @@ sub chained_path {
     }
     return map $items_map{"$_"}, @paths;
 }
+
+package Slic3r::Polyline::XS;
+use parent qw(Slic3r::Polyline);
 
 1;

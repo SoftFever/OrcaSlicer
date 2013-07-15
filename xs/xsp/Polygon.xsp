@@ -1,0 +1,29 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "Polygon.hpp"
+%}
+
+%name{Slic3r::Polygon::XS} class Polygon {
+    ~Polygon();
+    Polygon* clone()
+        %code{% const char* CLASS = "Slic3r::Polygon::XS"; RETVAL = new Polygon(*THIS); %};
+    SV* arrayref()
+        %code{% RETVAL = polygon2perl(*THIS); %};
+%{
+
+Polygon*
+Polygon::new(...)
+    CODE:
+        RETVAL = new Polygon ();
+        // ST(0) is class name, ST(1) is first point
+        RETVAL->points.resize(items-1);
+        for (unsigned int i = 1; i < items; i++) {
+            perl2point(ST(i), RETVAL->points[i-1]);
+        }
+    OUTPUT:
+        RETVAL
+
+%}
+};

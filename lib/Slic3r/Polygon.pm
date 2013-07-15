@@ -163,4 +163,7 @@ sub concave_points {
         -1 .. ($#$self-1);
 }
 
+package Slic3r::Polygon::XS;
+use parent -norequire, qw(Slic3r::Polygon Slic3r::Polyline::XS);
+
 1;
