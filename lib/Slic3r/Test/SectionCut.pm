@@ -85,7 +85,6 @@ sub _plot {
                 my @paths = 
                     map { $_->polyline->translate(@$copy); $_ }
                     map { $_->isa('Slic3r::ExtrusionLoop') ? $_->split_at_first_point : $_ }
-                    map { ref($_) =~ /::Packed$/ ? $_->unpack : $_ }
                     map { $_->isa('Slic3r::ExtrusionPath::Collection') ? @{$_->paths} : $_ }
                     grep defined $_,
                     $filter->($layer);

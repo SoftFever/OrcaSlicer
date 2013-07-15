@@ -142,7 +142,7 @@ sub move_z {
 sub extrude {
     my $self = shift;
     
-    ($_[0]->isa('Slic3r::ExtrusionLoop') || $_[0]->isa('Slic3r::ExtrusionLoop::Packed'))
+    $_[0]->isa('Slic3r::ExtrusionLoop')
         ? $self->extrude_loop(@_)
         : $self->extrude_path(@_);
 }
@@ -152,14 +152,14 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
-    $loop = $loop->unpack if $loop->isa('Slic3r::ExtrusionLoop::Packed');
-    my $was_clockwise = $loop->polygon->make_counter_clockwise;
+    my $polygon = $loop->as_polygon;
+    my $was_clockwise = $polygon->make_counter_clockwise;
     
     # find candidate starting points
     # start looking for concave vertices not being overhangs
     my @concave = ();
     if ($Slic3r::Config->start_perimeters_at_concave_points) {
-        @concave = $loop->polygon->concave_points;
+        @concave = $polygon->concave_points;
     }
     my @candidates = ();
     if ($Slic3r::Config->start_perimeters_at_non_overhang) {
@@ -171,11 +171,11 @@ sub extrude_loop {
         if (!@candidates) {
             # if none, look for any non-overhang vertex
             if ($Slic3r::Config->start_perimeters_at_non_overhang) {
-                @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs), @{$loop->polygon};
+                @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_, $self->_layer_overhangs), @{$polygon};
             }
             if (!@candidates) {
                 # if none, all points are valid candidates
-                @candidates = @{$loop->polygon};
+                @candidates = @{$polygon};
             }
         }
     }

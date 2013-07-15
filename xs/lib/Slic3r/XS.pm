@@ -29,16 +29,15 @@ use overload
     '@{}' => sub { $_[0]->arrayref };
 
 package Slic3r::ExtrusionLoop;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
 
 sub new {
     my ($class, %args) = @_;
     
-    my $polygon = ref($args{polygon}) eq 'Slic3r::Polygon::XS'
-        ? $args{polygon}
-        : Slic3r::Polygon::XS->new(@{$args{polygon}});
-    
     return $class->_new(
-        $polygon,            # required
+        $args{polygon},      # required
         $args{role},         # required
         $args{height}        // -1,
         $args{flow_spacing}  // -1,
@@ -49,7 +48,7 @@ sub clone {
     my ($self, %args) = @_;
     
     return (ref $self)->_new(
-        $args{polygon}       // $self->polygon->clone,
+        $args{polygon}       // $self->as_polygon,
         $args{role}          // $self->role,
         $args{height}        // $self->height,
         $args{flow_spacing}  // $self->flow_spacing,
@@ -64,12 +63,8 @@ use overload
 sub new {
     my ($class, %args) = @_;
     
-    my $polyline = ref($args{polyline}) eq 'Slic3r::Polyline::XS'
-        ? $args{polyline}
-        : Slic3r::Polyline::XS->new(@{$args{polyline}});
-    
     return $class->_new(
-        $polyline,                  # required
+        $args{polyline},     # required
         $args{role},         # required
         $args{height}        // -1,
         $args{flow_spacing}  // -1,

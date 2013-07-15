@@ -1,0 +1,65 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "ExtrusionEntity.hpp"
+%}
+
+%name{Slic3r::ExtrusionLoop} class ExtrusionLoop {
+    ~ExtrusionLoop();
+    SV* arrayref()
+        %code{% RETVAL = polygon2perl(THIS->polygon); %};
+    Polygon* as_polygon()
+        %code{% const char* CLASS = "Slic3r::Polygon::XS"; RETVAL = new Polygon(THIS->polygon); %};
+    void set_polygon(SV* polygon_sv)
+        %code{% perl2polygon_check(polygon_sv, THIS->polygon); %};
+%{
+
+ExtrusionLoop*
+_new(CLASS, polygon_sv, role, height, flow_spacing)
+    char*           CLASS;
+    SV*             polygon_sv;
+    ExtrusionRole   role;
+    double          height;
+    double          flow_spacing;
+    CODE:
+        RETVAL = new ExtrusionLoop ();
+        perl2polygon_check(polygon_sv, RETVAL->polygon);
+        RETVAL->role            = role;
+        RETVAL->height          = height;
+        RETVAL->flow_spacing    = flow_spacing;
+    OUTPUT:
+        RETVAL
+
+ExtrusionRole
+ExtrusionLoop::role(...)
+    CODE:
+        if (items > 1) {
+            THIS->role = (ExtrusionRole)SvUV(ST(1));
+        }
+        RETVAL = THIS->role;
+    OUTPUT:
+        RETVAL
+
+double
+ExtrusionLoop::height(...)
+    CODE:
+        if (items > 1) {
+            THIS->height = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->height;
+    OUTPUT:
+        RETVAL
+
+double
+ExtrusionLoop::flow_spacing(...)
+    CODE:
+        if (items > 1) {
+            THIS->flow_spacing = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->flow_spacing;
+    OUTPUT:
+        RETVAL
+
+%}
+};

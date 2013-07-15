@@ -29,6 +29,16 @@ perl2polygon(SV* poly_sv, Polygon& poly)
     }
 }
 
+void
+perl2polygon_check(SV* poly_sv, Polygon& poly)
+{
+    if (sv_isobject(poly_sv) && (SvTYPE(SvRV(poly_sv)) == SVt_PVMG)) {
+        poly = *(Polygon*)SvIV((SV*)SvRV( poly_sv ));
+    } else {
+        perl2polygon(poly_sv, poly);
+    }
+}
+
 SV*
 polygon2perl(Polygon& poly) {
     const unsigned int num_points = poly.points.size();

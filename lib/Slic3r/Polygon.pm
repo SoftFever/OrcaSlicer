@@ -10,6 +10,8 @@ use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
     PI X1 X2 Y1 Y2 epsilon);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
 
+sub arrayref { $_[0] }
+
 sub lines {
     my $self = shift;
     return polygon_lines($self);
@@ -22,7 +24,7 @@ sub wkt {
 
 sub is_counter_clockwise {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::is_counter_clockwise($self);
+    return Slic3r::Geometry::Clipper::is_counter_clockwise($self->arrayref);
 }
 
 sub make_counter_clockwise {

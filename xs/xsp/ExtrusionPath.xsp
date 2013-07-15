@@ -9,6 +9,10 @@
     ~ExtrusionPath();
     SV* arrayref()
         %code{% RETVAL = polyline2perl(THIS->polyline); %};
+    Polyline* as_polyline()
+        %code{% const char* CLASS = "Slic3r::Polyline::XS"; RETVAL = new Polyline(THIS->polyline); %};
+    void set_polyline(SV* polyline_sv)
+        %code{% perl2polyline_check(polyline_sv, THIS->polyline); %};
     void pop_back()
         %code{% THIS->polyline.points.pop_back(); %};
     void reverse();
@@ -23,35 +27,12 @@ _new(CLASS, polyline_sv, role, height, flow_spacing)
     double          flow_spacing;
     CODE:
         RETVAL = new ExtrusionPath ();
-        if (sv_isobject(polyline_sv) && (SvTYPE(SvRV(polyline_sv)) == SVt_PVMG)) {
-            RETVAL->polyline = *(Polyline*)SvIV((SV*)SvRV( polyline_sv ));
-        } else {
-            perl2polyline(polyline_sv, RETVAL->polyline);
-        }
+        perl2polyline_check(polyline_sv, RETVAL->polyline);
         RETVAL->role            = role;
         RETVAL->height          = height;
         RETVAL->flow_spacing    = flow_spacing;
     OUTPUT:
         RETVAL
-
-Polyline*
-ExtrusionPath::as_polyline()
-    PREINIT:
-        const char* CLASS = "Slic3r::Polyline::XS";
-    CODE:
-        RETVAL = new Polyline(THIS->polyline);
-    OUTPUT:
-        RETVAL
-
-void
-ExtrusionPath::set_polyline(polyline_sv)
-    SV* polyline_sv;
-    CODE:
-        if (sv_isobject(polyline_sv) && (SvTYPE(SvRV(polyline_sv)) == SVt_PVMG)) {
-            THIS->polyline = *(Polyline*)SvIV((SV*)SvRV( polyline_sv ));
-        } else {
-            perl2polyline(polyline_sv, THIS->polyline);
-        }
 
 ExtrusionRole
 ExtrusionPath::role(...)
@@ -88,11 +69,7 @@ ExtrusionPath::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
             Point p;
-            if (sv_isobject(ST(i)) && (SvTYPE(SvRV(ST(i))) == SVt_PVMG)) {
-                p = *(Point*)SvIV((SV*)SvRV( ST(i) ));
-            } else {
-                perl2point(ST(i), p);
-            }
+            perl2point_check(ST(i), p);
             THIS->polyline.points.push_back(p);
         }
 

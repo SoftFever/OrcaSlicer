@@ -68,6 +68,16 @@ perl2polyline(SV* poly_sv, Polyline& poly)
     }
 }
 
+void
+perl2polyline_check(SV* poly_sv, Polyline& poly)
+{
+    if (sv_isobject(poly_sv) && (SvTYPE(SvRV(poly_sv)) == SVt_PVMG)) {
+        poly = *(Polyline*)SvIV((SV*)SvRV( poly_sv ));
+    } else {
+        perl2polyline(poly_sv, poly);
+    }
+}
+
 SV*
 polyline2perl(Polyline& poly) {
     const unsigned int num_points = poly.points.size();
