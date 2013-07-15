@@ -6,8 +6,6 @@
 %}
 
 %name{Slic3r::Surface} class Surface {
-    %name{_clone} Surface(Surface& self);
-    ~Surface();
     ExPolygon* expolygon()
         %code{% const char* CLASS = "Slic3r::ExPolygon::XS"; RETVAL = new ExPolygon(THIS->expolygon); %};
     double thickness()
@@ -35,6 +33,14 @@ _new(CLASS, expolygon, surface_type, thickness, thickness_layers, bridge_angle, 
         RETVAL->extra_perimeters    = extra_perimeters;
     OUTPUT:
         RETVAL
+
+void
+Surface::DESTROY()
+    CODE:
+        if (!THIS->in_collection) {
+            delete THIS;
+            THIS = NULL;
+        }
 
 SurfaceType
 Surface::surface_type(...)
