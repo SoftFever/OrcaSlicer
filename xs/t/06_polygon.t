@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 4;
+use Test::More tests => 6;
 
 my $square = [  # ccw
     [100, 100],
@@ -26,5 +26,8 @@ is_deeply [ map $_->pp, @$lines ], [
     [ [200, 200], [100, 200] ],
     [ [100, 200], [100, 100] ],
 ], 'polygon lines';
+
+is_deeply $polygon->split_at_first_point->pp, $square, 'split_at_first_point';
+is_deeply $polygon->split_at_index(2)->pp, [ @$square[2,3,0,1] ], 'split_at_index';
 
 __END__

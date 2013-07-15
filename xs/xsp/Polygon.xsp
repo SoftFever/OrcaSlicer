@@ -16,6 +16,10 @@
     void scale(double factor);
     void translate(double x, double y);
     Lines lines();
+    Polyline* split_at_index(int index)
+        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_index(index); %};
+    Polyline* split_at_first_point()
+        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_first_point(); %};
 %{
 
 Polygon*

@@ -16,6 +16,8 @@ namespace Slic3r {
 class Polygon : public MultiPoint {
     public:
     Lines lines();
+    Polyline* split_at_index(int index);
+    Polyline* split_at_first_point();
 };
 
 typedef std::vector<Polygon> Polygons;
@@ -29,6 +31,25 @@ Polygon::lines()
     }
     lines.push_back(Line(this->points.back(), this->points.front()));
     return lines;
+}
+
+Polyline*
+Polygon::split_at_index(int index)
+{
+    Polyline* poly = new Polyline;
+    for (int i = index; i < this->points.size(); i++) {
+        poly->points.push_back( this->points[i] );
+    }
+    for (int i = 0; i < index; i++) {
+        poly->points.push_back( this->points[i] );
+    }
+    return poly;
+}
+
+Polyline*
+Polygon::split_at_first_point()
+{
+    return this->split_at_index(0);
 }
 
 }
