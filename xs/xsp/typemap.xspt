@@ -6,6 +6,8 @@
 %typemap{ExPolygon*};
 %typemap{Polyline*};
 %typemap{Polygon*};
+%typemap{ExtrusionPath*};
+%typemap{ExtrusionLoop*};
 %typemap{Lines};
 
 %typemap{SurfaceType}{parsed}{

@@ -15,6 +15,10 @@
         %code{% const char* CLASS = "Slic3r::Polygon"; RETVAL = new Polygon(THIS->polygon); %};
     void set_polygon(SV* polygon_sv)
         %code{% THIS->polygon.from_SV_check(polygon_sv); %};
+    ExtrusionPath* split_at_index(int index)
+        %code{% const char* CLASS = "Slic3r::ExtrusionPath"; RETVAL = THIS->split_at_index(index); %};
+    ExtrusionPath* split_at_first_point()
+        %code{% const char* CLASS = "Slic3r::ExtrusionPath"; RETVAL = THIS->split_at_first_point(); %};
 %{
 
 ExtrusionLoop*
