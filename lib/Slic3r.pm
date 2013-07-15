@@ -112,7 +112,7 @@ sub thread_cleanup {
     no warnings 'redefine';
     *Slic3r::ExPolygon::Collection::DESTROY = sub {};
     *Slic3r::ExPolygon::XS::DESTROY = sub {};
-    *Slic3r::Point::XS::DESTROY     = sub {};
+    *Slic3r::Point::DESTROY         = sub {};
     *Slic3r::Surface::DESTROY       = sub {};
 }
 

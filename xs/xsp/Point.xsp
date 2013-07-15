@@ -5,15 +5,19 @@
 #include "Point.hpp"
 %}
 
-%name{Slic3r::Point::XS} class Point {
+%name{Slic3r::Point} class Point {
     Point(unsigned long _x = 0, unsigned long _y = 0);
     ~Point();
     Point* clone()
-        %code{% const char* CLASS = "Slic3r::Point::XS"; RETVAL = new Point(*THIS); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*THIS); %};
     void scale(double factor);
     void translate(double x, double y);
     SV* arrayref()
-        %code{% RETVAL = point2perl(*THIS); %};
+        %code{% RETVAL = THIS->to_SV(true); %};
+    unsigned long x()
+        %code{% RETVAL = THIS->x; %};
+    unsigned long y()
+        %code{% RETVAL = THIS->y; %};
 
 %{
 
@@ -39,16 +43,3 @@ Point::coincides_with(point_sv)
 %}
 
 };
-
-%package{Slic3r::Point::XS};
-
-%{
-PROTOTYPES: DISABLE
-
-std::string
-hello_world()
-  CODE:
-    RETVAL = "Hello world!";
-  OUTPUT:
-    RETVAL
-%}

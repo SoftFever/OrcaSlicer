@@ -18,7 +18,7 @@ my $loop = Slic3r::ExtrusionLoop->new(
     role     => Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
 );
 isa_ok $loop->as_polygon, 'Slic3r::Polygon::XS', 'loop polygon';
-is_deeply [ @{ $loop->as_polygon } ], [ @$square ], 'polygon points roundtrip';
+is_deeply [ @{ $loop->as_polygon->arrayref_pp } ], [ @$square ], 'polygon points roundtrip';
 
 $loop = $loop->clone;
 

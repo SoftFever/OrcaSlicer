@@ -207,7 +207,7 @@ sub detect_arcs {
                 my $rotation_angle = PI/2 * ($orientation eq 'ccw' ? -1 : 1);
                 my $ray1     = Slic3r::Line->new($s1_mid,   rotate_points($rotation_angle, $s1_mid,   $points[$i+1]));
                 my $last_ray = Slic3r::Line->new($last_mid, rotate_points($rotation_angle, $last_mid, $points[$last_j]));
-                $arc_center = $ray1->intersection($last_ray, 0) or next POINT;
+                $arc_center = $ray1->intersection($last_ray, 0) // next POINT;
             }
             
             my $arc = Slic3r::ExtrusionPath::Arc->new(

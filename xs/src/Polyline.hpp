@@ -10,6 +10,8 @@ extern "C" {
 
 #include "Point.hpp"
 #include <algorithm>
+#include <string>
+#include <vector>
 
 namespace Slic3r {
 
@@ -17,10 +19,17 @@ class Polyline
 {
     public:
     Points points;
+    void from_SV(SV* poly_sv);
+    void from_SV_check(SV* poly_sv);
+    SV* to_SV(bool pureperl = false, bool pureperl_children = false);
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     void reverse();
+    protected:
+    virtual char* perl_class() {
+        return (char*)"Slic3r::Polyline";
+    }
 };
 
 typedef std::vector<Polyline> Polylines;
@@ -56,37 +65,37 @@ Polyline::reverse()
 }
 
 void
-perl2polyline(SV* poly_sv, Polyline& poly)
+Polyline::from_SV(SV* poly_sv)
 {
     AV* poly_av = (AV*)SvRV(poly_sv);
     const unsigned int num_points = av_len(poly_av)+1;
-    poly.points.resize(num_points);
+    this->points.resize(num_points);
     
     for (unsigned int i = 0; i < num_points; i++) {
         SV** point_sv = av_fetch(poly_av, i, 0);
-        perl2point(*point_sv, poly.points[i]);
+        perl2point_check(*point_sv, this->points[i]);
     }
 }
 
 void
-perl2polyline_check(SV* poly_sv, Polyline& poly)
+Polyline::from_SV_check(SV* poly_sv)
 {
     if (sv_isobject(poly_sv) && (SvTYPE(SvRV(poly_sv)) == SVt_PVMG)) {
-        poly = *(Polyline*)SvIV((SV*)SvRV( poly_sv ));
+        *this = *(Polyline*)SvIV((SV*)SvRV( poly_sv ));
     } else {
-        perl2polyline(poly_sv, poly);
+        this->from_SV(poly_sv);
     }
 }
 
 SV*
-polyline2perl(Polyline& poly) {
-    const unsigned int num_points = poly.points.size();
+Polyline::to_SV(bool pureperl, bool pureperl_children) {
+    const unsigned int num_points = this->points.size();
     AV* av = newAV();
     av_extend(av, num_points-1);
     for (unsigned int i = 0; i < num_points; i++) {
-        av_store(av, i, point2perl(poly.points[i]));
+        av_store(av, i, this->points[i].to_SV(pureperl_children));
     }
-    return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Polyline", GV_ADD));
+    return sv_bless(newRV_noinc((SV*)av), gv_stashpv(this->perl_class(), GV_ADD));
 }
 
 }

@@ -4,12 +4,10 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 6;
+use Test::More tests => 5;
 
-my $point = Slic3r::Point::XS->new(10, 15);
+my $point = Slic3r::Point->new(10, 15);
 is_deeply [ @$point ], [10, 15], 'point roundtrip';
-
-isa_ok $point->arrayref, 'Slic3r::Point', 'Perl point is blessed';
 
 my $point2 = $point->clone;
 $point2->scale(2);

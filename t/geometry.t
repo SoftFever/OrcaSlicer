@@ -18,7 +18,7 @@ use Slic3r::Geometry qw(PI polyline_remove_parallel_continuous_edges
 
 my $line1 = [ [5, 15], [30, 15] ];
 my $line2 = [ [10, 20], [10, 10] ];
-is_deeply Slic3r::Geometry::line_intersection($line1, $line2, 1), [10, 15], 'line_intersection';
+is_deeply Slic3r::Geometry::line_intersection($line1, $line2, 1)->arrayref, [10, 15], 'line_intersection';
 
 #==========================================================
 
@@ -158,7 +158,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 
 {
     my $polyline = Slic3r::Polyline->new([0, 0], [10, 0], [20, 0]);
-    is_deeply [$polyline->lines], [
+    is_deeply [ map $_->arrayref_pp, $polyline->lines ], [
         [ [0, 0], [10, 0] ],
         [ [10, 0], [20, 0] ],
     ], 'polyline_lines';
@@ -170,7 +170,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     my $polyline = Slic3r::Polygon->new([0, 0], [10, 0], [5, 5]);
     my $result = $polyline->split_at_index(1);
     is ref($result), 'Slic3r::Polyline', 'split_at_index returns polyline';
-    is_deeply $result, [ [10, 0], [5, 5], [0, 0], [10, 0] ], 'split_at_index';
+    is_deeply $result->arrayref_pp, [ [10, 0], [5, 5], [0, 0], [10, 0] ], 'split_at_index';
 }
 
 #==========================================================

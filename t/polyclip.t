@@ -60,10 +60,10 @@ is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserv
         [160, 140],
     ];
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
-    is $expolygon->encloses_point([100, 100]), 1, 'corner point is recognized';
-    is $expolygon->encloses_point([100, 180]), 1, 'point on contour is recognized';
-    is $expolygon->encloses_point([140, 150]), 1, 'point on hole contour is recognized';
-    is $expolygon->encloses_point([140, 140]), 1, 'point on hole corner is recognized';
+    is $expolygon->encloses_point(Slic3r::Point->new(100, 100)), 1, 'corner point is recognized';
+    is $expolygon->encloses_point(Slic3r::Point->new(100, 180)), 1, 'point on contour is recognized';
+    is $expolygon->encloses_point(Slic3r::Point->new(140, 150)), 1, 'point on hole contour is recognized';
+    is $expolygon->encloses_point(Slic3r::Point->new(140, 140)), 1, 'point on hole corner is recognized';
     {
         my $intersections = $expolygon->clip_line(Slic3r::Line->new([150,180], [150,150]));
         is_deeply $intersections, [
@@ -144,8 +144,8 @@ is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserv
     
     my $intersections = $expolygon->clip_line($line);
     is_deeply $intersections, [
-        [ [152.742, 288.086660915295], [152.742, 215.178843238354],  ],
-        [ [152.742, 108.087506777797], [152.742, 35.1664774739315] ],
+        [ [152.742, 287.908315789474], [152.742, 214.522],  ],
+        [ [152.742, 107.478], [152.742, 35] ],
     ], 'line is clipped to square with hole';
 }
 

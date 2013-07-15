@@ -10,7 +10,9 @@
     Polyline* clone()
         %code{% const char* CLASS = "Slic3r::Polyline::XS"; RETVAL = new Polyline(*THIS); %};
     SV* arrayref()
-        %code{% RETVAL = polyline2perl(*THIS); %};
+        %code{% RETVAL = THIS->to_SV(true, false); %};
+    SV* arrayref_pp()
+        %code{% RETVAL = THIS->to_SV(true, true); %};
     void pop_back()
         %code{% THIS->points.pop_back(); %};
     void reverse();

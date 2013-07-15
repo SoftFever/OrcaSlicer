@@ -594,7 +594,7 @@ sub make_skirt {
     return if @points < 3;  # at least three points required for a convex hull
     
     # find out convex hull
-    my $convex_hull = convex_hull(\@points);
+    my $convex_hull = convex_hull([ map $_->arrayref, @points ]);
     
     my @extruded_length = ();  # for each extruder
     
@@ -763,7 +763,7 @@ sub write_gcode {
         my @islands = ();
         foreach my $obj_idx (0 .. $#{$self->objects}) {
             my $convex_hull = convex_hull([
-                map @{$_->contour}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
+                map @{$_->contour->arrayref_pp}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
             ]);
             # discard layers only containing thin walls (offset would fail on an empty polygon)
             if (@$convex_hull) {

@@ -242,7 +242,7 @@ sub extrude_loop {
         my $first_segment = Slic3r::Line->new(@{$extrusion_path->polyline}[0,1]);
         my $distance = min(scale $extrusion_path->flow_spacing, $first_segment->length);
         my $point = Slic3r::Geometry::point_along_segment(@$first_segment, $distance);
-        bless $point, 'Slic3r::Point';
+        $point = Slic3r::Point->new(@$point);
         $point->rotate($angle, $extrusion_path->polyline->[0]);
         
         # generate the travel move
@@ -558,7 +558,7 @@ sub _G0_G1 {
     my ($gcode, $point, $z, $e, $comment) = @_;
     my $dec = $self->dec;
     
-    if ($point) {
+    if (defined $point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**

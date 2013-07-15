@@ -6,11 +6,12 @@
 %}
 
 %name{Slic3r::ExPolygon::XS} class ExPolygon {
-    ~ExPolygon();
     ExPolygon* clone()
-        %code{% const char* CLASS = "Slic3r::ExPolygon::XS"; RETVAL = new ExPolygon(*THIS); %};
+        %code{% const char* CLASS = "Slic3r::ExPolygon::XS"; RETVAL = new ExPolygon(*THIS); RETVAL->in_collection = false; %};
     SV* arrayref()
-        %code{% RETVAL = expolygon2perl(*THIS); %};
+        %code{% RETVAL = THIS->to_SV(true, false); %};
+    SV* arrayref_pp()
+        %code{% RETVAL = THIS->to_SV(true, true); %};
     void scale(double factor);
     void translate(double x, double y);
 %{
@@ -20,13 +21,21 @@ ExPolygon::new(...)
     CODE:
         RETVAL = new ExPolygon ();
         // ST(0) is class name, ST(1) is contour and others are holes
-        perl2polygon(ST(1), RETVAL->contour);
+        RETVAL->contour.from_SV_check(ST(1));
         RETVAL->holes.resize(items-2);
         for (unsigned int i = 2; i < items; i++) {
-            perl2polygon(ST(i), RETVAL->holes[i-2]);
+            RETVAL->holes[i-2].from_SV_check(ST(i));
         }
     OUTPUT:
         RETVAL
+
+void
+ExPolygon::DESTROY()
+    CODE:
+        if (!THIS->in_collection) {
+            delete THIS;
+            THIS = NULL;
+        }
 
 void
 ExPolygon::rotate(angle, center_sv)

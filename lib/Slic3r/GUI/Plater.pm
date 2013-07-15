@@ -891,7 +891,7 @@ sub repaint {
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
-            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour}, @{$parent->{object_previews}->[-1][2]} ])});
+            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->arrayref_pp}, @{$parent->{object_previews}->[-1][2]} ])});
                 my ($clearance) = @{offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 100, JT_ROUND)};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
@@ -1198,7 +1198,7 @@ sub _apply_transform {
     # the order of these transformations MUST be the same everywhere, including
     # in Slic3r::Print->add_model()
     my $result = $entity->clone;
-    $result->rotate(deg2rad($self->rotate), Slic3r::Point::XS->new(@{$self->bounding_box->center_2D}));
+    $result->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D);
     $result->scale($self->scale);
     return $result;
 }

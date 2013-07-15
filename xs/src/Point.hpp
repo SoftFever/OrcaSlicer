@@ -8,6 +8,7 @@ extern "C" {
 #include "ppport.h"
 }
 
+#include <vector>
 #include <math.h>
 
 namespace Slic3r {
@@ -17,7 +18,8 @@ class Point
     public:
     long x;
     long y;
-    Point(long _x = 0, long _y = 0): x(_x), y(_y) {};
+    explicit Point(long _x = 0, long _y = 0): x(_x), y(_y) {};
+    SV* to_SV(bool pureperl = false);
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
@@ -56,11 +58,18 @@ Point::coincides_with(Point* point)
 }
 
 SV*
-point2perl(Point& point) {
-    AV* av = newAV();
-    av_fill(av, 1);
-    av_store_point_xy(av, point.x, point.y);
-    return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::Point", GV_ADD));
+Point::to_SV(bool pureperl) {
+    if (pureperl) {
+        AV* av = newAV();
+        av_fill(av, 1);
+        av_store(av, 0, newSViv(this->x));
+        av_store(av, 1, newSViv(this->y));
+        return newRV_noinc((SV*)av);
+    } else {
+        SV* sv = newSV(0);
+        sv_setref_pv( sv, "Slic3r::Point", new Point(*this) );
+        return sv;
+    }
 }
 
 void

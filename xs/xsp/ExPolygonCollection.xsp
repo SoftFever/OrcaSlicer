@@ -23,13 +23,8 @@ ExPolygonCollection::new(...)
         // ST(0) is class name, others are expolygons
         RETVAL->expolygons.resize(items-1);
         for (unsigned int i = 1; i < items; i++) {
-            if (sv_isobject(ST(i)) && (SvTYPE(SvRV(ST(i))) == SVt_PVMG)) {
-                // a XS ExPolygon was supplied
-                RETVAL->expolygons[i-1] = *(ExPolygon *)SvIV((SV*)SvRV( ST(i) ));
-            } else {
-                // a Perl arrayref was supplied
-                perl2expolygon(ST(i), RETVAL->expolygons[i-1]);
-            }
+            perl2expolygon_check(ST(i), RETVAL->expolygons[i-1]);
+            RETVAL->expolygons[i-1].in_collection = true;
         }
     OUTPUT:
         RETVAL
@@ -41,7 +36,20 @@ ExPolygonCollection::arrayref()
         av_fill(av, THIS->expolygons.size()-1);
         int i = 0;
         for (ExPolygons::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
-            av_store(av, i++, expolygon2perl(*it));
+            av_store(av, i++, (*it).to_SV(false, false));
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+SV*
+ExPolygonCollection::arrayref_pp()
+    CODE:
+        AV* av = newAV();
+        av_fill(av, THIS->expolygons.size()-1);
+        int i = 0;
+        for (ExPolygons::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
+            av_store(av, i++, (*it).to_SV(true, true));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -52,6 +60,7 @@ ExPolygonCollection::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
             THIS->expolygons.push_back(*(ExPolygon *)SvIV((SV*)SvRV( ST(i) )));
+            THIS->expolygons.back().in_collection = true;
         }
 
 %}

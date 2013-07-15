@@ -8,11 +8,13 @@
 %name{Slic3r::ExtrusionPath} class ExtrusionPath {
     ~ExtrusionPath();
     SV* arrayref()
-        %code{% RETVAL = polyline2perl(THIS->polyline); %};
+        %code{% RETVAL = THIS->polyline.to_SV(true, false); %};
+    SV* arrayref_pp()
+        %code{% RETVAL = THIS->polyline.to_SV(true, true); %};
     Polyline* as_polyline()
         %code{% const char* CLASS = "Slic3r::Polyline::XS"; RETVAL = new Polyline(THIS->polyline); %};
     void set_polyline(SV* polyline_sv)
-        %code{% perl2polyline_check(polyline_sv, THIS->polyline); %};
+        %code{% THIS->polyline.from_SV_check(polyline_sv); %};
     void pop_back()
         %code{% THIS->polyline.points.pop_back(); %};
     void reverse();
@@ -27,7 +29,7 @@ _new(CLASS, polyline_sv, role, height, flow_spacing)
     double          flow_spacing;
     CODE:
         RETVAL = new ExtrusionPath ();
-        perl2polyline_check(polyline_sv, RETVAL->polyline);
+        RETVAL->polyline.from_SV_check(polyline_sv);
         RETVAL->role            = role;
         RETVAL->height          = height;
         RETVAL->flow_spacing    = flow_spacing;

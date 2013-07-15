@@ -10,7 +10,9 @@
     Polygon* clone()
         %code{% const char* CLASS = "Slic3r::Polygon::XS"; RETVAL = new Polygon(*THIS); %};
     SV* arrayref()
-        %code{% RETVAL = polygon2perl(*THIS); %};
+        %code{% RETVAL = THIS->to_SV(true, false); %};
+    SV* arrayref_pp()
+        %code{% RETVAL = THIS->to_SV(true, true); %};
 %{
 
 Polygon*

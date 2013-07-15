@@ -12,18 +12,24 @@ use Storable qw();
 sub new {
     my $class = shift;
     
-    my $self = [ @_ ];
+    my $self = [ map { ref($_) eq 'Slic3r::Point' ? $_ : Slic3r::Point->new(@$_) } @_ ];
     bless $self, $class;
-    bless $_, 'Slic3r::Point' for @$self;
     $self;
+}
+
+sub arrayref { $_[0] }
+sub arrayref_pp {
+    my $self = shift;
+    if (ref($self->[0]) eq 'Slic3r::Point') {
+        return [ map $_->arrayref, @$self ];
+    } else {
+        return $self;
+    }
 }
 
 sub clone {
     Storable::dclone($_[0])
 }
-
-# compability with ::XS
-sub arrayref { $_[0] }
 
 sub serialize {
     my $self = shift;
@@ -62,7 +68,7 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->arrayref, $tolerance);
+    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->arrayref_pp, $tolerance);
     return (ref $self)->new(@$simplified);
 }
 
@@ -73,7 +79,7 @@ sub reverse {
 
 sub length {
     my $self = shift;
-    return Boost::Geometry::Utils::linestring_length($self->arrayref);
+    return Boost::Geometry::Utils::linestring_length($self->arrayref_pp);
 }
 
 sub grow {
@@ -113,9 +119,8 @@ sub clip_with_expolygon {
     my $self = shift;
     my ($expolygon) = @_;
     
-    my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->arrayref, [$self->arrayref]);
+    my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->arrayref_pp, [$self->arrayref_pp]);
     bless $_, 'Slic3r::Polyline' for @$result;
-    bless $_, 'Slic3r::Point' for map @$_, @$result;
     return @$result;
 }
 
@@ -138,29 +143,21 @@ sub align_to_origin {
 sub rotate {
     my $self = shift;
     my ($angle, $center) = @_;
-    @$self = Slic3r::Geometry::rotate_points($angle, $center, @$self);
-    bless $_, 'Slic3r::Point' for @$self;
+    $_->rotate($angle, $center) for @$self;
     return $self;
 }
 
 sub translate {
     my $self = shift;
     my ($x, $y) = @_;
-    @$self = Slic3r::Geometry::move_points([$x, $y], @$self);
-    bless $_, 'Slic3r::Point' for @$self;
+    $_->translate($x, $y) for @$self;
     return $self;
 }
 
 sub scale {
     my $self = shift;
     my ($factor) = @_;
-    
-    # transform point coordinates
-    if ($factor != 1) {
-        foreach my $point (@$self) {
-            $point->[$_] *= $factor for X,Y;
-        }
-    }
+    $_->scale($factor) for @$self;
     return $self;
 }
 

@@ -7,7 +7,7 @@ our $VERSION = '0.01';
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
-package Slic3r::Point::XS;
+package Slic3r::Point;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 

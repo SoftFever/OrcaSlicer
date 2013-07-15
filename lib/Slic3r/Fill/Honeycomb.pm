@@ -90,7 +90,7 @@ sub fill_surface {
         # path is more straight
         @paths = map Slic3r::Polyline->new(@$_),
             @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-                $surface->expolygon->arrayref,
+                $surface->expolygon->arrayref_pp,
                 \@polygons,
             ) };
         

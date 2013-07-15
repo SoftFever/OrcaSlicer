@@ -10,8 +10,6 @@ use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
     PI X1 X2 Y1 Y2 epsilon);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
 
-sub arrayref { $_[0] }
-
 sub lines {
     my $self = shift;
     return polygon_lines($self);
@@ -24,7 +22,7 @@ sub wkt {
 
 sub is_counter_clockwise {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::is_counter_clockwise($self->arrayref);
+    return Slic3r::Geometry::Clipper::is_counter_clockwise($self->arrayref_pp);
 }
 
 sub make_counter_clockwise {
@@ -49,24 +47,22 @@ sub merge_continuous_lines {
     my $self = shift;
     
     polygon_remove_parallel_continuous_edges($self);
-    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub remove_acute_vertices {
     my $self = shift;
     polygon_remove_acute_vertices($self);
-    bless $_, 'Slic3r::Point' for @$self;
 }
 
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point, [$self]);
+    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, [$self->arrayref_pp]);
 }
 
 sub area {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::area($self);
+    return Slic3r::Geometry::Clipper::area($self->arrayref_pp);
 }
 
 sub grow {

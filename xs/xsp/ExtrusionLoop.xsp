@@ -8,11 +8,13 @@
 %name{Slic3r::ExtrusionLoop} class ExtrusionLoop {
     ~ExtrusionLoop();
     SV* arrayref()
-        %code{% RETVAL = polygon2perl(THIS->polygon); %};
+        %code{% RETVAL = THIS->polygon.to_SV(true, false); %};
+    SV* arrayref_pp()
+        %code{% RETVAL = THIS->polygon.to_SV(true, true); %};
     Polygon* as_polygon()
         %code{% const char* CLASS = "Slic3r::Polygon::XS"; RETVAL = new Polygon(THIS->polygon); %};
     void set_polygon(SV* polygon_sv)
-        %code{% perl2polygon_check(polygon_sv, THIS->polygon); %};
+        %code{% THIS->polygon.from_SV_check(polygon_sv); %};
 %{
 
 ExtrusionLoop*
@@ -24,7 +26,7 @@ _new(CLASS, polygon_sv, role, height, flow_spacing)
     double          flow_spacing;
     CODE:
         RETVAL = new ExtrusionLoop ();
-        perl2polygon_check(polygon_sv, RETVAL->polygon);
+        RETVAL->polygon.from_SV_check(polygon_sv);
         RETVAL->role            = role;
         RETVAL->height          = height;
         RETVAL->flow_spacing    = flow_spacing;

@@ -14,9 +14,10 @@ my $square = [  # ccw
 ];
 
 my $polygon = Slic3r::Polygon::XS->new(@$square);
-is_deeply [ @$polygon ], [ @$square ], 'polygon roundtrip';
+is_deeply [ @{$polygon->arrayref_pp} ], [ @$square ], 'polygon roundtrip';
 
-isa_ok $polygon->arrayref, 'Slic3r::Polygon', 'Perl polygon is blessed';
-isa_ok $polygon->[0], 'Slic3r::Point', 'Perl points are blessed';
+my $arrayref = $polygon->arrayref;
+isa_ok $arrayref, 'Slic3r::Polygon', 'Perl polygon is blessed';
+isa_ok $arrayref->[0], 'Slic3r::Point', 'Perl points are blessed';
 
 __END__

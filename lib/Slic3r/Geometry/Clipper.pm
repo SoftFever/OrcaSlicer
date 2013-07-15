@@ -15,13 +15,13 @@ our $clipper = Math::Clipper->new;
 
 sub safety_offset {
     my ($polygons, $factor) = @_;
-    return Math::Clipper::int_offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2);
+    return Math::Clipper::int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2);
 }
 
 sub safety_offset_ex {
     my ($polygons, $factor) = @_;
     return map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}),
-        @{Math::Clipper::ex_int_offset($polygons, $factor // (scale 1e-05), 100000, JT_MITER, 2)};
+        @{Math::Clipper::ex_int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)};
 }
 
 sub offset {
@@ -30,8 +30,7 @@ sub offset {
     $joinType   //= JT_MITER;
     $miterLimit //= 3;
     
-    $polygons = $polygons->arrayref if ref $polygons eq 'Slic3r::ExPolygon::XS';
-    my $offsets = Math::Clipper::int_offset($polygons, $distance, $scale, $joinType, $miterLimit);
+    my $offsets = Math::Clipper::int_offset(_convert($polygons), $distance, $scale, $joinType, $miterLimit);
     return @$offsets;
 }
 
@@ -41,7 +40,7 @@ sub offset2 {
     $joinType   //= JT_MITER;
     $miterLimit //= 3;
     
-    my $offsets = Math::Clipper::int_offset2($polygons, $distance1, $distance2, $scale, $joinType, $miterLimit);
+    my $offsets = Math::Clipper::int_offset2(_convert($polygons), $distance1, $distance2, $scale, $joinType, $miterLimit);
     return @$offsets;
 }
 
@@ -51,8 +50,7 @@ sub offset_ex {
     $joinType   //= JT_MITER;
     $miterLimit //= 3;
     
-    $polygons = $polygons->arrayref if ref $polygons eq 'Slic3r::ExPolygon::XS';
-    my $offsets = Math::Clipper::ex_int_offset($polygons, $distance, $scale, $joinType, $miterLimit);
+    my $offsets = Math::Clipper::ex_int_offset(_convert($polygons), $distance, $scale, $joinType, $miterLimit);
     return map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}), @$offsets;
 }
 
@@ -62,7 +60,7 @@ sub offset2_ex {
     $joinType   //= JT_MITER;
     $miterLimit //= 3;
     
-    my $offsets = Math::Clipper::ex_int_offset2($polygons, $delta1, $delta2, $scale, $joinType, $miterLimit);
+    my $offsets = Math::Clipper::ex_int_offset2(_convert($polygons), $delta1, $delta2, $scale, $joinType, $miterLimit);
     return map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}), @$offsets;
 }
 
@@ -70,8 +68,8 @@ sub diff_ex {
     my ($subject, $clip, $safety_offset) = @_;
     
     $clipper->clear;
-    $clipper->add_subject_polygons($subject);
-    $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
+    $clipper->add_subject_polygons(_convert($subject));
+    $clipper->add_clip_polygons($safety_offset ? safety_offset(_convert($clip)) : _convert($clip));
     return [
         map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}),
             @{ $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
@@ -82,8 +80,8 @@ sub diff {
     my ($subject, $clip, $safety_offset) = @_;
     
     $clipper->clear;
-    $clipper->add_subject_polygons($subject);
-    $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
+    $clipper->add_subject_polygons(_convert($subject));
+    $clipper->add_clip_polygons($safety_offset ? safety_offset(_convert($clip)) : _convert($clip));
     return [
         map Slic3r::Polygon->new(@$_),
             @{ $clipper->execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
@@ -95,7 +93,7 @@ sub union_ex {
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
     $polygons = $polygons->arrayref if ref $polygons eq 'Slic3r::ExPolygon::XS';
-    $clipper->add_subject_polygons($safety_offset ? safety_offset($polygons) : $polygons);
+    $clipper->add_subject_polygons($safety_offset ? safety_offset(_convert($polygons)) : _convert($polygons));
     return [
         map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}),
             @{ $clipper->ex_execute(CT_UNION, $jointype, $jointype) },
@@ -106,7 +104,7 @@ sub union_pt {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
-    $clipper->add_subject_polygons($safety_offset ? safety_offset($polygons) : $polygons);
+    $clipper->add_subject_polygons($safety_offset ? safety_offset(_convert($polygons)) : _convert($polygons));
     return $clipper->pt_execute(CT_UNION, $jointype, $jointype);
 }
 
@@ -114,8 +112,8 @@ sub intersection_ex {
     my ($subject, $clip, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
-    $clipper->add_subject_polygons($subject);
-    $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
+    $clipper->add_subject_polygons(_convert($subject));
+    $clipper->add_clip_polygons($safety_offset ? safety_offset(_convert($clip)) : _convert($clip));
     return [
         map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}),
             @{ $clipper->ex_execute(CT_INTERSECTION, $jointype, $jointype) },
@@ -126,8 +124,8 @@ sub intersection {
     my ($subject, $clip, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
-    $clipper->add_subject_polygons($subject);
-    $clipper->add_clip_polygons($safety_offset ? safety_offset($clip) : $clip);
+    $clipper->add_subject_polygons(_convert($subject));
+    $clipper->add_clip_polygons($safety_offset ? safety_offset(_convert($clip)) : _convert($clip));
     return [
         map Slic3r::Polygon->new(@$_),
             @{ $clipper->execute(CT_INTERSECTION, $jointype, $jointype) },
@@ -138,8 +136,8 @@ sub xor_ex {
     my ($subject, $clip, $jointype) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
-    $clipper->add_subject_polygons($subject);
-    $clipper->add_clip_polygons($clip);
+    $clipper->add_subject_polygons(_convert($subject));
+    $clipper->add_clip_polygons(_convert($clip));
     return [
         map Slic3r::ExPolygon::XS->new($_->{outer}, @{$_->{holes}}),
             @{ $clipper->ex_execute(CT_XOR, $jointype, $jointype) },
@@ -153,12 +151,12 @@ sub collapse_ex {
 
 sub simplify_polygon {
     my ($polygon, $pft) = @_;
-    return @{ Math::Clipper::simplify_polygon($polygon, $pft // PFT_NONZERO) };
+    return @{ Math::Clipper::simplify_polygon(_convert([$polygon])->[0], $pft // PFT_NONZERO) };
 }
 
 sub simplify_polygons {
     my ($polygons, $pft) = @_;
-    return @{ Math::Clipper::simplify_polygons($polygons, $pft // PFT_NONZERO) };
+    return @{ Math::Clipper::simplify_polygons(_convert($polygons), $pft // PFT_NONZERO) };
 }
 
 sub traverse_pt {
@@ -177,6 +175,13 @@ sub traverse_pt {
         push @polygons, $polynode->{outer} // [ reverse @{$polynode->{hole}} ];
     }
     return @polygons;
+}
+
+sub _convert {
+    my $polygons = shift;
+    $polygons = $polygons->arrayref_pp if ref $polygons eq 'Slic3r::ExPolygon::XS';
+    $polygons = [ map $_->arrayref_pp, @$polygons ] if @$polygons && ref $polygons->[0] eq 'Slic3r::Polygon';
+    return $polygons;
 }
 
 1;

@@ -504,7 +504,7 @@ sub polygon_points_visibility {
     
     my $our_line = [ $p1, $p2 ];
     foreach my $line (polygon_lines($polygon)) {
-        my $intersection = line_intersection($our_line, $line, 1) or next;
+        my $intersection = line_intersection($our_line, $line, 1) // next;
         next if grep points_coincide($intersection, $_), $p1, $p2;
         return 0;
     }
