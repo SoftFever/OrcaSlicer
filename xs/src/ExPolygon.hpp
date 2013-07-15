@@ -19,7 +19,10 @@ class ExPolygon
     Polygon contour;
     Polygons holes;
     bool in_collection;
-    SV* to_SV(bool pureperl = false, bool pureperl_children = false);
+    void from_SV(SV* poly_sv);
+    void from_SV_check(SV* poly_sv);
+    SV* to_SV();
+    SV* to_SV_pureperl();
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
@@ -55,48 +58,60 @@ ExPolygon::rotate(double angle, Point* center)
 }
 
 SV*
-ExPolygon::to_SV(bool pureperl, bool pureperl_children)
-{
-    if (pureperl) {
-        const unsigned int num_holes = this->holes.size();
-        AV* av = newAV();
-        av_extend(av, num_holes);  // -1 +1
-        av_store(av, 0, this->contour.to_SV(pureperl_children, pureperl_children));
-        for (unsigned int i = 0; i < num_holes; i++) {
-            av_store(av, i+1, this->holes[i].to_SV(pureperl_children, pureperl_children));
-        }
-        return sv_bless(newRV_noinc((SV*)av), gv_stashpv("Slic3r::ExPolygon", GV_ADD));
-    } else {
-        SV* sv = newSV(0);
-        sv_setref_pv( sv, "Slic3r::ExPolygon::XS", this );
-        return sv;
+ExPolygon::to_SV() {
+    const unsigned int num_holes = this->holes.size();
+    AV* av = newAV();
+    av_extend(av, num_holes);  // -1 +1
+    
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(this->contour) );
+    av_store(av, 0, sv);
+    
+    for (unsigned int i = 0; i < num_holes; i++) {
+        sv = newSV(0);
+        sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(this->holes[i]) );
+        av_store(av, i+1, sv);
     }
+    return newRV_noinc((SV*)av);
+}
+
+SV*
+ExPolygon::to_SV_pureperl()
+{
+    const unsigned int num_holes = this->holes.size();
+    AV* av = newAV();
+    av_extend(av, num_holes);  // -1 +1
+    av_store(av, 0, this->contour.to_SV_pureperl());
+    for (unsigned int i = 0; i < num_holes; i++) {
+        av_store(av, i+1, this->holes[i].to_SV_pureperl());
+    }
+    return newRV_noinc((SV*)av);
 }
 
 void
-perl2expolygon(SV* expoly_sv, ExPolygon& expoly)
+ExPolygon::from_SV(SV* expoly_sv)
 {
     AV* expoly_av = (AV*)SvRV(expoly_sv);
     const unsigned int num_polygons = av_len(expoly_av)+1;
-    expoly.holes.resize(num_polygons-1);
+    this->holes.resize(num_polygons-1);
     
     SV** polygon_sv = av_fetch(expoly_av, 0, 0);
-    expoly.contour.from_SV(*polygon_sv);
+    this->contour.from_SV(*polygon_sv);
     for (unsigned int i = 0; i < num_polygons-1; i++) {
         polygon_sv = av_fetch(expoly_av, i+1, 0);
-        expoly.holes[i].from_SV(*polygon_sv);
+        this->holes[i].from_SV(*polygon_sv);
     }
 }
 
 void
-perl2expolygon_check(SV* expoly_sv, ExPolygon& expoly)
+ExPolygon::from_SV_check(SV* expoly_sv)
 {
     if (sv_isobject(expoly_sv) && (SvTYPE(SvRV(expoly_sv)) == SVt_PVMG)) {
         // a XS ExPolygon was supplied
-        expoly = *(ExPolygon *)SvIV((SV*)SvRV( expoly_sv ));
+        *this = *(ExPolygon *)SvIV((SV*)SvRV( expoly_sv ));
     } else {
         // a Perl arrayref was supplied
-        perl2expolygon(expoly_sv, expoly);
+        this->from_SV(expoly_sv);
     }
 }
 

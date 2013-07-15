@@ -22,7 +22,7 @@ sub wkt {
 
 sub is_counter_clockwise {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::is_counter_clockwise($self->arrayref_pp);
+    return Slic3r::Geometry::Clipper::is_counter_clockwise($self->pp);
 }
 
 sub make_counter_clockwise {
@@ -57,12 +57,12 @@ sub remove_acute_vertices {
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, [$self->arrayref_pp]);
+    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, [$self->pp]);
 }
 
 sub area {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::area($self->arrayref_pp);
+    return Slic3r::Geometry::Clipper::area($self->pp);
 }
 
 sub grow {

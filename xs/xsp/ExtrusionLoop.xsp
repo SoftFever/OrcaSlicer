@@ -8,11 +8,11 @@
 %name{Slic3r::ExtrusionLoop} class ExtrusionLoop {
     ~ExtrusionLoop();
     SV* arrayref()
-        %code{% RETVAL = THIS->polygon.to_SV(true, false); %};
-    SV* arrayref_pp()
-        %code{% RETVAL = THIS->polygon.to_SV(true, true); %};
+        %code{% RETVAL = THIS->polygon.to_SV(); %};
+    SV* pp()
+        %code{% RETVAL = THIS->polygon.to_SV_pureperl(); %};
     Polygon* as_polygon()
-        %code{% const char* CLASS = "Slic3r::Polygon::XS"; RETVAL = new Polygon(THIS->polygon); %};
+        %code{% const char* CLASS = "Slic3r::Polygon"; RETVAL = new Polygon(THIS->polygon); %};
     void set_polygon(SV* polygon_sv)
         %code{% THIS->polygon.from_SV_check(polygon_sv); %};
 %{

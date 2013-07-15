@@ -66,7 +66,7 @@ sub fill_surface {
     # clip paths against a slightly offsetted expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
     my @paths = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-        +($expolygon->offset_ex(scaled_epsilon))[0]->arrayref_pp,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
+        +($expolygon->offset_ex(scaled_epsilon))[0]->pp,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
         [ @{ $self->cache->{$cache_id} } ],
     ) };
     

@@ -1,4 +1,4 @@
-package Slic3r::ExPolygon;
+gpackage Slic3r::ExPolygon;
 use strict;
 use warnings;
 
@@ -34,7 +34,7 @@ sub clone {
 
 # no-op for legacy with ::XS
 sub arrayref { $_[0] }
-sub arrayref_pp { [ map $_->arrayref_pp, @{$_[0]} ] }
+sub pp { [ map $_->pp, @{$_[0]} ] }
 
 sub contour {
     my $self = shift;
@@ -108,7 +108,7 @@ sub noncollapsing_offset_ex {
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, $self->arrayref_pp);
+    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, $self->pp);
 }
 
 # A version of encloses_point for use when hole borders do not matter.
@@ -141,7 +141,7 @@ sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
     
-    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self->arrayref_pp, [$line->arrayref_pp]);
+    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self->pp, [$line->pp]);
 }
 
 sub simplify {
@@ -150,7 +150,7 @@ sub simplify {
     
     # it would be nice to have a multilinestring_simplify method in B::G::U
     my @simplified = Slic3r::Geometry::Clipper::simplify_polygons(
-        [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @{$self->arrayref_pp} ],
+        [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @{$self->pp} ],
     );
     return @{ Slic3r::Geometry::Clipper::union_ex([ @simplified ]) };
 }

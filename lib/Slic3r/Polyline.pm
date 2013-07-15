@@ -18,7 +18,7 @@ sub new {
 }
 
 sub arrayref { $_[0] }
-sub arrayref_pp {
+sub pp {
     my $self = shift;
     if (ref($self->[0]) eq 'Slic3r::Point') {
         return [ map $_->arrayref, @$self ];
@@ -68,7 +68,7 @@ sub simplify {
     my $self = shift;
     my $tolerance = shift || 10;
     
-    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->arrayref_pp, $tolerance);
+    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->pp, $tolerance);
     return (ref $self)->new(@$simplified);
 }
 
@@ -79,7 +79,7 @@ sub reverse {
 
 sub length {
     my $self = shift;
-    return Boost::Geometry::Utils::linestring_length($self->arrayref_pp);
+    return Boost::Geometry::Utils::linestring_length($self->pp);
 }
 
 sub grow {
@@ -119,7 +119,7 @@ sub clip_with_expolygon {
     my $self = shift;
     my ($expolygon) = @_;
     
-    my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->arrayref_pp, [$self->arrayref_pp]);
+    my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->pp, [$self->pp]);
     bless $_, 'Slic3r::Polyline' for @$result;
     return @$result;
 }

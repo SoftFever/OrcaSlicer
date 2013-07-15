@@ -13,7 +13,7 @@
     void scale(double factor);
     void translate(double x, double y);
     SV* arrayref()
-        %code{% RETVAL = THIS->to_SV(true); %};
+        %code{% RETVAL = THIS->to_SV_pureperl(); %};
     unsigned long x()
         %code{% RETVAL = THIS->x; %};
     unsigned long y()
@@ -27,7 +27,7 @@ Point::rotate(angle, center_sv)
     SV*     center_sv;
     CODE:
         Point center;
-        perl2point_check(center_sv, center);
+        center.from_SV_check(center_sv);
         THIS->rotate(angle, &center);
 
 bool
@@ -35,7 +35,7 @@ Point::coincides_with(point_sv)
     SV*     point_sv;
     CODE:
         Point point;
-        perl2point_check(point_sv, point);
+        point.from_SV_check(point_sv);
         RETVAL = THIS->coincides_with(&point);
     OUTPUT:
         RETVAL

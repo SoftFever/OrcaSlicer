@@ -18,6 +18,7 @@ SurfaceCollection::new(...)
         // ST(0) is class name, others are surfaces
         RETVAL->surfaces.resize(items-1);
         for (unsigned int i = 1; i < items; i++) {
+            // Note: a COPY of the input is stored
             RETVAL->surfaces[i-1] = *(Surface *)SvIV((SV*)SvRV( ST(i) ));
             RETVAL->surfaces[i-1].in_collection = true;
         }

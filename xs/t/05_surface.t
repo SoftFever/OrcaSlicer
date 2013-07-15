@@ -19,7 +19,7 @@ my $hole_in_square = [  # cw
     [160, 140],
 ];
 
-my $expolygon = Slic3r::ExPolygon::XS->new($square, $hole_in_square);
+my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
 my $surface = Slic3r::Surface->new(
     expolygon => $expolygon,
     surface_type => Slic3r::Surface::S_TYPE_INTERNAL,
@@ -27,8 +27,8 @@ my $surface = Slic3r::Surface->new(
 
 $surface = $surface->clone;
 
-isa_ok $surface->expolygon, 'Slic3r::ExPolygon::XS', 'expolygon';
-is_deeply [ @{$surface->expolygon->arrayref_pp} ], [$square, $hole_in_square], 'expolygon roundtrip';
+isa_ok $surface->expolygon, 'Slic3r::ExPolygon', 'expolygon';
+is_deeply [ @{$surface->expolygon->pp} ], [$square, $hole_in_square], 'expolygon roundtrip';
 
 is $surface->surface_type, Slic3r::Surface::S_TYPE_INTERNAL, 'surface_type';
 $surface->surface_type(Slic3r::Surface::S_TYPE_BOTTOM);
@@ -43,7 +43,7 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
 {
     my $collection = Slic3r::Surface::Collection->new($surface, $surface->clone);
     is scalar(@$collection), 2, 'collection has the right number of items';
-    is_deeply $collection->[0]->expolygon->arrayref_pp, [$square, $hole_in_square],
+    is_deeply $collection->[0]->expolygon->pp, [$square, $hole_in_square],
         'collection returns a correct surface expolygon';
     $collection->clear;
     is scalar(@$collection), 0, 'clear collection';

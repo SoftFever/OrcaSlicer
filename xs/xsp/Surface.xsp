@@ -7,7 +7,7 @@
 
 %name{Slic3r::Surface} class Surface {
     ExPolygon* expolygon()
-        %code{% const char* CLASS = "Slic3r::ExPolygon::XS"; RETVAL = new ExPolygon(THIS->expolygon); %};
+        %code{% const char* CLASS = "Slic3r::ExPolygon"; RETVAL = new ExPolygon(THIS->expolygon); %};
     double thickness()
         %code{% RETVAL = THIS->thickness; %};
     unsigned short thickness_layers()

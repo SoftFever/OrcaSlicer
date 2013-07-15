@@ -13,12 +13,7 @@ extern "C" {
 
 namespace Slic3r {
 
-class Polygon : public Polyline {
-    protected:
-    char* perl_class() {
-        return (char*)"Slic3r::Polygon";
-    }
-};
+class Polygon : public MultiPoint {};
 
 typedef std::vector<Polygon> Polygons;
 

@@ -891,7 +891,7 @@ sub repaint {
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
-            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->arrayref_pp}, @{$parent->{object_previews}->[-1][2]} ])});
+            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->pp}, @{$parent->{object_previews}->[-1][2]} ])});
                 my ($clearance) = @{offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 100, JT_ROUND)};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});

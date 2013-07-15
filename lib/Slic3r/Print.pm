@@ -763,7 +763,7 @@ sub write_gcode {
         my @islands = ();
         foreach my $obj_idx (0 .. $#{$self->objects}) {
             my $convex_hull = convex_hull([
-                map @{$_->contour->arrayref_pp}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
+                map @{$_->contour->pp}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
             ]);
             # discard layers only containing thin walls (offset would fail on an empty polygon)
             if (@$convex_hull) {

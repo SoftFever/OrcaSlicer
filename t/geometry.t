@@ -158,7 +158,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 
 {
     my $polyline = Slic3r::Polyline->new([0, 0], [10, 0], [20, 0]);
-    is_deeply [ map $_->arrayref_pp, $polyline->lines ], [
+    is_deeply [ map $_->pp, $polyline->lines ], [
         [ [0, 0], [10, 0] ],
         [ [10, 0], [20, 0] ],
     ], 'polyline_lines';
@@ -170,7 +170,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     my $polyline = Slic3r::Polygon->new([0, 0], [10, 0], [5, 5]);
     my $result = $polyline->split_at_index(1);
     is ref($result), 'Slic3r::Polyline', 'split_at_index returns polyline';
-    is_deeply $result->arrayref_pp, [ [10, 0], [5, 5], [0, 0], [10, 0] ], 'split_at_index';
+    is_deeply $result->pp, [ [10, 0], [5, 5], [0, 0], [10, 0] ], 'split_at_index';
 }
 
 #==========================================================

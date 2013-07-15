@@ -5,14 +5,16 @@
 #include "Polygon.hpp"
 %}
 
-%name{Slic3r::Polygon::XS} class Polygon {
+%name{Slic3r::Polygon} class Polygon {
     ~Polygon();
     Polygon* clone()
-        %code{% const char* CLASS = "Slic3r::Polygon::XS"; RETVAL = new Polygon(*THIS); %};
+        %code{% const char* CLASS = "Slic3r::Polygon"; RETVAL = new Polygon(*THIS); %};
     SV* arrayref()
-        %code{% RETVAL = THIS->to_SV(true, false); %};
-    SV* arrayref_pp()
-        %code{% RETVAL = THIS->to_SV(true, true); %};
+        %code{% RETVAL = THIS->to_SV(); %};
+    SV* pp()
+        %code{% RETVAL = THIS->to_SV_pureperl(); %};
+    void scale(double factor);
+    void translate(double x, double y);
 %{
 
 Polygon*
@@ -22,7 +24,7 @@ Polygon::new(...)
         // ST(0) is class name, ST(1) is first point
         RETVAL->points.resize(items-1);
         for (unsigned int i = 1; i < items; i++) {
-            perl2point(ST(i), RETVAL->points[i-1]);
+            RETVAL->points[i-1].from_SV_check( ST(i) );
         }
     OUTPUT:
         RETVAL

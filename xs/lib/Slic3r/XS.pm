@@ -11,16 +11,16 @@ package Slic3r::Point;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 
-package Slic3r::ExPolygon::XS;
+package Slic3r::ExPolygon;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 
-package Slic3r::Polyline::XS;
+package Slic3r::Polyline;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::Polygon::XS;
+package Slic3r::Polygon;
 use overload
     '@{}' => sub { $_[0]->arrayref };
 

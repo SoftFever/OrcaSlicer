@@ -179,8 +179,8 @@ sub traverse_pt {
 
 sub _convert {
     my $polygons = shift;
-    $polygons = $polygons->arrayref_pp if ref $polygons eq 'Slic3r::ExPolygon::XS';
-    $polygons = [ map $_->arrayref_pp, @$polygons ] if @$polygons && ref $polygons->[0] eq 'Slic3r::Polygon';
+    $polygons = $polygons->pp if ref $polygons eq 'Slic3r::ExPolygon::XS';
+    $polygons = [ map $_->pp, @$polygons ] if @$polygons && ref $polygons->[0] eq 'Slic3r::Polygon';
     return $polygons;
 }
 

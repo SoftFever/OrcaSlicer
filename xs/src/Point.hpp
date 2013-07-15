@@ -19,7 +19,9 @@ class Point
     long x;
     long y;
     explicit Point(long _x = 0, long _y = 0): x(_x), y(_y) {};
-    SV* to_SV(bool pureperl = false);
+    void from_SV(SV* point_sv);
+    void from_SV_check(SV* point_sv);
+    SV* to_SV_pureperl();
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
@@ -58,35 +60,29 @@ Point::coincides_with(Point* point)
 }
 
 SV*
-Point::to_SV(bool pureperl) {
-    if (pureperl) {
-        AV* av = newAV();
-        av_fill(av, 1);
-        av_store(av, 0, newSViv(this->x));
-        av_store(av, 1, newSViv(this->y));
-        return newRV_noinc((SV*)av);
-    } else {
-        SV* sv = newSV(0);
-        sv_setref_pv( sv, "Slic3r::Point", new Point(*this) );
-        return sv;
-    }
+Point::to_SV_pureperl() {
+    AV* av = newAV();
+    av_fill(av, 1);
+    av_store(av, 0, newSViv(this->x));
+    av_store(av, 1, newSViv(this->y));
+    return newRV_noinc((SV*)av);
 }
 
 void
-perl2point(SV* point_sv, Point& point)
+Point::from_SV(SV* point_sv)
 {
-    AV*  point_av = (AV*)SvRV(point_sv);
-    point.x = (unsigned long)SvIV(*av_fetch(point_av, 0, 0));
-    point.y = (unsigned long)SvIV(*av_fetch(point_av, 1, 0));
+    AV* point_av = (AV*)SvRV(point_sv);
+    this->x = (unsigned long)SvIV(*av_fetch(point_av, 0, 0));
+    this->y = (unsigned long)SvIV(*av_fetch(point_av, 1, 0));
 }
 
 void
-perl2point_check(SV* point_sv, Point& point)
+Point::from_SV_check(SV* point_sv)
 {
     if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
-        point = *(Point*)SvIV((SV*)SvRV( point_sv ));
+        *this = *(Point*)SvIV((SV*)SvRV( point_sv ));
     } else {
-        perl2point(point_sv, point);
+        this->from_SV(point_sv);
     }
 }
 
