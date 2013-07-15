@@ -15,15 +15,16 @@ ExtrusionRole     T_UV
 SurfaceType     T_UV
 
 Lines           T_LINES
-Lines*          T_LINES_PTR
 
 INPUT
 
 OUTPUT
 
 T_LINES
-	$arg = lines2perl(aTHX_ $var);
-
-T_LINES_PTR
-	$arg = lines2perl(aTHX_ *$var);
-	delete $var;
+	AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	const unsigned int len = $var.size();
+	av_extend(av, len-1);
+	for (unsigned int i = 0; i < len; i++) {
+	  av_store(av, i, ${var}[i].to_SV_ref());
+	}

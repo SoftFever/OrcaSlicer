@@ -110,19 +110,6 @@ Line::to_SV_pureperl() {
     return newRV_noinc((SV*)av);
 }
 
-SV*
-lines2perl(pTHX_ Lines& lines)
-{
-    AV* av = newAV();
-    av_extend(av, lines.size()-1);
-    int i = 0;
-    for (Lines::iterator it = lines.begin(); it != lines.end(); ++it) {
-        SV* sv = (*it).to_SV_ref();
-        av_store(av, i++, sv);
-    }
-    return (SV*)newRV_noinc((SV*)av);
-}
-
 }
 
 #endif
