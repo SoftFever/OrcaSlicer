@@ -1,13 +1,6 @@
 #ifndef slic3r_Surface_hpp_
 #define slic3r_Surface_hpp_
 
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
-
 #include "ExPolygon.hpp"
 
 namespace Slic3r {

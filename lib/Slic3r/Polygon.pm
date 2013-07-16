@@ -15,11 +15,6 @@ sub wkt {
     return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
 }
 
-sub is_counter_clockwise {
-    my $self = shift;
-    return Slic3r::Geometry::Clipper::is_counter_clockwise($self->pp);
-}
-
 sub make_counter_clockwise {
     my $self = shift;
     if (!$self->is_counter_clockwise) {

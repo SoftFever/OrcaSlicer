@@ -1,14 +1,8 @@
 #ifndef slic3r_TriangleMesh_hpp_
 #define slic3r_TriangleMesh_hpp_
 
+#include <myinit.h>
 #include <admesh/stl.h>
-
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
 
 namespace Slic3r {
 
