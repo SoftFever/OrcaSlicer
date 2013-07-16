@@ -418,13 +418,11 @@ sub process_external_surfaces {
         @top = @{intersection_ex(
             [ Slic3r::Geometry::Clipper::offset([ map $_->p, @top ], +$margin) ],
             [ map $_->p, @fill_boundaries ],
-            undef,
             1,  # to ensure adjacent expolygons are unified
         )};
         @bottom = @{intersection_ex(
             [ Slic3r::Geometry::Clipper::offset([ map $_->p, @bottom ], +$margin) ],
             [ map $_->p, @fill_boundaries ],
-            undef,
             1,  # to ensure adjacent expolygons are unified
         )};
         
@@ -526,7 +524,6 @@ sub _detect_bridges {
             my $anchors = intersection_ex(
                 [ $surface->p ],
                 [ map @$_, @lower ],
-                undef,
                 1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
             );
             

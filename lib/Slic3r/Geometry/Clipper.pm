@@ -57,36 +57,12 @@ sub diff {
     ];
 }
 
-sub union_ex {
-    my ($polygons, $jointype, $safety_offset) = @_;
-    $jointype = PFT_NONZERO unless defined $jointype;
-    $clipper->clear;
-    $polygons = $polygons->arrayref if ref $polygons eq 'Slic3r::ExPolygon';
-    $clipper->add_subject_polygons($safety_offset ? _convert(safety_offset($polygons)) : _convert($polygons));
-    return [
-        map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}),
-            @{ $clipper->ex_execute(CT_UNION, $jointype, $jointype) },
-    ];
-}
-
 sub union_pt {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
     $clipper->add_subject_polygons($safety_offset ? _convert(safety_offset($polygons)) : _convert($polygons));
     return $clipper->pt_execute(CT_UNION, $jointype, $jointype);
-}
-
-sub intersection_ex {
-    my ($subject, $clip, $jointype, $safety_offset) = @_;
-    $jointype = PFT_NONZERO unless defined $jointype;
-    $clipper->clear;
-    $clipper->add_subject_polygons(_convert($subject));
-    $clipper->add_clip_polygons($safety_offset ? _convert(safety_offset($clip)) : _convert($clip));
-    return [
-        map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}),
-            @{ $clipper->ex_execute(CT_INTERSECTION, $jointype, $jointype) },
-    ];
 }
 
 sub intersection {
@@ -98,18 +74,6 @@ sub intersection {
     return [
         map Slic3r::Polygon->new(@$_),
             @{ $clipper->execute(CT_INTERSECTION, $jointype, $jointype) },
-    ];
-}
-
-sub xor_ex {
-    my ($subject, $clip, $jointype) = @_;
-    $jointype = PFT_NONZERO unless defined $jointype;
-    $clipper->clear;
-    $clipper->add_subject_polygons(_convert($subject));
-    $clipper->add_clip_polygons(_convert($clip));
-    return [
-        map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}),
-            @{ $clipper->ex_execute(CT_XOR, $jointype, $jointype) },
     ];
 }
 

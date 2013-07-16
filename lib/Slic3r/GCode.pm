@@ -105,7 +105,7 @@ sub change_layer {
         );
     if ($self->config->avoid_crossing_perimeters) {
         $self->layer_mp(Slic3r::GCode::MotionPlanner->new(
-            islands => union_ex([ map @$_, @{$layer->slices} ], undef, 1),
+            islands => union_ex([ map @$_, @{$layer->slices} ], 1),
         ));
     }
     

@@ -70,7 +70,7 @@ sub make_fill {
         @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
         
         foreach my $group (@groups) {
-            my $union = union_ex([ map $_->p, @$group ], undef, 1);
+            my $union = union_ex([ map $_->p, @$group ], 1);
             
             # subtract surfaces having a defined bridge_angle from any other
             if (@surfaces_with_bridge_angle && !defined $group->[0]->bridge_angle) {
@@ -120,7 +120,6 @@ sub make_fill {
                 (map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNALVOID, @surfaces),
                 (@$collapsed),
             ],
-            undef,
             1,
         )};
     }

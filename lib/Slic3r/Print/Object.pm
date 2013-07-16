@@ -610,7 +610,7 @@ sub discover_horizontal_shells {
                     my $new_internal_solid = intersection_ex(
                         [ map @$_, @$solid ],
                         [ map $_->p, grep { ($_->surface_type == S_TYPE_INTERNAL) || ($_->surface_type == S_TYPE_INTERNALSOLID) } @neighbor_fill_surfaces ],
-                        undef, 1,
+                        1,
                     );
                     next if !@$new_internal_solid;
                     

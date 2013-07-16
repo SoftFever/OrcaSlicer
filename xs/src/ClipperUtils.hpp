@@ -30,7 +30,15 @@ void offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const fl
     const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
-void diff_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset);
+inline void _clipper_ex(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
+    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
+    bool safety_offset);
+void diff_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset = false);
+void intersection_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
+    bool safety_offset = false);
+void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
+    bool safety_offset = false);
+void union_ex(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset = false);
 
 }
 

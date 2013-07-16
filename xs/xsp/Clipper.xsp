@@ -45,4 +45,33 @@ diff_ex(subject, clip, safety_offset = false)
     OUTPUT:
         RETVAL
 
+ExPolygons
+intersection_ex(subject, clip, safety_offset = false)
+    Polygons                    subject
+    Polygons                    clip
+    bool                        safety_offset
+    CODE:
+        intersection_ex(subject, clip, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
+ExPolygons
+xor_ex(subject, clip, safety_offset = false)
+    Polygons                    subject
+    Polygons                    clip
+    bool                        safety_offset
+    CODE:
+        xor_ex(subject, clip, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
+ExPolygons
+union_ex(subject, safety_offset = false)
+    Polygons                    subject
+    bool                        safety_offset
+    CODE:
+        union_ex(subject, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
 %}

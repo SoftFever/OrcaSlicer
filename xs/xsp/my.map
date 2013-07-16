@@ -14,6 +14,7 @@ SurfaceCollection*      O_OBJECT
 ExtrusionRole     T_UV
 SurfaceType     T_UV
 ClipperLib::JoinType		T_UV
+ClipperLib::PolyFillType		T_UV
 
 Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
