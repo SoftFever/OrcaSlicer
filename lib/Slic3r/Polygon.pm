@@ -86,7 +86,7 @@ sub is_printable {
     # detect them and we would be discarding them.
     my $p = $self->clone;
     $p->make_counter_clockwise;
-    return Slic3r::Geometry::Clipper::offset([$p], -$width / 2) ? 1 : 0;
+    return @{Slic3r::Geometry::Clipper::offset([$p], -$width / 2)} ? 1 : 0;
 }
 
 sub is_valid {

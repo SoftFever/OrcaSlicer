@@ -172,8 +172,8 @@ sub validate {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
                     my $convex_hull = Slic3r::Polygon->new(@{convex_hull(\@points)});
                     ($clearance) = map Slic3r::Polygon->new(@$_), 
-                                        Slic3r::Geometry::Clipper::offset(
-                                            [$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND);
+                                        @{Slic3r::Geometry::Clipper::offset(
+                                            [$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;
@@ -610,7 +610,7 @@ sub make_skirt {
     my $distance = scale $Slic3r::Config->skirt_distance;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
-        my ($loop) = Slic3r::Geometry::Clipper::offset([$convex_hull], $distance, 0.0001, JT_ROUND);
+        my $loop = Slic3r::Geometry::Clipper::offset([$convex_hull], $distance, 0.0001, JT_ROUND)->[0];
         push @{$self->skirt}, Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
@@ -666,7 +666,7 @@ sub make_brim {
         # JT_SQUARE ensures no vertex is outside the given offset distance
         # -0.5 because islands are not represented by their centerlines
         # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
-        push @loops, offset2(\@islands, ($i - 1.5) * $flow->scaled_spacing, +1.0 * $flow->scaled_spacing, undef, JT_SQUARE);
+        push @loops, @{offset2(\@islands, ($i - 1.5) * $flow->scaled_spacing, +1.0 * $flow->scaled_spacing, undef, JT_SQUARE)};
     }
     
     @{$self->brim} = map Slic3r::ExtrusionLoop->new(

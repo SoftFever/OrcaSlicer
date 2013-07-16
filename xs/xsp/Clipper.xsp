@@ -10,6 +10,18 @@
 
 %{
 
+Polygons
+offset(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
+    Polygons                polygons
+    const float             delta
+    double                  scale
+    ClipperLib::JoinType    joinType
+    double                  miterLimit
+    CODE:
+        offset(polygons, RETVAL, delta, scale, joinType, miterLimit);
+    OUTPUT:
+        RETVAL
+
 ExPolygons
 offset_ex(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
@@ -19,6 +31,19 @@ offset_ex(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miter
     double                  miterLimit
     CODE:
         offset_ex(polygons, RETVAL, delta, scale, joinType, miterLimit);
+    OUTPUT:
+        RETVAL
+
+Polygons
+offset2(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
+    Polygons                polygons
+    const float             delta1
+    const float             delta2
+    double                  scale
+    ClipperLib::JoinType    joinType
+    double                  miterLimit
+    CODE:
+        offset2(polygons, RETVAL, delta1, delta2, scale, joinType, miterLimit);
     OUTPUT:
         RETVAL
 

@@ -96,7 +96,7 @@ sub make_surfaces {
         my $width = $self->perimeter_flow->scaled_width;
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],
-            [ offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width) ],
+            offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width),
             1,
         );
         
@@ -189,10 +189,10 @@ sub make_perimeters {
             # and we can extract the gap for later processing
             if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
                 my $diff = diff_ex(
-                    [ offset(\@last, -0.5*$spacing) ],
+                    offset(\@last, -0.5*$spacing),
                     # +2 on the offset here makes sure that Clipper float truncation 
                     # won't shrink the clip polygon to be smaller than intended.
-                    [ offset(\@offsets, +0.5*$spacing + 2) ],
+                    offset(\@offsets, +0.5*$spacing + 2),
                 );
                 push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
             }
@@ -416,12 +416,12 @@ sub process_external_surfaces {
         # offset them and intersect the results with the actual fill boundaries
         my $margin = scale 3;  # TODO: ensure this is greater than the total thickness of the perimeters
         @top = @{intersection_ex(
-            [ Slic3r::Geometry::Clipper::offset([ map $_->p, @top ], +$margin) ],
+            Slic3r::Geometry::Clipper::offset([ map $_->p, @top ], +$margin),
             [ map $_->p, @fill_boundaries ],
             1,  # to ensure adjacent expolygons are unified
         )};
         @bottom = @{intersection_ex(
-            [ Slic3r::Geometry::Clipper::offset([ map $_->p, @bottom ], +$margin) ],
+            Slic3r::Geometry::Clipper::offset([ map $_->p, @bottom ], +$margin),
             [ map $_->p, @fill_boundaries ],
             1,  # to ensure adjacent expolygons are unified
         )};

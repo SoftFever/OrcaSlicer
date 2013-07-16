@@ -35,7 +35,7 @@ sub group {
 
 sub offset {
     my $self = shift;
-    return map $self->clone(expolygon => $_), @{$self->expolygon->offset_ex(@_)};
+    return [ map $self->clone(expolygon => $_), @{$self->expolygon->offset_ex(@_)} ];
 }
 
 sub simplify {

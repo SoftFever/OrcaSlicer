@@ -52,7 +52,7 @@ sub BUILD {
             : $self->islands->[$i]->offset_ex(-$self->_inner_margin);
         
         # offset the island outwards to make the boundaries for external movements
-        $self->_outer->[$i] = [ offset([ $self->islands->[$i]->contour], $self->_outer_margin) ];
+        $self->_outer->[$i] = offset([ $self->islands->[$i]->contour], $self->_outer_margin);
         
         # if internal motion is enabled, build a set of utility expolygons representing
         # the outer boundaries (as contours) and the inner boundaries (as holes). whenever

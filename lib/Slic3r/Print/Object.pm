@@ -274,15 +274,15 @@ sub make_perimeters {
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
                 my $diff = diff(
-                    [ offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($Slic3r::Config->perimeters * $perimeter_spacing)) ],
-                    [ offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap) ],
+                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($Slic3r::Config->perimeters * $perimeter_spacing)),
+                    offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap),
                 );
                 next if !@$diff;
                 # if we need more perimeters, $diff should contain a narrow region that we can collapse
                 
                 $diff = diff(
                     $diff,
-                    [ offset2($diff, -$perimeter_spacing, +$perimeter_spacing) ],
+                    offset2($diff, -$perimeter_spacing, +$perimeter_spacing),
                     1,
                 );
                 next if !@$diff;
@@ -295,8 +295,8 @@ sub make_perimeters {
                         # of our slice
                         $extra_perimeters++;
                         my $hypothetical_perimeter = diff(
-                            [ offset($slice->expolygon->arrayref, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters-1))) ],
-                            [ offset($slice->expolygon->arrayref, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters))) ],
+                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters-1))),
+                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters))),
                         );
                         last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
                         
@@ -620,7 +620,7 @@ sub discover_horizontal_shells {
                         my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
-                            [ offset([ offset([ map @$_, @$new_internal_solid ], -$margin) ], +$margin) ],
+                            offset(offset([ map @$_, @$new_internal_solid ], -$margin), +$margin),
                             1,
                         );
                         
@@ -634,7 +634,7 @@ sub discover_horizontal_shells {
                             
                             # make sure our grown surfaces don't exceed the fill area
                             my @grown = map @$_, @{intersection_ex(
-                                [ offset([ map @$_, @$too_narrow ], +$margin) ],
+                                offset([ map @$_, @$too_narrow ], +$margin),
                                 [ map $_->p, @fill_boundaries ],
                             )};
                             $new_internal_solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
@@ -745,7 +745,7 @@ sub combine_infill {
                 # $intersection now contains the regions that can be combined across the full amount of layers
                 # so let's remove those areas from all layers
                 
-                 my @intersection_with_clearance = map $_->offset(
+                 my @intersection_with_clearance = map @{$_->offset(
                        $layerms[-1]->solid_infill_flow->scaled_width    / 2
                      + $layerms[-1]->perimeter_flow->scaled_width / 2
                      # Because fill areas for rectilinear and honeycomb are grown 
@@ -753,7 +753,7 @@ sub combine_infill {
                      + (($type == S_TYPE_INTERNALSOLID || $Slic3r::Config->fill_pattern =~ /(rectilinear|honeycomb)/)
                        ? $layerms[-1]->solid_infill_flow->scaled_width * &Slic3r::INFILL_OVERLAP_OVER_SPACING
                        : 0)
-                     ), @$intersection;
+                     )}, @$intersection;
 
                 
                 foreach my $layerm (@layerms) {

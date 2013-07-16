@@ -2,15 +2,6 @@
 
 namespace Slic3r {
 
-void
-ClipperPolygon_to_Slic3rPolygon(ClipperLib::Polygon &input, Slic3r::Polygon &output)
-{
-    output.points.clear();
-    for (ClipperLib::Polygon::iterator pit = input.begin(); pit != input.end(); ++pit) {
-        output.points.push_back(Slic3r::Point( (*pit).X, (*pit).Y ));
-    }
-}
-
 //-----------------------------------------------------------
 // legacy code from Clipper documentation
 void AddOuterPolyNodeToExPolygons(ClipperLib::PolyNode& polynode, Slic3r::ExPolygons& expolygons)
@@ -37,21 +28,21 @@ void PolyTreeToExPolygons(ClipperLib::PolyTree& polytree, Slic3r::ExPolygons& ex
 //-----------------------------------------------------------
 
 void
-Slic3rPolygon_to_ClipperPolygon(Slic3r::Polygon &input, ClipperLib::Polygon &output)
+ClipperPolygon_to_Slic3rPolygon(ClipperLib::Polygon &input, Slic3r::Polygon &output)
 {
-    output.clear();
-    for (Slic3r::Points::iterator pit = input.points.begin(); pit != input.points.end(); ++pit) {
-        output.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
+    output.points.clear();
+    for (ClipperLib::Polygon::iterator pit = input.begin(); pit != input.end(); ++pit) {
+        output.points.push_back(Slic3r::Point( (*pit).X, (*pit).Y ));
     }
 }
 
 void
-Slic3rPolygons_to_ClipperPolygons(Slic3r::Polygons &input, ClipperLib::Polygons &output)
+ClipperPolygons_to_Slic3rPolygons(ClipperLib::Polygons &input, Slic3r::Polygons &output)
 {
     output.clear();
-    for (Slic3r::Polygons::iterator it = input.begin(); it != input.end(); ++it) {
-        ClipperLib::Polygon p;
-        Slic3rPolygon_to_ClipperPolygon(*it, p);
+    for (ClipperLib::Polygons::iterator it = input.begin(); it != input.end(); ++it) {
+        Slic3r::Polygon p;
+        ClipperPolygon_to_Slic3rPolygon(*it, p);
         output.push_back(p);
     }
 }
@@ -76,6 +67,26 @@ ClipperPolygons_to_Slic3rExPolygons(ClipperLib::Polygons &input, Slic3r::ExPolyg
 }
 
 void
+Slic3rPolygon_to_ClipperPolygon(Slic3r::Polygon &input, ClipperLib::Polygon &output)
+{
+    output.clear();
+    for (Slic3r::Points::iterator pit = input.points.begin(); pit != input.points.end(); ++pit) {
+        output.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
+    }
+}
+
+void
+Slic3rPolygons_to_ClipperPolygons(Slic3r::Polygons &input, ClipperLib::Polygons &output)
+{
+    output.clear();
+    for (Slic3r::Polygons::iterator it = input.begin(); it != input.end(); ++it) {
+        ClipperLib::Polygon p;
+        Slic3rPolygon_to_ClipperPolygon(*it, p);
+        output.push_back(p);
+    }
+}
+
+void
 scaleClipperPolygons(ClipperLib::Polygons &polygons, const double scale)
 {
     for (ClipperLib::Polygons::iterator it = polygons.begin(); it != polygons.end(); ++it) {
@@ -87,7 +98,7 @@ scaleClipperPolygons(ClipperLib::Polygons &polygons, const double scale)
 }
 
 void
-offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
+offset(Slic3r::Polygons &polygons, ClipperLib::Polygons &retval, const float delta,
     double scale, ClipperLib::JoinType joinType, double miterLimit)
 {
     // read input
@@ -98,12 +109,33 @@ offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float de
     scaleClipperPolygons(*input, scale);
     
     // perform offset
-    ClipperLib::Polygons* output = new ClipperLib::Polygons();
-    ClipperLib::OffsetPolygons(*input, *output, (delta*scale), joinType, miterLimit);
+    ClipperLib::OffsetPolygons(*input, retval, (delta*scale), joinType, miterLimit);
     delete input;
     
     // unscale output
-    scaleClipperPolygons(*output, 1/scale);
+    scaleClipperPolygons(retval, 1/scale);
+}
+
+void
+offset(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Polygons* output = new ClipperLib::Polygons();
+    offset(polygons, *output, delta, scale, joinType, miterLimit);
+    
+    // convert into ExPolygons
+    ClipperPolygons_to_Slic3rPolygons(*output, retval);
+    delete output;
+}
+
+void
+offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Polygons* output = new ClipperLib::Polygons();
+    offset(polygons, *output, delta, scale, joinType, miterLimit);
     
     // convert into ExPolygons
     ClipperPolygons_to_Slic3rExPolygons(*output, retval);
@@ -111,7 +143,7 @@ offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float de
 }
 
 void
-offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta1,
+offset2(Slic3r::Polygons &polygons, ClipperLib::Polygons &retval, const float delta1,
     const float delta2, double scale, ClipperLib::JoinType joinType, double miterLimit)
 {
     // read input
@@ -127,16 +159,37 @@ offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float d
     delete input;
     
     // perform second offset
-    ClipperLib::Polygons* output2 = new ClipperLib::Polygons();
-    ClipperLib::OffsetPolygons(*output1, *output2, (delta2*scale), joinType, miterLimit);
+    ClipperLib::OffsetPolygons(*output1, retval, (delta2*scale), joinType, miterLimit);
     delete output1;
     
     // unscale output
-    scaleClipperPolygons(*output2, 1/scale);
+    scaleClipperPolygons(retval, 1/scale);
+}
+
+void
+offset2(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta1,
+    const float delta2, double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Polygons* output = new ClipperLib::Polygons();
+    offset2(polygons, *output, delta1, delta2, scale, joinType, miterLimit);
     
     // convert into ExPolygons
-    ClipperPolygons_to_Slic3rExPolygons(*output2, retval);
-    delete output2;
+    ClipperPolygons_to_Slic3rPolygons(*output, retval);
+    delete output;
+}
+
+void
+offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta1,
+    const float delta2, double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Polygons* output = new ClipperLib::Polygons();
+    offset2(polygons, *output, delta1, delta2, scale, joinType, miterLimit);
+    
+    // convert into ExPolygons
+    ClipperPolygons_to_Slic3rExPolygons(*output, retval);
+    delete output;
 }
 
 inline void _clipper_ex(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 

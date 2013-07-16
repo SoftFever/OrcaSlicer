@@ -35,7 +35,7 @@ sub is_printable {
     # try to get an inwards offset
     # for a distance equal to half of the extrusion width;
     # if no offset is possible, then expolygon is not printable.
-    return Slic3r::Geometry::Clipper::offset($self, -$width / 2) ? 1 : 0;
+    return @{Slic3r::Geometry::Clipper::offset($self, -$width / 2)} ? 1 : 0;
 }
 
 sub wkt {
@@ -46,7 +46,7 @@ sub wkt {
 
 sub offset {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::offset($self, @_);
+    return Slic3r::Geometry::Clipper::offset(\@$self, @_);
 }
 
 sub offset_ex {

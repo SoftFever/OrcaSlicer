@@ -105,17 +105,17 @@ sub make_fill {
     {
         my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],
-            [ offset(
-                [ offset([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2) ],
+            offset(
+                offset([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2),
                 +$distance_between_surfaces/2
-            ) ],
+            ),
             1,
         );
         push @surfaces, map Slic3r::Surface->new(
             expolygon       => $_,
             surface_type    => S_TYPE_INTERNALSOLID,
         ), @{intersection_ex(
-            [ offset($collapsed, $distance_between_surfaces) ],
+            offset($collapsed, $distance_between_surfaces),
             [
                 (map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNALVOID, @surfaces),
                 (@$collapsed),
@@ -125,7 +125,7 @@ sub make_fill {
     }
     
     # add spacing between surfaces
-    @surfaces = map $_->offset(-$distance_between_surfaces / 2 * &Slic3r::INFILL_OVERLAP_OVER_SPACING), @surfaces;
+    @surfaces = map @{$_->offset(-$distance_between_surfaces / 2 * &Slic3r::INFILL_OVERLAP_OVER_SPACING)}, @surfaces;
     
     my @fills = ();
     my @fills_ordering_points =  ();

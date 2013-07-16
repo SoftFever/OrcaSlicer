@@ -47,10 +47,10 @@ sub grow {
     
     my @points = @$self;
     return map Slic3r::Polygon->new(@$_),
-        Slic3r::Geometry::Clipper::offset(
+        @{Slic3r::Geometry::Clipper::offset(
             [ Slic3r::Polygon->new(@points, CORE::reverse @points[1..($#points-1)]) ],
             $distance, $scale, $joinType, $miterLimit,
-        );
+        )};
 }
 
 sub nearest_point_to {

@@ -25,26 +25,6 @@ sub safety_offset_ex {
         @{Math::Clipper::ex_int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)};
 }
 
-sub offset {
-    my ($polygons, $distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= 100000;
-    $joinType   //= JT_MITER;
-    $miterLimit //= 3;
-    
-    my $offsets = Math::Clipper::int_offset(_convert($polygons), $distance, $scale, $joinType, $miterLimit);
-    return @$offsets;
-}
-
-sub offset2 {
-    my ($polygons, $distance1, $distance2, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= 100000;
-    $joinType   //= JT_MITER;
-    $miterLimit //= 3;
-    
-    my $offsets = Math::Clipper::int_offset2(_convert($polygons), $distance1, $distance2, $scale, $joinType, $miterLimit);
-    return @$offsets;
-}
-
 sub diff {
     my ($subject, $clip, $safety_offset) = @_;
     
