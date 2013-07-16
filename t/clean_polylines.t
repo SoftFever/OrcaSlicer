@@ -16,7 +16,7 @@ use Slic3r;
         [5,0], [10,0], [15,0], [20,0], [20,10], [20,30], [0,0],
     );
     
-    $polygon->merge_continuous_lines;
+    $polygon = $polygon->merge_continuous_lines;
     is scalar(@$polygon), 3, 'merge_continuous_lines';
 }
 
@@ -69,7 +69,7 @@ use Slic3r;
         [180.595,296.0487], [161.7854,297.4248], [156.8058,297.6214], [154.3395,317.8592],
     ];
     my $polygon = Slic3r::Polygon->new(@$gear);
-    $polygon->merge_continuous_lines;
+    $polygon = $polygon->merge_continuous_lines;
     note sprintf "original points: %d\nnew points: %d", scalar(@$gear), scalar(@$polygon);
     ok @$polygon < @$gear, 'gear was simplified using merge_continuous_lines';
 
@@ -114,7 +114,7 @@ use Slic3r;
     ];
     
     my $polygon = Slic3r::Polygon->new(@$circle);
-    $polygon->merge_continuous_lines;
+    $polygon = $polygon->merge_continuous_lines;
     note sprintf "original points: %d\nnew points: %d", scalar(@$circle), scalar(@$polygon);
     ok @$polygon >= @$circle/3, 'circle was simplified using merge_continuous_lines';
 }

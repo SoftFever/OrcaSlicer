@@ -178,7 +178,7 @@ sub make_fill {
         push @fills, Slic3r::ExtrusionPath::Collection->new(
             no_sort => $params->{no_sort},
             paths => [
-                map Slic3r::ExtrusionPath->pack(
+                map Slic3r::ExtrusionPath->new(
                     polyline => Slic3r::Polyline->new(@$_),
                     role => ($surface->surface_type == S_TYPE_INTERNALBRIDGE
                         ? EXTR_ROLE_INTERNALBRIDGE
@@ -197,7 +197,7 @@ sub make_fill {
     
     # add thin fill regions
     push @fills, @{$layerm->thin_fills};
-    push @fills_ordering_points, map $_->unpack->points->[0], @{$layerm->thin_fills};
+    push @fills_ordering_points, map $_->points->[0], @{$layerm->thin_fills};
     
     # organize infill paths using a nearest-neighbor search
     @fills = @fills[ chained_path(\@fills_ordering_points) ];

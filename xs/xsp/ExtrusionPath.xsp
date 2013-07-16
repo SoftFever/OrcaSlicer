@@ -11,10 +11,6 @@
         %code{% RETVAL = THIS->polyline.to_SV(); %};
     SV* pp()
         %code{% RETVAL = THIS->polyline.to_SV_pureperl(); %};
-    Polyline* as_polyline()
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = new Polyline(THIS->polyline); %};
-    void set_polyline(SV* polyline_sv)
-        %code{% THIS->polyline.from_SV_check(polyline_sv); %};
     void pop_back()
         %code{% THIS->polyline.points.pop_back(); %};
     void reverse();
@@ -33,6 +29,18 @@ _new(CLASS, polyline_sv, role, height, flow_spacing)
         RETVAL->role            = role;
         RETVAL->height          = height;
         RETVAL->flow_spacing    = flow_spacing;
+    OUTPUT:
+        RETVAL
+
+Polyline*
+ExtrusionPath::polyline(...)
+    PREINIT:
+        const char* CLASS = "Slic3r::Polyline";
+    CODE:
+        if (items > 1) {
+            THIS->polyline.from_SV_check( ST(1) );
+        }
+        RETVAL = new Polyline(THIS->polyline);
     OUTPUT:
         RETVAL
 

@@ -13,6 +13,10 @@
         %code{% RETVAL = THIS->to_SV(); %};
     SV* pp()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
+    Point* a()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->a); %};
+    Point* b()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->b); %};
     void reverse();
 %{
 

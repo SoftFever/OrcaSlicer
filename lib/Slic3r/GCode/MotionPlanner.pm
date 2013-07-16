@@ -53,7 +53,6 @@ sub BUILD {
         
         # offset the island outwards to make the boundaries for external movements
         $self->_outer->[$i] = [ offset([ $self->islands->[$i]->contour], $self->_outer_margin) ];
-        bless $_, 'Slic3r::Polygon' for @{ $self->_outer->[$i] };
         
         # if internal motion is enabled, build a set of utility expolygons representing
         # the outer boundaries (as contours) and the inner boundaries (as holes). whenever

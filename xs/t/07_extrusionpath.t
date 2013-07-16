@@ -16,11 +16,11 @@ my $path = Slic3r::ExtrusionPath->new(
     polyline => Slic3r::Polyline->new(@$points),
     role     => Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
 );
-isa_ok $path->as_polyline, 'Slic3r::Polyline', 'path polyline';
-is_deeply $path->as_polyline->pp, $points, 'path points roundtrip';
+isa_ok $path->polyline, 'Slic3r::Polyline', 'path polyline';
+is_deeply $path->polyline->pp, $points, 'path points roundtrip';
 
 $path->reverse;
-is_deeply $path->as_polyline->pp, [ reverse @$points ], 'reverse path';
+is_deeply $path->polyline->pp, [ reverse @$points ], 'reverse path';
 
 $path->append([ 150, 150 ]);
 is scalar(@$path), 4, 'append to path';

@@ -1,4 +1,4 @@
-gpackage Slic3r::ExPolygon;
+package Slic3r::ExPolygon;
 use strict;
 use warnings;
 
@@ -9,32 +9,6 @@ use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
-use Storable qw();
-
-# the constructor accepts an array of polygons 
-# or a Math::Clipper ExPolygon (hashref)
-sub new {
-    my $class = shift;
-    my $self;
-    if (@_ == 1 && ref $_[0] eq 'HASH') {
-        $self = [
-            Slic3r::Polygon->new(@{$_[0]{outer}}),
-            map Slic3r::Polygon->new(@$_), @{$_[0]{holes}},
-        ];
-    } else {
-        $self = [ map Slic3r::Polygon->new(@$_), @_ ];
-    }
-    bless $self, $class;
-    $self;
-}
-
-sub clone {
-    Storable::dclone($_[0])
-}
-
-# no-op for legacy with ::XS
-sub arrayref { $_[0] }
-sub pp { [ map $_->pp, @{$_[0]} ] }
 
 sub contour {
     my $self = shift;
@@ -44,19 +18,6 @@ sub contour {
 sub holes {
     my $self = shift;
     return @$self[1..$#$self];
-}
-
-sub lines {
-    my $self = shift;
-    return map $_->lines, @$self;
-}
-
-sub clipper_expolygon {
-    my $self = shift;
-    return {
-        outer => $self->contour,
-        holes => [ $self->holes ],
-    };
 }
 
 sub is_valid {
@@ -153,23 +114,6 @@ sub simplify {
         [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @{$self->pp} ],
     );
     return @{ Slic3r::Geometry::Clipper::union_ex([ @simplified ]) };
-}
-
-sub scale {
-    my $self = shift;
-    $_->scale(@_) for @$self;
-}
-
-sub translate {
-    my $self = shift;
-    $_->translate(@_) for @$self;
-    $self;
-}
-
-sub rotate {
-    my $self = shift;
-    $_->rotate(@_) for @$self;
-    $self;
 }
 
 sub area {
@@ -297,9 +241,6 @@ sub medial_axis {
     
     return @result;
 }
-
-package Slic3r::ExPolygon::XS;
-use parent 'Slic3r::ExPolygon';
 
 package Slic3r::ExPolygon::Collection;
 use Slic3r::Geometry qw(X1 Y1);

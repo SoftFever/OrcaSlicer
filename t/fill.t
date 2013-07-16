@@ -33,7 +33,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 }
 
 {
-    my $expolygon = Slic3r::ExPolygon::XS->new([ scale_points [0,0], [50,0], [50,50], [0,50] ]);
+    my $expolygon = Slic3r::ExPolygon->new([ scale_points [0,0], [50,0], [50,50], [0,50] ]);
     my $filler = Slic3r::Fill::Rectilinear->new(
         bounding_box => $expolygon->bounding_box,
     );
@@ -72,24 +72,24 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(paths => [
-        map Slic3r::ExtrusionPath->pack(polyline => $_, role => 0),
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
             Slic3r::Polyline->new([0,15], [0,18], [0,20]),
             Slic3r::Polyline->new([0,10], [0,8], [0,5]),
     ]);
     is_deeply
-        [ map $_->[Y], map @{$_->unpack->polyline}, $collection->chained_path(Slic3r::Point->new(0,30)) ],
+        [ map $_->[Y], map @{$_->polyline}, $collection->chained_path(Slic3r::Point->new(0,30)) ],
         [20, 18, 15, 10, 8, 5],
         'chained path';
 }
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(paths => [
-        map Slic3r::ExtrusionPath->pack(polyline => $_, role => 0),
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
             Slic3r::Polyline->new([15,0], [10,0], [4,0]),
             Slic3r::Polyline->new([10,5], [15,5], [20,5]),
     ]);
     is_deeply
-        [ map $_->[X], map @{$_->unpack->polyline}, $collection->chained_path(Slic3r::Point->new(30,0)) ],
+        [ map $_->[X], map @{$_->polyline}, $collection->chained_path(Slic3r::Point->new(30,0)) ],
         [reverse 4, 10, 15, 10, 15, 20],
         'chained path';
 }

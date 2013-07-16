@@ -152,7 +152,7 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
-    my $polygon = $loop->as_polygon;
+    my $polygon = $loop->polygon;
     my $was_clockwise = $polygon->make_counter_clockwise;
     
     # find candidate starting points

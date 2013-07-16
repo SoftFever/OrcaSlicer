@@ -2,7 +2,6 @@ package Slic3r::ExtrusionPath;
 use strict;
 use warnings;
 
-use parent -norequire, qw(Slic3r::Polyline::XS);
 use parent qw(Exporter);
 
 our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER 
@@ -12,21 +11,6 @@ our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
 
 use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
-sub polyline { $_[0] }
-
-# class or object method
-sub pack {
-    my $self = shift;
-    
-    if (ref $self) {
-        return $self;
-    } else {
-        return $self->new(@_);
-    }
-}
-
-# no-op, this allows to use both packed and non-packed objects in Collections
-sub unpack { $_[0] }
 
 sub clip_with_polygon {
     my $self = shift;
@@ -40,7 +24,7 @@ sub clip_with_expolygon {
     my ($expolygon) = @_;
     
     return map $self->clone(polyline => $_),
-        $self->as_polyline->clip_with_expolygon($expolygon);
+        $self->polyline->clip_with_expolygon($expolygon);
 }
 
 sub intersect_expolygons {
@@ -61,7 +45,7 @@ sub subtract_expolygons {
 
 sub simplify {
     my $self = shift;
-    $self->set_polyline($self->as_polyline->simplify(@_));
+    $self->set_polyline($self->polyline->simplify(@_));
 }
 
 sub points {

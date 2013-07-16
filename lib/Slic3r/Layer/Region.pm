@@ -135,8 +135,7 @@ sub _merge_loops {
     $safety_offset //= scale 0.0499;
     @loops = @{ safety_offset(\@loops, $safety_offset) };
     my $expolygons = [];
-    while (my $loop = shift @loops) {
-        bless $loop, 'Slic3r::Polygon';
+    while (defined (my $loop = shift @loops)) {
         if ($loop->is_counter_clockwise) {
             $expolygons = union_ex([ $loop, map @$_, @$expolygons ]);
         } else {
@@ -148,7 +147,7 @@ sub _merge_loops {
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
         scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
     
-    return map Slic3r::Surface->new(expolygon => Slic3r::ExPolygon::XS->new(@$_), surface_type => S_TYPE_INTERNAL), @$expolygons;
+    return map Slic3r::Surface->new(expolygon => Slic3r::ExPolygon->new(@$_), surface_type => S_TYPE_INTERNAL), @$expolygons;
 }
 
 sub make_perimeters {
@@ -257,7 +256,7 @@ sub make_perimeters {
                 $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
             
-            push @loops, Slic3r::ExtrusionLoop->pack(
+            push @loops, Slic3r::ExtrusionLoop->new(
                 polygon         => $polygon,
                 role            => $role,
                 flow_spacing    => $self->perimeter_flow->spacing,
@@ -285,7 +284,7 @@ sub make_perimeters {
     # add thin walls as perimeters
     push @{ $self->perimeters }, Slic3r::ExtrusionPath::Collection->new(paths => [
         map {
-            Slic3r::ExtrusionPath->pack(
+            Slic3r::ExtrusionPath->new(
                 polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_),
                 role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                 flow_spacing    => $self->perimeter_flow->spacing,
@@ -337,8 +336,8 @@ sub _fill_gaps {
             );
             push @{ $self->thin_fills }, map {
                 $_->isa('Slic3r::Polygon')
-                    ? (map $_->pack, Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point)  # we should keep these as loops
-                    : Slic3r::ExtrusionPath->pack(polyline => $_, %path_args),
+                    ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # we should keep these as loops
+                    : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
             } map $_->medial_axis($flow->scaled_width), @this_width;
         
             Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
@@ -361,7 +360,7 @@ sub _fill_gaps {
                 push @{ $self->thin_fills },
                     map {
                         $_->simplify($flow->scaled_width/3);
-                        $_->pack;
+                        $_;
                     }
                     map Slic3r::ExtrusionPath->new(
                         polyline        => Slic3r::Polyline->new(@$_),

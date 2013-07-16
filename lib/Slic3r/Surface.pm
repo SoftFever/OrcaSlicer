@@ -45,7 +45,7 @@ sub simplify {
 
 sub p {
     my $self = shift;
-    return @{$self->expolygon};
+    return @{$self->expolygon->pp};
 }
 
 sub is_solid {

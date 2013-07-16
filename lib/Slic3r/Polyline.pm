@@ -2,52 +2,9 @@ package Slic3r::Polyline;
 use strict;
 use warnings;
 
-use Scalar::Util qw(reftype);
-use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
-    polyline_lines move_points same_point);
+use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 use Storable qw();
-
-# the constructor accepts an array(ref) of points
-sub new {
-    my $class = shift;
-    
-    my $self = [ map { ref($_) eq 'Slic3r::Point' ? $_ : Slic3r::Point->new(@$_) } @_ ];
-    bless $self, $class;
-    $self;
-}
-
-sub arrayref { $_[0] }
-sub pp {
-    my $self = shift;
-    if (ref($self->[0]) eq 'Slic3r::Point') {
-        return [ map $_->arrayref, @$self ];
-    } else {
-        return $self;
-    }
-}
-
-sub clone {
-    Storable::dclone($_[0])
-}
-
-sub serialize {
-    my $self = shift;
-    return pack 'l*', map @$_, @$self;
-}
-
-sub deserialize {
-    my $class = shift;
-    my ($s) = @_;
-    
-    my @v = unpack '(l2)*', $s;
-    return $class->new(map [ $v[2*$_], $v[2*$_+1] ], 0 .. int($#v/2));
-}
-
-sub lines {
-    my $self = shift;
-    return polyline_lines($self);
-}
 
 sub wkt {
     my $self = shift;
@@ -70,11 +27,6 @@ sub simplify {
     
     my $simplified = Boost::Geometry::Utils::linestring_simplify($self->pp, $tolerance);
     return (ref $self)->new(@$simplified);
-}
-
-sub reverse {
-    my $self = shift;
-    @$self = CORE::reverse @$self;
 }
 
 sub length {
@@ -120,7 +72,6 @@ sub clip_with_expolygon {
     my ($expolygon) = @_;
     
     my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->pp, [$self->pp]);
-    bless $_, 'Slic3r::Polyline' for @$result;
     return @$result;
 }
 
@@ -138,37 +89,6 @@ sub align_to_origin {
     my $self = shift;
     my $bb = $self->bounding_box;
     return $self->translate(-$bb->x_min, -$bb->y_min);
-}
-
-sub rotate {
-    my $self = shift;
-    my ($angle, $center) = @_;
-    $_->rotate($angle, $center) for @$self;
-    return $self;
-}
-
-sub translate {
-    my $self = shift;
-    my ($x, $y) = @_;
-    $_->translate($x, $y) for @$self;
-    return $self;
-}
-
-sub scale {
-    my $self = shift;
-    my ($factor) = @_;
-    $_->scale($factor) for @$self;
-    return $self;
-}
-
-sub pop_back {
-    my $self = shift;
-    return pop @$self;
-}
-
-sub append {
-    my $self = shift;
-    push @$self, @_;
 }
 
 # removes the given distance from the end of the polyline
@@ -254,8 +174,5 @@ sub chained_path {
     }
     return map $items_map{"$_"}, @paths;
 }
-
-package Slic3r::Polyline::XS;
-use parent qw(Slic3r::Polyline);
 
 1;

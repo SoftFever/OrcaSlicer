@@ -969,7 +969,6 @@ sub generate_support_material {
             my @paths = ();
             foreach my $expolygon (@$expolygons) {
                 push @paths,
-                    map $_->pack,
                     map {
                         $_->height($height);
                         

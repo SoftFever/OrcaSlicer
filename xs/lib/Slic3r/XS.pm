@@ -48,7 +48,7 @@ sub clone {
     my ($self, %args) = @_;
     
     return (ref $self)->_new(
-        $args{polygon}       // $self->as_polygon,
+        $args{polygon}       // $self->polygon,
         $args{role}          // $self->role,
         $args{height}        // $self->height,
         $args{flow_spacing}  // $self->flow_spacing,
@@ -75,7 +75,7 @@ sub clone {
     my ($self, %args) = @_;
     
     return (ref $self)->_new(
-        $args{polyline}      // $self->as_polyline,
+        $args{polyline}      // $self->polyline,
         $args{role}          // $self->role,
         $args{height}        // $self->height,
         $args{flow_spacing}  // $self->flow_spacing,

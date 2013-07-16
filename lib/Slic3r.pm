@@ -110,10 +110,16 @@ sub parallelize {
 sub thread_cleanup {
     # prevent destruction of shared objects
     no warnings 'redefine';
+    *Slic3r::ExPolygon::DESTROY             = sub {};
     *Slic3r::ExPolygon::Collection::DESTROY = sub {};
-    *Slic3r::ExPolygon::XS::DESTROY = sub {};
-    *Slic3r::Point::DESTROY         = sub {};
-    *Slic3r::Surface::DESTROY       = sub {};
+    *Slic3r::ExtrusionLoop::DESTROY         = sub {};
+    *Slic3r::ExtrusionPath::DESTROY         = sub {};
+    *Slic3r::Line::DESTROY                  = sub {};
+    *Slic3r::Point::DESTROY                 = sub {};
+    *Slic3r::Polygon::DESTROY               = sub {};
+    *Slic3r::Polyline::DESTROY              = sub {};
+    *Slic3r::Surface::DESTROY               = sub {};
+    *Slic3r::Surface::Collection::DESTROY   = sub {};
 }
 
 sub encode_path {

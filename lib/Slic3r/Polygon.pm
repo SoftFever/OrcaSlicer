@@ -5,15 +5,10 @@ use warnings;
 # a polygon is a closed polyline.
 use parent 'Slic3r::Polyline';
 
-use Slic3r::Geometry qw(polygon_lines polygon_remove_parallel_continuous_edges
-    polygon_remove_acute_vertices polygon_segment_having_point point_in_polygon
+use Slic3r::Geometry qw(polygon_remove_parallel_continuous_edges
+    polygon_remove_acute_vertices polygon_segment_having_point
     PI X1 X2 Y1 Y2 epsilon);
 use Slic3r::Geometry::Clipper qw(JT_MITER);
-
-sub lines {
-    my $self = shift;
-    return polygon_lines($self);
-}
 
 sub wkt {
     my $self = shift;
@@ -46,7 +41,9 @@ sub make_clockwise {
 sub merge_continuous_lines {
     my $self = shift;
     
-    polygon_remove_parallel_continuous_edges($self);
+    my $p = $self->pp;
+    polygon_remove_parallel_continuous_edges($p);
+    return (ref $self)->new(@$p);
 }
 
 sub remove_acute_vertices {
@@ -120,16 +117,6 @@ sub is_valid {
     return @$self >= 3;
 }
 
-sub split_at_index {
-    my $self = shift;
-    my ($index) = @_;
-    
-    return Slic3r::Polyline->new(
-        @$self[$index .. $#$self], 
-        @$self[0 .. $index],
-    );
-}
-
 sub split_at {
     my $self = shift;
     my ($point) = @_;
@@ -147,11 +134,6 @@ sub split_at {
     return $self->split_at_index($i);
 }
 
-sub split_at_first_point {
-    my $self = shift;
-    return $self->split_at_index(0);
-}
-
 # for cw polygons this will return convex points!
 sub concave_points {
     my $self = shift;
@@ -160,8 +142,5 @@ sub concave_points {
         grep Slic3r::Geometry::angle3points(@$self[$_, $_-1, $_+1]) < PI - epsilon,
         -1 .. ($#$self-1);
 }
-
-package Slic3r::Polygon::XS;
-use parent -norequire, qw(Slic3r::Polygon Slic3r::Polyline::XS);
 
 1;

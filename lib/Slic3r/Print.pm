@@ -587,7 +587,7 @@ sub make_skirt {
         my @layer_points = (
             (map @$_, map @$_, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, map @{$_->regions}, @layers),
-            (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
+            (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
         );
         push @points, map move_points($_, @layer_points), @{$self->objects->[$obj_idx]->copies};
     }
@@ -611,14 +611,13 @@ sub make_skirt {
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
         my ($loop) = Slic3r::Geometry::Clipper::offset([$convex_hull], $distance, 0.0001, JT_ROUND);
-        push @{$self->skirt}, Slic3r::ExtrusionLoop->pack(
+        push @{$self->skirt}, Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
             flow_spacing    => $spacing,
         );
         
         if ($Slic3r::Config->min_skirt_length > 0) {
-            bless $loop, 'Slic3r::Polygon';
             $extruded_length[$extruder_idx]     ||= 0;
             $extruders_e_per_mm[$extruder_idx]  ||= $self->extruders->[$extruder_idx]->e_per_mm($spacing, $first_layer_height);
             $extruded_length[$extruder_idx]     += unscale $loop->length * $extruders_e_per_mm[$extruder_idx];
@@ -648,7 +647,7 @@ sub make_brim {
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
             (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } map @{$_->thin_walls}, @{$layer0->regions}),
-            (map $_->unpack->polyline->grow($grow_distance), map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
+            (map $_->polyline->grow($grow_distance), map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
         );
         foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
@@ -658,7 +657,7 @@ sub make_brim {
     # if brim touches skirt, make it around skirt too
     # TODO: calculate actual skirt width (using each extruder's flow in multi-extruder setups)
     if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $flow->spacing) <= $Slic3r::Config->brim_width) {
-        push @islands, map $_->unpack->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
+        push @islands, map $_->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
     }
     
     my @loops = ();
@@ -670,7 +669,7 @@ sub make_brim {
         push @loops, offset2(\@islands, ($i - 1.5) * $flow->scaled_spacing, +1.0 * $flow->scaled_spacing, undef, JT_SQUARE);
     }
     
-    @{$self->brim} = map Slic3r::ExtrusionLoop->pack(
+    @{$self->brim} = map Slic3r::ExtrusionLoop->new(
         polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
         flow_spacing    => $flow->spacing,

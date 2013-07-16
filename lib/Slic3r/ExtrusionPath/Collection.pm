@@ -9,7 +9,7 @@ sub unpack { $_[0] }
 
 sub first_point {
     my $self = shift;
-    return $self->paths->[0]->unpack->polyline->[0];
+    return $self->paths->[0]->polyline->[0];
 }
 
 sub chained_path {
@@ -21,7 +21,7 @@ sub chained_path {
     # make sure we pass the same path objects to the Collection constructor
     # and the ->chained_path() method because the latter will reverse the
     # paths in-place when needed and we need to return them that way
-    my @paths = map $_->unpack, @{$self->paths};
+    my @paths = @{$self->paths};
     my $collection = Slic3r::Polyline::Collection->new(
         polylines => [ map $_->polyline, @paths ],
     );

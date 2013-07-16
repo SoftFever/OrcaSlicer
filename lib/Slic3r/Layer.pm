@@ -81,7 +81,7 @@ sub make_slices {
     
     my $slices = union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]);
     $self->slices->clear;
-    $self->slices->append(map Slic3r::ExPolygon::XS->new(@$_), @$slices);
+    $self->slices->append(map Slic3r::ExPolygon->new(@$_), @$slices);
 }
 
 sub make_perimeters {
