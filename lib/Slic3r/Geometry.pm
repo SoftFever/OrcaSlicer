@@ -195,21 +195,22 @@ sub point_in_segment {
     my ($point, $line) = @_;
     
     my ($x, $y) = @$point;
-    my @line_x = sort { $a <=> $b } $line->[A][X], $line->[B][X];
-    my @line_y = sort { $a <=> $b } $line->[A][Y], $line->[B][Y];
+    my $line_p = $line->pp;
+    my @line_x = sort { $a <=> $b } $line_p->[A][X], $line_p->[B][X];
+    my @line_y = sort { $a <=> $b } $line_p->[A][Y], $line_p->[B][Y];
     
     # check whether the point is in the segment bounding box
     return 0 unless $x >= ($line_x[0] - epsilon) && $x <= ($line_x[1] + epsilon)
         && $y >= ($line_y[0] - epsilon) && $y <= ($line_y[1] + epsilon);
     
     # if line is vertical, check whether point's X is the same as the line
-    if ($line->[A][X] == $line->[B][X]) {
-        return abs($x - $line->[A][X]) < epsilon ? 1 : 0;
+    if ($line_p->[A][X] == $line_p->[B][X]) {
+        return abs($x - $line_p->[A][X]) < epsilon ? 1 : 0;
     }
     
     # calculate the Y in line at X of the point
-    my $y3 = $line->[A][Y] + ($line->[B][Y] - $line->[A][Y])
-        * ($x - $line->[A][X]) / ($line->[B][X] - $line->[A][X]);
+    my $y3 = $line_p->[A][Y] + ($line_p->[B][Y] - $line_p->[A][Y])
+        * ($x - $line_p->[A][X]) / ($line_p->[B][X] - $line_p->[A][X]);
     return abs($y3 - $y) < epsilon ? 1 : 0;
 }
 
@@ -249,19 +250,19 @@ sub nearest_point_index {
     my ($point, $points) = @_;
     
     my ($nearest_point_index, $distance) = ();
-
-    my $point_x = $point->[X];
-    my $point_y = $point->[Y];
-
+    
+    my ($point_x, $point_y) = @$point;
+    my @points_pp = map $_->pp, @$points;
+    
     for my $i (0..$#$points) {
-        my $d = ($point_x - $points->[$i]->[X])**2;
+        my $d = ($point_x - $points_pp[$i][X])**2;
         # If the X distance of the candidate is > than the total distance of the
         # best previous candidate, we know we don't want it
         next if (defined $distance && $d > $distance);
    
         # If the total distance of the candidate is > than the total distance of the
         # best previous candidate, we know we don't want it
-        $d += ($point_y - $points->[$i]->[Y])**2;
+        $d += ($point_y - $points_pp[$i][Y])**2;
         next if (defined $distance && $d > $distance);
 
         $nearest_point_index = $i;
@@ -286,14 +287,14 @@ sub point_along_segment {
         }
     }
     
-    return $point;
+    return Slic3r::Point->new(@$point);
 }
 
 # given a $polygon, return the (first) segment having $point
 sub polygon_segment_having_point {
     my ($polygon, $point) = @_;
     
-    foreach my $line (polygon_lines($polygon)) {
+    foreach my $line (@{ $polygon->lines }) {
         return $line if point_in_segment($point, $line);
     }
     return undef;

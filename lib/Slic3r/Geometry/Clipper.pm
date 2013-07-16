@@ -181,7 +181,7 @@ sub traverse_pt {
 sub _convert {
     my $p = shift;
     $p = $p->pp if ref($p) ne 'ARRAY' && $p->can('pp');
-    return [ map { ref($_) ne 'ARRAY' && $_->can('pp') ? $_->pp : $_ } @$p ];
+    return [ map { (ref($_) ne 'ARRAY' && $_->can('pp')) ? $_->pp : $_ } @$p ];
 }
 
 1;

@@ -72,8 +72,8 @@ void
 Point::from_SV(SV* point_sv)
 {
     AV* point_av = (AV*)SvRV(point_sv);
-    this->x = (unsigned long)SvIV(*av_fetch(point_av, 0, 0));
-    this->y = (unsigned long)SvIV(*av_fetch(point_av, 1, 0));
+    this->x = (long)SvIV(*av_fetch(point_av, 0, 0));
+    this->y = (long)SvIV(*av_fetch(point_av, 1, 0));
 }
 
 void

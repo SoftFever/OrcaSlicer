@@ -7,26 +7,36 @@ our $VERSION = '0.01';
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
-package Slic3r::Point;
-use overload
-    '@{}' => sub { $_[0]->arrayref };
-
-package Slic3r::ExPolygon;
-use overload
-    '@{}' => sub { $_[0]->arrayref };
-
-package Slic3r::Polyline;
+package Slic3r::Line;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::Point;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
+package Slic3r::ExPolygon;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
+package Slic3r::Polyline;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1,
+    'fallback' => 1;
+
 package Slic3r::Polygon;
 use overload
-    '@{}' => sub { $_[0]->arrayref };
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
 
 package Slic3r::ExPolygon::Collection;
 use overload
-    '@{}' => sub { $_[0]->arrayref };
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
 
 package Slic3r::ExtrusionLoop;
 use overload
@@ -116,6 +126,7 @@ sub clone {
 
 package Slic3r::Surface::Collection;
 use overload
-    '@{}' => sub { $_[0]->arrayref };
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
 
 1;

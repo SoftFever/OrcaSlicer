@@ -65,17 +65,18 @@ sub fill_surface {
     
     # clip paths against a slightly offsetted expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
-    my @paths = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-        +($expolygon->offset_ex(scaled_epsilon))[0]->pp,  # TODO: we should use all the resulting expolygons and clip the linestrings to a multipolygon object
-        [ map $_->pp, @{ $self->cache->{$cache_id} } ],
-    ) };
+    my @polylines = map Slic3r::Polyline->new(@$_),
+        @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
+            [ map $_->pp, $expolygon->offset_ex(scaled_epsilon) ],
+            [ map $_->pp, @{ $self->cache->{$cache_id} } ],
+        ) };
     
     # connect lines
     unless ($params{dont_connect}) {
         my $collection = Slic3r::Polyline::Collection->new(
-            polylines => [ map Slic3r::Polyline->new(@$_), @paths ],
+            polylines => [ @polylines ],
         );
-        @paths = ();
+        @polylines = ();
         
         my $tolerance = 10 * scaled_epsilon;
         my $diagonal_distance = $distance_between_lines * 2;
@@ -86,26 +87,26 @@ sub fill_surface {
             }
             : sub { $_[X] <= $diagonal_distance && $_[Y] <= $diagonal_distance };
         
-        foreach my $path ($collection->chained_path) {
-            if (@paths) {
-                my @distance = map abs($path->[0][$_] - $paths[-1][-1][$_]), (X,Y);
+        foreach my $polyline ($collection->chained_path) {
+            if (@polylines) {
+                my $last_point = $polylines[-1][-1]->pp;
+                my @distance = map abs($polyline->[0][$_] - $last_point->[$_]), (X,Y);
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
-                if ($can_connect->(@distance)
-                    && $expolygon_off->encloses_line(Slic3r::Line->new($paths[-1][-1], $path->[0]), $tolerance)) {
-                    push @{$paths[-1]}, @$path;
+                if ($can_connect->(@distance) && $expolygon_off->encloses_line(Slic3r::Line->new($last_point, $polyline->[0]), $tolerance)) {
+                    $polylines[-1]->append(@$polyline);
                     next;
                 }
             }
-            push @paths, $path;
+            push @polylines, $polyline;
         }
     }
     
     # paths must be rotated back
-    $self->rotate_points_back(\@paths, $rotate_vector);
+    $self->rotate_points_back(\@polylines, $rotate_vector);
     
-    return { flow_spacing => $flow_spacing }, @paths;
+    return { flow_spacing => $flow_spacing }, @polylines;
 }
 
 1;

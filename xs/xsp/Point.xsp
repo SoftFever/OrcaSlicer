@@ -6,7 +6,7 @@
 %}
 
 %name{Slic3r::Point} class Point {
-    Point(unsigned long _x = 0, unsigned long _y = 0);
+    Point(long _x = 0, long _y = 0);
     ~Point();
     Point* clone()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*THIS); %};
@@ -14,9 +14,11 @@
     void translate(double x, double y);
     SV* arrayref()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
-    unsigned long x()
+    SV* pp()
+        %code{% RETVAL = THIS->to_SV_pureperl(); %};
+    long x()
         %code{% RETVAL = THIS->x; %};
-    unsigned long y()
+    long y()
         %code{% RETVAL = THIS->y; %};
 
 %{

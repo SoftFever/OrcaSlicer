@@ -6,6 +6,12 @@ use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 use Storable qw();
 
+sub new_scale {
+    my $class = shift;
+    my @points = map { ref($_) eq 'Slic3r::Point' ? $_->pp : $_ } @_;
+    return $class->new(map [ Slic3r::Geometry::scale($_->[X]), Slic3r::Geometry::scale($_->[Y]) ], @points);
+}
+
 sub wkt {
     my $self = shift;
     return sprintf "LINESTRING((%s))", join ',', map "$_->[0] $_->[1]", @$self;
@@ -39,9 +45,10 @@ sub grow {
     my ($distance, $scale, $joinType, $miterLimit) = @_;
     $joinType //= JT_SQUARE;
     
+    my @points = @$self;
     return map Slic3r::Polygon->new(@$_),
         Slic3r::Geometry::Clipper::offset(
-            [ [ @$self, CORE::reverse @$self[1..($#$self-1)] ] ],
+            [ Slic3r::Polygon->new(@points, CORE::reverse @points[1..($#points-1)]) ],
             $distance, $scale, $joinType, $miterLimit,
         );
 }
@@ -72,7 +79,7 @@ sub clip_with_expolygon {
     my ($expolygon) = @_;
     
     my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->pp, [$self->pp]);
-    return @$result;
+    return map { (ref $self)->new(@$_) } @$result;
 }
 
 sub bounding_box {
@@ -108,7 +115,7 @@ sub clip_end {
         }
         
         my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->[-1], $distance);
-        $self->append(Slic3r::Point->new($new_point));
+        $self->append($new_point);
         $distance = 0;
     }
 }
@@ -142,22 +149,18 @@ use Moo;
 
 has 'polylines' => (is => 'ro', default => sub { [] });
 
-# If the second argument is provided, this method will return its items sorted
-# instead of returning the actual sorted polylines. 
 # Note that our polylines will be reversed in place when necessary.
 sub chained_path {
     my $self = shift;
-    my ($start_near, $items, $no_reverse) = @_;
+    my ($start_near, $no_reverse) = @_;
     
-    $items ||= $self->polylines;
-    my %items_map = map { $self->polylines->[$_] => $items->[$_] } 0 .. $#{$self->polylines};
     my @my_paths = @{$self->polylines};
     
     my @paths = ();
     my $start_at;
     my $endpoints = $no_reverse
-        ? [ map { $_->[0], $_->[0]  } @my_paths ]
-        : [ map { $_->[0], $_->[-1] } @my_paths ];
+        ? [ map { @$_[0,0] }  @my_paths ]
+        : [ map { @$_[0,-1] } @my_paths ];
     while (@my_paths) {
         # find nearest point
         my $start_index = defined $start_near
@@ -172,7 +175,7 @@ sub chained_path {
         splice @$endpoints, $path_index*2, 2;
         $start_near = $paths[-1][-1];
     }
-    return map $items_map{"$_"}, @paths;
+    return @paths;
 }
 
 1;

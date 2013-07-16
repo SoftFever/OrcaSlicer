@@ -31,8 +31,7 @@ has 'slices' => (is => 'rw', default => sub { Slic3r::Surface::Collection->new }
 # in the original geometry
 has 'thin_walls' => (is => 'rw', default => sub { [] });
 
-# collection of polygons or polylines representing thin infill regions that
-# need to be filled with a medial axis
+# collection of extrusion paths/loops filling gaps
 has 'thin_fills' => (is => 'rw', default => sub { [] });
 
 # collection of surfaces for infill generation
@@ -234,7 +233,7 @@ sub make_perimeters {
         # use a nearest neighbor search to order these children
         # TODO: supply second argument to chained_path_items() too?
         my @nodes = @{Slic3r::Geometry::chained_path_items(
-            [ map [ ($_->{outer} ? $_->{outer}[0] : $_->{hole}[0]), $_ ], @$polynodes ],
+            [ map [ Slic3r::Point->new(@{$_->{outer} ? $_->{outer}[0] : $_->{hole}[0]}), $_ ], @$polynodes ],
         )};
         
         my @loops = ();

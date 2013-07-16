@@ -91,7 +91,7 @@ sub fill_surface {
         @paths = map Slic3r::Polyline->new(@$_),
             @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
                 $surface->expolygon->pp,
-                \@polygons,
+                [ map $_->pp, @polygons ],
             ) };
         
         # connect paths
@@ -104,7 +104,7 @@ sub fill_surface {
                     my $distance = $paths[-1][-1]->distance_to($path->[0]);
                     
                     if ($distance <= $m->{hex_width}) {
-                        push @{$paths[-1]}, @$path;
+                        $paths[-1]->append(@$path);
                         next;
                     }
                 }
@@ -115,8 +115,8 @@ sub fill_surface {
         # clip paths again to prevent connection segments from crossing the expolygon boundaries
         @paths = map Slic3r::Polyline->new(@$_),
             @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-                [ map $_->arrayref, $surface->expolygon->offset_ex(scaled_epsilon) ],
-                [ @paths ],
+                [ map $_->pp, $surface->expolygon->offset_ex(scaled_epsilon) ],
+                [ map $_->pp, @paths ],
             ) } if @paths;  # this temporary check is a workaround for the multilinestring bug in B::G::U
     }
     

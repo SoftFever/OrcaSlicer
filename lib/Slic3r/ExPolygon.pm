@@ -87,9 +87,9 @@ sub encloses_line {
     my $clip = $self->clip_line($line);
     if (!defined $tolerance) {
         # optimization
-        return @$clip == 1 && same_line($clip->[0], $line);
+        return @$clip == 1 && same_line($clip->[0]->pp, $line->pp);
     } else {
-        return @$clip == 1 && abs(Boost::Geometry::Utils::linestring_length($clip->[0]) - $line->length) < $tolerance;
+        return @$clip == 1 && abs(Boost::Geometry::Utils::linestring_length($clip->[0]->pp) - $line->length) < $tolerance;
     }
 }
 
@@ -102,7 +102,10 @@ sub clip_line {
     my $self = shift;
     my ($line) = @_;  # line must be a Slic3r::Line object
     
-    return Boost::Geometry::Utils::polygon_multi_linestring_intersection($self->pp, [$line->pp]);
+    return [
+        map Slic3r::Line->new(@$_),
+            @{Boost::Geometry::Utils::polygon_multi_linestring_intersection($self->pp, [$line->pp])}
+    ];
 }
 
 sub simplify {

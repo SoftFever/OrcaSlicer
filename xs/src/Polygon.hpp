@@ -40,7 +40,7 @@ Polygon::split_at_index(int index)
     for (int i = index; i < this->points.size(); i++) {
         poly->points.push_back( this->points[i] );
     }
-    for (int i = 0; i < index; i++) {
+    for (int i = 0; i <= index; i++) {
         poly->points.push_back( this->points[i] );
     }
     return poly;

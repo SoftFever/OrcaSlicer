@@ -27,7 +27,7 @@ is_deeply [ map $_->pp, @$lines ], [
     [ [100, 200], [100, 100] ],
 ], 'polygon lines';
 
-is_deeply $polygon->split_at_first_point->pp, $square, 'split_at_first_point';
-is_deeply $polygon->split_at_index(2)->pp, [ @$square[2,3,0,1] ], 'split_at_index';
+is_deeply $polygon->split_at_first_point->pp, [ @$square[0,1,2,3,0] ], 'split_at_first_point';
+is_deeply $polygon->split_at_index(2)->pp, [ @$square[2,3,0,1,2] ], 'split_at_index';
 
 __END__

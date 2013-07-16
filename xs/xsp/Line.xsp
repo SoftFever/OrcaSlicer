@@ -18,6 +18,8 @@
     Point* b()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->b); %};
     void reverse();
+    void scale(double factor);
+    void translate(double x, double y);
 %{
 
 Line*
@@ -29,6 +31,16 @@ Line::new(...)
         RETVAL->b.from_SV_check( ST(2) );
     OUTPUT:
         RETVAL
+        }
+
+void
+Line::rotate(angle, center_sv)
+    double  angle;
+    SV*     center_sv;
+    CODE:
+        Point center;
+        center.from_SV_check(center_sv);
+        THIS->rotate(angle, &center);
 
 %}
 };

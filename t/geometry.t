@@ -29,37 +29,38 @@ isnt Slic3r::Geometry::line_intersection($line1, $line2, 1), undef, 'line_inters
 #==========================================================
 
 {
-    my $polyline = [
+    my $polygon = Slic3r::Polygon->new(
         [459190000, 5152739000], [147261000, 4612464000], [147261000, 3487535000], [339887000, 3153898000], 
         [437497000, 3438430000], [454223000, 3522515000], [523621000, 3626378000], [627484000, 3695776000], 
         [750000000, 3720147000], [872515000, 3695776000], [976378000, 3626378000], [1045776000, 3522515000], 
         [1070147000, 3400000000], [1045776000, 3277484000], [976378000, 3173621000], [872515000, 3104223000], 
         [827892000, 3095347000], [698461000, 2947261000], [2540810000, 2947261000], [2852739000, 3487535000], 
         [2852739000, 4612464000], [2540810000, 5152739000],
-    ];
+    );
     
     # this points belongs to $polyline
-    my $point = [2797980957.103410,3392691792.513960];
+    # note: it's actually a vertex, while we should better check an intermediate point
+    my $point = Slic3r::Point->new(1045776000, 3277484000);
     
     local $Slic3r::Geometry::epsilon = 1E-5;
-    is_deeply Slic3r::Geometry::polygon_segment_having_point($polyline, $point), 
-        [ [2540810000, 2947261000], [2852739000, 3487535000] ],
+    is_deeply Slic3r::Geometry::polygon_segment_having_point($polygon, $point)->pp, 
+        [ [1070147000, 3400000000], [1045776000, 3277484000] ],
         'polygon_segment_having_point';
 }
 
 #==========================================================
 
 {
-    my $point = [ 736310778.185108, 5017423926.8924 ];
-    my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
+    my $point = Slic3r::Point->new(736310778.185108, 5017423926.8924);
+    my $line = Slic3r::Line->new([627484000, 3695776000], [750000000, 3720147000]);
     is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
 }
 
 #==========================================================
 
 {
-    my $point = [ 736310778.185108, 5017423926.8924 ];
-    my $line = [ [627484000, 3695776000], [750000000, 3720147000] ];
+    my $point = Slic3r::Point->new(736310778.185108, 5017423926.8924);
+    my $line = Slic3r::Line->new([627484000, 3695776000], [750000000, 3720147000]);
     is Slic3r::Geometry::point_in_segment($point, $line), 0, 'point_in_segment';
 }
 
@@ -158,7 +159,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 
 {
     my $polyline = Slic3r::Polyline->new([0, 0], [10, 0], [20, 0]);
-    is_deeply [ map $_->pp, $polyline->lines ], [
+    is_deeply [ map $_->pp, @{$polyline->lines} ], [
         [ [0, 0], [10, 0] ],
         [ [10, 0], [20, 0] ],
     ], 'polyline_lines';
@@ -167,8 +168,8 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 #==========================================================
 
 {
-    my $polyline = Slic3r::Polygon->new([0, 0], [10, 0], [5, 5]);
-    my $result = $polyline->split_at_index(1);
+    my $polygon = Slic3r::Polygon->new([0, 0], [10, 0], [5, 5]);
+    my $result = $polygon->split_at_index(1);
     is ref($result), 'Slic3r::Polyline', 'split_at_index returns polyline';
     is_deeply $result->pp, [ [10, 0], [5, 5], [0, 0], [10, 0] ], 'split_at_index';
 }

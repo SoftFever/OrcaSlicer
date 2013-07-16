@@ -32,7 +32,7 @@ sub intersect_expolygons {
     my ($expolygons) = @_;
     
     return map $self->clone(polyline => Slic3r::Polyline->new(@$_)),
-        @{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection($expolygons, [$self->arrayref])};
+        @{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection([ map $_->pp, @$expolygons ], [$self->pp])};
 }
 
 sub subtract_expolygons {
@@ -40,12 +40,24 @@ sub subtract_expolygons {
     my ($expolygons) = @_;
     
     return map $self->clone(polyline => Slic3r::Polyline->new(@$_)),
-        @{Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$self->arrayref], $expolygons)};
+        @{Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$self->pp], [ map $_->pp, @$expolygons ])};
 }
 
 sub simplify {
     my $self = shift;
-    $self->set_polyline($self->polyline->simplify(@_));
+    $self->polyline($self->polyline->simplify(@_));
+}
+
+sub clip_end {
+    my $self = shift;
+    my $polyline = $self->polyline;
+    $polyline->clip_end(@_);
+    $self->polyline($polyline);
+}
+
+sub length {
+    my $self = shift;
+    return $self->polyline->length;
 }
 
 sub points {

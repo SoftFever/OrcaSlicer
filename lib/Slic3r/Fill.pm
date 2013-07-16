@@ -157,24 +157,20 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
-        my @paths;
-        {
-            my $f = $self->filler($filler);
-            $f->layer_id($layerm->id);
-            @paths = $f->fill_surface(
-                $surface,
-                density         => $density,
-                flow_spacing    => $flow_spacing,
-                dont_adjust     => $is_bridge,
-            );
-        }
-        my $params = shift @paths;
+        my $f = $self->filler($filler);
+        $f->layer_id($layerm->id);
+        my ($params, @polylines) = $f->fill_surface(
+            $surface,
+            density         => $density,
+            flow_spacing    => $flow_spacing,
+            dont_adjust     => $is_bridge,
+        );
+        next unless @polylines;
         
         # ugly hack(tm) to get the right amount of flow (GCode.pm should be fixed)
         $params->{flow_spacing} = $layerm->extruders->{infill}->bridge_flow->width if $is_bridge;
         
         # save into layer
-        next unless @paths;
         push @fills, Slic3r::ExtrusionPath::Collection->new(
             no_sort => $params->{no_sort},
             paths => [
@@ -189,10 +185,10 @@ sub make_fill {
                                 : EXTR_ROLE_FILL),
                     height => $surface->thickness,
                     flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
-                ), @paths,
+                ), @polylines,
             ],
         );
-        push @fills_ordering_points, $paths[0][0];
+        push @fills_ordering_points, $polylines[0][0];
     }
     
     # add thin fill regions

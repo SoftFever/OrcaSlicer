@@ -100,7 +100,7 @@ sub change_layer {
     # avoid computing overhangs if they're not needed
     $self->_layer_overhangs(
         $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
-            ? [ map $_->expolygon->arrayref, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
+            ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
             : []
         );
     if ($self->config->avoid_crossing_perimeters) {
@@ -152,8 +152,8 @@ sub extrude_loop {
     my ($loop, $description) = @_;
     
     # extrude all loops ccw
+    my $was_clockwise = $loop->make_counter_clockwise;
     my $polygon = $loop->polygon;
-    my $was_clockwise = $polygon->make_counter_clockwise;
     
     # find candidate starting points
     # start looking for concave vertices not being overhangs
@@ -310,8 +310,8 @@ sub extrude_path {
             $path->center, $e * unscale $path_length, $description);
         $self->wipe_path(undef);
     } else {
-        foreach my $line ($path->lines) {
-            my $line_length = unscale $line->length;
+        foreach my $line (@{$path->lines}) {
+            my $line_length = unscale($line->length);
             $path_length += $line_length;
             $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
         }
@@ -341,8 +341,7 @@ sub travel_to {
     my ($point, $role, $comment) = @_;
     
     my $gcode = "";
-    
-    my $travel = Slic3r::Line->new($self->last_pos->clone, $point->clone);
+    my $travel = Slic3r::Line->new($self->last_pos, $point);
     
     # move travel back to original layer coordinates for the island check.
     # note that we're only considering the current object's islands, while we should

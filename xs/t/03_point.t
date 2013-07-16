@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 5;
+use Test::More tests => 7;
 
 my $point = Slic3r::Point->new(10, 15);
 is_deeply [ @$point ], [10, 15], 'point roundtrip';
@@ -18,5 +18,11 @@ is_deeply [ @$point2 ], [30, 15], 'translate';
 
 ok $point->coincides_with($point->clone), 'coincides_with';
 ok !$point->coincides_with($point2), 'coincides_with';
+
+{
+    my $point3 = Slic3r::Point->new(4300000, -9880845);
+    is $point->[0], $point->x, 'x accessor';
+    is $point->[1], $point->y, 'y accessor';
+}
 
 __END__

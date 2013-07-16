@@ -54,7 +54,7 @@ sub remove_acute_vertices {
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, [$self->pp]);
+    return Boost::Geometry::Utils::point_covered_by_polygon($point->pp, [$self->pp]);
 }
 
 sub area {
@@ -138,9 +138,10 @@ sub split_at {
 sub concave_points {
     my $self = shift;
     
+    my @points = @{$self->pp};
     return map $self->[$_],
-        grep Slic3r::Geometry::angle3points(@$self[$_, $_-1, $_+1]) < PI - epsilon,
-        -1 .. ($#$self-1);
+        grep Slic3r::Geometry::angle3points(@points[$_, $_-1, $_+1]) < PI - epsilon,
+        -1 .. ($#points-1);
 }
 
 1;

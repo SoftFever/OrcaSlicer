@@ -28,10 +28,10 @@ is $loop->role, Slic3r::ExtrusionPath::EXTR_ROLE_FILL, 'modify role';
 
 {
     my $path = $loop->split_at_first_point;
-    is_deeply $path->polyline->pp, $square, 'split_at_first_point';
+    is_deeply $path->polyline->pp, [ @$square[0,1,2,3,0] ], 'split_at_first_point';
     is $path->role, $loop->role, 'role preserved after split';
     
-    is_deeply $loop->split_at_index(2)->polyline->pp, [ @$square[2,3,0,1] ], 'split_at_index';
+    is_deeply $loop->split_at_index(2)->polyline->pp, [ @$square[2,3,0,1,2] ], 'split_at_index';
 }
 
 __END__

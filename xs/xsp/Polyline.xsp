@@ -38,7 +38,7 @@ Polyline::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
             Point p;
-            p.from_SV_check( ST(1) );
+            p.from_SV_check( ST(i) );
             THIS->points.push_back(p);
         }
 

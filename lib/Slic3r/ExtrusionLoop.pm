@@ -18,4 +18,13 @@ sub first_point {
     return $self->polygon->[0];
 }
 
+sub make_counter_clockwise {
+    my $self = shift;
+    if (!$self->polygon->is_counter_clockwise) {
+        $self->reverse;
+        return 1;
+    }
+    return 0;
+}
+
 1;

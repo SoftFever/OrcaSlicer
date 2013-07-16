@@ -15,6 +15,7 @@
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
     void scale(double factor);
     void translate(double x, double y);
+    void reverse();
     Lines lines();
     Polyline* split_at_index(int index)
         %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_index(index); %};
