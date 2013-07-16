@@ -16,6 +16,8 @@ class Polygon : public MultiPoint {
     Polyline* split_at_index(int index);
     Polyline* split_at_first_point();
     bool is_counter_clockwise();
+    bool make_counter_clockwise();
+    bool make_clockwise();
 };
 
 typedef std::vector<Polygon> Polygons;

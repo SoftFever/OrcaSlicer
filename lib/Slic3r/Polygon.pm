@@ -15,24 +15,6 @@ sub wkt {
     return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
 }
 
-sub make_counter_clockwise {
-    my $self = shift;
-    if (!$self->is_counter_clockwise) {
-        $self->reverse;
-        return 1;
-    }
-    return 0;
-}
-
-sub make_clockwise {
-    my $self = shift;
-    if ($self->is_counter_clockwise) {
-        $self->reverse;
-        return 1;
-    }
-    return 0;
-}
-
 sub merge_continuous_lines {
     my $self = shift;
     

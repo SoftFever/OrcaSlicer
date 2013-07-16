@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 my $square = [  # ccw
     [100, 100],
@@ -35,6 +35,10 @@ ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
     my $clone = $polygon->clone;
     $clone->reverse;
     ok !$clone->is_counter_clockwise, 'is_counter_clockwise';
+    $clone->make_counter_clockwise;
+    ok $clone->is_counter_clockwise, 'make_counter_clockwise';
+    $clone->make_counter_clockwise;
+    ok $clone->is_counter_clockwise, 'make_counter_clockwise';
 }
 
 __END__

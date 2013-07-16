@@ -52,4 +52,24 @@ Polygon::is_counter_clockwise()
     return orientation;
 }
 
+bool
+Polygon::make_counter_clockwise()
+{
+    if (!this->is_counter_clockwise()) {
+        this->reverse();
+        return true;
+    }
+    return false;
+}
+
+bool
+Polygon::make_clockwise()
+{
+    if (this->is_counter_clockwise()) {
+        this->reverse();
+        return true;
+    }
+    return false;
+}
+
 }
