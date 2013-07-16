@@ -74,4 +74,41 @@ offset2_ex(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMi
     OUTPUT:
         RETVAL
 
+ExPolygons
+diff_ex(subject, clip, safety_offset = false)
+    Polygons    subject
+    Polygons    clip
+    bool        safety_offset
+    CODE:
+        // read input
+        ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
+        ClipperLib::Polygons* input_clip    = new ClipperLib::Polygons();
+        Slic3rPolygons_to_ClipperPolygons(subject, *input_subject);
+        Slic3rPolygons_to_ClipperPolygons(clip,    *input_clip);
+        
+        // perform safety offset
+        if (safety_offset) {
+            // SafetyOffset(*input_clip);
+        }
+        
+        // init Clipper
+        ClipperLib::Clipper clipper;
+        clipper.Clear();
+        
+        // add polygons
+        clipper.AddPolygons(*input_subject, ClipperLib::ptSubject);
+        delete input_subject;
+        clipper.AddPolygons(*input_clip, ClipperLib::ptClip);
+        delete input_clip;
+        
+        // perform operation
+        ClipperLib::PolyTree* polytree = new ClipperLib::PolyTree();
+        clipper.Execute(ClipperLib::ctDifference, *polytree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+        
+        // convert into ExPolygons
+        PolyTreeToExPolygons(*polytree, RETVAL);
+        delete polytree;
+    OUTPUT:
+        RETVAL
+
 %}

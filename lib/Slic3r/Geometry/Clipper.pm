@@ -45,18 +45,6 @@ sub offset2 {
     return @$offsets;
 }
 
-sub diff_ex {
-    my ($subject, $clip, $safety_offset) = @_;
-    
-    $clipper->clear;
-    $clipper->add_subject_polygons(_convert($subject));
-    $clipper->add_clip_polygons($safety_offset ? _convert(safety_offset($clip)) : _convert($clip));
-    return [
-        map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}),
-            @{ $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
-    ];
-}
-
 sub diff {
     my ($subject, $clip, $safety_offset) = @_;
     
