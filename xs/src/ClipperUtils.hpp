@@ -96,6 +96,95 @@ scaleClipperPolygons(ClipperLib::Polygons &polygons, const double scale)
     }
 }
 
+void
+offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
+    double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    double miterLimit = 3)
+{
+    // read input
+    ClipperLib::Polygons* input = new ClipperLib::Polygons();
+    Slic3rPolygons_to_ClipperPolygons(polygons, *input);
+    
+    // scale input
+    scaleClipperPolygons(*input, scale);
+    
+    // perform offset
+    ClipperLib::Polygons* output = new ClipperLib::Polygons();
+    ClipperLib::OffsetPolygons(*input, *output, (delta*scale), joinType, miterLimit);
+    delete input;
+    
+    // unscale output
+    scaleClipperPolygons(*output, 1/scale);
+    
+    // convert into ExPolygons
+    ClipperPolygons_to_Slic3rExPolygons(*output, retval);
+    delete output;
+}
+
+void
+offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta1,
+    const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    double miterLimit = 3)
+{
+    // read input
+    ClipperLib::Polygons* input = new ClipperLib::Polygons();
+    Slic3rPolygons_to_ClipperPolygons(polygons, *input);
+    
+    // scale input
+    scaleClipperPolygons(*input, scale);
+    
+    // perform first offset
+    ClipperLib::Polygons* output1 = new ClipperLib::Polygons();
+    ClipperLib::OffsetPolygons(*input, *output1, (delta1*scale), joinType, miterLimit);
+    delete input;
+    
+    // perform second offset
+    ClipperLib::Polygons* output2 = new ClipperLib::Polygons();
+    ClipperLib::OffsetPolygons(*output1, *output2, (delta2*scale), joinType, miterLimit);
+    delete output1;
+    
+    // unscale output
+    scaleClipperPolygons(*output2, 1/scale);
+    
+    // convert into ExPolygons
+    ClipperPolygons_to_Slic3rExPolygons(*output2, retval);
+    delete output2;
+}
+
+void
+diff_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset)
+{
+    // read input
+    ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
+    ClipperLib::Polygons* input_clip    = new ClipperLib::Polygons();
+    Slic3rPolygons_to_ClipperPolygons(subject, *input_subject);
+    Slic3rPolygons_to_ClipperPolygons(clip,    *input_clip);
+    
+    // perform safety offset
+    if (safety_offset) {
+        // SafetyOffset(*input_clip);
+    }
+    
+    // init Clipper
+    ClipperLib::Clipper clipper;
+    clipper.Clear();
+    
+    // add polygons
+    clipper.AddPolygons(*input_subject, ClipperLib::ptSubject);
+    delete input_subject;
+    clipper.AddPolygons(*input_clip, ClipperLib::ptClip);
+    delete input_clip;
+    
+    // perform operation
+    ClipperLib::PolyTree* polytree = new ClipperLib::PolyTree();
+    clipper.Execute(ClipperLib::ctDifference, *polytree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    
+    // convert into ExPolygons
+    PolyTreeToExPolygons(*polytree, retval);
+    delete polytree;
+}
+
+
 
 }
 

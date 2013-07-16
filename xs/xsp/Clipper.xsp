@@ -18,24 +18,7 @@ offset_ex(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miter
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        // read input
-        ClipperLib::Polygons* input = new ClipperLib::Polygons();
-        Slic3rPolygons_to_ClipperPolygons(polygons, *input);
-        
-        // scale input
-        scaleClipperPolygons(*input, scale);
-        
-        // perform offset
-        ClipperLib::Polygons* output = new ClipperLib::Polygons();
-        ClipperLib::OffsetPolygons(*input, *output, (delta*scale), joinType, miterLimit);
-        delete input;
-        
-        // unscale output
-        scaleClipperPolygons(*output, 1/scale);
-        
-        // convert into ExPolygons
-        ClipperPolygons_to_Slic3rExPolygons(*output, RETVAL);
-        delete output;
+        offset_ex(polygons, RETVAL, delta, scale, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
@@ -48,29 +31,7 @@ offset2_ex(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMi
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        // read input
-        ClipperLib::Polygons* input = new ClipperLib::Polygons();
-        Slic3rPolygons_to_ClipperPolygons(polygons, *input);
-        
-        // scale input
-        scaleClipperPolygons(*input, scale);
-        
-        // perform first offset
-        ClipperLib::Polygons* output1 = new ClipperLib::Polygons();
-        ClipperLib::OffsetPolygons(*input, *output1, (delta1*scale), joinType, miterLimit);
-        delete input;
-        
-        // perform second offset
-        ClipperLib::Polygons* output2 = new ClipperLib::Polygons();
-        ClipperLib::OffsetPolygons(*output1, *output2, (delta2*scale), joinType, miterLimit);
-        delete output1;
-        
-        // unscale output
-        scaleClipperPolygons(*output2, 1/scale);
-        
-        // convert into ExPolygons
-        ClipperPolygons_to_Slic3rExPolygons(*output2, RETVAL);
-        delete output2;
+        offset2_ex(polygons, RETVAL, delta1, delta2, scale, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
@@ -80,34 +41,7 @@ diff_ex(subject, clip, safety_offset = false)
     Polygons    clip
     bool        safety_offset
     CODE:
-        // read input
-        ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
-        ClipperLib::Polygons* input_clip    = new ClipperLib::Polygons();
-        Slic3rPolygons_to_ClipperPolygons(subject, *input_subject);
-        Slic3rPolygons_to_ClipperPolygons(clip,    *input_clip);
-        
-        // perform safety offset
-        if (safety_offset) {
-            // SafetyOffset(*input_clip);
-        }
-        
-        // init Clipper
-        ClipperLib::Clipper clipper;
-        clipper.Clear();
-        
-        // add polygons
-        clipper.AddPolygons(*input_subject, ClipperLib::ptSubject);
-        delete input_subject;
-        clipper.AddPolygons(*input_clip, ClipperLib::ptClip);
-        delete input_clip;
-        
-        // perform operation
-        ClipperLib::PolyTree* polytree = new ClipperLib::PolyTree();
-        clipper.Execute(ClipperLib::ctDifference, *polytree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
-        
-        // convert into ExPolygons
-        PolyTreeToExPolygons(*polytree, RETVAL);
-        delete polytree;
+        diff_ex(subject, clip, RETVAL, safety_offset);
     OUTPUT:
         RETVAL
 
