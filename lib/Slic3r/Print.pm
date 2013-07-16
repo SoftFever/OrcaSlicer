@@ -766,9 +766,9 @@ sub write_gcode {
             ]);
             # discard layers only containing thin walls (offset would fail on an empty polygon)
             if (@$convex_hull) {
-                my @island = Slic3r::ExPolygon->new($convex_hull)
-                    ->translate(scale $shift[X], scale $shift[Y])
-                    ->offset_ex(scale $distance_from_objects, 1, JT_SQUARE);
+                my $expolygon = Slic3r::ExPolygon->new($convex_hull);
+                $expolygon->translate(scale $shift[X], scale $shift[Y]);
+                my @island = @{$expolygon->offset_ex(scale $distance_from_objects, 1, JT_SQUARE)};
                 foreach my $copy (@{ $self->objects->[$obj_idx]->copies }) {
                     push @islands, map $_->clone->translate(@$copy), @island;
                 }

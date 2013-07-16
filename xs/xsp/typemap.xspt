@@ -9,6 +9,8 @@
 %typemap{ExtrusionPath*};
 %typemap{ExtrusionLoop*};
 %typemap{Lines};
+%typemap{Polygons};
+%typemap{ExPolygons};
 
 %typemap{SurfaceType}{parsed}{
   %cpp_type{SurfaceType};

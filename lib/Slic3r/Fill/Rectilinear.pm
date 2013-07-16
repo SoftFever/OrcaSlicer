@@ -16,7 +16,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my ($expolygon_off) = $expolygon->offset_ex(scale $params{flow_spacing}/2);
+    my $expolygon_off = $expolygon->offset_ex(scale $params{flow_spacing}/2)->[0];
     return {} if !defined $expolygon_off;  # skip some very small polygons (which shouldn't arrive here)
     
     my $flow_spacing = $params{flow_spacing};
@@ -67,7 +67,7 @@ sub fill_surface {
     # are kept even if the expolygon has vertical sides
     my @polylines = map Slic3r::Polyline->new(@$_),
         @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-            [ map $_->pp, $expolygon->offset_ex(scaled_epsilon) ],
+            [ map $_->pp, @{ $expolygon->offset_ex(scaled_epsilon) } ],
             [ map $_->pp, @{ $self->cache->{$cache_id} } ],
         ) };
     

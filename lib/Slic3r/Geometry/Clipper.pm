@@ -45,26 +45,6 @@ sub offset2 {
     return @$offsets;
 }
 
-sub offset_ex {
-    my ($polygons, $distance, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= 100000;
-    $joinType   //= JT_MITER;
-    $miterLimit //= 3;
-    
-    my $offsets = Math::Clipper::ex_int_offset(_convert($polygons), $distance, $scale, $joinType, $miterLimit);
-    return map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}), @$offsets;
-}
-
-sub offset2_ex {
-    my ($polygons, $delta1, $delta2, $scale, $joinType, $miterLimit) = @_;
-    $scale      ||= 100000;
-    $joinType   //= JT_MITER;
-    $miterLimit //= 3;
-    
-    my $offsets = Math::Clipper::ex_int_offset2(_convert($polygons), $delta1, $delta2, $scale, $joinType, $miterLimit);
-    return map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}), @$offsets;
-}
-
 sub diff_ex {
     my ($subject, $clip, $safety_offset) = @_;
     
@@ -147,7 +127,7 @@ sub xor_ex {
 
 sub collapse_ex {
     my ($polygons, $width) = @_;
-    return [ offset2_ex($polygons, -$width/2, +$width/2) ];
+    return offset2_ex($polygons, -$width/2, +$width/2);
 }
 
 sub simplify_polygon {

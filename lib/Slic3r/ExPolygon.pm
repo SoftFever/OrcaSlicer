@@ -51,12 +51,12 @@ sub offset {
 
 sub offset_ex {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::offset_ex($self, @_);
+    return Slic3r::Geometry::Clipper::offset_ex(\@$self, @_);
 }
 
 sub safety_offset {
     my $self = shift;
-    return Slic3r::Geometry::Clipper::safety_offset_ex($self, @_);
+    return Slic3r::Geometry::Clipper::safety_offset_ex(\@$self, @_);
 }
 
 sub noncollapsing_offset_ex {
@@ -69,7 +69,7 @@ sub noncollapsing_offset_ex {
 sub encloses_point {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point->arrayref, $self->pp);
+    return Boost::Geometry::Utils::point_covered_by_polygon($point->pp, $self->pp);
 }
 
 # A version of encloses_point for use when hole borders do not matter.
@@ -78,7 +78,7 @@ sub encloses_point {
 sub encloses_point_quick {
     my $self = shift;
     my ($point) = @_;
-    return Boost::Geometry::Utils::point_within_polygon($point->arrayref, $self->arrayref);
+    return Boost::Geometry::Utils::point_within_polygon($point->pp, $self->pp);
 }
 
 sub encloses_line {

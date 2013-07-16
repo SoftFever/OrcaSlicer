@@ -49,7 +49,7 @@ sub BUILD {
         # so that no motion along external perimeters happens
         $self->_inner->[$i] = $self->no_internal
             ? []
-            : [ $self->islands->[$i]->offset_ex(-$self->_inner_margin) ];
+            : $self->islands->[$i]->offset_ex(-$self->_inner_margin);
         
         # offset the island outwards to make the boundaries for external movements
         $self->_outer->[$i] = [ offset([ $self->islands->[$i]->contour], $self->_outer_margin) ];

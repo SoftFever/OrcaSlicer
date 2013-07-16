@@ -488,9 +488,9 @@ sub clip_fill_surfaces {
                 my $overhang_width = $layerm->overhang_width;
                 # we want to support any solid surface, not just tops
                 # (internal solids might have been generated)
-                push @overhangs, map $_->offset_ex($additional_margin), @{intersection_ex(
+                push @overhangs, map @{$_->offset_ex($additional_margin)}, @{intersection_ex(
                     [ map @{$_->expolygon}, grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
-                    [ map @$_, map $_->offset_ex(-$overhang_width), @{$lower_layer->slices} ],
+                    [ map @$_, map @{$_->offset_ex(-$overhang_width)}, @{$lower_layer->slices} ],
                 )};
             }
         }
@@ -825,7 +825,7 @@ sub generate_support_material {
             my $layer = $self->layers->[$i];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             
-            my @current_layer_offsetted_slices = map $_->offset_ex($distance_from_object), @{$layer->slices};
+            my @current_layer_offsetted_slices = map @{$_->offset_ex($distance_from_object)}, @{$layer->slices};
             
             # $upper_layers_overhangs[-1] contains the overhangs of the upper layer, regardless of any interface layers
             # $upper_layers_overhangs[0] contains the overhangs of the first upper layer above the interface layers
@@ -884,7 +884,7 @@ sub generate_support_material {
                         ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                         : $self->layers->[1]->regions->[0]->overhang_width;
                 
-                @overhangs = map $_->offset_ex(+$distance), @{diff_ex(
+                @overhangs = map @{$_->offset_ex(+$distance)}, @{diff_ex(
                     [ map @$_, @{$layer->slices} ],
                     [ map @$_, @{$lower_layer->slices} ],
                     1,
@@ -906,7 +906,7 @@ sub generate_support_material {
     my $support_interface_patterns = [];
     {
         # 0.5 ensures the paths don't get clipped externally when applying them to layers
-        my @areas = map $_->offset_ex(- 0.5 * $flow->scaled_width),
+        my @areas = map @{$_->offset_ex(- 0.5 * $flow->scaled_width)},
             @{union_ex([ map $_->contour, map @$_, values %layers, values %layers_interfaces, values %layers_contact_areas ])};
         
         my $pattern = $Slic3r::Config->support_material_pattern;

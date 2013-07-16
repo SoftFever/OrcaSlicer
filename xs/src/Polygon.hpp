@@ -15,12 +15,20 @@ namespace Slic3r {
 
 class Polygon : public MultiPoint {
     public:
+    SV* to_SV_ref();
     Lines lines();
     Polyline* split_at_index(int index);
     Polyline* split_at_first_point();
 };
 
 typedef std::vector<Polygon> Polygons;
+
+SV*
+Polygon::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(*this) );
+    return sv;
+}
 
 Lines
 Polygon::lines()

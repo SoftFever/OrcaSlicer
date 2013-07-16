@@ -5,7 +5,7 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2 offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
+    offset offset2 offset_ex offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -141,7 +141,7 @@ sub _merge_loops {
             $expolygons = diff_ex([ map @$_, @$expolygons ], [$loop]);
         }
     }
-    $expolygons = [ map $_->offset_ex(-$safety_offset), @$expolygons ];
+    $expolygons = offset_ex([ map @$_, @$expolygons ], -$safety_offset);
     
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
         scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
@@ -180,7 +180,7 @@ sub make_perimeters {
                 ? $perimeter_spacing / 2
                 : $perimeter_spacing;
             
-            my @offsets = offset2_ex(\@last, -1.5*$spacing,  +0.5*$spacing);
+            my @offsets = @{offset2_ex(\@last, -1.5*$spacing,  +0.5*$spacing)};
             my @contours_offsets    = map $_->contour, @offsets;
             my @holes_offsets       = map $_->holes, @offsets;
             @offsets = (@contours_offsets, @holes_offsets);     # turn @offsets from ExPolygons to Polygons
@@ -209,11 +209,11 @@ sub make_perimeters {
         # non-collapsing regions
         # use a bogus surface_type
         $self->fill_surfaces->append(
-            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_TOP), offset2_ex(
+            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_TOP), @{offset2_ex(
                 [ map $_->simplify(&Slic3r::SCALED_RESOLUTION), @last ],
                 -($perimeter_spacing/2 + $infill_spacing),
                 +$infill_spacing,
-            )
+            )}
         );
     }
     
@@ -322,8 +322,8 @@ sub _fill_gaps {
         my $flow = $self->perimeter_flow->clone(width => $width);
         
         # extract the gaps having this width
-        my @this_width = map $_->offset_ex(+0.5*$flow->scaled_width),
-            map $_->noncollapsing_offset_ex(-0.5*$flow->scaled_width),
+        my @this_width = map @{$_->offset_ex(+0.5*$flow->scaled_width)},
+            map @{$_->noncollapsing_offset_ex(-0.5*$flow->scaled_width)},
             @$gaps;
         
         if (0) {  # remember to re-enable t/dynamic.t
@@ -346,7 +346,7 @@ sub _fill_gaps {
             # fill gaps using zigzag infill
             
             # since this is infill, we have to offset by half-extrusion width inwards
-            my @infill = map $_->offset_ex(-0.5*$flow->scaled_width), @this_width;
+            my @infill = map @{$_->offset_ex(-0.5*$flow->scaled_width)}, @this_width;
             
             foreach my $expolygon (@infill) {
                 my @paths = $filler->fill_surface(
@@ -520,7 +520,7 @@ sub _detect_bridges {
             }
         } elsif (@edges) {
             # inset the bridge expolygon; we'll use this one to clip our test lines
-            my $inset = [ $surface->expolygon->offset_ex($self->infill_flow->scaled_width) ];
+            my $inset = $surface->expolygon->offset_ex($self->infill_flow->scaled_width);
             
             # detect anchors as intersection between our bridge expolygon and the lower slices
             my $anchors = intersection_ex(

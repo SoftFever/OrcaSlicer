@@ -22,6 +22,7 @@ class ExPolygon
     void from_SV(SV* poly_sv);
     void from_SV_check(SV* poly_sv);
     SV* to_SV();
+    SV* to_SV_ref();
     SV* to_SV_pureperl();
     void scale(double factor);
     void translate(double x, double y);
@@ -73,6 +74,13 @@ ExPolygon::to_SV() {
         av_store(av, i+1, sv);
     }
     return newRV_noinc((SV*)av);
+}
+
+SV*
+ExPolygon::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::ExPolygon", new ExPolygon(*this) );
+    return sv;
 }
 
 SV*

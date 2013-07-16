@@ -13,18 +13,37 @@ SurfaceCollection*      O_OBJECT
 
 ExtrusionRole     T_UV
 SurfaceType     T_UV
+ClipperLib::JoinType		T_UV
 
-Lines           T_LINES
+Lines           T_ARRAYREF
+Polygons        T_ARRAYREF
+ExPolygons      T_ARRAYREF
 
 INPUT
 
+T_ARRAYREF
+    if (SvROK($arg) && SvTYPE(SvRV($arg)) == SVt_PVAV) {
+        AV* av = (AV*)SvRV($arg);
+        const unsigned int len = av_len(av)+1;
+        $type* tmp = new $type(len);
+        for (unsigned int i = 0; i < len; i++) {
+            SV** elem = av_fetch(av, i, 0);
+            (*tmp)[i].from_SV_check(*elem);
+        }
+        $var = *tmp;
+	    delete tmp;
+    } else
+        Perl_croak(aTHX_ \"%s: %s is not an array reference\",
+	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+	             \"$var\");
+
 OUTPUT
 
-T_LINES
+T_ARRAYREF
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
 	const unsigned int len = $var.size();
 	av_extend(av, len-1);
 	for (unsigned int i = 0; i < len; i++) {
-	  av_store(av, i, ${var}[i].to_SV_ref());
+        av_store(av, i, ${var}[i].to_SV_ref());
 	}

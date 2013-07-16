@@ -22,7 +22,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         scale_points [0,0], [10,0], [10,10], [0,10],
     ]);
     
-    my @offsets = $square->noncollapsing_offset_ex(- scale 5);
+    my @offsets = @{$square->noncollapsing_offset_ex(- scale 5)};
     is scalar @offsets, 1, 'non-collapsing offset';
 }
 

@@ -31,7 +31,6 @@ Line::new(...)
         RETVAL->b.from_SV_check( ST(2) );
     OUTPUT:
         RETVAL
-        }
 
 void
 Line::rotate(angle, center_sv)
