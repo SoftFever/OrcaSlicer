@@ -43,14 +43,23 @@ void offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const fl
     const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
-inline void _clipper_ex(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
-    bool safety_offset);
-void diff_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset = false);
-void intersection_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
-    bool safety_offset = false);
+template <class T>
+void _clipper_do(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
+    Slic3r::Polygons &clip, T &retval, bool safety_offset);
+void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
+    Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset);
+void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
+    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset);
+
+template <class T>
+void diff(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset);
+
+template <class T>
+void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset);
+
 void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
     bool safety_offset = false);
+
 void union_ex(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset = false);
 
 }

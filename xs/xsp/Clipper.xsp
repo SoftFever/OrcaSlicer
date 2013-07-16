@@ -60,13 +60,33 @@ offset2_ex(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMi
     OUTPUT:
         RETVAL
 
+Polygons
+diff(subject, clip, safety_offset = false)
+    Polygons    subject
+    Polygons    clip
+    bool        safety_offset
+    CODE:
+        diff(subject, clip, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
 ExPolygons
 diff_ex(subject, clip, safety_offset = false)
     Polygons    subject
     Polygons    clip
     bool        safety_offset
     CODE:
-        diff_ex(subject, clip, RETVAL, safety_offset);
+        diff(subject, clip, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
+Polygons
+intersection(subject, clip, safety_offset = false)
+    Polygons                    subject
+    Polygons                    clip
+    bool                        safety_offset
+    CODE:
+        intersection(subject, clip, RETVAL, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -76,7 +96,7 @@ intersection_ex(subject, clip, safety_offset = false)
     Polygons                    clip
     bool                        safety_offset
     CODE:
-        intersection_ex(subject, clip, RETVAL, safety_offset);
+        intersection(subject, clip, RETVAL, safety_offset);
     OUTPUT:
         RETVAL
 

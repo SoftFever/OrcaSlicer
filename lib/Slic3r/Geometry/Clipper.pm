@@ -25,36 +25,12 @@ sub safety_offset_ex {
         @{Math::Clipper::ex_int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)};
 }
 
-sub diff {
-    my ($subject, $clip, $safety_offset) = @_;
-    
-    $clipper->clear;
-    $clipper->add_subject_polygons(_convert($subject));
-    $clipper->add_clip_polygons($safety_offset ? _convert(safety_offset($clip)) : _convert($clip));
-    return [
-        map Slic3r::Polygon->new(@$_),
-            @{ $clipper->execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO) },
-    ];
-}
-
 sub union_pt {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
     $clipper->add_subject_polygons($safety_offset ? _convert(safety_offset($polygons)) : _convert($polygons));
     return $clipper->pt_execute(CT_UNION, $jointype, $jointype);
-}
-
-sub intersection {
-    my ($subject, $clip, $jointype, $safety_offset) = @_;
-    $jointype = PFT_NONZERO unless defined $jointype;
-    $clipper->clear;
-    $clipper->add_subject_polygons(_convert($subject));
-    $clipper->add_clip_polygons($safety_offset ? _convert(safety_offset($clip)) : _convert($clip));
-    return [
-        map Slic3r::Polygon->new(@$_),
-            @{ $clipper->execute(CT_INTERSECTION, $jointype, $jointype) },
-    ];
 }
 
 sub collapse_ex {
