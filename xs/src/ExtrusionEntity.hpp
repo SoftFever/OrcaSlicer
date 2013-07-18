@@ -25,10 +25,13 @@ enum ExtrusionRole {
 class ExtrusionEntity
 {
     public:
+    virtual ~ExtrusionEntity() {};
     ExtrusionRole role;
     double height;  // vertical thickness of the extrusion expressed in mm
     double flow_spacing;
 };
+
+typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
 
 class ExtrusionPath : public ExtrusionEntity
 {

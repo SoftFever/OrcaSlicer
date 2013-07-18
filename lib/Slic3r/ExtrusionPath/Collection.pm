@@ -1,25 +1,19 @@
 package Slic3r::ExtrusionPath::Collection;
-use Moo;
-
-has 'paths' => (is => 'rw', default => sub { [] });
-has 'no_sort' => (is => 'rw');
-
-# no-op
-sub unpack { $_[0] }
+use strict;
+use warnings;
 
 sub first_point {
     my $self = shift;
-    return $self->paths->[0]->polyline->[0];
+    return $self->[0]->[0];
 }
 
-# Note that our paths will be reversed in place when necessary.
 # (Same algorithm as Polyline::Collection)
 sub chained_path {
     my $self = shift;
     my ($start_near, $no_reverse) = @_;
     
-    return @{$self->paths} if $self->no_sort;
-    my @my_paths = @{$self->paths};
+    my @my_paths = @$self;
+    return @my_paths if $self->no_sort;
     
     my @paths = ();
     my $start_at;
@@ -34,6 +28,7 @@ sub chained_path {
 
         my $path_index = int($start_index/2);
         if ($start_index % 2 && !$no_reverse) { # index is end so reverse to make it the start
+            # path is reversed in place, but we got a copy from XS
             $my_paths[$path_index]->reverse;
         }
         push @paths, splice @my_paths, $path_index, 1;

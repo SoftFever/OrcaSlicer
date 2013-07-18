@@ -1,0 +1,59 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "ExtrusionEntityCollection.hpp"
+%}
+
+%name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
+    ExtrusionEntityCollection();
+    ~ExtrusionEntityCollection();
+    void clear()
+        %code{% THIS->entities.clear(); %};
+%{
+
+SV*
+ExtrusionEntityCollection::arrayref()
+    CODE:
+        AV* av = newAV();
+        av_fill(av, THIS->entities.size()-1);
+        int i = 0;
+        for (ExtrusionEntitiesPtr::iterator it = THIS->entities.begin(); it != THIS->entities.end(); ++it) {
+            SV* sv = newSV(0);
+            // return COPIES
+            if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(*it)) {
+                sv_setref_pv( sv, "Slic3r::ExtrusionPath", new ExtrusionPath(*(ExtrusionPath*)*it) );
+            } else {
+                sv_setref_pv( sv, "Slic3r::ExtrusionLoop", new ExtrusionLoop(*(ExtrusionLoop*)*it) );
+            }
+            av_store(av, i++, sv);
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+void
+ExtrusionEntityCollection::append(...)
+    CODE:
+        for (unsigned int i = 1; i < items; i++) {
+            ExtrusionEntity* entity = (ExtrusionEntity *)SvIV((SV*)SvRV( ST(i) ));
+            // append COPIES
+            if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(entity)) {
+                THIS->entities.push_back( new ExtrusionPath(*path) );
+            } else {
+                THIS->entities.push_back( new ExtrusionLoop(*(ExtrusionLoop*)entity) );
+            }
+        }
+
+bool
+ExtrusionEntityCollection::no_sort(...)
+    CODE:
+        if (items > 1) {
+            THIS->no_sort = SvTRUE(ST(1));
+        }
+        RETVAL = THIS->no_sort;
+    OUTPUT:
+        RETVAL
+
+%}
+};

@@ -170,29 +170,28 @@ sub make_fill {
         $params->{flow_spacing} = $layerm->extruders->{infill}->bridge_flow->width if $is_bridge;
         
         # save into layer
-        push @fills, Slic3r::ExtrusionPath::Collection->new(
-            no_sort => $params->{no_sort},
-            paths => [
-                map Slic3r::ExtrusionPath->new(
-                    polyline => Slic3r::Polyline->new(@$_),
-                    role => ($surface->surface_type == S_TYPE_INTERNALBRIDGE
-                        ? EXTR_ROLE_INTERNALBRIDGE
-                        : $is_bridge
-                            ? EXTR_ROLE_BRIDGE
-                            : $is_solid
-                                ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
-                                : EXTR_ROLE_FILL),
-                    height => $surface->thickness,
-                    flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
-                ), @polylines,
-            ],
+        push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
+        $collection->no_sort($params->{no_sort});
+        $collection->append(
+            map Slic3r::ExtrusionPath->new(
+                polyline => Slic3r::Polyline->new(@$_),
+                role => ($surface->surface_type == S_TYPE_INTERNALBRIDGE
+                    ? EXTR_ROLE_INTERNALBRIDGE
+                    : $is_bridge
+                        ? EXTR_ROLE_BRIDGE
+                        : $is_solid
+                            ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
+                            : EXTR_ROLE_FILL),
+                height => $surface->thickness,
+                flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
+            ), @polylines,
         );
         push @fills_ordering_points, $polylines[0][0];
     }
     
     # add thin fill regions
     push @fills, @{$layerm->thin_fills};
-    push @fills_ordering_points, map $_->points->[0], @{$layerm->thin_fills};
+    push @fills_ordering_points, map $_->[0], @{$layerm->thin_fills};
     
     # organize infill paths using a nearest-neighbor search
     @fills = @fills[ chained_path(\@fills_ordering_points) ];

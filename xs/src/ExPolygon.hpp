@@ -23,6 +23,7 @@ class ExPolygon
 };
 
 typedef std::vector<ExPolygon> ExPolygons;
+typedef std::vector<ExPolygon*> ExPolygonsPtr;
 
 }
 

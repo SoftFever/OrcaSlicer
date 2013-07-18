@@ -9,8 +9,7 @@ namespace Slic3r {
 class ExPolygonCollection
 {
     public:
-    ExPolygons expolygons;
-    SV* arrayref();
+    ExPolygonsPtr expolygons;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);

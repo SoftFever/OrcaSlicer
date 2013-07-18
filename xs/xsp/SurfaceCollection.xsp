@@ -19,8 +19,8 @@ SurfaceCollection::new(...)
         RETVAL->surfaces.resize(items-1);
         for (unsigned int i = 1; i < items; i++) {
             // Note: a COPY of the input is stored
-            RETVAL->surfaces[i-1] = *(Surface *)SvIV((SV*)SvRV( ST(i) ));
-            RETVAL->surfaces[i-1].in_collection = true;
+            RETVAL->surfaces[i-1] = (Surface *)SvIV((SV*)SvRV( ST(i) ));
+            RETVAL->surfaces[i-1]->in_collection = true;
         }
     OUTPUT:
         RETVAL
@@ -31,9 +31,9 @@ SurfaceCollection::arrayref()
         AV* av = newAV();
         av_fill(av, THIS->surfaces.size()-1);
         int i = 0;
-        for (Surfaces::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
+        for (SurfacesPtr::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
             SV* sv = newSV(0);
-            sv_setref_pv( sv, "Slic3r::Surface", &*it );
+            sv_setref_pv( sv, "Slic3r::Surface", *it );
             av_store(av, i++, sv);
         }
         RETVAL = newRV_noinc((SV*)av);
@@ -44,8 +44,8 @@ void
 SurfaceCollection::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
-            THIS->surfaces.push_back(*(Surface *)SvIV((SV*)SvRV( ST(i) )));
-            THIS->surfaces.back().in_collection = true;
+            THIS->surfaces.push_back((Surface *)SvIV((SV*)SvRV( ST(i) )));
+            THIS->surfaces.back()->in_collection = true;
         }
 
 %}

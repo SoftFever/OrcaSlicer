@@ -19,6 +19,9 @@ class Surface
     bool            in_collection;
 };
 
+typedef std::vector<Surface> Surfaces;
+typedef std::vector<Surface*> SurfacesPtr;
+
 }
 
 #endif

@@ -5,13 +5,10 @@
 
 namespace Slic3r {
 
-typedef std::vector<Surface> Surfaces;
-
 class SurfaceCollection
 {
     public:
-    Surfaces surfaces;
-    SV* arrayref();
+    SurfacesPtr surfaces;
 };
 
 }

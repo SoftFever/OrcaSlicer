@@ -6,6 +6,7 @@ Polyline*       O_OBJECT
 Polygon*        O_OBJECT
 ExPolygon*      O_OBJECT
 ExPolygonCollection*    O_OBJECT
+ExtrusionEntityCollection*    O_OBJECT
 ExtrusionPath*  O_OBJECT
 ExtrusionLoop*  O_OBJECT
 Surface*        O_OBJECT

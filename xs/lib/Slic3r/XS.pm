@@ -38,6 +38,11 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::ExtrusionPath::Collection;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
 package Slic3r::ExtrusionLoop;
 use overload
     '@{}' => sub { $_[0]->arrayref },

@@ -24,8 +24,9 @@ ExPolygonCollection::new(...)
         RETVAL->expolygons.resize(items-1);
         for (unsigned int i = 1; i < items; i++) {
             // Note: a COPY of the input is stored
-            RETVAL->expolygons[i-1].from_SV_check(ST(i));
-            RETVAL->expolygons[i-1].in_collection = true;
+            RETVAL->expolygons[i-1] = new ExPolygon;
+            RETVAL->expolygons[i-1]->from_SV_check(ST(i));
+            RETVAL->expolygons[i-1]->in_collection = true;
         }
     OUTPUT:
         RETVAL
@@ -36,9 +37,9 @@ ExPolygonCollection::arrayref()
         AV* av = newAV();
         av_fill(av, THIS->expolygons.size()-1);
         int i = 0;
-        for (ExPolygons::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
+        for (ExPolygonsPtr::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
             SV* sv = newSV(0);
-            sv_setref_pv( sv, "Slic3r::ExPolygon", &*it );
+            sv_setref_pv( sv, "Slic3r::ExPolygon", *it );
             av_store(av, i++, sv);
         }
         RETVAL = newRV_noinc((SV*)av);
@@ -51,8 +52,8 @@ ExPolygonCollection::pp()
         AV* av = newAV();
         av_fill(av, THIS->expolygons.size()-1);
         int i = 0;
-        for (ExPolygons::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
-            av_store(av, i++, (*it).to_SV_pureperl());
+        for (ExPolygonsPtr::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
+            av_store(av, i++, (*it)->to_SV_pureperl());
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -62,9 +63,9 @@ void
 ExPolygonCollection::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
-            ExPolygon expolygon;
-            expolygon.from_SV_check( ST(i) );
-            expolygon.in_collection = true;
+            ExPolygon* expolygon = new ExPolygon;
+            expolygon->from_SV_check( ST(i) );
+            expolygon->in_collection = true;
             THIS->expolygons.push_back(expolygon);
         }
 
