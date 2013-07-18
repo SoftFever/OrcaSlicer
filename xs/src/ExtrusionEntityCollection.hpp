@@ -6,7 +6,7 @@
 
 namespace Slic3r {
 
-class ExtrusionEntityCollection
+class ExtrusionEntityCollection : public ExtrusionEntity
 {
     public:
     ExtrusionEntitiesPtr entities;

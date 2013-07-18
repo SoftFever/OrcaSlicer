@@ -6,7 +6,7 @@
 %}
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
-    ExtrusionEntityCollection();
+    %name{_new} ExtrusionEntityCollection();
     ~ExtrusionEntityCollection();
     void clear()
         %code{% THIS->entities.clear(); %};
@@ -23,8 +23,10 @@ ExtrusionEntityCollection::arrayref()
             // return COPIES
             if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(*it)) {
                 sv_setref_pv( sv, "Slic3r::ExtrusionPath", new ExtrusionPath(*(ExtrusionPath*)*it) );
-            } else {
+            } else if (ExtrusionLoop* path = dynamic_cast<ExtrusionLoop*>(*it)) {
                 sv_setref_pv( sv, "Slic3r::ExtrusionLoop", new ExtrusionLoop(*(ExtrusionLoop*)*it) );
+            } else {
+                sv_setref_pv( sv, "Slic3r::ExtrusionPath::Collection", new ExtrusionEntityCollection(*(ExtrusionEntityCollection*)*it) );
             }
             av_store(av, i++, sv);
         }
@@ -40,8 +42,10 @@ ExtrusionEntityCollection::append(...)
             // append COPIES
             if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(entity)) {
                 THIS->entities.push_back( new ExtrusionPath(*path) );
+            } else if (ExtrusionLoop* loop = dynamic_cast<ExtrusionLoop*>(entity)) {
+                THIS->entities.push_back( new ExtrusionLoop(*loop) );
             } else {
-                THIS->entities.push_back( new ExtrusionLoop(*(ExtrusionLoop*)entity) );
+                THIS->entities.push_back( new ExtrusionEntityCollection(*(ExtrusionEntityCollection*)entity) );
             }
         }
 

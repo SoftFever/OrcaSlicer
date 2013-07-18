@@ -29,19 +29,19 @@ has 'slices' => (is => 'rw', default => sub { Slic3r::Surface::Collection->new }
 
 # collection of polygons or polylines representing thin walls contained 
 # in the original geometry
-has 'thin_walls' => (is => 'rw', default => sub { [] });
+has 'thin_walls' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 # collection of extrusion paths/loops filling gaps
-has 'thin_fills' => (is => 'rw', default => sub { [] });
+has 'thin_fills' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 # collection of surfaces for infill generation
 has 'fill_surfaces' => (is => 'rw', default => sub { Slic3r::Surface::Collection->new });
 
 # ordered collection of extrusion paths/loops to build all perimeters
-has 'perimeters' => (is => 'rw', default => sub { [] });
+has 'perimeters' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 # ordered collection of extrusion paths to fill surfaces
-has 'fills' => (is => 'rw', default => sub { [] });
+has 'fills' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 sub BUILD {
     my $self = shift;
@@ -100,13 +100,11 @@ sub make_surfaces {
             1,
         );
         
-        $self->thin_walls([]);
+        $self->thin_walls->clear;
         if (@$diff) {
             my $area_threshold = $self->perimeter_flow->scaled_spacing ** 2;
             @$diff = grep $_->area > ($area_threshold), @$diff;
-            
-            @{$self->thin_walls} = map $_->medial_axis($self->perimeter_flow->scaled_width), @$diff;
-            
+            $self->thin_walls->append(map $_->medial_axis($self->perimeter_flow->scaled_width), @$diff);
             Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls}) if @{$self->thin_walls};
         }
     }
@@ -156,9 +154,9 @@ sub make_perimeters {
     my $infill_spacing      = $self->solid_infill_flow->scaled_spacing;
     my $gap_area_threshold  = $self->perimeter_flow->scaled_width ** 2;
     
-    $self->perimeters([]);
+    $self->perimeters->clear;
     $self->fill_surfaces->clear;
-    $self->thin_fills([]);
+    $self->thin_fills->clear;
     
     my @contours    = ();    # array of Polygons with ccw orientation
     my @holes       = ();    # array of Polygons with cw orientation
@@ -278,7 +276,7 @@ sub make_perimeters {
             || ($self->layer->id == 0 && $Slic3r::Config->brim_width > 0);
     
     # append perimeters
-    push @{ $self->perimeters }, @loops;
+    $self->perimeters->append(@loops);
     
     # add thin walls as perimeters
     push @{ $self->perimeters }, Slic3r::ExtrusionPath::Collection->new(
@@ -333,11 +331,11 @@ sub _fill_gaps {
                 role            => EXTR_ROLE_SOLIDFILL,
                 flow_spacing    => $flow->spacing,
             );
-            push @{ $self->thin_fills }, map {
+            $self->thin_fills->append(map {
                 $_->isa('Slic3r::Polygon')
                     ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # we should keep these as loops
                     : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
-            } map $_->medial_axis($flow->scaled_width), @this_width;
+            } map $_->medial_axis($flow->scaled_width), @this_width);
         
             Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
                 if @{ $self->thin_fills };

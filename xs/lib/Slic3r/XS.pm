@@ -43,6 +43,14 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+sub new {
+    my ($class, @paths) = @_;
+    
+    my $self = $class->_new;
+    $self->append(@paths);
+    return $self;
+}
+
 package Slic3r::ExtrusionLoop;
 use overload
     '@{}' => sub { $_[0]->arrayref },

@@ -315,31 +315,11 @@ sub make_perimeters {
         thread_cb => sub {
             my $q = shift;
             $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
-            my $result = {};
             while (defined (my $layer_id = $q->dequeue)) {
-                my $layer = $self->layers->[$layer_id];
-                $layer->make_perimeters;
-                $result->{$layer_id} ||= {};
-                foreach my $region_id (0 .. $#{$layer->regions}) {
-                    my $layerm = $layer->regions->[$region_id];
-                    $result->{$layer_id}{$region_id} = {
-                        perimeters      => $layerm->perimeters,
-                        fill_surfaces   => $layerm->fill_surfaces,
-                        thin_fills      => $layerm->thin_fills,
-                    };
-                }
-            }
-            return $result;
-        },
-        collect_cb => sub {
-            my $result = shift;
-            foreach my $layer_id (keys %$result) {
-                foreach my $region_id (keys %{$result->{$layer_id}}) {
-                    $self->layers->[$layer_id]->regions->[$region_id]->$_($result->{$layer_id}{$region_id}{$_})
-                        for qw(perimeters fill_surfaces thin_fills);
-                }
+                $self->layers->[$layer_id]->make_perimeters;
             }
         },
+        collect_cb => sub {},
         no_threads_cb => sub {
             $_->make_perimeters for @{$self->layers};
         },
@@ -988,9 +968,6 @@ sub generate_support_material {
             };
             return @paths;
         };
-        my %layer_paths             = ();
-        my %layer_contact_paths     = ();
-        my %layer_islands           = ();
         my $process_layer = sub {
             my ($layer_id) = @_;
             my $layer = $self->layers->[$layer_id];
@@ -1026,6 +1003,9 @@ sub generate_support_material {
             }
             return ($paths, $contact_paths, $islands);
         };
+        my %layer_paths             = ();
+        my %layer_contact_paths     = ();
+        my %layer_islands           = ();
         Slic3r::parallelize(
             items => [ keys %layers ],
             thread_cb => sub {
@@ -1051,8 +1031,8 @@ sub generate_support_material {
             $layer->support_islands($layer_islands{$layer_id});
             $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
             $layer->support_contact_fills(Slic3r::ExtrusionPath::Collection->new);
-            push @{$layer->support_fills->paths}, @{$layer_paths{$layer_id}};
-            push @{$layer->support_contact_fills->paths}, @{$layer_contact_paths{$layer_id}};
+            $layer->support_fills->append(@{$layer_paths{$layer_id}});
+            $layer->support_contact_fills->append(@{$layer_contact_paths{$layer_id}});
         }
     }
 }

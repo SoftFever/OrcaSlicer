@@ -42,12 +42,15 @@ sub cleanup {
     my $self = shift;
     
     # split paths at angles that are too acute to be printed as they will cause blobs
-    @{$self->paths} = map $_->split_at_acute_angles, @{$self->paths};
+    my @paths = map $_->split_at_acute_angles, @$self;
+    $self->clear;
+    $self->append(@paths);
 }
 
 sub detect_arcs {
     my $self = shift;
-    @{$self->paths} = map $_->detect_arcs(@_), @{$self->paths};
+    
+    return map $_->detect_arcs(@_), @$self;
 }
 
 1;

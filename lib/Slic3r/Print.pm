@@ -395,33 +395,17 @@ sub export_gcode {
             thread_cb => sub {
                 my $q = shift;
                 $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
-                my $fills = {};
                 while (defined (my $obj_layer = $q->dequeue)) {
                     my ($obj_idx, $layer_id, $region_id) = @$obj_layer;
                     my $object = $self->objects->[$obj_idx];
-                    $fills->{$obj_idx} ||= {};
-                    $fills->{$obj_idx}{$layer_id} ||= {};
-                    $fills->{$obj_idx}{$layer_id}{$region_id} = [
-                        $object->fill_maker->make_fill($object->layers->[$layer_id]->regions->[$region_id]),
-                    ];
-                }
-                return $fills;
-            },
-            collect_cb => sub {
-                my $fills = shift;
-                foreach my $obj_idx (keys %$fills) {
-                    my $object = $self->objects->[$obj_idx];
-                    foreach my $layer_id (keys %{$fills->{$obj_idx}}) {
-                        my $layer = $object->layers->[$layer_id];
-                        foreach my $region_id (keys %{$fills->{$obj_idx}{$layer_id}}) {
-                            $layer->regions->[$region_id]->fills($fills->{$obj_idx}{$layer_id}{$region_id});
-                        }
-                    }
+                    my $layerm = $object->layers->[$layer_id]->regions->[$region_id];
+                    $layerm->fills->append( $object->fill_maker->make_fill($layerm) );
                 }
             },
+            collect_cb => sub {},
             no_threads_cb => sub {
                 foreach my $layerm (map @{$_->regions}, map @{$_->layers}, @{$self->objects}) {
-                    $layerm->fills([ $layerm->layer->object->fill_maker->make_fill($layerm) ]);
+                    $layerm->fills->append($layerm->layer->object->fill_maker->make_fill($layerm));
                 }
             },
         );
@@ -587,7 +571,7 @@ sub make_skirt {
         my @layer_points = (
             (map @$_, map @$_, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, map @{$_->regions}, @layers),
-            (map @{$_->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @layers),
+            (map @{$_->polyline}, map @{$_->support_fills}, grep $_->support_fills, @layers),
         );
         push @points, map move_points($_, @layer_points), @{$self->objects->[$obj_idx]->copies};
     }
@@ -647,7 +631,7 @@ sub make_brim {
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
             (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } map @{$_->thin_walls}, @{$layer0->regions}),
-            (map $_->polyline->grow($grow_distance), map @{$_->support_fills->paths}, grep $_->support_fills, $layer0),
+            (map $_->polyline->grow($grow_distance), map @{$_->support_fills}, grep $_->support_fills, $layer0),
         );
         foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;

@@ -22,11 +22,10 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
         [86948.77,175149.09], [119825.35,100585],
     ), role => EXTR_ROLE_FILL, flow_spacing => 0.5);
     
-    my $collection = Slic3r::ExtrusionPath::Collection->new(paths => [$path]);
-    $collection->detect_arcs(30);
+    my @paths = $path->detect_arcs(30);
     
-    is scalar(@{$collection->paths}), 3, 'path collection now contains three paths';
-    isa_ok $collection->paths->[1], 'Slic3r::ExtrusionPath::Arc', 'second one';
+    is scalar(@paths), 3, 'path collection now contains three paths';
+    isa_ok $paths[1], 'Slic3r::ExtrusionPath::Arc', 'second one';
 }
 
 #==========================================================
@@ -50,30 +49,27 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
         flow_spacing => 0.5,
     );
     
-    my $collection1 = Slic3r::ExtrusionPath::Collection->new(paths => [$path1]);
-    my $collection2 = Slic3r::ExtrusionPath::Collection->new(paths => [$path2]);
+    my @paths1 = $path1->detect_arcs(10, scale 1);
+    my @paths2 = $path2->detect_arcs(10, scale 1);
     
-    $collection1->detect_arcs(10, scale 1);
-    $collection2->detect_arcs(10, scale 1);
+    is scalar(@paths1), 1, 'path collection now contains one path';
+    is scalar(@paths2), 1, 'path collection now contains one path';
     
-    is scalar(@{$collection1->paths}), 1, 'path collection now contains one path';
-    is scalar(@{$collection2->paths}), 1, 'path collection now contains one path';
-    
-    isa_ok $collection1->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
-    isa_ok $collection2->paths->[0], 'Slic3r::ExtrusionPath::Arc', 'path';
+    isa_ok $paths1[0], 'Slic3r::ExtrusionPath::Arc', 'path';
+    isa_ok $paths2[0], 'Slic3r::ExtrusionPath::Arc', 'path';
     
     my $expected_length = scale 7.06858347057701;
-    ok abs($collection1->paths->[0]->length - $expected_length) < scaled_epsilon, 'cw oriented arc has correct length';
-    ok abs($collection2->paths->[0]->length - $expected_length) < scaled_epsilon, 'ccw oriented arc has correct length';
+    ok abs($paths1[0]->length - $expected_length) < scaled_epsilon, 'cw oriented arc has correct length';
+    ok abs($paths2[0]->length - $expected_length) < scaled_epsilon, 'ccw oriented arc has correct length';
 
-    is $collection1->paths->[0]->orientation, 'cw', 'cw orientation was correctly detected';
-    is $collection2->paths->[0]->orientation, 'ccw', 'ccw orientation was correctly detected';
-    is $collection1->paths->[0]->flow_spacing, $path1->flow_spacing, 'flow spacing was correctly preserved';
+    is $paths1[0]->orientation, 'cw', 'cw orientation was correctly detected';
+    is $paths2[0]->orientation, 'ccw', 'ccw orientation was correctly detected';
+    is $paths1[0]->flow_spacing, $path1->flow_spacing, 'flow spacing was correctly preserved';
     
-    my $center1 = [ map sprintf('%.0f', $_), @{ $collection1->paths->[0]->center } ];
+    my $center1 = [ map sprintf('%.0f', $_), @{ $paths1[0]->center } ];
     ok abs($center1->[X] - scale 10) < scaled_epsilon && abs($center1->[Y] - scale 10) < scaled_epsilon, 'center was correctly detected';
     
-    my $center2 = [ map sprintf('%.0f', $_), @{ $collection2->paths->[0]->center } ];
+    my $center2 = [ map sprintf('%.0f', $_), @{ $paths2[0]->center } ];
     ok abs($center2->[X] - scale 10) < scaled_epsilon && abs($center1->[Y] - scale 10) < scaled_epsilon, 'center was correctly detected';
 }
 
