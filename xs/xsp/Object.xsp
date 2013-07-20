@@ -8,6 +8,7 @@
 
 %name{Slic3r::Object::XS::ZTable} class ZTable {
     ZTable(std::vector<unsigned int>* z_array);
+    ~ZTable();
 
 %{
 std::vector<unsigned int>
@@ -47,6 +48,25 @@ get_range(THIS, min_z, max_z)
         }
     OUTPUT:
         RETVAL
+
+unsigned int
+ZTable::lower_bound(z, offset = 0)
+    unsigned int z
+    unsigned int offset
+    CODE:
+        RETVAL = std::lower_bound(THIS->z.begin() + offset, THIS->z.end(), z) - THIS->z.begin();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+ZTable::upper_bound(z, offset = 0)
+    unsigned int z
+    unsigned int offset
+    CODE:
+        RETVAL = std::upper_bound(THIS->z.begin() + offset, THIS->z.end(), z) - THIS->z.begin();
+    OUTPUT:
+        RETVAL
+
 %}
 
 };
