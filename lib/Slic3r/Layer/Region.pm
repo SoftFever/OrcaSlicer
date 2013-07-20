@@ -209,12 +209,11 @@ sub make_perimeters {
         # and then we offset back and forth by the infill spacing to only consider the
         # non-collapsing regions
         push @{ $self->fill_surfaces },
-            map $_->simplify(&Slic3r::SCALED_RESOLUTION),
-                offset2_ex(
-                    \@last,
-                    -($perimeter_spacing/2 + $infill_spacing),
-                    +$infill_spacing,
-                );
+            offset2_ex(
+                [ map $_->simplify_as_polygons(&Slic3r::SCALED_RESOLUTION), @{union_ex(\@last)} ],
+                -($perimeter_spacing/2 + $infill_spacing),
+                +$infill_spacing,
+            );
     }
     
     $self->_fill_gaps(\@gaps);

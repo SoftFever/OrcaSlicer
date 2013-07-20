@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 8;
+plan tests => 10;
 
 BEGIN {
     use FindBin;
@@ -82,6 +82,25 @@ use Slic3r;
     
     my @simplified_ex = Slic3r::ExPolygon->new($polygon)->simplify(10);
     is_deeply \@simplified_ex, [ \@simplified ], 'simplified polygon equals simplified expolygon';
+}
+
+{
+    my $square = Slic3r::Polygon->new(  # ccw
+        [100, 100],
+        [200, 100],
+        [200, 200],
+        [100, 200],
+    );
+    my $hole_in_square = Slic3r::Polygon->new(  # cw
+        [140, 140],
+        [140, 160],
+        [160, 160],
+        [160, 140],
+    );
+    my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
+    my @simplified = $hole_in_square->simplify;
+    is scalar(@simplified), 1, 'hole simplification returns one polygon';
+    ok $simplified[0]->is_counter_clockwise, 'hole simplification turns cw polygon into ccw polygon';
 }
 
 {

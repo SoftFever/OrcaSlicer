@@ -72,6 +72,8 @@ sub grow {
     return $self->split_at_first_point->grow(@_);
 }
 
+# NOTE that this will turn the polygon to ccw regardless of its 
+# original orientation
 sub simplify {
     my $self = shift;
     return Slic3r::Geometry::Clipper::simplify_polygon( $self->SUPER::simplify(@_) );

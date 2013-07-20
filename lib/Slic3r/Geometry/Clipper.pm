@@ -150,12 +150,14 @@ sub collapse_ex {
 
 sub simplify_polygon {
     my ($polygon, $pft) = @_;
-    return @{ Math::Clipper::simplify_polygon($polygon, $pft // PFT_NONZERO) };
+    return map Slic3r::Polygon->new(@$_),
+        @{ Math::Clipper::simplify_polygon($polygon, $pft // PFT_NONZERO) };
 }
 
 sub simplify_polygons {
     my ($polygons, $pft) = @_;
-    return @{ Math::Clipper::simplify_polygons($polygons, $pft // PFT_NONZERO) };
+    return map Slic3r::Polygon->new(@$_),
+        @{ Math::Clipper::simplify_polygons($polygons, $pft // PFT_NONZERO) };
 }
 
 sub traverse_pt {
