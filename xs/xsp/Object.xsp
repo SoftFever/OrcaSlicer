@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include "ZTable.hpp"
 #include <vector>
+#include <algorithm>
 %}
 
 %name{Slic3r::Object::XS::ZTable} class ZTable {
