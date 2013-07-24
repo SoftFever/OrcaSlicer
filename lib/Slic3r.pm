@@ -19,6 +19,10 @@ our $have_threads;
 BEGIN {
     use Config;
     $have_threads = $Config{useithreads} && eval "use threads; use threads::shared; use Thread::Queue; 1";
+    
+    ### temporarily disable threads if using the broken Moo version
+    use Moo;
+    $have_threads = 0 if $Moo::VERSION == 1.003000;
 }
 
 warn "Running Slic3r under Perl >= 5.16 is not supported nor recommended\n"
