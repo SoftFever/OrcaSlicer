@@ -93,21 +93,21 @@ sub make_surfaces {
     
     # detect thin walls by offsetting slices by half extrusion inwards
     if ($Slic3r::Config->thin_walls) {
-        my $width = $self->perimeter_flow->scaled_width;
+        $self->thin_walls([]);
+        # we use spacing here because there could be a case where
+        # the slice collapses with width but doesn't collapse with spacing,
+        # thus causing both perimeters and medial axis to be generated
+        my $width = $self->perimeter_flow->scaled_spacing;
         my $diff = diff_ex(
             [ map $_->p, @{$self->slices} ],
-            [ offset2([ map @$_, map $_->expolygon, @{$self->slices} ], -$width, +$width) ],
+            [ offset2([ map $_->p, @{$self->slices} ], -$width*0.5, +$width*0.5) ],
             1,
         );
         
-        $self->thin_walls([]);
-        if (@$diff) {
-            my $area_threshold = $self->perimeter_flow->scaled_spacing ** 2;
-            @$diff = grep $_->area > ($area_threshold), @$diff;
-            
-            @{$self->thin_walls} = map $_->medial_axis($self->perimeter_flow->scaled_width), @$diff;
-            
-            Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls}) if @{$self->thin_walls};
+        my $area_threshold = $width ** 2;
+        if (@$diff = grep { $_->area > $area_threshold } @$diff) {
+            @{$self->thin_walls} = map $_->medial_axis($width), @$diff;
+            Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls});
         }
     }
     
