@@ -196,8 +196,10 @@ sub make_fill {
     }
     
     # add thin fill regions
-    push @fills, @{$layerm->thin_fills};
-    push @fills_ordering_points, map $_->unpack->points->[0], @{$layerm->thin_fills};
+    if (@{ $layerm->thin_fills }) {
+        push @fills, Slic3r::ExtrusionPath::Collection->new(paths => $layerm->thin_fills);
+        push @fills_ordering_points, $fills[-1]->first_point;
+    }
     
     # organize infill paths using a nearest-neighbor search
     @fills = @fills[ chained_path(\@fills_ordering_points) ];

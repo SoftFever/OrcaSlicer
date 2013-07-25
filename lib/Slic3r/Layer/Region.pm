@@ -348,12 +348,11 @@ sub _fill_gaps {
             my @infill = map $_->offset_ex(-0.5*$flow->scaled_width), @this_width;
             
             foreach my $expolygon (@infill) {
-                my @paths = $filler->fill_surface(
+                my ($params, @paths) = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon),
                     density         => 1,
                     flow_spacing    => $flow->spacing,
                 );
-                my $params = shift @paths;
                 
                 push @{ $self->thin_fills },
                     map {
@@ -365,7 +364,19 @@ sub _fill_gaps {
                         role            => EXTR_ROLE_GAPFILL,
                         height          => $self->height,
                         flow_spacing    => $params->{flow_spacing},
-                    ), @paths;
+                    ),
+                    # Split polylines into lines so that the chained_path() search
+                    # at the final stage has more freedom and will choose starting
+                    # points closer than last positions. OTOH, this will make such
+                    # search slower. Probably, ExtrusionPath objects should support
+                    # splitting nearby a given position so that we can choose the right
+                    # entry point even in the middle of the path without needing a 
+                    # complex, slow, chained_path() search on all segments. TODO.
+                    # Such logic will also avoid all the small travel moves that this 
+                    # line-splitting causes, and it will be applicable to other things
+                    # too.
+                    map Slic3r::Polyline->new(@$_)->lines,
+                    @paths;
             }
         }
         
