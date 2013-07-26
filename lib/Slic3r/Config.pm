@@ -832,7 +832,7 @@ END
         default => [1],
     },
     'wipe' => {
-        label   => 'Wipe before retract',
+        label   => 'Wipe while retracting',
         tooltip => 'This flag will move the nozzle while retracting to minimize the possible blob on leaky extruders.',
         cli     => 'wipe!',
         type    => 'bool',
