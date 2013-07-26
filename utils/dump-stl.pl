@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 # This script dumps a STL file into Perl syntax for writing tests
+# or dumps a test model into a STL file
 
 use strict;
 use warnings;
@@ -10,15 +11,24 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::Test;
 $|++;
 
 $ARGV[0] or usage(1);
 
-{
+if (-e $ARGV[0]) {
     my $model = Slic3r::Format::STL->read_file($ARGV[0]);
     my $mesh = $model->mesh;
     printf "VERTICES = %s\n", join ',', map "[$_->[0],$_->[1],$_->[2]]", @{$mesh->vertices};
     printf "FACETS = %s\n", join ',', map "[$_->[0],$_->[1],$_->[2]]", @{$mesh->facets};
+    exit 0;
+} elsif ((my $model = Slic3r::Test::model($ARGV[0]))) {
+    $ARGV[1] or die "Missing writeable destination as second argument\n";
+    Slic3r::Format::STL->write_file($ARGV[1], $model);
+    printf "Model $ARGV[0] written to $ARGV[1]\n";
+    exit 0;
+} else {
+    die "No such model exists\n";
 }
 
 
@@ -27,6 +37,7 @@ sub usage {
     
     print <<"EOF";
 Usage: dump-stl.pl file.stl
+       dump-stl.pl modelname file.stl
 EOF
     exit ($exit_code || 0);
 }
