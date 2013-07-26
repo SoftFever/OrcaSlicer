@@ -350,8 +350,12 @@ sub travel_to {
     # build a more complete configuration space
     $travel->translate(-$self->shift_x, -$self->shift_y);
     
+    # skip retraction if the travel move is contained in an island in the current layer
+    # *and* in an island in the upper layer (so that the ooze will not be visible)
     if ($travel->length < scale $self->extruder->retract_before_travel
-        || ($self->config->only_retract_when_crossing_perimeters && first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
+        || ($self->config->only_retract_when_crossing_perimeters
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}))
         || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
         ) {
         $self->straight_once(0);
