@@ -1200,6 +1200,7 @@ sub transformed_bounding_box {
     
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points($self->_apply_transform($self->convex_hull));
     $bb->extents->[Z] = $self->bounding_box->clone->extents->[Z];
+    $bb->extents->[Z][MAX] *= $self->scale;
     return $bb;
 }
 
