@@ -447,7 +447,7 @@ sub changescale {
     return if !$scale || $scale == -1;
     
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
-    $object->scale($scale / 100);
+    $object->changescale($scale / 100);
     $self->arrange;
 }
 
@@ -1107,6 +1107,18 @@ sub _trigger_model_object {
 	    
 	    $self->materials($self->model_object->materials_count);
 	}
+}
+
+sub changescale {
+    my $self = shift;
+    my ($scale) = @_;
+    
+    my $variation = $scale / $self->scale;
+    foreach my $range (@{ $self->layer_height_ranges }) {
+        $range->[0] *= $variation;
+        $range->[1] *= $variation;
+    }
+    $self->scale($scale);
 }
 
 sub check_manifoldness {
