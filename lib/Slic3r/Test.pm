@@ -63,6 +63,7 @@ sub model {
         vertices    => $vertices,
         facets      => $facets,
     );
+    $mesh->scale_xyz($params{scale_xyz}) if $params{scale_xyz};
     $mesh->scale($params{scale}) if $params{scale};
     
     my $model = Slic3r::Model->new;

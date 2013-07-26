@@ -301,6 +301,16 @@ sub scale {
     }
 }
 
+sub scale_xyz {
+    my $self = shift;
+    my ($versor) = @_;
+    
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        $vertex->[$_] *= $versor->[$_] for X,Y,Z;
+    }
+}
+
 sub move {
     my $self = shift;
     my (@shift) = @_;

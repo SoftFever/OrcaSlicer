@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 4;
 use strict;
 use warnings;
 
@@ -66,6 +66,26 @@ use Slic3r::Test;
     });
     is scalar(map $layers_with_solid_infill{$_}, grep $_ <= 7.2, keys %layers_with_solid_infill), 3,
         "correct number of top solid shells is generated in V-shaped object";
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('perimeters', 0);
+    $config->set('fill_density', 0);
+    $config->set('cooling', 0);                 # prevent speed alteration
+    $config->set('first_layer_speed', '100%');  # prevent speed alteration
+    $config->set('extrusion_width', 0.2);
+    $config->set('bottom_solid_layers', 3);
+    $config->set('top_solid_layers', 0);
+    
+    my $print = Slic3r::Test::init_print('V', scale_xyz => [2,1,1], config => $config);
+    my %layers = ();  # Z => 1
+    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        my ($self, $cmd, $args, $info) = @_;
+        $layers{$self->Z} = 1 if $info->{extruding};
+    });
+    is scalar(keys %layers), 3,
+        "shells are not extended into void if fill density is 0";
 }
 
 __END__

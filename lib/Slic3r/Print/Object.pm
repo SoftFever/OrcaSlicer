@@ -616,7 +616,7 @@ sub discover_horizontal_shells {
                         my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
-                            [ offset([ offset([ map @$_, @$new_internal_solid ], -$margin) ], +$margin) ],
+                            [ offset2([ map @$_, @$new_internal_solid ], -$margin, +$margin) ],
                             1,
                         );
                         
