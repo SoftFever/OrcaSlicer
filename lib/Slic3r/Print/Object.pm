@@ -603,7 +603,14 @@ sub discover_horizontal_shells {
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
-                    my $new_internal_solid = intersection_ex(
+                    # we update $solid so that we limit the next neighbor layer to the areas that were
+                    # found on this one - in other words, solid shells on one layer (for a given external surface)
+                    # are always a subset of the shells found on the previous shell layer
+                    # this approach allows for DWIM in hollow sloping vases, where we want bottom
+                    # shells to be generated in the base but not in the walls (where there are many
+                    # narrow bottom surfaces): reassigning $solid will consider the 'shadow' of the 
+                    # upper perimeter as an obstacle and shell will not be propagated to more upper layers
+                    my $new_internal_solid = $solid = intersection_ex(
                         [ map @$_, @$solid ],
                         [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_fill_surfaces ],
                         undef, 1,

@@ -70,21 +70,26 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('perimeters', 0);
+    # we need to check against one perimeter because this test is calibrated
+    # (shape, extrusion_width) so that perimeters cover the bottom surfaces of
+    # their lower layer - the test checks that shells are not generated on the
+    # above layers (thus 'across' the shadow perimeter)
+    $config->set('perimeters', 1);
     $config->set('fill_density', 0);
     $config->set('cooling', 0);                 # prevent speed alteration
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
-    $config->set('extrusion_width', 0.2);
+    $config->set('extrusion_width', 0.6);
     $config->set('bottom_solid_layers', 3);
     $config->set('top_solid_layers', 0);
     
-    my $print = Slic3r::Test::init_print('V', scale_xyz => [2,1,1], config => $config);
+    my $print = Slic3r::Test::init_print('V', config => $config);
     my %layers = ();  # Z => 1
     Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
         my ($self, $cmd, $args, $info) = @_;
-        $layers{$self->Z} = 1 if $info->{extruding};
+        $layers{$self->Z} = 1
+            if $info->{extruding} && ($args->{F} // $self->F) == $config->solid_infill_speed*60;
     });
-    is scalar(keys %layers), 3,
+    is scalar(keys %layers), $config->bottom_solid_layers,
         "shells are not extended into void if fill density is 0";
 }
 
