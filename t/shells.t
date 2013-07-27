@@ -90,7 +90,7 @@ use Slic3r::Test;
             if $info->{extruding} && ($args->{F} // $self->F) == $config->solid_infill_speed*60;
     });
     is scalar(keys %layers), $config->bottom_solid_layers,
-        "shells are not extended into void if fill density is 0";
+        "shells are not propagated across perimeters of the neighbor layer";
 }
 
 __END__
