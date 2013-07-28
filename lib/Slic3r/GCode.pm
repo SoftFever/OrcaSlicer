@@ -119,12 +119,11 @@ sub change_layer {
     return $gcode;
 }
 
-# this method accepts Z in scaled coordinates
+# this method accepts Z in unscaled coordinates
 sub move_z {
     my $self = shift;
     my ($z, $comment) = @_;
     
-    $z *= &Slic3r::SCALING_FACTOR;
     $z += $self->config->z_offset;
     
     my $gcode = "";

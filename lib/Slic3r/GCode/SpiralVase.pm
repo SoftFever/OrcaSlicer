@@ -16,7 +16,7 @@ sub process_layer {
     
     my $new_gcode = "";
     my $layer_height = $layer->height;
-    my $z = unscale($layer->print_z) - $layer_height;
+    my $z = $layer->print_z - $layer_height;
     my $newlayer = 0;
     Slic3r::GCode::Reader->new(gcode => $gcode)->parse(sub {
         my ($reader, $cmd, $args, $info) = @_;

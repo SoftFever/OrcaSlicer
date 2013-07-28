@@ -36,7 +36,7 @@ sub BUILD {
             object  => $self,
             id      => $id,
             height  => $height,
-            print_z => scale $print_z,
+            print_z => $print_z,
             slice_z => -1,
         );
     }
@@ -71,7 +71,7 @@ sub BUILD {
             object  => $self,
             id      => $id,
             height  => $height,
-            print_z => scale $print_z,
+            print_z => $print_z,
             slice_z => scale $slice_z,
         );
         
@@ -904,7 +904,7 @@ sub generate_support_material {
             
             if ($Slic3r::debug) {
                 printf "Layer %d (z = %.2f) has %d generic support areas, %d normal interface areas, %d contact areas\n",
-                    $i, unscale($layer->print_z), scalar(@{$layers{$i}}), scalar(@{$layers_interfaces{$i}}), scalar(@{$layers_contact_areas{$i}});
+                    $i, $layer->print_z, scalar(@{$layers{$i}}), scalar(@{$layers_interfaces{$i}}), scalar(@{$layers_contact_areas{$i}});
             }
         }
     }
