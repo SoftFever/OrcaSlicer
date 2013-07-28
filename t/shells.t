@@ -74,13 +74,19 @@ use Slic3r::Test;
     # (shape, extrusion_width) so that perimeters cover the bottom surfaces of
     # their lower layer - the test checks that shells are not generated on the
     # above layers (thus 'across' the shadow perimeter)
+    # the test is actually calibrated to leave a narrow bottom region for each
+    # layer - we test that in case of fill_density = 0 such narrow shells are 
+    # discarded instead of grown
     $config->set('perimeters', 1);
     $config->set('fill_density', 0);
     $config->set('cooling', 0);                 # prevent speed alteration
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
-    $config->set('extrusion_width', 0.6);
+    $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', '100%');
+    $config->set('extrusion_width', 0.5);
     $config->set('bottom_solid_layers', 3);
     $config->set('top_solid_layers', 0);
+    $config->set('solid_infill_speed', 99);
     
     my $print = Slic3r::Test::init_print('V', config => $config);
     my %layers = ();  # Z => 1

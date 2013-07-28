@@ -581,7 +581,7 @@ sub discover_horizontal_shells {
                     for grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
             }
             
-            foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
+            EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find slices of current type for current layer
                 # get both slices and fill_surfaces before the former contains the perimeters area
                 # and the latter contains the enlarged external surfaces
@@ -592,7 +592,7 @@ sub discover_horizontal_shells {
                 my $solid_layers = ($type == S_TYPE_TOP)
                     ? $Slic3r::Config->top_solid_layers
                     : $Slic3r::Config->bottom_solid_layers;
-                for (my $n = $type == S_TYPE_TOP ? $i-1 : $i+1; 
+                NEIGHBOR: for (my $n = $type == S_TYPE_TOP ? $i-1 : $i+1; 
                         abs($n - $i) <= $solid_layers-1; 
                         $type == S_TYPE_TOP ? $n-- : $n++) {
                     
@@ -615,7 +615,7 @@ sub discover_horizontal_shells {
                         [ map $_->p, grep { $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALSOLID } @neighbor_fill_surfaces ],
                         undef, 1,
                     );
-                    next if !@$new_internal_solid;
+                    next EXTERNAL if !@$new_internal_solid;
                     
                     # make sure the new internal solid is wide enough, as it might get collapsed when
                     # spacing is added in Fill.pm
@@ -627,21 +627,26 @@ sub discover_horizontal_shells {
                             1,
                         );
                         
-                        # if some parts are going to collapse, let's grow them and add the extra area to the neighbor layer
-                        # as well as to our original surfaces so that we support this additional area in the next shell too
+                        # if some parts are going to collapse, use a different strategy according to fill density
                         if (@$too_narrow) {
-                            # consider the actual fill area
-                            my @fill_boundaries = $Slic3r::Config->fill_density > 0
-                                ? @neighbor_fill_surfaces
-                                : grep $_->surface_type != S_TYPE_INTERNAL, @neighbor_fill_surfaces;
-                            
-                            # make sure our grown surfaces don't exceed the fill area
-                            my @grown = map @$_, @{intersection_ex(
-                                [ offset([ map @$_, @$too_narrow ], +$margin) ],
-                                [ map $_->p, @fill_boundaries ],
-                            )};
-                            $new_internal_solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
-                            $solid = union_ex([ @grown, (map @$_, @$solid) ]);
+                            if ($Slic3r::Config->fill_density > 0) {
+                                # if we have internal infill, grow the collapsing parts and add the extra area to 
+                                # the neighbor layer as well as to our original surfaces so that we support this 
+                                # additional area in the next shell too
+
+                                # make sure our grown surfaces don't exceed the fill area
+                                my @grown = map @$_, @{intersection_ex(
+                                    [ offset([ map @$_, @$too_narrow ], +$margin) ],
+                                    [ map $_->p, @neighbor_fill_surfaces ],
+                                )};
+                                $new_internal_solid = $solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
+                            } else {
+                                # if we're printing a hollow object, we discard such small parts
+                                $new_internal_solid = $solid = diff_ex(
+                                    [ map @$_, @$new_internal_solid ],
+                                    [ map @$_, @$too_narrow ],
+                                );
+                            }
                         }
                     }
                     
