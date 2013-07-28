@@ -10,6 +10,7 @@ use Slic3r::Surface ':types';
 has 'config'             => (is => 'ro', required => 1);
 has 'extruders'          => (is => 'ro', default => sub {0}, required => 1);
 has 'multiple_extruders' => (is => 'lazy');
+has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
@@ -195,7 +196,8 @@ sub extrude_loop {
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end(scale $extrusion_path->flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING);
+    $extrusion_path->clip_end(scale $extrusion_path->flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING)
+        if $self->enable_loop_clipping;
     return '' if !@{$extrusion_path->polyline};
     
     my @paths = ();

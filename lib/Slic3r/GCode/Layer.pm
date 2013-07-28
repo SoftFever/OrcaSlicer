@@ -27,6 +27,15 @@ sub process_layer {
     my ($layer, $object_copies) = @_;
     my $gcode = "";
     
+    # check whether we're going to apply spiralvase logic
+    my $spiralvase = defined $self->spiralvase
+        && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
+        && ($layer->id >= $Slic3r::Config->skirt_height)
+        && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+    
+    # if we're going to apply spiralvase to this layer, disable loop clipping
+    $self->gcodegen->enable_loop_clipping(!$spiralvase);
+    
     if (!$self->second_layer_things_done && $layer->id == 1) {
         for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->temperature}) {
             $gcode .= $self->gcodegen->set_temperature($self->extruders->[$t]->temperature, 0, $t)
@@ -167,10 +176,7 @@ sub process_layer {
     
     # apply spiral vase post-processing if this layer contains suitable geometry
     $gcode = $self->spiralvase->process_layer($gcode, $layer)
-        if defined $self->spiralvase
-        && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
-        && ($layer->id >= $Slic3r::Config->skirt_height)
-        && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+        if $spiralvase;
     
     return $gcode;
 }
