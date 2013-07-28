@@ -1,4 +1,4 @@
-use Test::More tests => 5;
+use Test::More tests => 6;
 use strict;
 use warnings;
 
@@ -109,17 +109,23 @@ use Slic3r::Test;
     # points of each layer are not aligned - in that case we would test that no
     # travel moves are left to move to the new starting point - in a cube, end
     # points coincide with next layer starting points (provided there's no clipping)
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    my $travel_moves_after_first_extrusion = 0;
-    my $started_extruding = 0;
-    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
-        my ($self, $cmd, $args, $info) = @_;
-        
-        $started_extruding = 1 if $info->{extruding};
-        $travel_moves_after_first_extrusion++
-            if $info->{travel} && $started_extruding && !exists $args->{Z};
-    });
-    is $travel_moves_after_first_extrusion, 0, "no gaps in spiral vase";
+    my $test = sub {
+        my ($model_name, $description) = @_;
+        my $print = Slic3r::Test::init_print($model_name, config => $config);
+        my $travel_moves_after_first_extrusion = 0;
+        my $started_extruding = 0;
+        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+            my ($self, $cmd, $args, $info) = @_;
+            
+            $started_extruding = 1 if $info->{extruding};
+            $travel_moves_after_first_extrusion++
+                if $info->{travel} && $started_extruding && !exists $args->{Z};
+        });
+        is $travel_moves_after_first_extrusion, 0, "no gaps in spiral vase ($description)";
+    };
+    
+    $test->('20mm_cube', 'solid model');
+    $test->('40x10', 'hollow model');
 }
 
 __END__
