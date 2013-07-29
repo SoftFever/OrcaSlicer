@@ -531,7 +531,7 @@ sub _detect_bridge_direction {
         
         # detect anchors as intersection between our bridge expolygon and the lower slices
         my $anchors = intersection_ex(
-            [ @$expolygon ],
+            [ @$grown ],
             [ map @$_, @lower ],
             undef,
             1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
@@ -549,6 +549,7 @@ sub _detect_bridge_direction {
             
             # generate lines in this direction
             my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
+            
             my @lines = ();
             for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
                 push @lines, [ [$x, $bounding_box->y_min], [$x, $bounding_box->y_max] ];

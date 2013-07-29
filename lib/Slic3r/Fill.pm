@@ -157,17 +157,13 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
-        my @paths;
-        {
-            my $f = $self->filler($filler);
-            $f->layer_id($layerm->id);
-            @paths = $f->fill_surface(
-                $surface,
-                density         => $density,
-                flow_spacing    => $flow_spacing,
-            );
-        }
-        my $params = shift @paths;
+        my $f = $self->filler($filler);
+        $f->layer_id($layerm->id);
+        my ($params, @paths) = $f->fill_surface(
+            $surface,
+            density         => $density,
+            flow_spacing    => $flow_spacing,
+        );
         
         # ugly hack(tm) to get the right amount of flow (GCode.pm should be fixed)
         $params->{flow_spacing} = $layerm->extruders->{infill}->bridge_flow->width if $is_bridge;
