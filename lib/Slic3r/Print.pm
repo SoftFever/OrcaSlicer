@@ -107,6 +107,9 @@ sub add_model {
     # this mesh into distinct objects so that we reduce the complexity
     # of the graphs 
     # -- Disabling this one because there are too many legit objects having nested shells
+    # -- It also caused a bug where plater rotation was applied to each single object by the
+    # -- code below (thus around its own center), instead of being applied to the whole 
+    # -- thing before the split.
     ###$model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
     foreach my $object (@{ $model->objects }) {
