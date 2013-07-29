@@ -267,10 +267,10 @@ sub make_loops {
     }
     
     # TODO: we should try to combine failed loops
-    for (grep @$_ >= 3, @failed_loops) {
-        push @polygons, Slic3r::Polygon->new(@$_);
+    for my $loop (grep @$_ >= 3, @failed_loops) {
+        push @polygons, Slic3r::Polygon->new(map $_->[I_A], @$loop);
         Slic3r::debugf "  Discovered failed %s polygon of %d points\n",
-            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@$_)
+            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@$loop)
             if $Slic3r::debug;
     }
     
