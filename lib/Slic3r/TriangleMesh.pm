@@ -191,7 +191,7 @@ sub make_loops {
             next unless defined $lines[$j] && defined $lines[$j][I_FACET_EDGE];
             
             # are these facets adjacent? (sharing a common edge on this layer)
-            if ($lines[$i][I_A_ID] == $lines[$j][I_B_ID] && $lines[$i][I_B_ID] == $lines[$j][I_A_ID]) {
+            if ($lines[$i][I_A_ID] == $lines[$j][I_A_ID] && $lines[$i][I_B_ID] == $lines[$j][I_B_ID]) {
             
                 # if they are both oriented upwards or downwards (like a 'V')
                 # then we can remove both edges from this layer since it won't 
@@ -205,7 +205,7 @@ sub make_loops {
                 # if one of them is oriented upwards and the other is oriented
                 # downwards, let's only keep one of them (it doesn't matter which
                 # one since all 'top' lines were reversed at slicing)
-                if ($lines[$i][I_FACET_EDGE] == FE_TOP && $lines[$j][I_FACET_EDGE] == FE_BOTTOM) {
+                if ($lines[$i][I_FACET_EDGE] != $lines[$j][I_FACET_EDGE]) {
                     $lines[$j] = undef;
                     last;
                 }
