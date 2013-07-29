@@ -165,7 +165,6 @@ sub make_fill {
                 $surface,
                 density         => $density,
                 flow_spacing    => $flow_spacing,
-                dont_adjust     => $is_bridge,
             );
         }
         my $params = shift @paths;

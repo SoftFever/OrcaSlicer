@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 10;
+plan tests => 11;
 
 BEGIN {
     use FindBin;
@@ -11,6 +11,7 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::Geometry qw(scale X Y);
+use Slic3r::Geometry::Clipper qw(diff_ex);
 use Slic3r::Surface qw(:types);
 use Slic3r::Test;
 
@@ -46,6 +47,30 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         my ($params, @paths) = $filler->fill_surface($surface, flow_spacing => 0.69, density => 0.4);
         is scalar @paths, 1, 'one continuous path';
     }
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new([
+        [6883102, 9598327.01296997],
+        [6883102, 20327272.01297],
+        [3116896, 20327272.01297],
+        [3116896, 9598327.01296997],
+    ]);
+    $expolygon->align_to_origin;
+    my $filler = Slic3r::Fill::Rectilinear->new(
+        bounding_box    => $expolygon->bounding_box,
+        angle           => 0,
+    );
+    my $surface = Slic3r::Surface->new(
+        surface_type    => S_TYPE_BOTTOM,
+        expolygon       => $expolygon,
+    );
+    my ($params, @paths) = $filler->fill_surface($surface, flow_spacing => 0.55, density => 1);
+    
+    # check whether any part was left uncovered
+    my @grown_paths = map Slic3r::Polyline->new(@$_)->grow(scale $params->{flow_spacing}/2), @paths;
+    my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ]);
+    is scalar(@$uncovered), 0, 'solid surface is fully filled';
 }
 
 {

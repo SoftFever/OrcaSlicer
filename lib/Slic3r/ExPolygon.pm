@@ -173,6 +173,14 @@ sub translate {
     $self;
 }
 
+sub align_to_origin {
+    my $self = shift;
+    
+    my $bb = $self->bounding_box;
+    $self->translate(-$bb->x_min, -$bb->y_min);
+    $self;
+}
+
 sub rotate {
     my $self = shift;
     $_->rotate(@_) for @$self;
