@@ -204,8 +204,15 @@ our $Options = {
     },
     'support_material_extruder' => {
         label   => 'Support material extruder',
-        tooltip => 'The extruder to use when printing support material. This affects brim too.',
+        tooltip => 'The extruder to use when printing support material. This affects brim and raft too.',
         cli     => 'support-material-extruder=i',
+        type    => 'i',
+        default => 1,
+    },
+    'support_material_interface_extruder' => {
+        label   => 'Support material interface extruder',
+        tooltip => 'The extruder to use when printing support material interface. This affects raft too.',
+        cli     => 'support-material-interface-extruder=i',
         type    => 'i',
         default => 1,
     },
@@ -652,7 +659,7 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear rectilinear-grid honeycomb)],
         labels  => ['rectilinear', 'rectilinear grid', 'honeycomb'],
-        default => 'rectilinear',
+        default => 'honeycomb',
     },
     'support_material_spacing' => {
         label   => 'Pattern spacing',
@@ -676,7 +683,7 @@ our $Options = {
         sidetext => 'layers',
         cli     => 'support-material-interface-layers=i',
         type    => 'i',
-        default => 0,
+        default => 3,
     },
     'support_material_interface_spacing' => {
         label   => 'Interface pattern spacing',

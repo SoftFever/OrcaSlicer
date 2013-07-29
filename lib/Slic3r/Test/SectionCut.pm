@@ -58,7 +58,7 @@ sub export_svg {
     );
     
     $group->(
-        filter => sub { $_[0]->support_fills, $_[0]->support_contact_fills },
+        filter => sub { $_[0]->isa('Slic3r::Layer::Support') ? ($_[0]->support_fills, $_[0]->support_interface_fills) : () },
         style  => {
             'stroke-width'  => 1,
             'stroke'        => '#444444',
@@ -80,7 +80,7 @@ sub _plot {
     
     foreach my $object (@{$self->print->objects}) {
         foreach my $copy (@{$object->copies}) {
-            foreach my $layer (@{$object->layers}) {
+            foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
                 # get all ExtrusionPath objects
                 my @paths = 
                     map { $_->polyline->translate(@$copy); $_ }

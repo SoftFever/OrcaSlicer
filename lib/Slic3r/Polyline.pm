@@ -211,6 +211,38 @@ sub clip_start {
     return (ref $self)->new($points);
 }
 
+# this method returns a collection of points picked on the polygon contour
+# so that they are evenly spaced according to the input distance
+# (find a better name!)
+sub regular_points {
+    my $self = shift;
+    my ($distance) = @_;
+    
+    my @points = ($self->[0]);
+    my $len = 0;
+    
+    for (my $i = 1; $i <= $#$self; $i++) {
+        my $point = $self->[$i];
+        my $segment_length = $point->distance_to($self->[$i-1]);
+        $len += $segment_length;
+        next if $len < $distance;
+        
+        if ($len == $distance) {
+            push @points, $point;
+            $len = 0;
+            next;
+        }
+        
+        my $take = $segment_length - ($len - $distance);  # how much we take of this segment
+        my $new_point = Slic3r::Geometry::point_along_segment($self->[$i-1], $point, $take);
+        push @points, Slic3r::Point->new($new_point);
+        $i--;
+        $len = -$take;
+    }
+    
+    return @points;
+}
+
 package Slic3r::Polyline::Collection;
 use Moo;
 

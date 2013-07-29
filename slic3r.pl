@@ -407,6 +407,8 @@ $j
     --infill-extruder   Extruder to use for infill (1+, default: 1)
     --support-material-extruder
                         Extruder to use for support material (1+, default: 1)
+    --support-material-interface-extruder
+                        Extruder to use for support material interface (1+, default: 1)
     
 EOF
     exit ($exit_code || 0);

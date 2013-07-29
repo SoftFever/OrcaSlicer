@@ -18,40 +18,9 @@ has 'height'            => (is => 'ro', required => 1); # layer height in unscal
 # also known as 'islands' (all regions and surface types are merged here)
 has 'slices'            => (is => 'rw');
 
-# ordered collection of extrusion paths to fill surfaces for support material
-has 'support_islands'           => (is => 'rw');
-has 'support_fills'             => (is => 'rw');
-has 'support_contact_fills'     => (is => 'rw');
-
 sub _trigger_id {
     my $self = shift;
     $_->_trigger_layer for @{$self->regions || []};
-}
-
-# layer height of contact paths in unscaled coordinates
-sub support_material_contact_height {
-    my $self = shift;
-    
-    return $self->height if $self->id == 0;
-    
-    # TODO: check what upper region applies instead of considering the first one
-    my $upper_layer = $self->object->layers->[ $self->id + 1 ] // $self;
-    my $h = ($self->height + $upper_layer->height) - $upper_layer->regions->[0]->extruders->{infill}->bridge_flow->width;
-    
-    # If layer height is less than half the bridge width then we'll get a negative height for contact area.
-    # The optimal solution would be to skip some layers during support material generation, but for now
-    # we'll apply a (dirty) workaround that should still work.
-    if ($h <= 0) {
-        $h = $self->height;
-    }
-    
-    return $h;
-}
-
-# Z used for printing support material contact in scaled coordinates
-sub support_material_contact_z {
-    my $self = shift;
-    return ($self->print_z - ($self->height - $self->support_material_contact_height)) / &Slic3r::SCALING_FACTOR;
 }
 
 sub upper_layer_slices {
@@ -93,5 +62,14 @@ sub support_islands_enclose_line {
     return 0 if !$self->support_islands;   # why can we arrive here if there are no support islands?
     return (first { $_->encloses_line($line) } @{$self->support_islands}) ? 1 : 0;
 }
+
+package Slic3r::Layer::Support;
+use Moo;
+extends 'Slic3r::Layer';
+
+# ordered collection of extrusion paths to fill surfaces for support material
+has 'support_islands'           => (is => 'rw');
+has 'support_fills'             => (is => 'rw');
+has 'support_interface_fills'   => (is => 'rw');
 
 1;

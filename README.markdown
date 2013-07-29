@@ -322,6 +322,8 @@ The author of the Silk icon set is Mark James.
         --infill-extruder   Extruder to use for infill (1+, default: 1)
         --support-material-extruder
                             Extruder to use for support material (1+, default: 1)
+        --support-material-interface-extruder
+                            Extruder to use for support material interface (1+, default: 1)
 
 If you want to change a preset file, just do
 
