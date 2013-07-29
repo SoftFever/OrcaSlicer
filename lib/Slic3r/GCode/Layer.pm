@@ -18,7 +18,7 @@ sub _build_spiralvase {
     my $self = shift;
     
     return $Slic3r::Config->spiral_vase
-        ? Slic3r::GCode::SpiralVase->new
+        ? Slic3r::GCode::SpiralVase->new(config => $self->gcodegen->config)
         : undef;
 }
 

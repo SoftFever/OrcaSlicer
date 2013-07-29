@@ -1,6 +1,8 @@
 package Slic3r::GCode::SpiralVase;
 use Moo;
 
+has 'config' => (is => 'ro', required => 1);
+
 use Slic3r::Geometry qw(unscale);
 
 sub process_layer {
@@ -16,7 +18,7 @@ sub process_layer {
     
     my $new_gcode = "";
     my $layer_height = $layer->height;
-    my $z = $layer->print_z - $layer_height;
+    my $z = $layer->print_z + $self->config->z_offset - $layer_height;
     my $newlayer = 0;
     Slic3r::GCode::Reader->new(gcode => $gcode)->parse(sub {
         my ($reader, $cmd, $args, $info) = @_;

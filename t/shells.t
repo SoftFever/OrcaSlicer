@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 10;
 use strict;
 use warnings;
 
@@ -104,6 +104,7 @@ use Slic3r::Test;
     $config->set('spiral_vase', 1);
     $config->set('bottom_solid_layers', 0);
     $config->set('skirts', 0);
+    $config->set('first_layer_height', '100%');
     
     # TODO: this needs to be tested with a model with sloping edges, where starting
     # points of each layer are not aligned - in that case we would test that no
@@ -114,18 +115,25 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print($model_name, config => $config);
         my $travel_moves_after_first_extrusion = 0;
         my $started_extruding = 0;
+        my @z_steps = ();
         Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
             my ($self, $cmd, $args, $info) = @_;
             
             $started_extruding = 1 if $info->{extruding};
+            push @z_steps, ($args->{Z} - $self->Z)
+                if $started_extruding && exists $args->{Z};
             $travel_moves_after_first_extrusion++
                 if $info->{travel} && $started_extruding && !exists $args->{Z};
         });
         is $travel_moves_after_first_extrusion, 0, "no gaps in spiral vase ($description)";
+        ok !(grep { $_ > $config->layer_height } @z_steps), "no gaps in Z ($description)";
     };
     
     $test->('20mm_cube', 'solid model');
     $test->('40x10', 'hollow model');
+    
+    $config->set('z_offset', -10);
+    $test->('20mm_cube', 'solid model with negative z-offset');
 }
 
 __END__
