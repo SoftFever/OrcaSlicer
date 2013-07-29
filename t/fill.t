@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 11;
+plan tests => 31;
 
 BEGIN {
     use FindBin;
@@ -50,27 +50,46 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 }
 
 {
+    my $test = sub {
+        my ($expolygon) = @_;
+        $expolygon->align_to_origin;
+        my $filler = Slic3r::Fill::Rectilinear->new(
+            bounding_box    => $expolygon->bounding_box,
+            angle           => 0,
+        );
+        my $surface = Slic3r::Surface->new(
+            surface_type    => S_TYPE_BOTTOM,
+            expolygon       => $expolygon,
+        );
+        my ($params, @paths) = $filler->fill_surface($surface, flow_spacing => 0.55, density => 1);
+        
+        # check whether any part was left uncovered
+        my @grown_paths = map Slic3r::Polyline->new(@$_)->grow(scale $params->{flow_spacing}/2), @paths;
+        my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ], 1);
+        is scalar(@$uncovered), 0, 'solid surface is fully filled';
+        if (0 && @$uncovered) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output(
+                "uncovered.svg",
+                expolygons => [$expolygon],
+                red_expolygons => $uncovered,
+            );
+            exit;
+        }
+    };
+    
     my $expolygon = Slic3r::ExPolygon->new([
         [6883102, 9598327.01296997],
         [6883102, 20327272.01297],
         [3116896, 20327272.01297],
         [3116896, 9598327.01296997],
     ]);
-    $expolygon->align_to_origin;
-    my $filler = Slic3r::Fill::Rectilinear->new(
-        bounding_box    => $expolygon->bounding_box,
-        angle           => 0,
-    );
-    my $surface = Slic3r::Surface->new(
-        surface_type    => S_TYPE_BOTTOM,
-        expolygon       => $expolygon,
-    );
-    my ($params, @paths) = $filler->fill_surface($surface, flow_spacing => 0.55, density => 1);
+    $test->($expolygon);
     
-    # check whether any part was left uncovered
-    my @grown_paths = map Slic3r::Polyline->new(@$_)->grow(scale $params->{flow_spacing}/2), @paths;
-    my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ]);
-    is scalar(@$uncovered), 0, 'solid surface is fully filled';
+    for (1..20) {
+        $expolygon->scale(1.05);
+        $test->($expolygon);
+    }
 }
 
 {
