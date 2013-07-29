@@ -419,8 +419,10 @@ sub process_external_surfaces {
         
         # detect bridge direction before merging grown surfaces otherwise adjacent bridges
         # would get merged into a single one while they need different directions
+        # also, supply the original expolygon instead of the grown one, because in case
+        # of very thin (but still working) anchors, the grown expolygon would go beyond them
         my $angle = $self->id > 0
-            ? $self->_detect_bridge_direction($grown)
+            ? $self->_detect_bridge_direction($surface->expolygon)
             : undef;
         
         push @bottom, $surface->clone(expolygon => $grown, bridge_angle => $angle);
@@ -470,6 +472,7 @@ sub _detect_bridge_direction {
     my $self = shift;
     my ($expolygon) = @_;
     
+    my ($grown) = $expolygon->offset_ex(+$self->perimeter_flow->scaled_width);
     my @lower = @{$self->layer->object->layers->[ $self->id - 1 ]->slices};       # expolygons
     
     # detect what edges lie on lower slices
@@ -477,7 +480,7 @@ sub _detect_bridge_direction {
     foreach my $lower (@lower) {
         # turn bridge contour and holes into polylines and then clip them
         # with each lower slice's contour
-        my @clipped = map $_->split_at_first_point->clip_with_polygon($lower->contour), @$expolygon;
+        my @clipped = map $_->split_at_first_point->clip_with_polygon($lower->contour), @$grown;
         if (@clipped == 2) {
             # If the split_at_first_point() call above happens to split the polygon inside the clipping area
             # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 
