@@ -55,8 +55,11 @@ sub fill_surface {
     
     # clip paths against a slightly offsetted expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
+    # the minimum offset for preventing edge lines from being clipped is scaled_epsilon;
+    # however we use a larger offset to support expolygons with slightly skewed sides and 
+    # not perfectly straight
     my @paths = @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-        [ $expolygon->offset_ex(scaled_epsilon) ],
+        [ $expolygon->offset_ex($line_spacing*0.05) ],
         [ @vertical_lines ],
     ) };
     
