@@ -1172,11 +1172,8 @@ sub make_thumbnail {
     		? $mesh->horizontal_projection
     		: [ Slic3r::ExPolygon->new($self->convex_hull) ],
     );
-    
-    # only simplify expolygons larger than the threshold
-    @{$thumbnail->expolygons} = grep @$_,
-        map { ($_->area >= 1) ? $_->simplify(0.5) : $_ }
-        @{$thumbnail->expolygons};
+    # Note: the call to simplify() was removed here because it used Clipper
+    # simplification which needs integerization.
     
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
