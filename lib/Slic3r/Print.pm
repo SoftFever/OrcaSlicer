@@ -73,6 +73,9 @@ sub _trigger_config {
         $self->config->set('support_material_enforce_layers', 0);
         $self->config->set('retract_layer_change', [0]);  # TODO: only apply this to the spiral layers
     }
+    
+    # force all retraction lift values to be the same
+    $self->config->set('retract_lift', [ map $self->config->retract_lift->[0], @{$self->config->retract_lift} ]);
 }
 
 sub _build_has_support_material {

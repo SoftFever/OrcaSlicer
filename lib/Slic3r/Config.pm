@@ -814,7 +814,7 @@ END
     },
     'retract_lift' => {
         label   => 'Lift Z',
-        tooltip => 'If you set this to a positive value, Z is quickly raised every time a retraction is triggered.',
+        tooltip => 'If you set this to a positive value, Z is quickly raised every time a retraction is triggered. When using multiple extruders, only the setting for the first extruder will be considered.',
         sidetext => 'mm',
         cli     => 'retract-lift=f@',
         type    => 'f',

@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
+use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
@@ -128,12 +128,23 @@ sub move_z {
     
     my $gcode = "";
     my $current_z = $self->z;
-    if (!defined $current_z || $current_z != ($z + $self->lifted)) {
+    if (!defined $self->z || $z > $self->z) {
+        # if we're going over the current Z we won't be lifted anymore
+        $self->lifted(0);
+        
+        # this retraction may alter $self->z
         $gcode .= $self->retract(move_z => $z) if $self->extruder->retract_layer_change;
+        
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
-            unless ($current_z // -1) != ($self->z // -1);
+            unless !defined $current_z || $self->z != $current_z;
         $gcode .= $self->move_z_callback->() if defined $self->move_z_callback;
+    } elsif ($z < $self->z && $z > ($self->z - $self->lifted + epsilon)) {
+        # we're moving to a layer height which is greater than the nominal current one
+        # (nominal = actual - lifted) and less than the actual one.  we're basically
+        # advancing to next layer, whose nominal Z is still lower than the previous
+        # layer Z with lift.
+        $self->lifted($self->z - $z);
     }
     
     return $gcode;
