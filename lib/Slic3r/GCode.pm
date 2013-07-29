@@ -532,7 +532,7 @@ sub unretract {
 
 sub reset_e {
     my $self = shift;
-    return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware)$/;
+    return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware|sailfish)$/;
     
     $self->extruder->e(0) if $self->extruder;
     return sprintf "G92 %s0%s\n", $self->config->extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '')
