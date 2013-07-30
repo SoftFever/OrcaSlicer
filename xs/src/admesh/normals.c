@@ -359,7 +359,7 @@ void stl_normalize_vector(float v[])
   min_normal_length = 0.000000000001;
   if(length < min_normal_length)
     {
-      v[0] = 1.0;
+      v[0] = 0.0;
       v[1] = 0.0;
       v[2] = 0.0;
       return;
