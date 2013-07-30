@@ -974,6 +974,7 @@ sub generate_support_material {
                 [
                     @{ $top{$z} || [] },
                 ],
+                1,
             );
         }
         
@@ -991,6 +992,7 @@ sub generate_support_material {
                     @{ $top{$z} || [] },
                     @{ $interface{$i} || [] },
                 ],
+                1,
             );
         }
     }
