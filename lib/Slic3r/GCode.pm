@@ -134,10 +134,9 @@ sub move_z {
         
         # this retraction may alter $self->z
         $gcode .= $self->retract(move_z => $z) if $self->extruder->retract_layer_change;
-        
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
-            unless !defined $current_z || $self->z != $current_z;
+            if !defined $self->z || abs($z - ($self->z - $self->lifted)) > epsilon;
         $gcode .= $self->move_z_callback->() if defined $self->move_z_callback;
     } elsif ($z < $self->z && $z > ($self->z - $self->lifted + epsilon)) {
         # we're moving to a layer height which is greater than the nominal current one
@@ -525,6 +524,7 @@ sub unretract {
     
     if ($self->lifted) {
         $self->speed('travel');
+        $gcode .= sprintf ";AAA selfz = %s, lifted = %s\n", $self->z // 'nd', $self->lifted // 'nd';
         $gcode .= $self->G0(undef, $self->z - $self->lifted, 0, 'restore layer Z');
         $self->lifted(0);
     }
