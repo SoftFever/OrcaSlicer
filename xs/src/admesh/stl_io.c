@@ -198,6 +198,7 @@ stl_print_neighbors(stl_file *stl, char *file)
 	      stl->neighbors_start[i].neighbor[2],
 	      (int)stl->neighbors_start[i].which_vertex_not[2]);
     }
+    fclose(fp);
 }
 
 static void

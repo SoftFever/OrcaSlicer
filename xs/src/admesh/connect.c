@@ -82,6 +82,7 @@ stl_check_facets_exact(stl_file *stl)
     {
       facet = stl->facet_start[i];
 
+      //If any two of the three vertices are found to be exactally the same, call them degenerate and remove the facet.
       if(   !memcmp(&facet.vertex[0], &facet.vertex[1], 
 		    sizeof(stl_vertex))
 	 || !memcmp(&facet.vertex[1], &facet.vertex[2], 
