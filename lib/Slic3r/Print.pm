@@ -228,7 +228,7 @@ sub init_extruders {
     # initialize all extruder(s) we need
     my @used_extruders = (
         0,
-        (map $self->config->get("${_}_extruder")-1, qw(perimeter infill support_material)),
+        (map $self->config->get("${_}_extruder")-1, qw(perimeter infill support_material support_material_interface)),
         (values %extruder_mapping),
     );
     for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
