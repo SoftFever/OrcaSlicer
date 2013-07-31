@@ -737,21 +737,26 @@ sub write_gcode {
     print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
-    # write start commands to file
-    printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature, 1),
-        if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->start_gcode !~ /M(?:190|140)/i;
+    # set bed temperature
+    if ((my $temp = $Slic3r::Config->first_layer_bed_temperature) && $Slic3r::Config->start_gcode !~ /M(?:190|140)/i) {
+        printf $fh $gcodegen->set_bed_temperature($temp, 1);
+    }
+    
+    # set extruder(s) temperature before and after start G-code
     my $print_first_layer_temperature = sub {
-        for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
-            printf $fh $gcodegen->set_temperature($self->extruders->[$t]->first_layer_temperature, 0, $t)
-                if $self->extruders->[$t]->first_layer_temperature;
+        my ($wait) = @_;
+        
+        return if $Slic3r::Config->start_gcode =~ /M(?:109|104)/i;
+        for my $t (0 .. $#{$self->extruders}) {
+            my $temp = $self->extruders->[$t]->first_layer_temperature;
+            printf $fh $gcodegen->set_temperature($temp, $wait, $t) if $temp > 0;
         }
     };
-    $print_first_layer_temperature->() if $Slic3r::Config->start_gcode !~ /M(?:109|104)/i;
+    $print_first_layer_temperature->(0);
     printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->start_gcode);
-    for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
-        printf $fh $gcodegen->set_temperature($self->extruders->[$t]->first_layer_temperature, 1, $t)
-            if $self->extruders->[$t]->first_layer_temperature && $Slic3r::Config->start_gcode !~ /M(?:109|104)/i;
-    }
+    $print_first_layer_temperature->(1);
+    
+    # set other general things
     print  $fh "G90 ; use absolute coordinates\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
     if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
         printf $fh $gcodegen->reset_e;
