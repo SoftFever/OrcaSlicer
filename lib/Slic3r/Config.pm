@@ -703,7 +703,7 @@ our $Options = {
     },
     'raft_layers' => {
         label   => 'Raft layers',
-        tooltip => 'Number of total raft layers to insert below the object(s).',
+        tooltip => 'The object will be raised by this number of layers, and support material will be generated under it.',
         sidetext => 'layers',
         cli     => 'raft-layers=i',
         type    => 'i',
