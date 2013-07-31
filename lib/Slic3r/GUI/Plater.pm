@@ -1125,7 +1125,7 @@ sub check_manifoldness {
 	my $self = shift;
 	
 	if ($self->mesh_stats) {
-	    if (first { $self->mesh_stats->{$_} > 0 } qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)) {
+	    if ($self->get_model_object->needed_repair) {
 	        warn "Warning: the input file contains manifoldness errors. "
 	            . "Slic3r repaired it successfully by guessing what the correct shape should be, "
 	            . "but you might still want to inspect the G-code before printing.\n";

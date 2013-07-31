@@ -34,6 +34,7 @@ my %cli_options = ();
         'export-svg'            => \$opt{export_svg},
         'merge|m'               => \$opt{merge},
         'repair'                => \$opt{repair},
+        'info'                  => \$opt{info},
     );
     foreach my $opt_key (keys %{$Slic3r::Config::Options}) {
         my $cli = $Slic3r::Config::Options->{$opt_key}->{cli} or next;
@@ -120,6 +121,11 @@ if (@ARGV) {  # slicing from command line
         $_->rotate($config->rotate) for @{$model->objects};
         $model->arrange_objects($config);
         
+        if ($opt{info}) {
+            $model->print_info;
+            next;
+        }
+        
         my $print = Slic3r::Print->new(config => $config);
         $print->add_model($model);
         $print->validate;
@@ -156,7 +162,7 @@ EOF
 Slic3r $Slic3r::VERSION is a STL-to-GCODE translator for RepRap 3D printers
 written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
 
-Usage: slic3r.pl [ OPTIONS ] file.stl
+Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
 
     --help              Output this usage screen and exit
     --version           Output the version of Slic3r and exit
@@ -166,7 +172,11 @@ Usage: slic3r.pl [ OPTIONS ] file.stl
     -o, --output <file> File to output gcode to (by default, the file will be saved
                         into the same directory as the input file using the 
                         --output-filename-format to generate the filename)
-    --repair            Automatically repair given STL files and saves them as _fixed.obj
+  
+  Non-slicing actions (no G-code will be generated):
+    --repair            Repair given STL files and save them as <name>_fixed.obj
+    --info              Output information about the supplied file(s) and exit
+    
 $j
   GUI options:
     --no-plater         Disable the plater tab
