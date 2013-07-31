@@ -908,6 +908,10 @@ sub generate_support_material {
             
             my $contact_z = $layer->print_z - $nozzle_diameter * 1.5;
             ###$contact_z = $layer->print_z - $layer->height;
+            
+            # ignore this contact area if it's too low
+            next if $contact_z < $Slic3r::Config->first_layer_height;
+            
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
         }
@@ -1227,7 +1231,7 @@ sub _compute_support_layers {
     
     # enforce first layer height
     my $first_layer_height = $config->get_value('first_layer_height');
-    shift @support_layers while @support_layers && $support_layers[0] < $first_layer_height;
+    shift @support_layers while @support_layers && $support_layers[0] <= $first_layer_height;
     unshift @support_layers, $first_layer_height;
     
     for (my $i = $#support_layers; $i >= 0; $i--) {
@@ -1244,9 +1248,9 @@ sub _compute_support_layers {
         }
     }
     
-    # remove duplicates
+    # remove duplicates and make sure all 0.x values have the leading 0
     {
-        my %sl = map { $_ => 1 } @support_layers;
+        my %sl = map { 1 * $_ => 1 } @support_layers;
         @support_layers = sort { $a <=> $b } keys %sl;
     }
     
