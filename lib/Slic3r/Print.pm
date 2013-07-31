@@ -591,7 +591,8 @@ sub make_skirt {
         if (@{ $object->support_layers }) {
             my @support_layers = map $object->support_layers->[$_], 0..min($Slic3r::Config->skirt_height-1, $#{$object->support_layers});
             push @layer_points,
-                (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @support_layers);
+                (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @support_layers),
+                (map @{$_->unpack->polyline}, map @{$_->support_interface_fills->paths}, grep $_->support_interface_fills, @support_layers);
         }
         push @points, map move_points($_, @layer_points), @{$object->copies};
     }
@@ -659,6 +660,9 @@ sub make_brim {
             push @object_islands,
                 (map $_->unpack->polyline->grow($grow_distance), @{$support_layer0->support_fills->paths})
                 if $support_layer0->support_fills;
+            push @object_islands,
+                (map $_->unpack->polyline->grow($grow_distance), @{$support_layer0->support_interface_fills->paths})
+                if $support_layer0->support_interface_fills;
         }
         foreach my $copy (@{$object->copies}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
