@@ -15,7 +15,6 @@ class TriangleMesh
     void ReadFromPerl(SV* vertices, SV* facets);
     void Repair();
     void WriteOBJFile(char* output_file);
-    AV* ToPerl();
     stl_file stl;
 };
 

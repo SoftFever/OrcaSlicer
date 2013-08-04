@@ -12,7 +12,6 @@
     void ReadFromPerl(SV* vertices, SV* facets);
     void Repair();
     void WriteOBJFile(char* output_file);
-    AV* ToPerl();
 %{
 
 SV*
@@ -30,6 +29,50 @@ TriangleMesh::stats()
         (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stl.stats.backwards_edges) );
         (void)hv_stores( hv, "normals_fixed",       newSViv(THIS->stl.stats.normals_fixed) );
         RETVAL = (SV*)newRV_noinc((SV*)hv);
+    OUTPUT:
+        RETVAL
+
+SV*
+TriangleMesh::vertices()
+    CODE:
+        if (THIS->stl.stats.shared_vertices == 0)
+            stl_generate_shared_vertices(&(THIS->stl));
+        
+        // vertices
+        AV* vertices = newAV();
+        av_extend(vertices, THIS->stl.stats.shared_vertices);
+        for (int i = 0; i < THIS->stl.stats.shared_vertices; i++) {
+            AV* vertex = newAV();
+            av_store(vertices, i, newRV_noinc((SV*)vertex));
+            av_extend(vertex, 2);
+            av_store(vertex, 0, newSVnv(THIS->stl.v_shared[i].x));
+            av_store(vertex, 1, newSVnv(THIS->stl.v_shared[i].y));
+            av_store(vertex, 2, newSVnv(THIS->stl.v_shared[i].z));
+        }
+        
+        RETVAL = newRV_noinc((SV*)vertices);
+    OUTPUT:
+        RETVAL
+
+SV*
+TriangleMesh::facets()
+    CODE:
+        if (THIS->stl.stats.shared_vertices == 0)
+            stl_generate_shared_vertices(&(THIS->stl));
+        
+        // facets
+        AV* facets = newAV();
+        av_extend(facets, THIS->stl.stats.number_of_facets);
+        for (int i = 0; i < THIS->stl.stats.number_of_facets; i++) {
+            AV* facet = newAV();
+            av_store(facets, i, newRV_noinc((SV*)facet));
+            av_extend(facet, 2);
+            av_store(facet, 0, newSVnv(THIS->stl.v_indices[i].vertex[0]));
+            av_store(facet, 1, newSVnv(THIS->stl.v_indices[i].vertex[1]));
+            av_store(facet, 2, newSVnv(THIS->stl.v_indices[i].vertex[2]));
+        }
+        
+        RETVAL = newRV_noinc((SV*)facets);
     OUTPUT:
         RETVAL
 

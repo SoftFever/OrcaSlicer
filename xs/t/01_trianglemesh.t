@@ -18,7 +18,8 @@ my $cube = {
     my $m = Slic3r::TriangleMesh::XS->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->Repair;
-    my ($vertices, $facets) = @{$m->ToPerl};
+    my ($vertices, $facets) = ($m->vertices, $m->facets);
+    
     is_deeply $vertices, $cube->{vertices}, 'vertices arrayref roundtrip';
     is_deeply $facets, $cube->{facets}, 'facets arrayref roundtrip';
     
