@@ -102,4 +102,9 @@ TriangleMesh::WriteOBJFile(char* output_file) {
     stl_write_obj(&stl, output_file);
 }
 
+void TriangleMesh::scale(float factor)
+{
+    stl_scale(&(this->stl), factor);
+}
+
 }

@@ -106,12 +106,18 @@ stl_scale(stl_file *stl, float factor)
   int i;
   int j;
   
+  // scale extents
   stl->stats.min.x *= factor;
   stl->stats.min.y *= factor;
   stl->stats.min.z *= factor;
   stl->stats.max.x *= factor;
   stl->stats.max.y *= factor;
   stl->stats.max.z *= factor;
+  
+  // scale volume
+  if (stl->stats.volume > 0.0) {
+    stl->stats.volume *= (factor * factor * factor);
+  }
   
   for(i = 0; i < stl->stats.number_of_facets; i++)
     {

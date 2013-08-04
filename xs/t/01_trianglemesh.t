@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -23,9 +23,14 @@ my $cube = {
     is_deeply $vertices, $cube->{vertices}, 'vertices arrayref roundtrip';
     is_deeply $facets, $cube->{facets}, 'facets arrayref roundtrip';
     
-    my $stats = $m->stats;
-    is $stats->{number_of_facets}, scalar(@{ $cube->{facets} }), 'stats.number_of_facets';
-    ok abs($stats->{volume} - 20*20*20) < 1E-3, 'stats.volume';
+    {
+        my $stats = $m->stats;
+        is $stats->{number_of_facets}, scalar(@{ $cube->{facets} }), 'stats.number_of_facets';
+        ok abs($stats->{volume} - 20*20*20) < 1E-2, 'stats.volume';
+    }
+    
+    $m->scale(2);
+    ok abs($m->stats->{volume} - 40*40*40) < 1E-2, 'scale';
 }
 
 __END__

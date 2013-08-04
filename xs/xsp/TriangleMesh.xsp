@@ -12,6 +12,7 @@
     void ReadFromPerl(SV* vertices, SV* facets);
     void Repair();
     void WriteOBJFile(char* output_file);
+    void scale(float factor);
 %{
 
 SV*
