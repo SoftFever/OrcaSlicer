@@ -26,7 +26,6 @@
 #include "stl.h"
 
 static void stl_rotate(float *x, float *y, float angle);
-static void stl_get_size(stl_file *stl);
 static float get_area(stl_facet *facet);
 static float get_volume(stl_file *stl);
 
@@ -115,6 +114,11 @@ stl_scale(stl_file *stl, float factor)
   stl->stats.max.x *= factor;
   stl->stats.max.y *= factor;
   stl->stats.max.z *= factor;
+  
+  // scale size
+  stl->stats.size.x *= factor;
+  stl->stats.size.y *= factor;
+  stl->stats.size.z *= factor;
   
   // scale volume
   if (stl->stats.volume > 0.0) {
@@ -219,7 +223,7 @@ stl_rotate(float *x, float *y, float angle)
   *y = r * sin(theta + radian_angle);
 }
 
-static void
+extern void
 stl_get_size(stl_file *stl)
 {
   int i;
@@ -250,6 +254,14 @@ stl_get_size(stl_file *stl)
 				     stl->facet_start[i].vertex[j].z);
 	}
     }
+    stl->stats.size.x = stl->stats.max.x - stl->stats.min.x;
+    stl->stats.size.y = stl->stats.max.y - stl->stats.min.y;
+    stl->stats.size.z = stl->stats.max.z - stl->stats.min.z;
+    stl->stats.bounding_diameter = sqrt(
+        stl->stats.size.x * stl->stats.size.x +
+        stl->stats.size.y * stl->stats.size.y +
+        stl->stats.size.z * stl->stats.size.z
+        );
 }
 
 void

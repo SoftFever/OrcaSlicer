@@ -42,6 +42,8 @@ void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
         
         stl.facet_start[i] = facet;
     }
+    
+    stl_get_size(&(this->stl));
 }
 
 void

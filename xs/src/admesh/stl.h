@@ -181,3 +181,4 @@ static void stl_facet_stats(stl_file *stl, stl_facet facet, int first);
 static void stl_reallocate(stl_file *stl);
 static int stl_get_little_int(FILE *fp);
 static float stl_get_little_float(FILE *fp);
+extern void stl_get_size(stl_file *stl);

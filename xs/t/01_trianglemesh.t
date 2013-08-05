@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -37,6 +37,8 @@ my $cube = {
     
     $m->align_to_origin;
     is_deeply $m->vertices->[2], [0,0,0], 'align_to_origin';
+    
+    is_deeply $m->size, [40,40,40], 'size';
 }
 
 __END__

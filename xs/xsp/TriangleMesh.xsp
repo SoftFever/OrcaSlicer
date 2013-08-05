@@ -79,6 +79,18 @@ TriangleMesh::facets()
     OUTPUT:
         RETVAL
 
+SV*
+TriangleMesh::size()
+    CODE:
+        AV* size = newAV();
+        av_extend(size, 2);
+        av_store(size, 0, newSVnv(THIS->stl.stats.size.x));
+        av_store(size, 1, newSVnv(THIS->stl.stats.size.y));
+        av_store(size, 2, newSVnv(THIS->stl.stats.size.z));
+        RETVAL = newRV_noinc((SV*)size);
+    OUTPUT:
+        RETVAL
+
 %}
 };
 
