@@ -325,6 +325,11 @@ use Slic3r::Geometry qw(X1 Y1);
 
 has 'expolygons' => (is => 'ro', default => sub { [] });
 
+sub append {
+    my $self = shift;
+    push @{$self->expolygons}, @_;
+}
+
 sub clone {
     my $self = shift;
     return (ref $self)->new(

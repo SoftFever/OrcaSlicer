@@ -1167,17 +1167,23 @@ sub make_thumbnail {
     my $self = shift;
     
     my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
-    my $thumbnail = Slic3r::ExPolygon::Collection->new(
-    	expolygons => (@{$mesh->facets} <= 5000)
-    		? $mesh->horizontal_projection
-    		: [ Slic3r::ExPolygon->new($self->convex_hull) ],
-    );
-    # Note: the call to simplify() was removed here because it used Clipper
-    # simplification which needs integerization.
-    # TODO: remove polygons with area <= 1 pixel
+    my $thumbnail = Slic3r::ExPolygon::Collection->new;
+    if (@{$mesh->facets} <= 5000) {
+        $thumbnail->append(@{ $mesh->horizontal_projection });
+    } else {
+        my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
+        $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);
+        $thumbnail->append($convex_hull);
+    }
+    
+    # remove polygons with area <= 1mm
+    my $area_threshold = Slic3r::Geometry::scale 1;
+    @{$thumbnail->expolygons} =
+        map $_->simplify(0.5),
+        grep $_->area >= $area_threshold,
+        @{$thumbnail->expolygons};
     
     $thumbnail->scale(&Slic3r::SCALING_FACTOR);
-    
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
