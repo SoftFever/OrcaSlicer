@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex offset);
 use Storable;
 
 # public
@@ -550,19 +550,20 @@ sub split_mesh {
     return @meshes;
 }
 
+# this will return *scaled* expolygons, so it is expected to be run
+# on unscaled meshes
 sub horizontal_projection {
     my $self = shift;
     
     my @f = ();
     foreach my $facet (@{$self->facets}) {
-        push @f, Slic3r::Polygon->new(map [ @{$self->vertices->[$_]}[X,Y] ], @$facet);
+        push @f, Slic3r::Polygon->new(
+            map [ map $_ / &Slic3r::SCALING_FACTOR, @{$self->vertices->[$_]}[X,Y] ], @$facet
+        );
     }
     
-    my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
     $_->make_counter_clockwise for @f;  # do this after scaling, as winding order might change while doing that
-    my $union = union_ex([ Slic3r::Geometry::Clipper::offset(\@f, 10000) ]);
-    Math::Clipper::unscale_coordinate_sets($scale_vector, $_) for @$union;
-    return $union;
+    return union_ex(\@f, 1);
 }
 
 1;

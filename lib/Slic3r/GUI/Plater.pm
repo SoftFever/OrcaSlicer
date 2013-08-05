@@ -1174,6 +1174,9 @@ sub make_thumbnail {
     );
     # Note: the call to simplify() was removed here because it used Clipper
     # simplification which needs integerization.
+    # TODO: remove polygons with area <= 1 pixel
+    
+    $thumbnail->scale(&Slic3r::SCALING_FACTOR);
     
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
