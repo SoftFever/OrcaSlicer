@@ -112,4 +112,13 @@ void TriangleMesh::translate(float x, float y, float z)
     stl_translate(&(this->stl), x, y, z);
 }
 
+void TriangleMesh::align_to_origin()
+{
+    this->translate(
+        -(this->stl.stats.min.x),
+        -(this->stl.stats.min.y),
+        -(this->stl.stats.min.z)
+    );
+}
+
 }
