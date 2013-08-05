@@ -3,6 +3,7 @@
 
 #include <myinit.h>
 #include <admesh/stl.h>
+#include "Point.hpp"
 
 namespace Slic3r {
 
@@ -18,6 +19,7 @@ class TriangleMesh
     void scale(float factor);
     void translate(float x, float y, float z);
     void align_to_origin();
+    void rotate(double angle, Point* center);
     stl_file stl;
 };
 

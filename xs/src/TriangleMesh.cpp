@@ -123,4 +123,11 @@ void TriangleMesh::align_to_origin()
     );
 }
 
+void TriangleMesh::rotate(double angle, Point* center)
+{
+    this->translate(-center->x, -center->y, 0);
+    stl_rotate_z(&(this->stl), (float)angle);
+    this->translate(+center->x, +center->y, 0);
+}
+
 }

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -39,6 +39,9 @@ my $cube = {
     is_deeply $m->vertices->[2], [0,0,0], 'align_to_origin';
     
     is_deeply $m->size, [40,40,40], 'size';
+    
+    $m->rotate(45, Slic3r::Point->new(20,20));
+    ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
 }
 
 __END__
