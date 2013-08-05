@@ -37,7 +37,7 @@ TriangleMesh::stats()
 SV*
 TriangleMesh::vertices()
     CODE:
-        if (THIS->stl.stats.shared_vertices == 0)
+        if (THIS->stl.v_shared == NULL)
             stl_generate_shared_vertices(&(THIS->stl));
         
         // vertices
@@ -59,7 +59,7 @@ TriangleMesh::vertices()
 SV*
 TriangleMesh::facets()
     CODE:
-        if (THIS->stl.stats.shared_vertices == 0)
+        if (THIS->stl.v_shared == NULL)
             stl_generate_shared_vertices(&(THIS->stl));
         
         // facets

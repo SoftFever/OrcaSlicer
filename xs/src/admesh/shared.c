@@ -26,10 +26,14 @@
 void
 stl_invalidate_shared_vertices(stl_file *stl)
 {
-    if (stl->v_indices != NULL)
+    if (stl->v_indices != NULL) {
         free(stl->v_indices);
-    if (stl->v_shared != NULL)
+        stl->v_indices = NULL;
+    }
+    if (stl->v_shared != NULL) {
         free(stl->v_shared);
+        stl->v_shared = NULL;
+    }
 }
 
 void
