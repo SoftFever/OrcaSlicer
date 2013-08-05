@@ -107,4 +107,9 @@ void TriangleMesh::scale(float factor)
     stl_scale(&(this->stl), factor);
 }
 
+void TriangleMesh::translate(float x, float y, float z)
+{
+    stl_translate(&(this->stl), x, y, z);
+}
+
 }

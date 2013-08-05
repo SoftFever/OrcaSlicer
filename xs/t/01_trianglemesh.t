@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -31,6 +31,9 @@ my $cube = {
     
     $m->scale(2);
     ok abs($m->stats->{volume} - 40*40*40) < 1E-2, 'scale';
+    
+    $m->translate(5,10,0);
+    is_deeply $m->vertices->[0], [45,50,0], 'translate';
 }
 
 __END__

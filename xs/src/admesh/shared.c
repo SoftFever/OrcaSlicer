@@ -23,6 +23,14 @@
 
 #include "stl.h"
 
+void
+stl_invalidate_shared_vertices(stl_file *stl)
+{
+    if (stl->v_indices != NULL)
+        free(stl->v_indices);
+    if (stl->v_shared != NULL)
+        free(stl->v_shared);
+}
 
 void
 stl_generate_shared_vertices(stl_file *stl)
@@ -37,6 +45,9 @@ stl_generate_shared_vertices(stl_file *stl)
   int pivot_vertex;
   int next_facet;
   int reversed;
+  
+  // make sure this function is idempotent and does not leak memory
+  stl_invalidate_shared_vertices(stl);
   
   stl->v_indices = (v_indices_struct*)
     calloc(stl->stats.number_of_facets, sizeof(v_indices_struct));

@@ -163,6 +163,7 @@ extern void stl_mirror_xy(stl_file *stl);
 extern void stl_mirror_yz(stl_file *stl);
 extern void stl_mirror_xz(stl_file *stl);
 extern void stl_open_merge(stl_file *stl, char *file);
+extern void stl_invalidate_shared_vertices(stl_file *stl);
 extern void stl_generate_shared_vertices(stl_file *stl);
 extern void stl_write_obj(stl_file *stl, char *file);
 extern void stl_write_off(stl_file *stl, char *file);

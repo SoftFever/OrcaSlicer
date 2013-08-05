@@ -16,6 +16,7 @@ class TriangleMesh
     void Repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
+    void translate(float x, float y, float z);
     stl_file stl;
 };
 
