@@ -910,7 +910,7 @@ sub generate_support_material {
             ###$contact_z = $layer->print_z - $layer->height;
             
             # ignore this contact area if it's too low
-            next if $contact_z < $Slic3r::Config->first_layer_height;
+            next if $contact_z < $Slic3r::Config->get_value('first_layer_height');
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
