@@ -5,7 +5,8 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2 offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
+    offset offset2 offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection
+    union diff);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -131,23 +132,22 @@ sub _merge_loops {
     # winding order.
     # TODO: find a faster algorithm for this.
     my @loops = sort { $a->encloses_point($b->[0]) ? 0 : 1 } @$loops;  # outer first
-    $safety_offset //= scale 0.0499;
-    @loops = @{ safety_offset(\@loops, $safety_offset) };
-    my $expolygons = [];
-    while (my $loop = shift @loops) {
-        bless $loop, 'Slic3r::Polygon';
-        if ($loop->is_counter_clockwise) {
-            $expolygons = union_ex([ $loop, map @$_, @$expolygons ]);
-        } else {
-            $expolygons = diff_ex([ map @$_, @$expolygons ], [$loop]);
-        }
+    # we don't perform a safety offset now because it might reverse cw loops
+    my $slices = [];
+    foreach my $loop (@loops) {
+        $slices = $loop->is_counter_clockwise
+            ? union([ $loop, @$slices ])
+            : diff($slices, [$loop]);
     }
-    $expolygons = [ map $_->offset_ex(-$safety_offset), @$expolygons ];
+    
+    # perform a safety offset to merge very close facets (TODO: find test case for this)
+    $safety_offset //= scale 0.0499;
+    $slices = [ offset2_ex($slices, +$safety_offset, -$safety_offset) ];
     
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
-        scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
+        scalar(@$slices), scalar(map $_->holes, @$slices), scalar(@$loops) if $Slic3r::debug;
     
-    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$expolygons;
+    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$slices;
 }
 
 sub make_perimeters {
