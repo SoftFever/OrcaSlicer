@@ -44,6 +44,12 @@ sub wkt {
         join ',', map "($_)", map { join ',', map "$_->[0] $_->[1]", @$_ } @$self;
 }
 
+sub dump_perl {
+    my $self = shift;
+    return sprintf "[%s]", 
+        join ',', map "[$_]", map { join ',', map "[$_->[0],$_->[1]]", @$_ } @$self;
+}
+
 sub offset {
     my $self = shift;
     return Slic3r::Geometry::Clipper::offset(\@$self, @_);
@@ -108,15 +114,21 @@ sub clip_line {
     ];
 }
 
-sub simplify {
+sub simplify_as_polygons {
     my $self = shift;
     my ($tolerance) = @_;
     
     # it would be nice to have a multilinestring_simplify method in B::G::U
-    my @simplified = Slic3r::Geometry::Clipper::simplify_polygons(
+    return @{Slic3r::Geometry::Clipper::simplify_polygons(
         [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @{$self->pp} ],
-    );
-    return @{ Slic3r::Geometry::Clipper::union_ex([ @simplified ]) };
+    )};
+}
+
+sub simplify {
+    my $self = shift;
+    my ($tolerance) = @_;
+    
+    return @{ Slic3r::Geometry::Clipper::union_ex([ $self->simplify_as_polygons($tolerance) ]) };
 }
 
 sub area {
@@ -146,7 +158,7 @@ sub medial_axis {
         push @points, @$polygon;
     }
     
-    my $voronoi = Math::Geometry::Voronoi->new(points => \@points);
+    my $voronoi = Math::Geometry::Voronoi->new(points => [ map $_->pp, @points ]);
     $voronoi->compute;
     
     my @skeleton_lines = ();
@@ -158,8 +170,8 @@ sub medial_axis {
         next if $edge->[1] == -1 || $edge->[2] == -1;
         
         my ($a, $b);
-        $a = $vertices->[$edge->[1]];
-        $b = $vertices->[$edge->[2]];
+        $a = Slic3r::Point->new(@{$vertices->[$edge->[1]]});
+        $b = Slic3r::Point->new(@{$vertices->[$edge->[2]]});
         
         next if !$self->encloses_point_quick($a) || !$self->encloses_point_quick($b);
         

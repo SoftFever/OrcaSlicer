@@ -48,8 +48,9 @@ my $test = sub {
             }
             if ($info->{dist_Z} < 0) {
                 fail 'going down only after lifting' if !$lifted;
-                fail 'going down by the same amount of the lift'
-                    if !_eq($info->{dist_Z}, -$print->extruders->[$tool]->retract_lift);
+                fail 'going down by the same amount of the lift or by the amount needed to get to next layer'
+                    if !_eq($info->{dist_Z}, -$print->extruders->[$tool]->retract_lift)
+                        && !_eq($info->{dist_Z}, -$print->extruders->[$tool]->retract_lift + $conf->layer_height);
                 $lifted = 0;
             }
             fail 'move Z at travel speed' if ($args->{F} // $self->F) != $conf->travel_speed * 60;
@@ -123,6 +124,8 @@ $retract_tests->(' (G0 and duplicate)');
 $config->set('duplicate', 1);
 $config->set('g0', 0);
 $config->set('infill_extruder', 2);
-$retract_tests->(' (dual extruder)');
+$config->set('skirts', 4);
+$config->set('skirt_height', 3);
+$retract_tests->(' (dual extruder with multiple skirt layers)');
 
 __END__

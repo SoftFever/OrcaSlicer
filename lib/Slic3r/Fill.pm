@@ -162,7 +162,6 @@ sub make_fill {
             $surface,
             density         => $density,
             flow_spacing    => $flow_spacing,
-            dont_adjust     => $is_bridge,
         );
         next unless @polylines;
         
@@ -190,8 +189,10 @@ sub make_fill {
     }
     
     # add thin fill regions
-    push @fills, @{$layerm->thin_fills};
-    push @fills_ordering_points, map $_->[0], @{$layerm->thin_fills};
+    if (@{ $layerm->thin_fills }) {
+        push @fills, Slic3r::ExtrusionPath::Collection->new(@{$layerm->thin_fills});
+        push @fills_ordering_points, $fills[-1]->first_point;
+    }
     
     # organize infill paths using a nearest-neighbor search
     @fills = @fills[ chained_path(\@fills_ordering_points) ];

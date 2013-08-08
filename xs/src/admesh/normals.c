@@ -121,9 +121,13 @@ stl_fix_normal_directions(stl_file *stl)
   
 
   facet_num = 0;
+  //If normal vector is not within tolerance and backwards:
+  //Arbitrarily starts at face 0.  If this one is wrong, we're screwed.  Thankfully, the chances
+  // of it being wrong randomly are low if most of the triangles are right:
   if(stl_check_normal_vector(stl, 0, 0) == 2)
     stl_reverse_facet(stl, 0);
-     
+
+  //Say that we've fixed this facet:
   norm_sw[facet_num] = 1;
   /*  edge_num = 0;
       vnot = stl->neighbors_start[0].which_vertex_not[0];
@@ -133,19 +137,24 @@ stl_fix_normal_directions(stl_file *stl)
   for(;;)
     {
       /* Add neighbors_to_list. */
+      //Add unconnected neighbors to the list:a
       for(j = 0; j < 3; j++)
 	{
 	  /* Reverse the neighboring facets if necessary. */
 	  if(stl->neighbors_start[facet_num].which_vertex_not[j] > 2)
 	    {
+	    // If the facet has a neighbor that is -1, it means that edge isn't shared by another
+        // facet.
 	      if(stl->neighbors_start[facet_num].neighbor[j] != -1)
 		{
 		  stl_reverse_facet
 		    (stl, stl->neighbors_start[facet_num].neighbor[j]);
 		}
 	    }
+	    //If this edge of the facet is connected:
 	  if(stl->neighbors_start[facet_num].neighbor[j] != -1)
 	    {
+	      //If we haven't fixed this facet yet, add it to the list:
 	      if(norm_sw[stl->neighbors_start[facet_num].neighbor[j]] != 1)
 		{
 		  /* Add node to beginning of list. */
@@ -170,14 +179,14 @@ stl_fix_normal_directions(stl_file *stl)
 	  head->next = head->next->next;
 	  free(temp);
 	}
-      else
+      else  //if we ran out of facets to fix:
 	{
 	  /* All of the facets in this part have been fixed. */
 	  stl->stats.number_of_parts += 1;
 	  /* There are (checked-checked_before) facets */
 	  /* in part stl->stats.number_of_parts */
 	  checked_before = checked;
-	  if(checked == stl->stats.number_of_facets)
+	  if(checked >= stl->stats.number_of_facets)
 	    {
 	      /* All of the facets have been checked.  Bail out. */
 	      break;
@@ -350,7 +359,7 @@ void stl_normalize_vector(float v[])
   min_normal_length = 0.000000000001;
   if(length < min_normal_length)
     {
-      v[0] = 1.0;
+      v[0] = 0.0;
       v[1] = 0.0;
       v[2] = 0.0;
       return;

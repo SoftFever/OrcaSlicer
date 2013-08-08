@@ -44,8 +44,9 @@ OUTPUT
 T_ARRAYREF
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
-	const unsigned int len = $var.size();
-	av_extend(av, len-1);
-	for (unsigned int i = 0; i < len; i++) {
-        av_store(av, i, ${var}[i].to_SV_ref());
+	av_extend(av, $var.size()-1);
+	int i = 0;
+    for (${type}::iterator it = $var.begin(); it != $var.end(); ++it) {
+        av_store(av, i++, (*it).to_SV_ref());
 	}
+	$var.clear();

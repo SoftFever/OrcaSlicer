@@ -25,7 +25,7 @@ sub export_svg {
     my ($filename) = @_;
     
     my $print_size = $self->print->size;
-    $self->height(unscale max(map $_->print_z, map @{$_->layers}, @{$self->print->objects}));
+    $self->height(max(map $_->print_z, map @{$_->layers}, @{$self->print->objects}));
     my $svg = SVG->new(
         width  => $self->scale * unscale($print_size->[X]),
         height => $self->scale * $self->height,
@@ -58,7 +58,7 @@ sub export_svg {
     );
     
     $group->(
-        filter => sub { $_[0]->support_fills, $_[0]->support_contact_fills },
+        filter => sub { $_[0]->isa('Slic3r::Layer::Support') ? ($_[0]->support_fills, $_[0]->support_interface_fills) : () },
         style  => {
             'stroke-width'  => 1,
             'stroke'        => '#444444',
@@ -80,19 +80,19 @@ sub _plot {
     
     foreach my $object (@{$self->print->objects}) {
         foreach my $copy (@{$object->copies}) {
-            foreach my $layer (@{$object->layers}) {
+            foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
                 # get all ExtrusionPath objects
                 my @paths = 
                     map { $_->polyline->translate(@$copy); $_ }
                     map { $_->isa('Slic3r::ExtrusionLoop') ? $_->split_at_first_point : $_ }
-                    map { $_->isa('Slic3r::ExtrusionPath::Collection') ? @{$_->paths} : $_ }
+                    map { $_->isa('Slic3r::ExtrusionPath::Collection') ? @$_ : $_ }
                     grep defined $_,
                     $filter->($layer);
                 
                 foreach my $path (@paths) {
-                    foreach my $line ($path->lines) {
+                    foreach my $line (@{$path->lines}) {
                         my @intersections = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-                            Slic3r::ExPolygon->new($line->grow(Slic3r::Geometry::scale $path->flow_spacing/2)),
+                            Slic3r::ExPolygon->new($line->grow(Slic3r::Geometry::scale $path->flow_spacing/2))->pp,
                             [ $self->line ],
                         ) };
                         die "Intersection has more than two points!\n" if first { @$_ > 2 } @intersections;
@@ -105,7 +105,7 @@ sub _plot {
                                     # we're cutting the path in the longitudinal direction, so we've got a rectangle
                                     push @rectangles, {
                                         'x'         => $self->scale * unscale $line->[A][X],
-                                        'y'         => $self->scale * $self->_y(unscale($layer->print_z)),
+                                        'y'         => $self->scale * $self->_y($layer->print_z),
                                         'width'     => $self->scale * $width,
                                         'height'    => $self->scale * $radius * 2,
                                         'rx'        => $self->scale * $radius * 0.35,
@@ -114,7 +114,7 @@ sub _plot {
                                 } else {
                                     push @circles, {
                                         'cx'        => $self->scale * (unscale($line->[A][X]) + $radius),
-                                        'cy'        => $self->scale * $self->_y(unscale($layer->print_z) - $radius),
+                                        'cy'        => $self->scale * $self->_y($layer->print_z - $radius),
                                         'r'         => $self->scale * $radius,
                                     };
                                 }
@@ -124,7 +124,7 @@ sub _plot {
                                 my $height = $path->height // $layer->height;
                                 {
                                     'x'         => $self->scale * unscale $_->[A][X],
-                                    'y'         => $self->scale * $self->_y(unscale($layer->print_z)),
+                                    'y'         => $self->scale * $self->_y($layer->print_z),
                                     'width'     => $self->scale * unscale(abs($_->[B][X] - $_->[A][X])),
                                     'height'    => $self->scale * $height,
                                     'rx'        => $self->scale * $height * 0.35,

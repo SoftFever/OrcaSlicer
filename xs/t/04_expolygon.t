@@ -95,9 +95,7 @@ is_deeply $expolygon->clone->pp, [$square, $hole_in_square], 'clone';
     
     my $exp = $collection->[0];
     $exp->scale(3);
-    ### we store a copy, not the original by reference
-    ###is_deeply $expolygon->pp, $exp->pp, 'input is stored by reference in collection';
-    is_deeply $collection->[0]->pp, $exp->pp, 'collection items are returned by reference';
+    isnt $collection->[0][0][0][0], $exp->[0][0][0], 'collection items are not returned by reference';
     
     is_deeply $collection->[0]->clone->pp, $collection->[0]->pp, 'clone collection item';
 }

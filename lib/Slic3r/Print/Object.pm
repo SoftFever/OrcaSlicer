@@ -1,11 +1,11 @@
 package Slic3r::Print::Object;
 use Moo;
 
-use List::Util qw(min sum first);
+use List::Util qw(min max sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
-use Slic3r::Geometry::Clipper qw(diff_ex intersection_ex union_ex offset collapse_ex
-    offset2 diff intersection);
+use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
+    offset offset_ex offset2);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -14,9 +14,10 @@ has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1); # XYZ in scaled coordinates
 has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
 has 'layers'            => (is => 'rw', default => sub { [] });
+has 'support_layers'    => (is => 'rw', default => sub { [] });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'fill_maker'        => (is => 'lazy');
-has '_z_table'          => (is => 'lazy');
+has '_slice_z_table'    => (is => 'lazy');
 
 sub BUILD {
     my $self = shift;
@@ -36,7 +37,7 @@ sub BUILD {
             object  => $self,
             id      => $id,
             height  => $height,
-            print_z => scale $print_z,
+            print_z => $print_z,
             slice_z => -1,
         );
     }
@@ -71,7 +72,7 @@ sub BUILD {
             object  => $self,
             id      => $id,
             height  => $height,
-            print_z => scale $print_z,
+            print_z => $print_z,
             slice_z => scale $slice_z,
         );
         
@@ -84,7 +85,7 @@ sub _build_fill_maker {
     return Slic3r::Fill->new(object => $self);
 }
 
-sub _build__z_table {
+sub _build__slice_z_table {
     my $self = shift;
     return Slic3r::Object::XS::ZTable->new([ map $_->slice_z, @{$self->layers} ]);
 }
@@ -105,7 +106,13 @@ sub layer_count {
 
 sub get_layer_range {
     my $self = shift;
-    return @{ $self->_z_table->get_range(@_) };
+    my ($min_z, $max_z) = @_;
+    
+    my $min_layer = $self->_slice_z_table->lower_bound($min_z); # first layer whose slice_z is >= $min_z
+    return (
+        $min_layer,
+        $self->_slice_z_table->upper_bound($max_z, $min_layer)-1, # last layer whose slice_z is <= $max_z
+    );
 }
 
 sub bounding_box {
@@ -561,11 +568,14 @@ sub discover_horizontal_shells {
             
             if ($Slic3r::Config->solid_infill_every_layers && $Slic3r::Config->fill_density > 0
                 && ($i % $Slic3r::Config->solid_infill_every_layers) == 0) {
-                $_->surface_type(S_TYPE_INTERNALSOLID)
-                    for grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces};
+                my @surfaces = @{$layerm->fill_surfaces};
+                for my $i (0..$#surfaces) {
+                    next unless $surfaces[$i]->surface_type == S_TYPE_INTERNAL;
+                    $layerm->fill_surfaces->set_surface_type($i, S_TYPE_INTERNALSOLID);
+                }
             }
             
-            foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
+            EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find slices of current type for current layer
                 # get both slices and fill_surfaces before the former contains the perimeters area
                 # and the latter contains the enlarged external surfaces
@@ -576,7 +586,7 @@ sub discover_horizontal_shells {
                 my $solid_layers = ($type == S_TYPE_TOP)
                     ? $Slic3r::Config->top_solid_layers
                     : $Slic3r::Config->bottom_solid_layers;
-                for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
+                NEIGHBOR: for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
                         abs($n - $i) <= $solid_layers-1; 
                         ($type == S_TYPE_TOP) ? $n-- : $n++) {
                     
@@ -587,12 +597,19 @@ sub discover_horizontal_shells {
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
-                    my $new_internal_solid = intersection_ex(
+                    # we update $solid so that we limit the next neighbor layer to the areas that were
+                    # found on this one - in other words, solid shells on one layer (for a given external surface)
+                    # are always a subset of the shells found on the previous shell layer
+                    # this approach allows for DWIM in hollow sloping vases, where we want bottom
+                    # shells to be generated in the base but not in the walls (where there are many
+                    # narrow bottom surfaces): reassigning $solid will consider the 'shadow' of the 
+                    # upper perimeter as an obstacle and shell will not be propagated to more upper layers
+                    my $new_internal_solid = $solid = intersection_ex(
                         [ map @$_, @$solid ],
                         [ map $_->p, grep { ($_->surface_type == S_TYPE_INTERNAL) || ($_->surface_type == S_TYPE_INTERNALSOLID) } @neighbor_fill_surfaces ],
                         1,
                     );
-                    next if !@$new_internal_solid;
+                    next EXTERNAL if !@$new_internal_solid;
                     
                     # make sure the new internal solid is wide enough, as it might get collapsed when
                     # spacing is added in Fill.pm
@@ -600,25 +617,30 @@ sub discover_horizontal_shells {
                         my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
-                            offset(offset([ map @$_, @$new_internal_solid ], -$margin), +$margin),
+                            offset2([ map @$_, @$new_internal_solid ], -$margin, +$margin),
                             1,
                         );
                         
-                        # if some parts are going to collapse, let's grow them and add the extra area to the neighbor layer
-                        # as well as to our original surfaces so that we support this additional area in the next shell too
+                        # if some parts are going to collapse, use a different strategy according to fill density
                         if (@$too_narrow) {
-                            # consider the actual fill area
-                            my @fill_boundaries = $Slic3r::Config->fill_density > 0
-                                ? @neighbor_fill_surfaces
-                                : grep $_->surface_type != S_TYPE_INTERNAL, @neighbor_fill_surfaces;
-                            
-                            # make sure our grown surfaces don't exceed the fill area
-                            my @grown = map @$_, @{intersection_ex(
-                                offset([ map @$_, @$too_narrow ], +$margin),
-                                [ map $_->p, @fill_boundaries ],
-                            )};
-                            $new_internal_solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
-                            $solid = union_ex([ @grown, (map @$_, @$solid) ]);
+                            if ($Slic3r::Config->fill_density > 0) {
+                                # if we have internal infill, grow the collapsing parts and add the extra area to 
+                                # the neighbor layer as well as to our original surfaces so that we support this 
+                                # additional area in the next shell too
+
+                                # make sure our grown surfaces don't exceed the fill area
+                                my @grown = map @$_, @{intersection_ex(
+                                    offset([ map @$_, @$too_narrow ], +$margin),
+                                    [ map $_->p, @neighbor_fill_surfaces ],
+                                )};
+                                $new_internal_solid = $solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
+                            } else {
+                                # if we're printing a hollow object, we discard such small parts
+                                $new_internal_solid = $solid = diff_ex(
+                                    [ map @$_, @$new_internal_solid ],
+                                    [ map @$_, @$too_narrow ],
+                                );
+                            }
                         }
                     }
                     
@@ -778,263 +800,452 @@ sub generate_support_material {
     my $self = shift;
     return if $self->layer_count < 2;
     
+    my $flow = $self->print->support_material_flow;
+    
+    # how much we extend support around the actual contact area
+    #my $margin      = $flow->scaled_width / 2;
+    my $margin      = scale 3;
+    
+    # increment used to reach $margin in steps to avoid trespassing thin objects
+    my $margin_step = $margin/3;
+    
+    # if user specified a custom angle threshold, convert it to radians
     my $threshold_rad;
     if ($Slic3r::Config->support_material_threshold) {
         $threshold_rad = deg2rad($Slic3r::Config->support_material_threshold + 1);  # +1 makes the threshold inclusive
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
     }
-    my $flow                    = $self->print->support_material_flow;
-    my $distance_from_object    = 1.5 * $flow->scaled_width;
-    my $pattern_spacing = ($Slic3r::Config->support_material_spacing > $flow->spacing)
-        ? $Slic3r::Config->support_material_spacing
-        : $flow->spacing;
     
-    # determine support regions in each layer (for upper layers)
-    Slic3r::debugf "Detecting regions\n";
-    my %layers = ();            # this represents the areas of each layer having to support upper layers (excluding interfaces)
-    my %layers_interfaces = (); # this represents the areas of each layer to be filled with interface pattern, excluding the contact areas which are stored separately
-    my %layers_contact_areas = (); # this represents the areas of each layer having an overhang in the immediately upper layer
+    # shape of contact area
+    my $contact_loops = 1;
+    my $circle_distance = 3 * $flow->scaled_width;
+    my $circle;
     {
-        my @current_support_regions = ();   # expolygons we've started to support (i.e. below the empty interface layers)
-        my @upper_layers_overhangs = (map [], 1..$Slic3r::Config->support_material_interface_layers);
-        for my $i (reverse 0 .. $#{$self->layers}) {
-            next unless $Slic3r::Config->support_material
-                || ($i <= $Slic3r::Config->raft_layers)  # <= because we need to start from the first non-raft layer
-                || ($i <= $Slic3r::Config->support_material_enforce_layers + $Slic3r::Config->raft_layers);
+        # TODO: make sure teeth between circles are compatible with support material flow
+        my $r = 1.5 * $flow->scaled_width;
+        $circle = Slic3r::Polygon->new(map [ $r * cos $_, $r * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
+    }
+    
+    # determine contact areas
+    my %contact  = ();  # contact_z => [ polygons ]
+    my %overhang = ();  # contact_z => [ expolygons ] - this stores the actual overhang supported by each contact layer
+    for my $layer_id (1 .. $#{$self->layers}) {
+        my $layer = $self->layers->[$layer_id];
+        my $lower_layer = $self->layers->[$layer_id-1];
+        
+        # detect overhangs and contact areas needed to support them
+        my (@overhang, @contact) = ();
+        foreach my $layerm (@{$layer->regions}) {
+            my $fw = $layerm->perimeter_flow->scaled_width;
+            my $diff;
             
-            my $layer = $self->layers->[$i];
-            my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
-            
-            my @current_layer_offsetted_slices = map @{$_->offset_ex($distance_from_object)}, @{$layer->slices};
-            
-            # $upper_layers_overhangs[-1] contains the overhangs of the upper layer, regardless of any interface layers
-            # $upper_layers_overhangs[0] contains the overhangs of the first upper layer above the interface layers
-            
-            # we only consider the overhangs of the upper layer to define contact areas of the current one
-            $layers_contact_areas{$i} = diff_ex(
-                [ map @$_, @{ $upper_layers_overhangs[-1] || [] } ],
-                [ map @$_, @current_layer_offsetted_slices ],
-            );
-            $layers_contact_areas{$i} = [
-                @{collapse_ex([ map @$_, @{$layers_contact_areas{$i}} ], $flow->scaled_width)},
-            ];
-            
-            # to define interface regions of this layer we consider the overhangs of all the upper layers
-            # minus the first one
-            $layers_interfaces{$i} = diff_ex(
-                [ map @$_, map @$_, @upper_layers_overhangs[0 .. $#upper_layers_overhangs-1] ],
-                [
-                    (map @$_, @current_layer_offsetted_slices),
-                    (map @$_, @{ $layers_contact_areas{$i} }),
-                ],
-            );
-            $layers_interfaces{$i} = [
-                @{collapse_ex([ map @$_, @{$layers_interfaces{$i}} ], $flow->scaled_width)},
-            ];
-            
-            # generate support material in current layer (for upper layers)
-            @current_support_regions = @{diff_ex(
-                [
-                    (map @$_, @current_support_regions),
-                    (map @$_, @{ $upper_layers_overhangs[-1] || [] }),   # only considering -1 instead of the whole array contents is just an optimization
-                ],
-                [ map @$_, @{$layer->slices} ],
-            )};
-            shift @upper_layers_overhangs;
-            
-            $layers{$i} = diff_ex(
-                [ map @$_, @current_support_regions ],
-                [
-                    (map @$_, @current_layer_offsetted_slices),
-                    (map @$_, @{ $layers_interfaces{$i} }),
-                ],
-            );
-            $layers{$i} = [
-                @{collapse_ex([ map @$_, @{$layers{$i}} ], $flow->scaled_width)},
-            ];
-            
-            # get layer overhangs and put them into queue for adding support inside lower layers;
-            # we need an angle threshold for this
-            my @overhangs = ();
-            if ($lower_layer) {
-                # consider all overhangs regardless of their angle if we're told to enforce support on this layer
-                my $distance = $i <= ($Slic3r::Config->support_material_enforce_layers + $Slic3r::Config->raft_layers)
-                    ? 0
-                    : $Slic3r::Config->support_material_threshold
-                        ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
-                        : $self->layers->[1]->regions->[0]->overhang_width;
+            # If a threshold angle was specified, use a different logic for detecting overhangs.
+            if (defined $threshold_rad || $layer_id <= $Slic3r::Config->support_material_enforce_layers) {
+                my $d = defined $threshold_rad
+                    ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
+                    : 0;
                 
-                @overhangs = map @{$_->offset_ex(+$distance)}, @{diff_ex(
-                    [ map @$_, @{$layer->slices} ],
+                $diff = diff(
+                    offset([ map $_->p, @{$layerm->slices} ], -$d),
                     [ map @$_, @{$lower_layer->slices} ],
-                    1,
+                );
+                
+                # only enforce spacing from the object ($fw/2) if the threshold angle
+                # is not too high: in that case, $d will be very small (as we need to catch
+                # very short overhangs), and such contact area would be eaten by the
+                # enforced spacing, resulting in high threshold angles to be almost ignored
+                $diff = diff(
+                    offset($diff, $d - $fw/2),
+                    [ map @$_, @{$lower_layer->slices} ],
+                ) if $d > $fw/2;
+            } else {
+                $diff = diff(
+                    offset([ map $_->p, @{$layerm->slices} ], -$fw/2),
+                    [ map @$_, @{$lower_layer->slices} ],
+                );
+                # $diff now contains the ring or stripe comprised between the boundary of 
+                # lower slices and the centerline of the last perimeter in this overhanging layer.
+                # Void $diff means that there's no upper perimeter whose centerline is
+                # outside the lower slice boundary, thus no overhang
+            }
+            
+            next if !@$diff;
+            push @overhang, @{union_ex($diff)};  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!
+            
+            # Let's define the required contact area by using a max gap of half the upper 
+            # extrusion width and extending the area according to the configured margin.
+            # We increment the area in steps because we don't want our support to overflow
+            # on the other side of the object (if it's very thin).
+            {
+                my @slices_margin = @{offset([ map @$_, @{$lower_layer->slices} ], $fw/2)};
+                for ($fw/2, map {$margin_step} 1..($margin / $margin_step)) {
+                    $diff = diff(
+                        offset($diff, $_),
+                        \@slices_margin,
+                    );
+                }
+            }
+            push @contact, @$diff;
+        }
+        next if !@contact;
+        
+        # now apply the contact areas to the layer were they need to be made
+        {
+            # get the average nozzle diameter used on this layer
+            my @nozzle_diameters = map $_->nozzle_diameter,
+                map { $_->perimeter_flow, $_->solid_infill_flow }
+                @{$layer->regions};
+            my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
+            
+            my $contact_z = $layer->print_z - $nozzle_diameter * 1.5;
+            ###$contact_z = $layer->print_z - $layer->height;
+            
+            # ignore this contact area if it's too low
+            next if $contact_z < $Slic3r::Config->first_layer_height;
+            
+            $contact{$contact_z}  = [ @contact ];
+            $overhang{$contact_z} = [ @overhang ];
+        }
+    }
+    my @contact_z = sort keys %contact;
+    
+    # find object top surfaces
+    # we'll use them to clip our support and detect where does it stick
+    my %top = ();  # print_z => [ expolygons ]
+    {
+        my $projection = [];
+        foreach my $layer (reverse @{$self->layers}) {
+            if (my @top = grep $_->surface_type == S_TYPE_TOP, map @{$_->slices}, @{$layer->regions}) {
+                # compute projection of the contact areas above this top layer
+                # first add all the 'new' contact areas to the current projection
+                # ('new' means all the areas that are lower than the last top layer
+                # we considered)
+                my $min_top = min(keys %top) // max(keys %contact);
+                push @$projection, map @{$contact{$_}}, grep { $_ > $layer->print_z && $_ < $min_top } keys %contact;
+                
+                # now find whether any projection falls onto this top surface
+                my $touching = intersection($projection, [ map $_->p, @top ]);
+                if (@$touching) {
+                    $top{ $layer->print_z } = $touching;
+                }
+                
+                # remove the areas that touched from the projection that will continue on 
+                # next, lower, top surfaces
+                $projection = diff($projection, $touching);
+            }
+        }
+    }
+    my @top_z = sort keys %top;
+    
+    # we now know the upper and lower boundaries for our support material object
+    # (@contact_z and @top_z), so we can generate intermediate layers
+    my @support_layers = _compute_support_layers(\@contact_z, \@top_z, $Slic3r::Config, $flow);
+    
+    # if we wanted to apply some special logic to the first support layers lying on
+    # object's top surfaces this is the place to detect them
+    
+    # Let's now determine shells (interface layers) and normal support below them.
+    # Let's now fill each support layer by generating shells (interface layers) and
+    # clipping support area to the actual object boundaries.
+    my %interface = ();  # layer_id => [ polygons ]
+    my %support   = ();  # layer_id => [ polygons ]
+    my $interface_layers = $Slic3r::Config->support_material_interface_layers;
+    for my $layer_id (0 .. $#support_layers) {
+        my $z = $support_layers[$layer_id];
+        my $this = $contact{$z} // next;
+        # count contact layer as interface layer
+        for (my $i = $layer_id; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
+            $z = $support_layers[$i];
+            # Compute interface area on this layer as diff of upper contact area
+            # (or upper interface area) and layer slices.
+            # This diff is responsible of the contact between support material and
+            # the top surfaces of the object. We should probably offset the top 
+            # surfaces before performing the diff, but this needs investigation.
+            $this = $interface{$i} = diff(
+                [
+                    @$this,
+                    @{ $interface{$i} || [] },
+                ],
+                [
+                    @{ $top{$z} || [] },
+                ],
+                1,
+            );
+        }
+        
+        # determine what layers does our support belong to
+        for (my $i = $layer_id-$interface_layers; $i >= 0; $i--) {
+            $z = $support_layers[$i];
+            # Compute support area on this layer as diff of upper support area
+            # and layer slices.
+            $this = $support{$i} = diff(
+                [
+                    @$this,
+                    @{ $support{$i} || [] },
+                ],
+                [
+                    @{ $top{$z} || [] },
+                    @{ $interface{$i} || [] },
+                ],
+                1,
+            );
+        }
+    }
+    
+    push @{$self->support_layers}, map Slic3r::Layer::Support->new(
+        object  => $self,
+        id      => $_,
+        height  => ($_ == 0) ? $support_layers[$_] : ($support_layers[$_] - $support_layers[$_-1]),
+        print_z => $support_layers[$_],
+        slice_z => -1,
+        slices  => [],
+    ), 0 .. $#support_layers;
+
+    Slic3r::debugf "Generating patterns\n";
+    
+    # prepare fillers
+    my $pattern = $Slic3r::Config->support_material_pattern;
+    my @angles = ($Slic3r::Config->support_material_angle);
+    if ($pattern eq 'rectilinear-grid') {
+        $pattern = 'rectilinear';
+        push @angles, $angles[0] + 90;
+    }
+    
+    my %fillers = (
+        interface   => $self->fill_maker->filler('rectilinear'),
+        support     => $self->fill_maker->filler($pattern),
+    );
+    
+    my $interface_angle = $Slic3r::Config->support_material_angle + 90;
+    my $interface_spacing = $Slic3r::Config->support_material_interface_spacing + $flow->spacing;
+    my $interface_density = $interface_spacing == 0 ? 1 : $flow->spacing / $interface_spacing;
+    my $support_spacing = $Slic3r::Config->support_material_spacing + $flow->spacing;
+    my $support_density = $support_spacing == 0 ? 1 : $flow->spacing / $support_spacing;
+    
+    my $process_layer = sub {
+        my ($layer_id) = @_;
+        my $result = { contact => [], interface => [], support => [] };
+        
+        $contact{$layer_id}     ||= [];
+        $interface{$layer_id}   ||= [];
+        $support{$layer_id}     ||= [];
+        
+        # contact
+        if ((my $contact = $contact{$support_layers[$layer_id]}) && $contact_loops > 0) {
+            my $overhang = $overhang{$support_layers[$layer_id]};
+            $contact = [ grep $_->is_counter_clockwise, @$contact ];
+            
+            # generate the outermost loop
+            my @loops0;
+            {
+                # find centerline of the external loop of the contours
+                my @external_loops = @{offset($contact, -$flow->scaled_width/2)};
+                
+                # apply a pattern to the loop
+                my @positions = map Slic3r::Polygon->new(@$_)->split_at_first_point->regular_points($circle_distance), @external_loops;
+                @loops0 = @{diff(
+                    [ @external_loops ],
+                    [ map $circle->clone->translate(@$_), @positions ],
                 )};
             }
-            push @upper_layers_overhangs, [@overhangs];
             
-            if ($Slic3r::debug) {
-                printf "Layer %d (z = %.2f) has %d generic support areas, %d normal interface areas, %d contact areas\n",
-                    $i, unscale($layer->print_z), scalar(@{$layers{$i}}), scalar(@{$layers_interfaces{$i}}), scalar(@{$layers_contact_areas{$i}});
+            # make more loops
+            my @loops = @loops0;
+            for my $i (2..$contact_loops) {
+                my $d = ($i-1) * $flow->scaled_spacing;
+                push @loops, offset2(\@loops0, -$d -0.5*$flow->scaled_spacing, +0.5*$flow->scaled_spacing);
             }
-        }
-    }
-    return if !map @$_, values %layers;
-    
-    # generate paths for the pattern that we're going to use
-    Slic3r::debugf "Generating patterns\n";
-    my $support_patterns = [];
-    my $support_interface_patterns = [];
-    {
-        # 0.5 ensures the paths don't get clipped externally when applying them to layers
-        my @areas = map @{$_->offset_ex(- 0.5 * $flow->scaled_width)},
-            @{union_ex([ map $_->contour, map @$_, values %layers, values %layers_interfaces, values %layers_contact_areas ])};
-        
-        my $pattern = $Slic3r::Config->support_material_pattern;
-        my @angles = ($Slic3r::Config->support_material_angle);
-        if ($pattern eq 'rectilinear-grid') {
-            $pattern = 'rectilinear';
-            push @angles, $angles[0] + 90;
-        }
-        
-        my $filler = $self->fill_maker->filler($pattern);
-        my $make_pattern = sub {
-            my ($expolygon, $density) = @_;
             
-            my @paths = $filler->fill_surface(
-                Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
-                density         => $density,
-                flow_spacing    => $flow->spacing,
+            # clip such loops to the side oriented towards the object
+            @loops = map Slic3r::Polyline->new(@$_),
+                @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
+                    [ offset_ex([ map @$_, @$overhang ], +scale 3) ],
+                    [ map Slic3r::Polygon->new(@$_)->split_at_first_point, @loops ],
+                ) };
+            
+            # subtract loops from the contact area to detect the remaining part
+            $interface{$layer_id} = intersection(
+                $interface{$layer_id},
+                [ offset2(\@loops0, -($contact_loops) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing) ],
             );
-            my $params = shift @paths;
             
-            return map Slic3r::ExtrusionPath->new(
-                polyline        => Slic3r::Polyline->new(@$_),
+            # transform loops into ExtrusionPath objects
+            @loops = map Slic3r::ExtrusionPath->pack(
+                polyline        => $_,
                 role            => EXTR_ROLE_SUPPORTMATERIAL,
-                height          => undef,
-                flow_spacing    => $params->{flow_spacing},
-            ), @paths;
-        };
-        foreach my $angle (@angles) {
-            $filler->angle($angle);
-            {
-                my $density = $flow->spacing / $pattern_spacing;
-                push @$support_patterns, [ map $make_pattern->($_, $density), @areas ];
-            }
+                flow_spacing    => $flow->spacing,
+            ), @loops;
             
-            if ($Slic3r::Config->support_material_interface_layers > 0) {
-                # if pattern is not cross-hatched, rotate the interface pattern by 90° degrees
-                $filler->angle($angle + 90) if @angles == 1;
-                
-                my $spacing = $Slic3r::Config->support_material_interface_spacing;
-                my $density = $spacing == 0 ? 1 : $flow->spacing / $spacing;
-                push @$support_interface_patterns, [ map $make_pattern->($_, $density), @areas ];
-            }
+            $result->{contact} = [ @loops ];
         }
-    
-        if (0) {
-            require "Slic3r/SVG.pm";
-            Slic3r::SVG::output("support_$_.svg",
-                polylines        => [ map $_->polyline, map @$_, $support_patterns->[$_] ],
-                red_polylines    => [ map $_->polyline, map @$_, $support_interface_patterns->[$_] ],
-                polygons         => [ map @$_, @areas ],
-            ) for 0 .. $#$support_patterns;
-        }
-    }
-    
-    # apply the pattern to layers
-    Slic3r::debugf "Applying patterns\n";
-    {
-        my $clip_pattern = sub {
-            my ($layer_id, $expolygons, $height, $is_interface) = @_;
-            my @paths = ();
-            foreach my $expolygon (@$expolygons) {
-                push @paths,
-                    map {
-                        $_->height($height);
-                        
-                        # useless line because this coderef isn't called for layer 0 anymore;
-                        # let's keep it here just in case we want to make the base flange optional
-                        # in the future
-                        $_->flow_spacing($self->print->first_layer_support_material_flow->spacing)
-                            if $layer_id == 0;
-                        
-                        $_;
-                    }
-                    map $_->clip_with_expolygon($expolygon),
-                    ###map $_->clip_with_polygon($expolygon->bounding_box->polygon),  # currently disabled as a workaround for Boost failing at being idempotent
-                    ($is_interface && @$support_interface_patterns)
-                        ? @{$support_interface_patterns->[ $layer_id % @$support_interface_patterns ]}
-                        : @{$support_patterns->[ $layer_id % @$support_patterns ]};
-            };
-            return @paths;
-        };
-        my $process_layer = sub {
-            my ($layer_id) = @_;
-            my $layer = $self->layers->[$layer_id];
-            
-            my ($paths, $contact_paths) = ([], []);
-            my $islands = union_ex([ map @$_, map @$_, $layers{$layer_id}, $layers_contact_areas{$layer_id} ]);
-            
-            # make a solid base on bottom layer
-            if ($layer_id == 0) {
-                my $filler = $self->fill_maker->filler('rectilinear');
-                $filler->angle($Slic3r::Config->support_material_angle + 90);
-                foreach my $expolygon (@$islands) {
-                    my @paths = $filler->fill_surface(
-                        Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
-                        density         => 0.5,
-                        flow_spacing    => $self->print->first_layer_support_material_flow->spacing,
-                    );
-                    my $params = shift @paths;
-                    
-                    push @$paths, map Slic3r::ExtrusionPath->new(
-                        polyline        => Slic3r::Polyline->new(@$_),
-                        role            => EXTR_ROLE_SUPPORTMATERIAL,
-                        height          => undef,
-                        flow_spacing    => $params->{flow_spacing},
-                    ), @paths;
-                }
-            } else {
-                $paths           = [
-                    $clip_pattern->($layer_id, $layers{$layer_id}, $layer->height),
-                    $clip_pattern->($layer_id, $layers_interfaces{$layer_id}, $layer->height, 1),
-                ];
-                $contact_paths   = [ $clip_pattern->($layer_id, $layers_contact_areas{$layer_id}, $layer->support_material_contact_height, 1) ];
-            }
-            return ($paths, $contact_paths, $islands);
-        };
-        my %layer_paths             = ();
-        my %layer_contact_paths     = ();
-        my %layer_islands           = ();
-        Slic3r::parallelize(
-            items => [ keys %layers ],
-            thread_cb => sub {
-                my $q = shift;
-                $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
-                my $result = {};
-                while (defined (my $layer_id = $q->dequeue)) {
-                    $result->{$layer_id} = [ $process_layer->($layer_id) ];
-                }
-                return $result;
-            },
-            collect_cb => sub {
-                my $result = shift;
-                ($layer_paths{$_}, $layer_contact_paths{$_}, $layer_islands{$_}) = @{$result->{$_}} for keys %$result;
-            },
-            no_threads_cb => sub {
-                ($layer_paths{$_}, $layer_contact_paths{$_}, $layer_islands{$_}) = $process_layer->($_) for keys %layers;
-            },
-        );
         
-        foreach my $layer_id (keys %layer_paths) {
-            my $layer = $self->layers->[$layer_id];
-            $layer->support_islands($layer_islands{$layer_id});
-            $layer->support_fills(Slic3r::ExtrusionPath::Collection->new);
-            $layer->support_contact_fills(Slic3r::ExtrusionPath::Collection->new);
-            $layer->support_fills->append(@{$layer_paths{$layer_id}});
-            $layer->support_contact_fills->append(@{$layer_contact_paths{$layer_id}});
+        # interface
+        if (@{$interface{$layer_id}}) {
+            $fillers{interface}->angle($interface_angle);
+            
+            # steal some space from support
+            $interface{$layer_id} = intersection(
+                [ offset($interface{$layer_id}, scale 3) ],
+                [ @{$interface{$layer_id}}, @{$support{$layer_id}} ],
+            );
+            $support{$layer_id} = diff(
+                $support{$layer_id},
+                $interface{$layer_id},
+            );
+            
+            my @paths = ();
+            foreach my $expolygon (offset_ex($interface{$layer_id}, -$flow->scaled_width/2)) {
+                my @p = $fillers{interface}->fill_surface(
+                    Slic3r::Surface->new(expolygon => $expolygon),
+                    density         => $interface_density,
+                    flow_spacing    => $flow->spacing,
+                    complete        => 1,
+                );
+                my $params = shift @p;
+                
+                push @paths, map Slic3r::ExtrusionPath->pack(
+                    polyline        => Slic3r::Polyline->new(@$_),
+                    role            => EXTR_ROLE_SUPPORTMATERIAL,
+                    height          => undef,
+                    flow_spacing    => $params->{flow_spacing},
+                ), @p;
+            }            
+            $result->{interface} = [ @paths ];
+        }
+        
+        # support or flange
+        if (@{$support{$layer_id}}) {
+            my $filler = $fillers{support};
+            $filler->angle($angles[ ($layer_id) % @angles ]);
+            my $density         = $support_density;
+            my $flow_spacing    = $flow->spacing;
+            
+            # TODO: use offset2_ex()
+            my $to_infill = offset_ex(union($support{$layer_id}), -$flow->scaled_width/2);
+            my @paths = ();
+            
+            # base flange
+            if ($layer_id == 0) {
+                $filler = $fillers{interface};
+                $filler->angle($Slic3r::Config->support_material_angle + 90);
+                $density        = 0.5;
+                $flow_spacing   = $self->print->first_layer_support_material_flow->spacing;
+            } else {
+                # draw a perimeter all around support infill
+                # TODO: use brim ordering algorithm
+                push @paths, map Slic3r::ExtrusionPath->pack(
+                    polyline        => $_->split_at_first_point,
+                    role            => EXTR_ROLE_SUPPORTMATERIAL,
+                    height          => undef,
+                    flow_spacing    => $flow->spacing,
+                ), map @$_, @$to_infill;
+                
+                # TODO: use offset2_ex()
+                $to_infill = [ offset_ex([ map @$_, @$to_infill ], -$flow->scaled_spacing) ];
+            }
+            
+            foreach my $expolygon (@$to_infill) {
+                my @p = $filler->fill_surface(
+                    Slic3r::Surface->new(expolygon => $expolygon),
+                    density         => $density,
+                    flow_spacing    => $flow_spacing,
+                    complete        => 1,
+                );
+                my $params = shift @p;
+                
+                push @paths, map Slic3r::ExtrusionPath->pack(
+                    polyline        => Slic3r::Polyline->new(@$_),
+                    role            => EXTR_ROLE_SUPPORTMATERIAL,
+                    height          => undef,
+                    flow_spacing    => $params->{flow_spacing},
+                ), @p;
+            }
+            
+            $result->{support} = [ @paths ];
+        }
+        
+        # islands
+        $result->{islands} = union_ex([
+            @{$interface{$layer_id} || []},
+            @{$support{$layer_id}   || []},
+        ]);
+        
+        return $result;
+    };
+    
+    my $apply = sub {
+        my ($layer_id, $result) = @_;
+        my $layer = $self->support_layers->[$layer_id];
+        
+        my $interface_collection = Slic3r::ExtrusionPath::Collection->new(paths => [ @{$result->{contact}}, @{$result->{interface}} ]);
+        $layer->support_interface_fills($interface_collection) if @{$interface_collection->paths} > 0;
+        
+        my $support_collection = Slic3r::ExtrusionPath::Collection->new(paths => $result->{support});
+        $layer->support_fills($support_collection) if @{$support_collection->paths} > 0;
+        
+        $layer->support_islands($result->{islands});
+    };
+    Slic3r::parallelize(
+        items => [ 0 .. $#{$self->support_layers} ],
+        thread_cb => sub {
+            my $q = shift;
+            $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
+            my $result = {};
+            while (defined (my $layer_id = $q->dequeue)) {
+                $result->{$layer_id} = $process_layer->($layer_id);
+            }
+            return $result;
+        },
+        collect_cb => sub {
+            my $result = shift;
+            $apply->($_, $result->{$_}) for keys %$result;
+        },
+        no_threads_cb => sub {
+            $apply->($_, $process_layer->($_)) for 0 .. $#{$self->support_layers};
+        },
+    );
+}
+
+sub _compute_support_layers {
+    my ($contact_z, $top_z, $config, $flow) = @_;
+    
+    # quick table to check whether a given Z is a top surface
+    my %top = map { $_ => 1 } @$top_z;
+    
+    # determine layer height for any non-contact layer
+    # we use max() to prevent many ultra-thin layers to be inserted in case
+    # layer_height > nozzle_diameter * 0.75
+    my $support_material_height = max($config->layer_height, $flow->nozzle_diameter * 0.75);
+    
+    my @support_layers = sort { $a <=> $b } @$contact_z, @$top_z,
+        (map { $_ + $flow->nozzle_diameter } @$top_z);
+    
+    # enforce first layer height
+    my $first_layer_height = $config->get_value('first_layer_height');
+    shift @support_layers while @support_layers && $support_layers[0] <= $first_layer_height;
+    unshift @support_layers, $first_layer_height;
+    
+    for (my $i = $#support_layers; $i >= 0; $i--) {
+        my $target_height = $support_material_height;
+        if ($i > 0 && $top{ $support_layers[$i-1] }) {
+            $target_height = $flow->nozzle_diameter;
+        }
+        
+        # enforce first layer height
+        if (($i == 0 && $support_layers[$i] > $target_height + $first_layer_height)
+            || ($support_layers[$i] - $support_layers[$i-1] > $target_height + Slic3r::Geometry::epsilon)) {
+            splice @support_layers, $i, 0, ($support_layers[$i] - $target_height);
+            $i++;
         }
     }
+    
+    # remove duplicates and make sure all 0.x values have the leading 0
+    {
+        my %sl = map { 1 * $_ => 1 } @support_layers;
+        @support_layers = sort { $a <=> $b } keys %sl;
+    }
+    
+    return @support_layers;
 }
 
 1;

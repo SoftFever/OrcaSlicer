@@ -18,7 +18,7 @@ sub _build_spiralvase {
     my $self = shift;
     
     return $Slic3r::Config->spiral_vase
-        ? Slic3r::GCode::SpiralVase->new
+        ? Slic3r::GCode::SpiralVase->new(config => $self->gcodegen->config)
         : undef;
 }
 
@@ -26,6 +26,15 @@ sub process_layer {
     my $self = shift;
     my ($layer, $object_copies) = @_;
     my $gcode = "";
+    
+    # check whether we're going to apply spiralvase logic
+    my $spiralvase = defined $self->spiralvase
+        && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
+        && ($layer->id >= $Slic3r::Config->skirt_height)
+        && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+    
+    # if we're going to apply spiralvase to this layer, disable loop clipping
+    $self->gcodegen->enable_loop_clipping(!$spiralvase);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
         for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->temperature}) {
@@ -88,17 +97,15 @@ sub process_layer {
         
         # extrude support material before other things because it might use a lower Z
         # and also because we avoid travelling on other things when printing it
-        if ($self->print->has_support_material) {
-            $gcode .= $self->gcodegen->move_z($layer->support_material_contact_z)
-                if ($layer->support_contact_fills && @{ $layer->support_contact_fills->paths });
-            $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
-            if ($layer->support_contact_fills) {
-                $gcode .= $self->gcodegen->extrude_path($_, 'support material contact area') 
-                    for $layer->support_contact_fills->chained_path($self->gcodegen->last_pos); 
-            }
-            
+        if ($self->print->has_support_material && $layer->isa('Slic3r::Layer::Support')) {
             $gcode .= $self->gcodegen->move_z($layer->print_z);
+            if ($layer->support_interface_fills) {
+                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_interface_extruder-1]);
+                $gcode .= $self->gcodegen->extrude_path($_, 'support material interface') 
+                    for $layer->support_interface_fills->chained_path($self->gcodegen->last_pos); 
+            }
             if ($layer->support_fills) {
+                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material') 
                     for $layer->support_fills->chained_path($self->gcodegen->last_pos);
             }
@@ -116,7 +123,7 @@ sub process_layer {
         }
         
         foreach my $region_id (@region_ids) {
-            my $layerm = $layer->regions->[$region_id];
+            my $layerm = $layer->regions->[$region_id] or next;
             my $region = $self->print->regions->[$region_id];
             
             my @islands = ();
@@ -165,10 +172,7 @@ sub process_layer {
     
     # apply spiral vase post-processing if this layer contains suitable geometry
     $gcode = $self->spiralvase->process_layer($gcode, $layer)
-        if defined $self->spiralvase
-        && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
-        && ($layer->id >= $Slic3r::Config->skirt_height)
-        && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+        if $spiralvase;
     
     return $gcode;
 }

@@ -204,8 +204,15 @@ our $Options = {
     },
     'support_material_extruder' => {
         label   => 'Support material extruder',
-        tooltip => 'The extruder to use when printing support material. This affects brim too.',
+        tooltip => 'The extruder to use when printing support material. This affects brim and raft too.',
         cli     => 'support-material-extruder=i',
+        type    => 'i',
+        default => 1,
+    },
+    'support_material_interface_extruder' => {
+        label   => 'Support material interface extruder',
+        tooltip => 'The extruder to use when printing support material interface. This affects raft too.',
+        cli     => 'support-material-interface-extruder=i',
         type    => 'i',
         default => 1,
     },
@@ -652,7 +659,7 @@ our $Options = {
         type    => 'select',
         values  => [qw(rectilinear rectilinear-grid honeycomb)],
         labels  => ['rectilinear', 'rectilinear grid', 'honeycomb'],
-        default => 'rectilinear',
+        default => 'honeycomb',
     },
     'support_material_spacing' => {
         label   => 'Pattern spacing',
@@ -676,7 +683,7 @@ our $Options = {
         sidetext => 'layers',
         cli     => 'support-material-interface-layers=i',
         type    => 'i',
-        default => 0,
+        default => 3,
     },
     'support_material_interface_spacing' => {
         label   => 'Interface pattern spacing',
@@ -696,7 +703,7 @@ our $Options = {
     },
     'raft_layers' => {
         label   => 'Raft layers',
-        tooltip => 'Number of total raft layers to insert below the object(s).',
+        tooltip => 'The object will be raised by this number of layers, and support material will be generated under it.',
         sidetext => 'layers',
         cli     => 'raft-layers=i',
         type    => 'i',
@@ -814,7 +821,7 @@ END
     },
     'retract_lift' => {
         label   => 'Lift Z',
-        tooltip => 'If you set this to a positive value, Z is quickly raised every time a retraction is triggered.',
+        tooltip => 'If you set this to a positive value, Z is quickly raised every time a retraction is triggered. When using multiple extruders, only the setting for the first extruder will be considered.',
         sidetext => 'mm',
         cli     => 'retract-lift=f@',
         type    => 'f',
@@ -832,7 +839,7 @@ END
         default => [1],
     },
     'wipe' => {
-        label   => 'Wipe before retract',
+        label   => 'Wipe while retracting',
         tooltip => 'This flag will move the nozzle while retracting to minimize the possible blob on leaky extruders.',
         cli     => 'wipe!',
         type    => 'bool',

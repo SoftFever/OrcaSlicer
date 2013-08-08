@@ -10,7 +10,7 @@ sub read_file {
     my $tmesh = Slic3r::TriangleMesh::XS->new;
     $tmesh->ReadSTLFile(Slic3r::encode_path($file));
     $tmesh->Repair;
-    my ($vertices, $facets) = @{$tmesh->ToPerl};
+    my ($vertices, $facets) = ($tmesh->vertices, $tmesh->facets);
     
     my $model = Slic3r::Model->new;
     my $object = $model->add_object(vertices => $vertices, mesh_stats => $tmesh->stats);

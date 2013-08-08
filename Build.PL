@@ -99,6 +99,7 @@ EOF
     # temporarily require this dev version until this upstream bug
     # is resolved: https://rt.cpan.org/Ticket/Display.html?id=86367
     system $cpanm, 'SMUELLER/ExtUtils-ParseXS-3.18_04.tar.gz';
+    system './xs/Build', 'distclean' if -e './xs/Build';
     system $cpanm, '--reinstall', './xs';
 }
 

@@ -6,8 +6,9 @@
 %}
 
 %name{Slic3r::ExPolygon} class ExPolygon {
+    ~ExPolygon();
     ExPolygon* clone()
-        %code{% const char* CLASS = "Slic3r::ExPolygon"; RETVAL = new ExPolygon(*THIS); RETVAL->in_collection = false; %};
+        %code{% const char* CLASS = "Slic3r::ExPolygon"; RETVAL = new ExPolygon(*THIS); %};
     SV* arrayref()
         %code{% RETVAL = THIS->to_SV(); %};
     SV* pp()
@@ -28,14 +29,6 @@ ExPolygon::new(...)
         }
     OUTPUT:
         RETVAL
-
-void
-ExPolygon::DESTROY()
-    CODE:
-        if (!THIS->in_collection) {
-            delete THIS;
-            THIS = NULL;
-        }
 
 void
 ExPolygon::rotate(angle, center_sv)

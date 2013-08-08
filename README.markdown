@@ -80,7 +80,7 @@ The author of the Silk icon set is Mark James.
 
 ## How can I invoke slic3r.pl using the command line?
 
-    Usage: slic3r.pl [ OPTIONS ] file.stl
+    Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
     
         --help              Output this usage screen and exit
         --version           Output the version of Slic3r and exit
@@ -90,7 +90,10 @@ The author of the Silk icon set is Mark James.
         -o, --output <file> File to output gcode to (by default, the file will be saved
                             into the same directory as the input file using the 
                             --output-filename-format to generate the filename)
-        --repair            Automatically repair given STL files and saves them as _fixed.obj
+    
+      Non-slicing actions (no G-code will be generated):
+        --repair            Repair given STL files and save them as <name>_fixed.obj
+        --info              Output information about the supplied file(s) and exit
         
       GUI options:
         --no-plater         Disable the plater tab
@@ -322,6 +325,8 @@ The author of the Silk icon set is Mark James.
         --infill-extruder   Extruder to use for infill (1+, default: 1)
         --support-material-extruder
                             Extruder to use for support material (1+, default: 1)
+        --support-material-interface-extruder
+                            Extruder to use for support material interface (1+, default: 1)
 
 If you want to change a preset file, just do
 

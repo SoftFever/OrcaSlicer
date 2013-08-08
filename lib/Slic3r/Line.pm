@@ -50,4 +50,9 @@ sub midpoint {
     );
 }
 
+sub grow {
+    my $self = shift;
+    return Slic3r::Polyline->new(@$self[0,1,0])->grow(@_);
+}
+
 1;

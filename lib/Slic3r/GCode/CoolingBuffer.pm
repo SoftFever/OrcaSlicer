@@ -18,8 +18,6 @@ sub append {
     my $self = shift;
     my ($gcode, $obj_id, $layer_id, $print_z) = @_;
     
-    # TODO: differentiate $obj_id between normal layers and support layers
-    
     my $return = "";
     if (exists $self->last_z->{$obj_id} && $self->last_z->{$obj_id} != $print_z) {
         $return = $self->flush;

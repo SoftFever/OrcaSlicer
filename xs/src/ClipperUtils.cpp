@@ -277,4 +277,19 @@ void union_ex(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety
     _clipper(ClipperLib::ctUnion, subject, p, retval, safety_offset);
 }
 
+void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval)
+{
+    // convert into Clipper polygons
+    ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
+    Slic3rPolygons_to_ClipperPolygons(subject, *input_subject);
+    
+    ClipperLib::Polygons* output = new ClipperLib::Polygons();
+    ClipperLib::SimplifyPolygons(*input_subject, *output, ClipperLib::pftNonZero);
+    delete input_subject;
+    
+    // convert into Slic3r polygons
+    ClipperPolygons_to_Slic3rPolygons(*output, retval);
+    delete output;
+}
+
 }

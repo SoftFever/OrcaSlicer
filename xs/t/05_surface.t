@@ -52,7 +52,7 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
     
     my $item = $collection->[0];
     $item->surface_type(Slic3r::Surface::S_TYPE_INTERNAL);
-    is $item->surface_type, $collection->[0]->surface_type, 'changing item affects actual item';
+    isnt $item->surface_type, $collection->[0]->surface_type, 'collection returns copies of items';
 }
 
 __END__

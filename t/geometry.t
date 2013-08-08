@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 24;
+plan tests => 25;
 
 BEGIN {
     use FindBin;
@@ -180,6 +180,13 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ [0, 1], [10, 2], [20, 2] ]);
     $bb->scale(2);
     is_deeply $bb->extents, [ [0,40], [2,4] ], 'bounding box is scaled correctly';
+}
+
+#==========================================================
+
+{
+    my $line = Slic3r::Line->new([10,10], [20,10]);
+    is +($line->grow(5))[0]->area, Slic3r::Polygon->new([5,5], [25,5], [25,15], [5,15])->area, 'grow line';
 }
 
 #==========================================================

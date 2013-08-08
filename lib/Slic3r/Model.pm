@@ -278,6 +278,11 @@ sub split_meshes {
     }
 }
 
+sub print_info {
+    my $self = shift;
+    $_->print_info for @{$self->objects};
+}
+
 package Slic3r::Model::Region;
 use Moo;
 
@@ -287,6 +292,7 @@ has 'attributes'    => (is => 'rw', default => sub { {} });
 package Slic3r::Model::Object;
 use Moo;
 
+use File::Basename qw(basename);
 use List::Util qw(first);
 use Slic3r::Geometry qw(X Y Z MIN MAX move_points move_points_3D);
 use Storable qw(dclone);
@@ -396,6 +402,7 @@ sub scale {
     }
     
     $self->_bounding_box->scale($factor) if defined $self->_bounding_box;
+    $self->mesh_stats->{volume} *= ($factor**3) if defined $self->mesh_stats;
 }
 
 sub rotate {
@@ -423,6 +430,39 @@ sub materials_count {
 sub check_manifoldness {
     my $self = shift;
     return (first { !$_->mesh->check_manifoldness } @{$self->volumes}) ? 0 : 1;
+}
+
+sub needed_repair {
+    my $self = shift;
+    
+    return $self->mesh_stats
+        && first { $self->mesh_stats->{$_} > 0 }
+            qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges);
+}
+
+sub print_info {
+    my $self = shift;
+    
+    printf "Info about %s:\n", basename($self->input_file);
+        printf "  size:              x=%.3f y=%.3f z=%.3f\n", @{$self->size};
+    if (my $stats = $self->mesh_stats) {
+        printf "  number of facets:  %d\n", $stats->{number_of_facets};
+        printf "  number of shells:  %d\n", $stats->{number_of_parts};
+        printf "  volume:            %.3f\n", $stats->{volume};
+        if ($self->needed_repair) {
+            printf "  needed repair:     yes\n";
+            printf "  degenerate facets: %d\n", $stats->{degenerate_facets};
+            printf "  edges fixed:       %d\n", $stats->{edges_fixed};
+            printf "  facets removed:    %d\n", $stats->{facets_removed};
+            printf "  facets added:      %d\n", $stats->{facets_added};
+            printf "  facets reversed:   %d\n", $stats->{facets_reversed};
+            printf "  backwards edges:   %d\n", $stats->{backwards_edges};
+        } else {
+            printf "  needed repair:     no\n";
+        }
+    } else {
+        printf "  number of facets:  %d\n", scalar(map @{$_->facets}, @{$self->volumes});
+    }
 }
 
 sub clone { dclone($_[0]) }

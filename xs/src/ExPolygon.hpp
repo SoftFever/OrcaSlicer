@@ -11,7 +11,6 @@ class ExPolygon
     public:
     Polygon contour;
     Polygons holes;
-    bool in_collection;
     void from_SV(SV* poly_sv);
     void from_SV_check(SV* poly_sv);
     SV* to_SV();
@@ -23,7 +22,6 @@ class ExPolygon
 };
 
 typedef std::vector<ExPolygon> ExPolygons;
-typedef std::vector<ExPolygon*> ExPolygonsPtr;
 
 }
 

@@ -8,7 +8,7 @@ namespace Slic3r {
 class SurfaceCollection
 {
     public:
-    SurfacesPtr surfaces;
+    Surfaces surfaces;
 };
 
 }

@@ -3,13 +3,14 @@ use Moo;
 
 use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale unscale scaled_epsilon points_coincide PI X Y B);
+use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
 has 'config'             => (is => 'ro', required => 1);
 has 'extruders'          => (is => 'ro', default => sub {0}, required => 1);
 has 'multiple_extruders' => (is => 'lazy');
+has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
@@ -118,22 +119,31 @@ sub change_layer {
     return $gcode;
 }
 
-# this method accepts Z in scaled coordinates
+# this method accepts Z in unscaled coordinates
 sub move_z {
     my $self = shift;
     my ($z, $comment) = @_;
     
-    $z *= &Slic3r::SCALING_FACTOR;
     $z += $self->config->z_offset;
     
     my $gcode = "";
     my $current_z = $self->z;
-    if (!defined $current_z || $current_z != ($z + $self->lifted)) {
+    if (!defined $self->z || $z > $self->z) {
+        # if we're going over the current Z we won't be lifted anymore
+        $self->lifted(0);
+        
+        # this retraction may alter $self->z
         $gcode .= $self->retract(move_z => $z) if $self->extruder->retract_layer_change;
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
-            unless ($current_z // -1) != ($self->z // -1);
+            if !defined $self->z || abs($z - ($self->z - $self->lifted)) > epsilon;
         $gcode .= $self->move_z_callback->() if defined $self->move_z_callback;
+    } elsif ($z < $self->z && $z > ($self->z - $self->lifted + epsilon)) {
+        # we're moving to a layer height which is greater than the nominal current one
+        # (nominal = actual - lifted) and less than the actual one.  we're basically
+        # advancing to next layer, whose nominal Z is still lower than the previous
+        # layer Z with lift.
+        $self->lifted($self->z - $z);
     }
     
     return $gcode;
@@ -195,7 +205,8 @@ sub extrude_loop {
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end(scale $extrusion_path->flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING);
+    $extrusion_path->clip_end(scale $extrusion_path->flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING)
+        if $self->enable_loop_clipping;
     return '' if !@{$extrusion_path->polyline};
     
     my @paths = ();
@@ -346,8 +357,12 @@ sub travel_to {
     # build a more complete configuration space
     $travel->translate(-$self->shift_x, -$self->shift_y);
     
+    # skip retraction if the travel move is contained in an island in the current layer
+    # *and* in an island in the upper layer (so that the ooze will not be visible)
     if ($travel->length < scale $self->extruder->retract_before_travel
-        || ($self->config->only_retract_when_crossing_perimeters && defined first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
+        || ($self->config->only_retract_when_crossing_perimeters
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}))
         || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
         ) {
         $self->straight_once(0);
@@ -505,6 +520,7 @@ sub unretract {
     
     if ($self->lifted) {
         $self->speed('travel');
+        $gcode .= sprintf ";AAA selfz = %s, lifted = %s\n", $self->z // 'nd', $self->lifted // 'nd';
         $gcode .= $self->G0(undef, $self->z - $self->lifted, 0, 'restore layer Z');
         $self->lifted(0);
     }
@@ -523,7 +539,7 @@ sub unretract {
 
 sub reset_e {
     my $self = shift;
-    return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware)$/;
+    return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware|sailfish)$/;
     
     $self->extruder->e(0) if $self->extruder;
     return sprintf "G92 %s0%s\n", $self->config->extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '')

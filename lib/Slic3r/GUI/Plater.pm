@@ -448,7 +448,7 @@ sub changescale {
     return if !$scale || $scale == -1;
     
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
-    $object->scale($scale / 100);
+    $object->changescale($scale / 100);
     $self->arrange;
 }
 
@@ -1111,11 +1111,23 @@ sub _trigger_model_object {
 	}
 }
 
+sub changescale {
+    my $self = shift;
+    my ($scale) = @_;
+    
+    my $variation = $scale / $self->scale;
+    foreach my $range (@{ $self->layer_height_ranges }) {
+        $range->[0] *= $variation;
+        $range->[1] *= $variation;
+    }
+    $self->scale($scale);
+}
+
 sub check_manifoldness {
 	my $self = shift;
 	
 	if ($self->mesh_stats) {
-	    if (first { $self->mesh_stats->{$_} > 0 } qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)) {
+	    if ($self->get_model_object->needed_repair) {
 	        warn "Warning: the input file contains manifoldness errors. "
 	            . "Slic3r repaired it successfully by guessing what the correct shape should be, "
 	            . "but you might still want to inspect the G-code before printing.\n";
@@ -1157,15 +1169,23 @@ sub make_thumbnail {
     my $self = shift;
     
     my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
-    my $thumbnail = Slic3r::ExPolygon::Collection->new(
-        # only simplify expolygons larger than the threshold
-        grep @$_,
-            map { ($_->area >= 1) ? $_->simplify(0.5) : $_ }
-    	    (@{$mesh->facets} <= 5000)
-    		    ? @{$mesh->horizontal_projection}
-    		    : Slic3r::ExPolygon->new($self->convex_hull)
-    );
+    my $thumbnail = Slic3r::ExPolygon::Collection->new;
+    if (@{$mesh->facets} <= 5000) {
+        $thumbnail->append(@{ $mesh->horizontal_projection });
+    } else {
+        my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
+        $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);
+        $thumbnail->append($convex_hull);
+    }
     
+    # remove polygons with area <= 1mm
+    my $area_threshold = Slic3r::Geometry::scale 1;
+    @{$thumbnail->expolygons} =
+        map $_->simplify(0.5),
+        grep $_->area >= $area_threshold,
+        @{$thumbnail->expolygons};
+    
+    $thumbnail->scale(&Slic3r::SCALING_FACTOR);
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
     $self->free_model_object;
     
@@ -1188,6 +1208,7 @@ sub transformed_bounding_box {
     
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points($self->_apply_transform($self->convex_hull));
     $bb->extents->[Z] = $self->bounding_box->clone->extents->[Z];
+    $bb->extents->[Z][MAX] *= $self->scale;
     return $bb;
 }
 

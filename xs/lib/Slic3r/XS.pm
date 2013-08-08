@@ -25,7 +25,6 @@ use overload
 package Slic3r::Polyline;
 use overload
     '@{}' => sub { $_[0]->arrayref },
-    'fallback' => 1,
     'fallback' => 1;
 
 package Slic3r::Polygon;
@@ -128,7 +127,7 @@ sub clone {
     my ($self, %args) = @_;
     
     return (ref $self)->_new(
-        delete $args{expolygon}         // $self->expolygon->clone,
+        delete $args{expolygon}         // $self->expolygon,
         delete $args{surface_type}      // $self->surface_type,
         delete $args{thickness}         // $self->thickness,
         delete $args{thickness_layers}  // $self->thickness_layers,

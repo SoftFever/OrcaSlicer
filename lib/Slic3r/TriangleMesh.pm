@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z A B unscale same_point);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex offset);
 use Storable;
 
 # public
@@ -191,7 +191,7 @@ sub make_loops {
             next unless defined $lines[$j] && defined $lines[$j][I_FACET_EDGE];
             
             # are these facets adjacent? (sharing a common edge on this layer)
-            if ($lines[$i][I_A_ID] == $lines[$j][I_B_ID] && $lines[$i][I_B_ID] == $lines[$j][I_A_ID]) {
+            if ($lines[$i][I_A_ID] == $lines[$j][I_A_ID] && $lines[$i][I_B_ID] == $lines[$j][I_B_ID]) {
             
                 # if they are both oriented upwards or downwards (like a 'V')
                 # then we can remove both edges from this layer since it won't 
@@ -205,7 +205,7 @@ sub make_loops {
                 # if one of them is oriented upwards and the other is oriented
                 # downwards, let's only keep one of them (it doesn't matter which
                 # one since all 'top' lines were reversed at slicing)
-                if ($lines[$i][I_FACET_EDGE] == FE_TOP && $lines[$j][I_FACET_EDGE] == FE_BOTTOM) {
+                if ($lines[$i][I_FACET_EDGE] != $lines[$j][I_FACET_EDGE]) {
                     $lines[$j] = undef;
                     last;
                 }
@@ -267,10 +267,10 @@ sub make_loops {
     }
     
     # TODO: we should try to combine failed loops
-    for (grep @$_ >= 3, @failed_loops) {
-        push @polygons, Slic3r::Polygon->new(@$_);
+    for my $loop (grep @$_ >= 3, @failed_loops) {
+        push @polygons, Slic3r::Polygon->new(map $_->[I_A], @$loop);
         Slic3r::debugf "  Discovered failed %s polygon of %d points\n",
-            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@$_)
+            ($polygons[-1]->is_counter_clockwise ? 'ccw' : 'cw'), scalar(@$loop)
             if $Slic3r::debug;
     }
     
@@ -298,6 +298,16 @@ sub scale {
     # transform vertex coordinates
     foreach my $vertex (@{$self->vertices}) {
         $vertex->[$_] *= $factor for X,Y,Z;
+    }
+}
+
+sub scale_xyz {
+    my $self = shift;
+    my ($versor) = @_;
+    
+    # transform vertex coordinates
+    foreach my $vertex (@{$self->vertices}) {
+        $vertex->[$_] *= $versor->[$_] for X,Y,Z;
     }
 }
 
@@ -540,20 +550,20 @@ sub split_mesh {
     return @meshes;
 }
 
+# this will return *scaled* expolygons, so it is expected to be run
+# on unscaled meshes
 sub horizontal_projection {
     my $self = shift;
     
     my @f = ();
     foreach my $facet (@{$self->facets}) {
-        push @f, Slic3r::Polygon->new(map [ @{$self->vertices->[$_]}[X,Y] ], @$facet);
+        push @f, Slic3r::Polygon->new(
+            map [ map $_ / &Slic3r::SCALING_FACTOR, @{$self->vertices->[$_]}[X,Y] ], @$facet
+        );
     }
     
-    my $scale_vector = Math::Clipper::integerize_coordinate_sets({ bits => 32 }, @f);
     $_->make_counter_clockwise for @f;  # do this after scaling, as winding order might change while doing that
-    my $union = union_ex(Slic3r::Geometry::Clipper::offset(\@f, 10000));
-    $union = [ map $_->arrayref, @$union ];
-    Math::Clipper::unscale_coordinate_sets($scale_vector, $_) for @$union;
-    return $union;
+    return union_ex(\@f, 1);
 }
 
 1;

@@ -119,4 +119,12 @@ union_ex(subject, safety_offset = false)
     OUTPUT:
         RETVAL
 
+Polygons
+simplify_polygons(subject)
+    Polygons                    subject
+    CODE:
+        simplify_polygons(subject, RETVAL);
+    OUTPUT:
+        RETVAL
+
 %}

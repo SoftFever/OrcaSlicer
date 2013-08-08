@@ -3,7 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
-use List::Util qw(max first);
+use List::Util qw(min max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points
@@ -73,6 +73,9 @@ sub _trigger_config {
         $self->config->set('support_material_enforce_layers', 0);
         $self->config->set('retract_layer_change', [0]);  # TODO: only apply this to the spiral layers
     }
+    
+    # force all retraction lift values to be the same
+    $self->config->set('retract_lift', [ map $self->config->retract_lift->[0], @{$self->config->retract_lift} ]);
 }
 
 sub _build_has_support_material {
@@ -104,6 +107,9 @@ sub add_model {
     # this mesh into distinct objects so that we reduce the complexity
     # of the graphs 
     # -- Disabling this one because there are too many legit objects having nested shells
+    # -- It also caused a bug where plater rotation was applied to each single object by the
+    # -- code below (thus around its own center), instead of being applied to the whole 
+    # -- thing before the split.
     ###$model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
     foreach my $object (@{ $model->objects }) {
@@ -222,7 +228,7 @@ sub init_extruders {
     # initialize all extruder(s) we need
     my @used_extruders = (
         0,
-        (map $self->config->get("${_}_extruder")-1, qw(perimeter infill support_material)),
+        (map $self->config->get("${_}_extruder")-1, qw(perimeter infill support_material support_material_interface)),
         (values %extruder_mapping),
     );
     for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
@@ -257,6 +263,7 @@ sub init_extruders {
     }
     
     # calculate support material flow
+    # Note: we should calculate a different flow for support material interface
     if ($self->has_support_material) {
         my $extruder = $self->extruders->[$self->config->support_material_extruder-1];
         $self->support_material_flow($extruder->make_flow(
@@ -565,15 +572,19 @@ sub make_skirt {
     # collect points from all layers contained in skirt height
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
-        my $skirt_height = $Slic3r::Config->skirt_height;
-        $skirt_height = $self->objects->[$obj_idx]->layer_count if $skirt_height > $self->objects->[$obj_idx]->layer_count;
-        my @layers = map $self->objects->[$obj_idx]->layers->[$_], 0..($skirt_height-1);
+        my $object = $self->objects->[$obj_idx];
+        my @layers = map $object->layers->[$_], 0..min($Slic3r::Config->skirt_height-1, $#{$object->layers});
         my @layer_points = (
             (map @$_, map @$_, map @{$_->slices}, @layers),
             (map @$_, map @{$_->thin_walls}, map @{$_->regions}, @layers),
-            (map @{$_->polyline}, map @{$_->support_fills}, grep $_->support_fills, @layers),
         );
-        push @points, map move_points($_, @layer_points), @{$self->objects->[$obj_idx]->copies};
+        if (@{ $object->support_layers }) {
+            my @support_layers = map $object->support_layers->[$_], 0..min($Slic3r::Config->skirt_height-1, $#{$object->support_layers});
+            push @layer_points,
+                (map @{$_->unpack->polyline}, map @{$_->support_fills->paths}, grep $_->support_fills, @support_layers),
+                (map @{$_->unpack->polyline}, map @{$_->support_interface_fills->paths}, grep $_->support_interface_fills, @support_layers);
+        }
+        push @points, map move_points($_, @layer_points), @{$object->copies};
     }
     return if @points < 3;  # at least three points required for a convex hull
     
@@ -627,13 +638,22 @@ sub make_brim {
     my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. $#{$self->objects}) {
-        my $layer0 = $self->objects->[$obj_idx]->layers->[0];
+        my $object = $self->objects->[$obj_idx];
+        my $layer0 = $object->layers->[0];
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
             (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } map @{$_->thin_walls}, @{$layer0->regions}),
-            (map $_->polyline->grow($grow_distance), map @{$_->support_fills}, grep $_->support_fills, $layer0),
         );
-        foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
+        if (@{ $object->support_layers }) {
+            my $support_layer0 = $object->support_layers->[0];
+            push @object_islands,
+                (map $_->unpack->polyline->grow($grow_distance), @{$support_layer0->support_fills->paths})
+                if $support_layer0->support_fills;
+            push @object_islands,
+                (map $_->unpack->polyline->grow($grow_distance), @{$support_layer0->support_interface_fills->paths})
+                if $support_layer0->support_interface_fills;
+        }
+        foreach my $copy (@{$object->copies}) {
             push @islands, map $_->clone->translate(@$copy), @object_islands;
         }
     }
@@ -706,21 +726,26 @@ sub write_gcode {
     print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $Slic3r::Config->cooling && $Slic3r::Config->disable_fan_first_layers;
     
-    # write start commands to file
-    printf $fh $gcodegen->set_bed_temperature($Slic3r::Config->first_layer_bed_temperature, 1),
-        if $Slic3r::Config->first_layer_bed_temperature && $Slic3r::Config->start_gcode !~ /M(?:190|140)/i;
+    # set bed temperature
+    if ((my $temp = $Slic3r::Config->first_layer_bed_temperature) && $Slic3r::Config->start_gcode !~ /M(?:190|140)/i) {
+        printf $fh $gcodegen->set_bed_temperature($temp, 1);
+    }
+    
+    # set extruder(s) temperature before and after start G-code
     my $print_first_layer_temperature = sub {
-        for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
-            printf $fh $gcodegen->set_temperature($self->extruders->[$t]->first_layer_temperature, 0, $t)
-                if $self->extruders->[$t]->first_layer_temperature;
+        my ($wait) = @_;
+        
+        return if $Slic3r::Config->start_gcode =~ /M(?:109|104)/i;
+        for my $t (0 .. $#{$self->extruders}) {
+            my $temp = $self->extruders->[$t]->first_layer_temperature;
+            printf $fh $gcodegen->set_temperature($temp, $wait, $t) if $temp > 0;
         }
     };
-    $print_first_layer_temperature->() if $Slic3r::Config->start_gcode !~ /M(?:109|104)/i;
+    $print_first_layer_temperature->(0);
     printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->start_gcode);
-    for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->first_layer_temperature}) {
-        printf $fh $gcodegen->set_temperature($self->extruders->[$t]->first_layer_temperature, 1, $t)
-            if $self->extruders->[$t]->first_layer_temperature && $Slic3r::Config->start_gcode !~ /M(?:109|104)/i;
-    }
+    $print_first_layer_temperature->(1);
+    
+    # set other general things
     print  $fh "G90 ; use absolute coordinates\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
     if ($Slic3r::Config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
         printf $fh $gcodegen->reset_e;
@@ -795,7 +820,9 @@ sub write_gcode {
                     gcodegen    => $gcodegen,
                 );
                 
-                for my $layer (@{$self->objects->[$obj_idx]->layers}) {
+                my $object = $self->objects->[$obj_idx];
+                my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
+                for my $layer (@layers) {
                     # if we are printing the bottom layer of an object, and we have already finished
                     # another one, set first layer temperatures. this happens before the Z move
                     # is triggered, so machine has more time to reach such temperatures
@@ -820,11 +847,13 @@ sub write_gcode {
         my @obj_idx = chained_path([ map Slic3r::Point->new(@{$_->copies->[0]}), @{$self->objects} ]);
         
         # sort layers by Z
-        my %layers = ();  # print_z => [ layer, layer, layer ]  by obj_idx
+        my %layers = ();  # print_z => [ [layers], [layers], [layers] ]  by obj_idx
         foreach my $obj_idx (0 .. $#{$self->objects}) {
-            foreach my $layer (@{$self->objects->[$obj_idx]->layers}) {
+            my $object = $self->objects->[$obj_idx];
+            foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
                 $layers{ $layer->print_z } ||= [];
-                $layers{ $layer->print_z }[$obj_idx] = $layer;  # turn this into [$layer] when merging support layers
+                $layers{ $layer->print_z }[$obj_idx] ||= [];
+                push @{$layers{ $layer->print_z }[$obj_idx]}, $layer;
             }
         }
         
@@ -834,13 +863,14 @@ sub write_gcode {
         );
         foreach my $print_z (sort { $a <=> $b } keys %layers) {
             foreach my $obj_idx (@obj_idx) {
-                next unless my $layer = $layers{$print_z}[$obj_idx];
-                print $fh $buffer->append(
-                    $layer_gcode->process_layer($layer, $layer->object->copies),
-                    $layer->object."",
-                    $layer->id,
-                    $layer->print_z,
-                );
+                foreach my $layer (@{ $layers{$print_z}[$obj_idx] // [] }) {
+                    print $fh $buffer->append(
+                        $layer_gcode->process_layer($layer, $layer->object->copies),
+                        $layer->object . ref($layer),  # differentiate $obj_id between normal layers and support layers
+                        $layer->id,
+                        $layer->print_z,
+                    );
+                }
             }
         }
         print $fh $buffer->flush;

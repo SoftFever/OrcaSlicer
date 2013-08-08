@@ -28,17 +28,17 @@ void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
     for (unsigned int i = 0; i < stl.stats.number_of_facets; i++) {
         AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
         stl_facet facet;
-        facet.normal.x = NULL;
-        facet.normal.y = NULL;
-        facet.normal.z = NULL;
+        facet.normal.x = 0;
+        facet.normal.y = 0;
+        facet.normal.z = 0;
         for (unsigned int v = 0; v <= 2; v++) {
             AV* vertex_av = (AV*)SvRV(*av_fetch(vertices_av, SvIV(*av_fetch(facet_av, v, 0)), 0));
             facet.vertex[v].x = SvNV(*av_fetch(vertex_av, 0, 0));
             facet.vertex[v].y = SvNV(*av_fetch(vertex_av, 1, 0));
             facet.vertex[v].z = SvNV(*av_fetch(vertex_av, 2, 0));
         }
-        facet.extra[0] = NULL;
-        facet.extra[1] = NULL;
+        facet.extra[0] = 0;
+        facet.extra[1] = 0;
         
         stl.facet_start[i] = facet;
     }

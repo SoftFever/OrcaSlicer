@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
+use List::Util qw(min);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:dialog :filedialog :font :icon :id :misc :notebook :panel :sizer);
 use Wx::Event qw(EVT_BUTTON);
@@ -404,6 +405,10 @@ sub config {
         $config->set('first_layer_height', $config->nozzle_diameter->[0]);
         $config->set('avoid_crossing_perimeters', 1);
         $config->set('infill_every_layers', 10);
+    } else {
+        my $extruders_count = $self->{options_tabs}{printer}{extruders_count};
+        $config->set("${_}_extruder", min($config->get("${_}_extruder"), $extruders_count))
+            for qw(perimeter infill support_material support_material_interface);
     }
     
     return $config;

@@ -6,6 +6,7 @@
 %}
 
 %name{Slic3r::Surface} class Surface {
+    ~Surface();
     ExPolygon* expolygon()
         %code{% const char* CLASS = "Slic3r::ExPolygon"; RETVAL = new ExPolygon(THIS->expolygon); %};
     double thickness()
@@ -31,16 +32,10 @@ _new(CLASS, expolygon, surface_type, thickness, thickness_layers, bridge_angle, 
         RETVAL->thickness_layers    = thickness_layers;
         RETVAL->bridge_angle        = bridge_angle;
         RETVAL->extra_perimeters    = extra_perimeters;
+        // we don't delete expolygon here because it's referenced by a Perl SV
+        // whose DESTROY will take care of destruction
     OUTPUT:
         RETVAL
-
-void
-Surface::DESTROY()
-    CODE:
-        if (!THIS->in_collection) {
-            delete THIS;
-            THIS = NULL;
-        }
 
 SurfaceType
 Surface::surface_type(...)
