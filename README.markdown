@@ -172,6 +172,9 @@ The author of the Silk icon set is Mark James.
         --bridge-acceleration
                             Overrides firmware's default acceleration for bridges. (mm/s^2, set zero
                             to disable; default: 0)
+        --first-layer-acceleration
+                            Overrides firmware's default acceleration for first layer. (mm/s^2, set zero
+                            to disable; default: 0)
         --default-acceleration
                             Acceleration will be reset to this value after the specific settings above
                             have been applied. (mm/s^2, set zero to disable; default: 130)

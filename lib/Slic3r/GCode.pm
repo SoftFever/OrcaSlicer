@@ -116,6 +116,13 @@ sub change_layer {
             int(99 * ($layer->id / ($self->layer_count - 1))),
             ($self->config->gcode_comments ? ' ; update progress' : '');
     }
+    if ($self->config->first_layer_acceleration) {
+        if ($layer->id == 0) {
+            $gcode .= $self->set_acceleration($self->config->first_layer_acceleration);
+        } elsif ($layer->id == 1) {
+            $gcode .= $self->set_acceleration($self->config->default_acceleration);
+        }
+    }
     return $gcode;
 }
 
@@ -289,14 +296,16 @@ sub extrude_path {
     
     # adjust acceleration
     my $acceleration;
-    if ($self->config->perimeter_acceleration && $path->is_perimeter) {
-        $acceleration = $self->config->perimeter_acceleration;
-    } elsif ($self->config->infill_acceleration && $path->is_fill) {
-        $acceleration = $self->config->infill_acceleration;
-    } elsif ($self->config->infill_acceleration && $path->is_bridge) {
-        $acceleration = $self->config->bridge_acceleration;
+    if (!$self->config->first_layer_acceleration || $self->layer->id != 0) {
+        if ($self->config->perimeter_acceleration && $path->is_perimeter) {
+            $acceleration = $self->config->perimeter_acceleration;
+        } elsif ($self->config->infill_acceleration && $path->is_fill) {
+            $acceleration = $self->config->infill_acceleration;
+        } elsif ($self->config->infill_acceleration && $path->is_bridge) {
+            $acceleration = $self->config->bridge_acceleration;
+        }
+        $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     }
-    $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     
     my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->is_bridge) {

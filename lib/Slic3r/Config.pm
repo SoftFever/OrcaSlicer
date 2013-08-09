@@ -369,6 +369,14 @@ our $Options = {
         type    => 'f',
         default => 0,
     },
+    'first_layer_acceleration' => {
+        label   => 'First layer',
+        tooltip => 'This is the acceleration your printer will use for first layer. Set zero to disable acceleration control for first layer.',
+        sidetext => 'mm/s²',
+        cli     => 'first-layer-acceleration=f',
+        type    => 'f',
+        default => 0,
+    },
     
     # accuracy options
     'layer_height' => {
