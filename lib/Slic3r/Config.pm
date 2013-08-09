@@ -1385,6 +1385,11 @@ sub validate {
     die "Invalid value for --extrusion-multiplier\n"
         if defined first { $_ <= 0 } @{$self->extrusion_multiplier};
     
+    # --default-acceleration
+    die "Invalid zero value for --default-acceleration when using other acceleration settings\n"
+        if ($self->perimeter_acceleration || $self->infill_acceleration || $self->bridge_acceleration || $self->first_layer_acceleration)
+            && !$self->default_acceleration;
+    
     # general validation, quick and dirty
     foreach my $opt_key (keys %$Options) {
         my $opt = $Options->{$opt_key};
