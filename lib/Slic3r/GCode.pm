@@ -17,7 +17,6 @@ has 'layer'              => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
 has '_layer_overhangs'   => (is => 'rw');
-has 'move_z_callback'    => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -132,6 +131,8 @@ sub change_layer {
             $gcode .= $self->set_acceleration($self->config->default_acceleration);
         }
     }
+    
+    $gcode .= $self->move_z($layer->print_z);
     return $gcode;
 }
 
@@ -153,7 +154,6 @@ sub move_z {
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
             if !defined $self->z || abs($z - ($self->z - $self->lifted)) > epsilon;
-        $gcode .= $self->move_z_callback->() if defined $self->move_z_callback;
     } elsif ($z < $self->z && $z > ($self->z - $self->lifted + epsilon)) {
         # we're moving to a layer height which is greater than the nominal current one
         # (nominal = actual - lifted) and less than the actual one.  we're basically

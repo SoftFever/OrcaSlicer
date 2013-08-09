@@ -732,7 +732,7 @@ sub write_gcode {
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
         config              => $self->config,
-        extruders           => $self->extruders,
+        extruders           => $self->extruders,    # we should only pass the *used* extruders (but maintain the Tx indices right!)
         layer_count         => $self->layer_count,
     );
     print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
@@ -767,6 +767,10 @@ sub write_gcode {
             print $fh "M82 ; use absolute distances for extrusion\n";
         }
     }
+    
+    # always start with first extruder
+    # TODO: make sure we select the first *used* extruder
+    print $fh $gcodegen->set_extruder($self->extruders->[0]);
     
     # calculate X,Y shift to center print around specified origin
     my $print_bb = $self->bounding_box;
