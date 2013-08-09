@@ -427,9 +427,9 @@ sub _plan {
     my $need_retract = !$self->config->only_retract_when_crossing_perimeters;
     if (!$need_retract) {
         $need_retract = 1;
-        foreach my $slice (@{$self->layer->upper_layer_slices}) {
+        foreach my $island ($self->layer->upper_layer_islands) {
             # discard the island if at any line is not enclosed in it
-            next if first { !$slice->encloses_line($_, scaled_epsilon) } @travel;
+            next if first { !$island->encloses_line($_, scaled_epsilon) } @travel;
             # okay, this island encloses the full travel path
             $need_retract = 0;
             last;
