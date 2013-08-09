@@ -914,6 +914,14 @@ sub generate_support_material {
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
+            
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output("contact_" . $layer->print_z . ".svg",
+                    expolygons      => union_ex(\@contact),
+                    red_expolygons  => \@overhang,
+                );
+            }
         }
     }
     my @contact_z = sort keys %contact;
