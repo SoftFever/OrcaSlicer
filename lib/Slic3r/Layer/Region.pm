@@ -175,6 +175,7 @@ sub make_perimeters {
         # (one more than necessary so that we can detect gaps even after the desired
         # number of perimeters has been generated)
         my @last = @{$surface->expolygon};
+        my @this_gaps = ();
         for my $i (0 .. $loop_number) {
             # external loop only needs half inset distance
             my $spacing = ($i == 0)
@@ -195,7 +196,7 @@ sub make_perimeters {
                     # won't shrink the clip polygon to be smaller than intended.
                     [ offset(\@offsets, +0.5*$spacing + 2) ],
                 );
-                push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
+                push @gaps, (@this_gaps = grep $_->area >= $gap_area_threshold, @$diff);
             }
             
             last if !@offsets || $i == $loop_number;
@@ -204,15 +205,19 @@ sub make_perimeters {
             @last = @offsets;
         }
         
+        # make sure we don't infill narrow parts that are already gap-filled
+        # (we only consider this surface's gaps to reduce the diff() complexity)
+        @last = @{diff(\@last, [ map @$_, @this_gaps ])};
+        
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
-        # and then we offset back and forth by the infill spacing to only consider the
+        # and then we offset back and forth by half the infill spacing to only consider the
         # non-collapsing regions
         push @{ $self->fill_surfaces },
             offset2_ex(
                 [ map $_->simplify_as_polygons(&Slic3r::SCALED_RESOLUTION), @{union_ex(\@last)} ],
-                -($perimeter_spacing/2 + $infill_spacing),
-                +$infill_spacing,
+                -($perimeter_spacing/2 + $infill_spacing/2),
+                +$infill_spacing/2,
             );
     }
     
