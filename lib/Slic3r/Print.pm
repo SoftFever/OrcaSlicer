@@ -682,7 +682,7 @@ sub make_brim {
         # -0.5 because islands are not represented by their centerlines
         # (first offset more, then step back - reverse order than the one used for 
         # perimeters because here we're offsetting outwards)
-        push @loops, offset2(\@islands, ($i + 1.0) * $flow->scaled_spacing, -1.5 * $flow->scaled_spacing, undef, JT_SQUARE);
+        push @loops, offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, undef, JT_SQUARE);
     }
     
     @{$self->brim} = map Slic3r::ExtrusionLoop->pack(

@@ -1192,6 +1192,7 @@ sub generate_support_material {
         my $support_collection = Slic3r::ExtrusionPath::Collection->new(paths => $result->{support});
         $layer->support_fills($support_collection) if @{$support_collection->paths} > 0;
         
+        # TODO: use a Slic3r::ExPolygon::Collection
         $layer->support_islands($result->{islands});
     };
     Slic3r::parallelize(

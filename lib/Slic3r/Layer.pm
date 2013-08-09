@@ -23,11 +23,16 @@ sub _trigger_id {
     $_->_trigger_layer for @{$self->regions || []};
 }
 
-sub upper_layer_slices {
+sub islands {
+    my $self = shift;
+    return @{$self->slices};
+}
+
+sub upper_layer_islands {
     my $self = shift;
     
-    my $upper_layer = $self->object->layers->[ $self->id + 1 ] or return [];
-    return $upper_layer->slices;
+    my $upper_layer = $self->object->layers->[ $self->id + 1 ] or return ();
+    return $upper_layer->islands;
 }
 
 sub region {
@@ -56,20 +61,18 @@ sub make_perimeters {
     $_->make_perimeters for @{$self->regions};
 }
 
-sub support_islands_enclose_line {
-    my $self = shift;
-    my ($line) = @_;
-    return 0 if !$self->support_islands;   # why can we arrive here if there are no support islands?
-    return (first { $_->encloses_line($line) } @{$self->support_islands}) ? 1 : 0;
-}
-
 package Slic3r::Layer::Support;
 use Moo;
 extends 'Slic3r::Layer';
 
 # ordered collection of extrusion paths to fill surfaces for support material
-has 'support_islands'           => (is => 'rw');
+has 'support_islands'           => (is => 'rw', default => sub { [] });
 has 'support_fills'             => (is => 'rw');
 has 'support_interface_fills'   => (is => 'rw');
+
+sub islands {
+    my $self = shift;
+    return @{$self->slices}, @{$self->support_islands};
+}
 
 1;

@@ -14,6 +14,8 @@ has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
+has '_layer_islands'     => (is => 'rw');
+has '_upper_layer_islands'  => (is => 'rw');
 has '_layer_overhangs'   => (is => 'rw');
 has 'move_z_callback'    => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
@@ -98,7 +100,14 @@ sub change_layer {
     
     $self->layer($layer);
     
-    # avoid computing overhangs if they're not needed
+    # avoid computing islands and overhangs if they're not needed
+    if ($self->config->only_retract_when_crossing_perimeters) {
+        $self->_layer_islands([ $layer->islands ]);
+        $self->_upper_layer_islands([ $layer->upper_layer_islands ]);
+    } else {
+        $self->_layer_islands([]);
+        $self->_upper_layer_islands([]);
+    }
     $self->_layer_overhangs(
         $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
             ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
@@ -374,9 +383,9 @@ sub travel_to {
     # *and* in an island in the upper layer (so that the ooze will not be visible)
     if ($travel->length < scale $self->extruder->retract_before_travel
         || ($self->config->only_retract_when_crossing_perimeters
-            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
-            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}))
-        || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_upper_layer_islands})
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_layer_islands}))
+        || ($role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->support_islands}))
         ) {
         $self->straight_once(0);
         $self->speed('travel');
