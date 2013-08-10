@@ -57,7 +57,7 @@ sub output {
         }
     }
     
-    foreach my $type (qw(polygons polylines white_polygons green_polygons red_polygons red_polylines)) {
+    foreach my $type (qw(polygons polylines white_polygons green_polygons red_polygons red_polylines green_polylines)) {
         if ($things{$type}) {
             my $method = $type =~ /polygons/ ? 'polygon' : 'polyline';
             my ($colour) = $type =~ /^(red|green)_/;
