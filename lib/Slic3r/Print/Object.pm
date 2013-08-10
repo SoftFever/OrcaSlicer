@@ -1104,33 +1104,6 @@ sub generate_support_material {
             $result->{contact} = [ @loops ];
         }
         
-        # draw a perimeter around interface and support
-        {
-            # TODO: use brim ordering algorithm
-            my $contour = union([ map @$_, $interface{$layer_id}, $support{$layer_id} ], undef, 1);
-            push @{$result->{support}}, map Slic3r::ExtrusionPath->pack(
-                polyline        => $_->split_at_first_point,
-                role            => EXTR_ROLE_SUPPORTMATERIAL,
-                height          => undef,
-                flow_spacing    => $flow->spacing,
-            ), map Slic3r::Polygon->new(@$_),
-                offset2($contour, -$flow->scaled_spacing, +$flow->scaled_spacing*0.5);
-            
-            # subtract the perimeter area from both interface and support
-            my $to_remove = diff(
-                $contour,
-                [ offset($contour, -$flow->scaled_spacing) ],
-            );
-            $interface{$layer_id} = diff(
-                $interface{$layer_id},
-                $to_remove,
-            );
-            $support{$layer_id} = diff(
-                $support{$layer_id},
-                $to_remove,
-            );
-        }
-        
         # interface and contact infill
         if (@{$interface{$layer_id}} || @$contact_infill) {
             $fillers{interface}->angle($interface_angle);
@@ -1182,6 +1155,18 @@ sub generate_support_material {
                 $filler->angle($Slic3r::Config->support_material_angle + 90);
                 $density        = 0.5;
                 $flow_spacing   = $self->print->first_layer_support_material_flow->spacing;
+            } else {
+                # draw a perimeter all around support infill
+                # TODO: use brim ordering algorithm
+                push @paths, map Slic3r::ExtrusionPath->pack(
+                    polyline        => $_->split_at_first_point,
+                    role            => EXTR_ROLE_SUPPORTMATERIAL,
+                    height          => undef,
+                    flow_spacing    => $flow->spacing,
+                ), map @$_, @$to_infill;
+                
+                # TODO: use offset2_ex()
+                $to_infill = [ offset_ex([ map @$_, @$to_infill ], -$flow->scaled_spacing) ];
             }
             
             foreach my $expolygon (@$to_infill) {
