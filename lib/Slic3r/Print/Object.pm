@@ -961,15 +961,13 @@ sub generate_support_material {
     # if we wanted to apply some special logic to the first support layers lying on
     # object's top surfaces this is the place to detect them
     
-    # Let's now determine shells (interface layers) and normal support below them.
-    # Let's now fill each support layer by generating shells (interface layers) and
-    # clipping support area to the actual object boundaries.
+    # let's now generate interface layers below contact areas
     my %interface = ();  # layer_id => [ polygons ]
-    my %support   = ();  # layer_id => [ polygons ]
     my $interface_layers = $Slic3r::Config->support_material_interface_layers;
     for my $layer_id (0 .. $#support_layers) {
         my $z = $support_layers[$layer_id];
         my $this = $contact{$z} // next;
+        
         # count contact layer as interface layer
         for (my $i = $layer_id-1; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
             $z = $support_layers[$i];
@@ -980,31 +978,32 @@ sub generate_support_material {
             # surfaces before performing the diff, but this needs investigation.
             $this = $interface{$i} = diff(
                 [
-                    @$this,
-                    @{ $interface{$i} || [] },
+                    @$this,                         # clipped projection of the current contact regions
+                    @{ $interface{$i} || [] },      # interface regions already applied to this layer
                 ],
                 [
-                    @{ $top{$z} || [] },
-                    @{ $contact{$z} || [] },
+                    @{ $top{$z} || [] },            # top slices on this layer
+                    @{ $contact{$z} || [] },        # contact regions on this layer
                 ],
                 1,
             );
         }
-        
-        # determine what layers does our support belong to
-        for (my $i = $layer_id-$interface_layers; $i >= 0; $i--) {
-            $z = $support_layers[$i];
-            # Compute support area on this layer as diff of upper support area
-            # and layer slices.
-            $this = $support{$i} = diff(
+    }
+    
+    # let's now generate support layers under interface layers
+    my %support   = ();  # layer_id => [ polygons ]
+    {
+        for my $i (reverse 0 .. $#support_layers-1) {
+            my $z = $support_layers[$i];
+            $support{$i} = diff(
                 [
-                    @$this,
-                    @{ $support{$i} || [] },
+                    @{ $support{$i+1} || [] },      # support regions on upper layer
+                    @{ $interface{$i+1} || [] },    # interface regions on upper layer
                 ],
                 [
-                    @{ $top{$z} || [] },
-                    @{ $interface{$i} || [] },
-                    @{ $contact{$z} || [] },
+                    @{ $top{$z} || [] },            # top slices on this layer
+                    @{ $interface{$i} || [] },      # interface regions on this layer
+                    @{ $contact{$z} || [] },        # contact regions on this layer
                 ],
                 1,
             );
