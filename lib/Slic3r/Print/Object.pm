@@ -945,7 +945,10 @@ sub generate_support_material {
                 # now find whether any projection falls onto this top surface
                 my $touching = intersection($projection, [ map $_->p, @top ]);
                 if (@$touching) {
-                    $top{ $layer->print_z } = $touching;
+                    # grow top surfaces so that interface and support generation are generated
+                    # with some spacing from object - it looks we don't need the actual
+                    # top shapes so this can be done here
+                    $top{ $layer->print_z } = [ offset($touching, $flow->scaled_spacing) ];
                 }
                 
                 # remove the areas that touched from the projection that will continue on 
