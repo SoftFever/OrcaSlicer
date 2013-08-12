@@ -938,7 +938,9 @@ sub generate_support_material {
                 # ('new' means all the areas that are lower than the last top layer
                 # we considered)
                 my $min_top = min(keys %top) // max(keys %contact);
-                push @$projection, map @{$contact{$_}}, grep { $_ > $layer->print_z && $_ < $min_top } keys %contact;
+                # use <= instead of just < because otherwise we'd ignore any contact regions
+                # having the same Z of top layers
+                push @$projection, map @{$contact{$_}}, grep { $_ > $layer->print_z && $_ <= $min_top } keys %contact;
                 
                 # now find whether any projection falls onto this top surface
                 my $touching = intersection($projection, [ map $_->p, @top ]);
