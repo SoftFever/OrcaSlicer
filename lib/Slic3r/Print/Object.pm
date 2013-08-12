@@ -1113,6 +1113,7 @@ sub generate_support_material {
             $interface{$layer_id} = intersection(
                 [ offset([ map @$_, $interface{$layer_id}, $contact_infill ], scale 3) ],
                 [ @{$interface{$layer_id}}, @{$support{$layer_id}} ],
+                undef, 1,
             );
             $support{$layer_id} = diff(
                 $support{$layer_id},
