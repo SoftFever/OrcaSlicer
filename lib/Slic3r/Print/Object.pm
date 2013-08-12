@@ -1043,19 +1043,27 @@ sub generate_support_material {
     
     my $process_layer = sub {
         my ($layer_id) = @_;
-        my $result = { contact => [], interface => [], support => [] };
+        
+        $contact{$support_layers[$layer_id]}    ||= [];
+        $interface{$layer_id}                   ||= [];
+        $support{$layer_id}                     ||= [];
         
         if (0) {
             require "Slic3r/SVG.pm";
             Slic3r::SVG::output("layer_" . $support_layers[$layer_id] . ".svg",
-                red_expolygons      => union_ex($contact{$support_layers[$layer_id]} || []),
-                green_expolygons    => union_ex($interface{$layer_id} || []),
+                red_expolygons      => union_ex($contact{$support_layers[$layer_id]}),
+                green_expolygons    => union_ex($interface{$layer_id}),
             );
         }
         
-        $contact{$layer_id}     ||= [];
-        $interface{$layer_id}   ||= [];
-        $support{$layer_id}     ||= [];
+        # islands
+        my $result = { contact => [], interface => [], support => [] };
+        $result->{islands} = union_ex([
+            map @$_,
+                $interface{$layer_id},
+                $support{$layer_id},
+                $contact{$support_layers[$layer_id]},
+        ]);
         
         # contact
         my $contact_infill = [];
@@ -1092,7 +1100,7 @@ sub generate_support_material {
                 ) };
             
             # add the contact infill area to the interface area
-            $contact_infill = [ offset2(\@loops0, -($contact_loops) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing) ];
+            $contact_infill = [ offset2(\@loops0, -($contact_loops + 0.5) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing) ];
             
             # transform loops into ExtrusionPath objects
             @loops = map Slic3r::ExtrusionPath->pack(
@@ -1111,7 +1119,7 @@ sub generate_support_material {
             # steal some space from support
             $interface{$layer_id} = intersection(
                 [ offset([ map @$_, $interface{$layer_id}, $contact_infill ], scale 3) ],
-                [ @{$interface{$layer_id}}, @{$support{$layer_id}} ],
+                [ map @$_, $interface{$layer_id}, $support{$layer_id}, $contact_infill ],
                 undef, 1,
             );
             $support{$layer_id} = diff(
@@ -1189,13 +1197,6 @@ sub generate_support_material {
             
             push @{$result->{support}}, @paths;
         }
-        
-        # islands
-        $result->{islands} = union_ex([
-            @{$interface{$layer_id} || []},
-            @{$support{$layer_id}   || []},
-            @{$contact{$support_layers[$layer_id]} || []},
-        ]);
         
         if (0) {
             require "Slic3r/SVG.pm";
