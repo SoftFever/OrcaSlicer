@@ -826,14 +826,10 @@ sub generate_support_material {
     }
     
     # shape of contact area
-    my $contact_loops = 1;
-    my $circle_distance = 3 * $flow->scaled_width;
-    my $circle;
-    {
-        # TODO: make sure teeth between circles are compatible with support material flow
-        my $r = 1.5 * $flow->scaled_width;
-        $circle = Slic3r::Polygon->new(map [ $r * cos $_, $r * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
-    }
+    my $contact_loops   = 1;
+    my $circle_radius   = 1.5 * $flow->scaled_width;
+    my $circle_distance = 3 * $circle_radius;
+    my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
     
     # determine contact areas
     my %contact  = ();  # contact_z => [ polygons ]
