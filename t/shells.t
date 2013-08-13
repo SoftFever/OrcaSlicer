@@ -83,7 +83,7 @@ use Slic3r::Test;
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', '100%');
-    $config->set('extrusion_width', 0.5);
+    $config->set('extrusion_width', 0.55);
     $config->set('bottom_solid_layers', 3);
     $config->set('top_solid_layers', 0);
     $config->set('solid_infill_speed', 99);
