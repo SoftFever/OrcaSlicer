@@ -572,6 +572,8 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
+    my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
+    
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
@@ -584,9 +586,13 @@ sub discover_horizontal_shells {
             
             EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find slices of current type for current layer
-                # get both slices and fill_surfaces before the former contains the perimeters area
-                # and the latter contains the enlarged external surfaces
-                my $solid = [ map $_->expolygon, grep $_->surface_type == $type, @{$layerm->slices}, @{$layerm->fill_surfaces} ];
+                # use slices instead of fill_surfaces because they also include the perimeter area
+                # which needs to be propagated in shells; we need to grow slices like we did for
+                # fill_surfaces though.  Using both ungrown slices and grown fill_surfaces will
+                # not work in some situations, as there won't be any grown region in the perimeter 
+                # area (this was seen in a model where the top layer had one extra perimeter, thus
+                # its fill_surfaces was thinner than the lower layer's infill)
+                my $solid = [ map $_->expolygon->offset_ex($margin), grep $_->surface_type == $type, @{$layerm->slices} ];
                 next if !@$solid;
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP ? 'top' : 'bottom');
                 

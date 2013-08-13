@@ -416,7 +416,7 @@ sub prepare_fill_surfaces {
 sub process_external_surfaces {
     my $self = shift;
     
-    my $margin = scale 3;  # TODO: ensure this is greater than the total thickness of the perimeters
+    my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
     
     my @bottom = ();
     foreach my $surface (grep $_->surface_type == S_TYPE_BOTTOM, @{$self->fill_surfaces}) {
