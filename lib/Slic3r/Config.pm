@@ -369,6 +369,14 @@ our $Options = {
         type    => 'f',
         default => 0,
     },
+    'first_layer_acceleration' => {
+        label   => 'First layer',
+        tooltip => 'This is the acceleration your printer will use for first layer. Set zero to disable acceleration control for first layer.',
+        sidetext => 'mm/s²',
+        cli     => 'first-layer-acceleration=f',
+        type    => 'f',
+        default => 0,
+    },
     
     # accuracy options
     'layer_height' => {
@@ -1376,6 +1384,11 @@ sub validate {
     # --extrusion-multiplier
     die "Invalid value for --extrusion-multiplier\n"
         if defined first { $_ <= 0 } @{$self->extrusion_multiplier};
+    
+    # --default-acceleration
+    die "Invalid zero value for --default-acceleration when using other acceleration settings\n"
+        if ($self->perimeter_acceleration || $self->infill_acceleration || $self->bridge_acceleration || $self->first_layer_acceleration)
+            && !$self->default_acceleration;
     
     # general validation, quick and dirty
     foreach my $opt_key (keys %$Options) {

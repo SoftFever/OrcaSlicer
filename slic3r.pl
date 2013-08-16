@@ -255,6 +255,9 @@ $j
     --bridge-acceleration
                         Overrides firmware's default acceleration for bridges. (mm/s^2, set zero
                         to disable; default: $config->{bridge_acceleration})
+    --first-layer-acceleration
+                        Overrides firmware's default acceleration for first layer. (mm/s^2, set zero
+                        to disable; default: $config->{first_layer_acceleration})
     --default-acceleration
                         Acceleration will be reset to this value after the specific settings above
                         have been applied. (mm/s^2, set zero to disable; default: $config->{travel_speed})

@@ -5,7 +5,8 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(safety_offset union_ex diff_ex intersection_ex 
-    offset offset2 offset_ex offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection);
+    offset offset2 offset2_ex PFT_EVENODD union_pt traverse_pt diff intersection
+    union diff);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -131,22 +132,22 @@ sub _merge_loops {
     # winding order.
     # TODO: find a faster algorithm for this.
     my @loops = sort { $a->encloses_point($b->[0]) ? 0 : 1 } @$loops;  # outer first
-    $safety_offset //= scale 0.0499;
-    @loops = @{ safety_offset(\@loops, $safety_offset) };
-    my $expolygons = [];
-    while (defined (my $loop = shift @loops)) {
-        if ($loop->is_counter_clockwise) {
-            $expolygons = union_ex([ $loop, map @$_, @$expolygons ]);
-        } else {
-            $expolygons = diff_ex([ map @$_, @$expolygons ], [$loop]);
-        }
+    # we don't perform a safety offset now because it might reverse cw loops
+    my $slices = [];
+    foreach my $loop (@loops) {
+        $slices = $loop->is_counter_clockwise
+            ? union([ $loop, @$slices ])
+            : diff($slices, [$loop]);
     }
-    $expolygons = offset_ex([ map @$_, @$expolygons ], -$safety_offset);
+    
+    # perform a safety offset to merge very close facets (TODO: find test case for this)
+    $safety_offset //= scale 0.0499;
+    $slices = offset2_ex($slices, +$safety_offset, -$safety_offset);
     
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
-        scalar(@$expolygons), scalar(map $_->holes, @$expolygons), scalar(@$loops);
+        scalar(@$slices), scalar(map $_->holes, @$slices), scalar(@$loops) if $Slic3r::debug;
     
-    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$expolygons;
+    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$slices;
 }
 
 sub make_perimeters {
@@ -174,6 +175,7 @@ sub make_perimeters {
         # (one more than necessary so that we can detect gaps even after the desired
         # number of perimeters has been generated)
         my @last = @{$surface->expolygon};
+        my @this_gaps = ();
         for my $i (0 .. $loop_number) {
             # external loop only needs half inset distance
             my $spacing = ($i == 0)
@@ -194,7 +196,7 @@ sub make_perimeters {
                     # won't shrink the clip polygon to be smaller than intended.
                     offset(\@offsets, +0.5*$spacing + 2),
                 );
-                push @gaps, grep $_->area >= $gap_area_threshold, @$diff;
+                push @gaps, (@this_gaps = grep $_->area >= $gap_area_threshold, @$diff);
             }
             
             last if !@offsets || $i == $loop_number;
@@ -203,16 +205,20 @@ sub make_perimeters {
             @last = @offsets;
         }
         
+        # make sure we don't infill narrow parts that are already gap-filled
+        # (we only consider this surface's gaps to reduce the diff() complexity)
+        @last = @{diff(\@last, [ map @$_, @this_gaps ])};
+        
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
-        # and then we offset back and forth by the infill spacing to only consider the
+        # and then we offset back and forth by half the infill spacing to only consider the
         # non-collapsing regions
         $self->fill_surfaces->append(
             @{offset2_ex(
                 [ map $_->simplify_as_polygons(&Slic3r::SCALED_RESOLUTION), @{union_ex(\@last)} ],
-                -($perimeter_spacing/2 + $infill_spacing),
-                +$infill_spacing,
-            )},
+                -($perimeter_spacing/2 + $infill_spacing/2),
+                +$infill_spacing/2,
+            )}
         );
     }
     
@@ -420,7 +426,7 @@ sub prepare_fill_surfaces {
 sub process_external_surfaces {
     my $self = shift;
     
-    my $margin = scale 3;  # TODO: ensure this is greater than the total thickness of the perimeters
+    my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
     
     my @bottom = ();
     foreach my $surface (grep $_->surface_type == S_TYPE_BOTTOM, @{$self->fill_surfaces}) {

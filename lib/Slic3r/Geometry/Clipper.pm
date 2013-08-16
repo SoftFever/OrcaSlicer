@@ -29,7 +29,7 @@ sub union {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
-    $clipper->add_subject_polygons($safety_offset ? safety_offset($polygons) : $polygons);
+    $clipper->add_subject_polygons(_convert($safety_offset ? safety_offset($polygons) : $polygons));
     return [
         map Slic3r::Polygon->new(@$_),
             @{ $clipper->execute(CT_UNION, $jointype, $jointype) },

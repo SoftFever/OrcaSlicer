@@ -127,6 +127,14 @@ sub make_fill {
     # add spacing between surfaces
     @surfaces = map @{$_->offset(-$distance_between_surfaces / 2 * &Slic3r::INFILL_OVERLAP_OVER_SPACING)}, @surfaces;
     
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output("fill_" . $layerm->print_z . ".svg",
+            expolygons      => [ map $_->expolygon, grep !$_->is_solid, @surfaces ],
+            red_expolygons  => [ map $_->expolygon, grep  $_->is_solid, @surfaces ],
+        );
+    }
+    
     my @fills = ();
     my @fills_ordering_points =  ();
     SURFACE: foreach my $surface (@surfaces) {

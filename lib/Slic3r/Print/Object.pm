@@ -562,6 +562,8 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
+    my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
+    
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
@@ -577,9 +579,13 @@ sub discover_horizontal_shells {
             
             EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
                 # find slices of current type for current layer
-                # get both slices and fill_surfaces before the former contains the perimeters area
-                # and the latter contains the enlarged external surfaces
-                my $solid = [ map $_->expolygon, grep $_->surface_type == $type, @{$layerm->slices}, @{$layerm->fill_surfaces} ];
+                # use slices instead of fill_surfaces because they also include the perimeter area
+                # which needs to be propagated in shells; we need to grow slices like we did for
+                # fill_surfaces though.  Using both ungrown slices and grown fill_surfaces will
+                # not work in some situations, as there won't be any grown region in the perimeter 
+                # area (this was seen in a model where the top layer had one extra perimeter, thus
+                # its fill_surfaces was thinner than the lower layer's infill)
+                my $solid = [ map $_->expolygon->offset_ex($margin), grep $_->surface_type == $type, @{$layerm->slices} ];
                 next if !@$solid;
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
@@ -817,14 +823,10 @@ sub generate_support_material {
     }
     
     # shape of contact area
-    my $contact_loops = 1;
-    my $circle_distance = 3 * $flow->scaled_width;
-    my $circle;
-    {
-        # TODO: make sure teeth between circles are compatible with support material flow
-        my $r = 1.5 * $flow->scaled_width;
-        $circle = Slic3r::Polygon->new(map [ $r * cos $_, $r * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
-    }
+    my $contact_loops   = 1;
+    my $circle_radius   = 1.5 * $flow->scaled_width;
+    my $circle_distance = 3 * $circle_radius;
+    my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
     
     # determine contact areas
     my %contact  = ();  # contact_z => [ polygons ]
@@ -901,10 +903,18 @@ sub generate_support_material {
             ###$contact_z = $layer->print_z - $layer->height;
             
             # ignore this contact area if it's too low
-            next if $contact_z < $Slic3r::Config->first_layer_height;
+            next if $contact_z < $Slic3r::Config->get_value('first_layer_height');
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
+            
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output("contact_" . $contact_z . ".svg",
+                    expolygons      => union_ex(\@contact),
+                    red_expolygons  => \@overhang,
+                );
+            }
         }
     }
     my @contact_z = sort keys %contact;
@@ -921,12 +931,17 @@ sub generate_support_material {
                 # ('new' means all the areas that are lower than the last top layer
                 # we considered)
                 my $min_top = min(keys %top) // max(keys %contact);
-                push @$projection, map @{$contact{$_}}, grep { $_ > $layer->print_z && $_ < $min_top } keys %contact;
+                # use <= instead of just < because otherwise we'd ignore any contact regions
+                # having the same Z of top layers
+                push @$projection, map @{$contact{$_}}, grep { $_ > $layer->print_z && $_ <= $min_top } keys %contact;
                 
                 # now find whether any projection falls onto this top surface
                 my $touching = intersection($projection, [ map $_->p, @top ]);
                 if (@$touching) {
-                    $top{ $layer->print_z } = $touching;
+                    # grow top surfaces so that interface and support generation are generated
+                    # with some spacing from object - it looks we don't need the actual
+                    # top shapes so this can be done here
+                    $top{ $layer->print_z } = [ offset($touching, $flow->scaled_spacing) ];
                 }
                 
                 # remove the areas that touched from the projection that will continue on 
@@ -944,17 +959,15 @@ sub generate_support_material {
     # if we wanted to apply some special logic to the first support layers lying on
     # object's top surfaces this is the place to detect them
     
-    # Let's now determine shells (interface layers) and normal support below them.
-    # Let's now fill each support layer by generating shells (interface layers) and
-    # clipping support area to the actual object boundaries.
+    # let's now generate interface layers below contact areas
     my %interface = ();  # layer_id => [ polygons ]
-    my %support   = ();  # layer_id => [ polygons ]
     my $interface_layers = $Slic3r::Config->support_material_interface_layers;
     for my $layer_id (0 .. $#support_layers) {
         my $z = $support_layers[$layer_id];
         my $this = $contact{$z} // next;
+        
         # count contact layer as interface layer
-        for (my $i = $layer_id; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
+        for (my $i = $layer_id-1; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
             $z = $support_layers[$i];
             # Compute interface area on this layer as diff of upper contact area
             # (or upper interface area) and layer slices.
@@ -963,29 +976,32 @@ sub generate_support_material {
             # surfaces before performing the diff, but this needs investigation.
             $this = $interface{$i} = diff(
                 [
-                    @$this,
-                    @{ $interface{$i} || [] },
+                    @$this,                         # clipped projection of the current contact regions
+                    @{ $interface{$i} || [] },      # interface regions already applied to this layer
                 ],
                 [
-                    @{ $top{$z} || [] },
+                    @{ $top{$z} || [] },            # top slices on this layer
+                    @{ $contact{$z} || [] },        # contact regions on this layer
                 ],
                 1,
             );
         }
-        
-        # determine what layers does our support belong to
-        for (my $i = $layer_id-$interface_layers; $i >= 0; $i--) {
-            $z = $support_layers[$i];
-            # Compute support area on this layer as diff of upper support area
-            # and layer slices.
-            $this = $support{$i} = diff(
+    }
+    
+    # let's now generate support layers under interface layers
+    my %support   = ();  # layer_id => [ polygons ]
+    {
+        for my $i (reverse 0 .. $#support_layers-1) {
+            my $z = $support_layers[$i];
+            $support{$i} = diff(
                 [
-                    @$this,
-                    @{ $support{$i} || [] },
+                    @{ $support{$i+1} || [] },      # support regions on upper layer
+                    @{ $interface{$i+1} || [] },    # interface regions on upper layer
                 ],
                 [
-                    @{ $top{$z} || [] },
-                    @{ $interface{$i} || [] },
+                    @{ $top{$z} || [] },            # top slices on this layer
+                    @{ $interface{$i} || [] },      # interface regions on this layer
+                    @{ $contact{$z} || [] },        # contact regions on this layer
                 ],
                 1,
             );
@@ -1024,13 +1040,30 @@ sub generate_support_material {
     
     my $process_layer = sub {
         my ($layer_id) = @_;
-        my $result = { contact => [], interface => [], support => [] };
         
-        $contact{$layer_id}     ||= [];
-        $interface{$layer_id}   ||= [];
-        $support{$layer_id}     ||= [];
+        $contact{$support_layers[$layer_id]}    ||= [];
+        $interface{$layer_id}                   ||= [];
+        $support{$layer_id}                     ||= [];
+        
+        if (0) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output("layer_" . $support_layers[$layer_id] . ".svg",
+                red_expolygons      => union_ex($contact{$support_layers[$layer_id]}),
+                green_expolygons    => union_ex($interface{$layer_id}),
+            );
+        }
+        
+        # islands
+        my $result = { contact => [], interface => [], support => [] };
+        $result->{islands} = union_ex([
+            map @$_,
+                $interface{$layer_id},
+                $support{$layer_id},
+                $contact{$support_layers[$layer_id]},
+        ]);
         
         # contact
+        my $contact_infill = [];
         if ((my $contact = $contact{$support_layers[$layer_id]}) && $contact_loops > 0) {
             my $overhang = $overhang{$support_layers[$layer_id]};
             $contact = [ grep $_->is_counter_clockwise, @$contact ];
@@ -1063,11 +1096,8 @@ sub generate_support_material {
                     [ map Slic3r::Polygon->new(@$_)->split_at_first_point, @loops ],
                 ) };
             
-            # subtract loops from the contact area to detect the remaining part
-            $interface{$layer_id} = intersection(
-                $interface{$layer_id},
-                [ offset2(\@loops0, -($contact_loops) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing) ],
-            );
+            # add the contact infill area to the interface area
+            $contact_infill = [ offset2(\@loops0, -($contact_loops + 0.5) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing) ];
             
             # transform loops into ExtrusionPath objects
             @loops = map Slic3r::ExtrusionPath->pack(
@@ -1079,14 +1109,15 @@ sub generate_support_material {
             $result->{contact} = [ @loops ];
         }
         
-        # interface
-        if (@{$interface{$layer_id}}) {
+        # interface and contact infill
+        if (@{$interface{$layer_id}} || @$contact_infill) {
             $fillers{interface}->angle($interface_angle);
             
             # steal some space from support
             $interface{$layer_id} = intersection(
-                [ offset($interface{$layer_id}, scale 3) ],
-                [ @{$interface{$layer_id}}, @{$support{$layer_id}} ],
+                [ offset([ map @$_, $interface{$layer_id}, $contact_infill ], scale 3) ],
+                [ map @$_, $interface{$layer_id}, $support{$layer_id}, $contact_infill ],
+                undef, 1,
             );
             $support{$layer_id} = diff(
                 $support{$layer_id},
@@ -1094,7 +1125,7 @@ sub generate_support_material {
             );
             
             my @paths = ();
-            foreach my $expolygon (offset_ex($interface{$layer_id}, -$flow->scaled_width/2)) {
+            foreach my $expolygon (@{union_ex($interface{$layer_id})}) {
                 my @p = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon),
                     density         => $interface_density,
@@ -1121,7 +1152,7 @@ sub generate_support_material {
             my $flow_spacing    = $flow->spacing;
             
             # TODO: use offset2_ex()
-            my $to_infill = offset_ex(union($support{$layer_id}), -$flow->scaled_width/2);
+            my $to_infill = union_ex($support{$layer_id}, undef, 1);
             my @paths = ();
             
             # base flange
@@ -1161,14 +1192,19 @@ sub generate_support_material {
                 ), @p;
             }
             
-            $result->{support} = [ @paths ];
+            push @{$result->{support}}, @paths;
         }
         
-        # islands
-        $result->{islands} = union_ex([
-            @{$interface{$layer_id} || []},
-            @{$support{$layer_id}   || []},
-        ]);
+        if (0) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output("islands_" . $support_layers[$layer_id] . ".svg",
+                red_expolygons      => union_ex($contact{$support_layers[$layer_id]} || []),
+                green_expolygons    => union_ex($interface{$layer_id} || []),
+                red_polylines       => [ map $_->unpack->polyline, @{$result->{contact}} ],
+                green_polylines     => [ map $_->unpack->polyline, @{$result->{interface}} ],
+                polylines           => [ map $_->unpack->polyline, @{$result->{support}} ],
+            );
+        }
         
         return $result;
     };
@@ -1183,6 +1219,7 @@ sub generate_support_material {
         my $support_collection = Slic3r::ExtrusionPath::Collection->new(paths => $result->{support});
         $layer->support_fills($support_collection) if @{$support_collection->paths} > 0;
         
+        # TODO: use a Slic3r::ExPolygon::Collection
         $layer->support_islands($result->{islands});
     };
     Slic3r::parallelize(

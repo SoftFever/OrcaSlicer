@@ -669,8 +669,9 @@ sub make_brim {
     for my $i (reverse 1 .. $num_loops) {
         # JT_SQUARE ensures no vertex is outside the given offset distance
         # -0.5 because islands are not represented by their centerlines
-        # TODO: we need the offset inwards/offset outwards logic to avoid overlapping extrusions
-        push @loops, @{offset2(\@islands, ($i - 1.5) * $flow->scaled_spacing, +1.0 * $flow->scaled_spacing, undef, JT_SQUARE)};
+        # (first offset more, then step back - reverse order than the one used for 
+        # perimeters because here we're offsetting outwards)
+        push @loops, @{offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, undef, JT_SQUARE)};
     }
     
     @{$self->brim} = map Slic3r::ExtrusionLoop->new(
@@ -720,7 +721,7 @@ sub write_gcode {
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
         config              => $self->config,
-        extruders           => $self->extruders,
+        extruders           => $self->extruders,    # we should only pass the *used* extruders (but maintain the Tx indices right!)
         layer_count         => $self->layer_count,
     );
     print $fh "G21 ; set units to millimeters\n" if $Slic3r::Config->gcode_flavor ne 'makerware';
@@ -755,6 +756,10 @@ sub write_gcode {
             print $fh "M82 ; use absolute distances for extrusion\n";
         }
     }
+    
+    # always start with first extruder
+    # TODO: make sure we select the first *used* extruder
+    print $fh $gcodegen->set_extruder($self->extruders->[0]);
     
     # calculate X,Y shift to center print around specified origin
     my $print_bb = $self->bounding_box;

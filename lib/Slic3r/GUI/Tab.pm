@@ -461,7 +461,7 @@ sub build {
         },
         {
             title => 'Acceleration control (advanced)',
-            options => [qw(perimeter_acceleration infill_acceleration bridge_acceleration default_acceleration)],
+            options => [qw(perimeter_acceleration infill_acceleration bridge_acceleration first_layer_acceleration default_acceleration)],
         },
     ]);
     

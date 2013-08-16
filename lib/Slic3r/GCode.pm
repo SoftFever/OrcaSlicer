@@ -14,8 +14,9 @@ has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
+has '_layer_islands'     => (is => 'rw');
+has '_upper_layer_islands'  => (is => 'rw');
 has '_layer_overhangs'   => (is => 'rw');
-has 'move_z_callback'    => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -98,7 +99,14 @@ sub change_layer {
     
     $self->layer($layer);
     
-    # avoid computing overhangs if they're not needed
+    # avoid computing islands and overhangs if they're not needed
+    if ($self->config->only_retract_when_crossing_perimeters) {
+        $self->_layer_islands([ $layer->islands ]);
+        $self->_upper_layer_islands([ $layer->upper_layer_islands ]);
+    } else {
+        $self->_layer_islands([]);
+        $self->_upper_layer_islands([]);
+    }
     $self->_layer_overhangs(
         $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
             ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
@@ -116,6 +124,15 @@ sub change_layer {
             int(99 * ($layer->id / ($self->layer_count - 1))),
             ($self->config->gcode_comments ? ' ; update progress' : '');
     }
+    if ($self->config->first_layer_acceleration) {
+        if ($layer->id == 0) {
+            $gcode .= $self->set_acceleration($self->config->first_layer_acceleration);
+        } elsif ($layer->id == 1) {
+            $gcode .= $self->set_acceleration($self->config->default_acceleration);
+        }
+    }
+    
+    $gcode .= $self->move_z($layer->print_z);
     return $gcode;
 }
 
@@ -137,7 +154,6 @@ sub move_z {
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
             if !defined $self->z || abs($z - ($self->z - $self->lifted)) > epsilon;
-        $gcode .= $self->move_z_callback->() if defined $self->move_z_callback;
     } elsif ($z < $self->z && $z > ($self->z - $self->lifted + epsilon)) {
         # we're moving to a layer height which is greater than the nominal current one
         # (nominal = actual - lifted) and less than the actual one.  we're basically
@@ -286,14 +302,16 @@ sub extrude_path {
     
     # adjust acceleration
     my $acceleration;
-    if ($self->config->perimeter_acceleration && $path->is_perimeter) {
-        $acceleration = $self->config->perimeter_acceleration;
-    } elsif ($self->config->infill_acceleration && $path->is_fill) {
-        $acceleration = $self->config->infill_acceleration;
-    } elsif ($self->config->infill_acceleration && $path->is_bridge) {
-        $acceleration = $self->config->bridge_acceleration;
+    if (!$self->config->first_layer_acceleration || $self->layer->id != 0) {
+        if ($self->config->perimeter_acceleration && $path->is_perimeter) {
+            $acceleration = $self->config->perimeter_acceleration;
+        } elsif ($self->config->infill_acceleration && $path->is_fill) {
+            $acceleration = $self->config->infill_acceleration;
+        } elsif ($self->config->infill_acceleration && $path->is_bridge) {
+            $acceleration = $self->config->bridge_acceleration;
+        }
+        $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     }
-    $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     
     my $area;  # mm^3 of extrudate per mm of tool movement 
     if ($path->is_bridge) {
@@ -361,9 +379,9 @@ sub travel_to {
     # *and* in an island in the upper layer (so that the ooze will not be visible)
     if ($travel->length < scale $self->extruder->retract_before_travel
         || ($self->config->only_retract_when_crossing_perimeters
-            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->upper_layer_slices})
-            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->slices}))
-        || ($role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands_enclose_line($travel))
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_upper_layer_islands})
+            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_layer_islands}))
+        || ($role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->support_islands}))
         ) {
         $self->straight_once(0);
         $self->speed('travel');
@@ -405,9 +423,9 @@ sub _plan {
     my $need_retract = !$self->config->only_retract_when_crossing_perimeters;
     if (!$need_retract) {
         $need_retract = 1;
-        foreach my $slice (@{$self->layer->upper_layer_slices}) {
+        foreach my $island ($self->layer->upper_layer_islands) {
             # discard the island if at any line is not enclosed in it
-            next if first { !$slice->encloses_line($_, scaled_epsilon) } @travel;
+            next if first { !$island->encloses_line($_, scaled_epsilon) } @travel;
             # okay, this island encloses the full travel path
             $need_retract = 0;
             last;

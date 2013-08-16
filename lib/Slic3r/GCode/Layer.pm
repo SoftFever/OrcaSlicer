@@ -46,23 +46,16 @@ sub process_layer {
         $self->second_layer_things_done(1);
     }
     
-    # set new layer, but don't move Z as support material contact areas may need an intermediate one
+    # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
     $gcode .= $self->gcodegen->change_layer($layer);
-    
-    # prepare callback to call as soon as a Z command is generated
-    $self->gcodegen->move_z_callback(sub {
-        $self->gcodegen->move_z_callback(undef);  # circular ref or not?
-        return "" if !$Slic3r::Config->layer_gcode;
-        return $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode, {
-            layer_num => $self->gcodegen->layer->id,
-        }) . "\n";
-    });
+    $gcode .= $Slic3r::Config->replace_options($Slic3r::Config->layer_gcode, {
+        layer_num => $self->gcodegen->layer->id,
+    }) . "\n" if $Slic3r::Config->layer_gcode;
     
     # extrude skirt
     if ((values %{$self->skirt_done}) < $Slic3r::Config->skirt_height && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_shift(@{$self->shift});
-        $gcode .= $self->gcodegen->set_extruder($self->extruders->[0]);  # move_z requires extruder
-        $gcode .= $self->gcodegen->move_z($layer->print_z);
+        $gcode .= $self->gcodegen->set_extruder($self->extruders->[0]);
         # skip skirt if we have a large brim
         if ($layer->id < $Slic3r::Config->skirt_height) {
             # distribute skirt loops across all extruders
@@ -81,8 +74,7 @@ sub process_layer {
     
     # extrude brim
     if (!$self->brim_done) {
-        $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);  # move_z requires extruder
-        $gcode .= $self->gcodegen->move_z($layer->print_z);
+        $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->extrude_loop($_, 'brim') for @{$self->print->brim};
         $self->brim_done(1);
@@ -98,7 +90,6 @@ sub process_layer {
         # extrude support material before other things because it might use a lower Z
         # and also because we avoid travelling on other things when printing it
         if ($self->print->has_support_material && $layer->isa('Slic3r::Layer::Support')) {
-            $gcode .= $self->gcodegen->move_z($layer->print_z);
             if ($layer->support_interface_fills) {
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_interface_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material interface') 
@@ -110,9 +101,6 @@ sub process_layer {
                     for $layer->support_fills->chained_path($self->gcodegen->last_pos);
             }
         }
-        
-        # set actual Z - this will force a retraction
-        $gcode .= $self->gcodegen->move_z($layer->print_z);
         
         # tweak region ordering to save toolchanges
         my @region_ids = 0 .. ($self->print->regions_count-1);
