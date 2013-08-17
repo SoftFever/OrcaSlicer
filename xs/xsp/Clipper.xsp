@@ -110,12 +110,21 @@ xor_ex(subject, clip, safety_offset = false)
     OUTPUT:
         RETVAL
 
+Polygons
+union(subject, safety_offset = false)
+    Polygons    subject
+    bool        safety_offset
+    CODE:
+        union_(subject, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
 ExPolygons
 union_ex(subject, safety_offset = false)
     Polygons                    subject
     bool                        safety_offset
     CODE:
-        union_ex(subject, RETVAL, safety_offset);
+        union_(subject, RETVAL, safety_offset);
     OUTPUT:
         RETVAL
 

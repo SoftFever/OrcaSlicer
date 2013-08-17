@@ -25,17 +25,6 @@ sub safety_offset_ex {
         @{Math::Clipper::ex_int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)};
 }
 
-sub union {
-    my ($polygons, $jointype, $safety_offset) = @_;
-    $jointype = PFT_NONZERO unless defined $jointype;
-    $clipper->clear;
-    $clipper->add_subject_polygons(_convert($safety_offset ? safety_offset($polygons) : $polygons));
-    return [
-        map Slic3r::Polygon->new(@$_),
-            @{ $clipper->execute(CT_UNION, $jointype, $jointype) },
-    ];
-}
-
 sub union_pt {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;

@@ -271,11 +271,14 @@ void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygon
     _clipper(ClipperLib::ctXor, subject, clip, retval, safety_offset);
 }
 
-void union_ex(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset)
+template <class T>
+void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset)
 {
     Slic3r::Polygons p;
     _clipper(ClipperLib::ctUnion, subject, p, retval, safety_offset);
 }
+template void union_<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset);
+template void union_<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset);
 
 void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval)
 {

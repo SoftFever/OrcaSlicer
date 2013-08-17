@@ -60,7 +60,8 @@ void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, 
 void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
     bool safety_offset = false);
 
-void union_ex(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset = false);
+template <class T>
+void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset = false);
 
 void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval);
 
