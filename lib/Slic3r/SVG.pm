@@ -79,7 +79,7 @@ sub output {
                 );
                 $g->$method(
                     %$path,
-                    'marker-end' => $arrows ? "" : "url(#endArrow)",
+                    'marker-end' => !$arrows ? "" : "url(#endArrow)",
                 );
             }
         } elsif ($type =~ /^(?:(.+?)_)?points$/) {
@@ -117,7 +117,7 @@ sub output {
                     style => {
                         'stroke' => $colour || 'black',
                     },
-                    'marker-end' => $arrows ? "" : "url(#endArrow)",
+                    'marker-end' => !$arrows ? "" : "url(#endArrow)",
                 );
             }
         }
