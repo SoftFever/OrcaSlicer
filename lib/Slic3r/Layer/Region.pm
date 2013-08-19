@@ -92,6 +92,16 @@ sub make_surfaces {
     return if !@$loops;
     $self->slices([ _merge_loops($loops) ]);
     
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output("surfaces.svg",
+            #polylines         => $loops,
+            red_polylines       => [ grep $_->is_counter_clockwise, @$loops ],
+            green_polylines     => [ grep !$_->is_counter_clockwise, @$loops ],
+            expolygons          => [ map $_->expolygon, @{$self->slices} ],
+        );
+    }
+    
     # detect thin walls by offsetting slices by half extrusion inwards
     if ($Slic3r::Config->thin_walls) {
         $self->thin_walls([]);
@@ -111,14 +121,6 @@ sub make_surfaces {
             Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls});
         }
     }
-    
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output("surfaces.svg",
-            polygons        => [ map $_->contour, @{$self->slices} ],
-            red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->slices} ],
-        );
-    }
 }
 
 sub _merge_loops {
@@ -130,14 +132,26 @@ sub _merge_loops {
     # would ignore holes inside two concentric contours.
     # So we're ordering loops and collapse consecutive concentric loops having the same 
     # winding order.
-    # TODO: find a faster algorithm for this.
-    my @loops = sort { $a->encloses_point($b->[0]) ? 0 : 1 } @$loops;  # outer first
+    # TODO: find a faster algorithm for this, maybe with some sort of binary search.
+    # If we computed a "nesting tree" we could also just remove the consecutive loops
+    # having the same winding order, and remove the extra one(s) so that we could just
+    # supply everything to offset_ex() instead of performing several union/diff calls.
+    
+    # we sort by area assuming that the outermost loops have larger area;
+    # the previous sorting method, based on $b->encloses_point($a->[0]), failed to nest
+    # loops correctly in some edge cases when original model had overlapping facets
+    my @abs_area = map abs($_), my @area = map $_->area, @$loops;
+    my @sorted = sort { $abs_area[$b] <=> $abs_area[$a] } 0..$#$loops;  # outer first
+    
     # we don't perform a safety offset now because it might reverse cw loops
     my $slices = [];
-    foreach my $loop (@loops) {
-        $slices = $loop->is_counter_clockwise
-            ? union([ $loop, @$slices ])
-            : diff($slices, [$loop]);
+    for my $i (@sorted) {
+        # we rely on the already computed area to determine the winding order
+        # of the loops, since the Orientation() function provided by Clipper
+        # would do the same, thus repeating the calculation
+        $slices = ($area[$i] >= 0)
+            ? union([ $loops->[$i], @$slices ])
+            : diff($slices, [$loops->[$i]]);
     }
     
     # perform a safety offset to merge very close facets (TODO: find test case for this)
