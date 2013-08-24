@@ -89,6 +89,11 @@ EOF
     # make sure our cpanm is updated (old ones don't support the ~ syntax)
     system $cpanm, 'App::cpanminus';
     
+    # install the Windows-compatible Math::Libm
+    if ($^O eq 'MSWin32') {
+        system $cpanm, 'https://github.com/alexrj/Math-Libm/tarball/master';
+    }
+    
     my %modules = (%prereqs, %recommends);
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
@@ -99,7 +104,18 @@ EOF
     # temporarily require this dev version until this upstream bug
     # is resolved: https://rt.cpan.org/Ticket/Display.html?id=86367
     system $cpanm, 'SMUELLER/ExtUtils-ParseXS-3.18_04.tar.gz';
-    system './xs/Build', 'distclean' if -e './xs/Build';
+    
+    # clean xs directory before reinstalling, to make sure Build is called
+    # with current perl binary
+    if (-e './xs/Build') {
+        if ($^O eq 'MSWin32') {
+            system 'pushd', 'xs';
+            system 'Build', 'distclean';
+            system 'popd';
+        } else {
+            system './xs/Build', 'distclean';
+        }
+    }
     system $cpanm, '--reinstall', './xs';
 }
 
