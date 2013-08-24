@@ -98,7 +98,13 @@ EOF
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
         my $res = system $cpanm, "$module~$version";
-        $missing_prereqs = 1 if $res != 0 && exists $prereqs{$module};
+        if ($res != 0) {
+            if (exists $prereqs{$module}) {
+                $missing_prereqs = 1;
+            } else {
+                printf "Don't worry, this module is optional.\n";
+            }
+        }
     }
     
     # temporarily require this dev version until this upstream bug
@@ -109,9 +115,9 @@ EOF
     # with current perl binary
     if (-e './xs/Build') {
         if ($^O eq 'MSWin32') {
-            system 'pushd', 'xs';
+            system 'cd', 'xs';
             system 'Build', 'distclean';
-            system 'popd';
+            system 'cd', '..';
         } else {
             system './xs/Build', 'distclean';
         }
