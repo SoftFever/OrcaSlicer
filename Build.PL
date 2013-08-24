@@ -90,7 +90,7 @@ EOF
     system $cpanm, 'App::cpanminus';
     
     # install the Windows-compatible Math::Libm
-    if ($^O eq 'MSWin32') {
+    if ($^O eq 'MSWin32' && !eval "use Math::Libm; 1") {
         system $cpanm, 'https://github.com/alexrj/Math-Libm/tarball/master';
     }
     
