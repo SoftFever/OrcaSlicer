@@ -389,8 +389,9 @@ sub load_file {
             name                    => $basename,
             input_file              => $input_file,
             input_file_object_id    => $i,
-            model_object            => $model->objects->[$i],
-            mesh_stats              => $model->objects->[$i]->mesh_stats,  # so that we can free model_object
+            model                   => $model,
+            model_object_idx        => $i,
+            mesh_stats              => $model->objects->[$i]->mesh_stats,  # so that we can free model
             instances               => [
                 $model->objects->[$i]->instances
                     ? (map $_->offset, @{$model->objects->[$i]->instances})
@@ -589,7 +590,8 @@ sub split_object {
             name                    => basename($current_object->input_file),
             input_file              => $current_object->input_file,
             input_file_object_id    => undef,
-            model_object            => $model_object,
+            model                   => $new_model,
+            model_object_idx        => $#{$new_model->objects},
             instances               => [ map $bb->min_point, 1..$current_copies_num ],
         );
         push @{ $self->{objects} }, $object;
@@ -628,6 +630,8 @@ sub export_gcode {
     }
     
     $self->statusbar->StartBusy;
+    
+    $_->free_model_object for @{$self->{objects}};
     
     # It looks like declaring a local $SIG{__WARN__} prevents the ugly
     # "Attempt to free unreferenced scalar" warning...
@@ -788,6 +792,7 @@ sub make_model {
             input_file  => $plater_object->input_file,
             config      => $plater_object->config,
             layer_height_ranges => $plater_object->layer_height_ranges,
+            material_mapping => $plater_object->material_mapping,
         );
         foreach my $volume (@{$model_object->volumes}) {
             $new_model_object->add_volume(
@@ -834,7 +839,6 @@ sub on_thumbnail_made {
     my $self = shift;
     my ($obj_idx) = @_;
     
-    $self->{objects}[$obj_idx]->free_model_object;
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -1221,7 +1225,8 @@ use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 has 'name'                  => (is => 'rw', required => 1);
 has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
-has 'model_object'          => (is => 'rw', required => 1, trigger => 1);
+has 'model'                 => (is => 'rw', required => 1, trigger => \&_trigger_model_object);
+has 'model_object_idx'      => (is => 'rw', required => 1, trigger => \&_trigger_model_object);
 has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
 has 'convex_hull'           => (is => 'rw');  # 2D convex hull of original object (aligned to origin) with no rotation or scaling
 has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => \&_transform_thumbnail);
@@ -1232,6 +1237,7 @@ has 'transformed_thumbnail' => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'config'                => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }
 has 'mesh_stats'            => (is => 'rw');
 
 # statistics
@@ -1242,16 +1248,17 @@ has 'is_manifold'           => (is => 'rw');
 
 sub _trigger_model_object {
     my $self = shift;
-    if ($self->model_object) {
-        $self->model_object->align_to_origin;
-	    $self->bounding_box($self->model_object->bounding_box);
+    if ($self->model && defined $self->model_object_idx) {
+        my $model_object = $self->model->objects->[$self->model_object_idx];
+        $model_object->align_to_origin;
+	    $self->bounding_box($model_object->bounding_box);
 	    
-    	my $mesh = $self->model_object->mesh;
+    	my $mesh = $model_object->mesh;
         $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->used_vertices)}));
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
 	    
-	    $self->materials($self->model_object->materials_count);
+	    $self->materials($model_object->materials_count);
 	}
 }
 
@@ -1290,18 +1297,21 @@ sub free_model_object {
     
     # only delete mesh from memory if we can retrieve it from the original file
     return unless $self->input_file && defined $self->input_file_object_id;
-    $self->model_object(undef);
+    $self->model(undef);
+    $self->model_object_idx(undef);
 }
 
 sub get_model_object {
     my $self = shift;
     
-    my $object = $self->model_object;
-    if (!$object) {
-        my $model = Slic3r::Model->read_from_file($self->input_file);
-        $object = $model->objects->[$self->input_file_object_id];
+    if ($self->model) {
+        return $self->model->objects->[$self->model_object_idx];
     }
-    return $object;
+    
+    return Slic3r::Model
+        ->read_from_file($self->input_file)
+        ->objects
+        ->[$self->input_file_object_id];
 }
 
 sub instances_count {
@@ -1312,7 +1322,7 @@ sub instances_count {
 sub make_thumbnail {
     my $self = shift;
     
-    my $mesh = $self->model_object->mesh;  # $self->model_object is already aligned to origin
+    my $mesh = $self->get_model_object->mesh;  # $self->model_object is already aligned to origin
     my $thumbnail = Slic3r::ExPolygon::Collection->new;
     if (@{$mesh->facets} <= 5000) {
         $thumbnail->append(@{ $mesh->horizontal_projection });
@@ -1331,7 +1341,6 @@ sub make_thumbnail {
     
     $thumbnail->scale(&Slic3r::SCALING_FACTOR);
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
-    $self->free_model_object;
     
     return $thumbnail;
 }

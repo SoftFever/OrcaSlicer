@@ -285,6 +285,20 @@ sub print_info {
     $_->print_info for @{$self->objects};
 }
 
+sub get_material_name {
+    my $self = shift;
+    my ($material_id) = @_;
+    
+    my $name;
+    if (exists $self->materials->{$material_id}) {
+        $name //= $self->materials->{$material_id}->attributes->{$_} for qw(Name name);
+    } elsif ($material_id eq '_') {
+        $name = 'Default material';
+    }
+    $name //= $material_id;
+    return $name;
+}
+
 package Slic3r::Model::Region;
 use Moo;
 
@@ -306,6 +320,7 @@ has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw');
 has 'config'    => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }
 has 'mesh_stats' => (is => 'rw');
 has '_bounding_box' => (is => 'rw');
 
@@ -428,6 +443,14 @@ sub materials_count {
     
     my %materials = map { $_->material_id // '_default' => 1 } @{$self->volumes};
     return scalar keys %materials;
+}
+
+sub unique_materials {
+    my $self = shift;
+    
+    my %materials = ();
+    $materials{ $_->material_id // '_' } = 1 for @{$self->volumes};
+    return sort keys %materials;
 }
 
 sub facets_count {

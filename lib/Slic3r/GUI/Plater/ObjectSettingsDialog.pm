@@ -16,6 +16,7 @@ sub new {
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}, object => $self->{object}), "Settings");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}, object => $self->{object}), "Layers");
+    $self->{tabpanel}->AddPage($self->{materials} = Slic3r::GUI::Plater::ObjectDialog::MaterialsTab->new($self->{tabpanel}, object => $self->{object}), "Materials");
     
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
     EVT_BUTTON($self, wxID_OK, sub {
@@ -25,6 +26,7 @@ sub new {
         
         # notify tabs
         $self->{layers}->Closing;
+        $self->{materials}->Closing;
         
         $self->EndModal(wxID_OK);
     });
@@ -252,6 +254,70 @@ sub _get_ranges {
         push @ranges, [ $min, $max, $height ];
     }
     return sort { $a->[0] <=> $b->[0] } @ranges;
+}
+
+package Slic3r::GUI::Plater::ObjectDialog::MaterialsTab;
+use Wx qw(:dialog :id :misc :sizer :systemsettings :button :icon);
+use Wx::Grid;
+use Wx::Event qw(EVT_BUTTON);
+use base 'Wx::Panel';
+
+sub new {
+    my $class = shift;
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
+    $self->{object} = $params{object};
+    
+    $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
+    
+    # descriptive text
+    {
+        my $label = Wx::StaticText->new($self, -1, "In this section you can assign object materials to your extruders.",
+            wxDefaultPosition, [-1, 25]);
+        $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+        $self->{sizer}->Add($label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+    }
+    
+    # get unique materials used in this object
+    $self->{materials} = [ $self->{object}->get_model_object->unique_materials ];
+    
+    # build an OptionsGroup
+    $self->{mapping} = {
+        (map { $self->{materials}[$_] => $_+1 } 0..$#{ $self->{materials} }),   # defaults
+        %{$self->{object}->material_mapping},
+    };
+    my $optgroup = Slic3r::GUI::OptionsGroup->new(
+        parent      => $self,
+        title       => 'Extruders',
+        label_width => 300,
+        options => [
+            map {
+                my $i           = $_;
+                my $material_id = $self->{materials}[$i];
+                {
+                    opt_key     => "material_extruder_$_",
+                    type        => 'i',
+                    label       => $self->{object}->get_model_object->model->get_material_name($material_id),
+                    min         => 1,
+                    default     => $self->{mapping}{$material_id},
+                    on_change   => sub { $self->{mapping}{$material_id} = $_[0] },
+                }
+            } 0..$#{ $self->{materials} }
+        ],
+    );
+    $self->{sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 10);
+    
+    $self->SetSizer($self->{sizer});
+    $self->{sizer}->SetSizeHints($self);
+    
+    return $self;
+}
+
+sub Closing {
+    my $self = shift;
+    
+    # save mappings into the plater object
+    $self->{object}->material_mapping($self->{mapping});
 }
 
 1;

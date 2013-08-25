@@ -143,7 +143,7 @@ sub slice {
     
     # process facets
     for my $region_id (0 .. $#{$self->meshes}) {
-        my $mesh = $self->meshes->[$region_id];  # ignore undef meshes
+        my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
         
         my %lines = ();  # layer_id => [ lines ]
         my $apply_lines = sub {
