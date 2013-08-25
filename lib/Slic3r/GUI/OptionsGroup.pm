@@ -36,6 +36,7 @@ Slic3r::GUI::OptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containing one
         on_change   => sub { print "new value for $_[0] is $_[1]\n" },
         no_labels   => 0,
         label_width => 180,
+        extra_column => sub { ... },
     );
     $sizer->Add($optgroup->sizer);
 
@@ -48,6 +49,7 @@ has 'lines'         => (is => 'lazy');
 has 'on_change'     => (is => 'ro', default => sub { sub {} });
 has 'no_labels'     => (is => 'ro', default => sub { 0 });
 has 'label_width'   => (is => 'ro', default => sub { 180 });
+has 'extra_column'  => (is => 'ro');
 
 has 'sizer'         => (is => 'rw');
 has '_triggers'     => (is => 'ro', default => sub { {} });
@@ -63,7 +65,8 @@ sub BUILD {
         $self->sizer(Wx::StaticBoxSizer->new($box, wxVERTICAL));
     }
     
-    my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$self->options}), 2, 0, 0);
+    my $num_columns = $self->extra_column ? 3 : 2;
+    my $grid_sizer = Wx::FlexGridSizer->new(scalar(@{$self->options}), $num_columns, 0, 0);
     $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     $grid_sizer->AddGrowableCol($self->no_labels ? 0 : 1);
     
@@ -112,6 +115,10 @@ sub single_option_line {
 sub _build_line {
     my $self = shift;
     my ($line, $grid_sizer) = @_;
+    
+    if ($self->extra_column) {
+        $grid_sizer->Add($self->extra_column->($line), 0, wxALIGN_CENTER_VERTICAL, 0);
+    }
     
     my $label;
     if (!$self->no_labels) {
@@ -291,6 +298,7 @@ Slic3r::GUI::ConfigOptionsGroup - pre-filled Wx::StaticBoxSizer wrapper containi
 use List::Util qw(first);
 
 has 'config' => (is => 'ro', required => 1);
+has 'full_labels' => (is => 'ro', default => sub {0});
 
 sub _trigger_options {
     my $self = shift;
@@ -304,7 +312,8 @@ sub _trigger_options {
             $opt = {
                 opt_key     => $full_key,
                 config      => 1,
-                (map { $_   => $config_opt->{$_} } qw(type label tooltip sidetext width height full_width min max labels values multiline readonly)),
+                label       => ($self->full_labels && defined $config_opt->{full_label}) ? $config_opt->{full_label} : $config_opt->{label},
+                (map { $_   => $config_opt->{$_} } qw(type tooltip sidetext width height full_width min max labels values multiline readonly)),
                 default     => $self->_get_config($opt_key, $index),
                 on_change   => sub { $self->_set_config($opt_key, $index, $_[0]) },
             };

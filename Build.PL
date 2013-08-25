@@ -30,7 +30,7 @@ my %recommends = qw(
 );
 if (defined $ARGV[0] && $ARGV[0] eq '--gui') {
     %prereqs = qw(
-    Wx                              0.9901
+    Wx                              0.9918
     );
     %recommends = qw(
     Wx::GLCanvas                    0

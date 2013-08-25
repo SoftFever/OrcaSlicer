@@ -80,9 +80,9 @@ sub _trigger_config {
 
 sub _build_has_support_material {
     my $self = shift;
-    return $self->config->support_material
-        || $self->config->raft_layers > 0
-        || $self->config->support_material_enforce_layers > 0;
+    return (first { $_->config->support_material } @{$self->objects})
+        || (first { $_->config->raft_layers > 0 } @{$self->objects})
+        || (first { $_->config->support_material_enforce_layers > 0 } @{$self->objects});
 }
 
 # caller is responsible for supplying models whose objects don't collide
@@ -160,6 +160,7 @@ sub add_model {
             ],
             size        => $bb->size,  # transformed size
             input_file  => $object->input_file,
+            config_overrides    => $object->config,
             layer_height_ranges => $object->layer_height_ranges,
         );
     }

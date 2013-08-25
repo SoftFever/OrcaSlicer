@@ -14,7 +14,7 @@ has 'layer' => (
     weak_ref    => 1,
     required    => 1,
     trigger     => 1,
-    handles     => [qw(id slice_z print_z height flow)],
+    handles     => [qw(id slice_z print_z height flow object print config)],
 );
 has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'perimeter_flow'    => (is => 'rw');
@@ -103,7 +103,7 @@ sub make_surfaces {
     }
     
     # detect thin walls by offsetting slices by half extrusion inwards
-    if ($Slic3r::Config->thin_walls) {
+    if ($self->config->thin_walls) {
         $self->thin_walls([]);
         # we use spacing here because there could be a case where
         # the slice collapses with width but doesn't collapse with spacing,
@@ -183,7 +183,7 @@ sub make_perimeters {
     # extra perimeters for each one
     foreach my $surface (@{$self->slices}) {
         # detect how many perimeters must be generated for this island
-        my $loop_number = $Slic3r::Config->perimeters + ($surface->extra_perimeters || 0);
+        my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         
         # generate loops
         # (one more than necessary so that we can detect gaps even after the desired
@@ -203,7 +203,7 @@ sub make_perimeters {
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
-            if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
+            if ($Slic3r::Config->gap_fill_speed > 0 && $self->object->config->fill_density > 0) {
                 my $diff = diff_ex(
                     [ offset(\@last, -0.5*$spacing) ],
                     # +2 on the offset here makes sure that Clipper float truncation 
@@ -411,16 +411,16 @@ sub prepare_fill_surfaces {
     my $self = shift;
     
     # if no solid layers are requested, turn top/bottom surfaces to internal
-    if ($Slic3r::Config->top_solid_layers == 0) {
+    if ($self->config->top_solid_layers == 0) {
         $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type == S_TYPE_TOP, @{$self->fill_surfaces};
     }
-    if ($Slic3r::Config->bottom_solid_layers == 0) {
+    if ($self->config->bottom_solid_layers == 0) {
         $_->surface_type(S_TYPE_INTERNAL) for grep $_->surface_type == S_TYPE_BOTTOM, @{$self->fill_surfaces};
     }
         
     # turn too small internal regions into solid regions according to the user setting
-    if ($Slic3r::Config->fill_density > 0) {
-        my $min_area = scale scale $Slic3r::Config->solid_infill_below_area; # scaling an area requires two calls!
+    if ($self->object->config->fill_density > 0) {
+        my $min_area = scale scale $self->config->solid_infill_below_area; # scaling an area requires two calls!
         my @small = grep $_->surface_type == S_TYPE_INTERNAL && $_->expolygon->contour->area <= $min_area, @{$self->fill_surfaces};
         $_->surface_type(S_TYPE_INTERNALSOLID) for @small;
         Slic3r::debugf "identified %d small solid surfaces at layer %d\n", scalar(@small), $self->id if @small > 0;
@@ -459,7 +459,7 @@ sub process_external_surfaces {
     
     # if we're slicing with no infill, we can't extend external surfaces
     # over non-existent infill
-    my @fill_boundaries = $Slic3r::Config->fill_density > 0
+    my @fill_boundaries = $self->object->config->fill_density > 0
         ? @{$self->fill_surfaces}
         : grep $_->surface_type != S_TYPE_INTERNAL, @{$self->fill_surfaces};
     

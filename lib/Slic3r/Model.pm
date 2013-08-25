@@ -35,6 +35,7 @@ sub merge {
             my $new_object = $new_model->add_object(
                 input_file          => $object->input_file,
                 vertices            => $object->vertices,
+                config              => $object->config,
                 layer_height_ranges => $object->layer_height_ranges,
             );
             
@@ -255,6 +256,7 @@ sub split_meshes {
         foreach my $mesh ($volume->mesh->split_mesh) {
             my $new_object = $self->add_object(
                 input_file          => $object->input_file,
+                config              => $object->config,
                 layer_height_ranges => $object->layer_height_ranges,
             );
             $new_object->add_volume(
@@ -302,6 +304,7 @@ has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
 has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw');
+has 'config'    => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'mesh_stats' => (is => 'rw');
 has '_bounding_box' => (is => 'rw');

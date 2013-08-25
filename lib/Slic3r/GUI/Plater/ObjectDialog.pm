@@ -17,11 +17,13 @@ sub new {
     $self->{tabpanel}->AddPage($self->{preview} = Slic3r::GUI::Plater::ObjectDialog::PreviewTab->new($self->{tabpanel}, object => $self->{object}), "Preview")
         if $Slic3r::GUI::have_OpenGL;
     $self->{tabpanel}->AddPage($self->{info} = Slic3r::GUI::Plater::ObjectDialog::InfoTab->new($self->{tabpanel}, object => $self->{object}), "Info");
+    $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}, object => $self->{object}), "Settings");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}, object => $self->{object}), "Layers");
     
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
     EVT_BUTTON($self, wxID_OK, sub {
         # validate user input
+        return if !$self->{settings}->CanClose;
         return if !$self->{layers}->CanClose;
         
         # notify tabs
@@ -122,6 +124,111 @@ sub new {
     $sizer->SetSizeHints($self);
     
     return $self;
+}
+
+package Slic3r::GUI::Plater::ObjectDialog::SettingsTab;
+use Wx qw(:dialog :id :misc :sizer :systemsettings :button :icon);
+use Wx::Grid;
+use Wx::Event qw(EVT_BUTTON);
+use base 'Wx::Panel';
+
+sub new {
+    my $class = shift;
+    my ($parent, %params) = @_;
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
+    $self->{object} = $params{object};
+    
+    $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
+    
+    # descriptive text
+    {
+        my $label = Wx::StaticText->new($self, -1, "You can use this section to override some settings just for this object.",
+            wxDefaultPosition, [-1, 25]);
+        $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+        $self->{sizer}->Add($label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+    }
+    
+    # option selector
+    {
+        # get all options with object scope and sort them by category+label
+        my %settings = map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) }
+            grep { ($Slic3r::Config::Options->{$_}{scope} // '') eq 'object' }
+            keys %$Slic3r::Config::Options;
+        $self->{options} = [ sort { $settings{$a} cmp $settings{$b} } keys %settings ];
+        my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [ map $settings{$_}, @{$self->{options}} ]);
+        
+        # create the button
+        my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
+        EVT_BUTTON($self, $btn, sub {
+            my $opt_key = $self->{options}[$choice->GetSelection];
+            $self->{object}->config->apply(Slic3r::Config->new_from_defaults($opt_key));
+            $self->update_optgroup;
+        });
+        
+        my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $h_sizer->Add($choice, 1, wxEXPAND | wxALL, 0);
+        $h_sizer->Add($btn, 0, wxEXPAND | wxLEFT, 10);
+        $self->{sizer}->Add($h_sizer, 0, wxEXPAND | wxALL, 10);
+    }
+    
+    $self->{options_sizer} = Wx::BoxSizer->new(wxVERTICAL);
+    $self->{sizer}->Add($self->{options_sizer}, 0, wxEXPAND | wxALL, 10);
+    
+    $self->update_optgroup;
+    
+    $self->SetSizer($self->{sizer});
+    $self->{sizer}->SetSizeHints($self);
+    
+    return $self;
+}
+
+sub update_optgroup {
+    my $self = shift;
+    
+    $self->{options_sizer}->Clear(1);
+    
+    my $config = $self->{object}->config;
+    my %categories = ();
+    foreach my $opt_key (keys %$config) {
+        my $category = $Slic3r::Config::Options->{$opt_key}{category};
+        $categories{$category} ||= [];
+        push @{$categories{$category}}, $opt_key;
+    }
+    foreach my $category (sort keys %categories) {
+        my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+            parent      => $self,
+            title       => $category,
+            config      => $config,
+            options     => [ sort @{$categories{$category}} ],
+            full_labels => 1,
+            extra_column => sub {
+                my ($line) = @_;
+                my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
+                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
+                EVT_BUTTON($self, $btn, sub {
+                    delete $self->{object}->config->{$opt_key};
+                    Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
+                });
+                return $btn;
+            },
+        );
+        $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 10);
+    }
+    $self->Layout;
+}
+
+sub CanClose {
+    my $self = shift;
+    
+    # validate options before allowing user to dismiss the dialog
+    # the validate method only works on full configs so we have
+    # to merge our settings with the default ones
+    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->{object}->config);
+    eval {
+        $config->validate;
+    };
+    return 0 if Slic3r::GUI::catch_error($self);    
+    return 1;
 }
 
 package Slic3r::GUI::Plater::ObjectDialog::LayersTab;
