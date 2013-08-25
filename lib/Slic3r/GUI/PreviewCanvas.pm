@@ -29,6 +29,7 @@ sub new {
 
     # prepare mesh
     {
+        $mesh->align_to_origin;
         $self->mesh_center($mesh->center);
         $self->mesh_size($mesh->size);
         
@@ -358,6 +359,54 @@ sub Render {
     glTranslatef(map -$_, @{ $self->mesh_center });
 
     $self->draw_mesh;
+    
+    # draw axes
+    {
+        my $axis_len = 2 * max(@{ $self->mesh_size });
+        glLineWidth(2);
+        glBegin(GL_LINES);
+        # draw line for x axis
+        glColor3f(1, 0, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f($axis_len, 0, 0);
+        # draw line for y axis
+        glColor3f(0, 1, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, $axis_len, 0);
+        # draw line for Z axis
+        glColor3f(0, 0, 1);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, $axis_len);
+        glEnd();
+        
+        # draw ground
+        my $ground_z = -0.02;
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+	    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(1, 1, 1, 0.5);
+        glVertex3f(-$axis_len, -$axis_len, $ground_z);
+        glVertex3f($axis_len, -$axis_len, $ground_z);
+        glVertex3f($axis_len, $axis_len, $ground_z);
+        glVertex3f(-$axis_len, $axis_len, $ground_z);
+        glEnd();
+        glEnable(GL_CULL_FACE);
+        glDisable(GL_BLEND);
+        
+        # draw grid
+        glBegin(GL_LINES);
+        glColor3f(1, 1, 1);
+        for (my $x = -$axis_len; $x <= $axis_len; $x += 10) {
+            glVertex3f($x, -$axis_len, $ground_z);
+            glVertex3f($x, $axis_len, $ground_z);
+        }
+        for (my $y = -$axis_len; $y <= $axis_len; $y += 10) {
+            glVertex3f(-$axis_len, $y, $ground_z);
+            glVertex3f($axis_len, $y, $ground_z);
+        }
+        glEnd();
+    }
 
     glPopMatrix();
     glFlush();
@@ -376,6 +425,7 @@ sub draw_mesh {
     
     glCullFace(GL_BACK);
     glNormalPointer_p($self->norms);
+    glColor3f(1, 1, 1);
     glDrawArrays(GL_TRIANGLES, 0, $self->verts->elements / 3);
     
     glDisableClientState(GL_NORMAL_ARRAY);
