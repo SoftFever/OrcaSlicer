@@ -118,6 +118,7 @@ var/cog_go.png
 var/cross.png
 var/delete.png
 var/disk.png
+var/error.png
 var/funnel.png
 var/hourglass.png
 var/layers.png

@@ -249,12 +249,18 @@ sub new {
         {
             my $box = Wx::StaticBox->new($self, -1, "Info");
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
-            my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
-            $object_info_sizer->Add($grid_sizer);
+            my $grid_sizer = Wx::FlexGridSizer->new(3, 4, 5, 5);
+            $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
+            $grid_sizer->AddGrowableCol(1, 1);
+            $grid_sizer->AddGrowableCol(3, 1);
+            $object_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             
             my @info = (
-                size    => "Size",
-                volume  => "Volume",
+                size        => "Size",
+                volume      => "Volume",
+                facets      => "Facets",
+                materials   => "Materials",
+                manifold    => "Manifold",
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -264,7 +270,17 @@ sub new {
                 
                 $self->{"object_info_$field"} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
-                $grid_sizer->Add($self->{"object_info_$field"}, 0);
+                if ($field eq 'manifold') {
+                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/error.png", wxBITMAP_TYPE_PNG));
+                    $self->{object_info_manifold_warning_icon}->Hide;
+                    
+                    my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+                    $h_sizer->Add($self->{object_info_manifold_warning_icon}, 0);
+                    $h_sizer->Add($self->{"object_info_$field"}, 0);
+                    $grid_sizer->Add($h_sizer, 0, wxEXPAND);
+                } else {
+                    $grid_sizer->Add($self->{"object_info_$field"}, 0);
+                }
             }
         }
         
@@ -1083,14 +1099,32 @@ sub selection_changed {
     if ($self->{object_info_size}) { # have we already loaded the info pane?
         if ($have_sel) {
             my ($obj_idx, $object) = $self->selected_object;
-            $self->{object_info_size}->SetLabel(sprintf "%.2f x %.2f x %.2f", @{$object->transformed_size});
+            $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$object->transformed_size}));
+            $self->{object_info_materials}->SetLabel($object->materials);
             
             if (my $stats = $object->mesh_stats) {
                 $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($object->scale**3)));
+                $self->{object_info_facets}->SetLabel(sprintf('%d (%d shells)', $object->facets, $stats->{number_of_parts}));
+                if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
+                    $self->{object_info_manifold}->SetLabel(sprintf("Auto-repaired (%d errors)", $errors));
+                    $self->{object_info_manifold_warning_icon}->Show;
+                    
+                    my $message = sprintf '%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges',
+                        @$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)};
+                    $self->{object_info_manifold}->SetToolTipString($message);
+                    $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
+                } else {
+                    $self->{object_info_manifold}->SetLabel("Yes");
+                }
+            } else {
+                $self->{object_info_facets}->SetLabel($object->facets);
             }
         } else {
-            $self->{"object_info_$_"}->SetLabel("") for qw(size volume);
+            $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
+            $self->{object_info_manifold_warning_icon}->Hide;
+            $self->{object_info_manifold}->SetToolTipString("");
         }
+        $self->Layout;
     }
 }
 
