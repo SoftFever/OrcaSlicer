@@ -50,12 +50,13 @@ sub make_fill {
     my ($layerm) = @_;
     
     Slic3r::debugf "Filling layer %d:\n", $layerm->id;
+    my $fill_density = $layerm->config->fill_density;
     
     my @surfaces = ();
     
     # if hollow object is requested, remove internal surfaces
     # (this needs to be done after internal-solid shells are created)
-    if ($Slic3r::Config->fill_density == 0) {
+    if ($fill_density == 0) {
         @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
     }
     
@@ -140,8 +141,8 @@ sub make_fill {
     my @fills_ordering_points =  ();
     SURFACE: foreach my $surface (@surfaces) {
         next if $surface->surface_type == S_TYPE_INTERNALVOID;
-        my $filler          = $Slic3r::Config->fill_pattern;
-        my $density         = $Slic3r::Config->fill_density;
+        my $filler          = $layerm->config->fill_pattern;
+        my $density         = $fill_density;
         my $flow            = ($surface->surface_type == S_TYPE_TOP)
             ? $layerm->top_infill_flow
             : $surface->is_solid
@@ -154,7 +155,7 @@ sub make_fill {
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type != S_TYPE_INTERNAL) {
             $density = 1;
-            $filler = $Slic3r::Config->solid_fill_pattern;
+            $filler = $layerm->config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
                 $flow_spacing = $layerm->extruders->{infill}->bridge_flow->spacing;

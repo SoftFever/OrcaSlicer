@@ -6,7 +6,7 @@ use Slic3r::Geometry qw(scale);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'id'                => (is => 'rw', required => 1, trigger => 1); # sequential number of layer, 0-based
-has 'object'            => (is => 'ro', weak_ref => 1, required => 1);
+has 'object'            => (is => 'ro', weak_ref => 1, required => 1, handles => [qw(print config)]);
 has 'regions'           => (is => 'ro', default => sub { [] });
 has 'slicing_errors'    => (is => 'rw');
 
