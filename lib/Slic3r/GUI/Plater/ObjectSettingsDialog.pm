@@ -73,7 +73,9 @@ sub new {
         # create the button
         my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
         EVT_BUTTON($self, $btn, sub {
-            my $opt_key = $self->{options}[$choice->GetSelection];
+            my $idx = $choice->GetSelection;
+            return if $idx == -1;  # lack of selected item, can happen on Windows
+            my $opt_key = $self->{options}[$idx];
             $self->{object}->config->apply(Slic3r::Config->new_from_defaults($opt_key));
             $self->update_optgroup;
         });

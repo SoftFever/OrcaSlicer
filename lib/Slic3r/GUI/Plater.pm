@@ -139,7 +139,6 @@ sub new {
             export_gcode    cog_go.png
             export_stl      brick_go.png
             
-            info            package.png
             increase        add.png
             decrease        delete.png
             rotate45cw      arrow_rotate_clockwise.png
@@ -147,6 +146,8 @@ sub new {
             rotate          arrow_rotate_clockwise.png
             changescale     arrow_out.png
             split           shape_ungroup.png
+            view            package.png
+            settings        cog.png
         );
         for (grep $self->{"btn_$_"}, keys %icons) {
             $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icons{$_}", wxBITMAP_TYPE_PNG));
