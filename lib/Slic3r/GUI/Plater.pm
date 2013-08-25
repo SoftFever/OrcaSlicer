@@ -870,6 +870,7 @@ sub on_config_change {
         while (@$choices < $value) {
         	my @presets = $choices->[0]->GetStrings;
             push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
+            $choices->[-1]->SetFont($Slic3r::GUI::small_font);
             $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
             EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->on_select_preset('filament', @_) });
             my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
