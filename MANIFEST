@@ -122,6 +122,7 @@ var/funnel.png
 var/hourglass.png
 var/layers.png
 var/note.png
+var/package.png
 var/page_white_go.png
 var/printer_empty.png
 var/shading.png

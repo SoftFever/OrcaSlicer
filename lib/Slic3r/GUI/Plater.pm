@@ -15,6 +15,7 @@ use base 'Wx::Panel';
 
 use constant TB_MORE    => &Wx::NewId;
 use constant TB_LESS    => &Wx::NewId;
+use constant TB_INFO    => &Wx::NewId;
 use constant TB_45CW    => &Wx::NewId;
 use constant TB_45CCW   => &Wx::NewId;
 use constant TB_ROTATE  => &Wx::NewId;
@@ -61,21 +62,21 @@ sub new {
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
+        $self->{htoolbar}->AddTool(TB_INFO, "Open", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_LESS, "Fewer", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate…", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
     } else {
-        my %tbar_buttons = (increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
+        my %tbar_buttons = (info => "Open", increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
             rotate => "Rotate…", changescale => "Scale…", split => "Split");
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(increase decrease rotate45ccw rotate45cw rotate changescale split)) {
+        for (qw(open increase decrease rotate45ccw rotate45cw rotate changescale split)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
@@ -114,6 +115,7 @@ sub new {
             export_gcode    cog_go.png
             export_stl      brick_go.png
             
+            open            package.png
             increase        add.png
             decrease        delete.png
             rotate45cw      arrow_rotate_clockwise.png
@@ -138,12 +140,14 @@ sub new {
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_MORE, \&increase);
         EVT_TOOL($self, TB_LESS, \&decrease);
+        EVT_TOOL($self, TB_INFO, sub { $self->list_item_activated(undef, $self->{selected_objects}->[0][0]) });
         EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
         EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
         EVT_TOOL($self, TB_ROTATE, sub { $_[0]->rotate(undef) });
         EVT_TOOL($self, TB_SCALE, \&changescale);
         EVT_TOOL($self, TB_SPLIT, \&split_object);
     } else {
+        EVT_BUTTON($self, $self->{btn_open}, sub { $self->list_item_activated(undef, $self->{selected_objects}->[0][0]) });
         EVT_BUTTON($self, $self->{btn_increase}, \&increase);
         EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
         EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
@@ -303,6 +307,7 @@ sub load_file {
     my $self = shift;
     my ($input_file) = @_;
     
+    my $basename = basename($input_file);
     $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
     Slic3r::GUI->save_settings;
     
@@ -313,7 +318,7 @@ sub load_file {
     my $model = Slic3r::Model->read_from_file($input_file);
     for my $i (0 .. $#{$model->objects}) {
         my $object = Slic3r::GUI::Plater::Object->new(
-            name                    => basename($input_file),
+            name                    => $basename,
             input_file              => $input_file,
             input_file_object_id    => $i,
             model_object            => $model->objects->[$i],
@@ -335,7 +340,7 @@ sub load_file {
     }
     
     $process_dialog->Destroy;
-    $self->statusbar->SetStatusText("Loaded $input_file");
+    $self->statusbar->SetStatusText("Loaded $basename - Double click object for more info");
 }
 
 sub object_loaded {
@@ -1004,11 +1009,11 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split);
+        for grep $self->{"btn_$_"}, qw(remove open increase decrease rotate45cw rotate45ccw rotate changescale split);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_MORE, TB_LESS, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
+            for (TB_INFO, TB_MORE, TB_LESS, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
     }
 }
 
