@@ -13,15 +13,19 @@ use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               mesh_center mesh_size
-                              verts norms initpos) );
+                              verts norms initpos
+                              sphi stheta) );
 
 use constant TRACKBALLSIZE => 0.8;
+use constant TURNTABLE_MODE => 1;
 
 sub new {
     my ($class, $parent, $mesh) = @_;
     my $self = $class->SUPER::new($parent);
    
     $self->quat((0, 0, 0, 1));
+    $self->sphi(45);
+    $self->stheta(-45);
 
     # prepare mesh
     {
@@ -189,12 +193,17 @@ sub handle_rotation {
         my $orig = $self->initpos;
         my $new = $e->GetPosition();
         my $size = $self->GetClientSize();
-        my @quat = trackball($orig->x / ($size->width / 2) - 1,
-                        1 - $orig->y / ($size->height / 2),       #/
-                        $new->x / ($size->width / 2) - 1,
-                        1 - $new->y / ($size->height / 2),        #/
-                        );
-        $self->quat(mulquats($self->quat, \@quat));
+        if (TURNTABLE_MODE) {
+            $self->sphi($self->sphi + ($new->x - $orig->x)*TRACKBALLSIZE);
+            $self->stheta($self->stheta + ($new->y - $orig->y)*TRACKBALLSIZE);        #-
+        } else {
+            my @quat = trackball($orig->x / ($size->width / 2) - 1,
+                            1 - $orig->y / ($size->height / 2),       #/
+                            $new->x / ($size->width / 2) - 1,
+                            1 - $new->y / ($size->height / 2),        #/
+                            );
+            $self->quat(mulquats($self->quat, \@quat));
+        }
         $self->initpos($new);
         $self->Refresh;
     }
@@ -344,6 +353,8 @@ sub Render {
     glTranslatef(0, 0, -max(@$mesh_size[0..1]));
     my @rotmat = quat_to_rotmatrix($self->quat);
     glMultMatrixd_p(@rotmat[0..15]);
+    glRotatef($self->stheta, 1, 0, 0);
+    glRotatef($self->sphi, 0, 0, 1);
     glTranslatef(map -$_, @{ $self->mesh_center });
 
     $self->draw_mesh;
