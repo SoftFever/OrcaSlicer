@@ -14,7 +14,7 @@ use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT
 use base 'Wx::Panel';
 
 use constant TB_MORE    => &Wx::NewId;
-use constant TB_LESS    => &Wx::NewId;
+use constant TB_FEWER   => &Wx::NewId;
 use constant TB_INFO    => &Wx::NewId;
 use constant TB_45CW    => &Wx::NewId;
 use constant TB_45CCW   => &Wx::NewId;
@@ -64,7 +64,7 @@ sub new {
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
         $self->{htoolbar}->AddTool(TB_INFO, "Open", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LESS, "Fewer", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_FEWER, "Fewer", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
@@ -73,10 +73,10 @@ sub new {
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
     } else {
-        my %tbar_buttons = (info => "Open", increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
+        my %tbar_buttons = (info => "Open", increase => "More", decrease => "Fewer", rotate45ccw => "45°", rotate45cw => "45°",
             rotate => "Rotate…", changescale => "Scale…", split => "Split");
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(open increase decrease rotate45ccw rotate45cw rotate changescale split)) {
+        for (qw(info increase decrease rotate45ccw rotate45cw rotate changescale split)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
@@ -115,7 +115,7 @@ sub new {
             export_gcode    cog_go.png
             export_stl      brick_go.png
             
-            open            package.png
+            info            package.png
             increase        add.png
             decrease        delete.png
             rotate45cw      arrow_rotate_clockwise.png
@@ -139,15 +139,15 @@ sub new {
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_MORE, \&increase);
-        EVT_TOOL($self, TB_LESS, \&decrease);
-        EVT_TOOL($self, TB_INFO, sub { $self->list_item_activated(undef, $self->{selected_objects}->[0][0]) });
+        EVT_TOOL($self, TB_FEWER, \&decrease);
+        EVT_TOOL($self, TB_INFO, sub { $_[0]->object_dialog });
         EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
         EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
         EVT_TOOL($self, TB_ROTATE, sub { $_[0]->rotate(undef) });
         EVT_TOOL($self, TB_SCALE, \&changescale);
         EVT_TOOL($self, TB_SPLIT, \&split_object);
     } else {
-        EVT_BUTTON($self, $self->{btn_open}, sub { $self->list_item_activated(undef, $self->{selected_objects}->[0][0]) });
+        EVT_BUTTON($self, $self->{btn_info}, sub { $_[0]->object_dialog });
         EVT_BUTTON($self, $self->{btn_increase}, \&increase);
         EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
         EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
@@ -945,8 +945,7 @@ sub mouse_event {
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);
     } elsif ($event->ButtonDClick) {
-    	$parent->list_item_activated(undef, $parent->{selected_objects}->[0][0])
-    		if @{$parent->{selected_objects}};
+    	$parent->object_dialog if @{$parent->{selected_objects}};
     } elsif ($event->Dragging) {
         return if !$self->{drag_start_pos}; # concurrency problems
         for my $preview ($self->{drag_object}) {
@@ -990,7 +989,18 @@ sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
     
     $obj_idx //= $event->GetIndex;
-	my $dlg = Slic3r::GUI::Plater::ObjectDialog->new($self,
+	$self->object_dialog($obj_idx);
+}
+
+sub object_dialog {
+    my $self = shift;
+    my ($obj_idx) = @_;
+    
+    if (!defined $obj_idx) {
+        ($obj_idx, undef) = $self->selected_object;
+    }
+    
+    my $dlg = Slic3r::GUI::Plater::ObjectDialog->new($self,
 		object => $self->{objects}[$obj_idx],
 	);
 	$dlg->ShowModal;
@@ -1010,11 +1020,11 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(remove open increase decrease rotate45cw rotate45ccw rotate changescale split);
+        for grep $self->{"btn_$_"}, qw(remove info increase decrease rotate45cw rotate45ccw rotate changescale split);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_INFO, TB_MORE, TB_LESS, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
+            for (TB_INFO, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
     }
 }
 
