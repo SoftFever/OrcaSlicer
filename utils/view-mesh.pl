@@ -27,7 +27,7 @@ my %opt = ();
 {
     my $model = Slic3r::Model->read_from_file($ARGV[0]);
     
-    $Slic3r::ViewMesh::mesh = $model->mesh;
+    $Slic3r::ViewMesh::object = $model->objects->[0];
     my $app = Slic3r::ViewMesh->new;
     $app->MainLoop;
 }
@@ -49,7 +49,7 @@ package Slic3r::ViewMesh;
 use Wx qw(:sizer);
 use base qw(Wx::App);
 
-our $mesh;
+our $object;
 
 sub OnInit {
     my $self = shift;
@@ -58,7 +58,7 @@ sub OnInit {
     my $panel = Wx::Panel->new($frame, -1);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($panel, $mesh), 1, wxEXPAND, 0);
+    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($panel, $object), 1, wxEXPAND, 0);
     $panel->SetSizer($sizer);
     $sizer->SetSizeHints($panel);
     

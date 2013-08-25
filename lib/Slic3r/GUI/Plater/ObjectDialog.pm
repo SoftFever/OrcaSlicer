@@ -119,7 +119,7 @@ sub new {
     $self->{object} = $params{object};
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($self, $self->{object}->get_model_object->mesh), 1, wxEXPAND, 0);
+    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($self, $self->{object}->get_model_object), 1, wxEXPAND, 0);
     $self->SetSizer($sizer);
     $sizer->SetSizeHints($self);
     
