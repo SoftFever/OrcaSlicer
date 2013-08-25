@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 my $points = [
     [100, 100],
@@ -24,6 +24,7 @@ my $loop = Slic3r::ExtrusionLoop->new(
 
 my $collection = Slic3r::ExtrusionPath::Collection->new($path);
 isa_ok $collection, 'Slic3r::ExtrusionPath::Collection', 'collection object with items in constructor';
+ok !$collection->no_sort, 'no_sort is false by default';
 
 $collection->append($collection);
 is scalar(@$collection), 2, 'append ExtrusionPath::Collection';

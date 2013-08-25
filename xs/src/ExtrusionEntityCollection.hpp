@@ -11,6 +11,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     public:
     ExtrusionEntitiesPtr entities;
     bool no_sort;
+    ExtrusionEntityCollection(): no_sort(false) {};
 };
 
 }
