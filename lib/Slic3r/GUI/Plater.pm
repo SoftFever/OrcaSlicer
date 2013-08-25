@@ -1096,6 +1096,11 @@ sub object_settings_dialog {
         ($obj_idx, undef) = $self->selected_object;
     }
     
+    # validate config before opening the settings dialog because
+    # that dialog can't be closed if validation fails, but user
+    # can't fix any error which is outside that dialog
+    return unless $self->validate_config;
+    
     my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
 		object => $self->{objects}[$obj_idx],
 	);
@@ -1167,6 +1172,16 @@ sub selected_object {
     my $self = shift;
     my $obj_idx = $self->{selected_objects}[0] ? $self->{selected_objects}[0][0] : $self->{list}->GetFirstSelected;
     return ($obj_idx, $self->{objects}[$obj_idx]),
+}
+
+sub validate_config {
+    my $self = shift;
+    
+    eval {
+        $self->skeinpanel->config->validate;
+    };
+    return 0 if Slic3r::GUI::catch_error($self);    
+    return 1;
 }
 
 sub statusbar {
