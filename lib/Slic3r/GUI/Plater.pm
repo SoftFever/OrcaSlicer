@@ -1327,19 +1327,18 @@ sub make_thumbnail {
     my $mesh = $self->get_model_object->mesh;  # $self->model_object is already aligned to origin
     my $thumbnail = Slic3r::ExPolygon::Collection->new;
     if (@{$mesh->facets} <= 5000) {
-        $thumbnail->append(@{ $mesh->horizontal_projection });
+        # remove polygons with area <= 1mm
+        my $area_threshold = Slic3r::Geometry::scale 1;
+        $thumbnail->append(
+            map $_->simplify(0.5),
+            grep $_->area >= $area_threshold,
+            @{ $mesh->horizontal_projection },
+        );
     } else {
         my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
         $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);
         $thumbnail->append($convex_hull);
     }
-    
-    # remove polygons with area <= 1mm
-    my $area_threshold = Slic3r::Geometry::scale 1;
-    @{$thumbnail->expolygons} =
-        map $_->simplify(0.5),
-        grep $_->area >= $area_threshold,
-        @{$thumbnail->expolygons};
     
     $thumbnail->scale(&Slic3r::SCALING_FACTOR);
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
