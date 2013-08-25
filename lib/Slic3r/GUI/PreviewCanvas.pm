@@ -7,32 +7,56 @@ use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL
 use OpenGL qw(:glconstants :glfunctions :glufunctions);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
-use List::Util qw(reduce min max);
+use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan);
 use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
-                              mesh_center mesh_size
-                              verts norms initpos) );
+                              object_center object_size
+                              volumes initpos
+                              sphi stheta) );
 
 use constant TRACKBALLSIZE => 0.8;
+use constant TURNTABLE_MODE => 1;
+use constant COLORS => [ [1,1,1], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 sub new {
-    my ($class, $parent, $mesh) = @_;
+    my ($class, $parent, $object) = @_;
     my $self = $class->SUPER::new($parent);
    
     $self->quat((0, 0, 0, 1));
+    $self->sphi(45);
+    $self->stheta(-45);
 
-    # prepare mesh
-    {
-        $self->mesh_center($mesh->center);
-        $self->mesh_size($mesh->size);
+    $object->align_to_origin;
+    $self->object_center($object->center);
+    $self->object_size($object->size);
+    
+    # group mesh(es) by material
+    my @materials = ();
+    $self->volumes([]);
+    foreach my $volume (@{$object->volumes}) {
+        my $mesh = $volume->mesh;
         
-        my @verts = map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
-        $self->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
+        my $material_id = $volume->material_id // '_';
+        my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
+        if (!defined $color_idx) {
+            push @materials, $material_id;
+            $color_idx = $#materials;
+        }
+        push @{$self->volumes}, my $v = {
+            color => COLORS->[ $color_idx % scalar(@{&COLORS}) ],
+        };
         
-        my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $mesh->vertices->[$_], @$_)), @{$mesh->facets};
-        $self->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
+        {
+            my @verts = map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
+            $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
+        }
+        
+        {
+            my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $mesh->vertices->[$_], @$_)), @{$mesh->facets};
+            $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
+        }
     }
     
     EVT_PAINT($self, sub {
@@ -189,12 +213,17 @@ sub handle_rotation {
         my $orig = $self->initpos;
         my $new = $e->GetPosition();
         my $size = $self->GetClientSize();
-        my @quat = trackball($orig->x / ($size->width / 2) - 1,
-                        1 - $orig->y / ($size->height / 2),       #/
-                        $new->x / ($size->width / 2) - 1,
-                        1 - $new->y / ($size->height / 2),        #/
-                        );
-        $self->quat(mulquats($self->quat, \@quat));
+        if (TURNTABLE_MODE) {
+            $self->sphi($self->sphi + ($new->x - $orig->x)*TRACKBALLSIZE);
+            $self->stheta($self->stheta + ($new->y - $orig->y)*TRACKBALLSIZE);        #-
+        } else {
+            my @quat = trackball($orig->x / ($size->width / 2) - 1,
+                            1 - $orig->y / ($size->height / 2),       #/
+                            $new->x / ($size->width / 2) - 1,
+                            1 - $new->y / ($size->height / 2),        #/
+                            );
+            $self->quat(mulquats($self->quat, \@quat));
+        }
         $self->initpos($new);
         $self->Refresh;
     }
@@ -267,7 +296,7 @@ sub ResetModelView {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     my $win_size = $self->GetClientSize();
-    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@{ $self->mesh_size });
+    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@{ $self->object_size });
     glScalef($ratio, $ratio, 1);
 }
 
@@ -282,8 +311,8 @@ sub Resize {
  
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    my $mesh_size = $self->mesh_size;
-    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@$mesh_size));
+    my $object_size = $self->object_size;
+    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@$object_size));
  
     glMatrixMode(GL_MODELVIEW);
     unless ($self->mview_init) {
@@ -340,13 +369,63 @@ sub Render {
 
     glPushMatrix();
 
-    my $mesh_size = $self->mesh_size;
-    glTranslatef(0, 0, -max(@$mesh_size[0..1]));
+    my $object_size = $self->object_size;
+    glTranslatef(0, 0, -max(@$object_size[0..1]));
     my @rotmat = quat_to_rotmatrix($self->quat);
     glMultMatrixd_p(@rotmat[0..15]);
-    glTranslatef(map -$_, @{ $self->mesh_center });
+    glRotatef($self->stheta, 1, 0, 0);
+    glRotatef($self->sphi, 0, 0, 1);
+    glTranslatef(map -$_, @{ $self->object_center });
 
     $self->draw_mesh;
+    
+    # draw axes
+    {
+        my $axis_len = 2 * max(@{ $self->object_size });
+        glLineWidth(2);
+        glBegin(GL_LINES);
+        # draw line for x axis
+        glColor3f(1, 0, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f($axis_len, 0, 0);
+        # draw line for y axis
+        glColor3f(0, 1, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, $axis_len, 0);
+        # draw line for Z axis
+        glColor3f(0, 0, 1);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, $axis_len);
+        glEnd();
+        
+        # draw ground
+        my $ground_z = -0.02;
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+	    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(1, 1, 1, 0.5);
+        glVertex3f(-$axis_len, -$axis_len, $ground_z);
+        glVertex3f($axis_len, -$axis_len, $ground_z);
+        glVertex3f($axis_len, $axis_len, $ground_z);
+        glVertex3f(-$axis_len, $axis_len, $ground_z);
+        glEnd();
+        glEnable(GL_CULL_FACE);
+        glDisable(GL_BLEND);
+        
+        # draw grid
+        glBegin(GL_LINES);
+        glColor3f(1, 1, 1);
+        for (my $x = -$axis_len; $x <= $axis_len; $x += 10) {
+            glVertex3f($x, -$axis_len, $ground_z);
+            glVertex3f($x, $axis_len, $ground_z);
+        }
+        for (my $y = -$axis_len; $y <= $axis_len; $y += 10) {
+            glVertex3f(-$axis_len, $y, $ground_z);
+            glVertex3f($axis_len, $y, $ground_z);
+        }
+        glEnd();
+    }
 
     glPopMatrix();
     glFlush();
@@ -361,11 +440,14 @@ sub draw_mesh {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     
-    glVertexPointer_p(3, $self->verts);
-    
-    glCullFace(GL_BACK);
-    glNormalPointer_p($self->norms);
-    glDrawArrays(GL_TRIANGLES, 0, $self->verts->elements / 3);
+    foreach my $volume (@{$self->volumes}) {
+        glVertexPointer_p(3, $volume->{verts});
+        
+        glCullFace(GL_BACK);
+        glNormalPointer_p($volume->{norms});
+        glColor3f(@{ $volume->{color} });
+        glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
+    }
     
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);

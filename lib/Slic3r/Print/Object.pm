@@ -15,18 +15,22 @@ has 'size'              => (is => 'rw', required => 1); # XYZ in scaled coordina
 has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'support_layers'    => (is => 'rw', default => sub { [] });
+has 'config_overrides'  => (is => 'rw', default => sub { Slic3r::Config->new });
+has 'config'            => (is => 'rw');
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'fill_maker'        => (is => 'lazy');
 has '_slice_z_table'    => (is => 'lazy');
 
 sub BUILD {
     my $self = shift;
- 	 
+ 	
+ 	$self->init_config;
+ 	
     # make layers taking custom heights into account
     my $print_z = my $slice_z = my $height = 0;
     
     # add raft layers
-    for my $id (0 .. $Slic3r::Config->raft_layers-1) {
+    for my $id (0 .. $self->config->raft_layers-1) {
         $height = ($id == 0)
             ? $Slic3r::Config->get_value('first_layer_height')
             : $Slic3r::Config->layer_height;
@@ -99,6 +103,11 @@ sub _trigger_copies {
     @{$self->copies} = @{chained_path_points($self->copies)}
 }
 
+sub init_config {
+    my $self = shift;
+    $self->config(Slic3r::Config->merge($self->print->config, $self->config_overrides));
+}
+
 sub layer_count {
     my $self = shift;
     return scalar @{ $self->layers };
@@ -134,7 +143,7 @@ sub slice {
     
     # process facets
     for my $region_id (0 .. $#{$self->meshes}) {
-        my $mesh = $self->meshes->[$region_id];  # ignore undef meshes
+        my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
         
         my %lines = ();  # layer_id => [ lines ]
         my $apply_lines = sub {
@@ -252,7 +261,7 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    my $first_object_layer_id = $Slic3r::Config->raft_layers;
+    my $first_object_layer_id = $self->config->raft_layers;
     while (@{$self->layers} && !@{$self->layers->[$first_object_layer_id]->slices} && !map @{$_->thin_walls}, @{$self->layers->[$first_object_layer_id]->regions}) {
         splice @{$self->layers}, $first_object_layer_id, 1;
         for (my $i = $first_object_layer_id; $i <= $#{$self->layers}; $i++) {
@@ -271,7 +280,7 @@ sub make_perimeters {
     # but we don't generate any extra perimeter if fill density is zero, as they would be floating
     # inside the object - infill_only_where_needed should be the method of choice for printing
     # hollow objects
-    if ($Slic3r::Config->extra_perimeters && $Slic3r::Config->perimeters > 0 && $Slic3r::Config->fill_density > 0) {
+    if ($self->config->extra_perimeters && $self->config->perimeters > 0 && $self->config->fill_density > 0) {
         for my $region_id (0 .. ($self->print->regions_count-1)) {
             for my $layer_id (0 .. $self->layer_count-2) {
                 my $layerm          = $self->layers->[$layer_id]->regions->[$region_id];
@@ -281,7 +290,7 @@ sub make_perimeters {
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
                 my $diff = diff(
-                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($Slic3r::Config->perimeters * $perimeter_spacing)),
+                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($self->config->perimeters * $perimeter_spacing)),
                     offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap),
                 );
                 next if !@$diff;
@@ -302,8 +311,8 @@ sub make_perimeters {
                         # of our slice
                         $extra_perimeters++;
                         my $hypothetical_perimeter = diff(
-                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters-1))),
-                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($Slic3r::Config->perimeters + $extra_perimeters))),
+                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($self->config->perimeters + $extra_perimeters-1))),
+                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($self->config->perimeters + $extra_perimeters))),
                         );
                         last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
                         
@@ -437,7 +446,7 @@ sub detect_surfaces_type {
 
 sub clip_fill_surfaces {
     my $self = shift;
-    return unless $Slic3r::Config->infill_only_where_needed;
+    return unless $self->config->infill_only_where_needed;
     
     # We only want infill under ceilings; this is almost like an
     # internal support material.
@@ -486,7 +495,7 @@ sub clip_fill_surfaces {
 
 sub bridge_over_infill {
     my $self = shift;
-    return if $Slic3r::Config->fill_density == 1;
+    return if $self->config->fill_density == 1;
     
     for my $layer_id (1..$#{$self->layers}) {
         my $layer       = $self->layers->[$layer_id];
@@ -568,8 +577,8 @@ sub discover_horizontal_shells {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
             
-            if ($Slic3r::Config->solid_infill_every_layers && $Slic3r::Config->fill_density > 0
-                && ($i % $Slic3r::Config->solid_infill_every_layers) == 0) {
+            if ($self->config->solid_infill_every_layers && $self->config->fill_density > 0
+                && ($i % $self->config->solid_infill_every_layers) == 0) {
                 my @surfaces = @{$layerm->fill_surfaces};
                 for my $i (0..$#surfaces) {
                     next unless $surfaces[$i]->surface_type == S_TYPE_INTERNAL;
@@ -590,8 +599,8 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
                 my $solid_layers = ($type == S_TYPE_TOP)
-                    ? $Slic3r::Config->top_solid_layers
-                    : $Slic3r::Config->bottom_solid_layers;
+                    ? $self->config->top_solid_layers
+                    : $self->config->bottom_solid_layers;
                 NEIGHBOR: for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
                         abs($n - $i) <= $solid_layers-1; 
                         ($type == S_TYPE_TOP) ? $n-- : $n++) {
@@ -629,7 +638,7 @@ sub discover_horizontal_shells {
                         
                         # if some parts are going to collapse, use a different strategy according to fill density
                         if (@$too_narrow) {
-                            if ($Slic3r::Config->fill_density > 0) {
+                            if ($self->config->fill_density > 0) {
                                 # if we have internal infill, grow the collapsing parts and add the extra area to 
                                 # the neighbor layer as well as to our original surfaces so that we support this 
                                 # additional area in the next shell too
@@ -694,8 +703,8 @@ sub discover_horizontal_shells {
 # combine fill surfaces across layers
 sub combine_infill {
     my $self = shift;
-    return unless $Slic3r::Config->infill_every_layers > 1 && $Slic3r::Config->fill_density > 0;
-    my $every = $Slic3r::Config->infill_every_layers;
+    return unless $self->config->infill_every_layers > 1 && $self->config->fill_density > 0;
+    my $every = $self->config->infill_every_layers;
     
     my $layer_count = $self->layer_count;
     my @layer_heights = map $self->layers->[$_]->height, 0 .. $layer_count-1;
@@ -758,7 +767,7 @@ sub combine_infill {
                      + $layerms[-1]->perimeter_flow->scaled_width / 2
                      # Because fill areas for rectilinear and honeycomb are grown 
                      # later to overlap perimeters, we need to counteract that too.
-                     + (($type == S_TYPE_INTERNALSOLID || $Slic3r::Config->fill_pattern =~ /(rectilinear|honeycomb)/)
+                     + (($type == S_TYPE_INTERNALSOLID || $self->config->fill_pattern =~ /(rectilinear|honeycomb)/)
                        ? $layerms[-1]->solid_infill_flow->scaled_width * &Slic3r::INFILL_OVERLAP_OVER_SPACING
                        : 0)
                      )}, @$intersection;
@@ -804,7 +813,7 @@ sub combine_infill {
 
 sub generate_support_material {
     my $self = shift;
-    return if $self->layer_count < 2;
+    return unless $self->config->support_material && $self->layer_count >= 2;
     
     my $flow = $self->print->support_material_flow;
     
@@ -817,8 +826,8 @@ sub generate_support_material {
     
     # if user specified a custom angle threshold, convert it to radians
     my $threshold_rad;
-    if ($Slic3r::Config->support_material_threshold) {
-        $threshold_rad = deg2rad($Slic3r::Config->support_material_threshold + 1);  # +1 makes the threshold inclusive
+    if ($self->config->support_material_threshold) {
+        $threshold_rad = deg2rad($self->config->support_material_threshold + 1);  # +1 makes the threshold inclusive
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
     }
     
@@ -842,7 +851,7 @@ sub generate_support_material {
             my $diff;
             
             # If a threshold angle was specified, use a different logic for detecting overhangs.
-            if (defined $threshold_rad || $layer_id <= $Slic3r::Config->support_material_enforce_layers) {
+            if (defined $threshold_rad || $layer_id <= $self->config->support_material_enforce_layers) {
                 my $d = defined $threshold_rad
                     ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                     : 0;
@@ -954,14 +963,14 @@ sub generate_support_material {
     
     # we now know the upper and lower boundaries for our support material object
     # (@contact_z and @top_z), so we can generate intermediate layers
-    my @support_layers = _compute_support_layers(\@contact_z, \@top_z, $Slic3r::Config, $flow);
+    my @support_layers = _compute_support_layers(\@contact_z, \@top_z, $self->config, $flow);
     
     # if we wanted to apply some special logic to the first support layers lying on
     # object's top surfaces this is the place to detect them
     
     # let's now generate interface layers below contact areas
     my %interface = ();  # layer_id => [ polygons ]
-    my $interface_layers = $Slic3r::Config->support_material_interface_layers;
+    my $interface_layers = $self->config->support_material_interface_layers;
     for my $layer_id (0 .. $#support_layers) {
         my $z = $support_layers[$layer_id];
         my $this = $contact{$z} // next;
@@ -1020,8 +1029,8 @@ sub generate_support_material {
     Slic3r::debugf "Generating patterns\n";
     
     # prepare fillers
-    my $pattern = $Slic3r::Config->support_material_pattern;
-    my @angles = ($Slic3r::Config->support_material_angle);
+    my $pattern = $self->config->support_material_pattern;
+    my @angles = ($self->config->support_material_angle);
     if ($pattern eq 'rectilinear-grid') {
         $pattern = 'rectilinear';
         push @angles, $angles[0] + 90;
@@ -1032,10 +1041,10 @@ sub generate_support_material {
         support     => $self->fill_maker->filler($pattern),
     );
     
-    my $interface_angle = $Slic3r::Config->support_material_angle + 90;
-    my $interface_spacing = $Slic3r::Config->support_material_interface_spacing + $flow->spacing;
+    my $interface_angle = $self->config->support_material_angle + 90;
+    my $interface_spacing = $self->config->support_material_interface_spacing + $flow->spacing;
     my $interface_density = $interface_spacing == 0 ? 1 : $flow->spacing / $interface_spacing;
-    my $support_spacing = $Slic3r::Config->support_material_spacing + $flow->spacing;
+    my $support_spacing = $self->config->support_material_spacing + $flow->spacing;
     my $support_density = $support_spacing == 0 ? 1 : $flow->spacing / $support_spacing;
     
     my $process_layer = sub {
@@ -1158,7 +1167,7 @@ sub generate_support_material {
             # base flange
             if ($layer_id == 0) {
                 $filler = $fillers{interface};
-                $filler->angle($Slic3r::Config->support_material_angle + 90);
+                $filler->angle($self->config->support_material_angle + 90);
                 $density        = 0.5;
                 $flow_spacing   = $self->print->first_layer_support_material_flow->spacing;
             } else {

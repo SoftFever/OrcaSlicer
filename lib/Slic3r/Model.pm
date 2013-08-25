@@ -35,6 +35,7 @@ sub merge {
             my $new_object = $new_model->add_object(
                 input_file          => $object->input_file,
                 vertices            => $object->vertices,
+                config              => $object->config,
                 layer_height_ranges => $object->layer_height_ranges,
             );
             
@@ -255,6 +256,7 @@ sub split_meshes {
         foreach my $mesh ($volume->mesh->split_mesh) {
             my $new_object = $self->add_object(
                 input_file          => $object->input_file,
+                config              => $object->config,
                 layer_height_ranges => $object->layer_height_ranges,
             );
             $new_object->add_volume(
@@ -283,6 +285,20 @@ sub print_info {
     $_->print_info for @{$self->objects};
 }
 
+sub get_material_name {
+    my $self = shift;
+    my ($material_id) = @_;
+    
+    my $name;
+    if (exists $self->materials->{$material_id}) {
+        $name //= $self->materials->{$material_id}->attributes->{$_} for qw(Name name);
+    } elsif ($material_id eq '_') {
+        $name = 'Default material';
+    }
+    $name //= $material_id;
+    return $name;
+}
+
 package Slic3r::Model::Region;
 use Moo;
 
@@ -293,7 +309,7 @@ package Slic3r::Model::Object;
 use Moo;
 
 use File::Basename qw(basename);
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Slic3r::Geometry qw(X Y Z MIN MAX move_points move_points_3D);
 use Storable qw(dclone);
 
@@ -302,7 +318,9 @@ has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
 has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw');
+has 'config'    => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }
 has 'mesh_stats' => (is => 'rw');
 has '_bounding_box' => (is => 'rw');
 
@@ -427,6 +445,19 @@ sub materials_count {
     return scalar keys %materials;
 }
 
+sub unique_materials {
+    my $self = shift;
+    
+    my %materials = ();
+    $materials{ $_->material_id // '_' } = 1 for @{$self->volumes};
+    return sort keys %materials;
+}
+
+sub facets_count {
+    my $self = shift;
+    return sum(map $_->facets_count, @{$self->volumes});
+}
+
 sub check_manifoldness {
     my $self = shift;
     return (first { !$_->mesh->check_manifoldness } @{$self->volumes}) ? 0 : 1;
@@ -480,6 +511,11 @@ sub mesh {
         vertices => $self->object->vertices,
         facets   => $self->facets,
     );
+}
+
+sub facets_count {
+    my $self = shift;
+    return scalar(@{$self->facets});  # TODO: optimize in XS
 }
 
 package Slic3r::Model::Instance;

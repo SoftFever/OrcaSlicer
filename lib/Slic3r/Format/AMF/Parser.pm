@@ -27,14 +27,14 @@ sub start_element {
         $self->{_coordinate} = $data->{LocalName};
     } elsif ($data->{LocalName} eq 'volume') {
         $self->{_volume} = $self->{_object}->add_volume(
-            material_id => $self->_get_attribute($data, 'materialid') || undef,
+            material_id => $self->_get_attribute($data, 'materialid') // undef,
         );
     } elsif ($data->{LocalName} eq 'triangle') {
         $self->{_triangle} = ["", "", ""];
     } elsif ($self->{_triangle} && $data->{LocalName} =~ /^v([123])$/ && $self->{_tree}[-1] eq 'triangle') {
         $self->{_vertex_idx} = $1-1;
     } elsif ($data->{LocalName} eq 'material') {
-        my $material_id = $self->_get_attribute($data, 'id') || '_';
+        my $material_id = $self->_get_attribute($data, 'id') // '_';
         $self->{_material} = $self->{_model}->set_material($material_id);
     } elsif ($data->{LocalName} eq 'metadata' && $self->{_tree}[-1] eq 'material') {
         $self->{_material_metadata_type} = $self->_get_attribute($data, 'type');

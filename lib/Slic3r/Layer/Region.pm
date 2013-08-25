@@ -14,7 +14,7 @@ has 'layer' => (
     weak_ref    => 1,
     required    => 1,
     trigger     => 1,
-    handles     => [qw(id slice_z print_z height flow)],
+    handles     => [qw(id slice_z print_z height flow object print config)],
 );
 has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'perimeter_flow'    => (is => 'rw');
@@ -92,8 +92,18 @@ sub make_surfaces {
     $self->slices->clear;
     $self->slices->append(_merge_loops($loops));
     
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output("surfaces.svg",
+            #polylines         => $loops,
+            red_polylines       => [ grep $_->is_counter_clockwise, @$loops ],
+            green_polylines     => [ grep !$_->is_counter_clockwise, @$loops ],
+            expolygons          => [ map $_->expolygon, @{$self->slices} ],
+        );
+    }
+    
     # detect thin walls by offsetting slices by half extrusion inwards
-    if ($Slic3r::Config->thin_walls) {
+    if ($self->config->thin_walls) {
         $self->thin_walls([]);
         # we use spacing here because there could be a case where
         # the slice collapses with width but doesn't collapse with spacing,
@@ -111,14 +121,6 @@ sub make_surfaces {
             Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls});
         }
     }
-    
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output("surfaces.svg",
-            polygons        => [ map $_->contour, @{$self->slices} ],
-            red_polygons    => [ map $_->p, map @{$_->holes}, @{$self->slices} ],
-        );
-    }
 }
 
 sub _merge_loops {
@@ -130,14 +132,26 @@ sub _merge_loops {
     # would ignore holes inside two concentric contours.
     # So we're ordering loops and collapse consecutive concentric loops having the same 
     # winding order.
-    # TODO: find a faster algorithm for this.
-    my @loops = sort { $a->encloses_point($b->[0]) ? 0 : 1 } @$loops;  # outer first
+    # TODO: find a faster algorithm for this, maybe with some sort of binary search.
+    # If we computed a "nesting tree" we could also just remove the consecutive loops
+    # having the same winding order, and remove the extra one(s) so that we could just
+    # supply everything to offset_ex() instead of performing several union/diff calls.
+    
+    # we sort by area assuming that the outermost loops have larger area;
+    # the previous sorting method, based on $b->encloses_point($a->[0]), failed to nest
+    # loops correctly in some edge cases when original model had overlapping facets
+    my @abs_area = map abs($_), my @area = map $_->area, @$loops;
+    my @sorted = sort { $abs_area[$b] <=> $abs_area[$a] } 0..$#$loops;  # outer first
+    
     # we don't perform a safety offset now because it might reverse cw loops
     my $slices = [];
-    foreach my $loop (@loops) {
-        $slices = $loop->is_counter_clockwise
-            ? union([ $loop, @$slices ])
-            : diff($slices, [$loop]);
+    for my $i (@sorted) {
+        # we rely on the already computed area to determine the winding order
+        # of the loops, since the Orientation() function provided by Clipper
+        # would do the same, thus repeating the calculation
+        $slices = ($area[$i] >= 0)
+            ? union([ $loops->[$i], @$slices ])
+            : diff($slices, [$loops->[$i]]);
     }
     
     # perform a safety offset to merge very close facets (TODO: find test case for this)
@@ -169,7 +183,7 @@ sub make_perimeters {
     # extra perimeters for each one
     foreach my $surface (@{$self->slices}) {
         # detect how many perimeters must be generated for this island
-        my $loop_number = $Slic3r::Config->perimeters + ($surface->extra_perimeters || 0);
+        my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         
         # generate loops
         # (one more than necessary so that we can detect gaps even after the desired
@@ -189,7 +203,7 @@ sub make_perimeters {
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
-            if ($Slic3r::Config->gap_fill_speed > 0 && $Slic3r::Config->fill_density > 0) {
+            if ($Slic3r::Config->gap_fill_speed > 0 && $self->object->config->fill_density > 0) {
                 my $diff = diff_ex(
                     offset(\@last, -0.5*$spacing),
                     # +2 on the offset here makes sure that Clipper float truncation 
@@ -400,13 +414,13 @@ sub prepare_fill_surfaces {
     my @surfaces = @{$self->fill_surfaces};
     
     # if no solid layers are requested, turn top/bottom surfaces to internal
-    if ($Slic3r::Config->top_solid_layers == 0) {
+    if ($self->config->top_solid_layers == 0) {
         for my $i (0..$#surfaces) {
             next unless $surfaces[$i]->surface_type == S_TYPE_TOP;
             $self->fill_surfaces->set_surface_type($i, S_TYPE_INTERNAL);
         }
     }
-    if ($Slic3r::Config->bottom_solid_layers == 0) {
+    if ($self->config->bottom_solid_layers == 0) {
         for my $i (0..$#surfaces) {
             next unless $surfaces[$i]->surface_type == S_TYPE_BOTTOM;
             $self->fill_surfaces->set_surface_type($i, S_TYPE_INTERNAL);
@@ -414,8 +428,8 @@ sub prepare_fill_surfaces {
     }
         
     # turn too small internal regions into solid regions according to the user setting
-    if ($Slic3r::Config->fill_density > 0) {
-        my $min_area = scale scale $Slic3r::Config->solid_infill_below_area; # scaling an area requires two calls!
+    if ($self->config->fill_density > 0) {
+        my $min_area = scale scale $self->config->solid_infill_below_area; # scaling an area requires two calls!
         for my $i (0..$#surfaces) {
             next unless $surfaces[$i]->surface_type == S_TYPE_INTERNAL && $surfaces[$i]->expolygon->contour->area <= $min_area;
             $self->fill_surfaces->set_surface_type($i, S_TYPE_INTERNALSOLID);
@@ -455,7 +469,7 @@ sub process_external_surfaces {
     
     # if we're slicing with no infill, we can't extend external surfaces
     # over non-existent infill
-    my @fill_boundaries = $Slic3r::Config->fill_density > 0
+    my @fill_boundaries = $self->object->config->fill_density > 0
         ? @{$self->fill_surfaces}
         : grep $_->surface_type != S_TYPE_INTERNAL, @{$self->fill_surfaces};
     

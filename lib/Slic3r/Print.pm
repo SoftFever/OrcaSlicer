@@ -80,9 +80,9 @@ sub _trigger_config {
 
 sub _build_has_support_material {
     my $self = shift;
-    return $self->config->support_material
-        || $self->config->raft_layers > 0
-        || $self->config->support_material_enforce_layers > 0;
+    return (first { $_->config->support_material } @{$self->objects})
+        || (first { $_->config->raft_layers > 0 } @{$self->objects})
+        || (first { $_->config->support_material_enforce_layers > 0 } @{$self->objects});
 }
 
 # caller is responsible for supplying models whose objects don't collide
@@ -90,18 +90,6 @@ sub _build_has_support_material {
 sub add_model {
     my $self = shift;
     my ($model) = @_;
-    
-    # append/merge materials and preserve a mapping between the original material ID
-    # and our numeric material index
-    my %materials = ();
-    {
-        my @material_ids = sort keys %{$model->materials};
-        @material_ids = (0) if !@material_ids;
-        for (my $i = $self->regions_count; $i < @material_ids; $i++) {
-            push @{$self->regions}, Slic3r::Print::Region->new;
-            $materials{$material_ids[$i]} = $#{$self->regions};
-        }
-    }
     
     # optimization: if avoid_crossing_perimeters is enabled, split
     # this mesh into distinct objects so that we reduce the complexity
@@ -112,6 +100,7 @@ sub add_model {
     # -- thing before the split.
     ###$model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
+    my %unmapped_materials = ();
     foreach my $object (@{ $model->objects }) {
         # we align object to origin before applying transformations
         my @align = $object->align_to_origin;
@@ -119,13 +108,26 @@ sub add_model {
         # extract meshes by material
         my @meshes = ();  # by region_id
         foreach my $volume (@{$object->volumes}) {
-            my $region_id = defined $volume->material_id ? $materials{$volume->material_id} : 0;
+            my $region_id;
+            if (defined $volume->material_id) {
+                if ($object->material_mapping) {
+                    $region_id = $object->material_mapping->{$volume->material_id} - 1
+                        if defined $object->material_mapping->{$volume->material_id};
+                }
+                $region_id //= $unmapped_materials{$volume->material_id};
+                if (!defined $region_id) {
+                    $region_id = $unmapped_materials{$volume->material_id} = scalar(keys %unmapped_materials);
+                }
+            }
+            $region_id //= 0;
+            
             my $mesh = $volume->mesh->clone;
             # should the object contain multiple volumes of the same material, merge them
             $meshes[$region_id] = $meshes[$region_id]
                 ? Slic3r::TriangleMesh->merge($meshes[$region_id], $mesh)
                 : $mesh;
         }
+        $self->regions->[$_] //= Slic3r::Print::Region->new for 0..$#meshes;
         
         foreach my $mesh (grep $_, @meshes) {
             $mesh->check_manifoldness;
@@ -160,6 +162,7 @@ sub add_model {
             ],
             size        => $bb->size,  # transformed size
             input_file  => $object->input_file,
+            config_overrides    => $object->config,
             layer_height_ranges => $object->layer_height_ranges,
         );
     }

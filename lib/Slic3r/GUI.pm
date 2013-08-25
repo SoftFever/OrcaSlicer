@@ -7,7 +7,8 @@ use FindBin;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Plater;
-use Slic3r::GUI::Plater::ObjectDialog;
+use Slic3r::GUI::Plater::ObjectPreviewDialog;
+use Slic3r::GUI::Plater::ObjectSettingsDialog;
 use Slic3r::GUI::Preferences;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
@@ -17,7 +18,7 @@ use Slic3r::GUI::Tab;
 our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow);
-use Wx::Event qw(EVT_CLOSE EVT_MENU);
+use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_IDLE);
 use base 'Wx::App';
 
 use constant MI_LOAD_CONF     => &Wx::NewId;
@@ -47,6 +48,7 @@ our $datadir;
 our $no_plater;
 our $mode;
 our $autosave;
+our @cb;
 
 our $Settings = {
     _ => {
@@ -55,6 +57,7 @@ our $Settings = {
     },
 };
 
+our $have_button_icons = &Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/;
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -210,6 +213,12 @@ sub OnInit {
             && ($Settings->{_}{version_check} // 1)
             && (!$Settings->{_}{last_version_check} || (time - $Settings->{_}{last_version_check}) >= 86400);
     
+    EVT_IDLE($frame, sub {
+        while (my $cb = shift @cb) {
+            $cb->();
+        }
+    });
+    
     return 1;
 }
 
@@ -322,6 +331,12 @@ sub output_path {
     return ($Settings->{_}{last_output_path} && $Settings->{_}{remember_output_path})
         ? $Settings->{_}{last_output_path}
         : $dir;
+}
+
+sub CallAfter {
+    my $class = shift;
+    my ($cb) = @_;
+    push @cb, $cb;
 }
 
 package Slic3r::GUI::ProgressStatusBar;

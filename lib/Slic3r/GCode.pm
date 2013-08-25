@@ -108,7 +108,7 @@ sub change_layer {
         $self->_upper_layer_islands([]);
     }
     $self->_layer_overhangs(
-        $layer->id > 0 && ($Slic3r::Config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
+        $layer->id > 0 && ($layer->config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
             ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
             : []
         );
@@ -227,7 +227,7 @@ sub extrude_loop {
     
     my @paths = ();
     # detect overhanging/bridging perimeters
-    if ($Slic3r::Config->overhangs && $extrusion_path->is_perimeter && @{$self->_layer_overhangs}) {
+    if ($self->layer->config->overhangs && $extrusion_path->is_perimeter && @{$self->_layer_overhangs}) {
         # get non-overhang paths by subtracting overhangs from the loop
         push @paths,
             $extrusion_path->subtract_expolygons($self->_layer_overhangs);
@@ -254,7 +254,7 @@ sub extrude_loop {
     $self->wipe_path($extrusion_path->polyline) if $self->enable_wipe;
     
     # make a little move inwards before leaving loop
-    if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER && $self->config->perimeters > 1) {
+    if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->layer->object->config->perimeters > 1) {
         # detect angle between last and first segment
         # the side depends on the original winding order of the polygon (left for contours, right for holes)
         my @points = $was_clockwise ? (-2, 1) : (1, -2);

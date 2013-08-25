@@ -37,7 +37,8 @@ lib/Slic3r/GUI/AboutDialog.pm
 lib/Slic3r/GUI/ConfigWizard.pm
 lib/Slic3r/GUI/OptionsGroup.pm
 lib/Slic3r/GUI/Plater.pm
-lib/Slic3r/GUI/Plater/ObjectDialog.pm
+lib/Slic3r/GUI/Plater/ObjectPreviewDialog.pm
+lib/Slic3r/GUI/Plater/ObjectSettingsDialog.pm
 lib/Slic3r/GUI/Preferences.pm
 lib/Slic3r/GUI/PreviewCanvas.pm
 lib/Slic3r/GUI/SkeinPanel.pm
@@ -118,10 +119,12 @@ var/cog_go.png
 var/cross.png
 var/delete.png
 var/disk.png
+var/error.png
 var/funnel.png
 var/hourglass.png
 var/layers.png
 var/note.png
+var/package.png
 var/page_white_go.png
 var/printer_empty.png
 var/shading.png
