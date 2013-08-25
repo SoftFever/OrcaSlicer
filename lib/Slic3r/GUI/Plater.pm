@@ -21,12 +21,13 @@ use constant TB_EXPORT_GCODE    => &Wx::NewId;
 use constant TB_EXPORT_STL      => &Wx::NewId;
 use constant TB_MORE    => &Wx::NewId;
 use constant TB_FEWER   => &Wx::NewId;
-use constant TB_INFO    => &Wx::NewId;
 use constant TB_45CW    => &Wx::NewId;
 use constant TB_45CCW   => &Wx::NewId;
 use constant TB_ROTATE  => &Wx::NewId;
 use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
+use constant TB_VIEW    => &Wx::NewId;
+use constant TB_SETTINGS => &Wx::NewId;
 
 my $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
 my $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
@@ -73,7 +74,6 @@ sub new {
         $self->{htoolbar}->AddTool(TB_RESET, "Delete All", Wx::Bitmap->new("$Slic3r::var/cross.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_ARRANGE, "Arrange", Wx::Bitmap->new("$Slic3r::var/bricks.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_INFO, "Open", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_FEWER, "Fewer", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
@@ -81,15 +81,16 @@ sub new {
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate…", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddSeparator;
+        $self->{htoolbar}->AddTool(TB_VIEW, "View", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (
             load            => "Add…",
             remove          => "Delete",
             reset           => "Delete All",
             arrange         => "Arrange",
-            info            => "Open",
             increase        => "",
             decrease        => "",
             rotate45ccw     => "",
@@ -97,9 +98,11 @@ sub new {
             rotate          => "Rotate…",
             changescale     => "Scale…",
             split           => "Split",
+            view            => "View",
+            settings        => "Settings…",
         );
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(load remove reset arrange info increase decrease rotate45ccw rotate45cw rotate changescale split)) {
+        for (qw(load remove reset arrange increase decrease rotate45ccw rotate45cw rotate changescale split view settings)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
@@ -127,7 +130,7 @@ sub new {
     $self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     
-    if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
+    if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
             load            brick_add.png
             remove          brick_delete.png
@@ -159,7 +162,6 @@ sub new {
         EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
         EVT_TOOL($self, TB_RESET, \&reset);
         EVT_TOOL($self, TB_ARRANGE, \&arrange);
-        EVT_TOOL($self, TB_INFO, sub { $_[0]->object_dialog });
         EVT_TOOL($self, TB_MORE, \&increase);
         EVT_TOOL($self, TB_FEWER, \&decrease);
         EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
@@ -167,12 +169,13 @@ sub new {
         EVT_TOOL($self, TB_ROTATE, sub { $_[0]->rotate(undef) });
         EVT_TOOL($self, TB_SCALE, \&changescale);
         EVT_TOOL($self, TB_SPLIT, \&split_object);
+        EVT_TOOL($self, TB_VIEW, sub { $_[0]->object_preview_dialog });
+        EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
     } else {
         EVT_BUTTON($self, $self->{btn_load}, \&load);
         EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
         EVT_BUTTON($self, $self->{btn_reset}, \&reset);
         EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
-        EVT_BUTTON($self, $self->{btn_info}, sub { $_[0]->object_dialog });
         EVT_BUTTON($self, $self->{btn_increase}, \&increase);
         EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
         EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
@@ -180,6 +183,8 @@ sub new {
         EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
         EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
         EVT_BUTTON($self, $self->{btn_split}, \&split_object);
+        EVT_BUTTON($self, $self->{btn_view}, sub { $_[0]->object_preview_dialog });
+        EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
     }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
@@ -402,7 +407,7 @@ sub load_file {
     }
     
     $process_dialog->Destroy;
-    $self->statusbar->SetStatusText("Loaded $basename - Double click object for more info");
+    $self->statusbar->SetStatusText("Loaded $basename");
 }
 
 sub object_loaded {
@@ -1014,7 +1019,7 @@ sub mouse_event {
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);
     } elsif ($event->ButtonDClick) {
-    	$parent->object_dialog if @{$parent->{selected_objects}};
+    	$parent->object_preview_dialog if @{$parent->{selected_objects}};
     } elsif ($event->Dragging) {
         return if !$self->{drag_start_pos}; # concurrency problems
         for my $preview ($self->{drag_object}) {
@@ -1058,10 +1063,10 @@ sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
     
     $obj_idx //= $event->GetIndex;
-	$self->object_dialog($obj_idx);
+	$self->object_preview_dialog($obj_idx);
 }
 
-sub object_dialog {
+sub object_preview_dialog {
     my $self = shift;
     my ($obj_idx) = @_;
     
@@ -1069,7 +1074,21 @@ sub object_dialog {
         ($obj_idx, undef) = $self->selected_object;
     }
     
-    my $dlg = Slic3r::GUI::Plater::ObjectDialog->new($self,
+    my $dlg = Slic3r::GUI::Plater::ObjectPreviewDialog->new($self,
+		object => $self->{objects}[$obj_idx],
+	);
+	$dlg->ShowModal;
+}
+
+sub object_settings_dialog {
+    my $self = shift;
+    my ($obj_idx) = @_;
+    
+    if (!defined $obj_idx) {
+        ($obj_idx, undef) = $self->selected_object;
+    }
+    
+    my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
 		object => $self->{objects}[$obj_idx],
 	);
 	$dlg->ShowModal;
@@ -1078,9 +1097,15 @@ sub object_dialog {
 sub object_list_changed {
     my $self = shift;
     
-    my $method = @{$self->{objects}} ? 'Enable' : 'Disable';
+    my $have_objects = @{$self->{objects}} ? 1 : 0;
+    my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl);
+    
+    if ($self->{htoolbar}) {
+        $self->{htoolbar}->EnableTool($_, $have_objects)
+            for (TB_RESET, TB_ARRANGE);
+    }
 }
 
 sub selection_changed {
@@ -1089,11 +1114,11 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(remove info increase decrease rotate45cw rotate45ccw rotate changescale split);
+        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split view settings);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_REMOVE, TB_INFO, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
+            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT, TB_VIEW, TB_SETTINGS);
     }
     
     if ($self->{object_info_size}) { # have we already loaded the info pane?
@@ -1109,6 +1134,8 @@ sub selection_changed {
                     $self->{object_info_manifold}->SetLabel(sprintf("Auto-repaired (%d errors)", $errors));
                     $self->{object_info_manifold_warning_icon}->Show;
                     
+                    # we don't show normals_fixed because we never provide normals
+	                # to admesh, so it generates normals for all facets
                     my $message = sprintf '%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges',
                         @$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)};
                     $self->{object_info_manifold}->SetToolTipString($message);

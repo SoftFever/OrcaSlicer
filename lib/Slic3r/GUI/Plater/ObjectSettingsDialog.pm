@@ -1,4 +1,4 @@
-package Slic3r::GUI::Plater::ObjectDialog;
+package Slic3r::GUI::Plater::ObjectSettingsDialog;
 use strict;
 use warnings;
 use utf8;
@@ -10,13 +10,10 @@ use base 'Wx::Dialog';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, "Object", wxDefaultPosition, [500,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    my $self = $class->SUPER::new($parent, -1, "Settings for " . $params{object}->name, wxDefaultPosition, [500,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->{object} = $params{object};
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
-    $self->{tabpanel}->AddPage($self->{preview} = Slic3r::GUI::Plater::ObjectDialog::PreviewTab->new($self->{tabpanel}, object => $self->{object}), "Preview")
-        if $Slic3r::GUI::have_OpenGL;
-    $self->{tabpanel}->AddPage($self->{info} = Slic3r::GUI::Plater::ObjectDialog::InfoTab->new($self->{tabpanel}, object => $self->{object}), "Info");
     $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}, object => $self->{object}), "Settings");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}, object => $self->{object}), "Layers");
     
@@ -38,90 +35,6 @@ sub new {
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
-    
-    return $self;
-}
-
-package Slic3r::GUI::Plater::ObjectDialog::InfoTab;
-use Wx qw(:dialog :id :misc :sizer :systemsettings);
-use base 'Wx::Panel';
-
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
-    $self->{object} = $params{object};
-    
-    my $grid_sizer = Wx::FlexGridSizer->new(3, 2, 5, 5);
-    $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    $grid_sizer->AddGrowableCol(1);
-    
-    my $label_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $label_font->SetPointSize(10);
-    
-    my $properties = $self->get_properties;
-    foreach my $property (@$properties) {
-    	my $label = Wx::StaticText->new($self, -1, $property->[0] . ":");
-    	my $value = Wx::StaticText->new($self, -1, $property->[1]);
-    	$label->SetFont($label_font);
-	    $grid_sizer->Add($label, 1, wxALIGN_BOTTOM);
-	    $grid_sizer->Add($value, 0);
-    }
-    
-    $self->SetSizer($grid_sizer);
-    $grid_sizer->SetSizeHints($self);
-    
-    return $self;
-}
-
-sub get_properties {
-	my $self = shift;
-	
-	my $object = $self->{object};
-	my $properties = [
-		['Name'			=> $object->name],
-		['Size'			=> sprintf "%.2f x %.2f x %.2f", @{$object->transformed_size}],
-		['Facets'		=> $object->facets],
-		['Vertices'		=> $object->vertices],
-		['Materials' 	=> $object->materials],
-	];
-	
-	if (my $stats = $object->mesh_stats) {
-	    push @$properties,
-	        [ 'Shells'              => $stats->{number_of_parts} ],
-	        [ 'Volume'              => sprintf('%.2f', $stats->{volume} * ($object->scale**3)) ],
-	        [ 'Degenerate facets'   => $stats->{degenerate_facets} ],
-	        [ 'Edges fixed'         => $stats->{edges_fixed} ],
-	        [ 'Facets removed'      => $stats->{facets_removed} ],
-	        [ 'Facets added'        => $stats->{facets_added} ],
-	        [ 'Facets reversed'     => $stats->{facets_reversed} ],
-	        [ 'Backwards edges'     => $stats->{backwards_edges} ],
-	        # we don't show normals_fixed because we never provide normals
-	        # to admesh, so it generates normals for all facets
-	        ;
-	} else {
-	    push @$properties,
-	        ['Two-Manifold' => $object->is_manifold ? 'Yes' : 'No'],
-	        ;
-	}
-	
-	return $properties;
-}
-
-package Slic3r::GUI::Plater::ObjectDialog::PreviewTab;
-use Wx qw(:dialog :id :misc :sizer :systemsettings);
-use base 'Wx::Panel';
-
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
-    $self->{object} = $params{object};
-    
-    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($self, $self->{object}->get_model_object), 1, wxEXPAND, 0);
-    $self->SetSizer($sizer);
-    $sizer->SetSizeHints($self);
     
     return $self;
 }

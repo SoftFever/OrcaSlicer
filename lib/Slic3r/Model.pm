@@ -295,7 +295,7 @@ package Slic3r::Model::Object;
 use Moo;
 
 use File::Basename qw(basename);
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Slic3r::Geometry qw(X Y Z MIN MAX move_points move_points_3D);
 use Storable qw(dclone);
 
@@ -430,6 +430,11 @@ sub materials_count {
     return scalar keys %materials;
 }
 
+sub facets_count {
+    my $self = shift;
+    return sum(map $_->facets_count, @{$self->volumes});
+}
+
 sub check_manifoldness {
     my $self = shift;
     return (first { !$_->mesh->check_manifoldness } @{$self->volumes}) ? 0 : 1;
@@ -483,6 +488,11 @@ sub mesh {
         vertices => $self->object->vertices,
         facets   => $self->facets,
     );
+}
+
+sub facets_count {
+    my $self = shift;
+    return scalar(@{$self->facets});  # TODO: optimize in XS
 }
 
 package Slic3r::Model::Instance;
