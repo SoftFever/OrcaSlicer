@@ -13,6 +13,12 @@ use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :ico
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
 use base 'Wx::Panel';
 
+use constant TB_LOAD            => &Wx::NewId;
+use constant TB_REMOVE          => &Wx::NewId;
+use constant TB_RESET           => &Wx::NewId;
+use constant TB_ARRANGE         => &Wx::NewId;
+use constant TB_EXPORT_GCODE    => &Wx::NewId;
+use constant TB_EXPORT_STL      => &Wx::NewId;
 use constant TB_MORE    => &Wx::NewId;
 use constant TB_LESS    => &Wx::NewId;
 use constant TB_INFO    => &Wx::NewId;
@@ -28,7 +34,7 @@ my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
 my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 my $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
 
-use constant CANVAS_SIZE => [300,300];
+use constant CANVAS_SIZE => [335,335];
 use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
     ? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
     : 'Drag your objects here';
@@ -62,6 +68,11 @@ sub new {
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
+        $self->{htoolbar}->AddTool(TB_LOAD, "Add…", Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_REMOVE, "Delete", Wx::Bitmap->new("$Slic3r::var/brick_delete.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_RESET, "Delete All", Wx::Bitmap->new("$Slic3r::var/cross.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ARRANGE, "Autoarrange", Wx::Bitmap->new("$Slic3r::var/bricks.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_INFO, "Open", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_LESS, "Fewer", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
@@ -76,15 +87,15 @@ sub new {
         my %tbar_buttons = (info => "Open", increase => "More", decrease => "Less", rotate45ccw => "45°", rotate45cw => "45°",
             rotate => "Rotate…", changescale => "Scale…", split => "Split");
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(open increase decrease rotate45ccw rotate45cw rotate changescale split)) {
+        for (qw(load remove reset arrange open increase decrease rotate45ccw rotate45cw rotate changescale split)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
     }
 
-    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [-1, 180], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
-    $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 300);
-    $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 50);
+    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize, wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
+    $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 145);
+    $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 45);
     $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
@@ -98,13 +109,11 @@ sub new {
         }
     });
     
-    # general buttons
-    $self->{btn_load} = Wx::Button->new($self, -1, "Add…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_remove} = Wx::Button->new($self, -1, "Delete", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_reset} = Wx::Button->new($self, -1, "Delete All", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_arrange} = Wx::Button->new($self, -1, "Autoarrange", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     
     if (&Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/) {
         my %icons = qw(
@@ -130,14 +139,14 @@ sub new {
     }
     $self->selection_changed(0);
     $self->object_list_changed;
-    EVT_BUTTON($self, $self->{btn_load}, \&load);
-    EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
-    EVT_BUTTON($self, $self->{btn_reset}, \&reset);
-    EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
     EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
+        EVT_TOOL($self, TB_LOAD, \&load);
+        EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
+        EVT_TOOL($self, TB_RESET, \&reset);
+        EVT_TOOL($self, TB_ARRANGE, \&arrange);
         EVT_TOOL($self, TB_MORE, \&increase);
         EVT_TOOL($self, TB_LESS, \&decrease);
         EVT_TOOL($self, TB_INFO, sub { $self->list_item_activated(undef, $self->{selected_objects}->[0][0]) });
@@ -194,33 +203,9 @@ sub new {
     $self->recenter;
     
     {
-        my $buttons = Wx::GridSizer->new(2, 3, 5, 5);
-        $buttons->Add($self->{"btn_load"}, 0, wxEXPAND | wxALL);
-        $buttons->Add($self->{"btn_arrange"}, 0, wxEXPAND | wxALL);
-        $buttons->Add($self->{"btn_export_gcode"}, 0, wxEXPAND | wxALL);
-        $buttons->Add($self->{"btn_remove"}, 0, wxEXPAND | wxALL);
-        $buttons->Add($self->{"btn_reset"}, 0, wxEXPAND | wxALL);
-        $buttons->Add($self->{"btn_export_stl"}, 0, wxEXPAND | wxALL);
-        # force sane tab order
-        my @taborder = qw/btn_load btn_arrange btn_export_gcode btn_remove btn_reset btn_export_stl/;
-        $self->{$taborder[$_]}->MoveAfterInTabOrder($self->{$taborder[$_-1]}) for (1..$#taborder);
-        
-        my $vertical_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $vertical_sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
-        $vertical_sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
-        $vertical_sizer->Add($self->{list}, 1, wxEXPAND | wxBOTTOM, 10);
-        $vertical_sizer->Add($buttons, 0, wxEXPAND);
-        
-        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $hsizer->Add($self->{canvas}, 0, wxALL, 10);
-        $hsizer->Add($vertical_sizer, 1, wxEXPAND | wxALL, 10);
-        
-        my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $sizer->Add($hsizer, 1, wxEXPAND | wxBOTTOM, 10);
-        
+        my $presets;
         if ($self->skeinpanel->{mode} eq 'expert') {
-            my $presets = Wx::BoxSizer->new(wxHORIZONTAL);
-            $presets->AddStretchSpacer(1);
+            $presets = Wx::BoxSizer->new(wxVERTICAL);
             my %group_labels = (
                 print       => 'Print settings',
                 filament    => 'Filament',
@@ -230,19 +215,64 @@ sub new {
             $self->{preset_choosers_sizers} = {};
             for my $group (qw(print filament printer)) {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
+                $text->SetFont($Slic3r::GUI::small_font);
+                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [140, -1], []);
+                $choice->SetFont($Slic3r::GUI::small_font);
                 $self->{preset_choosers}{$group} = [$choice];
                 EVT_CHOICE($choice, $choice, sub { $self->on_select_preset($group, @_) });
                 
                 $self->{preset_choosers_sizers}{$group} = Wx::BoxSizer->new(wxVERTICAL);
                 $self->{preset_choosers_sizers}{$group}->Add($choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
                 
-                $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-                $presets->Add($self->{preset_choosers_sizers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+                $presets->Add($text, 0, wxALIGN_LEFT | wxRIGHT, 4);
+                $presets->Add($self->{preset_choosers_sizers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM, 8);
             }
-            $presets->AddStretchSpacer(1);
-            $sizer->Add($presets, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
         }
+        
+        my $object_info_sizer;
+        {
+            my $box = Wx::StaticBox->new($self, -1, "Info");
+            $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
+            my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
+            $object_info_sizer->Add($grid_sizer);
+            
+            my @info = (
+                size    => "Size",
+                volume  => "Volume",
+            );
+            while (my $field = shift @info) {
+                my $label = shift @info;
+                my $text = Wx::StaticText->new($self, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $text->SetFont($Slic3r::GUI::small_font);
+                $grid_sizer->Add($text, 0);
+                
+                $self->{"object_info_$field"} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
+                $grid_sizer->Add($self->{"object_info_$field"}, 0);
+            }
+        }
+        
+        my $right_buttons_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $right_buttons_sizer->Add($presets, 0, wxEXPAND, 0) if defined $presets;
+        $right_buttons_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxTOP, 8);
+        $right_buttons_sizer->Add($self->{btn_export_stl}, 0, wxEXPAND | wxTOP, 2);
+        
+        my $right_top_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $right_top_sizer->Add($self->{list}, 1, wxEXPAND | wxLEFT, 5);
+        $right_top_sizer->Add($right_buttons_sizer, 0, wxEXPAND | wxALL, 10);
+        
+        my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $right_sizer->Add($right_top_sizer, 1, wxEXPAND | wxBOTTOM, 10);
+        $right_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        
+        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $hsizer->Add($self->{canvas}, 0, wxTOP, 1);
+        $hsizer->Add($right_sizer, 1, wxEXPAND | wxBOTTOM, 0);
+        
+        my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
+        $sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
+        $sizer->Add($hsizer, 1, wxEXPAND, 0);
         
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
@@ -349,6 +379,8 @@ sub object_loaded {
     
     my $object = $self->{objects}[$obj_idx];
     $self->{list}->InsertStringItem($obj_idx, $object->name);
+    $self->{list}->SetItemFont($obj_idx, Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
+    
     $self->{list}->SetItem($obj_idx, 1, $object->instances_count);
     $self->{list}->SetItem($obj_idx, 2, ($object->scale * 100) . "%");
     
@@ -435,6 +467,7 @@ sub rotate {
     }
     
     $object->rotate($object->rotate + $angle);
+    $self->selection_changed(1);  # refresh info (size etc.)
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -453,6 +486,7 @@ sub changescale {
     
     $self->{list}->SetItem($obj_idx, 2, "$scale%");
     $object->changescale($scale / 100);
+    $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->arrange;
 }
 
@@ -856,9 +890,11 @@ sub repaint {
     }
     
     # draw frame
-    $dc->SetPen(wxBLACK_PEN);
-    $dc->SetBrush($parent->{transparent_brush});
-    $dc->DrawRectangle(0, 0, @size);
+    if (0) {
+        $dc->SetPen(wxBLACK_PEN);
+        $dc->SetBrush($parent->{transparent_brush});
+        $dc->DrawRectangle(0, 0, @size);
+    }
     
     # draw text if plate is empty
     if (!@{$parent->{objects}}) {
@@ -1013,7 +1049,20 @@ sub selection_changed {
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_INFO, TB_MORE, TB_LESS, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
+            for (TB_REMOVE, TB_INFO, TB_MORE, TB_LESS, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT);
+    }
+    
+    if ($self->{object_info_size}) { # have we already loaded the info pane?
+        if ($have_sel) {
+            my ($obj_idx, $object) = $self->selected_object;
+            $self->{object_info_size}->SetLabel(sprintf "%.2f x %.2f x %.2f", @{$object->transformed_size});
+            
+            if (my $stats = $object->mesh_stats) {
+                $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($object->scale**3)));
+            }
+        } else {
+            $self->{"object_info_$_"}->SetLabel("") for qw(size volume);
+        }
     }
 }
 
