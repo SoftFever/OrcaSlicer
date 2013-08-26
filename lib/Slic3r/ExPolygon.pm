@@ -60,11 +60,6 @@ sub offset_ex {
     return Slic3r::Geometry::Clipper::offset_ex(\@$self, @_);
 }
 
-sub safety_offset {
-    my $self = shift;
-    return Slic3r::Geometry::Clipper::safety_offset_ex(\@$self, @_);
-}
-
 sub noncollapsing_offset_ex {
     my $self = shift;
     my ($distance, @params) = @_;

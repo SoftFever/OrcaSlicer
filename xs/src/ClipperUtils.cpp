@@ -194,7 +194,7 @@ offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float d
 
 template <class T>
 void _clipper_do(const ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, T &retval, const bool safety_offset)
+    Slic3r::Polygons &clip, T &retval, const bool safety_offset_)
 {
     // read input
     ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
@@ -203,11 +203,11 @@ void _clipper_do(const ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
     Slic3rPolygons_to_ClipperPolygons(clip,    *input_clip);
     
     // perform safety offset
-    if (safety_offset) {
+    if (safety_offset_) {
         if (clipType == ClipperLib::ctUnion) {
-            // SafetyOffset(*input_subject);
+            safety_offset(input_subject);
         } else {
-            // SafetyOffset(*input_clip);
+            safety_offset(input_clip);
         }
     }
     
@@ -226,11 +226,11 @@ void _clipper_do(const ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
 }
 
 void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset)
+    Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_)
 {
     // perform operation
     ClipperLib::Polygons* output = new ClipperLib::Polygons();
-    _clipper_do<ClipperLib::Polygons>(clipType, subject, clip, *output, safety_offset);
+    _clipper_do<ClipperLib::Polygons>(clipType, subject, clip, *output, safety_offset_);
     
     // convert into Polygons
     ClipperPolygons_to_Slic3rPolygons(*output, retval);
@@ -238,11 +238,11 @@ void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
 }
 
 void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset)
+    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_)
 {
     // perform operation
     ClipperLib::PolyTree* polytree = new ClipperLib::PolyTree();
-    _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, *polytree, safety_offset);
+    _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, *polytree, safety_offset_);
     
     // convert into ExPolygons
     PolyTreeToExPolygons(*polytree, retval);
@@ -250,35 +250,35 @@ void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
 }
 
 template <class T>
-void diff(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset)
+void diff(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset_)
 {
-    _clipper(ClipperLib::ctDifference, subject, clip, retval, safety_offset);
+    _clipper(ClipperLib::ctDifference, subject, clip, retval, safety_offset_);
 }
-template void diff<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset);
-template void diff<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset);
+template void diff<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
+template void diff<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
 
 template <class T>
-void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset)
+void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset_)
 {
-    _clipper(ClipperLib::ctIntersection, subject, clip, retval, safety_offset);
+    _clipper(ClipperLib::ctIntersection, subject, clip, retval, safety_offset_);
 }
-template void intersection<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset);
-template void intersection<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset);
+template void intersection<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
+template void intersection<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
 
 void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
-    bool safety_offset)
+    bool safety_offset_)
 {
-    _clipper(ClipperLib::ctXor, subject, clip, retval, safety_offset);
+    _clipper(ClipperLib::ctXor, subject, clip, retval, safety_offset_);
 }
 
 template <class T>
-void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset)
+void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset_)
 {
     Slic3r::Polygons p;
-    _clipper(ClipperLib::ctUnion, subject, p, retval, safety_offset);
+    _clipper(ClipperLib::ctUnion, subject, p, retval, safety_offset_);
 }
-template void union_<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset);
-template void union_<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset);
+template void union_<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset_);
+template void union_<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset_);
 
 void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval)
 {
@@ -293,6 +293,23 @@ void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval)
     // convert into Slic3r polygons
     ClipperPolygons_to_Slic3rPolygons(*output, retval);
     delete output;
+}
+
+void safety_offset(ClipperLib::Polygons* &subject)
+{
+    // scale input
+    scaleClipperPolygons(*subject, CLIPPER_OFFSET_SCALE);
+    
+    // perform offset (delta = scale 1e-05)
+    ClipperLib::Polygons* retval = new ClipperLib::Polygons();
+    ClipperLib::OffsetPolygons(*subject, *retval, 10.0 * CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 2);
+    
+    // unscale output
+    scaleClipperPolygons(*retval, 1.0/CLIPPER_OFFSET_SCALE);
+    
+    // delete original data and switch pointer
+    delete subject;
+    subject = retval;
 }
 
 }

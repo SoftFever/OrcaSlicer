@@ -956,7 +956,7 @@ sub repaint {
     @{$parent->{object_previews}} = ();
     for my $obj_idx (0 .. $#{$parent->{objects}}) {
         my $object = $parent->{objects}[$obj_idx];
-        next unless defined $object->thumbnail && @{$object->thumbnail};
+        next unless defined $object->thumbnail;
         for my $instance_idx (0 .. $#{$object->instances}) {
             my $instance = $object->instances->[$instance_idx];
             
@@ -973,7 +973,7 @@ sub repaint {
             } else {
                 $dc->SetBrush($parent->{objects_brush});
             }
-            $dc->DrawPolygon($parent->_y($_), 0, 0) for map $_->contour, @{ $parent->{object_previews}->[-1][2] };
+            $dc->DrawPolygon($parent->_y($_), 0, 0) for map $_->contour->pp, @{ $parent->{object_previews}->[-1][2] };
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
@@ -988,7 +988,7 @@ sub repaint {
     
     # draw skirt
     if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
-        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour}, map @{$_->[2]}, @{$parent->{object_previews}} ])});
+        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->pp}, map @{$_->[2]}, @{$parent->{object_previews}} ])});
         ($convex_hull) = @{offset([$convex_hull], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
@@ -1003,7 +1003,7 @@ sub mouse_event {
     my $parent = $self->GetParent;
     
     my $point = $event->GetPosition;
-    my $pos = $parent->_y([[$point->x, $point->y]])->[0]; #]]
+    my $pos = Slic3r::Point->new(map @$_, map @$_, $parent->_y([[$point->x, $point->y]])); #]]
     if ($event->ButtonDown(&Wx::wxMOUSE_BTN_LEFT)) {
         $parent->{selected_objects} = [];
         $parent->{list}->Select($parent->{list}->GetFirstSelected, 0);

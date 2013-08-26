@@ -565,7 +565,7 @@ sub horizontal_projection {
     $_->make_counter_clockwise for @f;  # do this after scaling, as winding order might change while doing that
     
     # the offset factor was tuned using groovemount.stl
-    return union_ex([ offset(\@f, Slic3r::Geometry::scale 0.01) ], 1);
+    return union_ex(offset(\@f, Slic3r::Geometry::scale 0.01), 1);
 }
 
 1;

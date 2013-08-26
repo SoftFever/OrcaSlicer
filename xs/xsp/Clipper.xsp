@@ -11,7 +11,7 @@
 %{
 
 Polygons
-offset(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset(polygons, delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta
     double                  scale
@@ -23,7 +23,7 @@ offset(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miterLim
         RETVAL
 
 ExPolygons
-offset_ex(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset_ex(polygons, delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta
     double                  scale
@@ -35,7 +35,7 @@ offset_ex(polygons, delta, scale = 100000, joinType = ClipperLib::jtMiter, miter
         RETVAL
 
 Polygons
-offset2(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset2(polygons, delta1, delta2, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta1
     const float             delta2
@@ -48,7 +48,7 @@ offset2(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMiter
         RETVAL
 
 ExPolygons
-offset2_ex(polygons, delta1, delta2, scale = 100000, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset2_ex(polygons, delta1, delta2, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta1
     const float             delta2

@@ -4,7 +4,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(safety_offset safety_offset_ex offset offset_ex collapse_ex
+our @EXPORT_OK = qw(offset offset_ex
     diff_ex diff union_ex intersection_ex xor_ex PFT_EVENODD JT_MITER JT_ROUND
     JT_SQUARE is_counter_clockwise union_pt offset2 offset2_ex traverse_pt
     intersection union);
@@ -13,29 +13,18 @@ use Math::Clipper 1.22 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockw
 use Slic3r::Geometry qw(scale);
 our $clipper = Math::Clipper->new;
 
-sub safety_offset {
+sub _safety_offset {
     my ($polygons, $factor) = @_;
     return [ map Slic3r::Polygon->new(@$_),
         @{Math::Clipper::int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)} ];
-}
-
-sub safety_offset_ex {
-    my ($polygons, $factor) = @_;
-    return map Slic3r::ExPolygon->new($_->{outer}, @{$_->{holes}}),
-        @{Math::Clipper::ex_int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)};
 }
 
 sub union_pt {
     my ($polygons, $jointype, $safety_offset) = @_;
     $jointype = PFT_NONZERO unless defined $jointype;
     $clipper->clear;
-    $clipper->add_subject_polygons($safety_offset ? _convert(safety_offset($polygons)) : _convert($polygons));
+    $clipper->add_subject_polygons($safety_offset ? _convert(_safety_offset($polygons)) : _convert($polygons));
     return $clipper->pt_execute(CT_UNION, $jointype, $jointype);
-}
-
-sub collapse_ex {
-    my ($polygons, $width) = @_;
-    return offset2_ex($polygons, -$width/2, +$width/2);
 }
 
 sub traverse_pt {

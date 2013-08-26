@@ -8,6 +8,7 @@
 
 namespace Slic3r {
 
+#define CLIPPER_OFFSET_SCALE 100000.0
 
 //-----------------------------------------------------------
 // legacy code from Clipper documentation
@@ -45,25 +46,27 @@ void offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const fl
 
 template <class T>
 void _clipper_do(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, T &retval, bool safety_offset);
+    Slic3r::Polygons &clip, T &retval, bool safety_offset_);
 void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset);
+    Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
 void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset);
+    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
 
 template <class T>
-void diff(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset);
+void diff(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset_);
 
 template <class T>
-void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset);
+void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset_);
 
 void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
-    bool safety_offset = false);
+    bool safety_offset_ = false);
 
 template <class T>
-void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset = false);
+void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset_ = false);
 
 void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval);
+
+void safety_offset(ClipperLib::Polygons* &subject);
 
 }
 
