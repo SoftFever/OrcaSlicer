@@ -68,28 +68,6 @@ sub subdivide {
     }
 }
 
-# returns false if the polygon is too tight to be printed
-sub is_printable {
-    my $self = shift;
-    my ($width) = @_;
-    
-    # try to get an inwards offset
-    # for a distance equal to half of the extrusion width;
-    # if no offset is possible, then polyline is not printable.
-    # we use flow_width here because this has to be consistent 
-    # with the thin wall detection in Layer->make_surfaces, 
-    # otherwise we could lose surfaces as that logic wouldn't
-    # detect them and we would be discarding them.
-    my $p = $self->clone;
-    $p->make_counter_clockwise;
-    return @{Slic3r::Geometry::Clipper::offset([$p], -$width / 2)} ? 1 : 0;
-}
-
-sub is_valid {
-    my $self = shift;
-    return @$self >= 3;
-}
-
 # for cw polygons this will return convex points!
 sub concave_points {
     my $self = shift;

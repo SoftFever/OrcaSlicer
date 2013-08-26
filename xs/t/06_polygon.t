@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 my $square = [  # ccw
     [100, 100],
@@ -14,6 +14,7 @@ my $square = [  # ccw
 ];
 
 my $polygon = Slic3r::Polygon->new(@$square);
+ok $polygon->is_valid, 'is_valid';
 is_deeply $polygon->pp, $square, 'polygon roundtrip';
 
 is ref($polygon->arrayref), 'ARRAY', 'polygon arrayref is unblessed';

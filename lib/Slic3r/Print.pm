@@ -302,7 +302,7 @@ sub bounding_box {
                 [ $copy->[X] + $object->size->[X], $copy->[Y] + $object->size->[Y] ];
         }
     }
-    return Slic3r::Geometry::BoundingBox->new_from_points(\@points);
+    return Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_), @points ]);
 }
 
 sub size {

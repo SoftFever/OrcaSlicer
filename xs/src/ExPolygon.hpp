@@ -20,6 +20,7 @@ class ExPolygon
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     double area() const;
+    bool is_valid() const;
 };
 
 typedef std::vector<ExPolygon> ExPolygons;

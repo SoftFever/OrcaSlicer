@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(min max sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
+use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
     offset offset_ex offset2);
 use Slic3r::Surface ':types';
@@ -128,7 +128,7 @@ sub bounding_box {
     my $self = shift;
     
     # since the object is aligned to origin, bounding box coincides with size
-    return Slic3r::Geometry::BoundingBox->new_from_points([ [0,0], $self->size ]);
+    return Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_[X,Y]), [0,0], $self->size ]);
 }
 
 sub slice {

@@ -10,24 +10,6 @@ use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
-sub is_valid {
-    my $self = shift;
-    return (!first { !$_->is_valid } @$self)
-        && $self->contour->is_counter_clockwise
-        && (!first { $_->is_counter_clockwise } @{$self->holes});
-}
-
-# returns false if the expolygon is too tight to be printed
-sub is_printable {
-    my $self = shift;
-    my ($width) = @_;
-    
-    # try to get an inwards offset
-    # for a distance equal to half of the extrusion width;
-    # if no offset is possible, then expolygon is not printable.
-    return @{Slic3r::Geometry::Clipper::offset($self, -$width / 2)} ? 1 : 0;
-}
-
 sub wkt {
     my $self = shift;
     return sprintf "POLYGON(%s)", 

@@ -20,6 +20,7 @@ class Polygon : public MultiPoint {
     bool is_counter_clockwise() const;
     bool make_counter_clockwise();
     bool make_clockwise();
+    bool is_valid() const;
 };
 
 typedef std::vector<Polygon> Polygons;

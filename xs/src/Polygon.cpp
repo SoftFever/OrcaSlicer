@@ -92,4 +92,10 @@ Polygon::make_clockwise()
     return false;
 }
 
+bool
+Polygon::is_valid() const
+{
+    return this->points.size() >= 3;
+}
+
 }

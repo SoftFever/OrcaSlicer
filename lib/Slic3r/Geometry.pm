@@ -692,17 +692,18 @@ sub _line_intersection2 {
 # 2D
 sub bounding_box {
     my ($points) = @_;
-    
-    my @x = (undef, undef);
-    my @y = (undef, undef);
-    for (@$points) {
-        $x[MIN] = $_->[X] if !defined $x[MIN] || $_->[X] < $x[MIN];
-        $x[MAX] = $_->[X] if !defined $x[MAX] || $_->[X] > $x[MAX];
-        $y[MIN] = $_->[Y] if !defined $y[MIN] || $_->[Y] < $y[MIN];
-        $y[MAX] = $_->[Y] if !defined $y[MAX] || $_->[Y] > $y[MAX];
+    use XXX; ZZZ "not" if ref($points->[0]) eq 'ARRAY';
+    my @x = map $_->x, @$points;
+    my @y = map $_->y, @$points;    #,,
+    my @bb = (undef, undef, undef, undef);
+    for (0..$#x) {
+        $bb[X1] = $x[$_] if !defined $bb[X1] || $x[$_] < $bb[X1];
+        $bb[X2] = $x[$_] if !defined $bb[X2] || $x[$_] > $bb[X2];
+        $bb[Y1] = $y[$_] if !defined $bb[Y1] || $y[$_] < $bb[Y1];
+        $bb[Y2] = $y[$_] if !defined $bb[Y2] || $y[$_] > $bb[Y2];
     }
     
-    return ($x[0], $y[0], $x[-1], $y[-1]);
+    return @bb[X1,Y1,X2,Y2];
 }
 
 sub bounding_box_center {

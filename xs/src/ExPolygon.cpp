@@ -40,6 +40,16 @@ ExPolygon::area() const
     return a;
 }
 
+bool
+ExPolygon::is_valid() const
+{
+    if (!this->contour.is_valid() || !this->contour.is_counter_clockwise()) return false;
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
+        if (!(*it).is_valid() || (*it).is_counter_clockwise()) return false;
+    }
+    return true;
+}
+
 SV*
 ExPolygon::to_SV() {
     const unsigned int num_holes = this->holes.size();

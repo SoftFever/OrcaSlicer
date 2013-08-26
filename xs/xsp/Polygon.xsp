@@ -27,6 +27,7 @@
     bool is_counter_clockwise();
     bool make_counter_clockwise();
     bool make_clockwise();
+    bool is_valid();
 %{
 
 Polygon*
