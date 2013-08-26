@@ -149,7 +149,11 @@ sub medial_axis {
     my $expolygon = $self->clone;
     my @points = ();
     foreach my $polygon (@$expolygon) {
-        Slic3r::Geometry::polyline_remove_short_segments($polygon, $width / 2);
+        {
+            my $p = $polygon->pp;
+            Slic3r::Geometry::polyline_remove_short_segments($p, $width / 2);
+            $polygon = Slic3r::Polygon->new(@$p);
+        }
         
         # subdivide polygon segments so that we don't have anyone of them
         # being longer than $width / 2
