@@ -594,7 +594,7 @@ sub discover_horizontal_shells {
                 # not work in some situations, as there won't be any grown region in the perimeter 
                 # area (this was seen in a model where the top layer had one extra perimeter, thus
                 # its fill_surfaces was thinner than the lower layer's infill)
-                my $solid = [ map $_->expolygon->offset_ex($margin), grep $_->surface_type == $type, @{$layerm->slices} ];
+                my $solid = offset_ex([ map $_->p, grep $_->surface_type == $type, @{$layerm->slices} ], $margin);
                 next if !@$solid;
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
