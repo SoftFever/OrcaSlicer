@@ -13,20 +13,6 @@ use Math::Clipper 1.22 qw(:cliptypes :polyfilltypes :jointypes is_counter_clockw
 use Slic3r::Geometry qw(scale);
 our $clipper = Math::Clipper->new;
 
-sub _safety_offset {
-    my ($polygons, $factor) = @_;
-    return [ map Slic3r::Polygon->new(@$_),
-        @{Math::Clipper::int_offset(_convert($polygons), $factor // (scale 1e-05), 100000, JT_MITER, 2)} ];
-}
-
-sub union_pt {
-    my ($polygons, $jointype, $safety_offset) = @_;
-    $jointype = PFT_NONZERO unless defined $jointype;
-    $clipper->clear;
-    $clipper->add_subject_polygons($safety_offset ? _convert(_safety_offset($polygons)) : _convert($polygons));
-    return $clipper->pt_execute(CT_UNION, $jointype, $jointype);
-}
-
 sub traverse_pt {
     my ($polynodes) = @_;
     
@@ -43,12 +29,6 @@ sub traverse_pt {
         push @polygons, $polynode->{outer} // [ reverse @{$polynode->{hole}} ];
     }
     return @polygons;
-}
-
-sub _convert {
-    my $p = shift;
-    $p = $p->pp if ref($p) ne 'ARRAY' && $p->can('pp');
-    return [ map { (ref($_) ne 'ARRAY' && $_->can('pp')) ? $_->pp : $_ } @$p ];
 }
 
 1;

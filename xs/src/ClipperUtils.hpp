@@ -16,11 +16,11 @@ void AddOuterPolyNodeToExPolygons(ClipperLib::PolyNode& polynode, Slic3r::ExPoly
 void PolyTreeToExPolygons(ClipperLib::PolyTree& polytree, Slic3r::ExPolygons& expolygons);
 //-----------------------------------------------------------
 
-void Slic3rPolygon_to_ClipperPolygon(Slic3r::Polygon &input, ClipperLib::Polygon &output);
-void Slic3rPolygons_to_ClipperPolygons(Slic3r::Polygons &input, ClipperLib::Polygons &output);
-void ClipperPolygon_to_Slic3rPolygon(ClipperLib::Polygon &input, Slic3r::Polygon &output);
-void ClipperPolygons_to_Slic3rPolygons(ClipperLib::Polygons &input, Slic3r::Polygons &output);
-void ClipperPolygons_to_Slic3rExPolygons(ClipperLib::Polygons &input, Slic3r::ExPolygons &output);
+void Slic3rPolygon_to_ClipperPolygon(const Slic3r::Polygon &input, ClipperLib::Polygon &output);
+void Slic3rPolygons_to_ClipperPolygons(const Slic3r::Polygons &input, ClipperLib::Polygons &output);
+void ClipperPolygon_to_Slic3rPolygon(const ClipperLib::Polygon &input, Slic3r::Polygon &output);
+void ClipperPolygons_to_Slic3rPolygons(const ClipperLib::Polygons &input, Slic3r::Polygons &output);
+void ClipperPolygons_to_Slic3rExPolygons(const ClipperLib::Polygons &input, Slic3r::ExPolygons &output);
 
 void scaleClipperPolygons(ClipperLib::Polygons &polygons, const double scale);
 
@@ -64,9 +64,17 @@ void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygon
 template <class T>
 void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset_ = false);
 
+void union_pt(Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, bool safety_offset_ = false);
+
 void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval);
 
 void safety_offset(ClipperLib::Polygons* &subject);
+
+/////////////////
+
+SV* polynode_children_2_perl(const ClipperLib::PolyNode& node);
+SV* polynode2perl(const ClipperLib::PolyNode& node);
+
 
 }
 

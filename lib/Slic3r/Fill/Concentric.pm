@@ -37,7 +37,7 @@ sub fill_surface {
     # generate paths from the outermost to the innermost, to avoid 
     # adhesion problems of the first central tiny loops
     @loops = map Slic3r::Polygon->new(@$_),
-        reverse traverse_pt( union_pt(\@loops, PFT_EVENODD) );
+        reverse traverse_pt( union_pt(\@loops) );
     
     # order paths using a nearest neighbor search
     my @paths = ();

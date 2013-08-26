@@ -681,7 +681,7 @@ sub make_brim {
         polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
         flow_spacing    => $flow->spacing,
-    ), reverse traverse_pt( union_pt(\@loops, PFT_EVENODD) );
+    ), reverse traverse_pt( union_pt(\@loops) );
 }
 
 sub write_gcode {

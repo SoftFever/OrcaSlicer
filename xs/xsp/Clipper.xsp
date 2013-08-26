@@ -128,6 +128,19 @@ union_ex(subject, safety_offset = false)
     OUTPUT:
         RETVAL
 
+SV*
+union_pt(subject, safety_offset = false)
+    Polygons                    subject
+    bool                        safety_offset
+    CODE:
+        // perform operation
+        ClipperLib::PolyTree polytree;
+        union_pt(subject, polytree, safety_offset);
+        
+        RETVAL = polynode_children_2_perl(polytree);
+    OUTPUT:
+        RETVAL
+
 Polygons
 simplify_polygons(subject)
     Polygons                    subject

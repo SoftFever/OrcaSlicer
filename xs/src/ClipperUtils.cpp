@@ -28,19 +28,19 @@ void PolyTreeToExPolygons(ClipperLib::PolyTree& polytree, Slic3r::ExPolygons& ex
 //-----------------------------------------------------------
 
 void
-ClipperPolygon_to_Slic3rPolygon(ClipperLib::Polygon &input, Slic3r::Polygon &output)
+ClipperPolygon_to_Slic3rPolygon(const ClipperLib::Polygon &input, Slic3r::Polygon &output)
 {
     output.points.clear();
-    for (ClipperLib::Polygon::iterator pit = input.begin(); pit != input.end(); ++pit) {
+    for (ClipperLib::Polygon::const_iterator pit = input.begin(); pit != input.end(); ++pit) {
         output.points.push_back(Slic3r::Point( (*pit).X, (*pit).Y ));
     }
 }
 
 void
-ClipperPolygons_to_Slic3rPolygons(ClipperLib::Polygons &input, Slic3r::Polygons &output)
+ClipperPolygons_to_Slic3rPolygons(const ClipperLib::Polygons &input, Slic3r::Polygons &output)
 {
     output.clear();
-    for (ClipperLib::Polygons::iterator it = input.begin(); it != input.end(); ++it) {
+    for (ClipperLib::Polygons::const_iterator it = input.begin(); it != input.end(); ++it) {
         Slic3r::Polygon p;
         ClipperPolygon_to_Slic3rPolygon(*it, p);
         output.push_back(p);
@@ -48,7 +48,7 @@ ClipperPolygons_to_Slic3rPolygons(ClipperLib::Polygons &input, Slic3r::Polygons 
 }
 
 void
-ClipperPolygons_to_Slic3rExPolygons(ClipperLib::Polygons &input, Slic3r::ExPolygons &output)
+ClipperPolygons_to_Slic3rExPolygons(const ClipperLib::Polygons &input, Slic3r::ExPolygons &output)
 {
     // init Clipper
     ClipperLib::Clipper clipper;
@@ -67,19 +67,19 @@ ClipperPolygons_to_Slic3rExPolygons(ClipperLib::Polygons &input, Slic3r::ExPolyg
 }
 
 void
-Slic3rPolygon_to_ClipperPolygon(Slic3r::Polygon &input, ClipperLib::Polygon &output)
+Slic3rPolygon_to_ClipperPolygon(const Slic3r::Polygon &input, ClipperLib::Polygon &output)
 {
     output.clear();
-    for (Slic3r::Points::iterator pit = input.points.begin(); pit != input.points.end(); ++pit) {
+    for (Slic3r::Points::const_iterator pit = input.points.begin(); pit != input.points.end(); ++pit) {
         output.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
     }
 }
 
 void
-Slic3rPolygons_to_ClipperPolygons(Slic3r::Polygons &input, ClipperLib::Polygons &output)
+Slic3rPolygons_to_ClipperPolygons(const Slic3r::Polygons &input, ClipperLib::Polygons &output)
 {
     output.clear();
-    for (Slic3r::Polygons::iterator it = input.begin(); it != input.end(); ++it) {
+    for (Slic3r::Polygons::const_iterator it = input.begin(); it != input.end(); ++it) {
         ClipperLib::Polygon p;
         Slic3rPolygon_to_ClipperPolygon(*it, p);
         output.push_back(p);
@@ -194,7 +194,7 @@ offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float d
 
 template <class T>
 void _clipper_do(const ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, T &retval, const bool safety_offset_)
+    Slic3r::Polygons &clip, T &retval, const ClipperLib::PolyFillType fillType, const bool safety_offset_)
 {
     // read input
     ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
@@ -222,7 +222,7 @@ void _clipper_do(const ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
     delete input_clip;
     
     // perform operation
-    clipper.Execute(clipType, retval, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    clipper.Execute(clipType, retval, fillType, fillType);
 }
 
 void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
@@ -230,7 +230,7 @@ void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
 {
     // perform operation
     ClipperLib::Polygons* output = new ClipperLib::Polygons();
-    _clipper_do<ClipperLib::Polygons>(clipType, subject, clip, *output, safety_offset_);
+    _clipper_do<ClipperLib::Polygons>(clipType, subject, clip, *output, ClipperLib::pftNonZero, safety_offset_);
     
     // convert into Polygons
     ClipperPolygons_to_Slic3rPolygons(*output, retval);
@@ -242,7 +242,7 @@ void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject,
 {
     // perform operation
     ClipperLib::PolyTree* polytree = new ClipperLib::PolyTree();
-    _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, *polytree, safety_offset_);
+    _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, *polytree, ClipperLib::pftNonZero, safety_offset_);
     
     // convert into ExPolygons
     PolyTreeToExPolygons(*polytree, retval);
@@ -280,6 +280,12 @@ void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset_)
 template void union_<Slic3r::ExPolygons>(Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool safety_offset_);
 template void union_<Slic3r::Polygons>(Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset_);
 
+void union_pt(Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, bool safety_offset_)
+{
+    Slic3r::Polygons clip;
+    _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, subject, clip, retval, ClipperLib::pftEvenOdd, safety_offset_);
+}
+
 void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval)
 {
     // convert into Clipper polygons
@@ -310,6 +316,35 @@ void safety_offset(ClipperLib::Polygons* &subject)
     // delete original data and switch pointer
     delete subject;
     subject = retval;
+}
+
+///////////////////////
+
+SV*
+polynode_children_2_perl(const ClipperLib::PolyNode& node)
+{
+    AV* av = newAV();
+    const unsigned int len = node.ChildCount();
+    av_extend(av, len-1);
+    for (int i = 0; i < len; ++i) {
+        av_store(av, i, polynode2perl(*node.Childs[i]));
+    }
+    return (SV*)newRV_noinc((SV*)av);
+}
+
+SV*
+polynode2perl(const ClipperLib::PolyNode& node)
+{
+    HV* hv = newHV();
+    Slic3r::Polygon p;
+    ClipperPolygon_to_Slic3rPolygon(node.Contour, p);
+    if (node.IsHole()) {
+        (void)hv_stores( hv, "hole", p.to_SV() );
+    } else {
+        (void)hv_stores( hv, "outer", p.to_SV() );
+    }
+    (void)hv_stores( hv, "children", polynode_children_2_perl(node) );
+    return (SV*)newRV_noinc((SV*)hv);
 }
 
 }

@@ -239,8 +239,8 @@ sub make_perimeters {
     $self->_fill_gaps(\@gaps);
     
     # find nesting hierarchies separately for contours and holes
-    my $contours_pt = union_pt(\@contours, PFT_EVENODD);
-    my $holes_pt    = union_pt(\@holes, PFT_EVENODD);
+    my $contours_pt = union_pt(\@contours);
+    my $holes_pt    = union_pt(\@holes);
     
     # prepare a coderef for traversing the PolyTree object
     # external contours are root items of $contours_pt
