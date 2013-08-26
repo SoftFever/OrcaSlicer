@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 my $square = [  # ccw
     [100, 100],
@@ -29,6 +29,7 @@ is_deeply [ map $_->pp, @$lines ], [
 
 is_deeply $polygon->split_at_first_point->pp, [ @$square[0,1,2,3,0] ], 'split_at_first_point';
 is_deeply $polygon->split_at_index(2)->pp, [ @$square[2,3,0,1,2] ], 'split_at_index';
+is_deeply $polygon->split_at(Slic3r::Point->new(@{$square->[2]}))->pp, [ @$square[2,3,0,1,2] ], 'split_at';
 
 ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
 {

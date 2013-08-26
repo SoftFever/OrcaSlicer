@@ -13,6 +13,7 @@ class Polygon : public MultiPoint {
     public:
     SV* to_SV_ref();
     Lines lines();
+    Polyline* split_at(const Point* point);
     Polyline* split_at_index(int index);
     Polyline* split_at_first_point();
     bool is_counter_clockwise();

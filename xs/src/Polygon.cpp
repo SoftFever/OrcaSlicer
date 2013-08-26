@@ -24,6 +24,18 @@ Polygon::lines()
 }
 
 Polyline*
+Polygon::split_at(const Point* point)
+{
+    // find index of point
+    for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
+        if ((*it).coincides_with(point)) {
+            return this->split_at_index(it - this->points.begin());
+        }
+    }
+    throw "Point not found";
+}
+
+Polyline*
 Polygon::split_at_index(int index)
 {
     Polyline* poly = new Polyline;

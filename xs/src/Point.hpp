@@ -19,7 +19,7 @@ class Point
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
-    bool coincides_with(Point* point);
+    bool coincides_with(const Point* point) const;
 };
 
 typedef std::vector<Point> Points;

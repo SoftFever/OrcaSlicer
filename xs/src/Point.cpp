@@ -26,7 +26,7 @@ Point::rotate(double angle, Point* center)
 }
 
 bool
-Point::coincides_with(Point* point)
+Point::coincides_with(const Point* point) const
 {
     return this->x == point->x && this->y == point->y;
 }
