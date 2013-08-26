@@ -78,8 +78,7 @@ sub _build_enable_wipe {
 }
 
 sub set_shift {
-    my $self = shift;
-    my @shift = @_;
+    my ($self, @shift) = @_;
     
     # if shift increases (goes towards right), last_pos decreases because it goes towards left
     my @translate = (
@@ -94,8 +93,7 @@ sub set_shift {
 }
 
 sub change_layer {
-    my $self = shift;
-    my ($layer) = @_;
+    my ($self, $layer) = @_;
     
     $self->layer($layer);
     
@@ -138,8 +136,7 @@ sub change_layer {
 
 # this method accepts Z in unscaled coordinates
 sub move_z {
-    my $self = shift;
-    my ($z, $comment) = @_;
+    my ($self, $z, $comment) = @_;
     
     $z += $self->config->z_offset;
     
@@ -174,8 +171,7 @@ sub extrude {
 }
 
 sub extrude_loop {
-    my $self = shift;
-    my ($loop, $description) = @_;
+    my ($self, $loop, $description) = @_;
     
     # extrude all loops ccw
     my $was_clockwise = $loop->make_counter_clockwise;
@@ -278,8 +274,7 @@ sub extrude_loop {
 }
 
 sub extrude_path {
-    my $self = shift;
-    my ($path, $description, %params) = @_;
+    my ($self, $path, $description, %params) = @_;
     
     $path->simplify(&Slic3r::SCALED_RESOLUTION);
     
@@ -365,8 +360,7 @@ sub extrude_path {
 }
 
 sub travel_to {
-    my $self = shift;
-    my ($point, $role, $comment) = @_;
+    my ($self, $point, $role, $comment) = @_;
     
     my $gcode = "";
     my $travel = Slic3r::Line->new($self->last_pos, $point);
@@ -414,8 +408,7 @@ sub travel_to {
 }
 
 sub _plan {
-    my $self = shift;
-    my ($mp, $point, $comment) = @_;
+    my ($self, $mp, $point, $comment) = @_;
     
     my $gcode = "";
     my @travel = $mp->shortest_path($self->last_pos, $point)->lines;
@@ -444,8 +437,7 @@ sub _plan {
 }
 
 sub retract {
-    my $self = shift;
-    my %params = @_;
+    my ($self, %params) = @_;
     
     # get the retraction length and abort if none
     my ($length, $restart_extra, $comment) = $params{toolchange}
@@ -532,7 +524,7 @@ sub retract {
 }
 
 sub unretract {
-    my $self = shift;
+    my ($self) = @_;
     
     my $gcode = "";
     $gcode .= "M101 ; extruder on\n" if $self->config->gcode_flavor eq 'makerware';
@@ -557,7 +549,7 @@ sub unretract {
 }
 
 sub reset_e {
-    my $self = shift;
+    my ($self) = @_;
     return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware|sailfish)$/;
     
     $self->extruder->e(0) if $self->extruder;
@@ -566,8 +558,7 @@ sub reset_e {
 }
 
 sub set_acceleration {
-    my $self = shift;
-    my ($acceleration) = @_;
+    my ($self, $acceleration) = @_;
     return "" if !$acceleration;
     
     return sprintf "M204 S%s%s\n",
@@ -586,15 +577,14 @@ sub G1 {
 }
 
 sub _G0_G1 {
-    my $self = shift;
-    my ($gcode, $point, $z, $e, $comment) = @_;
+    my ($self, $gcode, $point, $z, $e, $comment) = @_;
     my $dec = $self->dec;
     
     if (defined $point) {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        $gcode = $self->_limit_frequency($point) . $gcode;
+        $gcode = $self->_limit_frequency($point) . $gcode if $self->config->vibration_limit != 0;
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
@@ -606,8 +596,7 @@ sub _G0_G1 {
 }
 
 sub G2_G3 {
-    my $self = shift;
-    my ($point, $orientation, $center, $e, $comment) = @_;
+    my ($self, $point, $orientation, $center, $e, $comment) = @_;
     my $dec = $self->dec;
     
     my $gcode = $orientation eq 'cw' ? "G2" : "G3";
@@ -626,8 +615,7 @@ sub G2_G3 {
 }
 
 sub _Gx {
-    my $self = shift;
-    my ($gcode, $e, $comment) = @_;
+    my ($self, $gcode, $e, $comment) = @_;
     my $dec = $self->dec;
     
     # output speed if it's different from last one used
@@ -671,8 +659,7 @@ sub _Gx {
 }
 
 sub set_extruder {
-    my $self = shift;
-    my ($extruder) = @_;
+    my ($self, $extruder) = @_;
     
     # return nothing if this extruder was already selected
     return "" if (defined $self->extruder) && ($self->extruder->id == $extruder->id);
@@ -712,8 +699,7 @@ sub set_extruder {
 }
 
 sub set_fan {
-    my $self = shift;
-    my ($speed, $dont_save) = @_;
+    my ($self, $speed, $dont_save) = @_;
     
     if ($self->last_fan_speed != $speed || $dont_save) {
         $self->last_fan_speed($speed) if !$dont_save;
@@ -737,8 +723,7 @@ sub set_fan {
 }
 
 sub set_temperature {
-    my $self = shift;
-    my ($temperature, $wait, $tool) = @_;
+    my ($self, $temperature, $wait, $tool) = @_;
     
     return "" if $wait && $self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/;
     
@@ -756,8 +741,7 @@ sub set_temperature {
 }
 
 sub set_bed_temperature {
-    my $self = shift;
-    my ($temperature, $wait) = @_;
+    my ($self, $temperature, $wait) = @_;
     
     my ($code, $comment) = ($wait && $self->config->gcode_flavor ne 'teacup')
         ? (($self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/ ? 'M109' : 'M190'), 'wait for bed temperature to be reached')
@@ -773,10 +757,8 @@ sub set_bed_temperature {
 
 # http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
 sub _limit_frequency {
-    my $self = shift;
-    my ($point) = @_;
+    my ($self, $point) = @_;
     
-    return '' if $self->config->vibration_limit == 0;
     my $min_time = 1 / ($self->config->vibration_limit * 60);  # in minutes
     
     # calculate the move vector and move direction
