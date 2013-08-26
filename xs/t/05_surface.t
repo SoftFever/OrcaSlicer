@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 my $square = [  # ccw
     [100, 100],
@@ -29,6 +29,7 @@ $surface = $surface->clone;
 
 isa_ok $surface->expolygon, 'Slic3r::ExPolygon', 'expolygon';
 is_deeply [ @{$surface->expolygon->pp} ], [$square, $hole_in_square], 'expolygon roundtrip';
+is scalar(@{$surface->polygons}), 2, 'polygons roundtrip';
 
 is $surface->surface_type, Slic3r::Surface::S_TYPE_INTERNAL, 'surface_type';
 $surface->surface_type(Slic3r::Surface::S_TYPE_BOTTOM);

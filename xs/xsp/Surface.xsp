@@ -67,6 +67,16 @@ Surface::extra_perimeters(...)
     OUTPUT:
         RETVAL
 
+Polygons
+Surface::polygons()
+    CODE:
+        RETVAL.push_back(THIS->expolygon.contour);
+        for (Polygons::iterator it = THIS->expolygon.holes.begin(); it != THIS->expolygon.holes.end(); ++it) {
+            RETVAL.push_back((*it));
+        }
+    OUTPUT:
+        RETVAL
+
 %}
 };
 
