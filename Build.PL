@@ -12,7 +12,6 @@ my %prereqs = qw(
     File::Basename                  0
     File::Spec                      0
     Getopt::Long                    0
-    Math::Clipper                   1.22
     Math::ConvexHull::MonotoneChain 0.01
     Math::Geometry::Voronoi         1.3
     Math::PlanePath                 53

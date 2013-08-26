@@ -4,7 +4,7 @@ use Moo;
 extends 'Slic3r::Fill::Base';
 
 use Slic3r::Geometry qw(scale unscale X);
-use Slic3r::Geometry::Clipper qw(offset offset2 union_pt traverse_pt PFT_EVENODD);
+use Slic3r::Geometry::Clipper qw(offset offset2 union_pt traverse_pt);
 
 sub fill_surface {
     my $self = shift;

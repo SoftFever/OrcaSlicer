@@ -25,6 +25,7 @@
         %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_first_point(); %};
     double area();
     bool is_counter_clockwise();
+    bool is_clockwise();
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid();

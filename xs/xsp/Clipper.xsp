@@ -10,6 +10,16 @@
 
 %{
 
+IV
+_constant()
+  ALIAS:
+    JT_MITER        = jtMiter
+    JT_ROUND        = jtRound
+    JT_SQUARE       = jtSquare
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
 Polygons
 offset(polygons, delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons

@@ -4,8 +4,13 @@ use warnings;
 
 plan tests => 3;
 
-use Math::Clipper ':all';
+BEGIN {
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+}
 
+use Slic3r;
+use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
 
 {
     my $square = [ # ccw
@@ -26,29 +31,22 @@ use Math::Clipper ':all';
         [25, 18],
         [5, 18],
     ];
-    my $clipper = Math::Clipper->new;
-    $clipper->add_subject_polygons([ $square, $hole_in_square ]);
-    $clipper->add_clip_polygons([ $square2 ]);
-    my $intersection = $clipper->ex_execute(CT_INTERSECTION, PFT_NONZERO, PFT_NONZERO);
+    my $intersection = intersection_ex([ $square, $hole_in_square ], [ $square2 ]);
     
-    is_deeply $intersection, [
-        {
-            holes => [
-                [
-                    [14, 14],
-                    [14, 16],
-                    [16, 16],
-                    [16, 14],
-                ],
-            ],
-            outer => [
-                [20, 12],
-                [20, 18],
-                [10, 18],
-                [10, 12],
-            ],
-        },
-    ], 'hole is preserved after intersection';
+    is_deeply [ map $_->pp, @$intersection ], [[
+        [
+            [20, 12],
+            [20, 18],
+            [10, 18],
+            [10, 12],
+        ],
+        [
+            [14, 14],
+            [14, 16],
+            [16, 16],
+            [16, 14],
+        ],
+    ]], 'hole is preserved after intersection';
 }
 
 #==========================================================
@@ -58,18 +56,13 @@ use Math::Clipper ':all';
     my $contour2 = [ [10,10], [30,10], [30,30], [10,30] ];  # ccw
     my $hole     = [ [15,15], [15,25], [25,25], [25,15] ];  # cw
     
-    my $clipper = Math::Clipper->new;
-    $clipper->add_subject_polygons([ $contour1, $contour2, $hole ]);
-    my $union = $clipper->ex_execute(CT_UNION, PFT_NONZERO, PFT_NONZERO);
+    my $union = union_ex([ $contour1, $contour2, $hole ]);
     
-    is_deeply $union, [{ holes => [], outer => [ [40,0], [40,40], [0,40], [0,0] ] }],
+    is_deeply [ map $_->pp, @$union ], [[ [ [40,0], [40,40], [0,40], [0,0] ] ]],
         'union of two ccw and one cw is a contour with no holes';
     
-    $clipper->clear;
-    $clipper->add_subject_polygons([ $contour1, $contour2 ]);
-    $clipper->add_clip_polygons([ $hole ]);
-    my $diff = $clipper->ex_execute(CT_DIFFERENCE, PFT_NONZERO, PFT_NONZERO);
-    is_deeply $diff, [{ holes => [[ [15,15], [15,25], [25,25], [25,15] ]], outer => [ [40,0], [40,40], [0,40], [0,0] ] }],
+    my $diff = diff_ex([ $contour1, $contour2 ], [ $hole ]);
+    is_deeply [ map $_->pp, @$diff ], [[ [ [40,0], [40,40], [0,40], [0,0] ], [ [15,15], [15,25], [25,25], [25,15] ] ]],
         'difference of a cw from two ccw is a contour with one hole';
 }
 

@@ -22,7 +22,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     $print->init_extruders;
     my $filler = Slic3r::Fill::Rectilinear->new(
         print           => $print,
-        bounding_box    => Slic3r::Geometry::BoundingBox->new_from_points([ [0, 0], [10, 10] ]),
+        bounding_box    => Slic3r::Geometry::BoundingBox->new_from_points([ Slic3r::Point->new(0, 0), Slic3r::Point->new(10, 10) ]),
     );
     my $surface_width = 250;
     my $distance = $filler->adjust_solid_spacing(

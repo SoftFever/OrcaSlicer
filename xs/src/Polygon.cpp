@@ -73,6 +73,12 @@ Polygon::is_counter_clockwise() const
 }
 
 bool
+Polygon::is_clockwise() const
+{
+    return !this->is_counter_clockwise();
+}
+
+bool
 Polygon::make_counter_clockwise()
 {
     if (!this->is_counter_clockwise()) {

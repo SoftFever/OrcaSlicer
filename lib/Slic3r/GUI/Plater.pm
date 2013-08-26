@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum first);
-use Math::Clipper qw(offset JT_ROUND);
+use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z MIN MAX);
 use threads::shared qw(shared_clone);
@@ -681,7 +681,6 @@ sub export_gcode {
 sub export_gcode2 {
     my $self = shift;
     my ($print, $output_file, %params) = @_;
-    $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
     local $SIG{'KILL'} = sub {
         Slic3r::debugf "Exporting cancelled; exiting thread...\n";
         threads->exit();
@@ -822,7 +821,6 @@ sub make_thumbnail {
     my $object = $self->{objects}[$obj_idx];
     $object->thumbnail_scaling_factor($self->{scaling_factor});
     my $cb = sub {
-    	$Slic3r::Geometry::Clipper::clipper = Math::Clipper->new if $Slic3r::have_threads;
         my $thumbnail = $object->make_thumbnail;
         
         if ($Slic3r::have_threads) {

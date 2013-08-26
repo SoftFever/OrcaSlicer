@@ -177,7 +177,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 #==========================================================
 
 {
-    my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ [0, 1], [10, 2], [20, 2] ]);
+    my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_), [0, 1], [10, 2], [20, 2] ]);
     $bb->scale(2);
     is_deeply $bb->extents, [ [0,40], [2,4] ], 'bounding box is scaled correctly';
 }

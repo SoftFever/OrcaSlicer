@@ -14,7 +14,7 @@ has '_tolerance'    => (is => 'lazy');
 
 use List::Util qw(first);
 use Slic3r::Geometry qw(A B scale epsilon);
-use Slic3r::Geometry::Clipper qw(diff_ex offset JT_MITER);
+use Slic3r::Geometry::Clipper qw(diff_ex offset);
 
 # clearance (in mm) from the perimeters
 has '_inner_margin' => (is => 'ro', default => sub { scale 0.5 });

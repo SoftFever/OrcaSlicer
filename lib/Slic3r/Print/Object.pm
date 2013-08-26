@@ -330,7 +330,6 @@ sub make_perimeters {
         items => sub { 0 .. ($self->layer_count-1) },
         thread_cb => sub {
             my $q = shift;
-            $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
             while (defined (my $layer_id = $q->dequeue)) {
                 $self->layers->[$layer_id]->make_perimeters;
             }
@@ -1235,7 +1234,6 @@ sub generate_support_material {
         items => [ 0 .. $#{$self->support_layers} ],
         thread_cb => sub {
             my $q = shift;
-            $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
             my $result = {};
             while (defined (my $layer_id = $q->dequeue)) {
                 $result->{$layer_id} = $process_layer->($layer_id);

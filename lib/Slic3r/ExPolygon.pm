@@ -8,7 +8,7 @@ use Boost::Geometry::Utils;
 use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
-use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
+use Slic3r::Geometry::Clipper qw(union_ex);
 
 sub wkt {
     my $self = shift;

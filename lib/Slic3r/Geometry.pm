@@ -792,14 +792,13 @@ sub chained_path {
     my %indices = map { $points[$_] => $_ } 0 .. $#points;
     
     my @result = ();
-    my $last_point;
-    if (!$start_near) {
+    if (!$start_near && @points) {
         $start_near = shift @points;
-        push @result, $indices{$start_near} if $start_near;
+        push @result, $indices{$start_near};
     }
     while (@points) {
-        $start_near = $start_near->nearest_point(\@points);
-        @points = grep $_ ne $start_near, @points;
+        my $idx = $start_near->nearest_point_index(\@points);
+        my ($start_near) = splice @points, $idx, 1;
         push @result, $indices{$start_near};
     }
     

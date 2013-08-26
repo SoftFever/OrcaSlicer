@@ -16,9 +16,9 @@ use Slic3r::Geometry qw(collinear);
 
 {
     my @lines = (
-        [ [0,4], [4,2] ],
-        [ [2,3], [8,0] ],
-        [ [6,1], [8,0] ],
+        Slic3r::Line->new([0,4], [4,2]),
+        Slic3r::Line->new([2,3], [8,0]),
+        Slic3r::Line->new([6,1], [8,0]),
     );
     is collinear($lines[0], $lines[1]), 1, 'collinear';
     is collinear($lines[1], $lines[2]), 1, 'collinear';
@@ -30,8 +30,8 @@ use Slic3r::Geometry qw(collinear);
 {
     # horizontal
     my @lines = (
-        [ [0,1], [5,1] ],
-        [ [2,1], [8,1] ],
+        Slic3r::Line->new([0,1], [5,1]),
+        Slic3r::Line->new([2,1], [8,1]),
     );
     is collinear($lines[0], $lines[1]), 1, 'collinear';
 }
@@ -41,8 +41,8 @@ use Slic3r::Geometry qw(collinear);
 {
     # vertical
     my @lines = (
-        [ [1,0], [1,5] ],
-        [ [1,2], [1,8] ],
+        Slic3r::Line->new([1,0], [1,5]),
+        Slic3r::Line->new([1,2], [1,8]),
     );
     is collinear($lines[0], $lines[1]), 1, 'collinear';
 }
@@ -52,8 +52,8 @@ use Slic3r::Geometry qw(collinear);
 {
     # non overlapping
     my @lines = (
-        [ [0,1], [5,1] ],
-        [ [7,1], [10,1] ],
+        Slic3r::Line->new([0,1], [5,1]),
+        Slic3r::Line->new([7,1], [10,1]),
     );
     is collinear($lines[0], $lines[1], 1), 0, 'non overlapping';
     is collinear($lines[0], $lines[1], 0), 1, 'overlapping';
@@ -64,8 +64,8 @@ use Slic3r::Geometry qw(collinear);
 {
     # with one common point
     my @lines = (
-        [ [0,4], [4,2] ],
-        [ [4,2], [8,0] ],
+        Slic3r::Line->new([0,4], [4,2]),
+        Slic3r::Line->new([4,2], [8,0]),
     );
     is collinear($lines[0], $lines[1], 1), 1, 'one common point';
     is collinear($lines[0], $lines[1], 0), 1, 'one common point';
@@ -76,8 +76,8 @@ use Slic3r::Geometry qw(collinear);
 {
     # not collinear
     my @lines = (
-        [ [290000000,690525600], [285163380,684761540] ],
-        [ [285163380,684761540], [193267599,575244400] ],
+        Slic3r::Line->new([290000000,690525600], [285163380,684761540]),
+        Slic3r::Line->new([285163380,684761540], [193267599,575244400]),
     );
     is collinear($lines[0], $lines[1], 0), 0, 'not collinear';
     is collinear($lines[0], $lines[1], 1), 0, 'not collinear';

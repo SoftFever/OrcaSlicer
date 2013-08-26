@@ -6,6 +6,11 @@
 #include "ExPolygon.hpp"
 #include "Polygon.hpp"
 
+// import these wherever we're included
+using ClipperLib::jtMiter;
+using ClipperLib::jtRound;
+using ClipperLib::jtSquare;
+
 namespace Slic3r {
 
 #define CLIPPER_OFFSET_SCALE 100000.0

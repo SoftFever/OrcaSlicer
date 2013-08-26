@@ -8,7 +8,7 @@ use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset
-    offset2 traverse_pt JT_ROUND JT_SQUARE PFT_EVENODD);
+    offset2 traverse_pt JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
@@ -403,7 +403,6 @@ sub export_gcode {
             },
             thread_cb => sub {
                 my $q = shift;
-                $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
                 while (defined (my $obj_layer = $q->dequeue)) {
                     my ($obj_idx, $layer_id, $region_id) = @$obj_layer;
                     my $object = $self->objects->[$obj_idx];
