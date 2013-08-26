@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 18;
+use Test::More tests => 20;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -28,6 +28,8 @@ is_deeply $expolygon->pp, [$square, $hole_in_square], 'expolygon roundtrip';
 
 is ref($expolygon->arrayref), 'ARRAY', 'expolygon arrayref is unblessed';
 isa_ok $expolygon->[0], 'Slic3r::Polygon', 'expolygon polygon is blessed';
+isa_ok $expolygon->contour, 'Slic3r::Polygon', 'expolygon contour is blessed';
+isa_ok $expolygon->holes->[0], 'Slic3r::Polygon', 'expolygon hole is blessed';
 isa_ok $expolygon->[0][0], 'Slic3r::Point', 'expolygon point is blessed';
 
 {

@@ -245,7 +245,7 @@ sub slice {
             ]);
             my $diff = diff_ex(
                 [ map @$_, @$union ],
-                [ map $_->expolygon->holes, @upper_surfaces, @lower_surfaces, ],
+                [ map @{$_->expolygon->holes}, @upper_surfaces, @lower_surfaces, ],
             );
             
             $layerm->slices->clear;

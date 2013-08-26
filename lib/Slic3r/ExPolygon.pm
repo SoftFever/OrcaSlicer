@@ -10,21 +10,11 @@ use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex JT_MITER);
 
-sub contour {
-    my $self = shift;
-    return $self->[0];
-}
-
-sub holes {
-    my $self = shift;
-    return @$self[1..$#$self];
-}
-
 sub is_valid {
     my $self = shift;
     return (!first { !$_->is_valid } @$self)
         && $self->contour->is_counter_clockwise
-        && (!first { $_->is_counter_clockwise } $self->holes);
+        && (!first { $_->is_counter_clockwise } @{$self->holes});
 }
 
 # returns false if the expolygon is too tight to be printed

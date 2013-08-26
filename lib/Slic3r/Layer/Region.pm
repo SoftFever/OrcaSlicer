@@ -159,7 +159,7 @@ sub _merge_loops {
     $slices = offset2_ex($slices, +$safety_offset, -$safety_offset);
     
     Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
-        scalar(@$slices), scalar(map $_->holes, @$slices), scalar(@$loops) if $Slic3r::debug;
+        scalar(@$slices), scalar(map @{$_->holes}, @$slices), scalar(@$loops) if $Slic3r::debug;
     
     return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$slices;
 }
@@ -198,7 +198,7 @@ sub make_perimeters {
             
             my @offsets = @{offset2_ex(\@last, -1.5*$spacing,  +0.5*$spacing)};
             my @contours_offsets    = map $_->contour, @offsets;
-            my @holes_offsets       = map $_->holes, @offsets;
+            my @holes_offsets       = map @{$_->holes}, @offsets;
             @offsets = (@contours_offsets, @holes_offsets);     # turn @offsets from ExPolygons to Polygons
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop

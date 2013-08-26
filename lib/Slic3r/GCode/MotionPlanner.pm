@@ -150,7 +150,7 @@ sub BUILD {
             points          => [ values %{$self->_pointmap} ],
             no_arrows       => 1,
             expolygons      => $self->islands,
-            #red_polygons    => [ map $_->holes, map @$_, @{$self->_inner} ],
+            #red_polygons    => [ map @{$_->holes}, map @$_, @{$self->_inner} ],
             #white_polygons    => [ map @$_, @{$self->_outer} ],
         );
         printf "%d islands\n", scalar @{$self->islands};
@@ -195,7 +195,7 @@ sub find_node {
     
     # if we're inside a hole, move to a point on hole;
     {
-        my $polygon = first { $_->encloses_point($point) } (map $_->holes, map @$_, @{$self->_inner});
+        my $polygon = first { $_->encloses_point($point) } (map @{$_->holes}, map @$_, @{$self->_inner});
         return nearest_point($point, $polygon) if $polygon;
     }
     

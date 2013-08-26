@@ -531,7 +531,7 @@ EOF
                     my $expolygon = $slice->clone;
                     $expolygon->translate(@$copy);
                     $print_polygon->($expolygon->contour, 'contour');
-                    $print_polygon->($_, 'hole') for $expolygon->holes;
+                    $print_polygon->($_, 'hole') for @{$expolygon->holes};
                     push @current_layer_slices, $expolygon;
                 }
             }
