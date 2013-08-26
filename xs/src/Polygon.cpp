@@ -54,6 +54,14 @@ Polygon::split_at_first_point()
     return this->split_at_index(0);
 }
 
+double
+Polygon::area()
+{
+    ClipperLib::Polygon p;
+    Slic3rPolygon_to_ClipperPolygon(*this, p);
+    return ClipperLib::Area(p);
+}
+
 bool
 Polygon::is_counter_clockwise()
 {

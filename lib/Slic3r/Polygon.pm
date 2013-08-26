@@ -8,7 +8,6 @@ use parent 'Slic3r::Polyline';
 use Slic3r::Geometry qw(polygon_remove_parallel_continuous_edges
     polygon_remove_acute_vertices polygon_segment_having_point
     PI X1 X2 Y1 Y2 epsilon);
-use Slic3r::Geometry::Clipper qw(JT_MITER);
 
 sub wkt {
     my $self = shift;
@@ -32,11 +31,6 @@ sub encloses_point {
     my $self = shift;
     my ($point) = @_;
     return Boost::Geometry::Utils::point_covered_by_polygon($point->pp, [$self->pp]);
-}
-
-sub area {
-    my $self = shift;
-    return Slic3r::Geometry::Clipper::area($self->pp);
 }
 
 sub grow {
