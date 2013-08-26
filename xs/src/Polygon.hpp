@@ -16,8 +16,8 @@ class Polygon : public MultiPoint {
     Polyline* split_at(const Point* point);
     Polyline* split_at_index(int index);
     Polyline* split_at_first_point();
-    double area();
-    bool is_counter_clockwise();
+    double area() const;
+    bool is_counter_clockwise() const;
     bool make_counter_clockwise();
     bool make_clockwise();
 };

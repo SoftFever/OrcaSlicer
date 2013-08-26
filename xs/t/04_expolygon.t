@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 17;
+use Test::More tests => 18;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -39,6 +39,8 @@ isa_ok $expolygon->[0][0], 'Slic3r::Point', 'expolygon point is blessed';
 is_deeply $expolygon->clone->pp, [$square, $hole_in_square], 'clone';
 # The following tests implicitely check that modifying clones
 # does not modify the original one.
+
+is $expolygon->area, 100*100-20*20, 'area';
 
 {
     my $expolygon2 = $expolygon->clone;

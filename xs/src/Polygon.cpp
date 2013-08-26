@@ -55,7 +55,7 @@ Polygon::split_at_first_point()
 }
 
 double
-Polygon::area()
+Polygon::area() const
 {
     ClipperLib::Polygon p;
     Slic3rPolygon_to_ClipperPolygon(*this, p);
@@ -63,7 +63,7 @@ Polygon::area()
 }
 
 bool
-Polygon::is_counter_clockwise()
+Polygon::is_counter_clockwise() const
 {
     ClipperLib::Polygon* p = new ClipperLib::Polygon();
     Slic3rPolygon_to_ClipperPolygon(*this, *p);

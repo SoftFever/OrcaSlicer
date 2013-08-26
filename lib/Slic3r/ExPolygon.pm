@@ -126,13 +126,6 @@ sub simplify {
     return @{ Slic3r::Geometry::Clipper::union_ex([ $self->simplify_as_polygons($tolerance) ]) };
 }
 
-sub area {
-    my $self = shift;
-    my $area = $self->contour->area;
-    $area -= $_->area for $self->holes;
-    return $area;
-}
-
 # this method only works for expolygons having only a contour or
 # a contour and a hole, and not being thicker than the supplied 
 # width. it returns a polyline or a polygon

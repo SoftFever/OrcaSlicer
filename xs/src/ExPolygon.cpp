@@ -30,6 +30,16 @@ ExPolygon::rotate(double angle, Point* center)
     }
 }
 
+double
+ExPolygon::area() const
+{
+    double a = this->contour.area();
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
+        a -= -(*it).area();  // holes have negative area
+    }
+    return a;
+}
+
 SV*
 ExPolygon::to_SV() {
     const unsigned int num_holes = this->holes.size();
