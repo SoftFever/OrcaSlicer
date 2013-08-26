@@ -65,11 +65,6 @@ sub points {
     return $self->polyline;
 }
 
-sub first_point {
-    my $self = shift;
-    return $self->polyline->[0];
-}
-
 sub is_perimeter {
     my $self = shift;
     return $self->role == EXTR_ROLE_PERIMETER

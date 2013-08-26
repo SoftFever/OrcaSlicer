@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 my $points = [
     [100, 100],
@@ -27,6 +27,8 @@ is scalar(@$path), 4, 'append to path';
 
 $path->pop_back;
 is scalar(@$path), 3, 'pop_back from path';
+
+ok $path->first_point->coincides_with($path->polyline->[0]), 'first_point';
 
 $path = $path->clone;
 

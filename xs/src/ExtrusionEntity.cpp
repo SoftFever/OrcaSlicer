@@ -8,6 +8,12 @@ ExtrusionPath::reverse()
     this->polyline.reverse();
 }
 
+const Point*
+ExtrusionPath::first_point() const
+{
+    return &(this->polyline.points.front());
+}
+
 ExtrusionPath*
 ExtrusionLoop::split_at_index(int index)
 {

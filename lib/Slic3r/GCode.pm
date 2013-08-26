@@ -268,7 +268,7 @@ sub extrude_loop {
         my $distance = min(scale $extrusion_path->flow_spacing, $first_segment->length);
         my $point = Slic3r::Geometry::point_along_segment(@$first_segment, $distance);
         $point = Slic3r::Point->new(@$point);
-        $point->rotate($angle, $extrusion_path->polyline->[0]);
+        $point->rotate($angle, $extrusion_path->first_point);
         
         # generate the travel move
         $gcode .= $self->travel_to($point, $loop->role, "move inwards before travel");
@@ -294,8 +294,9 @@ sub extrude_path {
     
     # go to first point of extrusion path
     my $gcode = "";
-    $gcode .= $self->travel_to($path->points->[0], $path->role, "move to first $description point")
-        if !defined $self->last_pos || !$self->last_pos->coincides_with($path->points->[0]);
+    my $first_point = $path->first_point;
+    $gcode .= $self->travel_to($first_point, $path->role, "move to first $description point")
+        if !defined $self->last_pos || !$self->last_pos->coincides_with($first_point);
     
     # compensate retraction
     $gcode .= $self->unretract;
