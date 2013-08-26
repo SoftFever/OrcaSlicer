@@ -19,6 +19,7 @@ class MultiPoint
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     void reverse();
+    const Point* first_point() const;
 };
 
 }

@@ -6,8 +6,7 @@ use File::Spec;
 use List::Util qw(min max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points
-    nearest_point chained_path);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset
     offset2 traverse_pt JT_ROUND JT_SQUARE PFT_EVENODD);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -552,9 +551,10 @@ EOF
             foreach my $expolygon (@unsupported_slices) {
                 # look for the nearest point to this island among all
                 # supported points
-                my $support_point = nearest_point($expolygon->contour->[0], \@supported_points)
+                my $contour = $expolygon->contour;
+                my $support_point = $contour->first_point->nearest_point(\@supported_points)
                     or next;
-                my $anchor_point = nearest_point($support_point, $expolygon->contour);
+                my $anchor_point = $support_point->nearest_point([ @$contour ]);
                 printf $fh qq{    <line x1="%s" y1="%s" x2="%s" y2="%s" style="stroke-width: 2; stroke: white" />\n},
                     map @$_, $support_point, $anchor_point;
             }

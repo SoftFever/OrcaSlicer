@@ -54,20 +54,6 @@ sub grow {
     )};
 }
 
-sub nearest_point_to {
-    my $self = shift;
-    my ($point) = @_;
-    
-    $point = Slic3r::Geometry::nearest_point($point, $self);
-    return Slic3r::Point->new($point);
-}
-
-sub nearest_point_index_to {
-    my $self = shift;
-    my ($point) = @_;
-    return Slic3r::Geometry::nearest_point_index($point, $self);
-}
-
 sub clip_with_polygon {
     my $self = shift;
     my ($polygon) = @_;
@@ -197,7 +183,7 @@ sub chained_path {
     while (@my_paths) {
         # find nearest point
         my $start_index = defined $start_near
-            ? Slic3r::Geometry::nearest_point_index($start_near, $endpoints)
+            ? $start_near->nearest_point_index($endpoints)
             : 0;
 
         my $path_index = int($start_index/2);

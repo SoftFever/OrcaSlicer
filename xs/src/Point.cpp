@@ -1,4 +1,5 @@
 #include "Point.hpp"
+#include <math.h>
 
 namespace Slic3r {
 
@@ -29,6 +30,38 @@ bool
 Point::coincides_with(const Point* point) const
 {
     return this->x == point->x && this->y == point->y;
+}
+
+int
+Point::nearest_point_index(const Points points) const
+{
+    int idx = -1;
+    long distance = -1;
+    
+    for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
+        /* If the X distance of the candidate is > than the total distance of the
+           best previous candidate, we know we don't want it */
+        long d = pow(this->x - (*it).x, 2);
+        if (distance != -1 && d > distance) continue;
+        
+        /* If the Y distance of the candidate is > than the total distance of the
+           best previous candidate, we know we don't want it */
+        d += pow(this->y - (*it).y, 2);
+        if (distance != -1 && d > distance) continue;
+        
+        idx = it - points.begin();
+        distance = d;
+        
+        if (distance < EPSILON) break;
+    }
+    
+    return idx;
+}
+
+Point*
+Point::nearest_point(Points points) const
+{
+    return &(points.at(this->nearest_point_index(points)));
 }
 
 SV*

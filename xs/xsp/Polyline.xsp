@@ -19,6 +19,8 @@
         %code{% THIS->points.pop_back(); %};
     void reverse();
     Lines lines();
+    Point* first_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->first_point())); %};
 %{
 
 Polyline*

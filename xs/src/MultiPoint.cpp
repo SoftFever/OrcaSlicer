@@ -32,6 +32,12 @@ MultiPoint::reverse()
     std::reverse(this->points.begin(), this->points.end());
 }
 
+const Point*
+MultiPoint::first_point() const
+{
+    return &(this->points.front());
+}
+
 void
 MultiPoint::from_SV(SV* poly_sv)
 {

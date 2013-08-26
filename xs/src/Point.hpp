@@ -7,6 +7,9 @@
 
 namespace Slic3r {
 
+class Point;
+typedef std::vector<Point> Points;
+
 class Point
 {
     public:
@@ -20,9 +23,9 @@ class Point
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     bool coincides_with(const Point* point) const;
+    int nearest_point_index(const Points points) const;
+    Point* nearest_point(Points points) const;
 };
-
-typedef std::vector<Point> Points;
 
 }
 

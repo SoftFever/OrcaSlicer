@@ -9,10 +9,10 @@ our @EXPORT_OK = qw(
     line_point_belongs_to_segment points_coincide distance_between_points 
     chained_path_items chained_path_points normalize tan move_points_3D
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
-    point_is_on_left_of_segment polyline_lines polygon_lines nearest_point
+    point_is_on_left_of_segment polyline_lines polygon_lines
     point_along_segment polygon_segment_having_point polygon_has_subsegment
     polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
-    rotate_points move_points clip_segment_polygon nearest_point_index
+    rotate_points move_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect same_point same_line
     longest_segment angle3points three_points_aligned line_direction
@@ -237,41 +237,6 @@ sub polyline_lines {
 sub polygon_lines {
     my ($polygon) = @_;
     return polyline_lines([ @$polygon, $polygon->[0] ]);
-}
-
-sub nearest_point {
-    my ($point, $points) = @_;
-    my $index = nearest_point_index(@_);
-    return undef if !defined $index;
-    return $points->[$index];
-}
-
-sub nearest_point_index {
-    my ($point, $points) = @_;
-    
-    my ($nearest_point_index, $distance) = ();
-    
-    my ($point_x, $point_y) = @$point;
-    my @points_pp = map $_->pp, @$points;
-    
-    for my $i (0..$#$points) {
-        my $d = ($point_x - $points_pp[$i][X])**2;
-        # If the X distance of the candidate is > than the total distance of the
-        # best previous candidate, we know we don't want it
-        next if (defined $distance && $d > $distance);
-   
-        # If the total distance of the candidate is > than the total distance of the
-        # best previous candidate, we know we don't want it
-        $d += ($point_y - $points_pp[$i][Y])**2;
-        next if (defined $distance && $d > $distance);
-
-        $nearest_point_index = $i;
-        $distance = $d;
-        
-        last if $distance < epsilon;
-    }
-
-    return $nearest_point_index;
 }
 
 # given a segment $p1-$p2, get the point at $distance from $p1 along segment
@@ -833,7 +798,7 @@ sub chained_path {
         push @result, $indices{$start_near} if $start_near;
     }
     while (@points) {
-        $start_near = nearest_point($start_near, [@points]);
+        $start_near = $start_near->nearest_point(\@points);
         @points = grep $_ ne $start_near, @points;
         push @result, $indices{$start_near};
     }

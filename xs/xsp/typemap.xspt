@@ -10,6 +10,7 @@
 %typemap{ExtrusionEntityCollection*};
 %typemap{ExtrusionPath*};
 %typemap{ExtrusionLoop*};
+%typemap{Points};
 %typemap{Lines};
 %typemap{Polygons};
 %typemap{ExPolygons};

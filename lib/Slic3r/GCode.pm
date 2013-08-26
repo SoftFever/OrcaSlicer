@@ -211,7 +211,7 @@ sub extrude_loop {
     }
     
     # split the loop at the starting point and make a path
-    my $start_at = Slic3r::Geometry::nearest_point($last_pos, \@candidates);
+    my $start_at = $last_pos->nearest_point(\@candidates);
     my $extrusion_path = $loop->split_at($start_at);
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;

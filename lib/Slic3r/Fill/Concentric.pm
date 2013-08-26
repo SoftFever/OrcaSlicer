@@ -3,7 +3,7 @@ use Moo;
 
 extends 'Slic3r::Fill::Base';
 
-use Slic3r::Geometry qw(scale unscale X nearest_point_index);
+use Slic3r::Geometry qw(scale unscale X);
 use Slic3r::Geometry::Clipper qw(offset offset2 union_pt traverse_pt PFT_EVENODD);
 
 sub fill_surface {
@@ -43,7 +43,7 @@ sub fill_surface {
     my @paths = ();
     my $last_pos = [0,0];
     foreach my $loop (@loops) {
-        push @paths, $loop->split_at_index(nearest_point_index($last_pos, $loop));
+        push @paths, $loop->split_at_index($last_pos->nearest_point_index($loop));
         $last_pos = $paths[-1][-1];
     }
     

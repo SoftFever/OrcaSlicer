@@ -28,6 +28,8 @@
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid();
+    Point* first_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->first_point())); %};
 %{
 
 Polygon*

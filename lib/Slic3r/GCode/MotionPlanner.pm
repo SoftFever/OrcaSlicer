@@ -13,7 +13,7 @@ has '_crossing_edges' => (is => 'rw', default => sub { {} });  # edge_idx => boo
 has '_tolerance'    => (is => 'lazy');
 
 use List::Util qw(first);
-use Slic3r::Geometry qw(A B scale epsilon nearest_point);
+use Slic3r::Geometry qw(A B scale epsilon);
 use Slic3r::Geometry::Clipper qw(diff_ex offset JT_MITER);
 
 # clearance (in mm) from the perimeters
@@ -196,13 +196,13 @@ sub find_node {
     # if we're inside a hole, move to a point on hole;
     {
         my $polygon = first { $_->encloses_point($point) } (map @{$_->holes}, map @$_, @{$self->_inner});
-        return nearest_point($point, $polygon) if $polygon;
+        return $point->nearest_point([ @$polygon ]) if $polygon;
     }
     
     # if we're inside an expolygon move to a point on contour or holes
     {
         my $expolygon = first { $_->encloses_point_quick($point) } (map @$_, @{$self->_inner});
-        return nearest_point($point, [ map @$_, @$expolygon ]) if $expolygon;
+        return $point->nearest_point([ map @$_, @$expolygon ]) if $expolygon;
     }
     
     {
@@ -221,7 +221,7 @@ sub find_node {
             : [ map @$_, map @$_, @{$self->_outer} ];
         $candidates = [ map @$_, @{$self->_outer->[$outer_polygon_idx]} ]
             if @$candidates == 0;
-        return nearest_point($point, $candidates);
+        return $point->nearest_point($candidates);
     }
 }
 

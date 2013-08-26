@@ -17,6 +17,7 @@ SurfaceType     T_UV
 ClipperLib::JoinType		T_UV
 ClipperLib::PolyFillType		T_UV
 
+Points          T_ARRAYREF
 Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
 ExPolygons      T_ARRAYREF
