@@ -21,9 +21,9 @@ my $build = Module::Build::WithXSpp->new(
         Module::Build               0.38
         Module::Build::WithXSpp     0.13
     )},
-    
+    # _GLIBCXX_USE_C99 : to get the long long type for g++
     # HAS_BOOL         : stops Perl/lib/CORE/handy.h from doing "#  define bool char" for MSVC
-    extra_compiler_flags => [qw(-DHAS_BOOL)],
+    extra_compiler_flags => [qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL)],
     
     # Provides extra C typemaps that are auto-merged
     extra_typemap_modules => {

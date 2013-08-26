@@ -144,7 +144,7 @@ offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float de
 
 void
 offset2(Slic3r::Polygons &polygons, ClipperLib::Polygons &retval, const float delta1,
-    const float delta2, double scale, ClipperLib::JoinType joinType, double miterLimit)
+    const float delta2, const double scale, const ClipperLib::JoinType joinType, const double miterLimit)
 {
     // read input
     ClipperLib::Polygons* input = new ClipperLib::Polygons();
@@ -168,7 +168,7 @@ offset2(Slic3r::Polygons &polygons, ClipperLib::Polygons &retval, const float de
 
 void
 offset2(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta1,
-    const float delta2, double scale, ClipperLib::JoinType joinType, double miterLimit)
+    const float delta2, const double scale, const ClipperLib::JoinType joinType, const double miterLimit)
 {
     // perform offset
     ClipperLib::Polygons* output = new ClipperLib::Polygons();
@@ -181,7 +181,7 @@ offset2(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta1
 
 void
 offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta1,
-    const float delta2, double scale, ClipperLib::JoinType joinType, double miterLimit)
+    const float delta2, const double scale, const ClipperLib::JoinType joinType, const double miterLimit)
 {
     // perform offset
     ClipperLib::Polygons* output = new ClipperLib::Polygons();
@@ -193,8 +193,8 @@ offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float d
 }
 
 template <class T>
-void _clipper_do(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, T &retval, bool safety_offset)
+void _clipper_do(const ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
+    Slic3r::Polygons &clip, T &retval, const bool safety_offset)
 {
     // read input
     ClipperLib::Polygons* input_subject = new ClipperLib::Polygons();
