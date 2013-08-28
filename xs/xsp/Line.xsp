@@ -20,6 +20,7 @@
     void reverse();
     void scale(double factor);
     void translate(double x, double y);
+    double length();
 %{
 
 Line*

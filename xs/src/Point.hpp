@@ -25,6 +25,7 @@ class Point
     bool coincides_with(const Point* point) const;
     int nearest_point_index(const Points points) const;
     Point* nearest_point(Points points) const;
+    double distance_to(const Point* point) const;
 };
 
 }

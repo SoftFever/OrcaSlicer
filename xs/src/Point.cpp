@@ -64,6 +64,14 @@ Point::nearest_point(Points points) const
     return &(points.at(this->nearest_point_index(points)));
 }
 
+double
+Point::distance_to(const Point* point) const
+{
+    double dx = ((double)point->x - this->x);
+    double dy = ((double)point->y - this->y);
+    return sqrt(dx*dx + dy*dy);
+}
+
 SV*
 Point::to_SV_pureperl() {
     AV* av = newAV();

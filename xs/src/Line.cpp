@@ -30,6 +30,12 @@ Line::reverse()
     std::swap(this->a, this->b);
 }
 
+double
+Line::length() const
+{
+    return this->a.distance_to(&(this->b));
+}
+
 void
 Line::from_SV(SV* line_sv)
 {

@@ -22,6 +22,7 @@ class Line
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     void reverse();
+    double length() const;
 };
 
 typedef std::vector<Line> Lines;

@@ -23,6 +23,7 @@
     int nearest_point_index(Points points);
     Point* nearest_point(Points points)
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->nearest_point(points))); %};
+    double distance_to(Point* point);
 
 %{
 
