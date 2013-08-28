@@ -322,7 +322,7 @@ sub extrude_path {
     my $path_length = 0;
     {
         my $local_F = $F;
-        foreach my $line ($path->lines) {
+        foreach my $line (@{$path->lines}) {
             $path_length += my $line_length = unscale $line->length;
             
             # calculate extrusion length for this line
