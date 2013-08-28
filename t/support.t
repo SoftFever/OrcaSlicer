@@ -65,7 +65,7 @@ use Slic3r::Test;
     ok my $gcode = Slic3r::Test::gcode($print), 'no conflict between raft/support and brim';
     
     my $tool = 0;
-    Slic3r::GCode::Reader->new(gcode => $gcode)->parse(sub {
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($cmd =~ /^T(\d+)/) {

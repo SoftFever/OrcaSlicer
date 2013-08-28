@@ -10,7 +10,7 @@ sub process_layer {
     my ($gcode, $layer) = @_;
     
     my $total_layer_length = 0;
-    Slic3r::GCode::Reader->new(gcode => $gcode)->parse(sub {
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
         my ($reader, $cmd, $args, $info) = @_;
         $total_layer_length += $info->{dist_XY}
             if $cmd eq 'G1' && $info->{extruding};
@@ -20,7 +20,7 @@ sub process_layer {
     my $layer_height = $layer->height;
     my $z = $layer->print_z + $self->config->z_offset - $layer_height;
     my $newlayer = 0;
-    Slic3r::GCode::Reader->new(gcode => $gcode)->parse(sub {
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
         my ($reader, $cmd, $args, $info) = @_;
         
         if ($cmd eq 'G1' && exists $args->{Z}) {
