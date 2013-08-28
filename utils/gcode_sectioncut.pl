@@ -41,7 +41,7 @@ my %opt = (
     
     # read paths
     my %paths = ();    # z => [ path, path ... ]
-    Slic3r::GCode::Reader->new(gcode => io($input_file)->all)->parse(sub {
+    Slic3r::GCode::Reader->new->parse(io($input_file)->all, sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($cmd eq 'G1' && $info->{extruding}) {

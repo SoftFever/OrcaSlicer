@@ -174,7 +174,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my %layers_with_extrusion = ();
-    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         $layers_with_extrusion{$self->Z} = 1 if $info->{extruding};
     });

@@ -25,7 +25,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('overhang', config => $config);
         my $has_cw_loops = 0;
         my $cur_loop;
-        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($info->{extruding} && $info->{dist_XY} > 0) {
@@ -47,7 +47,7 @@ use Slic3r::Test;
         my $has_cw_loops = my $has_outwards_move = 0;
         my $cur_loop;
         my %external_loops = ();  # print_z => count of external loops
-        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($info->{extruding} && $info->{dist_XY} > 0) {
@@ -77,7 +77,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('L', config => $config);
         my $loop_starts_from_convex_point = 0;
         my $cur_loop;
-        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($info->{extruding} && $info->{dist_XY} > 0) {
@@ -107,7 +107,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('overhang', config => $config);
         my %layer_speeds = ();  # print Z => [ speeds ]
         my $fan_speed = 0;
-        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             $fan_speed = 0 if $cmd eq 'M107';

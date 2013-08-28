@@ -9,6 +9,7 @@ has 'gcodegen'                      => (is => 'ro', required => 1);
 has 'shift'                         => (is => 'ro', required => 1);
 
 has 'spiralvase'                    => (is => 'lazy');
+has 'vibration_limit'               => (is => 'lazy');
 has 'skirt_done'                    => (is => 'rw', default => sub { {} });  # print_z => 1
 has 'brim_done'                     => (is => 'rw');
 has 'second_layer_things_done'      => (is => 'rw');
@@ -19,6 +20,14 @@ sub _build_spiralvase {
     
     return $Slic3r::Config->spiral_vase
         ? Slic3r::GCode::SpiralVase->new(config => $self->gcodegen->config)
+        : undef;
+}
+
+sub _build_vibration_limit {
+    my $self = shift;
+    
+    return $Slic3r::Config->vibration_limit
+        ? Slic3r::GCode::VibrationLimit->new(config => $self->gcodegen->config)
         : undef;
 }
 
@@ -163,6 +172,10 @@ sub process_layer {
     # apply spiral vase post-processing if this layer contains suitable geometry
     $gcode = $self->spiralvase->process_layer($gcode, $layer)
         if $spiralvase;
+    
+    # apply vibration limit if enabled
+    $gcode = $self->vibration_limit->process($gcode)
+        if $Slic3r::Config->vibration_limit != 0;
     
     return $gcode;
 }

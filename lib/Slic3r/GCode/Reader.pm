@@ -1,7 +1,6 @@
 package Slic3r::GCode::Reader;
 use Moo;
 
-has 'gcode' => (is => 'ro', required => 1);
 has 'X' => (is => 'rw', default => sub {0});
 has 'Y' => (is => 'rw', default => sub {0});
 has 'Z' => (is => 'rw', default => sub {0});
@@ -13,9 +12,9 @@ my @AXES = qw(X Y Z E);
 
 sub parse {
     my $self = shift;
-    my ($cb) = @_;
+    my ($gcode, $cb) = @_;
     
-    foreach my $raw_line (split /\R+/, $self->gcode) {
+    foreach my $raw_line (split /\R+/, $gcode) {
         print "$raw_line\n" if $Verbose || $ENV{SLIC3R_TESTS_GCODE};
         my $line = $raw_line;
         $line =~ s/\s*;(.*)//; # strip comment
@@ -50,12 +49,12 @@ sub parse {
         }
         
         # run callback
-        $cb->($self, $command, \%args, \%info);
+        #$cb->($self, $command, \%args, \%info);
         
         # update coordinates
         if ($command =~ /^(?:G[01]|G92)$/) {
-            for (@AXES, 'F') {
-                $self->$_($args{$_}) if exists $args{$_};
+            for my $axis (@AXES, 'F') {
+                $self->$axis($args{$axis}) if exists $args{$axis};
             }
         }
         

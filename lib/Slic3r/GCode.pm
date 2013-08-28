@@ -1,7 +1,7 @@
 package Slic3r::GCode;
 use Moo;
 
-use List::Util qw(min max first);
+use List::Util qw(min first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
@@ -37,10 +37,6 @@ has 'last_f'             => (is => 'rw', default => sub {""});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
 has 'wipe_path'          => (is => 'rw');
 has 'dec'                => (is => 'ro', default => sub { 3 } );
-
-# used for vibration limit:
-has 'last_dir'           => (is => 'ro', default => sub { [0,0] });
-has 'dir_time'           => (is => 'ro', default => sub { [0,0] });
 
 sub _build_speeds {
     my $self = shift;
@@ -587,7 +583,6 @@ sub _G0_G1 {
         $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        $gcode = $self->_limit_frequency($point) . $gcode;
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
@@ -756,42 +751,6 @@ sub set_bed_temperature {
         if $self->config->gcode_flavor eq 'teacup' && $wait;
     
     return $gcode;
-}
-
-# http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
-sub _limit_frequency {
-    my ($self, $point) = @_;
-    
-    return '' if $self->config->vibration_limit == 0;
-    my $min_time = 1 / ($self->config->vibration_limit * 60);  # in minutes
-    
-    # calculate the move vector and move direction
-    my $vector = Slic3r::Line->new($self->last_pos, $point)->vector;
-    my @dir = map { $vector->[B][$_] <=> 0 } X,Y;
-    
-    my $time = (unscale $vector->length) / $self->speeds->{$self->speed};  # in minutes
-    if ($time > 0) {
-        my @pause = ();
-        foreach my $axis (X,Y) {
-            if ($dir[$axis] != 0 && $self->last_dir->[$axis] != $dir[$axis]) {
-                if ($self->last_dir->[$axis] != 0) {
-                    # this axis is changing direction: check whether we need to pause
-                    if ($self->dir_time->[$axis] < $min_time) {
-                        push @pause, ($min_time - $self->dir_time->[$axis]);
-                    }
-                }
-                $self->last_dir->[$axis] = $dir[$axis];
-                $self->dir_time->[$axis] = 0;
-            }
-            $self->dir_time->[$axis] += $time;
-        }
-        
-        if (@pause) {
-            return sprintf "G4 P%d\n", max(@pause) * 60 * 1000;
-        }
-    }
-    
-    return '';
 }
 
 1;

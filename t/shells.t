@@ -23,7 +23,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
         
         my %layers_with_shells = ();  # Z => $count
-        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($self->Z > 0) {
@@ -58,7 +58,7 @@ use Slic3r::Test;
     
     my $print = Slic3r::Test::init_print('V', config => $config);
     my %layers_with_solid_infill = ();  # Z => 1
-    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         
         $layers_with_solid_infill{$self->Z} = 1
@@ -90,7 +90,7 @@ use Slic3r::Test;
     
     my $print = Slic3r::Test::init_print('V', config => $config);
     my %layers = ();  # Z => 1
-    Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         $layers{$self->Z} = 1
             if $info->{extruding} && ($args->{F} // $self->F) == $config->solid_infill_speed*60;
@@ -116,7 +116,7 @@ use Slic3r::Test;
         my $travel_moves_after_first_extrusion = 0;
         my $started_extruding = 0;
         my @z_steps = ();
-        Slic3r::GCode::Reader->new(gcode => Slic3r::Test::gcode($print))->parse(sub {
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             $started_extruding = 1 if $info->{extruding};
