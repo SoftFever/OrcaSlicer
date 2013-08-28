@@ -556,8 +556,16 @@ sub unretract {
     my $to_unretract = $self->extruder->retracted + $self->extruder->restart_extra;
     if ($to_unretract) {
         $self->speed('retract');
-        # use G1 instead of G0 because G0 will blend the restart with the previous travel move
-        $gcode .= $self->G1(undef, undef, $to_unretract, "compensate retraction");
+        if ($self->config->extrusion_axis) {
+            $self->extruder->e(0) if $self->config->use_relative_e_distances;
+            $self->total_extrusion_length($self->total_extrusion_length + $to_unretract);
+            # use G1 instead of G0 because G0 will blend the restart with the previous travel move
+            $gcode .= sprintf "G1 E%.5f F%.3f",
+                $self->extruder->e($self->extruder->e + $to_unretract),
+                $self->extruder->retract_speed_mm_min;
+            $gcode .= " ; compensate retraction" if $self->config->gcode_comments;
+            $gcode .= "\n";
+        }
         $self->extruder->retracted(0);
         $self->extruder->restart_extra(0);
     }
