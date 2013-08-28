@@ -47,10 +47,4 @@ sub cleanup {
     $self->append(@paths);
 }
 
-sub detect_arcs {
-    my $self = shift;
-    
-    return map $_->detect_arcs(@_), @$self;
-}
-
 1;

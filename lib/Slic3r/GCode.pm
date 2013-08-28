@@ -273,15 +273,6 @@ sub extrude_path {
     
     $path->simplify(&Slic3r::SCALED_RESOLUTION);
     
-    # detect arcs
-    if ($self->config->gcode_arcs && !$params{dont_detect_arcs}) {
-        my $gcode = "";
-        foreach my $arc_path ($path->detect_arcs) {
-            $gcode .= $self->extrude_path($arc_path, $description, %params, dont_detect_arcs => 1);
-        }
-        return $gcode;
-    }
-    
     # go to first point of extrusion path
     my $gcode = "";
     my $first_point = $path->first_point;
@@ -330,39 +321,7 @@ sub extrude_path {
     # extrude arc or line
     $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge;
     my $path_length = 0;
-    if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
-        $path_length = unscale $path->length;
-        
-        # calculate extrusion length for this arc
-        my $E = 0;
-        if ($e) {
-            $E = $e * $path_length;
-            $self->extruder->e(0) if $self->config->use_relative_e_distances;
-            $self->total_extrusion_length($self->total_extrusion_length + $E);
-            $E = $self->extruder->e($self->extruder->e + $E);
-        }
-        
-        # compose G-code line
-        my $point = $path->points->[-1];
-        $gcode .= $path->orientation eq 'cw' ? "G2" : "G3";
-        $gcode .= sprintf " X%.3f Y%.3f", 
-            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
-            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-        
-        # XY distance of the center from the start position
-        $gcode .= sprintf " I%.3f J%.3f",
-            ($path->center->[X] - $self->last_pos->[X]) * &Slic3r::SCALING_FACTOR,
-            ($path->center->[Y] - $self->last_pos->[Y]) * &Slic3r::SCALING_FACTOR;
-        
-        $gcode .= sprintf(" %s%.5f", $self->config->extrusion_axis, $E)
-            if $E;
-        $gcode .= " F$F";
-        $gcode .= " ; $description"
-            if $self->config->gcode_comments;
-        $gcode .= "\n";
-        
-        $self->wipe_path(undef);
-    } else {
+    {
         my $local_F = $F;
         foreach my $line ($path->lines) {
             $path_length += my $line_length = unscale $line->length;

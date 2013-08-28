@@ -2,6 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
+plan skip_all => 'arcs are currently disabled';
 plan tests => 13;
 
 BEGIN {
