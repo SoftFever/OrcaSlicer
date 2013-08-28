@@ -48,6 +48,7 @@ class ExtrusionLoop : public ExtrusionEntity
     Polygon polygon;
     ExtrusionPath* split_at_index(int index);
     ExtrusionPath* split_at_first_point();
+    bool make_counter_clockwise();
 };
 
 }

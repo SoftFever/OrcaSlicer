@@ -41,4 +41,10 @@ ExtrusionLoop::split_at_first_point()
     return this->split_at_index(0);
 }
 
+bool
+ExtrusionLoop::make_counter_clockwise()
+{
+    return this->polygon.make_counter_clockwise();
+}
+
 }

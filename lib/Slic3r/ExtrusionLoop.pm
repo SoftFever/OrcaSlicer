@@ -13,13 +13,4 @@ sub split_at {
     );
 }
 
-sub make_counter_clockwise {
-    my $self = shift;
-    if (!$self->polygon->is_counter_clockwise) {
-        $self->reverse;
-        return 1;
-    }
-    return 0;
-}
-
 1;
