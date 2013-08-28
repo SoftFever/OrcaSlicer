@@ -29,7 +29,6 @@ has 'new_object'         => (is => 'rw', default => sub {0});
 has 'straight_once'      => (is => 'rw', default => sub {1});
 has 'extruder'           => (is => 'rw');
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
-has 'total_extrusion_length' => (is => 'rw', default => sub {0} );
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_speed'         => (is => 'rw', default => sub {""});
@@ -330,12 +329,7 @@ sub extrude_path {
             
             # calculate extrusion length for this line
             my $E = 0;
-            if ($e) {
-                $E = $e * $line_length;
-                $self->extruder->e(0) if $self->config->use_relative_e_distances;
-                $self->total_extrusion_length($self->total_extrusion_length + $E);
-                $E = $self->extruder->e($self->extruder->e + $E);
-            }
+            $E = $self->extruder->extrude($e * $line_length) if $e;
             
             # compose G-code line
             $gcode .= sprintf "G1 X%.3f Y%.3f",
@@ -557,11 +551,9 @@ sub unretract {
     if ($to_unretract) {
         $self->speed('retract');
         if ($self->config->extrusion_axis) {
-            $self->extruder->e(0) if $self->config->use_relative_e_distances;
-            $self->total_extrusion_length($self->total_extrusion_length + $to_unretract);
             # use G1 instead of G0 because G0 will blend the restart with the previous travel move
             $gcode .= sprintf "G1 E%.5f F%.3f",
-                $self->extruder->e($self->extruder->e + $to_unretract),
+                $self->extruder->extrude($to_unretract),
                 $self->extruder->retract_speed_mm_min;
             $gcode .= " ; compensate retraction" if $self->config->gcode_comments;
             $gcode .= "\n";
@@ -577,7 +569,7 @@ sub reset_e {
     my ($self) = @_;
     return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware|sailfish)$/;
     
-    $self->extruder->e(0) if $self->extruder;
+    $self->extruder->E(0) if $self->extruder;
     return sprintf "G92 %s0%s\n", $self->config->extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '')
         if $self->config->extrusion_axis && !$self->config->use_relative_e_distances;
 }
@@ -630,10 +622,7 @@ sub _Gx {
     
     # output extrusion distance
     if ($e && $self->config->extrusion_axis) {
-        $self->extruder->e(0) if $self->config->use_relative_e_distances;
-        $self->extruder->e($self->extruder->e + $e);
-        $self->total_extrusion_length($self->total_extrusion_length + $e);
-        $gcode .= sprintf " %s%.5f", $self->config->extrusion_axis, $self->extruder->e;
+        $gcode .= sprintf " %s%.5f", $self->config->extrusion_axis, $self->extruder->extrude($e);
     }
     
     $gcode .= " ; $comment" if $comment && $self->config->gcode_comments;
