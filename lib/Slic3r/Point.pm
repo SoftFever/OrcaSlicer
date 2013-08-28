@@ -20,6 +20,11 @@ sub new {
     return $self;
 }
 
+sub new_scale {
+    my $class = shift;
+    return $class->new(map Slic3r::Geometry::scale($_), @_);
+}
+
 sub clone {
     Storable::dclone($_[0])
 }

@@ -5,7 +5,6 @@ lib/Slic3r/ExPolygon.pm
 lib/Slic3r/Extruder.pm
 lib/Slic3r/ExtrusionLoop.pm
 lib/Slic3r/ExtrusionPath.pm
-lib/Slic3r/ExtrusionPath/Arc.pm
 lib/Slic3r/ExtrusionPath/Collection.pm
 lib/Slic3r/Fill.pm
 lib/Slic3r/Fill/ArchimedeanChords.pm

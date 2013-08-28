@@ -36,9 +36,4 @@ sub cleanup {
     @{$self->paths} = map $_->split_at_acute_angles, @{$self->paths};
 }
 
-sub detect_arcs {
-    my $self = shift;
-    @{$self->paths} = map $_->detect_arcs(@_), @{$self->paths};
-}
-
 1;
