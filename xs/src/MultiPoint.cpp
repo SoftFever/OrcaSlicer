@@ -38,6 +38,12 @@ MultiPoint::first_point() const
     return &(this->points.front());
 }
 
+const Point*
+MultiPoint::last_point() const
+{
+    return &(this->points.back());
+}
+
 void
 MultiPoint::from_SV(SV* poly_sv)
 {

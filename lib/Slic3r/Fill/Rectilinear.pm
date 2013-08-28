@@ -42,7 +42,7 @@ sub fill_surface {
     my $x_max           = $bounding_box->x_max + scaled_epsilon;
     my @vertical_lines  = ();
     while ($x <= $x_max) {
-        my $vertical_line = Slic3r::Line->new([$x, $bounding_box->y_max], [$x, $bounding_box->y_min]);
+        my $vertical_line = [ [$x, $bounding_box->y_max], [$x, $bounding_box->y_min] ];
         if ($is_line_pattern && $i % 2) {
             $vertical_line->[A][X] += $line_oscillation;
             $vertical_line->[B][X] -= $line_oscillation;
@@ -60,7 +60,7 @@ sub fill_surface {
     my @polylines = map Slic3r::Polyline->new(@$_),
         @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
             [ map $_->pp, @{$expolygon->offset_ex($line_spacing*0.05)} ],
-            [ map $_->pp, @vertical_lines ],
+            [ @vertical_lines ],
         ) };
     
     # connect lines
@@ -82,13 +82,14 @@ sub fill_surface {
         
         foreach my $polyline ($collection->chained_path) {
             if (@polylines) {
-                my $last_point = $polylines[-1][-1]->pp;
-                my @distance = map abs($polyline->[0][$_] - $last_point->[$_]), (X,Y);
+                my $first_point = $polyline->first_point;
+                my $last_point = $polylines[-1]->last_point;
+                my @distance = map abs($first_point->$_ - $last_point->$_), qw(x y);
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
-                if ($can_connect->(@distance) && $expolygon_off->encloses_line(Slic3r::Line->new($last_point, $polyline->[0]), $tolerance)) {
-                    $polylines[-1]->append(@$polyline);
+                if ($can_connect->(@distance) && $expolygon_off->encloses_line(Slic3r::Line->new($last_point, $first_point), $tolerance)) {
+                    $polylines[-1]->append_polyline($polyline);
                     next;
                 }
             }

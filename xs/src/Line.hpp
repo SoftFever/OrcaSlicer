@@ -23,6 +23,7 @@ class Line
     void rotate(double angle, Point* center);
     void reverse();
     double length() const;
+    Point* midpoint() const;
 };
 
 typedef std::vector<Line> Lines;

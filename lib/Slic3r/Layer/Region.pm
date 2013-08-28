@@ -589,8 +589,8 @@ sub _detect_bridge_direction {
             # remove any line not having both endpoints within anchors
             @clipped_lines = grep {
                 my $line = $_;
-                !(first { $_->encloses_point_quick($line->[A]) } @$anchors)
-                    && !(first { $_->encloses_point_quick($line->[B]) } @$anchors);
+                !(first { $_->encloses_point_quick($line->a) } @$anchors)
+                    && !(first { $_->encloses_point_quick($line->b) } @$anchors);
             } @clipped_lines;
             
             # sum length of bridged lines

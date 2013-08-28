@@ -194,7 +194,7 @@ sub make_fill {
                 flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
             ), @polylines,
         );
-        push @fills_ordering_points, $polylines[0][0];
+        push @fills_ordering_points, $polylines[0]->first_point;
     }
     
     # add thin fill regions

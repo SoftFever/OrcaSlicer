@@ -20,6 +20,7 @@ class MultiPoint
     void rotate(double angle, Point* center);
     void reverse();
     const Point* first_point() const;
+    const Point* last_point() const;
 };
 
 }

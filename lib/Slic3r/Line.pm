@@ -37,14 +37,6 @@ sub point_on_left {
     return Slic3r::Geometry::point_is_on_left_of_segment($point, $self);
 }
 
-sub midpoint {
-    my $self = shift;
-    return Slic3r::Point->new(
-        ($self->[A][X] + $self->[B][X]) / 2,
-        ($self->[A][Y] + $self->[B][Y]) / 2,
-    );
-}
-
 sub grow {
     my $self = shift;
     return Slic3r::Polyline->new(@$self[0,1,0])->grow(@_);

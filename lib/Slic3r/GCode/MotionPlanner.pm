@@ -80,8 +80,8 @@ sub BUILD {
         for my $i (0 .. $#outer) {
             foreach my $line ($outer[$i]->lines) {
                 my $dist = $line->length;
-                $edges->{$line->[A]}{$line->[B]} = $dist;
-                $edges->{$line->[B]}{$line->[A]} = $dist;
+                $edges->{$line->a}{$line->b} = $dist;
+                $edges->{$line->b}{$line->a} = $dist;
             }
         }
         

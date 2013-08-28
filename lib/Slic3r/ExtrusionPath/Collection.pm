@@ -33,7 +33,7 @@ sub chained_path {
         }
         push @paths, splice @my_paths, $path_index, 1;
         splice @$endpoints, $path_index*2, 2;
-        $start_near = $paths[-1][-1];
+        $start_near = $paths[-1]->last_point;
     }
     return @paths;
 }

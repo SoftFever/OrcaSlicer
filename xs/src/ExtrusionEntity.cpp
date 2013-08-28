@@ -14,6 +14,12 @@ ExtrusionPath::first_point() const
     return &(this->polyline.points.front());
 }
 
+const Point*
+ExtrusionPath::last_point() const
+{
+    return &(this->polyline.points.back());
+}
+
 ExtrusionPath*
 ExtrusionLoop::split_at_index(int index)
 {

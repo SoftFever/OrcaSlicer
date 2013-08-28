@@ -274,9 +274,11 @@ sub extrude_path {
     
     # go to first point of extrusion path
     my $gcode = "";
-    my $first_point = $path->first_point;
-    $gcode .= $self->travel_to($first_point, $path->role, "move to first $description point")
-        if !defined $self->last_pos || !$self->last_pos->coincides_with($first_point);
+    {
+        my $first_point = $path->first_point;
+        $gcode .= $self->travel_to($first_point, $path->role, "move to first $description point")
+            if !defined $self->last_pos || !$self->last_pos->coincides_with($first_point);
+    }
     
     # compensate retraction
     $gcode .= $self->unretract;
@@ -330,9 +332,10 @@ sub extrude_path {
             $E = $self->extruder->extrude($e * $line_length) if $e;
             
             # compose G-code line
+            my $point = $line->b;
             $gcode .= sprintf "G1 X%.3f Y%.3f",
-                ($line->[B]->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
-                ($line->[B]->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y];  #**
+                ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
+                ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y];  #**
             $gcode .= sprintf(" %s%.5f", $self->config->extrusion_axis, $E)
                 if $E;
             $gcode .= " F$local_F"
@@ -344,8 +347,10 @@ sub extrude_path {
             # only include F in the first line
             $local_F = 0;
         }
-        $self->wipe_path(Slic3r::Polyline->new(reverse @{$path->points}))
-            if $self->enable_wipe;
+        if ($self->enable_wipe) {
+            $self->wipe_path($path->polyline);
+            $self->wipe_path->reverse;
+        }
     }
     $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge;
     $self->last_pos($path->last_point);

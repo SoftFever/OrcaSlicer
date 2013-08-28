@@ -39,6 +39,7 @@ class ExtrusionPath : public ExtrusionEntity
     Polyline polyline;
     void reverse();
     const Point* first_point() const;
+    const Point* last_point() const;
 };
 
 class ExtrusionLoop : public ExtrusionEntity

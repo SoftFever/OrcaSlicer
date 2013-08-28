@@ -101,10 +101,10 @@ sub fill_surface {
             foreach my $path ($collection->chained_path) {
                 if (@paths) {
                     # distance between first point of this path and last point of last path
-                    my $distance = $paths[-1][-1]->distance_to($path->[0]);
+                    my $distance = $paths[-1]->last_point->distance_to($path->first_point);
                     
                     if ($distance <= $m->{hex_width}) {
-                        $paths[-1]->append(@$path);
+                        $paths[-1]->append_polyline($path);
                         next;
                     }
                 }

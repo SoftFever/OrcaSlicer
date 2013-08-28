@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 my $points = [
     [100, 100],
@@ -23,5 +23,8 @@ is_deeply [ map $_->pp, @$lines ], [
     [ [100, 100], [200, 100] ],
     [ [200, 100], [200, 200] ],
 ], 'polyline lines';
+
+$polyline->append_polyline($polyline->clone);
+is_deeply $polyline->pp, [ @$points, @$points ], 'append_polyline';
 
 __END__

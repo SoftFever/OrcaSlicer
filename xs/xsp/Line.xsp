@@ -21,6 +21,8 @@
     void scale(double factor);
     void translate(double x, double y);
     double length();
+    Point* midpoint()
+         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->midpoint(); %};
 %{
 
 Line*

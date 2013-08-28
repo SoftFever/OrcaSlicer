@@ -13,11 +13,6 @@ sub split_at {
     );
 }
 
-sub first_point {
-    my $self = shift;
-    return $self->polygon->[0];
-}
-
 sub make_counter_clockwise {
     my $self = shift;
     if (!$self->polygon->is_counter_clockwise) {

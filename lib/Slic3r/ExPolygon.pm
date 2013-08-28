@@ -210,7 +210,7 @@ sub medial_axis {
         # cleanup
         $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
         
-        if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
+        if (Slic3r::Geometry::same_point($polyline->first_point, $polyline->last_point)) {
             next if @$polyline == 2;
             push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
         } else {
