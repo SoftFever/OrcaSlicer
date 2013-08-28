@@ -36,7 +36,6 @@ has 'last_speed'         => (is => 'rw', default => sub {""});
 has 'last_f'             => (is => 'rw', default => sub {""});
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
 has 'wipe_path'          => (is => 'rw');
-has 'dec'                => (is => 'ro', default => sub { 3 } );
 
 sub _build_speeds {
     my $self = shift;
@@ -317,29 +316,89 @@ sub extrude_path {
     
     # calculate extrusion length per distance unit
     my $e = $self->extruder->e_per_mm3 * $area;
+    $e = 0 if !$self->config->extrusion_axis;
     
     # set speed
     $self->speed( $params{speed} || $role_speeds{$path->role} || die "Unknown role: " . $path->role );
+    my $F = $self->speeds->{$self->speed} // $self->speed;
+    if ($self->layer->id == 0) {
+        $F = $self->config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
+            ? sprintf("%.3f", $F * $1/100)
+            : $self->config->first_layer_speed * 60;
+    }
     
     # extrude arc or line
+    $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge;
     my $path_length = 0;
     if ($path->isa('Slic3r::ExtrusionPath::Arc')) {
         $path_length = unscale $path->length;
-        $gcode .= $self->G2_G3($path->points->[-1], $path->orientation, 
-            $path->center, $e * unscale $path_length, $description);
+        
+        # calculate extrusion length for this arc
+        my $E = 0;
+        if ($e) {
+            $E = $e * $path_length;
+            $self->extruder->e(0) if $self->config->use_relative_e_distances;
+            $self->total_extrusion_length($self->total_extrusion_length + $E);
+            $E = $self->extruder->e($self->extruder->e + $E);
+        }
+        
+        # compose G-code line
+        my $point = $path->points->[-1];
+        $gcode .= $path->orientation eq 'cw' ? "G2" : "G3";
+        $gcode .= sprintf " X%.3f Y%.3f", 
+            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
+            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
+        
+        # XY distance of the center from the start position
+        $gcode .= sprintf " I%.3f J%.3f",
+            ($path->center->[X] - $self->last_pos->[X]) * &Slic3r::SCALING_FACTOR,
+            ($path->center->[Y] - $self->last_pos->[Y]) * &Slic3r::SCALING_FACTOR;
+        
+        $gcode .= sprintf(" %s%.5f", $self->config->extrusion_axis, $E)
+            if $E;
+        $gcode .= " F$F";
+        $gcode .= " ; $description"
+            if $self->config->gcode_comments;
+        $gcode .= "\n";
+        
         $self->wipe_path(undef);
     } else {
-        foreach my $line (@{$path->lines}) {
-            my $line_length = unscale($line->length);
-            $path_length += $line_length;
-            $gcode .= $self->G1($line->[B], undef, $e * $line_length, $description);
+        my $local_F = $F;
+        foreach my $line ($path->lines) {
+            $path_length += my $line_length = unscale $line->length;
+            
+            # calculate extrusion length for this line
+            my $E = 0;
+            if ($e) {
+                $E = $e * $line_length;
+                $self->extruder->e(0) if $self->config->use_relative_e_distances;
+                $self->total_extrusion_length($self->total_extrusion_length + $E);
+                $E = $self->extruder->e($self->extruder->e + $E);
+            }
+            
+            # compose G-code line
+            $gcode .= sprintf "G1 X%.3f Y%.3f",
+                ($line->[B]->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
+                ($line->[B]->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y];  #**
+            $gcode .= sprintf(" %s%.5f", $self->config->extrusion_axis, $E)
+                if $E;
+            $gcode .= " F$local_F"
+                if $local_F;
+            $gcode .= " ; $description"
+                if $self->config->gcode_comments;
+            $gcode .= "\n";
+            
+            # only include F in the first line
+            $local_F = 0;
         }
         $self->wipe_path(Slic3r::Polyline->new(reverse @{$path->points}))
             if $self->enable_wipe;
     }
+    $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge;
+    $self->last_pos($path->last_point);
     
     if ($self->config->cooling) {
-        my $path_time = $path_length / $self->speeds->{$self->last_speed} * 60;
+        my $path_time = $path_length / $F * 60;
         if ($self->layer->id == 0) {
             $path_time = $self->config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
                 ? $path_time / ($1/100)
@@ -574,69 +633,30 @@ sub G1 {
 
 sub _G0_G1 {
     my ($self, $gcode, $point, $z, $e, $comment) = @_;
-    my $dec = $self->dec;
     
-    if (defined $point) {
-        $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
+    if ($point) {
+        $gcode .= sprintf " X%.3f Y%.3f", 
             ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
         $self->z($z);
-        $gcode .= sprintf " Z%.${dec}f", $z;
+        $gcode .= sprintf " Z%.3f", $z;
     }
     
-    return $self->_Gx($gcode, $e, $comment);
-}
-
-sub G2_G3 {
-    my ($self, $point, $orientation, $center, $e, $comment) = @_;
-    my $dec = $self->dec;
-    
-    my $gcode = $orientation eq 'cw' ? "G2" : "G3";
-    
-    $gcode .= sprintf " X%.${dec}f Y%.${dec}f", 
-        ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
-        ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
-    
-    # XY distance of the center from the start position
-    $gcode .= sprintf " I%.${dec}f J%.${dec}f",
-        ($center->[X] - $self->last_pos->[X]) * &Slic3r::SCALING_FACTOR,
-        ($center->[Y] - $self->last_pos->[Y]) * &Slic3r::SCALING_FACTOR;
-    
-    $self->last_pos($point);
     return $self->_Gx($gcode, $e, $comment);
 }
 
 sub _Gx {
     my ($self, $gcode, $e, $comment) = @_;
-    my $dec = $self->dec;
     
-    # output speed if it's different from last one used
-    # (goal: reduce gcode size)
-    my $append_bridge_off = 0;
-    my $F;
-    if ($self->speed ne $self->last_speed) {
-        if ($self->speed eq 'bridge') {
-            $gcode = ";_BRIDGE_FAN_START\n$gcode";
-        } elsif ($self->last_speed eq 'bridge') {
-            $append_bridge_off = 1;
-        }
-        
-        # apply the speed reduction for print moves on bottom layer
-        $F = $self->speed eq 'retract'
-            ? ($self->extruder->retract_speed_mm_min)
-            : $self->speeds->{$self->speed} // $self->speed;
-        if ($e && $self->layer && $self->layer->id == 0 && $comment !~ /retract/) {
-            $F = $self->config->first_layer_speed =~ /^(\d+(?:\.\d+)?)%$/
-                ? ($F * $1/100)
-                : $self->config->first_layer_speed * 60;
-        }
-        $self->last_speed($self->speed);
-        $self->last_f($F);
-    }
-    $gcode .= sprintf " F%.${dec}f", $F if defined $F;
+    my $F = $self->speed eq 'retract'
+        ? ($self->extruder->retract_speed_mm_min)
+        : $self->speeds->{$self->speed} // $self->speed;
+    $self->last_speed($self->speed);
+    $self->last_f($F);
+    $gcode .= sprintf " F%.3f", $F;
     
     # output extrusion distance
     if ($e && $self->config->extrusion_axis) {
@@ -646,10 +666,7 @@ sub _Gx {
         $gcode .= sprintf " %s%.5f", $self->config->extrusion_axis, $self->extruder->e;
     }
     
-    $gcode .= sprintf " ; %s", $comment if $comment && $self->config->gcode_comments;
-    if ($append_bridge_off) {
-        $gcode = ";_BRIDGE_FAN_END\n$gcode";
-    }
+    $gcode .= " ; $comment" if $comment && $self->config->gcode_comments;
     return "$gcode\n";
 }
 
