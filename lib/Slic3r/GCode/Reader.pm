@@ -49,7 +49,7 @@ sub parse {
         }
         
         # run callback
-        #$cb->($self, $command, \%args, \%info);
+        $cb->($self, $command, \%args, \%info);
         
         # update coordinates
         if ($command =~ /^(?:G[01]|G92)$/) {

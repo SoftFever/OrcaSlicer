@@ -56,10 +56,9 @@ sub flush {
         Slic3r::debugf "  fan = %d%%, speed = %d%%\n", $fan_speed, $speed_factor * 100;
         
         if ($speed_factor < 1) {
-            my $dec = $self->gcodegen->dec;
             $gcode =~ s/^(?=.*? [XY])(?=.*? E)(?!;_WIPE)(?<!;_BRIDGE_FAN_START\n)(G1 .*?F)(\d+(?:\.\d+)?)/
                 my $new_speed = $2 * $speed_factor;
-                $1 . sprintf("%.${dec}f", $new_speed < $self->min_print_speed ? $self->min_print_speed : $new_speed)
+                $1 . sprintf("%.3f", $new_speed < $self->min_print_speed ? $self->min_print_speed : $new_speed)
                 /gexm;
         }
     }
