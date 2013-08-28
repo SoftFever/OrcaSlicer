@@ -14,7 +14,6 @@ use Time::HiRes qw(gettimeofday tv_interval);
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
-has 'total_extrusion_length' => (is => 'rw');
 has 'processing_time'        => (is => 'rw');
 has 'extruders'              => (is => 'rw', default => sub {[]});
 has 'regions'                => (is => 'rw', default => sub {[]});
@@ -235,6 +234,7 @@ sub init_extruders {
     );
     for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
         $self->extruders->[$extruder_id] = Slic3r::Extruder->new(
+            config => $self->config,
             id => $extruder_id,
             map { $_ => $self->config->get($_)->[$extruder_id] // $self->config->get($_)->[0] } #/
                 @{&Slic3r::Extruder::OPTIONS}
@@ -472,8 +472,9 @@ sub export_gcode {
             $self->processing_time - int($self->processing_time/60)*60;
         
         # TODO: more statistics!
-        printf "Filament required: %.1fmm (%.1fcm3)\n",
-            $self->total_extrusion_length, $self->total_extrusion_volume;
+        print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
+            $_->absolute_E, $_->extruded_volume/1000),
+            @{$self->extruders};
     }
 }
 
@@ -883,16 +884,15 @@ sub write_gcode {
         print $fh $buffer->flush;
     }
     
-    # save statistic data
-    $self->total_extrusion_length($gcodegen->total_extrusion_length);
-    
     # write end commands to file
     print $fh $gcodegen->retract if $gcodegen->extruder;  # empty prints don't even set an extruder
     print $fh $gcodegen->set_fan(0);
     printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->end_gcode);
     
-    printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
-        $self->total_extrusion_length, $self->total_extrusion_volume;
+    foreach my $extruder (@{$self->extruders}) {
+        printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
+            $extruder->absolute_E, $extruder->extruded_volume/1000;
+    }
     
     if ($Slic3r::Config->gcode_comments) {
         # append full config
@@ -906,11 +906,6 @@ sub write_gcode {
     
     # close our gcode file
     close $fh;
-}
-
-sub total_extrusion_volume {
-    my $self = shift;
-    return $self->total_extrusion_length * ($self->extruders->[0]->filament_diameter**2) * PI/4 / 1000;
 }
 
 # this method will return the supplied input file path after expanding its

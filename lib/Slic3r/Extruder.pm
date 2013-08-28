@@ -12,9 +12,11 @@ use constant OPTIONS => [qw(
 
 has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
+has 'config'=> (is => 'ro', required => 1);
 
 has 'bridge_flow'               => (is => 'lazy');
-has 'e'                         => (is => 'rw', default => sub {0} );
+has 'E'                         => (is => 'rw', default => sub {0} );
+has 'absolute_E'                => (is => 'rw', default => sub {0} );
 has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
@@ -42,6 +44,19 @@ sub _build_scaled_wipe_distance {
     # reduce feedrate a bit; travel speed is often too high to move on existing material
     # too fast = ripping of existing material; too slow = short wipe path, thus more blob
     return scale($self->retract_length / $self->retract_speed * $Slic3r::Config->travel_speed * 0.8);
+}
+
+sub extrude {
+    my ($self, $E) = @_;
+    
+    $self->E(0) if $self->config->use_relative_e_distances;
+    $self->absolute_E($self->absolute_E + $E);
+    return $self->E($self->E + $E);
+}
+
+sub extruded_volume {
+    my ($self) = @_;
+    return $self->absolute_E * ($self->filament_diameter**2) * PI/4;
 }
 
 sub make_flow {

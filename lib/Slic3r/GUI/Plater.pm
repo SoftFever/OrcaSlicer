@@ -697,6 +697,7 @@ sub export_gcode2 {
             my %params = (
                 output_file => $output_file,
                 status_cb   => sub { $params{progressbar}->(@_) },
+                quiet       => 1,
             );
             if ($params{export_svg}) {
                 $print->export_svg(%params);
