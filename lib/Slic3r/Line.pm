@@ -7,14 +7,6 @@ use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(A B X Y);
 
-sub coincides_with {
-    my $self = shift;
-    my ($line) = @_;
-    
-    return ($self->a->coincides_with($line->a) && $self->b->coincides_with($line->b))
-        || ($self->a->coincides_with($line->b) && $self->b->coincides_with($line->a));
-}
-
 sub atan {
     my $self = shift;
     return Slic3r::Geometry::line_atan($self);
