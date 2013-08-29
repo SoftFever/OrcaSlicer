@@ -87,38 +87,4 @@ sub is_bridge {
         || $self->role == EXTR_ROLE_OVERHANG_PERIMETER;
 }
 
-sub split_at_acute_angles {
-    my $self = shift;
-    
-    # calculate angle limit
-    my $angle_limit = abs(Slic3r::Geometry::deg2rad(40));
-    my @points = @{$self->p};
-    
-    my @paths = ();
-    
-    # take first two points
-    my @p = splice @points, 0, 2;
-    
-    # loop until we have one spare point
-    while (my $p3 = shift @points) {
-        my $angle = abs(Slic3r::Geometry::angle3points($p[-1], $p[-2], $p3));
-        $angle = 2*PI - $angle if $angle > PI;
-        
-        if ($angle < $angle_limit) {
-            # if the angle between $p[-2], $p[-1], $p3 is too acute
-            # then consider $p3 only as a starting point of a new
-            # path and stop the current one as it is
-            push @paths, $self->clone(polyline => Slic3r::Polyline->new(@p));
-            @p = ($p3);
-            push @p, grep $_, shift @points or last;
-        } else {
-            push @p, $p3;
-        }
-    }
-    push @paths, $self->clone(polyline => Slic3r::Polyline->new(@p))
-        if @p > 1;
-    
-    return @paths;
-}
-
 1;
