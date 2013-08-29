@@ -2,22 +2,34 @@
 
 namespace Slic3r {
 
+ExtrusionPath*
+ExtrusionPath::clone() const
+{
+    return new ExtrusionPath (*this);
+}
+    
 void
 ExtrusionPath::reverse()
 {
     this->polyline.reverse();
 }
 
-const Point*
-ExtrusionPath::first_point() const
+Point*
+ExtrusionPath::first_point()
 {
     return &(this->polyline.points.front());
 }
 
-const Point*
-ExtrusionPath::last_point() const
+Point*
+ExtrusionPath::last_point()
 {
     return &(this->polyline.points.back());
+}
+
+ExtrusionLoop*
+ExtrusionLoop::clone() const
+{
+    return new ExtrusionLoop (*this);
 }
 
 ExtrusionPath*
@@ -45,6 +57,24 @@ bool
 ExtrusionLoop::make_counter_clockwise()
 {
     return this->polygon.make_counter_clockwise();
+}
+
+void
+ExtrusionLoop::reverse()
+{
+    // no-op
+}
+
+Point*
+ExtrusionLoop::first_point()
+{
+    return &(this->polygon.points.front());
+}
+
+Point*
+ExtrusionLoop::last_point()
+{
+    return &(this->polygon.points.front());  // in polygons, first == last
 }
 
 }

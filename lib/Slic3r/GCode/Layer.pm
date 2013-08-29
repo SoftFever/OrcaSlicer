@@ -111,12 +111,12 @@ sub process_layer {
             if ($layer->support_interface_fills) {
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_interface_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material interface') 
-                    for $layer->support_interface_fills->chained_path($self->gcodegen->last_pos); 
+                    for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills) {
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material') 
-                    for $layer->support_fills->chained_path($self->gcodegen->last_pos);
+                    for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
             }
         }
         
@@ -214,7 +214,7 @@ sub _extrude_infill {
     for my $fill (@{ $island->{fills} }) {
         if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
             $gcode .= $self->gcodegen->extrude($_, 'fill') 
-                for $fill->chained_path($self->gcodegen->last_pos);
+                for @{$fill->chained_path_from($self->gcodegen->last_pos, 0)};
         } else {
             $gcode .= $self->gcodegen->extrude($fill, 'fill') ;
         }

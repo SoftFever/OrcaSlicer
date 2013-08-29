@@ -25,10 +25,14 @@ enum ExtrusionRole {
 class ExtrusionEntity
 {
     public:
+    virtual ExtrusionEntity* clone() const = 0;
     virtual ~ExtrusionEntity() {};
     ExtrusionRole role;
     double height;  // vertical thickness of the extrusion expressed in mm
     double flow_spacing;
+    virtual void reverse() = 0;
+    virtual Point* first_point() = 0;
+    virtual Point* last_point() = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -36,19 +40,24 @@ typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
 class ExtrusionPath : public ExtrusionEntity
 {
     public:
+    ExtrusionPath* clone() const;
     Polyline polyline;
     void reverse();
-    const Point* first_point() const;
-    const Point* last_point() const;
+    Point* first_point();
+    Point* last_point();
 };
 
 class ExtrusionLoop : public ExtrusionEntity
 {
     public:
+    ExtrusionLoop* clone() const;
     Polygon polygon;
     ExtrusionPath* split_at_index(int index);
     ExtrusionPath* split_at_first_point();
     bool make_counter_clockwise();
+    void reverse();
+    Point* first_point();
+    Point* last_point();
 };
 
 }

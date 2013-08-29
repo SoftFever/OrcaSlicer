@@ -300,15 +300,13 @@ sub make_perimeters {
     $self->perimeters->append(@loops);
     
     # add thin walls as perimeters
-    push @{ $self->perimeters }, Slic3r::ExtrusionPath::Collection->new(
-        map {
-            Slic3r::ExtrusionPath->new(
+    push @{ $self->perimeters }, @{Slic3r::ExtrusionPath::Collection->new(
+        map Slic3r::ExtrusionPath->new(
                 polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_),
                 role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                 flow_spacing    => $self->perimeter_flow->spacing,
-            );
-        } @{ $self->thin_walls }
-    )->chained_path;
+        ), @{ $self->thin_walls }
+    )->chained_path(0)};
 }
 
 sub _fill_gaps {

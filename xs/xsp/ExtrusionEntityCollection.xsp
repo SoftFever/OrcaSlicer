@@ -10,6 +10,10 @@
     ~ExtrusionEntityCollection();
     void clear()
         %code{% THIS->entities.clear(); %};
+    ExtrusionEntityCollection* chained_path(bool no_reverse)
+        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path(no_reverse); %};
+    ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse)
+        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path_from(start_near, no_reverse); %};
 %{
 
 SV*

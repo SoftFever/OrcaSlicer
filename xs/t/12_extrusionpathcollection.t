@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 9;
+use Test::More tests => 12;
 
 my $points = [
     [100, 100],
@@ -41,5 +41,32 @@ isa_ok $collection->[3], 'Slic3r::ExtrusionLoop', 'correct object returned for l
 
 is scalar(@{$collection->[1]}), 1, 'appended collection was duplicated';
 
+{
+    my $collection = Slic3r::ExtrusionPath::Collection->new(
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
+            Slic3r::Polyline->new([0,15], [0,18], [0,20]),
+            Slic3r::Polyline->new([0,10], [0,8], [0,5]),
+    );
+    is_deeply
+        [ map $_->y, map @{$_->polyline}, @{$collection->chained_path_from(Slic3r::Point->new(0,30), 0)} ],
+        [20, 18, 15, 10, 8, 5],
+        'chained_path_from';
+    is_deeply
+        [ map $_->y, map @{$_->polyline}, @{$collection->chained_path(0)} ],
+        [15, 18, 20, 10, 8, 5],
+        'chained_path';
+}
+
+{
+    my $collection = Slic3r::ExtrusionPath::Collection->new(
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
+            Slic3r::Polyline->new([15,0], [10,0], [4,0]),
+            Slic3r::Polyline->new([10,5], [15,5], [20,5]),
+    );
+    is_deeply
+        [ map $_->x, map @{$_->polyline}, @{$collection->chained_path_from(Slic3r::Point->new(30,0), 0)} ],
+        [reverse 4, 10, 15, 10, 15, 20],
+        'chained_path_from';
+}
 
 __END__

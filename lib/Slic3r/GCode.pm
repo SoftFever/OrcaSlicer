@@ -228,7 +228,7 @@ sub extrude_loop {
             $extrusion_path->intersect_expolygons($self->_layer_overhangs);
         
         # reapply the nearest point search for starting point
-        @paths = Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path($start_at, 1);
+        @paths = @{Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path_from($start_at, 1)};
     } else {
         push @paths, $extrusion_path;
     }
