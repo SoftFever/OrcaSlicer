@@ -96,9 +96,9 @@ sub fill_surface {
         
         # connect paths
         {
-            my $collection = Slic3r::Polyline::Collection->new(polylines => [@paths]);
+            my $collection = Slic3r::Polyline::Collection->new(@paths);
             @paths = ();
-            foreach my $path ($collection->chained_path) {
+            foreach my $path (@{$collection->chained_path(0)}) {
                 if (@paths) {
                     # distance between first point of this path and last point of last path
                     my $distance = $paths[-1]->last_point->distance_to($path->first_point);

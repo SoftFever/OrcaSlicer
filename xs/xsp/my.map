@@ -3,6 +3,7 @@ TriangleMesh*         O_OBJECT
 Point*         O_OBJECT
 Line*           O_OBJECT
 Polyline*       O_OBJECT
+PolylineCollection*    O_OBJECT
 Polygon*        O_OBJECT
 ExPolygon*      O_OBJECT
 ExPolygonCollection*    O_OBJECT

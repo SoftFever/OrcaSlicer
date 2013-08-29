@@ -12,4 +12,12 @@ Polyline::lines()
     return lines;
 }
 
+SV*
+Polyline::to_SV_ref() const
+{
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Polyline", new Polyline(*this) );
+    return sv;
+}
+
 }

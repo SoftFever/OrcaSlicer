@@ -27,6 +27,11 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::Polyline::Collection;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
 package Slic3r::Polygon;
 use overload
     '@{}' => sub { $_[0]->arrayref },

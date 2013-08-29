@@ -66,9 +66,7 @@ sub fill_surface {
     # connect lines
     unless ($params{dont_connect}) {
         my ($expolygon_off) = @{$expolygon->offset_ex(scale $params{flow_spacing}/2)};
-        my $collection = Slic3r::Polyline::Collection->new(
-            polylines => [ @polylines ],
-        );
+        my $collection = Slic3r::Polyline::Collection->new(@polylines);
         @polylines = ();
         
         my $tolerance = 10 * scaled_epsilon;
@@ -80,7 +78,7 @@ sub fill_surface {
             }
             : sub { $_[X] <= $diagonal_distance && $_[Y] <= $diagonal_distance };
         
-        foreach my $polyline ($collection->chained_path) {
+        foreach my $polyline (@{$collection->chained_path(0)}) {
             if (@polylines) {
                 my $first_point = $polyline->first_point;
                 my $last_point = $polylines[-1]->last_point;

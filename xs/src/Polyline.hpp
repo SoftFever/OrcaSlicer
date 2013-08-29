@@ -9,6 +9,7 @@ namespace Slic3r {
 class Polyline : public MultiPoint {
     public:
     Lines lines();
+    SV* to_SV_ref() const;
 };
 
 typedef std::vector<Polyline> Polylines;
