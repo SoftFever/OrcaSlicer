@@ -5,7 +5,11 @@ namespace Slic3r {
 ExtrusionEntityCollection*
 ExtrusionEntityCollection::clone() const
 {
-    return new ExtrusionEntityCollection (*this);
+    ExtrusionEntityCollection* collection = new ExtrusionEntityCollection (*this);
+    for (ExtrusionEntitiesPtr::iterator it = collection->entities.begin(); it != collection->entities.end(); ++it) {
+        *it = (*it)->clone();
+    }
+    return collection;
 }
 
 void
@@ -43,7 +47,11 @@ ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse)
 {
     if (this->no_sort) return new ExtrusionEntityCollection(*this);
     ExtrusionEntityCollection* retval = new ExtrusionEntityCollection;
-    ExtrusionEntitiesPtr my_paths = this->entities;
+    
+    ExtrusionEntitiesPtr my_paths;
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        my_paths.push_back((*it)->clone());
+    }
     
     Points endpoints;
     for (ExtrusionEntitiesPtr::iterator it = my_paths.begin(); it != my_paths.end(); ++it) {
@@ -60,7 +68,6 @@ ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse)
         int start_index = start_near->nearest_point_index(endpoints);
         int path_index = start_index/2;
         if (start_index % 2 && !no_reverse) {
-            my_paths.at(path_index) = my_paths.at(path_index)->clone();  // maybe we should clone them all when building my_paths?
             my_paths.at(path_index)->reverse();
         }
         retval->entities.push_back(my_paths.at(path_index));

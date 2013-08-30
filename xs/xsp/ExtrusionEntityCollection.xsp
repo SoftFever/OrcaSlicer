@@ -7,7 +7,6 @@
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
     %name{_new} ExtrusionEntityCollection();
-    ~ExtrusionEntityCollection();
     void clear()
         %code{% THIS->entities.clear(); %};
     ExtrusionEntityCollection* chained_path(bool no_reverse)
@@ -15,6 +14,14 @@
     ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse)
         %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path_from(start_near, no_reverse); %};
 %{
+
+void
+ExtrusionEntityCollection::DESTROY()
+    CODE:
+        for (ExtrusionEntitiesPtr::iterator it = THIS->entities.begin(); it != THIS->entities.end(); ++it) {
+            delete *it;
+        }
+        delete THIS;
 
 SV*
 ExtrusionEntityCollection::arrayref()
@@ -24,13 +31,13 @@ ExtrusionEntityCollection::arrayref()
         int i = 0;
         for (ExtrusionEntitiesPtr::iterator it = THIS->entities.begin(); it != THIS->entities.end(); ++it) {
             SV* sv = newSV(0);
-            // return COPIES
+            // return our item by reference
             if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(*it)) {
-                sv_setref_pv( sv, "Slic3r::ExtrusionPath", new ExtrusionPath(*(ExtrusionPath*)*it) );
-            } else if (ExtrusionLoop* path = dynamic_cast<ExtrusionLoop*>(*it)) {
-                sv_setref_pv( sv, "Slic3r::ExtrusionLoop", new ExtrusionLoop(*(ExtrusionLoop*)*it) );
+                sv_setref_pv( sv, "Slic3r::ExtrusionPath::Ref", path );
+            } else if (ExtrusionLoop* loop = dynamic_cast<ExtrusionLoop*>(*it)) {
+                sv_setref_pv( sv, "Slic3r::ExtrusionLoop::Ref", loop );
             } else {
-                sv_setref_pv( sv, "Slic3r::ExtrusionPath::Collection", new ExtrusionEntityCollection(*(ExtrusionEntityCollection*)*it) );
+                sv_setref_pv( sv, "Slic3r::ExtrusionPath::Collection::Ref", *it );
             }
             av_store(av, i++, sv);
         }

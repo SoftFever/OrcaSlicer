@@ -60,6 +60,11 @@ sub new {
     return $self;
 }
 
+package Slic3r::ExtrusionPath::Collection::Ref;
+our @ISA = 'Slic3r::ExtrusionPath::Collection';
+
+sub DESTROY {}
+
 package Slic3r::ExtrusionLoop;
 use overload
     '@{}' => sub { $_[0]->arrayref },
@@ -87,6 +92,11 @@ sub clone {
     );
 }
 
+package Slic3r::ExtrusionLoop::Ref;
+our @ISA = 'Slic3r::ExtrusionLoop';
+
+sub DESTROY {}
+
 package Slic3r::ExtrusionPath;
 use overload
     '@{}' => sub { $_[0]->arrayref },
@@ -113,6 +123,11 @@ sub clone {
         $args{flow_spacing}  // $self->flow_spacing,
     );
 }
+
+package Slic3r::ExtrusionPath::Ref;
+our @ISA = 'Slic3r::ExtrusionPath';
+
+sub DESTROY {}
 
 package Slic3r::Surface;
 
