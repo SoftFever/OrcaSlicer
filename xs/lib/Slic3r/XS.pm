@@ -22,6 +22,11 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::ExPolygon::Ref;
+our @ISA = 'Slic3r::ExPolygon';
+
+sub DESTROY {}
+
 package Slic3r::Polyline;
 use overload
     '@{}' => sub { $_[0]->arrayref },

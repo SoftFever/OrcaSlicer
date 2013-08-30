@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 my $square = [  # ccw
     [100, 100],
@@ -27,7 +27,7 @@ my $surface = Slic3r::Surface->new(
 
 $surface = $surface->clone;
 
-isa_ok $surface->expolygon, 'Slic3r::ExPolygon', 'expolygon';
+isa_ok $surface->expolygon, 'Slic3r::ExPolygon::Ref', 'expolygon';
 is_deeply [ @{$surface->expolygon->pp} ], [$square, $hole_in_square], 'expolygon roundtrip';
 is scalar(@{$surface->polygons}), 2, 'polygons roundtrip';
 
@@ -40,6 +40,12 @@ is $surface->bridge_angle, 30, 'bridge_angle';
 
 $surface->extra_perimeters(2);
 is $surface->extra_perimeters, 2, 'extra_perimeters';
+
+{
+    my $surface2 = $surface->clone;
+    $surface2->expolygon->scale(2);
+    isnt $surface2->expolygon->area, $expolygon->area, 'expolygon is returned by reference';
+}
 
 {
     my $collection = Slic3r::Surface::Collection->new($surface, $surface->clone);
