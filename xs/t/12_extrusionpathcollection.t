@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 my $points = [
     [100, 100],
@@ -35,11 +35,17 @@ is scalar(@$collection), 3, 'append ExtrusionPath';
 $collection->append($loop);
 is scalar(@$collection), 4, 'append ExtrusionLoop';
 
-isa_ok $collection->[1], 'Slic3r::ExtrusionPath::Collection', 'correct object returned for collection';
-isa_ok $collection->[2], 'Slic3r::ExtrusionPath', 'correct object returned for path';
-isa_ok $collection->[3], 'Slic3r::ExtrusionLoop', 'correct object returned for loop';
+isa_ok $collection->[1], 'Slic3r::ExtrusionPath::Collection::Ref', 'correct object returned for collection';
+isa_ok $collection->[2], 'Slic3r::ExtrusionPath::Ref', 'correct object returned for path';
+isa_ok $collection->[3], 'Slic3r::ExtrusionLoop::Ref', 'correct object returned for loop';
 
 is scalar(@{$collection->[1]}), 1, 'appended collection was duplicated';
+
+{
+    my $collection_loop = $collection->[3];
+    $collection_loop->polygon->scale(2);
+    is_deeply $collection->[3]->polygon->pp, $collection_loop->polygon->pp, 'items are returned by reference';
+}
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(

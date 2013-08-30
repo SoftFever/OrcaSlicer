@@ -39,12 +39,12 @@ _new(CLASS, polygon_sv, role, height, flow_spacing)
 Polygon*
 ExtrusionLoop::polygon(...)
     PREINIT:
-        const char* CLASS = "Slic3r::Polygon";
+        const char* CLASS = "Slic3r::Polygon::Ref";
     CODE:
         if (items > 1) {
             THIS->polygon.from_SV_check( ST(1) );
         }
-        RETVAL = new Polygon(THIS->polygon);
+        RETVAL = &(THIS->polygon);
     OUTPUT:
         RETVAL
 

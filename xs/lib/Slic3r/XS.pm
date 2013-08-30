@@ -32,6 +32,11 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::Polyline::Ref;
+our @ISA = 'Slic3r::Polyline';
+
+sub DESTROY {}
+
 package Slic3r::Polyline::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref },
@@ -41,6 +46,11 @@ package Slic3r::Polygon;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
+
+package Slic3r::Polygon::Ref;
+our @ISA = 'Slic3r::Polygon';
+
+sub DESTROY {}
 
 package Slic3r::ExPolygon::Collection;
 use overload

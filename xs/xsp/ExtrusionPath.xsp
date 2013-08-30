@@ -41,12 +41,12 @@ _new(CLASS, polyline_sv, role, height, flow_spacing)
 Polyline*
 ExtrusionPath::polyline(...)
     PREINIT:
-        const char* CLASS = "Slic3r::Polyline";
+        const char* CLASS = "Slic3r::Polyline::Ref";
     CODE:
         if (items > 1) {
             THIS->polyline.from_SV_check( ST(1) );
         }
-        RETVAL = new Polyline(THIS->polyline);
+        RETVAL = &(THIS->polyline);
     OUTPUT:
         RETVAL
 
