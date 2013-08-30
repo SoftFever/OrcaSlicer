@@ -56,7 +56,7 @@ ExtrusionEntityCollection::append(...)
             } else if (ExtrusionLoop* loop = dynamic_cast<ExtrusionLoop*>(entity)) {
                 THIS->entities.push_back( new ExtrusionLoop(*loop) );
             } else {
-                THIS->entities.push_back( new ExtrusionEntityCollection(*(ExtrusionEntityCollection*)entity) );
+                THIS->entities.push_back( (*(ExtrusionEntityCollection*)entity).clone() );
             }
         }
 
