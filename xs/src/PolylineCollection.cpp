@@ -5,9 +5,7 @@ namespace Slic3r {
 PolylineCollection*
 PolylineCollection::chained_path(bool no_reverse) const
 {
-    if (this->polylines.empty()) {
-        return new PolylineCollection ();
-    }
+    if (this->polylines.empty()) return new PolylineCollection ();
     return this->chained_path_from(this->polylines.front().first_point(), no_reverse);
 }
 

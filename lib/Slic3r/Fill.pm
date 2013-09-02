@@ -180,9 +180,10 @@ sub make_fill {
         # save into layer
         push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
         $collection->no_sort($params->{no_sort});
+        
         $collection->append(
             map Slic3r::ExtrusionPath->new(
-                polyline => Slic3r::Polyline->new(@$_),
+                polyline => $_,
                 role => ($surface->surface_type == S_TYPE_INTERNALBRIDGE
                     ? EXTR_ROLE_INTERNALBRIDGE
                     : $is_bridge

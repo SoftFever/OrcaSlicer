@@ -57,19 +57,23 @@ ExPolygon::to_SV() {
     av_extend(av, num_holes);  // -1 +1
     
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(this->contour) );
-    av_store(av, 0, sv);
+    av_store(av, 0, this->contour.to_SV_ref());
     
     for (unsigned int i = 0; i < num_holes; i++) {
-        sv = newSV(0);
-        sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(this->holes[i]) );
-        av_store(av, i+1, sv);
+        av_store(av, i+1, this->holes[i].to_SV_ref());
     }
     return newRV_noinc((SV*)av);
 }
 
 SV*
 ExPolygon::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::ExPolygon::Ref", this );
+    return sv;
+}
+
+SV*
+ExPolygon::to_SV_clone_ref() {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::ExPolygon", new ExPolygon(*this) );
     return sv;

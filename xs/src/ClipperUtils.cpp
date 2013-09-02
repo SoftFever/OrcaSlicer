@@ -339,9 +339,9 @@ polynode2perl(const ClipperLib::PolyNode& node)
     Slic3r::Polygon p;
     ClipperPolygon_to_Slic3rPolygon(node.Contour, p);
     if (node.IsHole()) {
-        (void)hv_stores( hv, "hole", p.to_SV() );
+        (void)hv_stores( hv, "hole", p.to_SV_clone_ref() );
     } else {
-        (void)hv_stores( hv, "outer", p.to_SV() );
+        (void)hv_stores( hv, "outer", p.to_SV_clone_ref() );
     }
     (void)hv_stores( hv, "children", polynode_children_2_perl(node) );
     return (SV*)newRV_noinc((SV*)hv);

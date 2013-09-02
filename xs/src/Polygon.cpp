@@ -5,8 +5,21 @@
 
 namespace Slic3r {
 
+Point*
+Polygon::last_point()
+{
+    return &(this->points.front());  // last point == first point for polygons
+}
+
 SV*
-Polygon::to_SV_ref() {
+Polygon::to_SV_ref() const {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Polygon::Ref", (void*)this );
+    return sv;
+}
+
+SV*
+Polygon::to_SV_clone_ref() const {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(*this) );
     return sv;

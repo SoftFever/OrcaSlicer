@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 my $square = [  # ccw
     [100, 100],
@@ -18,7 +18,7 @@ ok $polygon->is_valid, 'is_valid';
 is_deeply $polygon->pp, $square, 'polygon roundtrip';
 
 is ref($polygon->arrayref), 'ARRAY', 'polygon arrayref is unblessed';
-isa_ok $polygon->[0], 'Slic3r::Point', 'polygon point is blessed';
+isa_ok $polygon->[0], 'Slic3r::Point::Ref', 'polygon point is blessed';
 
 my $lines = $polygon->lines;
 is_deeply [ map $_->pp, @$lines ], [
@@ -42,6 +42,18 @@ ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
     ok $clone->is_counter_clockwise, 'make_counter_clockwise';
     $clone->make_counter_clockwise;
     ok $clone->is_counter_clockwise, 'make_counter_clockwise';
+}
+
+isa_ok $polygon->first_point, 'Slic3r::Point::Ref', 'first_point';
+
+# this is not a test: this just demonstrates bad usage, where $polygon->clone gets
+# DESTROY'ed before the derived object ($point), causing bad memory access
+if (0) {
+    my $point;
+    {
+        $point = $polygon->clone->[0];
+    }
+    $point->scale(2);
 }
 
 __END__

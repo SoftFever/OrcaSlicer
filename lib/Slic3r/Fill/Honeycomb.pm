@@ -108,7 +108,9 @@ sub fill_surface {
                         next;
                     }
                 }
-                push @paths, $path;
+                
+                # make a clone before $collection goes out of scope
+                push @paths, $path->clone;
             }
         }
         

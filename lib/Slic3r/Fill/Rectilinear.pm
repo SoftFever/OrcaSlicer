@@ -91,7 +91,9 @@ sub fill_surface {
                     next;
                 }
             }
-            push @polylines, $polyline;
+            
+            # make a clone before $collection goes out of scope
+            push @polylines, $polyline->clone;
         }
     }
     

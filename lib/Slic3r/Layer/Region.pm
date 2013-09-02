@@ -252,7 +252,7 @@ sub make_perimeters {
         # use a nearest neighbor search to order these children
         # TODO: supply second argument to chained_path_items() too?
         my @nodes = @{Slic3r::Geometry::chained_path_items(
-            [ map [ Slic3r::Point->new(@{$_->{outer} ? $_->{outer}[0] : $_->{hole}[0]}), $_ ], @$polynodes ],
+            [ map [ ($_->{outer} // $_->{hole})->first_point->clone, $_ ], @$polynodes ],
         )};
         
         my @loops = ();
@@ -262,7 +262,9 @@ sub make_perimeters {
             # return ccw contours and cw holes
             # GCode.pm will convert all of them to ccw, but it needs to know
             # what the holes are in order to compute the correct inwards move
-            my $polygon = Slic3r::Polygon->new(defined $polynode->{outer} ? @{$polynode->{outer}} : reverse @{$polynode->{hole}});
+            
+            my $polygon = ($polynode->{outer} // $polynode->{hole})->clone;
+            $polygon->reverse if defined $polynode->{hole};
             $polygon->reverse if !$is_contour;
             
             my $role = EXTR_ROLE_PERIMETER;
@@ -302,7 +304,7 @@ sub make_perimeters {
     # add thin walls as perimeters
     push @{ $self->perimeters }, @{Slic3r::ExtrusionPath::Collection->new(
         map Slic3r::ExtrusionPath->new(
-                polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_),
+                polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_->clone),
                 role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                 flow_spacing    => $self->perimeter_flow->spacing,
         ), @{ $self->thin_walls }

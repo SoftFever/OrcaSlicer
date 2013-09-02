@@ -15,7 +15,7 @@ my $line = Slic3r::Line->new(@$points);
 is_deeply $line->pp, $points, 'line roundtrip';
 
 is ref($line->arrayref), 'ARRAY', 'line arrayref is unblessed';
-isa_ok $line->[0], 'Slic3r::Point', 'line point is blessed';
+isa_ok $line->[0], 'Slic3r::Point::Ref', 'line point is blessed';
 
 {
     my $clone = $line->clone;

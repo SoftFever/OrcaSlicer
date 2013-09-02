@@ -28,20 +28,19 @@ is ref($expolygon->pp), 'ARRAY', 'expolygon pp is unblessed';
 is_deeply $expolygon->pp, [$square, $hole_in_square], 'expolygon roundtrip';
 
 is ref($expolygon->arrayref), 'ARRAY', 'expolygon arrayref is unblessed';
-isa_ok $expolygon->[0], 'Slic3r::Polygon', 'expolygon polygon is blessed';
-isa_ok $expolygon->contour, 'Slic3r::Polygon', 'expolygon contour is blessed';
-isa_ok $expolygon->holes->[0], 'Slic3r::Polygon', 'expolygon hole is blessed';
-isa_ok $expolygon->[0][0], 'Slic3r::Point', 'expolygon point is blessed';
+isa_ok $expolygon->[0], 'Slic3r::Polygon::Ref', 'expolygon polygon is blessed';
+isa_ok $expolygon->contour, 'Slic3r::Polygon::Ref', 'expolygon contour is blessed';
+isa_ok $expolygon->holes->[0], 'Slic3r::Polygon::Ref', 'expolygon hole is blessed';
+isa_ok $expolygon->[0][0], 'Slic3r::Point::Ref', 'expolygon point is blessed';
 
 {
-    my $polygon = $expolygon->[0];
+    my $expolygon2 = $expolygon->clone;
+    my $polygon = $expolygon2->[0];
     $polygon->scale(2);
-    isnt $expolygon->[0][0][0], $polygon->[0][0], 'a copy of polygons is returned';
+    is $expolygon2->[0][0][0], $polygon->[0][0], 'polygons are returned by reference';
 }
 
 is_deeply $expolygon->clone->pp, [$square, $hole_in_square], 'clone';
-# The following tests implicitely check that modifying clones
-# does not modify the original one.
 
 is $expolygon->area, 100*100-20*20, 'area';
 
@@ -100,7 +99,7 @@ is $expolygon->area, 100*100-20*20, 'area';
     
     my $exp = $collection->[0];
     $exp->scale(3);
-    isnt $collection->[0][0][0][0], $exp->[0][0][0], 'collection items are not returned by reference';
+    is $collection->[0][0][0][0], $exp->[0][0][0], 'collection items are returned by reference';
     
     is_deeply $collection->[0]->clone->pp, $collection->[0]->pp, 'clone collection item';
 }

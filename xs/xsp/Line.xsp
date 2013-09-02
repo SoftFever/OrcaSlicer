@@ -14,9 +14,9 @@
     SV* pp()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
     Point* a()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->a); %};
+        %code{% const char* CLASS = "Slic3r::Point::Ref"; RETVAL = &(THIS->a); %};
     Point* b()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->b); %};
+        %code{% const char* CLASS = "Slic3r::Point::Ref"; RETVAL = &(THIS->b); %};
     void reverse();
     void scale(double factor);
     void translate(double x, double y);

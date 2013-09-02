@@ -16,7 +16,7 @@ my $polyline = Slic3r::Polyline->new(@$points);
 is_deeply $polyline->pp, $points, 'polyline roundtrip';
 
 is ref($polyline->arrayref), 'ARRAY', 'polyline arrayref is unblessed';
-isa_ok $polyline->[0], 'Slic3r::Point', 'polyline point is blessed';
+isa_ok $polyline->[0], 'Slic3r::Point::Ref', 'polyline point is blessed';
 
 my $lines = $polyline->lines;
 is_deeply [ map $_->pp, @$lines ], [

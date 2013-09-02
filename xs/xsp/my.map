@@ -23,6 +23,8 @@ Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
 ExPolygons      T_ARRAYREF
 
+Polygons*       T_ARRAYREF_POLYGONS_PTR
+
 INPUT
 
 T_ARRAYREF
@@ -49,6 +51,15 @@ T_ARRAYREF
 	av_extend(av, $var.size()-1);
 	int i = 0;
     for (${type}::iterator it = $var.begin(); it != $var.end(); ++it) {
-        av_store(av, i++, (*it).to_SV_ref());
+        av_store(av, i++, (*it).to_SV_clone_ref());
 	}
 	$var.clear();
+
+T_ARRAYREF_POLYGONS_PTR
+    AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	av_extend(av, $var->size()-1);
+	int i = 0;
+    for (Polygons::iterator it = $var->begin(); it != $var->end(); ++it) {
+        av_store(av, i++, (*it).to_SV_ref());
+	}

@@ -32,16 +32,16 @@ MultiPoint::reverse()
     std::reverse(this->points.begin(), this->points.end());
 }
 
-const Point*
-MultiPoint::first_point() const
+Point*
+MultiPoint::first_point()
 {
     return &(this->points.front());
 }
 
 const Point*
-MultiPoint::last_point() const
+MultiPoint::first_point() const
 {
-    return &(this->points.back());
+    return &(this->points.front());
 }
 
 void
@@ -73,9 +73,7 @@ MultiPoint::to_SV() {
     AV* av = newAV();
     av_extend(av, num_points-1);
     for (unsigned int i = 0; i < num_points; i++) {
-        SV* sv = newSV(0);
-        sv_setref_pv( sv, "Slic3r::Point", new Point(this->points[i]) );
-        av_store(av, i, sv);
+        av_store(av, i, this->points[i].to_SV_ref());
     }
     return newRV_noinc((SV*)av);
 }

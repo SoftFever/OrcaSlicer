@@ -73,7 +73,21 @@ Point::distance_to(const Point* point) const
 }
 
 SV*
-Point::to_SV_pureperl() {
+Point::to_SV_ref() const {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Point::Ref", (void*)this );
+    return sv;
+}
+
+SV*
+Point::to_SV_clone_ref() const {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Point", new Point(*this) );
+    return sv;
+}
+
+SV*
+Point::to_SV_pureperl() const {
     AV* av = newAV();
     av_fill(av, 1);
     av_store(av, 0, newSViv(this->x));

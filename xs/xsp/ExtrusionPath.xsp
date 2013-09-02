@@ -17,9 +17,9 @@
     Lines lines()
         %code{% RETVAL = THIS->polyline.lines(); %};
     Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->first_point())); %};
+        %code{% const char* CLASS = "Slic3r::Point::Ref"; RETVAL = THIS->first_point(); %};
     Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->last_point())); %};
+        %code{% const char* CLASS = "Slic3r::Point::Ref"; RETVAL = THIS->last_point(); %};
 %{
 
 ExtrusionPath*

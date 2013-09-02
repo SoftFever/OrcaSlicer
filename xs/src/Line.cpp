@@ -66,11 +66,11 @@ Line::to_SV() {
     av_extend(av, 1);
     
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Point", new Point(this->a) );
+    sv_setref_pv( sv, "Slic3r::Point::Ref", &(this->a) );
     av_store(av, 0, sv);
     
     sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Point", new Point(this->b) );
+    sv_setref_pv( sv, "Slic3r::Point::Ref", &(this->b) );
     av_store(av, 1, sv);
     
     return newRV_noinc((SV*)av);
@@ -78,6 +78,13 @@ Line::to_SV() {
 
 SV*
 Line::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Line::Ref", this );
+    return sv;
+}
+
+SV*
+Line::to_SV_clone_ref() {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::Line", new Line(*this) );
     return sv;

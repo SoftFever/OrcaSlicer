@@ -17,6 +17,7 @@ class Line
     void from_SV_check(SV* line_sv);
     SV* to_SV();
     SV* to_SV_ref();
+    SV* to_SV_clone_ref();
     SV* to_SV_pureperl();
     void scale(double factor);
     void translate(double x, double y);

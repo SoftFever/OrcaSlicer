@@ -12,10 +12,20 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::Line::Ref;
+our @ISA = 'Slic3r::Line';
+
+sub DESTROY {}
+
 package Slic3r::Point;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
+
+package Slic3r::Point::Ref;
+our @ISA = 'Slic3r::Point';
+
+sub DESTROY {}
 
 package Slic3r::ExPolygon;
 use overload
