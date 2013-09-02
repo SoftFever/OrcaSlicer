@@ -209,6 +209,7 @@ sub medial_axis {
         
         # cleanup
         $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
+        $polyline = Slic3r::Polyline->new(@$polyline);
         
         if (Slic3r::Geometry::same_point($polyline->first_point, $polyline->last_point)) {
             next if @$polyline == 2;

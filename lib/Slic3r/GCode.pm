@@ -100,8 +100,9 @@ sub change_layer {
         $self->_upper_layer_islands([]);
     }
     $self->_layer_overhangs(
+        # clone ExPolygons because they come from Surface objects but will be used outside here
         $layer->id > 0 && ($layer->config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)
-            ? [ map $_->expolygon, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
+            ? [ map $_->expolygon->clone, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
             : []
         );
     if ($self->config->avoid_crossing_perimeters) {
@@ -228,7 +229,9 @@ sub extrude_loop {
             $extrusion_path->intersect_expolygons($self->_layer_overhangs);
         
         # reapply the nearest point search for starting point
-        @paths = @{Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path_from($start_at, 1)};
+        # (clone because the collection gets DESTROY'ed)
+        my $collection = Slic3r::ExtrusionPath::Collection->new(@paths);
+        @paths = map $_->clone, @{$collection->chained_path_from($start_at, 1)};
     } else {
         push @paths, $extrusion_path;
     }
@@ -353,7 +356,7 @@ sub extrude_path {
         }
     }
     $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge;
-    $self->last_pos($path->last_point);
+    $self->last_pos($path->last_point->clone);
     
     if ($self->config->cooling) {
         my $path_time = $path_length / $F * 60;

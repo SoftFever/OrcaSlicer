@@ -46,6 +46,7 @@ sub output {
             $arrows = 0;
         } elsif ($type =~ /^(?:(.+?)_)?expolygons$/) {
             my $colour = $1;
+            @$value = map $_->pp, @$value;
             
             my $g = $svg->group(
                 style => {
@@ -63,6 +64,7 @@ sub output {
             }
         } elsif ($type =~ /^(?:(.+?)_)?(polygon|polyline)s$/) {
             my ($colour, $method) = ($1, $2);
+            @$value = map $_->pp, @$value;
             
             my $g = $svg->group(
                 style => {
@@ -83,8 +85,9 @@ sub output {
                 );
             }
         } elsif ($type =~ /^(?:(.+?)_)?points$/) {
-            my $colour = $1;
+            my $colour = $1 // 'black';
             my $r = $colour eq 'black' ? 5 : 3;
+            @$value = map $_->pp, @$value;
             
             my $g = $svg->group(
                 style => {
@@ -102,6 +105,7 @@ sub output {
             }
         } elsif ($type =~ /^(?:(.+?)_)?lines$/) {
             my $colour = $1;
+            @$value = map $_->pp, @$value;
             
             my $g = $svg->group(
                 style => {
