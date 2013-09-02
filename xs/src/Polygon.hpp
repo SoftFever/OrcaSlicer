@@ -11,7 +11,7 @@ namespace Slic3r {
 
 class Polygon : public MultiPoint {
     public:
-    Point* last_point();
+    Point* last_point() const;
     SV* to_SV_ref() const;
     SV* to_SV_clone_ref() const;
     Lines lines();

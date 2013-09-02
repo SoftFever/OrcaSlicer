@@ -356,7 +356,7 @@ sub extrude_path {
         }
     }
     $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge;
-    $self->last_pos($path->last_point->clone);
+    $self->last_pos($path->last_point);
     
     if ($self->config->cooling) {
         my $path_time = $path_length / $F * 60;

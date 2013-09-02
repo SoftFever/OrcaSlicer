@@ -16,8 +16,8 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     ExtrusionEntityCollection* chained_path(bool no_reverse) const;
     ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse) const;
     void reverse();
-    Point* first_point();
-    Point* last_point();
+    Point* first_point() const;
+    Point* last_point() const;
 };
 
 }

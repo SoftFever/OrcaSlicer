@@ -252,7 +252,7 @@ sub make_perimeters {
         # use a nearest neighbor search to order these children
         # TODO: supply second argument to chained_path_items() too?
         my @nodes = @{Slic3r::Geometry::chained_path_items(
-            [ map [ ($_->{outer} // $_->{hole})->first_point->clone, $_ ], @$polynodes ],
+            [ map [ ($_->{outer} // $_->{hole})->first_point, $_ ], @$polynodes ],
         )};
         
         my @loops = ();

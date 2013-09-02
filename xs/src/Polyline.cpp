@@ -3,15 +3,9 @@
 namespace Slic3r {
 
 Point*
-Polyline::last_point()
-{
-    return &(this->points.back());
-}
-
-const Point*
 Polyline::last_point() const
 {
-    return &(this->points.back());
+    return new Point(this->points.back());
 }
 
 Lines

@@ -6,9 +6,9 @@
 namespace Slic3r {
 
 Point*
-Polygon::last_point()
+Polygon::last_point() const
 {
-    return &(this->points.front());  // last point == first point for polygons
+    return new Point(this->points.front());  // last point == first point for polygons
 }
 
 SV*

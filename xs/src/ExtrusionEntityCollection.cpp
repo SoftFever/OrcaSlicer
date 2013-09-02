@@ -22,13 +22,13 @@ ExtrusionEntityCollection::reverse()
 }
 
 Point*
-ExtrusionEntityCollection::first_point()
+ExtrusionEntityCollection::first_point() const
 {
     return this->entities.front()->first_point();
 }
 
 Point*
-ExtrusionEntityCollection::last_point()
+ExtrusionEntityCollection::last_point() const
 {
     return this->entities.back()->last_point();
 }

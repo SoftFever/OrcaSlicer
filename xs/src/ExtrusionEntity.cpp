@@ -15,15 +15,15 @@ ExtrusionPath::reverse()
 }
 
 Point*
-ExtrusionPath::first_point()
+ExtrusionPath::first_point() const
 {
-    return &(this->polyline.points.front());
+    return new Point(this->polyline.points.front());
 }
 
 Point*
-ExtrusionPath::last_point()
+ExtrusionPath::last_point() const
 {
-    return &(this->polyline.points.back());
+    return new Point(this->polyline.points.back());
 }
 
 ExtrusionLoop*
@@ -66,15 +66,15 @@ ExtrusionLoop::reverse()
 }
 
 Point*
-ExtrusionLoop::first_point()
+ExtrusionLoop::first_point() const
 {
-    return &(this->polygon.points.front());
+    return new Point(this->polygon.points.front());
 }
 
 Point*
-ExtrusionLoop::last_point()
+ExtrusionLoop::last_point() const
 {
-    return &(this->polygon.points.front());  // in polygons, first == last
+    return new Point(this->polygon.points.front());  // in polygons, first == last
 }
 
 }

@@ -33,15 +33,9 @@ MultiPoint::reverse()
 }
 
 Point*
-MultiPoint::first_point()
-{
-    return &(this->points.front());
-}
-
-const Point*
 MultiPoint::first_point() const
 {
-    return &(this->points.front());
+    return new Point(this->points.front());
 }
 
 void
