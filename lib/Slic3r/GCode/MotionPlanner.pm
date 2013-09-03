@@ -78,7 +78,7 @@ sub BUILD {
         
         # lines of outer polygons connect visible points
         for my $i (0 .. $#outer) {
-            foreach my $line ($outer[$i]->lines) {
+            foreach my $line (@{$outer[$i]->lines}) {
                 my $dist = $line->length;
                 $edges->{$line->a}{$line->b} = $dist;
                 $edges->{$line->b}{$line->a} = $dist;

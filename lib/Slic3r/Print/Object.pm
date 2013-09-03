@@ -1094,21 +1094,21 @@ sub generate_support_material {
             my @loops = @loops0;
             for my $i (2..$contact_loops) {
                 my $d = ($i-1) * $flow->scaled_spacing;
-                push @loops, offset2(\@loops0, -$d -0.5*$flow->scaled_spacing, +0.5*$flow->scaled_spacing);
+                push @loops, @{offset2(\@loops0, -$d -0.5*$flow->scaled_spacing, +0.5*$flow->scaled_spacing)};
             }
             
             # clip such loops to the side oriented towards the object
             @loops = map Slic3r::Polyline->new(@$_),
                 @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-                    [ offset_ex([ map @$_, @$overhang ], +scale 3) ],
-                    [ map Slic3r::Polygon->new(@$_)->split_at_first_point, @loops ],
+                    [ map $_->pp, @{offset_ex([ map @$_, @$overhang ], +scale 3)} ],
+                    [ map Slic3r::Polygon->new(@$_)->split_at_first_point->pp, @loops ],
                 ) };
             
             # add the contact infill area to the interface area
-            $contact_infill = [ offset2(\@loops0, -($contact_loops + 0.5) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing) ];
+            $contact_infill = offset2(\@loops0, -($contact_loops + 0.5) * $flow->scaled_spacing, +0.5*$flow->scaled_spacing);
             
             # transform loops into ExtrusionPath objects
-            @loops = map Slic3r::ExtrusionPath->pack(
+            @loops = map Slic3r::ExtrusionPath->new(
                 polyline        => $_,
                 role            => EXTR_ROLE_SUPPORTMATERIAL,
                 flow_spacing    => $flow->spacing,
@@ -1123,9 +1123,9 @@ sub generate_support_material {
             
             # steal some space from support
             $interface{$layer_id} = intersection(
-                [ offset([ map @$_, $interface{$layer_id}, $contact_infill ], scale 3) ],
+                offset([ map @$_, $interface{$layer_id}, $contact_infill ], scale 3),
                 [ map @$_, $interface{$layer_id}, $support{$layer_id}, $contact_infill ],
-                undef, 1,
+                1,
             );
             $support{$layer_id} = diff(
                 $support{$layer_id},
@@ -1135,14 +1135,14 @@ sub generate_support_material {
             my @paths = ();
             foreach my $expolygon (@{union_ex($interface{$layer_id})}) {
                 my @p = $fillers{interface}->fill_surface(
-                    Slic3r::Surface->new(expolygon => $expolygon),
+                    Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density         => $interface_density,
                     flow_spacing    => $flow->spacing,
                     complete        => 1,
                 );
                 my $params = shift @p;
                 
-                push @paths, map Slic3r::ExtrusionPath->pack(
+                push @paths, map Slic3r::ExtrusionPath->new(
                     polyline        => Slic3r::Polyline->new(@$_),
                     role            => EXTR_ROLE_SUPPORTMATERIAL,
                     height          => undef,
@@ -1160,7 +1160,7 @@ sub generate_support_material {
             my $flow_spacing    = $flow->spacing;
             
             # TODO: use offset2_ex()
-            my $to_infill = union_ex($support{$layer_id}, undef, 1);
+            my $to_infill = union_ex($support{$layer_id}, 1);
             my @paths = ();
             
             # base flange
@@ -1172,7 +1172,7 @@ sub generate_support_material {
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
-                push @paths, map Slic3r::ExtrusionPath->pack(
+                push @paths, map Slic3r::ExtrusionPath->new(
                     polyline        => $_->split_at_first_point,
                     role            => EXTR_ROLE_SUPPORTMATERIAL,
                     height          => undef,
@@ -1180,19 +1180,19 @@ sub generate_support_material {
                 ), map @$_, @$to_infill;
                 
                 # TODO: use offset2_ex()
-                $to_infill = [ offset_ex([ map @$_, @$to_infill ], -$flow->scaled_spacing) ];
+                $to_infill = offset_ex([ map @$_, @$to_infill ], -$flow->scaled_spacing);
             }
             
             foreach my $expolygon (@$to_infill) {
                 my @p = $filler->fill_surface(
-                    Slic3r::Surface->new(expolygon => $expolygon),
+                    Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density         => $density,
                     flow_spacing    => $flow_spacing,
                     complete        => 1,
                 );
                 my $params = shift @p;
                 
-                push @paths, map Slic3r::ExtrusionPath->pack(
+                push @paths, map Slic3r::ExtrusionPath->new(
                     polyline        => Slic3r::Polyline->new(@$_),
                     role            => EXTR_ROLE_SUPPORTMATERIAL,
                     height          => undef,
@@ -1221,11 +1221,11 @@ sub generate_support_material {
         my ($layer_id, $result) = @_;
         my $layer = $self->support_layers->[$layer_id];
         
-        my $interface_collection = Slic3r::ExtrusionPath::Collection->new(paths => [ @{$result->{contact}}, @{$result->{interface}} ]);
-        $layer->support_interface_fills($interface_collection) if @{$interface_collection->paths} > 0;
+        my $interface_collection = Slic3r::ExtrusionPath::Collection->new(@{$result->{contact}}, @{$result->{interface}});
+        $layer->support_interface_fills($interface_collection) if @$interface_collection > 0;
         
-        my $support_collection = Slic3r::ExtrusionPath::Collection->new(paths => $result->{support});
-        $layer->support_fills($support_collection) if @{$support_collection->paths} > 0;
+        my $support_collection = Slic3r::ExtrusionPath::Collection->new(@{$result->{support}});
+        $layer->support_fills($support_collection) if @$support_collection > 0;
         
         # TODO: use a Slic3r::ExPolygon::Collection
         $layer->support_islands($result->{islands});
