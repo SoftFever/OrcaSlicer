@@ -44,7 +44,7 @@ ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
     ok $clone->is_counter_clockwise, 'make_counter_clockwise';
 }
 
-isa_ok $polygon->first_point, 'Slic3r::Point::Ref', 'first_point';
+ok ref($polygon->first_point) eq 'Slic3r::Point', 'first_point';
 
 # this is not a test: this just demonstrates bad usage, where $polygon->clone gets
 # DESTROY'ed before the derived object ($point), causing bad memory access

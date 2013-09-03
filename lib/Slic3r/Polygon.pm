@@ -19,7 +19,7 @@ sub merge_continuous_lines {
     
     my $p = $self->pp;
     polygon_remove_parallel_continuous_edges($p);
-    return (ref $self)->new(@$p);
+    return __PACKAGE__->new(@$p);
 }
 
 sub remove_acute_vertices {

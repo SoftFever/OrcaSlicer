@@ -32,7 +32,7 @@ sub simplify {
     my $tolerance = shift || 10;
     
     my $simplified = Boost::Geometry::Utils::linestring_simplify($self->pp, $tolerance);
-    return (ref $self)->new(@$simplified);
+    return __PACKAGE__->new(@$simplified);
 }
 
 sub length {
@@ -66,7 +66,7 @@ sub clip_with_expolygon {
     my ($expolygon) = @_;
     
     my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->pp, [$self->pp]);
-    return map { (ref $self)->new(@$_) } @$result;
+    return map { __PACKAGE__->new(@$_) } @$result;
 }
 
 sub bounding_box {
@@ -128,7 +128,7 @@ sub clip_start {
         $distance = 0;
     }
     
-    return (ref $self)->new($points);
+    return __PACKAGE__->new($points);
 }
 
 # this method returns a collection of points picked on the polygon contour

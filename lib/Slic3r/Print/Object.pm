@@ -643,7 +643,7 @@ sub discover_horizontal_shells {
                                 # additional area in the next shell too
 
                                 # make sure our grown surfaces don't exceed the fill area
-                                my @grown = map @$_, @{intersection_ex(
+                                my @grown = @{intersection(
                                     offset([ map @$_, @$too_narrow ], +$margin),
                                     [ map $_->p, @neighbor_fill_surfaces ],
                                 )};

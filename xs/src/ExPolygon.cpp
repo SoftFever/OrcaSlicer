@@ -73,14 +73,14 @@ ExPolygon::to_SV_ref() {
 }
 
 SV*
-ExPolygon::to_SV_clone_ref() {
+ExPolygon::to_SV_clone_ref() const {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::ExPolygon", new ExPolygon(*this) );
     return sv;
 }
 
 SV*
-ExPolygon::to_SV_pureperl()
+ExPolygon::to_SV_pureperl() const
 {
     const unsigned int num_holes = this->holes.size();
     AV* av = newAV();

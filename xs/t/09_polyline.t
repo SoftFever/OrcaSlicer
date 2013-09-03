@@ -13,6 +13,7 @@ my $points = [
 ];
 
 my $polyline = Slic3r::Polyline->new(@$points);
+
 is_deeply $polyline->pp, $points, 'polyline roundtrip';
 
 is ref($polyline->arrayref), 'ARRAY', 'polyline arrayref is unblessed';

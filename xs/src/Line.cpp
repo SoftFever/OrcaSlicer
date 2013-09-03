@@ -84,14 +84,14 @@ Line::to_SV_ref() {
 }
 
 SV*
-Line::to_SV_clone_ref() {
+Line::to_SV_clone_ref() const {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::Line", new Line(*this) );
     return sv;
 }
 
 SV*
-Line::to_SV_pureperl() {
+Line::to_SV_pureperl() const {
     AV* av = newAV();
     av_extend(av, 1);
     av_store(av, 0, this->a.to_SV_pureperl());

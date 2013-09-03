@@ -73,7 +73,7 @@ Point::distance_to(const Point* point) const
 }
 
 SV*
-Point::to_SV_ref() const {
+Point::to_SV_ref() {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::Point::Ref", (void*)this );
     return sv;

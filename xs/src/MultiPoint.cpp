@@ -73,7 +73,7 @@ MultiPoint::to_SV() {
 }
 
 SV*
-MultiPoint::to_SV_pureperl() {
+MultiPoint::to_SV_pureperl() const {
     const unsigned int num_points = this->points.size();
     AV* av = newAV();
     av_extend(av, num_points-1);

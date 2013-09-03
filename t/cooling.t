@@ -15,7 +15,7 @@ sub buffer {
     my $config = shift || Slic3r::Config->new_from_defaults;
     my $buffer = Slic3r::GCode::CoolingBuffer->new(
         config      => $config,
-        gcodegen    => Slic3r::GCode->new(config => $config, layer_count => 10),
+        gcodegen    => Slic3r::GCode->new(config => $config, layer_count => 10, extruders => []),
     );
     return $buffer;
 }

@@ -30,7 +30,7 @@
     bool make_clockwise();
     bool is_valid();
     Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point::Ref"; RETVAL = THIS->first_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
 %{
 
 Polygon*

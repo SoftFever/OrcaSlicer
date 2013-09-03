@@ -197,9 +197,10 @@ sub make_perimeters {
                 : $perimeter_spacing;
             
             my @offsets = @{offset2_ex(\@last, -1.5*$spacing,  +0.5*$spacing)};
-            my @contours_offsets    = map $_->contour, @offsets;
-            my @holes_offsets       = map @{$_->holes}, @offsets;
-            @offsets = (@contours_offsets, @holes_offsets);     # turn @offsets from ExPolygons to Polygons
+            # clone polygons because these ExPolygons will go out of scope very soon
+            my @contours_offsets    = map $_->contour->clone, @offsets;
+            my @holes_offsets       = map $_->clone, map @{$_->holes}, @offsets;
+            @offsets = map $_->clone, (@contours_offsets, @holes_offsets);     # turn @offsets from ExPolygons to Polygons
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
@@ -555,13 +556,12 @@ sub _detect_bridge_direction {
         }
     } elsif (@edges) {
         # inset the bridge expolygon; we'll use this one to clip our test lines
-        my $inset = [ $expolygon->offset_ex($self->infill_flow->scaled_width) ];
+        my $inset = $expolygon->offset_ex($self->infill_flow->scaled_width);
         
         # detect anchors as intersection between our bridge expolygon and the lower slices
         my $anchors = intersection_ex(
             [ @$grown ],
             [ map @$_, @lower ],
-            undef,
             1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
         );
         
@@ -584,7 +584,8 @@ sub _detect_bridge_direction {
             }
             
             # TODO: use a multi_polygon_multi_linestring_intersection() call
-            my @clipped_lines = map @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection($_, \@lines) }, @$inset;
+            my @clipped_lines = map Slic3r::Line->new(@$_),
+                map @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection($_->pp, \@lines) }, @$inset;
             
             # remove any line not having both endpoints within anchors
             @clipped_lines = grep {

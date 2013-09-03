@@ -8,7 +8,7 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
 has 'config'             => (is => 'ro', required => 1);
-has 'extruders'          => (is => 'ro', default => sub {0}, required => 1);
+has 'extruders'          => (is => 'ro', required => 1);
 has 'multiple_extruders' => (is => 'lazy');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled

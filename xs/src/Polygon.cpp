@@ -12,7 +12,7 @@ Polygon::last_point() const
 }
 
 SV*
-Polygon::to_SV_ref() const {
+Polygon::to_SV_ref() {
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::Polygon::Ref", (void*)this );
     return sv;
@@ -26,7 +26,7 @@ Polygon::to_SV_clone_ref() const {
 }
 
 Lines
-Polygon::lines()
+Polygon::lines() const
 {
     Lines lines;
     for (int i = 0; i < this->points.size()-1; i++) {

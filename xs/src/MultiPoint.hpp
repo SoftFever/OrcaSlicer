@@ -14,7 +14,7 @@ class MultiPoint
     void from_SV(SV* poly_sv);
     void from_SV_check(SV* poly_sv);
     SV* to_SV();
-    SV* to_SV_pureperl();
+    SV* to_SV_pureperl() const;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);

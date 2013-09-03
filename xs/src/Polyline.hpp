@@ -9,8 +9,8 @@ namespace Slic3r {
 class Polyline : public MultiPoint {
     public:
     Point* last_point() const;
-    Lines lines();
-    SV* to_SV_ref() const;
+    void lines(Lines &lines) const;
+    SV* to_SV_ref();
     SV* to_SV_clone_ref() const;
 };
 

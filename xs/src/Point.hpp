@@ -18,7 +18,7 @@ class Point
     explicit Point(long _x = 0, long _y = 0): x(_x), y(_y) {};
     void from_SV(SV* point_sv);
     void from_SV_check(SV* point_sv);
-    SV* to_SV_ref() const;
+    SV* to_SV_ref();
     SV* to_SV_clone_ref() const;
     SV* to_SV_pureperl() const;
     void scale(double factor);

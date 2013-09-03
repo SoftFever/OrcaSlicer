@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 my $square = [  # ccw
     [200, 100],
@@ -19,6 +19,21 @@ my $hole_in_square = [  # cw
     [160, 160],
 ];
 my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
+
+{
+    my $result = Slic3r::Geometry::Clipper::offset([ $square, $hole_in_square ], 5);
+    is_deeply [ map $_->pp, @$result ], [ [
+        [205, 95],
+        [205, 205],
+        [95, 205],
+        [95, 95],
+    ], [
+        [155, 145],
+        [145, 145],
+        [145, 155],
+        [155, 155],
+    ] ], 'offset';
+}
 
 {
     my $result = Slic3r::Geometry::Clipper::offset_ex([ @$expolygon ], 5);
