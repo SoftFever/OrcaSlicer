@@ -657,7 +657,7 @@ sub _line_intersection2 {
 # 2D
 sub bounding_box {
     my ($points) = @_;
-    use XXX; ZZZ "not" if ref($points->[0]) eq 'ARRAY';
+    #use XXX; ZZZ "not" if ref($points->[0]) eq 'ARRAY';
     my @x = map $_->x, @$points;
     my @y = map $_->y, @$points;    #,,
     my @bb = (undef, undef, undef, undef);
