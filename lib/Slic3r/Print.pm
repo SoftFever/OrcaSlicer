@@ -154,6 +154,7 @@ sub add_model {
             print       => $self,
             meshes      => [ @meshes ],
             copies      => [
+                map Slic3r::Point->new(@$_),
                 $object->instances
                     ? (map [ scale($_->offset->[X] - $align[X]) - $align2[X], scale($_->offset->[Y] - $align[Y]) - $align2[Y] ], @{$object->instances})
                     : [0,0],

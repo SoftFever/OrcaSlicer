@@ -807,7 +807,7 @@ sub make_model {
         $new_model_object->add_instance(
             rotation    => $plater_object->rotate,  # around center point
             scaling_factor => $plater_object->scale,
-            offset      => Slic3r::Point->new($_),
+            offset      => Slic3r::Point->new(@$_),
         ) for @{$plater_object->instances};
     }
     
