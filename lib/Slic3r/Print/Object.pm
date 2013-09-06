@@ -654,7 +654,7 @@ sub discover_horizontal_shells {
                                     offset($too_narrow, +$margin),
                                     [ map $_->p, @neighbor_fill_surfaces ],
                                 )};
-                                $new_internal_solid = $solid = union([ @grown, @$new_internal_solid ]);
+                                $new_internal_solid = $solid = [ @grown, @$new_internal_solid ];
                             } else {
                                 # if we're printing a hollow object, we discard such small parts
                                 $new_internal_solid = $solid = diff(

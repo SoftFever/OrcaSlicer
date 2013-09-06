@@ -150,7 +150,7 @@ sub _merge_loops {
         # of the loops, since the Orientation() function provided by Clipper
         # would do the same, thus repeating the calculation
         $slices = ($area[$i] >= 0)
-            ? union([ $loops->[$i], @$slices ])
+            ? [ $loops->[$i], @$slices ]
             : diff($slices, [$loops->[$i]]);
     }
     
