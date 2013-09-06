@@ -427,7 +427,7 @@ sub _plan {
     my ($self, $mp, $point, $comment) = @_;
     
     my $gcode = "";
-    my @travel = $mp->shortest_path($self->last_pos, $point)->lines;
+    my @travel = @{$mp->shortest_path($self->last_pos, $point)->lines};
     
     # if the path is not contained in a single island we need to retract
     my $need_retract = !$self->config->only_retract_when_crossing_perimeters;

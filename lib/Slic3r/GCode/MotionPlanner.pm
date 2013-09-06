@@ -52,7 +52,7 @@ sub BUILD {
             : $self->islands->[$i]->offset_ex(-$self->_inner_margin);
         
         # offset the island outwards to make the boundaries for external movements
-        $self->_outer->[$i] = offset([ $self->islands->[$i]->contour], $self->_outer_margin);
+        $self->_outer->[$i] = offset([ $self->islands->[$i]->contour ], $self->_outer_margin);
         
         # if internal motion is enabled, build a set of utility expolygons representing
         # the outer boundaries (as contours) and the inner boundaries (as holes). whenever
@@ -74,7 +74,7 @@ sub BUILD {
     
     {
         my @outer = (map @$_, @{$self->_outer});
-        my @outer_ex = map [$_], @outer;  # as ExPolygons
+        my @outer_ex = map Slic3r::ExPolygon->new($_), @outer;  # build ExPolygons for Boost
         
         # lines of outer polygons connect visible points
         for my $i (0 .. $#outer) {
@@ -91,7 +91,7 @@ sub BUILD {
                 for my $m (0 .. $#{$outer[$i]}) {
                     for my $n (0 .. $#{$outer[$j]}) {
                         my $line = Slic3r::Line->new($outer[$i][$m], $outer[$j][$n]);
-                        if (!@{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(\@outer_ex, [$line])}) {
+                        if (!@{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection([ map $_->pp, @outer_ex ], [$line->pp])}) {
                             # this line does not cross any polygon
                             my $dist = $line->length;
                             $edges->{$outer[$i][$m]}{$outer[$j][$n]} = $dist;
@@ -106,13 +106,13 @@ sub BUILD {
     # lines connecting inner polygons contours are visible but discouraged
     if (!$self->no_internal) {
         my @inner = (map $_->contour, map @$_, @{$self->_inner});
-        my @inner_ex = map [$_], @inner;  # as ExPolygons
+        my @inner_ex = map Slic3r::ExPolygon->new($_), @inner;  # build ExPolygons for Boost
         for my $i (0 .. $#inner) {
             for my $j (($i+1) .. $#inner) {
                 for my $m (0 .. $#{$inner[$i]}) {
                     for my $n (0 .. $#{$inner[$j]}) {
                         my $line = Slic3r::Line->new($inner[$i][$m], $inner[$j][$n]);
-                        if (!@{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(\@inner_ex, [$line])}) {
+                        if (!@{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection([ map $_->pp, @inner_ex ], [$line->pp])}) {
                             # this line does not cross any polygon
                             my $dist = $line->length * CROSSING_FACTOR;
                             $edges->{$inner[$i][$m]}{$inner[$j][$n]} = $dist;

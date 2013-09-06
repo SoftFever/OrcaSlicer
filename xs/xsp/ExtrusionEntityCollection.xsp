@@ -13,6 +13,10 @@
         %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path(no_reverse); %};
     ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse)
         %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path_from(start_near, no_reverse); %};
+    Point* first_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
+    Point* last_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
 %{
 
 void

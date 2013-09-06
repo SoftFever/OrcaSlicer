@@ -18,6 +18,10 @@
     ExtrusionPath* split_at_first_point()
         %code{% const char* CLASS = "Slic3r::ExtrusionPath"; RETVAL = THIS->split_at_first_point(); %};
     bool make_counter_clockwise();
+    Point* first_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
+    Point* last_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
 %{
 
 ExtrusionLoop*

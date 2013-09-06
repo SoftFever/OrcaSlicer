@@ -934,7 +934,7 @@ sub generate_support_material {
     {
         my $projection = [];
         foreach my $layer (reverse @{$self->layers}) {
-            if (my @top = grep $_->surface_type == S_TYPE_TOP, map @{$_->slices}, @{$layer->regions}) {
+            if (my @top = map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions}) {
                 # compute projection of the contact areas above this top layer
                 # first add all the 'new' contact areas to the current projection
                 # ('new' means all the areas that are lower than the last top layer
@@ -950,7 +950,7 @@ sub generate_support_material {
                     # grow top surfaces so that interface and support generation are generated
                     # with some spacing from object - it looks we don't need the actual
                     # top shapes so this can be done here
-                    $top{ $layer->print_z } = [ offset($touching, $flow->scaled_spacing) ];
+                    $top{ $layer->print_z } = offset($touching, $flow->scaled_spacing);
                 }
                 
                 # remove the areas that touched from the projection that will continue on 
