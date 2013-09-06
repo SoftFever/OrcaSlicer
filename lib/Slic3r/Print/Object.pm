@@ -589,7 +589,7 @@ sub discover_horizontal_shells {
                 # not work in some situations, as there won't be any grown region in the perimeter 
                 # area (this was seen in a model where the top layer had one extra perimeter, thus
                 # its fill_surfaces was thinner than the lower layer's infill)
-                my $solid = offset_ex([ map $_->p, @{$layerm->slices->filter_by_type($type)} ], $margin);
+                my $solid = offset([ map $_->p, @{$layerm->slices->filter_by_type($type)} ], $margin);
                 next if !@$solid;
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
@@ -614,8 +614,8 @@ sub discover_horizontal_shells {
                     # shells to be generated in the base but not in the walls (where there are many
                     # narrow bottom surfaces): reassigning $solid will consider the 'shadow' of the 
                     # upper perimeter as an obstacle and shell will not be propagated to more upper layers
-                    my $new_internal_solid = $solid = intersection_ex(
-                        [ map @$_, @$solid ],
+                    my $new_internal_solid = $solid = intersection(
+                        $solid,
                         [ map $_->p, grep { ($_->surface_type == S_TYPE_INTERNAL) || ($_->surface_type == S_TYPE_INTERNALSOLID) } @neighbor_fill_surfaces ],
                         1,
                     );
@@ -630,9 +630,9 @@ sub discover_horizontal_shells {
                         # would have a different shape from the external surface and we'd still
                         # have the same angle, so the next shell would be grown even more and so on.
                         my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
-                        my $too_narrow = diff_ex(
-                            [ map @$_, @$new_internal_solid ],
-                            offset2([ map @$_, @$new_internal_solid ], -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
+                        my $too_narrow = diff(
+                            $new_internal_solid,
+                            offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
                             1,
                         );
                         
@@ -645,15 +645,15 @@ sub discover_horizontal_shells {
 
                                 # make sure our grown surfaces don't exceed the fill area
                                 my @grown = @{intersection(
-                                    offset([ map @$_, @$too_narrow ], +$margin),
+                                    offset($too_narrow, +$margin),
                                     [ map $_->p, @neighbor_fill_surfaces ],
                                 )};
-                                $new_internal_solid = $solid = union_ex([ @grown, (map @$_, @$new_internal_solid) ]);
+                                $new_internal_solid = $solid = union([ @grown, @$new_internal_solid ]);
                             } else {
                                 # if we're printing a hollow object, we discard such small parts
-                                $new_internal_solid = $solid = diff_ex(
-                                    [ map @$_, @$new_internal_solid ],
-                                    [ map @$_, @$too_narrow ],
+                                $new_internal_solid = $solid = diff(
+                                    $new_internal_solid,
+                                    $too_narrow,
                                 );
                             }
                         }
@@ -663,7 +663,7 @@ sub discover_horizontal_shells {
                     # and new ones
                     my $internal_solid = union_ex([
                         ( map $_->p, grep $_->surface_type == S_TYPE_INTERNALSOLID, @neighbor_fill_surfaces ),
-                        ( map @$_, @$new_internal_solid ),
+                        @$new_internal_solid,
                     ]);
                     
                     # subtract intersections from layer surfaces to get resulting internal surfaces
