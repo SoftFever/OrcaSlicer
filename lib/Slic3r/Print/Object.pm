@@ -5,7 +5,7 @@ use List::Util qw(min max sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
-    offset offset_ex offset2);
+    offset offset_ex offset2 CLIPPER_OFFSET_SCALE JT_MITER);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -628,10 +628,15 @@ sub discover_horizontal_shells {
                     # make sure the new internal solid is wide enough, as it might get collapsed when
                     # spacing is added in Fill.pm
                     {
+                        # we use a higher miterLimit here to handle areas with acute angles
+                        # in those cases, the default miterLimit would cut the corner and we'd
+                        # get a triangle in $too_narrow; if we grow it below then the shell
+                        # would have a different shape from the external surface and we'd still
+                        # have the same angle, so the next shell would be grown even more and so on.
                         my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff_ex(
                             [ map @$_, @$new_internal_solid ],
-                            offset2([ map @$_, @$new_internal_solid ], -$margin, +$margin),
+                            offset2([ map @$_, @$new_internal_solid ], -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
                             1,
                         );
                         

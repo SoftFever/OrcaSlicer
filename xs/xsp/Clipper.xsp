@@ -16,6 +16,7 @@ _constant()
     JT_MITER        = jtMiter
     JT_ROUND        = jtRound
     JT_SQUARE       = jtSquare
+    CLIPPER_OFFSET_SCALE = CLIPPER_OFFSET_SCALE
   CODE:
     RETVAL = ix;
   OUTPUT: RETVAL
