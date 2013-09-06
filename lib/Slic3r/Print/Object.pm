@@ -452,42 +452,48 @@ sub clip_fill_surfaces {
     
     my $additional_margin = scale 3;
     
-    my @overhangs = ();
+    my $overhangs = [];  # arrayref of polygons
     for my $layer_id (reverse 0..$#{$self->layers}) {
         my $layer = $self->layers->[$layer_id];
+        my @layer_internal = ();
+        my @new_internal = ();
         
         # clip this layer's internal surfaces to @overhangs
         foreach my $layerm (@{$layer->regions}) {
-            my @new_internal = map Slic3r::Surface->new(
-                    expolygon       => $_,
-                    surface_type    => S_TYPE_INTERNAL,
-                ),
-                @{intersection_ex(
-                    [ map @$_, @overhangs ],
-                    [ map $_->p, @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)} ],
-                )};
-            my @new_surfaces = (
-                @new_internal,
-                (map $_->clone, @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)}),
-            );
+            # we assume that this step is run before bridge_over_infill() and combine_infill()
+            # so these are the only internal types we might have
+            my (@internal, @other) = ();
+            foreach my $surface (map $_->clone, @{$layerm->fill_surfaces}) {
+                $surface->surface_type == S_TYPE_INTERNAL
+                    ? push @internal, $surface
+                    : push @other, $surface;
+            }
+            
+            # keep all the original internal surfaces to detect overhangs in this layer
+            push @layer_internal, @internal;
+            
+            push @new_internal, my @new = map Slic3r::Surface->new(
+                expolygon       => $_,
+                surface_type    => S_TYPE_INTERNAL,
+            ),
+            @{intersection_ex(
+                $overhangs,
+                [ map $_->p, @internal ],
+            )};
+            
             $layerm->fill_surfaces->clear;
-            $layerm->fill_surfaces->append(@new_surfaces);
+            $layerm->fill_surfaces->append(@new, @other);
         }
         
-        # get this layer's overhangs
+        # get this layer's overhangs defined as the full slice minus the internal infill
+        # (thus we also consider perimeters)
         if ($layer_id > 0) {
-            my $lower_layer = $self->layers->[$layer_id-1];
-            # loop through layer regions so that we can use each region's
-            # specific overhang width
-            foreach my $layerm (@{$layer->regions}) {
-                my $overhang_width = $layerm->overhang_width;
-                # we want to support any solid surface, not just tops
-                # (internal solids might have been generated)
-                push @overhangs, map @{$_->offset_ex($additional_margin)}, @{intersection_ex(
-                    [ map @{$_->expolygon}, grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
-                    [ map @$_, map @{$_->offset_ex(-$overhang_width)}, @{$lower_layer->slices} ],
-                )};
-            }
+            my $solid = diff(
+                [ map @$_, @{$layer->slices} ],
+                \@layer_internal,
+            );
+            $overhangs = offset($solid, +$additional_margin);
+            push @$overhangs, @new_internal;  # propagate upper overhangs
         }
     }
 }
