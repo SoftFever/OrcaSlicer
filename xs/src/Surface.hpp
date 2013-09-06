@@ -16,6 +16,8 @@ class Surface
     unsigned short  thickness_layers;   // in layers
     double          bridge_angle;
     unsigned short  extra_perimeters;
+    SV* to_SV_ref();
+    double area() const;
 };
 
 typedef std::vector<Surface> Surfaces;

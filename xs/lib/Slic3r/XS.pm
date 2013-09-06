@@ -181,6 +181,11 @@ sub clone {
     );
 }
 
+package Slic3r::Surface::Ref;
+our @ISA = 'Slic3r::Surface';
+
+sub DESTROY {}
+
 package Slic3r::Surface::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref },

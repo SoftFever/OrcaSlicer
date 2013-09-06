@@ -13,6 +13,7 @@
         %code{% RETVAL = THIS->thickness; %};
     unsigned short thickness_layers()
         %code{% RETVAL = THIS->thickness_layers; %};
+    double area();
 %{
 
 Surface*

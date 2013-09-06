@@ -412,39 +412,30 @@ sub _fill_gaps {
 sub prepare_fill_surfaces {
     my $self = shift;
     
-    my @surfaces = @{$self->fill_surfaces};
-    
     # if no solid layers are requested, turn top/bottom surfaces to internal
     if ($self->config->top_solid_layers == 0) {
-        for my $i (0..$#surfaces) {
-            next unless $surfaces[$i]->surface_type == S_TYPE_TOP;
-            $self->fill_surfaces->set_surface_type($i, S_TYPE_INTERNAL);
-        }
+        $_->surface_type(S_TYPE_INTERNAL) for @{$self->fill_surfaces->filter_by_type(S_TYPE_TOP)};
     }
     if ($self->config->bottom_solid_layers == 0) {
-        for my $i (0..$#surfaces) {
-            next unless $surfaces[$i]->surface_type == S_TYPE_BOTTOM;
-            $self->fill_surfaces->set_surface_type($i, S_TYPE_INTERNAL);
-        }
+        $_->surface_type(S_TYPE_INTERNAL) for @{$self->fill_surfaces->filter_by_type(S_TYPE_BOTTOM)};
     }
         
     # turn too small internal regions into solid regions according to the user setting
     if ($self->config->fill_density > 0) {
         my $min_area = scale scale $self->config->solid_infill_below_area; # scaling an area requires two calls!
-        for my $i (0..$#surfaces) {
-            next unless $surfaces[$i]->surface_type == S_TYPE_INTERNAL && $surfaces[$i]->expolygon->contour->area <= $min_area;
-            $self->fill_surfaces->set_surface_type($i, S_TYPE_INTERNALSOLID);
-        }
+        $_->surface_type(S_TYPE_INTERNALSOLID)
+            for grep { $_->area <= $min_area } @{$self->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
     }
 }
 
 sub process_external_surfaces {
     my $self = shift;
     
+    my @surfaces = @{$self->fill_surfaces};
     my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
     
     my @bottom = ();
-    foreach my $surface (grep $_->surface_type == S_TYPE_BOTTOM, @{$self->fill_surfaces}) {
+    foreach my $surface (grep $_->surface_type == S_TYPE_BOTTOM, @surfaces) {
         my $grown = $surface->expolygon->offset_ex(+$margin);
         
         # detect bridge direction before merging grown surfaces otherwise adjacent bridges
@@ -459,7 +450,7 @@ sub process_external_surfaces {
     }
     
     my @top = ();
-    foreach my $surface (grep $_->surface_type == S_TYPE_TOP, @{$self->fill_surfaces}) {
+    foreach my $surface (grep $_->surface_type == S_TYPE_TOP, @surfaces) {
         # give priority to bottom surfaces
         my $grown = diff_ex(
             $surface->expolygon->offset(+$margin),
@@ -471,8 +462,8 @@ sub process_external_surfaces {
     # if we're slicing with no infill, we can't extend external surfaces
     # over non-existent infill
     my @fill_boundaries = $self->object->config->fill_density > 0
-        ? @{$self->fill_surfaces}
-        : grep $_->surface_type != S_TYPE_INTERNAL, @{$self->fill_surfaces};
+        ? @surfaces
+        : grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
     
     # intersect the grown surfaces with the actual fill boundaries
     my @new_surfaces = ();
@@ -487,14 +478,15 @@ sub process_external_surfaces {
     }
     
     # subtract the new top surfaces from the other non-top surfaces and re-add them
-    my @other = grep $_->surface_type != S_TYPE_TOP && $_->surface_type != S_TYPE_BOTTOM, @{$self->fill_surfaces};
+    my @other = grep $_->surface_type != S_TYPE_TOP && $_->surface_type != S_TYPE_BOTTOM, @surfaces;
     foreach my $group (Slic3r::Surface->group(@other)) {
         push @new_surfaces, map $group->[0]->clone(expolygon => $_), @{diff_ex(
             [ map $_->p, @$group ],
             [ map $_->p, @new_surfaces ],
         )};
     }
-    @{$self->fill_surfaces} = @new_surfaces;
+    $self->fill_surfaces->clear;
+    $self->fill_surfaces->append(@new_surfaces);
 }
 
 sub _detect_bridge_direction {

@@ -31,9 +31,19 @@ SurfaceCollection::arrayref()
         av_fill(av, THIS->surfaces.size()-1);
         int i = 0;
         for (Surfaces::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
-            SV* sv = newSV(0);
-            sv_setref_pv( sv, "Slic3r::Surface", new Surface(*it) );
-            av_store(av, i++, sv);
+            av_store(av, i++, (*it).to_SV_ref());
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+SV*
+SurfaceCollection::filter_by_type(surface_type)
+    SurfaceType     surface_type;
+    CODE:
+        AV* av = newAV();
+        for (Surfaces::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
+            if ((*it).surface_type == surface_type) av_push(av, (*it).to_SV_ref());
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -43,6 +53,7 @@ void
 SurfaceCollection::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
+            // Note: a COPY of the input is stored
             THIS->surfaces.push_back(*(Surface *)SvIV((SV*)SvRV( ST(i) )));
         }
 

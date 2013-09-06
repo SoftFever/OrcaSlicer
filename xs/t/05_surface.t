@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 my $square = [  # ccw
     [100, 100],
@@ -58,8 +58,9 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
     is scalar(@$collection), 1, 'append to collection';
     
     my $item = $collection->[0];
+    isa_ok $item, 'Slic3r::Surface::Ref';
     $item->surface_type(Slic3r::Surface::S_TYPE_INTERNAL);
-    isnt $item->surface_type, $collection->[0]->surface_type, 'collection returns copies of items';
+    is $item->surface_type, $collection->[0]->surface_type, 'collection returns items by reference';
 }
 
 __END__

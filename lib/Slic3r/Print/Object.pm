@@ -464,11 +464,11 @@ sub clip_fill_surfaces {
                 ),
                 @{intersection_ex(
                     [ map @$_, @overhangs ],
-                    [ map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNAL, @{$layerm->fill_surfaces} ],
+                    [ map $_->p, @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)} ],
                 )};
             my @new_surfaces = (
                 @new_internal,
-                (map $_->clone, grep $_->surface_type != S_TYPE_INTERNAL, @{$layerm->fill_surfaces}),
+                (map $_->clone, @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)}),
             );
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append(@new_surfaces);
@@ -502,8 +502,8 @@ sub bridge_over_infill {
         
         foreach my $layerm (@{$layer->regions}) {
             # compute the areas needing bridge math 
-            my @internal_solid = grep $_->surface_type == S_TYPE_INTERNALSOLID, @{$layerm->fill_surfaces};
-            my @lower_internal = grep $_->surface_type == S_TYPE_INTERNAL, map @{$_->fill_surfaces}, @{$lower_layer->regions};
+            my @internal_solid = @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNALSOLID)};
+            my @lower_internal = map @{$_->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)}, @{$lower_layer->regions};
             my $to_bridge = intersection_ex(
                 [ map $_->p, @internal_solid ],
                 [ map $_->p, @lower_internal ],
@@ -578,11 +578,7 @@ sub discover_horizontal_shells {
             
             if ($self->config->solid_infill_every_layers && $self->config->fill_density > 0
                 && ($i % $self->config->solid_infill_every_layers) == 0) {
-                my @surfaces = @{$layerm->fill_surfaces};
-                for my $i (0..$#surfaces) {
-                    next unless $surfaces[$i]->surface_type == S_TYPE_INTERNAL;
-                    $layerm->fill_surfaces->set_surface_type($i, S_TYPE_INTERNALSOLID);
-                }
+                $_->surface_type(S_TYPE_INTERNALSOLID) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
             }
             
             EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
@@ -593,7 +589,7 @@ sub discover_horizontal_shells {
                 # not work in some situations, as there won't be any grown region in the perimeter 
                 # area (this was seen in a model where the top layer had one extra perimeter, thus
                 # its fill_surfaces was thinner than the lower layer's infill)
-                my $solid = offset_ex([ map $_->p, grep $_->surface_type == $type, @{$layerm->slices} ], $margin);
+                my $solid = offset_ex([ map $_->p, @{$layerm->slices->filter_by_type($type)} ], $margin);
                 next if !@$solid;
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
@@ -745,13 +741,13 @@ sub combine_infill {
                 # we need to perform a multi-layer intersection, so let's split it in pairs
                 
                 # initialize the intersection with the candidates of the lowest layer
-                my $intersection = [ map $_->expolygon, grep $_->surface_type == $type, @{$layerms[0]->fill_surfaces} ];
+                my $intersection = [ map $_->expolygon, @{$layerms[0]->fill_surfaces->filter_by_type($type)} ];
                 
                 # start looping from the second layer and intersect the current intersection with it
                 for my $layerm (@layerms[1 .. $#layerms]) {
                     $intersection = intersection_ex(
                         [ map @$_, @$intersection ],
-                        [ map @{$_->expolygon}, grep $_->surface_type == $type, @{$layerm->fill_surfaces} ],
+                        [ map @{$_->expolygon}, @{$layerm->fill_surfaces->filter_by_type($type)} ],
                     );
                 }
                 
@@ -778,12 +774,12 @@ sub combine_infill {
 
                 
                 foreach my $layerm (@layerms) {
-                    my @this_type   = grep $_->surface_type == $type, @{$layerm->fill_surfaces};
+                    my @this_type   = @{$layerm->fill_surfaces->filter_by_type($type)};
                     my @other_types = map $_->clone, grep $_->surface_type != $type, @{$layerm->fill_surfaces};
                     
                     my @new_this_type = map Slic3r::Surface->new(expolygon => $_, surface_type => $type),
                         @{diff_ex(
-                            [ map @{$_->expolygon}, @this_type ],
+                            [ map $_->p, @this_type ],
                             [ @intersection_with_clearance ],
                         )};
                     

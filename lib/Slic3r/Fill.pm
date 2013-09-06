@@ -54,20 +54,15 @@ sub make_fill {
     
     my @surfaces = ();
     
-    # if hollow object is requested, remove internal surfaces
-    # (this needs to be done after internal-solid shells are created)
-    if ($fill_density == 0) {
-        @surfaces = grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
-    }
-    
     # merge adjacent surfaces
     # in case of bridge surfaces, the ones with defined angle will be attached to the ones
     # without any angle (shouldn't this logic be moved to process_external_surfaces()?)
     {
-        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
+        my @fill_surfaces = @{$layerm->fill_surfaces};
+        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @fill_surfaces;
         
         # give priority to bridges
-        my @groups = Slic3r::Surface->group({merge_solid => 1}, @{$layerm->fill_surfaces});
+        my @groups = Slic3r::Surface->group({merge_solid => 1}, @fill_surfaces);
         @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
         
         foreach my $group (@groups) {
