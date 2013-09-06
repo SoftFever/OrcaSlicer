@@ -244,7 +244,7 @@ sub extrude_loop {
     
     # extrude along the path
     my $gcode = join '', map $self->extrude_path($_, $description, %params), @paths;
-    $self->wipe_path($extrusion_path->polyline) if $self->enable_wipe;
+    $self->wipe_path($extrusion_path->polyline->clone) if $self->enable_wipe;
     
     # make a little move inwards before leaving loop
     if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->layer->object->config->perimeters > 1) {
@@ -351,7 +351,7 @@ sub extrude_path {
             $local_F = 0;
         }
         if ($self->enable_wipe) {
-            $self->wipe_path($path->polyline);
+            $self->wipe_path($path->polyline->clone);
             $self->wipe_path->reverse;
         }
     }
@@ -468,6 +468,7 @@ sub retract {
     # wipe
     my $wipe_path;
     if ($self->extruder->wipe && $self->wipe_path) {
+        my @points = @{$self->wipe_path};
         $wipe_path = Slic3r::Polyline->new($self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}])
             ->clip_start($self->extruder->scaled_wipe_distance);
     }

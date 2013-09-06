@@ -112,23 +112,24 @@ sub clip_start {
     my $self = shift;
     my ($distance) = @_;
     
+    my @points = @$self;
     my $points = [ $self->[0] ];
     
-    for (my $i = 1; $distance > 0 && $i <= $#$self; $i++) {
-        my $point = $self->[$i];
-        my $segment_length = $point->distance_to($self->[$i-1]);
+    for (my $i = 1; $distance > 0 && $i <= $#points; $i++) {
+        my $point = $points[$i];
+        my $segment_length = $point->distance_to($points[$i-1]);
         if ($segment_length <= $distance) {
             $distance -= $segment_length;
             push @$points, $point;
             next;
         }
         
-        my $new_point = Slic3r::Geometry::point_along_segment($self->[$i-1], $point, $distance);
-        push @$points, Slic3r::Point->new($new_point);
+        my $new_point = Slic3r::Geometry::point_along_segment($points[$i-1], $point, $distance);
+        push @$points, Slic3r::Point->new(@$new_point);
         $distance = 0;
     }
     
-    return __PACKAGE__->new($points);
+    return __PACKAGE__->new(@$points);
 }
 
 # this method returns a collection of points picked on the polygon contour
