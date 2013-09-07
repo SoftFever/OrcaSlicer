@@ -46,9 +46,11 @@ class IntersectionLine
     int             edge_a_id;
     int             edge_b_id;
     FacetEdgeType   edge_type;
-    IntersectionLine() : a_id(-1), b_id(-1), edge_a_id(-1), edge_b_id(-1), edge_type(feNone) {};
+    bool            skip;
+    IntersectionLine() : a_id(-1), b_id(-1), edge_a_id(-1), edge_b_id(-1), edge_type(feNone), skip(false) {};
 };
 typedef std::vector<IntersectionLine> IntersectionLines;
+typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
 
 }
 

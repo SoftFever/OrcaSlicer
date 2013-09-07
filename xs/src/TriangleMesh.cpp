@@ -207,39 +207,15 @@ TriangleMesh::slice(const std::vector<double> &z)
     std::vector<IntersectionLines> lines(z.size());
     
     for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; facet_idx++) {
-        stl_facet facet = this->stl.facet_start[facet_idx];  // this is a copy
-        
-        /* reorder vertices so that the first one is the one with lowest Z
-           this is needed to get all intersection lines in a consistent order
-           (external on the right of the line) */
-        /*
-        float min_z;
-        if (facet.vertex[1].z < facet.vertex[0].z && facet.vertex[1].z < facet.vertex[2].z) {
-            // vertex 1 has lowest Z
-            min_z = facet.vertex[1].z;
-            stl_vertex v0 = facet.vertex[0];
-            facet.vertex[0] = facet.vertex[1];
-            facet.vertex[1] = facet.vertex[2];
-            facet.vertex[2] = v0;
-        } else if (facet.vertex[2].z < facet.vertex[0].z && facet.vertex[2].z < facet.vertex[1].z) {
-            // vertex 2 has lowest Z
-            min_z = facet.vertex[2].z;
-            stl_vertex v0 = facet.vertex[0];
-            facet.vertex[0] = facet.vertex[2];
-            facet.vertex[2] = facet.vertex[1];
-            facet.vertex[1] = v0;
-        } else {
-            min_z = facet.vertex[0].z;
-        }
-        */
-        float min_z = fminf(facet.vertex[0].z, fminf(facet.vertex[1].z, facet.vertex[2].z));
-        float max_z = fmaxf(facet.vertex[0].z, fmaxf(facet.vertex[1].z, facet.vertex[2].z));
+        stl_facet* facet = &(this->stl.facet_start[facet_idx]);
+        float min_z = fminf(facet->vertex[0].z, fminf(facet->vertex[1].z, facet->vertex[2].z));
+        float max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
         
         #ifdef SLIC3R_DEBUG
         printf("\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", facet_idx,
-            facet.vertex[0].x, facet.vertex[0].y, facet.vertex[0].z,
-            facet.vertex[1].x, facet.vertex[1].y, facet.vertex[1].z,
-            facet.vertex[2].x, facet.vertex[2].y, facet.vertex[2].z);
+            facet->vertex[0].x, facet->vertex[0].y, facet->vertex[0].z,
+            facet->vertex[1].x, facet->vertex[1].y, facet->vertex[1].z,
+            facet->vertex[2].x, facet->vertex[2].y, facet->vertex[2].z);
         printf("z: min = %.2f, max = %.2f\n", min_z, max_z);
         #endif
         
@@ -263,16 +239,23 @@ TriangleMesh::slice(const std::vector<double> &z)
             std::vector<IntersectionPoint> points;
             std::vector< std::vector<IntersectionPoint>::size_type > points_on_layer, intersection_points;
             
-            for (int i = 0; i <= 2; i++) {  // loop through facet edges
-                int edge_id = facets_edges[facet_idx][i];
+            /* reorder vertices so that the first one is the one with lowest Z
+               this is needed to get all intersection lines in a consistent order
+               (external on the right of the line) */
+            int i = 0;
+            if (facet->vertex[1].z == min_z) {
+                // vertex 1 has lowest Z
+                i = 1;
+            } else if (facet->vertex[2].z == min_z) {
+                // vertex 2 has lowest Z
+                i = 2;
+            }
+            for (int j = i; (j-i) < 3; j++) {  // loop through facet edges
+                int edge_id = facets_edges[facet_idx][j % 3];
                 t_edge edge = edges[edge_id];
                 
                 stl_vertex* a = &(this->stl.v_shared[edge.first]);
                 stl_vertex* b = &(this->stl.v_shared[edge.second]);
-                
-                #ifdef SLIC3R_DEBUG
-                printf("  a = %f, b = %f, slice_z = %f\n", a->z, b->z, slice_z);
-                #endif
                 
                 if (a->z == b->z && a->z == slice_z) {
                     // edge is horizontal and belongs to the current layer
@@ -329,7 +312,7 @@ TriangleMesh::slice(const std::vector<double> &z)
                     IntersectionPoint point;
                     point.x         = b->x + (a->x - b->x) * (slice_z - b->z) / (a->z - b->z);
                     point.y         = b->y + (a->y - b->y) * (slice_z - b->z) / (a->z - b->z);
-                    point.edge_id  = edge_id;
+                    point.edge_id   = edge_id;
                     points.push_back(point);
                     intersection_points.push_back(points.size()-1);
                 }
@@ -337,7 +320,7 @@ TriangleMesh::slice(const std::vector<double> &z)
             
             if (points_on_layer.size() == 2) {
                 if (intersection_points.size() == 1) {
-                    
+                    points.erase( points.begin() + points_on_layer[1] );
                 } else if (intersection_points.empty()) {
                     if (points[ points_on_layer[0] ].coincides_with(&points[ points_on_layer[1] ])) continue;
                 }
@@ -362,13 +345,107 @@ TriangleMesh::slice(const std::vector<double> &z)
     
     // build loops
     std::vector<Polygons>* layers = new std::vector<Polygons>(z.size());
-    for (std::vector<IntersectionLines>::const_iterator it = lines.begin(); it != lines.end(); ++it) {
+    for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
+        int layer_idx = it - lines.begin();
         
+        // remove tangent edges
+        for (IntersectionLines::iterator line = (*it).begin(); line != (*it).end(); ++line) {
+            if (line->skip || line->edge_type == feNone) continue;
+            
+            /* if the line is a facet edge, find another facet edge
+               having the same endpoints but in reverse order */
+            for (IntersectionLines::iterator line2 = line + 1; line2 != (*it).end(); ++line2) {
+                if (line2->skip || line2->edge_type == feNone) continue;
+                
+                // are these facets adjacent? (sharing a common edge on this layer)
+                if (line->a_id == line2->a_id && line->b_id == line2->b_id) {
+                    line2->skip = true;
+                    
+                    /* if they are both oriented upwards or downwards (like a 'V')
+                       then we can remove both edges from this layer since it won't 
+                       affect the sliced shape */
+                    /* if one of them is oriented upwards and the other is oriented
+                       downwards, let's only keep one of them (it doesn't matter which
+                       one since all 'top' lines were reversed at slicing) */
+                    if (line->edge_type == line2->edge_type) {
+                        line->skip = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // build a map of lines by edge_a_id and a_id
+        std::vector<IntersectionLinePtrs> by_edge_a_id, by_a_id;
+        by_edge_a_id.resize(edges.size());
+        by_a_id.resize(this->stl.stats.shared_vertices);
+        for (IntersectionLines::iterator line = (*it).begin(); line != (*it).end(); ++line) {
+            if (line->skip) continue;
+            if (line->edge_a_id != -1) by_edge_a_id[line->edge_a_id].push_back(&(*line));
+            if (line->a_id != -1) by_a_id[line->a_id].push_back(&(*line));
+        }
+        
+        CYCLE: while (1) {
+            // take first spare line and start a new loop
+            IntersectionLine* first_line = NULL;
+            for (IntersectionLines::iterator line = (*it).begin(); line != (*it).end(); ++line) {
+                if (line->skip) continue;
+                first_line = &(*line);
+                break;
+            }
+            if (first_line == NULL) break;
+            first_line->skip = true;
+            IntersectionLinePtrs loop;
+            loop.push_back(first_line);
+            
+            while (1) {
+                // find a line starting where last one finishes
+                IntersectionLine* next_line = NULL;
+                if (loop.back()->edge_b_id != -1) {
+                    IntersectionLinePtrs* candidates = &(by_edge_a_id[loop.back()->edge_b_id]);
+                    for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                        if ((*lineptr)->skip) continue;
+                        next_line = *lineptr;
+                        break;
+                    }
+                }
+                if (next_line == NULL && loop.back()->b_id != -1) {
+                    IntersectionLinePtrs* candidates = &(by_a_id[loop.back()->b_id]);
+                    for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                        if ((*lineptr)->skip) continue;
+                        next_line = *lineptr;
+                        break;
+                    }
+                }
+                
+                if (next_line == NULL) {
+                    // check whether we closed this loop
+                    if ((loop.front()->edge_a_id != -1 && loop.front()->edge_a_id == loop.back()->edge_b_id)
+                        || (loop.front()->a_id != -1 && loop.front()->a_id == loop.back()->b_id)) {
+                        // loop is complete
+                        Polygon p;
+                        p.points.reserve(loop.size());
+                        for (IntersectionLinePtrs::iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
+                            p.points.push_back((*lineptr)->a);
+                        }
+                        (*layers)[layer_idx].push_back(p);
+                        
+                        #ifdef SLIC3R_DEBUG
+                        printf("  Discovered %s polygon of %d points\n", (p.is_counter_clockwise() ? "ccw" : "cw"), (int)p.points.size());
+                        #endif
+                        
+                        goto CYCLE;
+                    }
+                    
+                    // we can't close this loop!
+                    //// push @failed_loops, [@loop];
+                    goto CYCLE;
+                }
+                loop.push_back(next_line);
+                next_line->skip = true;
+            }
+        }
     }
-    
-    // ...
-    // add a Polygon p to layer n:
-    // (*layers)[n].push_back(p);
     
     return layers;
 }

@@ -44,11 +44,17 @@ my $cube = {
     ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
 }
 
-{
+if (0) {
     my $m = Slic3r::TriangleMesh::XS->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->Repair;
-    my $result = $m->slice([2,4,8,6,8,10,12,14,16,18,20]);
+    my @z = (2,4,8,6,8,10,12,14,16,18,20);
+    my $result = $m->slice(\@z);
+    for my $i (0..$#z) {
+        is scalar(@{$result->[$i]}), 1, 'number of returned polygons per layer';
+        is $result->[$i][0]->area, 20*20, 'size of returned polygon';
+        ok $result->[$i][0]->is_counter_clockwise, 'orientation of returned polygon';
+    }
 }
 
 __END__
