@@ -414,10 +414,13 @@ sub intersect_facet {
     my $self = shift;
     my ($facet_id, $z) = @_;
     
-    my @vertices_ids        = @{$self->facets->[$facet_id]}[-3..-1];
-    my %vertices            = map { $_ => $self->vertices->[$_] } @vertices_ids;  # cache vertices
     my @edge_ids            = @{$self->facets_edges->[$facet_id]};
     my @edge_vertices_ids   = $self->_facet_edges($facet_id);
+    my %vertices;
+    {
+        my @vertices_ids    = @{$self->facets->[$facet_id]}[-3..-1];
+        %vertices           = map { $_ => $self->vertices->[$_] } @vertices_ids;  # cache vertices
+    }
     
     my (@points, @intersection_points, @points_on_layer) = ();
         
@@ -428,7 +431,7 @@ sub intersect_facet {
         
         if ($a->[Z] == $b->[Z] && $a->[Z] == $z) {
             # edge is horizontal and belongs to the current layer
-            my $edge_type = (grep $vertices{$_}[Z] < $z, @vertices_ids) ? FE_TOP : FE_BOTTOM;
+            my $edge_type = (grep $_->[Z] < $z, values %vertices) ? FE_TOP : FE_BOTTOM;
             if ($edge_type == FE_TOP) {
                 ($a, $b) = ($b, $a);
                 ($a_id, $b_id) = ($b_id, $a_id);

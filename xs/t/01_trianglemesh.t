@@ -48,7 +48,7 @@ my $cube = {
     my $m = Slic3r::TriangleMesh::XS->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->Repair;
-    my $result = $m->slice([2,4,8,6,8,10,12,14,16,18]);
+    my $result = $m->slice([2,4,8,6,8,10,12,14,16,18,20]);
 }
 
 __END__
