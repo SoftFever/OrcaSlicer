@@ -44,4 +44,11 @@ my $cube = {
     ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
 }
 
+{
+    my $m = Slic3r::TriangleMesh::XS->new;
+    $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
+    $m->Repair;
+    my $result = $m->slice([2,4,8,6,8,10,12,14,16,18]);
+}
+
 __END__

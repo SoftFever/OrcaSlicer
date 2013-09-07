@@ -3,7 +3,9 @@
 
 #include <myinit.h>
 #include <admesh/stl.h>
+#include <vector>
 #include "Point.hpp"
+#include "Polygon.hpp"
 
 namespace Slic3r {
 
@@ -20,6 +22,7 @@ class TriangleMesh
     void translate(float x, float y, float z);
     void align_to_origin();
     void rotate(double angle, Point* center);
+    std::vector<Polygons>* slice(const std::vector<double> &z);
     stl_file stl;
 };
 
