@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 47;
+use Test::More tests => 48;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -32,14 +32,18 @@ my $cube = {
     $m->scale(2);
     ok abs($m->stats->{volume} - 40*40*40) < 1E-2, 'scale';
     
+    $m->scale_xyz([2,1,1]);
+    ok abs($m->stats->{volume} - 2*40*40*40) < 1E-2, 'scale_xyz';
+    
     $m->translate(5,10,0);
-    is_deeply $m->vertices->[0], [45,50,0], 'translate';
+    is_deeply $m->vertices->[0], [85,50,0], 'translate';
     
     $m->align_to_origin;
     is_deeply $m->vertices->[2], [0,0,0], 'align_to_origin';
     
-    is_deeply $m->size, [40,40,40], 'size';
+    is_deeply $m->size, [80,40,40], 'size';
     
+    $m->scale_xyz([0.5,1,1]);
     $m->rotate(45, Slic3r::Point->new(20,20));
     ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
     

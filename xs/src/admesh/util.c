@@ -102,40 +102,50 @@ stl_translate(stl_file *stl, float x, float y, float z)
 }
 
 void
-stl_scale(stl_file *stl, float factor)
+stl_scale(stl_file *stl, float versor[3])
 {
   int i;
   int j;
   
   // scale extents
-  stl->stats.min.x *= factor;
-  stl->stats.min.y *= factor;
-  stl->stats.min.z *= factor;
-  stl->stats.max.x *= factor;
-  stl->stats.max.y *= factor;
-  stl->stats.max.z *= factor;
+  stl->stats.min.x *= versor[0];
+  stl->stats.min.y *= versor[1];
+  stl->stats.min.z *= versor[2];
+  stl->stats.max.x *= versor[0];
+  stl->stats.max.y *= versor[1];
+  stl->stats.max.z *= versor[2];
   
   // scale size
-  stl->stats.size.x *= factor;
-  stl->stats.size.y *= factor;
-  stl->stats.size.z *= factor;
+  stl->stats.size.x *= versor[0];
+  stl->stats.size.y *= versor[1];
+  stl->stats.size.z *= versor[2];
   
   // scale volume
   if (stl->stats.volume > 0.0) {
-    stl->stats.volume *= (factor * factor * factor);
+    stl->stats.volume *= (versor[0] * versor[1] * versor[2]);
   }
   
   for(i = 0; i < stl->stats.number_of_facets; i++)
     {
       for(j = 0; j < 3; j++)
 	{
-	  stl->facet_start[i].vertex[j].x *= factor;
-	  stl->facet_start[i].vertex[j].y *= factor;
-	  stl->facet_start[i].vertex[j].z *= factor;
+	  stl->facet_start[i].vertex[j].x *= versor[0];
+	  stl->facet_start[i].vertex[j].y *= versor[1];
+	  stl->facet_start[i].vertex[j].z *= versor[2];
 	}
     }
    
    stl_invalidate_shared_vertices(stl);
+}
+
+void
+stl_scale(stl_file *stl, float factor)
+{
+    float versor[3];
+    versor[0] = factor;
+    versor[1] = factor;
+    versor[2] = factor;
+    stl_scale(stl, versor);
 }
 
 static void calculate_normals(stl_file *stl)

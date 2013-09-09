@@ -126,6 +126,15 @@ void TriangleMesh::scale(float factor)
     stl_scale(&(this->stl), factor);
 }
 
+void TriangleMesh::scale(std::vector<double> versor)
+{
+    float fversor[3];
+    fversor[0] = versor[0];
+    fversor[1] = versor[1];
+    fversor[2] = versor[2];
+    stl_scale(&this->stl, fversor);
+}
+
 void TriangleMesh::translate(float x, float y, float z)
 {
     stl_translate(&(this->stl), x, y, z);
