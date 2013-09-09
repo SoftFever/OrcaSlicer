@@ -16,6 +16,7 @@ class TriangleMesh
 {
     public:
     TriangleMesh() : repaired(false) {};
+    TriangleMesh(const TriangleMesh &other);
     ~TriangleMesh();
     SV* to_SV();
     void ReadSTLFile(char* input_file);

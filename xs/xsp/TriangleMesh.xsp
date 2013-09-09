@@ -8,6 +8,8 @@
 %name{Slic3r::TriangleMesh::XS} class TriangleMesh {
     TriangleMesh();
     ~TriangleMesh();
+    TriangleMesh* clone()
+        %code{% const char* CLASS = "Slic3r::TriangleMesh"; RETVAL = new TriangleMesh(*THIS); %};
     void ReadSTLFile(char* input_file);
     void ReadFromPerl(SV* vertices, SV* facets);
     void repair();

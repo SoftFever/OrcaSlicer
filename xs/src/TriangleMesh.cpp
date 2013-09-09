@@ -11,8 +11,23 @@
 
 namespace Slic3r {
 
+TriangleMesh::TriangleMesh(const TriangleMesh &other)
+    : stl(other.stl), repaired(other.repaired)
+{
+    this->stl.heads = NULL;
+    this->stl.tail  = NULL;
+    if (other.stl.facet_start != NULL)
+        std::copy(other.stl.facet_start,     other.stl.facet_start     + other.stl.stats.number_of_facets, this->stl.facet_start);
+    if (other.stl.neighbors_start != NULL)
+        std::copy(other.stl.neighbors_start, other.stl.neighbors_start + other.stl.stats.number_of_facets, this->stl.neighbors_start);
+    if (other.stl.v_indices != NULL)
+        std::copy(other.stl.v_indices,       other.stl.v_indices       + other.stl.stats.number_of_facets, this->stl.v_indices);
+    if (other.stl.v_shared != NULL)
+        std::copy(other.stl.v_shared,        other.stl.v_shared        + other.stl.stats.shared_vertices,  this->stl.v_shared);
+}
+
 TriangleMesh::~TriangleMesh() {
-    stl_close(&stl);
+    stl_close(&this->stl);
 }
 
 SV*
