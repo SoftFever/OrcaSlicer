@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 45;
+use Test::More tests => 46;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -46,6 +46,11 @@ my $cube = {
     my $result = $m->split;
     is scalar(@$result), 1, 'split';
     isa_ok $result->[0], 'Slic3r::TriangleMesh::XS', 'split';
+    
+    my $m2 = Slic3r::TriangleMesh::XS->new;
+    $m2->ReadFromPerl($cube->{vertices}, $cube->{facets});
+    $m->merge($m2);
+    is $m->stats->{number_of_facets}, 2 * $m2->stats->{number_of_facets}, 'merge';
 }
 
 {

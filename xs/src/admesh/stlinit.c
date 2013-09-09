@@ -213,7 +213,7 @@ stl_open_merge(stl_file *stl, char *file)
   stl_read(stl, first_facet, 0);
 }
 
-static void
+extern void
 stl_reallocate(stl_file *stl)
 {
   /*  Reallocate more memory for the .STL file(s) */

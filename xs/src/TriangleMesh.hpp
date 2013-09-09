@@ -28,6 +28,7 @@ class TriangleMesh
     void rotate(double angle, Point* center);
     std::vector<Polygons>* slice(const std::vector<double> &z);
     TriangleMeshPtrs split() const;
+    void merge(const TriangleMesh* mesh);
     stl_file stl;
 };
 
