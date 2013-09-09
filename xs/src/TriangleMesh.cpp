@@ -1,4 +1,7 @@
 #include "TriangleMesh.hpp"
+#include <queue>
+#include <deque>
+#include <set>
 #include <vector>
 #include <map>
 #include <utility>
@@ -466,6 +469,52 @@ TriangleMesh::slice(const std::vector<double> &z)
     }
     
     return layers;
+}
+
+std::vector<TriangleMesh>
+TriangleMesh::split() const
+{
+    std::vector<TriangleMesh> meshes;
+    std::set<int> seen_facets;
+    
+    // loop while we have remaining facets
+    while (1) {
+        // get the first facet
+        std::queue<int> facet_queue;
+        std::deque<int> facets;
+        for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; facet_idx++) {
+            if (seen_facets.find(facet_idx) != seen_facets.end()) {
+                facet_queue.push(facet_idx);
+                break;
+            }
+        }
+        if (facet_queue.empty()) break;
+        
+        while (!facet_queue.empty()) {
+            int facet_idx = facet_queue.front();
+            facet_queue.pop();
+            if (seen_facets.find(facet_idx) == seen_facets.end()) continue;
+            facets.push_back(facet_idx);
+            for (int j = 0; j <= 2; j++) {
+                facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
+            }
+            seen_facets.insert(facet_idx);
+        }
+        
+        meshes.resize(meshes.size()+1);
+        TriangleMesh* mesh = &(meshes.back());
+        stl_initialize(&mesh->stl);
+        mesh->stl.stats.type = inmemory;
+        mesh->stl.stats.number_of_facets = facets.size();
+        mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
+        stl_allocate(&mesh->stl);
+        
+        for (std::deque<int>::const_iterator facet = facets.begin(); facet != facets.end(); facet++) {
+            mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
+        }
+    }
+    
+    return meshes;
 }
 
 }

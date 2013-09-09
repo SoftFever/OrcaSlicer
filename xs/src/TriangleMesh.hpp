@@ -23,6 +23,7 @@ class TriangleMesh
     void align_to_origin();
     void rotate(double angle, Point* center);
     std::vector<Polygons>* slice(const std::vector<double> &z);
+    std::vector<TriangleMesh> split() const;
     stl_file stl;
 };
 
