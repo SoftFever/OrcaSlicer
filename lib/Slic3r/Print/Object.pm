@@ -606,7 +606,8 @@ sub discover_horizontal_shells {
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
-                    my @neighbor_fill_surfaces = @{$self->layers->[$n]->regions->[$region_id]->fill_surfaces};
+                    my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
+                    my @neighbor_fill_surfaces = map $_->clone, @$neighbor_fill_surfaces;  # clone because we will use these surfaces even after clearing the collection
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
@@ -679,7 +680,6 @@ sub discover_horizontal_shells {
                         scalar(@$internal_solid), scalar(@$internal);
                     
                     # assign resulting internal surfaces to layer
-                    my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
                     $neighbor_fill_surfaces->clear;
                     $neighbor_fill_surfaces->append(map Slic3r::Surface->new
                         (expolygon => $_, surface_type => S_TYPE_INTERNAL), @$internal);
