@@ -360,10 +360,9 @@ sub mesh {
     
     # this mesh won't be suitable for check_manifoldness as multiple
     # facets from different volumes may use the same vertices
-    return Slic3r::TriangleMesh->new(
-        vertices => $self->vertices,
-        facets   => [ map @{$_->facets}, @{$self->volumes} ],
-    );
+    my $mesh = Slic3r::TriangleMesh->new;
+    $mesh->ReadFromPerl($self->vertices, [ map @{$_->facets}, @{$self->volumes} ]);
+    return $mesh;
 }
 
 sub used_vertices {
@@ -379,6 +378,11 @@ sub size {
 sub center {
     my $self = shift;
     return $self->bounding_box->center;
+}
+
+sub center_2D {
+    my $self = shift;
+    return $self->bounding_box->center_2D;
 }
 
 sub bounding_box {
@@ -458,17 +462,9 @@ sub facets_count {
     return sum(map $_->facets_count, @{$self->volumes});
 }
 
-sub check_manifoldness {
-    my $self = shift;
-    return (first { !$_->mesh->check_manifoldness } @{$self->volumes}) ? 0 : 1;
-}
-
 sub needed_repair {
     my $self = shift;
-    
-    return $self->mesh_stats
-        && first { $self->mesh_stats->{$_} > 0 }
-            qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges);
+    return (first { !$_->mesh->needed_repair } @{$self->volumes}) ? 0 : 1;
 }
 
 sub print_info {
@@ -507,10 +503,10 @@ has 'facets'        => (is => 'rw', default => sub { [] });
 
 sub mesh {
     my $self = shift;
-    return Slic3r::TriangleMesh->new(
-        vertices => $self->object->vertices,
-        facets   => $self->facets,
-    );
+    
+    my $mesh = Slic3r::TriangleMesh->new;
+    $mesh->ReadFromPerl($self->object->vertices, $self->facets);
+    return $mesh;
 }
 
 sub facets_count {

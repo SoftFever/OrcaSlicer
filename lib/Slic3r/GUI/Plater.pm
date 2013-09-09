@@ -399,7 +399,6 @@ sub load_file {
                     : [0,0],
             ],
         );
-		$object->check_manifoldness;
         
         # we only consider the rotation of the first instance for now
         $object->rotate($model->objects->[$i]->instances->[0]->rotation)
@@ -1290,20 +1289,16 @@ sub changescale {
     $self->scale($scale);
 }
 
-sub check_manifoldness {
+sub needed_repair {
 	my $self = shift;
 	
-	if ($self->mesh_stats) {
-	    if ($self->get_model_object->needed_repair) {
-	        warn "Warning: the input file contains manifoldness errors. "
-	            . "Slic3r repaired it successfully by guessing what the correct shape should be, "
-	            . "but you might still want to inspect the G-code before printing.\n";
-	        $self->is_manifold(0);
-	    } else {
-	        $self->is_manifold(1);
-	    }
-	} else {
-    	$self->is_manifold($self->get_model_object->check_manifoldness);
+    if ($self->get_model_object->needed_repair) {
+        warn "Warning: the input file contains manifoldness errors. "
+            . "Slic3r repaired it successfully by guessing what the correct shape should be, "
+            . "but you might still want to inspect the G-code before printing.\n";
+        $self->is_manifold(0);
+    } else {
+        $self->is_manifold(1);
     }
 	return $self->is_manifold;
 }

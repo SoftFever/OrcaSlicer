@@ -66,10 +66,8 @@ sub model {
         return undef;
     }
     
-    my $mesh = Slic3r::TriangleMesh->new(
-        vertices    => $vertices,
-        facets      => $facets,
-    );
+    my $mesh = Slic3r::TriangleMesh->new;
+    $mesh->ReadFromperl($vertices, $facets);
     $mesh->scale_xyz($params{scale_xyz}) if $params{scale_xyz};
     $mesh->scale($params{scale}) if $params{scale};
     

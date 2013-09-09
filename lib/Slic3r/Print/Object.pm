@@ -146,7 +146,7 @@ sub slice {
         my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
         
         {
-            my $m = Slic3r::TriangleMesh::XS->new;
+            my $m = Slic3r::TriangleMesh->new;
             $m->ReadFromPerl($mesh->vertices, $mesh->facets);
             $m->repair;
             my $lines = $m->slice([ map $_->slice_z, @{$self->layers} ]);

@@ -128,26 +128,25 @@ sub add_model {
         $self->regions->[$_] //= Slic3r::Print::Region->new for 0..$#meshes;
         
         foreach my $mesh (grep $_, @meshes) {
-            $mesh->check_manifoldness;
-            
             # the order of these transformations must be the same as the one used in plater
             # to make the object positioning consistent with the visual preview
             
             # we ignore the per-instance transformations currently and only 
             # consider the first one
             if ($object->instances && @{$object->instances}) {
-                $mesh->rotate($object->instances->[0]->rotation, $object->center);
+                $mesh->rotate($object->instances->[0]->rotation, $object->center_2D);
                 $mesh->scale($object->instances->[0]->scaling_factor);
             }
             
             $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
+            $mesh->repair;
         }
         
         # we also align object after transformations so that we only work with positive coordinates
         # and the assumption that bounding_box === size works
         my $bb = Slic3r::Geometry::BoundingBox->new_from_points_3D([ map @{$_->used_vertices}, grep $_, @meshes ]);
         my @align2 = map -$bb->extents->[$_][MIN], (X,Y,Z);
-        $_->move(@align2) for grep $_, @meshes;
+        $_->translate(@align2) for grep $_, @meshes;
         
         # initialize print object
         push @{$self->objects}, Slic3r::Print::Object->new(

@@ -16,14 +16,22 @@ TriangleMesh::TriangleMesh(const TriangleMesh &other)
 {
     this->stl.heads = NULL;
     this->stl.tail  = NULL;
-    if (other.stl.facet_start != NULL)
-        std::copy(other.stl.facet_start,     other.stl.facet_start     + other.stl.stats.number_of_facets, this->stl.facet_start);
-    if (other.stl.neighbors_start != NULL)
+    if (other.stl.facet_start != NULL) {
+        this->stl.facet_start = new stl_facet[other.stl.stats.number_of_facets];
+        std::copy(other.stl.facet_start, other.stl.facet_start + other.stl.stats.number_of_facets, this->stl.facet_start);
+    }
+    if (other.stl.neighbors_start != NULL) {
+        this->stl.neighbors_start = new stl_neighbors[other.stl.stats.number_of_facets];
         std::copy(other.stl.neighbors_start, other.stl.neighbors_start + other.stl.stats.number_of_facets, this->stl.neighbors_start);
-    if (other.stl.v_indices != NULL)
-        std::copy(other.stl.v_indices,       other.stl.v_indices       + other.stl.stats.number_of_facets, this->stl.v_indices);
-    if (other.stl.v_shared != NULL)
-        std::copy(other.stl.v_shared,        other.stl.v_shared        + other.stl.stats.shared_vertices,  this->stl.v_shared);
+    }
+    if (other.stl.v_indices != NULL) {
+        this->stl.v_indices = new v_indices_struct[other.stl.stats.number_of_facets];
+        std::copy(other.stl.v_indices, other.stl.v_indices + other.stl.stats.number_of_facets, this->stl.v_indices);
+    }
+    if (other.stl.v_shared != NULL) {
+        this->stl.v_shared = new stl_vertex[other.stl.stats.shared_vertices];
+        std::copy(other.stl.v_shared, other.stl.v_shared + other.stl.stats.shared_vertices, this->stl.v_shared);
+    }
 }
 
 TriangleMesh::~TriangleMesh() {
@@ -33,7 +41,7 @@ TriangleMesh::~TriangleMesh() {
 SV*
 TriangleMesh::to_SV() {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::TriangleMesh::XS", (void*)this );
+    sv_setref_pv( sv, "Slic3r::TriangleMesh", (void*)this );
     return sv;
 }
 

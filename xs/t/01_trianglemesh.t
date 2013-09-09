@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 49;
+use Test::More tests => 50;
 
-is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
+is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
 
 my $cube = {
@@ -15,13 +15,20 @@ my $cube = {
 };
 
 {
-    my $m = Slic3r::TriangleMesh::XS->new;
+    my $m = Slic3r::TriangleMesh->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->repair;
     my ($vertices, $facets) = ($m->vertices, $m->facets);
     
     is_deeply $vertices, $cube->{vertices}, 'vertices arrayref roundtrip';
     is_deeply $facets, $cube->{facets}, 'facets arrayref roundtrip';
+    
+    {
+        my $m2 = $m->clone;
+        is_deeply $m2->vertices, $cube->{vertices}, 'cloned vertices arrayref roundtrip';
+        is_deeply $m2->facets, $cube->{facets}, 'cloned facets arrayref roundtrip';
+        $m2->scale(3);  # check that it does not affect $m
+    }
     
     {
         my $stats = $m->stats;
@@ -31,11 +38,6 @@ my $cube = {
     
     $m->scale(2);
     ok abs($m->stats->{volume} - 40*40*40) < 1E-2, 'scale';
-    
-    {
-        my $m2 = $m->clone;
-        ok abs($m->stats->{volume} - 40*40*40) < 1E-2, 'scale';
-    }
     
     $m->scale_xyz([2,1,1]);
     ok abs($m->stats->{volume} - 2*40*40*40) < 1E-2, 'scale_xyz';
@@ -55,10 +57,10 @@ my $cube = {
     {
         my $meshes = $m->split;
         is scalar(@$meshes), 1, 'split';
-        isa_ok $meshes->[0], 'Slic3r::TriangleMesh::XS', 'split';
+        isa_ok $meshes->[0], 'Slic3r::TriangleMesh', 'split';
     }
     
-    my $m2 = Slic3r::TriangleMesh::XS->new;
+    my $m2 = Slic3r::TriangleMesh->new;
     $m2->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m2->repair;
     $m->merge($m2);
@@ -72,7 +74,7 @@ my $cube = {
 }
 
 {
-    my $m = Slic3r::TriangleMesh::XS->new;
+    my $m = Slic3r::TriangleMesh->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->repair;
     my @z = (2,4,8,6,8,10,12,14,16,18,20);

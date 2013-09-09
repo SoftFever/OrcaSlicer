@@ -5,7 +5,7 @@
 #include "TriangleMesh.hpp"
 %}
 
-%name{Slic3r::TriangleMesh::XS} class TriangleMesh {
+%name{Slic3r::TriangleMesh} class TriangleMesh {
     TriangleMesh();
     ~TriangleMesh();
     TriangleMesh* clone()
@@ -127,7 +127,7 @@ TriangleMesh::slice(z)
 %}
 };
 
-%package{Slic3r::TriangleMesh::XS};
+%package{Slic3r::TriangleMesh};
 
 %{
 PROTOTYPES: DISABLE
