@@ -4,6 +4,7 @@ use strict;
 
 our $VERSION = '0.01';
 
+use Carp qw();
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 

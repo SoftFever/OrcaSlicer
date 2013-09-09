@@ -11,7 +11,6 @@
 
 namespace Slic3r {
 
-TriangleMesh::TriangleMesh() {}
 TriangleMesh::~TriangleMesh() {
     stl_close(&stl);
 }
@@ -112,6 +111,8 @@ TriangleMesh::Repair() {
     
     // neighbors
     stl_verify_neighbors(&stl);
+    
+    this->repaired = true;
 }
 
 void
@@ -484,6 +485,9 @@ TriangleMesh::split() const
     TriangleMeshPtrs meshes;
     std::set<int> seen_facets;
     
+    // we need neighbors
+    if (!this->repaired) CONFESS("split() requires Repair()");
+    
     // loop while we have remaining facets
     while (1) {
         // get the first facet
@@ -530,8 +534,8 @@ TriangleMesh::merge(const TriangleMesh* mesh)
 {
     // reset stats and metadata
     int number_of_facets = this->stl.stats.number_of_facets;
-    stl_initialize(&this->stl);
     stl_invalidate_shared_vertices(&this->stl);
+    this->repaired = false;
     
     // update facet count and allocate more memory
     this->stl.stats.number_of_facets = number_of_facets + mesh->stl.stats.number_of_facets;
@@ -542,6 +546,9 @@ TriangleMesh::merge(const TriangleMesh* mesh)
     for (int i = 0; i < mesh->stl.stats.number_of_facets; i++) {
         this->stl.facet_start[number_of_facets + i] = mesh->stl.facet_start[i];
     }
+    
+    // update size
+    stl_get_size(&this->stl);
 }
 
 }

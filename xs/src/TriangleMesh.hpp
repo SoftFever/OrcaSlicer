@@ -15,7 +15,7 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 class TriangleMesh
 {
     public:
-    TriangleMesh();
+    TriangleMesh() : repaired(false) {};
     ~TriangleMesh();
     SV* to_SV();
     void ReadSTLFile(char* input_file);
@@ -30,6 +30,7 @@ class TriangleMesh
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh* mesh);
     stl_file stl;
+    bool repaired;
 };
 
 enum FacetEdgeType { feNone, feTop, feBottom };
