@@ -145,56 +145,21 @@ sub slice {
     for my $region_id (0 .. $#{$self->meshes}) {
         my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
         
-        my %lines = ();  # layer_id => [ lines ]
-        my $apply_lines = sub {
-            my $lines = shift;
-            foreach my $layer_id (keys %$lines) {
-                $lines{$layer_id} ||= [];
-                push @{$lines{$layer_id}}, @{$lines->{$layer_id}};
+        {
+            my $m = Slic3r::TriangleMesh::XS->new;
+            $m->ReadFromPerl($mesh->vertices, $mesh->facets);
+            $m->Repair;
+            my $lines = $m->slice([ map $_->slice_z, @{$self->layers} ]);
+            for my $layer_id (0..$#$lines) {
+                my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
+                $layerm->make_surfaces($lines->[$layer_id]);
             }
-        };
-        Slic3r::parallelize(
-            disable => ($#{$mesh->facets} < 500),  # don't parallelize when too few facets
-            items => [ 0..$#{$mesh->facets} ],
-            thread_cb => sub {
-                my $q = shift;
-                my $result_lines = {};
-                while (defined (my $facet_id = $q->dequeue)) {
-                    my $lines = $mesh->slice_facet($self, $facet_id);
-                    foreach my $layer_id (keys %$lines) {
-                        $result_lines->{$layer_id} ||= [];
-                        push @{ $result_lines->{$layer_id} }, @{ $lines->{$layer_id} };
-                    }
-                }
-                return $result_lines;
-            },
-            collect_cb => sub {
-                $apply_lines->($_[0]);
-            },
-            no_threads_cb => sub {
-                for (0..$#{$mesh->facets}) {
-                    my $lines = $mesh->slice_facet($self, $_);
-                    $apply_lines->($lines);
-                }
-            },
-        );
+            # TODO: read slicing_errors
+        }
         
         # free memory
         undef $mesh;
         undef $self->meshes->[$region_id];
-        
-        foreach my $layer (@{ $self->layers }) {
-            Slic3r::debugf "Making surfaces for layer %d (slice z = %f):\n",
-                $layer->id, unscale $layer->slice_z if $Slic3r::debug;
-            
-            my $layerm = $layer->regions->[$region_id];
-            my ($slicing_errors, $loops) = Slic3r::TriangleMesh::make_loops($lines{$layer->id});
-            $layer->slicing_errors(1) if $slicing_errors;
-            $layerm->make_surfaces($loops);
-            
-            # free memory
-            delete $lines{$layer->id};
-        }
     }
     
     # free memory
