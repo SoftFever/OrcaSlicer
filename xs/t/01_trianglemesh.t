@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 10;
+use Test::More tests => 43;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -44,7 +44,7 @@ my $cube = {
     ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
 }
 
-if (0) {
+{
     my $m = Slic3r::TriangleMesh::XS->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->Repair;

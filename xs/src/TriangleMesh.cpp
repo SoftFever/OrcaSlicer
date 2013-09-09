@@ -170,14 +170,14 @@ TriangleMesh::slice(const std::vector<double> &z)
     typedef std::vector<t_edge>             t_edges;  // edge_idx => a_id,b_id
     typedef std::map<t_edge,int>            t_edges_map;  // a_id,b_id => edge_idx
     typedef std::vector< std::vector<int> > t_facets_edges;
-    t_edges        edges;
     t_facets_edges facets_edges;
     
-    // reserve() instad of resize() because otherwise we couldn't read .size() below to assign edge_idx
-    edges.reserve(this->stl.stats.number_of_facets * 3);  // number of edges = number of facets * 3
     facets_edges.resize(this->stl.stats.number_of_facets);
     
     {
+        t_edges edges;
+        // reserve() instad of resize() because otherwise we couldn't read .size() below to assign edge_idx
+        edges.reserve(this->stl.stats.number_of_facets * 3);  // number of edges = number of facets * 3
         t_edges_map edges_map;
         for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; facet_idx++) {
             facets_edges[facet_idx].resize(3);
@@ -238,6 +238,7 @@ TriangleMesh::slice(const std::vector<double> &z)
             double slice_z = *it;
             std::vector<IntersectionPoint> points;
             std::vector< std::vector<IntersectionPoint>::size_type > points_on_layer, intersection_points;
+            bool found_horizontal_edge = false;
             
             /* reorder vertices so that the first one is the one with lowest Z
                this is needed to get all intersection lines in a consistent order
@@ -252,10 +253,10 @@ TriangleMesh::slice(const std::vector<double> &z)
             }
             for (int j = i; (j-i) < 3; j++) {  // loop through facet edges
                 int edge_id = facets_edges[facet_idx][j % 3];
-                t_edge edge = edges[edge_id];
-                
-                stl_vertex* a = &(this->stl.v_shared[edge.first]);
-                stl_vertex* b = &(this->stl.v_shared[edge.second]);
+                int a_id = this->stl.v_indices[facet_idx].vertex[j % 3];
+                int b_id = this->stl.v_indices[facet_idx].vertex[(j+1) % 3];
+                stl_vertex* a = &(this->stl.v_shared[a_id]);
+                stl_vertex* b = &(this->stl.v_shared[b_id]);
                 
                 if (a->z == b->z && a->z == slice_z) {
                     // edge is horizontal and belongs to the current layer
@@ -266,21 +267,25 @@ TriangleMesh::slice(const std::vector<double> &z)
                     /* We assume that this method is never being called for horizontal
                        facets, so no other edge is going to be on this layer. */
                     IntersectionLine line;
-                    line.a.x    = a->x;
-                    line.a.y    = a->y;
-                    line.b.x    = b->x;
-                    line.b.y    = b->y;
-                    line.a_id   = edge.first;
-                    line.b_id   = edge.second;
-                    
                     if (this->stl.v_indices[facet_idx].vertex[0] < slice_z
                         || this->stl.v_indices[facet_idx].vertex[1] < slice_z
                         || this->stl.v_indices[facet_idx].vertex[2] < slice_z) {
                         line.edge_type = feTop;
+                        std::swap(a, b);
+                        std::swap(a_id, b_id);
                     } else {
                         line.edge_type = feBottom;
                     }
+                    line.a.x    = a->x;
+                    line.a.y    = a->y;
+                    line.b.x    = b->x;
+                    line.b.y    = b->y;
+                    line.a_id   = a_id;
+                    line.b_id   = b_id;
+                    
                     lines[layer_idx].push_back(line);
+                    found_horizontal_edge = true;
+                    break;
                 } else if (a->z == slice_z) {
                     #ifdef SLIC3R_DEBUG
                     printf("A point on plane!\n");
@@ -289,7 +294,7 @@ TriangleMesh::slice(const std::vector<double> &z)
                     IntersectionPoint point;
                     point.x         = a->x;
                     point.y         = a->y;
-                    point.point_id  = edge.first;
+                    point.point_id  = a_id;
                     points.push_back(point);
                     points_on_layer.push_back(points.size()-1);
                 } else if (b->z == slice_z) {
@@ -300,7 +305,7 @@ TriangleMesh::slice(const std::vector<double> &z)
                     IntersectionPoint point;
                     point.x         = b->x;
                     point.y         = b->y;
-                    point.point_id  = edge.second;
+                    point.point_id  = b_id;
                     points.push_back(point);
                     points_on_layer.push_back(points.size()-1);
                 } else if ((a->z < slice_z && b->z > slice_z) || (b->z < slice_z && a->z > slice_z)) {
@@ -317,18 +322,20 @@ TriangleMesh::slice(const std::vector<double> &z)
                     intersection_points.push_back(points.size()-1);
                 }
             }
+            if (found_horizontal_edge) continue;
             
             if (points_on_layer.size() == 2) {
                 if (intersection_points.size() == 1) {
                     points.erase( points.begin() + points_on_layer[1] );
                 } else if (intersection_points.empty()) {
-                    if (points[ points_on_layer[0] ].coincides_with(&points[ points_on_layer[1] ])) continue;
+                    if (points[ points_on_layer[0] ].coincides_with(&points[ points_on_layer[1] ])) {
+                        continue;
+                    }
                 }
             }
             
             if (!points.empty()) {
                 assert(points.size() == 2); // facets must intersect each plane 0 or 2 times
-                
                 IntersectionLine line;
                 line.a.x        = points[1].x;
                 line.a.y        = points[1].y;
@@ -349,12 +356,12 @@ TriangleMesh::slice(const std::vector<double> &z)
         int layer_idx = it - lines.begin();
         
         // remove tangent edges
-        for (IntersectionLines::iterator line = (*it).begin(); line != (*it).end(); ++line) {
+        for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
             if (line->skip || line->edge_type == feNone) continue;
             
             /* if the line is a facet edge, find another facet edge
                having the same endpoints but in reverse order */
-            for (IntersectionLines::iterator line2 = line + 1; line2 != (*it).end(); ++line2) {
+            for (IntersectionLines::iterator line2 = line + 1; line2 != it->end(); ++line2) {
                 if (line2->skip || line2->edge_type == feNone) continue;
                 
                 // are these facets adjacent? (sharing a common edge on this layer)
@@ -377,9 +384,9 @@ TriangleMesh::slice(const std::vector<double> &z)
         
         // build a map of lines by edge_a_id and a_id
         std::vector<IntersectionLinePtrs> by_edge_a_id, by_a_id;
-        by_edge_a_id.resize(edges.size());
+        by_edge_a_id.resize(this->stl.stats.number_of_facets * 3);
         by_a_id.resize(this->stl.stats.shared_vertices);
-        for (IntersectionLines::iterator line = (*it).begin(); line != (*it).end(); ++line) {
+        for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
             if (line->skip) continue;
             if (line->edge_a_id != -1) by_edge_a_id[line->edge_a_id].push_back(&(*line));
             if (line->a_id != -1) by_a_id[line->a_id].push_back(&(*line));
@@ -388,7 +395,7 @@ TriangleMesh::slice(const std::vector<double> &z)
         CYCLE: while (1) {
             // take first spare line and start a new loop
             IntersectionLine* first_line = NULL;
-            for (IntersectionLines::iterator line = (*it).begin(); line != (*it).end(); ++line) {
+            for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
                 if (line->skip) continue;
                 first_line = &(*line);
                 break;
@@ -397,6 +404,12 @@ TriangleMesh::slice(const std::vector<double> &z)
             first_line->skip = true;
             IntersectionLinePtrs loop;
             loop.push_back(first_line);
+            
+            /*
+            printf("first_line edge_a_id = %d, edge_b_id = %d, a_id = %d, b_id = %d, a = %d,%d, b = %d,%d\n", 
+                first_line->edge_a_id, first_line->edge_b_id, first_line->a_id, first_line->b_id,
+                first_line->a.x, first_line->a.y, first_line->b.x, first_line->b.y);
+            */
             
             while (1) {
                 // find a line starting where last one finishes
@@ -441,6 +454,11 @@ TriangleMesh::slice(const std::vector<double> &z)
                     //// push @failed_loops, [@loop];
                     goto CYCLE;
                 }
+                /*
+                printf("next_line edge_a_id = %d, edge_b_id = %d, a_id = %d, b_id = %d, a = %d,%d, b = %d,%d\n", 
+                    next_line->edge_a_id, next_line->edge_b_id, next_line->a_id, next_line->b_id,
+                    next_line->a.x, next_line->a.y, next_line->b.x, next_line->b.y);
+                */
                 loop.push_back(next_line);
                 next_line->skip = true;
             }
