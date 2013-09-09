@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 43;
+use Test::More tests => 45;
 
 is Slic3r::TriangleMesh::XS::hello_world(), 'Hello world!',
     'hello world';
@@ -42,6 +42,10 @@ my $cube = {
     
     $m->rotate(45, Slic3r::Point->new(20,20));
     ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
+    
+    my $result = $m->split;
+    is scalar(@$result), 1, 'split';
+    isa_ok $result->[0], 'Slic3r::TriangleMesh::XS', 'split';
 }
 
 {

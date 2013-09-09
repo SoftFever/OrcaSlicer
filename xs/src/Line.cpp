@@ -61,7 +61,7 @@ Line::from_SV_check(SV* line_sv)
 }
 
 SV*
-Line::to_SV() {
+Line::to_AV() {
     AV* av = newAV();
     av_extend(av, 1);
     

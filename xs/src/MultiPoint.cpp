@@ -62,7 +62,7 @@ MultiPoint::from_SV_check(SV* poly_sv)
 }
 
 SV*
-MultiPoint::to_SV() {
+MultiPoint::to_AV() {
     const unsigned int num_points = this->points.size();
     AV* av = newAV();
     av_extend(av, num_points-1);

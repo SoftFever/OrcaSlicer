@@ -51,7 +51,7 @@ ExPolygon::is_valid() const
 }
 
 SV*
-ExPolygon::to_SV() {
+ExPolygon::to_AV() {
     const unsigned int num_holes = this->holes.size();
     AV* av = newAV();
     av_extend(av, num_holes);  // -1 +1

@@ -10,7 +10,7 @@
     Line* clone()
         %code{% const char* CLASS = "Slic3r::Line"; RETVAL = new Line(*THIS); %};
     SV* arrayref()
-        %code{% RETVAL = THIS->to_SV(); %};
+        %code{% RETVAL = THIS->to_AV(); %};
     SV* pp()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
     Point* a()

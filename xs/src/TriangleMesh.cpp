@@ -16,6 +16,13 @@ TriangleMesh::~TriangleMesh() {
     stl_close(&stl);
 }
 
+SV*
+TriangleMesh::to_SV() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::TriangleMesh::XS", (void*)this );
+    return sv;
+}
+
 void
 TriangleMesh::ReadSTLFile(char* input_file) {
     stl_open(&stl, input_file);
@@ -471,10 +478,10 @@ TriangleMesh::slice(const std::vector<double> &z)
     return layers;
 }
 
-std::vector<TriangleMesh>
+TriangleMeshPtrs
 TriangleMesh::split() const
 {
-    std::vector<TriangleMesh> meshes;
+    TriangleMeshPtrs meshes;
     std::set<int> seen_facets;
     
     // loop while we have remaining facets
@@ -483,7 +490,8 @@ TriangleMesh::split() const
         std::queue<int> facet_queue;
         std::deque<int> facets;
         for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; facet_idx++) {
-            if (seen_facets.find(facet_idx) != seen_facets.end()) {
+            if (seen_facets.find(facet_idx) == seen_facets.end()) {
+                // if facet was not seen put it into queue and start searching
                 facet_queue.push(facet_idx);
                 break;
             }
@@ -493,7 +501,7 @@ TriangleMesh::split() const
         while (!facet_queue.empty()) {
             int facet_idx = facet_queue.front();
             facet_queue.pop();
-            if (seen_facets.find(facet_idx) == seen_facets.end()) continue;
+            if (seen_facets.find(facet_idx) != seen_facets.end()) continue;
             facets.push_back(facet_idx);
             for (int j = 0; j <= 2; j++) {
                 facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
@@ -501,8 +509,8 @@ TriangleMesh::split() const
             seen_facets.insert(facet_idx);
         }
         
-        meshes.resize(meshes.size()+1);
-        TriangleMesh* mesh = &(meshes.back());
+        TriangleMesh* mesh = new TriangleMesh;
+        meshes.push_back(mesh);
         stl_initialize(&mesh->stl);
         mesh->stl.stats.type = inmemory;
         mesh->stl.stats.number_of_facets = facets.size();

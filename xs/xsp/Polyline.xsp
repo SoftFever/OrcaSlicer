@@ -10,7 +10,7 @@
     Polyline* clone()
         %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = new Polyline(*THIS); %};
     SV* arrayref()
-        %code{% RETVAL = THIS->to_SV(); %};
+        %code{% RETVAL = THIS->to_AV(); %};
     SV* pp()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
     void scale(double factor);

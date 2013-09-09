@@ -8,7 +8,7 @@
 %name{Slic3r::ExtrusionPath} class ExtrusionPath {
     ~ExtrusionPath();
     SV* arrayref()
-        %code{% RETVAL = THIS->polyline.to_SV(); %};
+        %code{% RETVAL = THIS->polyline.to_AV(); %};
     SV* pp()
         %code{% RETVAL = THIS->polyline.to_SV_pureperl(); %};
     void pop_back()

@@ -10,7 +10,7 @@
     ExPolygon* clone()
         %code{% const char* CLASS = "Slic3r::ExPolygon"; RETVAL = new ExPolygon(*THIS); %};
     SV* arrayref()
-        %code{% RETVAL = THIS->to_SV(); %};
+        %code{% RETVAL = THIS->to_AV(); %};
     SV* pp()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
     Polygon* contour()

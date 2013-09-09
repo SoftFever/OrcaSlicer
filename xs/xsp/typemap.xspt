@@ -16,7 +16,7 @@
 %typemap{Polygons};
 %typemap{ExPolygons};
 %typemap{Polygons*};
-%typemap{Lines*};
+%typemap{TriangleMeshPtrs};
 
 %typemap{SurfaceType}{parsed}{
   %cpp_type{SurfaceType};

@@ -18,12 +18,21 @@ SurfaceType     T_UV
 ClipperLib::JoinType		T_UV
 ClipperLib::PolyFillType		T_UV
 
+# we return these types whenever we want the items to be cloned
 Points          T_ARRAYREF
 Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
 ExPolygons      T_ARRAYREF
 
+# we return these types whenever we want the items to be returned
+# by reference and marked ::Ref because they're contained in another
+# Perl object
 Polygons*       T_ARRAYREF_PTR
+
+# we return these types whenever we want the items to be returned
+# by reference and not marked ::Ref because they're newly allocated
+# and not referenced by any Perl object
+TriangleMeshPtrs T_PTR_ARRAYREF
 
 INPUT
 
@@ -52,7 +61,7 @@ T_ARRAYREF
 	av_extend(av, $var.size()-1);
 	int i = 0;
     for (${type}::const_iterator it = $var.begin(); it != $var.end(); ++it) {
-        av_store(av, i++, (*it).to_SV_clone_ref());
+        av_store(av, i++, it->to_SV_clone_ref());
 	}
 	$var.clear();
 
@@ -63,5 +72,15 @@ T_ARRAYREF_PTR
 	av_extend(av, $var->size()-1);
 	int i = 0;
     for (${ my $t = $type; $t =~ s/\*$//; \$t }::iterator it = $var->begin(); it != $var->end(); ++it) {
-        av_store(av, i++, (*it).to_SV_ref());
+        av_store(av, i++, it->to_SV_ref());
+	}
+
+T_PTR_ARRAYREF
+    AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	sv_2mortal($arg);
+	av_extend(av, $var.size()-1);
+	int i = 0;
+    for (${type}::iterator it = $var.begin(); it != $var.end(); ++it) {
+        av_store(av, i++, (*it)->to_SV());
 	}

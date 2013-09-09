@@ -9,11 +9,15 @@
 
 namespace Slic3r {
 
+class TriangleMesh;
+typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
+
 class TriangleMesh
 {
     public:
     TriangleMesh();
     ~TriangleMesh();
+    SV* to_SV();
     void ReadSTLFile(char* input_file);
     void ReadFromPerl(SV* vertices, SV* facets);
     void Repair();
@@ -23,7 +27,7 @@ class TriangleMesh
     void align_to_origin();
     void rotate(double angle, Point* center);
     std::vector<Polygons>* slice(const std::vector<double> &z);
-    std::vector<TriangleMesh> split() const;
+    TriangleMeshPtrs split() const;
     stl_file stl;
 };
 
