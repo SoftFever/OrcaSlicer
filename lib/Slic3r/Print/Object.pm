@@ -148,7 +148,7 @@ sub slice {
         {
             my $m = Slic3r::TriangleMesh::XS->new;
             $m->ReadFromPerl($mesh->vertices, $mesh->facets);
-            $m->Repair;
+            $m->repair;
             my $lines = $m->slice([ map $_->slice_z, @{$self->layers} ]);
             for my $layer_id (0..$#$lines) {
                 my $layerm = $self->layers->[$layer_id]->regions->[$region_id];

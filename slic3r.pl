@@ -103,7 +103,7 @@ if (@ARGV) {  # slicing from command line
             $output_file =~ s/\.(stl)$/_fixed.obj/i;
             my $tmesh = Slic3r::TriangleMesh::XS->new();
             $tmesh->ReadSTLFile($file);
-            $tmesh->Repair;
+            $tmesh->repair;
             $tmesh->WriteOBJFile($output_file);
         }
         exit;

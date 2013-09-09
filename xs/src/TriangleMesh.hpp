@@ -20,7 +20,7 @@ class TriangleMesh
     SV* to_SV();
     void ReadSTLFile(char* input_file);
     void ReadFromPerl(SV* vertices, SV* facets);
-    void Repair();
+    void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
     void translate(float x, float y, float z);

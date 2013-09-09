@@ -62,8 +62,8 @@ void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
 }
 
 void
-TriangleMesh::Repair() {
-    int i;
+TriangleMesh::repair() {
+    if (this->repaired) return;
     
     // checking exact
     stl_check_facets_exact(&stl);
@@ -77,7 +77,7 @@ TriangleMesh::Repair() {
     float increment = stl.stats.bounding_diameter / 10000.0;
     int iterations = 2;
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
-        for (i = 0; i < iterations; i++) {
+        for (int i = 0; i < iterations; i++) {
             if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
                 stl_check_facets_nearby(&stl, tolerance);
@@ -486,7 +486,7 @@ TriangleMesh::split() const
     std::set<int> seen_facets;
     
     // we need neighbors
-    if (!this->repaired) CONFESS("split() requires Repair()");
+    if (!this->repaired) CONFESS("split() requires repair()");
     
     // loop while we have remaining facets
     while (1) {

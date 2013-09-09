@@ -17,7 +17,7 @@ my $cube = {
 {
     my $m = Slic3r::TriangleMesh::XS->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
-    $m->Repair;
+    $m->repair;
     my ($vertices, $facets) = ($m->vertices, $m->facets);
     
     is_deeply $vertices, $cube->{vertices}, 'vertices arrayref roundtrip';
@@ -51,9 +51,9 @@ my $cube = {
     
     my $m2 = Slic3r::TriangleMesh::XS->new;
     $m2->ReadFromPerl($cube->{vertices}, $cube->{facets});
-    $m2->Repair;
+    $m2->repair;
     $m->merge($m2);
-    $m->Repair;
+    $m->repair;
     is $m->stats->{number_of_facets}, 2 * $m2->stats->{number_of_facets}, 'merge';
     
     {
@@ -65,7 +65,7 @@ my $cube = {
 {
     my $m = Slic3r::TriangleMesh::XS->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
-    $m->Repair;
+    $m->repair;
     my @z = (2,4,8,6,8,10,12,14,16,18,20);
     my $result = $m->slice(\@z);
     for my $i (0..$#z) {

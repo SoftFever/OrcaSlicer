@@ -88,18 +88,6 @@ sub clone {
   Storable::dclone($_[0])
 }
 
-sub _facet_edges {
-    my $self = shift;
-    my ($facet_id) = @_;
-    
-    my $facet = $self->facets->[$facet_id];
-    return (
-        [ $facet->[-3], $facet->[-2] ],
-        [ $facet->[-2], $facet->[-1] ],
-        [ $facet->[-1], $facet->[-3] ],
-    );
-}
-
 sub check_manifoldness {
     my $self = shift;
     
@@ -220,60 +208,6 @@ sub bounding_box {
 sub size {
     my $self = shift;
     return $self->bounding_box->size;
-}
-
-sub get_connected_facets {
-    my $self = shift;
-    my ($facet_id) = @_;
-    
-    my %facets = ();
-    foreach my $edge_id (@{$self->facets_edges->[$facet_id]}) {
-        $facets{$_} = 1 for @{$self->edges_facets->[$edge_id]};
-    }
-    delete $facets{$facet_id};
-    return keys %facets;
-}
-
-sub split_mesh {
-    my $self = shift;
-    
-    $self->analyze;
-    
-    my @meshes = ();
-    
-    # loop while we have remaining facets
-    while (1) {
-        # get the first facet
-        my @facet_queue = ();
-        my @facets = ();
-        for (my $i = 0; $i <= $#{$self->facets}; $i++) {
-            if (defined $self->facets->[$i]) {
-                push @facet_queue, $i;
-                last;
-            }
-        }
-        last if !@facet_queue;
-        
-        while (defined (my $facet_id = shift @facet_queue)) {
-            next unless defined $self->facets->[$facet_id];
-            push @facets, map [ @$_ ], $self->facets->[$facet_id];
-            push @facet_queue, $self->get_connected_facets($facet_id);
-            $self->facets->[$facet_id] = undef;
-        }
-        
-        my %vertices = map { $_ => 1 } map @$_[-3..-1], @facets;
-        my @new_vertices = keys %vertices;
-        my %new_vertices = map { $new_vertices[$_] => $_ } 0..$#new_vertices;
-        foreach my $facet (@facets) {
-            $facet->[$_] = $new_vertices{$facet->[$_]} for -3..-1;
-        }
-        push @meshes, Slic3r::TriangleMesh->new(
-            facets => \@facets,
-            vertices => [ map $self->vertices->[$_], keys %vertices ],
-        );
-    }
-    
-    return @meshes;
 }
 
 # this will return *scaled* expolygons, so it is expected to be run

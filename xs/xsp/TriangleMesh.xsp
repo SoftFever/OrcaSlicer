@@ -10,7 +10,7 @@
     ~TriangleMesh();
     void ReadSTLFile(char* input_file);
     void ReadFromPerl(SV* vertices, SV* facets);
-    void Repair();
+    void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
     void translate(float x, float y, float z);
@@ -41,7 +41,7 @@ TriangleMesh::stats()
 SV*
 TriangleMesh::vertices()
     CODE:
-        if (!THIS->repaired) CONFESS("vertices() requires Repair()");
+        if (!THIS->repaired) CONFESS("vertices() requires repair()");
         
         if (THIS->stl.v_shared == NULL)
             stl_generate_shared_vertices(&(THIS->stl));
@@ -65,7 +65,7 @@ TriangleMesh::vertices()
 SV*
 TriangleMesh::facets()
     CODE:
-        if (!THIS->repaired) CONFESS("facets() requires Repair()");
+        if (!THIS->repaired) CONFESS("facets() requires repair()");
         
         if (THIS->stl.v_shared == NULL)
             stl_generate_shared_vertices(&(THIS->stl));
