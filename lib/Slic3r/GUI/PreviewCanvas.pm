@@ -37,6 +37,7 @@ sub new {
     $self->volumes([]);
     foreach my $volume (@{$object->volumes}) {
         my $mesh = $volume->mesh;
+        $mesh->repair;
         
         my $material_id = $volume->material_id // '_';
         my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;

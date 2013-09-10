@@ -1269,6 +1269,7 @@ sub _trigger_model_object {
 	    $self->bounding_box($model_object->bounding_box);
 	    
     	my $mesh = $model_object->mesh;
+    	$mesh->repair;
         $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->used_vertices)}));
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
@@ -1335,6 +1336,7 @@ sub make_thumbnail {
     
     my $mesh = $self->get_model_object->mesh;  # $self->model_object is already aligned to origin
     my $thumbnail = Slic3r::ExPolygon::Collection->new;
+    $mesh->repair;
     if (@{$mesh->facets} <= 5000) {
         # remove polygons with area <= 1mm
         my $area_threshold = Slic3r::Geometry::scale 1;
