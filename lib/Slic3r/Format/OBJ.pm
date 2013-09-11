@@ -17,9 +17,13 @@ sub read_file {
     }
     close $fh;
     
+    my $mesh = Slic3r::TriangleMesh->new;
+    $mesh->ReadFromPerl($vertices, $facets);
+    $mesh->repair;
+    
     my $model = Slic3r::Model->new;
-    my $object = $model->add_object(vertices => $vertices);
-    my $volume = $object->add_volume(facets => $facets);
+    my $object = $model->add_object;
+    my $volume = $object->add_volume(mesh => $mesh);
     return $model;
 }
 

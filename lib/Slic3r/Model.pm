@@ -25,7 +25,9 @@ sub merge {
     my $class = shift;
     my @models = @_;
     
-    my $new_model = $class->new;
+    my $new_model = ref($class)
+        ? $class
+        : $class->new;
     foreach my $model (@models) {
         # merge material attributes (should we rename them in case of duplicates?)
         $new_model->set_material($_, { %{$model->materials->{$_}}, %{$model->materials->{$_} || {}} })
@@ -34,14 +36,13 @@ sub merge {
         foreach my $object (@{$model->objects}) {
             my $new_object = $new_model->add_object(
                 input_file          => $object->input_file,
-                vertices            => $object->vertices,
                 config              => $object->config,
                 layer_height_ranges => $object->layer_height_ranges,
             );
             
             $new_object->add_volume(
                 material_id         => $_->material_id,
-                facets              => $_->facets,
+                mesh                => $_->mesh->clone,
             ) for @{$object->volumes};
             
             $new_object->add_instance(
@@ -429,6 +430,13 @@ sub facets_count {
 sub needed_repair {
     my $self = shift;
     return (first { !$_->mesh->needed_repair } @{$self->volumes}) ? 0 : 1;
+}
+
+sub mesh_stats {
+    my $self = shift;
+    
+    # TODO: sum values from all volumes
+    return $self->volumes->[0]->mesh->stats;
 }
 
 sub print_info {

@@ -20,6 +20,7 @@ sub start_element {
     
     if ($data->{LocalName} eq 'object') {
         $self->{_object} = $self->{_model}->add_object;
+        $self->{_object_vertices} = [];
         $self->{_objects_map}{ $self->_get_attribute($data, 'id') } = $#{ $self->{_model}->objects };
     } elsif ($data->{LocalName} eq 'vertex') {
         $self->{_vertex} = ["", "", ""];
@@ -28,7 +29,9 @@ sub start_element {
     } elsif ($data->{LocalName} eq 'volume') {
         $self->{_volume} = $self->{_object}->add_volume(
             material_id => $self->_get_attribute($data, 'materialid') // undef,
+            mesh        => Slic3r::TriangleMesh->new,
         );
+        $self->{_volume_facets} = [];
     } elsif ($data->{LocalName} eq 'triangle') {
         $self->{_triangle} = ["", "", ""];
     } elsif ($self->{_triangle} && $data->{LocalName} =~ /^v([123])$/ && $self->{_tree}[-1] eq 'triangle') {
@@ -75,15 +78,19 @@ sub end_element {
     
     if ($data->{LocalName} eq 'object') {
         $self->{_object} = undef;
+        $self->{_object_vertices} = undef;
     } elsif ($data->{LocalName} eq 'vertex') {
-        push @{$self->{_object}->vertices}, $self->{_vertex};
+        push @{$self->{_object_vertices}}, $self->{_vertex};
         $self->{_vertex} = undef;
     } elsif ($self->{_coordinate} && $data->{LocalName} =~ /^[xyz]$/) {
         $self->{_coordinate} = undef;
     } elsif ($data->{LocalName} eq 'volume') {
+        $self->{_volume}->mesh->ReadFromPerl($self->{_object_vertices}, $self->{_volume_facets});
+        $self->{_volume}->mesh->repair;
         $self->{_volume} = undef;
+        $self->{_volume_facets} = undef;
     } elsif ($data->{LocalName} eq 'triangle') {
-        push @{$self->{_volume}->facets}, $self->{_triangle};
+        push @{$self->{_volume_facets}}, $self->{_triangle};
         $self->{_triangle} = undef;
     } elsif (defined $self->{_vertex_idx} && $data->{LocalName} =~ /^v[123]$/) {
         $self->{_vertex_idx} = undef;
@@ -113,7 +120,7 @@ sub end_document {
         foreach my $instance (@{ $self->{_instances}{$object_id} }) {
             $self->{_model}->objects->[$new_object_id]->add_instance(
                 rotation => $instance->{rz} || 0,
-                offset   => [ $instance->{deltax} || 0, $instance->{deltay} || 0 ],
+                offset   => Slic3r::Point->new($instance->{deltax} || 0, $instance->{deltay} || 0),
             );
         }
     }
