@@ -93,6 +93,27 @@ TriangleMesh::facets()
         RETVAL
 
 SV*
+TriangleMesh::normals()
+    CODE:
+        if (!THIS->repaired) CONFESS("normals() requires repair()");
+        
+        // normals
+        AV* normals = newAV();
+        av_extend(normals, THIS->stl.stats.number_of_facets);
+        for (int i = 0; i < THIS->stl.stats.number_of_facets; i++) {
+            AV* facet = newAV();
+            av_store(normals, i, newRV_noinc((SV*)facet));
+            av_extend(facet, 2);
+            av_store(facet, 0, newSVnv(THIS->stl.facet_start[i].normal.x));
+            av_store(facet, 1, newSVnv(THIS->stl.facet_start[i].normal.y));
+            av_store(facet, 2, newSVnv(THIS->stl.facet_start[i].normal.z));
+        }
+        
+        RETVAL = newRV_noinc((SV*)normals);
+    OUTPUT:
+        RETVAL
+
+SV*
 TriangleMesh::size()
     CODE:
         AV* size = newAV();

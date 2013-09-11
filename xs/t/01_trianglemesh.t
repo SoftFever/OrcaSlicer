@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 50;
+use Test::More tests => 51;
 
 is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
@@ -22,6 +22,7 @@ my $cube = {
     
     is_deeply $vertices, $cube->{vertices}, 'vertices arrayref roundtrip';
     is_deeply $facets, $cube->{facets}, 'facets arrayref roundtrip';
+    is scalar(@{$m->normals}), scalar(@$facets), 'normals returns the right number of items';
     
     {
         my $m2 = $m->clone;
