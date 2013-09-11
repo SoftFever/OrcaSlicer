@@ -1270,7 +1270,7 @@ sub _trigger_model_object {
 	    
     	my $mesh = $model_object->mesh;
     	$mesh->repair;
-        $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->used_vertices)}));
+        $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->vertices)}));
 	    $self->facets(scalar @{$mesh->facets});
 	    $self->vertices(scalar @{$mesh->vertices});
 	    

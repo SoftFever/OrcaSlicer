@@ -144,7 +144,7 @@ sub add_model {
         
         # we also align object after transformations so that we only work with positive coordinates
         # and the assumption that bounding_box === size works
-        my $bb = Slic3r::Geometry::BoundingBox->new_from_points_3D([ map @{$_->used_vertices}, grep $_, @meshes ]);
+        my $bb = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, grep $_, @meshes);
         my @align2 = map -$bb->extents->[$_][MIN], (X,Y,Z);
         $_->translate(@align2) for grep $_, @meshes;
         

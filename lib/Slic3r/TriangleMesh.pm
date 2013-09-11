@@ -19,11 +19,6 @@ sub center {
     return $self->bounding_box->center;
 }
 
-sub used_vertices {
-    my $self = shift;
-    return $self->vertices;
-}
-
 sub facets_count {
     my $self = shift;
     return $self->stats->{number_of_facets};
@@ -31,7 +26,7 @@ sub facets_count {
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices);
+    return Slic3r::Geometry::BoundingBox->new_from_bb($self->bb3);
 }
 
 # this will return *scaled* expolygons, so it is expected to be run

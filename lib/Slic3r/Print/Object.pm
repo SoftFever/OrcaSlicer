@@ -144,15 +144,13 @@ sub slice {
     # process facets
     for my $region_id (0 .. $#{$self->meshes}) {
         my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
+        $mesh->repair;
         
         {
-            my $m = Slic3r::TriangleMesh->new;
-            $m->ReadFromPerl($mesh->vertices, $mesh->facets);
-            $m->repair;
-            my $lines = $m->slice([ map $_->slice_z, @{$self->layers} ]);
-            for my $layer_id (0..$#$lines) {
+            my $loops = $mesh->slice([ map $_->slice_z, @{$self->layers} ]);
+            for my $layer_id (0..$#$loops) {
                 my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
-                $layerm->make_surfaces($lines->[$layer_id]);
+                $layerm->make_surfaces($loops->[$layer_id]);
             }
             # TODO: read slicing_errors
         }

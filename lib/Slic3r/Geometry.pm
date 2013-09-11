@@ -5,7 +5,7 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
-    PI X Y Z A B X1 Y1 X2 Y2 MIN MAX epsilon slope line_atan lines_parallel 
+    PI X Y Z A B X1 Y1 X2 Y2 Z1 Z2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
     chained_path_items chained_path_points normalize tan move_points_3D
     line_length midpoint point_in_polygon point_in_segment segment_in_segment
@@ -35,6 +35,8 @@ use constant X1 => 0;
 use constant Y1 => 1;
 use constant X2 => 2;
 use constant Y2 => 3;
+use constant Z1 => 4;
+use constant Z2 => 5;
 use constant MIN => 0;
 use constant MAX => 1;
 our $parallel_degrees_limit = abs(deg2rad(0.1));

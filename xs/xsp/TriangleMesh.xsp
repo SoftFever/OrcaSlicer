@@ -126,6 +126,18 @@ TriangleMesh::slice(z)
     OUTPUT:
         RETVAL
 
+std::vector<double>
+TriangleMesh::bb3()
+    CODE:
+        RETVAL.push_back(THIS->stl.stats.min.x);
+        RETVAL.push_back(THIS->stl.stats.min.y);
+        RETVAL.push_back(THIS->stl.stats.max.x);
+        RETVAL.push_back(THIS->stl.stats.max.y);
+        RETVAL.push_back(THIS->stl.stats.min.z);
+        RETVAL.push_back(THIS->stl.stats.max.z);
+    OUTPUT:
+        RETVAL
+
 %}
 };
 

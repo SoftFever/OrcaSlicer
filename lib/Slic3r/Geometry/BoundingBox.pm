@@ -1,6 +1,8 @@
 package Slic3r::Geometry::BoundingBox;
 use Moo;
-use Slic3r::Geometry qw(X Y Z MIN MAX X1 Y1 X2 Y2);
+
+use List::Util qw(min max);
+use Slic3r::Geometry qw(X Y Z MIN MAX X1 Y1 X2 Y2 Z1 Z2);
 use Storable qw();
 
 has 'extents' => (is => 'ro', required => 1);
@@ -19,12 +21,42 @@ sub new_from_points {
     ]);
 }
 
+# 2D/3D
+sub new_from_bb {
+    my $class = shift;
+    my ($bb) = @_;
+    
+    return $class->new(extents => [
+        [ $bb->[X1], $bb->[X2] ],
+        [ $bb->[Y1], $bb->[Y2] ],
+        (@$bb == 6) ? [ $bb->[Z1], $bb->[Z2] ] : (),
+    ]);
+}
+
 # 3D
 sub new_from_points_3D {
     my $class = shift;
     my ($points) = @_;
     
     return $class->new(extents => [ Slic3r::Geometry::bounding_box_3D($points) ]);
+}
+
+sub merge {
+    my $class = shift;
+    my (@bounding_boxes) = @_;
+    
+    my $self = ref($class)
+        ? $class
+        : shift @bounding_boxes;
+    
+    foreach my $bounding_box (@bounding_boxes) {
+        for my $axis (X .. $#{$self->extents}) {
+            $self->extents->[$axis][MIN] = min($self->extents->[$axis][MIN], $bounding_box->extents->[$axis][MIN]);
+            $self->extents->[$axis][MAX] = max($self->extents->[$axis][MAX], $bounding_box->extents->[$axis][MAX]);
+        }
+    }
+    
+    return $self;
 }
 
 # four-arguments 2D bb

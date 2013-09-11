@@ -159,16 +159,6 @@ sub _arrange {
     }
 }
 
-sub vertices {
-    my $self = shift;
-    return [ map @{$_->vertices}, @{$self->objects} ];
-}
-
-sub used_vertices {
-    my $self = shift;
-    return [ map @{$_->used_vertices}, @{$self->objects} ];
-}
-
 sub size {
     my $self = shift;
     return $self->bounding_box->size;
@@ -178,7 +168,7 @@ sub bounding_box {
     my $self = shift;
     
     if (!defined $self->_bounding_box) {
-        $self->_bounding_box(Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices));
+        $self->_bounding_box(Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, @{$self->objects}));
     }
     return $self->_bounding_box;
 }
@@ -352,11 +342,6 @@ sub mesh {
     return $mesh;
 }
 
-sub used_vertices {
-    my $self = shift;
-    return [ map $_->mesh->used_vertices, @{$self->volumes} ];
-}
-
 sub size {
     my $self = shift;
     return $self->bounding_box->size;
@@ -376,8 +361,10 @@ sub bounding_box {
     my $self = shift;
     
     if (!defined $self->_bounding_box) {
-        # TODO: calculate bb in XS
-        $self->_bounding_box(Slic3r::Geometry::BoundingBox->new_from_points_3D(map $_->mesh->vertices, @{$self->volumes}));
+        my @meshes = map $_->mesh, @{$self->volumes};
+        my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_bb((shift @meshes)->bb3);
+        $bounding_box->merge(Slic3r::Geometry::BoundingBox->new_from_bb($_->bb3)) for @meshes;
+        $self->_bounding_box($bounding_box);
     }
     return $self->_bounding_box;
 }
