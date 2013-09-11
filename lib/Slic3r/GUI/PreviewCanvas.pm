@@ -49,13 +49,14 @@ sub new {
             color => COLORS->[ $color_idx % scalar(@{&COLORS}) ],
         };
         
+        my ($vertices, $facets) = ($mesh->vertices, $mesh->facets);
         {
-            my @verts = map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
+            my @verts = map @{ $vertices->[$_] }, map @$_, @$facets;
             $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
         }
         
         {
-            my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $mesh->vertices->[$_], @$_)), @{$mesh->facets};
+            my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $vertices->[$_], @$_)), @$facets;
             $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
         }
     }

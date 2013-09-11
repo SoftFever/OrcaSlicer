@@ -11,6 +11,12 @@
 
 namespace Slic3r {
 
+TriangleMesh::TriangleMesh()
+    : repaired(false)
+{
+    stl_initialize(&this->stl);
+}
+
 TriangleMesh::TriangleMesh(const TriangleMesh &other)
     : stl(other.stl), repaired(other.repaired)
 {
@@ -64,7 +70,6 @@ TriangleMesh::write_binary(char* output_file)
 
 void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
 {
-    stl_initialize(&stl);
     stl.stats.type = inmemory;
     
     // count facets and allocate memory
@@ -559,7 +564,6 @@ TriangleMesh::split() const
         
         TriangleMesh* mesh = new TriangleMesh;
         meshes.push_back(mesh);
-        stl_initialize(&mesh->stl);
         mesh->stl.stats.type = inmemory;
         mesh->stl.stats.number_of_facets = facets.size();
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;

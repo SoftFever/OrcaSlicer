@@ -15,7 +15,7 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 class TriangleMesh
 {
     public:
-    TriangleMesh() : repaired(false) {};
+    TriangleMesh();
     TriangleMesh(const TriangleMesh &other);
     ~TriangleMesh();
     SV* to_SV();
