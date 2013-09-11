@@ -11,6 +11,8 @@
     TriangleMesh* clone()
         %code{% const char* CLASS = "Slic3r::TriangleMesh"; RETVAL = new TriangleMesh(*THIS); %};
     void ReadSTLFile(char* input_file);
+    void write_ascii(char* output_file);
+    void write_binary(char* output_file);
     void ReadFromPerl(SV* vertices, SV* facets);
     void repair();
     void WriteOBJFile(char* output_file);

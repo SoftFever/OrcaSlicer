@@ -20,6 +20,8 @@ class TriangleMesh
     ~TriangleMesh();
     SV* to_SV();
     void ReadSTLFile(char* input_file);
+    void write_ascii(char* output_file);
+    void write_binary(char* output_file);
     void ReadFromPerl(SV* vertices, SV* facets);
     void repair();
     void WriteOBJFile(char* output_file);

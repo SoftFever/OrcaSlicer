@@ -315,32 +315,21 @@ use Storable qw(dclone);
 
 has 'input_file' => (is => 'rw');
 has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
-has 'vertices'  => (is => 'ro', default => sub { [] });
 has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw');
 has 'config'    => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }
-has 'mesh_stats' => (is => 'rw');
 has '_bounding_box' => (is => 'rw');
 
 sub add_volume {
     my $self = shift;
     my %args = @_;
     
-    if (my $vertices = delete $args{vertices}) {
-        my $v_offset = @{$self->vertices};
-        push @{$self->vertices}, @$vertices;
-        
-        @{$args{facets}} = map {
-            my $f = [@$_];
-            $f->[$_] += $v_offset for -3..-1;
-            $f;
-        } @{$args{facets}};
-    }
-    
-    my $volume = Slic3r::Model::Volume->new(object => $self, %args);
-    push @{$self->volumes}, $volume;
+    push @{$self->volumes}, my $volume = Slic3r::Model::Volume->new(
+        object => $self,
+        %args,
+    );
     $self->_bounding_box(undef);
     $self->model->_bounding_box(undef);
     return $volume;
@@ -358,16 +347,14 @@ sub add_instance {
 sub mesh {
     my $self = shift;
     
-    # this mesh won't be suitable for check_manifoldness as multiple
-    # facets from different volumes may use the same vertices
     my $mesh = Slic3r::TriangleMesh->new;
-    $mesh->ReadFromPerl($self->vertices, [ map @{$_->facets}, @{$self->volumes} ]);
+    $mesh->merge($_->mesh) for @{$self->volumes};
     return $mesh;
 }
 
 sub used_vertices {
     my $self = shift;
-    return [ map $self->vertices->[$_], map @$_, map @{$_->facets}, @{$self->volumes} ];
+    return [ map $_->mesh->used_vertices, @{$self->volumes} ];
 }
 
 sub size {
@@ -389,7 +376,8 @@ sub bounding_box {
     my $self = shift;
     
     if (!defined $self->_bounding_box) {
-        $self->_bounding_box(Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices));
+        # TODO: calculate bb in XS
+        $self->_bounding_box(Slic3r::Geometry::BoundingBox->new_from_points_3D(map $_->mesh->vertices, @{$self->volumes}));
     }
     return $self->_bounding_box;
 }
@@ -409,7 +397,7 @@ sub move {
     my $self = shift;
     my @shift = @_;
     
-    @{$self->vertices} = move_points_3D([ @shift ], @{$self->vertices});
+    $_->mesh->translate(@shift) for @{$self->volumes};
     $self->_bounding_box->translate(@shift) if defined $self->_bounding_box;
 }
 
@@ -418,13 +406,8 @@ sub scale {
     my ($factor) = @_;
     return if $factor == 1;
     
-    # transform vertex coordinates
-    foreach my $vertex (@{$self->vertices}) {
-        $vertex->[$_] *= $factor for X,Y,Z;
-    }
-    
+    $_->mesh->scale($factor) for @{$self->volumes};
     $self->_bounding_box->scale($factor) if defined $self->_bounding_box;
-    $self->mesh_stats->{volume} *= ($factor**3) if defined $self->mesh_stats;
 }
 
 sub rotate {
@@ -432,13 +415,7 @@ sub rotate {
     my ($deg) = @_;
     return if $deg == 0;
     
-    my $rad = Slic3r::Geometry::deg2rad($deg);
-    
-    # transform vertex coordinates
-    foreach my $vertex (@{$self->vertices}) {
-        @$vertex = (@{ +(Slic3r::Geometry::rotate_points($rad, undef, [ $vertex->[X], $vertex->[Y] ]))[0] }, $vertex->[Z]);
-    }
-    
+    $_->mesh->rotate($deg, Slic3r::Point->(0,0)) for @{$self->volumes};
     $self->_bounding_box(undef);
 }
 
@@ -499,20 +476,7 @@ use Moo;
 
 has 'object'        => (is => 'ro', weak_ref => 1, required => 1);
 has 'material_id'   => (is => 'rw');
-has 'facets'        => (is => 'rw', default => sub { [] });
-
-sub mesh {
-    my $self = shift;
-    
-    my $mesh = Slic3r::TriangleMesh->new;
-    $mesh->ReadFromPerl($self->object->vertices, $self->facets);
-    return $mesh;
-}
-
-sub facets_count {
-    my $self = shift;
-    return scalar(@{$self->facets});  # TODO: optimize in XS
-}
+has 'mesh'          => (is => 'rw', required => 1);
 
 package Slic3r::Model::Instance;
 use Moo;

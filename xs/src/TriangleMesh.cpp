@@ -50,6 +50,18 @@ TriangleMesh::ReadSTLFile(char* input_file) {
     stl_open(&stl, input_file);
 }
 
+void
+TriangleMesh::write_ascii(char* output_file)
+{
+    stl_write_ascii(&this->stl, output_file, "");
+}
+
+void
+TriangleMesh::write_binary(char* output_file)
+{
+    stl_write_binary(&this->stl, output_file, "");
+}
+
 void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
 {
     stl_initialize(&stl);

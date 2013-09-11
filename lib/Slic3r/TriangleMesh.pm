@@ -24,6 +24,11 @@ sub used_vertices {
     return $self->vertices;
 }
 
+sub facets_count {
+    my $self = shift;
+    return $self->stats->{number_of_facets};
+}
+
 sub bounding_box {
     my $self = shift;
     return Slic3r::Geometry::BoundingBox->new_from_points_3D($self->used_vertices);

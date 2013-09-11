@@ -121,7 +121,7 @@ Normals fixed         : %5d\n", stl->stats.normals_fixed);
 }
 
 void
-stl_write_ascii(stl_file *stl, char *file, char *label)
+stl_write_ascii(stl_file *stl, const char *file, const char *label)
 {
   int       i;
   FILE      *fp;
@@ -241,7 +241,7 @@ stl_put_little_float(FILE *fp, float value_in)
 
 
 void
-stl_write_binary(stl_file *stl, char *file, char *label)
+stl_write_binary(stl_file *stl, const char *file, const char *label)
 {
   FILE      *fp;
   int       i;
