@@ -22,8 +22,8 @@ Point::rotate(double angle, Point* center)
 {
     double cur_x = (double)this->x;
     double cur_y = (double)this->y;
-    this->x = (long)( (double)center->x + cos(angle) * (cur_x - (double)center->x) - sin(angle) * (cur_y - (double)center->y) );
-    this->y = (long)( (double)center->y + cos(angle) * (cur_y - (double)center->y) + sin(angle) * (cur_x - (double)center->x) );
+    this->x = (long)round( (double)center->x + cos(angle) * (cur_x - (double)center->x) - sin(angle) * (cur_y - (double)center->y) );
+    this->y = (long)round( (double)center->y + cos(angle) * (cur_y - (double)center->y) + sin(angle) * (cur_x - (double)center->x) );
 }
 
 bool
