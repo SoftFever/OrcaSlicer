@@ -285,6 +285,7 @@ stl_read(stl_file *stl, int first_facet, int first)
       stl->facet_start[i] = facet;
       
       stl_facet_stats(stl, facet, first);
+      first = 0;
     }
     stl->stats.size.x = stl->stats.max.x - stl->stats.min.x;
     stl->stats.size.y = stl->stats.max.y - stl->stats.min.y;
