@@ -29,7 +29,7 @@ sub fill_surface {
     
     # compensate the overlap which is good for rectilinear but harmful for concentric
     # where the perimeter/infill spacing should be equal to any other loop spacing
-    my @loops = my @last = @{offset($expolygon, -&Slic3r::INFILL_OVERLAP_OVER_SPACING * $min_spacing / 2)};
+    my @loops = my @last = @{offset(\@$expolygon, -&Slic3r::INFILL_OVERLAP_OVER_SPACING * $min_spacing / 2)};
     while (@last) {
         push @loops, @last = @{offset2(\@last, -1.5*$distance,  +0.5*$distance)};
     }
@@ -41,9 +41,9 @@ sub fill_surface {
     
     # order paths using a nearest neighbor search
     my @paths = ();
-    my $last_pos = [0,0];
+    my $last_pos = Slic3r::Point->new(0,0);
     foreach my $loop (@loops) {
-        push @paths, $loop->split_at_index($last_pos->nearest_point_index($loop));
+        push @paths, $loop->split_at_index($last_pos->nearest_point_index(\@$loop));
         $last_pos = $paths[-1][-1];
     }
     

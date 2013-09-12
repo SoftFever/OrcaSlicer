@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 33;
+plan tests => 34;
 
 BEGIN {
     use FindBin;
@@ -155,11 +155,11 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         'chained path';
 }
 
-{
+for my $pattern (qw(hilbertcurve concentric)) {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('fill_pattern', 'hilbertcurve');
+    $config->set('fill_pattern', $pattern);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), 'successful hilbertcurve infill generation';
+    ok Slic3r::Test::gcode($print), "successful $pattern infill generation";
 }
 
 {
