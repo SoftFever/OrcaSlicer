@@ -18,6 +18,7 @@ src/ExPolygonCollection.cpp
 src/ExPolygonCollection.hpp
 src/ExtrusionEntity.cpp
 src/ExtrusionEntity.hpp
+src/ExtrusionEntityCollection.cpp
 src/ExtrusionEntityCollection.hpp
 src/Line.cpp
 src/Line.hpp
@@ -30,11 +31,15 @@ src/Polygon.cpp
 src/Polygon.hpp
 src/Polyline.cpp
 src/Polyline.hpp
+src/PolylineCollection.cpp
+src/PolylineCollection.hpp
 src/ppport.h
+src/Surface.cpp
 src/Surface.hpp
 src/SurfaceCollection.hpp
 src/TriangleMesh.cpp
 src/TriangleMesh.hpp
+src/utils.cpp
 src/ZTable.hpp
 t/01_trianglemesh.t
 t/02_object.t
@@ -48,6 +53,7 @@ t/09_polyline.t
 t/10_line.t
 t/11_clipper.t
 t/12_extrusionpathcollection.t
+t/13_polylinecollection.t
 xsp/Clipper.xsp
 xsp/ExPolygon.xsp
 xsp/ExPolygonCollection.xsp
@@ -61,6 +67,7 @@ xsp/Object.xsp
 xsp/Point.xsp
 xsp/Polygon.xsp
 xsp/Polyline.xsp
+xsp/PolylineCollection.xsp
 xsp/Surface.xsp
 xsp/SurfaceCollection.xsp
 xsp/TriangleMesh.xsp
