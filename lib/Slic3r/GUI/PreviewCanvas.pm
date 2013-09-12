@@ -56,7 +56,7 @@ sub new {
         }
         
         {
-            my @norms = map @$_, @{$mesh->normals};
+            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
             $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
         }
     }

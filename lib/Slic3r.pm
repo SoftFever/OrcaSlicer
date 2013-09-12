@@ -34,7 +34,7 @@ our $var = "$FindBin::Bin/var";
 use Encode;
 use Encode::Locale;
 use Boost::Geometry::Utils 0.15;
-use Moo 0.091009;
+use Moo 1.003001;
 
 use Slic3r::XS;   # import all symbols (constants etc.) before they get parsed
 use Slic3r::Config;
@@ -126,8 +126,10 @@ sub thread_cleanup {
     *Slic3r::Point::DESTROY                 = sub {};
     *Slic3r::Polygon::DESTROY               = sub {};
     *Slic3r::Polyline::DESTROY              = sub {};
+    *Slic3r::Polyline::Collection::DESTROY  = sub {};
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};
+    *Slic3r::TriangleMesh::DESTROY          = sub {};
 }
 
 sub encode_path {
