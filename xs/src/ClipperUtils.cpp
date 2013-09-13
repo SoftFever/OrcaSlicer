@@ -320,6 +320,7 @@ void safety_offset(ClipperLib::Polygons* &subject)
 
 ///////////////////////
 
+#ifdef SLIC3RXS
 SV*
 polynode_children_2_perl(const ClipperLib::PolyNode& node)
 {
@@ -346,5 +347,6 @@ polynode2perl(const ClipperLib::PolyNode& node)
     (void)hv_stores( hv, "children", polynode_children_2_perl(node) );
     return (SV*)newRV_noinc((SV*)hv);
 }
+#endif
 
 }

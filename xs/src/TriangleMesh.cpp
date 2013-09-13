@@ -44,13 +44,6 @@ TriangleMesh::~TriangleMesh() {
     stl_close(&this->stl);
 }
 
-SV*
-TriangleMesh::to_SV() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::TriangleMesh", (void*)this );
-    return sv;
-}
-
 void
 TriangleMesh::ReadSTLFile(char* input_file) {
     stl_open(&stl, input_file);
@@ -68,38 +61,6 @@ TriangleMesh::write_binary(char* output_file)
     stl_write_binary(&this->stl, output_file, "");
 }
 
-void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
-{
-    stl.stats.type = inmemory;
-    
-    // count facets and allocate memory
-    AV* facets_av = (AV*)SvRV(facets);
-    stl.stats.number_of_facets = av_len(facets_av)+1;
-    stl.stats.original_num_facets = stl.stats.number_of_facets;
-    stl_allocate(&stl);
-    
-    // read geometry
-    AV* vertices_av = (AV*)SvRV(vertices);
-    for (unsigned int i = 0; i < stl.stats.number_of_facets; i++) {
-        AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
-        stl_facet facet;
-        facet.normal.x = 0;
-        facet.normal.y = 0;
-        facet.normal.z = 0;
-        for (unsigned int v = 0; v <= 2; v++) {
-            AV* vertex_av = (AV*)SvRV(*av_fetch(vertices_av, SvIV(*av_fetch(facet_av, v, 0)), 0));
-            facet.vertex[v].x = SvNV(*av_fetch(vertex_av, 0, 0));
-            facet.vertex[v].y = SvNV(*av_fetch(vertex_av, 1, 0));
-            facet.vertex[v].z = SvNV(*av_fetch(vertex_av, 2, 0));
-        }
-        facet.extra[0] = 0;
-        facet.extra[1] = 0;
-        
-        stl.facet_start[i] = facet;
-    }
-    
-    stl_get_size(&(this->stl));
-}
 
 void
 TriangleMesh::repair() {
@@ -598,5 +559,47 @@ TriangleMesh::merge(const TriangleMesh* mesh)
     // update size
     stl_get_size(&this->stl);
 }
+
+#ifdef SLIC3RXS
+SV*
+TriangleMesh::to_SV() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::TriangleMesh", (void*)this );
+    return sv;
+}
+
+void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
+{
+    stl.stats.type = inmemory;
+    
+    // count facets and allocate memory
+    AV* facets_av = (AV*)SvRV(facets);
+    stl.stats.number_of_facets = av_len(facets_av)+1;
+    stl.stats.original_num_facets = stl.stats.number_of_facets;
+    stl_allocate(&stl);
+    
+    // read geometry
+    AV* vertices_av = (AV*)SvRV(vertices);
+    for (unsigned int i = 0; i < stl.stats.number_of_facets; i++) {
+        AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
+        stl_facet facet;
+        facet.normal.x = 0;
+        facet.normal.y = 0;
+        facet.normal.z = 0;
+        for (unsigned int v = 0; v <= 2; v++) {
+            AV* vertex_av = (AV*)SvRV(*av_fetch(vertices_av, SvIV(*av_fetch(facet_av, v, 0)), 0));
+            facet.vertex[v].x = SvNV(*av_fetch(vertex_av, 0, 0));
+            facet.vertex[v].y = SvNV(*av_fetch(vertex_av, 1, 0));
+            facet.vertex[v].z = SvNV(*av_fetch(vertex_av, 2, 0));
+        }
+        facet.extra[0] = 0;
+        facet.extra[1] = 0;
+        
+        stl.facet_start[i] = facet;
+    }
+    
+    stl_get_size(&(this->stl));
+}
+#endif
 
 }

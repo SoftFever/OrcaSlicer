@@ -17,6 +17,7 @@ Polyline::lines(Lines &lines) const
     }
 }
 
+#ifdef SLIC3RXS
 SV*
 Polyline::to_SV_ref()
 {
@@ -32,5 +33,6 @@ Polyline::to_SV_clone_ref() const
     sv_setref_pv( sv, "Slic3r::Polyline", new Polyline(*this) );
     return sv;
 }
+#endif
 
 }

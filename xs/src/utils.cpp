@@ -4,6 +4,7 @@ void
 confess_at(const char *file, int line, const char *func,
             const char *pat, ...)
 {
+    #ifdef SLIC3RXS
      va_list args;
      SV *error_sv = newSVpvf("Error in function %s at %s:%d: ", func,
          file, line);
@@ -23,4 +24,5 @@ confess_at(const char *file, int line, const char *func,
      call_pv("Carp::confess", G_DISCARD);
      FREETMPS;
      LEAVE;
+    #endif
 }

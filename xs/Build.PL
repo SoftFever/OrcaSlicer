@@ -24,7 +24,7 @@ my $build = Module::Build::WithXSpp->new(
     # _GLIBCXX_USE_C99 : to get the long long type for g++
     # HAS_BOOL         : stops Perl/lib/CORE/handy.h from doing "#  define bool char" for MSVC
     # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
-    extra_compiler_flags => [qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI), ($ENV{SLIC3R_DEBUG} ? ' -DSLIC3R_DEBUG -g' : '')],
+    extra_compiler_flags => [qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS), ($ENV{SLIC3R_DEBUG} ? ' -DSLIC3R_DEBUG -g' : '')],
     
     # Provides extra C typemaps that are auto-merged
     extra_typemap_modules => {

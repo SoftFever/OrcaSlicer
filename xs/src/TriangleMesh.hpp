@@ -18,11 +18,9 @@ class TriangleMesh
     TriangleMesh();
     TriangleMesh(const TriangleMesh &other);
     ~TriangleMesh();
-    SV* to_SV();
     void ReadSTLFile(char* input_file);
     void write_ascii(char* output_file);
     void write_binary(char* output_file);
-    void ReadFromPerl(SV* vertices, SV* facets);
     void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
@@ -35,6 +33,11 @@ class TriangleMesh
     void merge(const TriangleMesh* mesh);
     stl_file stl;
     bool repaired;
+    
+    #ifdef SLIC3RXS
+    SV* to_SV();
+    void ReadFromPerl(SV* vertices, SV* facets);
+    #endif
 };
 
 enum FacetEdgeType { feNone, feTop, feBottom };

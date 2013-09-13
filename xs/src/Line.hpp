@@ -13,18 +13,21 @@ class Line
     Point b;
     Line() {};
     explicit Line(Point _a, Point _b): a(_a), b(_b) {};
-    void from_SV(SV* line_sv);
-    void from_SV_check(SV* line_sv);
-    SV* to_AV();
-    SV* to_SV_ref();
-    SV* to_SV_clone_ref() const;
-    SV* to_SV_pureperl() const;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     void reverse();
     double length() const;
     Point* midpoint() const;
+    
+    #ifdef SLIC3RXS
+    void from_SV(SV* line_sv);
+    void from_SV_check(SV* line_sv);
+    SV* to_AV();
+    SV* to_SV_ref();
+    SV* to_SV_clone_ref() const;
+    SV* to_SV_pureperl() const;
+    #endif
 };
 
 typedef std::vector<Line> Lines;

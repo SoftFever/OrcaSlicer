@@ -72,6 +72,7 @@ Point::distance_to(const Point* point) const
     return sqrt(dx*dx + dy*dy);
 }
 
+#ifdef SLIC3RXS
 SV*
 Point::to_SV_ref() {
     SV* sv = newSV(0);
@@ -112,5 +113,6 @@ Point::from_SV_check(SV* point_sv)
         this->from_SV(point_sv);
     }
 }
+#endif
 
 }

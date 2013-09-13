@@ -42,6 +42,7 @@ Line::midpoint() const
     return new Point ((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
 }
 
+#ifdef SLIC3RXS
 void
 Line::from_SV(SV* line_sv)
 {
@@ -98,5 +99,6 @@ Line::to_SV_pureperl() const {
     av_store(av, 1, this->b.to_SV_pureperl());
     return newRV_noinc((SV*)av);
 }
+#endif
 
 }

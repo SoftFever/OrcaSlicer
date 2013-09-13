@@ -77,9 +77,10 @@ void safety_offset(ClipperLib::Polygons* &subject);
 
 /////////////////
 
+#ifdef SLIC3RXS
 SV* polynode_children_2_perl(const ClipperLib::PolyNode& node);
 SV* polynode2perl(const ClipperLib::PolyNode& node);
-
+#endif
 
 }
 

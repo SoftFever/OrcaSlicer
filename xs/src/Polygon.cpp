@@ -11,20 +11,6 @@ Polygon::last_point() const
     return new Point(this->points.front());  // last point == first point for polygons
 }
 
-SV*
-Polygon::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polygon::Ref", (void*)this );
-    return sv;
-}
-
-SV*
-Polygon::to_SV_clone_ref() const {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(*this) );
-    return sv;
-}
-
 Lines
 Polygon::lines() const
 {
@@ -116,5 +102,21 @@ Polygon::is_valid() const
 {
     return this->points.size() >= 3;
 }
+
+#ifdef SLIC3RXS
+SV*
+Polygon::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Polygon::Ref", (void*)this );
+    return sv;
+}
+
+SV*
+Polygon::to_SV_clone_ref() const {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(*this) );
+    return sv;
+}
+#endif
 
 }
