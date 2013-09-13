@@ -52,8 +52,8 @@ class ExtrusionLoop : public ExtrusionEntity
     public:
     ExtrusionLoop* clone() const;
     Polygon polygon;
-    ExtrusionPath* split_at_index(int index);
-    ExtrusionPath* split_at_first_point();
+    ExtrusionPath* split_at_index(int index) const;
+    ExtrusionPath* split_at_first_point() const;
     bool make_counter_clockwise();
     void reverse();
     Point* first_point() const;

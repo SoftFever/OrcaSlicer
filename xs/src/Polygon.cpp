@@ -15,40 +15,40 @@ Lines
 Polygon::lines() const
 {
     Lines lines;
-    for (int i = 0; i < this->points.size()-1; i++) {
-        lines.push_back(Line(this->points[i], this->points[i+1]));
+    lines.reserve(this->points.size());
+    for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
+        lines.push_back(Line(*it, *(it + 1)));
     }
     lines.push_back(Line(this->points.back(), this->points.front()));
     return lines;
 }
 
 Polyline*
-Polygon::split_at(const Point* point)
+Polygon::split_at(const Point* point) const
 {
     // find index of point
     for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-        if ((*it).coincides_with(point)) {
+        if (it->coincides_with(point))
             return this->split_at_index(it - this->points.begin());
-        }
     }
-    throw "Point not found";
+    CONFESS("Point not found");
+    return NULL;
 }
 
 Polyline*
-Polygon::split_at_index(int index)
+Polygon::split_at_index(int index) const
 {
     Polyline* poly = new Polyline;
-    for (int i = index; i < this->points.size(); i++) {
-        poly->points.push_back( this->points[i] );
-    }
-    for (int i = 0; i <= index; i++) {
-        poly->points.push_back( this->points[i] );
-    }
+    poly->points.reserve(this->points.size() + 1);
+    for (Points::const_iterator it = this->points.begin() + index; it != this->points.end(); ++it)
+        poly->points.push_back(*it);
+    for (Points::const_iterator it = this->points.begin(); it != this->points.begin() + index + 1; ++it)
+        poly->points.push_back(*it);
     return poly;
 }
 
 Polyline*
-Polygon::split_at_first_point()
+Polygon::split_at_first_point() const
 {
     return this->split_at_index(0);
 }

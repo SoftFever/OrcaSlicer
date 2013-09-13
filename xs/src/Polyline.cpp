@@ -8,13 +8,15 @@ Polyline::last_point() const
     return new Point(this->points.back());
 }
 
-void
-Polyline::lines(Lines &lines) const
+Lines
+Polyline::lines() const
 {
-    lines.clear();
-    for (int i = 0; i < this->points.size()-1; i++) {
-        lines.push_back(Line(this->points[i], this->points[i+1]));
+    Lines lines;
+    lines.reserve(this->points.size() - 1);
+    for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
+        lines.push_back(Line(*it, *(it + 1)));
     }
+    return lines;
 }
 
 #ifdef SLIC3RXS

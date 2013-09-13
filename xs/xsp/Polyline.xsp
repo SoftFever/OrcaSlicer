@@ -18,8 +18,7 @@
     void pop_back()
         %code{% THIS->points.pop_back(); %};
     void reverse();
-    Lines lines()
-        %code{% RETVAL = Lines(); THIS->lines(RETVAL); %};
+    Lines lines();
     Point* first_point()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
     Point* last_point()

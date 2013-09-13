@@ -33,7 +33,7 @@ ExtrusionLoop::clone() const
 }
 
 ExtrusionPath*
-ExtrusionLoop::split_at_index(int index)
+ExtrusionLoop::split_at_index(int index) const
 {
     Polyline* poly = this->polygon.split_at_index(index);
     
@@ -48,7 +48,7 @@ ExtrusionLoop::split_at_index(int index)
 }
 
 ExtrusionPath*
-ExtrusionLoop::split_at_first_point()
+ExtrusionLoop::split_at_first_point() const
 {
     return this->split_at_index(0);
 }
