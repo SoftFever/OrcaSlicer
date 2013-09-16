@@ -29,18 +29,18 @@ sub clip_with_expolygon {
 
 sub intersect_expolygons {
     my $self = shift;
-    my ($expolygons) = @_;
+    my ($expolygons_pp) = @_;
     
     return map $self->clone(polyline => Slic3r::Polyline->new(@$_)),
-        @{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection([ map $_->pp, @$expolygons ], [$self->pp])};
+        @{Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection($expolygons_pp, [$self->pp])};
 }
 
 sub subtract_expolygons {
     my $self = shift;
-    my ($expolygons) = @_;
+    my ($expolygons_pp) = @_;
     
     return map $self->clone(polyline => Slic3r::Polyline->new(@$_)),
-        @{Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$self->pp], [ map $_->pp, @$expolygons ])};
+        @{Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$self->pp], $expolygons_pp)};
 }
 
 sub simplify {

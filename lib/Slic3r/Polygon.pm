@@ -69,9 +69,10 @@ sub subdivide {
 sub concave_points {
     my $self = shift;
     
-    my @points = @{$self->pp};
-    return map $self->[$_],
-        grep Slic3r::Geometry::angle3points(@points[$_, $_-1, $_+1]) < PI - epsilon,
+    my @points = @$self;
+    my @points_pp = @{$self->pp};
+    return map $points[$_],
+        grep Slic3r::Geometry::angle3points(@points_pp[$_, $_-1, $_+1]) < PI - epsilon,
         -1 .. ($#points-1);
 }
 
