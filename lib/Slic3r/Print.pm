@@ -22,18 +22,10 @@ has 'first_layer_support_material_flow' => (is => 'rw');
 has 'has_support_material'   => (is => 'lazy');
 
 # ordered collection of extrusion paths to build skirt loops
-has 'skirt' => (
-    is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::ExtrusionLoop]',
-    default => sub { [] },
-);
+has 'skirt' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 # ordered collection of extrusion paths to build a brim
-has 'brim' => (
-    is      => 'rw',
-    #isa     => 'ArrayRef[Slic3r::ExtrusionLoop]',
-    default => sub { [] },
-);
+has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 sub BUILD {
     my $self = shift;
@@ -609,11 +601,11 @@ sub make_skirt {
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
         my $loop = Slic3r::Geometry::Clipper::offset([$convex_hull], $distance, 0.0001, JT_ROUND)->[0];
-        push @{$self->skirt}, Slic3r::ExtrusionLoop->new(
+        $self->skirt->append(Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
             flow_spacing    => $spacing,
-        );
+        ));
         
         if ($Slic3r::Config->min_skirt_length > 0) {
             $extruded_length[$extruder_idx]     ||= 0;
@@ -629,7 +621,7 @@ sub make_skirt {
         }
     }
     
-    @{$self->skirt} = reverse @{$self->skirt};
+    $self->skirt->reverse;
 }
 
 sub make_brim {
@@ -657,7 +649,7 @@ sub make_brim {
                 if $support_layer0->support_interface_fills;
         }
         foreach my $copy (@{$object->copies}) {
-            push @islands, map $_->clone->translate(@$copy), @object_islands;
+            push @islands, map { $_->translate(@$copy); $_ } map $_->clone, @object_islands;
         }
     }
     
@@ -677,11 +669,11 @@ sub make_brim {
         push @loops, @{offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, 100000, JT_SQUARE)};
     }
     
-    @{$self->brim} = map Slic3r::ExtrusionLoop->new(
+    $self->brim->append(map Slic3r::ExtrusionLoop->new(
         polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
         flow_spacing    => $flow->spacing,
-    ), reverse traverse_pt( union_pt(\@loops) );
+    ), reverse traverse_pt( union_pt(\@loops) ));
 }
 
 sub write_gcode {

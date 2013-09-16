@@ -77,13 +77,14 @@ sub process_layer {
         # skip skirt if we have a large brim
         if ($layer->id < $Slic3r::Config->skirt_height) {
             # distribute skirt loops across all extruders
-            for my $i (0 .. $#{$self->print->skirt}) {
+            my @skirt_loops = @{$self->print->skirt};
+            for my $i (0 .. $#skirt_loops) {
                 # when printing layers > 0 ignore 'min_skirt_length' and 
                 # just use the 'skirts' setting; also just use the current extruder
                 last if ($layer->id > 0) && ($i >= $Slic3r::Config->skirts);
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ])
                     if $layer->id == 0;
-                $gcode .= $self->gcodegen->extrude_loop($self->print->skirt->[$i], 'skirt');
+                $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
             }
         }
         $self->skirt_done->{$layer->print_z} = 1;

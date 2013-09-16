@@ -7,6 +7,7 @@
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
     %name{_new} ExtrusionEntityCollection();
+    void reverse();
     void clear()
         %code{% THIS->entities.clear(); %};
     ExtrusionEntityCollection* chained_path(bool no_reverse)
