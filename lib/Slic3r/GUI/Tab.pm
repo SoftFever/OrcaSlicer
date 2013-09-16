@@ -628,8 +628,8 @@ sub _update_description {
         : "will be turned off.";
     
     if ($config->cooling) {
-        $msg = sprintf "If estimated layer time is below ~%ds, fan will run at 100%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
-            $config->slowdown_below_layer_time, $config->slowdown_below_layer_time, $config->min_print_speed;
+        $msg = sprintf "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
+            $config->slowdown_below_layer_time, $config->max_fan_speed, $config->slowdown_below_layer_time, $config->min_print_speed;
         if ($config->fan_below_layer_time > $config->slowdown_below_layer_time) {
             $msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
                 $config->fan_below_layer_time, $config->max_fan_speed, $config->min_fan_speed;
