@@ -5,7 +5,7 @@ use List::Util qw(min max sum first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path_points);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
-    offset offset_ex offset2 CLIPPER_OFFSET_SCALE JT_MITER);
+    offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -308,21 +308,23 @@ sub detect_surfaces_type {
     my $self = shift;
     Slic3r::debugf "Detecting solid surfaces...\n";
     
-    # prepare a reusable subroutine to make surface differences
-    my $difference = sub {
-        my ($subject, $clip, $result_type) = @_;
-        my $expolygons = diff_ex(
-            [ map @$_, @$subject ],
-            [ map @$_, @$clip ],
-            1,
-        );
-        return map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type),
-            @$expolygons;
-    };
-    
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for my $i (0 .. ($self->layer_count-1)) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
+        
+            # prepare a reusable subroutine to make surface differences
+            my $difference = sub {
+                my ($subject, $clip, $result_type) = @_;
+                my $diff = diff(
+                    [ map @$_, @$subject ],
+                    [ map @$_, @$clip ],
+                );
+                
+                # collapse very narrow parts (using the safety offset in the diff is not enough)
+                my $offset = $layerm->perimeter_flow->scaled_width / 10;
+                return map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type),
+                    @{ offset2_ex($diff, -$offset, +$offset) };
+            };
             
             # comparison happens against the *full* slices (considering all regions)
             my $upper_layer = $self->layers->[$i+1];
@@ -366,7 +368,8 @@ sub detect_surfaces_type {
             # as bottom surfaces (to allow for bridge detection)
             if (@top && @bottom) {
                 my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
-                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->id, scalar(@$overlapping);
+                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->id, scalar(@$overlapping)
+                    if $Slic3r::debug;
                 @top = $difference->([map $_->expolygon, @top], $overlapping, S_TYPE_TOP);
             }
             
@@ -382,7 +385,7 @@ sub detect_surfaces_type {
             $layerm->slices->append(@bottom, @top, @internal);
             
             Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
-                $layerm->id, scalar(@bottom), scalar(@top), scalar(@internal);
+                $layerm->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
         }
         
         # clip surfaces to the fill boundaries
