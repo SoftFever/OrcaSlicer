@@ -102,8 +102,60 @@ sub simplify {
 # a contour and a hole, and not being thicker than the supplied 
 # width. it returns a polyline or a polygon
 sub medial_axis {
-    my $self = shift;
-    my ($width) = @_;
+    my ($self, $width) = @_;
+    return $self->_medial_axis_clip($width);
+}
+
+sub _medial_axis_clip {
+    my ($self, $width) = @_;
+    
+    my $grow = sub {
+        my ($line, $distance) = @_;
+        my ($a, $b) = @$line;
+        my $dx = $a->x - $b->x;
+        my $dy = $a->y - $b->y; #-
+        my $dist = sqrt($dx*$dx + $dy*$dy);
+        $dx /= $dist;
+        $dy /= $dist;
+        return Slic3r::Polygon->new(
+            Slic3r::Point->new($a->x + $distance*$dy, $a->y - $distance*$dx), #--
+            Slic3r::Point->new($b->x + $distance*$dy, $b->y - $distance*$dx), #--
+            Slic3r::Point->new($b->x - $distance*$dy, $b->y + $distance*$dx), #++
+            Slic3r::Point->new($a->x - $distance*$dy, $a->y + $distance*$dx), #++
+        );
+    };
+    
+    my @result = ();
+    my $covered = [];
+    foreach my $polygon (@$self) {
+        my @polylines = ();
+        foreach my $line (@{$polygon->lines}) {
+            my $clipped = Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$line->pp], [ map $_->pp, @{union_ex($covered)} ]);
+            @$clipped = grep $_->length > $width/10, map Slic3r::Polyline->new(@$_), @$clipped;
+            push @$covered, map $grow->($_, $width*1.1), @$clipped;
+            if (@polylines && @$clipped && $clipped->[0]->first_point->distance_to($polylines[-1]->last_point) <= $width/10) {
+                $polylines[-1]->append_polyline(shift @$clipped);
+            }
+            push @polylines, @$clipped;
+        }
+        
+        foreach my $polyline (@polylines) {
+            next if $polyline->length <= $width/10;
+            if ($polyline->first_point->coincides_with($polyline->last_point)) {
+                next if @$polyline == 2;
+                $polyline->pop_back;
+                push @result, Slic3r::Polygon->new(@$polyline);
+            } else {
+                push @result, $polyline;
+            }
+        }
+    }
+    
+    return @result;
+}
+
+sub _medial_axis_voronoi {
+    my ($self, $width) = @_;
     
     my $voronoi;
     {
