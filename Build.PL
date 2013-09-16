@@ -124,10 +124,15 @@ EOF
     system $cpanm, '--reinstall', './xs';
 }
 
-if (eval "use App::Prove; 1" && !$missing_prereqs) {
-    App::Prove->new->run;
+if ($missing_prereqs) {
+    exit 1;
+} else {
+    if (eval "use App::Prove; 1") {
+        App::Prove->new->run;
+    }
+    if (!defined $ARGV[0] && $ARGV[0] ne '--gui') {
+        print "If you also want to use the GUI you can now run `perl Build.PL --gui` to install the required modules.\n";
+    }
 }
-
-exit 1 if $missing_prereqs;
 
 __END__

@@ -1079,6 +1079,11 @@ sub object_preview_dialog {
         ($obj_idx, undef) = $self->selected_object;
     }
     
+    if (!$Slic3r::GUI::have_OpenGL) {
+        Slic3r::GUI::show_error($self, "Please install the OpenGL modules to use this feature (see build instructions).");
+        return;
+    }
+    
     my $dlg = Slic3r::GUI::Plater::ObjectPreviewDialog->new($self,
 		object => $self->{objects}[$obj_idx],
 	);
