@@ -355,8 +355,7 @@ sub combine_stls {
         $new_model->set_material($m, { Name => basename($input_files[$m]) });
         $new_object->add_volume(
             material_id => $m,
-            facets      => $model->objects->[0]->volumes->[0]->facets,
-            vertices    => $model->objects->[0]->vertices,
+            mesh        => $model->objects->[0]->volumes->[0]->mesh,
         );
     }
     

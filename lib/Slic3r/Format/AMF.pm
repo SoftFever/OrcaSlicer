@@ -49,22 +49,32 @@ sub write_file {
         printf $fh qq{  <object id="%d">\n}, $object_id;
         printf $fh qq{    <mesh>\n};
         printf $fh qq{      <vertices>\n};
-        foreach my $vertex (@{$object->vertices}, ) {
-            printf $fh qq{        <vertex>\n};
-            printf $fh qq{          <coordinates>\n};
-            printf $fh qq{            <x>%s</x>\n}, $vertex->[X];
-            printf $fh qq{            <y>%s</y>\n}, $vertex->[Y];
-            printf $fh qq{            <z>%s</z>\n}, $vertex->[Z];
-            printf $fh qq{          </coordinates>\n};
-            printf $fh qq{        </vertex>\n};
+        my @vertices_offset = ();
+        {
+            my $vertices_offset = 0;
+            foreach my $volume (@{ $object->volumes }) {
+                push @vertices_offset, $vertices_offset;
+                my $vertices = $volume->mesh->vertices;
+                foreach my $vertex (@$vertices) {
+                    printf $fh qq{        <vertex>\n};
+                    printf $fh qq{          <coordinates>\n};
+                    printf $fh qq{            <x>%s</x>\n}, $vertex->[X];
+                    printf $fh qq{            <y>%s</y>\n}, $vertex->[Y];
+                    printf $fh qq{            <z>%s</z>\n}, $vertex->[Z];
+                    printf $fh qq{          </coordinates>\n};
+                    printf $fh qq{        </vertex>\n};
+                }
+                $vertices_offset += scalar(@$vertices);
+            }
         }
         printf $fh qq{      </vertices>\n};
         foreach my $volume (@{ $object->volumes }) {
+            my $vertices_offset = shift @vertices_offset;
             printf $fh qq{      <volume%s>\n},
                 (!defined $volume->material_id) ? '' : (sprintf ' materialid="%s"', $volume->material_id);
-            foreach my $facet (@{$volume->facets}) {
+            foreach my $facet (@{$volume->mesh->facets}) {
                 printf $fh qq{        <triangle>\n};
-                printf $fh qq{          <v%d>%d</v%d>\n}, (4+$_), $facet->[$_], (4+$_) for -3..-1;
+                printf $fh qq{          <v%d>%d</v%d>\n}, $_, $facet->[$_-1] + $vertices_offset, $_ for 1..3;
                 printf $fh qq{        </triangle>\n};
             }
             printf $fh qq{      </volume>\n};
