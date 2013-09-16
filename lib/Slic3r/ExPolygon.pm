@@ -105,29 +105,30 @@ sub medial_axis {
     my $self = shift;
     my ($width) = @_;
     
-    my @points = ();
-    foreach my $polygon (@$self) {
-        {
-            my $p = $polygon->pp;
-            Slic3r::Geometry::polyline_remove_short_segments($p, $width / 2);
-            $polygon = Slic3r::Polygon->new(@$p);
+    my $voronoi;
+    {
+        my @points = ();
+        foreach my $polygon (@$self) {
+            {
+                my $p = $polygon->pp;
+                Slic3r::Geometry::polyline_remove_short_segments($p, $width / 2);
+                $polygon = Slic3r::Polygon->new(@$p);
+            }
+            
+            # subdivide polygon segments so that we don't have anyone of them
+            # being longer than $width / 2
+            $polygon = $polygon->subdivide($width/2);
+            
+            push @points, map $_->pp, @$polygon;
         }
-        
-        # subdivide polygon segments so that we don't have anyone of them
-        # being longer than $width / 2
-        $polygon = $polygon->subdivide($width/2);
-        
-        push @points, map $_->clone, @$polygon;
+        $voronoi = Math::Geometry::Voronoi->new(points => \@points);
     }
     
-    my $voronoi = Math::Geometry::Voronoi->new(points => [ map $_->pp, @points ]);
     $voronoi->compute;
+    my $vertices = $voronoi->vertices;
     
     my @skeleton_lines = ();
-    
-    my $vertices = $voronoi->vertices;
-    my $edges = $voronoi->edges;
-    foreach my $edge (@$edges) {
+    foreach my $edge (@{ $voronoi->edges }) {
         # ignore lines going to infinite
         next if $edge->[1] == -1 || $edge->[2] == -1;
         
