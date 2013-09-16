@@ -571,7 +571,6 @@ sub make_skirt {
         my @layers = map $object->layers->[$_], 0..min($Slic3r::Config->skirt_height-1, $#{$object->layers});
         my @layer_points = (
             (map @$_, map @$_, map @{$_->slices}, @layers),
-            (map @$_, map @{$_->thin_walls}, map @{$_->regions}, @layers),
         );
         if (@{ $object->support_layers }) {
             my @support_layers = map $object->support_layers->[$_], 0..min($Slic3r::Config->skirt_height-1, $#{$object->support_layers});
@@ -637,7 +636,6 @@ sub make_brim {
         my $layer0 = $object->layers->[0];
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
-            (map { $_->isa('Slic3r::Polygon') ? $_ : $_->grow($grow_distance) } map @{$_->thin_walls}, @{$layer0->regions}),
         );
         if (@{ $object->support_layers }) {
             my $support_layer0 = $object->support_layers->[0];

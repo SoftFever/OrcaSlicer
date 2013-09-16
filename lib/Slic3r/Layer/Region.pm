@@ -28,10 +28,6 @@ has 'overhang_width'    => (is => 'lazy');
 # divided by type top/bottom/internal
 has 'slices' => (is => 'rw', default => sub { Slic3r::Surface::Collection->new });
 
-# collection of polygons or polylines representing thin walls contained 
-# in the original geometry
-has 'thin_walls' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
-
 # collection of extrusion paths/loops filling gaps
 has 'thin_fills' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
@@ -101,26 +97,6 @@ sub make_surfaces {
             expolygons          => [ map $_->expolygon, @{$self->slices} ],
         );
     }
-    
-    # detect thin walls by offsetting slices by half extrusion inwards
-    if ($self->config->thin_walls) {
-        $self->thin_walls([]);
-        # we use spacing here because there could be a case where
-        # the slice collapses with width but doesn't collapse with spacing,
-        # thus causing both perimeters and medial axis to be generated
-        my $width = $self->perimeter_flow->scaled_spacing;
-        my $diff = diff_ex(
-            [ map $_->p, @{$self->slices} ],
-            offset2([ map $_->p, @{$self->slices} ], -$width*0.5, +$width*0.5),
-            1,
-        );
-        
-        my $area_threshold = $width ** 2;
-        if (@$diff = grep { $_->area > $area_threshold } @$diff) {
-            @{$self->thin_walls} = map $_->medial_axis($width), @$diff;
-            Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->thin_walls});
-        }
-    }
 }
 
 sub _merge_loops {
@@ -177,7 +153,7 @@ sub make_perimeters {
     
     my @contours    = ();    # array of Polygons with ccw orientation
     my @holes       = ();    # array of Polygons with cw orientation
-    my @gaps        = ();    # array of ExPolygons
+    my @gaps        = ();    # array of Polygons
     
     # we need to process each island separately because we might have different
     # extra perimeters for each one
@@ -205,13 +181,13 @@ sub make_perimeters {
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
             if ($Slic3r::Config->gap_fill_speed > 0 && $self->object->config->fill_density > 0) {
-                my $diff = diff_ex(
+                my $diff = diff(
                     offset(\@last, -0.5*$spacing),
                     # +2 on the offset here makes sure that Clipper float truncation 
                     # won't shrink the clip polygon to be smaller than intended.
                     offset(\@offsets, +0.5*$spacing + 2),
                 );
-                push @gaps, (@this_gaps = grep $_->area >= $gap_area_threshold, @$diff);
+                push @gaps, (@this_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff);
             }
             
             last if !@offsets || $i == $loop_number;
@@ -222,7 +198,7 @@ sub make_perimeters {
         
         # make sure we don't infill narrow parts that are already gap-filled
         # (we only consider this surface's gaps to reduce the diff() complexity)
-        @last = @{diff(\@last, [ map @$_, @this_gaps ])};
+        @last = @{diff(\@last, \@this_gaps)};
         
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
@@ -236,8 +212,6 @@ sub make_perimeters {
             )}
         );
     }
-    
-    $self->_fill_gaps(\@gaps);
     
     # find nesting hierarchies separately for contours and holes
     my $contours_pt = union_pt(\@contours);
@@ -302,14 +276,49 @@ sub make_perimeters {
     # append perimeters
     $self->perimeters->append(@loops);
     
-    # add thin walls as perimeters
-    push @{ $self->perimeters }, @{Slic3r::ExtrusionPath::Collection->new(
-        map Slic3r::ExtrusionPath->new(
-                polyline        => ($_->isa('Slic3r::Polygon') ? $_->split_at_first_point : $_->clone),
-                role            => EXTR_ROLE_EXTERNAL_PERIMETER,
-                flow_spacing    => $self->perimeter_flow->spacing,
-        ), @{ $self->thin_walls }
-    )->chained_path(0)};
+    # detect thin walls by offsetting slices by half extrusion inwards
+    # and add them as perimeters
+    if ($self->config->thin_walls) {
+        # we use spacing here because there could be a case where
+        # the slice collapses with width but doesn't collapse with spacing,
+        # thus causing both perimeters and medial axis to be generated
+        my $width = $self->perimeter_flow->scaled_spacing;
+        my $diff = diff_ex(
+            [ map $_->p, @{$self->slices} ],
+            offset2([ map $_->p, @{$self->slices} ], -$width*0.5, +$width*0.5),
+            1,
+        );
+        
+        my $area_threshold = $width ** 2;
+        if (@$diff = grep { $_->area > $area_threshold } @$diff) {
+            my @p = map $_->medial_axis($width), @$diff;
+            my @paths = ();
+            for my $p (@p) {
+                my %params = (
+                    role            => EXTR_ROLE_EXTERNAL_PERIMETER,
+                    flow_spacing    => $self->perimeter_flow->spacing,
+                );
+                push @paths, $p->isa('Slic3r::Polygon')
+                    ? Slic3r::ExtrusionLoop->new(polygon  => $p, %params)
+                    : Slic3r::ExtrusionPath->new(polyline => $p, %params);
+            }
+            
+            $self->perimeters->append(
+                map $_->clone, @{Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path(0)}
+            );
+            Slic3r::debugf "  %d thin walls detected\n", scalar(@paths) if $Slic3r::debug;
+            
+            # in the mean time we subtract thin walls from the detected gaps so that we don't
+            # reprocess them, causing overlapping thin walls and zigzag.
+            @gaps = @{diff(
+                \@gaps,
+                [ map $_->grow($self->perimeter_flow->scaled_width), @p ],
+                1,
+            )};
+        }
+    }
+    
+    $self->_fill_gaps(\@gaps);
 }
 
 sub _fill_gaps {
@@ -318,19 +327,15 @@ sub _fill_gaps {
     
     return unless @$gaps;
     
+    # turn gaps into ExPolygons
+    $gaps = union_ex($gaps);
+    
     my $filler = $self->layer->object->fill_maker->filler('rectilinear');
     $filler->layer_id($self->layer->id);
     
     # we should probably use this code to handle thin walls and remove that logic from
     # make_surfaces(), but we need to enable dynamic extrusion width before as we can't
     # use zigzag for thin walls.
-    # in the mean time we subtract thin walls from the detected gaps so that we don't
-    # reprocess them, causing overlapping thin walls and zigzag.
-    @$gaps = @{diff_ex(
-        [ map @$_, @$gaps ],
-        [ map $_->grow($self->perimeter_flow->scaled_width), @{$self->{thin_walls}} ],
-        1,
-    )};
     
     # medial axis-based gap fill should benefit from detection of larger gaps too, so 
     # we could try with 1.5*$w for example, but that doesn't work well for zigzag fill
@@ -375,29 +380,27 @@ sub _fill_gaps {
                     flow_spacing    => $flow->spacing,
                 );
                 
-                push @{ $self->thin_fills },
-                    map {
-                        $_->simplify($flow->scaled_width/3);
-                        $_;
-                    }
-                    map Slic3r::ExtrusionPath->new(
-                        polyline        => Slic3r::Polyline->new(@$_),
-                        role            => EXTR_ROLE_GAPFILL,
-                        height          => $self->height,
-                        flow_spacing    => $params->{flow_spacing},
-                    ),
-                    # Split polylines into lines so that the chained_path() search
-                    # at the final stage has more freedom and will choose starting
-                    # points closer than last positions. OTOH, this will make such
-                    # search slower. Probably, ExtrusionPath objects should support
-                    # splitting nearby a given position so that we can choose the right
-                    # entry point even in the middle of the path without needing a 
-                    # complex, slow, chained_path() search on all segments. TODO.
-                    # Such logic will also avoid all the small travel moves that this 
-                    # line-splitting causes, and it will be applicable to other things
-                    # too.
-                    map Slic3r::Polyline->new(@$_)->lines,
-                    @paths;
+                # Split polylines into lines so that the chained_path() search
+                # at the final stage has more freedom and will choose starting
+                # points closer than last positions. OTOH, this will make such
+                # search slower. Probably, ExtrusionPath objects should support
+                # splitting nearby a given position so that we can choose the right
+                # entry point even in the middle of the path without needing a 
+                # complex, slow, chained_path() search on all segments. TODO.
+                # Such logic will also avoid all the small travel moves that this 
+                # line-splitting causes, and it will be applicable to other things
+                # too.
+                my @lines = map @{Slic3r::Polyline->new(@$_)->lines}, @paths;
+                
+                @paths = map Slic3r::ExtrusionPath->new(
+                    polyline        => Slic3r::Polyline->new(@$_),
+                    role            => EXTR_ROLE_GAPFILL,
+                    height          => $self->height,
+                    flow_spacing    => $params->{flow_spacing},
+                ), @lines;
+                $_->simplify($flow->scaled_width/3) for @paths;
+                
+                $self->thin_fills->append(@paths);
             }
         }
         

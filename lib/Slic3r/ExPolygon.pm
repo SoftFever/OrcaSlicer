@@ -105,10 +105,8 @@ sub medial_axis {
     my $self = shift;
     my ($width) = @_;
     
-    my @self_lines = map $_->lines, @$self;
-    my $expolygon = $self->clone;
     my @points = ();
-    foreach my $polygon (@$expolygon) {
+    foreach my $polygon (@$self) {
         {
             my $p = $polygon->pp;
             Slic3r::Geometry::polyline_remove_short_segments($p, $width / 2);
@@ -117,9 +115,9 @@ sub medial_axis {
         
         # subdivide polygon segments so that we don't have anyone of them
         # being longer than $width / 2
-        $polygon->subdivide($width/2);
+        $polygon = $polygon->subdivide($width/2);
         
-        push @points, @$polygon;
+        push @points, map $_->clone, @$polygon;
     }
     
     my $voronoi = Math::Geometry::Voronoi->new(points => [ map $_->pp, @points ]);
@@ -136,67 +134,34 @@ sub medial_axis {
         my ($a, $b);
         $a = Slic3r::Point->new(@{$vertices->[$edge->[1]]});
         $b = Slic3r::Point->new(@{$vertices->[$edge->[2]]});
-        
         next if !$self->encloses_point_quick($a) || !$self->encloses_point_quick($b);
         
         push @skeleton_lines, [$edge->[1], $edge->[2]];
-    }
-    
-    # remove leafs (lines not connected to other lines at one of their endpoints)
-    {
-        my %pointmap = ();
-        $pointmap{$_}++ for map @$_, @skeleton_lines;
-        @skeleton_lines = grep {
-            $pointmap{$_->[A]} >= 2 && $pointmap{$_->[B]} >= 2
-        } @skeleton_lines;
     }
     return () if !@skeleton_lines;
     
     # now walk along the medial axis and build continuos polylines or polygons
     my @polylines = ();
     {
-        # build a map of line endpoints
-        my %pointmap = ();  # point_idx => [line_idx, line_idx ...]
-        for my $line_idx (0 .. $#skeleton_lines) {
-            for my $point_idx (@{$skeleton_lines[$line_idx]}) {
-                $pointmap{$point_idx} ||= [];
-                push @{$pointmap{$point_idx}}, $line_idx;
-            }
-        }
-        
-        # build the list of available lines
-        my %spare_lines = map {$_ => 1} (0 .. $#skeleton_lines);
-        
-        CYCLE: while (%spare_lines) {
-            push @polylines, [];
-            my $polyline = $polylines[-1];
-            
-            # start from a random line
-            my $first_line_idx = +(keys %spare_lines)[0];
-            delete $spare_lines{$first_line_idx};
-            push @$polyline, @{ $skeleton_lines[$first_line_idx] };
-            
-            while (1) {
-                my $last_point_id = $polyline->[-1];
-                my $lines_starting_here = $pointmap{$last_point_id};
-                
-                # remove all the visited lines from the array
-                shift @$lines_starting_here
-                    while @$lines_starting_here && !$spare_lines{$lines_starting_here->[0]};
-                
-                # do we have a line starting here?
-                my $next_line_idx = shift @$lines_starting_here;
-                if (!defined $next_line_idx) {
-                    delete $pointmap{$last_point_id};
-                    next CYCLE;
+        my @lines = @skeleton_lines;
+        push @polylines, [ map @$_, shift @lines ];
+        CYCLE: while (@lines) {
+            for my $i (0..$#lines) {
+                if ($lines[$i][0] == $polylines[-1][-1]) {
+                    push @{$polylines[-1]}, $lines[$i][1];
+                } elsif ($lines[$i][1] == $polylines[-1][-1]) {
+                    push @{$polylines[-1]}, $lines[$i][0];
+                } elsif ($lines[$i][1] == $polylines[-1][0]) {
+                    unshift @{$polylines[-1]}, $lines[$i][0];
+                } elsif ($lines[$i][0] == $polylines[-1][0]) {
+                    unshift @{$polylines[-1]}, $lines[$i][1];
+                } else {
+                    next;
                 }
-                
-                # line is not available anymore
-                delete $spare_lines{$next_line_idx};
-                
-                # add the other point to our polyline and continue walking
-                push @$polyline, grep $_ ne $last_point_id, @{$skeleton_lines[$next_line_idx]};
+                splice @lines, $i, 1;
+                next CYCLE;
             }
+            push @polylines, [ map @$_, shift @lines ];
         }
     }
     
@@ -209,9 +174,8 @@ sub medial_axis {
         
         # cleanup
         $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
-        $polyline = Slic3r::Polyline->new(@$polyline);
         
-        if (Slic3r::Geometry::same_point($polyline->first_point, $polyline->last_point)) {
+        if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
             next if @$polyline == 2;
             push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
         } else {

@@ -51,21 +51,18 @@ sub subdivide {
     my $self = shift;
     my ($max_length) = @_;
     
-    for (my $i = 0; $i <= $#$self; $i++) {
-        my $len = Slic3r::Geometry::line_length([ $self->[$i-1], $self->[$i] ]);
-        my $num_points = int($len / $max_length) - 1;
-        $num_points++ if $len % $max_length;
-        
-        # $num_points is the number of points to add between $i-1 and $i
-        next if $num_points == -1;
-        my $spacing = $len / ($num_points + 1);
-        my @new_points = map Slic3r::Point->new($_),
-            map Slic3r::Geometry::point_along_segment($self->[$i-1], $self->[$i], $spacing * $_),
-            1..$num_points;
-        
-        splice @$self, $i, 0, @new_points;
-        $i += @new_points;
+    my @points = @$self;
+    push @points, $points[0];  # append first point as this is a polygon
+    my @new_points = shift @points;
+    while (@points) {
+        while ($new_points[-1]->distance_to($points[0]) > $max_length) {
+            push @new_points, map Slic3r::Point->new(@$_),
+                Slic3r::Geometry::point_along_segment($new_points[-1], $points[0], $max_length);
+        }
+        push @new_points, shift @points;
     }
+    pop @new_points;  # remove last point as it coincides with first one
+    return Slic3r::Polygon->new(@new_points);
 }
 
 # for cw polygons this will return convex points!
