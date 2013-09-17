@@ -259,9 +259,12 @@ sub make_perimeters {
                 next if !@$diff;
                 # if we need more perimeters, $diff should contain a narrow region that we can collapse
                 
+                # we use a higher miterLimit here to handle areas with acute angles
+                # in those cases, the default miterLimit would cut the corner and we'd
+                # get a triangle that would trigger a non-needed extra perimeter
                 $diff = diff(
                     $diff,
-                    offset2($diff, -$perimeter_spacing, +$perimeter_spacing),
+                    offset2($diff, -$perimeter_spacing, +$perimeter_spacing, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
                     1,
                 );
                 next if !@$diff;
