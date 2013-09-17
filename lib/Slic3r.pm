@@ -69,6 +69,7 @@ use Slic3r::Polyline;
 use Slic3r::Print;
 use Slic3r::Print::Object;
 use Slic3r::Print::Region;
+use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 our $build = eval "use Slic3r::Build; 1";
