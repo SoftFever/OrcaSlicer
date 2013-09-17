@@ -18,7 +18,6 @@ has 'config_overrides'  => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'config'            => (is => 'rw');
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'fill_maker'        => (is => 'lazy');
-has '_slice_z_table'    => (is => 'lazy');
 
 sub BUILD {
     my $self = shift;
@@ -88,11 +87,6 @@ sub _build_fill_maker {
     return Slic3r::Fill->new(object => $self);
 }
 
-sub _build__slice_z_table {
-    my $self = shift;
-    return Slic3r::Object::XS::ZTable->new([ map $_->slice_z, @{$self->layers} ]);
-}
-
 # This should be probably moved in Print.pm at the point where we sort Layer objects
 sub _trigger_copies {
     my $self = shift;
@@ -110,17 +104,6 @@ sub init_config {
 sub layer_count {
     my $self = shift;
     return scalar @{ $self->layers };
-}
-
-sub get_layer_range {
-    my $self = shift;
-    my ($min_z, $max_z) = @_;
-    
-    my $min_layer = $self->_slice_z_table->lower_bound($min_z); # first layer whose slice_z is >= $min_z
-    return (
-        $min_layer,
-        $self->_slice_z_table->upper_bound($max_z, $min_layer)-1, # last layer whose slice_z is <= $max_z
-    );
 }
 
 sub bounding_box {

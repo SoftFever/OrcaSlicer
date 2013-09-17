@@ -129,7 +129,6 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::DESTROY         = sub {};
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::Line::DESTROY                  = sub {};
-    *Slic3r::Object::XS::ZTable::DESTROY    = sub {};
     *Slic3r::Point::DESTROY                 = sub {};
     *Slic3r::Polygon::DESTROY               = sub {};
     *Slic3r::Polyline::DESTROY              = sub {};
