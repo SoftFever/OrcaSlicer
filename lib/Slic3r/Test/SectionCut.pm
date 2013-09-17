@@ -121,7 +121,8 @@ sub _plot {
                             }
                         } else {
                             push @rectangles, map {
-                                my $height = $path->height // $layer->height;
+                                my $height = $path->height;
+                                $height = $layer->height if $height == -1;
                                 {
                                     'x'         => $self->scale * unscale $_->[A][X],
                                     'y'         => $self->scale * $self->_y($layer->print_z),
