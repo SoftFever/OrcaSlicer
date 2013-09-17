@@ -539,8 +539,6 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
-    my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
-    
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
@@ -557,8 +555,13 @@ sub discover_horizontal_shells {
                 # fill_surfaces though.  Using both ungrown slices and grown fill_surfaces will
                 # not work in some situations, as there won't be any grown region in the perimeter 
                 # area (this was seen in a model where the top layer had one extra perimeter, thus
-                # its fill_surfaces was thinner than the lower layer's infill)
-                my $solid = offset([ map $_->p, @{$layerm->slices->filter_by_type($type)} ], $margin);
+                # its fill_surfaces were thinner than the lower layer's infill), however it's the best
+                # solution so far. Growing the external slices by EXTERNAL_INFILL_MARGIN will put
+                # too much solid infill inside nearly-vertical slopes.
+                my $solid = [
+                    (map $_->p, @{$layerm->slices->filter_by_type($type)}),
+                    (map $_->p, @{$layerm->fill_surfaces->filter_by_type($type)}),
+                ];
                 next if !@$solid;
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 

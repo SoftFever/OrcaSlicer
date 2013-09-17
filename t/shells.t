@@ -1,4 +1,4 @@
-use Test::More tests => 11;
+use Test::More tests => 12;
 use strict;
 use warnings;
 
@@ -113,6 +113,29 @@ use Slic3r::Test;
     });
     is scalar(keys %layers), $config->bottom_solid_layers,
         "shells are not propagated across perimeters of the neighbor layer";
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('perimeters', 3);
+    $config->set('cooling', 0);                 # prevent speed alteration
+    $config->set('first_layer_speed', '100%');  # prevent speed alteration
+    $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', '100%');
+    $config->set('bottom_solid_layers', 3);
+    $config->set('top_solid_layers', 3);
+    $config->set('solid_infill_speed', 99);
+    $config->set('top_solid_infill_speed', 99);
+    
+    my $print = Slic3r::Test::init_print('sloping_hole', config => $config);
+    my %solid_layers = ();  # Z => 1
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        $solid_layers{$self->Z} = 1
+            if $info->{extruding} && ($args->{F} // $self->F) == $config->solid_infill_speed*60;
+    });
+    is scalar(keys %solid_layers), $config->bottom_solid_layers + $config->top_solid_layers,
+        "no superfluous shells are generated";
 }
 
 {
