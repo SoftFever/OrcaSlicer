@@ -97,6 +97,7 @@ sub parallelize {
             Slic3r::thread_cleanup();
             return $result;
         };
+        $params{collect_cb} ||= sub {};
             
         @_ = ();
         foreach my $th (map threads->create($thread_cb), 1..$Config->threads) {
@@ -113,6 +114,11 @@ sub parallelize {
 # inherited at the thread creation (thus shared) and those 
 # that we are returning: destruction will be handled by the
 # main thread in both cases.
+# reminder: do not destroy inherited objects in other threads,
+# as the main thread will still try to destroy them when they
+# go out of scope; in other words, if you're undef()'ing an 
+# object in a thread, make sure the main thread still holds a
+# reference so that it won't be destroyed in thread.
 sub thread_cleanup {
     # prevent destruction of shared objects
     no warnings 'redefine';

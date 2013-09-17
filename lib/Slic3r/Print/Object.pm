@@ -1024,32 +1024,27 @@ sub generate_support_material {
     
     my $process_layer = sub {
         my ($layer_id) = @_;
+        my $layer = $self->support_layers->[$layer_id];
         
-        $contact{$support_layers[$layer_id]}    ||= [];
-        $interface{$layer_id}                   ||= [];
-        $support{$layer_id}                     ||= [];
+        my $overhang    = $overhang{$support_layers[$layer_id]} || [];
+        my $contact     = $contact{$support_layers[$layer_id]}  || [];
+        my $interface   = $interface{$layer_id} || [];
+        my $support     = $support{$layer_id}   || [];
         
         if (0) {
             require "Slic3r/SVG.pm";
             Slic3r::SVG::output("layer_" . $support_layers[$layer_id] . ".svg",
-                red_expolygons      => union_ex($contact{$support_layers[$layer_id]}),
-                green_expolygons    => union_ex($interface{$layer_id}),
+                red_expolygons      => union_ex($contact),
+                green_expolygons    => union_ex($interface),
             );
         }
         
         # islands
-        my $result = { contact => [], interface => [], support => [] };
-        $result->{islands} = union_ex([
-            map @$_,
-                $interface{$layer_id},
-                $support{$layer_id},
-                $contact{$support_layers[$layer_id]},
-        ]);
+        $layer->support_islands->append(@{union_ex([ @$interface, @$support, @$contact ])});
         
         # contact
         my $contact_infill = [];
-        if ((my $contact = $contact{$support_layers[$layer_id]}) && $contact_loops > 0) {
-            my $overhang = $overhang{$support_layers[$layer_id]};
+        if ($contact && $contact_loops > 0) {
             $contact = [ grep $_->is_counter_clockwise, @$contact ];
             
             # generate the outermost loop
@@ -1090,26 +1085,26 @@ sub generate_support_material {
                 flow_spacing    => $flow->spacing,
             ), @loops;
             
-            $result->{contact} = [ @loops ];
+            $layer->support_interface_fills->append(@loops);
         }
         
         # interface and contact infill
-        if (@{$interface{$layer_id}} || @$contact_infill) {
+        if (@$interface || @$contact_infill) {
             $fillers{interface}->angle($interface_angle);
             
             # steal some space from support
-            $interface{$layer_id} = intersection(
-                offset([ map @$_, $interface{$layer_id}, $contact_infill ], scale 3),
-                [ map @$_, $interface{$layer_id}, $support{$layer_id}, $contact_infill ],
+            $interface = intersection(
+                offset([ @$interface, @$contact_infill ], scale 3),
+                [ @$interface, @$support, @$contact_infill ],
                 1,
             );
             $support{$layer_id} = diff(
-                $support{$layer_id},
-                $interface{$layer_id},
+                $support,
+                $interface,
             );
             
             my @paths = ();
-            foreach my $expolygon (@{union_ex($interface{$layer_id})}) {
+            foreach my $expolygon (@{union_ex($interface)}) {
                 my @p = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density         => $interface_density,
@@ -1125,18 +1120,18 @@ sub generate_support_material {
                     flow_spacing    => $params->{flow_spacing},
                 ), @p;
             }            
-            $result->{interface} = [ @paths ];
+            $layer->support_interface_fills->append(@paths);
         }
         
         # support or flange
-        if (@{$support{$layer_id}}) {
+        if (@$support) {
             my $filler = $fillers{support};
             $filler->angle($angles[ ($layer_id) % @angles ]);
             my $density         = $support_density;
             my $flow_spacing    = $flow->spacing;
             
             # TODO: use offset2_ex()
-            my $to_infill = union_ex($support{$layer_id}, 1);
+            my $to_infill = union_ex($support, 1);
             my @paths = ();
             
             # base flange
@@ -1176,52 +1171,30 @@ sub generate_support_material {
                 ), @p;
             }
             
-            push @{$result->{support}}, @paths;
+            $layer->support_fills->append(@paths);
         }
         
         if (0) {
             require "Slic3r/SVG.pm";
             Slic3r::SVG::output("islands_" . $support_layers[$layer_id] . ".svg",
-                red_expolygons      => union_ex($contact{$support_layers[$layer_id]} || []),
-                green_expolygons    => union_ex($interface{$layer_id} || []),
-                red_polylines       => [ map $_->unpack->polyline, @{$result->{contact}} ],
-                green_polylines     => [ map $_->unpack->polyline, @{$result->{interface}} ],
-                polylines           => [ map $_->unpack->polyline, @{$result->{support}} ],
+                red_expolygons      => union_ex($contact),
+                green_expolygons    => union_ex($interface),
+                green_polylines     => [ map $_->unpack->polyline, @{$layer->support_contact_fills} ],
+                polylines           => [ map $_->unpack->polyline, @{$layer->support_fills} ],
             );
         }
-        
-        return $result;
     };
     
-    my $apply = sub {
-        my ($layer_id, $result) = @_;
-        my $layer = $self->support_layers->[$layer_id];
-        
-        my $interface_collection = Slic3r::ExtrusionPath::Collection->new(@{$result->{contact}}, @{$result->{interface}});
-        $layer->support_interface_fills($interface_collection) if @$interface_collection > 0;
-        
-        my $support_collection = Slic3r::ExtrusionPath::Collection->new(@{$result->{support}});
-        $layer->support_fills($support_collection) if @$support_collection > 0;
-        
-        # TODO: use a Slic3r::ExPolygon::Collection
-        $layer->support_islands($result->{islands});
-    };
     Slic3r::parallelize(
         items => [ 0 .. $#{$self->support_layers} ],
         thread_cb => sub {
             my $q = shift;
-            my $result = {};
             while (defined (my $layer_id = $q->dequeue)) {
-                $result->{$layer_id} = $process_layer->($layer_id);
+                $process_layer->($layer_id);
             }
-            return $result;
-        },
-        collect_cb => sub {
-            my $result = shift;
-            $apply->($_, $result->{$_}) for keys %$result;
         },
         no_threads_cb => sub {
-            $apply->($_, $process_layer->($_)) for 0 .. $#{$self->support_layers};
+            $process_layer->($_) for 0 .. $#{$self->support_layers};
         },
     );
 }
