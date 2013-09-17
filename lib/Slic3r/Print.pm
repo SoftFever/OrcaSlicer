@@ -177,7 +177,7 @@ sub validate {
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;
                     $copy_clearance->translate(@$copy);
-                    if (@{ intersection_ex(\@a, [$copy_clearance]) }) {
+                    if (@{ intersection(\@a, [$copy_clearance]) }) {
                         die "Some objects are too close; your extruder will collide with them.\n";
                     }
                     @a = map @$_, @{union_ex([ @a, $copy_clearance ])};

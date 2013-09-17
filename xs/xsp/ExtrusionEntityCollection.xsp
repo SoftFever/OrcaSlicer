@@ -18,6 +18,8 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
     Point* last_point()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
+    int count()
+        %code{% RETVAL = THIS->entities.size(); %};
 %{
 
 void

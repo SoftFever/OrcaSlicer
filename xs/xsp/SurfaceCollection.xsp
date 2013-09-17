@@ -9,6 +9,8 @@
     ~SurfaceCollection();
     void clear()
         %code{% THIS->surfaces.clear(); %};
+    int count()
+        %code{% RETVAL = THIS->surfaces.size(); %};
 %{
 
 SurfaceCollection*

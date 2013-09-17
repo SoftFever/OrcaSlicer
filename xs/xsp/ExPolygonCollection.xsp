@@ -14,6 +14,8 @@
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
+    int count()
+        %code{% RETVAL = THIS->expolygons.size(); %};
 %{
 
 ExPolygonCollection*
