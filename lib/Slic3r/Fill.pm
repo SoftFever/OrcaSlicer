@@ -13,7 +13,7 @@ use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y PI scale chained_path);
-use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset);
+use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset offset2);
 use Slic3r::Surface ':types';
 
 
@@ -97,14 +97,11 @@ sub make_fill {
     # we are going to grow such regions by overlapping them with the void (if any)
     # TODO: detect and investigate whether there could be narrow regions without
     # any void neighbors
-    my $distance_between_surfaces = $layerm->solid_infill_flow->scaled_spacing;
+    my $distance_between_surfaces = $layerm->solid_infill_flow->scaled_spacing * &Slic3r::INFILL_OVERLAP_OVER_SPACING;
     {
         my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],
-            offset(
-                offset([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2),
-                +$distance_between_surfaces/2
-            ),
+            offset2([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2, +$distance_between_surfaces/2),
             1,
         );
         push @surfaces, map Slic3r::Surface->new(
@@ -121,7 +118,7 @@ sub make_fill {
     }
     
     # add spacing between surfaces
-    @surfaces = map @{$_->offset(-$distance_between_surfaces / 2 * &Slic3r::INFILL_OVERLAP_OVER_SPACING)}, @surfaces;
+    @surfaces = map @{$_->offset(-$distance_between_surfaces / 2)}, @surfaces;
     
     if (0) {
         require "Slic3r/SVG.pm";
