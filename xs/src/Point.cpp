@@ -36,12 +36,12 @@ int
 Point::nearest_point_index(const Points points) const
 {
     int idx = -1;
-    long distance = -1;
+    double distance = -1;  // double because long is limited to 2147483647 on some platforms and it's not enough
     
     for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
         /* If the X distance of the candidate is > than the total distance of the
            best previous candidate, we know we don't want it */
-        long d = pow(this->x - (*it).x, 2);
+        double d = pow(this->x - (*it).x, 2);
         if (distance != -1 && d > distance) continue;
         
         /* If the Y distance of the candidate is > than the total distance of the
