@@ -19,6 +19,7 @@ $ARGV[0] or usage(1);
 if (-e $ARGV[0]) {
     my $model = Slic3r::Format::STL->read_file($ARGV[0]);
     my $mesh = $model->mesh;
+    $mesh->repair;
     printf "VERTICES = %s\n", join ',', map "[$_->[0],$_->[1],$_->[2]]", @{$mesh->vertices};
     printf "FACETS = %s\n", join ',', map "[$_->[0],$_->[1],$_->[2]]", @{$mesh->facets};
     exit 0;

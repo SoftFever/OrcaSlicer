@@ -225,7 +225,9 @@ sub mesh {
         }
     }
     
-    return Slic3r::TriangleMesh->merge(@meshes);
+    my $mesh = Slic3r::TriangleMesh->new;
+    $mesh->merge($_) for @meshes;
+    return $mesh;
 }
 
 # this method splits objects into multiple distinct objects by walking their meshes
