@@ -225,7 +225,11 @@ sub extrude_loop {
         
         # get overhang paths by intersecting overhangs with the loop
         push @paths,
-            map { $_->role(EXTR_ROLE_OVERHANG_PERIMETER); $_ }
+            map {
+                $_->role(EXTR_ROLE_OVERHANG_PERIMETER);
+                $_->flow_spacing($self->extruder->bridge_flow->width);
+                $_
+            }
             $extrusion_path->intersect_expolygons($self->_layer_overhangs_pp);
         
         # reapply the nearest point search for starting point

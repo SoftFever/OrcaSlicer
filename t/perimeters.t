@@ -103,10 +103,12 @@ use Slic3r::Test;
         $config->set('fan_below_layer_time', 0);
         $config->set('slowdown_below_layer_time', 0);
         $config->set('bridge_fan_speed', 100);
+        $config->set('bridge_flow_ratio', 33);  # arbitrary value
         $config->set('overhangs', 1);
         my $print = Slic3r::Test::init_print('overhang', config => $config);
         my %layer_speeds = ();  # print Z => [ speeds ]
         my $fan_speed = 0;
+        my $bridge_mm_per_mm = ($config->nozzle_diameter->[0]**2) / ($config->filament_diameter->[0]**2) * $config->bridge_flow_ratio;
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
@@ -124,6 +126,8 @@ use Slic3r::Test;
                 if ($feedrate == $config->bridge_speed*60) {
                     fail 'printing overhang but fan is not enabled or running at wrong speed'
                         if $fan_speed != 255;
+                    my $mm_per_mm = $info->{dist_E} / $info->{dist_XY};
+                    fail 'wrong bridge flow' if abs($mm_per_mm - $bridge_mm_per_mm) > 0.01;
                 } else {
                     fail 'fan is running when not supposed to'
                         if $fan_speed > 0;
