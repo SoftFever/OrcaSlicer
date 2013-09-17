@@ -14,11 +14,16 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('support_material', 1);
     my @contact_z = my @top_z = ();
     
     my $test = sub {
-        my $flow = Slic3r::Flow->new(nozzle_diameter => $config->nozzle_diameter->[0], layer_height => $config->layer_height);
-        my @support_layers = Slic3r::Print::Object::_compute_support_layers(\@contact_z, \@top_z, $config, $flow);
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        $print->init_extruders;
+        my $flow = $print->support_material_flow;
+        my @support_layers = Slic3r::Print::SupportMaterial
+            ->new(object => $print->objects->[0])
+            ->_compute_support_layers(\@contact_z, \@top_z);
         
         is $support_layers[0], $config->first_layer_height,
             'first layer height is honored';
