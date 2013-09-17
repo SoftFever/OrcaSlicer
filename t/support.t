@@ -66,7 +66,7 @@ use Slic3r::Test;
     $config->set('support_material_interface_extruder', 2);
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', '100%');
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $print = Slic3r::Test::init_print('overhang', config => $config);
     ok my $gcode = Slic3r::Test::gcode($print), 'no conflict between raft/support and brim';
     
     my $tool = 0;
@@ -75,9 +75,15 @@ use Slic3r::Test;
         
         if ($cmd =~ /^T(\d+)/) {
             $tool = $1;
-        } elsif ($info->{extruding} && $self->Z <= ($config->raft_layers * $config->layer_height)) {
-            fail 'not extruding raft/brim with support material extruder'
-                if $tool != ($config->support_material_extruder-1);
+        } elsif ($info->{extruding}) {
+            if ($self->Z <= ($config->raft_layers * $config->layer_height)) {
+                fail 'not extruding raft/brim with support material extruder'
+                    if $tool != ($config->support_material_extruder-1);
+            } else {
+                fail 'support material exceeds raft layers'
+                    if $tool == $config->support_material_extruder-1;
+                # TODO: we should test that full support is generated when we use raft too
+            }
         }
     });
 }

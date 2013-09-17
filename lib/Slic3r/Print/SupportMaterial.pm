@@ -16,7 +16,6 @@ sub flow {
 
 sub generate {
     my $self = shift;
-    return unless $self->object->config->support_material && $self->object->layer_count >= 2;
     
     my $flow = $self->flow;
     
@@ -44,6 +43,7 @@ sub generate {
     my %contact  = ();  # contact_z => [ polygons ]
     my %overhang = ();  # contact_z => [ expolygons ] - this stores the actual overhang supported by each contact layer
     for my $layer_id (1 .. $#{$self->object->layers}) {
+        last if $layer_id > $self->object->config->raft_layers && !$self->object->config->support_material;
         my $layer = $self->object->layers->[$layer_id];
         my $lower_layer = $self->object->layers->[$layer_id-1];
         
@@ -54,7 +54,9 @@ sub generate {
             my $diff;
             
             # If a threshold angle was specified, use a different logic for detecting overhangs.
-            if (defined $threshold_rad || $layer_id <= $self->object->config->support_material_enforce_layers) {
+            if (defined $threshold_rad
+                || $layer_id <= $self->object->config->support_material_enforce_layers
+                || $layer_id <= $self->object->config->raft_layers) {
                 my $d = defined $threshold_rad
                     ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                     : 0;
@@ -326,7 +328,7 @@ sub generate {
                 [ @$interface, @$support, @$contact_infill ],
                 1,
             );
-            $support{$layer_id} = diff(
+            $support = diff(
                 $support,
                 $interface,
             );

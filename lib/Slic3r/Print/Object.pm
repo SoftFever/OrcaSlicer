@@ -787,7 +787,8 @@ sub combine_infill {
 
 sub generate_support_material {
     my $self = shift;
-    return unless $self->config->support_material && $self->layer_count >= 2;
+    return unless ($self->config->support_material || $self->config->raft_layers > 0)
+        && $self->layer_count >= 2;
     
     Slic3r::Print::SupportMaterial->new(object => $self)->generate;
 }
