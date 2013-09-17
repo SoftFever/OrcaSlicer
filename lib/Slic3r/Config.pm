@@ -638,7 +638,7 @@ our $Options = {
         default => 1,
     },
     'overhangs' => {
-        label   => 'Detect overhangs',
+        label   => 'Detect bridging perimeters',
         tooltip => 'Experimental option to adjust flow for overhangs (bridge flow will be used), to apply bridge speed to them and enable fan.',
         scope   => 'object',
         category => 'Layers and Perimeters',
