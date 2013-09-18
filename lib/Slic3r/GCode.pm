@@ -672,7 +672,8 @@ sub set_extruder {
         my $temp = defined $self->layer && $self->layer->id == 0
             ? $self->extruder->first_layer_temperature
             : $self->extruder->temperature;
-        $gcode .= $self->set_temperature($temp + $self->config->standby_temperature_delta, 1);
+        # we assume that heating is always slower than cooling, so no need to block
+        $gcode .= $self->set_temperature($temp + $self->config->standby_temperature_delta, 0);
     }
     
     # set the new extruder
