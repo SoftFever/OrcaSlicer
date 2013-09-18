@@ -740,6 +740,7 @@ sub write_gcode {
         return if $Slic3r::Config->start_gcode =~ /M(?:109|104)/i;
         for my $t (0 .. $#{$self->extruders}) {
             my $temp = $self->extruders->[$t]->first_layer_temperature;
+            $temp += $self->config->standby_temperature_delta if $self->config->standby_temperature;
             printf $fh $gcodegen->set_temperature($temp, $wait, $t) if $temp > 0;
         }
     };
