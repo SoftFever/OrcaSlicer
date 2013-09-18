@@ -217,6 +217,25 @@ our $Options = {
         default => 1,
     },
     
+    # multiple extruder options
+    'standby_temperature' => {
+        label   => 'Enable',
+        tooltip => 'This option will drop the temperature of the inactive extruders to prevent oozing. It will enable a tall skirt automatically and move extruders outside such skirt when changing temperatures.',
+        cli     => 'standby-temperature!',
+        type    => 'bool',
+        default => 0,
+    },
+    'standby_temperature_delta' => {
+        label   => 'Temperature variation',
+        tooltip => 'Temperature difference to be applied when an extruder is not active.',
+        sidetext => '∆°C',
+        cli     => 'standby-temperature-delta=i',
+        type    => 'i',
+        min     => -400,
+        max     => 400,
+        default => -5,
+    },
+    
     # filament options
     'first_layer_bed_temperature' => {
         label   => 'First layer',

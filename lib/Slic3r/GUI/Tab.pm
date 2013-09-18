@@ -528,6 +528,10 @@ sub build {
             title => 'Extruders',
             options => [qw(perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder)],
         },
+        {
+            title => 'Standby Temperature',
+            options => [qw(standby_temperature standby_temperature_delta)],
+        },
     ]);
     
     $self->add_options_page('Advanced', 'wrench.png', optgroups => [
