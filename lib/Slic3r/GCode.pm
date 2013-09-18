@@ -663,6 +663,14 @@ sub set_extruder {
         });
     }
     
+    # set the current extruder to the standby temperature
+    if ($self->config->standby_temperature && defined $self->extruder) {
+        my $temp = defined $self->layer && $self->layer->id == 0
+            ? $self->extruder->first_layer_temperature
+            : $self->extruder->temperature;
+        $gcode .= $self->set_temperature($temp + $self->config->standby_temperature_delta, 1);
+    }
+    
     # set the new extruder
     $self->extruder($extruder);
     $gcode .= sprintf "%s%d%s\n", 
@@ -675,6 +683,14 @@ sub set_extruder {
         ($self->config->gcode_comments ? ' ; change extruder' : '');
     
     $gcode .= $self->reset_e;
+    
+    # set the new extruder to the operating temperature
+    if ($self->config->standby_temperature) {
+        my $temp = defined $self->layer && $self->layer->id == 0
+            ? $self->extruder->first_layer_temperature
+            : $self->extruder->temperature;
+        $gcode .= $self->set_temperature($temp, 1);
+    }
     
     return $gcode;
 }
