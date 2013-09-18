@@ -10,6 +10,7 @@ use Slic3r::Surface ':types';
 has 'config'             => (is => 'ro', required => 1);
 has 'extruders'          => (is => 'ro', required => 1);
 has 'multiple_extruders' => (is => 'lazy');
+has 'standby_points'     => (is => 'rw');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
@@ -396,7 +397,7 @@ sub travel_to {
         || ($self->config->only_retract_when_crossing_perimeters
             && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_upper_layer_islands})
             && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_layer_islands}))
-        || ($role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->support_islands}))
+        || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->support_islands}))
         ) {
         $self->straight_once(0);
         $self->speed('travel');
@@ -665,6 +666,9 @@ sub set_extruder {
     
     # set the current extruder to the standby temperature
     if ($self->config->standby_temperature && defined $self->extruder) {
+        # move to the nearest standby point
+        $gcode .= $self->travel_to($self->last_pos->nearest_point($self->standby_points));
+        
         my $temp = defined $self->layer && $self->layer->id == 0
             ? $self->extruder->first_layer_temperature
             : $self->extruder->temperature;
