@@ -228,7 +228,7 @@ sub repair_stl {
     Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
 }
 
-sub init_print {
+sub extra_variables {
     my $self = shift;
     
     my %extra_variables = ();
@@ -236,10 +236,15 @@ sub init_print {
         $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->current_preset->{name}
             for qw(print filament printer);
     }
+    return { %extra_variables };
+}
+
+sub init_print {
+    my $self = shift;
     
     return Slic3r::Print->new(
         config          => $self->config,
-        extra_variables => { %extra_variables },
+        extra_variables => $self->extra_variables,
     );
 }
 

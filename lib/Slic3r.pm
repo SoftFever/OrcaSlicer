@@ -136,6 +136,7 @@ sub thread_cleanup {
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};
     *Slic3r::TriangleMesh::DESTROY          = sub {};
+    return undef;  # this prevents a "Scalars leaked" warning
 }
 
 sub encode_path {

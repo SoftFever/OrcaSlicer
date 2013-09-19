@@ -612,13 +612,14 @@ sub export_gcode {
         return;
     }
     
-    # get config before spawning the thread because ->config needs GetParent and it's not available there
-    my $print = $self->skeinpanel->init_print;
+    # get config before spawning the thread because it needs GetParent and it's not available there
+    my $config          = $self->skeinpanel->config;
+    my $extra_variables = $self->skeinpanel->extra_variables;
     
     # select output file
     $self->{output_file} = $main::opt{output};
     {
-        $self->{output_file} = $print->expanded_output_filepath($self->{output_file}, $self->{objects}[0]->input_file);
+        $self->{output_file} = $self->skeinpanel->init_print->expanded_output_filepath($self->{output_file}, $self->{objects}[0]->input_file);
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', Slic3r::GUI->output_path(dirname($self->{output_file})),
             basename($self->{output_file}), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
@@ -643,7 +644,8 @@ sub export_gcode {
         @_ = ();
         $self->{export_thread} = threads->create(sub {
             $self->export_gcode2(
-                $print,
+                $config,
+                $extra_variables,
                 $self->{output_file},
                 progressbar     => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([@_]))) },
                 message_dialog  => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) },
@@ -665,7 +667,8 @@ sub export_gcode {
         });
     } else {
         $self->export_gcode2(
-            $print,
+            $config,
+            $extra_variables,
             $self->{output_file},
             progressbar => sub {
                 my ($percent, $message) = @_;
@@ -681,11 +684,16 @@ sub export_gcode {
 
 sub export_gcode2 {
     my $self = shift;
-    my ($print, $output_file, %params) = @_;
+    my ($config, $extra_variables, $output_file, %params) = @_;
     local $SIG{'KILL'} = sub {
         Slic3r::debugf "Exporting cancelled; exiting thread...\n";
         threads->exit();
     } if $Slic3r::have_threads;
+    
+    my $print = Slic3r::Print->new(
+        config          => $config,
+        extra_variables => $extra_variables,
+    );
     
     eval {
         $print->config->validate;
