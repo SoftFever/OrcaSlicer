@@ -568,7 +568,8 @@ sub split_object {
     my $mesh = $model_object->mesh;
     $mesh->align_to_origin;
     
-    my @new_meshes = $mesh->split_mesh;
+    $mesh->repair;
+    my @new_meshes = @{$mesh->split};
     if (@new_meshes == 1) {
         Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
         return;
@@ -583,9 +584,10 @@ sub split_object {
     my $new_model = Slic3r::Model->new;
     
     foreach my $mesh (@new_meshes) {
+        $mesh->repair;
         my $bb = $mesh->bounding_box;
-        my $model_object = $new_model->add_object(vertices => $mesh->vertices);
-        $model_object->add_volume(facets => $mesh->facets);
+        my $model_object = $new_model->add_object;
+        $model_object->add_volume(mesh => $mesh);
         my $object = Slic3r::GUI::Plater::Object->new(
             name                    => basename($current_object->input_file),
             input_file              => $current_object->input_file,

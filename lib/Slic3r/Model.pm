@@ -216,10 +216,10 @@ sub mesh {
         foreach my $instance (@instances) {
             my $mesh = $object->mesh->clone;
             if ($instance) {
-                $mesh->rotate($instance->rotation);
+                $mesh->rotate($instance->rotation, Slic3r::Point->new(0,0));
                 $mesh->scale($instance->scaling_factor);
                 $mesh->align_to_origin;
-                $mesh->move(@{$instance->offset});
+                $mesh->translate(@{$instance->offset}, 0);
             }
             push @meshes, $mesh;
         }
@@ -246,15 +246,14 @@ sub split_meshes {
         }
         
         my $volume = $object->volumes->[0];
-        foreach my $mesh ($volume->mesh->split_mesh) {
+        foreach my $mesh (@{$volume->mesh->split}) {
             my $new_object = $self->add_object(
                 input_file          => $object->input_file,
                 config              => $object->config,
                 layer_height_ranges => $object->layer_height_ranges,
             );
             $new_object->add_volume(
-                vertices    => $mesh->vertices,
-                facets      => $mesh->facets,
+                mesh        => $mesh,
                 material_id => $volume->material_id,
             );
             
