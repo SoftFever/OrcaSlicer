@@ -139,7 +139,7 @@ sub slice {
         
         # free memory
         undef $mesh;
-        undef $self->meshes->[$region_id];return;
+        undef $self->meshes->[$region_id];
     }
     
     # free memory
