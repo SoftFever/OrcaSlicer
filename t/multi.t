@@ -8,6 +8,7 @@ BEGIN {
 }
 
 use List::Util qw(first);
+use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r;
 use Slic3r::Test;
 
@@ -22,6 +23,8 @@ use Slic3r::Test;
     
     my $tool = undef;
     my @tool_temp = (0,0);
+    my @toolchange_points = ();
+    my @extrusion_points = ();
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         
@@ -34,6 +37,7 @@ use Slic3r::Test;
                     if $tool_temp[$tool] != $expected_temp + $config->standby_temperature_delta;
             }
             $tool = $1;
+            push @toolchange_points, Slic3r::Point->new_scale($self->X, $self->Y);
         } elsif ($cmd eq 'M104' || $cmd eq 'M109') {
             my $t = $args->{T} // $tool;
             if ($tool_temp[$t] == 0) {
@@ -41,11 +45,13 @@ use Slic3r::Test;
                     unless $args->{S} == $config->first_layer_temperature->[$t] + $config->standby_temperature_delta;
             }
             $tool_temp[$t] = $args->{S};
+        } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+            push @extrusion_points, Slic3r::Point->new_scale($args->{X}, $args->{Y});
         }
-        # TODO: check that toolchanges happen only outside skirt
         # TODO: check that toolchanges retraction and restart happen outside skirt
     });
-    ok 1, 'standby temperature';
+    my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, @extrusion_points ])});
+    ok !(first { $convex_hull->encloses_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';
 }
 
 __END__
