@@ -131,12 +131,14 @@ EOF
 if ($missing_prereqs) {
     exit 1;
 } else {
+    my $res = 0;
     if (eval "use App::Prove; 1") {
-        App::Prove->new->run;
+        $res = App::Prove->new->run ? 0 : 1;
     }
     if (!$gui) {
         print "If you also want to use the GUI you can now run `perl Build.PL --gui` to install the required modules.\n";
     }
+    exit $res;
 }
 
 __END__
