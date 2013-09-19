@@ -1,4 +1,5 @@
 _Q: Oh cool, a new RepRap slicer?_
+
 A: Yes.
 
 Slic3r [![Build Status](https://travis-ci.org/alexrj/Slic3r.png?branch=master)](https://travis-ci.org/alexrj/Slic3r)
@@ -12,7 +13,7 @@ with Mach3 and LinuxCNC controllers.
 See the [project homepage](http://slic3r.org/) at slic3r.org and the
 [manual](http://manual.slic3r.org/) for more information.
 
-## What language is it written in?
+### What language is it written in?
 
 The core geometric algorithms and data structures are written in C++,
 and Perl is used for high-level flow abstraction, GUI and testing.
@@ -22,7 +23,7 @@ The C++ API is public and its use in other projects is encouraged.
 The goal is to make Slic3r fully modular so that any part of its logic
 can be used separately.
 
-## What are Slic3r's main features?
+### What are Slic3r's main features?
 
 Key features are:
 
@@ -49,7 +50,7 @@ Other major features are:
 * support for **post-processing scripts**
 * **cooling logic** controlling fan speed and dynamic print speed
 
-## How to install?
+### How to install?
 
 You can just download a precompiled package from [slic3r.org](http://slic3r.org/);
 it will run without the need for any dependency.
@@ -65,7 +66,7 @@ $ sudo perl Build.PL --gui
 $ ./slic3r.pl
 ```
 
-## Can I help?
+### Can I help?
 
 Sure! Drop me a line at aar@cpan.org. You can also 
 find me in #reprap and in #slic3r on FreeNode with the nickname _Sound_.
@@ -73,7 +74,7 @@ Before sending patches and pull requests contact me to discuss your proposed
 changes: this way we'll ensure nobody wastes their time and no conflicts arise
 in development.
 
-## What's Slic3r license?
+### What's Slic3r license?
 
 Slic3r is licensed under the _GNU Affero General Public License, version 3_.
 The author is Alessandro Ranellucci.
@@ -82,7 +83,7 @@ The [Silk icon set](http://www.famfamfam.com/lab/icons/silk/) used in Slic3r is
 licensed under the _Creative Commons Attribution 3.0 License_.
 The author of the Silk icon set is Mark James.
 
-## How can I invoke slic3r.pl using the command line?
+### How can I invoke slic3r.pl using the command line?
 
     Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
     
