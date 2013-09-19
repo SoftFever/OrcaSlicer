@@ -57,7 +57,6 @@ ExPolygon::to_AV() {
     AV* av = newAV();
     av_extend(av, num_holes);  // -1 +1
     
-    SV* sv = newSV(0);
     av_store(av, 0, this->contour.to_SV_ref());
     
     for (unsigned int i = 0; i < num_holes; i++) {

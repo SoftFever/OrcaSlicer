@@ -38,6 +38,7 @@ MultiPoint::first_point() const
     return new Point(this->points.front());
 }
 
+#ifdef SLIC3RXS
 void
 MultiPoint::from_SV(SV* poly_sv)
 {
@@ -82,5 +83,6 @@ MultiPoint::to_SV_pureperl() const {
     }
     return newRV_noinc((SV*)av);
 }
+#endif
 
 }
