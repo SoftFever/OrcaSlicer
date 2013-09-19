@@ -40,9 +40,7 @@ src/SurfaceCollection.hpp
 src/TriangleMesh.cpp
 src/TriangleMesh.hpp
 src/utils.cpp
-src/ZTable.hpp
 t/01_trianglemesh.t
-t/02_object.t
 t/03_point.t
 t/04_expolygon.t
 t/05_surface.t
@@ -63,7 +61,6 @@ xsp/ExtrusionPath.xsp
 xsp/Line.xsp
 xsp/my.map
 xsp/mytype.map
-xsp/Object.xsp
 xsp/Point.xsp
 xsp/Polygon.xsp
 xsp/Polyline.xsp

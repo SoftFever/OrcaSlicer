@@ -29,7 +29,7 @@ Key features are:
 
 * **multi-platform** (Linux/Mac/Win) and packaged as standalone-app with no dependencies required
 * complete **command-line interface** to use it with no GUI
-* multi-material (**multiple extruders**) object printing
+* multi-material **(multiple extruders)** object printing
 * multiple G-code flavors supported (RepRap, Makerbot, Mach3 etc.)
 * ability to plate **multiple objects having distinct print settings**
 * **multithread** processing
