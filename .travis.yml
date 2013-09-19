@@ -1,3 +1,4 @@
+language: perl
 script: perl ./Build.PL
 perl:
   - "5.14"
