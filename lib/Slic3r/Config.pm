@@ -165,6 +165,7 @@ our $Options = {
     },
     'temperature' => {
         label   => 'Other layers',
+        full_label   => 'Temperature',
         tooltip => 'Extruder temperature for layers after the first one. Set this to zero to disable temperature control commands in the output.',
         sidetext => '°C',
         cli     => 'temperature=i@',
@@ -248,6 +249,7 @@ our $Options = {
     },
     'bed_temperature' => {
         label   => 'Other layers',
+        full_label   => 'Bed temperature',
         tooltip => 'Bed temperature for layers after the first one. Set this to zero to disable bed temperature control commands in the output.',
         sidetext => '°C',
         cli     => 'bed-temperature=i',
