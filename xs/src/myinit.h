@@ -2,6 +2,8 @@
 #define _myinit_h_
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
+#undef read
+#undef seekdir
 #include <ostream>
 #include <iostream>
 
