@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(sum min max);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scale PI);
+use Slic3r::Geometry qw(scale PI rad2deg deg2rad);
 use Slic3r::Geometry::Clipper qw(offset diff union_ex intersection offset_ex offset2);
 use Slic3r::Surface ':types';
 
