@@ -45,7 +45,7 @@ ExtrusionEntityCollection::chained_path(bool no_reverse) const
 ExtrusionEntityCollection*
 ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse) const
 {
-    if (this->no_sort) return new ExtrusionEntityCollection(*this);
+    if (this->no_sort) return this->clone();
     ExtrusionEntityCollection* retval = new ExtrusionEntityCollection;
     
     ExtrusionEntitiesPtr my_paths;

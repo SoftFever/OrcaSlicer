@@ -44,7 +44,7 @@ sub fill_surface {
     my $last_pos = Slic3r::Point->new(0,0);
     foreach my $loop (@loops) {
         push @paths, $loop->split_at_index($last_pos->nearest_point_index(\@$loop));
-        $last_pos = $paths[-1][-1];
+        $last_pos = $paths[-1]->last_point;
     }
     
     # clip the paths to avoid the extruder to get exactly on the first point of the loop

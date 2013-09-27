@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 my $points = [
     [100, 100],
@@ -73,6 +73,10 @@ is scalar(@{$collection->[1]}), 1, 'appended collection was duplicated';
         [ map $_->x, map @{$_->polyline}, @{$collection->chained_path_from(Slic3r::Point->new(30,0), 0)} ],
         [reverse 4, 10, 15, 10, 15, 20],
         'chained_path_from';
+    
+    $collection->no_sort(1);
+    my @foo = @{$collection->chained_path(0)};
+    pass 'chained_path with no_sort';
 }
 
 __END__
