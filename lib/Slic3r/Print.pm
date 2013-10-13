@@ -488,7 +488,7 @@ sub export_svg {
     $_->slice for @{$self->objects};
     
     my $fh = $params{output_fh};
-    if ($params{output_file}) {
+    if (!$fh) {
         my $output_file = $self->expanded_output_filepath($params{output_file});
         $output_file =~ s/\.gcode$/.svg/i;
         Slic3r::open(\$fh, ">", $output_file) or die "Failed to open $output_file for writing\n";
