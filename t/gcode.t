@@ -1,4 +1,4 @@
-use Test::More tests => 2;
+use Test::More tests => 3;
 use strict;
 use warnings;
 
@@ -7,6 +7,7 @@ BEGIN {
     use lib "$FindBin::Bin/../lib";
 }
 
+use List::Util qw(first);
 use Slic3r;
 use Slic3r::Geometry qw(scale);
 use Slic3r::Test;
@@ -27,12 +28,18 @@ use Slic3r::Test;
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my $have_wipe = 0;
+    my @retract_speeds = ();
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
-        $have_wipe = 1 if $info->{retracting} && $info->{dist_XY} > 0;
+        if ($info->{retracting} && $info->{dist_XY} > 0) {
+            $have_wipe = 1;
+            my $move_time = $info->{dist_XY} / ($args->{F} // $self->F);
+            push @retract_speeds, abs($info->{dist_E}) / $move_time;
+        }
     });
     
     ok $have_wipe, "wipe";
+    ok !defined (first { abs($_ - $config->retract_speed->[0]*60) < 5 } @retract_speeds), 'wipe moves don\'t retract faster than configured speed';
 }
 
 __END__

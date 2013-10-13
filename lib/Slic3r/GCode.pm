@@ -485,19 +485,23 @@ sub retract {
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during travel'];
     
     # check that we have a positive wipe length
-    if ($wipe_path && (my $total_wipe_length = $wipe_path->length)) {
-        $self->speed('travel');
+    if ($wipe_path) {
+        $self->speed($self->speeds->{travel} * 0.8);
         
         # subdivide the retraction
         my $retracted = 0;
-        for (1 .. $#$wipe_path) {
-            my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
-            $retracted += my $e = $retract->[2] * ($segment_length / $total_wipe_length);
-            $gcode .= $self->G1($wipe_path->[$_], undef, $e, $retract->[3] . ";_WIPE");
+        foreach my $line (@{$wipe_path->lines}) {
+            my $segment_length = $line->length;
+            # reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
+            # due to rounding
+            my $e = $retract->[2] * ($segment_length / $self->extruder->scaled_wipe_distance) * 0.95;
+            $retracted += $e;
+            $gcode .= $self->G1($line->b, undef, $e, $retract->[3] . ";_WIPE");
         }
         if ($retracted > $retract->[2]) {
             # if we retracted less than we had to, retract the remainder
             # TODO: add regression test
+            $self->speed('retract');
             $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $comment);
         }
     } else {

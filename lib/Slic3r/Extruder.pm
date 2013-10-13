@@ -41,6 +41,9 @@ sub _build_retract_speed_mm_min {
 
 sub _build_scaled_wipe_distance {
     my $self = shift;
+    
+    # how far do we move in XY at travel_speed for the time needed to consume
+    # retract_length at retract_speed?
     # reduce feedrate a bit; travel speed is often too high to move on existing material
     # too fast = ripping of existing material; too slow = short wipe path, thus more blob
     return scale($self->retract_length / $self->retract_speed * $Slic3r::Config->travel_speed * 0.8);
