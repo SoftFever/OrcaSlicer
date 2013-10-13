@@ -37,6 +37,8 @@ src/ppport.h
 src/Surface.cpp
 src/Surface.hpp
 src/SurfaceCollection.hpp
+src/SVG.cpp
+src/SVG.hpp
 src/TriangleMesh.cpp
 src/TriangleMesh.hpp
 src/utils.cpp

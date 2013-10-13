@@ -9,6 +9,10 @@
 #include <math.h>
 #include <assert.h>
 
+#ifdef SLIC3R_DEBUG
+#include "SVG.hpp"
+#endif
+
 namespace Slic3r {
 
 TriangleMesh::TriangleMesh()
@@ -281,9 +285,6 @@ TriangleMesh::slice(const std::vector<double> &z)
                 
                 if (a->z == b->z && a->z == slice_z) {
                     // edge is horizontal and belongs to the current layer
-                    #ifdef SLIC3R_DEBUG
-                    printf("Edge is horizontal!\n");
-                    #endif
                     
                     /* We assume that this method is never being called for horizontal
                        facets, so no other edge is going to be on this layer. */
@@ -308,10 +309,6 @@ TriangleMesh::slice(const std::vector<double> &z)
                     found_horizontal_edge = true;
                     break;
                 } else if (a->z == slice_z) {
-                    #ifdef SLIC3R_DEBUG
-                    printf("A point on plane!\n");
-                    #endif
-                    
                     IntersectionPoint point;
                     point.x         = a->x;
                     point.y         = a->y;
@@ -319,10 +316,6 @@ TriangleMesh::slice(const std::vector<double> &z)
                     points.push_back(point);
                     points_on_layer.push_back(points.size()-1);
                 } else if (b->z == slice_z) {
-                    #ifdef SLIC3R_DEBUG
-                    printf("B point on plane!\n");
-                    #endif
-                    
                     IntersectionPoint point;
                     point.x         = b->x;
                     point.y         = b->y;
@@ -331,9 +324,6 @@ TriangleMesh::slice(const std::vector<double> &z)
                     points_on_layer.push_back(points.size()-1);
                 } else if ((a->z < slice_z && b->z > slice_z) || (b->z < slice_z && a->z > slice_z)) {
                     // edge intersects the current layer; calculate intersection
-                    #ifdef SLIC3R_DEBUG
-                    printf("Intersects!\n");
-                    #endif
                     
                     IntersectionPoint point;
                     point.x         = b->x + (a->x - b->x) * (slice_z - b->z) / (a->z - b->z);
@@ -345,14 +335,14 @@ TriangleMesh::slice(const std::vector<double> &z)
             }
             if (found_horizontal_edge) continue;
             
-            if (points_on_layer.size() == 2) {
-                if (intersection_points.size() == 1) {
-                    points.erase( points.begin() + points_on_layer[1] );
-                } else if (intersection_points.empty()) {
-                    if (points[ points_on_layer[0] ].coincides_with(&points[ points_on_layer[1] ])) {
-                        continue;
-                    }
-                }
+            if (!points_on_layer.empty()) {
+                // we can't have only one point on layer because each vertex gets detected
+                // twice (once for each edge), and we can't have three points on layer because
+                // we assume this code is not getting called for horizontal facets
+                assert(points_on_layer.size() == 2);
+                assert( points[ points_on_layer[0] ].point_id == points[ points_on_layer[1] ].point_id );
+                points.erase( points.begin() + points_on_layer[1] );
+                if (intersection_points.empty()) continue;
             }
             
             if (!points.empty()) {

@@ -19,6 +19,8 @@ extern "C" {
 #endif
 
 #define EPSILON 1e-4
+#define SCALING_FACTOR 0.000001
+#define unscale(val) (val * SCALING_FACTOR)
 
 namespace Slic3r {}
 using namespace Slic3r;
