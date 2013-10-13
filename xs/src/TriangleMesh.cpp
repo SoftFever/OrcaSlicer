@@ -375,6 +375,9 @@ TriangleMesh::slice(const std::vector<double> &z)
     std::vector<Polygons>* layers = new std::vector<Polygons>(z.size());
     for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
         int layer_idx = it - lines.begin();
+        #ifdef SLIC3R_DEBUG
+        printf("Layer %d:\n", layer_idx);
+        #endif
         
         // remove tangent edges
         for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
@@ -473,6 +476,9 @@ TriangleMesh::slice(const std::vector<double> &z)
                     
                     // we can't close this loop!
                     //// push @failed_loops, [@loop];
+                    #ifdef SLIC3R_DEBUG
+                    printf("  Unable to close this loop having %d points\n", (int)loop.size());
+                    #endif
                     goto CYCLE;
                 }
                 /*

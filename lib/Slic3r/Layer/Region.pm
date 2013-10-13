@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(PI A B scale chained_path_items points_coincide);
+use Slic3r::Geometry qw(PI A B scale unscale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
     offset offset2 offset2_ex union_pt traverse_pt diff intersection
     union diff);
@@ -86,7 +86,7 @@ sub make_surfaces {
     
     return if !@$loops;
     $self->slices->clear;
-    $self->slices->append(_merge_loops($loops));
+    $self->slices->append($self->_merge_loops($loops));
     
     if (0) {
         require "Slic3r/SVG.pm";
@@ -100,7 +100,7 @@ sub make_surfaces {
 }
 
 sub _merge_loops {
-    my ($loops, $safety_offset) = @_;
+    my ($self, $loops, $safety_offset) = @_;
     
     # Input loops are not suitable for evenodd nor nonzero fill types, as we might get
     # two consecutive concentric loops having the same winding order - and we have to 
@@ -134,8 +134,10 @@ sub _merge_loops {
     $safety_offset //= scale 0.0499;
     $slices = offset2_ex($slices, +$safety_offset, -$safety_offset);
     
-    Slic3r::debugf "  %d surface(s) having %d holes detected from %d polylines\n",
-        scalar(@$slices), scalar(map @{$_->holes}, @$slices), scalar(@$loops) if $Slic3r::debug;
+    Slic3r::debugf "Layer %d (slice_z = %.2f, print_z = %.2f): %d surface(s) having %d holes detected from %d polylines\n",
+        $self->id, unscale($self->slice_z), $self->print_z,
+        scalar(@$slices), scalar(map @{$_->holes}, @$slices), scalar(@$loops)
+        if $Slic3r::debug;
     
     return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$slices;
 }
