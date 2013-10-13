@@ -289,9 +289,7 @@ TriangleMesh::slice(const std::vector<double> &z)
                     /* We assume that this method is never being called for horizontal
                        facets, so no other edge is going to be on this layer. */
                     IntersectionLine line;
-                    if (this->stl.v_indices[facet_idx].vertex[0] < slice_z
-                        || this->stl.v_indices[facet_idx].vertex[1] < slice_z
-                        || this->stl.v_indices[facet_idx].vertex[2] < slice_z) {
+                    if (facet->vertex[0].z < slice_z || facet->vertex[1].z < slice_z || facet->vertex[2].z < slice_z) {
                         line.edge_type = feTop;
                         std::swap(a, b);
                         std::swap(a_id, b_id);
