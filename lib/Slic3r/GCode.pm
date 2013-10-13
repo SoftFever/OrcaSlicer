@@ -404,7 +404,7 @@ sub travel_to {
         $gcode .= $self->G0($point, undef, 0, $comment || "");
     } elsif (!$self->config->avoid_crossing_perimeters || $self->straight_once) {
         $self->straight_once(0);
-        $gcode .= $self->retract(travel_to => $point);
+        $gcode .= $self->retract;
         $self->speed('travel');
         $gcode .= $self->G0($point, undef, 0, $comment || "");
     } else {
@@ -448,7 +448,7 @@ sub _plan {
     }
     
     # do the retract (the travel_to argument is broken)
-    $gcode .= $self->retract(travel_to => $point) if $need_retract;
+    $gcode .= $self->retract if $need_retract;
     
     # append the actual path and return
     $self->speed('travel');
@@ -484,52 +484,34 @@ sub retract {
         ? undef
         : [undef, $self->z + $self->extruder->retract_lift, 0, 'lift plate during travel'];
     
-    if (($self->config->g0 || $self->config->gcode_flavor eq 'mach3') && $params{travel_to}) {
+    # check that we have a positive wipe length
+    if ($wipe_path && (my $total_wipe_length = $wipe_path->length)) {
         $self->speed('travel');
-        if ($lift) {
-            # combine lift and retract
-            $lift->[2] = $retract->[2];
-            $gcode .= $self->G0(@$lift);
-        } else {
-            # combine travel and retract
-            my $travel = [$params{travel_to}, undef, $retract->[2], "travel and $comment"];
-            $gcode .= $self->G0(@$travel);
+        
+        # subdivide the retraction
+        my $retracted = 0;
+        for (1 .. $#$wipe_path) {
+            my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
+            $retracted += my $e = $retract->[2] * ($segment_length / $total_wipe_length);
+            $gcode .= $self->G1($wipe_path->[$_], undef, $e, $retract->[3] . ";_WIPE");
         }
-    } elsif (($self->config->g0 || $self->config->gcode_flavor eq 'mach3') && defined $params{move_z}) {
-        # combine Z change and retraction
-        $self->speed('travel');
-        my $travel = [undef, $params{move_z}, $retract->[2], "change layer and $comment"];
-        $gcode .= $self->G0(@$travel);
+        if ($retracted > $retract->[2]) {
+            # if we retracted less than we had to, retract the remainder
+            # TODO: add regression test
+            $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $comment);
+        }
     } else {
-        # check that we have a positive wipe length
-        if ($wipe_path && (my $total_wipe_length = $wipe_path->length)) {
-            $self->speed('travel');
-            
-            # subdivide the retraction
-            my $retracted = 0;
-            for (1 .. $#$wipe_path) {
-                my $segment_length = $wipe_path->[$_-1]->distance_to($wipe_path->[$_]);
-                $retracted += my $e = $retract->[2] * ($segment_length / $total_wipe_length);
-                $gcode .= $self->G1($wipe_path->[$_], undef, $e, $retract->[3] . ";_WIPE");
-            }
-            if ($retracted > $retract->[2]) {
-                # if we retracted less than we had to, retract the remainder
-                # TODO: add regression test
-                $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $comment);
-            }
-        } else {
-            $self->speed('retract');
-            $gcode .= $self->G1(@$retract);
-        }
-        if (!$self->lifted) {
-            $self->speed('travel');
-            if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
-                my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
-                $gcode .= $self->G0(@$travel);
-                $self->lifted($self->extruder->retract_lift);
-            } elsif ($lift) {
-                $gcode .= $self->G1(@$lift);
-            }
+        $self->speed('retract');
+        $gcode .= $self->G1(@$retract);
+    }
+    if (!$self->lifted) {
+        $self->speed('travel');
+        if (defined $params{move_z} && $self->extruder->retract_lift > 0) {
+            my $travel = [undef, $params{move_z} + $self->extruder->retract_lift, 0, 'move to next layer (' . $self->layer->id . ') and lift'];
+            $gcode .= $self->G0(@$travel);
+            $self->lifted($self->extruder->retract_lift);
+        } elsif ($lift) {
+            $gcode .= $self->G1(@$lift);
         }
     }
     $self->extruder->retracted($self->extruder->retracted + $length);
