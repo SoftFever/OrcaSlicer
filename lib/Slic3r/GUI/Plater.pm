@@ -687,6 +687,7 @@ sub export_gcode2 {
     my ($config, $extra_variables, $output_file, %params) = @_;
     local $SIG{'KILL'} = sub {
         Slic3r::debugf "Exporting cancelled; exiting thread...\n";
+        Slic3r::thread_cleanup();
         threads->exit();
     } if $Slic3r::have_threads;
     
