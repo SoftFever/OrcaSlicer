@@ -29,11 +29,12 @@ use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_VIEW    => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
 
-my $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
-my $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
-my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
-my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
-my $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
+# package variables to avoid passing lexicals to threads
+our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
+our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
+our $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
+our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
+our $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
 
 use constant CANVAS_SIZE => [335,335];
 use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
@@ -613,8 +614,8 @@ sub export_gcode {
     }
     
     # get config before spawning the thread because it needs GetParent and it's not available there
-    my $config          = $self->skeinpanel->config;
-    my $extra_variables = $self->skeinpanel->extra_variables;
+    our $config          = $self->skeinpanel->config;
+    our $extra_variables = $self->skeinpanel->extra_variables;
     
     # select output file
     $self->{output_file} = $main::opt{output};
@@ -642,18 +643,22 @@ sub export_gcode {
     
     if ($Slic3r::have_threads) {
         @_ = ();
+        
+        # some perls (including 5.14.2) crash on threads->exit if we pass lexicals to the thread
+        our $_thread_self = $self;
+        
         $self->{export_thread} = threads->create(sub {
-            $self->export_gcode2(
+            $_thread_self->export_gcode2(
                 $config,
                 $extra_variables,
-                $self->{output_file},
-                progressbar     => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([@_]))) },
-                message_dialog  => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) },
-                on_completed    => sub { Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, shared_clone([@_]))) },
+                $_thread_self->{output_file},
+                progressbar     => sub { Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([@_]))) },
+                message_dialog  => sub { Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) },
+                on_completed    => sub { Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, shared_clone([@_]))) },
                 catch_error     => sub {
-                    Slic3r::GUI::catch_error($self, $_[0], sub {
-                        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
-                        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_FAILED_EVENT, undef));
+                    Slic3r::GUI::catch_error($_thread_self, $_[0], sub {
+                        Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
+                        Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_FAILED_EVENT, undef));
                     });
                 },
             );
