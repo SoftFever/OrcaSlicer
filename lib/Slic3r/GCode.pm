@@ -539,7 +539,6 @@ sub unretract {
     
     if ($self->lifted) {
         $self->speed('travel');
-        $gcode .= sprintf ";AAA selfz = %s, lifted = %s\n", $self->z // 'nd', $self->lifted // 'nd';
         $gcode .= $self->G0(undef, $self->z - $self->lifted, 0, 'restore layer Z');
         $self->lifted(0);
     }
