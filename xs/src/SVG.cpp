@@ -13,15 +13,31 @@ SVG::SVG(const char* filename)
 		"      <polyline fill=\"darkblue\" points=\"0,0 10,5 0,10 1,5\" />\n"
 	    "   </marker>\n"
 	    );
+	this->arrows = true;
+}
+
+float
+SVG::coordinate(long c)
+{
+    return (float)unscale(c)*10;
 }
 
 void
 SVG::AddLine(const Line &line)
 {
     fprintf(this->f,
-        "   <line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" style=\"stroke: black; stroke-width: 2\" marker-end=\"url(#endArrow)\"/>\n",
-        (float)unscale(line.a.x)*10, (float)unscale(line.a.y)*10, (float)unscale(line.b.x)*10, (float)unscale(line.b.y)*10
+        "   <line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" style=\"stroke: black; stroke-width: 2\"",
+        this->coordinate(line.a.x), this->coordinate(line.a.y), this->coordinate(line.b.x), this->coordinate(line.b.y)
         );
+    if (this->arrows)
+        fprintf(this->f, " marker-end=\"url(#endArrow)\"");
+    fprintf(this->f, "/>\n");
+}
+
+void
+SVG::AddLine(const IntersectionLine &line)
+{
+    this->AddLine(Line(line.a, line.b));
 }
 
 void
@@ -29,6 +45,7 @@ SVG::Close()
 {
     fprintf(this->f, "</svg>\n");
     fclose(this->f);
+    printf("SVG file written.\n");
 }
 
 }
