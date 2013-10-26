@@ -17,11 +17,52 @@ sub flow {
 sub generate {
     my $self = shift;
     
-    my $flow = $self->flow;
+    # Determine the top surfaces of the support, defined as:
+    # contact = overhangs - margin
+    # This method is responsible for identifying what contact surfaces
+    # should the support material expose to the object in order to guarantee
+    # that it will be effective, regardless of how it's built below.
+    my ($contact, $overhang) = $self->contact_area;
+    
+    # Determine the top surfaces of the object. We need these to determine 
+    # the layer heights of support material and to clip support to the object
+    # silhouette.
+    my ($top) = $self->object_top($contact);
+    
+    # We now know the upper and lower boundaries for our support material object
+    # (@$contact_z and @$top_z), so we can generate intermediate layers.
+    my ($support_z) = $self->support_layers_z([ sort keys %$contact ], [ sort keys %$top ]);
+    
+    # If we wanted to apply some special logic to the first support layers lying on
+    # object's top surfaces this is the place to detect them
+    
+    # Propagate contact layers downwards to generate interface layers
+    my ($interface) = $self->generate_interface_layers($support_z, $contact, $top);
+    
+    # Propagate contact layers and interface layers downwards to generate
+    # the main support layers.
+    my ($base) = $self->generate_base_layers($support_z, $contact, $interface, $top);
+    
+    # Install support layers into object.
+    push @{$self->object->support_layers}, map Slic3r::Layer::Support->new(
+        object  => $self->object,
+        id      => $_,
+        height  => ($_ == 0) ? $support_z->[$_] : ($support_z->[$_] - $support_z->[$_-1]),
+        print_z => $support_z->[$_],
+        slice_z => -1,
+        slices  => [],
+    ), 0 .. $#$support_z;
+    
+    # Generate the actual toolpaths and save them into each layer.
+    $self->generate_toolpaths($overhang, $contact, $interface, $base);
+}
+
+sub contact_area {
+    my ($self) = @_;
     
     # how much we extend support around the actual contact area
-    #my $margin      = $flow->scaled_width / 2;
-    my $margin      = scale 3;
+    #my $margin = $flow->scaled_width / 2;
+    my $margin = scale 3;
     
     # increment used to reach $margin in steps to avoid trespassing thin objects
     my $margin_step = $margin/3;
@@ -32,12 +73,6 @@ sub generate {
         $threshold_rad = deg2rad($self->object->config->support_material_threshold + 1);  # +1 makes the threshold inclusive
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
     }
-    
-    # shape of contact area
-    my $contact_loops   = 1;
-    my $circle_radius   = 1.5 * $flow->scaled_width;
-    my $circle_distance = 3 * $circle_radius;
-    my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
     
     # determine contact areas
     my %contact  = ();  # contact_z => [ polygons ]
@@ -131,7 +166,14 @@ sub generate {
             }
         }
     }
-    my @contact_z = sort keys %contact;
+    
+    return (\%contact, \%overhang);
+}
+
+sub object_top {
+    my ($self, $contact) = @_;
+    
+    my $flow = $self->flow;
     
     # find object top surfaces
     # we'll use them to clip our support and detect where does it stick
@@ -144,10 +186,10 @@ sub generate {
                 # first add all the 'new' contact areas to the current projection
                 # ('new' means all the areas that are lower than the last top layer
                 # we considered)
-                my $min_top = min(keys %top) // max(keys %contact);
+                my $min_top = min(keys %top) // max(keys %$contact);
                 # use <= instead of just < because otherwise we'd ignore any contact regions
                 # having the same Z of top layers
-                push @$projection, map @{$contact{$_}}, grep { $_ > $layer->print_z && $_ <= $min_top } keys %contact;
+                push @$projection, map @{$contact->{$_}}, grep { $_ > $layer->print_z && $_ <= $min_top } keys %$contact;
                 
                 # now find whether any projection falls onto this top surface
                 my $touching = intersection($projection, [ map $_->p, @top ]);
@@ -164,25 +206,67 @@ sub generate {
             }
         }
     }
-    my @top_z = sort keys %top;
     
-    # we now know the upper and lower boundaries for our support material object
-    # (@contact_z and @top_z), so we can generate intermediate layers
-    my @support_layers = $self->_compute_support_layers(\@contact_z, \@top_z);
+    return \%top;
+}
+
+sub support_layers_z {
+    my ($self, $contact_z, $top_z) = @_;
     
-    # if we wanted to apply some special logic to the first support layers lying on
-    # object's top surfaces this is the place to detect them
+    my $flow = $self->flow;
+    
+    # quick table to check whether a given Z is a top surface
+    my %top = map { $_ => 1 } @$top_z;
+    
+    # determine layer height for any non-contact layer
+    # we use max() to prevent many ultra-thin layers to be inserted in case
+    # layer_height > nozzle_diameter * 0.75
+    my $support_material_height = max($self->object->config->layer_height, $flow->nozzle_diameter * 0.75);
+    
+    my @z = sort { $a <=> $b } @$contact_z, @$top_z,
+        (map { $_ + $flow->nozzle_diameter } @$top_z);
+    
+    # enforce first layer height
+    my $first_layer_height = $self->object->config->get_value('first_layer_height');
+    shift @z while @z && $z[0] <= $first_layer_height;
+    unshift @z, $first_layer_height;
+    
+    for (my $i = $#z; $i >= 0; $i--) {
+        my $target_height = $support_material_height;
+        if ($i > 0 && $top{ $z[$i-1] }) {
+            $target_height = $flow->nozzle_diameter;
+        }
+        
+        # enforce first layer height
+        if (($i == 0 && $z[$i] > $target_height + $first_layer_height)
+            || ($z[$i] - $z[$i-1] > $target_height + Slic3r::Geometry::epsilon)) {
+            splice @z, $i, 0, ($z[$i] - $target_height);
+            $i++;
+        }
+    }
+    
+    # remove duplicates and make sure all 0.x values have the leading 0
+    {
+        my %sl = map { 1 * $_ => 1 } @z;
+        @z = sort { $a <=> $b } keys %sl;
+    }
+    
+    return \@z;
+}
+
+sub generate_interface_layers {
+    my ($self, $support_z, $contact, $top) = @_;
     
     # let's now generate interface layers below contact areas
     my %interface = ();  # layer_id => [ polygons ]
     my $interface_layers = $self->object->config->support_material_interface_layers;
-    for my $layer_id (0 .. $#support_layers) {
-        my $z = $support_layers[$layer_id];
-        my $this = $contact{$z} // next;
+    for my $layer_id (0 .. $#$support_z) {
+        my $z = $support_z->[$layer_id];
+        my $this = $contact->{$z} // next;
         
         # count contact layer as interface layer
         for (my $i = $layer_id-1; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
-            $z = $support_layers[$i];
+            $z = $support_z->[$i];
             # Compute interface area on this layer as diff of upper contact area
             # (or upper interface area) and layer slices.
             # This diff is responsible of the contact between support material and
@@ -194,43 +278,54 @@ sub generate {
                     @{ $interface{$i} || [] },      # interface regions already applied to this layer
                 ],
                 [
-                    @{ $top{$z} || [] },            # top slices on this layer
-                    @{ $contact{$z} || [] },        # contact regions on this layer
+                    @{ $top->{$z} || [] },          # top slices on this layer
+                    @{ $contact->{$z} || [] },      # contact regions on this layer
                 ],
                 1,
             );
         }
     }
+    
+    return \%interface;
+}
+
+sub generate_base_layers {
+    my ($self, $support_z, $contact, $interface, $top) = @_;
     
     # let's now generate support layers under interface layers
-    my %support   = ();  # layer_id => [ polygons ]
+    my $base = {};  # layer_id => [ polygons ]
     {
-        for my $i (reverse 0 .. $#support_layers-1) {
-            my $z = $support_layers[$i];
-            $support{$i} = diff(
+        for my $i (reverse 0 .. $#$support_z-1) {
+            my $z = $support_z->[$i];
+            $base->{$i} = diff(
                 [
-                    @{ $support{$i+1} || [] },      # support regions on upper layer
-                    @{ $interface{$i+1} || [] },    # interface regions on upper layer
+                    @{ $base->{$i+1} || [] },         # support regions on upper layer
+                    @{ $interface->{$i+1} || [] },    # interface regions on upper layer
                 ],
                 [
-                    @{ $top{$z} || [] },            # top slices on this layer
-                    @{ $interface{$i} || [] },      # interface regions on this layer
-                    @{ $contact{$z} || [] },        # contact regions on this layer
+                    @{ $top->{$z} || [] },            # top slices on this layer
+                    @{ $interface->{$i} || [] },      # interface regions on this layer
+                    @{ $contact->{$z} || [] },        # contact regions on this layer
                 ],
                 1,
             );
         }
     }
     
-    push @{$self->object->support_layers}, map Slic3r::Layer::Support->new(
-        object  => $self->object,
-        id      => $_,
-        height  => ($_ == 0) ? $support_layers[$_] : ($support_layers[$_] - $support_layers[$_-1]),
-        print_z => $support_layers[$_],
-        slice_z => -1,
-        slices  => [],
-    ), 0 .. $#support_layers;
+    return $base;
+}
 
+sub generate_toolpaths {
+    my ($self, $overhang, $contact, $interface, $base) = @_;
+    
+    my $flow = $self->flow;
+    
+    # shape of contact area
+    my $contact_loops   = 1;
+    my $circle_radius   = 1.5 * $flow->scaled_width;
+    my $circle_distance = 3 * $circle_radius;
+    my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ], (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
+    
     Slic3r::debugf "Generating patterns\n";
     
     # prepare fillers
@@ -255,22 +350,23 @@ sub generate {
     my $process_layer = sub {
         my ($layer_id) = @_;
         my $layer = $self->object->support_layers->[$layer_id];
+        my $z = $layer->print_z;
         
-        my $overhang    = $overhang{$support_layers[$layer_id]} || [];
-        my $contact     = $contact{$support_layers[$layer_id]}  || [];
-        my $interface   = $interface{$layer_id} || [];
-        my $support     = $support{$layer_id}   || [];
+        my $overhang    = $overhang->{$z}           || [];
+        my $contact     = $contact->{$z}            || [];
+        my $interface   = $interface->{$layer_id}   || [];
+        my $base        = $base->{$layer_id}        || [];
         
         if (0) {
             require "Slic3r/SVG.pm";
-            Slic3r::SVG::output("layer_" . $support_layers[$layer_id] . ".svg",
+            Slic3r::SVG::output("layer_" . $z . ".svg",
                 red_expolygons      => union_ex($contact),
                 green_expolygons    => union_ex($interface),
             );
         }
         
         # islands
-        $layer->support_islands->append(@{union_ex([ @$interface, @$support, @$contact ])});
+        $layer->support_islands->append(@{union_ex([ @$interface, @$base, @$contact ])});
         
         # contact
         my $contact_infill = [];
@@ -325,11 +421,11 @@ sub generate {
             # steal some space from support
             $interface = intersection(
                 offset([ @$interface, @$contact_infill ], scale 3),
-                [ @$interface, @$support, @$contact_infill ],
+                [ @$interface, @$base, @$contact_infill ],
                 1,
             );
-            $support = diff(
-                $support,
+            $base = diff(
+                $base,
                 $interface,
             );
             
@@ -354,14 +450,14 @@ sub generate {
         }
         
         # support or flange
-        if (@$support) {
+        if (@$base) {
             my $filler = $fillers{support};
             $filler->angle($angles[ ($layer_id) % @angles ]);
             my $density         = $support_density;
             my $flow_spacing    = $flow->spacing;
             
             # TODO: use offset2_ex()
-            my $to_infill = union_ex($support, 1);
+            my $to_infill = union_ex($base, 1);
             my @paths = ();
             
             # base flange
@@ -406,7 +502,7 @@ sub generate {
         
         if (0) {
             require "Slic3r/SVG.pm";
-            Slic3r::SVG::output("islands_" . $support_layers[$layer_id] . ".svg",
+            Slic3r::SVG::output("islands_" . $z . ".svg",
                 red_expolygons      => union_ex($contact),
                 green_expolygons    => union_ex($interface),
                 green_polylines     => [ map $_->unpack->polyline, @{$layer->support_contact_fills} ],
@@ -427,50 +523,6 @@ sub generate {
             $process_layer->($_) for 0 .. $#{$self->object->support_layers};
         },
     );
-}
-
-sub _compute_support_layers {
-    my ($self, $contact_z, $top_z) = @_;
-    
-    my $flow = $self->flow;
-    
-    # quick table to check whether a given Z is a top surface
-    my %top = map { $_ => 1 } @$top_z;
-    
-    # determine layer height for any non-contact layer
-    # we use max() to prevent many ultra-thin layers to be inserted in case
-    # layer_height > nozzle_diameter * 0.75
-    my $support_material_height = max($self->object->config->layer_height, $flow->nozzle_diameter * 0.75);
-    
-    my @support_layers = sort { $a <=> $b } @$contact_z, @$top_z,
-        (map { $_ + $flow->nozzle_diameter } @$top_z);
-    
-    # enforce first layer height
-    my $first_layer_height = $self->object->config->get_value('first_layer_height');
-    shift @support_layers while @support_layers && $support_layers[0] <= $first_layer_height;
-    unshift @support_layers, $first_layer_height;
-    
-    for (my $i = $#support_layers; $i >= 0; $i--) {
-        my $target_height = $support_material_height;
-        if ($i > 0 && $top{ $support_layers[$i-1] }) {
-            $target_height = $flow->nozzle_diameter;
-        }
-        
-        # enforce first layer height
-        if (($i == 0 && $support_layers[$i] > $target_height + $first_layer_height)
-            || ($support_layers[$i] - $support_layers[$i-1] > $target_height + Slic3r::Geometry::epsilon)) {
-            splice @support_layers, $i, 0, ($support_layers[$i] - $target_height);
-            $i++;
-        }
-    }
-    
-    # remove duplicates and make sure all 0.x values have the leading 0
-    {
-        my %sl = map { 1 * $_ => 1 } @support_layers;
-        @support_layers = sort { $a <=> $b } keys %sl;
-    }
-    
-    return @support_layers;
 }
 
 1;
