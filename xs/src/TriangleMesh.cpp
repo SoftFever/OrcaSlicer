@@ -212,13 +212,22 @@ TriangleMesh::slice(const std::vector<double> &z)
                 
                 int edge_idx;
                 t_edges_map::const_iterator my_edge = edges_map.find(std::make_pair(b_id,a_id));
-                if (my_edge == edges_map.end()) {
-                    // edge isn't listed in table, so we insert it
-                    edge_idx = edges.size();
-                    edges.push_back(std::make_pair(a_id,b_id));
-                    edges_map[ edges[edge_idx] ] = edge_idx;
-                } else {
+                if (my_edge != edges_map.end()) {
                     edge_idx = my_edge->second;
+                } else {
+                    /* admesh can assign the same edge ID to more than two facets (which is 
+                       still topologically correct), so we have to search for a duplicate of 
+                       this edge too in case it was already seen in this orientation */
+                    my_edge = edges_map.find(std::make_pair(a_id,b_id));
+                    
+                    if (my_edge != edges_map.end()) {
+                        edge_idx = my_edge->second;
+                    } else {
+                        // edge isn't listed in table, so we insert it
+                        edge_idx = edges.size();
+                        edges.push_back(std::make_pair(a_id,b_id));
+                        edges_map[ edges[edge_idx] ] = edge_idx;
+                    }
                 }
                 facets_edges[facet_idx][i] = edge_idx;
                 
@@ -262,7 +271,7 @@ TriangleMesh::slice(const std::vector<double> &z)
             std::vector<double>::size_type layer_idx = it - z.begin();
             double slice_z = *it;
             std::vector<IntersectionPoint> points;
-            std::vector< std::vector<IntersectionPoint>::size_type > points_on_layer, intersection_points;
+            std::vector< std::vector<IntersectionPoint>::size_type > points_on_layer;
             bool found_horizontal_edge = false;
             
             /* reorder vertices so that the first one is the one with lowest Z
@@ -328,7 +337,6 @@ TriangleMesh::slice(const std::vector<double> &z)
                     point.y         = b->y + (a->y - b->y) * (slice_z - b->z) / (a->z - b->z);
                     point.edge_id   = edge_id;
                     points.push_back(point);
-                    intersection_points.push_back(points.size()-1);
                 }
             }
             if (found_horizontal_edge) continue;
@@ -339,8 +347,8 @@ TriangleMesh::slice(const std::vector<double> &z)
                 // we assume this code is not getting called for horizontal facets
                 assert(points_on_layer.size() == 2);
                 assert( points[ points_on_layer[0] ].point_id == points[ points_on_layer[1] ].point_id );
+                if (points.size() < 3) continue;  // no intersection point, this is a V-shaped facet tangent to plane
                 points.erase( points.begin() + points_on_layer[1] );
-                if (intersection_points.empty()) continue;
             }
             
             if (!points.empty()) {
