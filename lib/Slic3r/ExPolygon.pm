@@ -103,7 +103,7 @@ sub simplify {
 # width. it returns a polyline or a polygon
 sub medial_axis {
     my ($self, $width) = @_;
-    return $self->_medial_axis_clip($width);
+    return $self->_medial_axis_voronoi($width);
 }
 
 sub _medial_axis_clip {
