@@ -304,10 +304,17 @@ sub generate_base_layers {
             my @overlapping_layers = $self->overlapping_layers($i, $support_z);
             my @overlapping_z = map $support_z->[$_], @overlapping_layers;
             
+            # in case we have no interface layers, look at upper contact
+            my @upper_contact = ();
+            if ($self->config->support_material_interface_layers == 0) {
+                @upper_contact = @{ $contact->{$support_z->[$i+1]} || [] };
+            }
+            
             $base->{$i} = diff(
                 [
                     @{ $base->{$i+1} || [] },         # support regions on upper layer
                     @{ $interface->{$i+1} || [] },    # interface regions on upper layer
+                    @upper_contact,                   # contact regions on upper layer
                 ],
                 [
                     (map @$_, map $top->{$_}, grep exists $top->{$_}, @overlapping_z),  # top slices on this layer
@@ -383,7 +390,11 @@ sub generate_toolpaths {
         
         # contact
         my $contact_infill = [];
-        if (@$contact && $contact_loops > 0) {
+        if ($self->config->support_material_interface_layers == 0) {
+            # if no interface layers were requested we treat the contact layer
+            # exactly as a generic base layer
+            push @$base, @$contact;
+        } elsif (@$contact && $contact_loops > 0) {
             # generate the outermost loop
             my @loops0;
             {
