@@ -392,8 +392,13 @@ sub generate_toolpaths {
                 
                 # only consider the loops facing the overhang
                 {
-                    my $overhang_with_margin = offset($overhang, +$flow->scaled_width/2);
-                    @external_loops = grep { @{intersection([$_], $overhang_with_margin)} } @external_loops;
+                    my $overhang_with_margin = offset_ex($overhang, +$flow->scaled_width/2);
+                    @external_loops = grep {
+                        @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
+                            [ map $_->pp, @$overhang_with_margin ],
+                            [ $_->split_at_first_point->pp ],
+                        ) }
+                    } @external_loops;
                 }
                 
                 # apply a pattern to the loop
@@ -425,7 +430,7 @@ sub generate_toolpaths {
             # solution should be found to achieve both goals
             $contact_infill = diff(
                 $contact,
-                [ map $_->grow($circle_radius), @loops ],
+                [ map $_->grow($circle_radius*1.1), @loops ],
             );
             
             # transform loops into ExtrusionPath objects
@@ -442,8 +447,24 @@ sub generate_toolpaths {
         if (@$interface || @$contact_infill) {
             $fillers{interface}->angle($interface_angle);
             
-            # steal some space from support
+            # join regions by offsetting them to ensure they're merged
             $interface = offset([ @$interface, @$contact_infill ], scaled_epsilon);
+            
+            # turn base support into interface when it's contained in our holes
+            # (this way we get wider interface anchoring)
+            {
+                my @p = @$interface;
+                @$interface = ();
+                foreach my $p (@p) {
+                    if ($p->is_clockwise) {
+                        my $p2 = $p->clone;
+                        $p2->make_counter_clockwise;
+                        next if !@{diff([$p2], $base, 1)};
+                    }
+                    push @$interface, $p;
+                }
+            }
+            $base = diff($base, $interface);
             
             my @paths = ();
             foreach my $expolygon (@{union_ex($interface)}) {
