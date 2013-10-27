@@ -713,7 +713,7 @@ our $Options = {
     },
     'support_material_threshold' => {
         label   => 'Overhang threshold',
-        tooltip => 'Support material will not generated for overhangs whose slope angle (90° = vertical) is above the given threshold. In other words, this value represent the most horizontal slope (measured from the horizontal plane) that you can print without support material. Set to zero for automatic detection (recommended).',
+        tooltip => 'Support material will not be generated for overhangs whose slope angle (90° = vertical) is above the given threshold. In other words, this value represent the most horizontal slope (measured from the horizontal plane) that you can print without support material. Set to zero for automatic detection (recommended).',
         sidetext => '°',
         scope   => 'object',
         category => 'Support material',
