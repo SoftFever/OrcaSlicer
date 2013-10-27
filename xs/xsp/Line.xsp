@@ -23,6 +23,8 @@
     double length();
     Point* midpoint()
          %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->midpoint(); %};
+    Point* point_at(double distance)
+         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->point_at(distance); %};
 %{
 
 Line*

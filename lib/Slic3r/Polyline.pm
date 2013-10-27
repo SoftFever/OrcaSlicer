@@ -35,11 +35,6 @@ sub simplify {
     return __PACKAGE__->new(@$simplified);
 }
 
-sub length {
-    my $self = shift;
-    return Boost::Geometry::Utils::linestring_length($self->pp);
-}
-
 sub grow {
     my $self = shift;
     my ($distance, $scale, $joinType, $miterLimit) = @_;
@@ -83,53 +78,6 @@ sub align_to_origin {
     my $self = shift;
     my $bb = $self->bounding_box;
     return $self->translate(-$bb->x_min, -$bb->y_min);
-}
-
-# removes the given distance from the end of the polyline
-sub clip_end {
-    my $self = shift;
-    my ($distance) = @_;
-    
-    while ($distance > 0) {
-        my $last_point = $self->last_point->clone;
-        $self->pop_back;
-        last if @$self == 0;
-        
-        my $last_segment_length = $last_point->distance_to($self->last_point);
-        if ($last_segment_length <= $distance) {
-            $distance -= $last_segment_length;
-            next;
-        }
-        
-        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->last_point, $distance);
-        $self->append($new_point);
-        $distance = 0;
-    }
-}
-
-# only keeps the given distance at the beginning of the polyline
-sub clip_start {
-    my $self = shift;
-    my ($distance) = @_;
-    
-    my @my_points = @$self;
-    my $points = [ $my_points[0]->clone ];
-    
-    for (my $i = 1; $distance > 0 && $i <= $#my_points; $i++) {
-        my $point = $my_points[$i];
-        my $segment_length = $point->distance_to($my_points[$i-1]);
-        if ($segment_length <= $distance) {
-            $distance -= $segment_length;
-            push @$points, $point;
-            next;
-        }
-        
-        my $new_point = Slic3r::Geometry::point_along_segment($my_points[$i-1], $point, $distance);
-        push @$points, Slic3r::Point->new(@$new_point);
-        $distance = 0;
-    }
-    
-    return __PACKAGE__->new(@$points);
 }
 
 # this method returns a collection of points picked on the polygon contour

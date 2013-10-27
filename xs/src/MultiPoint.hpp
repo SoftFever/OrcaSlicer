@@ -1,6 +1,7 @@
 #ifndef slic3r_MultiPoint_hpp_
 #define slic3r_MultiPoint_hpp_
 
+#include "Line.hpp"
 #include "Point.hpp"
 #include <algorithm>
 #include <vector>
@@ -17,6 +18,8 @@ class MultiPoint
     void reverse();
     Point* first_point() const;
     virtual Point* last_point() const = 0;
+    virtual Lines lines() const = 0;
+    double length() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);

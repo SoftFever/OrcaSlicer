@@ -19,6 +19,7 @@ class Line
     void reverse();
     double length() const;
     Point* midpoint() const;
+    Point* point_at(double distance) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* line_sv);

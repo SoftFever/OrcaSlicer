@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 my $points = [
     [100, 100],
@@ -27,5 +27,11 @@ is_deeply [ map $_->pp, @$lines ], [
 
 $polyline->append_polyline($polyline->clone);
 is_deeply $polyline->pp, [ @$points, @$points ], 'append_polyline';
+
+{
+    my $len = $polyline->length;
+    $polyline->clip_end($len/3);
+    ok abs($polyline->length - ($len-($len/3))) < 1, 'clip_end';
+}
 
 __END__

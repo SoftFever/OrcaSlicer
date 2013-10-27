@@ -23,6 +23,7 @@
         %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_index(index); %};
     Polyline* split_at_first_point()
         %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_first_point(); %};
+    double length();
     double area();
     bool is_counter_clockwise();
     bool is_clockwise();

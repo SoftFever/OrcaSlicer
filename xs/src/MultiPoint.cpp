@@ -38,6 +38,17 @@ MultiPoint::first_point() const
     return new Point(this->points.front());
 }
 
+double
+MultiPoint::length() const
+{
+    Lines lines = this->lines();
+    double len = 0;
+    for (Lines::iterator it = lines.begin(); it != lines.end(); ++it) {
+        len += it->length();
+    }
+    return len;
+}
+
 #ifdef SLIC3RXS
 void
 MultiPoint::from_SV(SV* poly_sv)
