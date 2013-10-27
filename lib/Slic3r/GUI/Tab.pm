@@ -689,7 +689,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(vibration_limit)],
+            options => [qw(use_firmware_retraction vibration_limit)],
         },
     ]);
     

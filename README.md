@@ -126,7 +126,8 @@ The author of the Silk icon set is Mark James.
                             (+/-, default: 0)
         --gcode-flavor      The type of G-code to generate (reprap/teacup/makerware/sailfish/mach3/no-extrusion,
                             default: reprap)
-        --use-relative-e-distances Enable this to get relative E values
+        --use-relative-e-distances Enable this to get relative E values (default: no)
+        --use-firmware-retraction  Enable firmware-controlled retraction using G10/G11 (default: no)
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                             by all firmwares)
         --g0                Use G0 commands for retraction (experimental, not supported by all

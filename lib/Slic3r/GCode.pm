@@ -504,6 +504,8 @@ sub retract {
             $self->speed('retract');
             $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $comment);
         }
+    } elsif ($self->config->use_firmware_retraction) {
+        $gcode .= "G10 ; retract\n";
     } else {
         $self->speed('retract');
         $gcode .= $self->G1(@$retract);
@@ -546,7 +548,9 @@ sub unretract {
     my $to_unretract = $self->extruder->retracted + $self->extruder->restart_extra;
     if ($to_unretract) {
         $self->speed('retract');
-        if ($self->config->extrusion_axis) {
+        if ($self->config->use_firmware_retraction) {
+            $gcode .= "G11 ; unretract\n";
+        } elsif ($self->config->extrusion_axis) {
             # use G1 instead of G0 because G0 will blend the restart with the previous travel move
             $gcode .= sprintf "G1 E%.5f F%.3f",
                 $self->extruder->extrude($to_unretract),
