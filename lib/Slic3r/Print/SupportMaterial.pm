@@ -46,10 +46,12 @@ sub generate {
     
     # Propagate contact layers downwards to generate interface layers
     my ($interface) = $self->generate_interface_layers($support_z, $contact, $top);
+    $self->clip_with_object($interface, $support_z, $object);
     
     # Propagate contact layers and interface layers downwards to generate
     # the main support layers.
     my ($base) = $self->generate_base_layers($support_z, $contact, $interface, $top);
+    $self->clip_with_object($base, $support_z, $object);
     
     # Install support layers into object.
     push @{$object->support_layers}, map Slic3r::Layer::Support->new(
@@ -200,7 +202,7 @@ sub object_top {
                 # grow top surfaces so that interface and support generation are generated
                 # with some spacing from object - it looks we don't need the actual
                 # top shapes so this can be done here
-                $top{ $layer->print_z } = offset($touching, $self->flow->scaled_spacing);
+                $top{ $layer->print_z } = offset($touching, $self->flow->scaled_width);
             }
             
             # remove the areas that touched from the projection that will continue on 
@@ -327,6 +329,24 @@ sub generate_base_layers {
     }
     
     return $base;
+}
+
+sub clip_with_object {
+    my ($self, $support, $support_z, $object) = @_;
+    
+    foreach my $i (keys %$support) {
+        next if !@{$support->{$i}};
+        
+        my $zmax = $support_z->[$i];
+        my $zmin = ($i == 0) ? 0 : $support_z->[$i-1];
+        my @layers = grep { $_->print_z > $zmin && ($_->print_z - $_->height) < $zmax }
+            @{$object->layers};
+        
+        $support->{$i} = diff(
+            $support->{$i},
+            offset([ map @$_, map @{$_->slices}, @layers ], +$self->flow->scaled_width),
+        );
+    }
 }
 
 sub generate_toolpaths {
