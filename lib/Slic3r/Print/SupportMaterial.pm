@@ -7,17 +7,16 @@ use Slic3r::Geometry qw(scale PI rad2deg deg2rad);
 use Slic3r::Geometry::Clipper qw(offset diff union_ex intersection offset_ex offset2);
 use Slic3r::Surface ':types';
 
-has 'config' => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults });
-has 'flow'   => (is => 'rw');
+has 'config' => (is => 'rw', required => 1);
+has 'flow'   => (is => 'rw', required => 1);
+
+use constant DEBUG_CONTACT_ONLY => 0;
 
 sub generate {
     my ($self, $object) = @_;
     
-    $self->flow($object->print->support_material_flow);
-    $self->config($object->config);
-    
     # Determine the top surfaces of the support, defined as:
-    # contact = overhangs - margin
+    # contact = overhangs - clearance + margin
     # This method is responsible for identifying what contact surfaces
     # should the support material expose to the object in order to guarantee
     # that it will be effective, regardless of how it's built below.
@@ -64,8 +63,7 @@ sub contact_area {
     my ($self, $object) = @_;
     
     # how much we extend support around the actual contact area
-    #my $margin = $flow->scaled_width / 2;
-    my $margin = scale 3;
+    my $margin = $self->flow->scaled_width * 3;
     
     # increment used to reach $margin in steps to avoid trespassing thin objects
     my $margin_step = $margin/3;
@@ -123,6 +121,8 @@ sub contact_area {
                 # outside the lower slice boundary, thus no overhang
             }
             
+            # TODO: this is the place to remove bridged areas
+            
             next if !@$diff;
             push @overhang, @{union_ex($diff)};  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!
             
@@ -179,32 +179,30 @@ sub object_top {
     # find object top surfaces
     # we'll use them to clip our support and detect where does it stick
     my %top = ();  # print_z => [ expolygons ]
-    {
-        my $projection = [];
-        foreach my $layer (reverse @{$object->layers}) {
-            if (my @top = map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions}) {
-                # compute projection of the contact areas above this top layer
-                # first add all the 'new' contact areas to the current projection
-                # ('new' means all the areas that are lower than the last top layer
-                # we considered)
-                my $min_top = min(keys %top) // max(keys %$contact);
-                # use <= instead of just < because otherwise we'd ignore any contact regions
-                # having the same Z of top layers
-                push @$projection, map @{$contact->{$_}}, grep { $_ > $layer->print_z && $_ <= $min_top } keys %$contact;
-                
-                # now find whether any projection falls onto this top surface
-                my $touching = intersection($projection, [ map $_->p, @top ]);
-                if (@$touching) {
-                    # grow top surfaces so that interface and support generation are generated
-                    # with some spacing from object - it looks we don't need the actual
-                    # top shapes so this can be done here
-                    $top{ $layer->print_z } = offset($touching, $self->flow->scaled_spacing);
-                }
-                
-                # remove the areas that touched from the projection that will continue on 
-                # next, lower, top surfaces
-                $projection = diff($projection, $touching);
+    my $projection = [];
+    foreach my $layer (reverse @{$object->layers}) {
+        if (my @top = map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions}) {
+            # compute projection of the contact areas above this top layer
+            # first add all the 'new' contact areas to the current projection
+            # ('new' means all the areas that are lower than the last top layer
+            # we considered)
+            my $min_top = min(keys %top) // max(keys %$contact);
+            # use <= instead of just < because otherwise we'd ignore any contact regions
+            # having the same Z of top layers
+            push @$projection, map @{$contact->{$_}}, grep { $_ > $layer->print_z && $_ <= $min_top } keys %$contact;
+            
+            # now find whether any projection falls onto this top surface
+            my $touching = intersection($projection, [ map $_->p, @top ]);
+            if (@$touching) {
+                # grow top surfaces so that interface and support generation are generated
+                # with some spacing from object - it looks we don't need the actual
+                # top shapes so this can be done here
+                $top{ $layer->print_z } = offset($touching, $self->flow->scaled_spacing);
             }
+            
+            # remove the areas that touched from the projection that will continue on 
+            # next, lower, top surfaces
+            $projection = diff($projection, $touching);
         }
     }
     
@@ -266,19 +264,23 @@ sub generate_interface_layers {
         # count contact layer as interface layer
         for (my $i = $layer_id-1; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
             $z = $support_z->[$i];
+            my @overlapping_layers = $self->overlapping_layers($i, $support_z);
+            my @overlapping_z = map $support_z->[$_], @overlapping_layers;
+            
             # Compute interface area on this layer as diff of upper contact area
             # (or upper interface area) and layer slices.
             # This diff is responsible of the contact between support material and
             # the top surfaces of the object. We should probably offset the top 
-            # surfaces before performing the diff, but this needs investigation.
+            # surfaces vertically before performing the diff, but this needs 
+            # investigation.
             $this = $interface{$i} = diff(
                 [
                     @$this,                         # clipped projection of the current contact regions
                     @{ $interface{$i} || [] },      # interface regions already applied to this layer
                 ],
                 [
-                    @{ $top->{$z} || [] },          # top slices on this layer
-                    @{ $contact->{$z} || [] },      # contact regions on this layer
+                    (map @$_, map $top->{$_}, grep exists $top->{$_}, @overlapping_z),  # top slices on this layer
+                    (map @$_, map $contact->{$_}, grep exists $contact->{$_}, @overlapping_z),  # contact regions on this layer
                 ],
                 1,
             );
@@ -296,15 +298,18 @@ sub generate_base_layers {
     {
         for my $i (reverse 0 .. $#$support_z-1) {
             my $z = $support_z->[$i];
+            my @overlapping_layers = $self->overlapping_layers($i, $support_z);
+            my @overlapping_z = map $support_z->[$_], @overlapping_layers;
+            
             $base->{$i} = diff(
                 [
                     @{ $base->{$i+1} || [] },         # support regions on upper layer
                     @{ $interface->{$i+1} || [] },    # interface regions on upper layer
                 ],
                 [
-                    @{ $top->{$z} || [] },            # top slices on this layer
-                    @{ $interface->{$i} || [] },      # interface regions on this layer
-                    @{ $contact->{$z} || [] },        # contact regions on this layer
+                    (map @$_, map $top->{$_}, grep exists $top->{$_}, @overlapping_z),  # top slices on this layer
+                    (map @$_, map $interface->{$_}, grep exists $interface->{$_}, @overlapping_layers),  # interface regions on this layer
+                    (map @$_, map $contact->{$_}, grep exists $contact->{$_}, @overlapping_z),  # contact regions on this layer
                 ],
                 1,
             );
@@ -355,6 +360,11 @@ sub generate_toolpaths {
         my $contact     = $contact->{$z}            || [];
         my $interface   = $interface->{$layer_id}   || [];
         my $base        = $base->{$layer_id}        || [];
+        
+        if (DEBUG_CONTACT_ONLY) {
+            $interface = [];
+            $base = [];
+        }
         
         if (0) {
             require "Slic3r/SVG.pm";
@@ -422,7 +432,7 @@ sub generate_toolpaths {
                 offset([ @$interface, @$contact_infill ], scale 3),
                 [ @$interface, @$base, @$contact_infill ],
                 1,
-            );
+            ) if 0; # this causes bad overlapping with other layers as it doesn't take Z overlap into account
             $base = diff(
                 $base,
                 $interface,
@@ -522,6 +532,20 @@ sub generate_toolpaths {
             $process_layer->($_) for 0 .. $#{$object->support_layers};
         },
     );
+}
+
+# this method returns the indices of the layers overlapping with the given one
+sub overlapping_layers {
+    my ($self, $i, $support_z) = @_;
+    
+    my $zmax = $support_z->[$i];
+    my $zmin = ($i == 0) ? 0 : $support_z->[$i-1];
+    
+    return grep {
+        my $zmax2 = $support_z->[$_];
+        my $zmin2 = ($_ == 0) ? 0 : $support_z->[$_-1];
+        $zmax > $zmin2 && $zmin < $zmax2;
+    } 0..$#$support_z;
 }
 
 1;

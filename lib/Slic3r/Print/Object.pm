@@ -773,7 +773,9 @@ sub generate_support_material {
     return unless ($self->config->support_material || $self->config->raft_layers > 0)
         && $self->layer_count >= 2;
     
-    Slic3r::Print::SupportMaterial->new->generate($self);
+    Slic3r::Print::SupportMaterial
+        ->new(config => $self->config, flow => $self->print->support_material_flow)
+        ->generate($self);
 }
 
 1;
