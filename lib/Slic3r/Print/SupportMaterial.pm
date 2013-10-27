@@ -396,7 +396,7 @@ sub generate_toolpaths {
             push @$base, @$contact;
         } elsif (@$contact && $contact_loops > 0) {
             # generate the outermost loop
-            my @loops0;
+            my @loops0 = ();
             {
                 # find centerline of the external loop of the contours
                 my @external_loops = @{offset($contact, -$flow->scaled_width/2)};

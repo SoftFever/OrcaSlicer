@@ -113,7 +113,7 @@ sub clip_start {
     my ($distance) = @_;
     
     my @my_points = @$self;
-    my $points = [ $my_points[0] ];
+    my $points = [ $my_points[0]->clone ];
     
     for (my $i = 1; $distance > 0 && $i <= $#my_points; $i++) {
         my $point = $my_points[$i];
@@ -140,7 +140,7 @@ sub regular_points {
     my ($distance) = @_;
     
     my @my_points = @$self;
-    my @points = ($my_points[0]);
+    my @points = ($my_points[0]->clone);
     my $len = 0;
     
     for (my $i = 1; $i <= $#my_points; $i++) {
