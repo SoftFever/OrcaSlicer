@@ -91,17 +91,17 @@ sub clip_end {
     my ($distance) = @_;
     
     while ($distance > 0) {
-        my $last_point = $self->[-1];
+        my $last_point = $self->last_point->clone;
         $self->pop_back;
         last if @$self == 0;
         
-        my $last_segment_length = $last_point->distance_to($self->[-1]);
+        my $last_segment_length = $last_point->distance_to($self->last_point);
         if ($last_segment_length <= $distance) {
             $distance -= $last_segment_length;
             next;
         }
         
-        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->[-1], $distance);
+        my $new_point = Slic3r::Geometry::point_along_segment($last_point, $self->last_point, $distance);
         $self->append($new_point);
         $distance = 0;
     }
@@ -112,19 +112,19 @@ sub clip_start {
     my $self = shift;
     my ($distance) = @_;
     
-    my @points = @$self;
-    my $points = [ $self->[0] ];
+    my @my_points = @$self;
+    my $points = [ $my_points[0] ];
     
-    for (my $i = 1; $distance > 0 && $i <= $#points; $i++) {
-        my $point = $points[$i];
-        my $segment_length = $point->distance_to($points[$i-1]);
+    for (my $i = 1; $distance > 0 && $i <= $#my_points; $i++) {
+        my $point = $my_points[$i];
+        my $segment_length = $point->distance_to($my_points[$i-1]);
         if ($segment_length <= $distance) {
             $distance -= $segment_length;
             push @$points, $point;
             next;
         }
         
-        my $new_point = Slic3r::Geometry::point_along_segment($points[$i-1], $point, $distance);
+        my $new_point = Slic3r::Geometry::point_along_segment($my_points[$i-1], $point, $distance);
         push @$points, Slic3r::Point->new(@$new_point);
         $distance = 0;
     }
@@ -139,12 +139,13 @@ sub regular_points {
     my $self = shift;
     my ($distance) = @_;
     
-    my @points = ($self->[0]);
+    my @my_points = @$self;
+    my @points = ($my_points[0]);
     my $len = 0;
     
-    for (my $i = 1; $i <= $#$self; $i++) {
-        my $point = $self->[$i];
-        my $segment_length = $point->distance_to($self->[$i-1]);
+    for (my $i = 1; $i <= $#my_points; $i++) {
+        my $point = $my_points[$i];
+        my $segment_length = $point->distance_to($my_points[$i-1]);
         $len += $segment_length;
         next if $len < $distance;
         
@@ -155,8 +156,8 @@ sub regular_points {
         }
         
         my $take = $segment_length - ($len - $distance);  # how much we take of this segment
-        my $new_point = Slic3r::Geometry::point_along_segment($self->[$i-1], $point, $take);
-        push @points, Slic3r::Point->new($new_point);
+        my $new_point = Slic3r::Geometry::point_along_segment($my_points[$i-1], $point, $take);
+        push @points, Slic3r::Point->new(@$new_point);
         $i--;
         $len = -$take;
     }
