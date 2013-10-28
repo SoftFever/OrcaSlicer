@@ -38,7 +38,7 @@ sub _build_width {
     
     my $min = $self->nozzle_diameter * 1.05;
     my $max;
-    if ($self->role eq 'perimeter') {
+    if ($self->role eq 'perimeter' || $self->role eq 'support_material') {
         $min = $max = $self->nozzle_diameter;
     } elsif ($self->role ne 'infill') {
         # do not limit width for sparse infill so that we use full native flow for it
