@@ -9,6 +9,7 @@ use File::Spec;
 my %prereqs = qw(
     Boost::Geometry::Utils          0.15
     Encode::Locale                  0
+    ExtUtils::MakeMaker             6.80
     File::Basename                  0
     File::Spec                      0
     Getopt::Long                    0
