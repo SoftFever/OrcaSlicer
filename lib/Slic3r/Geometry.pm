@@ -800,7 +800,7 @@ sub chained_path {
     }
     while (@points) {
         my $idx = $start_near->nearest_point_index(\@points);
-        my ($start_near) = splice @points, $idx, 1;
+        ($start_near) = splice @points, $idx, 1;
         push @result, $indices{$start_near};
     }
     

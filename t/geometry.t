@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 25;
+plan tests => 26;
 
 BEGIN {
     use FindBin;
@@ -12,7 +12,8 @@ BEGIN {
 use Slic3r;
 use Slic3r::Geometry qw(PI polyline_remove_parallel_continuous_edges 
     polyline_remove_acute_vertices polygon_remove_acute_vertices
-    polygon_remove_parallel_continuous_edges polygon_is_convex);
+    polygon_remove_parallel_continuous_edges polygon_is_convex
+    chained_path_points epsilon scale);
 
 #==========================================================
 
@@ -187,6 +188,16 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 {
     my $line = Slic3r::Line->new([10,10], [20,10]);
     is +($line->grow(5))[0]->area, Slic3r::Polygon->new([5,5], [25,5], [25,15], [5,15])->area, 'grow line';
+}
+
+#==========================================================
+
+{
+    # if chained_path() works correctly, these points should be joined with no diagonal paths
+    # (thus 26 units long)
+    my @points = map Slic3r::Point->new_scale(@$_), [26,26],[52,26],[0,26],[26,52],[26,0],[0,52],[52,52],[52,0];
+    my @ordered = @{chained_path_points(\@points, $points[0])};
+    ok !(grep { abs($ordered[$_]->distance_to($ordered[$_+1]) - scale 26) > epsilon } 0..$#ordered-1), 'chained_path';
 }
 
 #==========================================================
