@@ -242,7 +242,7 @@ sub support_layers_z {
     
     # add raft layers by dividing the space between first layer and
     # first contact layer evenly
-    if ($self->config->raft_layers > 1) {
+    if ($self->config->raft_layers > 1 && @z >= 2) {
         # $z[1] is last raft layer (contact layer for the first layer object)
         my $height = ($z[1] - $z[0]) / ($self->config->raft_layers - 1);
         splice @z, 1, 0,
