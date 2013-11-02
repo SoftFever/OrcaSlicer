@@ -25,30 +25,18 @@ sub BUILD {
  	$self->init_config;
  	
     # make layers taking custom heights into account
-    my $print_z = my $slice_z = my $height = 0;
+    my $print_z = my $slice_z = my $height = my $id = 0;
     
     # add raft layers
-    for my $id (0 .. $self->config->raft_layers-1) {
-        $height = ($id == 0)
-            ? $Slic3r::Config->get_value('first_layer_height')
-            : $Slic3r::Config->layer_height;
-        
-        $print_z += $height;
-        
-        push @{$self->layers}, Slic3r::Layer->new(
-            object  => $self,
-            id      => $id,
-            height  => $height,
-            print_z => $print_z,
-            slice_z => -1,
-        );
+    if ($self->config->raft_layers > 0) {
+        $print_z += $Slic3r::Config->get_value('first_layer_height');
+        $print_z += $Slic3r::Config->layer_height * ($self->config->raft_layers - 1);
+        $id += $self->config->raft_layers;
     }
     
     # loop until we have at least one layer and the max slice_z reaches the object height
     my $max_z = unscale $self->size->[Z];
     while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
-        my $id = $#{$self->layers} + 1;
-        
         # assign the default height to the layer according to the general settings
         $height = ($id == 0)
             ? $Slic3r::Config->get_value('first_layer_height')
@@ -77,6 +65,7 @@ sub BUILD {
             print_z => $print_z,
             slice_z => scale $slice_z,
         );
+        $id++;
         
         $slice_z += $height/2;   # add the other half layer
     }

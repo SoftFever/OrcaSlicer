@@ -80,8 +80,14 @@ sub contact_area {
     # determine contact areas
     my %contact  = ();  # contact_z => [ polygons ]
     my %overhang = ();  # contact_z => [ polygons ] - this stores the actual overhang supported by each contact layer
-    for my $layer_id (1 .. $#{$object->layers}) {
-        last if $layer_id > $self->config->raft_layers && !$self->config->support_material;
+    for my $layer_id (0 .. $#{$object->layers}) {
+        if ($self->config->raft_layers == 0) {
+            next if $layer_id == 0;
+        } elsif (!$self->config->support_material) {
+            # if we are only going to generate raft just check 
+            # the 'overhangs' of the first object layer
+            last if $layer_id > 0;
+        }
         my $layer = $object->layers->[$layer_id];
         my $lower_layer = $object->layers->[$layer_id-1];
         
@@ -93,7 +99,8 @@ sub contact_area {
             
             # If a threshold angle was specified, use a different logic for detecting overhangs.
             if (defined $threshold_rad
-                || $layer_id <= $self->config->support_material_enforce_layers + $self->config->raft_layers) {
+                || $layer_id < $self->config->support_material_enforce_layers
+                || $self->config->raft_layers > 0) {
                 my $d = defined $threshold_rad
                     ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                     : 0;
@@ -232,6 +239,17 @@ sub support_layers_z {
     my $first_layer_height = $self->config->get_value('first_layer_height');
     shift @z while @z && $z[0] <= $first_layer_height;
     unshift @z, $first_layer_height;
+    
+    # add raft layers by dividing the space between first layer and
+    # first contact layer evenly
+    if ($self->config->raft_layers > 1) {
+        # $z[1] is last raft layer (contact layer for the first layer object)
+        my $height = ($z[1] - $z[0]) / ($self->config->raft_layers - 1);
+        splice @z, 1, 0,
+            map { int($_*100)/100 }
+            map { $z[0] + $height * $_ }
+            0..($self->config->raft_layers - 1);
+    }
     
     for (my $i = $#z; $i >= 0; $i--) {
         my $target_height = $support_material_height;
