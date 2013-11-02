@@ -156,6 +156,15 @@ sub add_model {
             layer_height_ranges => $object->layer_height_ranges,
         );
     }
+    
+    if (!defined $self->extra_variables->{input_filename}) {
+        if (defined (my $input_file = $self->objects->[0]->input_file)) {
+            my $input_filename = my $input_filename_base = basename($input_file);
+            $input_filename_base =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
+            $self->extra_variables->{input_filename} = $input_file;
+            $self->extra_variables->{input_filename_base} = $input_filename_base;
+        }
+    }
 }
 
 sub validate {
@@ -743,7 +752,7 @@ sub write_gcode {
         }
     };
     $print_first_layer_temperature->(0);
-    printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->start_gcode);
+    printf $fh "%s\n", $self->replace_variables($Slic3r::Config->start_gcode);
     $print_first_layer_temperature->(1);
     
     # set other general things
@@ -890,7 +899,7 @@ sub write_gcode {
     # write end commands to file
     print $fh $gcodegen->retract if $gcodegen->extruder;  # empty prints don't even set an extruder
     print $fh $gcodegen->set_fan(0);
-    printf $fh "%s\n", $Slic3r::Config->replace_options($Slic3r::Config->end_gcode);
+    printf $fh "%s\n", $self->replace_variables($Slic3r::Config->end_gcode);
     
     foreach my $extruder (@{$self->extruders}) {
         printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
@@ -929,14 +938,12 @@ sub expanded_output_filepath {
     # file directory and append the specified filename format
     $path ||= (fileparse($input_file))[1] . $Slic3r::Config->output_filename_format;
     
-    my $input_filename = my $input_filename_base = basename($input_file);
-    $input_filename_base =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
-    
-    return $Slic3r::Config->replace_options($path, {
-        input_filename      => $input_filename,
-        input_filename_base => $input_filename_base,
-        %{ $self->extra_variables },
-    });
+    return $self->replace_variables($path);
+}
+
+sub replace_variables {
+    my ($self, $string, $extra) = @_;
+    return $self->config->replace_options($string, { %{$self->extra_variables}, %{ $extra || {} } });
 }
 
 1;

@@ -646,7 +646,7 @@ sub set_extruder {
     
     # append custom toolchange G-code
     if (defined $self->extruder && $self->config->toolchange_gcode) {
-        $gcode .= sprintf "%s\n", $self->config->replace_options($self->config->toolchange_gcode, {
+        $gcode .= sprintf "%s\n", $self->print->replace_variables($self->config->toolchange_gcode, {
             previous_extruder   => $self->extruder->id,
             next_extruder       => $extruder->id,
         });
