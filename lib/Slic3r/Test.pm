@@ -90,7 +90,7 @@ sub model {
     my $object = $model->add_object;
     $object->add_volume(mesh => $mesh);
     $object->add_instance(
-        offset      => [0,0],
+        offset      => Slic3r::Point->new(0,0),
         rotation    => $params{rotation} // 0,
     );
     return $model;
@@ -106,7 +106,10 @@ sub init_print {
     my $print = Slic3r::Print->new(config => $config);
     
     $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
-    $print->add_model(model($_, %params)) for @$model_name;
+    for my $model (map model($_, %params), @$model_name) {
+        $model->arrange_objects($config);
+        $print->add_model($model);
+    }
     $print->validate;
     
     return $print;

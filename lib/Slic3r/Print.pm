@@ -7,7 +7,7 @@ use List::Util qw(min max first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path);
-use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex offset
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
     offset2 traverse_pt JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
 
@@ -170,9 +170,7 @@ sub validate {
                 {
                     my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
                     my $convex_hull = Slic3r::Polygon->new(@{convex_hull(\@points)});
-                    ($clearance) = map Slic3r::Polygon->new(@$_), 
-                                        @{Slic3r::Geometry::Clipper::offset(
-                                            [$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
+                    ($clearance) = @{offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
                     my $copy_clearance = $clearance->clone;
@@ -180,7 +178,7 @@ sub validate {
                     if (@{ intersection(\@a, [$copy_clearance]) }) {
                         die "Some objects are too close; your extruder will collide with them.\n";
                     }
-                    @a = map @$_, @{union_ex([ @a, $copy_clearance ])};
+                    @a = map $_->clone, map @$_, @{union_ex([ @a, $copy_clearance ])};
                 }
             }
         }

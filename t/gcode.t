@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 4;
 use strict;
 use warnings;
 
@@ -40,6 +40,14 @@ use Slic3r::Test;
     
     ok $have_wipe, "wipe";
     ok !defined (first { abs($_ - $config->retract_speed->[0]*60) < 5 } @retract_speeds), 'wipe moves don\'t retract faster than configured speed';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('complete_objects', 1);
+    $config->set('duplicate', 2);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), "complete_objects";
 }
 
 __END__
