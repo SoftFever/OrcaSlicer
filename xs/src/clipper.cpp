@@ -3335,11 +3335,11 @@ void DoSquare(double mul)
       a1 = std::fabs(a2 - a1);
       if (a1 > pi) a1 = pi * 2 - a1;
       double dx = std::tan((pi - a1) / 4) * std::fabs(m_delta * mul);
-      pt1 = IntPoint((long64)(pt1.X -normals[m_k].Y * dx),
-        (long64)(pt1.Y + normals[m_k].X * dx));
+      pt1 = IntPoint((long64)Round(pt1.X -normals[m_k].Y * dx),
+        (long64)Round(pt1.Y + normals[m_k].X * dx));
       AddPoint(pt1);
-      pt2 = IntPoint((long64)(pt2.X + normals[m_j].Y * dx),
-        (long64)(pt2.Y -normals[m_j].X * dx));
+      pt2 = IntPoint((long64)Round(pt2.X + normals[m_j].Y * dx),
+        (long64)Round(pt2.Y -normals[m_j].X * dx));
       AddPoint(pt2);
     }
     else
