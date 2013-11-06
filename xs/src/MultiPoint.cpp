@@ -49,6 +49,12 @@ MultiPoint::length() const
     return len;
 }
 
+bool
+MultiPoint::is_valid() const
+{
+    return this->points.size() >= 2;
+}
+
 #ifdef SLIC3RXS
 void
 MultiPoint::from_SV(SV* poly_sv)

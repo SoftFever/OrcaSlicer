@@ -40,6 +40,15 @@ Polyline::clip_end(double distance)
     }
 }
 
+// removes the given distance from the start of the polyline
+void
+Polyline::clip_start(double distance)
+{
+    this->reverse();
+    this->clip_end(distance);
+    if (this->points.size() >= 2) this->reverse();
+}
+
 #ifdef SLIC3RXS
 SV*
 Polyline::to_SV_ref()

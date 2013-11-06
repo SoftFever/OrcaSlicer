@@ -7,7 +7,7 @@ use warnings;
 use Boost::Geometry::Utils;
 use List::Util qw(first);
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon);
+use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 sub wkt {
@@ -111,7 +111,14 @@ sub _medial_axis_clip {
     
     my $grow = sub {
         my ($line, $distance) = @_;
-        my ($a, $b) = @$line;
+        
+        my $line_clone = $line->clone;
+        $line_clone->clip_start(scaled_epsilon);
+        return () if !$line_clone->is_valid;
+        $line_clone->clip_end(scaled_epsilon);
+        return () if !$line_clone->is_valid;
+        
+        my ($a, $b) = @$line_clone;
         my $dx = $a->x - $b->x;
         my $dy = $a->y - $b->y; #-
         my $dist = sqrt($dx*$dx + $dy*$dy);
@@ -130,9 +137,18 @@ sub _medial_axis_clip {
     foreach my $polygon (@$self) {
         my @polylines = ();
         foreach my $line (@{$polygon->lines}) {
+            # remove the areas that are already covered from this line
             my $clipped = Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$line->pp], [ map $_->pp, @{union_ex($covered)} ]);
+            
+            # skip very short segments/dots
             @$clipped = grep $_->length > $width/10, map Slic3r::Polyline->new(@$_), @$clipped;
+            
+            # grow the remaining lines and add them to the covered areas
             push @$covered, map $grow->($_, $width*1.1), @$clipped;
+            
+            # if the first remaining segment is connected to the last polyline, append it 
+            # to that -- NOTE: this assumes that multi_linestring_multi_polygon_difference()
+            # preserved the orientation of the input linestring
             if (@polylines && @$clipped && $clipped->[0]->first_point->distance_to($polylines[-1]->last_point) <= $width/10) {
                 $polylines[-1]->append_polyline(shift @$clipped);
             }
@@ -140,7 +156,7 @@ sub _medial_axis_clip {
         }
         
         foreach my $polyline (@polylines) {
-            next if $polyline->length <= $width/10;
+            # if this polyline looks like a closed loop, return it as a polygon
             if ($polyline->first_point->coincides_with($polyline->last_point)) {
                 next if @$polyline == 2;
                 $polyline->pop_back;
