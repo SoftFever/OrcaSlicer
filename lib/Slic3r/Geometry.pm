@@ -8,14 +8,14 @@ our @EXPORT_OK = qw(
     PI X Y Z A B X1 Y1 X2 Y2 Z1 Z2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
     chained_path_items chained_path_points normalize tan move_points_3D
-    line_length midpoint point_in_polygon point_in_segment segment_in_segment
+    point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines
     point_along_segment polygon_segment_having_point polygon_has_subsegment
-    polygon_has_vertex polyline_length can_connect_points deg2rad rad2deg
+    polygon_has_vertex can_connect_points deg2rad rad2deg
     rotate_points move_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect same_point
-    longest_segment angle3points three_points_aligned line_direction
+    angle3points three_points_aligned line_direction
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
     chained_path collinear scale unscale merge_collinear_lines
@@ -128,30 +128,6 @@ sub point_line_distance {
     my $d = sqrt((($line->[B][X] - $line->[A][X]) ** 2) + (($line->[B][Y] - $line->[A][Y]) ** 2));
     
     return abs($n) / $d;
-}
-
-sub line_length {
-    my ($line) = @_;
-    return distance_between_points(@$line[A, B]);
-}
-
-sub longest_segment {
-    my (@lines) = @_;
-    
-    my ($longest, $maxlength);
-    foreach my $line (@lines) {
-        my $line_length = line_length($line);
-        if (!defined $longest || $line_length > $maxlength) {
-            $longest = $line;
-            $maxlength = $line_length;
-        }
-    }
-    return $longest;
-}
-
-sub midpoint {
-    my ($line) = @_;
-    return [ ($line->[B][X] + $line->[A][X]) / 2, ($line->[B][Y] + $line->[A][Y]) / 2 ];
 }
 
 # this will check whether a point is in a polygon regardless of polygon orientation
@@ -287,13 +263,6 @@ sub polygon_is_convex {
         return 0 if $angle < PI;
     }
     return 1;
-}
-
-sub polyline_length {
-    my ($polyline) = @_;
-    my $length = 0;
-    $length += line_length($_) for polygon_lines($polyline);
-    return $length;
 }
 
 sub can_connect_points {

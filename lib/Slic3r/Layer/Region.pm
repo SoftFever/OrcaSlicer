@@ -592,7 +592,7 @@ sub _detect_bridge_direction {
             } @clipped_lines;
             
             # sum length of bridged lines
-            $directions{-$angle} = sum(map Slic3r::Geometry::line_length($_), @clipped_lines) // 0;
+            $directions{-$angle} = sum(map $_->length, @clipped_lines) // 0;
         }
         
         # this could be slightly optimized with a max search instead of the sort
