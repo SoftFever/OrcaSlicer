@@ -46,5 +46,15 @@ Line::rotate(angle, center_sv)
         center.from_SV_check(center_sv);
         THIS->rotate(angle, &center);
 
+bool
+Line::coincides_with(line_sv)
+    SV*     line_sv;
+    CODE:
+        Line line;
+        line.from_SV_check(line_sv);
+        RETVAL = THIS->coincides_with(&line);
+    OUTPUT:
+        RETVAL
+
 %}
 };

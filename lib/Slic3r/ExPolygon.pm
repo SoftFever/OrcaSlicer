@@ -7,7 +7,7 @@ use warnings;
 use Boost::Geometry::Utils;
 use List::Util qw(first);
 use Math::Geometry::Voronoi;
-use Slic3r::Geometry qw(X Y A B point_in_polygon same_line epsilon scaled_epsilon);
+use Slic3r::Geometry qw(X Y A B point_in_polygon epsilon scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 sub wkt {
@@ -60,9 +60,9 @@ sub encloses_line {
     my $clip = $self->clip_line($line);
     if (!defined $tolerance) {
         # optimization
-        return @$clip == 1 && same_line($clip->[0]->pp, $line->pp);
+        return @$clip == 1 && $clip->[0]->coincides_with($line);
     } else {
-        return @$clip == 1 && abs(Boost::Geometry::Utils::linestring_length($clip->[0]->pp) - $line->length) < $tolerance;
+        return @$clip == 1 && abs($clip->[0]->length - $line->length) < $tolerance;
     }
 }
 

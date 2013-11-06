@@ -54,6 +54,12 @@ Line::point_at(double distance) const
     return p;
 }
 
+bool
+Line::coincides_with(const Line* line) const
+{
+    return this->a.coincides_with(&line->a) && this->b.coincides_with(&line->b);
+}
+
 #ifdef SLIC3RXS
 void
 Line::from_SV(SV* line_sv)
