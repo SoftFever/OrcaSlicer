@@ -60,6 +60,12 @@ Line::coincides_with(const Line* line) const
     return this->a.coincides_with(&line->a) && this->b.coincides_with(&line->b);
 }
 
+double
+Line::distance_to(const Point* point) const
+{
+    return point->distance_to(this);
+}
+
 #ifdef SLIC3RXS
 void
 Line::from_SV(SV* line_sv)

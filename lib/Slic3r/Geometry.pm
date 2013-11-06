@@ -14,7 +14,7 @@ our @EXPORT_OK = qw(
     polygon_has_vertex can_connect_points deg2rad rad2deg
     rotate_points move_points clip_segment_polygon
     sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
-    line_intersection bounding_box bounding_box_intersect same_point
+    line_intersection bounding_box bounding_box_intersect
     angle3points three_points_aligned line_direction
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
     polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
@@ -107,27 +107,9 @@ sub points_coincide {
     return 0;
 }
 
-sub same_point {
-    my ($p1, $p2) = @_;
-    return $p1->[X] == $p2->[X] && $p1->[Y] == $p2->[Y];
-}
-
 sub distance_between_points {
     my ($p1, $p2) = @_;
     return sqrt((($p1->[X] - $p2->[X])**2) + ($p1->[Y] - $p2->[Y])**2);
-}
-
-sub point_line_distance {
-    my ($point, $line) = @_;
-    return distance_between_points($point, $line->[A])
-        if same_point($line->[A], $line->[B]);
-    
-    my $n = ($line->[B][X] - $line->[A][X]) * ($line->[A][Y] - $point->[Y])
-        - ($line->[A][X] - $point->[X]) * ($line->[B][Y] - $line->[A][Y]);
-    
-    my $d = sqrt((($line->[B][X] - $line->[A][X]) ** 2) + (($line->[B][Y] - $line->[A][Y]) ** 2));
-    
-    return abs($n) / $d;
 }
 
 # this will check whether a point is in a polygon regardless of polygon orientation
@@ -795,7 +777,7 @@ sub douglas_peucker {
     my $dmax = 0;
     my $index = 0;
     for my $i (1..$#$points) {
-        my $d = point_line_distance($points->[$i], [ $points->[0], $points->[-1] ]);
+        my $d = $points->[$i]->distance_to(Slic3r::Line->new($points->[0], $points->[-1]));
         if ($d > $dmax) {
             $index = $i;
             $dmax = $d;

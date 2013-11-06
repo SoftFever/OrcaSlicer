@@ -6,6 +6,8 @@
 
 namespace Slic3r {
 
+class Line;
+
 class Line
 {
     public:
@@ -21,6 +23,7 @@ class Line
     Point* midpoint() const;
     Point* point_at(double distance) const;
     bool coincides_with(const Line* line) const;
+    double distance_to(const Point* point) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* line_sv);

@@ -187,7 +187,7 @@ sub _medial_axis_voronoi {
             # being longer than $width / 2
             $polygon = $polygon->subdivide($width/2);
             
-            push @points, map $_->pp, @$polygon;
+            push @points, @{$polygon->pp};
         }
         $voronoi = Math::Geometry::Voronoi->new(points => \@points);
     }
@@ -200,10 +200,8 @@ sub _medial_axis_voronoi {
         # ignore lines going to infinite
         next if $edge->[1] == -1 || $edge->[2] == -1;
         
-        my ($a, $b);
-        $a = Slic3r::Point->new(@{$vertices->[$edge->[1]]});
-        $b = Slic3r::Point->new(@{$vertices->[$edge->[2]]});
-        next if !$self->encloses_point_quick($a) || !$self->encloses_point_quick($b);
+        next if !$self->encloses_point_quick(Slic3r::Point->new(@{$vertices->[$edge->[1]]}))
+             || !$self->encloses_point_quick(Slic3r::Point->new(@{$vertices->[$edge->[2]]}));
         
         push @skeleton_lines, [$edge->[1], $edge->[2]];
     }
@@ -244,7 +242,7 @@ sub _medial_axis_voronoi {
         # cleanup
         $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
         
-        if (Slic3r::Geometry::same_point($polyline->[0], $polyline->[-1])) {
+        if ($polyline->[0][X] == $polyline->[-1][X] && $polyline->[0][Y] == $polyline->[-1][Y]) {
             next if @$polyline == 2;
             push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
         } else {

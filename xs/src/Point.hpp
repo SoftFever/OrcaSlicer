@@ -7,6 +7,7 @@
 
 namespace Slic3r {
 
+class Line;
 class Point;
 typedef std::vector<Point> Points;
 
@@ -23,6 +24,7 @@ class Point
     int nearest_point_index(const Points points) const;
     Point* nearest_point(Points points) const;
     double distance_to(const Point* point) const;
+    double distance_to(const Line* line) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);

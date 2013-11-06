@@ -1,4 +1,5 @@
 #include "Point.hpp"
+#include "Line.hpp"
 #include <math.h>
 
 namespace Slic3r {
@@ -70,6 +71,17 @@ Point::distance_to(const Point* point) const
     double dx = ((double)point->x - this->x);
     double dy = ((double)point->y - this->y);
     return sqrt(dx*dx + dy*dy);
+}
+
+double
+Point::distance_to(const Line* line) const
+{
+    if (line->a.coincides_with(&line->b)) return this->distance_to(&line->a);
+    
+    double n = (line->b.x - line->a.x) * (line->a.y - this->y)
+        - (line->a.x - this->x) * (line->b.y - line->a.y);
+    
+    return abs(n) / line->length();
 }
 
 #ifdef SLIC3RXS
