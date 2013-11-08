@@ -237,17 +237,15 @@ sub _medial_axis_voronoi {
         next unless @$polyline >= 2;
         
         # now replace point indexes with coordinates
-        @$polyline = map $vertices->[$_], @$polyline;
+        my @points = map Slic3r::Point->new(@{$vertices->[$_]}), @$polyline;
         
-        # cleanup
-        $polyline = Slic3r::Geometry::douglas_peucker($polyline, $width / 7);
-        
-        if ($polyline->[0][X] == $polyline->[-1][X] && $polyline->[0][Y] == $polyline->[-1][Y]) {
-            next if @$polyline == 2;
-            push @result, Slic3r::Polygon->new(@$polyline[0..$#$polyline-1]);
+        if ($points[0]->coincides_with($points[-1])) {
+            next if @points == 2;
+            push @result, Slic3r::Polygon->new(@points[0..$#points-1]);
         } else {
-            push @result, Slic3r::Polyline->new(@$polyline);
+            push @result, Slic3r::Polyline->new(@points);
         }
+        $result[-1]->simplify($width / 7);
     }
     
     return @result;
