@@ -159,10 +159,7 @@ sub add_model {
     
     if (!defined $self->extra_variables->{input_filename}) {
         if (defined (my $input_file = $self->objects->[0]->input_file)) {
-            my $input_filename = my $input_filename_base = basename($input_file);
-            $input_filename_base =~ s/\.(?:stl|amf(?:\.xml)?)$//i;
-            $self->extra_variables->{input_filename} = $input_file;
-            $self->extra_variables->{input_filename_base} = $input_filename_base;
+            @{$self->extra_variables}{qw(input_filename input_filename_base)} = parse_filename($input_file);
         }
     }
 }
@@ -926,24 +923,41 @@ sub expanded_output_filepath {
     my $self = shift;
     my ($path, $input_file) = @_;
     
-    # if no input file was supplied, take the first one from our objects
-    $input_file ||= $self->objects->[0]->input_file;
-    return undef if !defined $input_file;
+    my $extra_variables = {};
+    if ($input_file) {
+        @$extra_variables{qw(input_filename input_filename_base)} = parse_filename($input_file);
+    } else {
+        # if no input file was supplied, take the first one from our objects
+        $input_file = $self->objects->[0]->input_file // return undef;
+    }
     
-    # if output path is an existing directory, we take that and append
-    # the specified filename format
-    $path = File::Spec->join($path, $Slic3r::Config->output_filename_format) if ($path && -d $path);
-
-    # if no explicit output file was defined, we take the input
-    # file directory and append the specified filename format
-    $path ||= (fileparse($input_file))[1] . $Slic3r::Config->output_filename_format;
+    if ($path && -d $path) {
+        # if output path is an existing directory, we take that and append
+        # the specified filename format
+        $path = File::Spec->join($path, $self->config->output_filename_format);
+    } elsif (!$path) {
+        # if no explicit output file was defined, we take the input
+        # file directory and append the specified filename format
+        $path = (fileparse($input_file))[1] . $self->config->output_filename_format;
+    } else {
+        # path is a full path to a file so we use it as it is
+    }
     
-    return $self->replace_variables($path);
+    return $self->replace_variables($path, $extra_variables);
 }
 
 sub replace_variables {
     my ($self, $string, $extra) = @_;
     return $self->config->replace_options($string, { %{$self->extra_variables}, %{ $extra || {} } });
+}
+
+# given the path to a file, this function returns its filename with and without extension
+sub parse_filename {
+    my ($path) = @_;
+    
+    my $filename = my $filename_base = basename($path);
+    $filename_base =~ s/\.[^.]+$//;
+    return ($filename, $filename_base);
 }
 
 1;
