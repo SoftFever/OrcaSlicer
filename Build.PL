@@ -46,7 +46,7 @@ if ($ENV{SLIC3R_NO_AUTO}) {
     foreach my $module (sort keys %prereqs) {
         my $version = $prereqs{$module};
         next if eval "use $module $version; 1";
-        push @missing_prereqs = $module if exists $prereqs{$module};
+        push @missing_prereqs, $module if exists $prereqs{$module};
         print "Missing prerequisite $module $version\n";
     }
     foreach my $module (sort keys %recommends) {
