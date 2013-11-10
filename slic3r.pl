@@ -10,6 +10,7 @@ BEGIN {
 
 use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
+use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
 $|++;
 
@@ -84,6 +85,7 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
         $Slic3r::GUI::autosave  = $opt{autosave};
     }
     $gui = Slic3r::GUI->new;
+    setlocale(LC_NUMERIC, 'C');
     $gui->{skeinpanel}->load_config_file($_) for @{$opt{load}};
     $gui->{skeinpanel}->load_config($cli_config);
     $gui->MainLoop;
