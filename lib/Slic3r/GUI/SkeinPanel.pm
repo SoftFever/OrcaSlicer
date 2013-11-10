@@ -20,7 +20,7 @@ use constant FILE_WILDCARDS => {
     obj     => 'OBJ files (*.obj)|*.obj;*.OBJ',
     amf     => 'AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML',
     ini     => 'INI files *.ini|*.ini;*.INI',
-    gcode   => 'G-code files (*.gcode, *.gco, *.g)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G',
+    gcode   => 'G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC',
     svg     => 'SVG files *.svg|*.svg;*.SVG',
 };
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf)};
