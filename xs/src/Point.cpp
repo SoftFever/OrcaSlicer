@@ -112,8 +112,10 @@ void
 Point::from_SV(SV* point_sv)
 {
     AV* point_av = (AV*)SvRV(point_sv);
-    this->x = (long)SvIV(*av_fetch(point_av, 0, 0));
-    this->y = (long)SvIV(*av_fetch(point_av, 1, 0));
+    // get a double from Perl and round it, otherwise
+    // it would get truncated
+    this->x = lrint(SvNV(*av_fetch(point_av, 0, 0)));
+    this->y = lrint(SvNV(*av_fetch(point_av, 1, 0)));
 }
 
 void

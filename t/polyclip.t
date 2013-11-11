@@ -114,7 +114,7 @@ is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserv
 #==========================================================
 
 {
-    my $large_circle = Slic3r::Polygon->new(  # ccw
+    my $large_circle = Slic3r::Polygon->new_scale(  # ccw
         [151.8639,288.1192], [133.2778,284.6011], [115.0091,279.6997], [98.2859,270.8606], [82.2734,260.7933], 
         [68.8974,247.4181], [56.5622,233.0777], [47.7228,216.3558], [40.1617,199.0172], [36.6431,180.4328], 
         [34.932,165.2312], [37.5567,165.1101], [41.0547,142.9903], [36.9056,141.4295], [40.199,124.1277], 
@@ -127,7 +127,7 @@ is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserv
     );
     ok $large_circle->is_counter_clockwise, "contour is counter-clockwise";
     
-    my $small_circle = Slic3r::Polygon->new(  # cw
+    my $small_circle = Slic3r::Polygon->new_scale(  # cw
         [158.227,215.9007], [164.5136,215.9007], [175.15,214.5007], [184.5576,210.6044], [190.2268,207.8743], 
         [199.1462,201.0306], [209.0146,188.346], [213.5135,177.4829], [214.6979,168.4866], [216.1025,162.3325], 
         [214.6463,151.2703], [213.2471,145.1399], [209.0146,134.9203], [199.1462,122.2357], [189.8944,115.1366], 
@@ -139,12 +139,12 @@ is_deeply $intersection, [ [120, 120], [180, 160] ], 'internal lines are preserv
     ok $small_circle->is_clockwise, "hole is clockwise";
     
     my $expolygon = Slic3r::ExPolygon->new($large_circle, $small_circle);
-    $line = Slic3r::Line->new([152.742,288.086671142818], [152.742,34.166466971035]);
+    $line = Slic3r::Line->new_scale([152.742,288.086671142818], [152.742,34.166466971035]);
     
     my $intersections = $expolygon->clip_line($line);
     is_deeply [ map $_->pp, @$intersections ], [
-        [ [152, 287], [152, 214],  ],
-        [ [152, 107], [152, 35] ],
+        [ [152742000, 288086661], [152742000, 215178843],  ],
+        [ [152742000, 108087507], [152742000, 35166477] ],
     ], 'line is clipped to square with hole';
 }
 
