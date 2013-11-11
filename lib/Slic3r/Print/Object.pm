@@ -65,7 +65,7 @@ sub BUILD {
             print_z => $print_z,
             slice_z => scale $slice_z,
         );
-        if ($id > 0) {
+        if (@{$self->layers} >= 2) {
             $self->layers->[-2]->upper_layer($self->layers->[-1]);
         }
         $id++;
