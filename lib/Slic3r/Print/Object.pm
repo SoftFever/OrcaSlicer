@@ -65,6 +65,9 @@ sub BUILD {
             print_z => $print_z,
             slice_z => scale $slice_z,
         );
+        if ($id > 0) {
+            $self->layers->[-2]->upper_layer($self->layers->[-1]);
+        }
         $id++;
         
         $slice_z += $height/2;   # add the other half layer
@@ -504,6 +507,17 @@ sub bridge_over_infill {
                     $excess -= $self->layers->[$i]->height;
                 }
             }
+        }
+    }
+}
+
+sub process_external_surfaces {
+    my ($self) = @_;
+    
+    for my $region_id (0 .. ($self->print->regions_count-1)) {
+        $self->layers->[0]->regions->[$region_id]->process_external_surfaces(undef);
+        for my $layer_id (1 .. ($self->layer_count-1)) {
+            $self->layers->[$layer_id]->regions->[$region_id]->process_external_surfaces($self->layers->[$layer_id-1]);
         }
     }
 }

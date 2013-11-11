@@ -14,7 +14,7 @@ has 'layer' => (
     weak_ref    => 1,
     required    => 1,
     trigger     => 1,
-    handles     => [qw(id slice_z print_z height flow object print config)],
+    handles     => [qw(id slice_z print_z height flow config)],
 );
 has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'perimeter_flow'    => (is => 'rw');
@@ -182,7 +182,7 @@ sub make_perimeters {
             
             # where offset2() collapses the expolygon, then there's no room for an inner loop
             # and we can extract the gap for later processing
-            if ($Slic3r::Config->gap_fill_speed > 0 && $self->object->config->fill_density > 0) {
+            if ($Slic3r::Config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
                 my $diff = diff(
                     offset(\@last, -0.5*$spacing),
                     # +2 on the offset here makes sure that Clipper float truncation 
@@ -434,7 +434,7 @@ sub prepare_fill_surfaces {
 }
 
 sub process_external_surfaces {
-    my $self = shift;
+    my ($self, $lower_layer) = @_;
     
     my @surfaces = @{$self->fill_surfaces};
     my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
@@ -447,8 +447,8 @@ sub process_external_surfaces {
         # would get merged into a single one while they need different directions
         # also, supply the original expolygon instead of the grown one, because in case
         # of very thin (but still working) anchors, the grown expolygon would go beyond them
-        my $angle = $self->id > 0
-            ? $self->_detect_bridge_direction($surface->expolygon)
+        my $angle = $lower_layer
+            ? $self->_detect_bridge_direction($surface->expolygon, $lower_layer)
             : undef;
         
         push @bottom, map $surface->clone(expolygon => $_, bridge_angle => $angle), @$grown;
@@ -466,7 +466,7 @@ sub process_external_surfaces {
     
     # if we're slicing with no infill, we can't extend external surfaces
     # over non-existent infill
-    my @fill_boundaries = $self->object->config->fill_density > 0
+    my @fill_boundaries = $self->config->fill_density > 0
         ? @surfaces
         : grep $_->surface_type != S_TYPE_INTERNAL, @surfaces;
     
@@ -495,11 +495,10 @@ sub process_external_surfaces {
 }
 
 sub _detect_bridge_direction {
-    my $self = shift;
-    my ($expolygon) = @_;
+    my ($self, $expolygon, $lower_layer) = @_;
     
     my $grown = $expolygon->offset_ex(+$self->perimeter_flow->scaled_width);
-    my @lower = @{$self->layer->object->layers->[ $self->id - 1 ]->slices};       # expolygons
+    my @lower = @{$lower_layer->slices};       # expolygons
     
     # detect what edges lie on lower slices
     my @edges = (); # polylines

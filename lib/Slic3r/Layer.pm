@@ -7,6 +7,7 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'id'                => (is => 'rw', required => 1, trigger => 1); # sequential number of layer, 0-based
 has 'object'            => (is => 'ro', weak_ref => 1, required => 1, handles => [qw(print config)]);
+has 'upper_layer'       => (is => 'rw', weak_ref => 1);
 has 'regions'           => (is => 'ro', default => sub { [] });
 has 'slicing_errors'    => (is => 'rw');
 
@@ -23,16 +24,10 @@ sub _trigger_id {
     $_->_trigger_layer for @{$self->regions || []};
 }
 
+# the purpose of this method is to be overridden for ::Support layers
 sub islands {
     my $self = shift;
-    return @{$self->slices};
-}
-
-sub upper_layer_islands {
-    my $self = shift;
-    
-    my $upper_layer = $self->object->layers->[ $self->id + 1 ] or return ();
-    return $upper_layer->islands;
+    return $self->slices;
 }
 
 sub region {
@@ -75,7 +70,7 @@ has 'support_interface_fills'   => (is => 'rw', default => sub { Slic3r::Extrusi
 
 sub islands {
     my $self = shift;
-    return @{$self->slices}, @{$self->support_islands};
+    return [ @{$self->slices}, @{$self->support_islands} ];
 }
 
 1;

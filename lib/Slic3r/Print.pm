@@ -376,7 +376,7 @@ sub export_gcode {
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
     $status_cb->(45, "Detect bridges");
-    $_->process_external_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
+    $_->process_external_surfaces for @{$self->objects};
     
     # detect which fill surfaces are near external layers
     # they will be split in internal and internal-solid surfaces
