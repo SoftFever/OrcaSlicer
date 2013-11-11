@@ -80,37 +80,4 @@ sub align_to_origin {
     return $self->translate(-$bb->x_min, -$bb->y_min);
 }
 
-# this method returns a collection of points picked on the polygon contour
-# so that they are evenly spaced according to the input distance
-# (find a better name!)
-sub regular_points {
-    my $self = shift;
-    my ($distance) = @_;
-    
-    my @my_points = @$self;
-    my @points = ($my_points[0]->clone);
-    my $len = 0;
-    
-    for (my $i = 1; $i <= $#my_points; $i++) {
-        my $point = $my_points[$i];
-        my $segment_length = $point->distance_to($my_points[$i-1]);
-        $len += $segment_length;
-        next if $len < $distance;
-        
-        if ($len == $distance) {
-            push @points, $point;
-            $len = 0;
-            next;
-        }
-        
-        my $take = $segment_length - ($len - $distance);  # how much we take of this segment
-        my $new_point = Slic3r::Geometry::point_along_segment($my_points[$i-1], $point, $take);
-        push @points, Slic3r::Point->new(@$new_point);
-        $i--;
-        $len = -$take;
-    }
-    
-    return @points;
-}
-
 1;

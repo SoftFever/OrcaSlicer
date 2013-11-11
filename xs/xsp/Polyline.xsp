@@ -23,6 +23,7 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
     Point* last_point()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
+    Points equally_spaced_points(double distance);
     double length();
     bool is_valid();
     void clip_end(double distance);

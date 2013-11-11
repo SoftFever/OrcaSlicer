@@ -49,6 +49,37 @@ Polyline::clip_start(double distance)
     if (this->points.size() >= 2) this->reverse();
 }
 
+/* this method returns a collection of points picked on the polygon contour
+   so that they are evenly spaced according to the input distance */
+Points
+Polyline::equally_spaced_points(double distance) const
+{
+    Points pts;
+    pts.push_back(*this->first_point());
+    double len = 0;
+    
+    for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
+        double segment_length = it->distance_to(&*(it-1));
+        len += segment_length;
+        if (len < distance) continue;
+        
+        if (len == distance) {
+            pts.push_back(*it);
+            len = 0;
+            continue;
+        }
+        
+        double take = segment_length - (len - distance);  // how much we take of this segment
+        Line segment(*(it-1), *it);
+        pts.push_back(*segment.point_at(take));
+        it--;
+        len = -take;
+    }
+    
+    return pts;
+}
+
+
 #ifdef SLIC3RXS
 SV*
 Polyline::to_SV_ref()

@@ -53,6 +53,15 @@ Polygon::split_at_first_point() const
     return this->split_at_index(0);
 }
 
+Points
+Polygon::equally_spaced_points(double distance) const
+{
+    Polyline* polyline = this->split_at_first_point();
+    Points pts = polyline->equally_spaced_points(distance);
+    delete polyline;
+    return pts;
+}
+
 double
 Polygon::area() const
 {

@@ -451,7 +451,7 @@ sub generate_toolpaths {
                 }
                 
                 # apply a pattern to the loop
-                my @positions = map Slic3r::Polygon->new(@$_)->split_at_first_point->regular_points($circle_distance), @external_loops;
+                my @positions = map @{Slic3r::Polygon->new(@$_)->equally_spaced_points($circle_distance)}, @external_loops;
                 @loops0 = @{diff(
                     [ @external_loops ],
                     [ map { my $c = $circle->clone; $c->translate(@$_); $c } @positions ],
