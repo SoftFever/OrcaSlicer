@@ -46,7 +46,8 @@ sub new {
     my $class_prefix = $self->{mode} eq 'simple' ? "Slic3r::GUI::SimpleTab::" : "Slic3r::GUI::Tab::";
     my $init = 0;
     for my $tab_name (qw(print filament printer)) {
-        my $tab = $self->{options_tabs}{$tab_name} = ($class_prefix . ucfirst $tab_name)->new(
+        my $tab;
+        $tab = $self->{options_tabs}{$tab_name} = ($class_prefix . ucfirst $tab_name)->new(
             $self->{tabpanel},
             on_value_change     => sub {
                 $self->{plater}->on_config_change(@_) if $self->{plater}; # propagate config change events to the plater
@@ -54,6 +55,12 @@ sub new {
                     if ($self->{mode} eq 'simple') {
                         # save config
                         $self->config->save("$Slic3r::GUI::datadir/simple.ini");
+                        
+                        # save a copy into each preset section
+                        # so that user gets the config when switching to expert mode
+                        $tab->config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $tab->name, 'Simple Mode');
+                        $Slic3r::GUI::Settings->{presets}{$tab->name} = 'Simple Mode.ini';
+                        Slic3r::GUI->save_settings;
                     }
                     $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave;
                 }

@@ -56,7 +56,6 @@ sub new {
 
 sub _accept {
     my $self = shift;
-    $self->EndModal(wxID_OK);
     
     if ($self->{values}{mode}) {
         Slic3r::GUI::warning_catcher($self)->("You need to restart Slic3r to make the changes effective.");
@@ -64,6 +63,9 @@ sub _accept {
     
     $Slic3r::GUI::Settings->{_}{$_} = $self->{values}{$_} for keys %{$self->{values}};
     Slic3r::GUI->save_settings;
+    
+    $self->EndModal(wxID_OK);
+    $self->Close;  # needed on Linux
 }
 
 1;
