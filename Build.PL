@@ -134,6 +134,7 @@ if (@missing_prereqs) {
     printf "The following prerequisites failed to install: %s\n", join(', ', @missing_prereqs);
     exit 1;
 } elsif (!$gui) {
+    eval "use App::Prove; 1" or die "Failed to load App::Prove";
     my $res = App::Prove->new->run ? 0 : 1;
     if ($res == 0) {
         print "If you also want to use the GUI you can now run `perl Build.PL --gui` to install the required modules.\n";
