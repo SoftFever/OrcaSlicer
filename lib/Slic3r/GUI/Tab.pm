@@ -84,32 +84,7 @@ sub new {
         $self->on_presets_changed;
     });
     
-    EVT_BUTTON($self, $self->{btn_save_preset}, sub {
-        
-        # since buttons (and choices too) don't get focus on Mac, we set focus manually
-        # to the treectrl so that the EVT_* events are fired for the input field having
-        # focus currently. is there anything better than this?
-        $self->{treectrl}->SetFocus;
-        
-        my $preset = $self->current_preset;
-        my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
-        $default_name =~ s/\.ini$//i;
-        
-        my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
-            title   => lc($self->title),
-            default => $default_name,
-            values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
-        );
-        return unless $dlg->ShowModal == wxID_OK;
-        
-        my $file = sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $dlg->get_name;
-        $self->config->save($file);
-        $self->set_dirty(0);
-        $self->load_presets;
-        $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $dlg->get_name . ".ini" } 1 .. $#{$self->{presets}});
-        $self->on_select_preset;
-        $self->on_presets_changed;
-    });
+    EVT_BUTTON($self, $self->{btn_save_preset}, sub { $self->save_preset });
     
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
         my $i = $self->{presets_choice}->GetSelection;
@@ -146,6 +121,36 @@ sub current_preset {
 sub get_preset {
     my $self = shift;
     return $self->{presets}[ $_[0] ];
+}
+
+sub save_preset {
+    my ($self, $name) = @_;
+    
+    # since buttons (and choices too) don't get focus on Mac, we set focus manually
+    # to the treectrl so that the EVT_* events are fired for the input field having
+    # focus currently. is there anything better than this?
+    $self->{treectrl}->SetFocus;
+    
+    if (!defined $name) {
+        my $preset = $self->current_preset;
+        my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
+        $default_name =~ s/\.ini$//i;
+    
+        my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
+            title   => lc($self->title),
+            default => $default_name,
+            values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
+        );
+        return unless $dlg->ShowModal == wxID_OK;
+        $name = $dlg->get_name;
+    }
+    
+    $self->config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $name);
+    $self->set_dirty(0);
+    $self->load_presets;
+    $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $name . ".ini" } 1 .. $#{$self->{presets}});
+    $self->on_select_preset;
+    $self->on_presets_changed;
 }
 
 # propagate event to the parent

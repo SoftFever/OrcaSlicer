@@ -313,6 +313,11 @@ sub config_wizard {
             }
         }
         $self->load_config($config);
+        if ($self->{mode} eq 'expert') {
+            for my $tab (values %{$self->{options_tabs}}) {
+                $tab->save_preset('My Settings');
+            }
+        }
     }
 }
 
