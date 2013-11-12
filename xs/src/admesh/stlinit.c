@@ -52,22 +52,6 @@ stl_get_little_int(FILE *fp)
   return(value);
 }
 
-static float
-stl_get_little_float(FILE *fp)
-{
-  union 
-    {
-      int   int_value;
-      float float_value;
-    } value;
-  
-  value.int_value  =  fgetc(fp) & 0xFF;
-  value.int_value |= (fgetc(fp) & 0xFF) << 0x08;
-  value.int_value |= (fgetc(fp) & 0xFF) << 0x10;
-  value.int_value |= (fgetc(fp) & 0xFF) << 0x18;
-  return(value.float_value);
-}
-
 
 void
 stl_initialize(stl_file *stl)
@@ -251,20 +235,10 @@ stl_read(stl_file *stl, int first_facet, int first)
       if(stl->stats.type == binary)
 	/* Read a single facet from a binary .STL file */
 	{
-	  facet.normal.x = stl_get_little_float(stl->fp);
-	  facet.normal.y = stl_get_little_float(stl->fp);
-	  facet.normal.z = stl_get_little_float(stl->fp);
-	  facet.vertex[0].x = stl_get_little_float(stl->fp);
-	  facet.vertex[0].y = stl_get_little_float(stl->fp);
-	  facet.vertex[0].z = stl_get_little_float(stl->fp);
-	  facet.vertex[1].x = stl_get_little_float(stl->fp);
-	  facet.vertex[1].y = stl_get_little_float(stl->fp);
-	  facet.vertex[1].z = stl_get_little_float(stl->fp);
-	  facet.vertex[2].x = stl_get_little_float(stl->fp);
-	  facet.vertex[2].y = stl_get_little_float(stl->fp);
-	  facet.vertex[2].z = stl_get_little_float(stl->fp);
-	  facet.extra[0] = fgetc(stl->fp);
-	  facet.extra[1] = fgetc(stl->fp);
+	    // we assume little-endian architecture!
+        fread(&facet.normal, sizeof(stl_normal), 1, stl->fp);
+        fread(&facet.vertex, sizeof(stl_vertex), 3, stl->fp);
+        fread(&facet.extra, sizeof(char), 2, stl->fp);
 	}
       else
 	/* Read a single facet from an ASCII .STL file */
