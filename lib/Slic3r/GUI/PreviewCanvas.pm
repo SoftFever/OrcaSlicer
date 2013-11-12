@@ -323,10 +323,6 @@ sub Resize {
     }
 }
  
-sub DESTROY {
-    my $self = shift;
-}
- 
 sub InitGL {
     my $self = shift;
  

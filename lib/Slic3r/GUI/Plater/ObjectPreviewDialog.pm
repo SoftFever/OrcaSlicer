@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Wx qw(:dialog :id :misc :sizer :systemsettings :notebook wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_BUTTON);
+use Wx::Event qw(EVT_CLOSE);
 use base 'Wx::Dialog';
 
 sub new {
@@ -17,6 +17,12 @@ sub new {
     $sizer->Add(Slic3r::GUI::PreviewCanvas->new($self, $self->{object}->get_model_object), 1, wxEXPAND, 0);
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
+    
+    # needed to actually free memory
+    EVT_CLOSE($self, sub {
+        $self->EndModal(wxID_OK);
+        $self->Destroy;
+    });
     
     return $self;
 }

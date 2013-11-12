@@ -29,6 +29,7 @@ sub new {
         $self->{materials}->Closing;
         
         $self->EndModal(wxID_OK);
+        $self->Destroy;
     });
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
