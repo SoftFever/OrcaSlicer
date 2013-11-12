@@ -98,6 +98,9 @@ stl_count_facets(stl_file *stl, char *file)
       if(chtest[i] > 127)
 	{
 	  stl->stats.type = binary;
+	  // close and reopen with binary flag (needed on Windows)
+	  fclose(stl->fp);
+	  stl->fp = fopen(file, "rb");
 	  break;
 	}
     }
