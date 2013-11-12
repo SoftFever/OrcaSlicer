@@ -100,7 +100,11 @@ EOF
     my %modules = (%prereqs, %recommends);
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
-        my $res = system $cpanm, "$module~$version";
+        my @cmd = ($cpanm, "$module~$version");
+        if ($module eq 'XML::SAX::ExpatXS' && $^O eq 'MSWin32') {
+            push @cmd, '--configure-args="EXPATLIBPATH=C:\dev\CitrusPerl\mingw64\lib EXPATINCPATH=C:\dev\CitrusPerl\mingw64\include"';
+        }
+        my $res = system @cmd;
         if ($res != 0) {
             if (exists $prereqs{$module}) {
                 push @missing_prereqs, $module;
