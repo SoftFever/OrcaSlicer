@@ -194,9 +194,8 @@ sub new {
     
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
-        my ($obj_idx, $thumbnail) = @{$event->GetData};
+        my ($obj_idx) = @{$event->GetData};
         return if !$self->{objects}[$obj_idx];  # object was deleted before thumbnail generation completed
-        $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
         
         $self->on_thumbnail_made($obj_idx);
     });
@@ -835,11 +834,12 @@ sub make_thumbnail {
     
     my $object = $self->{objects}[$obj_idx];
     $object->thumbnail_scaling_factor($self->{scaling_factor});
+    $object->thumbnail(Slic3r::ExPolygon::Collection->new);
     my $cb = sub {
-        my $thumbnail = $object->make_thumbnail;
+        $object->make_thumbnail;
         
         if ($Slic3r::have_threads) {
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx ])));
             Slic3r::thread_cleanup();
             threads->exit;
         } else {
@@ -855,6 +855,7 @@ sub on_thumbnail_made {
     my $self = shift;
     my ($obj_idx) = @_;
     
+    $self->{objects}[$obj_idx]->_transform_thumbnail;
     $self->recenter;
     $self->{canvas}->Refresh;
 }
@@ -1354,12 +1355,11 @@ sub make_thumbnail {
     my $self = shift;
     
     my $mesh = $self->get_model_object->mesh;  # $self->model_object is already aligned to origin
-    my $thumbnail = Slic3r::ExPolygon::Collection->new;
     $mesh->repair;
     if (@{$mesh->facets} <= 5000) {
         # remove polygons with area <= 1mm
         my $area_threshold = Slic3r::Geometry::scale 1;
-        $thumbnail->append(
+        $self->thumbnail->append(
             map $_->simplify(0.5),
             grep $_->area >= $area_threshold,
             @{ $mesh->horizontal_projection },
@@ -1367,13 +1367,12 @@ sub make_thumbnail {
     } else {
         my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
         $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);
-        $thumbnail->append($convex_hull);
+        $self->thumbnail->append($convex_hull);
     }
     
-    $thumbnail->scale(&Slic3r::SCALING_FACTOR);
-    $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
+    $self->thumbnail->scale(&Slic3r::SCALING_FACTOR);
     
-    return $thumbnail;
+    return $self->thumbnail;
 }
 
 sub _transform_thumbnail {
