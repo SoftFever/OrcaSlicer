@@ -164,7 +164,7 @@ sub new {
     
     {
         my $label = Wx::StaticText->new($self, -1, "You can use this section to override the default layer height for parts of this object. Set layer height to zero to skip portions of the input file.",
-            wxDefaultPosition, [-1, 25]);
+            wxDefaultPosition, [-1, 40]);
         $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
         $sizer->Add($label, 0, wxEXPAND | wxALL, 10);
     }
