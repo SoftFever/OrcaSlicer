@@ -180,5 +180,4 @@ extern void stl_allocate(stl_file *stl);
 static void stl_read(stl_file *stl, int first_facet, int first);
 static void stl_facet_stats(stl_file *stl, stl_facet facet, int first);
 extern void stl_reallocate(stl_file *stl);
-static int stl_get_little_int(FILE *fp);
 extern void stl_get_size(stl_file *stl);

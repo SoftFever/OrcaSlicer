@@ -41,17 +41,6 @@ stl_open(stl_file *stl, char *file)
   fclose(stl->fp);
 }
 
-static int
-stl_get_little_int(FILE *fp)
-{
-  int value;
-  value  =  fgetc(fp) & 0xFF;
-  value |= (fgetc(fp) & 0xFF) << 0x08;
-  value |= (fgetc(fp) & 0xFF) << 0x10;
-  value |= (fgetc(fp) & 0xFF) << 0x18;
-  return(value);
-}
-
 
 void
 stl_initialize(stl_file *stl)
@@ -132,7 +121,7 @@ stl_count_facets(stl_file *stl, char *file)
       stl->stats.header[80] = '\0';
 
       /* Read the int following the header.  This should contain # of facets */
-      header_num_facets = stl_get_little_int(stl->fp);
+      fread(&header_num_facets, sizeof(int), 1, stl->fp);
       if(num_facets != header_num_facets)
 	{
 	  fprintf(stderr, 
