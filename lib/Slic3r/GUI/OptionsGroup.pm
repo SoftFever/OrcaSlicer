@@ -168,7 +168,8 @@ sub _build_field {
     if ($opt->{type} =~ /^(i|f|s|s@)$/) {
         my $style = 0;
         $style = wxTE_MULTILINE if $opt->{multiline};
-        my $size = Wx::Size->new($opt->{width} || -1, $opt->{height} || -1);
+        # default width on Windows is too large
+        my $size = Wx::Size->new($opt->{width} || 60, $opt->{height} || -1);
         
         $field = $opt->{type} eq 'i'
             ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default})
