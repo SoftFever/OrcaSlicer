@@ -94,9 +94,20 @@ sub parallelize {
         $q->enqueue(@items, (map undef, 1..$Config->threads));
         
         my $thread_cb = sub {
-            my $result = $params{thread_cb}->($q);
+            $params{thread_cb}->($q);
             Slic3r::thread_cleanup();
-            return $result;
+            
+            # This explicit exit avoids an untrappable 
+            # "Attempt to free unreferenced scalar" error
+            # triggered on Ubuntu 12.04 32-bit when we're running 
+            # from the Wx plater and
+            # we're reusing the same plater object more than once.
+            # The downside to using this exit is that we can't return
+            # any value to the main thread but we're not doing that
+            # anymore anyway.
+            # collect_cb is completely useless now
+            # and should be removed from the codebase.
+            threads->exit;
         };
         $params{collect_cb} ||= sub {};
             
