@@ -325,8 +325,9 @@ sub generate_base_layers {
             my @overlapping_z = map $support_z->[$_], @overlapping_layers;
             
             # in case we have no interface layers, look at upper contact
+            # (1 interface layer means we only have contact layer, so $interface->{$i+1} is empty)
             my @upper_contact = ();
-            if ($self->config->support_material_interface_layers == 0) {
+            if ($self->config->support_material_interface_layers <= 1) {
                 @upper_contact = @{ $contact->{$support_z->[$i+1]} || [] };
             }
             
