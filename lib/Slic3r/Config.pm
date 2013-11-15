@@ -226,10 +226,10 @@ our $Options = {
     },
     
     # multiple extruder options
-    'standby_temperature' => {
+    'ooze_prevention' => {
         label   => 'Enable',
         tooltip => 'This option will drop the temperature of the inactive extruders to prevent oozing. It will enable a tall skirt automatically and move extruders outside such skirt when changing temperatures.',
-        cli     => 'standby-temperature!',
+        cli     => 'ooze-prevention!',
         type    => 'bool',
         default => 0,
     },

@@ -347,6 +347,12 @@ The author of the Silk icon set is Mark James.
                             Extruder to use for support material (1+, default: 1)
         --support-material-interface-extruder
                             Extruder to use for support material interface (1+, default: 1)
+                            --ooze-prevention   Drop temperature and park extruders outside a full skirt for automatic wiping
+                            (default: no)
+        --standby-temperature-delta
+                            Temperature difference to be applied when an extruder is not active and
+                            --ooze-prevention is enabled (default: -5)
+
 
 If you want to change a preset file, just do
 

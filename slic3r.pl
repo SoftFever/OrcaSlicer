@@ -419,12 +419,17 @@ $j
     --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
                         (can be specified multiple times, default: 0x0)
     --perimeter-extruder
-                        Extruder to use for perimeters (1+, default: 1)
-    --infill-extruder   Extruder to use for infill (1+, default: 1)
+                        Extruder to use for perimeters (1+, default: $config->{perimeter_extruder})
+    --infill-extruder   Extruder to use for infill (1+, default: $config->{infill_extruder})
     --support-material-extruder
-                        Extruder to use for support material (1+, default: 1)
+                        Extruder to use for support material (1+, default: $config->{support_material_extruder})
     --support-material-interface-extruder
-                        Extruder to use for support material interface (1+, default: 1)
+                        Extruder to use for support material interface (1+, default: $config->{support_material_interface_extruder})
+    --ooze-prevention   Drop temperature and park extruders outside a full skirt for automatic wiping
+                        (default: no)
+    --standby-temperature-delta
+                        Temperature difference to be applied when an extruder is not active and
+                        --ooze-prevention is enabled (default: $config->{standby_temperature_delta})
     
 EOF
     exit ($exit_code || 0);

@@ -648,7 +648,7 @@ sub set_extruder {
     }
     
     # set the current extruder to the standby temperature
-    if ($self->config->standby_temperature && defined $self->extruder) {
+    if ($self->config->ooze_prevention && defined $self->extruder) {
         # move to the nearest standby point
         $gcode .= $self->travel_to($self->last_pos->nearest_point($self->standby_points));
         
@@ -673,7 +673,7 @@ sub set_extruder {
     $gcode .= $self->reset_e;
     
     # set the new extruder to the operating temperature
-    if ($self->config->standby_temperature) {
+    if ($self->config->ooze_prevention) {
         my $temp = defined $self->layer && $self->layer->id == 0
             ? $self->extruder->first_layer_temperature
             : $self->extruder->temperature;

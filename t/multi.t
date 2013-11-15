@@ -18,7 +18,7 @@ use Slic3r::Test;
     $config->set('raft_layers', 2);
     $config->set('infill_extruder', 2);
     $config->set('support_material_extruder', 3);
-    $config->set('standby_temperature', 1);
+    $config->set('ooze_prevention', 1);
     $config->set('extruder_offset', [ [0,0], [20,0], [0,20] ]);
     $config->set('temperature', [200, 180, 170]);
     $config->set('first_layer_temperature', [206, 186, 166]);

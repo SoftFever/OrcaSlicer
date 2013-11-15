@@ -534,8 +534,8 @@ sub build {
             options => [qw(perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder)],
         },
         {
-            title => 'Standby Temperature',
-            options => [qw(standby_temperature standby_temperature_delta)],
+            title => 'Ooze prevention',
+            options => [qw(ooze_prevention standby_temperature_delta)],
         },
     ]);
     
