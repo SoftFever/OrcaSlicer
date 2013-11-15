@@ -170,8 +170,12 @@ sub _medial_axis_clip {
     return @result;
 }
 
+my $voronoi_lock :shared;
+
 sub _medial_axis_voronoi {
     my ($self, $width) = @_;
+    
+    lock($voronoi_lock);
     
     my $voronoi;
     {
