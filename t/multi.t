@@ -10,19 +10,23 @@ BEGIN {
 use List::Util qw(first);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r;
+use Slic3r::Geometry qw(scale);
 use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('raft_layers', 2);
     $config->set('infill_extruder', 2);
+    $config->set('support_material_extruder', 3);
     $config->set('standby_temperature', 1);
-    $config->set('temperature', [200, 180]);
-    $config->set('first_layer_temperature', [206, 186]);
+    $config->set('extruder_offset', [ [0,0], [20,0], [0,20] ]);
+    $config->set('temperature', [200, 180, 170]);
+    $config->set('first_layer_temperature', [206, 186, 166]);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     
     my $tool = undef;
-    my @tool_temp = (0,0);
+    my @tool_temp = (0,0,0);
     my @toolchange_points = ();
     my @extrusion_points = ();
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
@@ -46,9 +50,9 @@ use Slic3r::Test;
             }
             $tool_temp[$t] = $args->{S};
         } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
-            push @extrusion_points, Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            push @extrusion_points, my $point = Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            $point->translate(map scale($_), @{ $config->extruder_offset->[$tool] });
         }
-        # TODO: check that toolchanges retraction and restart happen outside skirt
     });
     my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, @extrusion_points ])});
     ok !(first { $convex_hull->encloses_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';

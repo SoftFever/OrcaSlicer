@@ -803,7 +803,13 @@ sub write_gcode {
     # calculate wiping points if needed
     if ($self->config->standby_temperature) {
         my $outer_skirt = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, map @$_, @{$self->skirt} ])});
-        $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$outer_skirt], scale 3)} ]);
+        my @skirts = ();
+        foreach my $extruder (@{$self->extruders}) {
+            push @skirts, my $s = $outer_skirt->clone;
+            $s->translate(map scale($_), @{$extruder->extruder_offset});
+        }
+        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @$_, map $_->pp, @skirts ])});
+        $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
     }
     
     # prepare the layer processor
