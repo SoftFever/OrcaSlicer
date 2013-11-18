@@ -145,8 +145,9 @@ sub _merge_loops {
 sub make_perimeters {
     my $self = shift;
     
-    my $perimeter_spacing   = $self->perimeter_flow->scaled_spacing;
-    my $infill_spacing      = $self->solid_infill_flow->scaled_spacing;
+    my $pwidth              = $self->perimeter_flow->scaled_width;
+    my $pspacing            = $self->perimeter_flow->scaled_spacing;
+    my $ispacing            = $self->solid_infill_flow->scaled_spacing;
     my $gap_area_threshold  = $self->perimeter_flow->scaled_width ** 2;
     
     $self->perimeters->clear;
@@ -155,7 +156,8 @@ sub make_perimeters {
     
     my @contours    = ();    # array of Polygons with ccw orientation
     my @holes       = ();    # array of Polygons with cw orientation
-    my @gaps        = ();    # array of Polygons
+    my @thin_walls  = ();    # array of ExPolygons
+    my @gaps        = ();    # array of ExPolygons
     
     # we need to process each island separately because we might have different
     # extra perimeters for each one
@@ -163,44 +165,51 @@ sub make_perimeters {
         # detect how many perimeters must be generated for this island
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         
-        # generate loops
-        # (one more than necessary so that we can detect gaps even after the desired
-        # number of perimeters has been generated)
         my @last = @{$surface->expolygon};
-        my @this_gaps = ();
-        for my $i (0 .. $loop_number) {
-            # external loop only needs half inset distance
-            my $spacing = ($i == 0)
-                ? $perimeter_spacing / 2
-                : $perimeter_spacing;
-            
-            my @offsets = @{offset2_ex(\@last, -1.5*$spacing,  +0.5*$spacing)};
-            # clone polygons because these ExPolygons will go out of scope very soon
-            my @contours_offsets    = map $_->contour->clone, @offsets;
-            my @holes_offsets       = map $_->clone, map @{$_->holes}, @offsets;
-            @offsets = map $_->clone, (@contours_offsets, @holes_offsets);     # turn @offsets from ExPolygons to Polygons
-            
-            # where offset2() collapses the expolygon, then there's no room for an inner loop
-            # and we can extract the gap for later processing
-            if ($Slic3r::Config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
-                my $diff = diff(
-                    offset(\@last, -0.5*$spacing),
-                    # +2 on the offset here makes sure that Clipper float truncation 
-                    # won't shrink the clip polygon to be smaller than intended.
-                    offset(\@offsets, +0.5*$spacing + 2),
-                );
-                push @gaps, (@this_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff);
+        my @last_gaps = ();
+        for my $i (1 .. $loop_number) {  # outer loop is 1
+            my @offsets = ();
+            if ($i == 1) {
+                # the minimum thickness of a single loop is:
+                # width/2 + spacing/2 + spacing/2 + width/2
+                @offsets = @{offset2(\@last, -(0.5*$pwidth + 0.5*$pspacing - 1), +(0.5*$pspacing - 1))};
+                
+                # look for thin walls
+                if ($self->config->thin_walls) {
+                    my $diff = diff_ex(
+                        \@last,
+                        offset(\@offsets, +0.5*$pwidth),
+                    );
+                    push @thin_walls, grep abs($_->area) >= $gap_area_threshold, @$diff;
+                }
+            } else {
+                @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
+                
+                # look for gaps
+                if ($Slic3r::Config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
+                    my $diff = diff_ex(
+                        offset(\@last, -0.5*$pspacing),
+                        offset(\@offsets, +0.5*$pspacing),
+                    );
+                    push @gaps, @last_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff;
+                }
             }
             
-            last if !@offsets || $i == $loop_number;
-            push @contours, @contours_offsets;
-            push @holes,    @holes_offsets;
+            last if !@offsets;
+            # clone polygons because these ExPolygons will go out of scope very soon
             @last = @offsets;
+            foreach my $polygon (@offsets) {
+                if ($polygon->is_counter_clockwise) {
+                    push @contours, $polygon;
+                } else {
+                    push @holes, $polygon;
+                }
+            }
         }
         
         # make sure we don't infill narrow parts that are already gap-filled
         # (we only consider this surface's gaps to reduce the diff() complexity)
-        @last = @{diff(\@last, \@this_gaps)};
+        @last = @{diff(\@last, \@last_gaps)};
         
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
@@ -209,8 +218,8 @@ sub make_perimeters {
         $self->fill_surfaces->append(
             @{offset2_ex(
                 [ map $_->simplify_as_polygons(&Slic3r::SCALED_RESOLUTION), @{union_ex(\@last)} ],
-                -($perimeter_spacing/2 + $infill_spacing/2),
-                +$infill_spacing/2,
+                -($pspacing/2 + $ispacing/2),
+                +$ispacing/2,
             )}
         );
     }
@@ -280,44 +289,33 @@ sub make_perimeters {
     
     # detect thin walls by offsetting slices by half extrusion inwards
     # and add them as perimeters
-    if ($self->config->thin_walls) {
-        # we use spacing here because there could be a case where
-        # the slice collapses with width but doesn't collapse with spacing,
-        # thus causing both perimeters and medial axis to be generated
-        my $width = $self->perimeter_flow->scaled_spacing;
-        my $diff = diff_ex(
-            [ map $_->p, @{$self->slices} ],
-            offset2([ map $_->p, @{$self->slices} ], -$width*0.5, +$width*0.5),
-            1,
-        );
-        
-        my $area_threshold = $width ** 2;
-        if (@$diff = grep { $_->area > $area_threshold } @$diff) {
-            my @p = map $_->medial_axis($width), @$diff;
-            my @paths = ();
-            for my $p (@p) {
-                my %params = (
-                    role            => EXTR_ROLE_EXTERNAL_PERIMETER,
-                    flow_spacing    => $self->perimeter_flow->spacing,
-                );
-                push @paths, $p->isa('Slic3r::Polygon')
-                    ? Slic3r::ExtrusionLoop->new(polygon  => $p, %params)
-                    : Slic3r::ExtrusionPath->new(polyline => $p, %params);
-            }
-            
-            $self->perimeters->append(
-                map $_->clone, @{Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path(0)}
+    if (@thin_walls) {
+        my @p = map $_->medial_axis($pspacing), @thin_walls;
+        my @paths = ();
+        for my $p (@p) {
+            my %params = (
+                role            => EXTR_ROLE_EXTERNAL_PERIMETER,
+                flow_spacing    => $self->perimeter_flow->spacing,
             );
-            Slic3r::debugf "  %d thin walls detected\n", scalar(@paths) if $Slic3r::debug;
-            
-            # in the mean time we subtract thin walls from the detected gaps so that we don't
-            # reprocess them, causing overlapping thin walls and zigzag.
-            @gaps = @{diff(
-                \@gaps,
-                [ map $_->grow($self->perimeter_flow->scaled_width), @p ],
-                1,
-            )};
+            push @paths, $p->isa('Slic3r::Polygon')
+                ? Slic3r::ExtrusionLoop->new(polygon  => $p, %params)
+                : Slic3r::ExtrusionPath->new(polyline => $p, %params);
         }
+        
+        $self->perimeters->append(
+            map $_->clone, @{Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path(0)}
+        );
+        Slic3r::debugf "  %d thin walls detected\n", scalar(@paths) if $Slic3r::debug;
+        
+        # in the mean time we subtract thin walls from the detected gaps so that we don't
+        # reprocess them, causing overlapping thin walls and zigzag.
+        # Note: this is probably not necessary anymore since we're detecting thin walls
+        # and gaps at the same time
+        @gaps = @{diff_ex(
+            [ map @$_, @gaps ],
+            [ map $_->grow($self->perimeter_flow->scaled_width), @p ],
+            1,
+        )};
     }
     
     $self->_fill_gaps(\@gaps);
@@ -328,9 +326,6 @@ sub _fill_gaps {
     my ($gaps) = @_;
     
     return unless @$gaps;
-    
-    # turn gaps into ExPolygons
-    $gaps = union_ex($gaps);
     
     my $filler = $self->layer->object->fill_maker->filler('rectilinear');
     $filler->layer_id($self->layer->id);
