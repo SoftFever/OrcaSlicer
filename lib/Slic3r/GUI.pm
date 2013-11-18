@@ -89,7 +89,7 @@ sub OnInit {
         $last_version = $Settings->{_}{version};
         $Settings->{_}{mode} ||= 'expert';
     }
-    $Settings->{_}{version} ||= $Slic3r::VERSION;
+    $Settings->{_}{version} = $Slic3r::VERSION;
     Slic3r::GUI->save_settings;
     
     # application frame
