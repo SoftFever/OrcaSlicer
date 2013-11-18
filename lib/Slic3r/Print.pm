@@ -790,7 +790,7 @@ sub write_gcode {
                 $expolygon->translate(scale $shift[X], scale $shift[Y]);
                 my @island = @{$expolygon->offset_ex(scale $distance_from_objects, 1, JT_SQUARE)};
                 foreach my $copy (@{ $self->objects->[$obj_idx]->copies }) {
-                    push @islands, map $_->clone->translate(@$copy), @island;
+                    push @islands, map { my $c = $_->clone; $c->translate(@$copy); $c } @island;
                 }
             }
         }
