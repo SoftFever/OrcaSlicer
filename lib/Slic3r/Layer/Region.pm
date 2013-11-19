@@ -306,16 +306,6 @@ sub make_perimeters {
             map $_->clone, @{Slic3r::ExtrusionPath::Collection->new(@paths)->chained_path(0)}
         );
         Slic3r::debugf "  %d thin walls detected\n", scalar(@paths) if $Slic3r::debug;
-        
-        # in the mean time we subtract thin walls from the detected gaps so that we don't
-        # reprocess them, causing overlapping thin walls and zigzag.
-        # Note: this is probably not necessary anymore since we're detecting thin walls
-        # and gaps at the same time
-        @gaps = @{diff_ex(
-            [ map @$_, @gaps ],
-            [ map $_->grow($self->perimeter_flow->scaled_width), @p ],
-            1,
-        )};
     }
     
     $self->_fill_gaps(\@gaps);
