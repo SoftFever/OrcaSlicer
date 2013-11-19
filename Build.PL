@@ -102,7 +102,13 @@ EOF
         my $version = $modules{$module};
         my @cmd = ($cpanm, "$module~$version");
         if ($module eq 'XML::SAX::ExpatXS' && $^O eq 'MSWin32') {
-            push @cmd, '--configure-args="EXPATLIBPATH=C:\dev\CitrusPerl\mingw64\lib EXPATINCPATH=C:\dev\CitrusPerl\mingw64\include"';
+            my $mingw = 'C:\dev\CitrusPerl\mingw64';
+            $mingw = 'C:\dev\CitrusPerl\mingw32' if !-d $mingw;
+            if (!-d $mingw) {
+                print "Could not find the MinGW directory at $mingw; skipping XML::SAX::ExpatXS (only needed for faster parsing of AMF files)\n";
+            } else {
+                push @cmd, sprintf('--configure-args="EXPATLIBPATH=%s\lib EXPATINCPATH=%s\include"', $mingw, $mingw);
+            }
         }
         my $res = system @cmd;
         if ($res != 0) {
