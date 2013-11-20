@@ -65,7 +65,7 @@ Polygon::equally_spaced_points(double distance) const
 double
 Polygon::area() const
 {
-    ClipperLib::Polygon p;
+    ClipperLib::Path p;
     Slic3rPolygon_to_ClipperPolygon(*this, p);
     return ClipperLib::Area(p);
 }
@@ -73,7 +73,7 @@ Polygon::area() const
 bool
 Polygon::is_counter_clockwise() const
 {
-    ClipperLib::Polygon* p = new ClipperLib::Polygon();
+    ClipperLib::Path* p = new ClipperLib::Path();
     Slic3rPolygon_to_ClipperPolygon(*this, *p);
     bool orientation = ClipperLib::Orientation(*p);
     delete p;

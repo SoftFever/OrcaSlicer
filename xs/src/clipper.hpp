@@ -49,7 +49,7 @@
 //When enabled, code developed with earlier versions of Clipper 
 //(ie prior to ver 6) should compile without changes. 
 //In a future update, this compatability code will be removed.
-#define use_deprecated  
+//#define use_deprecated  
 
 #include <vector>
 #include <set>
