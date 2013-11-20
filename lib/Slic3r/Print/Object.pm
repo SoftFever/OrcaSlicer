@@ -258,10 +258,7 @@ sub make_perimeters {
                         
                         # only add the perimeter if there's an intersection with the collapsed area
                         last CYCLE if !@{ intersection($diff, $hypothetical_perimeter) };
-                        use Slic3r::SVG;
-                        Slic3r::SVG::output("extra.svg",
-                            expolygons => union_ex(intersection($diff, $hypothetical_perimeter)),
-                        );exit;
+                        
                         Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
                         $slice->extra_perimeters($extra_perimeters);
                     }
