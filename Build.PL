@@ -27,7 +27,6 @@ my %prereqs = qw(
 );
 my %recommends = qw(
     Class::XSAccessor               0
-    Growl::GNTP                     0.15
     XML::SAX::ExpatXS               0
 );
 
@@ -37,6 +36,7 @@ if ($gui) {
     Wx                              0.9918
     );
     %recommends = qw(
+    Growl::GNTP                     0.15
     Wx::GLCanvas                    0
     OpenGL                          0
     );
