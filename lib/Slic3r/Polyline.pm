@@ -35,20 +35,6 @@ sub simplify {
     return __PACKAGE__->new(@$simplified);
 }
 
-sub grow {
-    my $self = shift;
-    my ($distance, $scale, $joinType, $miterLimit) = @_;
-    $joinType   //= JT_SQUARE;  # we override this one
-    $scale      //= 100000;     # we init these because we can't pass undef
-    $miterLimit //= 3;
-    
-    my @points = @$self;
-    return @{Slic3r::Geometry::Clipper::offset(
-        [ Slic3r::Polygon->new(@points, CORE::reverse @points[1..($#points-1)]) ],
-        $distance, $scale, $joinType, $miterLimit,
-    )};
-}
-
 sub clip_with_polygon {
     my $self = shift;
     my ($polygon) = @_;

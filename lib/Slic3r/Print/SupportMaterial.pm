@@ -480,7 +480,7 @@ sub generate_toolpaths {
             # solution should be found to achieve both goals
             $contact_infill = diff(
                 $contact,
-                [ map $_->grow($circle_radius*1.1), @loops ],
+                [ map @{$_->grow($circle_radius*1.1)}, @loops ],
             );
             
             # transform loops into ExtrusionPath objects

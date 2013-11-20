@@ -187,7 +187,7 @@ is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_po
 
 {
     my $line = Slic3r::Line->new([10,10], [20,10]);
-    is +($line->grow(5))[0]->area, Slic3r::Polygon->new([5,5], [25,5], [25,15], [5,15])->area, 'grow line';
+    is $line->grow(5)->[0]->area, Slic3r::Polygon->new([10,5], [20,5], [20,15], [10,15])->area, 'grow line';
 }
 
 #==========================================================

@@ -293,6 +293,7 @@ sub make_perimeters {
         my @p = map $_->medial_axis($pspacing), @thin_walls;
         my @paths = ();
         for my $p (@p) {
+            next if $p->length <= $pspacing * 2;
             my %params = (
                 role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                 flow_spacing    => $self->perimeter_flow->spacing,

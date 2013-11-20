@@ -2,6 +2,7 @@
 
 %{
 #include <myinit.h>
+#include "ClipperUtils.hpp"
 #include "Polyline.hpp"
 %}
 
@@ -67,6 +68,19 @@ Polyline::rotate(angle, center_sv)
         Point center;
         center.from_SV_check(center_sv);
         THIS->rotate(angle, &center);
+
+Polygons
+Polyline::grow(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtSquare, miterLimit = 3)
+    const float             delta
+    double                  scale
+    ClipperLib::JoinType    joinType
+    double                  miterLimit
+    CODE:
+        Polylines polylines;
+        polylines.push_back(*THIS);
+        offset(polylines, RETVAL, delta, scale, joinType, miterLimit);
+    OUTPUT:
+        RETVAL
 
 %}
 };

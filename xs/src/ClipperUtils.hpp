@@ -21,20 +21,31 @@ void AddOuterPolyNodeToExPolygons(ClipperLib::PolyNode& polynode, Slic3r::ExPoly
 void PolyTreeToExPolygons(ClipperLib::PolyTree& polytree, Slic3r::ExPolygons& expolygons);
 //-----------------------------------------------------------
 
-void Slic3rPolygon_to_ClipperPolygon(const Slic3r::Polygon &input, ClipperLib::Polygon &output);
-void Slic3rPolygons_to_ClipperPolygons(const Slic3r::Polygons &input, ClipperLib::Polygons &output);
+void Slic3rPolygon_to_ClipperPolygon(const Slic3r::MultiPoint &input, ClipperLib::Polygon &output);
+template <class T>
+void Slic3rPolygons_to_ClipperPolygons(const T &input, ClipperLib::Polygons &output);
 void ClipperPolygon_to_Slic3rPolygon(const ClipperLib::Polygon &input, Slic3r::Polygon &output);
 void ClipperPolygons_to_Slic3rPolygons(const ClipperLib::Polygons &input, Slic3r::Polygons &output);
 void ClipperPolygons_to_Slic3rExPolygons(const ClipperLib::Polygons &input, Slic3r::ExPolygons &output);
 
 void scaleClipperPolygons(ClipperLib::Polygons &polygons, const double scale);
 
+// offset Polygons
 void offset(Slic3r::Polygons &polygons, ClipperLib::Polygons &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 void offset(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
+
+// offset Polylines
+void offset(Slic3r::Polylines &polylines, ClipperLib::Polygons &retval, const float delta,
+    double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
+    double miterLimit = 3);
+void offset(Slic3r::Polylines &polylines, Slic3r::Polygons &retval, const float delta,
+    double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
+    double miterLimit = 3);
+
 void offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);

@@ -31,7 +31,7 @@ sub point_on_left {
 
 sub grow {
     my $self = shift;
-    return Slic3r::Polyline->new(@$self[0,1,0])->grow(@_);
+    return Slic3r::Polyline->new(@$self)->grow(@_);
 }
 
 1;

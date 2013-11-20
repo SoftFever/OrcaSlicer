@@ -92,7 +92,7 @@ sub _plot {
                 foreach my $path (@paths) {
                     foreach my $line (@{$path->lines}) {
                         my @intersections = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-                            Slic3r::ExPolygon->new($line->grow(Slic3r::Geometry::scale $path->flow_spacing/2))->pp,
+                            Slic3r::ExPolygon->new(@{$line->grow(Slic3r::Geometry::scale $path->flow_spacing/2)})->pp,
                             [ $self->line ],
                         ) };
                         die "Intersection has more than two points!\n" if first { @$_ > 2 } @intersections;

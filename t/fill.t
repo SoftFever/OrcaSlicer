@@ -68,7 +68,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         );
         
         # check whether any part was left uncovered
-        my @grown_paths = map Slic3r::Polyline->new(@$_)->grow(scale $params->{flow_spacing}/2), @paths;
+        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $params->{flow_spacing}/2)}, @paths;
         my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ], 1);
         
         # ignore very small dots

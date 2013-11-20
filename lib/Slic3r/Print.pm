@@ -652,10 +652,10 @@ sub make_brim {
         if (@{ $object->support_layers }) {
             my $support_layer0 = $object->support_layers->[0];
             push @object_islands,
-                (map $_->polyline->grow($grow_distance), @{$support_layer0->support_fills})
+                (map @{$_->polyline->grow($grow_distance)}, @{$support_layer0->support_fills})
                 if $support_layer0->support_fills;
             push @object_islands,
-                (map $_->polyline->grow($grow_distance), @{$support_layer0->support_interface_fills})
+                (map @{$_->polyline->grow($grow_distance)}, @{$support_layer0->support_interface_fills})
                 if $support_layer0->support_interface_fills;
         }
         foreach my $copy (@{$object->copies}) {
@@ -666,7 +666,7 @@ sub make_brim {
     # if brim touches skirt, make it around skirt too
     # TODO: calculate actual skirt width (using each extruder's flow in multi-extruder setups)
     if ($Slic3r::Config->skirt_distance + (($Slic3r::Config->skirts - 1) * $flow->spacing) <= $Slic3r::Config->brim_width) {
-        push @islands, map $_->split_at_first_point->polyline->grow($grow_distance), @{$self->skirt};
+        push @islands, map @{$_->split_at_first_point->polyline->grow($grow_distance)}, @{$self->skirt};
     }
     
     my @loops = ();

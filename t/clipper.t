@@ -35,16 +35,16 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
     
     is_deeply [ map $_->pp, @$intersection ], [[
         [
-            [20, 12],
             [20, 18],
             [10, 18],
             [10, 12],
+            [20, 12],
         ],
         [
-            [14, 14],
             [14, 16],
             [16, 16],
             [16, 14],
+            [14, 14],
         ],
     ]], 'hole is preserved after intersection';
 }
@@ -58,11 +58,11 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
     
     my $union = union_ex([ $contour1, $contour2, $hole ]);
     
-    is_deeply [ map $_->pp, @$union ], [[ [ [40,0], [40,40], [0,40], [0,0] ] ]],
+    is_deeply [ map $_->pp, @$union ], [[ [ [40,40], [0,40], [0,0], [40,0] ] ]],
         'union of two ccw and one cw is a contour with no holes';
     
     my $diff = diff_ex([ $contour1, $contour2 ], [ $hole ]);
-    is_deeply [ map $_->pp, @$diff ], [[ [ [40,0], [40,40], [0,40], [0,0] ], [ [15,15], [15,25], [25,25], [25,15] ] ]],
+    is_deeply [ map $_->pp, @$diff ], [[ [ [40,40], [0,40], [0,0], [40,0] ], [ [15,25], [25,25], [25,15], [15,15] ] ]],
         'difference of a cw from two ccw is a contour with one hole';
 }
 
