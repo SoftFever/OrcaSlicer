@@ -389,9 +389,9 @@ sub travel_to {
     # *and* in an island in the upper layer (so that the ooze will not be visible)
     if ($travel->length < scale $self->extruder->retract_before_travel
         || ($self->config->only_retract_when_crossing_perimeters
-            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_upper_layer_islands})
-            && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->_layer_islands}))
-        || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->encloses_line($travel, scaled_epsilon) } @{$self->layer->support_islands}))
+            && (first { $_->contains_line($travel) } @{$self->_upper_layer_islands})
+            && (first { $_->contains_line($travel) } @{$self->_layer_islands}))
+        || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->contains_line($travel) } @{$self->layer->support_islands}))
         ) {
         $self->straight_once(0);
         $self->speed('travel');
@@ -434,7 +434,7 @@ sub _plan {
         $need_retract = 1;
         foreach my $island (@{$self->_upper_layer_islands}) {
             # discard the island if at any line is not enclosed in it
-            next if first { !$island->encloses_line($_, scaled_epsilon) } @travel;
+            next if first { !$island->contains_line($_) } @travel;
             # okay, this island encloses the full travel path
             $need_retract = 0;
             last;

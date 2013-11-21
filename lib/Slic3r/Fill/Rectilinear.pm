@@ -83,7 +83,7 @@ sub fill_surface {
                 
                 # TODO: we should also check that both points are on a fill_boundary to avoid 
                 # connecting paths on the boundaries of internal regions
-                if ($can_connect->(@distance) && $expolygon_off->encloses_line(Slic3r::Line->new($last_point, $first_point), $tolerance)) {
+                if ($can_connect->(@distance) && $expolygon_off->contains_line(Slic3r::Line->new($last_point, $first_point))) {
                     $polylines[-1]->append_polyline($polyline);
                     next;
                 }

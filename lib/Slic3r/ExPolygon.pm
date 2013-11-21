@@ -54,16 +54,11 @@ sub encloses_point_quick {
     return Boost::Geometry::Utils::point_within_polygon($point->pp, $self->pp);
 }
 
-sub encloses_line {
+sub contains_line {
     my $self = shift;
-    my ($line, $tolerance) = @_;
-    my $clip = $self->clip_line($line);
-    if (!defined $tolerance) {
-        # optimization
-        return @$clip == 1 && $clip->[0]->coincides_with($line);
-    } else {
-        return @$clip == 1 && abs($clip->[0]->length - $line->length) < $tolerance;
-    }
+    my ($line) = @_;
+    
+    return @{Slic3r::Geometry::Clipper::diff_pl([$line->as_polyline], \@$self)} ? 0 : 1;
 }
 
 sub bounding_box {

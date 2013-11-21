@@ -10,7 +10,6 @@ has '_contours_ex'  => (is => 'rw', default => sub { [] });  # arrayref of array
 has '_pointmap'     => (is => 'rw', default => sub { {} });  # { id => $point }
 has '_edges'        => (is => 'rw', default => sub { {} });  # node_idx => { node_idx => distance, ... }
 has '_crossing_edges' => (is => 'rw', default => sub { {} });  # edge_idx => bool
-has '_tolerance'    => (is => 'lazy');
 
 use List::Util qw(first);
 use Slic3r::Geometry qw(A B scale epsilon);
@@ -30,8 +29,6 @@ has '_outer_margin' => (is => 'ro', default => sub { scale 2 });
 use constant CROSSING_FACTOR => 20;
 
 use constant INFINITY => 'inf';
-
-sub _build__tolerance { scale epsilon }
 
 # setup our configuration space
 sub BUILD {
@@ -175,7 +172,7 @@ sub _add_expolygon {
     for my $i (0 .. $#points) {
         for my $j (($i+1) .. $#points) {
             my $line = Slic3r::Line->new($points[$i], $points[$j]);
-            if ($expolygon->encloses_line($line, $self->_tolerance)) {
+            if ($expolygon->contains_line($line)) {
                 my $dist = $line->length * ($crosses_perimeter ? CROSSING_FACTOR : 1);
                 $edges->{$points[$i]}{$points[$j]} = $dist;
                 $edges->{$points[$j]}{$points[$i]} = $dist;
