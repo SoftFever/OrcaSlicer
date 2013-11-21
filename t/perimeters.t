@@ -59,10 +59,10 @@ use Slic3r::Test;
                     if ($self->F == $config->external_perimeter_speed*60) {
                         my $move_dest = Slic3r::Point->new_scale(@$info{qw(new_X new_Y)});
                         $external_loops{$self->Z}++;
+                        my $loop_contains_point = Slic3r::Polygon->new_scale(@$cur_loop)->contains_point($move_dest);
                         $has_outwards_move = 1
-                            if !Slic3r::Polygon->new_scale(@$cur_loop)->contains_point($move_dest)
-                                ? ($external_loops{$self->Z} == 2)  # contour should include destination
-                                : ($external_loops{$self->Z} == 1); # hole should not
+                            if (!$loop_contains_point && $external_loops{$self->Z} == 2)  # contour should include destination
+                             || ($loop_contains_point && $external_loops{$self->Z} == 1); # hole should not
                     }
                     $cur_loop = undef;
                 }

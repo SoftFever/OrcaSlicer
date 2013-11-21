@@ -114,7 +114,7 @@ bool
 Polygon::contains_point(const Point* point) const
 {
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-    bool result;
+    bool result = false;
     Points::const_iterator i = this->points.begin();
     Points::const_iterator j = this->points.end() - 1;
     for (; i != this->points.end(); j = i++) {
