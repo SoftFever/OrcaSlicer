@@ -36,6 +36,9 @@ class ExtrusionEntity
     virtual void reverse() = 0;
     virtual Point* first_point() const = 0;
     virtual Point* last_point() const = 0;
+    bool is_perimeter() const;
+    bool is_fill() const;
+    bool is_bridge() const;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -50,6 +53,8 @@ class ExtrusionPath : public ExtrusionEntity
     Point* last_point() const;
     ExtrusionEntityCollection* intersect_expolygons(ExPolygonCollection* collection) const;
     ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection) const;
+    void clip_end(double distance);
+    double length() const;
     private:
     ExtrusionEntityCollection* _inflate_collection(const Polylines &polylines) const;
 };

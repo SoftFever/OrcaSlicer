@@ -5,6 +5,31 @@
 
 namespace Slic3r {
 
+bool
+ExtrusionEntity::is_perimeter() const
+{
+    return this->role == erPerimeter
+        || this->role == erExternalPerimeter
+        || this->role == erOverhangPerimeter
+        || this->role == erContourInternalPerimeter;
+}
+
+bool
+ExtrusionEntity::is_fill() const
+{
+    return this->role == erFill
+        || this->role == erSolidFill
+        || this->role == erTopSolidFill;
+}
+
+bool
+ExtrusionEntity::is_bridge() const
+{
+    return this->role == erBrige
+        || this->role == erInternalBridge
+        || this->role == erOverhangPerimeter;
+}
+
 ExtrusionPath*
 ExtrusionPath::clone() const
 {
@@ -45,6 +70,18 @@ ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection) const
     Polylines clipped;
     diff(this->polyline, *collection, clipped);
     return this->_inflate_collection(clipped);
+}
+
+void
+ExtrusionPath::clip_end(double distance)
+{
+    this->polyline.clip_end(distance);
+}
+
+double
+ExtrusionPath::length() const
+{
+    return this->polyline.length();
 }
 
 ExtrusionEntityCollection*

@@ -24,6 +24,11 @@
         %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->intersect_expolygons(collection); %};
     ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection)
         %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->subtract_expolygons(collection); %};
+    void clip_end(double distance);
+    double length();
+    bool is_perimeter();
+    bool is_fill();
+    bool is_bridge();
 %{
 
 ExtrusionPath*

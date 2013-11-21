@@ -10,8 +10,6 @@ our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER
     EXTR_ROLE_INTERNALBRIDGE EXTR_ROLE_SKIRT EXTR_ROLE_SUPPORTMATERIAL EXTR_ROLE_GAPFILL);
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
 
-use Slic3r::Geometry qw(PI X Y epsilon deg2rad rotate_points);
-
 sub clip_with_polygon {
     my $self = shift;
     my ($polygon) = @_;
@@ -32,43 +30,9 @@ sub simplify {
     $self->polyline($self->polyline->simplify(@_));
 }
 
-sub clip_end {
-    my $self = shift;
-    my $polyline = $self->polyline;
-    $polyline->clip_end(@_);
-    $self->polyline($polyline);
-}
-
-sub length {
-    my $self = shift;
-    return $self->polyline->length;
-}
-
 sub points {
     my $self = shift;
     return $self->polyline;
-}
-
-sub is_perimeter {
-    my $self = shift;
-    return $self->role == EXTR_ROLE_PERIMETER
-        || $self->role == EXTR_ROLE_EXTERNAL_PERIMETER
-        || $self->role == EXTR_ROLE_OVERHANG_PERIMETER
-        || $self->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
-}
-
-sub is_fill {
-    my $self = shift;
-    return $self->role == EXTR_ROLE_FILL
-        || $self->role == EXTR_ROLE_SOLIDFILL
-        || $self->role == EXTR_ROLE_TOPSOLIDFILL;
-}
-
-sub is_bridge {
-    my $self = shift;
-    return $self->role == EXTR_ROLE_BRIDGE
-        || $self->role == EXTR_ROLE_INTERNALBRIDGE
-        || $self->role == EXTR_ROLE_OVERHANG_PERIMETER;
 }
 
 1;
