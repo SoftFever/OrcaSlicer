@@ -6,6 +6,7 @@ extends 'Slic3r::Fill::Base';
 has 'cache'         => (is => 'rw', default => sub {{}});
 
 use Slic3r::Geometry qw(A B X Y MIN scale unscale scaled_epsilon);
+use Slic3r::Geometry::Clipper qw(intersection_pl offset);
 
 sub fill_surface {
     my $self = shift;
@@ -47,7 +48,7 @@ sub fill_surface {
             $vertical_line->[A][X] += $line_oscillation;
             $vertical_line->[B][X] -= $line_oscillation;
         }
-        push @vertical_lines, $vertical_line;
+        push @vertical_lines, Slic3r::Polyline->new(@$vertical_line);
         $i++;
         $x += $line_spacing;
     }
@@ -57,11 +58,7 @@ sub fill_surface {
     # the minimum offset for preventing edge lines from being clipped is scaled_epsilon;
     # however we use a larger offset to support expolygons with slightly skewed sides and 
     # not perfectly straight
-    my @polylines = map Slic3r::Polyline->new(@$_),
-        @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-            [ map $_->pp, @{$expolygon->offset_ex($line_spacing*0.05)} ],
-            [ @vertical_lines ],
-        ) };
+    my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset($line_spacing*0.05))};
     
     # connect lines
     unless ($params{dont_connect}) {
@@ -78,7 +75,7 @@ sub fill_surface {
             }
             : sub { $_[X] <= $diagonal_distance && $_[Y] <= $diagonal_distance };
         
-        foreach my $polyline (@{$collection->chained_path(0)}) {
+        foreach my $polyline (@{$collection->chained_path_from($collection->leftmost_point, 0)}) {
             if (@polylines) {
                 my $first_point = $polyline->first_point;
                 my $last_point = $polylines[-1]->last_point;

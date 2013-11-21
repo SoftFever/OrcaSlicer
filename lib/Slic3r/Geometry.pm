@@ -11,9 +11,9 @@ our @EXPORT_OK = qw(
     point_in_polygon point_in_segment segment_in_segment
     point_is_on_left_of_segment polyline_lines polygon_lines
     point_along_segment polygon_segment_having_point polygon_has_subsegment
-    polygon_has_vertex can_connect_points deg2rad rad2deg
-    rotate_points move_points clip_segment_polygon
-    sum_vectors multiply_vector subtract_vectors dot perp polygon_points_visibility
+    deg2rad rad2deg
+    rotate_points move_points
+    dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect
     angle3points three_points_aligned line_direction
     polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
@@ -229,14 +229,6 @@ sub polygon_has_subsegment {
     return 0;
 }
 
-sub polygon_has_vertex {
-    my ($polygon, $point) = @_;
-    foreach my $p (@$polygon) {
-        return 1 if points_coincide($p, $point);
-    }
-    return 0;
-}
-
 # polygon must be simple (non complex) and ccw
 sub polygon_is_convex {
     my ($points) = @_;
@@ -245,29 +237,6 @@ sub polygon_is_convex {
         return 0 if $angle < PI;
     }
     return 1;
-}
-
-sub can_connect_points {
-    my ($p1, $p2, $polygons) = @_;
-    
-    # check that the two points are visible from each other
-    return 0 if grep !polygon_points_visibility($_, $p1, $p2), @$polygons;
-    
-    # get segment where $p1 lies
-    my $p1_segment;
-    for (@$polygons) {
-        $p1_segment = polygon_segment_having_point($_, $p1);
-        last if $p1_segment;
-    }
-    
-    # defensive programming, this shouldn't happen
-    if (!$p1_segment) {
-        die sprintf "Point %f,%f wasn't found in polygon contour or holes!", @$p1;
-    }
-    
-    # check whether $p2 is internal or external  (internal = on the left)
-    return point_is_on_left_of_segment($p2, $p1_segment)
-        || point_in_segment($p2, $p1_segment);
 }
 
 sub deg2rad {
@@ -313,65 +282,6 @@ sub move_points_3D {
         $shift->[Y] + $_->[Y],
         $shift->[Z] + $_->[Z],
     ], @points;
-}
-
-# implementation of Liang-Barsky algorithm
-# polygon must be convex and ccw
-sub clip_segment_polygon {
-    my ($line, $polygon) = @_;
-    
-    if (@$line == 1) {
-        # the segment is a point, check for inclusion
-        return point_in_polygon($line, $polygon);
-    }
-    
-    my @V = (@$polygon, $polygon->[0]);
-    my $tE = 0; # the maximum entering segment parameter
-    my $tL = 1; # the minimum entering segment parameter
-    my $dS = subtract_vectors($line->[B], $line->[A]); # the segment direction vector
-    
-    for (my $i = 0; $i < $#V; $i++) {   # process polygon edge V[i]V[Vi+1]
-        my $e = subtract_vectors($V[$i+1], $V[$i]);
-        my $N = perp($e, subtract_vectors($line->[A], $V[$i]));
-        my $D = -perp($e, $dS);
-        if (abs($D) < epsilon) {          # $line is nearly parallel to this edge
-            ($N < 0) ? return : next;     # P0 outside this edge ? $line is outside : $line cannot cross edge, thus ignoring
-        }
-        
-        my $t = $N / $D;
-        if ($D < 0) { # $line is entering across this edge
-            if ($t > $tE) {  # new max $tE
-                $tE = $t;
-                return if $tE > $tL;  # $line enters after leaving polygon?
-            }
-        } else { # $line is leaving across this edge
-            if ($t < $tL) {  # new min $tL
-                $tL = $t;
-                return if $tL < $tE;  # $line leaves before entering polygon?
-            }
-        }
-    }
-    
-    # $tE <= $tL implies that there is a valid intersection subsegment
-    return [
-        sum_vectors($line->[A], multiply_vector($dS, $tE)),  # = P(tE) = point where S enters polygon
-        sum_vectors($line->[A], multiply_vector($dS, $tL)),  # = P(tE) = point where S enters polygon
-    ];
-}
-
-sub sum_vectors {
-    my ($v1, $v2) = @_;
-    return [ $v1->[X] + $v2->[X], $v1->[Y] + $v2->[Y] ];
-}
-
-sub multiply_vector {
-    my ($line, $scalar) = @_;
-    return [ $line->[X] * $scalar, $line->[Y] * $scalar ];
-}
-
-sub subtract_vectors {
-    my ($line2, $line1) = @_;
-    return [ $line2->[X] - $line1->[X], $line2->[Y] - $line1->[Y] ];
 }
 
 sub normal {

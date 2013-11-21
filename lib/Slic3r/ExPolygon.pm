@@ -8,7 +8,7 @@ use Boost::Geometry::Utils;
 use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon epsilon scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex diff_pl);
 
 sub wkt {
     my $self = shift;
@@ -77,7 +77,7 @@ sub clip_line {
     
     return [
         map Slic3r::Line->new(@$_),
-            @{Boost::Geometry::Utils::polygon_multi_linestring_intersection($self->pp, [$line->pp])}
+            @{Slic3r::Geometry::Clipper::intersection_pl([ Slic3r::Polyline->new(@$line) ], \@$self)}
     ];
 }
 
@@ -138,10 +138,10 @@ sub _medial_axis_clip {
         my @polylines = ();
         foreach my $line (@{$polygon->lines}) {
             # remove the areas that are already covered from this line
-            my $clipped = Boost::Geometry::Utils::multi_linestring_multi_polygon_difference([$line->pp], [ map $_->pp, @{union_ex($covered)} ]);
+            my $clipped = diff_pl([$line->as_polyline], $covered);
             
             # skip very short segments/dots
-            @$clipped = grep $_->length > $width/10, map Slic3r::Polyline->new(@$_), @$clipped;
+            @$clipped = grep $_->length > $width/10, @$clipped;
             
             # grow the remaining lines and add them to the covered areas
             push @$covered, map $grow->($_, $width*1.1), @$clipped;

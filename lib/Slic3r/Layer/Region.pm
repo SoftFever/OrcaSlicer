@@ -562,12 +562,10 @@ sub _detect_bridge_direction {
             
             my @lines = ();
             for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
-                push @lines, [ [$x, $bounding_box->y_min], [$x, $bounding_box->y_max] ];
+                push @lines, Slic3r::Polyline->new([$x, $bounding_box->y_min], [$x, $bounding_box->y_max]);
             }
             
-            # TODO: use a multi_polygon_multi_linestring_intersection() call
-            my @clipped_lines = map Slic3r::Line->new(@$_),
-                map @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection($_->pp, \@lines) }, @$inset;
+            my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
             
             # remove any line not having both endpoints within anchors
             @clipped_lines = grep {

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 5;
+use Test::More tests => 11;
 
 my $square = [  # ccw
     [200, 100],
@@ -86,6 +86,24 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
     my $polygon2 = Slic3r::Polygon->new(reverse @$hole_in_square);
     my $result = Slic3r::Geometry::Clipper::diff_ex([$polygon1], [$polygon2]);
     is $result->[0]->area, $expolygon->area, 'diff_ex';
+}
+
+{
+    my $polyline = Slic3r::Polyline->new([50,150], [300,150]);
+    {
+        my $result = Slic3r::Geometry::Clipper::intersection_pl([$polyline], [$square, $hole_in_square]);
+        is scalar(@$result), 2,      'intersection_pl - correct number of result lines';
+        # results are in no particular order
+        is scalar(grep $_->length == 40, @$result), 2, 'intersection_pl - result lines have correct length';
+    }
+    {
+        my $result = Slic3r::Geometry::Clipper::diff_pl([$polyline], [$square, $hole_in_square]);
+        is scalar(@$result), 3,      'diff_pl - correct number of result lines';
+        # results are in no particular order
+        is scalar(grep $_->length == 50, @$result), 1, 'diff_pl - the left result line has correct length';
+        is scalar(grep $_->length == 100, @$result), 1, 'diff_pl - two right result line has correct length';
+        is scalar(grep $_->length == 20, @$result), 1, 'diff_pl - the central result line has correct length';
+    }
 }
 
 __END__

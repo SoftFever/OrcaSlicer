@@ -66,18 +66,16 @@ double
 Polygon::area() const
 {
     ClipperLib::Path p;
-    Slic3rPolygon_to_ClipperPolygon(*this, p);
+    Slic3rMultiPoint_to_ClipperPath(*this, p);
     return ClipperLib::Area(p);
 }
 
 bool
 Polygon::is_counter_clockwise() const
 {
-    ClipperLib::Path* p = new ClipperLib::Path();
-    Slic3rPolygon_to_ClipperPolygon(*this, *p);
-    bool orientation = ClipperLib::Orientation(*p);
-    delete p;
-    return orientation;
+    ClipperLib::Path p;
+    Slic3rMultiPoint_to_ClipperPath(*this, p);
+    return ClipperLib::Orientation(p);
 }
 
 bool

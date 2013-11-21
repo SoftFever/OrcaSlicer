@@ -22,6 +22,7 @@ ClipperLib::PolyFillType		T_UV
 Points          T_ARRAYREF
 Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
+Polylines       T_ARRAYREF
 ExPolygons      T_ARRAYREF
 
 # we return these types whenever we want the items to be returned

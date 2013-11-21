@@ -17,6 +17,8 @@
         %code{% const char* CLASS = "Slic3r::Polyline::Collection"; RETVAL = THIS->chained_path_from(start_near, no_reverse); %};
     int count()
         %code{% RETVAL = THIS->polylines.size(); %};
+    Point* leftmost_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->leftmost_point(); %};
 %{
 
 PolylineCollection*

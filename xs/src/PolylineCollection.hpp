@@ -12,6 +12,7 @@ class PolylineCollection
     Polylines polylines;
     PolylineCollection* chained_path(bool no_reverse) const;
     PolylineCollection* chained_path_from(const Point* start_near, bool no_reverse) const;
+    Point* leftmost_point() const;
 };
 
 }

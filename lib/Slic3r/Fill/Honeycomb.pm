@@ -6,7 +6,7 @@ extends 'Slic3r::Fill::Base';
 has 'cache'         => (is => 'rw', default => sub {{}});
 
 use Slic3r::Geometry qw(PI X Y MIN MAX scale scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(intersection);
+use Slic3r::Geometry::Clipper qw(intersection intersection_pl);
 
 sub angles () { [0, PI/3, PI/3*2] }
 
@@ -88,17 +88,16 @@ sub fill_surface {
         # consider polygons as polylines without re-appending the initial point:
         # this cuts the last segment on purpose, so that the jump to the next 
         # path is more straight
-        @paths = map Slic3r::Polyline->new(@$_),
-            @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-                $surface->expolygon->pp,
-                [ map $_->pp, @polygons ],
-            ) };
+        @paths = @{intersection_pl(
+            [ map Slic3r::Polyline->new(@$_), @polygons ],
+            [ @{$surface->expolygon} ],
+        )};
         
         # connect paths
         {
             my $collection = Slic3r::Polyline::Collection->new(@paths);
             @paths = ();
-            foreach my $path (@{$collection->chained_path(0)}) {
+            foreach my $path (@{$collection->chained_path_from($collection->leftmost_point, 0)}) {
                 if (@paths) {
                     # distance between first point of this path and last point of last path
                     my $distance = $paths[-1]->last_point->distance_to($path->first_point);
@@ -115,11 +114,10 @@ sub fill_surface {
         }
         
         # clip paths again to prevent connection segments from crossing the expolygon boundaries
-        @paths = map Slic3r::Polyline->new(@$_),
-            @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-                [ map $_->pp, @{$surface->expolygon->offset_ex(scaled_epsilon)} ],
-                [ map $_->pp, @paths ],
-            ) } if @paths;  # this temporary check is a workaround for the multilinestring bug in B::G::U
+        @paths = @{intersection_pl(
+            \@paths,
+            [ @{$surface->expolygon->offset_ex(scaled_epsilon)} ],
+        )};
     }
     
     return { flow_spacing => $params{flow_spacing} }, @paths;
