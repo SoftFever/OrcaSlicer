@@ -1,7 +1,18 @@
 #include "ExPolygon.hpp"
 #include "Polygon.hpp"
+#include "ClipperUtils.hpp"
 
 namespace Slic3r {
+
+ExPolygon::operator Polygons() const
+{
+    Polygons polygons(this->holes.size() + 1);
+    polygons.push_back(this->contour);
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
+        polygons.push_back(*it);
+    }
+    return polygons;
+}
 
 void
 ExPolygon::scale(double factor)
@@ -48,6 +59,17 @@ ExPolygon::is_valid() const
         if (!(*it).is_valid() || (*it).is_counter_clockwise()) return false;
     }
     return true;
+}
+
+bool
+ExPolygon::contains_line(Line* line) const
+{
+    Polylines pl(1);
+    pl.push_back(*line);
+    
+    Polylines pl_out;
+    diff(pl, *this, pl_out);
+    return pl_out.empty();
 }
 
 #ifdef SLIC3RXS

@@ -1,7 +1,16 @@
 #include "Line.hpp"
+#include "Polyline.hpp"
 #include <algorithm>
 
 namespace Slic3r {
+
+Line::operator Polyline() const
+{
+    Polyline pl;
+    pl.points.push_back(this->a);
+    pl.points.push_back(this->b);
+    return pl;
+}
 
 void
 Line::scale(double factor)

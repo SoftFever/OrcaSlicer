@@ -11,11 +11,13 @@ class ExPolygon
     public:
     Polygon contour;
     Polygons holes;
+    operator Polygons() const;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     double area() const;
     bool is_valid() const;
+    bool contains_line(Line* line) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);

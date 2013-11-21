@@ -26,7 +26,7 @@
     Point* point_at(double distance)
          %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->point_at(distance); %};
     Polyline* as_polyline()
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = new Polyline(); RETVAL->points.push_back(THIS->a); RETVAL->points.push_back(THIS->b); %};
+        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = new Polyline(*THIS); %};
 %{
 
 Line*

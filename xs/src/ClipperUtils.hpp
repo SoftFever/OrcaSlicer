@@ -33,66 +33,66 @@ void ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input, Slic3r::Ex
 void scaleClipperPolygons(ClipperLib::Paths &polygons, const double scale);
 
 // offset Polygons
-void offset(Slic3r::Polygons &polygons, ClipperLib::Paths &retval, const float delta,
+void offset(const Slic3r::Polygons &polygons, ClipperLib::Paths &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
-void offset(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta,
+void offset(const Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
 // offset Polylines
-void offset(Slic3r::Polylines &polylines, ClipperLib::Paths &retval, const float delta,
+void offset(const Slic3r::Polylines &polylines, ClipperLib::Paths &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
-void offset(Slic3r::Polylines &polylines, Slic3r::Polygons &retval, const float delta,
+void offset(const Slic3r::Polylines &polylines, Slic3r::Polygons &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
 
-void offset_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
+void offset_ex(const Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
-void offset2(Slic3r::Polygons &polygons, ClipperLib::Paths &retval, const float delta1,
+void offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths &retval, const float delta1,
     const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
-void offset2(Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta1,
+void offset2(const Slic3r::Polygons &polygons, Slic3r::Polygons &retval, const float delta1,
     const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
-void offset2_ex(Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta1,
+void offset2_ex(const Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta1,
     const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
 template <class T>
-void _clipper_do(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, T &retval, bool safety_offset_);
-void _clipper_do(ClipperLib::ClipType clipType, Slic3r::Polylines &subject, 
-    Slic3r::Polygons &clip, ClipperLib::Paths &retval);
-void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
-void _clipper(ClipperLib::ClipType clipType, Slic3r::Polygons &subject, 
-    Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
-void _clipper(ClipperLib::ClipType clipType, Slic3r::Polylines &subject, 
-    Slic3r::Polygons &clip, Slic3r::Polylines &retval);
+void _clipper_do(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
+    const Slic3r::Polygons &clip, T &retval, bool safety_offset_);
+void _clipper_do(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
+    const Slic3r::Polygons &clip, ClipperLib::Paths &retval);
+void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
+    const Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
+void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
+    const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
+void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
+    const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 
 template <class T>
-void diff(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset_);
+void diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_);
 
-void diff(Slic3r::Polylines &subject, Slic3r::Polygons &clip, Slic3r::Polylines &retval);
+void diff(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 
 template <class T>
-void intersection(Slic3r::Polygons &subject, Slic3r::Polygons &clip, T &retval, bool safety_offset_);
+void intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_);
 
-void intersection(Slic3r::Polylines &subject, Slic3r::Polygons &clip, Slic3r::Polylines &retval);
+void intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 
-void xor_ex(Slic3r::Polygons &subject, Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
+void xor_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
     bool safety_offset_ = false);
 
 template <class T>
-void union_(Slic3r::Polygons &subject, T &retval, bool safety_offset_ = false);
+void union_(const Slic3r::Polygons &subject, T &retval, bool safety_offset_ = false);
 
-void union_pt(Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, bool safety_offset_ = false);
+void union_pt(const Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, bool safety_offset_ = false);
 
-void simplify_polygons(Slic3r::Polygons &subject, Slic3r::Polygons &retval);
+void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval);
 
 void safety_offset(ClipperLib::Paths* &subject);
 

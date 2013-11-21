@@ -21,6 +21,7 @@
     void translate(double x, double y);
     double area();
     bool is_valid();
+    bool contains_line(Line* line);
 %{
 
 ExPolygon*
