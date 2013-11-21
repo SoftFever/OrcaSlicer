@@ -17,7 +17,7 @@ has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
-has '_layer_overhangs_pp' => (is => 'rw');
+has '_layer_overhangs'   => (is => 'ro', default => sub { Slic3r::ExPolygon::Collection->new });
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -95,12 +95,13 @@ sub change_layer {
     # avoid computing islands and overhangs if they're not needed
     $self->_layer_islands($layer->islands);
     $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
-    $self->_layer_overhangs_pp(
-        # clone ExPolygons because they come from Surface objects but will be used outside here
-        ($layer->id > 0 && ($layer->config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang))
-            ? [ map $_->expolygon->pp, grep $_->surface_type == S_TYPE_BOTTOM, map @{$_->slices}, @{$layer->regions} ]
-            : []
+    $self->_layer_overhangs->clear;
+    if ($layer->id > 0 && ($layer->config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)) {
+        $self->_layer_overhangs->append(
+            # clone ExPolygons because they come from Surface objects but will be used outside here
+            map $_->expolygon, map @{$_->slices->filter_by_type(S_TYPE_BOTTOM)}, @{$layer->regions}
         );
+    }
     if ($self->config->avoid_crossing_perimeters) {
         $self->layer_mp(Slic3r::GCode::MotionPlanner->new(
             islands => union_ex([ map @$_, @{$layer->slices} ], 1),
@@ -176,7 +177,7 @@ sub extrude_loop {
     }
     my @candidates = ();
     if ($Slic3r::Config->start_perimeters_at_non_overhang) {
-        @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_->pp, $self->_layer_overhangs_pp), @concave;
+        @candidates = grep !$self->_layer_overhangs->contains_point($_), @concave;
     }
     if (!@candidates) {
         # if none, look for any concave vertex
@@ -184,7 +185,7 @@ sub extrude_loop {
         if (!@candidates) {
             # if none, look for any non-overhang vertex
             if ($Slic3r::Config->start_perimeters_at_non_overhang) {
-                @candidates = grep !Boost::Geometry::Utils::point_covered_by_multi_polygon($_->pp, $self->_layer_overhangs_pp), @$polygon;
+                @candidates = grep !$self->_layer_overhangs->contains_point($_), @$polygon;
             }
             if (!@candidates) {
                 # if none, all points are valid candidates
@@ -214,10 +215,11 @@ sub extrude_loop {
     
     my @paths = ();
     # detect overhanging/bridging perimeters
-    if ($self->layer->config->overhangs && $extrusion_path->is_perimeter && @{$self->_layer_overhangs_pp}) {
+    if ($self->layer->config->overhangs && $extrusion_path->is_perimeter && $self->_layer_overhangs->count > 0) {
         # get non-overhang paths by subtracting overhangs from the loop
         push @paths,
-            $extrusion_path->subtract_expolygons($self->_layer_overhangs_pp);
+            map $_->clone,
+            @{$extrusion_path->subtract_expolygons($self->_layer_overhangs)};
         
         # get overhang paths by intersecting overhangs with the loop
         push @paths,
@@ -226,7 +228,8 @@ sub extrude_loop {
                 $_->flow_spacing($self->extruder->bridge_flow->width);
                 $_
             }
-            $extrusion_path->intersect_expolygons($self->_layer_overhangs_pp);
+            map $_->clone,
+            @{$extrusion_path->intersect_expolygons($self->_layer_overhangs)};
         
         # reapply the nearest point search for starting point
         # (clone because the collection gets DESTROY'ed)

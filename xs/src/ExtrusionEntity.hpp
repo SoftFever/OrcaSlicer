@@ -7,6 +7,9 @@
 
 namespace Slic3r {
 
+class ExPolygonCollection;
+class ExtrusionEntityCollection;
+
 enum ExtrusionRole {
     erPerimeter,
     erExternalPerimeter,
@@ -45,6 +48,10 @@ class ExtrusionPath : public ExtrusionEntity
     void reverse();
     Point* first_point() const;
     Point* last_point() const;
+    ExtrusionEntityCollection* intersect_expolygons(ExPolygonCollection* collection) const;
+    ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection) const;
+    private:
+    ExtrusionEntityCollection* _inflate_collection(const Polylines &polylines) const;
 };
 
 class ExtrusionLoop : public ExtrusionEntity

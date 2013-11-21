@@ -1,4 +1,7 @@
 #include "ExtrusionEntity.hpp"
+#include "ExtrusionEntityCollection.hpp"
+#include "ExPolygonCollection.hpp"
+#include "ClipperUtils.hpp"
 
 namespace Slic3r {
 
@@ -24,6 +27,36 @@ Point*
 ExtrusionPath::last_point() const
 {
     return new Point(this->polyline.points.back());
+}
+
+ExtrusionEntityCollection*
+ExtrusionPath::intersect_expolygons(ExPolygonCollection* collection) const
+{
+    // perform clipping
+    Polylines clipped;
+    intersection(this->polyline, *collection, clipped);
+    return this->_inflate_collection(clipped);
+}
+
+ExtrusionEntityCollection*
+ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection) const
+{
+    // perform clipping
+    Polylines clipped;
+    diff(this->polyline, *collection, clipped);
+    return this->_inflate_collection(clipped);
+}
+
+ExtrusionEntityCollection*
+ExtrusionPath::_inflate_collection(const Polylines &polylines) const
+{
+    ExtrusionEntityCollection* retval = new ExtrusionEntityCollection();
+    for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it) {
+        ExtrusionPath* path = this->clone();
+        path->polyline = *it;
+        retval->entities.push_back(path);
+    }
+    return retval;
 }
 
 ExtrusionLoop*

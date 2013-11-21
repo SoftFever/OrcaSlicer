@@ -10,9 +10,11 @@ class ExPolygonCollection
 {
     public:
     ExPolygons expolygons;
+    operator Polygons() const;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);
+    bool contains_point(const Point* point) const;
 };
 
 }

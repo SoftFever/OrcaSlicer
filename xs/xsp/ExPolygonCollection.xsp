@@ -16,6 +16,7 @@
     void rotate(double angle, Point* center);
     int count()
         %code{% RETVAL = THIS->expolygons.size(); %};
+    bool contains_point(Point* point);
 %{
 
 ExPolygonCollection*

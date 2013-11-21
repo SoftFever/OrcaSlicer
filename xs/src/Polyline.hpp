@@ -6,8 +6,12 @@
 
 namespace Slic3r {
 
+class Polyline;
+typedef std::vector<Polyline> Polylines;
+
 class Polyline : public MultiPoint {
     public:
+    operator Polylines() const;
     Point* last_point() const;
     Lines lines() const;
     void clip_end(double distance);
@@ -19,8 +23,6 @@ class Polyline : public MultiPoint {
     SV* to_SV_clone_ref() const;
     #endif
 };
-
-typedef std::vector<Polyline> Polylines;
 
 }
 

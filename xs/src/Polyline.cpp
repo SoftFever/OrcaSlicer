@@ -1,6 +1,14 @@
 #include "Polyline.hpp"
+#include "Polygon.hpp"
 
 namespace Slic3r {
+
+Polyline::operator Polylines() const
+{
+    Polylines polylines(1);
+    polylines.push_back(*this);
+    return polylines;
+}
 
 Point*
 Polyline::last_point() const

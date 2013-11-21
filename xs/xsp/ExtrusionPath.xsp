@@ -20,6 +20,10 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
     Point* last_point()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
+    ExtrusionEntityCollection* intersect_expolygons(ExPolygonCollection* collection)
+        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->intersect_expolygons(collection); %};
+    ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection)
+        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->subtract_expolygons(collection); %};
 %{
 
 ExtrusionPath*
