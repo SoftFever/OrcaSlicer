@@ -4,7 +4,8 @@ use Moo;
 use List::Util qw(sum min max);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad);
-use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2);
+use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
+    intersection_pl);
 use Slic3r::Surface ':types';
 
 has 'config' => (is => 'rw', required => 1);
@@ -442,12 +443,12 @@ sub generate_toolpaths {
                 
                 # only consider the loops facing the overhang
                 {
-                    my $overhang_with_margin = offset_ex($overhang, +$flow->scaled_width/2);
+                    my $overhang_with_margin = offset($overhang, +$flow->scaled_width/2);
                     @external_loops = grep {
-                        @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-                            [ map $_->pp, @$overhang_with_margin ],
-                            [ $_->split_at_first_point->pp ],
-                        ) }
+                        @{intersection_pl(
+                            [ $_->split_at_first_point ],
+                            $overhang_with_margin,
+                        )}
                     } @external_loops;
                 }
                 
@@ -467,11 +468,10 @@ sub generate_toolpaths {
             }
             
             # clip such loops to the side oriented towards the object
-            @loops = map Slic3r::Polyline->new(@$_),
-                @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-                    [ map $_->pp, @{offset_ex($overhang, +scale MARGIN)} ],
-                    [ map $_->split_at_first_point->pp, @loops ],
-                ) };
+            @loops = @{intersection_pl(
+                [ map $_->split_at_first_point, @loops ],
+                offset($overhang, +scale MARGIN),
+            )};
             
             # add the contact infill area to the interface area
             # note that growing loops by $circle_radius ensures no tiny

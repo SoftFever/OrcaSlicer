@@ -110,8 +110,8 @@ sub _medial_axis_clip {
             push @$covered, map $grow->($_, $width*1.1), @$clipped;
             
             # if the first remaining segment is connected to the last polyline, append it 
-            # to that -- NOTE: this assumes that multi_linestring_multi_polygon_difference()
-            # preserved the orientation of the input linestring
+            # to that -- FIXME: this assumes that diff_pl()
+            # preserved the orientation of the input linestring but this is not generally true
             if (@polylines && @$clipped && $clipped->[0]->first_point->distance_to($polylines[-1]->last_point) <= $width/10) {
                 $polylines[-1]->append_polyline(shift @$clipped);
             }

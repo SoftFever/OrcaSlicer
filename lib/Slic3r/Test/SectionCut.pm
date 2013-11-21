@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(first max);
 use Slic3r::Geometry qw(X Y A B X1 Y1 X2 Y2 unscale);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex intersection_pl);
 use SVG;
 
 has 'scale' => (is => 'ro', default => sub {30});
@@ -17,7 +17,7 @@ sub _build_line {
     
     my $bb = $self->print->bounding_box;
     my $y = $bb->size->[Y] * $self->y_percent;
-    return [ [ $bb->x_min, $y ], [ $bb->x_max, $y ] ]
+    return Slic3r::Line->new([ $bb->x_min, $y ], [ $bb->x_max, $y ]);
 }
 
 sub export_svg {
@@ -91,10 +91,10 @@ sub _plot {
                 
                 foreach my $path (@paths) {
                     foreach my $line (@{$path->lines}) {
-                        my @intersections = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-                            Slic3r::ExPolygon->new(@{$line->grow(Slic3r::Geometry::scale $path->flow_spacing/2)})->pp,
-                            [ $self->line ],
-                        ) };
+                        my @intersections = @{intersection_pl(
+                            [ $self->line->as_polyline ],
+                            $line->grow(Slic3r::Geometry::scale $path->flow_spacing/2),
+                        )};
                         die "Intersection has more than two points!\n" if first { @$_ > 2 } @intersections;
                         
                         if ($path->is_bridge) {

@@ -80,10 +80,10 @@ my %opt = (
     # draw paths
     foreach my $z (sort keys %paths) {
         foreach my $line (@{ $paths{$z} }) {
-            my @intersections = @{ Boost::Geometry::Utils::polygon_multi_linestring_intersection(
-                Slic3r::ExPolygon->new(_grow($line, $opt{extrusion_width}/2)),
+            my @intersections = @{intersection_pl(
                 [ $section_line ],
-            ) };
+                [ _grow($line, $opt{extrusion_width}/2) ],
+            )};
             
             $g->rectangle(
                 'x'         => $opt{scale} * ($_->[A][X] - $bounding_box->x_min),
