@@ -6,7 +6,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(PI A B scale unscale chained_path_items points_coincide);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
     offset offset2 offset2_ex union_pt traverse_pt diff intersection
-    union diff);
+    union diff intersection_pl);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -491,7 +491,7 @@ sub _detect_bridge_direction {
     foreach my $lower (@lower) {
         # turn bridge contour and holes into polylines and then clip them
         # with each lower slice's contour
-        my @clipped = map $_->split_at_first_point->clip_with_polygon($lower->contour), map @$_, @$grown;
+        my @clipped = @{intersection_pl([ map $_->split_at_first_point, map @$_, @$grown ], [$lower->contour])};
         if (@clipped == 2) {
             # If the split_at_first_point() call above happens to split the polygon inside the clipping area
             # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 

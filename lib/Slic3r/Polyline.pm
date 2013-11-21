@@ -35,21 +35,6 @@ sub simplify {
     return __PACKAGE__->new(@$simplified);
 }
 
-sub clip_with_polygon {
-    my $self = shift;
-    my ($polygon) = @_;
-    
-    return $self->clip_with_expolygon(Slic3r::ExPolygon->new($polygon));
-}
-
-sub clip_with_expolygon {
-    my $self = shift;
-    my ($expolygon) = @_;
-    
-    my $result = Boost::Geometry::Utils::polygon_multi_linestring_intersection($expolygon->pp, [$self->pp]);
-    return map { __PACKAGE__->new(@$_) } @$result;
-}
-
 sub bounding_box {
     my $self = shift;
     return Slic3r::Geometry::BoundingBox->new_from_points($self);

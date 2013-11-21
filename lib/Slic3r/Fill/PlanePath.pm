@@ -4,6 +4,7 @@ use Moo;
 extends 'Slic3r::Fill::Base';
 
 use Slic3r::Geometry qw(scale X1 Y1 X2 Y2);
+use Slic3r::Geometry::Clipper qw(intersection_pl);
 
 sub multiplier () { 1 }
 
@@ -40,8 +41,7 @@ sub fill_surface {
     
     $self->process_polyline($polyline, $bounding_box);
     
-    my @paths = map $_->clip_with_expolygon($expolygon),
-        $polyline->clip_with_polygon($bounding_box->polygon);
+    my @paths = @{intersection_pl([$polyline], \@$expolygon)};
     
     if (0) {
         require "Slic3r/SVG.pm";
