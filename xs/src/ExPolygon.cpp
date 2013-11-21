@@ -62,7 +62,7 @@ ExPolygon::is_valid() const
 }
 
 bool
-ExPolygon::contains_line(Line* line) const
+ExPolygon::contains_line(const Line* line) const
 {
     Polylines pl(1);
     pl.push_back(*line);
@@ -70,6 +70,16 @@ ExPolygon::contains_line(Line* line) const
     Polylines pl_out;
     diff(pl, *this, pl_out);
     return pl_out.empty();
+}
+
+bool
+ExPolygon::contains_point(const Point* point) const
+{
+    if (!this->contour.contains_point(point)) return false;
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
+        if (it->contains_point(point)) return false;
+    }
+    return true;
 }
 
 #ifdef SLIC3RXS

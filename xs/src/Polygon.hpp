@@ -23,6 +23,7 @@ class Polygon : public MultiPoint {
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid() const;
+    bool contains_point(const Point* point) const;
     
     #ifdef SLIC3RXS
     SV* to_SV_ref();

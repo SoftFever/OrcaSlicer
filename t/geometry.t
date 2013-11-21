@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 26;
+plan tests => 25;
 
 BEGIN {
     use FindBin;
@@ -84,13 +84,6 @@ my $polygons = [
         [42985300, 470000000], [45422300, 482251500], [52362100, 492637800], [62748400, 499577600],
     ),
 ];
-
-my $points = [
-    Slic3r::Point->new(73631077, 371742392),
-    Slic3r::Point->new(73631077, 501742392),
-];
-
-is Slic3r::Geometry::can_connect_points(@$points, $polygons), 0, 'can_connect_points';
 
 #==========================================================
 

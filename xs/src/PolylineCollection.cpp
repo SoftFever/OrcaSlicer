@@ -49,6 +49,7 @@ PolylineCollection::leftmost_point() const
         if (p == NULL || it->points.front().x < p->x)
             p = &(it->points.front());
     }
+    if (p == NULL) return NULL;
     return new Point (*p);
 }
 

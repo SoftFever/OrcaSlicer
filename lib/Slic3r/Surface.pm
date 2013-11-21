@@ -8,7 +8,7 @@ our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSO
 our %EXPORT_TAGS = (types => \@EXPORT_OK);
 
 # delegate handles
-sub encloses_point  { $_[0]->expolygon->encloses_point }
+sub contains_point  { $_[0]->expolygon->contains_point }
 sub lines           { $_[0]->expolygon->lines }
 sub contour         { $_[0]->expolygon->contour }
 sub holes           { $_[0]->expolygon->holes }

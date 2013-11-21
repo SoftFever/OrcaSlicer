@@ -39,34 +39,9 @@ sub noncollapsing_offset_ex {
     return $self->offset_ex($distance + 1, @params);
 }
 
-sub encloses_point {
-    my $self = shift;
-    my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point->pp, $self->pp);
-}
-
-# A version of encloses_point for use when hole borders do not matter.
-# Useful because point_on_segment is probably slower (this was true
-# before the switch to Boost.Geometry, not sure about now)
-sub encloses_point_quick {
-    my $self = shift;
-    my ($point) = @_;
-    return Boost::Geometry::Utils::point_within_polygon($point->pp, $self->pp);
-}
-
 sub bounding_box {
     my $self = shift;
     return $self->contour->bounding_box;
-}
-
-sub clip_line {
-    my $self = shift;
-    my ($line) = @_;  # line must be a Slic3r::Line object
-    
-    return [
-        map Slic3r::Line->new(@$_),
-            @{Slic3r::Geometry::Clipper::intersection_pl([ $line->as_polyline ], \@$self)}
-    ];
 }
 
 sub simplify_as_polygons {
@@ -192,8 +167,13 @@ sub _medial_axis_voronoi {
         # ignore lines going to infinite
         next if $edge->[1] == -1 || $edge->[2] == -1;
         
-        next if !$self->encloses_point_quick(Slic3r::Point->new(@{$vertices->[$edge->[1]]}))
-             || !$self->encloses_point_quick(Slic3r::Point->new(@{$vertices->[$edge->[2]]}));
+        my $line = Slic3r::Line->new($vertices->[$edge->[1]], $vertices->[$edge->[2]]);
+        next if !$self->contains_line($line);
+        
+        # contains_point() could be faster, but we need an implementation that
+        # reliably considers points on boundary
+        #next if !$self->contains_point(Slic3r::Point->new(@{$vertices->[$edge->[1]]}))
+        #     || !$self->contains_point(Slic3r::Point->new(@{$vertices->[$edge->[2]]}));
         
         push @skeleton_lines, [$edge->[1], $edge->[2]];
     }

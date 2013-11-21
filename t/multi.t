@@ -55,7 +55,7 @@ use Slic3r::Test;
         }
     });
     my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, @extrusion_points ])});
-    ok !(first { $convex_hull->encloses_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';
+    ok !(first { $convex_hull->contains_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';
 }
 
 __END__

@@ -192,13 +192,13 @@ sub find_node {
     
     # if we're inside a hole, move to a point on hole;
     {
-        my $polygon = first { $_->encloses_point($point) } (map @{$_->holes}, map @$_, @{$self->_inner});
+        my $polygon = first { $_->contains_point($point) } (map @{$_->holes}, map @$_, @{$self->_inner});
         return $point->nearest_point([ @$polygon ]) if $polygon;
     }
     
     # if we're inside an expolygon move to a point on contour or holes
     {
-        my $expolygon = first { $_->encloses_point_quick($point) } (map @$_, @{$self->_inner});
+        my $expolygon = first { $_->contains_point($point) } (map @$_, @{$self->_inner});
         return $point->nearest_point([ map @$_, @$expolygon ]) if $expolygon;
     }
     
@@ -206,11 +206,11 @@ sub find_node {
         my $outer_polygon_idx;
         if (!$self->no_internal) {
             # look for an outer expolygon whose contour contains our point
-            $outer_polygon_idx = first { first { $_->contour->encloses_point($point) } @{$self->_contours_ex->[$_]} }
+            $outer_polygon_idx = first { first { $_->contour->contains_point($point) } @{$self->_contours_ex->[$_]} }
                 0 .. $#{ $self->_contours_ex };
         } else {
             # # look for an outer expolygon containing our point
-            $outer_polygon_idx = first { first { $_->encloses_point($point) } @{$self->_outer->[$_]} }
+            $outer_polygon_idx = first { first { $_->contains_point($point) } @{$self->_outer->[$_]} }
                 0 .. $#{ $self->_outer };
         }
         my $candidates = defined $outer_polygon_idx

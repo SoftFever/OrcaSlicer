@@ -139,7 +139,7 @@ sub process_layer {
                     for 1 .. (@{$layer->slices} || 1);  # make sure we have at least one island hash to avoid failure of the -1 subscript below
                 PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
                     for my $i (0 .. $#{$layer->slices}-1) {
-                        if ($layer->slices->[$i]->contour->encloses_point($perimeter->first_point)) {
+                        if ($layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {
                             push @{ $islands[$i]{perimeters} }, $perimeter;
                             next PERIMETER;
                         }
@@ -148,7 +148,7 @@ sub process_layer {
                 }
                 FILL: foreach my $fill (@{$layerm->fills}) {
                     for my $i (0 .. $#{$layer->slices}-1) {
-                        if ($layer->slices->[$i]->contour->encloses_point($fill->first_point)) {
+                        if ($layer->slices->[$i]->contour->contains_point($fill->first_point)) {
                             push @{ $islands[$i]{fills} }, $fill;
                             next FILL;
                         }

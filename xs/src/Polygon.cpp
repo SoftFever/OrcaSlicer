@@ -110,6 +110,21 @@ Polygon::is_valid() const
     return this->points.size() >= 3;
 }
 
+bool
+Polygon::contains_point(const Point* point) const
+{
+    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+    bool result;
+    Points::const_iterator i = this->points.begin();
+    Points::const_iterator j = this->points.end() - 1;
+    for (; i != this->points.end(); j = i++) {
+        if ( ((i->y > point->y) != (j->y > point->y))
+            && (point->x < (j->x - i->x) * (point->y - i->y) / (j->y - i->y) + i->x) )
+            result = !result;
+    }
+    return result;
+}
+
 #ifdef SLIC3RXS
 SV*
 Polygon::to_SV_ref() {

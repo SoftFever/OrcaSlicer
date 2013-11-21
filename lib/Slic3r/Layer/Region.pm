@@ -114,7 +114,7 @@ sub _merge_loops {
     # supply everything to offset_ex() instead of performing several union/diff calls.
     
     # we sort by area assuming that the outermost loops have larger area;
-    # the previous sorting method, based on $b->encloses_point($a->[0]), failed to nest
+    # the previous sorting method, based on $b->contains_point($a->[0]), failed to nest
     # loops correctly in some edge cases when original model had overlapping facets
     my @abs_area = map abs($_), my @area = map $_->area, @$loops;
     my @sorted = sort { $abs_area[$b] <=> $abs_area[$a] } 0..$#$loops;  # outer first
@@ -568,10 +568,12 @@ sub _detect_bridge_direction {
             my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
             
             # remove any line not having both endpoints within anchors
+            # NOTE: these calls to contains_point() probably need to check whether the point 
+            # is on the anchor boundaries too
             @clipped_lines = grep {
                 my $line = $_;
-                !(first { $_->encloses_point_quick($line->a) } @$anchors)
-                    && !(first { $_->encloses_point_quick($line->b) } @$anchors);
+                !(first { $_->contains_point($line->a) } @$anchors)
+                    && !(first { $_->contains_point($line->b) } @$anchors);
             } @clipped_lines;
             
             # sum length of bridged lines

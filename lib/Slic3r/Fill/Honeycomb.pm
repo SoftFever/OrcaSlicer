@@ -94,7 +94,7 @@ sub fill_surface {
         )};
         
         # connect paths
-        {
+        if (@paths) {  # prevent calling leftmost_point() on empty collections
             my $collection = Slic3r::Polyline::Collection->new(@paths);
             @paths = ();
             foreach my $path (@{$collection->chained_path_from($collection->leftmost_point, 0)}) {

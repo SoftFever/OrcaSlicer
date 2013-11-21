@@ -17,7 +17,8 @@ class ExPolygon
     void rotate(double angle, Point* center);
     double area() const;
     bool is_valid() const;
-    bool contains_line(Line* line) const;
+    bool contains_line(const Line* line) const;
+    bool contains_point(const Point* point) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);

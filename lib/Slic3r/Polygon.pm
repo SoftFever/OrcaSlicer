@@ -27,12 +27,6 @@ sub remove_acute_vertices {
     polygon_remove_acute_vertices($self);
 }
 
-sub encloses_point {
-    my $self = shift;
-    my ($point) = @_;
-    return Boost::Geometry::Utils::point_covered_by_polygon($point->pp, [$self->pp]);
-}
-
 sub grow {
     my $self = shift;
     return $self->split_at_first_point->grow(@_);

@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 23;
+plan tests => 19;
 
 BEGIN {
     use FindBin;
@@ -10,6 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::Geometry::Clipper qw(intersection_pl);
 
 #==========================================================
 
@@ -29,8 +30,6 @@ my $square = Slic3r::Polygon->new(  # ccw
     [100, 200],
 );
 
-my $line = Slic3r::Line->new([50, 150], [300, 150]);
-
 #==========================================================
 
 {
@@ -41,41 +40,41 @@ my $line = Slic3r::Line->new([50, 150], [300, 150]);
         [160, 140],
     ];
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
-    is $expolygon->encloses_point(Slic3r::Point->new(100, 100)), 1, 'corner point is recognized';
-    is $expolygon->encloses_point(Slic3r::Point->new(100, 180)), 1, 'point on contour is recognized';
-    is $expolygon->encloses_point(Slic3r::Point->new(140, 150)), 1, 'point on hole contour is recognized';
-    is $expolygon->encloses_point(Slic3r::Point->new(140, 140)), 1, 'point on hole corner is recognized';
+    #is $expolygon->contains_point(Slic3r::Point->new(100, 100)), 1, 'corner point is recognized';
+    #is $expolygon->contains_point(Slic3r::Point->new(100, 180)), 1, 'point on contour is recognized';
+    #is $expolygon->contains_point(Slic3r::Point->new(140, 150)), 1, 'point on hole contour is recognized';
+    #is $expolygon->contains_point(Slic3r::Point->new(140, 140)), 1, 'point on hole corner is recognized';
     {
-        my $intersection = $expolygon->clip_line(Slic3r::Line->new([150,180], [150,150]));
+        my $intersection = intersection_pl([Slic3r::Polyline->new([150,180], [150,150])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([150, 180], [150, 160])->length,
             'line is clipped to square with hole';
     }
     {
-        my $intersection = $expolygon->clip_line(Slic3r::Line->new([150,150], [150,120]));
+        my $intersection = intersection_pl([Slic3r::Polyline->new([150,150], [150,120])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([150, 140], [150, 120])->length,
             'line is clipped to square with hole';
     }
     {
-        my $intersection = $expolygon->clip_line(Slic3r::Line->new([120,180], [180,180]));
+        my $intersection = intersection_pl([Slic3r::Polyline->new([120,180], [180,180])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([120,180], [180,180])->length,
             'line is clipped to square with hole';
     }
     {
-        my $intersection = $expolygon->clip_line($line);
+        my $intersection = intersection_pl([Slic3r::Polyline->new([50, 150], [300, 150])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([100, 150], [140, 150])->length,
             'line is clipped to square with hole';
         is $intersection->[1]->length, Slic3r::Line->new([160, 150], [200, 150])->length,
             'line is clipped to square with hole';
     }
     {
-        my $intersection = $expolygon->clip_line(Slic3r::Line->new(reverse @$line));
+        my $intersection = intersection_pl([Slic3r::Polyline->new([300, 150], [50, 150])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([200, 150], [160, 150])->length,
             'reverse line is clipped to square with hole';
         is $intersection->[1]->length, Slic3r::Line->new([140, 150], [100, 150])->length,
             'reverse line is clipped to square with hole';
     }
     {
-        my $intersection = $expolygon->clip_line(Slic3r::Line->new([100,180], [200,180]));
+        my $intersection = intersection_pl([Slic3r::Polyline->new([100,180], [200,180])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([100,180], [200,180])->length,
             'tangent line is clipped to square with hole';
     }
@@ -117,9 +116,9 @@ my $line = Slic3r::Line->new([50, 150], [300, 150]);
     ok $small_circle->is_clockwise, "hole is clockwise";
     
     my $expolygon = Slic3r::ExPolygon->new($large_circle, $small_circle);
-    $line = Slic3r::Line->new_scale([152.742,288.086671142818], [152.742,34.166466971035]);
+    my $line = Slic3r::Polyline->new_scale([152.742,288.086671142818], [152.742,34.166466971035]);
     
-    my $intersection = $expolygon->clip_line($line);
+    my $intersection = intersection_pl([$line], \@$expolygon);
     is $intersection->[0]->length, Slic3r::Line->new([152742000, 288086661], [152742000, 215178843])->length,
         'line is clipped to square with hole';
     is $intersection->[1]->length, Slic3r::Line->new([152742000, 108087507], [152742000, 35166477])->length,

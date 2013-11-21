@@ -61,7 +61,7 @@ sub fill_surface {
     my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset($line_spacing*0.05))};
     
     # connect lines
-    unless ($params{dont_connect}) {
+    unless ($params{dont_connect} || !@polylines) {  # prevent calling leftmost_point() on empty collections
         my ($expolygon_off) = @{$expolygon->offset_ex(scale $params{flow_spacing}/2)};
         my $collection = Slic3r::Polyline::Collection->new(@polylines);
         @polylines = ();

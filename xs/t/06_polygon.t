@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 14;
+use Test::More tests => 17;
 
 my $square = [  # ccw
     [100, 100],
@@ -14,6 +14,9 @@ my $square = [  # ccw
 ];
 
 my $polygon = Slic3r::Polygon->new(@$square);
+my $cw_polygon = $polygon->clone;
+$cw_polygon->reverse;
+
 ok $polygon->is_valid, 'is_valid';
 is_deeply $polygon->pp, $square, 'polygon roundtrip';
 
@@ -34,6 +37,7 @@ is_deeply $polygon->split_at(Slic3r::Point->new(@{$square->[2]}))->pp, [ @$squar
 is $polygon->area, 100*100, 'area';
 
 ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
+ok !$cw_polygon->is_counter_clockwise, 'is_counter_clockwise';
 {
     my $clone = $polygon->clone;
     $clone->reverse;
@@ -45,6 +49,9 @@ ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
 }
 
 ok ref($polygon->first_point) eq 'Slic3r::Point', 'first_point';
+
+ok $polygon->contains_point(Slic3r::Point->new(150,150)), 'ccw contains_point';
+ok $cw_polygon->contains_point(Slic3r::Point->new(150,150)), 'cw contains_point';
 
 # this is not a test: this just demonstrates bad usage, where $polygon->clone gets
 # DESTROY'ed before the derived object ($point), causing bad memory access

@@ -22,6 +22,7 @@
     double area();
     bool is_valid();
     bool contains_line(Line* line);
+    bool contains_point(Point* point);
 %{
 
 ExPolygon*

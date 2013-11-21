@@ -527,7 +527,7 @@ EOF
             my $layer = $self->objects->[$obj_idx]->layers->[$layer_id] or next;
             
             # sort slices so that the outermost ones come first
-            my @slices = sort { $a->contour->encloses_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
+            my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
             foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
                 foreach my $slice (@slices) {
                     my $expolygon = $slice->clone;

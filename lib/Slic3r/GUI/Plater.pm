@@ -1024,7 +1024,7 @@ sub mouse_event {
         $parent->selection_changed(0);
         for my $preview (@{$parent->{object_previews}}) {
             my ($obj_idx, $instance_idx, $thumbnail) = @$preview;
-            if (defined first { $_->contour->encloses_point($pos) } @$thumbnail) {
+            if (defined first { $_->contour->contains_point($pos) } @$thumbnail) {
                 $parent->{selected_objects} = [ [$obj_idx, $instance_idx] ];
                 $parent->{list}->Select($obj_idx, 1);
                 $parent->selection_changed(1);
@@ -1053,7 +1053,7 @@ sub mouse_event {
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
         for my $preview (@{$parent->{object_previews}}) {
-            if (defined first { $_->contour->encloses_point($pos) } @{ $preview->[2] }) {
+            if (defined first { $_->contour->contains_point($pos) } @{ $preview->[2] }) {
                 $cursor = Wx::Cursor->new(wxCURSOR_HAND);
                 last;
             }
