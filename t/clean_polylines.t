@@ -24,7 +24,7 @@ use Slic3r;
     my $polyline = Slic3r::Polyline->new(
         [0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1],[0,0],
     );
-    $polyline = $polyline->simplify(1);
+    $polyline->simplify(1);
     is_deeply $polyline->pp, [ [0, 0], [2, 0], [2, 2], [0, 2], [0, 0] ], 'Douglas-Peucker';
 }
 
@@ -32,7 +32,7 @@ use Slic3r;
     my $polyline = Slic3r::Polyline->new(
         [0,0], [50,50], [100,0], [125,-25], [150,50],
     );
-    $polyline = $polyline->simplify(25);
+    $polyline->simplify(25);
     is_deeply $polyline->pp, [ [0, 0], [50, 50], [125, -25], [150, 50] ], 'Douglas-Peucker';
 }
 

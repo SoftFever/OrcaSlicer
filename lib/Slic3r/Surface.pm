@@ -38,11 +38,6 @@ sub offset {
     return [ map $self->clone(expolygon => $_), @{$self->expolygon->offset_ex(@_)} ];
 }
 
-sub simplify {
-    my $self = shift;
-    return map $self->clone(expolygon => $_), $self->expolygon->simplify(@_);
-}
-
 sub p {
     my $self = shift;
     return @{$self->polygons};

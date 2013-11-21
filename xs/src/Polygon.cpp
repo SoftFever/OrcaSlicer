@@ -125,6 +125,12 @@ Polygon::contains_point(const Point* point) const
     return result;
 }
 
+Polygons
+Polygon::simplify(double tolerance) const
+{
+    
+}
+
 #ifdef SLIC3RXS
 SV*
 Polygon::to_SV_ref() {

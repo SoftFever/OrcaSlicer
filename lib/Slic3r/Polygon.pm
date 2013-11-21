@@ -32,13 +32,6 @@ sub grow {
     return $self->split_at_first_point->grow(@_);
 }
 
-# NOTE that this will turn the polygon to ccw regardless of its 
-# original orientation
-sub simplify {
-    my $self = shift;
-    return @{Slic3r::Geometry::Clipper::simplify_polygons([ $self->SUPER::simplify(@_) ])};
-}
-
 # this method subdivides the polygon segments to that no one of them
 # is longer than the length provided
 sub subdivide {

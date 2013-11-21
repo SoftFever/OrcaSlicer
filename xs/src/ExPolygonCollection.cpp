@@ -47,4 +47,14 @@ ExPolygonCollection::contains_point(const Point* point) const
     return false;
 }
 
+void
+ExPolygonCollection::simplify(double tolerance)
+{
+    ExPolygons t;
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
+        it->simplify_and_append_to(tolerance, t);
+    }
+    this->expolygons = t;
+}
+
 }

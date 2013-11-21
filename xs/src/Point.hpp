@@ -25,6 +25,7 @@ class Point
     Point* nearest_point(Points points) const;
     double distance_to(const Point* point) const;
     double distance_to(const Line* line) const;
+    double distance_to(const Line &line) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);

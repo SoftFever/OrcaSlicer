@@ -38,7 +38,7 @@ sub BUILD {
     my $crossing_edges = $self->_crossing_edges;
     
     # simplify islands
-    @{$self->islands} = map $_->simplify($self->_inner_margin), @{$self->islands};
+    $_->simplify($self->_inner_margin) for @{$self->islands};
     
     # process individual islands
     for my $i (0 .. $#{$self->islands}) {        

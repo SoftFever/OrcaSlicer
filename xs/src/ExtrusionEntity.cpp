@@ -78,6 +78,12 @@ ExtrusionPath::clip_end(double distance)
     this->polyline.clip_end(distance);
 }
 
+void
+ExtrusionPath::simplify(double tolerance)
+{
+    this->polyline.simplify(tolerance);
+}
+
 double
 ExtrusionPath::length() const
 {

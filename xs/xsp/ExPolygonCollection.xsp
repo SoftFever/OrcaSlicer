@@ -17,6 +17,7 @@
     int count()
         %code{% RETVAL = THIS->expolygons.size(); %};
     bool contains_point(Point* point);
+    void simplify(double tolerance);
 %{
 
 ExPolygonCollection*

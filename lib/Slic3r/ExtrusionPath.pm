@@ -10,9 +10,4 @@ our @EXPORT_OK = qw(EXTR_ROLE_PERIMETER EXTR_ROLE_EXTERNAL_PERIMETER
     EXTR_ROLE_INTERNALBRIDGE EXTR_ROLE_SKIRT EXTR_ROLE_SUPPORTMATERIAL EXTR_ROLE_GAPFILL);
 our %EXPORT_TAGS = (roles => \@EXPORT_OK);
 
-sub simplify {
-    my $self = shift;
-    $self->polyline($self->polyline->simplify(@_));
-}
-
 1;

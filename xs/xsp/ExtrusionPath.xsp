@@ -25,6 +25,7 @@
     ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection)
         %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->subtract_expolygons(collection); %};
     void clip_end(double distance);
+    void simplify(double tolerance);
     double length();
     bool is_perimeter();
     bool is_fill();

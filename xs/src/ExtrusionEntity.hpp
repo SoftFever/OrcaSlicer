@@ -54,6 +54,7 @@ class ExtrusionPath : public ExtrusionEntity
     ExtrusionEntityCollection* intersect_expolygons(ExPolygonCollection* collection) const;
     ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection) const;
     void clip_end(double distance);
+    void simplify(double tolerance);
     double length() const;
     private:
     ExtrusionEntityCollection* _inflate_collection(const Polylines &polylines) const;

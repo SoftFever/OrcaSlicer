@@ -82,6 +82,32 @@ ExPolygon::contains_point(const Point* point) const
     return true;
 }
 
+Polygons
+ExPolygon::simplify(double tolerance) const
+{
+    Polygons p;
+    this->contour.simplify(tolerance, p);
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it)
+        it->simplify(tolerance, p);
+    simplify_polygons(p, p);
+    return p;
+}
+
+ExPolygons
+ExPolygon::simplify(double tolerance) const
+{
+    Polygons p = this->simplify(tolerance);
+    return union_(p);
+}
+
+void
+ExPolygon::simplify(double tolerance, ExPolygons &expolygons) const
+{
+    ExPolygons ep = this->simplify(tolerance);
+    expolygons.reserve(expolygons.size() + ep.size());
+    expolygons.insert(expolygons.end(), ep.begin(), ep.end());
+}
+
 #ifdef SLIC3RXS
 SV*
 ExPolygon::to_AV() {

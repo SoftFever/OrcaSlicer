@@ -15,6 +15,7 @@ class ExPolygonCollection
     void translate(double x, double y);
     void rotate(double angle, Point* center);
     bool contains_point(const Point* point) const;
+    void simplify(double tolerance);
 };
 
 }

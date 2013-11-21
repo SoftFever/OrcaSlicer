@@ -27,14 +27,6 @@ sub remove_acute_vertices {
     polyline_remove_acute_vertices($self);
 }
 
-sub simplify {
-    my $self = shift;
-    my $tolerance = shift || 10;
-    
-    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->pp, $tolerance);
-    return __PACKAGE__->new(@$simplified);
-}
-
 sub bounding_box {
     my $self = shift;
     return Slic3r::Geometry::BoundingBox->new_from_points($self);

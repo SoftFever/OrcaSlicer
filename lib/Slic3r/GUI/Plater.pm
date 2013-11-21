@@ -1360,10 +1360,10 @@ sub make_thumbnail {
         # remove polygons with area <= 1mm
         my $area_threshold = Slic3r::Geometry::scale 1;
         $self->thumbnail->append(
-            map $_->simplify(0.5),
             grep $_->area >= $area_threshold,
             @{ $mesh->horizontal_projection },
         );
+        $self->thumbnail->simplify(0.5);
     } else {
         my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
         $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);

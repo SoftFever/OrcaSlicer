@@ -55,6 +55,47 @@ MultiPoint::is_valid() const
     return this->points.size() >= 2;
 }
 
+void
+MultiPoint::simplify(double tolerance)
+{
+    this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
+}
+
+Points
+MultiPoint::_douglas_peucker(Points &points, double tolerance)
+{
+    Points results;
+    double dmax = 0;
+    int index = 0;
+    Line full(points.front(), points.back());
+    for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
+        double d = it->distance_to(full);
+        if (d > dmax) {
+            index = it - points.begin();
+            dmax = d;
+        }
+    }
+    if (dmax >= tolerance) {
+        Points dp0;
+        dp0.reserve(index + 1);
+        dp0.insert(dp0.end(), points.begin(), points.begin() + index + 1);
+        Points dp1 = MultiPoint::_douglas_peucker(dp0, tolerance);
+        results.reserve(results.size() + dp1.size() - 1);
+        results.insert(results.end(), dp1.begin(), dp1.end() - 1);
+        
+        dp0.clear();
+        dp0.reserve(points.size() - index + 1);
+        dp0.insert(dp0.end(), points.begin() + index, points.end());
+        dp1 = MultiPoint::_douglas_peucker(dp0, tolerance);
+        results.reserve(results.size() + dp1.size());
+        results.insert(results.end(), dp1.begin(), dp1.end());
+    } else {
+        results.push_back(points.front());
+        results.push_back(points.back());
+    }
+    return results;
+}
+
 #ifdef SLIC3RXS
 void
 MultiPoint::from_SV(SV* poly_sv)

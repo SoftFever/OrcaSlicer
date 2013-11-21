@@ -19,6 +19,9 @@ class ExPolygon
     bool is_valid() const;
     bool contains_line(const Line* line) const;
     bool contains_point(const Point* point) const;
+    Polygons simplify(double tolerance) const;
+    ExPolygons simplify(double tolerance) const;
+    void simplify(double tolerance, ExPolygons &expolygons) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);
