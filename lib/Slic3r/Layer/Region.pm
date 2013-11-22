@@ -217,7 +217,7 @@ sub make_perimeters {
         # non-collapsing regions
         $self->fill_surfaces->append(
             @{offset2_ex(
-                [ map $_->simplify_as_polygons(&Slic3r::SCALED_RESOLUTION), @{union_ex(\@last)} ],
+                [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
                 -($pspacing/2 + $ispacing/2),
                 +$ispacing/2,
             )}

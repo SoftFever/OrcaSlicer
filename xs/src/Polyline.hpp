@@ -17,6 +17,7 @@ class Polyline : public MultiPoint {
     void clip_end(double distance);
     void clip_start(double distance);
     Points equally_spaced_points(double distance) const;
+    void simplify(double tolerance);
     
     #ifdef SLIC3RXS
     SV* to_SV_ref();

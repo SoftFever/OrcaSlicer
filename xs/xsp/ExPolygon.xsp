@@ -23,6 +23,8 @@
     bool is_valid();
     bool contains_line(Line* line);
     bool contains_point(Point* point);
+    ExPolygons simplify(double tolerance);
+    Polygons simplify_p(double tolerance);
 %{
 
 ExPolygon*

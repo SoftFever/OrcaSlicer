@@ -9,6 +9,9 @@
 
 namespace Slic3r {
 
+class Polygon;
+typedef std::vector<Polygon> Polygons;
+
 class Polygon : public MultiPoint {
     public:
     Point* last_point() const;
@@ -32,8 +35,6 @@ class Polygon : public MultiPoint {
     SV* to_SV_clone_ref() const;
     #endif
 };
-
-typedef std::vector<Polygon> Polygons;
 
 }
 

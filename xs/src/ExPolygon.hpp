@@ -6,6 +6,9 @@
 
 namespace Slic3r {
 
+class ExPolygon;
+typedef std::vector<ExPolygon> ExPolygons;
+
 class ExPolygon
 {
     public:
@@ -19,7 +22,7 @@ class ExPolygon
     bool is_valid() const;
     bool contains_line(const Line* line) const;
     bool contains_point(const Point* point) const;
-    Polygons simplify(double tolerance) const;
+    Polygons simplify_p(double tolerance) const;
     ExPolygons simplify(double tolerance) const;
     void simplify(double tolerance, ExPolygons &expolygons) const;
     
@@ -32,8 +35,6 @@ class ExPolygon
     SV* to_SV_pureperl() const;
     #endif
 };
-
-typedef std::vector<ExPolygon> ExPolygons;
 
 }
 

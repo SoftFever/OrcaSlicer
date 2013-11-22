@@ -87,6 +87,12 @@ Polyline::equally_spaced_points(double distance) const
     return pts;
 }
 
+void
+Polyline::simplify(double tolerance)
+{
+    this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
+}
+
 
 #ifdef SLIC3RXS
 SV*

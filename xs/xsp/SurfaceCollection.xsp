@@ -11,6 +11,7 @@
         %code{% THIS->surfaces.clear(); %};
     int count()
         %code{% RETVAL = THIS->surfaces.size(); %};
+    void simplify(double tolerance);
 %{
 
 SurfaceCollection*

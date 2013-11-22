@@ -9,6 +9,7 @@ class SurfaceCollection
 {
     public:
     Surfaces surfaces;
+    void simplify(double tolerance);
 };
 
 }

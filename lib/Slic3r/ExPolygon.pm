@@ -44,23 +44,6 @@ sub bounding_box {
     return $self->contour->bounding_box;
 }
 
-sub simplify_as_polygons {
-    my $self = shift;
-    my ($tolerance) = @_;
-    
-    # it would be nice to have a multilinestring_simplify method in B::G::U
-    return @{Slic3r::Geometry::Clipper::simplify_polygons(
-        [ map Boost::Geometry::Utils::linestring_simplify($_, $tolerance), @{$self->pp} ],
-    )};
-}
-
-sub simplify {
-    my $self = shift;
-    my ($tolerance) = @_;
-    
-    return @{ Slic3r::Geometry::Clipper::union_ex([ $self->simplify_as_polygons($tolerance) ]) };
-}
-
 # this method only works for expolygons having only a contour or
 # a contour and a hole, and not being thicker than the supplied 
 # width. it returns a polyline or a polygon
@@ -205,6 +188,7 @@ sub _medial_axis_voronoi {
     }
     
     my @result = ();
+    my $simplify_tolerance = $width / 7;
     foreach my $polyline (@polylines) {
         next unless @$polyline >= 2;
         
@@ -213,11 +197,11 @@ sub _medial_axis_voronoi {
         
         if ($points[0]->coincides_with($points[-1])) {
             next if @points == 2;
-            push @result, Slic3r::Polygon->new(@points[0..$#points-1]);
+            push @result, @{Slic3r::Polygon->new(@points[0..$#points-1])->simplify($simplify_tolerance)};
         } else {
             push @result, Slic3r::Polyline->new(@points);
+            $result[-1]->simplify($simplify_tolerance);
         }
-        $result[-1]->simplify($width / 7);
     }
     
     return @result;

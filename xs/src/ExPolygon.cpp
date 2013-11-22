@@ -83,21 +83,32 @@ ExPolygon::contains_point(const Point* point) const
 }
 
 Polygons
-ExPolygon::simplify(double tolerance) const
+ExPolygon::simplify_p(double tolerance) const
 {
-    Polygons p;
-    this->contour.simplify(tolerance, p);
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it)
-        it->simplify(tolerance, p);
-    simplify_polygons(p, p);
-    return p;
+    Polygons pp(this->holes.size() + 1);
+    
+    // contour
+    Polygon p = this->contour;
+    p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+    pp.push_back(p);
+    
+    // holes
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
+        p = *it;
+        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        pp.push_back(p);
+    }
+    simplify_polygons(pp, pp);
+    return pp;
 }
 
 ExPolygons
 ExPolygon::simplify(double tolerance) const
 {
-    Polygons p = this->simplify(tolerance);
-    return union_(p);
+    Polygons pp = this->simplify_p(tolerance);
+    ExPolygons expp;
+    union_(pp, expp);
+    return expp;
 }
 
 void

@@ -50,11 +50,11 @@ ExPolygonCollection::contains_point(const Point* point) const
 void
 ExPolygonCollection::simplify(double tolerance)
 {
-    ExPolygons t;
+    ExPolygons expp;
     for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
-        it->simplify_and_append_to(tolerance, t);
+        it->simplify(tolerance, expp);
     }
-    this->expolygons = t;
+    this->expolygons = expp;
 }
 
 }

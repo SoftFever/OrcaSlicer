@@ -55,12 +55,6 @@ MultiPoint::is_valid() const
     return this->points.size() >= 2;
 }
 
-void
-MultiPoint::simplify(double tolerance)
-{
-    this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
-}
-
 Points
 MultiPoint::_douglas_peucker(Points &points, double tolerance)
 {

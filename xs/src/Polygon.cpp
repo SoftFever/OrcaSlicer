@@ -128,7 +128,21 @@ Polygon::contains_point(const Point* point) const
 Polygons
 Polygon::simplify(double tolerance) const
 {
+    Polygon p = *this;
+    p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
     
+    Polygons pp;
+    pp.push_back(p);
+    simplify_polygons(pp, pp);
+    return pp;
+}
+
+void
+Polygon::simplify(double tolerance, Polygons &polygons) const
+{
+    Polygons pp = this->simplify(tolerance);
+    polygons.reserve(polygons.size() + pp.size());
+    polygons.insert(polygons.end(), pp.begin(), pp.end());
 }
 
 #ifdef SLIC3RXS
