@@ -28,7 +28,7 @@ class TriangleMesh
     void translate(float x, float y, float z);
     void align_to_origin();
     void rotate(double angle, Point* center);
-    std::vector<Polygons>* slice(const std::vector<double> &z);
+    void slice(const std::vector<double> &z, std::vector<Polygons> &layers);
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh* mesh);
     stl_file stl;

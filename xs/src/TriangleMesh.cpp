@@ -161,8 +161,8 @@ void TriangleMesh::rotate(double angle, Point* center)
     this->translate(+center->x, +center->y, 0);
 }
 
-std::vector<Polygons>*
-TriangleMesh::slice(const std::vector<double> &z)
+void
+TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
 {
     /*
        This method gets called with a list of Z coordinates and outputs
@@ -368,7 +368,7 @@ TriangleMesh::slice(const std::vector<double> &z)
     }
     
     // build loops
-    std::vector<Polygons>* layers = new std::vector<Polygons>(z.size());
+    layers.resize(z.size());
     for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
         int layer_idx = it - lines.begin();
         #ifdef SLIC3R_DEBUG
@@ -461,7 +461,7 @@ TriangleMesh::slice(const std::vector<double> &z)
                         for (IntersectionLinePtrs::iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
                             p.points.push_back((*lineptr)->a);
                         }
-                        (*layers)[layer_idx].push_back(p);
+                        layers[layer_idx].push_back(p);
                         
                         #ifdef SLIC3R_DEBUG
                         printf("  Discovered %s polygon of %d points\n", (p.is_counter_clockwise() ? "ccw" : "cw"), (int)p.points.size());
@@ -487,8 +487,6 @@ TriangleMesh::slice(const std::vector<double> &z)
             }
         }
     }
-    
-    return layers;
 }
 
 TriangleMeshPtrs
