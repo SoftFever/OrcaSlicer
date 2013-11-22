@@ -176,7 +176,6 @@ sub validate {
                 {
                     my @points = map Slic3r::Point->new(@$_[X,Y]), map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
                     my $convex_hull = convex_hull(\@points);
-                    use XXX; YYY ($convex_hull->pp);
                     ($clearance) = @{offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
@@ -590,7 +589,7 @@ sub make_skirt {
     return if @points < 3;  # at least three points required for a convex hull
     
     # find out convex hull
-    my $convex_hull = convex_hull([ map $_->arrayref, @points ]);
+    my $convex_hull = convex_hull(\@points);
     
     my @extruded_length = ();  # for each extruder
     
@@ -606,7 +605,7 @@ sub make_skirt {
     my $distance = scale $Slic3r::Config->skirt_distance;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
-        my $loop = Slic3r::Geometry::Clipper::offset([$convex_hull], $distance, 0.0001, JT_ROUND)->[0];
+        my $loop = offset([$convex_hull], $distance, 0.0001, JT_ROUND)->[0];
         $self->skirt->append(Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
@@ -777,7 +776,7 @@ sub write_gcode {
         my @islands = ();
         foreach my $obj_idx (0 .. $#{$self->objects}) {
             my $convex_hull = convex_hull([
-                map @{$_->contour->pp}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
+                map @{$_->contour}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
             ]);
             # discard layers only containing thin walls (offset would fail on an empty polygon)
             if (@$convex_hull) {
@@ -797,13 +796,13 @@ sub write_gcode {
     
     # calculate wiping points if needed
     if ($self->config->ooze_prevention) {
-        my $outer_skirt = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, map @$_, @{$self->skirt} ])});
+        my $outer_skirt = convex_hull([ map @$_, @{$self->skirt} ]);
         my @skirts = ();
         foreach my $extruder (@{$self->extruders}) {
             push @skirts, my $s = $outer_skirt->clone;
             $s->translate(map scale($_), @{$extruder->extruder_offset});
         }
-        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @$_, map $_->pp, @skirts ])});
+        my $convex_hull = convex_hull([ map @$_, @skirts ]);
         $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
     }
     

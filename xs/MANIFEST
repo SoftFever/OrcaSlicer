@@ -36,6 +36,7 @@ src/PolylineCollection.hpp
 src/ppport.h
 src/Surface.cpp
 src/Surface.hpp
+src/SurfaceCollection.cpp
 src/SurfaceCollection.hpp
 src/SVG.cpp
 src/SVG.hpp

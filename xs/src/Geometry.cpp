@@ -9,6 +9,9 @@ sort_points (Point a, Point b)
     return (a.x < b.x) || (a.x == b.x && a.y < b.y);
 }
 
+/* This implementation is based on Steffen Mueller's work for 
+   the Perl module Math::ConvexHull::MonotoneChain (available 
+   on CPAN under the GPL terms) */
 void
 convex_hull(Points points, Polygon &hull)
 {
@@ -39,6 +42,10 @@ convex_hull(Points points, Polygon &hull)
     for (size_t i = 0; i < k; ++i) {
         hull.points.push_back(*(out_hull[i]));
     }
+    
+    // not sure why this happens randomly
+    if (hull.points.front().coincides_with(hull.points.back()))
+        hull.points.pop_back();
     
     free(out_hull);
 }
