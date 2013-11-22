@@ -33,7 +33,6 @@ our $var = "$FindBin::Bin/var";
 
 use Encode;
 use Encode::Locale;
-use Boost::Geometry::Utils 0.15;
 use Moo 1.003001;
 
 use Slic3r::XS;   # import all symbols (constants etc.) before they get parsed

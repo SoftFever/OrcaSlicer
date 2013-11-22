@@ -4,7 +4,6 @@ use warnings;
 
 # an ExPolygon is a polygon with holes
 
-use Boost::Geometry::Utils;
 use List::Util qw(first);
 use Math::Geometry::Voronoi;
 use Slic3r::Geometry qw(X Y A B point_in_polygon epsilon scaled_epsilon);

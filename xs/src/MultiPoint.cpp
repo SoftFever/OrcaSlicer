@@ -56,11 +56,11 @@ MultiPoint::is_valid() const
 }
 
 Points
-MultiPoint::_douglas_peucker(Points &points, double tolerance)
+MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {
     Points results;
     double dmax = 0;
-    int index = 0;
+    size_t index = 0;
     Line full(points.front(), points.back());
     for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
         double d = it->distance_to(full);

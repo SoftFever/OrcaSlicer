@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 my $points = [
     [100, 100],
@@ -32,6 +32,14 @@ is_deeply $polyline->pp, [ @$points, @$points ], 'append_polyline';
     my $len = $polyline->length;
     $polyline->clip_end($len/3);
     ok abs($polyline->length - ($len-($len/3))) < 1, 'clip_end';
+}
+
+{
+    my $polyline = Slic3r::Polyline->new(
+        [0,0], [50,50], [100,0], [125,-25], [150,50],
+    );
+    $polyline->simplify(25);
+    is_deeply $polyline->pp, [ [0, 0], [50, 50], [125, -25], [150, 50] ], 'Douglas-Peucker';
 }
 
 __END__

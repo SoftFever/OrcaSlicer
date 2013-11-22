@@ -21,7 +21,7 @@ class MultiPoint
     virtual Lines lines() const = 0;
     double length() const;
     bool is_valid() const;
-    static Points _douglas_peucker(Points &points, double tolerance);
+    static Points _douglas_peucker(const Points &points, const double tolerance);
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);

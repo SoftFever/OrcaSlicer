@@ -1,6 +1,6 @@
 #include "Point.hpp"
 #include "Line.hpp"
-#include <math.h>
+#include <cmath>
 
 namespace Slic3r {
 
@@ -87,7 +87,7 @@ Point::distance_to(const Line &line) const
     double n = (line.b.x - line.a.x) * (line.a.y - this->y)
         - (line.a.x - this->x) * (line.b.y - line.a.y);
     
-    return abs(n) / line.length();
+    return std::abs(n) / line.length();
 }
 
 #ifdef SLIC3RXS
