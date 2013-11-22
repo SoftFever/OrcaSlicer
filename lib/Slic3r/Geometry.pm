@@ -9,7 +9,7 @@ our @EXPORT_OK = qw(
     line_point_belongs_to_segment points_coincide distance_between_points 
     chained_path_items chained_path_points normalize tan move_points_3D
     point_in_polygon point_in_segment segment_in_segment
-    point_is_on_left_of_segment polyline_lines polygon_lines
+    polyline_lines polygon_lines
     point_along_segment polygon_segment_having_point polygon_has_subsegment
     deg2rad rad2deg
     rotate_points move_points
@@ -20,6 +20,7 @@ our @EXPORT_OK = qw(
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
     scaled_epsilon bounding_box_3D size_3D size_2D
+    convex_hull
 );
 
 
@@ -172,13 +173,6 @@ sub segment_in_segment {
     
     # a segment is contained in another segment if its endpoints are contained
     return point_in_segment($needle->[A], $haystack) && point_in_segment($needle->[B], $haystack);
-}
-
-sub point_is_on_left_of_segment {
-    my ($point, $line) = @_;
-    
-    return (($line->[B][X] - $line->[A][X])*($point->[Y] - $line->[A][Y]) 
-        - ($line->[B][Y] - $line->[A][Y])*($point->[X] - $line->[A][X])) > 0;
 }
 
 sub polyline_lines {

@@ -6,8 +6,7 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum first);
 use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
-use Math::ConvexHull::MonotoneChain qw(convex_hull);
-use Slic3r::Geometry qw(X Y Z MIN MAX);
+use Slic3r::Geometry qw(X Y Z MIN MAX convex_hull);
 use threads::shared qw(shared_clone);
 use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
@@ -991,7 +990,7 @@ sub repaint {
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
-            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->pp}, @{$parent->{object_previews}->[-1][2]} ])});
+            	my $convex_hull = convex_hull([ map @{$_->contour}, @{$parent->{object_previews}->[-1][2]} ]);
                 my ($clearance) = @{offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 100, JT_ROUND)};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
@@ -1255,7 +1254,6 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 use List::Util qw(first);
-use Math::ConvexHull::MonotoneChain qw();
 use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 
 has 'name'                  => (is => 'rw', required => 1);
@@ -1291,7 +1289,7 @@ sub _trigger_model_object {
 	    
     	my $mesh = $model_object->mesh;
     	$mesh->repair;
-        $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->vertices)}));
+        $self->convex_hull(Slic3r::Geometry::convex_hull($mesh->vertices));
 	    $self->facets($mesh->facets_count);
 	    $self->vertices(scalar @{$mesh->vertices});
 	    $self->materials($model_object->materials_count);

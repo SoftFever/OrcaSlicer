@@ -26,6 +26,9 @@ class Point
     double distance_to(const Point* point) const;
     double distance_to(const Line* line) const;
     double distance_to(const Line &line) const;
+    double ccw(const Point &p1, const Point &p2) const;
+    double ccw(const Point* p1, const Point* p2) const;
+    double ccw(const Line &line) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);

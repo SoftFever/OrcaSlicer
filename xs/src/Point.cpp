@@ -90,6 +90,28 @@ Point::distance_to(const Line &line) const
     return std::abs(n) / line.length();
 }
 
+/* Three points are a counter-clockwise turn if ccw > 0, clockwise if
+ * ccw < 0, and collinear if ccw = 0 because ccw is a determinant that
+ * gives the signed area of the triangle formed by p1, p2 and this point.
+ */
+double
+Point::ccw(const Point &p1, const Point &p2) const
+{
+    return (p2.x - p1.x)*(this->y - p1.y) - (p2.y - p1.y)*(this->x - p1.x);
+}
+
+double
+Point::ccw(const Point* p1, const Point* p2) const
+{
+    return this->ccw(*p1, *p2);
+}
+
+double
+Point::ccw(const Line &line) const
+{
+    return this->ccw(line.a, line.b);
+}
+
 #ifdef SLIC3RXS
 SV*
 Point::to_SV_ref() {

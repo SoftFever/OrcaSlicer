@@ -73,7 +73,7 @@ sub flush_path {
         $$buffer =~ s/^/;/mg;
         $gcode = "; these moves were replaced by an arc:\n" . $$buffer;
         
-        my $orientation = Slic3r::Geometry::point_is_on_left_of_segment($cur_path->[2], [ @$cur_path[0,1] ]) ? 'ccw' : 'cw';
+        my $orientation = $cur_path->[2]->ccw(@$cur_path[0,1]) ? 'ccw' : 'cw';
         
         # to find the center, we intersect the perpendicular lines
         # passing by midpoints of $s1 and last segment

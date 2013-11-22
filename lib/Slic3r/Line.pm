@@ -23,12 +23,6 @@ sub intersection {
     return Slic3r::Geometry::line_intersection($self, $line, $require_crossing);
 }
 
-sub point_on_left {
-    my $self = shift;
-    my ($point) = @_;
-    return Slic3r::Geometry::point_is_on_left_of_segment($point, $self);
-}
-
 sub grow {
     my $self = shift;
     return Slic3r::Polyline->new(@$self)->grow(@_);

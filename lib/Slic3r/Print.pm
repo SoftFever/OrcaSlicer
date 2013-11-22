@@ -4,9 +4,9 @@ use Moo;
 use File::Basename qw(basename fileparse);
 use File::Spec;
 use List::Util qw(min max first);
-use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path);
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
+    convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
     offset2 traverse_pt JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -174,8 +174,9 @@ sub validate {
             for my $obj_idx (0 .. $#{$self->objects}) {
                 my $clearance;
                 {
-                    my @points = map [ @$_[X,Y] ], map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
-                    my $convex_hull = Slic3r::Polygon->new(@{convex_hull(\@points)});
+                    my @points = map Slic3r::Point->new(@$_[X,Y]), map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
+                    my $convex_hull = convex_hull(\@points);
+                    use XXX; YYY ($convex_hull->pp);
                     ($clearance) = @{offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
                 }
                 for my $copy (@{$self->objects->[$obj_idx]->copies}) {
