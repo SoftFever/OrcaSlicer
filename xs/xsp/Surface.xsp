@@ -14,6 +14,8 @@
     unsigned short thickness_layers()
         %code{% RETVAL = THIS->thickness_layers; %};
     double area();
+    bool is_solid() const;
+    bool is_bridge() const;
 %{
 
 Surface*

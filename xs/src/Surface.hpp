@@ -17,6 +17,8 @@ class Surface
     double          bridge_angle;
     unsigned short  extra_perimeters;
     double area() const;
+    bool is_solid() const;
+    bool is_bridge() const;
     
     #ifdef SLIC3RXS
     SV* to_SV_ref();

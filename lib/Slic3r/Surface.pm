@@ -7,12 +7,6 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK   = qw(S_TYPE_TOP S_TYPE_BOTTOM S_TYPE_INTERNAL S_TYPE_INTERNALSOLID S_TYPE_INTERNALBRIDGE S_TYPE_INTERNALVOID);
 our %EXPORT_TAGS = (types => \@EXPORT_OK);
 
-# delegate handles
-sub contains_point  { $_[0]->expolygon->contains_point }
-sub lines           { $_[0]->expolygon->lines }
-sub contour         { $_[0]->expolygon->contour }
-sub holes           { $_[0]->expolygon->holes }
-
 # static method to group surfaces having same surface_type, bridge_angle and thickness*
 sub group {
     my $class = shift;
@@ -41,22 +35,6 @@ sub offset {
 sub p {
     my $self = shift;
     return @{$self->polygons};
-}
-
-sub is_solid {
-    my $self = shift;
-    my $type = $self->surface_type;
-    # S_TYPE_INTERNALBRIDGE is not solid because we can't merge it with other solid types
-    return $type == S_TYPE_TOP
-        || $type == S_TYPE_BOTTOM
-        || $type == S_TYPE_INTERNALSOLID;
-}
-
-sub is_bridge {
-    my $self = shift;
-    my $type = $self->surface_type;
-    return $type == S_TYPE_BOTTOM
-        || $type == S_TYPE_INTERNALBRIDGE;
 }
 
 1;
