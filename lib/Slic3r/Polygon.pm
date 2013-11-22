@@ -5,26 +5,13 @@ use warnings;
 # a polygon is a closed polyline.
 use parent 'Slic3r::Polyline';
 
-use Slic3r::Geometry qw(polygon_remove_parallel_continuous_edges
-    polygon_remove_acute_vertices polygon_segment_having_point
+use Slic3r::Geometry qw(
+    polygon_segment_having_point
     PI X1 X2 Y1 Y2 epsilon);
 
 sub wkt {
     my $self = shift;
     return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
-}
-
-sub merge_continuous_lines {
-    my $self = shift;
-    
-    my $p = $self->pp;
-    polygon_remove_parallel_continuous_edges($p);
-    return __PACKAGE__->new(@$p);
-}
-
-sub remove_acute_vertices {
-    my $self = shift;
-    polygon_remove_acute_vertices($self);
 }
 
 sub grow {

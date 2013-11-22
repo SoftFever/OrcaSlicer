@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 19;
+plan tests => 18;
 
 BEGIN {
     use FindBin;
@@ -77,14 +77,6 @@ my $square = Slic3r::Polygon->new(  # ccw
         my $intersection = intersection_pl([Slic3r::Polyline->new([100,180], [200,180])], \@$expolygon);
         is $intersection->[0]->length, Slic3r::Line->new([100,180], [200,180])->length,
             'tangent line is clipped to square with hole';
-    }
-    {
-        my $polyline = Slic3r::Polyline->new([50, 180], [250, 180], [250, 150], [150, 150], [150, 120], [120, 120], [120, 50]);
-        is_deeply [ map $_->pp, $polyline->clip_with_expolygon($expolygon) ], [
-            [ [100, 180], [200, 180] ],
-            [ [200, 150], [160, 150] ],
-            [ [150, 140], [150, 120], [120, 120], [120, 100] ],
-        ], 'polyline is clipped to square with hole';
     }
 }
 

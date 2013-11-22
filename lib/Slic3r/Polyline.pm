@@ -2,7 +2,7 @@ package Slic3r::Polyline;
 use strict;
 use warnings;
 
-use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2 polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices);
+use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 use Storable qw();
 
@@ -15,16 +15,6 @@ sub new_scale {
 sub wkt {
     my $self = shift;
     return sprintf "LINESTRING((%s))", join ',', map "$_->[0] $_->[1]", @$self;
-}
-
-sub merge_continuous_lines {
-    my $self = shift;
-    polyline_remove_parallel_continuous_edges($self);
-}
-
-sub remove_acute_vertices {
-    my $self = shift;
-    polyline_remove_acute_vertices($self);
 }
 
 sub bounding_box {

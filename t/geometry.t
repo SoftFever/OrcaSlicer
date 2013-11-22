@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 25;
+plan tests => 23;
 
 BEGIN {
     use FindBin;
@@ -10,9 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
-use Slic3r::Geometry qw(PI polyline_remove_parallel_continuous_edges 
-    polyline_remove_acute_vertices polygon_remove_acute_vertices
-    polygon_remove_parallel_continuous_edges polygon_is_convex
+use Slic3r::Geometry qw(PI polygon_is_convex
     chained_path_points epsilon scale);
 
 #==========================================================
@@ -111,31 +109,6 @@ my $polygons = [
     is Slic3r::Geometry::angle3points($p2, $p1, $p3), PI(),       'angle3points';
     is Slic3r::Geometry::angle3points($p2, $p1, $p4), PI()/2*3,   'angle3points';
     is Slic3r::Geometry::angle3points($p2, $p1, $p1), 2*PI(),     'angle3points';
-}
-
-#==========================================================
-
-{
-    my $polygon = [
-        [2265447881, 7013509857], [2271869937, 7009802077], [2606221146, 6816764300], [1132221146, 4263721402], 
-        [1098721150, 4205697705], [1228411320, 4130821051], [1557501031, 3940821051], [1737340080, 3836990933], 
-        [1736886253, 3837252951], [1494771522, 3977037948], [2959638603, 6514262167], [3002271522, 6588104548], 
-        [3083252364, 6541350240], [2854283608, 6673545411], [2525193897, 6863545411],
-    ];
-    polygon_remove_parallel_continuous_edges($polygon);
-    polygon_remove_acute_vertices($polygon);
-    is scalar(@$polygon), 4, 'polygon_remove_acute_vertices';
-}
-
-#==========================================================
-
-{
-    my $polygon = [
-        [226.5447881,701.3509857], [260.6221146,681.67643], [109.872115,420.5697705], [149.4771522,397.7037948], 
-        [300.2271522,658.8104548], [308.3252364,654.135024],
-    ];
-    polyline_remove_acute_vertices($polygon);
-    is scalar(@$polygon), 6, 'polyline_remove_acute_vertices';
 }
 
 #==========================================================

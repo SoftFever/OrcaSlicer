@@ -16,9 +16,7 @@ our @EXPORT_OK = qw(
     dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect
     angle3points three_points_aligned line_direction
-    polyline_remove_parallel_continuous_edges polyline_remove_acute_vertices
-    polygon_remove_acute_vertices polygon_remove_parallel_continuous_edges
-    chained_path collinear scale unscale merge_collinear_lines
+    chained_path collinear scale unscale
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
     scaled_epsilon bounding_box_3D size_3D size_2D
@@ -370,40 +368,6 @@ sub collinear {
     return 1;
 }
 
-sub merge_collinear_lines {
-    my ($lines) = @_;
-    my $line_count = @$lines;
-    
-    for (my $i = 0; $i <= $#$lines-1; $i++) {
-        for (my $j = $i+1; $j <= $#$lines; $j++) {
-            # lines are collinear and overlapping?
-            next unless collinear($lines->[$i], $lines->[$j], 1);
-            
-            # lines have same orientation?
-            next unless ($lines->[$i][A][X] <=> $lines->[$i][B][X]) == ($lines->[$j][A][X] <=> $lines->[$j][B][X])
-                && ($lines->[$i][A][Y] <=> $lines->[$i][B][Y]) == ($lines->[$j][A][Y] <=> $lines->[$j][B][Y]);
-            
-            # resulting line
-            my @x = sort { $a <=> $b } ($lines->[$i][A][X], $lines->[$i][B][X], $lines->[$j][A][X], $lines->[$j][B][X]);
-            my @y = sort { $a <=> $b } ($lines->[$i][A][Y], $lines->[$i][B][Y], $lines->[$j][A][Y], $lines->[$j][B][Y]);
-            my $new_line = Slic3r::Line->new([$x[0], $y[0]], [$x[-1], $y[-1]]);
-            for (X, Y) {
-                ($new_line->[A][$_], $new_line->[B][$_]) = ($new_line->[B][$_], $new_line->[A][$_])
-                    if $lines->[$i][A][$_] > $lines->[$i][B][$_];
-            }
-            
-            # save new line and remove found one
-            $lines->[$i] = $new_line;
-            splice @$lines, $j, 1;
-            $j--;
-        }
-    }
-    
-    Slic3r::debugf "  merging %d lines resulted in %d lines\n", $line_count, scalar(@$lines);
-    
-    return $lines;
-}
-
 sub _line_intersection {
   my ( $x0, $y0, $x1, $y1, $x2, $y2, $x3, $y3 ) = @_;
 
@@ -594,40 +558,6 @@ sub angle3points {
     
     # we only want to return only positive angles
     return $angle <= 0 ? $angle + 2*PI() : $angle;
-}
-
-sub polyline_remove_parallel_continuous_edges {
-    my ($points, $isPolygon) = @_;
-    
-    for (my $i = $isPolygon ? 0 : 2; $i <= $#$points && @$points >= 3; $i++) {
-        if (Slic3r::Geometry::lines_parallel([$points->[$i-2], $points->[$i-1]], [$points->[$i-1], $points->[$i]])) {
-            # we can remove $points->[$i-1]
-            splice @$points, $i-1, 1;
-            $i--;
-        }
-    }
-}
-
-sub polygon_remove_parallel_continuous_edges {
-    my ($points) = @_;
-    return polyline_remove_parallel_continuous_edges($points, 1);
-}
-
-sub polyline_remove_acute_vertices {
-    my ($points, $isPolygon) = @_;
-    for (my $i = $isPolygon ? -1 : 1; $i < $#$points; $i++) {
-        my $angle = angle3points($points->[$i], $points->[$i-1], $points->[$i+1]);
-        if ($angle < 0.01 || $angle >= 2*PI - 0.01) {
-            # we can remove $points->[$i]
-            splice @$points, $i, 1;
-            $i--;
-        }
-    }
-}
-
-sub polygon_remove_acute_vertices {
-    my ($points) = @_;
-    return polyline_remove_acute_vertices($points, 1);
 }
 
 sub polyline_remove_short_segments {
