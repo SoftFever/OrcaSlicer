@@ -487,7 +487,7 @@ sub bridge_over_infill {
                     foreach my $lower_layerm (@{$self->layers->[$i]->regions}) {
                         my @new_surfaces = ();
                         # subtract the area from all types of surfaces
-                        foreach my $group (Slic3r::Surface->group(@{$lower_layerm->fill_surfaces})) {
+                        foreach my $group (@{$lower_layerm->fill_surfaces->group}) {
                             push @new_surfaces, map $group->[0]->clone(expolygon => $_),
                                 @{diff_ex(
                                     [ map $_->p, @$group ],
@@ -647,7 +647,7 @@ sub discover_horizontal_shells {
                         (expolygon => $_, surface_type => S_TYPE_INTERNALSOLID), @$internal_solid);
                     
                     # assign top and bottom surfaces to layer
-                    foreach my $s (Slic3r::Surface->group(grep { ($_->surface_type == S_TYPE_TOP) || ($_->surface_type == S_TYPE_BOTTOM) } @neighbor_fill_surfaces)) {
+                    foreach my $s (@{Slic3r::Surface::Collection->new(grep { ($_->surface_type == S_TYPE_TOP) || ($_->surface_type == S_TYPE_BOTTOM) } @neighbor_fill_surfaces)->group}) {
                         my $solid_surfaces = diff_ex(
                             [ map $_->p, @$s ],
                             [ map @$_, @$internal_solid, @$internal ],

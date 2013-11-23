@@ -13,7 +13,7 @@ use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y PI scale chained_path);
-use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset offset2);
+use Slic3r::Geometry::Clipper qw(union union_ex diff diff_ex intersection_ex offset offset2);
 use Slic3r::Surface ':types';
 
 
@@ -58,28 +58,26 @@ sub make_fill {
     # in case of bridge surfaces, the ones with defined angle will be attached to the ones
     # without any angle (shouldn't this logic be moved to process_external_surfaces()?)
     {
-        my @fill_surfaces = @{$layerm->fill_surfaces};
-        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @fill_surfaces;
+        my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
         
         # give priority to bridges
-        my @groups = Slic3r::Surface->group({merge_solid => 1}, @fill_surfaces);
-        @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
+        my @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @{$layerm->fill_surfaces->group(1)};
         
         foreach my $group (@groups) {
-            my $union = union_ex([ map $_->p, @$group ], 1);
+            my $union_p = union([ map $_->p, @$group ], 1);
             
             # subtract surfaces having a defined bridge_angle from any other
             if (@surfaces_with_bridge_angle && !defined $group->[0]->bridge_angle) {
-                $union = diff_ex(
-                    [ map @$_, @$union ],
+                $union_p = diff(
+                    $union_p,
                     [ map $_->p, @surfaces_with_bridge_angle ],
                     1,
                 );
             }
             
             # subtract any other surface already processed
-            $union = diff_ex(
-                [ map @$_, @$union ],
+            my $union = diff_ex(
+                $union_p,
                 [ map $_->p, @surfaces ],
                 1,
             );

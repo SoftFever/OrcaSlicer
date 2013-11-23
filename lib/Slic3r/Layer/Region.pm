@@ -458,7 +458,7 @@ sub process_external_surfaces {
     
     # intersect the grown surfaces with the actual fill boundaries
     my @new_surfaces = ();
-    foreach my $group (Slic3r::Surface->group(@top, @bottom)) {
+    foreach my $group (@{Slic3r::Surface::Collection->new(@top, @bottom)->group}) {
         push @new_surfaces,
             map $group->[0]->clone(expolygon => $_),
             @{intersection_ex(
@@ -470,7 +470,7 @@ sub process_external_surfaces {
     
     # subtract the new top surfaces from the other non-top surfaces and re-add them
     my @other = grep $_->surface_type != S_TYPE_TOP && $_->surface_type != S_TYPE_BOTTOM, @surfaces;
-    foreach my $group (Slic3r::Surface->group(@other)) {
+    foreach my $group (@{Slic3r::Surface::Collection->new(@other)->group}) {
         push @new_surfaces, map $group->[0]->clone(expolygon => $_), @{diff_ex(
             [ map $_->p, @$group ],
             [ map $_->p, @new_surfaces ],

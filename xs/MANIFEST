@@ -20,6 +20,8 @@ src/ExtrusionEntity.cpp
 src/ExtrusionEntity.hpp
 src/ExtrusionEntityCollection.cpp
 src/ExtrusionEntityCollection.hpp
+src/Geometry.cpp
+src/Geometry.hpp
 src/Line.cpp
 src/Line.hpp
 src/MultiPoint.cpp
@@ -55,12 +57,14 @@ t/10_line.t
 t/11_clipper.t
 t/12_extrusionpathcollection.t
 t/13_polylinecollection.t
+t/14_geometry.t
 xsp/Clipper.xsp
 xsp/ExPolygon.xsp
 xsp/ExPolygonCollection.xsp
 xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp
+xsp/Geometry.xsp
 xsp/Line.xsp
 xsp/my.map
 xsp/mytype.map

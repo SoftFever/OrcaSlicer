@@ -74,5 +74,30 @@ SurfaceCollection::set_surface_type(index, surface_type)
     CODE:
         THIS->surfaces[index].surface_type = surface_type;
 
+SV*
+SurfaceCollection::group(merge_solid = false)
+    bool    merge_solid
+    CODE:
+        // perform grouping
+        std::vector<SurfacesPtr> groups;
+        THIS->group(groups, merge_solid);
+        
+        // build return arrayref
+        AV* av = newAV();
+        av_fill(av, groups.size()-1);
+        size_t i = 0;
+        for (std::vector<SurfacesPtr>::iterator it = groups.begin(); it != groups.end(); ++it) {
+            AV* innerav = newAV();
+            av_fill(innerav, it->size()-1);
+            size_t j = 0;
+            for (SurfacesPtr::iterator it_s = it->begin(); it_s != it->end(); ++it_s) {
+                av_store(innerav, j++, (*it_s)->to_SV_clone_ref());
+            }
+            av_store(av, i++, newRV_noinc((SV*)innerav));
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
 %}
 };

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 my $square = [  # ccw
     [100, 100],
@@ -61,6 +61,17 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
     isa_ok $item, 'Slic3r::Surface::Ref';
     $item->surface_type(Slic3r::Surface::S_TYPE_INTERNAL);
     is $item->surface_type, $collection->[0]->surface_type, 'collection returns items by reference';
+}
+
+{
+    my @surfaces = (
+        Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_BOTTOM),
+        Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_BOTTOM),
+        Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_TOP),
+    );
+    my $collection = Slic3r::Surface::Collection->new(@surfaces);
+    is scalar(@{$collection->group}), 2, 'group() returns correct number of groups';
+    is scalar(@{$collection->group(1)}), 1, 'group() returns correct number of solid groups';
 }
 
 __END__

@@ -21,12 +21,12 @@ SurfaceCollection::simplify(double tolerance)
 
 /* group surfaces by common properties */
 void
-SurfaceCollection::group(std::vector<Surfaces> &retval, bool merge_solid) const
+SurfaceCollection::group(std::vector<SurfacesPtr> &retval, bool merge_solid)
 {
-    typedef std::map<t_surface_group_key,Surfaces> t_unique_map;
+    typedef std::map<t_surface_group_key,SurfacesPtr> t_unique_map;
     t_unique_map unique_map;
     
-    for (Surfaces::const_iterator it = this->surfaces.begin(); it != this->surfaces.end(); ++it) {
+    for (Surfaces::iterator it = this->surfaces.begin(); it != this->surfaces.end(); ++it) {
         // build the t_surface_group_key struct with this surface's properties
         t_surface_group_key key;
         if (merge_solid && it->is_solid()) {
@@ -41,9 +41,9 @@ SurfaceCollection::group(std::vector<Surfaces> &retval, bool merge_solid) const
         // check whether we already have a group for these properties
         if (unique_map.find(key) == unique_map.end()) {
             // no group exists, add it
-            unique_map[key] = Surfaces();
+            unique_map[key] = SurfacesPtr();
         }
-        unique_map[key].push_back(*it);
+        unique_map[key].push_back(&*it);
     }
     
     retval.reserve(unique_map.size());

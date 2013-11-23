@@ -22,10 +22,12 @@ class Surface
     
     #ifdef SLIC3RXS
     SV* to_SV_ref();
+    SV* to_SV_clone_ref() const;
     #endif
 };
 
 typedef std::vector<Surface> Surfaces;
+typedef std::vector<Surface*> SurfacesPtr;
 
 }
 

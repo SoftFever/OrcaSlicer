@@ -30,6 +30,13 @@ Surface::to_SV_ref() {
     sv_setref_pv( sv, "Slic3r::Surface::Ref", (void*)this );
     return sv;
 }
+
+SV*
+Surface::to_SV_clone_ref() const {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, "Slic3r::Surface", new Surface(*this) );
+    return sv;
+}
 #endif
 
 }
