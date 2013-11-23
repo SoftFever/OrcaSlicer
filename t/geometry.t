@@ -11,7 +11,7 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::Geometry qw(PI polygon_is_convex
-    chained_path_points epsilon scale);
+    chained_path epsilon scale);
 
 #==========================================================
 
@@ -162,7 +162,7 @@ my $polygons = [
     # if chained_path() works correctly, these points should be joined with no diagonal paths
     # (thus 26 units long)
     my @points = map Slic3r::Point->new_scale(@$_), [26,26],[52,26],[0,26],[26,52],[26,0],[0,52],[52,52],[52,0];
-    my @ordered = @{chained_path_points(\@points, $points[0])};
+    my @ordered = @points[@{chained_path(\@points, $points[0])}];
     ok !(grep { abs($ordered[$_]->distance_to($ordered[$_+1]) - scale 26) > epsilon } 0..$#ordered-1), 'chained_path';
 }
 
