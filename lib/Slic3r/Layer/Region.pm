@@ -242,7 +242,21 @@ sub make_perimeters {
         )};
         
         my @loops = ();
+        
         foreach my $polynode (@nodes) {
+            # if this is an external contour find all holes belonging to this contour(s)
+            # and prepend them
+            if ($is_contour && $depth == 0) {
+                # $polynode is the outermost loop of an island
+                my @holes = ();
+                for (my $i = 0; $i <= $#$holes_pt; $i++) {
+                    if ($polynode->{outer}->encloses_point($holes_pt->[$i]{outer}->first_point)) {
+                        push @holes, splice @$holes_pt, $i, 1;  # remove from candidates to reduce complexity
+                        $i--;
+                    }
+                }
+                push @loops, reverse map $traverse->([$_], 0), @holes;
+            }
             push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
             
             # return ccw contours and cw holes
@@ -272,10 +286,7 @@ sub make_perimeters {
     };
     
     # order loops from inner to outer (in terms of object slices)
-    my @loops = (
-        (reverse $traverse->($holes_pt, 0)),
-        $traverse->($contours_pt, 0, 1),
-    );
+    my @loops = $traverse->($contours_pt, 0, 1);
     
     # if brim will be printed, reverse the order of perimeters so that
     # we continue inwards after having finished the brim
