@@ -249,7 +249,7 @@ sub make_perimeters {
                 # $polynode is the outermost loop of an island
                 my @holes = ();
                 for (my $i = 0; $i <= $#$holes_pt; $i++) {
-                    if ($polynode->{outer}->encloses_point($holes_pt->[$i]{outer}->first_point)) {
+                    if ($polynode->{outer}->contains_point($holes_pt->[$i]{outer}->first_point)) {
                         push @holes, splice @$holes_pt, $i, 1;  # remove from candidates to reduce complexity
                         $i--;
                     }
