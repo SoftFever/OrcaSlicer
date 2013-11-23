@@ -80,6 +80,17 @@ Surface::polygons()
     OUTPUT:
         RETVAL
 
+Surfaces
+Surface::offset(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
+    const float             delta
+    double                  scale
+    ClipperLib::JoinType    joinType
+    double                  miterLimit
+    CODE:
+        offset(*THIS, RETVAL, delta, scale, joinType, miterLimit);
+    OUTPUT:
+        RETVAL
+
 %}
 };
 

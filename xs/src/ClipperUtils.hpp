@@ -5,6 +5,7 @@
 #include "clipper.hpp"
 #include "ExPolygon.hpp"
 #include "Polygon.hpp"
+#include "Surface.hpp"
 
 // import these wherever we're included
 using ClipperLib::jtMiter;
@@ -45,6 +46,9 @@ void offset(const Slic3r::Polylines &polylines, ClipperLib::Paths &retval, const
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
 void offset(const Slic3r::Polylines &polylines, Slic3r::Polygons &retval, const float delta,
+    double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
+    double miterLimit = 3);
+void offset(const Slic3r::Surface &surface, Slic3r::Surfaces &retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
 

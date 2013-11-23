@@ -19,6 +19,7 @@
 %typemap{Polygons};
 %typemap{Polylines};
 %typemap{ExPolygons};
+%typemap{Surfaces};
 %typemap{Polygons*};
 %typemap{TriangleMeshPtrs};
 

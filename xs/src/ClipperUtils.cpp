@@ -165,6 +165,24 @@ offset(const Slic3r::Polylines &polylines, Slic3r::Polygons &retval, const float
 }
 
 void
+offset(const Slic3r::Surface &surface, Slic3r::Surfaces &retval, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    Slic3r::ExPolygons expp;
+    offset_ex(surface.expolygon, expp, delta, scale, joinType, miterLimit);
+    
+    // clone the input surface for each expolygon we got
+    retval.clear();
+    retval.reserve(expp.size());
+    for (ExPolygons::iterator it = expp.begin(); it != expp.end(); ++it) {
+        Surface s = surface;  // clone
+        s.expolygon = *it;
+        retval.push_back(s);
+    }
+}
+
+void
 offset_ex(const Slic3r::Polygons &polygons, Slic3r::ExPolygons &retval, const float delta,
     double scale, ClipperLib::JoinType joinType, double miterLimit)
 {
