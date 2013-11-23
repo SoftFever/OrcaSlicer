@@ -11,7 +11,7 @@ has 'upper_layer'       => (is => 'rw', weak_ref => 1);
 has 'regions'           => (is => 'ro', default => sub { [] });
 has 'slicing_errors'    => (is => 'rw');
 
-has 'slice_z'           => (is => 'ro', required => 1); # Z used for slicing in scaled coordinates
+has 'slice_z'           => (is => 'ro', required => 1); # Z used for slicing in unscaled coordinates
 has 'print_z'           => (is => 'ro', required => 1); # Z used for printing in unscaled coordinates
 has 'height'            => (is => 'ro', required => 1); # layer height in unscaled coordinates
 

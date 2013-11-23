@@ -129,8 +129,6 @@ sub add_model {
                 $mesh->rotate($object->instances->[0]->rotation, $object->center_2D);
                 $mesh->scale($object->instances->[0]->scaling_factor);
             }
-            
-            $mesh->scale(1 / &Slic3r::SCALING_FACTOR);
             $mesh->repair;
         }
         
@@ -139,6 +137,9 @@ sub add_model {
         my $bb = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, grep $_, @meshes);
         my @align2 = map -$bb->extents->[$_][MIN], (X,Y,Z);
         $_->translate(@align2) for grep $_, @meshes;
+        
+        my $scaled_bb = $bb->clone;
+        $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
         
         # initialize print object
         push @{$self->objects}, Slic3r::Print::Object->new(
@@ -150,7 +151,7 @@ sub add_model {
                     ? (map [ scale($_->offset->[X] - $align[X]) - $align2[X], scale($_->offset->[Y] - $align[Y]) - $align2[Y] ], @{$object->instances})
                     : [0,0],
             ],
-            size        => $bb->size,  # transformed size
+            size        => $scaled_bb->size,  # transformed size
             input_file  => $object->input_file,
             config_overrides    => $object->config,
             layer_height_ranges => $object->layer_height_ranges,
@@ -514,7 +515,7 @@ EOF
     my @previous_layer_slices = ();
     for my $layer_id (0..$self->layer_count-1) {
         my @layers = map $_->layers->[$layer_id], @{$self->objects};
-        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale +(grep defined $_, @layers)[0]->slice_z;
+        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, +(grep defined $_, @layers)[0]->slice_z;
         
         my @current_layer_slices = ();
         for my $obj_idx (0 .. $#{$self->objects}) {

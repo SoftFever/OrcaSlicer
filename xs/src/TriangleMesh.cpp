@@ -165,7 +165,7 @@ void
 TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
 {
     /*
-       This method gets called with a list of Z coordinates and outputs
+       This method gets called with a list of unscaled Z coordinates and outputs
        a vector pointer having the same number of items as the original list.
        Each item is a vector of polygons created by slicing our mesh at the 
        given heights.
@@ -240,10 +240,21 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
     
     std::vector<IntersectionLines> lines(z.size());
     
+    // clone shared vertices coordinates and scale them
+    stl_vertex* v_scaled_shared = (stl_vertex*)calloc(this->stl.stats.shared_vertices, sizeof(stl_vertex));
+    std::copy(this->stl.v_shared, this->stl.v_shared + this->stl.stats.shared_vertices, v_scaled_shared);
+    for (int i = 0; i < this->stl.stats.shared_vertices; i++) {
+        v_scaled_shared[i].x /= SCALING_FACTOR;
+        v_scaled_shared[i].y /= SCALING_FACTOR;
+        v_scaled_shared[i].z /= SCALING_FACTOR;
+    }
+    
     for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; facet_idx++) {
-        stl_facet* facet = &(this->stl.facet_start[facet_idx]);
-        float min_z = fminf(facet->vertex[0].z, fminf(facet->vertex[1].z, facet->vertex[2].z));
-        float max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
+        stl_facet* facet = &this->stl.facet_start[facet_idx];
+        
+        // find facet extents
+        double min_z = fminf(facet->vertex[0].z, fminf(facet->vertex[1].z, facet->vertex[2].z));
+        double max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
         
         #ifdef SLIC3R_DEBUG
         printf("\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", facet_idx,
@@ -260,6 +271,7 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
             continue;
         }
         
+        // find layer extents
         std::vector<double>::const_iterator min_layer, max_layer;
         min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
         max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
@@ -269,7 +281,8 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
         
         for (std::vector<double>::const_iterator it = min_layer; it != max_layer + 1; ++it) {
             std::vector<double>::size_type layer_idx = it - z.begin();
-            double slice_z = *it;
+            double slice_z_u = *it;   // unscaled
+            double slice_z = slice_z_u / SCALING_FACTOR;
             std::vector<IntersectionPoint> points;
             std::vector< std::vector<IntersectionPoint>::size_type > points_on_layer;
             bool found_horizontal_edge = false;
@@ -289,8 +302,8 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
                 int edge_id = facets_edges[facet_idx][j % 3];
                 int a_id = this->stl.v_indices[facet_idx].vertex[j % 3];
                 int b_id = this->stl.v_indices[facet_idx].vertex[(j+1) % 3];
-                stl_vertex* a = &(this->stl.v_shared[a_id]);
-                stl_vertex* b = &(this->stl.v_shared[b_id]);
+                stl_vertex* a = &v_scaled_shared[a_id];
+                stl_vertex* b = &v_scaled_shared[b_id];
                 
                 if (a->z == b->z && a->z == slice_z) {
                     // edge is horizontal and belongs to the current layer
@@ -298,7 +311,7 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
                     /* We assume that this method is never being called for horizontal
                        facets, so no other edge is going to be on this layer. */
                     IntersectionLine line;
-                    if (facet->vertex[0].z < slice_z || facet->vertex[1].z < slice_z || facet->vertex[2].z < slice_z) {
+                    if (facet->vertex[0].z < slice_z_u || facet->vertex[1].z < slice_z_u || facet->vertex[2].z < slice_z_u) {
                         line.edge_type = feTop;
                         std::swap(a, b);
                         std::swap(a_id, b_id);
@@ -366,6 +379,8 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
             }
         }
     }
+    
+    free(v_scaled_shared);
     
     // build loops
     layers.resize(z.size());

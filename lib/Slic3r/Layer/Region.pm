@@ -135,7 +135,7 @@ sub _merge_loops {
     $slices = offset2_ex($slices, +$safety_offset, -$safety_offset);
     
     Slic3r::debugf "Layer %d (slice_z = %.2f, print_z = %.2f): %d surface(s) having %d holes detected from %d polylines\n",
-        $self->id, unscale($self->slice_z), $self->print_z,
+        $self->id, $self->slice_z, $self->print_z,
         scalar(@$slices), scalar(map @{$_->holes}, @$slices), scalar(@$loops)
         if $Slic3r::debug;
     
