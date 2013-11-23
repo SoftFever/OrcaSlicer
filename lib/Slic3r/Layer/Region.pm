@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(sum first);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(PI A B scale unscale chained_path_items points_coincide);
+use Slic3r::Geometry qw(PI A B scale unscale chained_path points_coincide);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
     offset offset2 offset2_ex union_pt traverse_pt diff intersection
     union diff intersection_pl);
@@ -236,10 +236,9 @@ sub make_perimeters {
         my ($polynodes, $depth, $is_contour) = @_;
         
         # use a nearest neighbor search to order these children
-        # TODO: supply second argument to chained_path_items() too?
-        my @nodes = @{Slic3r::Geometry::chained_path_items(
-            [ map [ ($_->{outer} // $_->{hole})->first_point, $_ ], @$polynodes ],
-        )};
+        # TODO: supply second argument to chained_path() too?
+        my @ordering_points = map { ($_->{outer} // $_->{hole})->first_point } @$polynodes;
+        my @nodes = @$polynodes[@{chained_path(\@ordering_points)}];
         
         my @loops = ();
         foreach my $polynode (@nodes) {

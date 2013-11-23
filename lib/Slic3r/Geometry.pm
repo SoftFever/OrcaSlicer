@@ -7,7 +7,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
     PI X Y Z A B X1 Y1 X2 Y2 Z1 Z2 MIN MAX epsilon slope line_atan lines_parallel 
     line_point_belongs_to_segment points_coincide distance_between_points 
-    chained_path_items normalize tan move_points_3D
+    normalize tan move_points_3D
     point_in_polygon point_in_segment segment_in_segment
     polyline_lines polygon_lines
     point_along_segment polygon_segment_having_point polygon_has_subsegment
@@ -563,19 +563,6 @@ sub polyline_remove_short_segments {
             $i--;
         }
     }
-}
-
-# accepts an arrayref; each item should be an arrayref whose first
-# item is the point to be used for the shortest path, and the second
-# one is the value to be returned in output (if the second item
-# is not provided, the point will be returned)
-sub chained_path_items {
-    my ($items, $start_near) = @_;
-    
-    my @indices = defined($start_near)
-        ? @{chained_path_from([ map $_->[0], @$items ], $start_near)}
-        : @{chained_path([ map $_->[0], @$items ])};
-    return [ map $_->[1], @$items[@indices] ];
 }
 
 sub douglas_peucker {
