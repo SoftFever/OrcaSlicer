@@ -16,7 +16,7 @@ our @EXPORT_OK = qw(
     dot perp polygon_points_visibility
     line_intersection bounding_box bounding_box_intersect
     angle3points three_points_aligned line_direction
-    chained_path collinear scale unscale
+    chained_path chained_path_from collinear scale unscale
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
     scaled_epsilon bounding_box_3D size_3D size_2D
