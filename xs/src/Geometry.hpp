@@ -6,6 +6,8 @@
 namespace Slic3r {
 
 void convex_hull(Points points, Polygon &hull);
+void chained_path(Points &points, std::vector<Points::size_type> &retval, Point start_near);
+void chained_path(Points &points, std::vector<Points::size_type> &retval);
 
 }
 

@@ -862,7 +862,7 @@ sub write_gcode {
         }
     } else {
         # order objects using a nearest neighbor search
-        my @obj_idx = chained_path([ map Slic3r::Point->new(@{$_->copies->[0]}), @{$self->objects} ]);
+        my @obj_idx = @{chained_path([ map Slic3r::Point->new(@{$_->copies->[0]}), @{$self->objects} ])};
         
         # sort layers by Z
         my %layers = ();  # print_z => [ [layers], [layers], [layers] ]  by obj_idx

@@ -1,5 +1,6 @@
 #include "Geometry.hpp"
 #include <algorithm>
+#include <map>
 
 namespace Slic3r {
 
@@ -48,6 +49,35 @@ convex_hull(Points points, Polygon &hull)
         hull.points.pop_back();
     
     free(out_hull);
+}
+
+/* accepts an arrayref of points and returns a list of indices
+   according to a nearest-neighbor walk */
+void
+chained_path(Points &points, std::vector<Points::size_type> &retval, Point start_near)
+{
+    PointPtrs my_points;
+    std::map<Point*,Points::size_type> indices;
+    my_points.reserve(points.size());
+    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
+        my_points.push_back(&*it);
+        indices[&*it] = it - points.begin();
+    }
+    
+    retval.reserve(points.size());
+    while (!my_points.empty()) {
+        Points::size_type idx = start_near.nearest_point_index(my_points);
+        start_near = *my_points[idx];
+        retval.push_back(indices[ my_points[idx] ]);
+        my_points.erase(my_points.begin() + idx);
+    }
+}
+
+void
+chained_path(Points &points, std::vector<Points::size_type> &retval)
+{
+    if (points.empty()) return;  // can't call front() on empty vector
+    chained_path(points, retval, points.front());
 }
 
 }

@@ -40,20 +40,30 @@ Point::coincides_with(const Point &point) const
 }
 
 int
-Point::nearest_point_index(const Points points) const
+Point::nearest_point_index(Points &points) const
+{
+    PointPtrs p;
+    p.reserve(points.size());
+    for (Points::iterator it = points.begin(); it != points.end(); ++it)
+        p.push_back(&*it);
+    return this->nearest_point_index(p);
+}
+
+int
+Point::nearest_point_index(PointPtrs &points) const
 {
     int idx = -1;
     double distance = -1;  // double because long is limited to 2147483647 on some platforms and it's not enough
     
-    for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
+    for (PointPtrs::const_iterator it = points.begin(); it != points.end(); ++it) {
         /* If the X distance of the candidate is > than the total distance of the
            best previous candidate, we know we don't want it */
-        double d = pow(this->x - (*it).x, 2);
+        double d = pow(this->x - (*it)->x, 2);
         if (distance != -1 && d > distance) continue;
         
         /* If the Y distance of the candidate is > than the total distance of the
            best previous candidate, we know we don't want it */
-        d += pow(this->y - (*it).y, 2);
+        d += pow(this->y - (*it)->y, 2);
         if (distance != -1 && d > distance) continue;
         
         idx = it - points.begin();

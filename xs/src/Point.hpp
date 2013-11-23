@@ -10,6 +10,7 @@ namespace Slic3r {
 class Line;
 class Point;
 typedef std::vector<Point> Points;
+typedef std::vector<Point*> PointPtrs;
 
 class Point
 {
@@ -22,7 +23,8 @@ class Point
     void rotate(double angle, Point* center);
     bool coincides_with(const Point &point) const;
     bool coincides_with(const Point* point) const;
-    int nearest_point_index(const Points points) const;
+    int nearest_point_index(Points &points) const;
+    int nearest_point_index(PointPtrs &points) const;
     Point* nearest_point(Points points) const;
     double distance_to(const Point* point) const;
     double distance_to(const Line* line) const;

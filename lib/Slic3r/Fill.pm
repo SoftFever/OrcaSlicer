@@ -195,7 +195,7 @@ sub make_fill {
     }
     
     # organize infill paths using a nearest-neighbor search
-    @fills = @fills[ chained_path(\@fills_ordering_points) ];
+    @fills = @fills[ @{chained_path(\@fills_ordering_points)} ];
     
     return @fills;
 }

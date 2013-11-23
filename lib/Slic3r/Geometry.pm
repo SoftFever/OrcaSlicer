@@ -565,28 +565,6 @@ sub polyline_remove_short_segments {
     }
 }
 
-# accepts an arrayref of points; it returns a list of indices
-# according to a nearest-neighbor walk
-sub chained_path {
-    my ($items, $start_near) = @_;
-    
-    my @points = @$items;
-    my %indices = map { $points[$_] => $_ } 0 .. $#points;
-    
-    my @result = ();
-    if (!$start_near && @points) {
-        $start_near = shift @points;
-        push @result, $indices{$start_near};
-    }
-    while (@points) {
-        my $idx = $start_near->nearest_point_index(\@points);
-        ($start_near) = splice @points, $idx, 1;
-        push @result, $indices{$start_near};
-    }
-    
-    return @result;
-}
-
 # accepts an arrayref; each item should be an arrayref whose first
 # item is the point to be used for the shortest path, and the second
 # one is the value to be returned in output (if the second item
@@ -594,13 +572,15 @@ sub chained_path {
 sub chained_path_items {
     my ($items, $start_near) = @_;
     
-    my @indices = chained_path([ map $_->[0], @$items ], $start_near);
+    my @indices = defined($start_near)
+        ? @{chained_path_from([ map $_->[0], @$items ], $start_near)}
+        : @{chained_path([ map $_->[0], @$items ])};
     return [ map $_->[1], @$items[@indices] ];
 }
 
 sub chained_path_points {
     my ($points, $start_near) = @_;
-    return [ @$points[ chained_path($points, $start_near) ] ];
+    return [ @$points[ @{chained_path_from($points, $start_near)} ] ];
 }
 
 sub douglas_peucker {

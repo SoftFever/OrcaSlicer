@@ -1,3 +1,5 @@
+std::vector<Points::size_type>  T_STD_VECTOR_INT
+
 ZTable*         O_OBJECT
 TriangleMesh*         O_OBJECT
 Point*         O_OBJECT
