@@ -8,7 +8,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
     convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
-    offset2 traverse_pt JT_ROUND JT_SQUARE);
+    offset2 union_pt_chained JT_ROUND JT_SQUARE);
 use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
@@ -678,7 +678,7 @@ sub make_brim {
         polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
         flow_spacing    => $flow->spacing,
-    ), reverse traverse_pt( union_pt(\@loops) ));
+    ), reverse @{union_pt_chained(\@loops)});
 }
 
 sub write_gcode {

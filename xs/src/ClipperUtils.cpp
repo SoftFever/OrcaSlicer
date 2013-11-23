@@ -1,4 +1,5 @@
 #include "ClipperUtils.hpp"
+#include "Geometry.hpp"
 
 namespace Slic3r {
 
@@ -383,6 +384,42 @@ void union_pt(const Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, boo
 {
     Slic3r::Polygons clip;
     _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, subject, clip, retval, ClipperLib::pftEvenOdd, safety_offset_);
+}
+
+void union_pt_chained(const Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset_)
+{
+    ClipperLib::PolyTree pt;
+    union_pt(subject, pt, safety_offset_);
+    traverse_pt(pt.Childs, retval);
+}
+
+static void traverse_pt(ClipperLib::PolyNodes &nodes, Slic3r::Polygons &retval)
+{
+    /* use a nearest neighbor search to order these children
+       TODO: supply start_near to chained_path() too? */
+    
+    // collect ordering points
+    Points ordering_points;
+    ordering_points.reserve(nodes.size());
+    for (ClipperLib::PolyNodes::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+        Point p((*it)->Contour.front().X, (*it)->Contour.front().Y);
+        ordering_points.push_back(p);
+    }
+    
+    // perform the ordering
+    ClipperLib::PolyNodes ordered_nodes;
+    Slic3r::Geometry::chained_path_items(ordering_points, nodes, ordered_nodes);
+    
+    // push results recursively
+    for (ClipperLib::PolyNodes::iterator it = ordered_nodes.begin(); it != ordered_nodes.end(); ++it) {
+        // traverse the next depth
+        traverse_pt((*it)->Childs, retval);
+        
+        Polygon p;
+        ClipperPath_to_Slic3rMultiPoint((*it)->Contour, p);
+        retval.push_back(p);
+        if ((*it)->IsHole()) retval.back().reverse();  // ccw
+    }
 }
 
 void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval)

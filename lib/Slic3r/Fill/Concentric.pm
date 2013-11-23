@@ -4,7 +4,7 @@ use Moo;
 extends 'Slic3r::Fill::Base';
 
 use Slic3r::Geometry qw(scale unscale X);
-use Slic3r::Geometry::Clipper qw(offset offset2 union_pt traverse_pt);
+use Slic3r::Geometry::Clipper qw(offset offset2 union_pt_chained);
 
 sub fill_surface {
     my $self = shift;
@@ -37,7 +37,7 @@ sub fill_surface {
     # generate paths from the outermost to the innermost, to avoid 
     # adhesion problems of the first central tiny loops
     @loops = map Slic3r::Polygon->new(@$_),
-        reverse traverse_pt( union_pt(\@loops) );
+        reverse @{union_pt_chained(\@loops)};
     
     # order paths using a nearest neighbor search
     my @paths = ();

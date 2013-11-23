@@ -171,6 +171,16 @@ union_pt(subject, safety_offset = false)
         RETVAL
 
 Polygons
+union_pt_chained(subject, safety_offset = false)
+    Polygons                    subject
+    bool                        safety_offset
+    CODE:
+        // perform operation
+        union_pt_chained(subject, RETVAL, safety_offset);
+    OUTPUT:
+        RETVAL
+
+Polygons
 simplify_polygons(subject)
     Polygons                    subject
     CODE:

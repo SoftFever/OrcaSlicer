@@ -1,4 +1,5 @@
 #include "Geometry.hpp"
+#include "clipper.hpp"
 #include <algorithm>
 #include <map>
 
@@ -79,5 +80,17 @@ chained_path(Points &points, std::vector<Points::size_type> &retval)
     if (points.empty()) return;  // can't call front() on empty vector
     chained_path(points, retval, points.front());
 }
+
+/* retval and items must be different containers */
+template<class T>
+void
+chained_path_items(Points &points, T &items, T &retval)
+{
+    std::vector<Points::size_type> indices;
+    chained_path(points, indices);
+    for (std::vector<Points::size_type>::const_iterator it = indices.begin(); it != indices.end(); ++it)
+        retval.push_back(items[*it]);
+}
+template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
 
 } }
