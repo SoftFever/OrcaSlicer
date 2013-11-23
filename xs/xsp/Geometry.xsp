@@ -5,6 +5,7 @@
 #include "Geometry.hpp"
 %}
 
+
 %package{Slic3r::Geometry};
 
 %{
@@ -16,7 +17,7 @@ convex_hull(points)
         const char* CLASS = "Slic3r::Polygon";
     CODE:
         RETVAL = new Polygon ();
-        convex_hull(points, *RETVAL);
+        Slic3r::Geometry::convex_hull(points, *RETVAL);
     OUTPUT:
         RETVAL
 
@@ -24,7 +25,7 @@ std::vector<Points::size_type>
 chained_path(points)
     Points      points
     CODE:
-        chained_path(points, RETVAL);
+        Slic3r::Geometry::chained_path(points, RETVAL);
     OUTPUT:
         RETVAL
 
@@ -33,7 +34,7 @@ chained_path_from(points, start_from)
     Points      points
     Point*      start_from
     CODE:
-        chained_path(points, RETVAL, *start_from);
+        Slic3r::Geometry::chained_path(points, RETVAL, *start_from);
     OUTPUT:
         RETVAL
 

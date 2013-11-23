@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <map>
 
-namespace Slic3r {
+namespace Slic3r { namespace Geometry {
 
 static bool
 sort_points (Point a, Point b)
@@ -80,4 +80,4 @@ chained_path(Points &points, std::vector<Points::size_type> &retval)
     chained_path(points, retval, points.front());
 }
 
-}
+} }
