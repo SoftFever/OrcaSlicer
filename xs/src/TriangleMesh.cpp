@@ -1,4 +1,5 @@
 #include "TriangleMesh.hpp"
+#include "ClipperUtils.hpp"
 #include <queue>
 #include <deque>
 #include <set>
@@ -573,6 +574,28 @@ TriangleMesh::merge(const TriangleMesh* mesh)
     
     // update size
     stl_get_size(&this->stl);
+}
+
+/* this will return scaled ExPolygons */
+void
+TriangleMesh::horizontal_projection(ExPolygons &retval) const
+{
+    Polygons pp;
+    pp.reserve(this->stl.stats.number_of_facets);
+    for (int i = 0; i < this->stl.stats.number_of_facets; i++) {
+        stl_facet* facet = &this->stl.facet_start[i];
+        Polygon p;
+        p.points.resize(3);
+        p.points[0] = Point(facet->vertex[0].x / SCALING_FACTOR, facet->vertex[0].y / SCALING_FACTOR);
+        p.points[1] = Point(facet->vertex[1].x / SCALING_FACTOR, facet->vertex[1].y / SCALING_FACTOR);
+        p.points[2] = Point(facet->vertex[2].x / SCALING_FACTOR, facet->vertex[2].y / SCALING_FACTOR);
+        p.make_counter_clockwise();  // do this after scaling, as winding order might change while doing that
+        pp.push_back(p);
+    }
+    
+    // the offset factor was tuned using groovemount.stl
+    offset(pp, pp, 0.01 / SCALING_FACTOR);
+    union_(pp, retval, true);
 }
 
 #ifdef SLIC3RXS

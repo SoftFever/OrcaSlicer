@@ -24,6 +24,8 @@
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split();
     void merge(TriangleMesh* mesh);
+    ExPolygons horizontal_projection()
+        %code{% THIS->horizontal_projection(RETVAL); %};
 %{
 
 SV*

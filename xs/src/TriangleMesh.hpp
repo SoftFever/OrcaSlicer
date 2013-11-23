@@ -6,6 +6,7 @@
 #include <vector>
 #include "Point.hpp"
 #include "Polygon.hpp"
+#include "ExPolygon.hpp"
 
 namespace Slic3r {
 
@@ -31,6 +32,7 @@ class TriangleMesh
     void slice(const std::vector<double> &z, std::vector<Polygons> &layers);
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh* mesh);
+    void horizontal_projection(ExPolygons &retval) const;
     stl_file stl;
     bool repaired;
     
