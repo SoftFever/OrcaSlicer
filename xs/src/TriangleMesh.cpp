@@ -532,8 +532,11 @@ TriangleMesh::split() const
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
         stl_allocate(&mesh->stl);
         
+        int first = 1;
         for (std::deque<int>::const_iterator facet = facets.begin(); facet != facets.end(); facet++) {
             mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
+            stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
+            first = 0;
         }
     }
     
