@@ -13,6 +13,7 @@ use Slic3r::Geometry qw(scale);
 
 sub traverse_pt {
     my ($polynodes) = @_;
+    no warnings 'recursion';
     
     # use a nearest neighbor search to order these children
     # TODO: supply second argument to chained_path_items() too?
