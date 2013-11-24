@@ -480,6 +480,6 @@ use Moo;
 has 'object'    => (is => 'ro', weak_ref => 1, required => 1);
 has 'rotation'  => (is => 'rw', default => sub { 0 });  # around mesh center point
 has 'scaling_factor' => (is => 'rw', default => sub { 1 });
-has 'offset'    => (is => 'rw');  # must be Slic3r::Point object
+has 'offset'    => (is => 'rw');  # must be Slic3r::Point object in scaled coordinates
 
 1;

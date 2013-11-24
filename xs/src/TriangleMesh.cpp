@@ -606,7 +606,7 @@ TriangleMesh::convex_hull(Polygon &hull)
     Points pp;
     pp.reserve(this->stl.stats.shared_vertices);
     for (int i = 0; i < this->stl.stats.shared_vertices; i++) {
-        stl_vertex* v = this->stl.v_shared;
+        stl_vertex* v = &this->stl.v_shared[i];
         pp.push_back(Point(v->x / SCALING_FACTOR, v->y / SCALING_FACTOR));
     }
     Slic3r::Geometry::convex_hull(pp, hull);

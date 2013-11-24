@@ -17,7 +17,7 @@ sort_points (Point a, Point b)
 void
 convex_hull(Points points, Polygon &hull)
 {
-    assert(points.size() >= 2);
+    assert(points.size() >= 3);
     // sort input points
     std::sort(points.begin(), points.end(), sort_points);
     

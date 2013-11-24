@@ -6,7 +6,7 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum first);
 use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
-use Slic3r::Geometry qw(X Y Z MIN MAX convex_hull);
+use Slic3r::Geometry qw(X Y Z MIN MAX convex_hull scale unscale);
 use threads::shared qw(shared_clone);
 use Wx qw(:bitmap :brush :button :cursor :dialog :filedialog :font :keycode :icon :id :listctrl :misc :panel :pen :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
@@ -395,7 +395,7 @@ sub load_file {
             instances               => [
                 $model->objects->[$i]->instances
                     ? (map $_->offset, @{$model->objects->[$i]->instances})
-                    : [0,0],
+                    : Slic3r::Point->new(0,0),
             ],
         );
         
@@ -466,7 +466,8 @@ sub increase {
     
     my ($obj_idx, $object) = $self->selected_object;
     my $instances = $object->instances;
-    push @$instances, [ $instances->[-1]->[X] + 10, $instances->[-1]->[Y] + 10 ];
+    push @$instances, my $new_instance = $instances->[-1]->clone;
+    $new_instance->translate(scale(10), scale(10));
     $self->{list}->SetItem($obj_idx, 1, $object->instances_count);
     $self->arrange;
 }
@@ -865,18 +866,19 @@ sub recenter {
     return unless @{$self->{objects}};
     
     # calculate displacement needed to center the print
-    my $print_bb = Slic3r::Geometry::BoundingBox->new_from_points([
-        map {
-            my $obj = $_;
-            my $bb = $obj->transformed_bounding_box;
-            my @points = ($bb->min_point, $bb->max_point);
-            map Slic3r::Geometry::move_points($_, @points), @{$obj->instances};
-        } @{$self->{objects}},
-    ]);
+    my @bbs = ();
+    foreach my $plobj (@{$self->{objects}}) {
+        my $bb = $plobj->transformed_bounding_box;  # in scaled coordinates
+        foreach my $inst (@{$plobj->instances}) {
+            push @bbs, my $inst_bb = $bb->clone;
+            $inst_bb->translate(@$inst, 0);
+        }
+    }
+    my $print_bb = Slic3r::Geometry::BoundingBox->merge(@bbs);
+    my $print_size = $print_bb->size;
     
     # $self->{shift} contains the offset in pixels to add to object instances in order to center them
     # it is expressed in upwards Y
-    my $print_size = $print_bb->size;
     $self->{shift} = [
         $self->to_pixel(-$print_bb->x_min) + ($self->{canvas}->GetSize->GetWidth  - $self->to_pixel($print_size->[X])) / 2,
         $self->to_pixel(-$print_bb->y_min) + ($self->{canvas}->GetSize->GetHeight - $self->to_pixel($print_size->[Y])) / 2,
@@ -915,6 +917,7 @@ sub _update_bed_size {
     # supposing the preview canvas is square, calculate the scaling factor
     # to constrain print bed area inside preview
     # when the canvas is not rendered yet, its GetSize() method returns 0,0
+    # scaling_factor is expressed in pixel / mm
     $self->{scaling_factor} = CANVAS_SIZE->[X] / max(@{ $self->{config}->bed_size });
     $_->thumbnail_scaling_factor($self->{scaling_factor}) for @{ $self->{objects} };
     $self->recenter;
@@ -974,9 +977,9 @@ sub repaint {
             my $instance = $object->instances->[$instance_idx];
             
             my $thumbnail = $object->transformed_thumbnail->clone;
-            $thumbnail->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
-            
-            push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $thumbnail ];
+            $thumbnail->translate(map $_ * $parent->{scaling_factor}, @$instance);
+            $thumbnail->translate(map scale($parent->{shift}[$_]), (X,Y));
+            push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $thumbnail ];  # $thumbnail has scaled coordinates
             
             my $drag_object = $self->{drag_object};
             if (defined $drag_object && $obj_idx == $drag_object->[0] && $instance_idx == $drag_object->[1]) {
@@ -986,26 +989,39 @@ sub repaint {
             } else {
                 $dc->SetBrush($parent->{objects_brush});
             }
-            $dc->DrawPolygon($parent->_y($_), 0, 0) for map $_->contour->pp, @{ $parent->{object_previews}->[-1][2] };
+            foreach my $expolygon (@$thumbnail) {
+                my $points = $expolygon->contour->pp;
+                foreach my $point (@$points) {
+                    $point->[X] *= &Slic3r::SCALING_FACTOR;
+                    $point->[Y] *= &Slic3r::SCALING_FACTOR;
+                }
+                $dc->DrawPolygon($parent->_y($points), 0, 0);
+            }
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
-            	my $convex_hull = convex_hull([ map @{$_->contour}, @{$parent->{object_previews}->[-1][2]} ]);
-                my ($clearance) = @{offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 100, JT_ROUND)};
-                $dc->SetPen($parent->{clearance_pen});
-                $dc->SetBrush($parent->{transparent_brush});
-                $dc->DrawPolygon($parent->_y($clearance), 0, 0);
+                my @points = map @{$_->contour}, @{$parent->{object_previews}->[-1][2]};
+                if (@points >= 3) {
+                    my ($clearance) = @{offset([convex_hull(\@points)], scale($parent->{config}->extruder_clearance_radius / 2) * $parent->{scaling_factor}, 100, JT_ROUND)};
+                    $clearance->scale(&Slic3r::SCALING_FACTOR);
+                    $dc->SetPen($parent->{clearance_pen});
+                    $dc->SetBrush($parent->{transparent_brush});
+                    $dc->DrawPolygon($parent->_y($clearance), 0, 0);
+                }
             }
         }
     }
     
     # draw skirt
     if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
-        my $convex_hull = convex_hull([ map @{$_->contour}, map @{$_->[2]}, @{$parent->{object_previews}} ]);
-        ($convex_hull) = @{offset([$convex_hull], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
-        $dc->SetPen($parent->{skirt_pen});
-        $dc->SetBrush($parent->{transparent_brush});
-        $dc->DrawPolygon($parent->_y($convex_hull), 0, 0) if $convex_hull;
+        my @points = map @{$_->contour}, map @{$_->[2]}, @{$parent->{object_previews}};
+        if (@points >= 3) {
+            my ($convex_hull) = @{offset([convex_hull(\@points)], scale($parent->{config}->skirt_distance) * $parent->{scaling_factor}, 1, JT_ROUND)};
+            $convex_hull->scale(&Slic3r::SCALING_FACTOR);
+            $dc->SetPen($parent->{skirt_pen});
+            $dc->SetBrush($parent->{transparent_brush});
+            $dc->DrawPolygon($parent->_y($convex_hull), 0, 0);
+        }
     }
     
     $event->Skip;
@@ -1016,7 +1032,7 @@ sub mouse_event {
     my $parent = $self->GetParent;
     
     my $point = $event->GetPosition;
-    my $pos = Slic3r::Point->new(map @$_, map @$_, $parent->_y([[$point->x, $point->y]])); #]]
+    my $pos = Slic3r::Point->new_scale(@{$parent->_y([[$point->x, $point->y]])->[0]}); #]] in scaled pixels
     if ($event->ButtonDown(&Wx::wxMOUSE_BTN_LEFT)) {
         $parent->{selected_objects} = [];
         $parent->{list}->Select($parent->{list}->GetFirstSelected, 0);
@@ -1028,7 +1044,7 @@ sub mouse_event {
                 $parent->{list}->Select($obj_idx, 1);
                 $parent->selection_changed(1);
                 my $instance = $parent->{objects}[$obj_idx]->instances->[$instance_idx];
-                $self->{drag_start_pos} = [ map $pos->[$_] - $parent->{shift}[$_] - $parent->to_pixel($instance->[$_]), X,Y ];   # displacement between the click and the instance origin
+                $self->{drag_start_pos} = [ map $pos->[$_] - scale($parent->{shift}[$_]) - scale($parent->to_pixel($instance->[$_])), X,Y ];   # displacement between the click and the instance origin
                 $self->{drag_object} = $preview;
             }
         }
@@ -1045,8 +1061,9 @@ sub mouse_event {
         return if !$self->{drag_start_pos}; # concurrency problems
         for my $preview ($self->{drag_object}) {
             my ($obj_idx, $instance_idx, $thumbnail) = @$preview;
-            my $instance = $parent->{objects}[$obj_idx]->instances->[$instance_idx];
-            $instance->[$_] = $parent->to_units($pos->[$_] - $self->{drag_start_pos}[$_] - $parent->{shift}[$_]) for X,Y;
+            $parent->{objects}[$obj_idx]->instances->[$instance_idx] = Slic3r::Point->new(
+                map { $parent->to_units(unscale($pos->[$_] - $self->{drag_start_pos}[$_]) - $parent->{shift}[$_]) } (X,Y),
+            );
             $parent->Refresh;
         }
     } elsif ($event->Moving) {
@@ -1155,7 +1172,7 @@ sub selection_changed {
     if ($self->{object_info_size}) { # have we already loaded the info pane?
         if ($have_sel) {
             my ($obj_idx, $object) = $self->selected_object;
-            $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$object->transformed_size}));
+            $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", map unscale($_), @{$object->transformed_size}));
             $self->{object_info_materials}->SetLabel($object->materials);
             
             if (my $stats = $object->mesh_stats) {
@@ -1209,12 +1226,12 @@ sub statusbar {
 
 sub to_pixel {
     my $self = shift;
-    return $_[0] * $self->{scaling_factor};
+    return $_[0] * $self->{scaling_factor} * &Slic3r::SCALING_FACTOR;
 }
 
 sub to_units {
     my $self = shift;
-    return $_[0] / $self->{scaling_factor};
+    return $_[0] / $self->{scaling_factor} / &Slic3r::SCALING_FACTOR;
 }
 
 sub _y {
@@ -1261,8 +1278,8 @@ has 'input_file'            => (is => 'rw', required => 1);
 has 'input_file_object_id'  => (is => 'rw');  # undef means keep model object
 has 'model'                 => (is => 'rw', required => 1, trigger => \&_trigger_model_object);
 has 'model_object_idx'      => (is => 'rw', required => 1, trigger => \&_trigger_model_object);
-has 'bounding_box'          => (is => 'rw');  # 3D bb of original object (aligned to origin) with no rotation or scaling
-has 'convex_hull'           => (is => 'rw');  # 2D convex hull of original object (aligned to origin) with no rotation or scaling
+has 'bounding_box'          => (is => 'rw');  # scaled 3D bb of original object (aligned to origin) with no rotation or scaling
+has 'convex_hull'           => (is => 'rw');  # scaled 2D convex hull of original object (aligned to origin) with no rotation or scaling
 has 'scale'                 => (is => 'rw', default => sub { 1 }, trigger => \&_transform_thumbnail);
 has 'rotate'                => (is => 'rw', default => sub { 0 }, trigger => \&_transform_thumbnail); # around object center point
 has 'instances'             => (is => 'rw', default => sub { [] }); # upward Y axis
@@ -1286,6 +1303,7 @@ sub _trigger_model_object {
         my $model_object = $self->model->objects->[$self->model_object_idx];
         $model_object->align_to_origin;
 	    $self->bounding_box($model_object->bounding_box);
+	    $self->bounding_box->scale(1 / &Slic3r::SCALING_FACTOR);
 	    
     	my $mesh = $model_object->mesh;
     	$mesh->repair;
@@ -1363,12 +1381,9 @@ sub make_thumbnail {
         );
         $self->thumbnail->simplify(0.5);
     } else {
-        my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
-        $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);
+        my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull);
         $self->thumbnail->append($convex_hull);
     }
-    
-    $self->thumbnail->scale(&Slic3r::SCALING_FACTOR);
     
     return $self->thumbnail;
 }
