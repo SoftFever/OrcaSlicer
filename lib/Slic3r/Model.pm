@@ -308,7 +308,7 @@ use Storable qw(dclone);
 has 'input_file' => (is => 'rw');
 has 'model'     => (is => 'ro', weak_ref => 1, required => 1);
 has 'volumes'   => (is => 'ro', default => sub { [] });
-has 'instances' => (is => 'rw');
+has 'instances' => (is => 'rw'); # in unscaled coordinates
 has 'config'    => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 51;
+use Test::More tests => 52;
 
 is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
@@ -59,6 +59,7 @@ my $cube = {
         my $meshes = $m->split;
         is scalar(@$meshes), 1, 'split';
         isa_ok $meshes->[0], 'Slic3r::TriangleMesh', 'split';
+        is_deeply $m->bb3, $meshes->[0]->bb3, 'split populates stats';
     }
     
     my $m2 = Slic3r::TriangleMesh->new;

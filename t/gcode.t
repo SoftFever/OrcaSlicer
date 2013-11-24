@@ -46,8 +46,13 @@ use Slic3r::Test;
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('complete_objects', 1);
     $config->set('duplicate', 2);
+    $config->set('extrusion_axis', 'A');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), "complete_objects";
+    ok my $gcode = Slic3r::Test::gcode($print), "complete_objects";
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
+        my ($self, $cmd, $args, $info) = @_;
+        fail 'unexpected E argument' if defined $args->{E};
+    });
 }
 
 __END__

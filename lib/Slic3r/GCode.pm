@@ -8,6 +8,7 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
 has 'config'             => (is => 'ro', required => 1);
+has 'extra_variables'    => (is => 'rw', default => sub {{}});
 has 'extruders'          => (is => 'ro', required => 1);
 has 'multiple_extruders' => (is => 'lazy');
 has 'standby_points'     => (is => 'rw');
@@ -549,7 +550,8 @@ sub unretract {
             $gcode .= "G11 ; unretract\n";
         } elsif ($self->config->extrusion_axis) {
             # use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            $gcode .= sprintf "G1 E%.5f F%.3f",
+            $gcode .= sprintf "G1 %s%.5f F%.3f",
+                $self->config->extrusion_axis,
                 $self->extruder->extrude($to_unretract),
                 $self->extruder->retract_speed_mm_min;
             $gcode .= " ; compensate retraction" if $self->config->gcode_comments;
@@ -644,7 +646,7 @@ sub set_extruder {
     
     # append custom toolchange G-code
     if (defined $self->extruder && $self->config->toolchange_gcode) {
-        $gcode .= sprintf "%s\n", $self->print->replace_variables($self->config->toolchange_gcode, {
+        $gcode .= sprintf "%s\n", $self->replace_variables($self->config->toolchange_gcode, {
             previous_extruder   => $self->extruder->id,
             next_extruder       => $extruder->id,
         });
@@ -741,6 +743,11 @@ sub set_bed_temperature {
         if $self->config->gcode_flavor eq 'teacup' && $wait;
     
     return $gcode;
+}
+
+sub replace_variables {
+    my ($self, $string, $extra) = @_;
+    return $self->config->replace_options($string, { %{$self->extra_variables}, %{ $extra || {} } });
 }
 
 1;

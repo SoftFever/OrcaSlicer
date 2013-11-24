@@ -66,7 +66,7 @@ sub process_layer {
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
     $gcode .= $self->gcodegen->change_layer($layer);
-    $gcode .= $self->print->replace_variables($Slic3r::Config->layer_gcode, {
+    $gcode .= $self->gcodegen->replace_variables($Slic3r::Config->layer_gcode, {
         layer_num => $self->gcodegen->layer->id,
     }) . "\n" if $Slic3r::Config->layer_gcode;
     
