@@ -1001,7 +1001,7 @@ sub repaint {
     
     # draw skirt
     if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
-        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->pp}, map @{$_->[2]}, @{$parent->{object_previews}} ])});
+        my $convex_hull = convex_hull([ map @{$_->contour}, map @{$_->[2]}, @{$parent->{object_previews}} ]);
         ($convex_hull) = @{offset([$convex_hull], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
@@ -1289,7 +1289,7 @@ sub _trigger_model_object {
 	    
     	my $mesh = $model_object->mesh;
     	$mesh->repair;
-        $self->convex_hull(Slic3r::Geometry::convex_hull($mesh->vertices));
+        $self->convex_hull($mesh->convex_hull);
 	    $self->facets($mesh->facets_count);
 	    $self->vertices(scalar @{$mesh->vertices});
 	    $self->materials($model_object->materials_count);

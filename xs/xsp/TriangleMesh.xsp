@@ -161,6 +161,16 @@ TriangleMesh::bb3()
     OUTPUT:
         RETVAL
 
+Polygon*
+TriangleMesh::convex_hull()
+    PREINIT:
+        const char* CLASS = "Slic3r::Polygon";
+    CODE:
+        RETVAL = new Polygon ();
+        THIS->convex_hull(*RETVAL);
+    OUTPUT:
+        RETVAL
+
 %}
 };
 

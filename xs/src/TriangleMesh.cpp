@@ -1,5 +1,6 @@
 #include "TriangleMesh.hpp"
 #include "ClipperUtils.hpp"
+#include "Geometry.hpp"
 #include <queue>
 #include <deque>
 #include <set>
@@ -596,6 +597,19 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
     // the offset factor was tuned using groovemount.stl
     offset(pp, pp, 0.01 / SCALING_FACTOR);
     union_(pp, retval, true);
+}
+
+void
+TriangleMesh::convex_hull(Polygon &hull)
+{
+    if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
+    Points pp;
+    pp.reserve(this->stl.stats.shared_vertices);
+    for (int i = 0; i < this->stl.stats.shared_vertices; i++) {
+        stl_vertex* v = this->stl.v_shared;
+        pp.push_back(Point(v->x / SCALING_FACTOR, v->y / SCALING_FACTOR));
+    }
+    Slic3r::Geometry::convex_hull(pp, hull);
 }
 
 #ifdef SLIC3RXS

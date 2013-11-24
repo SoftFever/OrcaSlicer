@@ -33,6 +33,7 @@ class TriangleMesh
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh* mesh);
     void horizontal_projection(ExPolygons &retval) const;
+    void convex_hull(Polygon &hull);
     stl_file stl;
     bool repaired;
     
