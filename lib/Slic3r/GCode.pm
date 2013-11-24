@@ -546,7 +546,8 @@ sub unretract {
             $gcode .= "G11 ; unretract\n";
         } elsif ($self->config->extrusion_axis) {
             # use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            $gcode .= sprintf "G1 E%.5f F%.3f",
+            $gcode .= sprintf "G1 %s%.5f F%.3f",
+                $self->config->extrusion_axis,
                 $self->extruder->extrude($to_unretract),
                 $self->extruder->retract_speed_mm_min;
             $gcode .= " ; compensate retraction" if $self->config->gcode_comments;
