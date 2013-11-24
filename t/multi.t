@@ -22,6 +22,7 @@ use Slic3r::Test;
     $config->set('extruder_offset', [ [0,0], [20,0], [0,20] ]);
     $config->set('temperature', [200, 180, 170]);
     $config->set('first_layer_temperature', [206, 186, 166]);
+    $config->set('toolchange_gcode', ';toolchange');  # test that it doesn't crash when this is supplied
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     

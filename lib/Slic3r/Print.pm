@@ -726,6 +726,7 @@ sub write_gcode {
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
         config              => $self->config,
+        extra_variables     => $self->extra_variables,
         extruders           => $self->extruders,    # we should only pass the *used* extruders (but maintain the Tx indices right!)
         layer_count         => $self->layer_count,
     );
@@ -749,7 +750,7 @@ sub write_gcode {
         }
     };
     $print_first_layer_temperature->(0);
-    printf $fh "%s\n", $self->replace_variables($Slic3r::Config->start_gcode);
+    printf $fh "%s\n", $gcodegen->replace_variables($Slic3r::Config->start_gcode);
     $print_first_layer_temperature->(1);
     
     # set other general things
@@ -902,7 +903,7 @@ sub write_gcode {
     # write end commands to file
     print $fh $gcodegen->retract if $gcodegen->extruder;  # empty prints don't even set an extruder
     print $fh $gcodegen->set_fan(0);
-    printf $fh "%s\n", $self->replace_variables($Slic3r::Config->end_gcode);
+    printf $fh "%s\n", $gcodegen->replace_variables($Slic3r::Config->end_gcode);
     
     foreach my $extruder (@{$self->extruders}) {
         printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
@@ -949,12 +950,7 @@ sub expanded_output_filepath {
         # path is a full path to a file so we use it as it is
     }
     
-    return $self->replace_variables($path, $extra_variables);
-}
-
-sub replace_variables {
-    my ($self, $string, $extra) = @_;
-    return $self->config->replace_options($string, { %{$self->extra_variables}, %{ $extra || {} } });
+    return $self->config->replace_options($path, { %{$self->extra_variables}, %$extra_variables });
 }
 
 # given the path to a file, this function returns its filename with and without extension
