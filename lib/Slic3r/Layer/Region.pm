@@ -328,7 +328,7 @@ sub _fill_gaps {
     
     return unless @$gaps;
     
-    my $filler = $self->layer->object->fill_maker->filler('rectilinear');
+    my $filler = Slic3r::Fill->new->filler('rectilinear');
     $filler->layer_id($self->layer->id);
     
     # we should probably use this code to handle thin walls and remove that logic from

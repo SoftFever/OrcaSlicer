@@ -5,7 +5,7 @@ use Slic3r::Geometry qw(PI);
 
 has 'layer_id'            => (is => 'rw');
 has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
-has 'bounding_box'        => (is => 'ro', required => 1);  # Slic3r::Geometry::BoundingBox object
+has 'bounding_box'        => (is => 'ro', required => 0);  # Slic3r::Geometry::BoundingBox object
 
 sub angles () { [0, PI/2] }
 
@@ -16,7 +16,9 @@ sub infill_direction {
     # set infill angle
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);
-    $rotate[1] = $self->bounding_box->center_2D;
+    $rotate[1] = $self->bounding_box
+        ? $self->bounding_box->center_2D
+        : $surface->expolygon->bounding_box->center_2D;
     @shift = @{$rotate[1]};
     
     if (defined $self->layer_id) {

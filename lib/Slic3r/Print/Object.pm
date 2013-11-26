@@ -76,7 +76,7 @@ sub BUILD {
 
 sub _build_fill_maker {
     my $self = shift;
-    return Slic3r::Fill->new(object => $self);
+    return Slic3r::Fill->new(bounding_box => $self->bounding_box);
 }
 
 # This should be probably moved in Print.pm at the point where we sort Layer objects
