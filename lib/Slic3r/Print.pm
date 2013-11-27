@@ -77,9 +77,9 @@ sub _build_has_support_material {
 
 # caller is responsible for supplying models whose objects don't collide
 # and have explicit instance positions
-sub add_model {
+sub add_model_object {
     my $self = shift;
-    my ($model) = @_;
+    my ($object) = @_;
     
     # optimization: if avoid_crossing_perimeters is enabled, split
     # this mesh into distinct objects so that we reduce the complexity
@@ -90,76 +90,89 @@ sub add_model {
     # -- thing before the split.
     ###$model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
     
-    my %unmapped_materials = ();
-    foreach my $object (@{ $model->objects }) {
-        # we align object to origin before applying transformations
-        my @align = $object->align_to_origin;
-        
-        # extract meshes by material
-        my @meshes = ();  # by region_id
-        foreach my $volume (@{$object->volumes}) {
-            my $region_id;
-            if (defined $volume->material_id) {
-                if ($object->material_mapping) {
-                    $region_id = $object->material_mapping->{$volume->material_id} - 1
-                        if defined $object->material_mapping->{$volume->material_id};
-                }
-                $region_id //= $unmapped_materials{$volume->material_id};
-                if (!defined $region_id) {
-                    $region_id = $unmapped_materials{$volume->material_id} = scalar(keys %unmapped_materials);
-                }
+    # read the material mapping provided by the model object, if any
+    my %matmap = %{ $object->material_mapping || {} };
+    $_-- for values %matmap;  # extruders in the mapping are 1-indexed but we want 0-indexed
+    
+    my %meshes = ();  # region_id => TriangleMesh
+    foreach my $volume (@{$object->volumes}) {
+        my $region_id;
+        if (defined $volume->material_id) {
+            if (!exists $matmap{ $volume->material_id }) {
+                # there's no mapping between this material and a region
+                $matmap{ $volume->material_id } = scalar(@{ $self->regions });
             }
-            $region_id //= 0;
-            
-            my $mesh = $volume->mesh->clone;
-            # should the object contain multiple volumes of the same material, merge them
-            $meshes[$region_id] = $meshes[$region_id]
-                ? Slic3r::TriangleMesh->merge($meshes[$region_id], $mesh)
-                : $mesh;
-        }
-        $self->regions->[$_] //= Slic3r::Print::Region->new for 0..$#meshes;
-        
-        foreach my $mesh (grep $_, @meshes) {
-            # the order of these transformations must be the same as the one used in plater
-            # to make the object positioning consistent with the visual preview
-            
-            # we ignore the per-instance transformations currently and only 
-            # consider the first one
-            if ($object->instances && @{$object->instances}) {
-                $mesh->rotate($object->instances->[0]->rotation, $object->center_2D);
-                $mesh->scale($object->instances->[0]->scaling_factor);
-            }
-            $mesh->repair;
+            $region_id = $matmap{ $volume->material_id };
+        } else {
+            $region_id = 0;
         }
         
-        # we also align object after transformations so that we only work with positive coordinates
-        # and the assumption that bounding_box === size works
-        my $bb = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, grep $_, @meshes);
-        my @align2 = map -$bb->extents->[$_][MIN], (X,Y,Z);
-        $_->translate(@align2) for grep $_, @meshes;
+        # instantiate region if it does not exist
+        $self->regions->[$region_id] //= Slic3r::Print::Region->new;
         
-        my $scaled_bb = $bb->clone;
-        $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
-        
-        # initialize print object
-        push @{$self->objects}, Slic3r::Print::Object->new(
-            print       => $self,
-            meshes      => [ @meshes ],
-            copies      => [
-                map Slic3r::Point->new(@$_),
-                $object->instances
-                    ? (map [ scale($_->offset->[X] - $align[X]) - $align2[X], scale($_->offset->[Y] - $align[Y]) - $align2[Y] ], @{$object->instances})
-                    : [0,0],
-            ],
-            size        => $scaled_bb->size,  # transformed size
-            input_file  => $object->input_file,
-            config_overrides    => $object->config,
-            layer_height_ranges => $object->layer_height_ranges,
-        );
+        # if a mesh is already associated to this region, append this one to it
+        $meshes{$region_id} //= Slic3r::TriangleMesh->new;
+        $meshes{$region_id}->merge($volume->mesh);
     }
     
+    my $bb1 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
+    
+    foreach my $mesh (values %meshes) {
+        # align meshes to origin before applying transformations
+        $mesh->translate(@{$bb1->vector_to_origin});
+        
+        # the order of these transformations must be the same as the one used in plater
+        # to make the object positioning consistent with the visual preview
+        
+        # we ignore the per-instance transformations currently and only 
+        # consider the first one
+        if ($object->instances && @{$object->instances}) {
+            $mesh->rotate($object->instances->[0]->rotation, $object->center_2D);
+            $mesh->scale($object->instances->[0]->scaling_factor);
+        }
+        $mesh->repair;
+    }
+    
+    # we align object also after transformations so that we only work with positive coordinates
+    # and the assumption that bounding_box === size works
+    my $bb2 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
+    $_->translate(@{$bb2->vector_to_origin}) for values %meshes;
+    
+    # prepare scaled object size
+    my $scaled_bb = $bb2->clone;
+    $scaled_bb->translate(@{$bb2->vector_to_origin});  # not needed for getting size, but who knows
+    $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
+    
+    # prepare copies
+    my @copies = ();
+    if ($object->instances) {
+        foreach my $instance (@{ $object->instances }) {
+            push @copies, Slic3r::Point->new(
+                scale($instance->offset->[X] - $bb1->extents->[X][MIN])
+            );
+        }
+    } else {
+        push @copies, Slic3r::Point->new(0,0);
+    }
+    
+    # initialize print object
+    push @{$self->objects}, Slic3r::Print::Object->new(
+        print       => $self,
+        meshes      => [ map $meshes{$_}, 0..$#{$self->regions} ],
+        copies      => [
+            map Slic3r::Point->new(@$_),
+            $object->instances
+                ? (map [ scale($_->offset->[X] - $align[X]) - $align2[X], scale($_->offset->[Y] - $align[Y]) - $align2[Y] ], @{$object->instances})
+                : [0,0],
+        ],
+        size        => $scaled_bb->size,  # transformed size
+        input_file  => $object->input_file,
+        config_overrides    => $object->config,
+        layer_height_ranges => $object->layer_height_ranges,
+    );
+    
     if (!defined $self->extra_variables->{input_filename}) {
-        if (defined (my $input_file = $self->objects->[0]->input_file)) {
+        if (defined (my $input_file = $object->input_file)) {
             @{$self->extra_variables}{qw(input_filename input_filename_base)} = parse_filename($input_file);
         }
     }

@@ -129,7 +129,7 @@ if (@ARGV) {  # slicing from command line
         }
         
         my $print = Slic3r::Print->new(config => $config);
-        $print->add_model($model);
+        $print->add_model_object($_) for @{$model->objects};
         $print->validate;
         my %params = (
             output_file => $opt{output},

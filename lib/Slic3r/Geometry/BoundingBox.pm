@@ -130,6 +130,16 @@ sub min_point {
     return Slic3r::Point->new($self->extents->[X][MIN], $self->extents->[Y][MIN]);
 }
 
+sub min_point3 {
+    my $self = shift;
+    return [ map $self->extents->[$_][MIN], (X,Y,Z) ];
+}
+
+sub vector_to_origin {
+    my $self = shift;
+    return [ map -$_, @{$self->min_point3} ];
+}
+
 sub max_point {
     my $self = shift;
     return Slic3r::Point->new($self->extents->[X][MAX], $self->extents->[Y][MAX]);
