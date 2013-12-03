@@ -80,7 +80,7 @@ SurfaceCollection::group(merge_solid = false)
     CODE:
         // perform grouping
         std::vector<SurfacesPtr> groups;
-        THIS->group(groups, merge_solid);
+        THIS->group(&groups, merge_solid);
         
         // build return arrayref
         AV* av = newAV();
