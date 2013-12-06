@@ -21,34 +21,31 @@ SurfaceCollection::simplify(double tolerance)
 
 /* group surfaces by common properties */
 void
-SurfaceCollection::group(std::vector<SurfacesPtr> &retval, bool merge_solid)
+SurfaceCollection::group(std::vector<SurfacesPtr> *retval, bool merge_solid)
 {
-    typedef std::map<t_surface_group_key,SurfacesPtr> t_unique_map;
-    t_unique_map unique_map;
-    
     for (Surfaces::iterator it = this->surfaces.begin(); it != this->surfaces.end(); ++it) {
-        // build the t_surface_group_key struct with this surface's properties
-        t_surface_group_key key;
-        if (merge_solid && it->is_solid()) {
-            key.surface_type = stTop;
-        } else {
-            key.surface_type = it->surface_type;
+        // find a group with the same properties
+        SurfacesPtr* group = NULL;
+        for (std::vector<SurfacesPtr>::iterator git = retval->begin(); git != retval->end(); ++git) {
+            Surface* gkey = git->front();
+            if ((gkey->surface_type == it->surface_type || (merge_solid && gkey->is_solid() && it->is_solid()))
+                && gkey->thickness         == it->thickness
+                && gkey->thickness_layers  == it->thickness_layers
+                && gkey->bridge_angle      == it->bridge_angle) {
+                group = &*git;
+                break;
+            }
         }
-        key.thickness           = it->thickness;
-        key.thickness_layers    = it->thickness_layers;
-        key.bridge_angle        = it->bridge_angle;
         
-        // check whether we already have a group for these properties
-        if (unique_map.find(key) == unique_map.end()) {
-            // no group exists, add it
-            unique_map[key] = SurfacesPtr();
+        // if no group with these properties exists, add one
+        if (group == NULL) {
+            retval->resize(retval->size() + 1);
+            group = &retval->back();
         }
-        unique_map[key].push_back(&*it);
+        
+        // append surface to group
+        group->push_back(&*it);
     }
-    
-    retval.reserve(unique_map.size());
-    for (t_unique_map::const_iterator it = unique_map.begin(); it != unique_map.end(); ++it)
-        retval.push_back(it->second);
 }
 
 }
