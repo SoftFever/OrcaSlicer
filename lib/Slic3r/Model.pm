@@ -171,7 +171,7 @@ sub bounding_box {
     if (!defined $self->_bounding_box) {
         $self->_bounding_box(Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, @{$self->objects}));
     }
-    return $self->_bounding_box;
+    return $self->_bounding_box->clone;
 }
 
 sub align_to_origin {
@@ -368,7 +368,7 @@ sub bounding_box {
         $bounding_box->merge(Slic3r::Geometry::BoundingBox->new_from_bb($_->bb3)) for @meshes;
         $self->_bounding_box($bounding_box);
     }
-    return $self->_bounding_box;
+    return $self->_bounding_box->clone;
 }
 
 sub align_to_origin {
