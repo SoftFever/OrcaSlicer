@@ -1,4 +1,4 @@
-use Test::More tests => 4;
+use Test::More tests => 6;
 use strict;
 use warnings;
 
@@ -43,16 +43,30 @@ use Slic3r::Test;
 }
 
 {
+    # This tests the following behavior:
+    # - complete objects does not crash
+    # - no hard-coded "E" are generated
+    # - Z moves are correctly generated for both objects
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('complete_objects', 1);
     $config->set('duplicate', 2);
     $config->set('extrusion_axis', 'A');
+    $config->set('start_gcode', '');  # prevent any default extra Z move
+    $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', 0.4);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     ok my $gcode = Slic3r::Test::gcode($print), "complete_objects";
+    my @z_moves = ();
     Slic3r::GCode::Reader->new->parse($gcode, sub {
         my ($self, $cmd, $args, $info) = @_;
         fail 'unexpected E argument' if defined $args->{E};
+        if (defined $args->{Z}) {
+            push @z_moves, $args->{Z};
+        }
     });
+    my $layer_count = 20/0.4;  # cube is 20mm tall
+    is scalar(@z_moves), 2*$layer_count, 'complete_objects generates the correct number of Z moves';
+    is_deeply [ @z_moves[0..($layer_count-1)] ], [ @z_moves[$layer_count..$#z_moves] ], 'complete_objects generates the correct Z moves';
 }
 
 __END__
