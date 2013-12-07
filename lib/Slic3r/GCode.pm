@@ -130,25 +130,33 @@ sub change_layer {
 sub move_z {
     my ($self, $z, $comment) = @_;
     
-    $z += $self->config->z_offset;
-    
     my $gcode = "";
+    
+    $z += $self->config->z_offset;
     my $current_z = $self->z;
-    if (!defined $self->z || $z > $self->z) {
-        # if we're going over the current Z we won't be lifted anymore
+    my $nominal_z = defined $current_z ? ($current_z - $self->lifted) : undef;
+    
+    if (!defined $current_z || $z > $current_z || $z < $nominal_z) {
+        # we're moving above the current actual Z (so above the lift height of the current
+        # layer if any) or below the current nominal layer
+        
+        # in both cases, we're going to the nominal Z of the next layer
         $self->lifted(0);
         
-        # this retraction may alter $self->z
-        $gcode .= $self->retract(move_z => $z) if $self->extruder->retract_layer_change;
+        if ($self->extruder->retract_layer_change) {
+            # this retraction may alter $self->z
+            $gcode .= $self->retract(move_z => $z);
+            $current_z = $self->z;  # update current z in case retract() changed it
+            $nominal_z = defined $current_z ? ($current_z - $self->lifted) : undef;
+        }
         $self->speed('travel');
         $gcode .= $self->G0(undef, $z, 0, $comment || ('move to next layer (' . $self->layer->id . ')'))
-            if !defined $self->z || abs($z - ($self->z - $self->lifted)) > epsilon;
-    } elsif ($z < $self->z && $z > ($self->z - $self->lifted + epsilon)) {
-        # we're moving to a layer height which is greater than the nominal current one
-        # (nominal = actual - lifted) and less than the actual one.  we're basically
-        # advancing to next layer, whose nominal Z is still lower than the previous
+            if !defined $current_z || abs($z - $nominal_z) > epsilon;
+    } elsif ($z < $current_z) {
+        # we're moving above the current nominal layer height and below the current actual one.
+        # we're basically advancing to next layer, whose nominal Z is still lower than the previous
         # layer Z with lift.
-        $self->lifted($self->z - $z);
+        $self->lifted($current_z - $z);
     }
     
     return $gcode;
