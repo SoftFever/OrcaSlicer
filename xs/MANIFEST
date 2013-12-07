@@ -12,6 +12,8 @@ src/clipper.cpp
 src/clipper.hpp
 src/ClipperUtils.cpp
 src/ClipperUtils.hpp
+src/Config.cpp
+src/Config.hpp
 src/ExPolygon.cpp
 src/ExPolygon.hpp
 src/ExPolygonCollection.cpp
