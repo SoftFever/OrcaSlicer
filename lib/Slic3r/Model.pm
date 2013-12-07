@@ -216,9 +216,9 @@ sub mesh {
         foreach my $instance (@instances) {
             my $mesh = $object->mesh->clone;
             if ($instance) {
-                $mesh->rotate($instance->rotation, Slic3r::Point->new(0,0));
-                $mesh->scale($instance->scaling_factor);
                 $mesh->align_to_origin;
+                $mesh->rotate($instance->rotation, $object->center_2D);
+                $mesh->scale($instance->scaling_factor);
                 $mesh->translate(@{$instance->offset}, 0);
             }
             push @meshes, $mesh;
