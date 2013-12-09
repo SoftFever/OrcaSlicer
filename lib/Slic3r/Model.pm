@@ -311,7 +311,7 @@ has 'volumes'   => (is => 'ro', default => sub { [] });
 has 'instances' => (is => 'rw'); # in unscaled coordinates
 has 'config'    => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
-has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }
+has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => region_idx }
 has '_bounding_box' => (is => 'rw');
 
 sub add_volume {

@@ -704,7 +704,8 @@ sub export_gcode2 {
     
     eval {
         $print->config->validate;
-        $print->add_model($self->make_model);
+        my $model = $self->make_model;
+        $print->add_model_object($_) for @{$model->objects};
         $print->validate;
         
         {
@@ -1290,7 +1291,7 @@ has 'transformed_thumbnail' => (is => 'rw');
 has 'thumbnail_scaling_factor' => (is => 'rw', trigger => \&_transform_thumbnail);
 has 'config'                => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
-has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => extruder_idx }
+has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => region_id }
 has 'mesh_stats'            => (is => 'ro', required => 1);
 
 # statistics

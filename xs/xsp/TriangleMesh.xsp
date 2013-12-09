@@ -24,8 +24,6 @@
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split();
     void merge(TriangleMesh* mesh);
-    ExPolygons horizontal_projection()
-        %code{% THIS->horizontal_projection(RETVAL); %};
 %{
 
 SV*
@@ -158,16 +156,6 @@ TriangleMesh::bb3()
         RETVAL.push_back(THIS->stl.stats.max.y);
         RETVAL.push_back(THIS->stl.stats.min.z);
         RETVAL.push_back(THIS->stl.stats.max.z);
-    OUTPUT:
-        RETVAL
-
-Polygon*
-TriangleMesh::convex_hull()
-    PREINIT:
-        const char* CLASS = "Slic3r::Polygon";
-    CODE:
-        RETVAL = new Polygon ();
-        THIS->convex_hull(*RETVAL);
     OUTPUT:
         RETVAL
 

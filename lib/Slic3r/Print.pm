@@ -81,15 +81,6 @@ sub add_model_object {
     my $self = shift;
     my ($object) = @_;
     
-    # optimization: if avoid_crossing_perimeters is enabled, split
-    # this mesh into distinct objects so that we reduce the complexity
-    # of the graphs 
-    # -- Disabling this one because there are too many legit objects having nested shells
-    # -- It also caused a bug where plater rotation was applied to each single object by the
-    # -- code below (thus around its own center), instead of being applied to the whole 
-    # -- thing before the split.
-    ###$model->split_meshes if $Slic3r::Config->avoid_crossing_perimeters && !$Slic3r::Config->complete_objects;
-    
     # read the material mapping provided by the model object, if any
     my %matmap = %{ $object->material_mapping || {} };
     $_-- for values %matmap;  # extruders in the mapping are 1-indexed but we want 0-indexed
@@ -115,10 +106,11 @@ sub add_model_object {
         $meshes{$region_id}->merge($volume->mesh);
     }
     
+    # bounding box of the original meshes in original position in unscaled coordinates
     my $bb1 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
     
     foreach my $mesh (values %meshes) {
-        # align meshes to origin before applying transformations
+        # align meshes to object origin before applying transformations
         $mesh->translate(@{$bb1->vector_to_origin});
         
         # the order of these transformations must be the same as the one used in plater
@@ -130,7 +122,7 @@ sub add_model_object {
             $mesh->rotate($object->instances->[0]->rotation, $object->center_2D);
             $mesh->scale($object->instances->[0]->scaling_factor);
         }
-        $mesh->repair;
+        $mesh->repair;  # needed? TODO: try without
     }
     
     # we align object also after transformations so that we only work with positive coordinates
@@ -159,12 +151,7 @@ sub add_model_object {
     push @{$self->objects}, Slic3r::Print::Object->new(
         print       => $self,
         meshes      => [ map $meshes{$_}, 0..$#{$self->regions} ],
-        copies      => [
-            map Slic3r::Point->new(@$_),
-            $object->instances
-                ? (map [ scale($_->offset->[X] - $align[X]) - $align2[X], scale($_->offset->[Y] - $align[Y]) - $align2[Y] ], @{$object->instances})
-                : [0,0],
-        ],
+        copies      => [ @copies ],
         size        => $scaled_bb->size,  # transformed size
         input_file  => $object->input_file,
         config_overrides    => $object->config,
