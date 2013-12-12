@@ -12,6 +12,7 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
+use Slic3r::Geometry qw(X Y);
 $|++;
 
 our %opt = ();
@@ -119,9 +120,30 @@ if (@ARGV) {  # slicing from command line
         } else {
             $model = Slic3r::Model->read_from_file($input_file);
         }
-        $_->scale($config->scale) for @{$model->objects};
-        $_->rotate($config->rotate) for @{$model->objects};
-        $model->arrange_objects($config);
+        
+        my $need_arrange = $model->has_objects_with_no_instances;
+        if ($need_arrange) {
+            # apply a default position to all objects not having one
+            foreach my $object (@{$model->objects}) {
+                $object->add_instance(offset => [0,0]) if !defined $object->instances;
+            }
+        }
+        
+        # apply scaling and rotation supplied from command line if any
+        foreach my $instance (map @{$_->instances}, @{$model->objects}) {
+            $instance->scaling_factor($instance->scaling_factor * $config->scale);
+            $instance->rotation($instance->rotation + $config->rotate);
+        }
+        # TODO: --scale --rotate, --duplicate* shouldn't be stored in config
+        
+        if ($config->duplicate_grid->[X] > 1 || $config->duplicate_grid->[Y] > 1) {
+            $model->duplicate_objects_grid($config->duplicate_grid, $config->duplicate_distance);
+        } elsif ($need_arrange) {
+            $model->duplicate_objects($config, $config->duplicate);
+        } elsif ($config->duplicate > 1) {
+            # if all input objects have defined position(s) apply duplication to the whole model
+            $model->duplicate($config, $config->duplicate);
+        }
         
         if ($opt{info}) {
             $model->print_info;

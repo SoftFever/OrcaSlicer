@@ -109,6 +109,9 @@ Point::distance_to(const Line &line) const
 /* Three points are a counter-clockwise turn if ccw > 0, clockwise if
  * ccw < 0, and collinear if ccw = 0 because ccw is a determinant that
  * gives the signed area of the triangle formed by p1, p2 and this point.
+ * In other words it is the 2D cross product of p1-p2 and p1-this, i.e.
+ * z-component of their 3D cross product.
+ * We return double because it must be big enough to hold 2*max(|coordinate|)^2
  */
 double
 Point::ccw(const Point &p1, const Point &p2) const

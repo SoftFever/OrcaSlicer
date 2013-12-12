@@ -603,7 +603,7 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
 }
 
 void
-TriangleMesh::convex_hull(Polygon &hull)
+TriangleMesh::convex_hull(Polygon* hull)
 {
     if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
     Points pp;

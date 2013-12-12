@@ -28,16 +28,15 @@ sub new {
     $self->sphi(45);
     $self->stheta(-45);
 
-    $object->align_to_origin;
-    $self->object_center($object->center);
-    $self->object_size($object->size);
+    my $bounding_box = $object->raw_mesh->bounding_box;
+    $self->object_center($bounding_box->center);
+    $self->object_size($bounding_box->size);
     
     # group mesh(es) by material
     my @materials = ();
     $self->volumes([]);
     foreach my $volume (@{$object->volumes}) {
         my $mesh = $volume->mesh;
-        $mesh->repair;
         
         my $material_id = $volume->material_id // '_';
         my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;

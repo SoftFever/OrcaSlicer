@@ -110,19 +110,15 @@ sub add_model_object {
     my $bb1 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
     
     foreach my $mesh (values %meshes) {
-        # align meshes to object origin before applying transformations
-        $mesh->translate(@{$bb1->vector_to_origin});
-        
         # the order of these transformations must be the same as the one used in plater
         # to make the object positioning consistent with the visual preview
         
         # we ignore the per-instance transformations currently and only 
         # consider the first one
         if ($object->instances && @{$object->instances}) {
-            $mesh->rotate($object->instances->[0]->rotation, $object->center_2D);
+            $mesh->rotate($object->instances->[0]->rotation, Slic3r::Point->new(0,0));
             $mesh->scale($object->instances->[0]->scaling_factor);
         }
-        $mesh->repair;  # needed? TODO: try without
     }
     
     # we align object also after transformations so that we only work with positive coordinates
