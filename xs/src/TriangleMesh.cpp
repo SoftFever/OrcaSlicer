@@ -191,6 +191,8 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
         FUTURE: parallelize slice_facet() and make_loops()
     */
     
+    if (!this->repaired) this->repair();
+    
     // build a table to map a facet_idx to its three edge indices
     if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
     typedef std::pair<int,int>              t_edge;
@@ -603,7 +605,7 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
 }
 
 void
-TriangleMesh::convex_hull(Polygon &hull)
+TriangleMesh::convex_hull(Polygon* hull)
 {
     if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
     Points pp;

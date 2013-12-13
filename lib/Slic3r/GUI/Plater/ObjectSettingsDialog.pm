@@ -11,12 +11,12 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Settings for " . $params{object}->name, wxDefaultPosition, [500,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-    $self->{object} = $params{object};
+    $self->{$_} = $params{$_} for keys %params;
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
-    $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}, object => $self->{object}), "Settings");
-    $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}, object => $self->{object}), "Layers");
-    $self->{tabpanel}->AddPage($self->{materials} = Slic3r::GUI::Plater::ObjectDialog::MaterialsTab->new($self->{tabpanel}, object => $self->{object}), "Materials");
+    $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}), "Settings");
+    $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}), "Layers");
+    $self->{tabpanel}->AddPage($self->{materials} = Slic3r::GUI::Plater::ObjectDialog::MaterialsTab->new($self->{tabpanel}), "Materials");
     
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
     EVT_BUTTON($self, wxID_OK, sub {
@@ -42,17 +42,24 @@ sub new {
     return $self;
 }
 
+package Slic3r::GUI::Plater::ObjectDialog::BaseTab;
+use base 'Wx::Panel';
+
+sub model_object {
+    my ($self) = @_;
+    return $self->GetParent->GetParent->{model_object};
+}
+
 package Slic3r::GUI::Plater::ObjectDialog::SettingsTab;
 use Wx qw(:dialog :id :misc :sizer :systemsettings :button :icon);
 use Wx::Grid;
 use Wx::Event qw(EVT_BUTTON);
-use base 'Wx::Panel';
+use base 'Slic3r::GUI::Plater::ObjectDialog::BaseTab';
 
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
-    $self->{object} = $params{object};
     
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     
@@ -79,7 +86,7 @@ sub new {
             my $idx = $choice->GetSelection;
             return if $idx == -1;  # lack of selected item, can happen on Windows
             my $opt_key = $self->{options}[$idx];
-            $self->{object}->config->apply(Slic3r::Config->new_from_defaults($opt_key));
+            $self->model_object->config->apply(Slic3r::Config->new_from_defaults($opt_key));
             $self->update_optgroup;
         });
         
@@ -105,7 +112,7 @@ sub update_optgroup {
     
     $self->{options_sizer}->Clear(1);
     
-    my $config = $self->{object}->config;
+    my $config = $self->model_object->config;
     my %categories = ();
     foreach my $opt_key (keys %$config) {
         my $category = $Slic3r::Config::Options->{$opt_key}{category};
@@ -124,7 +131,7 @@ sub update_optgroup {
                 my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
                 my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
                 EVT_BUTTON($self, $btn, sub {
-                    delete $self->{object}->config->{$opt_key};
+                    delete $self->model_object->config->{$opt_key};
                     Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
                 });
                 return $btn;
@@ -141,7 +148,7 @@ sub CanClose {
     # validate options before allowing user to dismiss the dialog
     # the validate method only works on full configs so we have
     # to merge our settings with the default ones
-    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->{object}->config);
+    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->model_object->config);
     eval {
         $config->validate;
     };
@@ -153,13 +160,12 @@ package Slic3r::GUI::Plater::ObjectDialog::LayersTab;
 use Wx qw(:dialog :id :misc :sizer :systemsettings);
 use Wx::Grid;
 use Wx::Event qw(EVT_GRID_CELL_CHANGED);
-use base 'Wx::Panel';
+use base 'Slic3r::GUI::Plater::ObjectDialog::BaseTab';
 
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
-    $self->{object} = $params{object};
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     
@@ -182,7 +188,7 @@ sub new {
     $grid->SetDefaultCellAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
     
     # load data
-    foreach my $range (@{ $self->{object}->layer_height_ranges }) {
+    foreach my $range (@{ $self->model_object->layer_height_ranges }) {
         $grid->AppendRows(1);
         my $i = $grid->GetNumberRows-1;
         $grid->SetCellValue($i, $_, $range->[$_]) for 0..2;
@@ -242,7 +248,7 @@ sub Closing {
     my $self = shift;
     
     # save ranges into the plater object
-    $self->{object}->layer_height_ranges([ $self->_get_ranges ]);
+    $self->model_object->layer_height_ranges([ $self->_get_ranges ]);
 }
 
 sub _get_ranges {
@@ -261,7 +267,7 @@ package Slic3r::GUI::Plater::ObjectDialog::MaterialsTab;
 use Wx qw(:dialog :id :misc :sizer :systemsettings :button :icon);
 use Wx::Grid;
 use Wx::Event qw(EVT_BUTTON);
-use base 'Wx::Panel';
+use base 'Slic3r::GUI::Plater::ObjectDialog::BaseTab';
 
 sub new {
     my $class = shift;
@@ -280,12 +286,12 @@ sub new {
     }
     
     # get unique materials used in this object
-    $self->{materials} = [ $self->{object}->get_model_object->unique_materials ];
+    $self->{materials} = [ $self->model_object->unique_materials ];
     
     # build an OptionsGroup
     $self->{mapping} = {
         (map { $self->{materials}[$_] => $_+1 } 0..$#{ $self->{materials} }),   # defaults
-        %{$self->{object}->material_mapping},
+        %{$self->model_object->material_mapping},
     };
     my $optgroup = Slic3r::GUI::OptionsGroup->new(
         parent      => $self,
@@ -298,7 +304,7 @@ sub new {
                 {
                     opt_key     => "material_extruder_$_",
                     type        => 'i',
-                    label       => $self->{object}->get_model_object->model->get_material_name($material_id),
+                    label       => $self->model_object->model->get_material_name($material_id),
                     min         => 1,
                     default     => $self->{mapping}{$material_id},
                     on_change   => sub { $self->{mapping}{$material_id} = $_[0] },
@@ -318,7 +324,7 @@ sub Closing {
     my $self = shift;
     
     # save mappings into the plater object
-    $self->{object}->material_mapping($self->{mapping});
+    $self->model_object->material_mapping($self->{mapping});
 }
 
 1;

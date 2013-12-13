@@ -134,7 +134,17 @@ sub quick_slice {
         Slic3r::GUI->save_settings;
         
         my $print = $self->init_print;
-        $print->add_model(Slic3r::Model->read_from_file($input_file));
+        my $model = Slic3r::Model->read_from_file($input_file);
+        
+        if ($model->has_objects_with_no_instances) {
+            # apply a default position to all objects not having one
+            foreach my $object (@{$model->objects}) {
+                $object->add_instance(offset => [0,0]) if !defined $object->instances;
+            }
+            $model->arrange_objects($config);
+        }
+        
+        $print->add_model_object($_) for @{ $model->objects };
         $print->validate;
 
         # select output file

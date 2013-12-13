@@ -17,7 +17,7 @@ convex_hull(points)
         const char* CLASS = "Slic3r::Polygon";
     CODE:
         RETVAL = new Polygon ();
-        Slic3r::Geometry::convex_hull(points, *RETVAL);
+        Slic3r::Geometry::convex_hull(points, RETVAL);
     OUTPUT:
         RETVAL
 

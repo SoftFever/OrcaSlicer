@@ -16,6 +16,7 @@ class ExPolygonCollection
     void rotate(double angle, Point* center);
     bool contains_point(const Point* point) const;
     void simplify(double tolerance);
+    void convex_hull(Polygon* hull) const;
 };
 
 }

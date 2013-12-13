@@ -2,6 +2,7 @@
 #include "clipper.hpp"
 #include <algorithm>
 #include <map>
+#include <vector>
 
 namespace Slic3r { namespace Geometry {
 
@@ -11,45 +12,33 @@ sort_points (Point a, Point b)
     return (a.x < b.x) || (a.x == b.x && a.y < b.y);
 }
 
-/* This implementation is based on Steffen Mueller's work for 
-   the Perl module Math::ConvexHull::MonotoneChain (available 
-   on CPAN under the GPL terms) */
+/* This implementation is based on Andrew's monotone chain 2D convex hull algorithm */
 void
-convex_hull(Points points, Polygon &hull)
+convex_hull(Points &points, Polygon* hull)
 {
     assert(points.size() >= 3);
     // sort input points
     std::sort(points.begin(), points.end(), sort_points);
     
-    typedef const Point* PointPtr;
-    PointPtr* out_hull = (PointPtr*)malloc(points.size()*2*sizeof(PointPtr));
-    
-    /* lower hull */
-    size_t k = 0;
-    for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
-        while (k >= 2 && it->ccw(out_hull[k-2], out_hull[k-1]) <= 0) --k;
-        Point pz = *&*it;
-        out_hull[k++] = &*it;
+    int n = points.size(), k = 0;
+    hull->points.resize(2*n);
+
+    // Build lower hull
+    for (int i = 0; i < n; i++) {
+        while (k >= 2 && points[i].ccw(hull->points[k-2], hull->points[k-1]) <= 0) k--;
+        hull->points[k++] = points[i];
     }
-    
-    /* upper hull */
-    size_t t = k+1;
-    for (Points::const_iterator it = points.end() - 2; it != points.begin(); --it) {
-        while (k >= t && it->ccw(out_hull[k-2], out_hull[k-1]) <= 0) --k;
-        out_hull[k++] = &*it;
+
+    // Build upper hull
+    for (int i = n-2, t = k+1; i >= 0; i--) {
+        while (k >= t && points[i].ccw(hull->points[k-2], hull->points[k-1]) <= 0) k--;
+        hull->points[k++] = points[i];
     }
+
+    hull->points.resize(k);
     
-    // we assume hull is empty
-    hull.points.reserve(k);
-    for (size_t i = 0; i < k; ++i) {
-        hull.points.push_back(*(out_hull[i]));
-    }
-    
-    // not sure why this happens randomly
-    if (hull.points.front().coincides_with(hull.points.back()))
-        hull.points.pop_back();
-    
-    free(out_hull);
+    assert( hull->points.front().coincides_with(hull->points.back()) );
+    hull->points.pop_back();
 }
 
 /* accepts an arrayref of points and returns a list of indices

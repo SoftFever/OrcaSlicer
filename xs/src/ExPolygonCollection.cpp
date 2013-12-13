@@ -1,4 +1,5 @@
 #include "ExPolygonCollection.hpp"
+#include "Geometry.hpp"
 
 namespace Slic3r {
 
@@ -55,6 +56,15 @@ ExPolygonCollection::simplify(double tolerance)
         it->simplify(tolerance, expp);
     }
     this->expolygons = expp;
+}
+
+void
+ExPolygonCollection::convex_hull(Polygon* hull) const
+{
+    Points pp;
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it)
+        pp.insert(pp.end(), it->contour.points.begin(), it->contour.points.end());
+    Slic3r::Geometry::convex_hull(pp, hull);
 }
 
 }
