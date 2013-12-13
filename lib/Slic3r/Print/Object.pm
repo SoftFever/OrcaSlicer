@@ -12,6 +12,7 @@ has 'input_file'        => (is => 'rw', required => 0);
 has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
 has 'size'              => (is => 'rw', required => 1); # XYZ in scaled coordinates
 has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
+has 'copies_shift'      => (is => 'rw');  # scaled coordinates to add to copies (to compensate for the alignment operated when creating the object but still preserving a coherent API for external callers)
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'support_layers'    => (is => 'rw', default => sub { [] });
 has 'config_overrides'  => (is => 'rw', default => sub { Slic3r::Config->new });

@@ -49,6 +49,7 @@ sub new {
         bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance
     ));
     $self->{model} = Slic3r::Model->new;
+    $self->{print} = Slic3r::Print->new;
     $self->{objects} = [];
     
     $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, CANVAS_SIZE, wxTAB_TRAVERSAL);
@@ -408,6 +409,8 @@ sub load_model_object {
         $o->add_instance(offset => [0,0]);
     }
     
+    $self->{print}->add_model_object($o);
+    
     $self->object_loaded($#{ $self->{objects} }, no_arrange => !$need_arrange);
 }
 
@@ -474,6 +477,7 @@ sub increase {
         scaling_factor  => $last_instance->scaling_factor,
         rotation        => $last_instance->rotation,
     );
+    $self->{print}->objects->[$obj_idx]->copies;
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     $self->arrange;
 }
@@ -712,10 +716,9 @@ sub export_gcode2 {
         threads->exit();
     } if $Slic3r::have_threads;
     
-    my $print = Slic3r::Print->new(
-        config          => $config,
-        extra_variables => $extra_variables,
-    );
+    my $print = $self->{print};
+    $print->config->apply($config);
+    $print->extra_variables($extra_variables);
     
     eval {
         $print->config->validate;

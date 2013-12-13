@@ -139,6 +139,7 @@ sub add_model_object {
         print               => $self,
         meshes              => [ map $meshes{$_}, 0..$#{$self->regions} ],
         copies              => [ @copies ],
+        input_bounding_box  => $bb1,
         size                => $scaled_bb->size,  # transformed size
         input_file          => $object->input_file,
         config_overrides    => $object->config,
