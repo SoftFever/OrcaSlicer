@@ -638,7 +638,7 @@ sub export_gcode {
     # select output file
     $self->{output_file} = $main::opt{output};
     {
-        $self->{output_file} = $self->skeinpanel->init_print->expanded_output_filepath($self->{output_file}, $self->{objects}[0]->input_file);
+        $self->{output_file} = $self->skeinpanel->init_print->expanded_output_filepath($self->{output_file}, $self->{model}->objects->[0]->input_file);
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', Slic3r::GUI->output_path(dirname($self->{output_file})),
             basename($self->{output_file}), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
@@ -652,8 +652,6 @@ sub export_gcode {
     }
     
     $self->statusbar->StartBusy;
-    
-    $_->free_model_object for @{$self->{objects}};
     
     # It looks like declaring a local $SIG{__WARN__} prevents the ugly
     # "Attempt to free unreferenced scalar" warning...
@@ -727,6 +725,7 @@ sub export_gcode2 {
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
+            
             my %params = (
                 output_file => $output_file,
                 status_cb   => sub { $params{progressbar}->(@_) },
@@ -966,6 +965,7 @@ sub repaint {
         next unless defined $object->thumbnail;
         for my $instance_idx (0 .. $#{$model_object->instances}) {
             my $instance = $model_object->instances->[$instance_idx];
+            next if !defined $object->transformed_thumbnail;
             
             my $thumbnail = $object->transformed_thumbnail->clone;                  # in scaled coordinates
             $thumbnail->scale(&Slic3r::SCALING_FACTOR * $parent->{scaling_factor}); # in unscaled pixels

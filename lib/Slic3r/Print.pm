@@ -110,15 +110,9 @@ sub add_model_object {
     my $bb1 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
     
     foreach my $mesh (values %meshes) {
-        # the order of these transformations must be the same as the one used in plater
-        # to make the object positioning consistent with the visual preview
-        
         # we ignore the per-instance transformations currently and only 
         # consider the first one
-        if ($object->instances && @{$object->instances}) {
-            $mesh->rotate($object->instances->[0]->rotation, Slic3r::Point->new(0,0));
-            $mesh->scale($object->instances->[0]->scaling_factor);
-        }
+        $object->instances->[0]->transform_mesh($mesh);
     }
     
     # we align object also after transformations so that we only work with positive coordinates
@@ -133,23 +127,20 @@ sub add_model_object {
     
     # prepare copies
     my @copies = ();
-    if ($object->instances) {
-        foreach my $instance (@{ $object->instances }) {
-            push @copies, Slic3r::Point->new(
-                scale($instance->offset->[X] - $bb1->extents->[X][MIN])
-            );
-        }
-    } else {
-        push @copies, Slic3r::Point->new(0,0);
+    foreach my $instance (@{ $object->instances }) {
+        push @copies, Slic3r::Point->new(
+            scale($instance->offset->[X] - $bb1->extents->[X][MIN]),
+            scale($instance->offset->[Y] - $bb1->extents->[Y][MIN]),
+        );
     }
     
     # initialize print object
     push @{$self->objects}, Slic3r::Print::Object->new(
-        print       => $self,
-        meshes      => [ map $meshes{$_}, 0..$#{$self->regions} ],
-        copies      => [ @copies ],
-        size        => $scaled_bb->size,  # transformed size
-        input_file  => $object->input_file,
+        print               => $self,
+        meshes              => [ map $meshes{$_}, 0..$#{$self->regions} ],
+        copies              => [ @copies ],
+        size                => $scaled_bb->size,  # transformed size
+        input_file          => $object->input_file,
         config_overrides    => $object->config,
         layer_height_ranges => $object->layer_height_ranges,
     );

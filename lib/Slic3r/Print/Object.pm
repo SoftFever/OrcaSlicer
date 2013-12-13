@@ -118,7 +118,7 @@ sub slice {
     # process facets
     for my $region_id (0 .. $#{$self->meshes}) {
         my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
-
+        
         {
             my $loops = $mesh->slice([ map $_->slice_z, @{$self->layers} ]);
             for my $layer_id (0..$#$loops) {

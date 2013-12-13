@@ -159,4 +159,8 @@ sub open {
     return CORE::open $$fh, $mode, encode_path($filename);
 }
 
+# this package declaration prevents an ugly fatal warning to be emitted when
+# spawning a new thread
+package GLUquadricObjPtr;
+
 1;
