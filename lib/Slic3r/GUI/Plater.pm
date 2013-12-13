@@ -405,7 +405,7 @@ sub load_model_object {
         
         # add a default instance and center object around origin
         $o->center_around_origin;
-        $o->add_instance(offset => [30,30]);
+        $o->add_instance(offset => [0,0]);
     }
     
     $self->object_loaded($#{ $self->{objects} }, no_arrange => !$need_arrange);
