@@ -79,7 +79,7 @@ sub _build_has_support_material {
 # and have explicit instance positions
 sub add_model_object {
     my $self = shift;
-    my ($object) = @_;
+    my ($object, $obj_idx) = @_;
     
     # read the material mapping provided by the model object, if any
     my %matmap = %{ $object->material_mapping || {} };
@@ -113,7 +113,7 @@ sub add_model_object {
     }
     
     # initialize print object
-    push @{$self->objects}, Slic3r::Print::Object->new(
+    my $o = Slic3r::Print::Object->new(
         print               => $self,
         meshes              => [ map $meshes{$_}, 0..$#{$self->regions} ],
         copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
@@ -121,6 +121,11 @@ sub add_model_object {
         config_overrides    => $object->config,
         layer_height_ranges => $object->layer_height_ranges,
     );
+    if (defined $obj_idx) {
+        splice @{$self->objects}, $obj_idx, 0, $o;
+    } else {
+        push @{$self->objects}, $o;
+    }
     
     if (!defined $self->extra_variables->{input_filename}) {
         if (defined (my $input_file = $object->input_file)) {

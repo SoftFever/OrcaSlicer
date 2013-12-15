@@ -526,6 +526,11 @@ sub rotate {
         my $new_angle = $model_instance->rotation + $angle;
         $_->rotation($new_angle) for @{ $model_object->instances };
         $model_object->update_bounding_box;
+        
+        # update print
+        $self->{print}->delete_object($obj_idx);
+        $self->{print}->add_model_object($model_object, $obj_idx);
+        
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
     $self->selection_changed;  # refresh info (size etc.)
@@ -557,6 +562,11 @@ sub changescale {
         }
         $_->scaling_factor($scale) for @{ $model_object->instances };
         $model_object->update_bounding_box;
+        
+        # update print
+        $self->{print}->delete_object($obj_idx);
+        $self->{print}->add_model_object($model_object, $obj_idx);
+        
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
     $self->selection_changed(1);  # refresh info (size, volume etc.)
@@ -725,7 +735,6 @@ sub export_gcode2 {
     
     eval {
         $print->config->validate;
-        $print->add_model_object($_) for @{ $self->{model}->objects };
         $print->validate;
         
         {
@@ -1058,7 +1067,6 @@ sub mouse_event {
         $parent->Refresh;
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
-        ###use XXX;YYY [[$pos->pp], map $_->pp, @$_];
         if (defined first { $_->contains_point($pos) } map @{$_->instance_thumbnails}, @{ $parent->{objects} }) {
             $cursor = Wx::Cursor->new(wxCURSOR_HAND);
         }
