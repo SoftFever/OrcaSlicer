@@ -144,6 +144,7 @@ if (@ARGV) {  # slicing from command line
             # if all input objects have defined position(s) apply duplication to the whole model
             $model->duplicate($config, $config->duplicate);
         }
+        $model->center_instances_around_point($config->print_center);
         
         if ($opt{info}) {
             $model->print_info;
@@ -152,6 +153,7 @@ if (@ARGV) {  # slicing from command line
         
         my $print = Slic3r::Print->new(config => $config);
         $print->add_model_object($_) for @{$model->objects};
+        undef $model;  # free memory
         $print->validate;
         my %params = (
             output_file => $opt{output},

@@ -143,6 +143,7 @@ sub quick_slice {
             }
             $model->arrange_objects($config);
         }
+        $model->center_instances_around_point($config->print_center);
         
         $print->add_model_object($_) for @{ $model->objects };
         $print->validate;

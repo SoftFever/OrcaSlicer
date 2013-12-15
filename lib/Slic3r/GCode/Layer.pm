@@ -6,7 +6,7 @@ use Slic3r::Geometry qw(X Y unscale);
 
 has 'print'                         => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'gcodegen'                      => (is => 'ro', required => 1);
-has 'shift'                         => (is => 'ro', required => 1);
+has 'shift'                         => (is => 'ro', default => sub { [0,0] });
 
 has 'spiralvase'                    => (is => 'lazy');
 has 'vibration_limit'               => (is => 'lazy');

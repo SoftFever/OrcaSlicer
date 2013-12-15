@@ -222,6 +222,23 @@ sub align_to_origin {
     }
 }
 
+# input point is expressed in unscaled coordinates
+sub center_instances_around_point {
+    my ($self, $point) = @_;
+    
+    my $bb = $self->bounding_box;
+    my $size = $bb->size;
+    my @shift = (
+        -$bb->x_min + $point->[X] - $size->[X]/2,
+        -$bb->y_min + $point->[Y] - $size->[Y]/2,
+    );
+    
+    foreach my $instance (map @{$_->instances}, @{$self->objects}) {
+        $instance->offset->[X] += $shift[X];
+        $instance->offset->[Y] += $shift[Y];
+    }
+}
+
 sub translate {
     my $self = shift;
     my @shift = @_;
@@ -516,11 +533,11 @@ has 'scaling_factor'    => (is => 'rw', default => sub { 1 });
 has 'offset'            => (is => 'rw');  # must be arrayref in *unscaled* coordinates
 
 sub transform_mesh {
-    my ($self, $mesh) = @_;
+    my ($self, $mesh, $dont_translate) = @_;
     
     $mesh->rotate($self->rotation, Slic3r::Point->new(0,0));   # rotate around mesh origin
     $mesh->scale($self->scaling_factor);                       # scale around mesh origin
-    $mesh->translate(@{$self->offset}, 0);
+    $mesh->translate(@{$self->offset}, 0) unless $dont_translate;
 }
 
 1;

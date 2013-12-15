@@ -10,14 +10,16 @@ use Slic3r::Surface ':types';
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'input_file'        => (is => 'rw', required => 0);
 has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
-has 'size'              => (is => 'rw', required => 1); # XYZ in scaled coordinates
-has 'copies'            => (is => 'rw', trigger => 1);  # in scaled coordinates
-has 'copies_shift'      => (is => 'rw');  # scaled coordinates to add to copies (to compensate for the alignment operated when creating the object but still preserving a coherent API for external callers)
-has 'layers'            => (is => 'rw', default => sub { [] });
-has 'support_layers'    => (is => 'rw', default => sub { [] });
+has 'copies'            => (is => 'ro');  # Slic3r::Point objects in scaled G-code coordinates
 has 'config_overrides'  => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'config'            => (is => 'rw');
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
+
+has 'size'              => (is => 'rw'); # XYZ in scaled coordinates
+has '_copies_shift'     => (is => 'rw');  # scaled coordinates to add to copies (to compensate for the alignment operated when creating the object but still preserving a coherent API for external callers)
+has '_shifted_copies'   => (is => 'rw');  # Slic3r::Point objects in scaled G-code coordinates in our coordinates
+has 'layers'            => (is => 'rw', default => sub { [] });
+has 'support_layers'    => (is => 'rw', default => sub { [] });
 has 'fill_maker'        => (is => 'lazy');
 
 sub BUILD {
@@ -25,54 +27,28 @@ sub BUILD {
  	
  	$self->init_config;
  	
-    # make layers taking custom heights into account
-    my $print_z = my $slice_z = my $height = my $id = 0;
-    
-    # add raft layers
-    if ($self->config->raft_layers > 0) {
-        $print_z += $Slic3r::Config->get_value('first_layer_height');
-        $print_z += $Slic3r::Config->layer_height * ($self->config->raft_layers - 1);
-        $id += $self->config->raft_layers;
-    }
-    
-    # loop until we have at least one layer and the max slice_z reaches the object height
-    my $max_z = unscale $self->size->[Z];
-    while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
-        # assign the default height to the layer according to the general settings
-        $height = ($id == 0)
-            ? $Slic3r::Config->get_value('first_layer_height')
-            : $Slic3r::Config->layer_height;
-        
-        # look for an applicable custom range
-        if (my $range = first { $_->[0] <= $slice_z && $_->[1] > $slice_z } @{$self->layer_height_ranges}) {
-            $height = $range->[2];
-        
-            # if user set custom height to zero we should just skip the range and resume slicing over it
-            if ($height == 0) {
-                $slice_z += $range->[1] - $range->[0];
-                next;
-            }
-        }
-        
-        $print_z += $height;
-        $slice_z += $height/2;
-        
-        ### Slic3r::debugf "Layer %d: height = %s; slice_z = %s; print_z = %s\n", $id, $height, $slice_z, $print_z;
-        
-        push @{$self->layers}, Slic3r::Layer->new(
-            object  => $self,
-            id      => $id,
-            height  => $height,
-            print_z => $print_z,
-            slice_z => $slice_z,
-        );
-        if (@{$self->layers} >= 2) {
-            $self->layers->[-2]->upper_layer($self->layers->[-1]);
-        }
-        $id++;
-        
-        $slice_z += $height/2;   # add the other half layer
-    }
+ 	# translate meshes so that we work with smaller coordinates
+ 	{
+ 	    # compute the bounding box of the supplied meshes
+ 	    my @meshes = grep defined $_, @{$self->meshes};  # in no particular order
+ 	    my $bb = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, @meshes);
+ 	    
+ 	    # Translate meshes so that our toolpath generation algorithms work with smaller
+ 	    # XY coordinates; this translation is an optimization and not strictly required.
+ 	    # However, this also aligns object to Z = 0, which on the contrary is required
+ 	    # since we don't assume input is already aligned.
+ 	    $_->translate(@{$bb->vector_to_origin}) for @meshes;
+ 	    
+ 	    # We store the XY translation so that we can place copies correctly in the output G-code
+ 	    # (copies are expressed in G-code coordinates and this translation is not publicly exposed).
+ 	    $self->_copies_shift(Slic3r::Point->new_scale($bb->x_min, $bb->y_min));
+        $self->_trigger_copies;
+ 	    
+ 	    # Scale the object size and store it
+ 	    my $scaled_bb = $bb->clone;
+ 	    $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
+ 	    $self->size($scaled_bb->size);
+ 	}
 }
 
 sub _build_fill_maker {
@@ -80,13 +56,32 @@ sub _build_fill_maker {
     return Slic3r::Fill->new(bounding_box => $self->bounding_box);
 }
 
-# This should be probably moved in Print.pm at the point where we sort Layer objects
 sub _trigger_copies {
     my $self = shift;
-    return unless @{$self->copies} > 1;
     
-    # order copies with a nearest neighbor search
-    @{$self->copies} = @{$self->copies}[@{chained_path($self->copies)}];
+    return if !defined $self->_copies_shift;
+    
+    # order copies with a nearest neighbor search and translate them by _copies_shift
+    $self->_shifted_copies([
+        map {
+            my $c = $_->clone;
+            $c->translate(@{ $self->_copies_shift });
+            $c;
+        } @{$self->copies}[@{chained_path($self->copies)}]
+    ]);
+}
+
+# in unscaled coordinates
+sub add_copy {
+    my ($self, $x, $y) = @_;
+    push @{$self->copies}, Slic3r::Point->new_scale($x, $y);
+    $self->_trigger_copies;
+}
+
+sub delete_last_copy {
+    my ($self) = @_;
+    pop @{$self->copies};
+    $self->_trigger_copies;
 }
 
 sub init_config {
@@ -106,9 +101,64 @@ sub bounding_box {
     return Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_[X,Y]), [0,0], $self->size ]);
 }
 
+# this should be idempotent
 sub slice {
     my $self = shift;
     my %params = @_;
+    
+    # init layers
+    {
+        @{$self->layers} = ();
+    
+        # make layers taking custom heights into account
+        my $print_z = my $slice_z = my $height = my $id = 0;
+    
+        # add raft layers
+        if ($self->config->raft_layers > 0) {
+            $print_z += $Slic3r::Config->get_value('first_layer_height');
+            $print_z += $Slic3r::Config->layer_height * ($self->config->raft_layers - 1);
+            $id += $self->config->raft_layers;
+        }
+    
+        # loop until we have at least one layer and the max slice_z reaches the object height
+        my $max_z = unscale $self->size->[Z];
+        while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
+            # assign the default height to the layer according to the general settings
+            $height = ($id == 0)
+                ? $Slic3r::Config->get_value('first_layer_height')
+                : $Slic3r::Config->layer_height;
+        
+            # look for an applicable custom range
+            if (my $range = first { $_->[0] <= $slice_z && $_->[1] > $slice_z } @{$self->layer_height_ranges}) {
+                $height = $range->[2];
+        
+                # if user set custom height to zero we should just skip the range and resume slicing over it
+                if ($height == 0) {
+                    $slice_z += $range->[1] - $range->[0];
+                    next;
+                }
+            }
+        
+            $print_z += $height;
+            $slice_z += $height/2;
+        
+            ### Slic3r::debugf "Layer %d: height = %s; slice_z = %s; print_z = %s\n", $id, $height, $slice_z, $print_z;
+        
+            push @{$self->layers}, Slic3r::Layer->new(
+                object  => $self,
+                id      => $id,
+                height  => $height,
+                print_z => $print_z,
+                slice_z => $slice_z,
+            );
+            if (@{$self->layers} >= 2) {
+                $self->layers->[-2]->upper_layer($self->layers->[-1]);
+            }
+            $id++;
+        
+            $slice_z += $height/2;   # add the other half layer
+        }
+    }
     
     # make sure all layers contain layer region objects for all regions
     my $regions_count = $self->print->regions_count;

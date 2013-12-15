@@ -191,10 +191,8 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
         FUTURE: parallelize slice_facet() and make_loops()
     */
     
-    if (!this->repaired) this->repair();
-    
     // build a table to map a facet_idx to its three edge indices
-    if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
+    this->require_shared_vertices();
     typedef std::pair<int,int>              t_edge;
     typedef std::vector<t_edge>             t_edges;  // edge_idx => a_id,b_id
     typedef std::map<t_edge,int>            t_edges_map;  // a_id,b_id => edge_idx
@@ -607,7 +605,7 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
 void
 TriangleMesh::convex_hull(Polygon* hull)
 {
-    if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
+    this->require_shared_vertices();
     Points pp;
     pp.reserve(this->stl.stats.shared_vertices);
     for (int i = 0; i < this->stl.stats.shared_vertices; i++) {
@@ -615,6 +613,13 @@ TriangleMesh::convex_hull(Polygon* hull)
         pp.push_back(Point(v->x / SCALING_FACTOR, v->y / SCALING_FACTOR));
     }
     Slic3r::Geometry::convex_hull(pp, hull);
+}
+
+void
+TriangleMesh::require_shared_vertices()
+{
+    if (!this->repaired) this->repair();
+    if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
 }
 
 #ifdef SLIC3RXS

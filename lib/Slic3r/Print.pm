@@ -106,41 +106,17 @@ sub add_model_object {
         $meshes{$region_id}->merge($volume->mesh);
     }
     
-    # bounding box of the original meshes in original position in unscaled coordinates
-    my $bb1 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
-    
     foreach my $mesh (values %meshes) {
         # we ignore the per-instance transformations currently and only 
         # consider the first one
-        $object->instances->[0]->transform_mesh($mesh);
-    }
-    
-    # we align object also after transformations so that we only work with positive coordinates
-    # and the assumption that bounding_box === size works
-    my $bb2 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
-    $_->translate(@{$bb2->vector_to_origin}) for values %meshes;
-    
-    # prepare scaled object size
-    my $scaled_bb = $bb2->clone;
-    $scaled_bb->translate(@{$bb2->vector_to_origin});  # not needed for getting size, but who knows
-    $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
-    
-    # prepare copies
-    my @copies = ();
-    foreach my $instance (@{ $object->instances }) {
-        push @copies, Slic3r::Point->new(
-            scale($instance->offset->[X] - $bb1->extents->[X][MIN]),
-            scale($instance->offset->[Y] - $bb1->extents->[Y][MIN]),
-        );
+        $object->instances->[0]->transform_mesh($mesh, 1);
     }
     
     # initialize print object
     push @{$self->objects}, Slic3r::Print::Object->new(
         print               => $self,
         meshes              => [ map $meshes{$_}, 0..$#{$self->regions} ],
-        copies              => [ @copies ],
-        input_bounding_box  => $bb1,
-        size                => $scaled_bb->size,  # transformed size
+        copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
         input_file          => $object->input_file,
         config_overrides    => $object->config,
         layer_height_ranges => $object->layer_height_ranges,
@@ -151,6 +127,19 @@ sub add_model_object {
             @{$self->extra_variables}{qw(input_filename input_filename_base)} = parse_filename($input_file);
         }
     }
+    # TODO: invalidate skirt and brim
+}
+
+sub delete_object {
+    my ($self, $obj_idx) = @_;
+    splice @{$self->objects}, $obj_idx, 1;
+    # TODO: invalidate skirt and brim
+}
+
+sub delete_all_objects {
+    my ($self) = @_;
+    @{$self->objects} = ();
+    # TODO: invalidate skirt and brim
 }
 
 sub validate {
@@ -163,11 +152,10 @@ sub validate {
             for my $obj_idx (0 .. $#{$self->objects}) {
                 my $clearance;
                 {
-                    my @points = map Slic3r::Point->new(@$_[X,Y]), map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
-                    my $convex_hull = convex_hull(\@points);
-                    ($clearance) = @{offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
+                    my @convex_hulls = map $_->convex_hull, grep defined $_, @{$self->objects->[$obj_idx]->meshes};
+                    ($clearance) = @{offset([@convex_hulls], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
                 }
-                for my $copy (@{$self->objects->[$obj_idx]->copies}) {
+                for my $copy (@{$self->objects->[$obj_idx]->_shifted_copies}) {
                     my $copy_clearance = $clearance->clone;
                     $copy_clearance->translate(@$copy);
                     if (@{ intersection(\@a, [$copy_clearance]) }) {
@@ -287,7 +275,7 @@ sub bounding_box {
     
     my @points = ();
     foreach my $object (@{$self->objects}) {
-        foreach my $copy (@{$object->copies}) {
+        foreach my $copy (@{$object->_shifted_copies}) {
             push @points,
                 [ $copy->[X], $copy->[Y] ],
                 [ $copy->[X] + $object->size->[X], $copy->[Y] + $object->size->[Y] ];
@@ -511,7 +499,7 @@ EOF
             
             # sort slices so that the outermost ones come first
             my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
-            foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
+            foreach my $copy (@{$self->objects->[$obj_idx]->_shifted_copies}) {
                 foreach my $slice (@slices) {
                     my $expolygon = $slice->clone;
                     $expolygon->translate(@$copy);
@@ -573,7 +561,7 @@ sub make_skirt {
                 (map @{$_->polyline}, map @{$_->support_fills}, grep $_->support_fills, @support_layers),
                 (map @{$_->polyline}, map @{$_->support_interface_fills}, grep $_->support_interface_fills, @support_layers);
         }
-        push @points, map move_points($_, @layer_points), @{$object->copies};
+        push @points, map move_points($_, @layer_points), @{$object->_shifted_copies};
     }
     return if @points < 3;  # at least three points required for a convex hull
     
@@ -641,7 +629,7 @@ sub make_brim {
                 (map @{$_->polyline->grow($grow_distance)}, @{$support_layer0->support_interface_fills})
                 if $support_layer0->support_interface_fills;
         }
-        foreach my $copy (@{$object->copies}) {
+        foreach my $copy (@{$object->_shifted_copies}) {
             push @islands, map { $_->translate(@$copy); $_ } map $_->clone, @object_islands;
         }
     }
@@ -751,14 +739,6 @@ sub write_gcode {
     # TODO: make sure we select the first *used* extruder
     print $fh $gcodegen->set_extruder($self->extruders->[0]);
     
-    # calculate X,Y shift to center print around specified origin
-    my $print_bb = $self->bounding_box;
-    my $print_size = $print_bb->size;
-    my @shift = (
-        $Slic3r::Config->print_center->[X] - unscale($print_size->[X]/2 + $print_bb->x_min),
-        $Slic3r::Config->print_center->[Y] - unscale($print_size->[Y]/2 + $print_bb->y_min),
-    );
-    
     # initialize a motion planner for object-to-object travel moves
     if ($Slic3r::Config->avoid_crossing_perimeters) {
         my $distance_from_objects = 1;
@@ -771,9 +751,8 @@ sub write_gcode {
             # discard layers only containing thin walls (offset would fail on an empty polygon)
             if (@$convex_hull) {
                 my $expolygon = Slic3r::ExPolygon->new($convex_hull);
-                $expolygon->translate(scale $shift[X], scale $shift[Y]);
                 my @island = @{$expolygon->offset_ex(scale $distance_from_objects, 1, JT_SQUARE)};
-                foreach my $copy (@{ $self->objects->[$obj_idx]->copies }) {
+                foreach my $copy (@{ $self->objects->[$obj_idx]->shifted_copies }) {
                     push @islands, map { my $c = $_->clone; $c->translate(@$copy); $c } @island;
                 }
             }
@@ -800,7 +779,6 @@ sub write_gcode {
     my $layer_gcode = Slic3r::GCode::Layer->new(
         print       => $self,
         gcodegen    => $gcodegen,
-        shift       => \@shift,
     );
     
     # do all objects for each layer
@@ -817,7 +795,7 @@ sub write_gcode {
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
-                    $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);
+                    $gcodegen->set_shift(map unscale $copy->[$_], X,Y);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
@@ -851,7 +829,7 @@ sub write_gcode {
         }
     } else {
         # order objects using a nearest neighbor search
-        my @obj_idx = @{chained_path([ map Slic3r::Point->new(@{$_->copies->[0]}), @{$self->objects} ])};
+        my @obj_idx = @{chained_path([ map Slic3r::Point->new(@{$_->_shifted_copies->[0]}), @{$self->objects} ])};
         
         # sort layers by Z
         my %layers = ();  # print_z => [ [layers], [layers], [layers] ]  by obj_idx
@@ -872,7 +850,7 @@ sub write_gcode {
             foreach my $obj_idx (@obj_idx) {
                 foreach my $layer (@{ $layers{$print_z}[$obj_idx] // [] }) {
                     print $fh $buffer->append(
-                        $layer_gcode->process_layer($layer, $layer->object->copies),
+                        $layer_gcode->process_layer($layer, $layer->object->_shifted_copies),
                         $layer->object . ref($layer),  # differentiate $obj_id between normal layers and support layers
                         $layer->id,
                         $layer->print_z,

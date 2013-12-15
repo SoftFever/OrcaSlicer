@@ -79,7 +79,7 @@ sub _plot {
     my (@rectangles, @circles) = ();
     
     foreach my $object (@{$self->print->objects}) {
-        foreach my $copy (@{$object->copies}) {
+        foreach my $copy (@{$object->shifted_copies}) {
             foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
                 # get all ExtrusionPath objects
                 my @paths = 

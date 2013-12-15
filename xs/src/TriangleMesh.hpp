@@ -37,6 +37,9 @@ class TriangleMesh
     stl_file stl;
     bool repaired;
     
+    private:
+    void require_shared_vertices();
+    
     #ifdef SLIC3RXS
     SV* to_SV();
     void ReadFromPerl(SV* vertices, SV* facets);

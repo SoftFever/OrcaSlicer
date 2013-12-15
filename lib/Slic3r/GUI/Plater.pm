@@ -446,6 +446,7 @@ sub remove {
     
     splice @{$self->{objects}}, $obj_idx, 1;
     $self->{model}->delete_object($obj_idx);
+    $self->{print}->delete_object($obj_idx);
     $self->{list}->DeleteItem($obj_idx);
     $self->object_list_changed;
     
@@ -459,6 +460,7 @@ sub reset {
     
     @{$self->{objects}} = ();
     $self->{model}->delete_all_objects;
+    $self->{print}->delete_all_objects;
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     
@@ -472,12 +474,12 @@ sub increase {
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $last_instance = $model_object->instances->[-1];
-    $model_object->add_instance(
+    my $i = $model_object->add_instance(
         offset          => [ map 10+$_, @{$last_instance->offset} ],
         scaling_factor  => $last_instance->scaling_factor,
         rotation        => $last_instance->rotation,
     );
-    $self->{print}->objects->[$obj_idx]->copies;
+    $self->{print}->objects->[$obj_idx]->add_copy(@{$i->offset});
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     $self->arrange;
 }
@@ -489,6 +491,7 @@ sub decrease {
     my $model_object = $self->{model}->objects->[$obj_idx];
     if ($model_object->instances_count >= 2) {
         $model_object->delete_last_instance;
+        $self->{print}->objects->[$obj_idx]->delete_last_copy;
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     } else {
         $self->remove;
