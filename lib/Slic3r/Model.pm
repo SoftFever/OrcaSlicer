@@ -227,6 +227,8 @@ sub center_instances_around_point {
     my ($self, $point) = @_;
     
     my $bb = $self->bounding_box;
+    return if !defined $bb;
+    
     my $size = $bb->size;
     my @shift = (
         -$bb->x_min + $point->[X] - $size->[X]/2,

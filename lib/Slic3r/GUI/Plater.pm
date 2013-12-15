@@ -864,6 +864,8 @@ sub clean_instance_thumbnails {
 sub recenter {
     my $self = shift;
     
+    $self->{model}->center_instances_around_point($self->{config}->print_center);
+    return;
     return unless @{$self->{objects}};
     
     # get model bounding box in pixels
@@ -976,7 +978,6 @@ sub repaint {
             my $thumbnail = $object->transformed_thumbnail->clone;                  # in scaled coordinates
             $thumbnail->scale(&Slic3r::SCALING_FACTOR * $parent->{scaling_factor}); # in unscaled pixels
             $thumbnail->translate(map $_ * $parent->{scaling_factor}, @{$instance->offset});
-            $thumbnail->translate(@{$parent->{shift}});
             
             $object->instance_thumbnails->[$instance_idx] = $thumbnail;
             
@@ -989,7 +990,7 @@ sub repaint {
             }
             foreach my $expolygon (@$thumbnail) {
                 my $points = $expolygon->contour->pp;
-                $dc->DrawPolygon($parent->_y($points), 0, 0);
+                $dc->DrawPolygon($parent->points_to_pixel($points), 0, 0);
             }
             
             if (0) {
@@ -1021,7 +1022,7 @@ sub repaint {
             my ($convex_hull) = @{offset([convex_hull(\@points)], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
             $dc->SetPen($parent->{skirt_pen});
             $dc->SetBrush($parent->{transparent_brush});
-            $dc->DrawPolygon($parent->_y($convex_hull), 0, 0);
+            $dc->DrawPolygon($parent->points_to_pixel($convex_hull), 0, 0);
         }
     }
     
@@ -1033,7 +1034,8 @@ sub mouse_event {
     my $parent = $self->GetParent;
     
     my $point = $event->GetPosition;
-    my $pos = Slic3r::Point->new(@{$parent->_y([[$point->x, $point->y]])->[0]}); # in pixels
+    my $pos = $parent->point_to_model_units([ $point->x, $point->y ]);  #]] in pixels
+    $pos = Slic3r::Point->new_scale(@$pos);
     if ($event->ButtonDown(&Wx::wxMOUSE_BTN_LEFT)) {
         $parent->select_object(undef);
         for my $obj_idx (0 .. $#{$parent->{objects}}) {
@@ -1243,21 +1245,32 @@ sub statusbar {
     return $self->skeinpanel->GetParent->{statusbar};
 }
 
-sub to_pixel {
-    my $self = shift;
-    return $_[0] * $self->{scaling_factor} * &Slic3r::SCALING_FACTOR;
+# convert a model coordinate into a pixel coordinate, assuming preview has square shape
+sub point_to_pixel {
+    my ($self, $point) = @_;
+    
+    my $canvas_height = $self->{canvas}->GetSize->GetHeight;
+    
+    return [
+                          $point->[X] * $self->{scaling_factor} + (0),
+        $canvas_height - ($point->[Y] * $self->{scaling_factor} + (0)),
+    ];
 }
 
-sub to_units {
-    my $self = shift;
-    return $_[0] / $self->{scaling_factor} / &Slic3r::SCALING_FACTOR;
+sub points_to_pixel {
+    my ($self, $points) = @_;
+    return [ map $self->point_to_pixel($_), @$points ];
 }
 
-sub _y {
-    my $self = shift;
-    my ($points) = @_;
-    my $height = $self->{canvas}->GetSize->GetHeight;
-    return [ map [ $_->[X], $height - $_->[Y] ], @$points ];
+sub point_to_model_units {
+    my ($self, $point) = @_;
+    
+    my $canvas_height = $self->{canvas}->GetSize->GetHeight;
+    
+    return [
+                          $point->[X] / $self->{scaling_factor},
+        $canvas_height - ($point->[X] / $self->{scaling_factor}),
+    ];
 }
 
 package Slic3r::GUI::Plater::DropTarget;
