@@ -741,30 +741,20 @@ sub export_gcode2 {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
             
-            my %params = (
-                output_file => $output_file,
-                status_cb   => sub { $params{progressbar}->(@_) },
-                quiet       => 1,
-            );
+            $print->status_cb(sub { $params{progressbar}->(@_) });
             if ($params{export_svg}) {
                 $print->export_svg(%params);
             } else {
+                $print->process;
                 $print->export_gcode(%params);
             }
+            $print->status_cb(undef);
             Slic3r::GUI::warning_catcher($self, $Slic3r::have_threads ? sub {
                 Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
             } : undef)->($_) for @warnings;
         }
         
-        my $message = "Your files were successfully sliced";
-        if ($print->processing_time) {
-            $message .= ' in';
-            my $minutes = int($print->processing_time/60);
-            $message .= sprintf " %d minutes and", $minutes if $minutes;
-            $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
-        }
-        $message .= ".";
-        $params{on_completed}->($message);
+        $params{on_completed}->();
     };
     $params{catch_error}->();
 }
@@ -777,7 +767,8 @@ sub on_export_completed {
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
-    $self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
+    my $message = "G-code file exported to $self->{output_file}";
+    $self->statusbar->SetStatusText($message);
     &Wx::wxTheApp->notify($message);
 }
 

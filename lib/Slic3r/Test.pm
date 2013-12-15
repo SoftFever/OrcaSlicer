@@ -119,6 +119,7 @@ sub gcode {
     my ($print) = @_;
     
     my $fh = IO::Scalar->new(\my $gcode);
+    $print->process;
     $print->export_gcode(output_fh => $fh, quiet => 1);
     $fh->close;
     

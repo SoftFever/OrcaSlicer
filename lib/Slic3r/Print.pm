@@ -9,12 +9,11 @@ use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points c
     convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
     offset2 union_pt_chained JT_ROUND JT_SQUARE);
-use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
-has 'processing_time'        => (is => 'rw');
+has 'status_cb'              => (is => 'rw');
 has 'extruders'              => (is => 'rw', default => sub {[]});
 has 'regions'                => (is => 'rw', default => sub {[]});
 has 'support_material_flow'  => (is => 'rw');
@@ -304,13 +303,11 @@ sub _simplify_slices {
     }
 }
 
-sub export_gcode {
-    my $self = shift;
-    my %params = @_;
+sub process {
+    my ($self) = @_;
     
     $self->init_extruders;
-    my $status_cb = $params{status_cb} || sub {};
-    my $t0 = [gettimeofday];
+    my $status_cb = $self->status_cb // sub {};
     
     # skein the STL into layers
     # each layer has surfaces with holes
@@ -427,6 +424,13 @@ sub export_gcode {
         eval "use Slic3r::Test::SectionCut";
         Slic3r::Test::SectionCut->new(print => $self)->export_svg("section_cut.svg");
     }
+}
+
+sub export_gcode {
+    my $self = shift;
+    my %params = @_;
+    
+    my $status_cb = $self->status_cb // sub {};
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath($params{output_file});
@@ -441,19 +445,6 @@ sub export_gcode {
             Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
             system($_, $output_file);
         }
-    }
-    
-    # output some statistics
-    unless ($params{quiet}) {
-        $self->processing_time(tv_interval($t0));
-        printf "Done. Process took %d minutes and %.3f seconds\n", 
-            int($self->processing_time/60),
-            $self->processing_time - int($self->processing_time/60)*60;
-        
-        # TODO: more statistics!
-        print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
-            $_->absolute_E, $_->extruded_volume/1000),
-            @{$self->extruders};
     }
 }
 
