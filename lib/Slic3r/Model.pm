@@ -235,9 +235,12 @@ sub center_instances_around_point {
         -$bb->y_min + $point->[Y] - $size->[Y]/2,
     );
     
-    foreach my $instance (map @{$_->instances}, @{$self->objects}) {
-        $instance->offset->[X] += $shift[X];
-        $instance->offset->[Y] += $shift[Y];
+    foreach my $object (@{$self->objects}) {
+        foreach my $instance (@{$object->instances}) {
+            $instance->offset->[X] += $shift[X];
+            $instance->offset->[Y] += $shift[Y];
+        }
+        $object->update_bounding_box;
     }
 }
 

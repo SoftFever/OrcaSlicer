@@ -859,28 +859,12 @@ sub clean_instance_thumbnails {
     }
 }
 
-# this method gets called whenever bed is resized or the objects' bounding box changes
+# this method gets called whenever print center is changed or the objects' bounding box changes
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub recenter {
     my $self = shift;
     
     $self->{model}->center_instances_around_point($self->{config}->print_center);
-    return;
-    return unless @{$self->{objects}};
-    
-    # get model bounding box in pixels
-    my $print_bb = $self->{model}->bounding_box;
-    $print_bb->scale($self->{scaling_factor});
-    
-    # get model size in pixels
-    my $print_size = $print_bb->size;
-    
-    # $self->{shift} contains the offset in pixels to add to object thumbnails
-    # in order to center them
-    $self->{shift} = [
-        -$print_bb->x_min + ($self->{canvas}->GetSize->GetWidth  - $print_size->[X]) / 2,
-        -$print_bb->y_min + ($self->{canvas}->GetSize->GetHeight - $print_size->[Y]) / 2,
-    ];
 }
 
 sub on_config_change {
@@ -906,6 +890,7 @@ sub on_config_change {
     } elsif ($self->{config}->has($opt_key)) {
         $self->{config}->set($opt_key, $value);
         $self->_update_bed_size if $opt_key eq 'bed_size';
+        $self->recenter if $opt_key eq 'print_center';
     }
 }
 
@@ -975,9 +960,8 @@ sub repaint {
             my $instance = $model_object->instances->[$instance_idx];
             next if !defined $object->transformed_thumbnail;
             
-            my $thumbnail = $object->transformed_thumbnail->clone;                  # in scaled coordinates
-            $thumbnail->scale(&Slic3r::SCALING_FACTOR * $parent->{scaling_factor}); # in unscaled pixels
-            $thumbnail->translate(map $_ * $parent->{scaling_factor}, @{$instance->offset});
+            my $thumbnail = $object->transformed_thumbnail->clone;      # in scaled model coordinates
+            $thumbnail->translate(map scale($_), @{$instance->offset});
             
             $object->instance_thumbnails->[$instance_idx] = $thumbnail;
             
@@ -990,7 +974,7 @@ sub repaint {
             }
             foreach my $expolygon (@$thumbnail) {
                 my $points = $expolygon->contour->pp;
-                $dc->DrawPolygon($parent->points_to_pixel($points), 0, 0);
+                $dc->DrawPolygon($parent->points_to_pixel($points, 1), 0, 0);
             }
             
             if (0) {
@@ -998,7 +982,6 @@ sub repaint {
                 my $bb = $model_object->instance_bounding_box($instance_idx);
                 $bb->scale($parent->{scaling_factor});
                 # no need to translate by instance offset because instance_bounding_box() does that
-                $bb->translate(@{$parent->{shift}}, 0);
                 my $points = $bb->polygon->pp;
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
@@ -1007,10 +990,10 @@ sub repaint {
             
             # if sequential printing is enabled and we have more than one object, draw clearance area
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{model}->objects}) > 1) {
-                my ($clearance) = @{offset([$thumbnail->convex_hull], ($parent->{config}->extruder_clearance_radius / 2) * $parent->{scaling_factor}, 100, JT_ROUND)};
+                my ($clearance) = @{offset([$thumbnail->convex_hull], (scale($parent->{config}->extruder_clearance_radius) / 2), 0.0001, JT_ROUND)};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
-                $dc->DrawPolygon($parent->_y($clearance), 0, 0);
+                $dc->DrawPolygon($parent->points_to_pixel($clearance, 1), 0, 0);
             }
         }
     }
@@ -1019,10 +1002,10 @@ sub repaint {
     if (@{$parent->{objects}} && $parent->{config}->skirts) {
         my @points = map @{$_->contour}, map @$_, map @{$_->instance_thumbnails}, @{$parent->{objects}};
         if (@points >= 3) {
-            my ($convex_hull) = @{offset([convex_hull(\@points)], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
+            my ($convex_hull) = @{offset([convex_hull(\@points)], scale($parent->{config}->skirt_distance), 0.0001, JT_ROUND)};
             $dc->SetPen($parent->{skirt_pen});
             $dc->SetBrush($parent->{transparent_brush});
-            $dc->DrawPolygon($parent->points_to_pixel($convex_hull), 0, 0);
+            $dc->DrawPolygon($parent->points_to_pixel($convex_hull, 1), 0, 0);
         }
     }
     
@@ -1034,7 +1017,7 @@ sub mouse_event {
     my $parent = $self->GetParent;
     
     my $point = $event->GetPosition;
-    my $pos = $parent->point_to_model_units([ $point->x, $point->y ]);  #]] in pixels
+    my $pos = $parent->point_to_model_units([ $point->x, $point->y ]);  #]]
     $pos = Slic3r::Point->new_scale(@$pos);
     if ($event->ButtonDown(&Wx::wxMOUSE_BTN_LEFT)) {
         $parent->select_object(undef);
@@ -1045,9 +1028,10 @@ sub mouse_event {
                 if ($thumbnail->contains_point($pos)) {
                     $parent->select_object($obj_idx);
                     my $instance = $parent->{model}->objects->[$obj_idx]->instances->[$instance_idx];
-                    $self->{drag_start_pos} = [   # displacement between the click and the instance origin
-                        $pos->x - $parent->{shift}[X] - ($instance->offset->[X] * $parent->{scaling_factor}),
-                        $pos->y - $parent->{shift}[Y] - ($instance->offset->[Y] * $parent->{scaling_factor}),
+                    my $instance_origin = [ map scale($_), @{$instance->offset} ];
+                    $self->{drag_start_pos} = [   # displacement between the click and the instance origin in scaled model units
+                        $pos->x - $instance_origin->[X],
+                        $pos->y - $instance_origin->[Y],  #-
                     ];
                     $self->{drag_object} = [ $obj_idx, $instance_idx ];
                 }
@@ -1067,13 +1051,14 @@ sub mouse_event {
         my ($obj_idx, $instance_idx) = @{ $self->{drag_object} };
         my $model_object = $parent->{model}->objects->[$obj_idx];
         $model_object->instances->[$instance_idx]->offset([
-            ($pos->[X] - $self->{drag_start_pos}[X] - $parent->{shift}[X]) / $parent->{scaling_factor},
-            ($pos->[Y] - $self->{drag_start_pos}[Y] - $parent->{shift}[Y]) / $parent->{scaling_factor},
+            unscale($pos->[X] - $self->{drag_start_pos}[X]),
+            unscale($pos->[Y] - $self->{drag_start_pos}[Y]),
         ]);
         $model_object->update_bounding_box;
         $parent->Refresh;
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
+        ###use XXX;YYY [[$pos->pp], map $_->pp, @$_];
         if (defined first { $_->contains_point($pos) } map @{$_->instance_thumbnails}, @{ $parent->{objects} }) {
             $cursor = Wx::Cursor->new(wxCURSOR_HAND);
         }
@@ -1245,31 +1230,47 @@ sub statusbar {
     return $self->skeinpanel->GetParent->{statusbar};
 }
 
+# coordinates of the model origin (0,0) in pixels
+sub model_origin_to_pixel {
+    my ($self) = @_;
+    
+    return [
+        CANVAS_SIZE->[X]/2 - ($self->{config}->print_center->[X] * $self->{scaling_factor}),
+        CANVAS_SIZE->[Y]/2 - ($self->{config}->print_center->[Y] * $self->{scaling_factor}),
+    ];
+}
+
 # convert a model coordinate into a pixel coordinate, assuming preview has square shape
 sub point_to_pixel {
     my ($self, $point) = @_;
     
     my $canvas_height = $self->{canvas}->GetSize->GetHeight;
-    
+    my $zero = $self->model_origin_to_pixel;
     return [
-                          $point->[X] * $self->{scaling_factor} + (0),
-        $canvas_height - ($point->[Y] * $self->{scaling_factor} + (0)),
+                          $point->[X] * $self->{scaling_factor} + $zero->[X],
+        $canvas_height - ($point->[Y] * $self->{scaling_factor} + $zero->[Y]),
     ];
 }
 
 sub points_to_pixel {
-    my ($self, $points) = @_;
-    return [ map $self->point_to_pixel($_), @$points ];
+    my ($self, $points, $unscale) = @_;
+    
+    my $result = [];
+    foreach my $point (@$points) {
+        $point = [ map unscale($_), @$point ] if $unscale;
+        push @$result, $self->point_to_pixel($point);
+    }
+    return $result;
 }
 
 sub point_to_model_units {
     my ($self, $point) = @_;
     
     my $canvas_height = $self->{canvas}->GetSize->GetHeight;
-    
+    my $zero = $self->model_origin_to_pixel;
     return [
-                          $point->[X] / $self->{scaling_factor},
-        $canvas_height - ($point->[X] / $self->{scaling_factor}),
+                          ($point->[X] - $zero->[X]) / $self->{scaling_factor},
+        (($canvas_height - $point->[Y] - $zero->[Y]) / $self->{scaling_factor}),
     ];
 }
 
