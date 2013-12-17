@@ -761,7 +761,6 @@ sub export_gcode2 {
 
 sub on_export_completed {
     my $self = shift;
-    my ($message) = @_;
     
     $self->{export_thread}->detach if $self->{export_thread};
     $self->{export_thread} = undef;
