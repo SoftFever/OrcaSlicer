@@ -8,8 +8,8 @@ use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
-has 'input_file'        => (is => 'rw', required => 0);
-has 'meshes'            => (is => 'rw', default => sub { [] });  # by region_id
+has 'model_object'      => (is => 'ro', required => 1);
+has 'region_volumes'    => (is => 'rw', default => sub { [] });  # by region_id
 has 'copies'            => (is => 'ro');  # Slic3r::Point objects in scaled G-code coordinates
 has 'config_overrides'  => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'config'            => (is => 'rw');
@@ -30,15 +30,16 @@ sub BUILD {
  	# translate meshes so that we work with smaller coordinates
  	{
  	    # compute the bounding box of the supplied meshes
- 	    my @meshes = grep defined $_, @{$self->meshes};  # in no particular order
+ 	    my @meshes = map $self->model_object->volumes->[$_]->mesh,
+ 	                    map @$_,
+ 	                    grep defined $_,
+ 	                    @{$self->region_volumes};
  	    my $bb = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, @meshes);
  	    
  	    # Translate meshes so that our toolpath generation algorithms work with smaller
  	    # XY coordinates; this translation is an optimization and not strictly required.
  	    # However, this also aligns object to Z = 0, which on the contrary is required
  	    # since we don't assume input is already aligned.
- 	    $_->translate(@{$bb->vector_to_origin}) for @meshes;
- 	    
  	    # We store the XY translation so that we can place copies correctly in the output G-code
  	    # (copies are expressed in G-code coordinates and this translation is not publicly exposed).
  	    $self->_copies_shift(Slic3r::Point->new_scale($bb->x_min, $bb->y_min));
@@ -167,8 +168,26 @@ sub slice {
     }
     
     # process facets
-    for my $region_id (0 .. $#{$self->meshes}) {
-        my $mesh = $self->meshes->[$region_id] // next;  # ignore undef meshes
+    for my $region_id (0..$#{$self->region_volumes}) {
+        next if !defined $self->region_volumes->[$region_id];
+        
+        # compose mesh
+        my $mesh;
+        foreach my $volume_id (@{$self->region_volumes->[$region_id]}) {
+            if (defined $mesh) {
+                $mesh->merge($self->model_object->volumes->[$volume_id]->mesh);
+            } else {
+                $mesh = $self->model_object->volumes->[$volume_id]->mesh->clone;
+            }
+        }
+        
+        # transform mesh
+        # we ignore the per-instance transformations currently and only 
+        # consider the first one
+        $self->model_object->instances->[0]->transform_mesh($mesh, 1);
+        
+        # align mesh to Z = 0 and apply XY shift
+        $mesh->translate((map unscale(-$_), @{$self->_copies_shift}), -$mesh->bounding_box->z_min);
         
         {
             my $loops = $mesh->slice([ map $_->slice_z, @{$self->layers} ]);
@@ -178,14 +197,7 @@ sub slice {
             }
             # TODO: read slicing_errors
         }
-        
-        # free memory
-        undef $mesh;
-        undef $self->meshes->[$region_id];
     }
-    
-    # free memory
-    $self->meshes(undef);
     
     # remove last layer(s) if empty
     pop @{$self->layers} while @{$self->layers} && (!map @{$_->slices}, @{$self->layers->[-1]->regions});

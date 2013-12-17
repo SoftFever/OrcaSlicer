@@ -84,8 +84,11 @@ sub add_model_object {
     my %matmap = %{ $object->material_mapping || {} };
     $_-- for values %matmap;  # extruders in the mapping are 1-indexed but we want 0-indexed
     
-    my %meshes = ();  # region_id => TriangleMesh
-    foreach my $volume (@{$object->volumes}) {
+    my %volumes = ();           # region_id => [ volume_id, ... ]
+    foreach my $volume_id (0..$#{$object->volumes}) {
+        my $volume = $object->volumes->[$volume_id];
+        
+        # determine what region should this volume be mapped to
         my $region_id;
         if (defined $volume->material_id) {
             if (!exists $matmap{ $volume->material_id }) {
@@ -96,27 +99,19 @@ sub add_model_object {
         } else {
             $region_id = 0;
         }
+        $volumes{$region_id} //= [];
+        push @{ $volumes{$region_id} }, $volume_id;
         
         # instantiate region if it does not exist
         $self->regions->[$region_id] //= Slic3r::Print::Region->new;
-        
-        # if a mesh is already associated to this region, append this one to it
-        $meshes{$region_id} //= Slic3r::TriangleMesh->new;
-        $meshes{$region_id}->merge($volume->mesh);
-    }
-    
-    foreach my $mesh (values %meshes) {
-        # we ignore the per-instance transformations currently and only 
-        # consider the first one
-        $object->instances->[0]->transform_mesh($mesh, 1);
     }
     
     # initialize print object
     my $o = Slic3r::Print::Object->new(
         print               => $self,
-        meshes              => [ map $meshes{$_}, 0..$#{$self->regions} ],
+        model_object        => $object,
+        region_volumes      => [ map $volumes{$_}, 0..$#{$self->regions} ],
         copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
-        input_file          => $object->input_file,
         config_overrides    => $object->config,
         layer_height_ranges => $object->layer_height_ranges,
     );
@@ -892,7 +887,7 @@ sub expanded_output_filepath {
         @$extra_variables{qw(input_filename input_filename_base)} = parse_filename($input_file);
     } else {
         # if no input file was supplied, take the first one from our objects
-        $input_file = $self->objects->[0]->input_file // return undef;
+        $input_file = $self->objects->[0]->model_object->input_file // return undef;
     }
     
     if ($path && -d $path) {

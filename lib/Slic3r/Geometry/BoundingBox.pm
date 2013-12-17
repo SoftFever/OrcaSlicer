@@ -165,4 +165,14 @@ sub y_max {
     return $self->extents->[Y][MAX];
 }
 
+sub z_min {
+    my $self = shift;
+    return $self->extents->[Z][MIN];
+}
+
+sub z_max {
+    my $self = shift;
+    return $self->extents->[Z][MAX];
+}
+
 1;
