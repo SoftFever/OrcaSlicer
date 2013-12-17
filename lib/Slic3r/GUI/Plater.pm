@@ -382,7 +382,10 @@ sub load_file {
     $process_dialog->Pulse;
     
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-    my $model = Slic3r::Model->read_from_file($input_file);
+    
+    my $model = eval { Slic3r::Model->read_from_file($input_file) };
+    Slic3r::GUI::show_error($self, $@) if $@;
+    
     $self->load_model_object($_) for @{$model->objects};
     
     $process_dialog->Destroy;
