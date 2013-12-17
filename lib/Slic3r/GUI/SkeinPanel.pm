@@ -133,8 +133,11 @@ sub quick_slice {
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
         Slic3r::GUI->save_settings;
         
+        my $model = eval { Slic3r::Model->read_from_file($input_file) };
+        Slic3r::GUI::show_error($self, $@) if $@;
+        
         my $print = $self->init_print;
-        $print->add_model(Slic3r::Model->read_from_file($input_file));
+        $print->add_model($model);
         $print->validate;
 
         # select output file
@@ -364,7 +367,9 @@ sub combine_stls {
         $output_file = $dlg->GetPath;
     }
     
-    my @models = map Slic3r::Model->read_from_file($_), @input_files;
+    my @models = eval { map Slic3r::Model->read_from_file($_), @input_files };
+    Slic3r::GUI::show_error($self, $@) if $@;
+    
     my $new_model = Slic3r::Model->new;
     my $new_object = $new_model->add_object;
     for my $m (0 .. $#models) {
