@@ -134,7 +134,8 @@ sub quick_slice {
         Slic3r::GUI->save_settings;
         
         my $print = $self->init_print;
-        my $model = Slic3r::Model->read_from_file($input_file);
+        my $model = eval { Slic3r::Model->read_from_file($input_file) };
+        Slic3r::GUI::show_error($self, $@) if $@;
         
         if ($model->has_objects_with_no_instances) {
             # apply a default position to all objects not having one
@@ -370,7 +371,9 @@ sub combine_stls {
         $output_file = $dlg->GetPath;
     }
     
-    my @models = map Slic3r::Model->read_from_file($_), @input_files;
+    my @models = eval { map Slic3r::Model->read_from_file($_), @input_files };
+    Slic3r::GUI::show_error($self, $@) if $@;
+    
     my $new_model = Slic3r::Model->new;
     my $new_object = $new_model->add_object;
     for my $m (0 .. $#models) {
