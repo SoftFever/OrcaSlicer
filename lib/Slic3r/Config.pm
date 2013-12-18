@@ -62,7 +62,7 @@ our $Options = {
     # printer options
     'print_center' => {
         label   => 'Print center',
-        tooltip => 'Enter the G-code coordinates of the point you want to center your print around.',
+        tooltip => 'These G-code coordinates are used to center your plater viewport.',
         sidetext => 'mm',
         cli     => 'print-center=s',
         type    => 'point',

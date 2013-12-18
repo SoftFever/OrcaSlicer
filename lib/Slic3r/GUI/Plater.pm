@@ -409,10 +409,15 @@ sub load_model_object {
         
         # add a default instance and center object around origin
         $o->center_around_origin;
-        $o->add_instance(offset => [0,0]);
+        $o->add_instance(offset => [ @{$self->{config}->print_center} ]);
     }
     
     $self->{print}->add_model_object($o);
+    
+    # if user turned autocentering off, automatic arranging would disappoint them
+    if (!$Slic3r::GUI::Settings->{_}{autocenter}) {
+        $need_arrange = 0;
+    }
     
     $self->object_loaded($#{ $self->{objects} }, no_arrange => !$need_arrange);
 }
@@ -484,7 +489,13 @@ sub increase {
     );
     $self->{print}->objects->[$obj_idx]->add_copy(@{$i->offset});
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
-    $self->arrange;
+    
+    # only autoarrange if user has autocentering enabled
+    if ($Slic3r::GUI::Settings->{_}{autocenter}) {
+        $self->arrange;
+    } else {
+        $self->{canvas}->Refresh;
+    }
 }
 
 sub decrease {
@@ -573,7 +584,8 @@ sub changescale {
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
     $self->selection_changed(1);  # refresh info (size, volume etc.)
-    $self->arrange;
+    $self->update;
+    $self->{canvas}->Refresh;
 }
 
 sub arrange {
@@ -584,7 +596,7 @@ sub arrange {
     };
     # ignore arrange warnings on purpose
     
-    $self->update;
+    $self->update(1);
     $self->{canvas}->Refresh;
 }
 
@@ -864,9 +876,11 @@ sub clean_instance_thumbnails {
 # this method gets called whenever print center is changed or the objects' bounding box changes
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub update {
-    my $self = shift;
+    my ($self, $force_autocenter) = @_;
     
-    $self->{model}->center_instances_around_point($self->{config}->print_center);
+    if ($Slic3r::GUI::Settings->{_}{autocenter} || $force_autocenter) {
+        $self->{model}->center_instances_around_point($self->{config}->print_center);
+    }
     
     # sync model and print object instances
     for my $obj_idx (0..$#{$self->{objects}}) {
