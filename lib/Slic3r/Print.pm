@@ -8,7 +8,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
     convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
-    offset2 union_pt_chained JT_ROUND JT_SQUARE);
+    offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
@@ -148,19 +148,33 @@ sub validate {
         # check horizontal clearance
         {
             my @a = ();
-            for my $obj_idx (0 .. $#{$self->objects}) {
-                my $clearance;
-                {
-                    my @convex_hulls = map $_->convex_hull, grep defined $_, @{$self->objects->[$obj_idx]->meshes};
-                    ($clearance) = @{offset([@convex_hulls], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
-                }
-                for my $copy (@{$self->objects->[$obj_idx]->_shifted_copies}) {
-                    my $copy_clearance = $clearance->clone;
-                    $copy_clearance->translate(@$copy);
-                    if (@{ intersection(\@a, [$copy_clearance]) }) {
+            foreach my $object (@{$self->objects}) {
+                # get convex hulls of all meshes assigned to this print object
+                my @mesh_convex_hulls = map $object->model_object->volumes->[$_]->mesh->convex_hull,
+                    map @$_,
+                    grep defined $_,
+                    @{$object->region_volumes};
+                
+                # make a single convex hull for all of them
+                my $convex_hull = convex_hull([ map @$_, @mesh_convex_hulls ]);
+                
+                # apply the same transformations we apply to the actual meshes when slicing them
+                $object->model_object->instances->[0]->transform_polygon($convex_hull, 1);
+        
+                # align object to Z = 0 and apply XY shift
+                $convex_hull->translate(@{$object->_copies_shift});
+                
+                # grow convex hull with the clearance margin
+                ($convex_hull) = @{offset([$convex_hull], scale $self->config->extruder_clearance_radius / 2, 1, JT_ROUND)};
+                
+                # now we need that no instance of $convex_hull does not intersect any of the previously checked object instances
+                for my $copy (@{$object->_shifted_copies}) {
+                    my $p = $convex_hull->clone;
+                    $p->translate(@$copy);
+                    if (@{ intersection(\@a, [$p]) }) {
                         die "Some objects are too close; your extruder will collide with them.\n";
                     }
-                    @a = map $_->clone, map @$_, @{union_ex([ @a, $copy_clearance ])};
+                    @a = @{union([@a, $p])};
                 }
             }
         }

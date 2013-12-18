@@ -545,4 +545,11 @@ sub transform_mesh {
     $mesh->translate(@{$self->offset}, 0) unless $dont_translate;
 }
 
+sub transform_polygon {
+    my ($self, $polygon) = @_;
+    
+    $polygon->rotate($self->rotation, Slic3r::Point->new(0,0));   # rotate around origin
+    $polygon->scale($self->scaling_factor);                       # scale around origin
+}
+
 1;
