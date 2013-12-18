@@ -223,7 +223,7 @@ sub new {
     });
     
     $self->_update_bed_size;
-    $self->recenter;
+    $self->update;
     
     {
         my $presets;
@@ -432,7 +432,7 @@ sub object_loaded {
     
     $self->make_thumbnail($obj_idx);
     $self->arrange unless $params{no_arrange};
-    $self->recenter;
+    $self->update;
     $self->{list}->Update;
     $self->{list}->Select($obj_idx, 1);
     $self->object_list_changed;
@@ -454,7 +454,7 @@ sub remove {
     $self->object_list_changed;
     
     $self->select_object(undef);
-    $self->recenter;
+    $self->update;
     $self->{canvas}->Refresh;
 }
 
@@ -504,7 +504,7 @@ sub decrease {
         $self->{list}->Select($obj_idx, 0);
         $self->{list}->Select($obj_idx, 1);
     }
-    $self->recenter;
+    $self->update;
     $self->{canvas}->Refresh;
 }
 
@@ -537,7 +537,7 @@ sub rotate {
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
     $self->selection_changed;  # refresh info (size etc.)
-    $self->recenter;
+    $self->update;
     $self->{canvas}->Refresh;
 }
 
@@ -584,7 +584,7 @@ sub arrange {
     };
     # ignore arrange warnings on purpose
     
-    $self->recenter;
+    $self->update;
     $self->{canvas}->Refresh;
 }
 
@@ -733,8 +733,8 @@ sub export_gcode2 {
     } if $Slic3r::have_threads;
     
     my $print = $self->{print};
-    $print->config->apply($config);
-    $print->extra_variables($extra_variables);
+    $print->apply_config($config);
+    $print->apply_extra_variables($extra_variables);
     
     eval {
         $print->config->validate;
@@ -746,10 +746,10 @@ sub export_gcode2 {
             
             $print->status_cb(sub { $params{progressbar}->(@_) });
             if ($params{export_svg}) {
-                $print->export_svg(%params);
+                $print->export_svg(output_file => $output_file);
             } else {
                 $print->process;
-                $print->export_gcode(%params);
+                $print->export_gcode(output_file => $output_file);
             }
             $print->status_cb(undef);
             Slic3r::GUI::warning_catcher($self, $Slic3r::have_threads ? sub {
@@ -849,7 +849,7 @@ sub on_thumbnail_made {
     my ($obj_idx) = @_;
     
     $self->{objects}[$obj_idx]->transform_thumbnail($self->{model}, $obj_idx);
-    $self->recenter;
+    $self->update;
     $self->{canvas}->Refresh;
 }
 
@@ -863,10 +863,19 @@ sub clean_instance_thumbnails {
 
 # this method gets called whenever print center is changed or the objects' bounding box changes
 # (i.e. when an object is added/removed/moved/rotated/scaled)
-sub recenter {
+sub update {
     my $self = shift;
     
     $self->{model}->center_instances_around_point($self->{config}->print_center);
+    
+    # sync model and print object instances
+    for my $obj_idx (0..$#{$self->{objects}}) {
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $print_object = $self->{print}->objects->[$obj_idx];
+        
+        $print_object->delete_all_copies;
+        $print_object->add_copy(@{$_->offset}) for @{$model_object->instances};
+    }
 }
 
 sub on_config_change {
@@ -892,7 +901,7 @@ sub on_config_change {
     } elsif ($self->{config}->has($opt_key)) {
         $self->{config}->set($opt_key, $value);
         $self->_update_bed_size if $opt_key eq 'bed_size';
-        $self->recenter if $opt_key eq 'print_center';
+        $self->update if $opt_key eq 'print_center';
     }
 }
 
@@ -904,7 +913,7 @@ sub _update_bed_size {
     # when the canvas is not rendered yet, its GetSize() method returns 0,0
     # scaling_factor is expressed in pixel / mm
     $self->{scaling_factor} = CANVAS_SIZE->[X] / max(@{ $self->{config}->bed_size });
-    $self->recenter;
+    $self->update;
 }
 
 # this is called on the canvas
@@ -992,7 +1001,7 @@ sub repaint {
             
             # if sequential printing is enabled and we have more than one object, draw clearance area
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{model}->objects}) > 1) {
-                my ($clearance) = @{offset([$thumbnail->convex_hull], (scale($parent->{config}->extruder_clearance_radius) / 2), 0.0001, JT_ROUND)};
+                my ($clearance) = @{offset([$thumbnail->convex_hull], (scale($parent->{config}->extruder_clearance_radius) / 2), 1, JT_ROUND, scale(0.1))};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
                 $dc->DrawPolygon($parent->points_to_pixel($clearance, 1), 0, 0);
@@ -1004,7 +1013,8 @@ sub repaint {
     if (@{$parent->{objects}} && $parent->{config}->skirts) {
         my @points = map @{$_->contour}, map @$_, map @{$_->instance_thumbnails}, @{$parent->{objects}};
         if (@points >= 3) {
-            my ($convex_hull) = @{offset([convex_hull(\@points)], scale($parent->{config}->skirt_distance), 0.0001, JT_ROUND)};
+            my @o = @{Slic3r::Geometry::Clipper::simplify_polygons([convex_hull(\@points)])};
+            my ($convex_hull) = @{offset([convex_hull(\@points)], scale($parent->{config}->skirt_distance), 1, JT_ROUND, scale(0.1))};
             $dc->SetPen($parent->{skirt_pen});
             $dc->SetBrush($parent->{transparent_brush});
             $dc->DrawPolygon($parent->points_to_pixel($convex_hull, 1), 0, 0);
@@ -1041,7 +1051,7 @@ sub mouse_event {
         }
         $parent->Refresh;
     } elsif ($event->ButtonUp(&Wx::wxMOUSE_BTN_LEFT)) {
-        $parent->recenter;
+        $parent->update;
         $parent->Refresh;
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;

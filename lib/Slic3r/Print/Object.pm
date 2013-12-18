@@ -85,6 +85,12 @@ sub delete_last_copy {
     $self->_trigger_copies;
 }
 
+sub delete_all_copies {
+    my ($self) = @_;
+    @{$self->copies} = ();
+    $self->_trigger_copies;
+}
+
 sub init_config {
     my $self = shift;
     $self->config(Slic3r::Config->merge($self->print->config, $self->config_overrides));

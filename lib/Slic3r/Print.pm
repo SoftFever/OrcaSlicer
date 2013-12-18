@@ -10,7 +10,7 @@ use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points c
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
     offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 
-has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
+has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => \&init_config);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
@@ -30,10 +30,11 @@ sub BUILD {
     my $self = shift;
     
     # call this manually because the 'default' coderef doesn't trigger the trigger
-    $self->_trigger_config;
+    $self->init_config;
 }
 
-sub _trigger_config {
+# this method needs to be idempotent
+sub init_config {
     my $self = shift;
     
     # store config in a handy place
@@ -65,6 +66,14 @@ sub _trigger_config {
     
     # force all retraction lift values to be the same
     $self->config->set('retract_lift', [ map $self->config->retract_lift->[0], @{$self->config->retract_lift} ]);
+}
+
+sub apply_config {
+    my ($self, $config) = @_;
+    
+    $self->config->apply($config);
+    $self->init_config;
+    $_->init_config for @{$self->objects};
 }
 
 sub _build_has_support_material {
@@ -165,7 +174,7 @@ sub validate {
                 $convex_hull->translate(@{$object->_copies_shift});
                 
                 # grow convex hull with the clearance margin
-                ($convex_hull) = @{offset([$convex_hull], scale $self->config->extruder_clearance_radius / 2, 1, JT_ROUND)};
+                ($convex_hull) = @{offset([$convex_hull], scale $self->config->extruder_clearance_radius / 2, 1, JT_ROUND, scale(0.1))};
                 
                 # now we need that no instance of $convex_hull does not intersect any of the previously checked object instances
                 for my $copy (@{$object->_shifted_copies}) {
@@ -552,6 +561,8 @@ sub make_skirt {
     return unless $Slic3r::Config->skirts > 0
         || ($Slic3r::Config->ooze_prevention && @{$self->extruders} > 1);
     
+    $self->skirt->clear;  # method must be idempotent
+    
     # collect points from all layers contained in skirt height
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
@@ -587,7 +598,7 @@ sub make_skirt {
     my $distance = scale $Slic3r::Config->skirt_distance;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
-        my $loop = offset([$convex_hull], $distance, 0.0001, JT_ROUND)->[0];
+        my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
         $self->skirt->append(Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
@@ -614,6 +625,8 @@ sub make_skirt {
 sub make_brim {
     my $self = shift;
     return unless $Slic3r::Config->brim_width > 0;
+    
+    $self->brim->clear;  # method must be idempotent
     
     my $flow = $self->objects->[0]->layers->[0]->regions->[0]->perimeter_flow;
     
@@ -915,7 +928,6 @@ sub expanded_output_filepath {
     } else {
         # path is a full path to a file so we use it as it is
     }
-    
     return $self->config->replace_options($path, { %{$self->extra_variables}, %$extra_variables });
 }
 
@@ -926,6 +938,11 @@ sub parse_filename {
     my $filename = my $filename_base = basename($path);
     $filename_base =~ s/\.[^.]+$//;
     return ($filename, $filename_base);
+}
+
+sub apply_extra_variables {
+    my ($self, $extra) = @_;
+    $self->extra_variables->{$_} = $extra->{$_} for keys %$extra;
 }
 
 1;
