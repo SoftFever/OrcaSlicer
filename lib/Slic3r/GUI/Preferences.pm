@@ -37,6 +37,13 @@ sub new {
                 tooltip     => 'If this is enabled, Slic3r will prompt the last output directory instead of the one containing the input files.',
                 default     => $Slic3r::GUI::Settings->{_}{remember_output_path},
             },
+            {
+                opt_key     => 'autocenter',
+                type        => 'bool',
+                label       => 'Auto-center parts',
+                tooltip     => 'If this is enabled, Slic3r will auto-center objects around the configured print center.',
+                default     => $Slic3r::GUI::Settings->{_}{autocenter},
+            },
         ],
         on_change => sub { $self->{values}{$_[0]} = $_[1] },
         label_width => 100,

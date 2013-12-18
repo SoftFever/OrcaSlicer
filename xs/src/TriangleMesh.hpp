@@ -41,6 +41,9 @@ class TriangleMesh
     SV* to_SV();
     void ReadFromPerl(SV* vertices, SV* facets);
     #endif
+    
+    private:
+    void require_shared_vertices();
 };
 
 enum FacetEdgeType { feNone, feTop, feBottom };

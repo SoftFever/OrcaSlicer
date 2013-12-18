@@ -108,6 +108,7 @@ sub init_print {
     $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
     for my $model (map model($_, %params), @$model_name) {
         $model->arrange_objects($config);
+        $model->center_instances_around_point($config->print_center);
         $print->add_model_object($_) for @{$model->objects};
     }
     $print->validate;
@@ -119,6 +120,7 @@ sub gcode {
     my ($print) = @_;
     
     my $fh = IO::Scalar->new(\my $gcode);
+    $print->process;
     $print->export_gcode(output_fh => $fh, quiet => 1);
     $fh->close;
     

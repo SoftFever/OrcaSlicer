@@ -13,6 +13,7 @@ use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
 use Slic3r::Geometry qw(X Y);
+use Time::HiRes qw(gettimeofday tv_interval);
 $|++;
 
 our %opt = ();
@@ -144,26 +145,39 @@ if (@ARGV) {  # slicing from command line
             # if all input objects have defined position(s) apply duplication to the whole model
             $model->duplicate($config, $config->duplicate);
         }
+        $model->center_instances_around_point($config->print_center);
         
         if ($opt{info}) {
             $model->print_info;
             next;
         }
         
-        my $print = Slic3r::Print->new(config => $config);
-        $print->add_model_object($_) for @{$model->objects};
-        $print->validate;
-        my %params = (
-            output_file => $opt{output},
+        my $print = Slic3r::Print->new(
+            config      => $config,
             status_cb   => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
             },
         );
+        $print->add_model_object($_) for @{$model->objects};
+        undef $model;  # free memory
+        $print->validate;
         if ($opt{export_svg}) {
-            $print->export_svg(%params);
+            $print->export_svg(output_file => $opt{output});
         } else {
-            $print->export_gcode(%params);
+            my $t0 = [gettimeofday];
+            $print->process;
+            $print->export_gcode(output_file => $opt{output});
+            
+            # output some statistics
+            {
+                my $duration = tv_interval($t0);
+                printf "Done. Process took %d minutes and %.3f seconds\n", 
+                    int($duration/60), ($duration - int($duration/60)*60);  # % truncates to integer
+            }
+            print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
+                $_->absolute_E, $_->extruded_volume/1000),
+                @{$print->extruders};
         }
     }
 } else {

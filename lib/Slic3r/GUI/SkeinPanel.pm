@@ -144,6 +144,7 @@ sub quick_slice {
             }
             $model->arrange_objects($config);
         }
+        $model->center_instances_around_point($config->print_center);
         
         $print->add_model_object($_) for @{ $model->objects };
         $print->validate;
@@ -179,31 +180,26 @@ sub quick_slice {
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
             my %export_params = (
                 output_file => $output_file,
-                status_cb   => sub {
-                    my ($percent, $message) = @_;
-                    if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
-                        $process_dialog->Update($percent, "$message…");
-                    }
-                },
             );
+            $print->status_cb(sub {
+                my ($percent, $message) = @_;
+                if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
+                    $process_dialog->Update($percent, "$message…");
+                }
+            });
             if ($params{export_svg}) {
                 $print->export_svg(%export_params);
             } else {
+                $print->process;
                 $print->export_gcode(%export_params);
             }
+            $print->status_cb(undef);
             Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
         $process_dialog->Destroy;
         undef $process_dialog;
         
-        my $message = "$input_file_basename was successfully sliced";
-        if ($print->processing_time) {
-            $message .= ' in';
-            my $minutes = int($print->processing_time/60);
-            $message .= sprintf " %d minutes and", $minutes if $minutes;
-            $message .= sprintf " %.1f seconds", $print->processing_time - $minutes*60;
-        }
-        $message .= ".";
+        my $message = "$input_file_basename was successfully sliced.";
         &Wx::wxTheApp->notify($message);
         Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;

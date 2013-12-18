@@ -8,13 +8,12 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
     convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
-    offset2 union_pt_chained JT_ROUND JT_SQUARE);
-use Time::HiRes qw(gettimeofday tv_interval);
+    offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 
-has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => 1);
+has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => \&init_config);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
-has 'processing_time'        => (is => 'rw');
+has 'status_cb'              => (is => 'rw');
 has 'extruders'              => (is => 'rw', default => sub {[]});
 has 'regions'                => (is => 'rw', default => sub {[]});
 has 'support_material_flow'  => (is => 'rw');
@@ -31,10 +30,11 @@ sub BUILD {
     my $self = shift;
     
     # call this manually because the 'default' coderef doesn't trigger the trigger
-    $self->_trigger_config;
+    $self->init_config;
 }
 
-sub _trigger_config {
+# this method needs to be idempotent
+sub init_config {
     my $self = shift;
     
     # store config in a handy place
@@ -68,6 +68,14 @@ sub _trigger_config {
     $self->config->set('retract_lift', [ map $self->config->retract_lift->[0], @{$self->config->retract_lift} ]);
 }
 
+sub apply_config {
+    my ($self, $config) = @_;
+    
+    $self->config->apply($config);
+    $self->init_config;
+    $_->init_config for @{$self->objects};
+}
+
 sub _build_has_support_material {
     my $self = shift;
     return (first { $_->config->support_material } @{$self->objects})
@@ -79,14 +87,17 @@ sub _build_has_support_material {
 # and have explicit instance positions
 sub add_model_object {
     my $self = shift;
-    my ($object) = @_;
+    my ($object, $obj_idx) = @_;
     
     # read the material mapping provided by the model object, if any
     my %matmap = %{ $object->material_mapping || {} };
     $_-- for values %matmap;  # extruders in the mapping are 1-indexed but we want 0-indexed
     
-    my %meshes = ();  # region_id => TriangleMesh
-    foreach my $volume (@{$object->volumes}) {
+    my %volumes = ();           # region_id => [ volume_id, ... ]
+    foreach my $volume_id (0..$#{$object->volumes}) {
+        my $volume = $object->volumes->[$volume_id];
+        
+        # determine what region should this volume be mapped to
         my $region_id;
         if (defined $volume->material_id) {
             if (!exists $matmap{ $volume->material_id }) {
@@ -97,59 +108,46 @@ sub add_model_object {
         } else {
             $region_id = 0;
         }
+        $volumes{$region_id} //= [];
+        push @{ $volumes{$region_id} }, $volume_id;
         
         # instantiate region if it does not exist
         $self->regions->[$region_id] //= Slic3r::Print::Region->new;
-        
-        # if a mesh is already associated to this region, append this one to it
-        $meshes{$region_id} //= Slic3r::TriangleMesh->new;
-        $meshes{$region_id}->merge($volume->mesh);
-    }
-    
-    # bounding box of the original meshes in original position in unscaled coordinates
-    my $bb1 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
-    
-    foreach my $mesh (values %meshes) {
-        # we ignore the per-instance transformations currently and only 
-        # consider the first one
-        $object->instances->[0]->transform_mesh($mesh);
-    }
-    
-    # we align object also after transformations so that we only work with positive coordinates
-    # and the assumption that bounding_box === size works
-    my $bb2 = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, values %meshes);
-    $_->translate(@{$bb2->vector_to_origin}) for values %meshes;
-    
-    # prepare scaled object size
-    my $scaled_bb = $bb2->clone;
-    $scaled_bb->translate(@{$bb2->vector_to_origin});  # not needed for getting size, but who knows
-    $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
-    
-    # prepare copies
-    my @copies = ();
-    foreach my $instance (@{ $object->instances }) {
-        push @copies, Slic3r::Point->new(
-            scale($instance->offset->[X] - $bb1->extents->[X][MIN]),
-            scale($instance->offset->[Y] - $bb1->extents->[Y][MIN]),
-        );
     }
     
     # initialize print object
-    push @{$self->objects}, Slic3r::Print::Object->new(
+    my $o = Slic3r::Print::Object->new(
         print               => $self,
-        meshes              => [ map $meshes{$_}, 0..$#{$self->regions} ],
-        copies              => [ @copies ],
-        size                => $scaled_bb->size,  # transformed size
-        input_file          => $object->input_file,
+        model_object        => $object,
+        region_volumes      => [ map $volumes{$_}, 0..$#{$self->regions} ],
+        copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
         config_overrides    => $object->config,
         layer_height_ranges => $object->layer_height_ranges,
     );
+    if (defined $obj_idx) {
+        splice @{$self->objects}, $obj_idx, 0, $o;
+    } else {
+        push @{$self->objects}, $o;
+    }
     
     if (!defined $self->extra_variables->{input_filename}) {
         if (defined (my $input_file = $object->input_file)) {
             @{$self->extra_variables}{qw(input_filename input_filename_base)} = parse_filename($input_file);
         }
     }
+    # TODO: invalidate skirt and brim
+}
+
+sub delete_object {
+    my ($self, $obj_idx) = @_;
+    splice @{$self->objects}, $obj_idx, 1;
+    # TODO: invalidate skirt and brim
+}
+
+sub delete_all_objects {
+    my ($self) = @_;
+    @{$self->objects} = ();
+    # TODO: invalidate skirt and brim
 }
 
 sub validate {
@@ -159,20 +157,33 @@ sub validate {
         # check horizontal clearance
         {
             my @a = ();
-            for my $obj_idx (0 .. $#{$self->objects}) {
-                my $clearance;
-                {
-                    my @points = map Slic3r::Point->new(@$_[X,Y]), map @{$_->vertices}, @{$self->objects->[$obj_idx]->meshes};
-                    my $convex_hull = convex_hull(\@points);
-                    ($clearance) = @{offset([$convex_hull], scale $Slic3r::Config->extruder_clearance_radius / 2, 1, JT_ROUND)};
-                }
-                for my $copy (@{$self->objects->[$obj_idx]->copies}) {
-                    my $copy_clearance = $clearance->clone;
-                    $copy_clearance->translate(@$copy);
-                    if (@{ intersection(\@a, [$copy_clearance]) }) {
+            foreach my $object (@{$self->objects}) {
+                # get convex hulls of all meshes assigned to this print object
+                my @mesh_convex_hulls = map $object->model_object->volumes->[$_]->mesh->convex_hull,
+                    map @$_,
+                    grep defined $_,
+                    @{$object->region_volumes};
+                
+                # make a single convex hull for all of them
+                my $convex_hull = convex_hull([ map @$_, @mesh_convex_hulls ]);
+                
+                # apply the same transformations we apply to the actual meshes when slicing them
+                $object->model_object->instances->[0]->transform_polygon($convex_hull, 1);
+        
+                # align object to Z = 0 and apply XY shift
+                $convex_hull->translate(@{$object->_copies_shift});
+                
+                # grow convex hull with the clearance margin
+                ($convex_hull) = @{offset([$convex_hull], scale $self->config->extruder_clearance_radius / 2, 1, JT_ROUND, scale(0.1))};
+                
+                # now we need that no instance of $convex_hull does not intersect any of the previously checked object instances
+                for my $copy (@{$object->_shifted_copies}) {
+                    my $p = $convex_hull->clone;
+                    $p->translate(@$copy);
+                    if (@{ intersection(\@a, [$p]) }) {
                         die "Some objects are too close; your extruder will collide with them.\n";
                     }
-                    @a = map $_->clone, map @$_, @{union_ex([ @a, $copy_clearance ])};
+                    @a = @{union([@a, $p])};
                 }
             }
         }
@@ -286,7 +297,7 @@ sub bounding_box {
     
     my @points = ();
     foreach my $object (@{$self->objects}) {
-        foreach my $copy (@{$object->copies}) {
+        foreach my $copy (@{$object->_shifted_copies}) {
             push @points,
                 [ $copy->[X], $copy->[Y] ],
                 [ $copy->[X] + $object->size->[X], $copy->[Y] + $object->size->[Y] ];
@@ -310,13 +321,11 @@ sub _simplify_slices {
     }
 }
 
-sub export_gcode {
-    my $self = shift;
-    my %params = @_;
+sub process {
+    my ($self) = @_;
     
     $self->init_extruders;
-    my $status_cb = $params{status_cb} || sub {};
-    my $t0 = [gettimeofday];
+    my $status_cb = $self->status_cb // sub {};
     
     # skein the STL into layers
     # each layer has surfaces with holes
@@ -433,6 +442,13 @@ sub export_gcode {
         eval "use Slic3r::Test::SectionCut";
         Slic3r::Test::SectionCut->new(print => $self)->export_svg("section_cut.svg");
     }
+}
+
+sub export_gcode {
+    my $self = shift;
+    my %params = @_;
+    
+    my $status_cb = $self->status_cb // sub {};
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath($params{output_file});
@@ -447,19 +463,6 @@ sub export_gcode {
             Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
             system($_, $output_file);
         }
-    }
-    
-    # output some statistics
-    unless ($params{quiet}) {
-        $self->processing_time(tv_interval($t0));
-        printf "Done. Process took %d minutes and %.3f seconds\n", 
-            int($self->processing_time/60),
-            $self->processing_time - int($self->processing_time/60)*60;
-        
-        # TODO: more statistics!
-        print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
-            $_->absolute_E, $_->extruded_volume/1000),
-            @{$self->extruders};
     }
 }
 
@@ -510,7 +513,7 @@ EOF
             
             # sort slices so that the outermost ones come first
             my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
-            foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
+            foreach my $copy (@{$self->objects->[$obj_idx]->_shifted_copies}) {
                 foreach my $slice (@slices) {
                     my $expolygon = $slice->clone;
                     $expolygon->translate(@$copy);
@@ -558,6 +561,8 @@ sub make_skirt {
     return unless $Slic3r::Config->skirts > 0
         || ($Slic3r::Config->ooze_prevention && @{$self->extruders} > 1);
     
+    $self->skirt->clear;  # method must be idempotent
+    
     # collect points from all layers contained in skirt height
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
@@ -572,7 +577,7 @@ sub make_skirt {
                 (map @{$_->polyline}, map @{$_->support_fills}, grep $_->support_fills, @support_layers),
                 (map @{$_->polyline}, map @{$_->support_interface_fills}, grep $_->support_interface_fills, @support_layers);
         }
-        push @points, map move_points($_, @layer_points), @{$object->copies};
+        push @points, map move_points($_, @layer_points), @{$object->_shifted_copies};
     }
     return if @points < 3;  # at least three points required for a convex hull
     
@@ -593,7 +598,7 @@ sub make_skirt {
     my $distance = scale $Slic3r::Config->skirt_distance;
     for (my $i = $Slic3r::Config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
-        my $loop = offset([$convex_hull], $distance, 0.0001, JT_ROUND)->[0];
+        my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
         $self->skirt->append(Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
@@ -621,6 +626,8 @@ sub make_brim {
     my $self = shift;
     return unless $Slic3r::Config->brim_width > 0;
     
+    $self->brim->clear;  # method must be idempotent
+    
     my $flow = $self->objects->[0]->layers->[0]->regions->[0]->perimeter_flow;
     
     my $grow_distance = $flow->scaled_width / 2;
@@ -640,7 +647,7 @@ sub make_brim {
                 (map @{$_->polyline->grow($grow_distance)}, @{$support_layer0->support_interface_fills})
                 if $support_layer0->support_interface_fills;
         }
-        foreach my $copy (@{$object->copies}) {
+        foreach my $copy (@{$object->_shifted_copies}) {
             push @islands, map { $_->translate(@$copy); $_ } map $_->clone, @object_islands;
         }
     }
@@ -750,14 +757,6 @@ sub write_gcode {
     # TODO: make sure we select the first *used* extruder
     print $fh $gcodegen->set_extruder($self->extruders->[0]);
     
-    # calculate X,Y shift to center print around specified origin
-    my $print_bb = $self->bounding_box;
-    my $print_size = $print_bb->size;
-    my @shift = (
-        $Slic3r::Config->print_center->[X] - unscale($print_size->[X]/2 + $print_bb->x_min),
-        $Slic3r::Config->print_center->[Y] - unscale($print_size->[Y]/2 + $print_bb->y_min),
-    );
-    
     # initialize a motion planner for object-to-object travel moves
     if ($Slic3r::Config->avoid_crossing_perimeters) {
         my $distance_from_objects = 1;
@@ -770,9 +769,8 @@ sub write_gcode {
             # discard layers only containing thin walls (offset would fail on an empty polygon)
             if (@$convex_hull) {
                 my $expolygon = Slic3r::ExPolygon->new($convex_hull);
-                $expolygon->translate(scale $shift[X], scale $shift[Y]);
                 my @island = @{$expolygon->offset_ex(scale $distance_from_objects, 1, JT_SQUARE)};
-                foreach my $copy (@{ $self->objects->[$obj_idx]->copies }) {
+                foreach my $copy (@{ $self->objects->[$obj_idx]->shifted_copies }) {
                     push @islands, map { my $c = $_->clone; $c->translate(@$copy); $c } @island;
                 }
             }
@@ -799,7 +797,6 @@ sub write_gcode {
     my $layer_gcode = Slic3r::GCode::Layer->new(
         print       => $self,
         gcodegen    => $gcodegen,
-        shift       => \@shift,
     );
     
     # do all objects for each layer
@@ -816,7 +813,7 @@ sub write_gcode {
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
-                    $gcodegen->set_shift(map $shift[$_] + unscale $copy->[$_], X,Y);
+                    $gcodegen->set_shift(map unscale $copy->[$_], X,Y);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
                 }
@@ -850,7 +847,7 @@ sub write_gcode {
         }
     } else {
         # order objects using a nearest neighbor search
-        my @obj_idx = @{chained_path([ map Slic3r::Point->new(@{$_->copies->[0]}), @{$self->objects} ])};
+        my @obj_idx = @{chained_path([ map Slic3r::Point->new(@{$_->_shifted_copies->[0]}), @{$self->objects} ])};
         
         # sort layers by Z
         my %layers = ();  # print_z => [ [layers], [layers], [layers] ]  by obj_idx
@@ -871,7 +868,7 @@ sub write_gcode {
             foreach my $obj_idx (@obj_idx) {
                 foreach my $layer (@{ $layers{$print_z}[$obj_idx] // [] }) {
                     print $fh $buffer->append(
-                        $layer_gcode->process_layer($layer, $layer->object->copies),
+                        $layer_gcode->process_layer($layer, $layer->object->_shifted_copies),
                         $layer->object . ref($layer),  # differentiate $obj_id between normal layers and support layers
                         $layer->id,
                         $layer->print_z,
@@ -917,7 +914,7 @@ sub expanded_output_filepath {
         @$extra_variables{qw(input_filename input_filename_base)} = parse_filename($input_file);
     } else {
         # if no input file was supplied, take the first one from our objects
-        $input_file = $self->objects->[0]->input_file // return undef;
+        $input_file = $self->objects->[0]->model_object->input_file // return undef;
     }
     
     if ($path && -d $path) {
@@ -931,7 +928,6 @@ sub expanded_output_filepath {
     } else {
         # path is a full path to a file so we use it as it is
     }
-    
     return $self->config->replace_options($path, { %{$self->extra_variables}, %$extra_variables });
 }
 
@@ -942,6 +938,11 @@ sub parse_filename {
     my $filename = my $filename_base = basename($path);
     $filename_base =~ s/\.[^.]+$//;
     return ($filename, $filename_base);
+}
+
+sub apply_extra_variables {
+    my ($self, $extra) = @_;
+    $self->extra_variables->{$_} = $extra->{$_} for keys %$extra;
 }
 
 1;
