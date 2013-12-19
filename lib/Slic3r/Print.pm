@@ -398,108 +398,99 @@ sub process {
     # skein the STL into layers
     # each layer has surfaces with holes
     $status_cb->(10, "Processing triangulated mesh");
-    $print_step->(STEP_INIT_EXTRUDERS, sub {
-        my $object = $self->objects->[$_[0]];
-        $object->slice;
-        
-        if ($self->config->resolution) {
-            
-        }
+    $object_step->(STEP_SLICE, sub {
+        $self->objects->[$_[0]]->slice;
     });
     
     die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
         if !grep @{$_->layers}, @{$self->objects};
     
-    if ($self->config->resolution) {
-        $status_cb->(15, "Simplifying input");
-        $self->_simplify_slices(scale $Slic3r::Config->resolution);
-        $print_step->(STEP_INIT_EXTRUDERS, sub {
-            $self->objects->[$_[0]]->slice;
-        });
-    }
-    
     # make perimeters
     # this will add a set of extrusion loops to each layer
     # as well as generate infill boundaries
     $status_cb->(20, "Generating perimeters");
-    $_->make_perimeters for @{$self->objects};
+    $object_step->(STEP_PERIMETERS, sub {
+        $self->objects->[$_[0]]->make_perimeters;
+    });
     
-    # simplify slices (both layer and region slices),
-    # we only need the max resolution for perimeters
-    $self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
+    $status_cb->(30, "Preparing infill");
+    $object_step->(STEP_PREPARE_INFILL, sub {
+        my $object = $self->objects->[$_[0]];
+        
+        # this will assign a type (top/bottom/internal) to $layerm->slices
+        # and transform $layerm->fill_surfaces from expolygon 
+        # to typed top/bottom/internal surfaces;
+        $object->detect_surfaces_type;
     
-    # this will assign a type (top/bottom/internal) to $layerm->slices
-    # and transform $layerm->fill_surfaces from expolygon 
-    # to typed top/bottom/internal surfaces;
-    $status_cb->(30, "Detecting solid surfaces");
-    $_->detect_surfaces_type for @{$self->objects};
+        # decide what surfaces are to be filled
+        $_->prepare_fill_surfaces for map @{$_->regions}, @{$object->layers};
     
-    # decide what surfaces are to be filled
-    $status_cb->(35, "Preparing infill surfaces");
-    $_->prepare_fill_surfaces for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
+        # this will detect bridges and reverse bridges
+        # and rearrange top/bottom/internal surfaces
+        $object->process_external_surfaces;
     
-    # this will detect bridges and reverse bridges
-    # and rearrange top/bottom/internal surfaces
-    $status_cb->(45, "Detect bridges");
-    $_->process_external_surfaces for @{$self->objects};
+        # detect which fill surfaces are near external layers
+        # they will be split in internal and internal-solid surfaces
+        $object->discover_horizontal_shells;
+        $object->clip_fill_surfaces;
+        
+        # the following step needs to be done before combination because it may need
+        # to remove only half of the combined infill
+        $object->bridge_over_infill;
     
-    # detect which fill surfaces are near external layers
-    # they will be split in internal and internal-solid surfaces
-    $status_cb->(60, "Generating horizontal shells");
-    $_->discover_horizontal_shells for @{$self->objects};
-    $_->clip_fill_surfaces for @{$self->objects};
-    # the following step needs to be done before combination because it may need
-    # to remove only half of the combined infill
-    $_->bridge_over_infill for @{$self->objects};
-    
-    # combine fill surfaces to honor the "infill every N layers" option
-    $status_cb->(70, "Combining infill");
-    $_->combine_infill for @{$self->objects};
+        # combine fill surfaces to honor the "infill every N layers" option
+        $object->combine_infill;
+    });
     
     # this will generate extrusion paths for each layer
-    $status_cb->(80, "Infilling layers");
-    {
+    $status_cb->(70, "Infilling layers");
+    $object_step->(STEP_INFILL, sub {
+        my $object = $self->objects->[$_[0]];
+        
         Slic3r::parallelize(
             items => sub {
-                my @items = ();  # [obj_idx, layer_id]
-                for my $obj_idx (0 .. $#{$self->objects}) {
-                    for my $region_id (0 .. ($self->regions_count-1)) {
-                        push @items, map [$obj_idx, $_, $region_id], 0..($self->objects->[$obj_idx]->layer_count-1);
-                    }
+                my @items = ();  # [layer_id, region_id]
+                for my $region_id (0 .. ($self->regions_count-1)) {
+                    push @items, map [$_, $region_id], 0..($object->layer_count-1);
                 }
                 @items;
             },
             thread_cb => sub {
                 my $q = shift;
                 while (defined (my $obj_layer = $q->dequeue)) {
-                    my ($obj_idx, $layer_id, $region_id) = @$obj_layer;
-                    my $object = $self->objects->[$obj_idx];
+                    my ($layer_id, $region_id) = @$obj_layer;
                     my $layerm = $object->layers->[$layer_id]->regions->[$region_id];
                     $layerm->fills->append( $object->fill_maker->make_fill($layerm) );
                 }
             },
             collect_cb => sub {},
             no_threads_cb => sub {
-                foreach my $layerm (map @{$_->regions}, map @{$_->layers}, @{$self->objects}) {
-                    $layerm->fills->append($layerm->layer->object->fill_maker->make_fill($layerm));
+                foreach my $layerm (map @{$_->regions}, @{$object->layers}) {
+                    $layerm->fills->append($object->fill_maker->make_fill($layerm));
                 }
             },
         );
-    }
+    
+        ### we could free memory now, but this would make this step not idempotent
+        $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
+    });
     
     # generate support material
-    if ($self->has_support_material) {
-        $status_cb->(85, "Generating support material");
-        $_->generate_support_material for @{$self->objects};
-    }
-    
-    # free memory (note that support material needs fill_surfaces)
-    $_->fill_surfaces->clear for map @{$_->regions}, map @{$_->layers}, @{$self->objects};
+    $status_cb->(85, "Generating support material") if $self->has_support_material;
+    $object_step->(STEP_SUPPORTMATERIAL, sub {
+        $self->objects->[$_[0]]->generate_support_material;
+    });
     
     # make skirt
     $status_cb->(88, "Generating skirt");
-    $self->make_skirt;
-    $self->make_brim;  # must come after make_skirt
+    $print_step->(STEP_SKIRT, sub {
+        $self->make_skirt;
+    });
+    
+    $status_cb->(88, "Generating skirt");
+    $print_step->(STEP_BRIM, sub {
+        $self->make_brim;  # must come after make_skirt
+    });
     
     # time to make some statistics
     if (0) {

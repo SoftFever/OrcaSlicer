@@ -273,6 +273,11 @@ sub slice {
             $self->layers->[$i]->id($i);
         }
     }
+    
+    # simplify slices if required
+    if ($self->config->resolution) {
+        $self->_simplify_slices(scale($self->config->resolution));
+    }
 }
 
 sub make_perimeters {
@@ -348,6 +353,11 @@ sub make_perimeters {
             $_->make_perimeters for @{$self->layers};
         },
     );
+    
+    # simplify slices (both layer and region slices),
+    # we only need the max resolution for perimeters
+    ### This makes this method not-idempotent, so we keep it disabled for now.
+    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
 }
 
 sub detect_surfaces_type {
@@ -848,6 +858,15 @@ sub generate_support_material {
     Slic3r::Print::SupportMaterial
         ->new(config => $self->config, flow => $self->print->support_material_flow)
         ->generate($self);
+}
+
+sub _simplify_slices {
+    my ($self, $distance) = @_;
+    
+    foreach my $layer (@{$self->layers}) {
+        $layer->slices->simplify($distance);
+        $_->slices->simplify($distance) for @{$layer->regions};
+    }
 }
 
 1;
