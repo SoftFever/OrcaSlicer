@@ -19,12 +19,23 @@ has 'regions'                => (is => 'rw', default => sub {[]});
 has 'support_material_flow'  => (is => 'rw');
 has 'first_layer_support_material_flow' => (is => 'rw');
 has 'has_support_material'   => (is => 'lazy');
+has '_started'               => (is => 'ro', default => sub {{}});  # { obj_idx => { step => 1, ... }, ... }
+has '_done'                  => (is => 'ro', default => sub {{}});  # { obj_idx => { step => 1, ... }, ... }
 
 # ordered collection of extrusion paths to build skirt loops
 has 'skirt' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 # ordered collection of extrusion paths to build a brim
 has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
+
+use constant STEP_INIT_EXTRUDERS    => 0;
+use constant STEP_SLICE             => 1;
+use constant STEP_PERIMETERS        => 2;
+use constant STEP_PREPARE_INFILL    => 3;
+use constant STEP_INFILL            => 4;
+use constant STEP_SUPPORTMATERIAL   => 5;
+use constant STEP_SKIRT             => 6;
+use constant STEP_BRIM              => 7;
 
 sub BUILD {
     my $self = shift;
@@ -81,6 +92,37 @@ sub _build_has_support_material {
     return (first { $_->config->support_material } @{$self->objects})
         || (first { $_->config->raft_layers > 0 } @{$self->objects})
         || (first { $_->config->support_material_enforce_layers > 0 } @{$self->objects});
+}
+
+sub step_started {
+    my ($self, $step, $obj_idx) = @_;
+    
+    $obj_idx //= -1;
+    return (defined $self->_started->{$obj_idx} && $self->_started->{$obj_idx}{$step}) ? 1 : 0;
+}
+
+sub step_done {
+    my ($self, $step, $obj_idx) = @_;
+    
+    $obj_idx //= -1;
+    return (defined $self->_done->{$obj_idx} && $self->_done->{$obj_idx}{$step}) ? 1 : 0;
+}
+
+sub set_step_started {
+    my ($self, $step, $obj_idx) = @_;
+    
+    $obj_idx //= -1;
+    $self->_started->{$obj_idx} //= {};
+    $self->_started->{$obj_idx}{$step} = 1;
+    delete $self->_done->{$obj_idx}{$step} if defined $self->_done->{$obj_idx};
+}
+
+sub set_step_done {
+    my ($self, $step, $obj_idx) = @_;
+    
+    $obj_idx //= -1;
+    $self->_done->{$obj_idx} //= {};
+    $self->_done->{$obj_idx}{$step} = 1;
 }
 
 # caller is responsible for supplying models whose objects don't collide
@@ -141,12 +183,14 @@ sub add_model_object {
 sub delete_object {
     my ($self, $obj_idx) = @_;
     splice @{$self->objects}, $obj_idx, 1;
+    # TODO: purge unused regions
     # TODO: invalidate skirt and brim
 }
 
 sub delete_all_objects {
     my ($self) = @_;
     @{$self->objects} = ();
+    @{$self->regions} = ();
     # TODO: invalidate skirt and brim
 }
 
@@ -324,24 +368,54 @@ sub _simplify_slices {
 sub process {
     my ($self) = @_;
     
-    $self->init_extruders;
     my $status_cb = $self->status_cb // sub {};
     
+    my $print_step = sub {
+        my ($step, $cb) = @_;
+        if (!$self->step_done($step)) {
+            $self->set_step_started($step);
+            $cb->();
+            $self->set_step_done($step);
+        }
+    };
+    my $object_step = sub {
+        my ($step, $cb) = @_;
+        for my $obj_idx (0..$#{$self->objects}) {
+            if (!$self->step_done($step, $obj_idx)) {
+                $self->set_step_started($step, $obj_idx);
+                $cb->($obj_idx);
+                $self->set_step_done($step, $obj_idx);
+            }
+        }
+    };
+    
+    # STEP_INIT_EXTRUDERS
+    $print_step->(STEP_INIT_EXTRUDERS, sub {
+        $self->init_extruders;
+    });
+    
+    # STEP_SLICE
     # skein the STL into layers
     # each layer has surfaces with holes
     $status_cb->(10, "Processing triangulated mesh");
-    $_->slice for @{$self->objects};
+    $print_step->(STEP_INIT_EXTRUDERS, sub {
+        my $object = $self->objects->[$_[0]];
+        $object->slice;
+        
+        if ($self->config->resolution) {
+            
+        }
+    });
     
-    # remove empty layers and abort if there are no more
-    # as some algorithms assume all objects have at least one layer
-    # note: this will change object indexes
-    @{$self->objects} = grep @{$_->layers}, @{$self->objects};
     die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
-        if !@{$self->objects};
+        if !grep @{$_->layers}, @{$self->objects};
     
-    if ($Slic3r::Config->resolution) {
+    if ($self->config->resolution) {
         $status_cb->(15, "Simplifying input");
         $self->_simplify_slices(scale $Slic3r::Config->resolution);
+        $print_step->(STEP_INIT_EXTRUDERS, sub {
+            $self->objects->[$_[0]]->slice;
+        });
     }
     
     # make perimeters
