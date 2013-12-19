@@ -9,6 +9,7 @@ use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points c
     convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
     offset2 union union_pt_chained JT_ROUND JT_SQUARE);
+use Slic3r::Print::State ':steps';
 
 has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => \&init_config);
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
@@ -19,23 +20,13 @@ has 'regions'                => (is => 'rw', default => sub {[]});
 has 'support_material_flow'  => (is => 'rw');
 has 'first_layer_support_material_flow' => (is => 'rw');
 has 'has_support_material'   => (is => 'lazy');
-has '_started'               => (is => 'ro', default => sub {{}});  # { obj_idx => { step => 1, ... }, ... }
-has '_done'                  => (is => 'ro', default => sub {{}});  # { obj_idx => { step => 1, ... }, ... }
+has '_state'                 => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
 # ordered collection of extrusion paths to build skirt loops
 has 'skirt' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
 # ordered collection of extrusion paths to build a brim
 has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
-
-use constant STEP_INIT_EXTRUDERS    => 0;
-use constant STEP_SLICE             => 1;
-use constant STEP_PERIMETERS        => 2;
-use constant STEP_PREPARE_INFILL    => 3;
-use constant STEP_INFILL            => 4;
-use constant STEP_SUPPORTMATERIAL   => 5;
-use constant STEP_SKIRT             => 6;
-use constant STEP_BRIM              => 7;
 
 sub BUILD {
     my $self = shift;
@@ -94,37 +85,6 @@ sub _build_has_support_material {
         || (first { $_->config->support_material_enforce_layers > 0 } @{$self->objects});
 }
 
-sub step_started {
-    my ($self, $step, $obj_idx) = @_;
-    
-    $obj_idx //= -1;
-    return (defined $self->_started->{$obj_idx} && $self->_started->{$obj_idx}{$step}) ? 1 : 0;
-}
-
-sub step_done {
-    my ($self, $step, $obj_idx) = @_;
-    
-    $obj_idx //= -1;
-    return (defined $self->_done->{$obj_idx} && $self->_done->{$obj_idx}{$step}) ? 1 : 0;
-}
-
-sub set_step_started {
-    my ($self, $step, $obj_idx) = @_;
-    
-    $obj_idx //= -1;
-    $self->_started->{$obj_idx} //= {};
-    $self->_started->{$obj_idx}{$step} = 1;
-    delete $self->_done->{$obj_idx}{$step} if defined $self->_done->{$obj_idx};
-}
-
-sub set_step_done {
-    my ($self, $step, $obj_idx) = @_;
-    
-    $obj_idx //= -1;
-    $self->_done->{$obj_idx} //= {};
-    $self->_done->{$obj_idx}{$step} = 1;
-}
-
 # caller is responsible for supplying models whose objects don't collide
 # and have explicit instance positions
 sub add_model_object {
@@ -177,21 +137,29 @@ sub add_model_object {
             @{$self->extra_variables}{qw(input_filename input_filename_base)} = parse_filename($input_file);
         }
     }
-    # TODO: invalidate skirt and brim
+    
+    $self->_state->invalidate(STEP_SKIRT);
+    $self->_state->invalidate(STEP_BRIM);
 }
 
 sub delete_object {
     my ($self, $obj_idx) = @_;
+    
     splice @{$self->objects}, $obj_idx, 1;
     # TODO: purge unused regions
-    # TODO: invalidate skirt and brim
+    
+    $self->_state->invalidate(STEP_SKIRT);
+    $self->_state->invalidate(STEP_BRIM);
 }
 
 sub delete_all_objects {
     my ($self) = @_;
+    
     @{$self->objects} = ();
     @{$self->regions} = ();
-    # TODO: invalidate skirt and brim
+    
+    $self->_state->invalidate(STEP_SKIRT);
+    $self->_state->invalidate(STEP_BRIM);
 }
 
 sub validate {
@@ -372,19 +340,20 @@ sub process {
     
     my $print_step = sub {
         my ($step, $cb) = @_;
-        if (!$self->step_done($step)) {
-            $self->set_step_started($step);
+        if (!$self->_state->done($step)) {
+            $self->_state->set_started($step);
             $cb->();
-            $self->set_step_done($step);
+            $self->_state->set_done($step);
         }
     };
     my $object_step = sub {
         my ($step, $cb) = @_;
         for my $obj_idx (0..$#{$self->objects}) {
-            if (!$self->step_done($step, $obj_idx)) {
-                $self->set_step_started($step, $obj_idx);
+            my $object = $self->objects->[$obj_idx];
+            if (!$object->_state->done($step, $obj_idx)) {
+                $object->_state->set_started($step, $obj_idx);
                 $cb->($obj_idx);
-                $self->set_step_done($step, $obj_idx);
+                $object->_state->set_done($step, $obj_idx);
             }
         }
     };
@@ -472,7 +441,7 @@ sub process {
         );
     
         ### we could free memory now, but this would make this step not idempotent
-        $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
+        ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
     });
     
     # generate support material
@@ -1008,6 +977,27 @@ sub parse_filename {
 sub apply_extra_variables {
     my ($self, $extra) = @_;
     $self->extra_variables->{$_} = $extra->{$_} for keys %$extra;
+}
+
+sub invalidate_step {
+    my ($self, $step, $obj_idx) = @_;
+    
+    # invalidate $step in the correct state object
+    if ($Slic3r::Print::State::print_step->{$step}) {
+        $self->_state->invalidate($step);
+    } else {
+        # object step
+        if (defined $obj_idx) {
+            $self->objects->[$obj_idx]->_state->invalidate($step);
+        } else {
+            $_->_state->invalidate($step) for @{$self->objects};
+        }
+    }
+    
+    # recursively invalidate steps depending on $step
+    $self->invalidate_step($_)
+        for grep { grep { $_ == $step } @{$Slic3r::Print::State::prereqs{$_}} }
+            keys %Slic3r::Print::State::prereqs;
 }
 
 1;

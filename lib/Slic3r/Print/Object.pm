@@ -5,6 +5,7 @@ use List::Util qw(min max sum first);
 use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
     offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
+use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -21,6 +22,7 @@ has '_shifted_copies'   => (is => 'rw');  # Slic3r::Point objects in scaled G-co
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'support_layers'    => (is => 'rw', default => sub { [] });
 has 'fill_maker'        => (is => 'lazy');
+has '_state'            => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
 sub BUILD {
     my $self = shift;
@@ -70,6 +72,9 @@ sub _trigger_copies {
             $c;
         } @{$self->copies}[@{chained_path($self->copies)}]
     ]);
+    
+    $self->print->_state->invalidate(STEP_SKIRT);
+    $self->print->_state->invalidate(STEP_BRIM);
 }
 
 # in unscaled coordinates
