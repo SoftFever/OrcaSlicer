@@ -35,6 +35,8 @@ src/Polyline.cpp
 src/Polyline.hpp
 src/PolylineCollection.cpp
 src/PolylineCollection.hpp
+src/PrintState.cpp
+src/PrintState.hpp
 src/ppport.h
 src/Surface.cpp
 src/Surface.hpp
@@ -72,6 +74,7 @@ xsp/Point.xsp
 xsp/Polygon.xsp
 xsp/Polyline.xsp
 xsp/PolylineCollection.xsp
+xsp/PrintState.xsp
 xsp/Surface.xsp
 xsp/SurfaceCollection.xsp
 xsp/TriangleMesh.xsp

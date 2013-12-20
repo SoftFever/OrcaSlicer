@@ -350,10 +350,10 @@ sub process {
         my ($step, $cb) = @_;
         for my $obj_idx (0..$#{$self->objects}) {
             my $object = $self->objects->[$obj_idx];
-            if (!$object->_state->done($step, $obj_idx)) {
-                $object->_state->set_started($step, $obj_idx);
+            if (!$object->_state->done($step)) {
+                $object->_state->set_started($step);
                 $cb->($obj_idx);
-                $object->_state->set_done($step, $obj_idx);
+                $object->_state->set_done($step);
             }
         }
     };
