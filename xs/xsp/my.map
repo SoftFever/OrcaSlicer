@@ -12,10 +12,12 @@ ExPolygonCollection*    O_OBJECT
 ExtrusionEntityCollection*    O_OBJECT
 ExtrusionPath*  O_OBJECT
 ExtrusionLoop*  O_OBJECT
+PrintState*  O_OBJECT
 Surface*        O_OBJECT
 SurfaceCollection*      O_OBJECT
 
 ExtrusionRole     T_UV
+PrintStep     T_UV
 SurfaceType     T_UV
 ClipperLib::JoinType		T_UV
 ClipperLib::PolyFillType		T_UV

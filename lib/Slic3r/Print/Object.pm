@@ -5,6 +5,7 @@ use List::Util qw(min max sum first);
 use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
     offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
+use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
@@ -21,6 +22,7 @@ has '_shifted_copies'   => (is => 'rw');  # Slic3r::Point objects in scaled G-co
 has 'layers'            => (is => 'rw', default => sub { [] });
 has 'support_layers'    => (is => 'rw', default => sub { [] });
 has 'fill_maker'        => (is => 'lazy');
+has '_state'            => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
 sub BUILD {
     my $self = shift;
@@ -70,6 +72,9 @@ sub _trigger_copies {
             $c;
         } @{$self->copies}[@{chained_path($self->copies)}]
     ]);
+    
+    $self->print->_state->invalidate(STEP_SKIRT);
+    $self->print->_state->invalidate(STEP_BRIM);
 }
 
 # in unscaled coordinates
@@ -273,6 +278,11 @@ sub slice {
             $self->layers->[$i]->id($i);
         }
     }
+    
+    # simplify slices if required
+    if ($self->config->resolution) {
+        $self->_simplify_slices(scale($self->config->resolution));
+    }
 }
 
 sub make_perimeters {
@@ -348,6 +358,11 @@ sub make_perimeters {
             $_->make_perimeters for @{$self->layers};
         },
     );
+    
+    # simplify slices (both layer and region slices),
+    # we only need the max resolution for perimeters
+    ### This makes this method not-idempotent, so we keep it disabled for now.
+    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
 }
 
 sub detect_surfaces_type {
@@ -848,6 +863,15 @@ sub generate_support_material {
     Slic3r::Print::SupportMaterial
         ->new(config => $self->config, flow => $self->print->support_material_flow)
         ->generate($self);
+}
+
+sub _simplify_slices {
+    my ($self, $distance) = @_;
+    
+    foreach my $layer (@{$self->layers}) {
+        $layer->slices->simplify($distance);
+        $_->slices->simplify($distance) for @{$layer->regions};
+    }
 }
 
 1;

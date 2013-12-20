@@ -1,0 +1,41 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "Print.hpp"
+%}
+
+%name{Slic3r::Print::State} class PrintState {
+    PrintState();
+    ~PrintState();
+    bool started(PrintStep step) const;
+    bool done(PrintStep step) const;
+    void set_started(PrintStep step);
+    void set_done(PrintStep step);
+    void invalidate(PrintStep step);
+%{
+
+%}
+};
+
+%package{Slic3r::Print::State};
+%{
+
+IV
+_constant()
+  ALIAS:
+    STEP_INIT_EXTRUDERS     = psInitExtruders
+    STEP_SLICE              = psSlice
+    STEP_PERIMETERS         = psPerimeters
+    STEP_PREPARE_INFILL     = prPrepareInfill
+    STEP_INFILL             = psInfill
+    STEP_SUPPORTMATERIAL    = psSupportMaterial
+    STEP_SKIRT              = psSkirt
+    STEP_BRIM               = psBrim
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
+%}
+

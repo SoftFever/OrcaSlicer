@@ -18,6 +18,7 @@
 %typemap{Lines};
 %typemap{Polygons};
 %typemap{Polylines};
+%typemap{PrintState};
 %typemap{ExPolygons};
 %typemap{Surfaces};
 %typemap{Polygons*};
@@ -33,5 +34,11 @@
   %cpp_type{ExtrusionRole};
   %precall_code{%
     $CVar = (ExtrusionRole)SvUV($PerlVar);
+  %};
+};
+%typemap{PrintStep}{parsed}{
+  %cpp_type{PrintStep};
+  %precall_code{%
+    $CVar = (PrintStep)SvUV($PerlVar);
   %};
 };
