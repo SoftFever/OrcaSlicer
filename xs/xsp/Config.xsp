@@ -1,0 +1,15 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "Config.hpp"
+%}
+
+%name{Slic3r::Config} class DynamicConfig {
+    DynamicConfig();
+    ~DynamicConfig();
+    SV* get(t_config_option_key opt_key);
+%{
+
+%}
+};

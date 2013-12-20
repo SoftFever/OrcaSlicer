@@ -61,6 +61,7 @@ t/12_extrusionpathcollection.t
 t/13_polylinecollection.t
 t/14_geometry.t
 xsp/Clipper.xsp
+xsp/Config.xsp
 xsp/ExPolygon.xsp
 xsp/ExPolygonCollection.xsp
 xsp/ExtrusionEntityCollection.xsp
