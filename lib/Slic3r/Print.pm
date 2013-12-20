@@ -343,7 +343,8 @@ sub process {
         if (!$self->_state->done($step)) {
             $self->_state->set_started($step);
             $cb->();
-            $self->_state->set_done($step);
+            ### Re-enable this for step-based slicing:
+            ### $self->_state->set_done($step);
         }
     };
     my $object_step = sub {
@@ -353,7 +354,8 @@ sub process {
             if (!$object->_state->done($step)) {
                 $object->_state->set_started($step);
                 $cb->($obj_idx);
-                $object->_state->set_done($step);
+                ### Re-enable this for step-based slicing:
+                ### $object->_state->set_done($step);
             }
         }
     };
