@@ -75,6 +75,8 @@ ConfigBase::get(t_config_option_key opt_key) {
         return newSVpvn(optv->value.c_str(), optv->value.length());
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
         return optv->point.to_SV_pureperl();
+    } else if (ConfigOptionBool* optv = dynamic_cast<ConfigOptionBool*>(opt)) {
+        return newSViv(optv->value ? 1 : 0);
     } else {
         std::string serialized = opt->serialize();
         return newSVpvn(serialized.c_str(), serialized.length());
@@ -94,6 +96,8 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         optv->value = std::string(SvPV_nolen(value), SvCUR(value));
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
         optv->point.from_SV(value);
+    } else if (ConfigOptionBool* optv = dynamic_cast<ConfigOptionBool*>(opt)) {
+        optv->value = SvTRUE(value);
     } else {
         opt->deserialize( std::string(SvPV_nolen(value)) );
     }
@@ -123,6 +127,8 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
                 opt = new ConfigOptionFloatOrPercent ();
             } else if (Options[opt_key].type == coPoint) {
                 opt = new ConfigOptionPoint ();
+            } else if (Options[opt_key].type == coBool) {
+                opt = new ConfigOptionBool ();
             } else {
                 throw "Unknown option type";
             }

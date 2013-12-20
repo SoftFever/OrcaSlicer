@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 {
     my $config = Slic3r::Config->new;
@@ -40,6 +40,10 @@ use Test::More tests => 16;
     is $config->serialize('print_center'), '50,80', 'serialize point';
     $config->set_deserialize('print_center', '20,10');
     is_deeply $config->get('print_center'), [20,10], 'deserialize point';
+    
+    $config->set('use_relative_e_distances', 1);
+    is $config->get('use_relative_e_distances'), 1, 'set/get bool';
+    is $config->serialize('use_relative_e_distances'), '1', 'serialize bool';
 }
 
 __END__
