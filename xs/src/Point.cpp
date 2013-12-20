@@ -171,6 +171,23 @@ Point::from_SV_check(SV* point_sv)
         this->from_SV(point_sv);
     }
 }
+
+SV*
+Pointf::to_SV_pureperl() const {
+    AV* av = newAV();
+    av_fill(av, 1);
+    av_store(av, 0, newSVnv(this->x));
+    av_store(av, 1, newSVnv(this->y));
+    return newRV_noinc((SV*)av);
+}
+
+void
+Pointf::from_SV(SV* point_sv)
+{
+    AV* point_av = (AV*)SvRV(point_sv);
+    this->x = SvNV(*av_fetch(point_av, 0, 0));
+    this->y = SvNV(*av_fetch(point_av, 1, 0));
+}
 #endif
 
 }

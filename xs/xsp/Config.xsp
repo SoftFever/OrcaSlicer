@@ -9,6 +9,10 @@
     DynamicConfig();
     ~DynamicConfig();
     SV* get(t_config_option_key opt_key);
+    void set(t_config_option_key opt_key, SV* value);
+    void set_deserialize(t_config_option_key opt_key, std::string str);
+    std::string serialize(t_config_option_key opt_key);
+    float get_abs_value(t_config_option_key opt_key);
 %{
 
 %}

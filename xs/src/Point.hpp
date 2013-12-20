@@ -42,6 +42,19 @@ class Point
     #endif
 };
 
+class Pointf
+{
+    public:
+    float x;
+    float y;
+    explicit Pointf(float _x = 0, float _y = 0): x(_x), y(_y) {};
+    
+    #ifdef SLIC3RXS
+    void from_SV(SV* point_sv);
+    SV* to_SV_pureperl() const;
+    #endif
+};
+
 }
 
 #endif
