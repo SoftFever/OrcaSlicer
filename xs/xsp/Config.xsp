@@ -17,3 +17,18 @@
 
 %}
 };
+
+%name{Slic3r::Config::Print} class PrintConfig {
+    PrintConfig();
+    ~PrintConfig();
+    SV* get(t_config_option_key opt_key);
+    void set(t_config_option_key opt_key, SV* value);
+    void set_deserialize(t_config_option_key opt_key, std::string str);
+    std::string serialize(t_config_option_key opt_key);
+    float get_abs_value(t_config_option_key opt_key);
+    void apply_dynamic(DynamicPrintConfig* other, bool ignore_nonexistent = false)
+        %code{% THIS->apply(*other, ignore_nonexistent); %};
+%{
+
+%}
+};

@@ -11,8 +11,13 @@ ConfigBase::apply(ConfigBase &other, bool ignore_nonexistent) {
     // loop through options and apply them
     for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
         ConfigOption* my_opt = this->option(*it);
-        if (my_opt == NULL && ignore_nonexistent == false) throw "Attempt to apply non-existent option";
-        *my_opt = *(other.option(*it));
+        if (my_opt == NULL) {
+            if (ignore_nonexistent == false) throw "Attempt to apply non-existent option";
+            continue;
+        }
+        
+        // not the most efficient way, but easier than casting pointers to subclasses
+        my_opt->deserialize( other.option(*it)->serialize() );
     }
 }
 

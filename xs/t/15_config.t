@@ -4,11 +4,9 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 33;
+use Test::More tests => 67;
 
-{
-    my $config = Slic3r::Config->new;
-    
+foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     $config->set('layer_height', 0.3);
     ok abs($config->get('layer_height') - 0.3) < 1e-4, 'set/get float';
     is $config->serialize('layer_height'), '0.3', 'serialize float';
@@ -75,6 +73,15 @@ use Test::More tests => 33;
     is $config->serialize('wipe'), '1,0', 'serialize bools';
     $config->set_deserialize('wipe', '0,1,1');
     is_deeply $config->get('wipe'), [0,1,1], 'deserialize bools';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('perimeters', 2);
+    
+    my $config2 = Slic3r::Config::Print->new;
+    $config2->apply_dynamic($config);
+    is $config2->get('perimeters'), 2, 'apply (dynamic -> static)';
 }
 
 __END__
