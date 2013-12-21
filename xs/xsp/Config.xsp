@@ -70,6 +70,8 @@ print_config_def()
                 opt_type = "i";
             } else if (optdef->type == coString) {
                 opt_type = "s";
+            } else if (optdef->type == coStrings) {
+                opt_type = "s@";
             } else if (optdef->type == coPoint || optdef->type == coPoints) {
                 opt_type = "point";
             } else if (optdef->type == coBool || optdef->type == coBools) {
@@ -120,7 +122,7 @@ print_config_def()
                 av_fill(av, optdef->enum_values.size()-1);
                 for (std::vector<std::string>::iterator it = optdef->enum_values.begin(); it != optdef->enum_values.end(); ++it)
                     av_store(av, it - optdef->enum_values.begin(), newSVpvn(it->c_str(), it->length()));
-                (void)hv_stores( hv, "enum_values", newRV_noinc((SV*)av) );
+                (void)hv_stores( hv, "values", newRV_noinc((SV*)av) );
             }
             
             // enum_labels
@@ -129,7 +131,7 @@ print_config_def()
                 av_fill(av, optdef->enum_labels.size()-1);
                 for (std::vector<std::string>::iterator it = optdef->enum_labels.begin(); it != optdef->enum_labels.end(); ++it)
                     av_store(av, it - optdef->enum_labels.begin(), newSVpvn(it->c_str(), it->length()));
-                (void)hv_stores( hv, "enum_labels", newRV_noinc((SV*)av) );
+                (void)hv_stores( hv, "labels", newRV_noinc((SV*)av) );
             }
             
             (void)hv_stores( hv, "default", config.get(opt_key) );

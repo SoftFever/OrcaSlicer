@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include <map>
 #include <sstream>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -26,10 +27,10 @@ class ConfigOption {
 class ConfigOptionFloat : public ConfigOption
 {
     public:
-    float value;
+    double value;  // use double instead of float for preserving compatibility with values coming from Perl
     ConfigOptionFloat() : value(0) {};
     
-    operator float() const { return this->value; };
+    operator double() const { return this->value; };
     
     std::string serialize() {
         std::ostringstream ss;
@@ -139,6 +140,31 @@ class ConfigOptionString : public ConfigOption
         }
         
         this->value = str;
+    };
+};
+
+// semicolon-separated strings
+class ConfigOptionStrings : public ConfigOption
+{
+    public:
+    std::vector<std::string> values;
+    
+    std::string serialize() {
+        std::ostringstream ss;
+        for (std::vector<std::string>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            if (it - this->values.begin() != 0) ss << ";";
+            ss << *it;
+        }
+        return ss.str();
+    };
+    
+    void deserialize(std::string str) {
+        this->values.clear();
+        std::istringstream is(str);
+        std::string item_str;
+        while (std::getline(is, item_str, ';')) {
+            this->values.push_back(item_str);
+        }
     };
 };
 
@@ -314,6 +340,7 @@ enum ConfigOptionType {
     coInt,
     coInts,
     coString,
+    coStrings,
     coFloatOrPercent,
     coPoint,
     coPoints,
@@ -348,7 +375,7 @@ class ConfigOptionDef
     t_config_enum_values enum_keys_map;
     
     ConfigOptionDef() : multiline(false), full_label(false), full_width(false), readonly(false),
-                        height(0), width(0), min(0), max(0) {};
+                        height(-1), width(-1), min(INT_MIN), max(INT_MAX) {};
 };
 
 typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;

@@ -54,7 +54,7 @@ ConfigBase::get_abs_value(const t_config_option_key opt_key) {
     // compute absolute value
     if (opt->percent) {
         ConfigOptionFloat* optbase = dynamic_cast<ConfigOptionFloat*>(this->option(def->ratio_over));
-        assert(optbase != NULL);
+        if (optbase == NULL) throw "ratio_over option not found";
         return optbase->value * opt->value / 100;
     } else {
         return opt->value;
@@ -98,6 +98,12 @@ ConfigBase::get(t_config_option_key opt_key) {
     } else if (ConfigOptionString* optv = dynamic_cast<ConfigOptionString*>(opt)) {
         // we don't serialize() because that would escape newlines
         return newSVpvn(optv->value.c_str(), optv->value.length());
+    } else if (ConfigOptionStrings* optv = dynamic_cast<ConfigOptionStrings*>(opt)) {
+        AV* av = newAV();
+        av_fill(av, optv->values.size()-1);
+        for (std::vector<std::string>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+            av_store(av, it - optv->values.begin(), newSVpvn(it->c_str(), it->length()));
+        return newRV_noinc((SV*)av);
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
         return optv->point.to_SV_pureperl();
     } else if (ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt)) {
@@ -123,7 +129,7 @@ ConfigBase::get(t_config_option_key opt_key) {
 void
 ConfigBase::set(t_config_option_key opt_key, SV* value) {
     ConfigOption* opt = this->option(opt_key, true);
-    assert(opt != NULL);
+    if (opt == NULL) CONFESS("Trying to set non-existing option");
     
     if (ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt)) {
         optv->value = SvNV(value);
@@ -147,6 +153,14 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         }
     } else if (ConfigOptionString* optv = dynamic_cast<ConfigOptionString*>(opt)) {
         optv->value = std::string(SvPV_nolen(value), SvCUR(value));
+    } else if (ConfigOptionStrings* optv = dynamic_cast<ConfigOptionStrings*>(opt)) {
+        optv->values.clear();
+        AV* av = (AV*)SvRV(value);
+        const size_t len = av_len(av)+1;
+        for (size_t i = 0; i < len; i++) {
+            SV** elem = av_fetch(av, i, 0);
+            optv->values.push_back(std::string(SvPV_nolen(*elem), SvCUR(*elem)));
+        }
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
         optv->point.from_SV(value);
     } else if (ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt)) {
@@ -198,6 +212,8 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
                 opt = new ConfigOptionInts ();
             } else if (optdef->type == coString) {
                 opt = new ConfigOptionString ();
+            } else if (optdef->type == coStrings) {
+                opt = new ConfigOptionStrings ();
             } else if (optdef->type == coFloatOrPercent) {
                 opt = new ConfigOptionFloatOrPercent ();
             } else if (optdef->type == coPoint) {
