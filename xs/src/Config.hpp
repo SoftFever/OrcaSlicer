@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>;
+#include <iostream>
 #include <string>
 #include <vector>
 #include "Point.hpp"
@@ -162,32 +162,35 @@ enum GCodeFlavor {
     gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
 };
 
-class ConfigOptionGCodeFlavor : public ConfigOption
+template <class T>
+class ConfigOptionEnum : public ConfigOption
 {
     public:
-    GCodeFlavor value;
-    ConfigOptionGCodeFlavor() : value(gcfRepRap) {};
+    T value;
     
-    operator GCodeFlavor() const { return this->value; };
+    operator T() const { return this->value; };
     
-    std::string serialize() {
-             if (this->value == gfcRepRap)      { return std::string("reprap"); }
-        else if (this->value == gcfTeacup)      { return std::string("teacup"); }
-        else if (this->value == gcfMakerWare)   { return std::string("makerware"); }
-        else if (this->value == gcfSailfish)    { return std::string("sailfish"); }
-        else if (this->value == gcfMach3)       { return std::string("mach3"); }
-        else if (this->value == gcfNoExtrusion) { return std::string("no-extrusion"); }
-    };
-    
-    void deserialize(std::string str) {
-             if (str.compare("reprap") == 0)        { this->value = gfcRepRap; }
-        else if (str.compare("teacup") == 0)        { this->value = gcfTeacup; }
-        else if (str.compare("makerware") == 0)     { this->value = gcfMakerWare; }
-        else if (str.compare("sailfish") == 0)      { this->value = gcfSailfish; }
-        else if (str.compare("mach3") == 0)         { this->value = gcfMach3; }
-        else if (str.compare("no-extrusion") == 0)  { this->value = gcfNoExtrusion; }
-    };
+    std::string serialize();
+    void deserialize(std::string str);
+    static std::map<std::string,T> get_enum_values();
 };
+
+template <class T>
+std::string ConfigOptionEnum<T>::serialize() {
+    typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+    for (typename std::map<std::string,T>::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
+        if (it->second == this->value) return it->first;
+    }
+    return "";
+};
+
+template <class T>
+void ConfigOptionEnum<T>::deserialize(std::string str) {
+    typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+    assert(enum_keys_map.count(str) > 0);
+    this->value = enum_keys_map[str];
+};
+typedef ConfigOptionEnum<GCodeFlavor> ConfigOptionEnumGCodeFlavor;
 
 enum ConfigOptionType {
     coFloat,
@@ -196,7 +199,7 @@ enum ConfigOptionType {
     coFloatOrPercent,
     coPoint,
     coBool,
-    coGCodeFlavor,
+    coEnumGCodeFlavor,
 };
 
 class ConfigOptionDef
@@ -253,13 +256,14 @@ class StaticConfig : public ConfigBase
 class FullConfig : public StaticConfig
 {
     public:
-    ConfigOptionFloat           layer_height;
-    ConfigOptionFloatOrPercent  first_layer_height;
-    ConfigOptionInt             perimeters;
-    ConfigOptionString          extrusion_axis;
-    ConfigOptionPoint           print_center;
-    ConfigOptionString          notes;
-    ConfigOptionBool            use_relative_e_distances;
+    ConfigOptionFloat               layer_height;
+    ConfigOptionFloatOrPercent      first_layer_height;
+    ConfigOptionInt                 perimeters;
+    ConfigOptionString              extrusion_axis;
+    ConfigOptionPoint               print_center;
+    ConfigOptionString              notes;
+    ConfigOptionBool                use_relative_e_distances;
+    ConfigOptionEnumGCodeFlavor     gcode_flavor;
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         assert(!create);  // can't create options in StaticConfig
@@ -270,6 +274,7 @@ class FullConfig : public StaticConfig
         if (opt_key == "print_center")              return &this->print_center;
         if (opt_key == "notes")                     return &this->notes;
         if (opt_key == "use_relative_e_distances")  return &this->use_relative_e_distances;
+        if (opt_key == "gcode_flavor")              return &this->gcode_flavor;
         return NULL;
     };
 };
@@ -295,8 +300,23 @@ static t_optiondef_map _build_optiondef_map () {
     
     Options["use_relative_e_distances"].type = coBool;
     
+    Options["gcode_flavor"].type = coEnumGCodeFlavor;
+    
     return Options;
 }
+
+// we declare this as inline to keep it in this file along with all other option definitions
+template<> inline std::map<std::string,GCodeFlavor> ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
+    std::map<std::string,GCodeFlavor> keys_map;
+    keys_map["reprap"]          = gcfRepRap;
+    keys_map["teacup"]          = gcfTeacup;
+    keys_map["makerware"]       = gcfMakerWare;
+    keys_map["sailfish"]        = gcfSailfish;
+    keys_map["mach3"]           = gcfMach3;
+    keys_map["no-extrusion"]    = gcfNoExtrusion;
+    return keys_map;
+}
+
 
 static FullConfig _build_default_config () {
     FullConfig defconf;
@@ -309,6 +329,7 @@ static FullConfig _build_default_config () {
     defconf.print_center.point              = Pointf(100,100);
     defconf.notes.value                     = "";
     defconf.use_relative_e_distances.value  = false;
+    defconf.gcode_flavor.value              = gcfRepRap;
     
     return defconf;
 }

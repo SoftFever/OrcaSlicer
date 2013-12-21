@@ -129,6 +129,8 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
                 opt = new ConfigOptionPoint ();
             } else if (Options[opt_key].type == coBool) {
                 opt = new ConfigOptionBool ();
+            } else if (Options[opt_key].type == coEnumGCodeFlavor) {
+                opt = new ConfigOptionEnumGCodeFlavor ();
             } else {
                 throw "Unknown option type";
             }
