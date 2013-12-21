@@ -266,26 +266,24 @@ class ConfigOptionEnum : public ConfigOption
     
     operator T() const { return this->value; };
     
-    std::string serialize();
-    void deserialize(std::string str);
+    std::string serialize() {
+        typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+        for (typename std::map<std::string,T>::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
+            if (it->second == this->value) return it->first;
+        }
+        return "";
+    };
+
+    void deserialize(std::string str) {
+        typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+        assert(enum_keys_map.count(str) > 0);
+        this->value = enum_keys_map[str];
+    };
+
     static std::map<std::string,T> get_enum_values();
 };
 
-template <class T>
-std::string ConfigOptionEnum<T>::serialize() {
-    typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-    for (typename std::map<std::string,T>::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
-        if (it->second == this->value) return it->first;
-    }
-    return "";
-};
 
-template <class T>
-void ConfigOptionEnum<T>::deserialize(std::string str) {
-    typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-    assert(enum_keys_map.count(str) > 0);
-    this->value = enum_keys_map[str];
-};
 
 enum GCodeFlavor {
     gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
