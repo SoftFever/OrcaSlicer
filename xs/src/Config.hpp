@@ -42,6 +42,30 @@ class ConfigOptionFloat : public ConfigOption
     };
 };
 
+class ConfigOptionFloats : public ConfigOption
+{
+    public:
+    std::vector<float> values;
+    
+    std::string serialize() {
+        std::ostringstream ss;
+        for (std::vector<float>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            if (it - this->values.begin() != 0) ss << ",";
+            ss << *it;
+        }
+        return ss.str();
+    };
+    
+    void deserialize(std::string str) {
+        this->values.clear();
+        std::istringstream is(str);
+        std::string item_str;
+        while (std::getline(is, item_str, ',')) {
+            this->values.push_back(::atof(item_str.c_str()));
+        }
+    };
+};
+
 class ConfigOptionInt : public ConfigOption
 {
     public:
@@ -58,6 +82,30 @@ class ConfigOptionInt : public ConfigOption
     
     void deserialize(std::string str) {
         this->value = ::atoi(str.c_str());
+    };
+};
+
+class ConfigOptionInts : public ConfigOption
+{
+    public:
+    std::vector<int> values;
+    
+    std::string serialize() {
+        std::ostringstream ss;
+        for (std::vector<int>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            if (it - this->values.begin() != 0) ss << ",";
+            ss << *it;
+        }
+        return ss.str();
+    };
+    
+    void deserialize(std::string str) {
+        this->values.clear();
+        std::istringstream is(str);
+        std::string item_str;
+        while (std::getline(is, item_str, ',')) {
+            this->values.push_back(::atoi(item_str.c_str()));
+        }
     };
 };
 
@@ -141,6 +189,34 @@ class ConfigOptionPoint : public ConfigOption
     };
 };
 
+class ConfigOptionPoints : public ConfigOption
+{
+    public:
+    Pointfs points;
+    
+    std::string serialize() {
+        std::ostringstream ss;
+        for (Pointfs::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
+            if (it - this->points.begin() != 0) ss << ",";
+            ss << it->x;
+            ss << "x";
+            ss << it->y;
+        }
+        return ss.str();
+    };
+    
+    void deserialize(std::string str) {
+        this->points.clear();
+        std::istringstream is(str);
+        std::string point_str;
+        while (std::getline(is, point_str, ',')) {
+            Pointf point;
+            sscanf(point_str.c_str(), "%fx%f", &point.x, &point.y);
+            this->points.push_back(point);
+        }
+    };
+};
+
 class ConfigOptionBool : public ConfigOption
 {
     public:
@@ -158,8 +234,28 @@ class ConfigOptionBool : public ConfigOption
     };
 };
 
-enum GCodeFlavor {
-    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
+class ConfigOptionBools : public ConfigOption
+{
+    public:
+    std::vector<bool> values;
+    
+    std::string serialize() {
+        std::ostringstream ss;
+        for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            if (it - this->values.begin() != 0) ss << ",";
+            ss << (*it ? "1" : "0");
+        }
+        return ss.str();
+    };
+    
+    void deserialize(std::string str) {
+        this->values.clear();
+        std::istringstream is(str);
+        std::string item_str;
+        while (std::getline(is, item_str, ',')) {
+            this->values.push_back(item_str.compare("1") == 0);
+        }
+    };
 };
 
 template <class T>
@@ -190,15 +286,35 @@ void ConfigOptionEnum<T>::deserialize(std::string str) {
     assert(enum_keys_map.count(str) > 0);
     this->value = enum_keys_map[str];
 };
+
+enum GCodeFlavor {
+    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
+};
 typedef ConfigOptionEnum<GCodeFlavor> ConfigOptionEnumGCodeFlavor;
+
+// we declare this as inline to keep it in this file along with all other option definitions
+template<> inline std::map<std::string,GCodeFlavor> ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
+    std::map<std::string,GCodeFlavor> keys_map;
+    keys_map["reprap"]          = gcfRepRap;
+    keys_map["teacup"]          = gcfTeacup;
+    keys_map["makerware"]       = gcfMakerWare;
+    keys_map["sailfish"]        = gcfSailfish;
+    keys_map["mach3"]           = gcfMach3;
+    keys_map["no-extrusion"]    = gcfNoExtrusion;
+    return keys_map;
+}
 
 enum ConfigOptionType {
     coFloat,
+    coFloats,
     coInt,
+    coInts,
     coString,
     coFloatOrPercent,
     coPoint,
+    coPoints,
     coBool,
+    coBools,
     coEnumGCodeFlavor,
 };
 
@@ -261,9 +377,13 @@ class FullConfig : public StaticConfig
     ConfigOptionInt                 perimeters;
     ConfigOptionString              extrusion_axis;
     ConfigOptionPoint               print_center;
+    ConfigOptionPoints              extruder_offset;
     ConfigOptionString              notes;
     ConfigOptionBool                use_relative_e_distances;
     ConfigOptionEnumGCodeFlavor     gcode_flavor;
+    ConfigOptionFloats              nozzle_diameter;
+    ConfigOptionInts                temperature;
+    ConfigOptionBools               wipe;
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         assert(!create);  // can't create options in StaticConfig
@@ -272,9 +392,13 @@ class FullConfig : public StaticConfig
         if (opt_key == "perimeters")                return &this->perimeters;
         if (opt_key == "extrusion_axis")            return &this->extrusion_axis;
         if (opt_key == "print_center")              return &this->print_center;
+        if (opt_key == "extruder_offset")           return &this->extruder_offset;
         if (opt_key == "notes")                     return &this->notes;
         if (opt_key == "use_relative_e_distances")  return &this->use_relative_e_distances;
         if (opt_key == "gcode_flavor")              return &this->gcode_flavor;
+        if (opt_key == "nozzle_diameter")           return &this->nozzle_diameter;
+        if (opt_key == "temperature")               return &this->temperature;
+        if (opt_key == "wipe")                      return &this->wipe;
         return NULL;
     };
 };
@@ -296,25 +420,21 @@ static t_optiondef_map _build_optiondef_map () {
     
     Options["print_center"].type = coPoint;
     
+    Options["extruder_offset"].type = coPoints;
+    
     Options["notes"].type = coString;
     
     Options["use_relative_e_distances"].type = coBool;
     
     Options["gcode_flavor"].type = coEnumGCodeFlavor;
     
+    Options["nozzle_diameter"].type = coFloats;
+    
+    Options["temperature"].type = coInts;
+    
+    Options["wipe"].type = coBools;
+    
     return Options;
-}
-
-// we declare this as inline to keep it in this file along with all other option definitions
-template<> inline std::map<std::string,GCodeFlavor> ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
-    std::map<std::string,GCodeFlavor> keys_map;
-    keys_map["reprap"]          = gcfRepRap;
-    keys_map["teacup"]          = gcfTeacup;
-    keys_map["makerware"]       = gcfMakerWare;
-    keys_map["sailfish"]        = gcfSailfish;
-    keys_map["mach3"]           = gcfMach3;
-    keys_map["no-extrusion"]    = gcfNoExtrusion;
-    return keys_map;
 }
 
 
@@ -327,9 +447,13 @@ static FullConfig _build_default_config () {
     defconf.perimeters.value                = 3;
     defconf.extrusion_axis.value            = "E";
     defconf.print_center.point              = Pointf(100,100);
+    defconf.extruder_offset.points.push_back(Pointf(0,0));
     defconf.notes.value                     = "";
     defconf.use_relative_e_distances.value  = false;
     defconf.gcode_flavor.value              = gcfRepRap;
+    defconf.nozzle_diameter.values.push_back(0.5);
+    defconf.temperature.values.push_back(200);
+    defconf.wipe.values.push_back(true);
     
     return defconf;
 }

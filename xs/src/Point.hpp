@@ -9,8 +9,10 @@ namespace Slic3r {
 
 class Line;
 class Point;
+class Pointf;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
+typedef std::vector<Pointf> Pointfs;
 
 class Point
 {
