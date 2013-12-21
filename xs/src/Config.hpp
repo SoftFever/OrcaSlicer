@@ -327,14 +327,31 @@ class ConfigOptionDef
     public:
     ConfigOptionType type;
     std::string label;
+    std::string category;
     std::string tooltip;
-    std::string ratio_over;
+    std::string sidetext;
+    std::string cli;
+    std::string scope;
+    t_config_option_key ratio_over;
+    bool multiline;
+    bool full_label;
+    bool full_width;
+    bool readonly;
+    int height;
+    int width;
+    int min;
+    int max;
+    std::vector<t_config_option_key> aliases;
+    std::vector<t_config_option_key> shortcut;
+    std::vector<std::string> enum_values;
+    std::vector<std::string> enum_labels;
     t_config_enum_values enum_keys_map;
+    
+    ConfigOptionDef() : multiline(false), full_label(false), full_width(false), readonly(false),
+                        height(0), width(0), min(0), max(0) {};
 };
 
 typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;
-
-ConfigOptionDef* get_config_option_def(const t_config_option_key opt_key);
 
 class ConfigBase
 {
@@ -342,6 +359,7 @@ class ConfigBase
     t_optiondef_map* def;
     
     ConfigBase() : def(NULL) {};
+    bool has(const t_config_option_key opt_key);
     virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
     virtual void keys(t_config_option_keys *keys) = 0;
     void apply(ConfigBase &other, bool ignore_nonexistent = false);
@@ -350,6 +368,7 @@ class ConfigBase
     float get_abs_value(const t_config_option_key opt_key);
     
     #ifdef SLIC3RXS
+    SV* as_hash();
     SV* get(t_config_option_key opt_key);
     void set(t_config_option_key opt_key, SV* value);
     #endif
@@ -358,11 +377,10 @@ class ConfigBase
 class DynamicConfig : public ConfigBase
 {
     public:
-    DynamicConfig(){};
+    DynamicConfig() {};
     ~DynamicConfig();
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     void keys(t_config_option_keys *keys);
-    bool has(const t_config_option_key opt_key) const;
     
     private:
     DynamicConfig(const DynamicConfig& other);              // we disable this by making it private and unimplemented

@@ -1151,35 +1151,22 @@ END
     },
 };
 
+$Options = print_config_def();
+
 # generate accessors
-if (eval "use Class::XSAccessor; 1") {
-    Class::XSAccessor->import(
-        getters => { map { $_ => $_ } keys %$Options },
-    );
-} else {
+{
     no strict 'refs';
     for my $opt_key (keys %$Options) {
-        *{$opt_key} = sub { $_[0]{$opt_key} };
+        *{$opt_key} = sub { $_[0]->get($opt_key) };
     }
-}
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    
-    my $self = bless {}, $class;
-    $self->apply(%args);
-    return $self;
 }
 
 sub new_from_defaults {
     my $class = shift;
     
-    return $class->new(
-        map { $_ => $Options->{$_}{default} }
-            grep !$Options->{$_}{shortcut},
-            (@_ ? @_ : keys %$Options)
-    );
+    my $self = $class->new;
+    $self->apply_static(Slic3r::Config::Print->new);
+    return $self;
 }
 
 sub new_from_cli {
@@ -1201,10 +1188,14 @@ sub new_from_cli {
         }
     }
     
-    $args{$_} = $Options->{$_}{deserialize}->($args{$_})
-        for grep exists $args{$_}, qw(print_center bed_size duplicate_grid extruder_offset retract_layer_change wipe);
-    
-    return $class->new(%args);
+    my $self = $class->new;
+    foreach my $opt_key (keys %args) {
+        if ($opt_key =~ /^(?:print_center|bed_size|duplicate_grid|extruder_offset|retract_layer_change|wipe)$/) {
+            $self->set_deserialize($opt_key, $args{$opt_key});
+        } else {
+            $self->set($opt_key, $args{$opt_key});
+        }
+    }
 }
 
 sub merge {
@@ -1220,21 +1211,15 @@ sub load {
     
     my $ini = __PACKAGE__->read_ini($file);
     my $config = __PACKAGE__->new;
-    $config->set($_, $ini->{_}{$_}, 1) for keys %{$ini->{_}};
+    $config->set_deserialize(handle_legacy($_, $ini->{_}{$_})) for keys %{$ini->{_}};
     return $config;
-}
-
-sub apply {
-    my $self = shift;
-    my %args = @_ == 1 ? %{$_[0]} : @_; # accept a single Config object too
-    
-    $self->set($_, $args{$_}) for keys %args;
 }
 
 sub clone {
     my $self = shift;
-    my $new = __PACKAGE__->new(%$self);
-    $new->{$_} = [@{$new->{$_}}] for grep { ref $new->{$_} eq 'ARRAY' } keys %$new;
+    
+    my $new = __PACKAGE__->new;
+    $new->apply($self);
     return $new;
 }
 
@@ -1242,23 +1227,14 @@ sub get_value {
     my $self = shift;
     my ($opt_key) = @_;
     
-    no strict 'refs';
-    my $value = $self->get($opt_key);
-    $value = $self->get_value($Options->{$opt_key}{ratio_over}) * $1/100
-        if $Options->{$opt_key}{ratio_over} && $value =~ /^(\d+(?:\.\d+)?)%$/;
-    return $value;
+    return $Options->{$opt_key}{ratio_over}
+        ? $self->get_abs_value($opt_key)
+        : $self->get($opt_key);
 }
 
-sub get {
+sub handle_legacy {
     my $self = shift;
-    my ($opt_key) = @_;
-    
-    return $self->{$opt_key};
-}
-
-sub set {
-    my $self = shift;
-    my ($opt_key, $value, $deserialize) = @_;
+    my ($opt_key, $value) = @_;
     
     # handle legacy options
     return if first { $_ eq $opt_key } @Ignore;
@@ -1294,41 +1270,20 @@ sub set {
         $opt_key = $keys[0];
     }
     
-    # clone arrayrefs
-    $value = [@$value] if ref $value eq 'ARRAY';
-    
-    # deserialize if requested
-    $value = $Options->{$opt_key}{deserialize}->($value)
-        if $deserialize && $Options->{$opt_key}{deserialize};
-    
-    $self->{$opt_key} = $value;
-    
-    if ($Options->{$opt_key}{shortcut}) {
-        $self->set($_, $value, $deserialize) for @{$Options->{$opt_key}{shortcut}};
-    }
+    return ($opt_key, $value);
 }
 
 sub set_ifndef {
     my $self = shift;
     my ($opt_key, $value, $deserialize) = @_;
     
-    $self->set($opt_key, $value, $deserialize)
-        if !defined $self->get($opt_key);
-}
-
-sub has {
-    my $self = shift;
-    my ($opt_key) = @_;
-    return exists $self->{$opt_key};
-}
-
-sub serialize {
-    my $self = shift;
-    my ($opt_key) = @_;
-    
-    my $value = $self->get($opt_key);
-    $value = $Options->{$opt_key}{serialize}->($value) if $Options->{$opt_key}{serialize};
-    return $value;
+    if (!$self->has($opt_key)) {
+        if ($deserialize) {
+            $self->set_deserialize($opt_key, $value);
+        } else {
+            $self->set($opt_key, $value);
+        }
+    }
 }
 
 sub save {
@@ -1336,9 +1291,8 @@ sub save {
     my ($file) = @_;
     
     my $ini = { _ => {} };
-    foreach my $opt_key (sort keys %$self) {
+    foreach my $opt_key (sort @{$self->get_keys}) {
         next if $Options->{$opt_key}{shortcut};
-        next if $Options->{$opt_key}{gui_only};
         $ini->{_}{$opt_key} = $self->serialize($opt_key);
     }
     __PACKAGE__->write_ini($file, $ini);
@@ -1348,7 +1302,6 @@ sub setenv {
     my $self = shift;
     
     foreach my $opt_key (sort keys %$Options) {
-        next if $Options->{$opt_key}{gui_only};
         $ENV{"SLIC3R_" . uc $opt_key} = $self->serialize($opt_key);
     }
 }

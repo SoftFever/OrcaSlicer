@@ -57,7 +57,6 @@ class PrintConfig : public StaticConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        assert(!create);  // can't create options in StaticConfig
         if (opt_key == "layer_height")              return &this->layer_height;
         if (opt_key == "first_layer_height")        return &this->first_layer_height;
         if (opt_key == "perimeters")                return &this->perimeters;
@@ -70,6 +69,7 @@ class PrintConfig : public StaticConfig
         if (opt_key == "nozzle_diameter")           return &this->nozzle_diameter;
         if (opt_key == "temperature")               return &this->temperature;
         if (opt_key == "wipe")                      return &this->wipe;
+        if (create) throw "Attempt to create non-existing option in StaticConfig object";
         return NULL;
     };
     

@@ -2,6 +2,11 @@
 
 namespace Slic3r {
 
+bool
+ConfigBase::has(const t_config_option_key opt_key) {
+    return (this->option(opt_key, false) != NULL);
+}
+
 void
 ConfigBase::apply(ConfigBase &other, bool ignore_nonexistent) {
     // get list of option keys to apply
@@ -10,7 +15,7 @@ ConfigBase::apply(ConfigBase &other, bool ignore_nonexistent) {
     
     // loop through options and apply them
     for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
-        ConfigOption* my_opt = this->option(*it);
+        ConfigOption* my_opt = this->option(*it, true);
         if (my_opt == NULL) {
             if (ignore_nonexistent == false) throw "Attempt to apply non-existent option";
             continue;
@@ -57,6 +62,19 @@ ConfigBase::get_abs_value(const t_config_option_key opt_key) {
 }
 
 #ifdef SLIC3RXS
+SV*
+ConfigBase::as_hash() {
+    HV* hv = newHV();
+    
+    t_config_option_keys opt_keys;
+    this->keys(&opt_keys);
+    
+    for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it)
+        (void)hv_store( hv, it->c_str(), it->length(), this->get(*it), 0 );
+    
+    return newRV_noinc((SV*)hv);
+}
+
 SV*
 ConfigBase::get(t_config_option_key opt_key) {
     ConfigOption* opt = this->option(opt_key);
@@ -210,11 +228,6 @@ void
 DynamicConfig::keys(t_config_option_keys *keys) {
     for (t_options_map::const_iterator it = this->options.begin(); it != this->options.end(); ++it)
         keys->push_back(it->first);
-}
-
-bool
-DynamicConfig::has(const t_config_option_key opt_key) const {
-    return (this->options.count(opt_key) != 0);
 }
 
 void

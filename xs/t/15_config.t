@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 67;
+use Test::More tests => 70;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     $config->set('layer_height', 0.3);
@@ -73,6 +73,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     is $config->serialize('wipe'), '1,0', 'serialize bools';
     $config->set_deserialize('wipe', '0,1,1');
     is_deeply $config->get('wipe'), [0,1,1], 'deserialize bools';
+    
+    is_deeply [ sort @{$config->get_keys} ], [ sort keys %{$config->as_hash} ], 'get_keys and as_hash';
 }
 
 {
@@ -81,7 +83,14 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     
     my $config2 = Slic3r::Config::Print->new;
     $config2->apply_dynamic($config);
-    is $config2->get('perimeters'), 2, 'apply (dynamic -> static)';
+    is $config2->get('perimeters'), 2, 'apply_dynamic';
+}
+
+{
+    my $config = Slic3r::Config::Print->new;
+    my $config2 = Slic3r::Config->new;
+    $config2->apply_static($config);
+    is $config2->get('perimeters'), Slic3r::Config::print_config_def()->{perimeters}{default}, 'apply_static and print_config_def';
 }
 
 __END__
