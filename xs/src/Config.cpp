@@ -2,16 +2,6 @@
 
 namespace Slic3r {
 
-t_optiondef_map Options = _build_optiondef_map();
-FullConfig DefaultConfig = _build_default_config();
-
-ConfigOptionDef*
-get_config_option_def(const t_config_option_key opt_key) {
-    t_optiondef_map::iterator it = Options.find(opt_key);
-    if (it == Options.end()) return NULL;
-    return &it->second;
-}
-
 void
 ConfigBase::apply(ConfigBase &other, bool ignore_nonexistent) {
     // get list of option keys to apply
@@ -43,8 +33,8 @@ ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) 
 float
 ConfigBase::get_abs_value(const t_config_option_key opt_key) {
     // get option definition
-    ConfigOptionDef* def = get_config_option_def(opt_key);
-    assert(def != NULL);
+    assert(this->def->count(opt_key) != 0);
+    ConfigOptionDef* def = &(*this->def)[opt_key];
     assert(def->type == coFloatOrPercent);
     
     // get stored option value
@@ -171,32 +161,34 @@ DynamicConfig::~DynamicConfig () {
 
 ConfigOption*
 DynamicConfig::option(const t_config_option_key opt_key, bool create) {
-    t_options_map::iterator it = this->options.find(opt_key);
-    if (it == this->options.end()) {
+    if (this->options.count(opt_key) == 0) {
         if (create) {
+            ConfigOptionDef* optdef = &(*this->def)[opt_key];
             ConfigOption* opt;
-            if (Options[opt_key].type == coFloat) {
+            if (optdef->type == coFloat) {
                 opt = new ConfigOptionFloat ();
-            } else if (Options[opt_key].type == coFloats) {
+            } else if (optdef->type == coFloats) {
                 opt = new ConfigOptionFloats ();
-            } else if (Options[opt_key].type == coInt) {
+            } else if (optdef->type == coInt) {
                 opt = new ConfigOptionInt ();
-            } else if (Options[opt_key].type == coInts) {
+            } else if (optdef->type == coInts) {
                 opt = new ConfigOptionInts ();
-            } else if (Options[opt_key].type == coString) {
+            } else if (optdef->type == coString) {
                 opt = new ConfigOptionString ();
-            } else if (Options[opt_key].type == coFloatOrPercent) {
+            } else if (optdef->type == coFloatOrPercent) {
                 opt = new ConfigOptionFloatOrPercent ();
-            } else if (Options[opt_key].type == coPoint) {
+            } else if (optdef->type == coPoint) {
                 opt = new ConfigOptionPoint ();
-            } else if (Options[opt_key].type == coPoints) {
+            } else if (optdef->type == coPoints) {
                 opt = new ConfigOptionPoints ();
-            } else if (Options[opt_key].type == coBool) {
+            } else if (optdef->type == coBool) {
                 opt = new ConfigOptionBool ();
-            } else if (Options[opt_key].type == coBools) {
+            } else if (optdef->type == coBools) {
                 opt = new ConfigOptionBools ();
-            } else if (Options[opt_key].type == coEnumGCodeFlavor) {
-                opt = new ConfigOptionEnumGCodeFlavor ();
+            } else if (optdef->type == coEnum) {
+                ConfigOptionEnumGeneric* optv = new ConfigOptionEnumGeneric ();
+                optv->keys_map = &optdef->enum_keys_map;
+                opt = static_cast<ConfigOption*>(optv);
             } else {
                 throw "Unknown option type";
             }
@@ -206,7 +198,7 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
             return NULL;
         }
     }
-    return it->second;
+    return this->options[opt_key];
 }
 
 void
@@ -217,13 +209,12 @@ DynamicConfig::keys(t_config_option_keys *keys) {
 
 bool
 DynamicConfig::has(const t_config_option_key opt_key) const {
-    t_options_map::const_iterator it = this->options.find(opt_key);
-    return (it != this->options.end());
+    return (this->options.count(opt_key) != 0);
 }
 
 void
 StaticConfig::keys(t_config_option_keys *keys) {
-    for (t_optiondef_map::const_iterator it = Options.begin(); it != Options.end(); ++it) {
+    for (t_optiondef_map::const_iterator it = this->def->begin(); it != this->def->end(); ++it) {
         ConfigOption* opt = this->option(it->first);
         if (opt != NULL) keys->push_back(it->first);
     }

@@ -2,12 +2,12 @@
 
 %{
 #include <myinit.h>
-#include "Config.hpp"
+#include "PrintConfig.hpp"
 %}
 
-%name{Slic3r::Config} class DynamicConfig {
-    DynamicConfig();
-    ~DynamicConfig();
+%name{Slic3r::Config} class DynamicPrintConfig {
+    DynamicPrintConfig();
+    ~DynamicPrintConfig();
     SV* get(t_config_option_key opt_key);
     void set(t_config_option_key opt_key, SV* value);
     void set_deserialize(t_config_option_key opt_key, std::string str);

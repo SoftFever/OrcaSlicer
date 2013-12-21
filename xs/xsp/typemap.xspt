@@ -7,7 +7,7 @@
 %typemap{SV*};
 %typemap{AV*};
 %typemap{Point*};
-%typemap{DynamicConfig*};
+%typemap{DynamicPrintConfig*};
 %typemap{ExPolygon*};
 %typemap{ExPolygonCollection*};
 %typemap{Line*};

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 32;
+use Test::More tests => 33;
 
 {
     my $config = Slic3r::Config->new;
@@ -48,6 +48,8 @@ use Test::More tests => 32;
     $config->set('gcode_flavor', 'teacup');
     is $config->get('gcode_flavor'), 'teacup', 'set/get enum';
     is $config->serialize('gcode_flavor'), 'teacup', 'serialize enum';
+    $config->set_deserialize('gcode_flavor', 'mach3');
+    is $config->get('gcode_flavor'), 'mach3', 'deserialize enum';
     
     $config->set('extruder_offset', [[10,20],[30,45]]);
     is_deeply $config->get('extruder_offset'), [[10,20],[30,45]], 'set/get points';

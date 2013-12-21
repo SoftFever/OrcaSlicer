@@ -258,6 +258,8 @@ class ConfigOptionBools : public ConfigOption
     };
 };
 
+typedef std::map<std::string,int> t_config_enum_values;
+
 template <class T>
 class ConfigOptionEnum : public ConfigOption
 {
@@ -267,40 +269,44 @@ class ConfigOptionEnum : public ConfigOption
     operator T() const { return this->value; };
     
     std::string serialize() {
-        typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-        for (typename std::map<std::string,T>::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
+        t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+        for (t_config_enum_values::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
+            if (it->second == static_cast<int>(this->value)) return it->first;
+        }
+        return "";
+    };
+
+    void deserialize(std::string str) {
+        t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+        assert(enum_keys_map.count(str) > 0);
+        this->value = static_cast<T>(enum_keys_map[str]);
+    };
+
+    static t_config_enum_values get_enum_values();
+};
+
+/* We use this one in DynamicConfig objects, otherwise it's better to use
+   the specialized ConfigOptionEnum<T> containers. */
+class ConfigOptionEnumGeneric : public ConfigOption
+{
+    public:
+    int value;
+    t_config_enum_values* keys_map;
+    
+    operator int() const { return this->value; };
+    
+    std::string serialize() {
+        for (t_config_enum_values::iterator it = this->keys_map->begin(); it != this->keys_map->end(); ++it) {
             if (it->second == this->value) return it->first;
         }
         return "";
     };
 
     void deserialize(std::string str) {
-        typename std::map<std::string,T> enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-        assert(enum_keys_map.count(str) > 0);
-        this->value = enum_keys_map[str];
+        assert(this->keys_map->count(str) != 0);
+        this->value = (*this->keys_map)[str];
     };
-
-    static std::map<std::string,T> get_enum_values();
 };
-
-
-
-enum GCodeFlavor {
-    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
-};
-typedef ConfigOptionEnum<GCodeFlavor> ConfigOptionEnumGCodeFlavor;
-
-// we declare this as inline to keep it in this file along with all other option definitions
-template<> inline std::map<std::string,GCodeFlavor> ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
-    std::map<std::string,GCodeFlavor> keys_map;
-    keys_map["reprap"]          = gcfRepRap;
-    keys_map["teacup"]          = gcfTeacup;
-    keys_map["makerware"]       = gcfMakerWare;
-    keys_map["sailfish"]        = gcfSailfish;
-    keys_map["mach3"]           = gcfMach3;
-    keys_map["no-extrusion"]    = gcfNoExtrusion;
-    return keys_map;
-}
 
 enum ConfigOptionType {
     coFloat,
@@ -313,7 +319,7 @@ enum ConfigOptionType {
     coPoints,
     coBool,
     coBools,
-    coEnumGCodeFlavor,
+    coEnum,
 };
 
 class ConfigOptionDef
@@ -323,6 +329,7 @@ class ConfigOptionDef
     std::string label;
     std::string tooltip;
     std::string ratio_over;
+    t_config_enum_values enum_keys_map;
 };
 
 typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;
@@ -332,6 +339,9 @@ ConfigOptionDef* get_config_option_def(const t_config_option_key opt_key);
 class ConfigBase
 {
     public:
+    t_optiondef_map* def;
+    
+    ConfigBase() : def(NULL) {};
     virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
     virtual void keys(t_config_option_keys *keys) = 0;
     void apply(ConfigBase &other, bool ignore_nonexistent = false);
@@ -348,7 +358,7 @@ class ConfigBase
 class DynamicConfig : public ConfigBase
 {
     public:
-    DynamicConfig() {};
+    DynamicConfig(){};
     ~DynamicConfig();
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     void keys(t_config_option_keys *keys);
@@ -366,95 +376,6 @@ class StaticConfig : public ConfigBase
     public:
     void keys(t_config_option_keys *keys);
 };
-
-class FullConfig : public StaticConfig
-{
-    public:
-    ConfigOptionFloat               layer_height;
-    ConfigOptionFloatOrPercent      first_layer_height;
-    ConfigOptionInt                 perimeters;
-    ConfigOptionString              extrusion_axis;
-    ConfigOptionPoint               print_center;
-    ConfigOptionPoints              extruder_offset;
-    ConfigOptionString              notes;
-    ConfigOptionBool                use_relative_e_distances;
-    ConfigOptionEnumGCodeFlavor     gcode_flavor;
-    ConfigOptionFloats              nozzle_diameter;
-    ConfigOptionInts                temperature;
-    ConfigOptionBools               wipe;
-    
-    ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        assert(!create);  // can't create options in StaticConfig
-        if (opt_key == "layer_height")              return &this->layer_height;
-        if (opt_key == "first_layer_height")        return &this->first_layer_height;
-        if (opt_key == "perimeters")                return &this->perimeters;
-        if (opt_key == "extrusion_axis")            return &this->extrusion_axis;
-        if (opt_key == "print_center")              return &this->print_center;
-        if (opt_key == "extruder_offset")           return &this->extruder_offset;
-        if (opt_key == "notes")                     return &this->notes;
-        if (opt_key == "use_relative_e_distances")  return &this->use_relative_e_distances;
-        if (opt_key == "gcode_flavor")              return &this->gcode_flavor;
-        if (opt_key == "nozzle_diameter")           return &this->nozzle_diameter;
-        if (opt_key == "temperature")               return &this->temperature;
-        if (opt_key == "wipe")                      return &this->wipe;
-        return NULL;
-    };
-};
-
-static t_optiondef_map _build_optiondef_map () {
-    t_optiondef_map Options;
-    Options["layer_height"].type = coFloat;
-    Options["layer_height"].label = "Layer height";
-    Options["layer_height"].tooltip = "This setting controls the height (and thus the total number) of the slices/layers. Thinner layers give better accuracy but take more time to print.";
-
-    Options["first_layer_height"].type = coFloatOrPercent;
-    Options["first_layer_height"].ratio_over = "layer_height";
-    
-    Options["perimeters"].type = coInt;
-    Options["perimeters"].label = "Perimeters (minimum)";
-    Options["perimeters"].tooltip = "This option sets the number of perimeters to generate for each layer. Note that Slic3r may increase this number automatically when it detects sloping surfaces which benefit from a higher number of perimeters if the Extra Perimeters option is enabled.";
-    
-    Options["extrusion_axis"].type = coString;
-    
-    Options["print_center"].type = coPoint;
-    
-    Options["extruder_offset"].type = coPoints;
-    
-    Options["notes"].type = coString;
-    
-    Options["use_relative_e_distances"].type = coBool;
-    
-    Options["gcode_flavor"].type = coEnumGCodeFlavor;
-    
-    Options["nozzle_diameter"].type = coFloats;
-    
-    Options["temperature"].type = coInts;
-    
-    Options["wipe"].type = coBools;
-    
-    return Options;
-}
-
-
-static FullConfig _build_default_config () {
-    FullConfig defconf;
-    
-    defconf.layer_height.value              = 0.4;
-    defconf.first_layer_height.value        = 0.35;
-    defconf.first_layer_height.percent      = false;
-    defconf.perimeters.value                = 3;
-    defconf.extrusion_axis.value            = "E";
-    defconf.print_center.point              = Pointf(100,100);
-    defconf.extruder_offset.points.push_back(Pointf(0,0));
-    defconf.notes.value                     = "";
-    defconf.use_relative_e_distances.value  = false;
-    defconf.gcode_flavor.value              = gcfRepRap;
-    defconf.nozzle_diameter.values.push_back(0.5);
-    defconf.temperature.values.push_back(200);
-    defconf.wipe.values.push_back(true);
-    
-    return defconf;
-}
 
 }
 

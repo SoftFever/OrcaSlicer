@@ -37,6 +37,8 @@ src/Polyline.cpp
 src/Polyline.hpp
 src/PolylineCollection.cpp
 src/PolylineCollection.hpp
+src/PrintConfig.cpp
+src/PrintConfig.hpp
 src/ppport.h
 src/Surface.cpp
 src/Surface.hpp
