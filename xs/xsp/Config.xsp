@@ -14,7 +14,7 @@
     void set(t_config_option_key opt_key, SV* value);
     void set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
-    float get_abs_value(t_config_option_key opt_key);
+    double get_abs_value(t_config_option_key opt_key);
     void apply(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     void apply_static(PrintConfig* other)
@@ -35,7 +35,7 @@
     void set(t_config_option_key opt_key, SV* value);
     void set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
-    float get_abs_value(t_config_option_key opt_key);
+    double get_abs_value(t_config_option_key opt_key);
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()

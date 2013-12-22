@@ -40,7 +40,7 @@ ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) 
     opt->deserialize(str);
 }
 
-float
+double
 ConfigBase::get_abs_value(const t_config_option_key opt_key) {
     // get option definition
     assert(this->def->count(opt_key) != 0);
@@ -84,7 +84,7 @@ ConfigBase::get(t_config_option_key opt_key) {
     } else if (ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt)) {
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (std::vector<float>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+        for (std::vector<double>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
             av_store(av, it - optv->values.begin(), newSVnv(*it));
         return newRV_noinc((SV*)av);
     } else if (ConfigOptionInt* optv = dynamic_cast<ConfigOptionInt*>(opt)) {

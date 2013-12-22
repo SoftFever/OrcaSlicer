@@ -46,11 +46,11 @@ class ConfigOptionFloat : public ConfigOption
 class ConfigOptionFloats : public ConfigOption
 {
     public:
-    std::vector<float> values;
+    std::vector<double> values;
     
     std::string serialize() {
         std::ostringstream ss;
-        for (std::vector<float>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+        for (std::vector<double>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
             ss << *it;
         }
@@ -171,7 +171,7 @@ class ConfigOptionStrings : public ConfigOption
 class ConfigOptionFloatOrPercent : public ConfigOption
 {
     public:
-    float value;
+    double value;
     bool percent;
     ConfigOptionFloatOrPercent() : value(0), percent(false) {};
     
@@ -185,7 +185,7 @@ class ConfigOptionFloatOrPercent : public ConfigOption
     
     void deserialize(std::string str) {
         if (str.find_first_of("%") != std::string::npos) {
-            sscanf(str.c_str(), "%f%%", &this->value);
+            sscanf(str.c_str(), "%lf%%", &this->value);
             this->percent = true;
         } else {
             this->value = ::atof(str.c_str());
@@ -211,7 +211,7 @@ class ConfigOptionPoint : public ConfigOption
     };
     
     void deserialize(std::string str) {
-        sscanf(str.c_str(), "%f%*1[,x]%f", &this->point.x, &this->point.y);
+        sscanf(str.c_str(), "%lf%*1[,x]%lf", &this->point.x, &this->point.y);
     };
 };
 
@@ -237,7 +237,7 @@ class ConfigOptionPoints : public ConfigOption
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
-            sscanf(point_str.c_str(), "%fx%f", &point.x, &point.y);
+            sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
             this->points.push_back(point);
         }
     };
@@ -392,7 +392,7 @@ class ConfigBase
     void apply(ConfigBase &other, bool ignore_nonexistent = false);
     std::string serialize(const t_config_option_key opt_key);
     void set_deserialize(const t_config_option_key opt_key, std::string str);
-    float get_abs_value(const t_config_option_key opt_key);
+    double get_abs_value(const t_config_option_key opt_key);
     
     #ifdef SLIC3RXS
     SV* as_hash();
