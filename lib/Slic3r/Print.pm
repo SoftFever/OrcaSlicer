@@ -806,14 +806,14 @@ sub write_gcode {
             if (@$convex_hull) {
                 my $expolygon = Slic3r::ExPolygon->new($convex_hull);
                 my @island = @{$expolygon->offset_ex(scale $distance_from_objects, 1, JT_SQUARE)};
-                foreach my $copy (@{ $self->objects->[$obj_idx]->shifted_copies }) {
+                foreach my $copy (@{ $self->objects->[$obj_idx]->_shifted_copies }) {
                     push @islands, map { my $c = $_->clone; $c->translate(@$copy); $c } @island;
                 }
             }
         }
         $gcodegen->external_mp(Slic3r::GCode::MotionPlanner->new(
             islands     => union_ex([ map @$_, @islands ]),
-            no_internal => 1,
+            internal    => 0,
         ));
     }
     
