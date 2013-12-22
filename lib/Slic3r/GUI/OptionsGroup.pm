@@ -381,9 +381,17 @@ sub _set_config {
     my ($opt_key, $index, $value) = @_;
     
     my ($get_m, $serialized) = $self->_config_methods($opt_key, $index);
-    defined $index
-        ? $self->config->$get_m($opt_key)->[$index] = $value
-        : $self->config->set($opt_key, $value, $serialized);
+    if (defined $index) {
+        my $values = $self->config->$get_m($opt_key);
+        $values->[$index] = $value;
+        $self->config->set($opt_key, $values);
+    } else {
+        if ($serialized) {
+            $self->config->set_deserialize($opt_key, $value);
+        } else {
+            $self->config->set($opt_key, $value);
+        }
+    }
 }
 
 sub _config_methods {

@@ -686,6 +686,9 @@ sub export_gcode {
             catch_error => sub { Slic3r::GUI::catch_error($self, @_) && $self->on_export_failed },
         );
     }
+    
+    # this method gets executed in a separate thread by wxWidgets since it's a button handler
+    Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
 sub export_gcode2 {
@@ -766,6 +769,9 @@ sub export_stl {
     my $output_file = $self->_get_export_file('STL') or return;
     Slic3r::Format::STL->write_file($output_file, $self->make_model, binary => 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
+    
+    # this method gets executed in a separate thread by wxWidgets since it's a button handler
+    Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
 sub export_amf {
@@ -774,6 +780,9 @@ sub export_amf {
     my $output_file = $self->_get_export_file('AMF') or return;
     Slic3r::Format::AMF->write_file($output_file, $self->make_model);
     $self->statusbar->SetStatusText("AMF file exported to $output_file");
+    
+    # this method gets executed in a separate thread by wxWidgets since it's a menu handler
+    Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
 sub _get_export_file {
@@ -850,7 +859,9 @@ sub make_thumbnail {
     };
     
     @_ = ();
-    $Slic3r::have_threads ? threads->create($cb)->detach : $cb->();
+    $Slic3r::have_threads
+        ? threads->create(sub { $cb->(); Slic3r::thread_cleanup(); })->detach
+        : $cb->();
 }
 
 sub on_thumbnail_made {

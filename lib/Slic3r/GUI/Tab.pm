@@ -291,7 +291,8 @@ sub set_value {
 sub reload_values {
     my $self = shift;
     
-    $self->set_value($_, $self->{config}->get($_)) for keys %{$self->{config}};
+    $self->set_value($_, $self->{config}->get($_))
+        for @{$self->{config}->get_keys};
 }
 
 sub update_tree {
@@ -735,7 +736,9 @@ sub config {
     
     # remove all unused values
     foreach my $opt_key ($self->_extruder_options) {
-        splice @{ $config->{$opt_key} }, $self->{extruders_count};
+        my $values = $config->get($opt_key);
+        splice @$values, $self->{extruders_count};
+        $config->set($opt_key, $values);
     }
     
     return $config;

@@ -21,9 +21,15 @@ our $Options = print_config_def();
 
 sub new_from_defaults {
     my $class = shift;
+    my (@opt_keys) = @_;
     
     my $self = $class->new;
-    $self->apply_static(Slic3r::Config::Print->new);
+    my $defaults = Slic3r::Config::Print->new;
+    if (@opt_keys) {
+        $self->set($_, $defaults->get($_)) for @opt_keys;
+    } else {
+        $self->apply_static($defaults);
+    }
     return $self;
 }
 
@@ -71,7 +77,12 @@ sub load {
     
     my $ini = __PACKAGE__->read_ini($file);
     my $config = __PACKAGE__->new;
-    $config->set_deserialize(handle_legacy($_, $ini->{_}{$_})) for keys %{$ini->{_}};
+    foreach my $opt_key (keys %{$ini->{_}}) {
+        print "key: $opt_key\n";
+        ($opt_key, my $value) = handle_legacy($opt_key, $ini->{_}{$opt_key});
+        next if !defined $opt_key;
+        $config->set_deserialize($opt_key, $value);
+    }
     return $config;
 }
 
@@ -97,7 +108,7 @@ sub handle_legacy {
     my ($opt_key, $value) = @_;
     
     # handle legacy options
-    return if first { $_ eq $opt_key } @Ignore;
+    return ($opt_key, $value) if first { $_ eq $opt_key } @Ignore;
     if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
         $opt_key = $1;
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
@@ -125,7 +136,7 @@ sub handle_legacy {
         my @keys = grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options;
         if (!@keys) {
             warn "Unknown option $opt_key\n";
-            return;
+            return ();
         }
         $opt_key = $keys[0];
     }
@@ -173,8 +184,6 @@ sub validate {
     # -j, --threads
     die "Invalid value for --threads\n"
         if $self->threads < 1;
-    die "Your perl wasn't built with multithread support\n"
-        if $self->threads > 1 && !$Slic3r::have_threads;
 
     # --layer-height
     die "Invalid value for --layer-height\n"
