@@ -12,6 +12,8 @@ src/clipper.cpp
 src/clipper.hpp
 src/ClipperUtils.cpp
 src/ClipperUtils.hpp
+src/Config.cpp
+src/Config.hpp
 src/ExPolygon.cpp
 src/ExPolygon.hpp
 src/ExPolygonCollection.cpp
@@ -35,6 +37,8 @@ src/Polyline.cpp
 src/Polyline.hpp
 src/PolylineCollection.cpp
 src/PolylineCollection.hpp
+src/PrintConfig.cpp
+src/PrintConfig.hpp
 src/PrintState.cpp
 src/PrintState.hpp
 src/ppport.h
@@ -60,7 +64,9 @@ t/11_clipper.t
 t/12_extrusionpathcollection.t
 t/13_polylinecollection.t
 t/14_geometry.t
+t/15_config.t
 xsp/Clipper.xsp
+xsp/Config.xsp
 xsp/ExPolygon.xsp
 xsp/ExPolygonCollection.xsp
 xsp/ExtrusionEntityCollection.xsp

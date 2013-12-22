@@ -187,7 +187,7 @@ if (@ARGV) {  # slicing from command line
 sub usage {
     my ($exit_code) = @_;
     
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config->new_from_defaults->as_hash;
     
     my $j = '';
     if ($Slic3r::have_threads) {

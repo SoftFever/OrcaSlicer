@@ -1,5 +1,8 @@
 std::vector<Points::size_type>  T_STD_VECTOR_INT
+t_config_option_key T_STD_STRING
 
+DynamicPrintConfig*  O_OBJECT
+PrintConfig*  O_OBJECT
 ZTable*         O_OBJECT
 TriangleMesh*         O_OBJECT
 Point*         O_OBJECT

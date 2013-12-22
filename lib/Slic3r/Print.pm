@@ -925,13 +925,13 @@ sub write_gcode {
             $extruder->absolute_E, $extruder->extruded_volume/1000;
     }
     
-    if ($Slic3r::Config->gcode_comments) {
+    if ($self->config->gcode_comments) {
         # append full config
         print $fh "\n";
-        foreach my $opt_key (sort keys %{$Slic3r::Config}) {
+        foreach my $opt_key (sort @{$self->config->get_keys}) {
             next if $Slic3r::Config::Options->{$opt_key}{shortcut};
             next if $Slic3r::Config::Options->{$opt_key}{gui_only};
-            printf $fh "; %s = %s\n", $opt_key, $Slic3r::Config->serialize($opt_key);
+            printf $fh "; %s = %s\n", $opt_key, $self->config->serialize($opt_key);
         }
     }
     

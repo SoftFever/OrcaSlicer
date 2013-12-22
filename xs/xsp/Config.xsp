@@ -1,0 +1,144 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "PrintConfig.hpp"
+%}
+
+%name{Slic3r::Config} class DynamicPrintConfig {
+    DynamicPrintConfig();
+    ~DynamicPrintConfig();
+    bool has(t_config_option_key opt_key);
+    SV* as_hash();
+    SV* get(t_config_option_key opt_key);
+    void set(t_config_option_key opt_key, SV* value);
+    void set_deserialize(t_config_option_key opt_key, std::string str);
+    std::string serialize(t_config_option_key opt_key);
+    double get_abs_value(t_config_option_key opt_key);
+    void apply(DynamicPrintConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    void apply_static(PrintConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    std::vector<std::string> get_keys()
+        %code{% THIS->keys(&RETVAL); %};
+%{
+
+%}
+};
+
+%name{Slic3r::Config::Print} class PrintConfig {
+    PrintConfig();
+    ~PrintConfig();
+    bool has(t_config_option_key opt_key);
+    SV* as_hash();
+    SV* get(t_config_option_key opt_key);
+    void set(t_config_option_key opt_key, SV* value);
+    void set_deserialize(t_config_option_key opt_key, std::string str);
+    std::string serialize(t_config_option_key opt_key);
+    double get_abs_value(t_config_option_key opt_key);
+    void apply_dynamic(DynamicPrintConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    std::vector<std::string> get_keys()
+        %code{% THIS->keys(&RETVAL); %};
+%{
+
+%}
+};
+
+%package{Slic3r::Config};
+
+%{
+PROTOTYPES: DISABLE
+
+SV*
+print_config_def()
+    CODE:
+        PrintConfig config;
+        t_optiondef_map* def = config.def;
+        
+        HV* options_hv = newHV();
+        for (t_optiondef_map::iterator oit = def->begin(); oit != def->end(); ++oit) {
+            HV* hv = newHV();
+            
+            t_config_option_key opt_key = oit->first;
+            ConfigOptionDef* optdef     = &oit->second;
+            
+            const char* opt_type;
+            if (optdef->type == coFloat || optdef->type == coFloats || optdef->type == coFloatOrPercent) {
+                opt_type = "f";
+            } else if (optdef->type == coInt || optdef->type == coInts) {
+                opt_type = "i";
+            } else if (optdef->type == coString) {
+                opt_type = "s";
+            } else if (optdef->type == coStrings) {
+                opt_type = "s@";
+            } else if (optdef->type == coPoint || optdef->type == coPoints) {
+                opt_type = "point";
+            } else if (optdef->type == coBool || optdef->type == coBools) {
+                opt_type = "bool";
+            } else if (optdef->type == coEnum) {
+                opt_type = "select";
+            } else {
+                throw "Unknown option type";
+            }
+            (void)hv_stores( hv, "type",        newSVpv(opt_type, 0) );
+            (void)hv_stores( hv, "label",       newSVpvn(optdef->label.c_str(), optdef->label.length()) );
+            (void)hv_stores( hv, "category",    newSVpvn(optdef->category.c_str(), optdef->category.length()) );
+            (void)hv_stores( hv, "tooltip",     newSVpvn(optdef->tooltip.c_str(), optdef->tooltip.length()) );
+            (void)hv_stores( hv, "sidetext",    newSVpvn(optdef->sidetext.c_str(), optdef->sidetext.length()) );
+            (void)hv_stores( hv, "cli",         newSVpvn(optdef->cli.c_str(), optdef->cli.length()) );
+            (void)hv_stores( hv, "scope",       newSVpvn(optdef->scope.c_str(), optdef->scope.length()) );
+            (void)hv_stores( hv, "ratio_over",  newSVpvn(optdef->ratio_over.c_str(), optdef->ratio_over.length()) );
+            (void)hv_stores( hv, "multiline",   newSViv(optdef->multiline ? 1 : 0) );
+            (void)hv_stores( hv, "full_label",  newSViv(optdef->full_label ? 1 : 0) );
+            (void)hv_stores( hv, "full_width",  newSViv(optdef->full_width ? 1 : 0) );
+            (void)hv_stores( hv, "readonly",    newSViv(optdef->readonly ? 1 : 0) );
+            (void)hv_stores( hv, "height",      newSViv(optdef->height) );
+            (void)hv_stores( hv, "width",       newSViv(optdef->width) );
+            (void)hv_stores( hv, "min",         newSViv(optdef->min) );
+            (void)hv_stores( hv, "max",         newSViv(optdef->max) );
+            
+            // aliases
+            {
+                AV* av = newAV();
+                av_fill(av, optdef->aliases.size()-1);
+                for (std::vector<t_config_option_key>::iterator it = optdef->aliases.begin(); it != optdef->aliases.end(); ++it)
+                    av_store(av, it - optdef->aliases.begin(), newSVpvn(it->c_str(), it->length()));
+                (void)hv_stores( hv, "aliases", newRV_noinc((SV*)av) );
+            }
+            
+            // shortcut
+            {
+                AV* av = newAV();
+                av_fill(av, optdef->shortcut.size()-1);
+                for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it)
+                    av_store(av, it - optdef->shortcut.begin(), newSVpvn(it->c_str(), it->length()));
+                (void)hv_stores( hv, "shortcut", newRV_noinc((SV*)av) );
+            }
+            
+            // enum_values
+            {
+                AV* av = newAV();
+                av_fill(av, optdef->enum_values.size()-1);
+                for (std::vector<std::string>::iterator it = optdef->enum_values.begin(); it != optdef->enum_values.end(); ++it)
+                    av_store(av, it - optdef->enum_values.begin(), newSVpvn(it->c_str(), it->length()));
+                (void)hv_stores( hv, "values", newRV_noinc((SV*)av) );
+            }
+            
+            // enum_labels
+            {
+                AV* av = newAV();
+                av_fill(av, optdef->enum_labels.size()-1);
+                for (std::vector<std::string>::iterator it = optdef->enum_labels.begin(); it != optdef->enum_labels.end(); ++it)
+                    av_store(av, it - optdef->enum_labels.begin(), newSVpvn(it->c_str(), it->length()));
+                (void)hv_stores( hv, "labels", newRV_noinc((SV*)av) );
+            }
+            
+            (void)hv_stores( hv, "default", config.get(opt_key) );
+            (void)hv_store( options_hv, opt_key.c_str(), opt_key.length(), newRV_noinc((SV*)hv), 0 );
+        }
+        
+        RETVAL = newRV_noinc((SV*)options_hv);
+    OUTPUT:
+        RETVAL
+%}

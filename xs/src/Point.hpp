@@ -9,8 +9,10 @@ namespace Slic3r {
 
 class Line;
 class Point;
+class Pointf;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
+typedef std::vector<Pointf> Pointfs;
 
 class Point
 {
@@ -38,6 +40,19 @@ class Point
     void from_SV_check(SV* point_sv);
     SV* to_SV_ref();
     SV* to_SV_clone_ref() const;
+    SV* to_SV_pureperl() const;
+    #endif
+};
+
+class Pointf
+{
+    public:
+    double x;
+    double y;
+    explicit Pointf(double _x = 0, double _y = 0): x(_x), y(_y) {};
+    
+    #ifdef SLIC3RXS
+    void from_SV(SV* point_sv);
     SV* to_SV_pureperl() const;
     #endif
 };

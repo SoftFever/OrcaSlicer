@@ -312,7 +312,7 @@ sub load_config {
     my ($config) = @_;
     
     foreach my $tab (values %{$self->{options_tabs}}) {
-        $tab->set_value($_, $config->$_) for keys %$config;
+        $tab->set_value($_, $config->$_) for @{$config->get_keys};
     }
 }
 

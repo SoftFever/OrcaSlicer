@@ -133,6 +133,8 @@ sub parallelize {
 sub thread_cleanup {
     # prevent destruction of shared objects
     no warnings 'redefine';
+    *Slic3r::Config::DESTROY                = sub {};
+    *Slic3r::Config::Print::DESTROY         = sub {};
     *Slic3r::ExPolygon::DESTROY             = sub {};
     *Slic3r::ExPolygon::Collection::DESTROY = sub {};
     *Slic3r::ExtrusionLoop::DESTROY         = sub {};
