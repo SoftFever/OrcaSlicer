@@ -119,7 +119,7 @@ sub duplicate_objects_grid {
 # this will append more instances to each object
 # and then automatically rearrange everything
 sub duplicate_objects {
-    my ($self, $config, $copies_num) = @_;
+    my ($self, $copies_num, $distance, $bb) = @_;
     
     foreach my $object (@{$self->objects}) {
         my @instances = @{$object->instances};
@@ -133,13 +133,13 @@ sub duplicate_objects {
         }
     }
     
-    $self->arrange_objects($config);
+    $self->arrange_objects($distance, $bb);
 }
 
 # arrange objects preserving their instance count
 # but altering their instance positions
 sub arrange_objects {
-    my ($self, $config) = @_;
+    my ($self, $distance, $bb) = @_;
     
     # get the (transformed) size of each instance so that we take
     # into account their different transformations when packing
@@ -148,20 +148,20 @@ sub arrange_objects {
         push @instance_sizes, map $object->instance_bounding_box($_)->size, 0..$#{$object->instances};
     }
     
-    my @positions = $self->_arrange($config, \@instance_sizes);
+    my @positions = $self->_arrange(\@instance_sizes, $distance, $bb);
     
     foreach my $object (@{$self->objects}) {
-        $_->offset(shift @positions) for @{$object->instances};
+        $_->offset([ @{shift @positions} ]) for @{$object->instances};
         $object->update_bounding_box;
     }
 }
 
 # duplicate the entire model preserving instance relative positions
 sub duplicate {
-    my ($self, $config, $copies_num) = @_;
+    my ($self, $copies_num, $distance, $bb) = @_;
     
     my $model_size = $self->bounding_box->size;
-    my @positions = $self->_arrange($config, [ map $model_size, 2..$copies_num ]);
+    my @positions = $self->_arrange([ map $model_size, 2..$copies_num ], $distance, $bb);
     
     # note that this will leave the object count unaltered
     
@@ -181,13 +181,15 @@ sub duplicate {
 }
 
 sub _arrange {
-    my ($self, $config, $sizes) = @_;
+    my ($self, $sizes, $distance, $bb) = @_;
     
-    my $partx = max(map $_->[X], @$sizes);
-    my $party = max(map $_->[Y], @$sizes);
-    return Slic3r::Geometry::arrange
-        (scalar(@$sizes), $partx, $party, (map $_, @{$config->bed_size}),
-        $config->min_object_distance, $config);
+    return Slic3r::Geometry::arrange(
+        scalar(@$sizes),                # number of parts
+        max(map $_->[X], @$sizes),      # cell width
+        max(map $_->[Y], @$sizes),      # cell height
+        $distance,                      # distance between cells
+        $bb,                            # bounding box of the area to fill (can be undef)
+    );
 }
 
 sub has_objects_with_no_instances {

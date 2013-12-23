@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 76;
+use Test::More tests => 78;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     $config->set('layer_height', 0.3);
@@ -56,11 +56,13 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     is_deeply $config->get('extruder_offset'), [[20,10]], 'deserialize points';
     
     # truncate ->get() to first decimal digit
-    $config->set('nozzle_diameter', [0.2,0.3]);
-    is_deeply [ map int($_*10)/10, @{$config->get('nozzle_diameter')} ], [0.2,0.3], 'set/get floats';
-    is $config->serialize('nozzle_diameter'), '0.2,0.3', 'serialize floats';
+    $config->set('nozzle_diameter', [0.2,3]);
+    is_deeply [ map int($_*10)/10, @{$config->get('nozzle_diameter')} ], [0.2,3], 'set/get floats';
+    is $config->serialize('nozzle_diameter'), '0.2,3', 'serialize floats';
     $config->set_deserialize('nozzle_diameter', '0.1,0.4');
     is_deeply [ map int($_*10)/10, @{$config->get('nozzle_diameter')} ], [0.1,0.4], 'deserialize floats';
+    $config->set_deserialize('nozzle_diameter', '3');
+    is_deeply [ map int($_*10)/10, @{$config->get('nozzle_diameter')} ], [3], 'deserialize a single float';
     
     $config->set('temperature', [180,210]);
     is_deeply $config->get('temperature'), [180,210], 'set/get ints';
@@ -86,6 +88,9 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
 {
     my $config = Slic3r::Config->new;
     $config->set('perimeters', 2);
+    
+    # test that no crash happens when using set_deserialize() with a key that hasn't been set() yet
+    $config->set_deserialize('filament_diameter', '3');
     
     my $config2 = Slic3r::Config::Print->new;
     $config2->apply_dynamic($config);

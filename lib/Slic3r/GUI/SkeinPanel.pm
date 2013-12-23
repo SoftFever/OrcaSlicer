@@ -142,7 +142,7 @@ sub quick_slice {
             foreach my $object (@{$model->objects}) {
                 $object->add_instance(offset => [0,0]) if !defined $object->instances;
             }
-            $model->arrange_objects($config);
+            $model->arrange_objects($config->min_object_distance);
         }
         $model->center_instances_around_point($config->print_center);
         

@@ -591,10 +591,17 @@ sub changescale {
 sub arrange {
     my $self = shift;
     
+    # get the bounding box of the model area shown in the viewport
+    my $bb = Slic3r::Geometry::BoundingBox->new_from_points([
+        Slic3r::Point->new(@{ $self->point_to_model_units([0,0]) }),
+        Slic3r::Point->new(@{ $self->point_to_model_units(CANVAS_SIZE) }),
+    ]);
+    
     eval {
-        $self->{model}->arrange_objects($self->skeinpanel->config);
+        $self->{model}->arrange_objects($self->skeinpanel->config->min_object_distance, $bb);
     };
-    # ignore arrange warnings on purpose
+    # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
+    # when parts don't fit in print bed
     
     $self->update(1);
     $self->{canvas}->Refresh;

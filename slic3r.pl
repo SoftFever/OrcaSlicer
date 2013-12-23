@@ -140,10 +140,10 @@ if (@ARGV) {  # slicing from command line
         if ($config->duplicate_grid->[X] > 1 || $config->duplicate_grid->[Y] > 1) {
             $model->duplicate_objects_grid($config->duplicate_grid, $config->duplicate_distance);
         } elsif ($need_arrange) {
-            $model->duplicate_objects($config, $config->duplicate);
+            $model->duplicate_objects($config->duplicate, $config->min_object_distance);
         } elsif ($config->duplicate > 1) {
             # if all input objects have defined position(s) apply duplication to the whole model
-            $model->duplicate($config, $config->duplicate);
+            $model->duplicate($config->duplicate, $config->min_object_distance);
         }
         $model->center_instances_around_point($config->print_center);
         

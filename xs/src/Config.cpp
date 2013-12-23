@@ -35,7 +35,7 @@ ConfigBase::serialize(const t_config_option_key opt_key) {
 
 void
 ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) {
-    ConfigOption* opt = this->option(opt_key);
+    ConfigOption* opt = this->option(opt_key, true);
     assert(opt != NULL);
     opt->deserialize(str);
 }

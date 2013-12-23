@@ -78,8 +78,7 @@ sub load {
     my $ini = __PACKAGE__->read_ini($file);
     my $config = __PACKAGE__->new;
     foreach my $opt_key (keys %{$ini->{_}}) {
-        print "key: $opt_key\n";
-        ($opt_key, my $value) = handle_legacy($opt_key, $ini->{_}{$opt_key});
+        ($opt_key, my $value) = _handle_legacy($opt_key, $ini->{_}{$opt_key});
         next if !defined $opt_key;
         $config->set_deserialize($opt_key, $value);
     }
@@ -103,8 +102,7 @@ sub get_value {
         : $self->get($opt_key);
 }
 
-sub handle_legacy {
-    my $self = shift;
+sub _handle_legacy {
     my ($opt_key, $value) = @_;
     
     # handle legacy options

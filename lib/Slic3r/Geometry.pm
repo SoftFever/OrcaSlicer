@@ -660,7 +660,7 @@ sub douglas_peucker2 {
 }
 
 sub arrange {
-    my ($total_parts, $partx, $party, $areax, $areay, $dist, $Config) = @_;
+    my ($total_parts, $partx, $party, $dist, $bb) = @_;
     
     my $linint = sub {
         my ($value, $oldmin, $oldmax, $newmin, $newmax) = @_;
@@ -671,22 +671,19 @@ sub arrange {
     $partx += $dist;
     $party += $dist;
     
-    # margin needed for the skirt
-    my $skirt_margin;		
-    if ($Config->skirts > 0) {
-        my $flow = Slic3r::Flow->new(
-            layer_height    => $Config->get_value('first_layer_height'),
-            nozzle_diameter => $Config->nozzle_diameter->[0],  # TODO: actually look for the extruder used for skirt
-            width           => $Config->get_value('first_layer_extrusion_width'),
-        );
-        $skirt_margin = ($flow->spacing * $Config->skirts + $Config->skirt_distance) * 2;
+    my ($areax, $areay);
+    if (defined $bb) {
+        my $size = $bb->size;
+        ($areax, $areay) = @$size[X,Y];
     } else {
-        $skirt_margin = 0;		
+        # bogus area size, large enough not to trigger the error below
+        $areax = $partx * $total_parts;
+        $areay = $party * $total_parts;
     }
     
     # this is how many cells we have available into which to put parts
-    my $cellw = int(($areax - $skirt_margin + $dist) / $partx);
-    my $cellh = int(($areay - $skirt_margin + $dist) / $party);
+    my $cellw = int(($areax + $dist) / $partx);
+    my $cellh = int(($areay + $dist) / $party);
     
     die "$total_parts parts won't fit in your print area!\n" if $total_parts > ($cellw * $cellh);
     
@@ -768,6 +765,11 @@ sub arrange {
         my $cy = $c->[1]->{index}->[1] - $ty;
 
         push @positions, [$cx * $partx, $cy * $party];
+    }
+    
+    if (defined $bb) {
+        $_->[X] += $bb->x_min for @positions;
+        $_->[Y] += $bb->y_min for @positions;
     }
     return @positions;
 }
