@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 8;
+plan tests => 11;
 
 BEGIN {
     use FindBin;
@@ -10,6 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
+use Slic3r::Test;
 
 sub buffer {
     my $config = shift || Slic3r::Config->new_from_defaults;
@@ -84,6 +85,41 @@ $config->set('disable_fan_first_layers', 0);
     }
     $gcode .= $buffer->flush;
     like $gcode, qr/M106/, 'fan activation is computed on all objects printing at different Z';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('cooling', 1);
+    $config->set('bridge_fan_speed', 100);
+    $config->set('fan_below_layer_time', 0);
+    $config->set('slowdown_below_layer_time', 0);
+    $config->set('bridge_speed', 99);
+    $config->set('top_solid_layers', 1);     # internal bridges use solid_infil speed
+    $config->set('bottom_solid_layers', 1);  # internal bridges use solid_infil speed
+    $config->set('vibration_limit', 30);     # test that fan is turned on even when vibration limit (or other G-code post-processor) is enabled
+    
+    my $print = Slic3r::Test::init_print('overhang', config => $config);
+    my $fan = 0;
+    my $fan_with_incorrect_speeds = my $fan_with_incorrect_print_speeds = 0;
+    my $bridge_with_no_fan = 0;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'M106') {
+            $fan = $args->{S};
+            $fan_with_incorrect_speeds++ if $fan != 255;
+        } elsif ($cmd eq 'M107') {
+            $fan = 0;
+        } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
+            $fan_with_incorrect_print_speeds++
+                if ($fan > 0) && ($args->{F} // $self->F) != 60*$config->bridge_speed;
+            $bridge_with_no_fan++
+                if !$fan && ($args->{F} // $self->F) == 60*$config->bridge_speed;
+        }
+    });
+    ok !$fan_with_incorrect_speeds, 'bridge fan speed is applied correctly';
+    ok !$fan_with_incorrect_print_speeds, 'bridge fan is only turned on for bridges';
+    ok !$bridge_with_no_fan, 'bridge fan is turned on for all bridges';
 }
 
 __END__
