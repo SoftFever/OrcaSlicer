@@ -167,42 +167,47 @@ sub make_perimeters {
         
         my @last = @{$surface->expolygon};
         my @last_gaps = ();
-        for my $i (1 .. $loop_number) {  # outer loop is 1
-            my @offsets = ();
-            if ($i == 1) {
-                # the minimum thickness of a single loop is:
-                # width/2 + spacing/2 + spacing/2 + width/2
-                @offsets = @{offset2(\@last, -(0.5*$pwidth + 0.5*$pspacing - 1), +(0.5*$pspacing - 1))};
+        if ($loop_number > 0) {
+            # we loop one time more than needed in order to find gaps after the last perimeter was applied
+            for my $i (1 .. ($loop_number+1)) {  # outer loop is 1
+                my @offsets = ();
+                if ($i == 1) {
+                    # the minimum thickness of a single loop is:
+                    # width/2 + spacing/2 + spacing/2 + width/2
+                    @offsets = @{offset2(\@last, -(0.5*$pwidth + 0.5*$pspacing - 1), +(0.5*$pspacing - 1))};
                 
-                # look for thin walls
-                if ($self->config->thin_walls) {
-                    my $diff = diff_ex(
-                        \@last,
-                        offset(\@offsets, +0.5*$pwidth),
-                    );
-                    push @thin_walls, grep abs($_->area) >= $gap_area_threshold, @$diff;
-                }
-            } else {
-                @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
-                
-                # look for gaps
-                if ($Slic3r::Config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
-                    my $diff = diff_ex(
-                        offset(\@last, -0.5*$pspacing),
-                        offset(\@offsets, +0.5*$pspacing),
-                    );
-                    push @gaps, @last_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff;
-                }
-            }
-            
-            last if !@offsets;
-            # clone polygons because these ExPolygons will go out of scope very soon
-            @last = @offsets;
-            foreach my $polygon (@offsets) {
-                if ($polygon->is_counter_clockwise) {
-                    push @contours, $polygon;
+                    # look for thin walls
+                    if ($self->config->thin_walls) {
+                        my $diff = diff_ex(
+                            \@last,
+                            offset(\@offsets, +0.5*$pwidth),
+                        );
+                        push @thin_walls, grep abs($_->area) >= $gap_area_threshold, @$diff;
+                    }
                 } else {
-                    push @holes, $polygon;
+                    @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
+                
+                    # look for gaps
+                    if ($Slic3r::Config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
+                        my $diff = diff_ex(
+                            offset(\@last, -0.5*$pspacing),
+                            offset(\@offsets, +0.5*$pspacing),
+                        );
+                        push @gaps, @last_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff;
+                    }
+                }
+            
+                last if !@offsets;
+                last if $i > $loop_number; # we were only looking for gaps this time
+            
+                # clone polygons because these ExPolygons will go out of scope very soon
+                @last = @offsets;
+                foreach my $polygon (@offsets) {
+                    if ($polygon->is_counter_clockwise) {
+                        push @contours, $polygon;
+                    } else {
+                        push @holes, $polygon;
+                    }
                 }
             }
         }
