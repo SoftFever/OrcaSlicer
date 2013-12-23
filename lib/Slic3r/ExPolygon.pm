@@ -249,8 +249,10 @@ sub _medial_axis_voronoi {
         } else {
             push @result, Slic3r::Polyline->new(@points);
         }
-        $result[-1]->simplify($width / 7);
     }
+    
+    # apply Douglas-Peucker to straighten paths
+    @result = map $_->simplify($width / 7), @result;
     
     return @result;
 }
