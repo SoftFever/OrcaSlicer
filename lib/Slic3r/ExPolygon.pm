@@ -203,9 +203,6 @@ sub _medial_axis_voronoi {
         }
     }
     
-    # apply Douglas-Peucker to straighten paths
-    @result = map $_->simplify($width / 7), @result;
-    
     return @result;
 }
 
