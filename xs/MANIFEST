@@ -39,8 +39,8 @@ src/PolylineCollection.cpp
 src/PolylineCollection.hpp
 src/PrintConfig.cpp
 src/PrintConfig.hpp
-src/PrintState.cpp
-src/PrintState.hpp
+src/Print.cpp
+src/Print.hpp
 src/ppport.h
 src/Surface.cpp
 src/Surface.hpp
@@ -80,7 +80,7 @@ xsp/Point.xsp
 xsp/Polygon.xsp
 xsp/Polyline.xsp
 xsp/PolylineCollection.xsp
-xsp/PrintState.xsp
+xsp/Print.xsp
 xsp/Surface.xsp
 xsp/SurfaceCollection.xsp
 xsp/TriangleMesh.xsp
