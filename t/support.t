@@ -1,4 +1,4 @@
-use Test::More tests => 13;
+use Test::More tests => 14;
 use strict;
 use warnings;
 
@@ -9,7 +9,8 @@ BEGIN {
 
 use List::Util qw(first);
 use Slic3r;
-use Slic3r::Geometry qw(epsilon);
+use Slic3r::Geometry qw(epsilon scale);
+use Slic3r::Geometry::Clipper qw(diff);
 use Slic3r::Test;
 
 {
@@ -86,6 +87,40 @@ use Slic3r::Test;
             }
         }
     });
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 0);
+    $config->set('raft_layers', 3);
+    $config->set('support_material_extrusion_width', 0.6);
+    $config->set('first_layer_extrusion_width', '100%');
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    
+    my $layer_id = 0;
+    my @raft = my @first_object_layer = ();
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($info->{extruding} && $info->{dist_XY} > 0) {
+            if ($layer_id <= $config->raft_layers) {
+                # this is a raft layer or the first object layer
+                my $line = Slic3r::Line->new_scale([ $self->X, $self->Y ], [ $info->{new_X}, $info->{new_Y} ]);
+                my @path = $line->grow(scale($config->support_material_extrusion_width/2));
+                if ($layer_id < $config->raft_layers) {
+                    # this is a raft layer
+                    push @raft, @path;
+                } else {
+                    push @first_object_layer, @path;
+                }
+            }
+        } elsif ($cmd eq 'G1' && $info->{dist_Z} > 0) {
+            $layer_id++;
+        }
+    });
+    
+    ok !@{diff(\@first_object_layer, \@raft)},
+        'first object layer is completely supported by raft';
 }
 
 __END__
