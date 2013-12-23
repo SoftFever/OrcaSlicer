@@ -297,8 +297,7 @@ sub make_perimeters {
     # append perimeters
     $self->perimeters->append(@loops);
     
-    # detect thin walls by offsetting slices by half extrusion inwards
-    # and add them as perimeters
+    # process thin walls by collapsing slices to single passes
     if (@thin_walls) {
         my @p = map $_->medial_axis($pspacing), @thin_walls;
         my @paths = ();
