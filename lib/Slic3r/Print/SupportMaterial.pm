@@ -81,6 +81,10 @@ sub contact_area {
     my %contact  = ();  # contact_z => [ polygons ]
     my %overhang = ();  # contact_z => [ polygons ] - this stores the actual overhang supported by each contact layer
     for my $layer_id (0 .. $#{$object->layers}) {
+        # note $layer_id might != $layer->id when raft_layers > 0
+        # so $layer_id == 0 means first object layer
+        # and $layer->id == 0 means first print layer (including raft)
+        
         if ($self->config->raft_layers == 0) {
             next if $layer_id == 0;
         } elsif (!$self->config->support_material) {
@@ -89,69 +93,76 @@ sub contact_area {
             last if $layer_id > 0;
         }
         my $layer = $object->layers->[$layer_id];
-        my $lower_layer = $object->layers->[$layer_id-1];
         
         # detect overhangs and contact areas needed to support them
         my (@overhang, @contact) = ();
-        foreach my $layerm (@{$layer->regions}) {
-            my $fw = $layerm->perimeter_flow->scaled_width;
-            my $diff;
+        if ($layer_id == 0) {
+            # this is the first object layer, so we're here just to get the object
+            # footprint for the raft
+            push @overhang, map $_->clone, map @$_, @{$layer->slices};
+            push @contact, @{offset(\@overhang, scale +MARGIN)};
+        } else {
+            my $lower_layer = $object->layers->[$layer_id-1];
+            foreach my $layerm (@{$layer->regions}) {
+                my $fw = $layerm->perimeter_flow->scaled_width;
+                my $diff;
             
-            # If a threshold angle was specified, use a different logic for detecting overhangs.
-            if (defined $threshold_rad
-                || $layer_id < $self->config->support_material_enforce_layers
-                || $self->config->raft_layers > 0) {
-                my $d = defined $threshold_rad
-                    ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
-                    : 0;
+                # If a threshold angle was specified, use a different logic for detecting overhangs.
+                if (defined $threshold_rad
+                    || $layer_id < $self->config->support_material_enforce_layers
+                    || $self->config->raft_layers > 0) {
+                    my $d = defined $threshold_rad
+                        ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
+                        : 0;
                 
-                $diff = diff(
-                    offset([ map $_->p, @{$layerm->slices} ], -$d),
-                    [ map @$_, @{$lower_layer->slices} ],
-                );
-                
-                # only enforce spacing from the object ($fw/2) if the threshold angle
-                # is not too high: in that case, $d will be very small (as we need to catch
-                # very short overhangs), and such contact area would be eaten by the
-                # enforced spacing, resulting in high threshold angles to be almost ignored
-                $diff = diff(
-                    offset($diff, $d - $fw/2),
-                    [ map @$_, @{$lower_layer->slices} ],
-                ) if $d > $fw/2;
-            } else {
-                $diff = diff(
-                    offset([ map $_->p, @{$layerm->slices} ], -$fw/2),
-                    [ map @$_, @{$lower_layer->slices} ],
-                );
-                
-                # collapse very tiny spots
-                $diff = offset2($diff, -$fw/10, +$fw/10);
-                
-                # $diff now contains the ring or stripe comprised between the boundary of 
-                # lower slices and the centerline of the last perimeter in this overhanging layer.
-                # Void $diff means that there's no upper perimeter whose centerline is
-                # outside the lower slice boundary, thus no overhang
-            }
-            
-            # TODO: this is the place to remove bridged areas
-            
-            next if !@$diff;
-            push @overhang, @$diff;  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!
-            
-            # Let's define the required contact area by using a max gap of half the upper 
-            # extrusion width and extending the area according to the configured margin.
-            # We increment the area in steps because we don't want our support to overflow
-            # on the other side of the object (if it's very thin).
-            {
-                my @slices_margin = @{offset([ map @$_, @{$lower_layer->slices} ], $fw/2)};
-                for ($fw/2, map {scale MARGIN_STEP} 1..(MARGIN / MARGIN_STEP)) {
                     $diff = diff(
-                        offset($diff, $_),
-                        \@slices_margin,
+                        offset([ map $_->p, @{$layerm->slices} ], -$d),
+                        [ map @$_, @{$lower_layer->slices} ],
                     );
+                
+                    # only enforce spacing from the object ($fw/2) if the threshold angle
+                    # is not too high: in that case, $d will be very small (as we need to catch
+                    # very short overhangs), and such contact area would be eaten by the
+                    # enforced spacing, resulting in high threshold angles to be almost ignored
+                    $diff = diff(
+                        offset($diff, $d - $fw/2),
+                        [ map @$_, @{$lower_layer->slices} ],
+                    ) if $d > $fw/2;
+                } else {
+                    $diff = diff(
+                        offset([ map $_->p, @{$layerm->slices} ], -$fw/2),
+                        [ map @$_, @{$lower_layer->slices} ],
+                    );
+                
+                    # collapse very tiny spots
+                    $diff = offset2($diff, -$fw/10, +$fw/10);
+                
+                    # $diff now contains the ring or stripe comprised between the boundary of 
+                    # lower slices and the centerline of the last perimeter in this overhanging layer.
+                    # Void $diff means that there's no upper perimeter whose centerline is
+                    # outside the lower slice boundary, thus no overhang
                 }
+            
+                # TODO: this is the place to remove bridged areas
+            
+                next if !@$diff;
+                push @overhang, @$diff;  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!
+            
+                # Let's define the required contact area by using a max gap of half the upper 
+                # extrusion width and extending the area according to the configured margin.
+                # We increment the area in steps because we don't want our support to overflow
+                # on the other side of the object (if it's very thin).
+                {
+                    my @slices_margin = @{offset([ map @$_, @{$lower_layer->slices} ], $fw/2)};
+                    for ($fw/2, map {scale MARGIN_STEP} 1..(MARGIN / MARGIN_STEP)) {
+                        $diff = diff(
+                            offset($diff, $_),
+                            \@slices_margin,
+                        );
+                    }
+                }
+                push @contact, @$diff;
             }
-            push @contact, @$diff;
         }
         next if !@contact;
         
@@ -176,7 +187,7 @@ sub contact_area {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output("contact_" . $contact_z . ".svg",
                     expolygons      => union_ex(\@contact),
-                    red_expolygons  => \@overhang,
+                    red_expolygons  => union_ex(\@overhang),
                 );
             }
         }

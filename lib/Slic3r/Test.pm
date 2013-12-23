@@ -107,6 +107,7 @@ sub init_print {
     
     $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
     for my $model (map model($_, %params), @$model_name) {
+        die "Unknown model in test" if !defined $model;
         $model->arrange_objects($config);
         $print->add_model($model);
     }
