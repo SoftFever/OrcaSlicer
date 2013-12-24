@@ -99,7 +99,7 @@ print_config_def()
             (void)hv_stores( hv, "max",         newSViv(optdef->max) );
             
             // aliases
-            {
+            if (!optdef->aliases.empty()) {
                 AV* av = newAV();
                 av_fill(av, optdef->aliases.size()-1);
                 for (std::vector<t_config_option_key>::iterator it = optdef->aliases.begin(); it != optdef->aliases.end(); ++it)
@@ -108,7 +108,7 @@ print_config_def()
             }
             
             // shortcut
-            {
+            if (!optdef->shortcut.empty()) {
                 AV* av = newAV();
                 av_fill(av, optdef->shortcut.size()-1);
                 for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it)
@@ -117,7 +117,7 @@ print_config_def()
             }
             
             // enum_values
-            {
+            if (!optdef->enum_values.empty()) {
                 AV* av = newAV();
                 av_fill(av, optdef->enum_values.size()-1);
                 for (std::vector<std::string>::iterator it = optdef->enum_values.begin(); it != optdef->enum_values.end(); ++it)
@@ -126,7 +126,7 @@ print_config_def()
             }
             
             // enum_labels
-            {
+            if (!optdef->enum_labels.empty()) {
                 AV* av = newAV();
                 av_fill(av, optdef->enum_labels.size()-1);
                 for (std::vector<std::string>::iterator it = optdef->enum_labels.begin(); it != optdef->enum_labels.end(); ++it)
