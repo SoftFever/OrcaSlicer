@@ -661,7 +661,7 @@ sub set_extruder {
     }
     
     # set the current extruder to the standby temperature
-    if ($self->config->ooze_prevention && defined $self->extruder) {
+    if ($self->standby_points && defined $self->extruder) {
         # move to the nearest standby point
         $gcode .= $self->travel_to($self->last_pos->nearest_point($self->standby_points));
         

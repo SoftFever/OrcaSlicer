@@ -607,9 +607,14 @@ sub make_skirt {
     my @points = ();
     foreach my $obj_idx (0 .. $#{$self->objects}) {
         my $object = $self->objects->[$obj_idx];
-        my @layers = map $object->layers->[$_], 0..min($self->config->skirt_height-1, $#{$object->layers});
+        
+        # get skirt layers
+        my $skirt_height = ($self->config->skirt_height == -1)
+            ? 1 + $#{$object->layers}
+            : 1 + min($self->config->skirt_height-1, $#{$object->layers}+1);
+        
         my @layer_points = (
-            (map @$_, map @$_, map @{$_->slices}, @layers),
+            map @$_, map @$_, map @{$object->layers->[$_]->slices}, 0..($skirt_height-1),
         );
         if (@{ $object->support_layers }) {
             my @support_layers = map $object->support_layers->[$_], 0..min($self->config->skirt_height-1, $#{$object->support_layers});
