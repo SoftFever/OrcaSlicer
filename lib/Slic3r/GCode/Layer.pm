@@ -48,7 +48,7 @@ sub process_layer {
     # check whether we're going to apply spiralvase logic
     my $spiralvase = defined $self->spiralvase
         && ($layer->id > 0 || $self->gcodegen->config->brim_width == 0)
-        && ($layer->id >= $self->gcodegen->config->skirt_height)
+        && ($layer->id >= $self->gcodegen->config->skirt_height && $self->gcodegen->config->skirt_height != -1)
         && ($layer->id >= $self->gcodegen->config->bottom_solid_layers);
     
     # if we're going to apply spiralvase to this layer, disable loop clipping
@@ -71,11 +71,12 @@ sub process_layer {
     }) . "\n" if $self->gcodegen->config->layer_gcode;
     
     # extrude skirt
-    if ((values %{$self->skirt_done}) < $self->gcodegen->config->skirt_height && !$self->skirt_done->{$layer->print_z}) {
+    if (((values %{$self->skirt_done}) < $self->gcodegen->config->skirt_height || $self->gcodegen->config->skirt_height == -1)
+        && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->set_extruder($self->extruders->[0]);
         # skip skirt if we have a large brim
-        if ($layer->id < $self->gcodegen->config->skirt_height) {
+        if ($layer->id < $self->gcodegen->config->skirt_height || $self->gcodegen->config->skirt_height == -1) {
             # distribute skirt loops across all extruders
             my @skirt_loops = @{$self->print->skirt};
             for my $i (0 .. $#skirt_loops) {

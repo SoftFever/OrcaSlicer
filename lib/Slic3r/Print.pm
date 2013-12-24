@@ -292,7 +292,7 @@ sub init_extruders {
     # enforce tall skirt if using ooze_prevention
     # NOTE: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
     if ($self->config->ooze_prevention && @{$self->extruders} > 1) {
-        $self->config->set('skirt_height', 9999999999);
+        $self->config->set('skirt_height', -1);
         $self->config->set('skirts', 1) if $self->config->skirts == 0;
     }
 }
@@ -823,14 +823,17 @@ sub write_gcode {
     
     # calculate wiping points if needed
     if ($self->config->ooze_prevention) {
-        my $outer_skirt = convex_hull([ map @$_, @{$self->skirt} ]);
-        my @skirts = ();
-        foreach my $extruder (@{$self->extruders}) {
-            push @skirts, my $s = $outer_skirt->clone;
-            $s->translate(map scale($_), @{$extruder->extruder_offset});
+        my @skirt_points = map @$_, @{$self->skirt};
+        if (@skirt_points) {
+            my $outer_skirt = convex_hull(\@skirt_points);
+            my @skirts = ();
+            foreach my $extruder (@{$self->extruders}) {
+                push @skirts, my $s = $outer_skirt->clone;
+                $s->translate(map scale($_), @{$extruder->extruder_offset});
+            }
+            my $convex_hull = convex_hull([ map @$_, @skirts ]);
+            $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
         }
-        my $convex_hull = convex_hull([ map @$_, @skirts ]);
-        $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
     }
     
     # prepare the layer processor

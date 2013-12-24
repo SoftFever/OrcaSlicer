@@ -271,7 +271,7 @@ sub validate {
     
     # --skirt-height
     die "Invalid value for --skirt-height\n"
-        if $self->skirt_height < 0;
+        if $self->skirt_height < -1;  # -1 means as tall as the object
     
     # --bridge-flow-ratio
     die "Invalid value for --bridge-flow-ratio\n"
