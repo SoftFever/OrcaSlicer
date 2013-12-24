@@ -43,7 +43,7 @@ sub _build_retract_speed_mm_min {
 }
 
 sub scaled_wipe_distance {
-    my ($self, $travel_speed) = shift;
+    my ($self, $travel_speed) = @_;
     
     # how far do we move in XY at travel_speed for the time needed to consume
     # retract_length at retract_speed?

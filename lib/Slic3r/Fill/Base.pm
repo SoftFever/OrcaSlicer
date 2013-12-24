@@ -13,6 +13,11 @@ sub infill_direction {
     my $self = shift;
     my ($surface) = @_;
     
+    if (!defined $self->angle) {
+        warn "Using undefined infill angle";
+        $self->angle(0);
+    }
+    
     # set infill angle
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);

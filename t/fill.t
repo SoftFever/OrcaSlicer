@@ -37,6 +37,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     my $expolygon = Slic3r::ExPolygon->new([ scale_points [0,0], [50,0], [50,50], [0,50] ]);
     my $filler = Slic3r::Fill::Rectilinear->new(
         bounding_box => $expolygon->bounding_box,
+        angle        => 0,
     );
     my $surface = Slic3r::Surface->new(
         surface_type    => S_TYPE_TOP,
