@@ -9,6 +9,7 @@ BEGIN {
     use lib "$FindBin::Bin/../lib";
 }
 
+use List::Util qw(sum);
 use Slic3r;
 use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
 
@@ -33,7 +34,7 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
     ];
     my $intersection = intersection_ex([ $square, $hole_in_square ], [ $square2 ]);
     
-    is_deeply [ map $_->pp, @$intersection ], [[
+    is sum(map $_->area, @$intersection), Slic3r::ExPolygon->new(
         [
             [20, 18],
             [10, 18],
@@ -46,7 +47,7 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
             [16, 14],
             [14, 14],
         ],
-    ]], 'hole is preserved after intersection';
+    )->area, 'hole is preserved after intersection';
 }
 
 #==========================================================
@@ -62,7 +63,8 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
         'union of two ccw and one cw is a contour with no holes';
     
     my $diff = diff_ex([ $contour1, $contour2 ], [ $hole ]);
-    is_deeply [ map $_->pp, @$diff ], [[ [ [40,40], [0,40], [0,0], [40,0] ], [ [15,25], [25,25], [25,15], [15,15] ] ]],
+    is sum(map $_->area, @$diff),
+        Slic3r::ExPolygon->new([ [40,40], [0,40], [0,0], [40,0] ], [ [15,25], [25,25], [25,15], [15,15] ])->area,
         'difference of a cw from two ccw is a contour with one hole';
 }
 

@@ -1,8 +1,8 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.0.0                                                           *
-* Date      :  30 October 2013                                                 *
+* Version   :  6.1.2                                                           *
+* Date      :  15 December 2013                                                *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2013                                         *
 *                                                                              *
@@ -34,7 +34,7 @@
 #ifndef clipper_hpp
 #define clipper_hpp
 
-#define CLIPPER_VERSION "6.0.0"
+#define CLIPPER_VERSION "6.1.2"
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
@@ -46,9 +46,8 @@
 //use_lines: Enables line clipping. Adds a very minor cost to performance.
 #define use_lines
   
-//When enabled, code developed with earlier versions of Clipper 
-//(ie prior to ver 6) should compile without changes. 
-//In a future update, this compatability code will be removed.
+//use_deprecated: Enables support for the obsolete OffsetPaths() function
+//which has been replace with the ClipperOffset class.
 //#define use_deprecated  
 
 #include <vector>
@@ -108,12 +107,6 @@ std::ostream& operator <<(std::ostream &s, const IntPoint &p);
 std::ostream& operator <<(std::ostream &s, const Path &p);
 std::ostream& operator <<(std::ostream &s, const Paths &p);
 
-#ifdef use_deprecated
-typedef signed long long long64; //backward compatibility only
-typedef Path Polygon;
-typedef Paths Polygons;
-#endif
-
 struct DoublePoint
 {
   double X;
@@ -125,6 +118,13 @@ struct DoublePoint
 
 #ifdef use_xyz
 typedef void (*TZFillCallback)(IntPoint& z1, IntPoint& z2, IntPoint& pt);
+#endif
+
+enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveCollinear = 4};
+enum JoinType {jtSquare, jtRound, jtMiter};
+enum EndType {etClosedPolygon, etClosedLine, etOpenButt, etOpenSquare, etOpenRound};
+#ifdef use_deprecated
+  enum EndType_ {etClosed, etButt = 2, etSquare, etRound};
 #endif
 
 class PolyNode;
@@ -142,11 +142,14 @@ public:
     bool IsOpen() const;
     int ChildCount() const;
 private:
-    bool m_IsOpen;
-    PolyNode* GetNextSiblingUp() const;
     unsigned Index; //node index in Parent.Childs
+    bool m_IsOpen;
+    JoinType m_jointype;
+    EndType m_endtype;
+    PolyNode* GetNextSiblingUp() const;
     void AddChild(PolyNode& child);
     friend class Clipper; //to access Index
+    friend class ClipperOffset; 
 };
 
 class PolyTree: public PolyNode
@@ -161,23 +164,13 @@ private:
     friend class Clipper; //to access AllNodes
 };
 
-enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveCollinear = 4};
-enum JoinType {jtSquare, jtRound, jtMiter};
-enum EndType {etClosed, etButt, etSquare, etRound};
-
 bool Orientation(const Path &poly);
 double Area(const Path &poly);
 
 #ifdef use_deprecated
-  void OffsetPolygons(const Polygons &in_polys, Polygons &out_polys,
-    double delta, JoinType jointype = jtSquare, double limit = 0, bool autoFix = true);
-  void PolyTreeToPolygons(const PolyTree& polytree, Paths& paths);
-  void ReversePolygon(Path& p);
-  void ReversePolygons(Paths& p);
+  void OffsetPaths(const Paths &in_polys, Paths &out_polys,
+    double delta, JoinType jointype, EndType_ endtype, double limit = 0);
 #endif
-
-void OffsetPaths(const Paths &in_polys, Paths &out_polys,
-  double delta, JoinType jointype, EndType endtype, double limit = 0);
 
 void SimplifyPolygon(const Path &in_poly, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
 void SimplifyPolygons(const Paths &in_polys, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
@@ -188,8 +181,8 @@ void CleanPolygon(Path& poly, double distance = 1.415);
 void CleanPolygons(const Paths& in_polys, Paths& out_polys, double distance = 1.415);
 void CleanPolygons(Paths& polys, double distance = 1.415);
 
-void MinkowkiSum(const Path& poly, const Path& path, Paths& solution, bool isClosed);
-void MinkowkiDiff(const Path& poly, const Path& path, Paths& solution, bool isClosed);
+void MinkowskiSum(const Path& poly, const Path& path, Paths& solution, bool isClosed);
+void MinkowskiDiff(const Path& poly, const Path& path, Paths& solution, bool isClosed);
 
 void PolyTreeToPaths(const PolyTree& polytree, Paths& paths);
 void ClosedPathsFromPolyTree(const PolyTree& polytree, Paths& paths);
@@ -215,6 +208,8 @@ struct Join;
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
 typedef std::vector < Join* > JoinList;
+typedef std::vector < IntersectNode* > IntersectList;
+
 
 //------------------------------------------------------------------------------
 
@@ -228,12 +223,6 @@ public:
   virtual ~ClipperBase();
   bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
-
-#ifdef use_deprecated
-  bool AddPolygon(const Path &pg, PolyType PolyTyp);
-  bool AddPolygons(const Paths &ppg, PolyType PolyTyp);
-#endif
-
   virtual void Clear();
   IntRect GetBounds();
   bool PreserveCollinear() {return m_PreserveCollinear;};
@@ -243,6 +232,7 @@ protected:
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
   void PopLocalMinima();
   virtual void Reset();
+  TEdge* ProcessBound(TEdge* E, bool IsClockwise);
   void InsertLocalMinima(LocalMinima *newLm);
   void DoMinimaLML(TEdge* E1, TEdge* E2, bool IsClosed);
   TEdge* DescendToMin(TEdge *&E);
@@ -285,11 +275,11 @@ private:
   PolyOutList       m_PolyOuts;
   JoinList          m_Joins;
   JoinList          m_GhostJoins;
+  IntersectList     m_IntersectList;
   ClipType          m_ClipType;
   std::set< cInt, std::greater<cInt> > m_Scanbeam;
   TEdge           *m_ActiveEdges;
   TEdge           *m_SortedEdges;
-  IntersectNode   *m_IntersectNodes;
   bool             m_ExecuteLocked;
   PolyFillType     m_ClipFillType;
   PolyFillType     m_SubjFillType;
@@ -330,7 +320,6 @@ private:
   void DisposeAllOutRecs();
   void DisposeOutRec(PolyOutList::size_type index);
   bool ProcessIntersections(const cInt botY, const cInt topY);
-  void InsertIntersectNode(TEdge *e1, TEdge *e2, const IntPoint &pt);
   void BuildIntersectList(const cInt botY, const cInt topY);
   void ProcessIntersectList();
   void ProcessEdgesAtTopOfScanbeam(const cInt topY);
@@ -341,12 +330,13 @@ private:
   bool FixupIntersectionOrder();
   void FixupOutPolygon(OutRec &outrec);
   bool IsHole(TEdge *e);
+  bool FindOwnerFromSplitRecs(OutRec &outRec, OutRec *&currOrfl);
   void FixHoleLinkage(OutRec &outrec);
   void AddJoin(OutPt *op1, OutPt *op2, const IntPoint offPt);
   void ClearJoins();
   void ClearGhostJoins();
   void AddGhostJoin(OutPt *op, const IntPoint offPt);
-  bool JoinPoints(const Join *j, OutPt *&p1, OutPt *&p2);
+  bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
@@ -354,6 +344,37 @@ private:
 #ifdef use_xyz
   void SetZ(IntPoint& pt, TEdge& e);
 #endif
+};
+//------------------------------------------------------------------------------
+
+class ClipperOffset 
+{
+public:
+  ClipperOffset(double miterLimit = 2.0, double roundPrecision = 0.25);
+  ~ClipperOffset();
+  void AddPath(const Path& path, JoinType joinType, EndType endType);
+  void AddPaths(const Paths& paths, JoinType joinType, EndType endType);
+  void Execute(Paths& solution, double delta);
+  void Execute(PolyTree& solution, double delta);
+  void Clear();
+  double MiterLimit;
+  double ArcTolerance;
+private:
+  Paths m_destPolys;
+  Path m_srcPoly;
+  Path m_destPoly;
+  std::vector<DoublePoint> m_normals;
+  double m_delta, m_sinA, m_sin, m_cos;
+  double m_miterLim, m_StepsPerRad;
+  IntPoint m_lowest;
+  PolyNode m_polyNodes;
+
+  void FixOrientations();
+  void DoOffset(double delta);
+  void OffsetPoint(int j, int& k, JoinType jointype);
+  void DoSquare(int j, int k);
+  void DoMiter(int j, int k, double r);
+  void DoRound(int j, int k);
 };
 //------------------------------------------------------------------------------
 

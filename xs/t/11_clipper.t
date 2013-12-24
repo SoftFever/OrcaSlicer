@@ -43,10 +43,10 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
         [95, 95],
         [205, 95],
     ], [
+        [145, 145],
         [145, 155],
         [155, 155],
         [155, 145],
-        [145, 145],
     ] ], 'offset_ex';
 }
 
@@ -58,10 +58,10 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
         [97, 97],
         [203, 97],
     ], [
+        [143, 143],
         [143, 157],
         [157, 157],
         [157, 143],
-        [143, 143],
     ] ], 'offset2_ex';
 }
 
@@ -78,7 +78,7 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
         [5000000, 5000000],
     ]);
     my $result = Slic3r::Geometry::Clipper::offset2_ex([ @$expolygon2 ], -1, +1);
-    is_deeply $result->[0]->pp, $expolygon2->pp, 'offset2_ex';
+    is $result->[0]->area, $expolygon2->area, 'offset2_ex';
 }
 
 {
