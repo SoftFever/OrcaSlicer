@@ -25,7 +25,11 @@ has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
 
 sub _build_bridge_flow {
     my $self = shift;
-    return Slic3r::Flow::Bridge->new(nozzle_diameter => $self->nozzle_diameter);
+    
+    return Slic3r::Flow::Bridge->new(
+        nozzle_diameter     => $self->nozzle_diameter,
+        bridge_flow_ratio   => $self->config->bridge_flow_ratio,
+    );
 }
 
 sub _build_e_per_mm3 {

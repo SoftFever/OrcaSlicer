@@ -26,10 +26,10 @@ plan tests => 2;
     
 {
     my $thread = threads->create(sub {
-        # $print can't be inizialized outside the thread because Object->slice will
-        # modify it by removing meshes and popping layers
-        my $print = Slic3r::Test::init_print('20mm_cube');
-        Slic3r::Test::gcode($print);
+        {
+            my $print = Slic3r::Test::init_print('20mm_cube');
+            Slic3r::Test::gcode($print);
+        }
         Slic3r::thread_cleanup();
         return 1;
     });

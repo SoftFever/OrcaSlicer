@@ -39,9 +39,6 @@ sub BUILD {
 sub init_config {
     my $self = shift;
     
-    # store config in a handy place
-    $Slic3r::Config = $self->config;
-    
     # legacy with existing config files
     $self->config->set('first_layer_height', $self->config->layer_height)
         if !$self->config->first_layer_height;
@@ -861,7 +858,7 @@ sub write_gcode {
                 }
                 
                 my $buffer = Slic3r::GCode::CoolingBuffer->new(
-                    config      => $Slic3r::Config,
+                    config      => $self->config,
                     gcodegen    => $gcodegen,
                 );
                 
@@ -903,7 +900,7 @@ sub write_gcode {
         }
         
         my $buffer = Slic3r::GCode::CoolingBuffer->new(
-            config      => $Slic3r::Config,
+            config      => $self->config,
             gcodegen    => $gcodegen,
         );
         foreach my $print_z (sort { $a <=> $b } keys %layers) {

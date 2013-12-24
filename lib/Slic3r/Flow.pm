@@ -90,13 +90,14 @@ use Moo;
 extends 'Slic3r::Flow';
 
 # layer_height is not required in this case
-has '+layer_height' => (is => 'ro', required => 0);
+has '+layer_height'         => (is => 'ro', required => 0);
+has 'bridge_flow_ratio'     => (is => 'ro', required => 1);
 
 use Slic3r::Geometry qw(PI);
 
 sub _build_width {
     my $self = shift;
-    return sqrt($Slic3r::Config->bridge_flow_ratio * ($self->nozzle_diameter**2));
+    return sqrt($self->bridge_flow_ratio * ($self->nozzle_diameter**2));
 }
 
 sub _build_spacing {
