@@ -4,7 +4,7 @@ use Moo;
 use Slic3r::Geometry qw(PI scale);
 
 has 'nozzle_diameter'   => (is => 'ro', required => 1);
-has 'layer_height'      => (is => 'ro', default => sub { $Slic3r::Config->layer_height });
+has 'layer_height'      => (is => 'ro', required => 1);
 has 'role'              => (is => 'ro', default => sub { '' });
 
 has 'width'             => (is => 'rwp', builder => 1);
@@ -88,6 +88,9 @@ sub _build_scaled_spacing {
 package Slic3r::Flow::Bridge;
 use Moo;
 extends 'Slic3r::Flow';
+
+# layer_height is not required in this case
+has '+layer_height' => (is => 'ro', required => 0);
 
 use Slic3r::Geometry qw(PI);
 

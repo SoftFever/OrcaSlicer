@@ -4,7 +4,7 @@ use Moo;
 use Slic3r::Geometry qw(PI);
 
 has 'layer_id'            => (is => 'rw');
-has 'angle'               => (is => 'rw', default => sub { $Slic3r::Config->fill_angle });
+has 'angle'               => (is => 'rw');
 has 'bounding_box'        => (is => 'ro', required => 0);  # Slic3r::Geometry::BoundingBox object
 
 sub angles () { [0, PI/2] }

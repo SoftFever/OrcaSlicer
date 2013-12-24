@@ -82,15 +82,13 @@ use constant LOOP_CLIPPING_LENGTH_OVER_SPACING      => 0.15;
 use constant INFILL_OVERLAP_OVER_SPACING  => 0.45;
 use constant EXTERNAL_INFILL_MARGIN => 3;
 
-our $Config;
-
 sub parallelize {
     my %params = @_;
     
-    if (!$params{disable} && $Slic3r::have_threads && $Config->threads > 1) {
+    if (!$params{disable} && $Slic3r::have_threads && $params{threads} > 1) {
         my @items = (ref $params{items} eq 'CODE') ? $params{items}->() : @{$params{items}};
         my $q = Thread::Queue->new;
-        $q->enqueue(@items, (map undef, 1..$Config->threads));
+        $q->enqueue(@items, (map undef, 1..$params{threads}));
         
         my $thread_cb = sub {
             $params{thread_cb}->($q);
@@ -111,7 +109,7 @@ sub parallelize {
         $params{collect_cb} ||= sub {};
             
         @_ = ();
-        foreach my $th (map threads->create($thread_cb), 1..$Config->threads) {
+        foreach my $th (map threads->create($thread_cb), 1..$params{threads}) {
             $params{collect_cb}->($th->join);
         }
     } else {

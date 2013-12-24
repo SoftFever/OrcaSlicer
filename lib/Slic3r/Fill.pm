@@ -157,6 +157,7 @@ sub make_fill {
         
         my $f = $self->filler($filler);
         $f->layer_id($layerm->id);
+        $f->angle($layerm->config->fill_angle);
         my ($params, @polylines) = $f->fill_surface(
             $surface,
             density         => $density,

@@ -179,7 +179,7 @@ sub contact_area {
             ###$contact_z = $layer->print_z - $layer->height;
             
             # ignore this contact area if it's too low
-            next if $contact_z < $Slic3r::Config->get_value('first_layer_height');
+            next if $contact_z < $self->config->get_value('first_layer_height');
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
@@ -609,6 +609,7 @@ sub generate_toolpaths {
     };
     
     Slic3r::parallelize(
+        threads => $self->config->threads,
         items => [ 0 .. $#{$object->support_layers} ],
         thread_cb => sub {
             my $q = shift;

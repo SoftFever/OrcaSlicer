@@ -97,7 +97,7 @@ sub change_layer {
     $self->_layer_islands($layer->islands);
     $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
     $self->_layer_overhangs->clear;
-    if ($layer->id > 0 && ($layer->config->overhangs || $Slic3r::Config->start_perimeters_at_non_overhang)) {
+    if ($layer->id > 0 && ($layer->config->overhangs || $self->config->start_perimeters_at_non_overhang)) {
         $self->_layer_overhangs->append(
             # clone ExPolygons because they come from Surface objects but will be used outside here
             map $_->expolygon, map @{$_->slices->filter_by_type(S_TYPE_BOTTOM)}, @{$layer->regions}
@@ -181,11 +181,11 @@ sub extrude_loop {
     # find candidate starting points
     # start looking for concave vertices not being overhangs
     my @concave = ();
-    if ($Slic3r::Config->start_perimeters_at_concave_points) {
+    if ($self->config->start_perimeters_at_concave_points) {
         @concave = $polygon->concave_points;
     }
     my @candidates = ();
-    if ($Slic3r::Config->start_perimeters_at_non_overhang) {
+    if ($self->config->start_perimeters_at_non_overhang) {
         @candidates = grep !$self->_layer_overhangs->contains_point($_), @concave;
     }
     if (!@candidates) {
@@ -193,7 +193,7 @@ sub extrude_loop {
         @candidates = @concave;
         if (!@candidates) {
             # if none, look for any non-overhang vertex
-            if ($Slic3r::Config->start_perimeters_at_non_overhang) {
+            if ($self->config->start_perimeters_at_non_overhang) {
                 @candidates = grep !$self->_layer_overhangs->contains_point($_), @$polygon;
             }
             if (!@candidates) {
@@ -481,7 +481,7 @@ sub retract {
     if ($self->extruder->wipe && $self->wipe_path) {
         my @points = @{$self->wipe_path};
         $wipe_path = Slic3r::Polyline->new($self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}]);
-        $wipe_path->clip_end($wipe_path->length - $self->extruder->scaled_wipe_distance);
+        $wipe_path->clip_end($wipe_path->length - $self->extruder->scaled_wipe_distance($self->config->travel_speed));
     }
     
     # prepare moves
@@ -500,7 +500,7 @@ sub retract {
             my $segment_length = $line->length;
             # reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
             # due to rounding
-            my $e = $retract->[2] * ($segment_length / $self->extruder->scaled_wipe_distance) * 0.95;
+            my $e = $retract->[2] * ($segment_length / $self->extruder->scaled_wipe_distance($self->config->travel_speed)) * 0.95;
             $retracted += $e;
             $gcode .= $self->G1($line->b, undef, $e, $retract->[3] . ";_WIPE");
         }

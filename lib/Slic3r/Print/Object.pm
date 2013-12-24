@@ -127,8 +127,8 @@ sub slice {
     
         # add raft layers
         if ($self->config->raft_layers > 0) {
-            $print_z += $Slic3r::Config->get_value('first_layer_height');
-            $print_z += $Slic3r::Config->layer_height * ($self->config->raft_layers - 1);
+            $print_z += $self->config->get_value('first_layer_height');
+            $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
             $id += $self->config->raft_layers;
         }
     
@@ -137,8 +137,8 @@ sub slice {
         while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
             # assign the default height to the layer according to the general settings
             $height = ($id == 0)
-                ? $Slic3r::Config->get_value('first_layer_height')
-                : $Slic3r::Config->layer_height;
+                ? $self->config->get_value('first_layer_height')
+                : $self->config->layer_height;
         
             # look for an applicable custom range
             if (my $range = first { $_->[0] <= $slice_z && $_->[1] > $slice_z } @{$self->layer_height_ranges}) {
@@ -346,6 +346,7 @@ sub make_perimeters {
     }
     
     Slic3r::parallelize(
+        threads => $self->config->threads,
         items => sub { 0 .. ($self->layer_count-1) },
         thread_cb => sub {
             my $q = shift;

@@ -19,7 +19,7 @@ has '_last_obj_copy'                => (is => 'rw');
 sub _build_spiralvase {
     my $self = shift;
     
-    return $Slic3r::Config->spiral_vase
+    return $self->gcodegen->config->spiral_vase
         ? Slic3r::GCode::SpiralVase->new(config => $self->gcodegen->config)
         : undef;
 }
@@ -27,7 +27,7 @@ sub _build_spiralvase {
 sub _build_vibration_limit {
     my $self = shift;
     
-    return $Slic3r::Config->vibration_limit
+    return $self->gcodegen->config->vibration_limit
         ? Slic3r::GCode::VibrationLimit->new(config => $self->gcodegen->config)
         : undef;
 }
@@ -35,7 +35,7 @@ sub _build_vibration_limit {
 sub _build_arc_fitting {
     my $self = shift;
     
-    return $Slic3r::Config->gcode_arcs
+    return $self->gcodegen->config->gcode_arcs
         ? Slic3r::GCode::ArcFitting->new(config => $self->gcodegen->config)
         : undef;
 }
@@ -47,41 +47,41 @@ sub process_layer {
     
     # check whether we're going to apply spiralvase logic
     my $spiralvase = defined $self->spiralvase
-        && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
-        && ($layer->id >= $Slic3r::Config->skirt_height)
-        && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+        && ($layer->id > 0 || $self->gcodegen->config->brim_width == 0)
+        && ($layer->id >= $self->gcodegen->config->skirt_height)
+        && ($layer->id >= $self->gcodegen->config->bottom_solid_layers);
     
     # if we're going to apply spiralvase to this layer, disable loop clipping
     $self->gcodegen->enable_loop_clipping(!$spiralvase);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
-        for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->temperature}) {
+        for my $t (grep $self->extruders->[$_], 0 .. $#{$self->gcodegen->config->temperature}) {
             $gcode .= $self->gcodegen->set_temperature($self->extruders->[$t]->temperature, 0, $t)
                 if $self->print->extruders->[$t]->temperature && $self->extruders->[$t]->temperature != $self->extruders->[$t]->first_layer_temperature;
         }
-        $gcode .= $self->gcodegen->set_bed_temperature($Slic3r::Config->bed_temperature)
-            if $Slic3r::Config->bed_temperature && $Slic3r::Config->bed_temperature != $Slic3r::Config->first_layer_bed_temperature;
+        $gcode .= $self->gcodegen->set_bed_temperature($self->gcodegen->config->bed_temperature)
+            if $self->gcodegen->config->bed_temperature && $self->gcodegen->config->bed_temperature != $self->gcodegen->config->first_layer_bed_temperature;
         $self->second_layer_things_done(1);
     }
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
     $gcode .= $self->gcodegen->change_layer($layer);
-    $gcode .= $self->gcodegen->replace_variables($Slic3r::Config->layer_gcode, {
+    $gcode .= $self->gcodegen->replace_variables($self->gcodegen->config->layer_gcode, {
         layer_num => $self->gcodegen->layer->id,
-    }) . "\n" if $Slic3r::Config->layer_gcode;
+    }) . "\n" if $self->gcodegen->config->layer_gcode;
     
     # extrude skirt
-    if ((values %{$self->skirt_done}) < $Slic3r::Config->skirt_height && !$self->skirt_done->{$layer->print_z}) {
+    if ((values %{$self->skirt_done}) < $self->gcodegen->config->skirt_height && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->set_extruder($self->extruders->[0]);
         # skip skirt if we have a large brim
-        if ($layer->id < $Slic3r::Config->skirt_height) {
+        if ($layer->id < $self->gcodegen->config->skirt_height) {
             # distribute skirt loops across all extruders
             my @skirt_loops = @{$self->print->skirt};
             for my $i (0 .. $#skirt_loops) {
                 # when printing layers > 0 ignore 'min_skirt_length' and 
                 # just use the 'skirts' setting; also just use the current extruder
-                last if ($layer->id > 0) && ($i >= $Slic3r::Config->skirts);
+                last if ($layer->id > 0) && ($i >= $self->gcodegen->config->skirts);
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ])
                     if $layer->id == 0;
                 $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
@@ -93,7 +93,7 @@ sub process_layer {
     
     # extrude brim
     if (!$self->brim_done) {
-        $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
+        $gcode .= $self->gcodegen->set_extruder($self->extruders->[$self->gcodegen->config->support_material_extruder-1]);
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->extrude_loop($_, 'brim') for @{$self->print->brim};
         $self->brim_done(1);
@@ -110,12 +110,12 @@ sub process_layer {
         # and also because we avoid travelling on other things when printing it
         if ($self->print->has_support_material && $layer->isa('Slic3r::Layer::Support')) {
             if ($layer->support_interface_fills->count > 0) {
-                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_interface_extruder-1]);
+                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$self->gcodegen->config->support_material_interface_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material interface') 
                     for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills->count > 0) {
-                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
+                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$self->gcodegen->config->support_material_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material') 
                     for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
             }
@@ -134,7 +134,7 @@ sub process_layer {
             my $region = $self->print->regions->[$region_id];
             
             my @islands = ();
-            if ($Slic3r::Config->avoid_crossing_perimeters) {
+            if ($self->gcodegen->config->avoid_crossing_perimeters) {
                 push @islands, { perimeters => [], fills => [] }
                     for 1 .. (@{$layer->slices} || 1);  # make sure we have at least one island hash to avoid failure of the -1 subscript below
                 PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
@@ -165,7 +165,7 @@ sub process_layer {
             foreach my $island (@islands) {
                 # give priority to infill if we were already using its extruder and it wouldn't
                 # be good for perimeters
-                if ($Slic3r::Config->infill_first
+                if ($self->gcodegen->config->infill_first
                     || ($self->gcodegen->multiple_extruders && $region->extruders->{infill} eq $self->gcodegen->extruder) && $region->extruders->{infill} ne $region->extruders->{perimeter}) {
                     $gcode .= $self->_extrude_infill($island, $region);
                     $gcode .= $self->_extrude_perimeters($island, $region);
@@ -183,11 +183,11 @@ sub process_layer {
     
     # apply vibration limit if enabled
     $gcode = $self->vibration_limit->process($gcode)
-        if $Slic3r::Config->vibration_limit != 0;
+        if $self->gcodegen->config->vibration_limit != 0;
     
     # apply arc fitting if enabled
     $gcode = $self->arc_fitting->process($gcode)
-        if $Slic3r::Config->gcode_arcs;
+        if $self->gcodegen->config->gcode_arcs;
     
     return $gcode;
 }

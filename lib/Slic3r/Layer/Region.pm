@@ -188,7 +188,7 @@ sub make_perimeters {
                     @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
                 
                     # look for gaps
-                    if ($Slic3r::Config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
+                    if ($self->config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
                         my $diff = diff_ex(
                             offset(\@last, -0.5*$pspacing),
                             offset(\@offsets, +0.5*$pspacing),
@@ -296,8 +296,8 @@ sub make_perimeters {
     # we continue inwards after having finished the brim
     # TODO: add test for perimeter order
     @loops = reverse @loops
-        if $Slic3r::Config->external_perimeters_first
-            || ($self->layer->id == 0 && $Slic3r::Config->brim_width > 0);
+        if $self->config->external_perimeters_first
+            || ($self->layer->id == 0 && $self->config->brim_width > 0);
     
     # append perimeters
     $self->perimeters->append(@loops);
