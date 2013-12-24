@@ -191,6 +191,7 @@ sub validate {
                 # now we need that no instance of $convex_hull does not intersect any of the previously checked object instances
                 for my $copy (@{$object->_shifted_copies}) {
                     my $p = $convex_hull->clone;
+                    
                     $p->translate(@$copy);
                     if (@{ intersection(\@a, [$p]) }) {
                         die "Some objects are too close; your extruder will collide with them.\n";
@@ -837,14 +838,13 @@ sub write_gcode {
     
     # do all objects for each layer
     if ($Slic3r::Config->complete_objects) {
-        
         # print objects from the smallest to the tallest to avoid collisions
         # when moving onto next object starting point
         my @obj_idx = sort { $self->objects->[$a]->size->[Z] <=> $self->objects->[$b]->size->[Z] } 0..$#{$self->objects};
         
         my $finished_objects = 0;
         for my $obj_idx (@obj_idx) {
-            for my $copy (@{ $self->objects->[$obj_idx]->copies }) {
+            for my $copy (@{ $self->objects->[$obj_idx]->_shifted_copies }) {
                 # move to the origin position for the copy we're going to print.
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
@@ -929,8 +929,7 @@ sub write_gcode {
         # append full config
         print $fh "\n";
         foreach my $opt_key (sort @{$self->config->get_keys}) {
-            next if $Slic3r::Config::Options->{$opt_key}{shortcut};
-            next if $Slic3r::Config::Options->{$opt_key}{gui_only};
+            next if @{$Slic3r::Config::Options->{$opt_key}{shortcut}};
             printf $fh "; %s = %s\n", $opt_key, $self->config->serialize($opt_key);
         }
     }

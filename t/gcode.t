@@ -48,13 +48,13 @@ use Slic3r::Test;
     # - no hard-coded "E" are generated
     # - Z moves are correctly generated for both objects
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('gcode_comments', 1);
     $config->set('complete_objects', 1);
-    $config->set('duplicate', 2);
     $config->set('extrusion_axis', 'A');
     $config->set('start_gcode', '');  # prevent any default extra Z move
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', 0.4);
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 2);
     ok my $gcode = Slic3r::Test::gcode($print), "complete_objects";
     my @z_moves = ();
     Slic3r::GCode::Reader->new->parse($gcode, sub {

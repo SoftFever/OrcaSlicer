@@ -90,7 +90,7 @@ sub model {
     my $object = $model->add_object;
     $object->add_volume(mesh => $mesh);
     $object->add_instance(
-        offset      => Slic3r::Point->new(0,0),
+        offset      => [0,0],
         rotation    => $params{rotation} // 0,
     );
     return $model;
@@ -108,6 +108,9 @@ sub init_print {
     $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
     for my $model (map model($_, %params), @$model_name) {
         die "Unknown model in test" if !defined $model;
+        if (defined $params{duplicate} && $params{duplicate} > 1) {
+            $model->duplicate($params{duplicate} // 1, $config->min_object_distance);
+        }
         $model->arrange_objects($config->min_object_distance);
         $model->center_instances_around_point($config->print_center);
         $print->add_model_object($_) for @{$model->objects};

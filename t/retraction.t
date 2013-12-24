@@ -11,12 +11,13 @@ use Slic3r;
 use Slic3r::Test qw(_eq);
 
 my $config = Slic3r::Config->new_from_defaults;
+my $duplicate = 1;
 
 my $test = sub {
     my ($conf) = @_;
     $conf ||= $config;
     
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $conf);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $conf, duplicate => $duplicate);
     
     my $tool = 0;
     my @toolchange_count = (); # track first usages so that we don't expect retract_length_toolchange when extruders are used for the first time
@@ -115,13 +116,13 @@ my $retract_tests = sub {
 
 $retract_tests->('');
 
-$config->set('duplicate', 2);
+$duplicate = 2;
 $retract_tests->(' (duplicate)');
 
 $config->set('g0', 1);
 $retract_tests->(' (G0 and duplicate)');
 
-$config->set('duplicate', 1);
+$duplicate = 1;
 $config->set('g0', 0);
 $config->set('infill_extruder', 2);
 $config->set('skirts', 4);

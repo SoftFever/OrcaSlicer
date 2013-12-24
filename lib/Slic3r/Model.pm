@@ -166,7 +166,8 @@ sub duplicate {
     # note that this will leave the object count unaltered
     
     foreach my $object (@{$self->objects}) {
-        foreach my $instance (@{$object->instances}) {
+        my @instances = @{$object->instances};  # store separately to avoid recursion from add_instance() below
+        foreach my $instance (@instances) {
             foreach my $pos (@positions) {
                 ### $object->add_instance($instance->clone);  if we had clone()
                 $object->add_instance(
