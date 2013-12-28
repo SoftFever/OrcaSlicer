@@ -16,6 +16,7 @@ my %prereqs = qw(
     Math::ConvexHull::MonotoneChain 0.01
     Math::Geometry::Voronoi         1.3
     Math::PlanePath                 53
+    Module::Build::WithXSpp         0.14
     Moo                             1.003001
     Scalar::Util                    0
     Storable                        0
