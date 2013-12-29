@@ -1016,8 +1016,9 @@ sub repaint {
                 $dc->SetBrush($parent->{objects_brush});
             }
             foreach my $expolygon (@$thumbnail) {
-                my $points = $expolygon->contour->pp;
-                $dc->DrawPolygon($parent->points_to_pixel($points, 1), 0, 0);
+                foreach my $points (@{$expolygon->pp}) {
+                    $dc->DrawPolygon($parent->points_to_pixel($points, 1), 0, 0);
+                }
             }
             
             if (0) {
@@ -1102,7 +1103,7 @@ sub mouse_event {
         $parent->Refresh;
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
-        if (defined first { $_->contains_point($pos) } map @{$_->instance_thumbnails}, @{ $parent->{objects} }) {
+        if (defined first { $_->contour->contains_point($pos) } map @$_, map @{$_->instance_thumbnails}, @{ $parent->{objects} }) {
             $cursor = Wx::Cursor->new(wxCURSOR_HAND);
         }
         $self->SetCursor($cursor);
