@@ -324,7 +324,12 @@ sub Closing {
     my $self = shift;
     
     # save mappings into the plater object
-    $self->model_object->material_mapping($self->{mapping});
+    foreach my $volume (@{$self->model_object}) {
+        if (defined $volume->material_id) {
+            my $config = $self->model_object->model->materials->{ $volume->material_id }->config;
+            $config->set('extruder', $self->{mapping}{ $volume->material_id });
+        }
+    }
 }
 
 1;

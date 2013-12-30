@@ -159,7 +159,10 @@ if (@ARGV) {  # slicing from command line
                 printf "=> %s\n", $message;
             },
         );
-        $print->add_model_object($_) for @{$model->objects};
+        foreach my $model_object (@{$model->objects}) {
+            $print->auto_assign_extruders($model_object);
+            $print->add_model_object($model_object);
+        }
         undef $model;  # free memory
         $print->validate;
         if ($opt{export_svg}) {

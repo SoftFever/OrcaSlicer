@@ -638,7 +638,6 @@ sub split_object {
             input_file              => $current_model_object->input_file,
             config                  => $current_model_object->config->clone,
             layer_height_ranges     => $current_model_object->layer_height_ranges,  # TODO: clone this
-            material_mapping        => $current_model_object->material_mapping,     # TODO: clone this
         );
         $model_object->add_volume(
             mesh        => $mesh,

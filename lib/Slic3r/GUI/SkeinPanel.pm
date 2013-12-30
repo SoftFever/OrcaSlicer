@@ -146,7 +146,10 @@ sub quick_slice {
         }
         $model->center_instances_around_point($config->print_center);
         
-        $print->add_model_object($_) for @{ $model->objects };
+        foreach my $model_object (@{$model->objects}) {
+            $print->auto_assign_extruders($model_object);
+            $print->add_model_object($model_object);
+        }
         $print->validate;
 
         # select output file

@@ -1,6 +1,12 @@
 package Slic3r::Extruder;
 use Moo;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK   = qw(EXTRUDER_ROLE_PERIMETER EXTRUDER_ROLE_INFILL EXTRUDER_ROLE_SUPPORT_MATERIAL
+                    EXTRUDER_ROLE_SUPPORT_MATERIAL_INTERFACE);
+our %EXPORT_TAGS = (roles => \@EXPORT_OK);
+
 use Slic3r::Geometry qw(PI scale);
 
 use constant OPTIONS => [qw(
@@ -14,7 +20,6 @@ has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
 has 'config'=> (is => 'ro', required => 1);
 
-has 'bridge_flow'               => (is => 'lazy');
 has 'E'                         => (is => 'rw', default => sub {0} );
 has 'absolute_E'                => (is => 'rw', default => sub {0} );
 has 'retracted'                 => (is => 'rw', default => sub {0} );
@@ -23,14 +28,10 @@ has 'e_per_mm3'                 => (is => 'lazy');
 has 'retract_speed_mm_min'      => (is => 'lazy');
 has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
 
-sub _build_bridge_flow {
-    my $self = shift;
-    
-    return Slic3r::Flow::Bridge->new(
-        nozzle_diameter     => $self->nozzle_diameter,
-        bridge_flow_ratio   => $self->config->bridge_flow_ratio,
-    );
-}
+use constant EXTRUDER_ROLE_PERIMETER                    => 1;
+use constant EXTRUDER_ROLE_INFILL                       => 2;
+use constant EXTRUDER_ROLE_SUPPORT_MATERIAL             => 3;
+use constant EXTRUDER_ROLE_SUPPORT_MATERIAL_INTERFACE   => 4;
 
 sub _build_e_per_mm3 {
     my $self = shift;

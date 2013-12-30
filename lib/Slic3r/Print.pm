@@ -17,8 +17,6 @@ has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
 has 'extruders'              => (is => 'rw', default => sub {[]});
 has 'regions'                => (is => 'rw', default => sub {[]});
-has 'support_material_flow'  => (is => 'rw');
-has 'first_layer_support_material_flow' => (is => 'rw');
 has 'has_support_material'   => (is => 'lazy');
 has '_state'                 => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
@@ -88,30 +86,37 @@ sub add_model_object {
     my $self = shift;
     my ($object, $obj_idx) = @_;
     
-    # read the material mapping provided by the model object, if any
-    my %matmap = %{ $object->material_mapping || {} };
-    $_-- for values %matmap;  # extruders in the mapping are 1-indexed but we want 0-indexed
-    
     my %volumes = ();           # region_id => [ volume_id, ... ]
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
         
-        # determine what region should this volume be mapped to
-        my $region_id;
+        # get the config applied to this volume
+        my $config;
         if (defined $volume->material_id) {
-            if (!exists $matmap{ $volume->material_id }) {
-                # there's no mapping between this material and a region
-                $matmap{ $volume->material_id } = scalar(@{ $self->regions });
-            }
-            $region_id = $matmap{ $volume->material_id };
+            my $config = $object->model->materials->{ $volume->material_id }->config;
         } else {
-            $region_id = 0;
+            $config = Slic3r::Config->new;
         }
+        
+        # find an existing print region with the same config
+        my $region_id;
+        foreach my $i (0..$#{$self->regions}) {
+            my $region = $self->regions->[$i];
+            if ($config->equals($region->config)) {
+                $region_id = $i;
+                last;
+            }
+        }
+        
+        # if no region exists with the same config, create a new one
+        if (!defined $region_id) {
+            push @{$self->regions}, Slic3r::Print::Region->new(config => $config->clone);
+            $region_id = $#{$self->regions};
+        }
+        
+        # assign volume to region
         $volumes{$region_id} //= [];
         push @{ $volumes{$region_id} }, $volume_id;
-        
-        # instantiate region if it does not exist
-        $self->regions->[$region_id] //= Slic3r::Print::Region->new;
     }
     
     # initialize print object
@@ -632,7 +637,7 @@ sub make_skirt {
     my @extruded_length = ();  # for each extruder
     
     # TODO: use each extruder's own flow
-    my $spacing = $self->objects->[0]->layers->[0]->regions->[0]->perimeter_flow->spacing;
+    my $spacing = $self->flow(FLOW_ROLE_SUPPORT_MATERIAL)->spacing;
     
     my $first_layer_height = $self->config->get_value('first_layer_height');
     my @extruders_e_per_mm = ();
@@ -673,7 +678,7 @@ sub make_brim {
     
     $self->brim->clear;  # method must be idempotent
     
-    my $flow = $self->objects->[0]->layers->[0]->regions->[0]->perimeter_flow;
+    my $flow = $self->flow(FLOW_ROLE_SUPPORT_MATERIAL);
     
     my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons
@@ -747,15 +752,24 @@ sub write_gcode {
     for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {
         printf $fh "; %s = %s\n", $_, $self->config->$_->[0];
     }
-    printf $fh "; perimeters extrusion width = %.2fmm\n", $self->regions->[0]->flows->{perimeter}->width;
-    printf $fh "; infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{infill}->width;
-    printf $fh "; solid infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{solid_infill}->width;
-    printf $fh "; top infill extrusion width = %.2fmm\n", $self->regions->[0]->flows->{top_infill}->width;
-    printf $fh "; support material extrusion width = %.2fmm\n", $self->support_material_flow->width
-        if $self->support_material_flow;
-    printf $fh "; first layer extrusion width = %.2fmm\n", $self->regions->[0]->first_layer_flows->{perimeter}->width
-        if $self->regions->[0]->first_layer_flows->{perimeter};
-    print  $fh "\n";
+    
+    for my $region_id (0..$#{$self->regions}) {
+        printf $fh "; perimeters extrusion width = %.2fmm\n",
+            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER)->width;
+        printf $fh "; infill extrusion width = %.2fmm\n",
+            $self->regions->[$region_id]->flow(FLOW_ROLE_INFILL)->width;
+        printf $fh "; solid infill extrusion width = %.2fmm\n",
+            $self->regions->[$region_id]->flow(FLOW_ROLE_SOLID_INFILL)->width;
+        printf $fh "; top infill extrusion width = %.2fmm\n",
+            $self->regions->[$region_id]->flow(FLOW_ROLE_TOP_SOLID_INFILL)->width;
+        printf $fh "; support material extrusion width = %.2fmm\n",
+            $self->flow(FLOW_ROLE_SUPPORT_MATERIAL)->width
+            if $self->support_material_flow;
+        printf $fh "; first layer extrusion width = %.2fmm\n",
+            $self->flow(FLOW_ROLE_SUPPORT_MATERIAL, 0, 1)->width
+            if $self->regions->[0]->first_layer_flows->{perimeter};
+        print  $fh "\n";
+    }
     
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
@@ -1010,6 +1024,66 @@ sub invalidate_step {
     $self->invalidate_step($_)
         for grep { grep { $_ == $step } @{$Slic3r::Print::State::prereqs{$_}} }
             keys %Slic3r::Print::State::prereqs;
+}
+
+# This method assigns extruders to the volumes having a material
+# but not having extruders set in the material config.
+sub auto_assign_extruders {
+    my ($self, $model_object) = @_;
+    
+    my $extruders = scalar @{ $self->config->nozzle_diameter };
+    foreach my $i (0..$#{$model_object->volumes}) {
+        my $volume = $model_object->volumes->[$i];
+        if (defined $volume->material_id) {
+            my $material = $model_object->model->materials->{ $volume->material_id };
+            my $config = $material->config;
+            $config->set_ifndef('perimeters_extruder', $i);
+            $config->set_ifndef('infill_extruder', $i);
+            $config->set_ifndef('support_material_extruder', $i);
+            $config->set_ifndef('support_material_interface_extruder', $i);
+        }
+    }
+}
+
+sub flow {
+    my ($self, $role, $layer_height, $bridge, $first_layer, $width) = @_;
+    
+    $bridge         //= 0;
+    $first_layer    //= 0;
+    
+    # use the supplied custom width, if any
+    my $config_width = $width;
+    if (!defined $config_width) {
+        # get extrusion width from configuration
+        # (might be an absolute value, or a percent value, or zero for auto)
+        if ($first_layer) {
+            $config_width = $self->config->first_layer_extrusion_width;
+        } elsif ($role == FLOW_ROLE_SUPPORT_MATERIAL || $role == FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE) {
+            $config_width = $self->config->support_material_extrusion_width;
+        } else {
+            die "Unknown role $role";
+        }
+    }
+    
+    # get the configured nozzle_diameter for the extruder associated
+    # to the flow role requested
+    my $extruder;  # 1-based
+    if ($role == FLOW_ROLE_SUPPORT_MATERIAL) {
+        $config_width = $self->config->support_material_extruder;
+    } elsif ($role == FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE) {
+        $config_width = $self->config->support_material_interface_extruder;
+    } else {
+        die "Unknown role $role";
+    }
+    my $nozzle_diameter = $self->config->nozzle_diameter->[$extruder-1];
+    
+    return Slic3r::Flow->new(
+        width               => $config_width,
+        role                => $role,
+        nozzle_diameter     => $nozzle_diameter,
+        layer_height        => $layer_height,
+        bridge_flow_ratio   => ($bridge ? $self->config->bridge_flow_ratio : 0),
+    );
 }
 
 1;

@@ -44,7 +44,6 @@ sub add_object {
             input_file          => $object->input_file,
             config              => $object->config,
             layer_height_ranges => $object->layer_height_ranges,    # TODO: clone!
-            material_mapping    => $object->material_mapping,       # TODO: clone!
         );
         
         foreach my $volume (@{$object->volumes}) {
@@ -324,6 +323,7 @@ use Moo;
 
 has 'model'         => (is => 'ro', weak_ref => 1, required => 1);
 has 'attributes'    => (is => 'rw', default => sub { {} });
+has 'config'        => (is => 'rw', default => sub { Slic3r::Config->new });
 
 package Slic3r::Model::Object;
 use Moo;
@@ -338,7 +338,6 @@ has 'volumes'               => (is => 'ro', default => sub { [] });
 has 'instances'             => (is => 'rw');
 has 'config'                => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
-has 'material_mapping'      => (is => 'rw', default => sub { {} }); # { material_id => region_idx }
 has '_bounding_box'         => (is => 'rw');
 
 sub add_volume {

@@ -761,6 +761,7 @@ class PrintConfig : public StaticConfig
         Options["infill_extruder"].label = "Infill extruder";
         Options["infill_extruder"].tooltip = "The extruder to use when printing infill.";
         Options["infill_extruder"].cli = "infill-extruder=i";
+        Options["infill_extruder"].shortcut.push_back("extruder");
 
         Options["infill_extrusion_width"].type = coFloatOrPercent;
         Options["infill_extrusion_width"].label = "Infill";
@@ -878,6 +879,7 @@ class PrintConfig : public StaticConfig
         Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters.";
         Options["perimeter_extruder"].cli = "perimeter-extruder=i";
         Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
+        Options["perimeter_extruder"].shortcut.push_back("extruder");
 
         Options["perimeter_extrusion_width"].type = coFloatOrPercent;
         Options["perimeter_extrusion_width"].label = "Perimeters";
@@ -1139,6 +1141,7 @@ class PrintConfig : public StaticConfig
         Options["support_material_extruder"].label = "Support material extruder";
         Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
         Options["support_material_extruder"].cli = "support-material-extruder=i";
+        Options["support_material_extruder"].shortcut.push_back("extruder");
 
         Options["support_material_extrusion_width"].type = coFloatOrPercent;
         Options["support_material_extrusion_width"].label = "Support material";
@@ -1150,6 +1153,7 @@ class PrintConfig : public StaticConfig
         Options["support_material_interface_extruder"].label = "Support material interface extruder";
         Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
         Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
+        Options["support_material_interface_extruder"].shortcut.push_back("extruder");
 
         Options["support_material_interface_layers"].type = coInt;
         Options["support_material_interface_layers"].label = "Interface layers";
