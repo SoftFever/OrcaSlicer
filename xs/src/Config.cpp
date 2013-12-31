@@ -131,6 +131,13 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
     ConfigOption* opt = this->option(opt_key, true);
     if (opt == NULL) CONFESS("Trying to set non-existing option");
     
+    ConfigOptionDef* optdef = &(*this->def)[opt_key];
+    if (!optdef->shortcut.empty()) {
+        for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it)
+            this->set(*it, value);
+        return;
+    }
+    
     if (ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt)) {
         optv->value = SvNV(value);
     } else if (ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt)) {

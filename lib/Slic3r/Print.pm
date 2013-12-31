@@ -5,6 +5,7 @@ use File::Basename qw(basename fileparse);
 use File::Spec;
 use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
+use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
     convex_hull);
 use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
@@ -96,6 +97,7 @@ sub add_model_object {
             my $config = $object->model->materials->{ $volume->material_id }->config;
         } else {
             $config = Slic3r::Config->new;
+            $config->set('extruder', 0);
         }
         
         # find an existing print region with the same config
@@ -110,7 +112,10 @@ sub add_model_object {
         
         # if no region exists with the same config, create a new one
         if (!defined $region_id) {
-            push @{$self->regions}, Slic3r::Print::Region->new(config => $config->clone);
+            push @{$self->regions}, Slic3r::Print::Region->new(
+                print  => $self,
+                config => $config->clone,
+            );
             $region_id = $#{$self->regions};
         }
         
@@ -233,15 +238,19 @@ sub validate {
 sub init_extruders {
     my $self = shift;
     
-    # map regions to extruders (ghetto mapping for now)
-    my %extruder_mapping = map { $_ => $_ } 0..$#{$self->regions};
-    
     # initialize all extruder(s) we need
-    my @used_extruders = (
-        0,
-        (map $self->config->get("${_}_extruder")-1, qw(perimeter infill support_material support_material_interface)),
-        (values %extruder_mapping),
-    );
+    my @used_extruders = ();
+    foreach my $region (@{$self->regions}) {
+        push @used_extruders,
+            map $region->config->get("${_}_extruder")-1,
+            qw(perimeter infill);
+    }
+    foreach my $object (@{$self->objects}) {
+        push @used_extruders,
+            map $object->config->get("${_}_extruder")-1,
+            qw(support_material support_material_interface);
+    }
+    
     for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
         $self->extruders->[$extruder_id] = Slic3r::Extruder->new(
             config => $self->config,
@@ -251,51 +260,8 @@ sub init_extruders {
         );
     }
     
-    # calculate regions' flows
-    for my $region_id (0 .. $#{$self->regions}) {
-        my $region = $self->regions->[$region_id];
-        
-        # per-role extruders and flows
-        for (qw(perimeter infill solid_infill top_infill)) {
-            my $extruder_name = $_;
-            $extruder_name =~ s/^(?:solid|top)_//;
-            $region->extruders->{$_} = ($self->regions_count > 1)
-                ? $self->extruders->[$extruder_mapping{$region_id}]
-                : $self->extruders->[$self->config->get("${extruder_name}_extruder")-1];
-            $region->flows->{$_} = $region->extruders->{$_}->make_flow(
-                layer_height => $self->config->layer_height,
-                width => $self->config->get("${_}_extrusion_width") || $self->config->extrusion_width,
-                role  => $_,
-            );
-            $region->first_layer_flows->{$_} = $region->extruders->{$_}->make_flow(
-                layer_height    => $self->config->get_value('first_layer_height'),
-                width           => $self->config->first_layer_extrusion_width,
-                role            => $_,
-            ) if $self->config->first_layer_extrusion_width;
-        }
-    }
-    
-    # calculate support material flow
-    # Note: we should calculate a different flow for support material interface
-    # TODO: support material layers have their own variable layer heights, so we
-    # probably need a DynamicFlow object that calculates flow on the fly
-    # (or the Flow object must support a mutable layer_height)
-    if ($self->has_support_material) {
-        my $extruder = $self->extruders->[$self->config->support_material_extruder-1];
-        $self->support_material_flow($extruder->make_flow(
-            layer_height => $self->config->layer_height,  # WRONG!
-            width => $self->config->support_material_extrusion_width || $self->config->extrusion_width,
-            role  => 'support_material',
-        ));
-        $self->first_layer_support_material_flow($extruder->make_flow(
-            layer_height    => $self->config->get_value('first_layer_height'),
-            width           => $self->config->first_layer_extrusion_width,
-            role            => 'support_material',
-        ));
-    }
-    
     # enforce tall skirt if using ooze_prevention
-    # NOTE: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
+    # FIXME: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
     if ($self->config->ooze_prevention && @{$self->extruders} > 1) {
         $self->config->set('skirt_height', -1);
         $self->config->set('skirts', 1) if $self->config->skirts == 0;
@@ -636,8 +602,17 @@ sub make_skirt {
     
     my @extruded_length = ();  # for each extruder
     
+    # skirt may be printed on several layers, having distinct layer heights,
+    # but loops must be aligned so can't vary width/spacing
     # TODO: use each extruder's own flow
-    my $spacing = $self->flow(FLOW_ROLE_SUPPORT_MATERIAL)->spacing;
+    my $flow = Slic3r::Flow->new(
+        width               => ($self->config->first_layer_extrusion_width || $self->config->perimeter_extrusion_width),
+        role                => FLOW_ROLE_PERIMETER,
+        nozzle_diameter     => $self->config->nozzle_diameter->[0],
+        layer_height        => $self->config->get_abs_value('first_layer_height'),
+        bridge_flow_ratio   => 0,
+    );
+    my $spacing = $flow->spacing;
     
     my $first_layer_height = $self->config->get_value('first_layer_height');
     my @extruders_e_per_mm = ();
@@ -678,7 +653,14 @@ sub make_brim {
     
     $self->brim->clear;  # method must be idempotent
     
-    my $flow = $self->flow(FLOW_ROLE_SUPPORT_MATERIAL);
+    # brim is only printed on first layer and uses support material extruder
+    my $flow = Slic3r::Flow->new(
+        width               => ($self->config->first_layer_extrusion_width || $self->config->perimeter_extrusion_width),
+        role                => FLOW_ROLE_PERIMETER,
+        nozzle_diameter     => $self->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ],
+        layer_height        => $self->config->get_abs_value('first_layer_height'),
+        bridge_flow_ratio   => 0,
+    );
     
     my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons
@@ -763,11 +745,11 @@ sub write_gcode {
         printf $fh "; top infill extrusion width = %.2fmm\n",
             $self->regions->[$region_id]->flow(FLOW_ROLE_TOP_SOLID_INFILL)->width;
         printf $fh "; support material extrusion width = %.2fmm\n",
-            $self->flow(FLOW_ROLE_SUPPORT_MATERIAL)->width
-            if $self->support_material_flow;
+            $self->objects->[0]->support_material_flow->width
+            if $self->has_support_material;
         printf $fh "; first layer extrusion width = %.2fmm\n",
-            $self->flow(FLOW_ROLE_SUPPORT_MATERIAL, 0, 1)->width
-            if $self->regions->[0]->first_layer_flows->{perimeter};
+            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, 0, 1)->width
+            if ($self->regions->[$region_id]->config->first_layer_extrusion_width != 0);
         print  $fh "\n";
     }
     
@@ -1043,47 +1025,6 @@ sub auto_assign_extruders {
             $config->set_ifndef('support_material_interface_extruder', $i);
         }
     }
-}
-
-sub flow {
-    my ($self, $role, $layer_height, $bridge, $first_layer, $width) = @_;
-    
-    $bridge         //= 0;
-    $first_layer    //= 0;
-    
-    # use the supplied custom width, if any
-    my $config_width = $width;
-    if (!defined $config_width) {
-        # get extrusion width from configuration
-        # (might be an absolute value, or a percent value, or zero for auto)
-        if ($first_layer) {
-            $config_width = $self->config->first_layer_extrusion_width;
-        } elsif ($role == FLOW_ROLE_SUPPORT_MATERIAL || $role == FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE) {
-            $config_width = $self->config->support_material_extrusion_width;
-        } else {
-            die "Unknown role $role";
-        }
-    }
-    
-    # get the configured nozzle_diameter for the extruder associated
-    # to the flow role requested
-    my $extruder;  # 1-based
-    if ($role == FLOW_ROLE_SUPPORT_MATERIAL) {
-        $config_width = $self->config->support_material_extruder;
-    } elsif ($role == FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE) {
-        $config_width = $self->config->support_material_interface_extruder;
-    } else {
-        die "Unknown role $role";
-    }
-    my $nozzle_diameter = $self->config->nozzle_diameter->[$extruder-1];
-    
-    return Slic3r::Flow->new(
-        width               => $config_width,
-        role                => $role,
-        nozzle_diameter     => $nozzle_diameter,
-        layer_height        => $layer_height,
-        bridge_flow_ratio   => ($bridge ? $self->config->bridge_flow_ratio : 0),
-    );
 }
 
 1;

@@ -21,7 +21,7 @@ sub flow {
     if (!defined $config_width) {
         # get extrusion width from configuration
         # (might be an absolute value, or a percent value, or zero for auto)
-        if ($first_layer) {
+        if ($first_layer && $self->config->first_layer_extrusion_width != 0) {
             $config_width = $self->config->first_layer_extrusion_width;
         } elsif ($role == FLOW_ROLE_PERIMETER) {
             $config_width = $self->config->perimeter_extrusion_width;

@@ -14,8 +14,7 @@ has 'layer' => (
     is          => 'ro',
     weak_ref    => 1,
     required    => 1,
-    trigger     => 1,
-    handles     => [qw(id slice_z print_z height flow config)],
+    handles     => [qw(id slice_z print_z height config)],
 );
 has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'infill_area_threshold' => (is => 'lazy');

@@ -2,6 +2,7 @@ package Slic3r::Print::Object;
 use Moo;
 
 use List::Util qw(min max sum first);
+use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
     offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
@@ -300,7 +301,7 @@ sub make_perimeters {
             for my $layer_id (0 .. $self->layer_count-2) {
                 my $layerm          = $self->layers->[$layer_id]->regions->[$region_id];
                 my $upper_layerm    = $self->layers->[$layer_id+1]->regions->[$region_id];
-                my $perimeter_spacing       = $layerm->perimeter_flow->scaled_spacing;
+                my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
                 
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
@@ -862,8 +863,9 @@ sub generate_support_material {
         && $self->layer_count >= 2;
     
     my $s = Slic3r::Print::SupportMaterial->new(
-        config  => $self->config,
-        flow    => $self->print->support_material_flow,
+        config          => $self->config,
+        flow            => $self->support_material_flow,
+        interface_flow  => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
     );
     $s->generate($self);
 }
@@ -875,6 +877,25 @@ sub _simplify_slices {
         $layer->slices->simplify($distance);
         $_->slices->simplify($distance) for @{$layer->regions};
     }
+}
+
+sub support_material_flow {
+    my ($self, $role) = @_;
+    
+    $role //= FLOW_ROLE_SUPPORT_MATERIAL;
+    my $extruder = ($role == FLOW_ROLE_SUPPORT_MATERIAL)
+        ? $self->config->support_material_extruder
+        : $self->config->support_material_interface_extruder;
+    
+    # we use a bogus layer_height because we use the same flow for all
+    # support material layers
+    return Slic3r::Flow->new(
+        width               => $self->config->support_material_extrusion_width,
+        role                => $role,
+        nozzle_diameter     => $self->print->config->nozzle_diameter->[$extruder-1],
+        layer_height        => $self->config->layer_height,
+        bridge_flow_ratio   => 0,
+    );
 }
 
 1;

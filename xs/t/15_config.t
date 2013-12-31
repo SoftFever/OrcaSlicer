@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 78;
+use Test::More tests => 79;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     $config->set('layer_height', 0.3);
@@ -88,6 +88,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
 {
     my $config = Slic3r::Config->new;
     $config->set('perimeters', 2);
+    $config->set('solid_layers', 2);
+    is $config->get('top_solid_layers'), 2, 'shortcut';
     
     # test that no crash happens when using set_deserialize() with a key that hasn't been set() yet
     $config->set_deserialize('filament_diameter', '3');
