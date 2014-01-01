@@ -12,13 +12,14 @@ use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex inter
     offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 use Slic3r::Print::State ':steps';
 
-has 'config'                 => (is => 'rw', default => sub { Slic3r::Config->new_from_defaults }, trigger => \&init_config);
+has 'config'                 => (is => 'rw', default => sub { Slic3r::Config::Print->new }, trigger => \&init_config);
+has 'default_object_config'  => (is => 'rw', default => sub { Slic3r::Config::PrintObject->new });
+has 'default_region_config'  => (is => 'rw', default => sub { Slic3r::Config::PrintRegion->new });
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
 has 'extruders'              => (is => 'rw', default => sub {[]});
 has 'regions'                => (is => 'rw', default => sub {[]});
-has 'has_support_material'   => (is => 'lazy');
 has '_state'                 => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
 # ordered collection of extrusion paths to build skirt loops
@@ -70,11 +71,12 @@ sub apply_config {
     my ($self, $config) = @_;
     
     $self->config->apply($config);
+    $self->default_object_config->apply($config);
+    $self->default_region_config->apply($config);
     $self->init_config;
-    $_->init_config for @{$self->objects};
 }
 
-sub _build_has_support_material {
+sub has_support_material {
     my $self = shift;
     return (first { $_->config->support_material } @{$self->objects})
         || (first { $_->config->raft_layers > 0 } @{$self->objects})
@@ -91,13 +93,15 @@ sub add_model_object {
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
         
-        # get the config applied to this volume
-        my $config;
+        # get the config applied to this volume: start from our global defaults
+        my $config = Slic3r::Config::RegionConfig->new;
+        $config->apply($self->default_region_config);
+        
+        # override the defaults with per-object config and then with per-material config
+        $config->apply($object->config);
         if (defined $volume->material_id) {
-            my $config = $object->model->materials->{ $volume->material_id }->config;
-        } else {
-            $config = Slic3r::Config->new;
-            $config->set('extruder', 0);
+            my $material_config = $object->model->materials->{ $volume->material_id }->config;
+            $config->apply($material_config);
         }
         
         # find an existing print region with the same config
@@ -112,10 +116,10 @@ sub add_model_object {
         
         # if no region exists with the same config, create a new one
         if (!defined $region_id) {
-            push @{$self->regions}, Slic3r::Print::Region->new(
+            push @{$self->regions}, my $r = Slic3r::Print::Region->new(
                 print  => $self,
-                config => $config->clone,
             );
+            $r->config->apply($config);
             $region_id = $#{$self->regions};
         }
         
@@ -130,9 +134,14 @@ sub add_model_object {
         model_object        => $object,
         region_volumes      => [ map $volumes{$_}, 0..$#{$self->regions} ],
         copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
-        config_overrides    => $object->config,
         layer_height_ranges => $object->layer_height_ranges,
     );
+    
+    # apply config to print object
+    $o->config->apply($self->default_object_config);
+    $o->config->apply($object->config);
+    
+    # store print object at the given position
     if (defined $obj_idx) {
         splice @{$self->objects}, $obj_idx, 0, $o;
     } else {

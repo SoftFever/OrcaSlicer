@@ -986,7 +986,7 @@ class PrintRegionConfig : public virtual StaticConfig
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     
-    PrintObjectConfig() {
+    PrintRegionConfig() {
         this->def = &PrintConfigDef::def;
         
         this->bottom_solid_layers.value                          = 3;
@@ -1135,7 +1135,7 @@ class PrintConfig : public virtual StaticConfig
     ConfigOptionFloat               z_offset;
     
     PrintConfig() {
-        this->def = &PrintConfig::PrintConfigDef;
+        this->def = &PrintConfigDef::def;
         
         this->avoid_crossing_perimeters.value                    = false;
         this->bed_size.point                                     = Pointf(200,200);

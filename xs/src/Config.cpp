@@ -35,6 +35,14 @@ ConfigBase::serialize(const t_config_option_key opt_key) {
 
 void
 ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) {
+    if (this->def->count(opt_key) == 0) throw "Calling set_deserialize() on unknown option";
+    ConfigOptionDef* optdef = &(*this->def)[opt_key];
+    if (!optdef->shortcut.empty()) {
+        for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it)
+            this->set_deserialize(*it, str);
+        return;
+    }
+    
     ConfigOption* opt = this->option(opt_key, true);
     assert(opt != NULL);
     opt->deserialize(str);
@@ -56,6 +64,20 @@ ConfigBase::get_abs_value(const t_config_option_key opt_key) {
         ConfigOptionFloat* optbase = dynamic_cast<ConfigOptionFloat*>(this->option(def->ratio_over));
         if (optbase == NULL) throw "ratio_over option not found";
         return optbase->value * opt->value / 100;
+    } else {
+        return opt->value;
+    }
+}
+
+double
+ConfigBase::get_abs_value(const t_config_option_key opt_key, double ratio_over) {
+    // get stored option value
+    ConfigOptionFloatOrPercent* opt = dynamic_cast<ConfigOptionFloatOrPercent*>(this->option(opt_key));
+    assert(opt != NULL);
+    
+    // compute absolute value
+    if (opt->percent) {
+        return ratio_over * opt->value / 100;
     } else {
         return opt->value;
     }

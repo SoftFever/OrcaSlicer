@@ -8,7 +8,7 @@ use Slic3r::Flow ':roles';
 # sharing the same config (including the same assigned extruder(s))
 
 has 'print'             => (is => 'ro', required => 1, weak_ref => 1);
-has 'config'            => (is => 'ro', required => 1);
+has 'config'            => (is => 'ro', required => 1);  # Slic3r::Config::RegionConfig
 
 sub flow {
     my ($self, $role, $layer_height, $bridge, $first_layer, $width) = @_;

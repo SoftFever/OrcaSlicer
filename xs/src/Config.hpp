@@ -393,6 +393,7 @@ class ConfigBase
     std::string serialize(const t_config_option_key opt_key);
     void set_deserialize(const t_config_option_key opt_key, std::string str);
     double get_abs_value(const t_config_option_key opt_key);
+    double get_abs_value(const t_config_option_key opt_key, double ratio_over);
     
     #ifdef SLIC3RXS
     SV* as_hash();

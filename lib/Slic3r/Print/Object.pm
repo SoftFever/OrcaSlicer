@@ -13,8 +13,7 @@ has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
 has 'model_object'      => (is => 'ro', required => 1);
 has 'region_volumes'    => (is => 'rw', default => sub { [] });  # by region_id
 has 'copies'            => (is => 'ro');  # Slic3r::Point objects in scaled G-code coordinates
-has 'config_overrides'  => (is => 'rw', default => sub { Slic3r::Config->new });
-has 'config'            => (is => 'rw');
+has 'config'            => (is => 'rw', required => 1);  # Slic3r::Config::PrintObject
 has 'layer_height_ranges' => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 
 has 'size'              => (is => 'rw'); # XYZ in scaled coordinates
@@ -27,8 +26,6 @@ has '_state'            => (is => 'ro', default => sub { Slic3r::Print::State->n
 
 sub BUILD {
     my $self = shift;
- 	
- 	$self->init_config;
  	
  	# translate meshes so that we work with smaller coordinates
  	{
@@ -95,11 +92,6 @@ sub delete_all_copies {
     my ($self) = @_;
     @{$self->copies} = ();
     $self->_trigger_copies;
-}
-
-sub init_config {
-    my $self = shift;
-    $self->config(Slic3r::Config->merge($self->print->config, $self->config_overrides));
 }
 
 sub layer_count {
