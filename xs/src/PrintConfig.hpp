@@ -952,7 +952,6 @@ class PrintRegionConfig : public virtual StaticConfig
     ConfigOptionInt                 fill_angle;
     ConfigOptionFloat               fill_density;
     ConfigOptionEnum<InfillPattern> fill_pattern;
-    ConfigOptionFloatOrPercent      first_layer_extrusion_width;
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
@@ -976,8 +975,6 @@ class PrintRegionConfig : public virtual StaticConfig
         this->fill_angle.value                                   = 45;
         this->fill_density.value                                 = 0.4;
         this->fill_pattern.value                                 = ipHoneycomb;
-        this->first_layer_extrusion_width.value                  = 200;
-        this->first_layer_extrusion_width.percent                = true;
         this->infill_extruder.value                              = 1;
         this->infill_extrusion_width.value                       = 0;
         this->infill_extrusion_width.percent                     = false;
@@ -1003,7 +1000,6 @@ class PrintRegionConfig : public virtual StaticConfig
         if (opt_key == "fill_angle")                                 return &this->fill_angle;
         if (opt_key == "fill_density")                               return &this->fill_density;
         if (opt_key == "fill_pattern")                               return &this->fill_pattern;
-        if (opt_key == "first_layer_extrusion_width")                return &this->first_layer_extrusion_width;
         if (opt_key == "infill_extruder")                            return &this->infill_extruder;
         if (opt_key == "infill_extrusion_width")                     return &this->infill_extrusion_width;
         if (opt_key == "infill_every_layers")                        return &this->infill_every_layers;
@@ -1052,6 +1048,7 @@ class PrintConfig : public virtual StaticConfig
     ConfigOptionFloats              filament_diameter;
     ConfigOptionFloat               first_layer_acceleration;
     ConfigOptionInt                 first_layer_bed_temperature;
+    ConfigOptionFloatOrPercent      first_layer_extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_speed;
     ConfigOptionInts                first_layer_temperature;
     ConfigOptionBool                g0;
@@ -1142,6 +1139,8 @@ class PrintConfig : public virtual StaticConfig
         this->filament_diameter.values[0]                        = 3;
         this->first_layer_acceleration.value                     = 0;
         this->first_layer_bed_temperature.value                  = 0;
+        this->first_layer_extrusion_width.value                  = 200;
+        this->first_layer_extrusion_width.percent                = true;
         this->first_layer_speed.value                            = 30;
         this->first_layer_speed.percent                          = true;
         this->first_layer_temperature.values.resize(1);
@@ -1242,6 +1241,7 @@ class PrintConfig : public virtual StaticConfig
         if (opt_key == "filament_diameter")                          return &this->filament_diameter;
         if (opt_key == "first_layer_acceleration")                   return &this->first_layer_acceleration;
         if (opt_key == "first_layer_bed_temperature")                return &this->first_layer_bed_temperature;
+        if (opt_key == "first_layer_extrusion_width")                return &this->first_layer_extrusion_width;
         if (opt_key == "first_layer_speed")                          return &this->first_layer_speed;
         if (opt_key == "first_layer_temperature")                    return &this->first_layer_temperature;
         if (opt_key == "g0")                                         return &this->g0;

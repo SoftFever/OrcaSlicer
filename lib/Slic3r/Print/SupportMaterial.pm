@@ -9,9 +9,11 @@ use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_
     intersection_pl);
 use Slic3r::Surface ':types';
 
-has 'print_config'  => (is => 'rw', required => 1);
-has 'object_config' => (is => 'rw', required => 1);
-has 'flow'          => (is => 'rw', required => 1);
+has 'print_config'      => (is => 'rw', required => 1);
+has 'object_config'     => (is => 'rw', required => 1);
+has 'flow'              => (is => 'rw', required => 1);
+has 'first_layer_flow'  => (is => 'rw', required => 1);
+has 'interface_flow'    => (is => 'rw', required => 1);
 
 use constant DEBUG_CONTACT_ONLY => 0;
 
@@ -385,11 +387,12 @@ sub clip_with_object {
 sub generate_toolpaths {
     my ($self, $object, $overhang, $contact, $interface, $base) = @_;
     
-    my $flow = $self->flow;
+    my $flow            = $self->flow;
+    my $interface_flow  = $self->interface_flow;
     
     # shape of contact area
     my $contact_loops   = 1;
-    my $circle_radius   = 1.5 * $flow->scaled_width;
+    my $circle_radius   = 1.5 * $interface_flow->scaled_width;
     my $circle_distance = 3 * $circle_radius;
     my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ],
                             (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
@@ -410,8 +413,8 @@ sub generate_toolpaths {
     );
     
     my $interface_angle = $self->object_config->support_material_angle + 90;
-    my $interface_spacing = $self->object_config->support_material_interface_spacing + $flow->spacing;
-    my $interface_density = $interface_spacing == 0 ? 1 : $flow->spacing / $interface_spacing;
+    my $interface_spacing = $self->object_config->support_material_interface_spacing + $interface_flow->spacing;
+    my $interface_density = $interface_spacing == 0 ? 1 : $interface_flow->spacing / $interface_spacing;
     my $support_spacing = $self->object_config->support_material_spacing + $flow->spacing;
     my $support_density = $support_spacing == 0 ? 1 : $flow->spacing / $support_spacing;
     
@@ -452,11 +455,11 @@ sub generate_toolpaths {
             my @loops0 = ();
             {
                 # find centerline of the external loop of the contours
-                my @external_loops = @{offset($contact, -$flow->scaled_width/2)};
+                my @external_loops = @{offset($contact, -$interface_flow->scaled_width/2)};
                 
                 # only consider the loops facing the overhang
                 {
-                    my $overhang_with_margin = offset($overhang, +$flow->scaled_width/2);
+                    my $overhang_with_margin = offset($overhang, +$interface_flow->scaled_width/2);
                     @external_loops = grep {
                         @{intersection_pl(
                             [ $_->split_at_first_point ],
@@ -476,8 +479,8 @@ sub generate_toolpaths {
             # make more loops
             my @loops = @loops0;
             for my $i (2..$contact_loops) {
-                my $d = ($i-1) * $flow->scaled_spacing;
-                push @loops, @{offset2(\@loops0, -$d -0.5*$flow->scaled_spacing, +0.5*$flow->scaled_spacing)};
+                my $d = ($i-1) * $interface_flow->scaled_spacing;
+                push @loops, @{offset2(\@loops0, -$d -0.5*$interface_flow->scaled_spacing, +0.5*$interface_flow->scaled_spacing)};
             }
             
             # clip such loops to the side oriented towards the object
@@ -500,7 +503,7 @@ sub generate_toolpaths {
             @loops = map Slic3r::ExtrusionPath->new(
                 polyline        => $_,
                 role            => EXTR_ROLE_SUPPORTMATERIAL,
-                flow_spacing    => $flow->spacing,
+                flow_spacing    => $interface_flow->spacing,
             ), @loops;
             
             $layer->support_interface_fills->append(@loops);
@@ -534,7 +537,7 @@ sub generate_toolpaths {
                 my ($params, @p) = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density         => $interface_density,
-                    flow_spacing    => $flow->spacing,
+                    flow_spacing    => $interface_flow->spacing,
                     complete        => 1,
                 );
                 
@@ -565,7 +568,7 @@ sub generate_toolpaths {
                 $filler = $fillers{interface};
                 $filler->angle($self->object_config->support_material_angle + 90);
                 $density        = 0.5;
-                $flow_spacing   = $object->print->first_layer_support_material_flow->spacing;
+                $flow_spacing   = $self->first_layer_flow->spacing;
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm

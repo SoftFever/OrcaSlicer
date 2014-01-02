@@ -863,11 +863,20 @@ sub generate_support_material {
     return unless ($self->config->support_material || $self->config->raft_layers > 0)
         && $self->layer_count >= 2;
     
+    my $first_layer_flow = Slic3r::Flow->new(
+        width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
+        role                => FLOW_ROLE_SUPPORT_MATERIAL,
+        nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ],
+        layer_height        => $self->config->get_abs_value('first_layer_height'),
+        bridge_flow_ratio   => 0,
+    );
+    
     my $s = Slic3r::Print::SupportMaterial->new(
-        print_config    => $self->print->config,
-        object_config   => $self->config,
-        flow            => $self->support_material_flow,
-        interface_flow  => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
+        print_config        => $self->print->config,
+        object_config       => $self->config,
+        first_layer_flow    => $first_layer_flow,
+        flow                => $self->support_material_flow,
+        interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
     );
     $s->generate($self);
 }

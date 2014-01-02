@@ -662,10 +662,9 @@ sub make_skirt {
     # skirt may be printed on several layers, having distinct layer heights,
     # but loops must be aligned so can't vary width/spacing
     # TODO: use each extruder's own flow
-    my $region0_config = $self->regions->[0]->config;
     my $first_layer_height = $self->objects->[0]->config->get_value('first_layer_height');
     my $flow = Slic3r::Flow->new(
-        width               => ($region0_config->first_layer_extrusion_width || $region0_config->perimeter_extrusion_width),
+        width               => ($self->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
         nozzle_diameter     => $self->config->nozzle_diameter->[0],
         layer_height        => $first_layer_height,
@@ -713,7 +712,7 @@ sub make_brim {
     
     # brim is only printed on first layer and uses support material extruder
     my $flow = Slic3r::Flow->new(
-        width               => ($self->regions->[0]->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
+        width               => ($self->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
         nozzle_diameter     => $self->config->nozzle_diameter->[ $self->objects->[0]->config->support_material_extruder-1 ],
         layer_height        => $self->objects->[0]->config->get_abs_value('first_layer_height'),
@@ -801,7 +800,7 @@ sub write_gcode {
             if $self->has_support_material;
         printf $fh "; first layer extrusion width = %.2fmm\n",
             $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 1)->width
-            if ($self->regions->[$region_id]->config->first_layer_extrusion_width ne '0');
+            if $self->regions->[$region_id]->config->first_layer_extrusion_width;
         print  $fh "\n";
     }
     
