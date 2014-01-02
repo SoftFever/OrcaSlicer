@@ -54,10 +54,11 @@ sub add_object {
             
             if (defined $volume->material_id) {
                 #  merge material attributes (should we rename materials in case of duplicates?)
-                $self->set_material($volume->material_id, {
-                    %{ $object->model->materials->{$volume->material_id} },
-                    %{ $self->materials->{$volume->material_id} || {} },
-                });
+                my %attributes = %{ $object->model->materials->{$volume->material_id}->attributes };
+                if (exists $self->materials->{$volume->material_id}) {
+                    %attributes = (%attributes, %{ $self->materials->{$volume->material_id}->attributes });
+                }
+                $self->set_material($volume->material_id, {%attributes});
             }
         }
         
@@ -478,7 +479,8 @@ sub unique_materials {
     my $self = shift;
     
     my %materials = ();
-    $materials{ $_->material_id // '_' } = 1 for @{$self->volumes};
+    $materials{ $_->material_id } = 1
+        for grep { defined $_->material_id } @{$self->volumes};
     return sort keys %materials;
 }
 

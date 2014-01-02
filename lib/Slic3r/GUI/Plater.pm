@@ -754,11 +754,15 @@ sub export_gcode2 {
     } if $Slic3r::have_threads;
     
     my $print = $self->{print};
-    $print->apply_config($config);
-    $print->apply_extra_variables($extra_variables);
+    
     
     eval {
-        $print->config->validate;
+        # this will throw errors if config is not valid
+        $config->validate;
+        
+        $print->apply_config($config);
+        $print->apply_extra_variables($extra_variables);
+        
         $print->validate;
         
         {

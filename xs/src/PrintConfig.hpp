@@ -61,7 +61,7 @@ class PrintConfigDef
         Options["bed_temperature"].tooltip = "Bed temperature for layers after the first one. Set this to zero to disable bed temperature control commands in the output.";
         Options["bed_temperature"].sidetext = "°C";
         Options["bed_temperature"].cli = "bed-temperature=i";
-        Options["bed_temperature"].full_label = true;
+        Options["bed_temperature"].full_label = "Bed temperature";
         Options["bed_temperature"].max = 300;
 
         Options["bottom_solid_layers"].type = coInt;
@@ -70,7 +70,7 @@ class PrintConfigDef
         Options["bottom_solid_layers"].tooltip = "Number of solid layers to generate on bottom surfaces.";
         Options["bottom_solid_layers"].cli = "bottom-solid-layers=i";
         Options["bottom_solid_layers"].scope = "object";
-        Options["bottom_solid_layers"].full_label = true;
+        Options["bottom_solid_layers"].full_label = "Bottom solid layers";
 
         Options["bridge_acceleration"].type = coFloat;
         Options["bridge_acceleration"].label = "Bridge";
@@ -346,7 +346,7 @@ class PrintConfigDef
         Options["infill_every_layers"].sidetext = "layers";
         Options["infill_every_layers"].cli = "infill-every-layers=i";
         Options["infill_every_layers"].scope = "object";
-        Options["infill_every_layers"].full_label = true;
+        Options["infill_every_layers"].full_label = "Combine infill every n layers";
         Options["infill_every_layers"].min = 1;
 
         Options["infill_extruder"].type = coInt;
@@ -715,7 +715,7 @@ class PrintConfigDef
         Options["support_material_enforce_layers"].sidetext = "layers";
         Options["support_material_enforce_layers"].cli = "support-material-enforce-layers=f";
         Options["support_material_enforce_layers"].scope = "object";
-        Options["support_material_enforce_layers"].full_label = true;
+        Options["support_material_enforce_layers"].full_label = "Enforce support for the first n layers";
 
         Options["support_material_extruder"].type = coInt;
         Options["support_material_extruder"].label = "Support material extruder";
@@ -789,7 +789,7 @@ class PrintConfigDef
         Options["temperature"].tooltip = "Extruder temperature for layers after the first one. Set this to zero to disable temperature control commands in the output.";
         Options["temperature"].sidetext = "°C";
         Options["temperature"].cli = "temperature=i@";
-        Options["temperature"].full_label = true;
+        Options["temperature"].full_label = "Temperature";
         Options["temperature"].max = 400;
 
         Options["thin_walls"].type = coBool;
@@ -835,7 +835,7 @@ class PrintConfigDef
         Options["top_solid_layers"].tooltip = "Number of solid layers to generate on top surfaces.";
         Options["top_solid_layers"].cli = "top-solid-layers=i";
         Options["top_solid_layers"].scope = "object";
-        Options["top_solid_layers"].full_label = true;
+        Options["top_solid_layers"].full_label = "Top solid layers";
 
         Options["travel_speed"].type = coFloat;
         Options["travel_speed"].label = "Travel";

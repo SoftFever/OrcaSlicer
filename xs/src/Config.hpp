@@ -354,6 +354,7 @@ class ConfigOptionDef
     public:
     ConfigOptionType type;
     std::string label;
+    std::string full_label;
     std::string category;
     std::string tooltip;
     std::string sidetext;
@@ -361,7 +362,6 @@ class ConfigOptionDef
     std::string scope;
     t_config_option_key ratio_over;
     bool multiline;
-    bool full_label;
     bool full_width;
     bool readonly;
     int height;

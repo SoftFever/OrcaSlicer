@@ -76,7 +76,7 @@ sub load {
     my ($file) = @_;
     
     my $ini = __PACKAGE__->read_ini($file);
-    my $config = __PACKAGE__->new;
+    my $config = $class->new;
     foreach my $opt_key (keys %{$ini->{_}}) {
         ($opt_key, my $value) = _handle_legacy($opt_key, $ini->{_}{$opt_key});
         next if !defined $opt_key;
@@ -88,7 +88,7 @@ sub load {
 sub clone {
     my $self = shift;
     
-    my $new = __PACKAGE__->new;
+    my $new = (ref $self)->new;
     $new->apply($self);
     return $new;
 }
@@ -180,13 +180,14 @@ sub equals {
     return @{ $self->diff($other) } == 0;
 }
 
+# this will *ignore* options not present in both configs
 sub diff {
     my ($self, $other) = @_;
     
     my @diff = ();
     foreach my $opt_key (sort @{$self->get_keys}) {
         push @diff, $opt_key
-            if !$other->has($opt_key) || $other->serialize($opt_key) ne $self->serialize($opt_key);
+            if $other->has($opt_key) && $other->serialize($opt_key) ne $self->serialize($opt_key);
     }
     return [@diff];
 }
@@ -265,26 +266,10 @@ sub validate {
     die "Invalid value for --infill-every-layers\n"
         if $self->infill_every_layers !~ /^\d+$/ || $self->infill_every_layers < 1;
     
-    # --scale
-    die "Invalid value for --scale\n"
-        if $self->scale <= 0;
-    
     # --bed-size
     die "Invalid value for --bed-size\n"
         if !ref $self->bed_size 
             && (!$self->bed_size || $self->bed_size !~ /^\d+,\d+$/);
-    
-    # --duplicate-grid
-    die "Invalid value for --duplicate-grid\n"
-        if !ref $self->duplicate_grid 
-            && (!$self->duplicate_grid || $self->duplicate_grid !~ /^\d+,\d+$/);
-    
-    # --duplicate
-    die "Invalid value for --duplicate or --duplicate-grid\n"
-        if !$self->duplicate || $self->duplicate < 1 || !$self->duplicate_grid
-            || (grep !$_, @{$self->duplicate_grid});
-    die "Use either --duplicate or --duplicate-grid (using both doesn't make sense)\n"
-        if $self->duplicate > 1 && $self->duplicate_grid && (grep $_ && $_ > 1, @{$self->duplicate_grid});
     
     # --skirt-height
     die "Invalid value for --skirt-height\n"

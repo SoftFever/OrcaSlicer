@@ -31,9 +31,87 @@ has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->n
 sub apply_config {
     my ($self, $config) = @_;
     
-    $self->config->apply_dynamic($config);
+    # handle changes to print config
+    my $print_diff = $self->config->diff($config);
+    if (@$print_diff) {
+        $self->config->apply_dynamic($config);
+        
+        # TODO: only invalidate changed steps
+        $self->_state->invalidate_all;
+    }
+    
+    # handle changes to object config defaults
     $self->default_object_config->apply_dynamic($config);
+    foreach my $object (@{$self->objects}) {
+        # we don't assume that $config contains a full ObjectConfig,
+        # so we base it on the current print-wise default
+        my $new = $self->default_object_config->clone;
+        
+        # we override the new config with object-specific options
+        $new->apply_dynamic($object->model_object->config);
+        
+        # check whether the new config is different from the current one
+        my $diff = $object->config->diff($new);
+        if (@$diff) {
+            $object->config->apply($new);
+            # TODO: only invalidate changed steps
+            $object->_state->invalidate_all;
+        }
+    }
+    
+    # handle changes to regions config defaults
     $self->default_region_config->apply_dynamic($config);
+    
+    # check whether after applying the new region config defaults to all existing regions
+    # they still have distinct configs; if not we need to re-add objects in order to 
+    # merge the now-equal regions
+    
+    # first compute the transformed region configs
+    my @new_region_configs = ();
+    foreach my $region_id (0..$#{$self->regions}) {
+        my $new = $self->default_region_config->clone;
+        foreach my $object (@{$self->objects}) {
+            foreach my $volume_id (@{ $object->region_volumes->[$region_id] }) {
+                my $volume = $object->model_object->volumes->[$volume_id];
+                next if !defined $volume->material_id;
+                my $material = $object->model_object->model->materials->{$volume->material_id};
+                $new->apply_dynamic($material->config);
+            }
+        }
+        push @new_region_configs, $new;
+    }
+    
+    # then find the first pair of identical configs
+    my $have_identical_configs = 0;
+    my $region_diff = [];
+    for my $i (0..$#new_region_configs) {
+        for my $j (($i+1)..$#new_region_configs) {
+            if ($new_region_configs[$i]->equals($new_region_configs[$j])) {
+                $have_identical_configs = 1;
+            }
+        }
+        my $diff = $self->regions->[$i]->config->diff($new_region_configs[$i]);
+        push @$region_diff, @$diff;
+    }
+    
+    if ($have_identical_configs) {
+        # okay, the current subdivision of regions does not make sense anymore.
+        # we need to remove all objects and re-add them
+        my @model_objects = map $_->model_object, @{$self->object};
+        $self->delete_all_objects;
+        $self->add_model_object($_) for @model_objects;
+    } elsif (@$region_diff > 0) {
+        # if there are no identical regions even after applying the change in 
+        # region config defaults, but at least one region config option changed,
+        # store the new region configs and invalidate
+        # the affected step(s)
+        foreach my $region_id (0..$#{$self->regions}) {
+            $self->regions->[$region_id]->config->apply($new_region_configs[$region_id]);
+        }
+        
+        # TODO: only invalidate changed steps
+        $_->_state->invalidate_all for @{$self->objects};
+    }
 }
 
 sub has_support_material {
@@ -991,7 +1069,7 @@ sub auto_assign_extruders {
         if (defined $volume->material_id) {
             my $material = $model_object->model->materials->{ $volume->material_id };
             my $config = $material->config;
-            $config->set_ifndef('perimeters_extruder', $i);
+            $config->set_ifndef('perimeter_extruder', $i);
             $config->set_ifndef('infill_extruder', $i);
             $config->set_ifndef('support_material_extruder', $i);
             $config->set_ifndef('support_material_interface_extruder', $i);

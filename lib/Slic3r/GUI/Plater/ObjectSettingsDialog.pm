@@ -114,7 +114,7 @@ sub update_optgroup {
     
     my $config = $self->model_object->config;
     my %categories = ();
-    foreach my $opt_key (keys %$config) {
+    foreach my $opt_key (@{$config->get_keys}) {
         my $category = $Slic3r::Config::Options->{$opt_key}{category};
         $categories{$category} ||= [];
         push @{$categories{$category}}, $opt_key;
@@ -288,31 +288,41 @@ sub new {
     # get unique materials used in this object
     $self->{materials} = [ $self->model_object->unique_materials ];
     
-    # build an OptionsGroup
-    $self->{mapping} = {
-        (map { $self->{materials}[$_] => $_+1 } 0..$#{ $self->{materials} }),   # defaults
-        %{$self->model_object->material_mapping},
-    };
-    my $optgroup = Slic3r::GUI::OptionsGroup->new(
-        parent      => $self,
-        title       => 'Extruders',
-        label_width => 300,
-        options => [
-            map {
-                my $i           = $_;
-                my $material_id = $self->{materials}[$i];
-                {
-                    opt_key     => "material_extruder_$_",
-                    type        => 'i',
-                    label       => $self->model_object->model->get_material_name($material_id),
-                    min         => 1,
-                    default     => $self->{mapping}{$material_id},
-                    on_change   => sub { $self->{mapping}{$material_id} = $_[0] },
-                }
-            } 0..$#{ $self->{materials} }
-        ],
-    );
-    $self->{sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 10);
+    # get the current mapping
+    $self->{mapping} = {};
+    foreach my $material_id (@{ $self->{materials}}) {
+        my $config = $self->model_object->model->materials->{ $material_id }->config;
+        $self->{mapping}{$material_id} = ($config->perimeter_extruder // 0) + 1;
+    }
+    
+    if (@{$self->{materials}} > 0) {
+        # build an OptionsGroup
+        my $optgroup = Slic3r::GUI::OptionsGroup->new(
+            parent      => $self,
+            title       => 'Extruders',
+            label_width => 300,
+            options => [
+                map {
+                    my $i           = $_;
+                    my $material_id = $self->{materials}[$i];
+                    {
+                        opt_key     => "material_extruder_$_",
+                        type        => 'i',
+                        label       => $self->model_object->model->get_material_name($material_id),
+                        min         => 1,
+                        default     => $self->{mapping}{$material_id} // 1,
+                        on_change   => sub { $self->{mapping}{$material_id} = $_[0] },
+                    }
+                } 0..$#{ $self->{materials} }
+            ],
+        );
+        $self->{sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 10);
+    } else {
+        my $label = Wx::StaticText->new($self, -1, "This object does not contain named materials.",
+            wxDefaultPosition, [-1, 25]);
+        $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+        $self->{sizer}->Add($label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+    }
     
     $self->SetSizer($self->{sizer});
     $self->{sizer}->SetSizeHints($self);
@@ -324,10 +334,10 @@ sub Closing {
     my $self = shift;
     
     # save mappings into the plater object
-    foreach my $volume (@{$self->model_object}) {
+    foreach my $volume (@{$self->model_object->volumes}) {
         if (defined $volume->material_id) {
             my $config = $self->model_object->model->materials->{ $volume->material_id }->config;
-            $config->set('extruder', $self->{mapping}{ $volume->material_id });
+            $config->set('extruder', $self->{mapping}{ $volume->material_id }-1);
         }
     }
 }
