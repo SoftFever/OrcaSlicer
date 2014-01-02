@@ -12,7 +12,6 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
-use Slic3r::Geometry qw(X Y);
 use Time::HiRes qw(gettimeofday tv_interval);
 $|++;
 
@@ -122,55 +121,32 @@ if (@ARGV) {  # slicing from command line
             $model = Slic3r::Model->read_from_file($input_file);
         }
         
-        my $need_arrange = $model->has_objects_with_no_instances;
-        if ($need_arrange) {
-            # apply a default position to all objects not having one
-            foreach my $object (@{$model->objects}) {
-                $object->add_instance(offset => [0,0]) if !defined $object->instances;
-            }
-        }
-        
-        # apply scaling and rotation supplied from command line if any
-        foreach my $instance (map @{$_->instances}, @{$model->objects}) {
-            $instance->scaling_factor($instance->scaling_factor * $config->scale);
-            $instance->rotation($instance->rotation + $config->rotate);
-        }
-        # TODO: --scale --rotate, --duplicate* shouldn't be stored in config
-        
-        if ($config->duplicate_grid->[X] > 1 || $config->duplicate_grid->[Y] > 1) {
-            $model->duplicate_objects_grid($config->duplicate_grid, $config->duplicate_distance);
-        } elsif ($need_arrange) {
-            $model->duplicate_objects($config->duplicate, $config->min_object_distance);
-        } elsif ($config->duplicate > 1) {
-            # if all input objects have defined position(s) apply duplication to the whole model
-            $model->duplicate($config->duplicate, $config->min_object_distance);
-        }
-        $model->center_instances_around_point($config->print_center);
-        
         if ($opt{info}) {
             $model->print_info;
             next;
         }
         
-        my $print = Slic3r::Print->new(
-            status_cb   => sub {
+        my $sprint = Slic3r::Print::Simple->new(
+            scale           => $config->scale,
+            rotate          => $config->rotate,
+            duplicate       => $config->duplicate,
+            duplicate_grid  => $config->duplicate_grid,
+            status_cb       => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
             },
+            output_file     => $opt{output},
         );
-        $print->apply_config($config);
-        foreach my $model_object (@{$model->objects}) {
-            $print->auto_assign_extruders($model_object);
-            $print->add_model_object($model_object);
-        }
+        
+        $sprint->apply_config($config);
+        $sprint->set_model($model);
         undef $model;  # free memory
-        $print->validate;
+        
         if ($opt{export_svg}) {
-            $print->export_svg(output_file => $opt{output});
+            $sprint->export_svg;
         } else {
             my $t0 = [gettimeofday];
-            $print->process;
-            $print->export_gcode(output_file => $opt{output});
+            $sprint->export_gcode;
             
             # output some statistics
             {
@@ -180,7 +156,7 @@ if (@ARGV) {  # slicing from command line
             }
             print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
                 $_->absolute_E, $_->extruded_volume/1000),
-                @{$print->extruders};
+                @{$sprint->extruders};
         }
     }
 } else {

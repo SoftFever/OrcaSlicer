@@ -107,7 +107,7 @@ sub contact_area {
         } else {
             my $lower_layer = $object->layers->[$layer_id-1];
             foreach my $layerm (@{$layer->regions}) {
-                my $fw = $layerm->perimeter_flow->scaled_width;
+                my $fw = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_width;
                 my $diff;
             
                 # If a threshold angle was specified, use a different logic for detecting overhangs.
