@@ -12,9 +12,9 @@ use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex inter
     offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 use Slic3r::Print::State ':steps';
 
-has 'config'                 => (is => 'rw', default => sub { Slic3r::Config::Print->new }, trigger => \&init_config);
-has 'default_object_config'  => (is => 'rw', default => sub { Slic3r::Config::PrintObject->new });
-has 'default_region_config'  => (is => 'rw', default => sub { Slic3r::Config::PrintRegion->new });
+has 'config'                 => (is => 'ro', default => sub { Slic3r::Config::Print->new });
+has 'default_object_config'  => (is => 'ro', default => sub { Slic3r::Config::PrintObject->new });
+has 'default_region_config'  => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new });
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
@@ -28,52 +28,12 @@ has 'skirt' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->
 # ordered collection of extrusion paths to build a brim
 has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
-sub BUILD {
-    my $self = shift;
-    
-    # call this manually because the 'default' coderef doesn't trigger the trigger
-    $self->init_config;
-}
-
-# this method needs to be idempotent
-sub init_config {
-    my $self = shift;
-    
-    # legacy with existing config files
-    $self->config->set('first_layer_height', $self->config->layer_height)
-        if !$self->config->first_layer_height;
-    $self->config->set_ifndef('small_perimeter_speed',  $self->config->perimeter_speed);
-    $self->config->set_ifndef('bridge_speed',           $self->config->infill_speed);
-    $self->config->set_ifndef('solid_infill_speed',     $self->config->infill_speed);
-    $self->config->set_ifndef('top_solid_infill_speed', $self->config->solid_infill_speed);
-    $self->config->set_ifndef('top_solid_layers',       $self->config->solid_layers);
-    $self->config->set_ifndef('bottom_solid_layers',    $self->config->solid_layers);
-    
-    # G-code flavors
-    $self->config->set('extrusion_axis', 'A') if $self->config->gcode_flavor eq 'mach3';
-    $self->config->set('extrusion_axis', '')  if $self->config->gcode_flavor eq 'no-extrusion';
-    
-    # enforce some settings when spiral_vase is set
-    if ($self->config->spiral_vase) {
-        $self->config->set('perimeters', 1);
-        $self->config->set('fill_density', 0);
-        $self->config->set('top_solid_layers', 0);
-        $self->config->set('support_material', 0);
-        $self->config->set('support_material_enforce_layers', 0);
-        $self->config->set('retract_layer_change', [0]);  # TODO: only apply this to the spiral layers
-    }
-    
-    # force all retraction lift values to be the same
-    $self->config->set('retract_lift', [ map $self->config->retract_lift->[0], @{$self->config->retract_lift} ]);
-}
-
 sub apply_config {
     my ($self, $config) = @_;
     
     $self->config->apply_dynamic($config);
     $self->default_object_config->apply_dynamic($config);
     $self->default_region_config->apply_dynamic($config);
-    $self->init_config;
 }
 
 sub has_support_material {
@@ -261,11 +221,21 @@ sub init_extruders {
     }
     
     for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
+        # make sure print config contains a value for all extruders
+        my %extruder_config = ();
+        foreach my $opt_key (@{&Slic3r::Extruder::OPTIONS}) {
+            my $value = $self->config->get($opt_key);
+            if (!defined $value->[$extruder_id]) {
+                $value->[$extruder_id] = $value->[0];
+                $self->config->set($opt_key, $value);
+            }
+            $extruder_config{$opt_key} = $value->[$extruder_id];
+        }
+        
         $self->extruders->[$extruder_id] = Slic3r::Extruder->new(
-            config => $self->config,
             id => $extruder_id,
-            map { $_ => $self->config->get($_)->[$extruder_id] // $self->config->get($_)->[0] } #/
-                @{&Slic3r::Extruder::OPTIONS}
+            use_relative_e_distances => $self->config->use_relative_e_distances,
+            %extruder_config,
         );
     }
     
@@ -614,16 +584,17 @@ sub make_skirt {
     # skirt may be printed on several layers, having distinct layer heights,
     # but loops must be aligned so can't vary width/spacing
     # TODO: use each extruder's own flow
+    my $region0_config = $self->regions->[0]->config;
+    my $first_layer_height = $self->objects->[0]->config->get_value('first_layer_height');
     my $flow = Slic3r::Flow->new(
-        width               => ($self->config->first_layer_extrusion_width || $self->config->perimeter_extrusion_width),
+        width               => ($region0_config->first_layer_extrusion_width || $region0_config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
         nozzle_diameter     => $self->config->nozzle_diameter->[0],
-        layer_height        => $self->config->get_abs_value('first_layer_height'),
+        layer_height        => $first_layer_height,
         bridge_flow_ratio   => 0,
     );
     my $spacing = $flow->spacing;
     
-    my $first_layer_height = $self->config->get_value('first_layer_height');
     my @extruders_e_per_mm = ();
     my $extruder_idx = 0;
     
@@ -664,10 +635,10 @@ sub make_brim {
     
     # brim is only printed on first layer and uses support material extruder
     my $flow = Slic3r::Flow->new(
-        width               => ($self->config->first_layer_extrusion_width || $self->config->perimeter_extrusion_width),
+        width               => ($self->regions->[0]->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
-        nozzle_diameter     => $self->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ],
-        layer_height        => $self->config->get_abs_value('first_layer_height'),
+        nozzle_diameter     => $self->config->nozzle_diameter->[ $self->objects->[0]->config->support_material_extruder-1 ],
+        layer_height        => $self->objects->[0]->config->get_abs_value('first_layer_height'),
         bridge_flow_ratio   => 0,
     );
     
@@ -737,34 +708,28 @@ sub write_gcode {
     print $fh "; $_\n" foreach split /\R/, $self->config->notes;
     print $fh "\n" if $self->config->notes;
     
-    for (qw(layer_height perimeters top_solid_layers bottom_solid_layers fill_density perimeter_speed infill_speed travel_speed)) {
-        printf $fh "; %s = %s\n", $_, $self->config->$_;
-    }
-    for (qw(nozzle_diameter filament_diameter extrusion_multiplier)) {
-        printf $fh "; %s = %s\n", $_, $self->config->$_->[0];
-    }
-    
+    my $layer_height = $self->objects->[0]->config->layer_height;
     for my $region_id (0..$#{$self->regions}) {
         printf $fh "; perimeters extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height)->width;
         printf $fh "; infill extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_INFILL)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_INFILL, $layer_height)->width;
         printf $fh "; solid infill extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_SOLID_INFILL)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_SOLID_INFILL, $layer_height)->width;
         printf $fh "; top infill extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_TOP_SOLID_INFILL)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_TOP_SOLID_INFILL, $layer_height)->width;
         printf $fh "; support material extrusion width = %.2fmm\n",
             $self->objects->[0]->support_material_flow->width
             if $self->has_support_material;
         printf $fh "; first layer extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, 0, 1)->width
-            if ($self->regions->[$region_id]->config->first_layer_extrusion_width != 0);
+            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 1)->width
+            if ($self->regions->[$region_id]->config->first_layer_extrusion_width ne '0');
         print  $fh "\n";
     }
     
     # set up our extruder object
     my $gcodegen = Slic3r::GCode->new(
-        config              => $self->config,
+        print_config        => $self->config,
         extra_variables     => $self->extra_variables,
         extruders           => $self->extruders,    # we should only pass the *used* extruders (but maintain the Tx indices right!)
         layer_count         => $self->layer_count,
@@ -941,13 +906,11 @@ sub write_gcode {
             $extruder->absolute_E, $extruder->extruded_volume/1000;
     }
     
-    if ($self->config->gcode_comments) {
-        # append full config
-        print $fh "\n";
-        foreach my $opt_key (sort @{$self->config->get_keys}) {
-            next if $Slic3r::Config::Options->{$opt_key}{shortcut};
-            printf $fh "; %s = %s\n", $opt_key, $self->config->serialize($opt_key);
-        }
+    # append full config
+    print $fh "\n";
+    foreach my $opt_key (sort @{$self->config->get_keys}) {
+        next if $Slic3r::Config::Options->{$opt_key}{shortcut};
+        printf $fh "; %s = %s\n", $opt_key, $self->config->serialize($opt_key);
     }
     
     # close our gcode file

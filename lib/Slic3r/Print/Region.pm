@@ -53,7 +53,7 @@ sub flow {
         role                => $role,
         nozzle_diameter     => $nozzle_diameter,
         layer_height        => $layer_height,
-        bridge_flow_ratio   => ($bridge ? $self->config->bridge_flow_ratio : 0),
+        bridge_flow_ratio   => ($bridge ? $self->print->config->bridge_flow_ratio : 0),
     );
 }
 

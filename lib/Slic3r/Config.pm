@@ -15,18 +15,18 @@ our $Options = print_config_def();
 {
     no strict 'refs';
     for my $opt_key (keys %$Options) {
-        *{$opt_key} = sub { $_[0]->_get($opt_key) };
+        *{$opt_key} = sub { $_[0]->get($opt_key) };
     }
 }
 
-sub _get {
-    my ($self, $opt_key) = @_;
-    use XXX;
-    if (!defined first { $_ eq $opt_key } @{$self->get_keys}) {
-        ZZZ $opt_key;
-    }
-    return $self->get($opt_key);
-}
+# sub _get {
+#     my ($self, $opt_key) = @_;
+#     use XXX;
+#     if (!defined first { $_ eq $opt_key } @{$self->get_keys}) {
+#         ZZZ $opt_key;
+#     }
+#     return $self->get($opt_key);
+# }
 
 sub new_from_defaults {
     my $class = shift;
@@ -200,7 +200,8 @@ sub diff {
     return [@diff];
 }
 
-# this method is idempotent by design
+# this method is idempotent by design and only applies to ::DynamicConfig or ::Full
+# objects because it performs cross checks
 sub validate {
     my $self = shift;
     
@@ -316,6 +317,31 @@ sub validate {
     die "Invalid zero value for --default-acceleration when using other acceleration settings\n"
         if ($self->perimeter_acceleration || $self->infill_acceleration || $self->bridge_acceleration || $self->first_layer_acceleration)
             && !$self->default_acceleration;
+    
+    # --spiral-vase
+    if ($self->spiral_vase) {
+        # Note that we might want to have more than one perimeter on the bottom
+        # solid layers.
+        die "Can't make more than one perimeter when spiral vase mode is enabled\n"
+            if $self->perimeters > 1;
+        
+        die "Can't make less than one perimeter when spiral vase mode is enabled\n"
+            if $self->perimeters < 1;
+        
+        die "Spiral vase mode is not compatible with non-zero fill density\n"
+            if $self->fill_density > 0;
+        
+        die "Spiral vase mode is not compatible with top solid layers\n"
+            if $self->top_solid_layers > 0;
+        
+        die "Spiral vase mode is not compatible with support material\n"
+            if $self->support_material || $self->support_material_enforce_layers > 0;
+        
+        # This should be enforce automatically only on spiral layers and
+        # done on the others
+        die "Spiral vase mode is not compatible with retraction on layer change\n"
+            if defined first { $_ } @{ $self->retract_layer_change };
+    }
     
     # general validation, quick and dirty
     foreach my $opt_key (@{$self->get_keys}) {

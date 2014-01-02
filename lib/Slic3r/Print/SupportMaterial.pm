@@ -3,13 +3,15 @@ use Moo;
 
 use List::Util qw(sum min max);
 use Slic3r::ExtrusionPath ':roles';
+use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
     intersection_pl);
 use Slic3r::Surface ':types';
 
-has 'config' => (is => 'rw', required => 1);
-has 'flow'   => (is => 'rw', required => 1);
+has 'print_config'  => (is => 'rw', required => 1);
+has 'object_config' => (is => 'rw', required => 1);
+has 'flow'          => (is => 'rw', required => 1);
 
 use constant DEBUG_CONTACT_ONLY => 0;
 
@@ -73,8 +75,8 @@ sub contact_area {
     
     # if user specified a custom angle threshold, convert it to radians
     my $threshold_rad;
-    if ($self->config->support_material_threshold) {
-        $threshold_rad = deg2rad($self->config->support_material_threshold + 1);  # +1 makes the threshold inclusive
+    if ($self->object_config->support_material_threshold) {
+        $threshold_rad = deg2rad($self->object_config->support_material_threshold + 1);  # +1 makes the threshold inclusive
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
     }
     
@@ -86,9 +88,9 @@ sub contact_area {
         # so $layer_id == 0 means first object layer
         # and $layer->id == 0 means first print layer (including raft)
         
-        if ($self->config->raft_layers == 0) {
+        if ($self->object_config->raft_layers == 0) {
             next if $layer_id == 0;
-        } elsif (!$self->config->support_material) {
+        } elsif (!$self->object_config->support_material) {
             # if we are only going to generate raft just check 
             # the 'overhangs' of the first object layer
             last if $layer_id > 0;
@@ -110,8 +112,8 @@ sub contact_area {
             
                 # If a threshold angle was specified, use a different logic for detecting overhangs.
                 if (defined $threshold_rad
-                    || $layer_id < $self->config->support_material_enforce_layers
-                    || $self->config->raft_layers > 0) {
+                    || $layer_id < $self->object_config->support_material_enforce_layers
+                    || $self->object_config->raft_layers > 0) {
                     my $d = defined $threshold_rad
                         ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                         : 0;
@@ -170,8 +172,8 @@ sub contact_area {
         # now apply the contact areas to the layer were they need to be made
         {
             # get the average nozzle diameter used on this layer
-            my @nozzle_diameters = map $_->nozzle_diameter,
-                map { $_->perimeter_flow, $_->solid_infill_flow }
+            my @nozzle_diameters = map $self->print_config->nozzle_diameter->[$_],
+                map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1 }
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
@@ -179,7 +181,7 @@ sub contact_area {
             ###$contact_z = $layer->print_z - $layer->height;
             
             # ignore this contact area if it's too low
-            next if $contact_z < $self->config->get_value('first_layer_height');
+            next if $contact_z < $self->object_config->get_value('first_layer_height');
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
@@ -242,25 +244,25 @@ sub support_layers_z {
     # determine layer height for any non-contact layer
     # we use max() to prevent many ultra-thin layers to be inserted in case
     # layer_height > nozzle_diameter * 0.75
-    my $nozzle_diameter = $self->flow->nozzle_diameter;
+    my $nozzle_diameter = $self->print_config->nozzle_diameter->[$self->object_config->support_material_extruder-1];
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
     
     my @z = sort { $a <=> $b } @$contact_z, @$top_z, (map $_ + $nozzle_diameter, @$top_z);
     
     # enforce first layer height
-    my $first_layer_height = $self->config->get_value('first_layer_height');
+    my $first_layer_height = $self->object_config->get_value('first_layer_height');
     shift @z while @z && $z[0] <= $first_layer_height;
     unshift @z, $first_layer_height;
     
     # add raft layers by dividing the space between first layer and
     # first contact layer evenly
-    if ($self->config->raft_layers > 1 && @z >= 2) {
+    if ($self->object_config->raft_layers > 1 && @z >= 2) {
         # $z[1] is last raft layer (contact layer for the first layer object)
-        my $height = ($z[1] - $z[0]) / ($self->config->raft_layers - 1);
+        my $height = ($z[1] - $z[0]) / ($self->object_config->raft_layers - 1);
         splice @z, 1, 0,
             map { int($_*100)/100 }
             map { $z[0] + $height * $_ }
-            0..($self->config->raft_layers - 1);
+            0..($self->object_config->raft_layers - 1);
     }
     
     for (my $i = $#z; $i >= 0; $i--) {
@@ -291,7 +293,7 @@ sub generate_interface_layers {
     
     # let's now generate interface layers below contact areas
     my %interface = ();  # layer_id => [ polygons ]
-    my $interface_layers = $self->config->support_material_interface_layers;
+    my $interface_layers = $self->object_config->support_material_interface_layers;
     for my $layer_id (0 .. $#$support_z) {
         my $z = $support_z->[$layer_id];
         my $this = $contact->{$z} // next;
@@ -339,7 +341,7 @@ sub generate_base_layers {
             # in case we have no interface layers, look at upper contact
             # (1 interface layer means we only have contact layer, so $interface->{$i+1} is empty)
             my @upper_contact = ();
-            if ($self->config->support_material_interface_layers <= 1) {
+            if ($self->object_config->support_material_interface_layers <= 1) {
                 @upper_contact = @{ $contact->{$support_z->[$i+1]} || [] };
             }
             
@@ -395,8 +397,8 @@ sub generate_toolpaths {
     Slic3r::debugf "Generating patterns\n";
     
     # prepare fillers
-    my $pattern = $self->config->support_material_pattern;
-    my @angles = ($self->config->support_material_angle);
+    my $pattern = $self->object_config->support_material_pattern;
+    my @angles = ($self->object_config->support_material_angle);
     if ($pattern eq 'rectilinear-grid') {
         $pattern = 'rectilinear';
         push @angles, $angles[0] + 90;
@@ -407,10 +409,10 @@ sub generate_toolpaths {
         support     => $object->fill_maker->filler($pattern),
     );
     
-    my $interface_angle = $self->config->support_material_angle + 90;
-    my $interface_spacing = $self->config->support_material_interface_spacing + $flow->spacing;
+    my $interface_angle = $self->object_config->support_material_angle + 90;
+    my $interface_spacing = $self->object_config->support_material_interface_spacing + $flow->spacing;
     my $interface_density = $interface_spacing == 0 ? 1 : $flow->spacing / $interface_spacing;
-    my $support_spacing = $self->config->support_material_spacing + $flow->spacing;
+    my $support_spacing = $self->object_config->support_material_spacing + $flow->spacing;
     my $support_density = $support_spacing == 0 ? 1 : $flow->spacing / $support_spacing;
     
     my $process_layer = sub {
@@ -441,7 +443,7 @@ sub generate_toolpaths {
         
         # contact
         my $contact_infill = [];
-        if ($self->config->support_material_interface_layers == 0) {
+        if ($self->object_config->support_material_interface_layers == 0) {
             # if no interface layers were requested we treat the contact layer
             # exactly as a generic base layer
             push @$base, @$contact;
@@ -561,7 +563,7 @@ sub generate_toolpaths {
             # base flange
             if ($layer_id == 0) {
                 $filler = $fillers{interface};
-                $filler->angle($self->config->support_material_angle + 90);
+                $filler->angle($self->object_config->support_material_angle + 90);
                 $density        = 0.5;
                 $flow_spacing   = $object->print->first_layer_support_material_flow->spacing;
             } else {
@@ -609,7 +611,7 @@ sub generate_toolpaths {
     };
     
     Slic3r::parallelize(
-        threads => $self->config->threads,
+        threads => $self->print_config->threads,
         items => [ 0 .. $#{$object->support_layers} ],
         thread_cb => sub {
             my $q = shift;

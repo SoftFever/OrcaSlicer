@@ -899,6 +899,7 @@ class PrintObjectConfig : public virtual StaticConfig
     public:
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
+    ConfigOptionBool                infill_only_where_needed;
     ConfigOptionFloat               layer_height;
     ConfigOptionInt                 raft_layers;
     ConfigOptionBool                support_material;
@@ -921,6 +922,7 @@ class PrintObjectConfig : public virtual StaticConfig
         this->extrusion_width.percent                            = false;
         this->first_layer_height.value                           = 0.35;
         this->first_layer_height.percent                         = false;
+        this->infill_only_where_needed.value                     = false;
         this->layer_height.value                                 = 0.4;
         this->raft_layers.value                                  = 0;
         this->support_material.value                             = false;
@@ -941,6 +943,7 @@ class PrintObjectConfig : public virtual StaticConfig
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         if (opt_key == "extrusion_width")                            return &this->extrusion_width;
         if (opt_key == "first_layer_height")                         return &this->first_layer_height;
+        if (opt_key == "infill_only_where_needed")                   return &this->infill_only_where_needed;
         if (opt_key == "layer_height")                               return &this->layer_height;
         if (opt_key == "raft_layers")                                return &this->raft_layers;
         if (opt_key == "support_material")                           return &this->support_material;
@@ -972,7 +975,6 @@ class PrintRegionConfig : public virtual StaticConfig
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
-    ConfigOptionBool                infill_only_where_needed;
     ConfigOptionInt                 perimeter_extruder;
     ConfigOptionFloatOrPercent      perimeter_extrusion_width;
     ConfigOptionInt                 perimeters;
@@ -999,7 +1001,6 @@ class PrintRegionConfig : public virtual StaticConfig
         this->infill_extrusion_width.value                       = 0;
         this->infill_extrusion_width.percent                     = false;
         this->infill_every_layers.value                          = 1;
-        this->infill_only_where_needed.value                     = false;
         this->perimeter_extruder.value                           = 1;
         this->perimeter_extrusion_width.value                    = 0;
         this->perimeter_extrusion_width.percent                  = false;
@@ -1025,7 +1026,6 @@ class PrintRegionConfig : public virtual StaticConfig
         if (opt_key == "infill_extruder")                            return &this->infill_extruder;
         if (opt_key == "infill_extrusion_width")                     return &this->infill_extrusion_width;
         if (opt_key == "infill_every_layers")                        return &this->infill_every_layers;
-        if (opt_key == "infill_only_where_needed")                   return &this->infill_only_where_needed;
         if (opt_key == "perimeter_extruder")                         return &this->perimeter_extruder;
         if (opt_key == "perimeter_extrusion_width")                  return &this->perimeter_extrusion_width;
         if (opt_key == "perimeters")                                 return &this->perimeters;
@@ -1332,6 +1332,15 @@ class PrintConfig : public virtual StaticConfig
         
         return NULL;
     };
+    
+    std::string get_extrusion_axis() {
+        if (this->gcode_flavor == gcfMach3) {
+            return std::string("A");
+        } else if (this->gcode_flavor == gcfNoExtrusion) {
+            return std::string("");
+        }
+        return this->extrusion_axis;
+    }
 };
 
 class DynamicPrintConfig : public DynamicConfig

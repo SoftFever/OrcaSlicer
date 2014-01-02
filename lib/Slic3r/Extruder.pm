@@ -18,7 +18,7 @@ use constant OPTIONS => [qw(
 
 has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
-has 'config'=> (is => 'ro', required => 1);
+has 'use_relative_e_distances'  => (is => 'ro', default => sub {0});
 
 has 'E'                         => (is => 'rw', default => sub {0} );
 has 'absolute_E'                => (is => 'rw', default => sub {0} );
@@ -56,7 +56,7 @@ sub scaled_wipe_distance {
 sub extrude {
     my ($self, $E) = @_;
     
-    $self->E(0) if $self->config->use_relative_e_distances;
+    $self->E(0) if $self->use_relative_e_distances;
     $self->absolute_E($self->absolute_E + $E);
     return $self->E($self->E + $E);
 }

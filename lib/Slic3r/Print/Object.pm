@@ -521,13 +521,16 @@ sub clip_fill_surfaces {
 
 sub bridge_over_infill {
     my $self = shift;
-    return if $self->config->fill_density == 1;
     
-    for my $layer_id (1..$#{$self->layers}) {
-        my $layer       = $self->layers->[$layer_id];
-        my $lower_layer = $self->layers->[$layer_id-1];
+    for my $region_id (0..$#{$self->print->regions}) {
+        my $fill_density = $self->print->regions->[$region_id]->config->fill_density;
+        next if $fill_density == 1 || $fill_density == 0;
         
-        foreach my $layerm (@{$layer->regions}) {
+        for my $layer_id (1..$#{$self->layers}) {
+            my $layer       = $self->layers->[$layer_id];
+            my $layerm      = $layer->regions->[$region_id];
+            my $lower_layer = $self->layers->[$layer_id-1];
+            
             # compute the areas needing bridge math 
             my @internal_solid = @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNALSOLID)};
             my @lower_internal = map @{$_->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)}, @{$lower_layer->regions};
@@ -861,7 +864,8 @@ sub generate_support_material {
         && $self->layer_count >= 2;
     
     my $s = Slic3r::Print::SupportMaterial->new(
-        config          => $self->config,
+        print_config    => $self->print->config,
+        object_config   => $self->config,
         flow            => $self->support_material_flow,
         interface_flow  => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
     );

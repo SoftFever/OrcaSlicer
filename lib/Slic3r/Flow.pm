@@ -36,7 +36,10 @@ sub BUILDARGS {
             $args{width} = $args{layer_height} * $1 / 100;
         }
         $args{spacing} = $self->_spacing(@args{qw(width nozzle_diameter layer_height bridge_flow_ratio)});
-        %args = @args{qw(width spacing)};
+        %args = (
+            width   => $args{width},
+            spacing => $args{spacing},
+        );
     }
     
     return {%args};

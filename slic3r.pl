@@ -153,12 +153,12 @@ if (@ARGV) {  # slicing from command line
         }
         
         my $print = Slic3r::Print->new(
-            config      => $config,
             status_cb   => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
             },
         );
+        $print->apply_config($config);
         foreach my $model_object (@{$model->objects}) {
             $print->auto_assign_extruders($model_object);
             $print->add_model_object($model_object);

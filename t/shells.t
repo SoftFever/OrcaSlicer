@@ -140,6 +140,9 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('perimeters', 1);
+    $config->set('fill_density', 0);
+    $config->set('top_solid_layers', 0);
     $config->set('spiral_vase', 1);
     $config->set('bottom_solid_layers', 0);
     $config->set('skirts', 0);
