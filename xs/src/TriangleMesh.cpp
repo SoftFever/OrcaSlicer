@@ -139,12 +139,12 @@ void TriangleMesh::scale(std::vector<double> versor)
     fversor[0] = versor[0];
     fversor[1] = versor[1];
     fversor[2] = versor[2];
-    stl_scale(&this->stl, fversor);
+    stl_scale_versor(&this->stl, fversor);
 }
 
 void TriangleMesh::translate(float x, float y, float z)
 {
-    stl_translate(&(this->stl), x, y, z);
+    stl_translate_relative(&(this->stl), x, y, z);
 }
 
 void TriangleMesh::align_to_origin()

@@ -77,7 +77,7 @@ stl_verify_neighbors(stl_file *stl)
 }
 
 void
-stl_translate(stl_file *stl, float x, float y, float z)
+stl_translate_relative(stl_file *stl, float x, float y, float z)
 {
   int i;
   int j;
@@ -102,7 +102,7 @@ stl_translate(stl_file *stl, float x, float y, float z)
 }
 
 void
-stl_scale(stl_file *stl, float versor[3])
+stl_scale_versor(stl_file *stl, float versor[3])
 {
   int i;
   int j;
@@ -145,7 +145,7 @@ stl_scale(stl_file *stl, float factor)
     versor[0] = factor;
     versor[1] = factor;
     versor[2] = factor;
-    stl_scale(stl, versor);
+    stl_scale_versor(stl, versor);
 }
 
 static void calculate_normals(stl_file *stl)
