@@ -15,8 +15,17 @@ our $Options = print_config_def();
 {
     no strict 'refs';
     for my $opt_key (keys %$Options) {
-        *{$opt_key} = sub { $_[0]->get($opt_key) };
+        *{$opt_key} = sub { $_[0]->_get($opt_key) };
     }
+}
+
+sub _get {
+    my ($self, $opt_key) = @_;
+    use XXX;
+    if (!defined first { $_ eq $opt_key } @{$self->get_keys}) {
+        ZZZ $opt_key;
+    }
+    return $self->get($opt_key);
 }
 
 sub new_from_defaults {
@@ -24,7 +33,7 @@ sub new_from_defaults {
     my (@opt_keys) = @_;
     
     my $self = $class->new;
-    my $defaults = Slic3r::Config::Print->new;
+    my $defaults = Slic3r::Config::Full->new;
     if (@opt_keys) {
         $self->set($_, $defaults->get($_)) for @opt_keys;
     } else {
@@ -309,7 +318,7 @@ sub validate {
             && !$self->default_acceleration;
     
     # general validation, quick and dirty
-    foreach my $opt_key (keys %$Options) {
+    foreach my $opt_key (@{$self->get_keys}) {
         my $opt = $Options->{$opt_key};
         next unless defined $self->$opt_key;
         next unless defined $opt->{cli} && $opt->{cli} =~ /=(.+)$/;
@@ -430,5 +439,17 @@ sub read_ini {
     
     return $ini;
 }
+
+package Slic3r::Config::Print;
+use parent 'Slic3r::Config';
+
+package Slic3r::Config::PrintObject;
+use parent 'Slic3r::Config';
+
+package Slic3r::Config::PrintRegion;
+use parent 'Slic3r::Config';
+
+package Slic3r::Config::Full;
+use parent 'Slic3r::Config';
 
 1;

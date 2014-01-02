@@ -956,7 +956,6 @@ class PrintObjectConfig : public virtual StaticConfig
         if (opt_key == "support_material_speed")                     return &this->support_material_speed;
         if (opt_key == "support_material_threshold")                 return &this->support_material_threshold;
         
-        if (create) throw "Attempt to create non-existing option in StaticConfig object";
         return NULL;
     };
 };
@@ -1039,7 +1038,6 @@ class PrintRegionConfig : public virtual StaticConfig
         if (opt_key == "top_infill_extrusion_width")                 return &this->top_infill_extrusion_width;
         if (opt_key == "top_solid_layers")                           return &this->top_solid_layers;
         
-        if (create) throw "Attempt to create non-existing option in StaticConfig object";
         return NULL;
     };
 };
@@ -1332,7 +1330,6 @@ class PrintConfig : public virtual StaticConfig
         if (opt_key == "wipe")                                       return &this->wipe;
         if (opt_key == "z_offset")                                   return &this->z_offset;
         
-        if (create) throw "Attempt to create non-existing option in StaticConfig object";
         return NULL;
     };
 };
@@ -1345,7 +1342,15 @@ class DynamicPrintConfig : public DynamicConfig
     };
 };
 
-class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig {};
+class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig {
+    ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
+        ConfigOption* opt;
+        if ((opt = PrintObjectConfig::option(opt_key, create)) != NULL) return opt;
+        if ((opt = PrintRegionConfig::option(opt_key, create)) != NULL) return opt;
+        if ((opt = PrintConfig::option(opt_key, create)) != NULL) return opt;
+        return NULL;
+    };
+};
 
 }
 

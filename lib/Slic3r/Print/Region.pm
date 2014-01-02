@@ -8,7 +8,7 @@ use Slic3r::Flow ':roles';
 # sharing the same config (including the same assigned extruder(s))
 
 has 'print'             => (is => 'ro', required => 1, weak_ref => 1);
-has 'config'            => (is => 'ro', required => 1);  # Slic3r::Config::RegionConfig
+has 'config'            => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new});
 
 sub flow {
     my ($self, $role, $layer_height, $bridge, $first_layer, $width) = @_;
@@ -21,7 +21,7 @@ sub flow {
     if (!defined $config_width) {
         # get extrusion width from configuration
         # (might be an absolute value, or a percent value, or zero for auto)
-        if ($first_layer && $self->config->first_layer_extrusion_width != 0) {
+        if ($first_layer && $self->config->first_layer_extrusion_width ne '0') {
             $config_width = $self->config->first_layer_extrusion_width;
         } elsif ($role == FLOW_ROLE_PERIMETER) {
             $config_width = $self->config->perimeter_extrusion_width;
@@ -40,9 +40,9 @@ sub flow {
     # to the flow role requested
     my $extruder;  # 1-based
     if ($role == FLOW_ROLE_PERIMETER) {
-        $config_width = $self->config->perimeter_extruder;
+        $extruder = $self->config->perimeter_extruder;
     } elsif ($role == FLOW_ROLE_INFILL || $role == FLOW_ROLE_SOLID_INFILL || $role == FLOW_ROLE_TOP_SOLID_INFILL) {
-        $config_width = $self->config->infill_extruder;
+        $extruder = $self->config->infill_extruder;
     } else {
         die "Unknown role $role";
     }

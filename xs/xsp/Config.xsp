@@ -15,7 +15,8 @@
     void set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    %name{get_abs_value_over}
+        double get_abs_value(t_config_option_key opt_key, double ratio_over);
     void apply(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     void apply_static(PrintConfig* other)
@@ -34,16 +35,17 @@
     void set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    %name{get_abs_value_over}
+        double get_abs_value(t_config_option_key opt_key, double ratio_over);
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
         %code{% THIS->keys(&RETVAL); %};
 };
 
-%name{Slic3r::Config::Print} class PrintConfig {
-    PrintConfig();
-    ~PrintConfig();
+%name{Slic3r::Config::PrintRegion} class PrintRegionConfig {
+    PrintRegionConfig();
+    ~PrintRegionConfig();
     bool has(t_config_option_key opt_key);
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
@@ -51,16 +53,19 @@
     void set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    %name{get_abs_value_over}
+        double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    void apply(PrintRegionConfig* other)
+        %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
         %code{% THIS->keys(&RETVAL); %};
 };
 
-%name{Slic3r::Config::Print} class PrintConfig {
-    PrintConfig();
-    ~PrintConfig();
+%name{Slic3r::Config::PrintObject} class PrintObjectConfig {
+    PrintObjectConfig();
+    ~PrintObjectConfig();
     bool has(t_config_option_key opt_key);
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
@@ -68,7 +73,30 @@
     void set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    %name{get_abs_value_over}
+        double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    void apply(PrintObjectConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    void apply_dynamic(DynamicPrintConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    std::vector<std::string> get_keys()
+        %code{% THIS->keys(&RETVAL); %};
+};
+
+%name{Slic3r::Config::Full} class FullPrintConfig {
+    FullPrintConfig();
+    ~FullPrintConfig();
+    bool has(t_config_option_key opt_key);
+    SV* as_hash();
+    SV* get(t_config_option_key opt_key);
+    void set(t_config_option_key opt_key, SV* value);
+    void set_deserialize(t_config_option_key opt_key, std::string str);
+    std::string serialize(t_config_option_key opt_key);
+    double get_abs_value(t_config_option_key opt_key);
+    %name{get_abs_value_over}
+        double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    void apply(PrintObjectConfig* other)
+        %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
@@ -83,7 +111,8 @@ PROTOTYPES: DISABLE
 SV*
 print_config_def()
     CODE:
-        t_optiondef_map* def = &PrintConfigDef::def;
+        FullPrintConfig config;
+        t_optiondef_map* def = config.def;
         
         HV* options_hv = newHV();
         for (t_optiondef_map::iterator oit = def->begin(); oit != def->end(); ++oit) {

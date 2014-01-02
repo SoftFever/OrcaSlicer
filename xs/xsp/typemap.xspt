@@ -9,7 +9,10 @@
 %typemap{AV*};
 %typemap{Point*};
 %typemap{DynamicPrintConfig*};
+%typemap{PrintObjectConfig*};
+%typemap{PrintRegionConfig*};
 %typemap{PrintConfig*};
+%typemap{FullPrintConfig*};
 %typemap{ExPolygon*};
 %typemap{ExPolygonCollection*};
 %typemap{Line*};

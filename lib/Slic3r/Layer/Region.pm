@@ -14,9 +14,9 @@ has 'layer' => (
     is          => 'ro',
     weak_ref    => 1,
     required    => 1,
-    handles     => [qw(id slice_z print_z height config)],
+    handles     => [qw(id slice_z print_z height object print)],
 );
-has 'region'            => (is => 'ro', required => 1, handles => [qw(extruders)]);
+has 'region'            => (is => 'ro', required => 1, handles => [qw(config)]);
 has 'infill_area_threshold' => (is => 'lazy');
 has 'overhang_width'    => (is => 'lazy');
 
@@ -168,7 +168,7 @@ sub make_perimeters {
                     @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
                 
                     # look for gaps
-                    if ($self->config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
+                    if ($self->print->config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
                         my $diff = diff_ex(
                             offset(\@last, -0.5*$pspacing),
                             offset(\@offsets, +0.5*$pspacing),
@@ -277,8 +277,8 @@ sub make_perimeters {
     # we continue inwards after having finished the brim
     # TODO: add test for perimeter order
     @loops = reverse @loops
-        if $self->config->external_perimeters_first
-            || ($self->layer->id == 0 && $self->config->brim_width > 0);
+        if $self->print->config->external_perimeters_first
+            || ($self->layer->id == 0 && $self->print->config->brim_width > 0);
     
     # append perimeters
     $self->perimeters->append(@loops);

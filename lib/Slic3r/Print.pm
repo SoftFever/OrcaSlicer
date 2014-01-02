@@ -70,9 +70,9 @@ sub init_config {
 sub apply_config {
     my ($self, $config) = @_;
     
-    $self->config->apply($config);
-    $self->default_object_config->apply($config);
-    $self->default_region_config->apply($config);
+    $self->config->apply_dynamic($config);
+    $self->default_object_config->apply_dynamic($config);
+    $self->default_region_config->apply_dynamic($config);
     $self->init_config;
 }
 
@@ -94,14 +94,14 @@ sub add_model_object {
         my $volume = $object->volumes->[$volume_id];
         
         # get the config applied to this volume: start from our global defaults
-        my $config = Slic3r::Config::RegionConfig->new;
+        my $config = Slic3r::Config::PrintRegion->new;
         $config->apply($self->default_region_config);
         
         # override the defaults with per-object config and then with per-material config
-        $config->apply($object->config);
+        $config->apply_dynamic($object->config);
         if (defined $volume->material_id) {
             my $material_config = $object->model->materials->{ $volume->material_id }->config;
-            $config->apply($material_config);
+            $config->apply_dynamic($material_config);
         }
         
         # find an existing print region with the same config
@@ -139,7 +139,7 @@ sub add_model_object {
     
     # apply config to print object
     $o->config->apply($self->default_object_config);
-    $o->config->apply($object->config);
+    $o->config->apply_dynamic($object->config);
     
     # store print object at the given position
     if (defined $obj_idx) {
