@@ -376,19 +376,22 @@ void stl_calculate_volume(stl_file *stl)
 
 static float get_area(stl_facet *facet)
 {
-	float cross[3][3];
+	double cross[3][3];
 	float sum[3];
 	float n[3];
 	float area;
 	int i;
 	
+	// cast to double before calculating cross product because large coordinates
+	// can result in overflowing product
+	// (bad area is responsible for bad volume and bad facets reversal)
 	for(i = 0; i < 3; i++){
-	    cross[i][0]=((facet->vertex[i].y * facet->vertex[(i + 1) % 3].z) -
-			 (facet->vertex[i].z * facet->vertex[(i + 1) % 3].y));
-	    cross[i][1]=((facet->vertex[i].z * facet->vertex[(i + 1) % 3].x) -
-			 (facet->vertex[i].x * facet->vertex[(i + 1) % 3].z));
-	    cross[i][2]=((facet->vertex[i].x * facet->vertex[(i + 1) % 3].y) -
-			 (facet->vertex[i].y * facet->vertex[(i + 1) % 3].x));
+	    cross[i][0]=(((double)facet->vertex[i].y * (double)facet->vertex[(i + 1) % 3].z) -
+			 ((double)facet->vertex[i].z * (double)facet->vertex[(i + 1) % 3].y));
+	    cross[i][1]=(((double)facet->vertex[i].z * (double)facet->vertex[(i + 1) % 3].x) -
+			 ((double)facet->vertex[i].x * (double)facet->vertex[(i + 1) % 3].z));
+	    cross[i][2]=(((double)facet->vertex[i].x * (double)facet->vertex[(i + 1) % 3].y) -
+			 ((double)facet->vertex[i].y * (double)facet->vertex[(i + 1) % 3].x));
 	}
 	
 	sum[0] = cross[0][0] + cross[1][0] + cross[2][0];
