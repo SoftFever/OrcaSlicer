@@ -57,7 +57,6 @@ sub set_model {
         $instance->scaling_factor($instance->scaling_factor * $self->scale);
         $instance->rotation($instance->rotation + $self->rotate);
     }
-    # TODO: --scale --rotate, --duplicate* shouldn't be stored in config
     
     if ($self->duplicate_grid->[X] > 1 || $self->duplicate_grid->[Y] > 1) {
         $model->duplicate_objects_grid($self->duplicate_grid, $self->_print->config->duplicate_distance);

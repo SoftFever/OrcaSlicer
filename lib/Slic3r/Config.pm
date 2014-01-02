@@ -7,7 +7,7 @@ use List::Util qw(first);
 
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
-    adjust_overhang_flow standby_temperature);
+    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid);
 
 our $Options = print_config_def();
 
@@ -18,15 +18,6 @@ our $Options = print_config_def();
         *{$opt_key} = sub { $_[0]->get($opt_key) };
     }
 }
-
-# sub _get {
-#     my ($self, $opt_key) = @_;
-#     use XXX;
-#     if (!defined first { $_ eq $opt_key } @{$self->get_keys}) {
-#         ZZZ $opt_key;
-#     }
-#     return $self->get($opt_key);
-# }
 
 sub new_from_defaults {
     my $class = shift;

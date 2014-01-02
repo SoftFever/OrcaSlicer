@@ -126,21 +126,12 @@ class PrintConfigDef
         Options["disable_fan_first_layers"].cli = "disable-fan-first-layers=i";
         Options["disable_fan_first_layers"].max = 1000;
 
-        Options["duplicate"].type = coInt;
-        Options["duplicate"].label = "Copies (autoarrange)";
-        Options["duplicate"].cli = "duplicate=i";
-        Options["duplicate"].min = 1;
-
         Options["duplicate_distance"].type = coFloat;
         Options["duplicate_distance"].label = "Distance between copies";
         Options["duplicate_distance"].tooltip = "Distance used for the auto-arrange feature of the plater.";
         Options["duplicate_distance"].sidetext = "mm";
         Options["duplicate_distance"].cli = "duplicate-distance=f";
         Options["duplicate_distance"].aliases.push_back("multiply_distance");
-
-        Options["duplicate_grid"].type = coPoint;
-        Options["duplicate_grid"].label = "Copies (grid)";
-        Options["duplicate_grid"].cli = "duplicate-grid=s";
 
         Options["end_gcode"].type = coString;
         Options["end_gcode"].label = "End G-code";
@@ -583,16 +574,6 @@ class PrintConfigDef
         Options["retract_speed"].sidetext = "mm/s";
         Options["retract_speed"].cli = "retract-speed=f@";
         Options["retract_speed"].max = 1000;
-
-        Options["rotate"].type = coInt;
-        Options["rotate"].label = "Rotate";
-        Options["rotate"].sidetext = "°";
-        Options["rotate"].cli = "rotate=i";
-        Options["rotate"].max = 359;
-
-        Options["scale"].type = coFloat;
-        Options["scale"].label = "Scale";
-        Options["scale"].cli = "scale=f";
 
         Options["skirt_distance"].type = coFloat;
         Options["skirt_distance"].label = "Distance from object";
@@ -1057,9 +1038,7 @@ class PrintConfig : public virtual StaticConfig
     ConfigOptionBool                cooling;
     ConfigOptionFloat               default_acceleration;
     ConfigOptionInt                 disable_fan_first_layers;
-    ConfigOptionInt                 duplicate;
     ConfigOptionFloat               duplicate_distance;
-    ConfigOptionPoint               duplicate_grid;
     ConfigOptionString              end_gcode;
     ConfigOptionFloatOrPercent      external_perimeter_speed;
     ConfigOptionBool                external_perimeters_first;
@@ -1108,8 +1087,6 @@ class PrintConfig : public virtual StaticConfig
     ConfigOptionFloats              retract_restart_extra;
     ConfigOptionFloats              retract_restart_extra_toolchange;
     ConfigOptionInts                retract_speed;
-    ConfigOptionInt                 rotate;
-    ConfigOptionFloat               scale;
     ConfigOptionFloat               skirt_distance;
     ConfigOptionInt                 skirt_height;
     ConfigOptionInt                 skirts;
@@ -1147,9 +1124,7 @@ class PrintConfig : public virtual StaticConfig
         this->cooling.value                                      = true;
         this->default_acceleration.value                         = 0;
         this->disable_fan_first_layers.value                     = 1;
-        this->duplicate.value                                    = 1;
         this->duplicate_distance.value                           = 6;
-        this->duplicate_grid.point                               = Pointf(1,1);
         this->end_gcode.value                                    = "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n";
         this->external_perimeter_speed.value                     = 70;
         this->external_perimeter_speed.percent                   = true;
@@ -1212,8 +1187,6 @@ class PrintConfig : public virtual StaticConfig
         this->retract_restart_extra_toolchange.values[0]         = 0;
         this->retract_speed.values.resize(1);
         this->retract_speed.values[0]                            = 30;
-        this->rotate.value                                       = 0;
-        this->scale.value                                        = 1;
         this->skirt_distance.value                               = 6;
         this->skirt_height.value                                 = 1;
         this->skirts.value                                       = 1;
@@ -1255,9 +1228,7 @@ class PrintConfig : public virtual StaticConfig
         if (opt_key == "cooling")                                    return &this->cooling;
         if (opt_key == "default_acceleration")                       return &this->default_acceleration;
         if (opt_key == "disable_fan_first_layers")                   return &this->disable_fan_first_layers;
-        if (opt_key == "duplicate")                                  return &this->duplicate;
         if (opt_key == "duplicate_distance")                         return &this->duplicate_distance;
-        if (opt_key == "duplicate_grid")                             return &this->duplicate_grid;
         if (opt_key == "end_gcode")                                  return &this->end_gcode;
         if (opt_key == "external_perimeter_speed")                   return &this->external_perimeter_speed;
         if (opt_key == "external_perimeters_first")                  return &this->external_perimeters_first;
@@ -1306,8 +1277,6 @@ class PrintConfig : public virtual StaticConfig
         if (opt_key == "retract_restart_extra")                      return &this->retract_restart_extra;
         if (opt_key == "retract_restart_extra_toolchange")           return &this->retract_restart_extra_toolchange;
         if (opt_key == "retract_speed")                              return &this->retract_speed;
-        if (opt_key == "rotate")                                     return &this->rotate;
-        if (opt_key == "scale")                                      return &this->scale;
         if (opt_key == "skirt_distance")                             return &this->skirt_distance;
         if (opt_key == "skirt_height")                               return &this->skirt_height;
         if (opt_key == "skirts")                                     return &this->skirts;

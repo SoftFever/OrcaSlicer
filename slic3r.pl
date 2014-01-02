@@ -37,6 +37,11 @@ my %cli_options = ();
         'merge|m'               => \$opt{merge},
         'repair'                => \$opt{repair},
         'info'                  => \$opt{info},
+        
+        'scale=f'               => \$opt{scale},
+        'rotate=i'              => \$opt{rotate},
+        'duplicate=i'           => \$opt{duplicate},
+        'duplicate-grid=s'      => \$opt{duplicate_grid},
     );
     foreach my $opt_key (keys %{$Slic3r::Config::Options}) {
         my $cli = $Slic3r::Config::Options->{$opt_key}->{cli} or next;
@@ -126,11 +131,15 @@ if (@ARGV) {  # slicing from command line
             next;
         }
         
+        if (defined $opt{duplicate_grid}) {
+            $opt{duplicate_grid} = [ split /[,x]/, $opt{duplicate_grid}, 2 ];
+        }
+        
         my $sprint = Slic3r::Print::Simple->new(
-            scale           => $config->scale,
-            rotate          => $config->rotate,
-            duplicate       => $config->duplicate,
-            duplicate_grid  => $config->duplicate_grid,
+            scale           => $opt{scale}          // 1,
+            rotate          => $opt{rotate}         // 0,
+            duplicate       => $opt{duplicate}      // 1,
+            duplicate_grid  => $opt{duplicate_grid} // [1,1],
             status_cb       => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
@@ -394,11 +403,11 @@ $j
                         (mm, default: $config->{brim_width})
    
    Transform options:
-    --scale             Factor for scaling input object (default: $config->{scale})
-    --rotate            Rotation angle in degrees (0-360, default: $config->{rotate})
-    --duplicate         Number of items with auto-arrange (1+, default: $config->{duplicate})
+    --scale             Factor for scaling input object (default: 1)
+    --rotate            Rotation angle in degrees (0-360, default: 0)
+    --duplicate         Number of items with auto-arrange (1+, default: 1)
     --bed-size          Bed size, only used for auto-arrange (mm, default: $config->{bed_size}->[0],$config->{bed_size}->[1])
-    --duplicate-grid    Number of items with grid arrangement (default: $config->{duplicate_grid}->[0],$config->{duplicate_grid}->[1])
+    --duplicate-grid    Number of items with grid arrangement (default: 1,1)
     --duplicate-distance Distance in mm between copies (default: $config->{duplicate_distance})
    
    Sequential printing options:
