@@ -18,7 +18,6 @@ has 'default_region_config'  => (is => 'ro', default => sub { Slic3r::Config::Pr
 has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
-has 'extruders'              => (is => 'rw', default => sub {[]});
 has 'regions'                => (is => 'rw', default => sub {[]});
 has '_state'                 => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
@@ -282,8 +281,9 @@ sub validate {
     }
 }
 
-sub init_extruders {
-    my $self = shift;
+# 0-based indices of used extruders
+sub extruders {
+    my ($self) = @_;
     
     # initialize all extruder(s) we need
     my @used_extruders = ();
@@ -298,7 +298,15 @@ sub init_extruders {
             qw(support_material support_material_interface);
     }
     
-    for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
+    my %h = map { $_ => 1 } @used_extruders;
+    return [ sort keys %h ];
+}
+
+sub init_extruders {
+    my $self = shift;
+    
+    # initialize all extruder(s) we need
+    for my $extruder_id (@{$self->extruders}) {
         # make sure print config contains a value for all extruders
         my %extruder_config = ();
         foreach my $opt_key (@{&Slic3r::Extruder::OPTIONS}) {
@@ -844,10 +852,6 @@ sub write_gcode {
             print $fh "M82 ; use absolute distances for extrusion\n";
         }
     }
-    
-    # always start with first extruder
-    # TODO: make sure we select the first *used* extruder
-    print $fh $gcodegen->set_extruder($self->extruders->[0]);
     
     # initialize a motion planner for object-to-object travel moves
     if ($self->config->avoid_crossing_perimeters) {

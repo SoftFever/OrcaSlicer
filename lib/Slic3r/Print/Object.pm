@@ -758,7 +758,7 @@ sub combine_infill {
         my $every = $region->config->infill_every_layers;
         
         # limit the number of combined layers to the maximum height allowed by this regions' nozzle
-        my $nozzle_diameter = $self->print->regions->[$region_id]->extruders->{infill}->nozzle_diameter;
+        my $nozzle_diameter = $self->print->config->nozzle_diameter->[ $region->config->infill_extruder-1 ];
         
         # define the combinations
         my @combine = ();   # layer_id => thickness in layers
