@@ -168,7 +168,9 @@ sub make_fill {
         );
         next unless @polylines;
         
-        my $mm3_per_mm = $params->{flow}->mm3_per_mm($surface->thickness);
+        my $h = $surface->thickness;
+        $h = $layerm->height if $h == -1;
+        my $mm3_per_mm = $params->{flow}->mm3_per_mm($h);
         
         # save into layer
         push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;

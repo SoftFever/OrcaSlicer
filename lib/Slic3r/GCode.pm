@@ -235,7 +235,7 @@ sub extrude_loop {
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end(scale $extrusion_path->flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING)
+    $extrusion_path->clip_end(scale($self->extruder->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER)
         if $self->enable_loop_clipping;
     return '' if !@{$extrusion_path->polyline};
     
@@ -251,7 +251,7 @@ sub extrude_loop {
         push @paths,
             map {
                 $_->role(EXTR_ROLE_OVERHANG_PERIMETER);
-                $_->flow_spacing($self->region->flow(FLOW_ROLE_PERIMETER, undef, 1)->width);
+                $_->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, undef, 1)->mm3_per_mm(undef));
                 $_
             }
             map $_->clone,
@@ -287,7 +287,7 @@ sub extrude_loop {
         # we make sure we don't exceed the segment length because we don't know
         # the rotation of the second segment so we might cross the object boundary
         my $first_segment = Slic3r::Line->new(@{$extrusion_path->polyline}[0,1]);
-        my $distance = min(scale $extrusion_path->flow_spacing, $first_segment->length);
+        my $distance = min(scale($self->extruder->nozzle_diameter), $first_segment->length);
         my $point = $first_segment->point_at($distance);
         $point->rotate($angle, $extrusion_path->first_point);
         

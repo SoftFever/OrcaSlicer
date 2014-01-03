@@ -19,6 +19,8 @@ has 'extra_variables'        => (is => 'rw', default => sub {{}});
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
 has 'regions'                => (is => 'rw', default => sub {[]});
+has 'total_used_filament'    => (is => 'rw');
+has 'total_extruded_volume'  => (is => 'rw');
 has '_state'                 => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
 # ordered collection of extrusion paths to build skirt loops
@@ -970,7 +972,13 @@ sub write_gcode {
     print $fh $gcodegen->set_fan(0);
     printf $fh "%s\n", $gcodegen->replace_variables($self->config->end_gcode);
     
-    foreach my $extruder (@{$self->extruders}) {
+    $self->total_used_filament(0);
+    $self->total_extruded_volume(0);
+    foreach my $extruder_id (@{$self->extruders}) {
+        my $extruder = $gcodegen->extruders->[$extruder_id];
+        $self->total_used_filament($self->total_used_filament + $extruder->absolute_E);
+        $self->total_extruded_volume($self->total_extruded_volume + $extruder->extruded_volume);
+        
         printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
             $extruder->absolute_E, $extruder->extruded_volume/1000;
     }

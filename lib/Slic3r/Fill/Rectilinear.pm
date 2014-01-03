@@ -17,7 +17,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $flow                = $params{flow};
+    my $flow                = $params{flow} or die "No flow supplied to fill_surface()";
     my $min_spacing         = $flow->scaled_spacing;
     my $line_spacing        = $min_spacing / $params{density};
     my $line_oscillation    = $line_spacing - $min_spacing;

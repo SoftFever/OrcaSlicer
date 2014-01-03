@@ -163,9 +163,8 @@ if (@ARGV) {  # slicing from command line
                 printf "Done. Process took %d minutes and %.3f seconds\n", 
                     int($duration/60), ($duration - int($duration/60)*60);  # % truncates to integer
             }
-            print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
-                $_->absolute_E, $_->extruded_volume/1000),
-                @{$sprint->extruders};
+            printf "Filament required: %.1fmm (%.1fcm3)\n",
+                $sprint->total_used_filament, $sprint->total_extruded_volume/1000;
         }
     }
 } else {
