@@ -17,8 +17,8 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $flow_spacing        = $params{flow_spacing};
-    my $min_spacing         = scale $params{flow_spacing};
+    my $flow                = $params{flow};
+    my $min_spacing         = $flow->scaled_spacing;
     my $line_spacing        = $min_spacing / $params{density};
     my $line_oscillation    = $line_spacing - $min_spacing;
     my $is_line_pattern     = $self->isa('Slic3r::Fill::Line');
@@ -30,7 +30,12 @@ sub fill_surface {
             width       => $bounding_box->size->[X],
             distance    => $line_spacing,
         );
-        $flow_spacing = unscale $line_spacing;
+        $flow = Slic3r::Flow->new_from_spacing(
+            spacing             => unscale($line_spacing),
+            nozzle_diameter     => $flow->nozzle_diameter,
+            layer_height        => $surface->thickness,
+            bridge              => $flow->bridge,
+        );
     } else {
         # extend bounding box so that our pattern will be aligned with other layers
         $bounding_box->extents->[X][MIN] -= $bounding_box->x_min % $line_spacing;
@@ -62,7 +67,7 @@ sub fill_surface {
     
     # connect lines
     unless ($params{dont_connect} || !@polylines) {  # prevent calling leftmost_point() on empty collections
-        my ($expolygon_off) = @{$expolygon->offset_ex(scale $params{flow_spacing}/2)};
+        my ($expolygon_off) = @{$expolygon->offset_ex($min_spacing/2)};
         my $collection = Slic3r::Polyline::Collection->new(@polylines);
         @polylines = ();
         
@@ -97,7 +102,7 @@ sub fill_surface {
     # paths must be rotated back
     $self->rotate_points_back(\@polylines, $rotate_vector);
     
-    return { flow_spacing => $flow_spacing }, @polylines;
+    return { flow => $flow }, @polylines;
 }
 
 1;

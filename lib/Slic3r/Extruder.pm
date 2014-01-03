@@ -26,12 +26,25 @@ has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
 has 'retract_speed_mm_min'      => (is => 'lazy');
-has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
 
 use constant EXTRUDER_ROLE_PERIMETER                    => 1;
 use constant EXTRUDER_ROLE_INFILL                       => 2;
 use constant EXTRUDER_ROLE_SUPPORT_MATERIAL             => 3;
 use constant EXTRUDER_ROLE_SUPPORT_MATERIAL_INTERFACE   => 4;
+
+sub new_from_config {
+    my ($class, $config, $extruder_id) = @_;
+    
+    my %conf = (
+        id => $extruder_id,
+        use_relative_e_distances => $config->use_relative_e_distances,
+    );
+    foreach my $opt_key (@{&OPTIONS}) {
+        my $value = $config->get($opt_key);
+        $conf{$opt_key} = $value->[$extruder_id] // $value->[0];
+    }
+    return $class->new(%conf);
+}
 
 sub _build_e_per_mm3 {
     my $self = shift;
@@ -41,6 +54,15 @@ sub _build_e_per_mm3 {
 sub _build_retract_speed_mm_min {
     my $self = shift;
     return $self->retract_speed * 60;
+}
+
+sub reset {
+    my ($self) = @_;
+    
+    $self->E(0);
+    $self->absolute_E(0);
+    $self->retracted(0);
+    $self->restart_extra(0);
 }
 
 sub scaled_wipe_distance {
@@ -66,37 +88,9 @@ sub extruded_volume {
     return $self->absolute_E * ($self->filament_diameter**2) * PI/4;
 }
 
-sub make_flow {
-    my $self = shift;
-    return Slic3r::Flow->new(nozzle_diameter => $self->nozzle_diameter, @_);
-}
-
-sub mm3_per_mm {
-    my $self = shift;
-    my ($s, $h) = @_;
-    
-    my $cache_key = "${s}_${h}";
-    if (!exists $self->_mm3_per_mm_cache->{$cache_key}) {
-        my $w_threshold = $h + $self->nozzle_diameter;
-        my $s_threshold = $w_threshold - &Slic3r::OVERLAP_FACTOR * ($w_threshold - ($w_threshold - $h * (1 - PI/4)));
-        
-        if ($s >= $s_threshold) {
-            # rectangle with semicircles at the ends
-            my $w = $s + &Slic3r::OVERLAP_FACTOR * $h * (1 - PI/4);
-            $self->_mm3_per_mm_cache->{$cache_key} = $w * $h + ($h**2) / 4 * (PI - 4);
-        } else {
-            # rectangle with shrunk semicircles at the ends
-            my $w = ($s + $self->nozzle_diameter * &Slic3r::OVERLAP_FACTOR * (PI/4 - 1)) / (1 + &Slic3r::OVERLAP_FACTOR * (PI/4 - 1));
-            $self->_mm3_per_mm_cache->{$cache_key} = $self->nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
-        }
-    }
-    return $self->_mm3_per_mm_cache->{$cache_key};
-}
-
 sub e_per_mm {
-    my $self = shift;
-    my ($s, $h) = @_;
-    return $self->mm3_per_mm($s, $h) * $self->e_per_mm3;
+    my ($self, $mm3_per_mm) = @_;
+    return $mm3_per_mm * $self->e_per_mm3;
 }
 
 1;

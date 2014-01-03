@@ -500,10 +500,11 @@ sub generate_toolpaths {
             );
             
             # transform loops into ExtrusionPath objects
+            my $mm3_per_mm = $interface_flow->mm3_per_mm($layer->height);
             @loops = map Slic3r::ExtrusionPath->new(
-                polyline        => $_,
-                role            => EXTR_ROLE_SUPPORTMATERIAL,
-                flow_spacing    => $interface_flow->spacing,
+                polyline    => $_,
+                role        => EXTR_ROLE_SUPPORTMATERIAL,
+                mm3_per_mm  => $mm3_per_mm,
             ), @loops;
             
             $layer->support_interface_fills->append(@loops);
@@ -536,16 +537,16 @@ sub generate_toolpaths {
             foreach my $expolygon (@{union_ex($interface)}) {
                 my ($params, @p) = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
-                    density         => $interface_density,
-                    flow_spacing    => $interface_flow->spacing,
-                    complete        => 1,
+                    density     => $interface_density,
+                    flow        => $interface_flow,
+                    complete    => 1,
                 );
+                my $mm3_per_mm = $params->{flow}->mm3_per_mm($layer->height);
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline        => Slic3r::Polyline->new(@$_),
-                    role            => EXTR_ROLE_SUPPORTMATERIAL,
-                    height          => undef,
-                    flow_spacing    => $params->{flow_spacing},
+                    polyline    => Slic3r::Polyline->new(@$_),
+                    role        => EXTR_ROLE_SUPPORTMATERIAL,
+                    mm3_per_mm  => $mm3_per_mm,
                 ), @p;
             }
             
@@ -556,8 +557,8 @@ sub generate_toolpaths {
         if (@$base) {
             my $filler = $fillers{support};
             $filler->angle($angles[ ($layer_id) % @angles ]);
-            my $density         = $support_density;
-            my $flow_spacing    = $flow->spacing;
+            my $density     = $support_density;
+            my $base_flow   = $flow;
             
             # TODO: use offset2_ex()
             my $to_infill = union_ex($base, 1);
@@ -568,15 +569,15 @@ sub generate_toolpaths {
                 $filler = $fillers{interface};
                 $filler->angle($self->object_config->support_material_angle + 90);
                 $density        = 0.5;
-                $flow_spacing   = $self->first_layer_flow->spacing;
+                $base_flow      = $self->first_layer_flow;
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
+                my $mm3_per_mm = $flow->mm3_per_mm($layer->height);
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline        => $_->split_at_first_point,
-                    role            => EXTR_ROLE_SUPPORTMATERIAL,
-                    height          => undef,
-                    flow_spacing    => $flow->spacing,
+                    polyline    => $_->split_at_first_point,
+                    role        => EXTR_ROLE_SUPPORTMATERIAL,
+                    mm3_per_mm  => $mm3_per_mm,
                 ), map @$_, @$to_infill;
                 
                 # TODO: use offset2_ex()
@@ -586,16 +587,16 @@ sub generate_toolpaths {
             foreach my $expolygon (@$to_infill) {
                 my ($params, @p) = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
-                    density         => $density,
-                    flow_spacing    => $flow_spacing,
-                    complete        => 1,
+                    density     => $density,
+                    flow        => $base_flow,
+                    complete    => 1,
                 );
+                my $mm3_per_mm = $params->{flow}->mm3_per_mm($layer->height);
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline        => Slic3r::Polyline->new(@$_),
-                    role            => EXTR_ROLE_SUPPORTMATERIAL,
-                    height          => undef,
-                    flow_spacing    => $params->{flow_spacing},
+                    polyline    => Slic3r::Polyline->new(@$_),
+                    role        => EXTR_ROLE_SUPPORTMATERIAL,
+                    mm3_per_mm  => $mm3_per_mm,
                 ), @p;
             }
             

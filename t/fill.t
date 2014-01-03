@@ -134,7 +134,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(
-        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0, mm3_per_mm => 1),
             Slic3r::Polyline->new([0,15], [0,18], [0,20]),
             Slic3r::Polyline->new([0,10], [0,8], [0,5]),
     );
@@ -146,7 +146,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(
-        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0, mm3_per_mm => 1),
             Slic3r::Polyline->new([15,0], [10,0], [4,0]),
             Slic3r::Polyline->new([10,5], [15,5], [20,5]),
     );

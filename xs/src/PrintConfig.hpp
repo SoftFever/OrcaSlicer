@@ -241,6 +241,7 @@ class PrintConfigDef
         Options["fill_pattern"].tooltip = "Fill pattern for general low-density infill.";
         Options["fill_pattern"].cli = "fill-pattern=s";
         Options["fill_pattern"].scope = "object";
+        Options["fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
         Options["fill_pattern"].enum_values.push_back("rectilinear");
         Options["fill_pattern"].enum_values.push_back("line");
         Options["fill_pattern"].enum_values.push_back("concentric");
@@ -320,6 +321,7 @@ class PrintConfigDef
         Options["gcode_flavor"].label = "G-code flavor";
         Options["gcode_flavor"].tooltip = "Some G/M-code commands, including temperature control and others, are not universal. Set this option to your printer's firmware to get a compatible output. The \"No extrusion\" flavor prevents Slic3r from exporting any extrusion value at all.";
         Options["gcode_flavor"].cli = "gcode-flavor=s";
+        Options["gcode_flavor"].enum_keys_map = ConfigOptionEnum<GCodeFlavor>::get_enum_values();
         Options["gcode_flavor"].enum_values.push_back("reprap");
         Options["gcode_flavor"].enum_values.push_back("teacup");
         Options["gcode_flavor"].enum_values.push_back("makerware");
@@ -613,6 +615,7 @@ class PrintConfigDef
         Options["solid_fill_pattern"].tooltip = "Fill pattern for top/bottom infill.";
         Options["solid_fill_pattern"].cli = "solid-fill-pattern=s";
         Options["solid_fill_pattern"].scope = "object";
+        Options["solid_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
         Options["solid_fill_pattern"].enum_values.push_back("rectilinear");
         Options["solid_fill_pattern"].enum_values.push_back("concentric");
         Options["solid_fill_pattern"].enum_values.push_back("hilbertcurve");

@@ -31,8 +31,7 @@ class ExtrusionEntity
     virtual ExtrusionEntity* clone() const = 0;
     virtual ~ExtrusionEntity() {};
     ExtrusionRole role;
-    double height;  // vertical thickness of the extrusion expressed in mm
-    double flow_spacing;
+    double mm3_per_mm;  // mm^3 of plastic per mm of linear head motion
     virtual void reverse() = 0;
     virtual Point* first_point() const = 0;
     virtual Point* last_point() const = 0;

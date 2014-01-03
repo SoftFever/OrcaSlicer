@@ -863,7 +863,7 @@ sub generate_support_material {
     return unless ($self->config->support_material || $self->config->raft_layers > 0)
         && $self->layer_count >= 2;
     
-    my $first_layer_flow = Slic3r::Flow->new(
+    my $first_layer_flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
         role                => FLOW_ROLE_SUPPORT_MATERIAL,
         nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ],
@@ -900,7 +900,7 @@ sub support_material_flow {
     
     # we use a bogus layer_height because we use the same flow for all
     # support material layers
-    return Slic3r::Flow->new(
+    return Slic3r::Flow->new_from_width(
         width               => $self->config->support_material_extrusion_width,
         role                => $role,
         nozzle_diameter     => $self->print->config->nozzle_diameter->[$extruder-1],

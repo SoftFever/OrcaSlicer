@@ -85,7 +85,7 @@ sub process_layer {
                 # when printing layers > 0 ignore 'min_skirt_length' and 
                 # just use the 'skirts' setting; also just use the current extruder
                 last if ($layer->id > 0) && ($i >= $self->print->config->skirts);
-                $gcode .= $self->gcodegen->set_extruder($self->extruders->[ ($i/@{$self->extruders}) % @{$self->extruders} ])
+                $gcode .= $self->gcodegen->set_extruder(($i/@{$self->extruders}) % @{$self->extruders})
                     if $layer->id == 0;
                 $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
             }
@@ -96,7 +96,7 @@ sub process_layer {
     
     # extrude brim
     if (!$self->brim_done) {
-        $gcode .= $self->gcodegen->set_extruder($self->extruders->[$self->print->objects->[0]->config->support_material_extruder-1]);
+        $gcode .= $self->gcodegen->set_extruder($self->print->objects->[0]->config->support_material_extruder-1);
         $self->gcodegen->set_shift(@{$self->shift});
         $gcode .= $self->gcodegen->extrude_loop($_, 'brim') for @{$self->print->brim};
         $self->brim_done(1);
@@ -113,13 +113,13 @@ sub process_layer {
         # and also because we avoid travelling on other things when printing it
         if ($layer->isa('Slic3r::Layer::Support')) {
             if ($layer->support_interface_fills->count > 0) {
-                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$object->config->support_material_interface_extruder-1]);
+                $gcode .= $self->gcodegen->set_extruder($object->config->support_material_interface_extruder-1);
                 my %params = (speed => $object->config->support_material_speed*60);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material interface', %params) 
                     for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills->count > 0) {
-                $gcode .= $self->gcodegen->set_extruder($self->extruders->[$object->config->support_material_extruder-1]);
+                $gcode .= $self->gcodegen->set_extruder($object->config->support_material_extruder-1);
                 my %params = (speed => $object->config->support_material_speed*60);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material', %params) 
                     for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
@@ -205,7 +205,7 @@ sub _extrude_perimeters {
     return "" if !@{ $island->{perimeters} };
     
     my $gcode = "";
-    $gcode .= $self->gcodegen->set_extruder($self->extruders->[$region->config->perimeter_extruder-1]);
+    $gcode .= $self->gcodegen->set_extruder($region->config->perimeter_extruder-1);
     $gcode .= $self->gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
     return $gcode;
 }
@@ -217,7 +217,7 @@ sub _extrude_infill {
     return "" if !@{ $island->{fills} };
     
     my $gcode = "";
-    $gcode .= $self->gcodegen->set_extruder($self->extruders->[$region->config->infill_extruder-1]);
+    $gcode .= $self->gcodegen->set_extruder($region->config->infill_extruder-1);
     for my $fill (@{ $island->{fills} }) {
         if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
             $gcode .= $self->gcodegen->extrude($_, 'fill') 

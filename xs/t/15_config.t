@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 79;
+use Test::More tests => 82;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -48,6 +48,9 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->serialize('gcode_flavor'), 'teacup', 'serialize enum';
     $config->set_deserialize('gcode_flavor', 'mach3');
     is $config->get('gcode_flavor'), 'mach3', 'deserialize enum';
+    
+    $config->set_deserialize('fill_pattern', 'line');
+    is $config->get('fill_pattern'), 'line', 'deserialize enum';
     
     $config->set('extruder_offset', [[10,20],[30,45]]);
     is_deeply $config->get('extruder_offset'), [[10,20],[30,45]], 'set/get points';
@@ -104,6 +107,16 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     my $config2 = Slic3r::Config->new;
     $config2->apply_static($config);
     is $config2->get('perimeters'), Slic3r::Config::print_config_def()->{perimeters}{default}, 'apply_static and print_config_def';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('fill_pattern', 'line');
+
+    my $config2 = Slic3r::Config->new;
+    $config2->set('fill_pattern', 'hilbertcurve');
+    
+    is $config->get('fill_pattern'), 'line', 'no interferences between DynamicConfig objects';
 }
 
 __END__

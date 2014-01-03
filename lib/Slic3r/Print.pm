@@ -305,26 +305,6 @@ sub extruders {
 sub init_extruders {
     my $self = shift;
     
-    # initialize all extruder(s) we need
-    for my $extruder_id (@{$self->extruders}) {
-        # make sure print config contains a value for all extruders
-        my %extruder_config = ();
-        foreach my $opt_key (@{&Slic3r::Extruder::OPTIONS}) {
-            my $value = $self->config->get($opt_key);
-            if (!defined $value->[$extruder_id]) {
-                $value->[$extruder_id] = $value->[0];
-                $self->config->set($opt_key, $value);
-            }
-            $extruder_config{$opt_key} = $value->[$extruder_id];
-        }
-        
-        $self->extruders->[$extruder_id] = Slic3r::Extruder->new(
-            id => $extruder_id,
-            use_relative_e_distances => $self->config->use_relative_e_distances,
-            %extruder_config,
-        );
-    }
-    
     # enforce tall skirt if using ooze_prevention
     # FIXME: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
     if ($self->config->ooze_prevention && @{$self->extruders} > 1) {
@@ -671,7 +651,7 @@ sub make_skirt {
     # but loops must be aligned so can't vary width/spacing
     # TODO: use each extruder's own flow
     my $first_layer_height = $self->objects->[0]->config->get_value('first_layer_height');
-    my $flow = Slic3r::Flow->new(
+    my $flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
         nozzle_diameter     => $self->config->nozzle_diameter->[0],
@@ -679,6 +659,7 @@ sub make_skirt {
         bridge_flow_ratio   => 0,
     );
     my $spacing = $flow->spacing;
+    my $mm3_per_mm = $flow->mm3_per_mm($first_layer_height);
     
     my @extruders_e_per_mm = ();
     my $extruder_idx = 0;
@@ -692,13 +673,16 @@ sub make_skirt {
         $self->skirt->append(Slic3r::ExtrusionLoop->new(
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
-            flow_spacing    => $spacing,
+            mm3_per_mm      => $mm3_per_mm,
         ));
         
         if ($self->config->min_skirt_length > 0) {
-            $extruded_length[$extruder_idx]     ||= 0;
-            $extruders_e_per_mm[$extruder_idx]  ||= $self->extruders->[$extruder_idx]->e_per_mm($spacing, $first_layer_height);
-            $extruded_length[$extruder_idx]     += unscale $loop->length * $extruders_e_per_mm[$extruder_idx];
+            $extruded_length[$extruder_idx] ||= 0;
+            if (!$extruders_e_per_mm[$extruder_idx]) {
+                my $extruder = Slic3r::Extruder->new_from_config($self->config, $extruder_idx);
+                $extruders_e_per_mm[$extruder_idx] = $extruder->e_per_mm($mm3_per_mm);
+            }
+            $extruded_length[$extruder_idx] += unscale $loop->length * $extruders_e_per_mm[$extruder_idx];
             $i++ if defined first { ($extruded_length[$_] // 0) < $self->config->min_skirt_length } 0 .. $#{$self->extruders};
             if ($extruded_length[$extruder_idx] >= $self->config->min_skirt_length) {
                 if ($extruder_idx < $#{$self->extruders}) {
@@ -719,13 +703,15 @@ sub make_brim {
     $self->brim->clear;  # method must be idempotent
     
     # brim is only printed on first layer and uses support material extruder
-    my $flow = Slic3r::Flow->new(
+    my $first_layer_height = $self->objects->[0]->config->get_abs_value('first_layer_height');
+    my $flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
         nozzle_diameter     => $self->config->nozzle_diameter->[ $self->objects->[0]->config->support_material_extruder-1 ],
-        layer_height        => $self->objects->[0]->config->get_abs_value('first_layer_height'),
+        layer_height        => $first_layer_height,
         bridge_flow_ratio   => 0,
     );
+    my $mm3_per_mm = $flow->mm3_per_mm($first_layer_height);
     
     my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons
@@ -768,7 +754,7 @@ sub make_brim {
     $self->brim->append(map Slic3r::ExtrusionLoop->new(
         polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
-        flow_spacing    => $flow->spacing,
+        mm3_per_mm      => $mm3_per_mm,
     ), reverse @{union_pt_chained(\@loops)});
 }
 
@@ -816,9 +802,11 @@ sub write_gcode {
     my $gcodegen = Slic3r::GCode->new(
         print_config        => $self->config,
         extra_variables     => $self->extra_variables,
-        extruders           => $self->extruders,    # we should only pass the *used* extruders (but maintain the Tx indices right!)
         layer_count         => $self->layer_count,
     );
+    $gcodegen->set_extruders($self->extruders);
+    $gcodegen->set_extruder($self->extruders->[0]);
+    
     print $fh "G21 ; set units to millimeters\n" if $self->config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;
     
@@ -833,7 +821,7 @@ sub write_gcode {
         
         return if $self->config->start_gcode =~ /M(?:109|104)/i;
         for my $t (0 .. $#{$self->extruders}) {
-            my $temp = $self->extruders->[$t]->first_layer_temperature;
+            my $temp = $self->config->first_layer_temperature->[$t] // $self->config->first_layer_temperature->[0];
             $temp += $self->config->standby_temperature_delta if $self->config->ooze_prevention;
             printf $fh $gcodegen->set_temperature($temp, $wait, $t) if $temp > 0;
         }

@@ -97,8 +97,7 @@ sub new {
     return $class->_new(
         $args{polygon},      # required
         $args{role},         # required
-        $args{height}        // -1,
-        $args{flow_spacing}  // -1,
+        $args{mm3_per_mm}   // -1,
     );
 }
 
@@ -108,8 +107,7 @@ sub clone {
     return (ref $self)->_new(
         $args{polygon}       // $self->polygon,
         $args{role}          // $self->role,
-        $args{height}        // $self->height,
-        $args{flow_spacing}  // $self->flow_spacing,
+        $args{mm3_per_mm}    // $self->mm3_per_mm,
     );
 }
 
@@ -129,8 +127,7 @@ sub new {
     return $class->_new(
         $args{polyline},     # required
         $args{role},         # required
-        $args{height}        // -1,
-        $args{flow_spacing}  // -1,
+        $args{mm3_per_mm}   // -1,
     );
 }
 
@@ -140,8 +137,7 @@ sub clone {
     return (ref $self)->_new(
         $args{polyline}      // $self->polyline,
         $args{role}          // $self->role,
-        $args{height}        // $self->height,
-        $args{flow_spacing}  // $self->flow_spacing,
+        $args{mm3_per_mm}    // $self->mm3_per_mm,
     );
 }
 

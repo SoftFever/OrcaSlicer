@@ -16,6 +16,7 @@ my $square = [
 my $loop = Slic3r::ExtrusionLoop->new(
     polygon  => Slic3r::Polygon->new(@$square),
     role     => Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
+    mm3_per_mm => 1,
 );
 isa_ok $loop->polygon, 'Slic3r::Polygon::Ref', 'loop polygon';
 is_deeply $loop->polygon->pp, $square, 'polygon points roundtrip';

@@ -125,6 +125,7 @@ sub make_perimeters {
     my $self = shift;
     
     my $perimeter_flow      = $self->flow(FLOW_ROLE_PERIMETER);
+    my $mm3_per_mm          = $perimeter_flow->mm3_per_mm($self->height);
     my $pwidth              = $perimeter_flow->scaled_width;
     my $pspacing            = $perimeter_flow->scaled_spacing;
     my $ispacing            = $self->flow(FLOW_ROLE_SOLID_INFILL)->scaled_spacing;
@@ -264,7 +265,7 @@ sub make_perimeters {
             push @loops, Slic3r::ExtrusionLoop->new(
                 polygon         => $polygon,
                 role            => $role,
-                flow_spacing    => $perimeter_flow->spacing,
+                mm3_per_mm      => $mm3_per_mm,
             );
         }
         return @loops;
@@ -290,8 +291,8 @@ sub make_perimeters {
         for my $p (@p) {
             next if $p->length <= $pspacing * 2;
             my %params = (
-                role            => EXTR_ROLE_EXTERNAL_PERIMETER,
-                flow_spacing    => $perimeter_flow->spacing,
+                role        => EXTR_ROLE_EXTERNAL_PERIMETER,
+                mm3_per_mm  => $mm3_per_mm,
             );
             push @paths, $p->isa('Slic3r::Polygon')
                 ? Slic3r::ExtrusionLoop->new(polygon  => $p, %params)
@@ -339,8 +340,8 @@ sub _fill_gaps {
             # fill gaps using dynamic extrusion width, by treating them like thin polygons,
             # thus generating the skeleton and using it to fill them
             my %path_args = (
-                role            => EXTR_ROLE_SOLIDFILL,
-                flow_spacing    => $flow->spacing,
+                role        => EXTR_ROLE_SOLIDFILL,
+                mm3_per_mm  => $flow->mm3_per_mm($self->height),
             );
             $self->thin_fills->append(map {
                 $_->isa('Slic3r::Polygon')
@@ -360,9 +361,10 @@ sub _fill_gaps {
             foreach my $expolygon (@infill) {
                 my ($params, @paths) = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNALSOLID),
-                    density         => 1,
-                    flow_spacing    => $flow->spacing,
+                    density => 1,
+                    flow    => $flow,
                 );
+                my $mm3_per_mm = $params->{flow}->mm3_per_mm($self->height);
                 
                 # Split polylines into lines so that the chained_path() search
                 # at the final stage has more freedom and will choose starting
@@ -379,8 +381,7 @@ sub _fill_gaps {
                 @paths = map Slic3r::ExtrusionPath->new(
                     polyline        => Slic3r::Polyline->new(@$_),
                     role            => EXTR_ROLE_GAPFILL,
-                    height          => $self->height,
-                    flow_spacing    => $params->{flow_spacing},
+                    mm3_per_mm      => $mm3_per_mm,
                 ), @lines;
                 $_->simplify($flow->scaled_width/3) for @paths;
                 

@@ -10,8 +10,6 @@ use Slic3r::Surface ':types';
 
 has 'print_config'       => (is => 'ro', default => sub { Slic3r::Config::Print->new });
 has 'extra_variables'    => (is => 'rw', default => sub {{}});
-has 'extruders'          => (is => 'ro', required => 1);
-has 'multiple_extruders' => (is => 'lazy');
 has 'standby_points'     => (is => 'rw');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
@@ -27,6 +25,7 @@ has 'z'                  => (is => 'rw');
 has 'speed'              => (is => 'rw');
 has '_extrusion_axis'    => (is => 'rw');
 has '_retract_lift'      => (is => 'rw');
+has 'extruders'          => (is => 'ro', default => sub {[]});
 
 has 'speeds'             => (is => 'lazy');  # mm/min
 has 'external_mp'        => (is => 'rw');
@@ -47,6 +46,14 @@ sub BUILD {
     
     $self->_extrusion_axis($self->print_config->get_extrusion_axis);
     $self->_retract_lift($self->print_config->retract_lift->[0]);
+}
+
+sub set_extruders {
+    my ($self, $extruder_ids) = @_;
+    
+    foreach my $i (@$extruder_ids) {
+        $self->extruders->[$i] = Slic3r::Extruder->new_from_config($self->print_config, $i);
+    }
 }
 
 sub _build_speeds {
@@ -73,7 +80,7 @@ my %role_speeds = (
     &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
 
-sub _build_multiple_extruders {
+sub multiple_extruders {
     my $self = shift;
     return @{$self->extruders} > 1;
 }
@@ -320,18 +327,8 @@ sub extrude_path {
         $gcode .= $self->set_acceleration($acceleration) if $acceleration;
     }
     
-    my $area;  # mm^3 of extrudate per mm of tool movement 
-    if ($path->is_bridge) {
-        my $s = $path->flow_spacing;
-        $area = ($s**2) * PI/4;
-    } else {
-        my $s = $path->flow_spacing;
-        my $h = (defined $path->height && $path->height != -1) ? $path->height : $self->layer->height;
-        $area = $self->extruder->mm3_per_mm($s, $h);
-    }
-    
     # calculate extrusion length per distance unit
-    my $e = $self->extruder->e_per_mm3 * $area;
+    my $e = $self->extruder->e_per_mm3 * $path->mm3_per_mm;
     $e = 0 if !$self->_extrusion_axis;
     
     # set speed
@@ -640,14 +637,14 @@ sub _Gx {
 }
 
 sub set_extruder {
-    my ($self, $extruder) = @_;
+    my ($self, $extruder_id) = @_;
     
     # return nothing if this extruder was already selected
-    return "" if (defined $self->extruder) && ($self->extruder->id == $extruder->id);
+    return "" if (defined $self->extruder) && ($self->extruder->id == $extruder_id);
     
     # if we are running a single-extruder setup, just set the extruder and return nothing
     if (!$self->multiple_extruders) {
-        $self->extruder($extruder);
+        $self->extruder($self->extruders->[$extruder_id]);
         return "";
     }
     
@@ -659,7 +656,7 @@ sub set_extruder {
     if (defined $self->extruder && $self->print_config->toolchange_gcode) {
         $gcode .= sprintf "%s\n", $self->replace_variables($self->print_config->toolchange_gcode, {
             previous_extruder   => $self->extruder->id,
-            next_extruder       => $extruder->id,
+            next_extruder       => $extruder_id,
         });
     }
     
@@ -676,14 +673,14 @@ sub set_extruder {
     }
     
     # set the new extruder
-    $self->extruder($extruder);
+    $self->extruder($self->extruders->[$extruder_id]);
     $gcode .= sprintf "%s%d%s\n", 
         ($self->print_config->gcode_flavor eq 'makerware'
             ? 'M135 T'
             : $self->print_config->gcode_flavor eq 'sailfish'
                 ? 'M108 T'
                 : 'T'),
-        $extruder->id,
+        $extruder_id,
         ($self->print_config->gcode_comments ? ' ; change extruder' : '');
     
     $gcode .= $self->reset_e;

@@ -158,20 +158,17 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
-        my $flow_spacing = $flow->spacing;
-        
         my $f = $self->filler($filler);
         $f->layer_id($layerm->id);
         $f->angle($layerm->config->fill_angle);
         my ($params, @polylines) = $f->fill_surface(
             $surface,
-            density         => $density,
-            flow_spacing    => $flow_spacing,
+            density => $density,
+            flow    => $flow,
         );
         next unless @polylines;
         
-        # ugly hack(tm) to get the right amount of flow (GCode.pm should be fixed)
-        $params->{flow_spacing} = $flow->width if $is_bridge;
+        my $mm3_per_mm = $params->{flow}->mm3_per_mm($surface->thickness);
         
         # save into layer
         push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
@@ -187,8 +184,7 @@ sub make_fill {
                         : $is_solid
                             ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                             : EXTR_ROLE_FILL),
-                height => $surface->thickness,
-                flow_spacing => $params->{flow_spacing} || (warn "Warning: no flow_spacing was returned by the infill engine, please report this to the developer\n"),
+                mm3_per_mm => $mm3_per_mm,
             ), @polylines,
         );
         push @fills_ordering_points, $polylines[0]->first_point;
