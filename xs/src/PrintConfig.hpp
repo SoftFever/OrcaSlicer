@@ -1131,8 +1131,8 @@ class PrintConfig : public virtual StaticConfig
         this->external_perimeters_first.value                    = false;
         this->extruder_clearance_height.value                    = 20;
         this->extruder_clearance_radius.value                    = 20;
-        this->extruder_offset.points.resize(1);
-        this->extruder_offset.points[0]                          = Pointf(0,0);
+        this->extruder_offset.values.resize(1);
+        this->extruder_offset.values[0]                          = Pointf(0,0);
         this->extrusion_axis.value                               = "E";
         this->extrusion_multiplier.values.resize(1);
         this->extrusion_multiplier.values[0]                     = 1;

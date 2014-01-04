@@ -40,8 +40,7 @@ sub new_from_config {
         use_relative_e_distances => $config->use_relative_e_distances,
     );
     foreach my $opt_key (@{&OPTIONS}) {
-        my $value = $config->get($opt_key);
-        $conf{$opt_key} = $value->[$extruder_id] // $value->[0];
+        $conf{$opt_key} = $config->get_at($opt_key, $extruder_id);
     }
     return $class->new(%conf);
 }

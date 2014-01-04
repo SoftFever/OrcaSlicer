@@ -12,7 +12,7 @@ has 'print_config'       => (is => 'ro', default => sub { Slic3r::Config::Print-
 has 'extra_variables'    => (is => 'rw', default => sub {{}});
 has 'standby_points'     => (is => 'rw');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
-has 'enable_wipe'        => (is => 'lazy');   # at least one extruder has wipe enabled
+has 'enable_wipe'        => (is => 'rw', default => sub {0});   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
 has 'layer'              => (is => 'rw');
 has 'region'             => (is => 'rw');
@@ -25,14 +25,13 @@ has 'z'                  => (is => 'rw');
 has 'speed'              => (is => 'rw');
 has '_extrusion_axis'    => (is => 'rw');
 has '_retract_lift'      => (is => 'rw');
-has 'extruders'          => (is => 'ro', default => sub {[]});
-
+has 'extruders'          => (is => 'ro', default => sub {{}});
+has 'extruder'           => (is => 'rw');
 has 'speeds'             => (is => 'lazy');  # mm/min
 has 'external_mp'        => (is => 'rw');
 has 'layer_mp'           => (is => 'rw');
 has 'new_object'         => (is => 'rw', default => sub {0});
 has 'straight_once'      => (is => 'rw', default => sub {1});
-has 'extruder'           => (is => 'rw');
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
@@ -52,7 +51,8 @@ sub set_extruders {
     my ($self, $extruder_ids) = @_;
     
     foreach my $i (@$extruder_ids) {
-        $self->extruders->[$i] = Slic3r::Extruder->new_from_config($self->print_config, $i);
+        $self->extruders->{$i} = my $e = Slic3r::Extruder->new_from_config($self->print_config, $i);
+        $self->enable_wipe(1) if $e->wipe;
     }
 }
 
@@ -82,12 +82,7 @@ my %role_speeds = (
 
 sub multiple_extruders {
     my $self = shift;
-    return @{$self->extruders} > 1;
-}
-
-sub _build_enable_wipe {
-    my $self = shift;
-    return (first { $_->wipe } @{$self->extruders}) ? 1 : 0;
+    return (keys %{$self->extruders}) > 1;
 }
 
 sub set_shift {
@@ -248,14 +243,12 @@ sub extrude_loop {
             @{$extrusion_path->subtract_expolygons($self->_layer_overhangs)};
         
         # get overhang paths by intersecting overhangs with the loop
-        push @paths,
-            map {
-                $_->role(EXTR_ROLE_OVERHANG_PERIMETER);
-                $_->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, undef, 1)->mm3_per_mm(undef));
-                $_
-            }
-            map $_->clone,
-            @{$extrusion_path->intersect_expolygons($self->_layer_overhangs)};
+        foreach my $path (@{$extrusion_path->intersect_expolygons($self->_layer_overhangs)}) {
+            $path = $path->clone;
+            $path->role(EXTR_ROLE_OVERHANG_PERIMETER);
+            $path->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, undef, 1)->mm3_per_mm(undef));
+            push @paths, $path;
+        }
         
         # reapply the nearest point search for starting point
         # (clone because the collection gets DESTROY'ed)
@@ -644,7 +637,7 @@ sub set_extruder {
     
     # if we are running a single-extruder setup, just set the extruder and return nothing
     if (!$self->multiple_extruders) {
-        $self->extruder($self->extruders->[$extruder_id]);
+        $self->extruder($self->extruders->{$extruder_id});
         return "";
     }
     
@@ -673,7 +666,7 @@ sub set_extruder {
     }
     
     # set the new extruder
-    $self->extruder($self->extruders->[$extruder_id]);
+    $self->extruder($self->extruders->{$extruder_id});
     $gcode .= sprintf "%s%d%s\n", 
         ($self->print_config->gcode_flavor eq 'makerware'
             ? 'M135 T'

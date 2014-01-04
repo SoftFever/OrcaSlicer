@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 82;
+use Test::More tests => 88;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -75,6 +75,9 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     
     $config->set('wipe', [1,0]);
     is_deeply $config->get('wipe'), [1,0], 'set/get bools';
+    is $config->get_at('wipe', 0), 1, 'get_at bools';
+    is $config->get_at('wipe', 1), 0, 'get_at bools';
+    is $config->get_at('wipe', 9), 1, 'get_at bools';
     is $config->serialize('wipe'), '1,0', 'serialize bools';
     $config->set_deserialize('wipe', '0,1,1');
     is_deeply $config->get('wipe'), [0,1,1], 'deserialize bools';

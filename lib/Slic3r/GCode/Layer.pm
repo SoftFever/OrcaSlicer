@@ -4,8 +4,8 @@ use Moo;
 use List::Util qw(first);
 use Slic3r::Geometry qw(X Y unscale);
 
-has 'print'                         => (is => 'ro', required => 1, handles => [qw(extruders)]);
-has 'gcodegen'                      => (is => 'ro', required => 1);
+has 'print'                         => (is => 'ro', required => 1);
+has 'gcodegen'                      => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'shift'                         => (is => 'ro', default => sub { [0,0] });
 
 has 'spiralvase'                    => (is => 'lazy');
@@ -57,9 +57,10 @@ sub process_layer {
     $self->gcodegen->enable_loop_clipping(!$spiralvase);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
-        for my $t (grep $self->extruders->[$_], 0 .. $#{$self->print->config->temperature}) {
-            $gcode .= $self->gcodegen->set_temperature($self->extruders->[$t]->temperature, 0, $t)
-                if $self->print->extruders->[$t]->temperature && $self->extruders->[$t]->temperature != $self->extruders->[$t]->first_layer_temperature;
+        for my $extruder_id (sort keys %{$self->extruders}) {
+            my $extruder = $self->extruders->{$extruder_id};
+            $gcode .= $self->gcodegen->set_temperature($extruder->temperature, 0, $extruder->id)
+                if $extruder->temperature && $extruder->temperature != $extruder->first_layer_temperature;
         }
         $gcode .= $self->gcodegen->set_bed_temperature($self->print->config->bed_temperature)
             if $self->print->config->bed_temperature && $self->print->config->bed_temperature != $self->print->config->first_layer_bed_temperature;
@@ -76,7 +77,8 @@ sub process_layer {
     if (((values %{$self->skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
         && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_shift(@{$self->shift});
-        $gcode .= $self->gcodegen->set_extruder($self->extruders->[0]);
+        my @extruder_ids = sort keys %{$self->extruders};
+        $gcode .= $self->gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
         if ($layer->id < $self->print->config->skirt_height || $self->print->config->skirt_height == -1) {
             # distribute skirt loops across all extruders
@@ -85,7 +87,7 @@ sub process_layer {
                 # when printing layers > 0 ignore 'min_skirt_length' and 
                 # just use the 'skirts' setting; also just use the current extruder
                 last if ($layer->id > 0) && ($i >= $self->print->config->skirts);
-                $gcode .= $self->gcodegen->set_extruder(($i/@{$self->extruders}) % @{$self->extruders})
+                $gcode .= $self->gcodegen->set_extruder(($i/@extruder_ids) % @extruder_ids)
                     if $layer->id == 0;
                 $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
             }

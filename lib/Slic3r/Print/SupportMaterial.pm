@@ -174,7 +174,7 @@ sub contact_area {
         # now apply the contact areas to the layer were they need to be made
         {
             # get the average nozzle diameter used on this layer
-            my @nozzle_diameters = map $self->print_config->nozzle_diameter->[$_],
+            my @nozzle_diameters = map $self->print_config->get_at('nozzle_diameter', $_),
                 map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1 }
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
@@ -246,7 +246,7 @@ sub support_layers_z {
     # determine layer height for any non-contact layer
     # we use max() to prevent many ultra-thin layers to be inserted in case
     # layer_height > nozzle_diameter * 0.75
-    my $nozzle_diameter = $self->print_config->nozzle_diameter->[$self->object_config->support_material_extruder-1];
+    my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->object_config->support_material_extruder-1);
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
     
     my @z = sort { $a <=> $b } @$contact_z, @$top_z, (map $_ + $nozzle_diameter, @$top_z);

@@ -709,7 +709,7 @@ sub make_brim {
     my $flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
         role                => FLOW_ROLE_PERIMETER,
-        nozzle_diameter     => $self->config->nozzle_diameter->[ $self->objects->[0]->config->support_material_extruder-1 ],
+        nozzle_diameter     => $self->config->get_at('nozzle_diameter', $self->objects->[0]->config->support_material_extruder-1),
         layer_height        => $first_layer_height,
         bridge_flow_ratio   => 0,
     );
@@ -807,7 +807,6 @@ sub write_gcode {
         layer_count         => $self->layer_count,
     );
     $gcodegen->set_extruders($self->extruders);
-    $gcodegen->set_extruder($self->extruders->[0]);
     
     print $fh "G21 ; set units to millimeters\n" if $self->config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;
@@ -822,8 +821,8 @@ sub write_gcode {
         my ($wait) = @_;
         
         return if $self->config->start_gcode =~ /M(?:109|104)/i;
-        for my $t (0 .. $#{$self->extruders}) {
-            my $temp = $self->config->first_layer_temperature->[$t] // $self->config->first_layer_temperature->[0];
+        for my $t (@{$self->extruders}) {
+            my $temp = $self->config->get_at('first_layer_temperature', $t);
             $temp += $self->config->standby_temperature_delta if $self->config->ooze_prevention;
             printf $fh $gcodegen->set_temperature($temp, $wait, $t) if $temp > 0;
         }
@@ -873,9 +872,9 @@ sub write_gcode {
         if (@skirt_points) {
             my $outer_skirt = convex_hull(\@skirt_points);
             my @skirts = ();
-            foreach my $extruder (@{$self->extruders}) {
+            foreach my $extruder_id (@{$self->extruders}) {
                 push @skirts, my $s = $outer_skirt->clone;
-                $s->translate(map scale($_), @{$extruder->extruder_offset});
+                $s->translate(map scale($_), @{$self->config->get_at('extruder_offset', $extruder_id)});
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
             $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
@@ -887,6 +886,9 @@ sub write_gcode {
         print       => $self,
         gcodegen    => $gcodegen,
     );
+    
+    # set initial extruder only after custom start G-code
+    print $fh $gcodegen->set_extruder($self->extruders->[0]);
     
     # do all objects for each layer
     if ($self->config->complete_objects) {
@@ -975,7 +977,7 @@ sub write_gcode {
     $self->total_used_filament(0);
     $self->total_extruded_volume(0);
     foreach my $extruder_id (@{$self->extruders}) {
-        my $extruder = $gcodegen->extruders->[$extruder_id];
+        my $extruder = $gcodegen->extruders->{$extruder_id};
         $self->total_used_filament($self->total_used_filament + $extruder->absolute_E);
         $self->total_extruded_volume($self->total_extruded_volume + $extruder->extruded_volume);
         

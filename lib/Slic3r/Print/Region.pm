@@ -46,7 +46,7 @@ sub flow {
     } else {
         die "Unknown role $role";
     }
-    my $nozzle_diameter = $self->print->config->nozzle_diameter->[$extruder-1];
+    my $nozzle_diameter = $self->print->config->get_at('nozzle_diameter', $extruder-1);
     
     return Slic3r::Flow->new_from_width(
         width               => $config_width,

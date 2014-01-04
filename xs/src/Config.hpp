@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include "Point.hpp"
@@ -22,6 +23,22 @@ class ConfigOption {
     virtual ~ConfigOption() {};
     virtual std::string serialize() = 0;
     virtual void deserialize(std::string str) = 0;
+};
+
+template <class T>
+class ConfigOptionVector
+{
+    public:
+    virtual ~ConfigOptionVector() {};
+    std::vector<T> values;
+    
+    T get_at(size_t i) {
+        try {
+            return this->values.at(i);
+        } catch (const std::out_of_range& oor) {
+            return this->values.front();
+        }
+    };
 };
 
 class ConfigOptionFloat : public ConfigOption
@@ -43,10 +60,9 @@ class ConfigOptionFloat : public ConfigOption
     };
 };
 
-class ConfigOptionFloats : public ConfigOption
+class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double>
 {
     public:
-    std::vector<double> values;
     
     std::string serialize() {
         std::ostringstream ss;
@@ -86,10 +102,9 @@ class ConfigOptionInt : public ConfigOption
     };
 };
 
-class ConfigOptionInts : public ConfigOption
+class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
 {
     public:
-    std::vector<int> values;
     
     std::string serialize() {
         std::ostringstream ss;
@@ -144,10 +159,9 @@ class ConfigOptionString : public ConfigOption
 };
 
 // semicolon-separated strings
-class ConfigOptionStrings : public ConfigOption
+class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::string>
 {
     public:
-    std::vector<std::string> values;
     
     std::string serialize() {
         std::ostringstream ss;
@@ -215,15 +229,14 @@ class ConfigOptionPoint : public ConfigOption
     };
 };
 
-class ConfigOptionPoints : public ConfigOption
+class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf>
 {
     public:
-    Pointfs points;
     
     std::string serialize() {
         std::ostringstream ss;
-        for (Pointfs::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-            if (it - this->points.begin() != 0) ss << ",";
+        for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            if (it - this->values.begin() != 0) ss << ",";
             ss << it->x;
             ss << "x";
             ss << it->y;
@@ -232,13 +245,13 @@ class ConfigOptionPoints : public ConfigOption
     };
     
     void deserialize(std::string str) {
-        this->points.clear();
+        this->values.clear();
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
             sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
-            this->points.push_back(point);
+            this->values.push_back(point);
         }
     };
 };
@@ -260,10 +273,9 @@ class ConfigOptionBool : public ConfigOption
     };
 };
 
-class ConfigOptionBools : public ConfigOption
+class ConfigOptionBools : public ConfigOption, public ConfigOptionVector<bool>
 {
     public:
-    std::vector<bool> values;
     
     std::string serialize() {
         std::ostringstream ss;
@@ -398,6 +410,7 @@ class ConfigBase
     #ifdef SLIC3RXS
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
+    SV* get_at(t_config_option_key opt_key, size_t i);
     void set(t_config_option_key opt_key, SV* value);
     #endif
 };

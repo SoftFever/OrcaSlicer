@@ -72,7 +72,7 @@ sub mm3_per_mm {
     my $s = $self->spacing;
     
     if ($self->bridge) {
-        return ($s**2) * PI/4;
+        return ($w**2) * PI/4;
     } elsif ($w >= ($self->nozzle_diameter + $h)) {
         # rectangle with semicircles at the ends
         return $w * $h + ($h**2) / 4 * (PI - 4);
@@ -140,7 +140,7 @@ sub _spacing {
     if ($bridge_flow_ratio > 0) {
         return $width + BRIDGE_EXTRA_SPACING;
     }
-    
+    use XXX; ZZZ "here" if !defined $nozzle_diameter;
     my $min_flow_spacing;
     if ($width >= ($nozzle_diameter + $layer_height)) {
         # rectangle with semicircles at the ends

@@ -23,7 +23,13 @@ use Slic3r::Test;
         $print->init_extruders;
         my $flow = $print->objects->[0]->support_material_flow;
         my $support_z = Slic3r::Print::SupportMaterial
-            ->new(object_config => $print->objects->[0]->config, print_config => $print->config, flow => $flow)
+            ->new(
+                object_config       => $print->objects->[0]->config,
+                print_config        => $print->config,
+                flow                => $flow,
+                interface_flow      => $flow,
+                first_layer_flow    => $flow,
+            )
             ->support_layers_z(\@contact_z, \@top_z, $config->layer_height);
         
         is $support_z->[0], $config->first_layer_height,

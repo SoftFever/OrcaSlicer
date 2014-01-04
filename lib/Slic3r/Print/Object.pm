@@ -758,7 +758,7 @@ sub combine_infill {
         my $every = $region->config->infill_every_layers;
         
         # limit the number of combined layers to the maximum height allowed by this regions' nozzle
-        my $nozzle_diameter = $self->print->config->nozzle_diameter->[ $region->config->infill_extruder-1 ];
+        my $nozzle_diameter = $self->print->config->get_at('nozzle_diameter', $region->config->infill_extruder-1);
         
         # define the combinations
         my @combine = ();   # layer_id => thickness in layers
@@ -810,12 +810,12 @@ sub combine_infill {
                 # so let's remove those areas from all layers
                 
                  my @intersection_with_clearance = map @{$_->offset(
-                       $layerms[-1]->solid_infill_flow->scaled_width    / 2
-                     + $layerms[-1]->perimeter_flow->scaled_width / 2
+                       $layerms[-1]->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width    / 2
+                     + $layerms[-1]->flow(FLOW_ROLE_PERIMETER)->scaled_width / 2
                      # Because fill areas for rectilinear and honeycomb are grown 
                      # later to overlap perimeters, we need to counteract that too.
                      + (($type == S_TYPE_INTERNALSOLID || $region->config->fill_pattern =~ /(rectilinear|honeycomb)/)
-                       ? $layerms[-1]->solid_infill_flow->scaled_width * &Slic3r::INFILL_OVERLAP_OVER_SPACING
+                       ? $layerms[-1]->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width * &Slic3r::INFILL_OVERLAP_OVER_SPACING
                        : 0)
                      )}, @$intersection;
 
@@ -866,7 +866,8 @@ sub generate_support_material {
     my $first_layer_flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
         role                => FLOW_ROLE_SUPPORT_MATERIAL,
-        nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ],
+        nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ]
+                                // $self->print->config->nozzle_diameter->[0],
         layer_height        => $self->config->get_abs_value('first_layer_height'),
         bridge_flow_ratio   => 0,
     );
@@ -903,7 +904,7 @@ sub support_material_flow {
     return Slic3r::Flow->new_from_width(
         width               => $self->config->support_material_extrusion_width,
         role                => $role,
-        nozzle_diameter     => $self->print->config->nozzle_diameter->[$extruder-1],
+        nozzle_diameter     => $self->print->config->nozzle_diameter->[$extruder-1] // $self->print->config->nozzle_diameter->[0],
         layer_height        => $self->config->layer_height,
         bridge_flow_ratio   => 0,
     );
