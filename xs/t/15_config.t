@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 88;
+use Test::More tests => 89;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -110,6 +110,9 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     my $config2 = Slic3r::Config->new;
     $config2->apply_static($config);
     is $config2->get('perimeters'), Slic3r::Config::print_config_def()->{perimeters}{default}, 'apply_static and print_config_def';
+    
+    $config->set('top_solid_infill_speed', 70);
+    is $config->get_abs_value('top_solid_infill_speed'), 70, 'get_abs_value() works when ratio_over references a floatOrPercent option';
 }
 
 {

@@ -22,6 +22,8 @@ src/ExtrusionEntity.cpp
 src/ExtrusionEntity.hpp
 src/ExtrusionEntityCollection.cpp
 src/ExtrusionEntityCollection.hpp
+src/Flow.cpp
+src/Flow.hpp
 src/Geometry.cpp
 src/Geometry.hpp
 src/Line.cpp
@@ -65,6 +67,7 @@ t/12_extrusionpathcollection.t
 t/13_polylinecollection.t
 t/14_geometry.t
 t/15_config.t
+t/16_flow.t
 xsp/Clipper.xsp
 xsp/Config.xsp
 xsp/ExPolygon.xsp
@@ -72,6 +75,7 @@ xsp/ExPolygonCollection.xsp
 xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp
+xsp/Flow.xsp
 xsp/Geometry.xsp
 xsp/Line.xsp
 xsp/my.map

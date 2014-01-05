@@ -1,0 +1,80 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "Flow.hpp"
+%}
+
+%name{Slic3r::Flow} class Flow {
+    ~Flow();
+    %name{_new} Flow(float width, float spacing, float nozzle_diameter);
+    void set_bridge(bool bridge)
+        %code{% THIS->bridge = bridge; %};
+    Flow* clone()
+        %code{% const char* CLASS = "Slic3r::Flow"; RETVAL = new Flow(*THIS); %};
+    
+    float width()
+        %code{% RETVAL = THIS->width; %};
+    float spacing()
+        %code{% RETVAL = THIS->spacing; %};
+    float nozzle_diameter()
+        %code{% RETVAL = THIS->nozzle_diameter; %};
+    bool bridge()
+        %code{% RETVAL = THIS->bridge; %};
+    long scaled_width()
+        %code{% RETVAL = THIS->scaled_width; %};
+    long scaled_spacing()
+        %code{% RETVAL = THIS->scaled_spacing; %};
+    
+    double mm3_per_mm(float height);
+%{
+
+Flow*
+_new_from_width(CLASS, role, width, nozzle_diameter, height, bridge_flow_ratio)
+    char*           CLASS;
+    FlowRole        role;
+    std::string     width;
+    float           nozzle_diameter;
+    float           height;
+    float           bridge_flow_ratio;
+    CODE:
+        ConfigOptionFloatOrPercent optwidth;
+        optwidth.deserialize(width);
+        RETVAL = new Flow(Flow::new_from_config_width(role, optwidth, nozzle_diameter, height, bridge_flow_ratio));
+    OUTPUT:
+        RETVAL
+
+Flow*
+_new_from_spacing(CLASS, spacing, nozzle_diameter, height, bridge)
+    char*           CLASS;
+    float           spacing;
+    float           nozzle_diameter;
+    float           height;
+    bool            bridge;
+    CODE:
+        RETVAL = new Flow(Flow::new_from_spacing(spacing, nozzle_diameter, height, bridge));
+    OUTPUT:
+        RETVAL
+
+%}
+};
+
+%package{Slic3r::Flow};
+%{
+
+IV
+_constant()
+  ALIAS:
+    FLOW_ROLE_PERIMETER                     = frPerimeter
+    FLOW_ROLE_INFILL                        = frInfill
+    FLOW_ROLE_SOLID_INFILL                  = frSolidInfill
+    FLOW_ROLE_TOP_SOLID_INFILL              = frTopSolidInfill
+    FLOW_ROLE_SUPPORT_MATERIAL              = frSupportMaterial
+    FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE    = frSupportMaterialInterface
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
+%}
+

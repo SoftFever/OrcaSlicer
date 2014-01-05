@@ -50,22 +50,18 @@ ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) 
 
 double
 ConfigBase::get_abs_value(const t_config_option_key opt_key) {
-    // get option definition
-    assert(this->def->count(opt_key) != 0);
-    ConfigOptionDef* def = &(*this->def)[opt_key];
-    assert(def->type == coFloatOrPercent);
-    
-    // get stored option value
-    ConfigOptionFloatOrPercent* opt = dynamic_cast<ConfigOptionFloatOrPercent*>(this->option(opt_key));
-    assert(opt != NULL);
-    
-    // compute absolute value
-    if (opt->percent) {
-        ConfigOptionFloat* optbase = dynamic_cast<ConfigOptionFloat*>(this->option(def->ratio_over));
-        if (optbase == NULL) throw "ratio_over option not found";
-        return optbase->value * opt->value / 100;
+    ConfigOption* opt = this->option(opt_key, false);
+    if (ConfigOptionFloatOrPercent* optv = dynamic_cast<ConfigOptionFloatOrPercent*>(opt)) {
+        // get option definition
+        assert(this->def->count(opt_key) != 0);
+        ConfigOptionDef* def = &(*this->def)[opt_key];
+        
+        // compute absolute value over the absolute value of the base option
+        return optv->get_abs_value(this->get_abs_value(def->ratio_over));
+    } else if (ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt)) {
+        return optv->value;
     } else {
-        return opt->value;
+        throw "Not a valid option type for get_abs_value()";
     }
 }
 
@@ -76,11 +72,7 @@ ConfigBase::get_abs_value(const t_config_option_key opt_key, double ratio_over) 
     assert(opt != NULL);
     
     // compute absolute value
-    if (opt->percent) {
-        return ratio_over * opt->value / 100;
-    } else {
-        return opt->value;
-    }
+    return opt->get_abs_value(ratio_over);
 }
 
 #ifdef SLIC3RXS

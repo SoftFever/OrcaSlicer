@@ -21,7 +21,7 @@ typedef std::vector<std::string> t_config_option_keys;
 class ConfigOption {
     public:
     virtual ~ConfigOption() {};
-    virtual std::string serialize() = 0;
+    virtual std::string serialize() const = 0;
     virtual void deserialize(std::string str) = 0;
 };
 
@@ -49,7 +49,7 @@ class ConfigOptionFloat : public ConfigOption
     
     operator double() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->value;
         return ss.str();
@@ -64,7 +64,7 @@ class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double
 {
     public:
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<double>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -91,7 +91,7 @@ class ConfigOptionInt : public ConfigOption
     
     operator int() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->value;
         return ss.str();
@@ -106,7 +106,7 @@ class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
 {
     public:
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<int>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -133,7 +133,7 @@ class ConfigOptionString : public ConfigOption
     
     operator std::string() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::string str = this->value;
         
         // s/\R/\\n/g
@@ -163,7 +163,7 @@ class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::
 {
     public:
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<std::string>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ";";
@@ -189,7 +189,15 @@ class ConfigOptionFloatOrPercent : public ConfigOption
     bool percent;
     ConfigOptionFloatOrPercent() : value(0), percent(false) {};
     
-    std::string serialize() {
+    double get_abs_value(double ratio_over) const {
+        if (this->percent) {
+            return ratio_over * this->value / 100;
+        } else {
+            return this->value;
+        }
+    };
+    
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->value;
         std::string s(ss.str());
@@ -216,7 +224,7 @@ class ConfigOptionPoint : public ConfigOption
     
     operator Pointf() const { return this->point; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->point.x;
         ss << ",";
@@ -233,7 +241,7 @@ class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf
 {
     public:
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -264,7 +272,7 @@ class ConfigOptionBool : public ConfigOption
     
     operator bool() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         return std::string(this->value ? "1" : "0");
     };
     
@@ -277,7 +285,7 @@ class ConfigOptionBools : public ConfigOption, public ConfigOptionVector<bool>
 {
     public:
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -306,7 +314,7 @@ class ConfigOptionEnum : public ConfigOption
     
     operator T() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
         for (t_config_enum_values::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
             if (it->second == static_cast<int>(this->value)) return it->first;
@@ -333,7 +341,7 @@ class ConfigOptionEnumGeneric : public ConfigOption
     
     operator int() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         for (t_config_enum_values::iterator it = this->keys_map->begin(); it != this->keys_map->end(); ++it) {
             if (it->second == this->value) return it->first;
         }

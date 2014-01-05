@@ -146,6 +146,34 @@ our @ISA = 'Slic3r::ExtrusionPath';
 
 sub DESTROY {}
 
+package Slic3r::Flow;
+
+sub new {
+    my ($class, %args) = @_;
+    
+    my $self = $class->_new(
+        @args{qw(width spacing nozzle_diameter)},
+    );
+    $self->set_bridge($args{bridge} // 0);
+    return $self;
+}
+
+sub new_from_width {
+    my ($class, %args) = @_;
+    
+    return $class->_new_from_width(
+        @args{qw(role width nozzle_diameter layer_height bridge_flow_ratio)},
+    );
+}
+
+sub new_from_spacing {
+    my ($class, %args) = @_;
+    
+    return $class->_new_from_spacing(
+        @args{qw(spacing nozzle_diameter layer_height bridge)},
+    );
+}
+
 package Slic3r::Surface;
 
 sub new {
