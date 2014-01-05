@@ -387,59 +387,65 @@ sub load_file {
     my $model = eval { Slic3r::Model->read_from_file($input_file) };
     Slic3r::GUI::show_error($self, $@) if $@;
     
-    $self->load_model_object($_) for @{$model->objects};
+    $self->load_model_objects(@{$model->objects});
     
     $process_dialog->Destroy;
     $self->statusbar->SetStatusText("Loaded " . basename($input_file));
 }
 
-sub load_model_object {
-    my ($self, $model_object) = @_;
-    
-    my $o = $self->{model}->add_object($model_object);
-        
-    push @{ $self->{objects} }, Slic3r::GUI::Plater::Object->new(
-        name => basename($model_object->input_file),
-    );
+sub load_model_objects {
+    my ($self, @model_objects) = @_;
     
     my $need_arrange = 0;
-    if (!defined $model_object->instances) {
-        # if object has no defined position(s) we need to rearrange everything after loading
-        $need_arrange = 1;
+    my @obj_idx = ();
+    foreach my $model_object (@model_objects) {
+        my $o = $self->{model}->add_object($model_object);
         
-        # add a default instance and center object around origin
-        $o->center_around_origin;
-        $o->add_instance(offset => [ @{$self->{config}->print_center} ]);
-    }
+        push @{ $self->{objects} }, Slic3r::GUI::Plater::Object->new(
+            name => basename($model_object->input_file),
+        );
+        push @obj_idx, $#{ $self->{objects} };
     
-    $self->{print}->add_model_object($o);
+        if (!defined $model_object->instances) {
+            # if object has no defined position(s) we need to rearrange everything after loading
+            $need_arrange = 1;
+        
+            # add a default instance and center object around origin
+            $o->center_around_origin;
+            $o->add_instance(offset => [ @{$self->{config}->print_center} ]);
+        }
+    
+        $self->{print}->add_model_object($o);
+    }
     
     # if user turned autocentering off, automatic arranging would disappoint them
     if (!$Slic3r::GUI::Settings->{_}{autocenter}) {
         $need_arrange = 0;
     }
     
-    $self->object_loaded($#{ $self->{objects} }, no_arrange => !$need_arrange);
+    $self->objects_loaded(\@obj_idx, no_arrange => !$need_arrange);
 }
 
-sub object_loaded {
+sub objects_loaded {
     my $self = shift;
-    my ($obj_idx, %params) = @_;
+    my ($obj_idxs, %params) = @_;
     
-    my $object = $self->{objects}[$obj_idx];
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    $self->{list}->InsertStringItem($obj_idx, $object->name);
-    $self->{list}->SetItemFont($obj_idx, Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL))
-        if $self->{list}->can('SetItemFont');  # legacy code for wxPerl < 0.9918 not supporting SetItemFont()
+    foreach my $obj_idx (@$obj_idxs) {
+        my $object = $self->{objects}[$obj_idx];
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        $self->{list}->InsertStringItem($obj_idx, $object->name);
+        $self->{list}->SetItemFont($obj_idx, Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL))
+            if $self->{list}->can('SetItemFont');  # legacy code for wxPerl < 0.9918 not supporting SetItemFont()
     
-    $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
-    $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");
+        $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
+        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");
     
-    $self->make_thumbnail($obj_idx);
+        $self->make_thumbnail($obj_idx);
+    }
     $self->arrange unless $params{no_arrange};
     $self->update;
     $self->{list}->Update;
-    $self->{list}->Select($obj_idx, 1);
+    $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
 }
 
@@ -657,7 +663,7 @@ sub split_object {
         }
         # we need to center this single object around origin
         $model_object->center_around_origin;
-        $self->load_model_object($model_object);
+        $self->load_model_objects($model_object);
     }
 }
 
