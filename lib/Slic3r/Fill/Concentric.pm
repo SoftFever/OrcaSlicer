@@ -15,16 +15,22 @@ sub fill_surface {
     my $expolygon = $surface->expolygon;
     my $bounding_box = $expolygon->bounding_box;
     
-    my $min_spacing = scale $params{flow_spacing};
+    my $flow = $params{flow};
+    my $min_spacing = $flow->scaled_spacing;
     my $distance = $min_spacing / $params{density};
     
-    my $flow_spacing = $params{flow_spacing};
+    my $flow_spacing = $flow->spacing;
     if ($params{density} == 1 && !$params{dont_adjust}) {
         $distance = $self->adjust_solid_spacing(
             width       => $bounding_box->size->[X],
             distance    => $distance,
         );
-        $flow_spacing = unscale $distance;
+        $flow = Slic3r::Flow->new_from_spacing(
+            spacing             => unscale($distance),
+            nozzle_diameter     => $flow->nozzle_diameter,
+            layer_height        => $surface->thickness,
+            bridge              => $flow->bridge,
+        );
     }
     
     # compensate the overlap which is good for rectilinear but harmful for concentric
@@ -48,11 +54,11 @@ sub fill_surface {
     }
     
     # clip the paths to avoid the extruder to get exactly on the first point of the loop
-    my $clip_length = scale $flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING;
+    my $clip_length = scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER;
     $_->clip_end($clip_length) for @paths;
     
     # TODO: return ExtrusionLoop objects to get better chained paths
-    return { flow_spacing => $flow_spacing, no_sort => 1 }, @paths;
+    return { flow => $flow, no_sort => 1 }, @paths;
 }
 
 1;

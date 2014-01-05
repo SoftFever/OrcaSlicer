@@ -99,20 +99,21 @@ sub model {
 sub init_print {
     my ($model_name, %params) = @_;
     
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config->new;
     $config->apply($params{config}) if $params{config};
     $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
-    my $print = Slic3r::Print->new(config => $config);
+    my $print = Slic3r::Print->new;
+    $print->apply_config($config);
     
     $model_name = [$model_name] if ref($model_name) ne 'ARRAY';
     for my $model (map model($_, %params), @$model_name) {
         die "Unknown model in test" if !defined $model;
         if (defined $params{duplicate} && $params{duplicate} > 1) {
-            $model->duplicate($params{duplicate} // 1, $config->min_object_distance);
+            $model->duplicate($params{duplicate} // 1, $print->config->min_object_distance);
         }
-        $model->arrange_objects($config->min_object_distance);
-        $model->center_instances_around_point($config->print_center);
+        $model->arrange_objects($print->config->min_object_distance);
+        $model->center_instances_around_point($print->config->print_center);
         $print->add_model_object($_) for @{$model->objects};
     }
     $print->validate;

@@ -43,9 +43,14 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         surface_type    => S_TYPE_TOP,
         expolygon       => $expolygon,
     );
+    my $flow = Slic3r::Flow->new(
+        width           => 0.69,
+        spacing         => 0.69,
+        nozzle_diameter => 0.50,
+    );
     foreach my $angle (0, 45) {
         $surface->expolygon->rotate(Slic3r::Geometry::deg2rad($angle), [0,0]);
-        my ($params, @paths) = $filler->fill_surface($surface, flow_spacing => 0.69, density => 0.4);
+        my ($params, @paths) = $filler->fill_surface($surface, flow => $flow, density => 0.4);
         is scalar @paths, 1, 'one continuous path';
     }
 }
@@ -62,14 +67,19 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
             surface_type    => S_TYPE_BOTTOM,
             expolygon       => $expolygon,
         );
+        my $flow = Slic3r::Flow->new(
+            width           => $flow_spacing,
+            spacing         => $flow_spacing,
+            nozzle_diameter => $flow_spacing,
+        );
         my ($params, @paths) = $filler->fill_surface(
             $surface,
-            flow_spacing    => $flow_spacing,
+            flow            => $flow,
             density         => $density // 1,
         );
         
         # check whether any part was left uncovered
-        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $params->{flow_spacing}/2)}, @paths;
+        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $params->{flow}->spacing/2)}, @paths;
         my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ], 1);
         
         # ignore very small dots
@@ -134,7 +144,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(
-        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0, mm3_per_mm => 1),
             Slic3r::Polyline->new([0,15], [0,18], [0,20]),
             Slic3r::Polyline->new([0,10], [0,8], [0,5]),
     );
@@ -146,7 +156,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(
-        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0),
+        map Slic3r::ExtrusionPath->new(polyline => $_, role => 0, mm3_per_mm => 1),
             Slic3r::Polyline->new([15,0], [10,0], [4,0]),
             Slic3r::Polyline->new([10,5], [15,5], [20,5]),
     );

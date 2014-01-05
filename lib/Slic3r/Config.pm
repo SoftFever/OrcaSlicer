@@ -7,7 +7,7 @@ use List::Util qw(first);
 
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
-    adjust_overhang_flow standby_temperature);
+    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid);
 
 our $Options = print_config_def();
 
@@ -24,7 +24,7 @@ sub new_from_defaults {
     my (@opt_keys) = @_;
     
     my $self = $class->new;
-    my $defaults = Slic3r::Config::Print->new;
+    my $defaults = Slic3r::Config::Full->new;
     if (@opt_keys) {
         $self->set($_, $defaults->get($_)) for @opt_keys;
     } else {
@@ -76,7 +76,7 @@ sub load {
     my ($file) = @_;
     
     my $ini = __PACKAGE__->read_ini($file);
-    my $config = __PACKAGE__->new;
+    my $config = $class->new;
     foreach my $opt_key (keys %{$ini->{_}}) {
         ($opt_key, my $value) = _handle_legacy($opt_key, $ini->{_}{$opt_key});
         next if !defined $opt_key;
@@ -88,7 +88,7 @@ sub load {
 sub clone {
     my $self = shift;
     
-    my $new = __PACKAGE__->new;
+    my $new = (ref $self)->new;
     $new->apply($self);
     return $new;
 }
@@ -175,7 +175,25 @@ sub setenv {
     }
 }
 
-# this method is idempotent by design
+sub equals {
+    my ($self, $other) = @_;
+    return @{ $self->diff($other) } == 0;
+}
+
+# this will *ignore* options not present in both configs
+sub diff {
+    my ($self, $other) = @_;
+    
+    my @diff = ();
+    foreach my $opt_key (sort @{$self->get_keys}) {
+        push @diff, $opt_key
+            if $other->has($opt_key) && $other->serialize($opt_key) ne $self->serialize($opt_key);
+    }
+    return [@diff];
+}
+
+# this method is idempotent by design and only applies to ::DynamicConfig or ::Full
+# objects because it performs cross checks
 sub validate {
     my $self = shift;
     
@@ -248,26 +266,10 @@ sub validate {
     die "Invalid value for --infill-every-layers\n"
         if $self->infill_every_layers !~ /^\d+$/ || $self->infill_every_layers < 1;
     
-    # --scale
-    die "Invalid value for --scale\n"
-        if $self->scale <= 0;
-    
     # --bed-size
     die "Invalid value for --bed-size\n"
         if !ref $self->bed_size 
             && (!$self->bed_size || $self->bed_size !~ /^\d+,\d+$/);
-    
-    # --duplicate-grid
-    die "Invalid value for --duplicate-grid\n"
-        if !ref $self->duplicate_grid 
-            && (!$self->duplicate_grid || $self->duplicate_grid !~ /^\d+,\d+$/);
-    
-    # --duplicate
-    die "Invalid value for --duplicate or --duplicate-grid\n"
-        if !$self->duplicate || $self->duplicate < 1 || !$self->duplicate_grid
-            || (grep !$_, @{$self->duplicate_grid});
-    die "Use either --duplicate or --duplicate-grid (using both doesn't make sense)\n"
-        if $self->duplicate > 1 && $self->duplicate_grid && (grep $_ && $_ > 1, @{$self->duplicate_grid});
     
     # --skirt-height
     die "Invalid value for --skirt-height\n"
@@ -292,8 +294,33 @@ sub validate {
         if ($self->perimeter_acceleration || $self->infill_acceleration || $self->bridge_acceleration || $self->first_layer_acceleration)
             && !$self->default_acceleration;
     
+    # --spiral-vase
+    if ($self->spiral_vase) {
+        # Note that we might want to have more than one perimeter on the bottom
+        # solid layers.
+        die "Can't make more than one perimeter when spiral vase mode is enabled\n"
+            if $self->perimeters > 1;
+        
+        die "Can't make less than one perimeter when spiral vase mode is enabled\n"
+            if $self->perimeters < 1;
+        
+        die "Spiral vase mode is not compatible with non-zero fill density\n"
+            if $self->fill_density > 0;
+        
+        die "Spiral vase mode is not compatible with top solid layers\n"
+            if $self->top_solid_layers > 0;
+        
+        die "Spiral vase mode is not compatible with support material\n"
+            if $self->support_material || $self->support_material_enforce_layers > 0;
+        
+        # This should be enforce automatically only on spiral layers and
+        # done on the others
+        die "Spiral vase mode is not compatible with retraction on layer change\n"
+            if defined first { $_ } @{ $self->retract_layer_change };
+    }
+    
     # general validation, quick and dirty
-    foreach my $opt_key (keys %$Options) {
+    foreach my $opt_key (@{$self->get_keys}) {
         my $opt = $Options->{$opt_key};
         next unless defined $self->$opt_key;
         next unless defined $opt->{cli} && $opt->{cli} =~ /=(.+)$/;
@@ -414,5 +441,17 @@ sub read_ini {
     
     return $ini;
 }
+
+package Slic3r::Config::Print;
+use parent 'Slic3r::Config';
+
+package Slic3r::Config::PrintObject;
+use parent 'Slic3r::Config';
+
+package Slic3r::Config::PrintRegion;
+use parent 'Slic3r::Config';
+
+package Slic3r::Config::Full;
+use parent 'Slic3r::Config';
 
 1;

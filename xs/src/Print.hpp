@@ -22,6 +22,7 @@ class PrintState
     void set_started(PrintStep step);
     void set_done(PrintStep step);
     void invalidate(PrintStep step);
+    void invalidate_all();
 };
 
 }

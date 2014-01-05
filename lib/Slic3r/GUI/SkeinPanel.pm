@@ -88,25 +88,15 @@ sub quick_slice {
     my $self = shift;
     my %params = @_;
     
-    my $process_dialog;
+    my $progress_dialog;
     eval {
         # validate configuration
         my $config = $self->config;
         $config->validate;
-
-        # confirm slicing of more than one copies
-        my $copies = $config->duplicate_grid->[X] * $config->duplicate_grid->[Y];
-        $copies = $config->duplicate if $config->duplicate > 1;
-        if ($copies > 1) {
-            my $confirmation = Wx::MessageDialog->new($self, "Are you sure you want to slice $copies copies?",
-                                                      'Multiple Copies', wxICON_QUESTION | wxOK | wxCANCEL);
-            return unless $confirmation->ShowModal == wxID_OK;
-        }
         
         # select input file
-        my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-
         my $input_file;
+        my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
         if (!$params{reslice}) {
             my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF):', $dir, "", MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
@@ -133,28 +123,23 @@ sub quick_slice {
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
         Slic3r::GUI->save_settings;
         
-        my $print = $self->init_print;
-        my $model = eval { Slic3r::Model->read_from_file($input_file) };
-        Slic3r::GUI::show_error($self, $@) if $@;
+        my $sprint = Slic3r::Print::Simple->new(
+            status_cb       => sub {
+                my ($percent, $message) = @_;
+                return if &Wx::wxVERSION_STRING !~ / 2\.(8\.|9\.[2-9])/;
+                $progress_dialog->Update($percent, "$message…");
+            },
+        );
         
-        if ($model->has_objects_with_no_instances) {
-            # apply a default position to all objects not having one
-            foreach my $object (@{$model->objects}) {
-                $object->add_instance(offset => [0,0]) if !defined $object->instances;
-            }
-            $model->arrange_objects($config->min_object_distance);
-        }
-        $model->center_instances_around_point($config->print_center);
+        $sprint->apply_config($config);
+        $sprint->set_model(Slic3r::Model->read_from_file($input_file));
         
-        $print->add_model_object($_) for @{ $model->objects };
-        $print->validate;
-
         # select output file
-        my $output_file = $main::opt{output};
+        my $output_file;
         if ($params{reslice}) {
             $output_file = $last_output_file if defined $last_output_file;
         } elsif ($params{save_as}) {
-            $output_file = $print->expanded_output_filepath($output_file);
+            $output_file = $sprint->expanded_output_filepath;
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
                 Slic3r::GUI->output_path(dirname($output_file)),
@@ -171,40 +156,32 @@ sub quick_slice {
         }
         
         # show processbar dialog
-        $process_dialog = Wx::ProgressDialog->new('Slicing…', "Processing $input_file_basename…", 
+        $progress_dialog = Wx::ProgressDialog->new('Slicing…', "Processing $input_file_basename…", 
             100, $self, 0);
-        $process_dialog->Pulse;
+        $progress_dialog->Pulse;
         
         {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
-            my %export_params = (
-                output_file => $output_file,
-            );
-            $print->status_cb(sub {
-                my ($percent, $message) = @_;
-                if (&Wx::wxVERSION_STRING =~ / 2\.(8\.|9\.[2-9])/) {
-                    $process_dialog->Update($percent, "$message…");
-                }
-            });
+            
+            $sprint->output_file($output_file);
             if ($params{export_svg}) {
-                $print->export_svg(%export_params);
+                $sprint->export_svg;
             } else {
-                $print->process;
-                $print->export_gcode(%export_params);
+                $sprint->export_gcode;
             }
-            $print->status_cb(undef);
+            $sprint->status_cb(undef);
             Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
-        $process_dialog->Destroy;
-        undef $process_dialog;
+        $progress_dialog->Destroy;
+        undef $progress_dialog;
         
         my $message = "$input_file_basename was successfully sliced.";
         &Wx::wxTheApp->notify($message);
         Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
-    Slic3r::GUI::catch_error($self, sub { $process_dialog->Destroy if $process_dialog });
+    Slic3r::GUI::catch_error($self, sub { $progress_dialog->Destroy if $progress_dialog });
 }
 
 sub repair_stl {

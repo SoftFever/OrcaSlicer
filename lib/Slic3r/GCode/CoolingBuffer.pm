@@ -1,7 +1,7 @@
 package Slic3r::GCode::CoolingBuffer;
 use Moo;
 
-has 'config'    => (is => 'ro', required => 1);
+has 'config'    => (is => 'ro', required => 1);  # Slic3r::Config::Print
 has 'gcodegen'  => (is => 'ro', required => 1);
 has 'gcode'     => (is => 'rw', default => sub {""});
 has 'elapsed_time' => (is => 'rw', default => sub {0});

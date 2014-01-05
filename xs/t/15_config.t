@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 78;
+use Test::More tests => 89;
 
-foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
+foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
     ok abs($config->get('layer_height') - 0.3) < 1e-4, 'set/get float';
     is $config->serialize('layer_height'), '0.3', 'serialize float';
@@ -49,6 +49,9 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     $config->set_deserialize('gcode_flavor', 'mach3');
     is $config->get('gcode_flavor'), 'mach3', 'deserialize enum';
     
+    $config->set_deserialize('fill_pattern', 'line');
+    is $config->get('fill_pattern'), 'line', 'deserialize enum';
+    
     $config->set('extruder_offset', [[10,20],[30,45]]);
     is_deeply $config->get('extruder_offset'), [[10,20],[30,45]], 'set/get points';
     is $config->serialize('extruder_offset'), '10x20,30x45', 'serialize points';
@@ -72,6 +75,9 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
     
     $config->set('wipe', [1,0]);
     is_deeply $config->get('wipe'), [1,0], 'set/get bools';
+    is $config->get_at('wipe', 0), 1, 'get_at bools';
+    is $config->get_at('wipe', 1), 0, 'get_at bools';
+    is $config->get_at('wipe', 9), 1, 'get_at bools';
     is $config->serialize('wipe'), '1,0', 'serialize bools';
     $config->set_deserialize('wipe', '0,1,1');
     is_deeply $config->get('wipe'), [0,1,1], 'deserialize bools';
@@ -88,20 +94,35 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Print->new) {
 {
     my $config = Slic3r::Config->new;
     $config->set('perimeters', 2);
+    $config->set('solid_layers', 2);
+    is $config->get('top_solid_layers'), 2, 'shortcut';
     
     # test that no crash happens when using set_deserialize() with a key that hasn't been set() yet
     $config->set_deserialize('filament_diameter', '3');
     
-    my $config2 = Slic3r::Config::Print->new;
+    my $config2 = Slic3r::Config::Full->new;
     $config2->apply_dynamic($config);
     is $config2->get('perimeters'), 2, 'apply_dynamic';
 }
 
 {
-    my $config = Slic3r::Config::Print->new;
+    my $config = Slic3r::Config::Full->new;
     my $config2 = Slic3r::Config->new;
     $config2->apply_static($config);
     is $config2->get('perimeters'), Slic3r::Config::print_config_def()->{perimeters}{default}, 'apply_static and print_config_def';
+    
+    $config->set('top_solid_infill_speed', 70);
+    is $config->get_abs_value('top_solid_infill_speed'), 70, 'get_abs_value() works when ratio_over references a floatOrPercent option';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('fill_pattern', 'line');
+
+    my $config2 = Slic3r::Config->new;
+    $config2->set('fill_pattern', 'hilbertcurve');
+    
+    is $config->get('fill_pattern'), 'line', 'no interferences between DynamicConfig objects';
 }
 
 __END__

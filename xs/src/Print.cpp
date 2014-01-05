@@ -33,4 +33,11 @@ PrintState::invalidate(PrintStep step)
     this->_done.erase(step);
 }
 
+void
+PrintState::invalidate_all()
+{
+    this->_started.clear();
+    this->_done.clear();
+}
+
 }

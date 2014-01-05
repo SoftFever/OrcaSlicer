@@ -12,7 +12,6 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
-use Slic3r::Geometry qw(X Y);
 use Time::HiRes qw(gettimeofday tv_interval);
 $|++;
 
@@ -38,6 +37,11 @@ my %cli_options = ();
         'merge|m'               => \$opt{merge},
         'repair'                => \$opt{repair},
         'info'                  => \$opt{info},
+        
+        'scale=f'               => \$opt{scale},
+        'rotate=i'              => \$opt{rotate},
+        'duplicate=i'           => \$opt{duplicate},
+        'duplicate-grid=s'      => \$opt{duplicate_grid},
     );
     foreach my $opt_key (keys %{$Slic3r::Config::Options}) {
         my $cli = $Slic3r::Config::Options->{$opt_key}->{cli} or next;
@@ -122,52 +126,36 @@ if (@ARGV) {  # slicing from command line
             $model = Slic3r::Model->read_from_file($input_file);
         }
         
-        my $need_arrange = $model->has_objects_with_no_instances;
-        if ($need_arrange) {
-            # apply a default position to all objects not having one
-            foreach my $object (@{$model->objects}) {
-                $object->add_instance(offset => [0,0]) if !defined $object->instances;
-            }
-        }
-        
-        # apply scaling and rotation supplied from command line if any
-        foreach my $instance (map @{$_->instances}, @{$model->objects}) {
-            $instance->scaling_factor($instance->scaling_factor * $config->scale);
-            $instance->rotation($instance->rotation + $config->rotate);
-        }
-        # TODO: --scale --rotate, --duplicate* shouldn't be stored in config
-        
-        if ($config->duplicate_grid->[X] > 1 || $config->duplicate_grid->[Y] > 1) {
-            $model->duplicate_objects_grid($config->duplicate_grid, $config->duplicate_distance);
-        } elsif ($need_arrange) {
-            $model->duplicate_objects($config->duplicate, $config->min_object_distance);
-        } elsif ($config->duplicate > 1) {
-            # if all input objects have defined position(s) apply duplication to the whole model
-            $model->duplicate($config->duplicate, $config->min_object_distance);
-        }
-        $model->center_instances_around_point($config->print_center);
-        
         if ($opt{info}) {
             $model->print_info;
             next;
         }
         
-        my $print = Slic3r::Print->new(
-            config      => $config,
-            status_cb   => sub {
+        if (defined $opt{duplicate_grid}) {
+            $opt{duplicate_grid} = [ split /[,x]/, $opt{duplicate_grid}, 2 ];
+        }
+        
+        my $sprint = Slic3r::Print::Simple->new(
+            scale           => $opt{scale}          // 1,
+            rotate          => $opt{rotate}         // 0,
+            duplicate       => $opt{duplicate}      // 1,
+            duplicate_grid  => $opt{duplicate_grid} // [1,1],
+            status_cb       => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
             },
+            output_file     => $opt{output},
         );
-        $print->add_model_object($_) for @{$model->objects};
+        
+        $sprint->apply_config($config);
+        $sprint->set_model($model);
         undef $model;  # free memory
-        $print->validate;
+        
         if ($opt{export_svg}) {
-            $print->export_svg(output_file => $opt{output});
+            $sprint->export_svg;
         } else {
             my $t0 = [gettimeofday];
-            $print->process;
-            $print->export_gcode(output_file => $opt{output});
+            $sprint->export_gcode;
             
             # output some statistics
             {
@@ -175,9 +163,8 @@ if (@ARGV) {  # slicing from command line
                 printf "Done. Process took %d minutes and %.3f seconds\n", 
                     int($duration/60), ($duration - int($duration/60)*60);  # % truncates to integer
             }
-            print map sprintf("Filament required: %.1fmm (%.1fcm3)\n",
-                $_->absolute_E, $_->extruded_volume/1000),
-                @{$print->extruders};
+            printf "Filament required: %.1fmm (%.1fcm3)\n",
+                $sprint->total_used_filament, $sprint->total_extruded_volume/1000;
         }
     }
 } else {
@@ -415,11 +402,11 @@ $j
                         (mm, default: $config->{brim_width})
    
    Transform options:
-    --scale             Factor for scaling input object (default: $config->{scale})
-    --rotate            Rotation angle in degrees (0-360, default: $config->{rotate})
-    --duplicate         Number of items with auto-arrange (1+, default: $config->{duplicate})
+    --scale             Factor for scaling input object (default: 1)
+    --rotate            Rotation angle in degrees (0-360, default: 0)
+    --duplicate         Number of items with auto-arrange (1+, default: 1)
     --bed-size          Bed size, only used for auto-arrange (mm, default: $config->{bed_size}->[0],$config->{bed_size}->[1])
-    --duplicate-grid    Number of items with grid arrangement (default: $config->{duplicate_grid}->[0],$config->{duplicate_grid}->[1])
+    --duplicate-grid    Number of items with grid arrangement (default: 1,1)
     --duplicate-distance Distance in mm between copies (default: $config->{duplicate_distance})
    
    Sequential printing options:

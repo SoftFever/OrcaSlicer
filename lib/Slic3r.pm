@@ -68,6 +68,7 @@ use Slic3r::Polyline;
 use Slic3r::Print;
 use Slic3r::Print::Object;
 use Slic3r::Print::Region;
+use Slic3r::Print::Simple;
 use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
@@ -76,9 +77,8 @@ our $build = eval "use Slic3r::Build; 1";
 use constant SCALING_FACTOR         => 0.000001;
 use constant RESOLUTION             => 0.0125;
 use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
-use constant OVERLAP_FACTOR         => 1;
 use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
-use constant LOOP_CLIPPING_LENGTH_OVER_SPACING      => 0.15;
+use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
 use constant INFILL_OVERLAP_OVER_SPACING  => 0.45;
 use constant EXTERNAL_INFILL_MARGIN => 3;
 
@@ -132,7 +132,10 @@ sub thread_cleanup {
     # prevent destruction of shared objects
     no warnings 'redefine';
     *Slic3r::Config::DESTROY                = sub {};
+    *Slic3r::Config::Full::DESTROY          = sub {};
     *Slic3r::Config::Print::DESTROY         = sub {};
+    *Slic3r::Config::PrintObject::DESTROY   = sub {};
+    *Slic3r::Config::PrintRegion::DESTROY   = sub {};
     *Slic3r::ExPolygon::DESTROY             = sub {};
     *Slic3r::ExPolygon::Collection::DESTROY = sub {};
     *Slic3r::ExtrusionLoop::DESTROY         = sub {};

@@ -27,7 +27,8 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $distance_between_lines = scale $params{flow_spacing} / $params{density} * $self->multiplier;
+    my $flow = $params{flow};
+    my $distance_between_lines = $flow->scaled_spacing / $params{density} * $self->multiplier;
     my $bounding_box = $expolygon->bounding_box;
     
     (ref $self) =~ /::([^:]+)$/;
@@ -54,7 +55,7 @@ sub fill_surface {
     # paths must be rotated back
     $self->rotate_points_back(\@paths, $rotate_vector);
     
-    return { flow_spacing => $params{flow_spacing} }, @paths;
+    return { flow => $flow }, @paths;
 }
 
 1;

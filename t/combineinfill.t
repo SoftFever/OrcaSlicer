@@ -11,10 +11,41 @@ use List::Util qw(first);
 use Slic3r;
 use Slic3r::Test;
 
-plan skip_all => 'this test is currently disabled';  # needs to be adapted to the new API
-plan tests => 3;
+plan tests => 2;
 
 {
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('layer_height', 0.2);
+    $config->set('first_layer_height', 0.2);
+    $config->set('nozzle_diameter', [0.5]);
+    $config->set('infill_every_layers', 2);
+    $config->set('infill_extruder', 2);
+    $config->set('top_solid_layers', 0);
+    $config->set('bottom_solid_layers', 0);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok my $gcode = Slic3r::Test::gcode($print), "infill_every_layers does not crash";
+    
+    my $tool = undef;
+    my %layer_infill = ();  # layer_z => has_infill
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+            $layer_infill{$self->Z} //= 0;
+            if ($tool == $config->infill_extruder-1) {
+                $layer_infill{$self->Z} = 1;
+            }
+        }
+    });
+    my $layers_with_infill = grep $_,  values %layer_infill;
+    $layers_with_infill--; # first layer is never combined
+    is $layers_with_infill, scalar(keys %layer_infill)/2, 'infill is only present in correct number of layers';
+}
+
+# the following needs to be adapted to the new API
+if (0) {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('skirts', 0);
     $config->set('solid_layers', 0);

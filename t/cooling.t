@@ -13,10 +13,14 @@ use Slic3r;
 use Slic3r::Test;
 
 sub buffer {
-    my $config = shift || Slic3r::Config->new_from_defaults;
+    my $config = shift || Slic3r::Config->new;
+    
+    my $print_config = Slic3r::Config::Print->new;
+    $print_config->apply_dynamic($config);
+    
     my $buffer = Slic3r::GCode::CoolingBuffer->new(
-        config      => $config,
-        gcodegen    => Slic3r::GCode->new(config => $config, layer_count => 10, extruders => []),
+        config      => $print_config,
+        gcodegen    => Slic3r::GCode->new(print_config => $print_config, layer_count => 10, extruders => []),
     );
     return $buffer;
 }

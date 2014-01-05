@@ -17,11 +17,11 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     
     # cache hexagons math
-    my $cache_id = sprintf "d%s_s%s", $params{density}, $params{flow_spacing};
+    my $cache_id = sprintf "d%s_s%s", $params{density}, $params{flow}->spacing;
     my $m;
     if (!($m = $self->cache->{$cache_id})) {
         $m = $self->cache->{$cache_id} = {};
-        my $min_spacing = scale $params{flow_spacing};
+        my $min_spacing = $params{flow}->scaled_spacing;
         $m->{distance} = $min_spacing / $params{density};
         $m->{hex_side} = $m->{distance} / (sqrt(3)/2);
         $m->{hex_width} = $m->{distance} * 2;  # $m->{hex_width} == $m->{hex_side} * sqrt(3);
@@ -120,7 +120,7 @@ sub fill_surface {
         )};
     }
     
-    return { flow_spacing => $params{flow_spacing} }, @paths;
+    return { flow => $params{flow} }, @paths;
 }
 
 1;

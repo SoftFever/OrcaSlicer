@@ -1,6 +1,12 @@
 package Slic3r::Extruder;
 use Moo;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK   = qw(EXTRUDER_ROLE_PERIMETER EXTRUDER_ROLE_INFILL EXTRUDER_ROLE_SUPPORT_MATERIAL
+                    EXTRUDER_ROLE_SUPPORT_MATERIAL_INTERFACE);
+our %EXPORT_TAGS = (roles => \@EXPORT_OK);
+
 use Slic3r::Geometry qw(PI scale);
 
 use constant OPTIONS => [qw(
@@ -12,24 +18,31 @@ use constant OPTIONS => [qw(
 
 has 'id'    => (is => 'rw', required => 1);
 has $_      => (is => 'ro', required => 1) for @{&OPTIONS};
-has 'config'=> (is => 'ro', required => 1);
+has 'use_relative_e_distances'  => (is => 'ro', default => sub {0});
 
-has 'bridge_flow'               => (is => 'lazy');
 has 'E'                         => (is => 'rw', default => sub {0} );
 has 'absolute_E'                => (is => 'rw', default => sub {0} );
 has 'retracted'                 => (is => 'rw', default => sub {0} );
 has 'restart_extra'             => (is => 'rw', default => sub {0} );
 has 'e_per_mm3'                 => (is => 'lazy');
 has 'retract_speed_mm_min'      => (is => 'lazy');
-has '_mm3_per_mm_cache'         => (is => 'ro', default => sub {{}});
 
-sub _build_bridge_flow {
-    my $self = shift;
+use constant EXTRUDER_ROLE_PERIMETER                    => 1;
+use constant EXTRUDER_ROLE_INFILL                       => 2;
+use constant EXTRUDER_ROLE_SUPPORT_MATERIAL             => 3;
+use constant EXTRUDER_ROLE_SUPPORT_MATERIAL_INTERFACE   => 4;
+
+sub new_from_config {
+    my ($class, $config, $extruder_id) = @_;
     
-    return Slic3r::Flow::Bridge->new(
-        nozzle_diameter     => $self->nozzle_diameter,
-        bridge_flow_ratio   => $self->config->bridge_flow_ratio,
+    my %conf = (
+        id => $extruder_id,
+        use_relative_e_distances => $config->use_relative_e_distances,
     );
+    foreach my $opt_key (@{&OPTIONS}) {
+        $conf{$opt_key} = $config->get_at($opt_key, $extruder_id);
+    }
+    return $class->new(%conf);
 }
 
 sub _build_e_per_mm3 {
@@ -40,6 +53,15 @@ sub _build_e_per_mm3 {
 sub _build_retract_speed_mm_min {
     my $self = shift;
     return $self->retract_speed * 60;
+}
+
+sub reset {
+    my ($self) = @_;
+    
+    $self->E(0);
+    $self->absolute_E(0);
+    $self->retracted(0);
+    $self->restart_extra(0);
 }
 
 sub scaled_wipe_distance {
@@ -55,7 +77,7 @@ sub scaled_wipe_distance {
 sub extrude {
     my ($self, $E) = @_;
     
-    $self->E(0) if $self->config->use_relative_e_distances;
+    $self->E(0) if $self->use_relative_e_distances;
     $self->absolute_E($self->absolute_E + $E);
     return $self->E($self->E + $E);
 }
@@ -65,37 +87,9 @@ sub extruded_volume {
     return $self->absolute_E * ($self->filament_diameter**2) * PI/4;
 }
 
-sub make_flow {
-    my $self = shift;
-    return Slic3r::Flow->new(nozzle_diameter => $self->nozzle_diameter, @_);
-}
-
-sub mm3_per_mm {
-    my $self = shift;
-    my ($s, $h) = @_;
-    
-    my $cache_key = "${s}_${h}";
-    if (!exists $self->_mm3_per_mm_cache->{$cache_key}) {
-        my $w_threshold = $h + $self->nozzle_diameter;
-        my $s_threshold = $w_threshold - &Slic3r::OVERLAP_FACTOR * ($w_threshold - ($w_threshold - $h * (1 - PI/4)));
-        
-        if ($s >= $s_threshold) {
-            # rectangle with semicircles at the ends
-            my $w = $s + &Slic3r::OVERLAP_FACTOR * $h * (1 - PI/4);
-            $self->_mm3_per_mm_cache->{$cache_key} = $w * $h + ($h**2) / 4 * (PI - 4);
-        } else {
-            # rectangle with shrunk semicircles at the ends
-            my $w = ($s + $self->nozzle_diameter * &Slic3r::OVERLAP_FACTOR * (PI/4 - 1)) / (1 + &Slic3r::OVERLAP_FACTOR * (PI/4 - 1));
-            $self->_mm3_per_mm_cache->{$cache_key} = $self->nozzle_diameter * $h * (1 - PI/4) + $h * $w * PI/4;
-        }
-    }
-    return $self->_mm3_per_mm_cache->{$cache_key};
-}
-
 sub e_per_mm {
-    my $self = shift;
-    my ($s, $h) = @_;
-    return $self->mm3_per_mm($s, $h) * $self->e_per_mm3;
+    my ($self, $mm3_per_mm) = @_;
+    return $mm3_per_mm * $self->e_per_mm3;
 }
 
 1;

@@ -97,8 +97,7 @@ sub new {
     return $class->_new(
         $args{polygon},      # required
         $args{role},         # required
-        $args{height}        // -1,
-        $args{flow_spacing}  // -1,
+        $args{mm3_per_mm}   // -1,
     );
 }
 
@@ -108,8 +107,7 @@ sub clone {
     return (ref $self)->_new(
         $args{polygon}       // $self->polygon,
         $args{role}          // $self->role,
-        $args{height}        // $self->height,
-        $args{flow_spacing}  // $self->flow_spacing,
+        $args{mm3_per_mm}    // $self->mm3_per_mm,
     );
 }
 
@@ -129,8 +127,7 @@ sub new {
     return $class->_new(
         $args{polyline},     # required
         $args{role},         # required
-        $args{height}        // -1,
-        $args{flow_spacing}  // -1,
+        $args{mm3_per_mm}   // -1,
     );
 }
 
@@ -140,8 +137,7 @@ sub clone {
     return (ref $self)->_new(
         $args{polyline}      // $self->polyline,
         $args{role}          // $self->role,
-        $args{height}        // $self->height,
-        $args{flow_spacing}  // $self->flow_spacing,
+        $args{mm3_per_mm}    // $self->mm3_per_mm,
     );
 }
 
@@ -149,6 +145,34 @@ package Slic3r::ExtrusionPath::Ref;
 our @ISA = 'Slic3r::ExtrusionPath';
 
 sub DESTROY {}
+
+package Slic3r::Flow;
+
+sub new {
+    my ($class, %args) = @_;
+    
+    my $self = $class->_new(
+        @args{qw(width spacing nozzle_diameter)},
+    );
+    $self->set_bridge($args{bridge} // 0);
+    return $self;
+}
+
+sub new_from_width {
+    my ($class, %args) = @_;
+    
+    return $class->_new_from_width(
+        @args{qw(role width nozzle_diameter layer_height bridge_flow_ratio)},
+    );
+}
+
+sub new_from_spacing {
+    my ($class, %args) = @_;
+    
+    return $class->_new_from_spacing(
+        @args{qw(spacing nozzle_diameter layer_height bridge)},
+    );
+}
 
 package Slic3r::Surface;
 

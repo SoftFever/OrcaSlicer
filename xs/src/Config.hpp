@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include "Point.hpp"
@@ -20,8 +21,24 @@ typedef std::vector<std::string> t_config_option_keys;
 class ConfigOption {
     public:
     virtual ~ConfigOption() {};
-    virtual std::string serialize() = 0;
+    virtual std::string serialize() const = 0;
     virtual void deserialize(std::string str) = 0;
+};
+
+template <class T>
+class ConfigOptionVector
+{
+    public:
+    virtual ~ConfigOptionVector() {};
+    std::vector<T> values;
+    
+    T get_at(size_t i) {
+        try {
+            return this->values.at(i);
+        } catch (const std::out_of_range& oor) {
+            return this->values.front();
+        }
+    };
 };
 
 class ConfigOptionFloat : public ConfigOption
@@ -32,7 +49,7 @@ class ConfigOptionFloat : public ConfigOption
     
     operator double() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->value;
         return ss.str();
@@ -43,12 +60,11 @@ class ConfigOptionFloat : public ConfigOption
     };
 };
 
-class ConfigOptionFloats : public ConfigOption
+class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double>
 {
     public:
-    std::vector<double> values;
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<double>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -75,7 +91,7 @@ class ConfigOptionInt : public ConfigOption
     
     operator int() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->value;
         return ss.str();
@@ -86,12 +102,11 @@ class ConfigOptionInt : public ConfigOption
     };
 };
 
-class ConfigOptionInts : public ConfigOption
+class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
 {
     public:
-    std::vector<int> values;
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<int>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -118,7 +133,7 @@ class ConfigOptionString : public ConfigOption
     
     operator std::string() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::string str = this->value;
         
         // s/\R/\\n/g
@@ -144,12 +159,11 @@ class ConfigOptionString : public ConfigOption
 };
 
 // semicolon-separated strings
-class ConfigOptionStrings : public ConfigOption
+class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::string>
 {
     public:
-    std::vector<std::string> values;
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<std::string>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ";";
@@ -175,7 +189,15 @@ class ConfigOptionFloatOrPercent : public ConfigOption
     bool percent;
     ConfigOptionFloatOrPercent() : value(0), percent(false) {};
     
-    std::string serialize() {
+    double get_abs_value(double ratio_over) const {
+        if (this->percent) {
+            return ratio_over * this->value / 100;
+        } else {
+            return this->value;
+        }
+    };
+    
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->value;
         std::string s(ss.str());
@@ -202,7 +224,7 @@ class ConfigOptionPoint : public ConfigOption
     
     operator Pointf() const { return this->point; };
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         ss << this->point.x;
         ss << ",";
@@ -215,15 +237,14 @@ class ConfigOptionPoint : public ConfigOption
     };
 };
 
-class ConfigOptionPoints : public ConfigOption
+class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf>
 {
     public:
-    Pointfs points;
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
-        for (Pointfs::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-            if (it - this->points.begin() != 0) ss << ",";
+        for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            if (it - this->values.begin() != 0) ss << ",";
             ss << it->x;
             ss << "x";
             ss << it->y;
@@ -232,13 +253,13 @@ class ConfigOptionPoints : public ConfigOption
     };
     
     void deserialize(std::string str) {
-        this->points.clear();
+        this->values.clear();
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
             sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
-            this->points.push_back(point);
+            this->values.push_back(point);
         }
     };
 };
@@ -251,7 +272,7 @@ class ConfigOptionBool : public ConfigOption
     
     operator bool() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         return std::string(this->value ? "1" : "0");
     };
     
@@ -260,12 +281,11 @@ class ConfigOptionBool : public ConfigOption
     };
 };
 
-class ConfigOptionBools : public ConfigOption
+class ConfigOptionBools : public ConfigOption, public ConfigOptionVector<bool>
 {
     public:
-    std::vector<bool> values;
     
-    std::string serialize() {
+    std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
@@ -294,7 +314,7 @@ class ConfigOptionEnum : public ConfigOption
     
     operator T() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
         for (t_config_enum_values::iterator it = enum_keys_map.begin(); it != enum_keys_map.end(); ++it) {
             if (it->second == static_cast<int>(this->value)) return it->first;
@@ -321,7 +341,7 @@ class ConfigOptionEnumGeneric : public ConfigOption
     
     operator int() const { return this->value; };
     
-    std::string serialize() {
+    std::string serialize() const {
         for (t_config_enum_values::iterator it = this->keys_map->begin(); it != this->keys_map->end(); ++it) {
             if (it->second == this->value) return it->first;
         }
@@ -354,6 +374,7 @@ class ConfigOptionDef
     public:
     ConfigOptionType type;
     std::string label;
+    std::string full_label;
     std::string category;
     std::string tooltip;
     std::string sidetext;
@@ -361,7 +382,6 @@ class ConfigOptionDef
     std::string scope;
     t_config_option_key ratio_over;
     bool multiline;
-    bool full_label;
     bool full_width;
     bool readonly;
     int height;
@@ -374,7 +394,7 @@ class ConfigOptionDef
     std::vector<std::string> enum_labels;
     t_config_enum_values enum_keys_map;
     
-    ConfigOptionDef() : multiline(false), full_label(false), full_width(false), readonly(false),
+    ConfigOptionDef() : multiline(false), full_width(false), readonly(false),
                         height(-1), width(-1), min(INT_MIN), max(INT_MAX) {};
 };
 
@@ -393,10 +413,12 @@ class ConfigBase
     std::string serialize(const t_config_option_key opt_key);
     void set_deserialize(const t_config_option_key opt_key, std::string str);
     double get_abs_value(const t_config_option_key opt_key);
+    double get_abs_value(const t_config_option_key opt_key, double ratio_over);
     
     #ifdef SLIC3RXS
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
+    SV* get_at(t_config_option_key opt_key, size_t i);
     void set(t_config_option_key opt_key, SV* value);
     #endif
 };

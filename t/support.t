@@ -21,16 +21,22 @@ use Slic3r::Test;
     my $test = sub {
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
         $print->init_extruders;
-        my $flow = $print->support_material_flow;
+        my $flow = $print->objects->[0]->support_material_flow;
         my $support_z = Slic3r::Print::SupportMaterial
-            ->new(config => $config, flow => $flow)
+            ->new(
+                object_config       => $print->objects->[0]->config,
+                print_config        => $print->config,
+                flow                => $flow,
+                interface_flow      => $flow,
+                first_layer_flow    => $flow,
+            )
             ->support_layers_z(\@contact_z, \@top_z, $config->layer_height);
         
         is $support_z->[0], $config->first_layer_height,
             'first layer height is honored';
         is scalar(grep { $support_z->[$_]-$support_z->[$_-1] <= 0 } 1..$#$support_z), 0,
             'no null or negative support layers';
-        is scalar(grep { $support_z->[$_]-$support_z->[$_-1] > $flow->nozzle_diameter + epsilon } 1..$#$support_z), 0,
+        is scalar(grep { $support_z->[$_]-$support_z->[$_-1] > $config->nozzle_diameter->[0] + epsilon } 1..$#$support_z), 0,
             'no layers thicker than nozzle diameter';
         
         my $wrong_top_spacing = 0;
@@ -40,7 +46,7 @@ use Slic3r::Test;
             
             # check that first support layer above this top surface is spaced with nozzle diameter
             $wrong_top_spacing = 1
-                if ($support_z->[$layer_id+1] - $support_z->[$layer_id]) != $flow->nozzle_diameter;
+                if ($support_z->[$layer_id+1] - $support_z->[$layer_id]) != $config->nozzle_diameter->[0];
         }
         ok !$wrong_top_spacing, 'layers above top surfaces are spaced correctly';
     };

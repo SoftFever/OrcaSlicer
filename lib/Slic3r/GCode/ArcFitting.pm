@@ -104,7 +104,7 @@ sub flush_path {
         $gcode .= sprintf " I%.3f J%.3f", map { unscale($arc_center->[$_] - $cur_path->[0][$_]) } (X,Y);
         
         my $E = 0;  # TODO: compute E using $length
-        $gcode .= sprintf(" %s%.5f", $self->config->extrusion_axis, $E)
+        $gcode .= sprintf(" %s%.5f", $self->config->get_extrusion_axis, $E)
             if $E;
         
         my $F = 0;  # TODO: extract F from original moves

@@ -33,18 +33,16 @@
 %{
 
 ExtrusionPath*
-_new(CLASS, polyline_sv, role, height, flow_spacing)
+_new(CLASS, polyline_sv, role, mm3_per_mm)
     char*           CLASS;
     SV*             polyline_sv;
     ExtrusionRole   role;
-    double          height;
-    double          flow_spacing;
+    double          mm3_per_mm;
     CODE:
         RETVAL = new ExtrusionPath ();
         RETVAL->polyline.from_SV_check(polyline_sv);
         RETVAL->role            = role;
-        RETVAL->height          = height;
-        RETVAL->flow_spacing    = flow_spacing;
+        RETVAL->mm3_per_mm      = mm3_per_mm;
     OUTPUT:
         RETVAL
 
@@ -71,22 +69,12 @@ ExtrusionPath::role(...)
         RETVAL
 
 double
-ExtrusionPath::height(...)
+ExtrusionPath::mm3_per_mm(...)
     CODE:
         if (items > 1) {
-            THIS->height = (double)SvNV(ST(1));
+            THIS->mm3_per_mm = (double)SvNV(ST(1));
         }
-        RETVAL = THIS->height;
-    OUTPUT:
-        RETVAL
-
-double
-ExtrusionPath::flow_spacing(...)
-    CODE:
-        if (items > 1) {
-            THIS->flow_spacing = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->flow_spacing;
+        RETVAL = THIS->mm3_per_mm;
     OUTPUT:
         RETVAL
 

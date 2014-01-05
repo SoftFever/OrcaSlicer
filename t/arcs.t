@@ -21,7 +21,7 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
         [306517.1,219034.23], [286979.42,248012.49], [258001.16,267550.17], [222515.14,274714.47], 
         [187029.11,267550.17], [158050.85,248012.49], [138513.17,219034.23], [131348.87,183548.2], 
         [86948.77,175149.09], [119825.35,100585],
-    ), role => EXTR_ROLE_FILL, flow_spacing => 0.5);
+    ), role => EXTR_ROLE_FILL, mm3_per_mm => 0.5);
     
     my @paths = $path->detect_arcs(30);
     
@@ -42,12 +42,12 @@ use Slic3r::Geometry qw(scaled_epsilon scale X Y);
     my $path1 = Slic3r::ExtrusionPath->new(
         polyline    => Slic3r::Polyline->new(@points),
         role        => EXTR_ROLE_FILL,
-        flow_spacing => 0.5,
+        mm3_per_mm  => 0.5,
     );
     my $path2 = Slic3r::ExtrusionPath->new(
         polyline    => Slic3r::Polyline->new(reverse @points),
         role        => EXTR_ROLE_FILL,
-        flow_spacing => 0.5,
+        mm3_per_mm  => 0.5,
     );
     
     my @paths1 = $path1->detect_arcs(10, scale 1);

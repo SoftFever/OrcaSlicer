@@ -8,8 +8,7 @@ sub split_at {
     return Slic3r::ExtrusionPath->new(
         polyline        => $self->polygon->split_at(@_),
         role            => $self->role,
-        flow_spacing    => $self->flow_spacing,
-        height          => $self->height,
+        mm3_per_mm      => $self->mm3_per_mm,
     );
 }
 

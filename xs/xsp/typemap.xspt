@@ -9,9 +9,13 @@
 %typemap{AV*};
 %typemap{Point*};
 %typemap{DynamicPrintConfig*};
+%typemap{PrintObjectConfig*};
+%typemap{PrintRegionConfig*};
 %typemap{PrintConfig*};
+%typemap{FullPrintConfig*};
 %typemap{ExPolygon*};
 %typemap{ExPolygonCollection*};
+%typemap{Flow*};
 %typemap{Line*};
 %typemap{Polyline*};
 %typemap{Polygon*};
@@ -38,6 +42,12 @@
   %cpp_type{ExtrusionRole};
   %precall_code{%
     $CVar = (ExtrusionRole)SvUV($PerlVar);
+  %};
+};
+%typemap{FlowRole}{parsed}{
+  %cpp_type{FlowRole};
+  %precall_code{%
+    $CVar = (FlowRole)SvUV($PerlVar);
   %};
 };
 %typemap{PrintStep}{parsed}{
