@@ -1079,7 +1079,7 @@ sub mouse_event {
             my $object = $parent->{objects}->[$obj_idx];
             for my $instance_idx (0 .. $#{ $object->instance_thumbnails }) {
                 my $thumbnail = $object->instance_thumbnails->[$instance_idx];
-                if ($thumbnail->contains_point($pos)) {
+                if (defined first { $_->contour->contains_point($pos) } @$thumbnail) {
                     $parent->select_object($obj_idx);
                     my $instance = $parent->{model}->objects->[$obj_idx]->instances->[$instance_idx];
                     my $instance_origin = [ map scale($_), @{$instance->offset} ];
