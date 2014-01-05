@@ -147,7 +147,8 @@ print_config_def()
             }
             (void)hv_stores( hv, "type",        newSVpv(opt_type, 0) );
             (void)hv_stores( hv, "label",       newSVpvn(optdef->label.c_str(), optdef->label.length()) );
-            (void)hv_stores( hv, "full_label",  newSVpvn(optdef->full_label.c_str(), optdef->full_label.length()) );
+            if (!optdef->full_label.empty())
+                (void)hv_stores( hv, "full_label",  newSVpvn(optdef->full_label.c_str(), optdef->full_label.length()) );
             (void)hv_stores( hv, "category",    newSVpvn(optdef->category.c_str(), optdef->category.length()) );
             (void)hv_stores( hv, "tooltip",     newSVpvn(optdef->tooltip.c_str(), optdef->tooltip.length()) );
             (void)hv_stores( hv, "sidetext",    newSVpvn(optdef->sidetext.c_str(), optdef->sidetext.length()) );
