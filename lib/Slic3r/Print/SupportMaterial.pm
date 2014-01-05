@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(sum min max);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad);
+use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad convex_hull);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
     intersection_pl);
 use Slic3r::Surface ':types';
@@ -23,6 +23,10 @@ use constant MARGIN => 1.5;
 # increment used to reach MARGIN in steps to avoid trespassing thin objects
 use constant MARGIN_STEP => MARGIN/3;
 
+# generate a tree-like structure to save material
+use constant PILLAR_SIZE    => 2.5;
+use constant PILLAR_SPACING => 10;
+
 sub generate {
     my ($self, $object) = @_;
     
@@ -40,7 +44,7 @@ sub generate {
     
     # We now know the upper and lower boundaries for our support material object
     # (@$contact_z and @$top_z), so we can generate intermediate layers.
-    my ($support_z) = $self->support_layers_z(
+    my $support_z = $self->support_layers_z(
         [ sort keys %$contact ],
         [ sort keys %$top ],
         max(map $_->height, @{$object->layers})
@@ -49,14 +53,21 @@ sub generate {
     # If we wanted to apply some special logic to the first support layers lying on
     # object's top surfaces this is the place to detect them
     
+    my $shape = [];
+    if ($self->object_config->support_material_pattern eq 'pillars') {
+        $self->generate_pillars_shape($contact, $support_z, $shape);
+    }
+    
     # Propagate contact layers downwards to generate interface layers
     my ($interface) = $self->generate_interface_layers($support_z, $contact, $top);
     $self->clip_with_object($interface, $support_z, $object);
+    $self->clip_with_shape($interface, $shape) if @$shape;
     
     # Propagate contact layers and interface layers downwards to generate
     # the main support layers.
     my ($base) = $self->generate_base_layers($support_z, $contact, $interface, $top);
     $self->clip_with_object($base, $support_z, $object);
+    $self->clip_with_shape($base, $shape) if @$shape;
     
     # Install support layers into object.
     push @{$object->support_layers}, map Slic3r::Layer::Support->new(
@@ -405,6 +416,8 @@ sub generate_toolpaths {
     if ($pattern eq 'rectilinear-grid') {
         $pattern = 'rectilinear';
         push @angles, $angles[0] + 90;
+    } elsif ($pattern eq 'pillars') {
+        $pattern = 'honeycomb';
     }
     
     my %fillers = (
@@ -627,6 +640,89 @@ sub generate_toolpaths {
             $process_layer->($_) for 0 .. $#{$object->support_layers};
         },
     );
+}
+
+sub generate_pillars_shape {
+    my ($self, $contact, $support_z, $shape) = @_;
+    
+    my $pillar_size     = scale PILLAR_SIZE;
+    my $pillar_spacing  = scale PILLAR_SPACING;
+    
+    my $grid;  # arrayref of polygons
+    {
+        my $pillar = Slic3r::Polygon->new(
+            [0,0],
+            [$pillar_size, 0],
+            [$pillar_size, $pillar_size],
+            [0, $pillar_size],
+        );
+    
+        my @pillars = ();
+        my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, values %$contact ]);
+        for (my $x = $bb->x_min; $x <= $bb->x_max-$pillar_size; $x += $pillar_spacing) {
+            for (my $y = $bb->y_min; $y <= $bb->y_max-$pillar_size; $y += $pillar_spacing) {
+                push @pillars, my $p = $pillar->clone;
+                $p->translate($x, $y);
+            }
+        }
+        $grid = union(\@pillars);
+    }
+    
+    # add pillars to every layer
+    for my $i (0..$#$support_z) {
+        $shape->[$i] = [ @$grid ];
+    }
+    
+    # build capitals
+    for my $i (0..$#$support_z) {
+        my $z = $support_z->[$i];
+        
+        my $capitals = intersection(
+            $grid,
+            $contact->{$z} // [],
+        );
+        
+        # work on one pillar at time (if any) to prevent the capitals from being merged
+        # but store the contact area supported by the capital because we need to make 
+        # sure nothing is left
+        my $contact_supported_by_capitals = [];
+        foreach my $capital (@$capitals) {
+            # enlarge capital tops
+            $capital = offset([$capital], +($pillar_spacing - $pillar_size)/2);
+            push @$contact_supported_by_capitals, @$capital;
+            
+            for (my $j = $i-1; $j >= 0; $j--) {
+                my $jz = $support_z->[$j];
+                $capital = offset($capital, -$self->interface_flow->scaled_width/2);
+                last if !@$capitals;
+                push @{ $shape->[$j] }, @$capital;
+            }
+        }
+        
+        # Capitals will not generally cover the whole contact area because there will be
+        # remainders. For now we handle this situation by projecting such unsupported
+        # areas to the ground, just like we would do with a normal support.
+        my $contact_not_supported_by_capitals = diff(
+            $contact->{$z} // [],
+            $contact_supported_by_capitals,
+        );
+        if (@$contact_not_supported_by_capitals) {
+            for (my $j = $i-1; $j >= 0; $j--) {
+                push @{ $shape->[$j] }, @$contact_not_supported_by_capitals;
+            }
+        }
+    }
+}
+
+sub clip_with_shape {
+    my ($self, $support, $shape) = @_;
+    
+    foreach my $i (keys %$support) {
+        $support->{$i} = intersection(
+            $support->{$i},
+            $shape->[$i],
+        );
+    }
 }
 
 # this method returns the indices of the layers overlapping with the given one

@@ -14,6 +14,10 @@ enum InfillPattern {
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral,
 };
 
+enum SupportMaterialPattern {
+    smpRectilinear, smpRectilinearGrid, smpHoneycomb, smpPillars,
+};
+
 template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     t_config_enum_values keys_map;
     keys_map["reprap"]          = gcfRepRap;
@@ -34,6 +38,15 @@ template<> inline t_config_enum_values ConfigOptionEnum<InfillPattern>::get_enum
     keys_map["hilbertcurve"]        = ipHilbertCurve;
     keys_map["archimedeanchords"]   = ipArchimedeanChords;
     keys_map["octagramspiral"]      = ipOctagramSpiral;
+    return keys_map;
+}
+
+template<> inline t_config_enum_values ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
+    t_config_enum_values keys_map;
+    keys_map["rectilinear"]         = smpRectilinear;
+    keys_map["rectilinear-grid"]    = smpRectilinearGrid;
+    keys_map["honeycomb"]           = smpHoneycomb;
+    keys_map["pillars"]             = smpPillars;
     return keys_map;
 }
 
@@ -758,12 +771,15 @@ class PrintConfigDef
         Options["support_material_pattern"].tooltip = "Pattern used to generate support material.";
         Options["support_material_pattern"].cli = "support-material-pattern=s";
         Options["support_material_pattern"].scope = "object";
+        Options["support_material_pattern"].enum_keys_map = ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
         Options["support_material_pattern"].enum_values.push_back("rectilinear");
         Options["support_material_pattern"].enum_values.push_back("rectilinear-grid");
         Options["support_material_pattern"].enum_values.push_back("honeycomb");
+        Options["support_material_pattern"].enum_values.push_back("pillars");
         Options["support_material_pattern"].enum_labels.push_back("rectilinear");
         Options["support_material_pattern"].enum_labels.push_back("rectilinear grid");
         Options["support_material_pattern"].enum_labels.push_back("honeycomb");
+        Options["support_material_pattern"].enum_labels.push_back("pillars");
 
         Options["support_material_spacing"].type = coFloat;
         Options["support_material_spacing"].label = "Pattern spacing";
@@ -894,7 +910,7 @@ class PrintObjectConfig : public virtual StaticConfig
     ConfigOptionInt                 support_material_interface_extruder;
     ConfigOptionInt                 support_material_interface_layers;
     ConfigOptionFloat               support_material_interface_spacing;
-    ConfigOptionEnum<InfillPattern> support_material_pattern;
+    ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
     ConfigOptionInt                 support_material_threshold;
@@ -918,7 +934,7 @@ class PrintObjectConfig : public virtual StaticConfig
         this->support_material_interface_extruder.value          = 1;
         this->support_material_interface_layers.value            = 3;
         this->support_material_interface_spacing.value           = 0;
-        this->support_material_pattern.value                     = ipHoneycomb;
+        this->support_material_pattern.value                     = smpHoneycomb;
         this->support_material_spacing.value                     = 2.5;
         this->support_material_speed.value                       = 60;
         this->support_material_threshold.value                   = 0;
