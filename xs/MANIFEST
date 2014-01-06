@@ -73,6 +73,7 @@ t/14_geometry.t
 t/15_config.t
 t/16_flow.t
 t/17_boundingbox.t
+xsp/BoundingBox.xsp
 xsp/Clipper.xsp
 xsp/Config.xsp
 xsp/ExPolygon.xsp

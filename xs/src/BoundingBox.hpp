@@ -19,9 +19,9 @@ class BoundingBoxBase
     PointClass min;
     PointClass max;
     
+    BoundingBoxBase();
     BoundingBoxBase(const std::vector<PointClass> points);
-    //virtual ~BoundingBoxBase() {};
-    void merge(const BoundingBoxBase &bb);
+    void merge(const BoundingBoxBase<PointClass> &bb);
     void scale(double factor);
 };
 
@@ -29,8 +29,8 @@ template <class PointClass>
 class BoundingBox2Base : public BoundingBoxBase<PointClass>
 {
     public:
+    BoundingBox2Base();
     BoundingBox2Base(const std::vector<PointClass> points) : BoundingBoxBase<PointClass>(points) {};
-    //virtual ~BoundingBox2Base() {};
     PointClass size() const;
     void translate(coordf_t x, coordf_t y);
     PointClass center() const;
@@ -40,9 +40,9 @@ template <class PointClass>
 class BoundingBox3Base : public BoundingBoxBase<PointClass>
 {
     public:
+    BoundingBox3Base();
     BoundingBox3Base(const std::vector<PointClass> points);
-    //virtual ~BoundingBox3Base() {};
-    void merge(const BoundingBox3Base &bb);
+    void merge(const BoundingBox3Base<PointClass> &bb);
     PointClass size() const;
     void translate(coordf_t x, coordf_t y, coordf_t z);
     PointClass center() const;
@@ -53,7 +53,7 @@ class BoundingBox : public BoundingBox2Base<Point>
     public:
     void polygon(Polygon* polygon) const;
     
-    BoundingBox();
+    BoundingBox() {};
     BoundingBox(const Points points) : BoundingBox2Base<Point>(points) {};
 };
 
@@ -62,7 +62,7 @@ class BoundingBox3  : public BoundingBox3Base<Point3> {};
 
 class BoundingBoxf3 : public BoundingBox3Base<Pointf3> {
     public:
-    BoundingBoxf3();
+    BoundingBoxf3() {};
     BoundingBoxf3(const std::vector<Pointf3> points) : BoundingBox3Base<Pointf3>(points) {};
 };
 
