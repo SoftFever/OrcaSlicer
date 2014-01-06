@@ -24,6 +24,7 @@ extern "C" {
 #define scale_(val) (val / SCALING_FACTOR)
 #define unscale(val) (val * SCALING_FACTOR)
 typedef long coord_t;
+typedef double coordf_t;
 
 namespace Slic3r {}
 using namespace Slic3r;

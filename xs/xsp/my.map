@@ -1,6 +1,8 @@
 std::vector<Points::size_type>  T_STD_VECTOR_INT
 t_config_option_key T_STD_STRING
 
+BoundingBox*         O_OBJECT
+BoundingBoxf3*         O_OBJECT
 DynamicPrintConfig*  O_OBJECT
 PrintObjectConfig*  O_OBJECT
 PrintRegionConfig*  O_OBJECT

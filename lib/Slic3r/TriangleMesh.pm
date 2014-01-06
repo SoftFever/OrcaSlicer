@@ -24,9 +24,4 @@ sub facets_count {
     return $self->stats->{number_of_facets};
 }
 
-sub bounding_box {
-    my $self = shift;
-    return Slic3r::Geometry::BoundingBox->new_from_bb($self->bb3);
-}
-
 1;

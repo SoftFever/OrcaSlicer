@@ -88,7 +88,7 @@ sub set_material {
     my $self = shift;
     my ($material_id, $attributes) = @_;
     
-    return $self->materials->{$material_id} = Slic3r::Model::Region->new(
+    return $self->materials->{$material_id} = Slic3r::Model::Material->new(
         model       => $self,
         attributes  => $attributes || {},
     );
@@ -319,7 +319,7 @@ sub get_material_name {
     return $name;
 }
 
-package Slic3r::Model::Region;
+package Slic3r::Model::Material;
 use Moo;
 
 has 'model'         => (is => 'ro', weak_ref => 1, required => 1);

@@ -8,6 +8,8 @@ src/admesh/stl.h
 src/admesh/stl_io.c
 src/admesh/stlinit.c
 src/admesh/util.c
+src/BoundingBox.cpp
+src/BoundingBox.hpp
 src/clipper.cpp
 src/clipper.hpp
 src/ClipperUtils.cpp
@@ -26,8 +28,10 @@ src/Flow.cpp
 src/Flow.hpp
 src/Geometry.cpp
 src/Geometry.hpp
+src/Layer.hpp
 src/Line.cpp
 src/Line.hpp
+src/Model.hpp
 src/MultiPoint.cpp
 src/MultiPoint.hpp
 src/myinit.h
@@ -68,6 +72,7 @@ t/13_polylinecollection.t
 t/14_geometry.t
 t/15_config.t
 t/16_flow.t
+t/17_boundingbox.t
 xsp/Clipper.xsp
 xsp/Config.xsp
 xsp/ExPolygon.xsp

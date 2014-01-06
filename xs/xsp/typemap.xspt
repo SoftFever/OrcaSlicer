@@ -8,6 +8,8 @@
 %typemap{SV*};
 %typemap{AV*};
 %typemap{Point*};
+%typemap{BoundingBox*};
+%typemap{BoundingBoxf3*};
 %typemap{DynamicPrintConfig*};
 %typemap{PrintObjectConfig*};
 %typemap{PrintRegionConfig*};

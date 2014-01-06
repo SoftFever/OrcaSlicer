@@ -33,14 +33,6 @@ sub new_from_bb {
     ]);
 }
 
-# 3D
-sub new_from_points_3D {
-    my $class = shift;
-    my ($points) = @_;
-    
-    return $class->new(extents => [ Slic3r::Geometry::bounding_box_3D($points) ]);
-}
-
 sub merge {
     my $class = shift;
     my (@bounding_boxes) = @_;

@@ -616,6 +616,17 @@ TriangleMesh::convex_hull(Polygon* hull)
 }
 
 void
+TriangleMesh::bounding_box(BoundingBoxf3* bb) const
+{
+    bb->min.x = this->stl.stats.min.x;
+    bb->min.y = this->stl.stats.min.y;
+    bb->min.z = this->stl.stats.min.z;
+    bb->max.x = this->stl.stats.max.x;
+    bb->max.y = this->stl.stats.max.y;
+    bb->max.z = this->stl.stats.max.z;
+}
+
+void
 TriangleMesh::require_shared_vertices()
 {
     if (!this->repaired) this->repair();

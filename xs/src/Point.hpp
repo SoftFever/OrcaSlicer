@@ -44,17 +44,31 @@ class Point
     #endif
 };
 
+class Point3 : public Point
+{
+    public:
+    coord_t z;
+    explicit Point3(coord_t _x = 0, coord_t _y = 0, coord_t _z = 0): Point(_x, _y), z(_z) {};
+};
+
 class Pointf
 {
     public:
-    double x;
-    double y;
-    explicit Pointf(double _x = 0, double _y = 0): x(_x), y(_y) {};
+    coordf_t x;
+    coordf_t y;
+    explicit Pointf(coordf_t _x = 0, coordf_t _y = 0): x(_x), y(_y) {};
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);
     SV* to_SV_pureperl() const;
     #endif
+};
+
+class Pointf3 : public Pointf
+{
+    public:
+    coordf_t z;
+    explicit Pointf3(coordf_t _x = 0, coordf_t _y = 0, coordf_t _z = 0): Pointf(_x, _y), z(_z) {};
 };
 
 }

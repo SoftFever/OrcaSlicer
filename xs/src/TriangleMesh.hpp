@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include <admesh/stl.h>
 #include <vector>
+#include "BoundingBox.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
 #include "ExPolygon.hpp"
@@ -34,6 +35,7 @@ class TriangleMesh
     void merge(const TriangleMesh* mesh);
     void horizontal_projection(ExPolygons &retval) const;
     void convex_hull(Polygon* hull);
+    void bounding_box(BoundingBoxf3* bb) const;
     stl_file stl;
     bool repaired;
     

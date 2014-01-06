@@ -26,6 +26,12 @@
     void merge(TriangleMesh* mesh);
     ExPolygons horizontal_projection()
         %code{% THIS->horizontal_projection(RETVAL); %};
+    BoundingBoxf3* bounding_box()
+        %code{%
+            const char* CLASS = "Slic3r::Geometry::BoundingBoxf3";
+            RETVAL = new BoundingBoxf3();
+            THIS->bounding_box(RETVAL);
+        %};
 %{
 
 SV*

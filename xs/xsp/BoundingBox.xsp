@@ -1,0 +1,43 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "BoundingBox.hpp"
+#include "Point.hpp"
+%}
+
+%name{Slic3r::Geometry::BoundingBox} class BoundingBox {
+    ~BoundingBox();
+    BoundingBox* clone()
+        %code{% const char* CLASS = "Slic3r::Geometry::BoundingBox"; RETVAL = new BoundingBox(*THIS); %};
+    void merge(BoundingBox* bb) %code{% THIS->merge(*bb); %};
+    void scale(double factor);
+    void translate(double x, double y);
+    Polygon* polygon()
+        %code{% const char* CLASS = "Slic3r::Polygon"; RETVAL = new Polygon(); THIS->polygon(RETVAL); %};
+    Point* size()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->size()); %};
+    Point* center()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->center()); %};
+    Point* min_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->min); %};
+    Point* max_point()
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->max); %};
+    double x_min() %code{% RETVAL = THIS->min.x; %};
+    double x_max() %code{% RETVAL = THIS->max.x; %};
+    double y_min() %code{% RETVAL = THIS->min.y; %};
+    double y_max() %code{% RETVAL = THIS->max.y; %};
+    
+%{
+
+BoundingBox*
+BoundingBox::new_from_points(CLASS, points)
+    char*   CLASS
+    Points  points
+    CODE:
+        RETVAL = new BoundingBox(points);
+    OUTPUT:
+        RETVAL
+
+%}
+};
