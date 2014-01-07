@@ -146,7 +146,7 @@ my $polygons = [
 {
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_), [0, 1], [10, 2], [20, 2] ]);
     $bb->scale(2);
-    is_deeply $bb->extents, [ [0,40], [2,4] ], 'bounding box is scaled correctly';
+    is_deeply [ $bb->min_point->pp, $bb->max_point->pp ], [ [0,2], [40,4] ], 'bounding box is scaled correctly';
 }
 
 #==========================================================

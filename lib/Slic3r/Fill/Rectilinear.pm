@@ -38,8 +38,10 @@ sub fill_surface {
         );
     } else {
         # extend bounding box so that our pattern will be aligned with other layers
-        $bounding_box->extents->[X][MIN] -= $bounding_box->x_min % $line_spacing;
-        $bounding_box->extents->[Y][MIN] -= $bounding_box->y_min % $line_spacing;
+        $bounding_box->merge_point(Slic3r::Point->new(
+            $bounding_box->x_min - ($bounding_box->x_min % $line_spacing),
+            $bounding_box->y_min - ($bounding_box->y_min % $line_spacing),
+        ));
     }
     
     # generate the basic pattern

@@ -33,7 +33,7 @@ sub fill_surface {
     
     (ref $self) =~ /::([^:]+)$/;
     my $path = "Math::PlanePath::$1"->new;
-    my @n = $self->get_n($path, [ map +($_ / $distance_between_lines), @{$bounding_box->bb} ]);
+    my @n = $self->get_n($path, [ map +($_ / $distance_between_lines), @{$bounding_box->min_point}, @{$bounding_box->max_point} ]);
     
     my $polyline = Slic3r::Polyline->new(
         map [ map {$_*$distance_between_lines} $path->n_to_xy($_) ], @n,

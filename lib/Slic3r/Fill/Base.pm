@@ -22,8 +22,8 @@ sub infill_direction {
     my (@rotate, @shift);
     $rotate[0] = Slic3r::Geometry::deg2rad($self->angle);
     $rotate[1] = $self->bounding_box
-        ? $self->bounding_box->center_2D
-        : $surface->expolygon->bounding_box->center_2D;
+        ? $self->bounding_box->center
+        : $surface->expolygon->bounding_box->center;
     @shift = @{$rotate[1]};
     
     if (defined $self->layer_id) {

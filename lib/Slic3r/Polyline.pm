@@ -19,18 +19,12 @@ sub wkt {
 
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::BoundingBox->new_from_points($self);
+    return Slic3r::Geometry::BoundingBox->new_from_points([ @$self ]);
 }
 
 sub size {
     my $self = shift;
     return [ Slic3r::Geometry::size_2D($self) ];
-}
-
-sub align_to_origin {
-    my $self = shift;
-    my $bb = $self->bounding_box;
-    return $self->translate(-$bb->x_min, -$bb->y_min);
 }
 
 1;

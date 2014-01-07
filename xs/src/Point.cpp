@@ -193,4 +193,32 @@ Pointf::from_SV(SV* point_sv)
 }
 #endif
 
+void
+Pointf::scale(double factor)
+{
+    this->x *= factor;
+    this->y *= factor;
+}
+
+void
+Pointf::translate(double x, double y)
+{
+    this->x += x;
+    this->y += y;
+}
+
+void
+Pointf3::scale(double factor)
+{
+    Pointf::scale(factor);
+    this->z *= factor;
+}
+
+void
+Pointf3::translate(double x, double y, double z)
+{
+    Pointf::translate(x, y);
+    this->z += z;
+}
+
 }

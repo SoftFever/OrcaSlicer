@@ -11,6 +11,7 @@
     BoundingBox* clone()
         %code{% const char* CLASS = "Slic3r::Geometry::BoundingBox"; RETVAL = new BoundingBox(*THIS); %};
     void merge(BoundingBox* bb) %code{% THIS->merge(*bb); %};
+    void merge_point(Point* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y);
     Polygon* polygon()
@@ -31,7 +32,7 @@
 %{
 
 BoundingBox*
-BoundingBox::new_from_points(CLASS, points)
+new_from_points(CLASS, points)
     char*   CLASS
     Points  points
     CODE:
@@ -40,4 +41,23 @@ BoundingBox::new_from_points(CLASS, points)
         RETVAL
 
 %}
+};
+
+%name{Slic3r::Geometry::BoundingBoxf3} class BoundingBoxf3 {
+    ~BoundingBoxf3();
+    BoundingBoxf3* clone()
+        %code{% const char* CLASS = "Slic3r::Geometry::BoundingBoxf3"; RETVAL = new BoundingBoxf3(*THIS); %};
+    void merge(BoundingBoxf3* bb) %code{% THIS->merge(*bb); %};
+    void scale(double factor);
+    void translate(double x, double y, double z);
+    Pointf3* size()
+        %code{% const char* CLASS = "Slic3r::Pointf3"; RETVAL = new Pointf3(THIS->size()); %};
+    Pointf3* center()
+        %code{% const char* CLASS = "Slic3r::Pointf3"; RETVAL = new Pointf3(THIS->center()); %};
+    double x_min() %code{% RETVAL = THIS->min.x; %};
+    double x_max() %code{% RETVAL = THIS->max.x; %};
+    double y_min() %code{% RETVAL = THIS->min.y; %};
+    double y_max() %code{% RETVAL = THIS->max.y; %};
+    double z_min() %code{% RETVAL = THIS->min.z; %};
+    double z_max() %code{% RETVAL = THIS->max.z; %};
 };

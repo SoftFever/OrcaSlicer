@@ -77,7 +77,6 @@ class ModelObject
     void raw_mesh(TriangleMesh* mesh) const;
     void mesh(TriangleMesh* mesh) const;
     void instance_bounding_box(size_t instance_idx, BoundingBox* bb) const;
-    void align_to_origin();
     void center_around_origin();
     void translate(coordf_t x, coordf_t y, coordf_t z);
     size_t materials_count() const;

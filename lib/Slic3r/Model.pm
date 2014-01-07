@@ -186,8 +186,8 @@ sub _arrange {
     
     return Slic3r::Geometry::arrange(
         scalar(@$sizes),                # number of parts
-        max(map $_->[X], @$sizes),      # cell width
-        max(map $_->[Y], @$sizes),      # cell height
+        max(map $_->x, @$sizes),        # cell width
+        max(map $_->y, @$sizes),        # cell height ,
         $distance,                      # distance between cells
         $bb,                            # bounding box of the area to fill (can be undef)
     );
@@ -201,28 +201,11 @@ sub has_objects_with_no_instances {
 # this returns the bounding box of the *transformed* instances
 sub bounding_box {
     my $self = shift;
-    return Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, @{ $self->objects });
-}
-
-sub align_to_origin {
-    my $self = shift;
     
-    # calculate the displacements needed to 
-    # have lowest value for each axis at coordinate 0
-    {
-        my $bb = $self->bounding_box;
-        $self->translate(map -$bb->extents->[$_][MIN], X,Y,Z);
-    }
-    
-    # align all instances to 0,0 as well
-    {
-        my @instances = map @{$_->instances}, @{$self->objects};
-        my @extents = Slic3r::Geometry::bounding_box_3D([ map $_->offset, @instances ]);
-        foreach my $instance (@instances) {
-            $instance->offset->[X] -= $extents[X][MIN];
-            $instance->offset->[Y] -= $extents[Y][MIN];
-        }
-    }
+    return undef if !@{$self->objects};
+    my $bb = $self->objects->[0]->bounding_box;
+    $bb->merge($_->bounding_box) for @{$self->objects}[1..$#{$self->objects}];
+    return $bb;
 }
 
 # input point is expressed in unscaled coordinates
@@ -234,8 +217,8 @@ sub center_instances_around_point {
     
     my $size = $bb->size;
     my @shift = (
-        -$bb->x_min + $point->[X] - $size->[X]/2,
-        -$bb->y_min + $point->[Y] - $size->[Y]/2,
+        -$bb->x_min + $point->[X] - $size->x/2,
+        -$bb->y_min + $point->[Y] - $size->y/2,  #//
     );
     
     foreach my $object (@{$self->objects}) {
@@ -420,17 +403,6 @@ sub instance_bounding_box {
     my $mesh = $self->raw_mesh;
     $self->instances->[$instance_idx]->transform_mesh($mesh);
     return $mesh->bounding_box;
-}
-
-sub align_to_origin {
-    my $self = shift;
-    
-    # calculate the displacements needed to 
-    # have lowest value for each axis at coordinate 0
-    my $bb = $self->bounding_box;
-    my @shift = map -$bb->extents->[$_][MIN], X,Y,Z;
-    $self->translate(@shift);
-    return @shift;
 }
 
 sub center_around_origin {

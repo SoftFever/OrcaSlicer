@@ -47,8 +47,10 @@ sub fill_surface {
             
             # extend bounding box so that our pattern will be aligned with other layers
             # $bounding_box->[X1] and [Y1] represent the displacement between new bounding box offset and old one
-            $bounding_box->extents->[X][MIN] -= $bounding_box->x_min % $m->{hex_width};
-            $bounding_box->extents->[Y][MIN] -= $bounding_box->y_min % $m->{pattern_height};
+            $bounding_box->merge_point(Slic3r::Point->new(
+                $bounding_box->x_min - ($bounding_box->x_min % $m->{hex_width}),
+                $bounding_box->y_min - ($bounding_box->y_min % $m->{pattern_height}),
+            ));
         }
         
         my $x = $bounding_box->x_min;

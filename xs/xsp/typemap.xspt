@@ -8,6 +8,7 @@
 %typemap{SV*};
 %typemap{AV*};
 %typemap{Point*};
+%typemap{Pointf3*};
 %typemap{BoundingBox*};
 %typemap{BoundingBoxf3*};
 %typemap{DynamicPrintConfig*};
@@ -25,6 +26,7 @@
 %typemap{ExtrusionPath*};
 %typemap{ExtrusionLoop*};
 %typemap{Points};
+%typemap{Pointfs};
 %typemap{Lines};
 %typemap{Polygons};
 %typemap{Polylines};

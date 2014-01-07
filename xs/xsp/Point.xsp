@@ -49,3 +49,16 @@ Point::coincides_with(point_sv)
 %}
 
 };
+
+%name{Slic3r::Pointf3} class Pointf3 {
+    Pointf3(double _x = 0, double _y = 0, double _z = 0);
+    ~Pointf3();
+    Pointf3* clone()
+        %code{% const char* CLASS = "Slic3r::Pointf3"; RETVAL = new Pointf3(*THIS); %};
+    double x()
+        %code{% RETVAL = THIS->x; %};
+    double y()
+        %code{% RETVAL = THIS->y; %};
+    double z()
+        %code{% RETVAL = THIS->z; %};
+};

@@ -12,7 +12,7 @@ use Test::More tests => 3;
         Slic3r::Point->new(500, -600),
     );
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points(\@points);
-    isa_ok $flow, 'Slic3r::Geometry::BoundingBox', 'new_from_points';
+    isa_ok $bb, 'Slic3r::Geometry::BoundingBox', 'new_from_points';
     is_deeply $bb->min_point->pp, [100,-600], 'min_point';
     is_deeply $bb->max_point->pp, [500,200], 'max_point';
 }

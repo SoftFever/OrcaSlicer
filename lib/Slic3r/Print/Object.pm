@@ -34,7 +34,11 @@ sub BUILD {
  	                    map @$_,
  	                    grep defined $_,
  	                    @{$self->region_volumes};
- 	    my $bb = Slic3r::Geometry::BoundingBox->merge(map $_->bounding_box, @meshes);
+ 	   
+ 	    my $bb = @meshes
+ 	        ? $meshes[0]->bounding_box
+ 	        : Slic3r::Geometry::BoundingBoxf3->new;
+ 	    $bb->merge($_->bounding_box) for @meshes[1..$#meshes];
  	    
  	    # Translate meshes so that our toolpath generation algorithms work with smaller
  	    # XY coordinates; this translation is an optimization and not strictly required.
@@ -103,7 +107,10 @@ sub bounding_box {
     my $self = shift;
     
     # since the object is aligned to origin, bounding box coincides with size
-    return Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_[X,Y]), [0,0], $self->size ]);
+    return Slic3r::Geometry::BoundingBox->new_from_points([
+        Slic3r::Point->new(0,0),
+        map Slic3r::Point->new($_->x, $_->y), $self->size  #))
+    ]);
 }
 
 # this should be idempotent
@@ -126,7 +133,7 @@ sub slice {
         }
     
         # loop until we have at least one layer and the max slice_z reaches the object height
-        my $max_z = unscale $self->size->[Z];
+        my $max_z = unscale($self->size->z);
         while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
             # assign the default height to the layer according to the general settings
             $height = ($id == 0)

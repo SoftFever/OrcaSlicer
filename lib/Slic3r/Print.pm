@@ -260,7 +260,7 @@ sub validate {
         {
             my @object_height = ();
             foreach my $object (@{$self->objects}) {
-                my $height = $object->size->[Z];
+                my $height = $object->size->z;
                 push @object_height, $height for @{$object->copies};
             }
             @object_height = sort { $a <=> $b } @object_height;

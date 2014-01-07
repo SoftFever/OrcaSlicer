@@ -57,6 +57,8 @@ class Pointf
     coordf_t x;
     coordf_t y;
     explicit Pointf(coordf_t _x = 0, coordf_t _y = 0): x(_x), y(_y) {};
+    void scale(double factor);
+    void translate(double x, double y);
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);
@@ -69,6 +71,8 @@ class Pointf3 : public Pointf
     public:
     coordf_t z;
     explicit Pointf3(coordf_t _x = 0, coordf_t _y = 0, coordf_t _z = 0): Pointf(_x, _y), z(_z) {};
+    void scale(double factor);
+    void translate(double x, double y, double z);
 };
 
 }

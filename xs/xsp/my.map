@@ -11,6 +11,7 @@ FullPrintConfig*  O_OBJECT
 ZTable*         O_OBJECT
 TriangleMesh*         O_OBJECT
 Point*         O_OBJECT
+Pointf3*         O_OBJECT
 Line*           O_OBJECT
 Polyline*       O_OBJECT
 PolylineCollection*    O_OBJECT
@@ -34,6 +35,7 @@ ClipperLib::PolyFillType		T_UV
 
 # we return these types whenever we want the items to be cloned
 Points          T_ARRAYREF
+Pointfs         T_ARRAYREF
 Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
 Polylines       T_ARRAYREF

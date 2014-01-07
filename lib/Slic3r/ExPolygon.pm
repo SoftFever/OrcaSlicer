@@ -209,14 +209,6 @@ sub _medial_axis_voronoi {
 package Slic3r::ExPolygon::Collection;
 use Slic3r::Geometry qw(X1 Y1);
 
-sub align_to_origin {
-    my $self = shift;
-    
-    my @bb = Slic3r::Geometry::bounding_box([ map @$_, map @$_, @$self ]);
-    $self->translate(-$bb[X1], -$bb[Y1]);
-    $self;
-}
-
 sub size {
     my $self = shift;
     return [ Slic3r::Geometry::size_2D([ map @$_, map @$_, @$self ]) ];
