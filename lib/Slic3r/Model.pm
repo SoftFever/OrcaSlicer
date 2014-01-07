@@ -414,11 +414,17 @@ sub center_around_origin {
     my $bb = $self->raw_mesh->bounding_box;
     
     # first align to origin on XYZ
-    my @shift = @{ $bb->vector_to_origin };
+    my @shift = (
+        -$bb->x_min,
+        -$bb->y_min,
+        -$bb->z_min,
+    );
     
     # then center it on XY
     my $size = $bb->size;
-    $shift[$_] -= $size->[$_]/2 for X,Y;
+    $shift[X] -= $size->x/2;
+    $shift[Y] -= $size->y/2;  #//
+    $shift[Z] -= $size->z/2;
     
     $self->translate(@shift);
     

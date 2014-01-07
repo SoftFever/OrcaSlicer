@@ -12,7 +12,7 @@ use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan);
 use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
-                              object_center object_size
+                              object_bounding_box object_shift
                               volumes initpos
                               sphi stheta) );
 
@@ -28,15 +28,18 @@ sub new {
     $self->sphi(45);
     $self->stheta(-45);
 
-    my $bounding_box = $object->raw_mesh->bounding_box;
-    $self->object_center($bounding_box->center);
-    $self->object_size($bounding_box->size);
+    my $bb = $object->raw_mesh->bounding_box;
+    my $center = $bb->center;
+    $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
+    $bb->translate(@{ $self->object_shift });
+    $self->object_bounding_box($bb);
     
     # group mesh(es) by material
     my @materials = ();
     $self->volumes([]);
     foreach my $volume (@{$object->volumes}) {
-        my $mesh = $volume->mesh;
+        my $mesh = $volume->mesh->clone;
+        $mesh->translate(@{ $self->object_shift });  
         
         my $material_id = $volume->material_id // '_';
         my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
@@ -297,7 +300,7 @@ sub ResetModelView {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     my $win_size = $self->GetClientSize();
-    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@{ $self->object_size });
+    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@{ $self->object_bounding_box->size });
     glScalef($ratio, $ratio, 1);
 }
 
@@ -312,8 +315,7 @@ sub Resize {
  
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    my $object_size = $self->object_size;
-    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@$object_size));
+    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@{ $self->object_bounding_box->size }));
  
     glMatrixMode(GL_MODELVIEW);
     unless ($self->mview_init) {
@@ -366,37 +368,40 @@ sub Render {
 
     glPushMatrix();
 
-    my $object_size = $self->object_size;
+    my $object_size = $self->object_bounding_box->size;
     glTranslatef(0, 0, -max(@$object_size[0..1]));
     my @rotmat = quat_to_rotmatrix($self->quat);
     glMultMatrixd_p(@rotmat[0..15]);
     glRotatef($self->stheta, 1, 0, 0);
     glRotatef($self->sphi, 0, 0, 1);
-    glTranslatef(map -$_, @{ $self->object_center });
+    
+    my $center = $self->object_bounding_box->center;
+    glTranslatef(-$center->x, -$center->y, -$center->z);  #,,
 
     $self->draw_mesh;
     
+    my $z0 = 0;
     # draw axes
     {
-        my $axis_len = 2 * max(@{ $self->object_size });
+        my $axis_len = 2 * max(@{ $object_size });
         glLineWidth(2);
         glBegin(GL_LINES);
         # draw line for x axis
         glColor3f(1, 0, 0);
-        glVertex3f(0, 0, 0);
-        glVertex3f($axis_len, 0, 0);
+        glVertex3f(0, 0, $z0);
+        glVertex3f($axis_len, 0, $z0);
         # draw line for y axis
         glColor3f(0, 1, 0);
-        glVertex3f(0, 0, 0);
-        glVertex3f(0, $axis_len, 0);
+        glVertex3f(0, 0, $z0);
+        glVertex3f(0, $axis_len, $z0);
         # draw line for Z axis
         glColor3f(0, 0, 1);
-        glVertex3f(0, 0, 0);
-        glVertex3f(0, 0, $axis_len);
+        glVertex3f(0, 0, $z0);
+        glVertex3f(0, 0, $z0+$axis_len);
         glEnd();
         
         # draw ground
-        my $ground_z = -0.02;
+        my $ground_z = $z0-0.02;
         glDisable(GL_CULL_FACE);
         glEnable(GL_BLEND);
 	    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
