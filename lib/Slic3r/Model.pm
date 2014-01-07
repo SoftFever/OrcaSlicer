@@ -50,6 +50,7 @@ sub add_object {
             $new_object->add_volume(
                 material_id         => $volume->material_id,
                 mesh                => $volume->mesh->clone,
+                modifier            => $volume->modifier,
             );
             
             if (defined $volume->material_id) {
@@ -361,7 +362,7 @@ sub raw_mesh {
     my $self = shift;
     
     my $mesh = Slic3r::TriangleMesh->new;
-    $mesh->merge($_->mesh) for @{ $self->volumes };
+    $mesh->merge($_->mesh) for grep !$_->modifier, @{ $self->volumes };
     return $mesh;
 }
 
@@ -458,12 +459,12 @@ sub unique_materials {
 
 sub facets_count {
     my $self = shift;
-    return sum(map $_->mesh->facets_count, @{$self->volumes});
+    return sum(map $_->mesh->facets_count, grep !$_->modifier, @{$self->volumes});
 }
 
 sub needed_repair {
     my $self = shift;
-    return (first { !$_->mesh->needed_repair } @{$self->volumes}) ? 0 : 1;
+    return (first { !$_->mesh->needed_repair } grep !$_->modifier, @{$self->volumes}) ? 0 : 1;
 }
 
 sub mesh_stats {
@@ -494,7 +495,7 @@ sub print_info {
             printf "  needed repair:     no\n";
         }
     } else {
-        printf "  number of facets:  %d\n", scalar(map @{$_->facets}, @{$self->volumes});
+        printf "  number of facets:  %d\n", scalar(map @{$_->facets}, grep !$_->modifier, @{$self->volumes});
     }
 }
 
@@ -504,6 +505,7 @@ use Moo;
 has 'object'            => (is => 'ro', weak_ref => 1, required => 1);
 has 'material_id'       => (is => 'rw');
 has 'mesh'              => (is => 'rw', required => 1);
+has 'modifier'          => (is => 'rw', defualt => sub { 0 });
 
 package Slic3r::Model::Instance;
 use Moo;

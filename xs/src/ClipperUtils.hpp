@@ -79,12 +79,12 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject,
     const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 
 template <class T>
-void diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_);
+void diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_ = false);
 
 void diff(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 
 template <class T>
-void intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_);
+void intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_ = false);
 
 void intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 

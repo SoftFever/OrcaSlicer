@@ -5,6 +5,13 @@
 
 namespace Slic3r {
 
+Polygon::operator Polygons() const
+{
+    Polygons pp;
+    pp.push_back(*this);
+    return pp;
+}
+
 Point*
 Polygon::last_point() const
 {

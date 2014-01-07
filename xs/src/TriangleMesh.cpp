@@ -1,6 +1,7 @@
 #include "TriangleMesh.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include <cmath>
 #include <queue>
 #include <deque>
 #include <set>
@@ -164,7 +165,7 @@ void TriangleMesh::rotate(double angle, Point* center)
 }
 
 void
-TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
+TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons>* layers)
 {
     /*
        This method gets called with a list of unscaled Z coordinates and outputs
@@ -385,7 +386,7 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
     free(v_scaled_shared);
     
     // build loops
-    layers.resize(z.size());
+    layers->resize(z.size());
     for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
         int layer_idx = it - lines.begin();
         #ifdef SLIC3R_DEBUG
@@ -478,7 +479,7 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
                         for (IntersectionLinePtrs::iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
                             p.points.push_back((*lineptr)->a);
                         }
-                        layers[layer_idx].push_back(p);
+                        (*layers)[layer_idx].push_back(p);
                         
                         #ifdef SLIC3R_DEBUG
                         printf("  Discovered %s polygon of %d points\n", (p.is_counter_clockwise() ? "ccw" : "cw"), (int)p.points.size());
@@ -503,6 +504,90 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons> &layers)
                 next_line->skip = true;
             }
         }
+    }
+}
+        
+class _area_comp {
+    public:
+    _area_comp(std::vector<double>* _aa) : abs_area(_aa) {};
+    bool operator() (const size_t &a, const size_t &b) {
+        return (*this->abs_area)[a] > (*this->abs_area)[b];
+    }
+    
+    private:
+    std::vector<double>* abs_area;
+};
+
+void
+TriangleMesh::slice(const std::vector<double> &z, std::vector<ExPolygons>* layers)
+{
+    std::vector<Polygons> layers_p;
+    this->slice(z, &layers_p);
+    
+    /*
+        Input loops are not suitable for evenodd nor nonzero fill types, as we might get
+        two consecutive concentric loops having the same winding order - and we have to 
+        respect such order. In that case, evenodd would create wrong inversions, and nonzero
+        would ignore holes inside two concentric contours.
+        So we're ordering loops and collapse consecutive concentric loops having the same 
+        winding order.
+        TODO: find a faster algorithm for this, maybe with some sort of binary search.
+        If we computed a "nesting tree" we could also just remove the consecutive loops
+        having the same winding order, and remove the extra one(s) so that we could just
+        supply everything to offset_ex() instead of performing several union/diff calls.
+    
+        we sort by area assuming that the outermost loops have larger area;
+        the previous sorting method, based on $b->contains_point($a->[0]), failed to nest
+        loops correctly in some edge cases when original model had overlapping facets
+    */
+    
+    layers->resize(z.size());
+    
+    for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
+        size_t layer_id = loops - layers_p.begin();
+        
+        std::vector<double> area;
+        std::vector<double> abs_area;
+        std::vector<size_t> sorted_area;  // vector of indices
+        for (Polygons::const_iterator loop = loops->begin(); loop != loops->end(); ++loop) {
+            double a = loop->area();
+            area.push_back(a);
+            abs_area.push_back(std::fabs(a));
+            sorted_area.push_back(loop - loops->begin());
+        }
+        
+        std::sort(sorted_area.begin(), sorted_area.end(), _area_comp(&abs_area));  // outer first
+    
+        // we don't perform a safety offset now because it might reverse cw loops
+        Polygons slices;
+        for (std::vector<size_t>::const_iterator loop_idx = sorted_area.begin(); loop_idx != sorted_area.end(); ++loop_idx) {
+            /* we rely on the already computed area to determine the winding order
+               of the loops, since the Orientation() function provided by Clipper
+               would do the same, thus repeating the calculation */
+            Polygons::const_iterator loop = loops->begin() + *loop_idx;
+            if (area[*loop_idx] >= 0) {
+                slices.push_back(*loop);
+            } else {
+                diff(slices, *loop, slices);
+            }
+        }
+    
+        // perform a safety offset to merge very close facets (TODO: find test case for this)
+        double safety_offset = scale_(0.0499);
+        ExPolygons ex_slices;
+        offset2_ex(slices, ex_slices, +safety_offset, -safety_offset);
+        
+        #ifdef SLIC3R_DEBUG
+        size_t holes_count = 0;
+        for (ExPolygons::const_iterator e = ex_slices.begin(); e != ex_slices.end(); ++e) {
+            holes_count += e->holes.count();
+        }
+        printf("Layer %d (slice_z = %.2f): %d surface(s) having %d holes detected from %d polylines\n",
+            layer_id, z[layer_id], ex_slices.count(), holes_count, loops->count());
+        #endif
+        
+        ExPolygons* layer = &(*layers)[layer_id];
+        layer->insert(layer->end(), ex_slices.begin(), ex_slices.end());
     }
 }
 

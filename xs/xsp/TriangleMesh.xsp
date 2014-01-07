@@ -137,19 +137,19 @@ SV*
 TriangleMesh::slice(z)
     std::vector<double>* z
     CODE:
-        std::vector<Polygons> layers;
-        THIS->slice(*z, layers);
+        std::vector<ExPolygons> layers;
+        THIS->slice(*z, &layers);
         
         AV* layers_av = newAV();
         av_extend(layers_av, layers.size()-1);
         for (unsigned int i = 0; i < layers.size(); i++) {
-            AV* polygons_av = newAV();
-            av_extend(polygons_av, layers[i].size()-1);
+            AV* expolygons_av = newAV();
+            av_extend(expolygons_av, layers[i].size()-1);
             unsigned int j = 0;
-            for (Polygons::iterator it = layers[i].begin(); it != layers[i].end(); ++it) {
-                av_store(polygons_av, j++, (*it).to_SV_clone_ref());
+            for (ExPolygons::iterator it = layers[i].begin(); it != layers[i].end(); ++it) {
+                av_store(expolygons_av, j++, (*it).to_SV_clone_ref());
             }
-            av_store(layers_av, i, newRV_noinc((SV*)polygons_av));
+            av_store(layers_av, i, newRV_noinc((SV*)expolygons_av));
         }
         RETVAL = (SV*)newRV_noinc((SV*)layers_av);
     OUTPUT:

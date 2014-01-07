@@ -528,8 +528,7 @@ sub export_svg {
     my $self = shift;
     my %params = @_;
     
-    # this shouldn't be needed, but we're currently relying on ->make_surfaces() which
-    # calls ->perimeter_flow
+    # is this needed?
     $self->init_extruders;
     
     $_->slice for @{$self->objects};

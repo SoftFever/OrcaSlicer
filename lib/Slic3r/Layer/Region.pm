@@ -58,69 +58,6 @@ sub flow {
     );
 }
 
-# build polylines from lines
-sub make_surfaces {
-    my $self = shift;
-    my ($loops) = @_;
-    
-    return if !@$loops;
-    $self->slices->clear;
-    $self->slices->append($self->_merge_loops($loops));
-    
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output("surfaces.svg",
-            #polylines         => $loops,
-            red_polylines       => [ grep $_->is_counter_clockwise, @$loops ],
-            green_polylines     => [ grep !$_->is_counter_clockwise, @$loops ],
-            expolygons          => [ map $_->expolygon, @{$self->slices} ],
-        );
-    }
-}
-
-sub _merge_loops {
-    my ($self, $loops, $safety_offset) = @_;
-    
-    # Input loops are not suitable for evenodd nor nonzero fill types, as we might get
-    # two consecutive concentric loops having the same winding order - and we have to 
-    # respect such order. In that case, evenodd would create wrong inversions, and nonzero
-    # would ignore holes inside two concentric contours.
-    # So we're ordering loops and collapse consecutive concentric loops having the same 
-    # winding order.
-    # TODO: find a faster algorithm for this, maybe with some sort of binary search.
-    # If we computed a "nesting tree" we could also just remove the consecutive loops
-    # having the same winding order, and remove the extra one(s) so that we could just
-    # supply everything to offset_ex() instead of performing several union/diff calls.
-    
-    # we sort by area assuming that the outermost loops have larger area;
-    # the previous sorting method, based on $b->contains_point($a->[0]), failed to nest
-    # loops correctly in some edge cases when original model had overlapping facets
-    my @abs_area = map abs($_), my @area = map $_->area, @$loops;
-    my @sorted = sort { $abs_area[$b] <=> $abs_area[$a] } 0..$#$loops;  # outer first
-    
-    # we don't perform a safety offset now because it might reverse cw loops
-    my $slices = [];
-    for my $i (@sorted) {
-        # we rely on the already computed area to determine the winding order
-        # of the loops, since the Orientation() function provided by Clipper
-        # would do the same, thus repeating the calculation
-        $slices = ($area[$i] >= 0)
-            ? [ $loops->[$i], @$slices ]
-            : diff($slices, [$loops->[$i]]);
-    }
-    
-    # perform a safety offset to merge very close facets (TODO: find test case for this)
-    $safety_offset //= scale 0.0499;
-    $slices = offset2_ex($slices, +$safety_offset, -$safety_offset);
-    
-    Slic3r::debugf "Layer %d (slice_z = %.2f, print_z = %.2f): %d surface(s) having %d holes detected from %d polylines\n",
-        $self->id, $self->slice_z, $self->print_z,
-        scalar(@$slices), scalar(map @{$_->holes}, @$slices), scalar(@$loops)
-        if $Slic3r::debug;
-    
-    return map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL), @$slices;
-}
-
 sub make_perimeters {
     my $self = shift;
     
@@ -318,8 +255,8 @@ sub _fill_gaps {
     $filler->angle($self->config->fill_angle);
     $filler->layer_id($self->layer->id);
     
-    # we should probably use this code to handle thin walls and remove that logic from
-    # make_surfaces(), but we need to enable dynamic extrusion width before as we can't
+    # we should probably use this code to handle thin walls
+    # but we need to enable dynamic extrusion width before as we can't
     # use zigzag for thin walls.
     
     # medial axis-based gap fill should benefit from detection of larger gaps too, so 

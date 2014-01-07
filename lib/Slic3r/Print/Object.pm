@@ -178,35 +178,57 @@ sub slice {
         $layer->region($_) for 0 .. ($regions_count-1);
     }
     
-    # process facets
+    # get array of Z coordinates for slicing
+    my @z = map $_->slice_z, @{$self->layers};
+    
+    # slice all non-modifier volumes
     for my $region_id (0..$#{$self->region_volumes}) {
-        next if !defined $self->region_volumes->[$region_id];
-        
-        # compose mesh
-        my $mesh;
-        foreach my $volume_id (@{$self->region_volumes->[$region_id]}) {
-            if (defined $mesh) {
-                $mesh->merge($self->model_object->volumes->[$volume_id]->mesh);
-            } else {
-                $mesh = $self->model_object->volumes->[$volume_id]->mesh->clone;
+        my $expolygons_by_layer = $self->_slice_region($region_id, \@z, 0);
+        for my $layer_id (0..$#$expolygons_by_layer) {
+            my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
+            $layerm->slices->clear;
+            foreach my $expolygon (@{ $expolygons_by_layer->[$layer_id] }) {
+                $layerm->slices->append(Slic3r::Surface->new(
+                    expolygon    => $expolygon,
+                    surface_type => S_TYPE_INTERNAL,
+                ));
             }
         }
-        
-        # transform mesh
-        # we ignore the per-instance transformations currently and only 
-        # consider the first one
-        $self->model_object->instances->[0]->transform_mesh($mesh, 1);
-        
-        # align mesh to Z = 0 and apply XY shift
-        $mesh->translate((map unscale(-$_), @{$self->_copies_shift}), -$self->model_object->bounding_box->z_min);
-        
-        {
-            my $loops = $mesh->slice([ map $_->slice_z, @{$self->layers} ]);
-            for my $layer_id (0..$#$loops) {
-                my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
-                $layerm->make_surfaces($loops->[$layer_id]);
+    }
+    
+    # then slice all modifier volumes
+    if (@{$self->region_volumes} > 1) {
+        for my $region_id (0..$#{$self->region_volumes}) {
+            my $expolygons_by_layer = $self->_slice_region($region_id, \@z, 1);
+            
+            # loop through the other regions and 'steal' the slices belonging to this one
+            for my $other_region_id (0..$#{$self->region_volumes}) {
+                next if $other_region_id == $region_id;
+                
+                for my $layer_id (0..$#$expolygons_by_layer) {
+                    my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
+                    my $other_layerm = $self->layers->[$layer_id]->regions->[$other_region_id];
+                    
+                    my $other_slices = [ map $_->p, @{$other_layerm->slices} ];  # Polygons
+                    my $my_parts = intersection_ex(
+                        $other_slices,
+                        [ map @$_, @{ $expolygons_by_layer->[$layer_id] } ],
+                    );
+                    next if !@$my_parts;
+                    
+                    # append new parts to our region
+                    foreach my $expolygon (@$my_parts) {
+                        $layerm->slices->append(Slic3r::Surface->new(
+                            expolygon    => $expolygon,
+                            surface_type => S_TYPE_INTERNAL,
+                        ));
+                    }
+                    
+                    # remove such parts from original region
+                    $other_layerm->slices->clear;
+                    $other_layerm->append($_) for @{ diff($other_slices, $my_parts) };
+                }
             }
-            # TODO: read slicing_errors
         }
     }
     
@@ -283,6 +305,38 @@ sub slice {
     if ($self->print->config->resolution) {
         $self->_simplify_slices(scale($self->print->config->resolution));
     }
+}
+
+sub _slice_region {
+    my ($self, $region_id, $z, $modifier) = @_;
+
+    return [] if !defined $self->region_volumes->[$region_id];
+
+    # compose mesh
+    my $mesh;
+    foreach my $volume_id (@{$self->region_volumes->[$region_id]}) {
+        my $volume = $self->model_object->volumes->[$volume_id];
+        next if $volume->modifier && !$modifier;
+        next if !$volume->modifier && $modifier;
+        
+        if (defined $mesh) {
+            $mesh->merge($volume->mesh);
+        } else {
+            $mesh = $volume->mesh->clone;
+        }
+    }
+    next if !defined $mesh;
+
+    # transform mesh
+    # we ignore the per-instance transformations currently and only 
+    # consider the first one
+    $self->model_object->instances->[0]->transform_mesh($mesh, 1);
+
+    # align mesh to Z = 0 and apply XY shift
+    $mesh->translate((map unscale(-$_), @{$self->_copies_shift}), -$self->model_object->bounding_box->z_min);
+    
+    # perform actual slicing
+    return $mesh->slice($z);
 }
 
 sub make_perimeters {
