@@ -7,6 +7,7 @@ use FindBin;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Plater;
+use Slic3r::GUI::Plater::ObjectPartsPanel;
 use Slic3r::GUI::Plater::ObjectPreviewDialog;
 use Slic3r::GUI::Plater::ObjectSettingsDialog;
 use Slic3r::GUI::Preferences;

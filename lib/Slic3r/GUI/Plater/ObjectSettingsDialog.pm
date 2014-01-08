@@ -16,6 +16,7 @@ sub new {
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}), "Settings");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}), "Layers");
+    $self->{tabpanel}->AddPage($self->{parts} = Slic3r::GUI::Plater::ObjectPartsPanel->new($self->{tabpanel}, model_object => $params{model_object}), "Parts");
     $self->{tabpanel}->AddPage($self->{materials} = Slic3r::GUI::Plater::ObjectDialog::MaterialsTab->new($self->{tabpanel}), "Materials");
     
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
