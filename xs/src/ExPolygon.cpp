@@ -1,11 +1,8 @@
 #include "ExPolygon.hpp"
+#include "Geometry.hpp"
 #include "Polygon.hpp"
 #include "Line.hpp"
 #include "ClipperUtils.hpp"
-#include "boost/polygon/voronoi.hpp"
-
-using boost::polygon::voronoi_builder;
-using boost::polygon::voronoi_diagram;
 
 namespace Slic3r {
 
@@ -138,34 +135,16 @@ ExPolygon::simplify(double tolerance, ExPolygons &expolygons) const
 void
 ExPolygon::medial_axis(Polylines* polylines) const
 {
+    // init helper object
+    Slic3r::Geometry::MedialAxis ma;
+    
     // populate list of segments for the Voronoi diagram
-    Lines lines;
-    this->contour.lines(&lines);
+    this->contour.lines(&ma.lines);
     for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole)
-        hole->lines(&lines);
+        hole->lines(&ma.lines);
     
     // compute the Voronoi diagram
-    voronoi_diagram<double> vd;
-    construct_voronoi(lines.begin(), lines.end(), &vd);
-    
-    // iterate through the diagram
-    int result = 0;
-    for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
-        if (it->is_primary()) ++result;
-        
-        Polyline p;
-        if (!it->is_finite()) {
-            clip_infinite_edge(*it, &p.points);
-        } else {
-            p.points.push_back(Point( it->vertex0()->x(), it->vertex0()->y() ));
-            p.points.push_back(Point( it->vertex1()->x(), it->vertex1()->y() ));
-            if (it->is_curved()) {
-                sample_curved_edge(*it, &p.points);
-            }
-        }
-        polylines->push_back(p);
-    }
-    printf("medial axis result = %d\n", result);
+    ma.build(polylines);
     
     // clip segments to our expolygon area
     intersection(*polylines, *this, *polylines);

@@ -21,6 +21,7 @@ class Point
     coord_t x;
     coord_t y;
     explicit Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
+    bool operator==(const Point& rhs) const;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);

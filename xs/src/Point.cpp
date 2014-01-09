@@ -4,6 +4,11 @@
 
 namespace Slic3r {
 
+inline bool
+Point::operator==(const Point& rhs) const {
+    return this->coincides_with(rhs);
+}
+
 void
 Point::scale(double factor)
 {

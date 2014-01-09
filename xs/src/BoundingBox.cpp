@@ -4,7 +4,7 @@
 namespace Slic3r {
 
 template <class PointClass>
-BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> points)
+BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &points)
 {
     typename std::vector<PointClass>::const_iterator it = points.begin();
     this->min.x = this->max.x = it->x;
@@ -16,10 +16,10 @@ BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> point
         this->max.y = std::max(it->y, this->max.y);
     }
 }
-template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> points);
+template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
 
 template <class PointClass>
-BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> points)
+BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> &points)
     : BoundingBoxBase<PointClass>(points)
 {
     typename std::vector<PointClass>::const_iterator it = points.begin();
@@ -29,7 +29,17 @@ BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> poi
         this->max.z = std::max(it->z, this->max.z);
     }
 }
-template BoundingBox3Base<Pointf3>::BoundingBox3Base(const std::vector<Pointf3> points);
+template BoundingBox3Base<Pointf3>::BoundingBox3Base(const std::vector<Pointf3> &points);
+
+BoundingBox::BoundingBox(const Lines &lines)
+{
+    Points points;
+    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
+        points.push_back(line->a);
+        points.push_back(line->b);
+    }
+    *this = BoundingBox(points);
+}
 
 void
 BoundingBox::polygon(Polygon* polygon) const

@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <map>
 #include <vector>
+#include "voronoi_visual_utils.hpp"
+
+using namespace boost::polygon;  // provides also high() and low()
 
 namespace Slic3r { namespace Geometry {
 
@@ -81,5 +84,124 @@ chained_path_items(Points &points, T &items, T &retval)
         retval.push_back(items[*it]);
 }
 template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
+
+void
+MedialAxis::build(Polylines* polylines)
+{
+    // build bounding box (we use it for clipping infinite segments)
+    this->bb = BoundingBox(this->lines);
+    
+    construct_voronoi(this->lines.begin(), this->lines.end(), &this->vd);
+    
+    // iterate through the diagram
+    int result = 0;
+    for (voronoi_diagram<double>::const_edge_iterator it = this->vd.edges().begin(); it != this->vd.edges().end(); ++it) {
+        if (it->is_primary()) ++result;
+        
+        Polyline p;
+        if (!it->is_finite()) {
+            this->clip_infinite_edge(*it, &p.points);
+        } else {
+            p.points.push_back(Point( it->vertex0()->x(), it->vertex0()->y() ));
+            p.points.push_back(Point( it->vertex1()->x(), it->vertex1()->y() ));
+            if (it->is_curved()) {
+                this->sample_curved_edge(*it, &p.points);
+            }
+        }
+        polylines->push_back(p);
+    }
+    printf("medial axis result = %d\n", result);
+}
+
+void
+MedialAxis::clip_infinite_edge(const voronoi_diagram<double>::edge_type& edge, Points* clipped_edge)
+{
+    const voronoi_diagram<double>::cell_type& cell1 = *edge.cell();
+    const voronoi_diagram<double>::cell_type& cell2 = *edge.twin()->cell();
+    Point origin, direction;
+    // Infinite edges could not be created by two segment sites.
+    if (cell1.contains_point() && cell2.contains_point()) {
+        Point p1 = retrieve_point(cell1);
+        Point p2 = retrieve_point(cell2);
+        origin.x = (p1.x + p2.x) * 0.5;
+        origin.y = (p1.y + p2.y) * 0.5;
+        direction.x = p1.y - p2.y;
+        direction.y = p2.x - p1.x;
+    } else {
+        origin = cell1.contains_segment()
+            ? retrieve_point(cell2)
+            : retrieve_point(cell1);
+        Line segment = cell1.contains_segment()
+            ? retrieve_segment(cell1)
+            : retrieve_segment(cell2);
+        coord_t dx = high(segment).x - low(segment).x;
+        coord_t dy = high(segment).y - low(segment).y;
+        if ((low(segment) == origin) ^ cell1.contains_point()) {
+            direction.x = dy;
+            direction.y = -dx;
+        } else {
+            direction.x = -dy;
+            direction.y = dx;
+        }
+    }
+    coord_t side = this->bb.size().x;
+    coord_t koef = side / (std::max)(fabs(direction.x), fabs(direction.y));
+    if (edge.vertex0() == NULL) {
+        clipped_edge->push_back(Point(
+            origin.x - direction.x * koef,
+            origin.y - direction.y * koef
+        ));
+    } else {
+        clipped_edge->push_back(
+        Point(edge.vertex0()->x(), edge.vertex0()->y()));
+    }
+    if (edge.vertex1() == NULL) {
+        clipped_edge->push_back(Point(
+            origin.x + direction.x * koef,
+            origin.y + direction.y * koef
+        ));
+    } else {
+        clipped_edge->push_back(
+        Point(edge.vertex1()->x(), edge.vertex1()->y()));
+    }
+}
+
+void
+MedialAxis::sample_curved_edge(const voronoi_diagram<double>::edge_type& edge, Points* sampled_edge)
+{
+    Point point = edge.cell()->contains_point()
+        ? retrieve_point(*edge.cell())
+        : retrieve_point(*edge.twin()->cell());
+    
+    Line segment = edge.cell()->contains_point()
+        ? retrieve_segment(*edge.twin()->cell())
+        : retrieve_segment(*edge.cell());
+    
+    coord_t max_dist = 1E-3 * this->bb.size().x;
+    voronoi_visual_utils<coord_t>::discretize(point, segment, max_dist, sampled_edge);
+}
+
+Point
+MedialAxis::retrieve_point(const voronoi_diagram<double>::cell_type& cell)
+{
+    voronoi_diagram<double>::cell_type::source_index_type index = cell.source_index();
+    voronoi_diagram<double>::cell_type::source_category_type category = cell.source_category();
+    if (category == SOURCE_CATEGORY_SINGLE_POINT) {
+        return this->points[index];
+    }
+    index -= this->points.size();
+    if (category == SOURCE_CATEGORY_SEGMENT_START_POINT) {
+        return low(this->lines[index]);
+    } else {
+        return high(this->lines[index]);
+    }
+}
+
+Line
+MedialAxis::retrieve_segment(const voronoi_diagram<double>::cell_type& cell)
+{
+    voronoi_diagram<double>::cell_type::source_index_type index = cell.source_index() - this->points.size();
+    return this->lines[index];
+}
 
 } }
