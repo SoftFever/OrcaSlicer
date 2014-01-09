@@ -14,6 +14,7 @@ class ExPolygon
     public:
     Polygon contour;
     Polygons holes;
+    operator Points() const;
     operator Polygons() const;
     void scale(double factor);
     void translate(double x, double y);
@@ -25,6 +26,7 @@ class ExPolygon
     Polygons simplify_p(double tolerance) const;
     ExPolygons simplify(double tolerance) const;
     void simplify(double tolerance, ExPolygons &expolygons) const;
+    void medial_axis(Polylines* polylines) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);

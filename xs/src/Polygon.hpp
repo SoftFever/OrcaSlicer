@@ -17,6 +17,7 @@ class Polygon : public MultiPoint {
     operator Polygons() const;
     Point* last_point() const;
     Lines lines() const;
+    void lines(Lines* lines) const;
     Polyline* split_at(const Point* point) const;
     Polyline* split_at_index(int index) const;
     Polyline* split_at_first_point() const;

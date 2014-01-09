@@ -22,12 +22,18 @@ Lines
 Polygon::lines() const
 {
     Lines lines;
-    lines.reserve(this->points.size());
-    for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
-        lines.push_back(Line(*it, *(it + 1)));
-    }
-    lines.push_back(Line(this->points.back(), this->points.front()));
+    this->lines(&lines);
     return lines;
+}
+
+void
+Polygon::lines(Lines* lines) const
+{
+    lines->reserve(lines->size() + this->points.size());
+    for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
+        lines->push_back(Line(*it, *(it + 1)));
+    }
+    lines->push_back(Line(this->points.back(), this->points.front()));
 }
 
 Polyline*

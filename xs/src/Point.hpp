@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include <vector>
 #include <math.h>
+#include <boost/polygon/polygon.hpp>
 
 namespace Slic3r {
 
@@ -76,5 +77,21 @@ class Pointf3 : public Pointf
 };
 
 }
+
+// start Boost
+namespace boost { namespace polygon {
+    template <>
+    struct geometry_concept<Point> { typedef point_concept type; };
+   
+    template <>
+    struct point_traits<Point> {
+        typedef coord_t coordinate_type;
+    
+        static inline coordinate_type get(const Point& point, orientation_2d orient) {
+            return (orient == HORIZONTAL) ? point.x : point.y;
+        }
+    };
+} }
+// end Boost
 
 #endif

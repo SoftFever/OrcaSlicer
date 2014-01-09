@@ -3,6 +3,7 @@
 
 #include <myinit.h>
 #include "Point.hpp"
+#include <boost/polygon/polygon.hpp>
 
 namespace Slic3r {
 
@@ -40,5 +41,22 @@ class Line
 typedef std::vector<Line> Lines;
 
 }
+
+// start Boost
+namespace boost { namespace polygon {
+    template <>
+    struct geometry_concept<Line> { typedef segment_concept type; };
+
+    template <>
+    struct segment_traits<Line> {
+        typedef coord_t coordinate_type;
+        typedef Point point_type;
+    
+        static inline point_type get(const Line& line, direction_1d dir) {
+            return dir.to_int() ? line.b : line.a;
+        }
+    };
+} }
+// end Boost
 
 #endif

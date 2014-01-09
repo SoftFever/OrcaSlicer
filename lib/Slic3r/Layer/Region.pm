@@ -223,7 +223,7 @@ sub make_perimeters {
     
     # process thin walls by collapsing slices to single passes
     if (@thin_walls) {
-        my @p = map $_->medial_axis($pspacing), @thin_walls;
+        my @p = map @{$_->medial_axis($pspacing)}, @thin_walls;
         my @paths = ();
         for my $p (@p) {
             next if $p->length <= $pspacing * 2;
@@ -284,7 +284,7 @@ sub _fill_gaps {
                 $_->isa('Slic3r::Polygon')
                     ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # we should keep these as loops
                     : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
-            } map $_->medial_axis($flow->scaled_width), @this_width);
+            } map @{$_->medial_axis($flow->scaled_width)}, @this_width);
         
             Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
                 if @{ $self->thin_fills };
