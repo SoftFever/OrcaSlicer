@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 52;
+use Test::More tests => 41;
 
 is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
@@ -85,7 +85,6 @@ my $cube = {
     for my $i (0..$#z) {
         is scalar(@{$result->[$i]}), 1, 'number of returned polygons per layer';
         is $result->[$i][0]->area, 20*20/($SCALING_FACTOR**2), 'size of returned polygon';
-        ok $result->[$i][0]->is_counter_clockwise, 'orientation of returned polygon';
     }
 }
 
