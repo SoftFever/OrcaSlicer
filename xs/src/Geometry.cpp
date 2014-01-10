@@ -1,4 +1,6 @@
 #include "Geometry.hpp"
+#include "Line.hpp"
+#include "PolylineCollection.hpp"
 #include "clipper.hpp"
 #include <algorithm>
 #include <map>
@@ -94,28 +96,107 @@ MedialAxis::build(Polylines* polylines)
     
     construct_voronoi(this->lines.begin(), this->lines.end(), &this->vd);
     
-    // prepare a cache of twin edges to prevent getting the same edge twice
-    // (Boost.Polygon returns it duplicated in both directions)
-    std::set<const voronoi_diagram<double>::edge_type*> edge_cache;
+    // iterate through the diagram by starting from a random edge
+    this->edge_cache.clear();
+    for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge)
+        this->process_edge(*edge, polylines);
+}
+
+void
+MedialAxis::process_edge(const VD::edge_type& edge, Polylines* polylines)
+{
+    // if we already visited this edge or its twin skip it
+    if (this->edge_cache.count(&edge) > 0) return;
     
-    // iterate through the diagram
-    for (voronoi_diagram<double>::const_edge_iterator it = this->vd.edges().begin(); it != this->vd.edges().end(); ++it) {
-        (void)edge_cache.insert(it->twin());
-        if (edge_cache.count(&*it) > 0) continue;
-        if (!it->is_primary()) continue;
-        
-        Polyline p;
-        if (!it->is_finite()) {
-            this->clip_infinite_edge(*it, &p.points);
-        } else {
-            p.points.push_back(Point( it->vertex0()->x(), it->vertex0()->y() ));
-            p.points.push_back(Point( it->vertex1()->x(), it->vertex1()->y() ));
-            if (it->is_curved()) {
-                this->sample_curved_edge(*it, &p.points);
+    // mark this as already visited
+    (void)this->edge_cache.insert(&edge);
+    (void)this->edge_cache.insert(edge.twin());
+    
+    if (this->is_valid_edge(edge)) {
+        Line line = Line(
+            Point( edge.vertex0()->x(), edge.vertex0()->y() ),
+            Point( edge.vertex1()->x(), edge.vertex1()->y() )
+        );
+        bool appended = false;
+        if (!polylines->empty()) {
+            Polyline &last_p = polylines->back();
+            if (line.a == last_p.points.back()) {
+                // if this line starts where last polyline ends, just append the other point
+                last_p.points.push_back(line.b);
+                appended = true;
+            } else if (line.b == last_p.points.back()) {
+                // if this line ends where last polyline ends, just append the other point
+                last_p.points.push_back(line.a);
+                appended = true;
             }
         }
-        polylines->push_back(p);
+        if (polylines->empty() || !appended) {
+            // start a new polyline
+            polylines->push_back(Polyline());
+            Polyline &p = polylines->back();
+            p.points.push_back(line.a);
+            p.points.push_back(line.b);
+        }
     }
+    
+    // look for connected edges (on both sides)
+    this->process_edge_neighbors(edge, polylines);
+    this->process_edge_neighbors(*edge.twin(), polylines);
+}
+
+void
+MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Polylines* polylines)
+{
+    std::vector<const VD::edge_type*> neighbors;
+    for (const VD::edge_type* neighbor = edge.rot_next(); neighbor != &edge; neighbor = neighbor->rot_next()) {
+        // skip already seen edges
+        if (this->edge_cache.count(neighbor) > 0) continue;
+        
+        // skip edges that we wouldn't include in the MAT anyway
+        if (!this->is_valid_edge(*neighbor)) continue;
+        
+        neighbors.push_back(neighbor);
+    }
+    
+    // process neighbors recursively
+    if (neighbors.size() == 1) {
+        this->process_edge(*neighbors.front(), polylines);
+    } else if (neighbors.size() > 1) {
+        // close current polyline and start a new one for each branch
+        for (std::vector<const VD::edge_type*>::const_iterator neighbor = neighbors.begin(); neighbor != neighbors.end(); ++neighbor) {
+            Polylines pp;
+            this->process_edge(**neighbor, &pp);
+            polylines->insert(polylines->end(), pp.begin(), pp.end());
+        }
+    }
+}
+
+bool
+MedialAxis::is_valid_edge(const VD::edge_type& edge) const
+{
+    // if we only process segments representing closed loops, none if the
+    // infinite edges (if any) would be part of our MAT anyway
+    if (edge.is_secondary() || edge.is_infinite()) return false;
+        
+    /* If the cells sharing this edge have a common vertex, we're not interested
+       in this edge. Why? Because it means that the edge lies on the bisector of
+       two contiguous input lines and it was included in the Voronoi graph because
+       it's the locus of centers of circles tangent to both vertices. Due to the 
+       "thin" nature of our input, these edges will be very short and not part of
+       our wanted output. The best way would be to just filter out the edges that
+       are not the locus of the maximally inscribed disks (requirement of MAT)
+       but I don't know how to do it. Maybe we could check the relative angle of
+       the two segments (we are only interested in facing segments). */
+    
+    const voronoi_diagram<double>::cell_type &cell1 = *edge.cell();
+    const voronoi_diagram<double>::cell_type &cell2 = *edge.twin()->cell();
+    if (cell1.contains_segment() && cell2.contains_segment()) {
+        Line segment1 = this->retrieve_segment(cell1);
+        Line segment2 = this->retrieve_segment(cell2);
+        if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
+    }
+    
+    return true;
 }
 
 void
@@ -203,7 +284,7 @@ MedialAxis::retrieve_point(const voronoi_diagram<double>::cell_type& cell)
 }
 
 Line
-MedialAxis::retrieve_segment(const voronoi_diagram<double>::cell_type& cell)
+MedialAxis::retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const
 {
     voronoi_diagram<double>::cell_type::source_index_type index = cell.source_index() - this->points.size();
     return this->lines[index];

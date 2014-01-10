@@ -3,6 +3,7 @@
 
 #include "BoundingBox.hpp"
 #include "Polygon.hpp"
+#include "Polyline.hpp"
 
 #include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;
@@ -20,14 +21,19 @@ class MedialAxis {
     Points points;
     Lines lines;
     void build(Polylines* polylines);
+    void process_edge(const voronoi_diagram<double>::edge_type& edge, Polylines* polylines);
+    void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge, Polylines* polylines);
+    bool is_valid_edge(const voronoi_diagram<double>::edge_type& edge) const;
     void clip_infinite_edge(const voronoi_diagram<double>::edge_type& edge, Points* clipped_edge);
     void sample_curved_edge(const voronoi_diagram<double>::edge_type& edge, Points* sampled_edge);
     Point retrieve_point(const voronoi_diagram<double>::cell_type& cell);
-    Line retrieve_segment(const voronoi_diagram<double>::cell_type& cell);
+    Line retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
     
     private:
-    voronoi_diagram<double> vd;
+    typedef voronoi_diagram<double> VD;
+    VD vd;
     BoundingBox bb;
+    std::set<const VD::edge_type*> edge_cache;
 };
 
 } }

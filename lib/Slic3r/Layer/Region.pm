@@ -224,16 +224,17 @@ sub make_perimeters {
     # process thin walls by collapsing slices to single passes
     if (@thin_walls) {
         my @p = map @{$_->medial_axis($pspacing)}, @thin_walls;
+        
         if (0) {
-            use Slic3r::SVG;
+            require "Slic3r/SVG.pm";
             Slic3r::SVG::output(
                 "medial_axis.svg",
                 no_arrows => 1,
-                expolygons => \@thin_walls,
+                #expolygons => \@thin_walls,
                 polylines => \@p,
             );
-            exit;
         }
+        
         my @paths = ();
         for my $p (@p) {
             next if $p->length <= $pspacing * 2;
