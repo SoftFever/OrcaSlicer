@@ -2,6 +2,7 @@
 #include "clipper.hpp"
 #include <algorithm>
 #include <map>
+#include <set>
 #include <vector>
 #include "voronoi_visual_utils.hpp"
 
@@ -93,10 +94,15 @@ MedialAxis::build(Polylines* polylines)
     
     construct_voronoi(this->lines.begin(), this->lines.end(), &this->vd);
     
+    // prepare a cache of twin edges to prevent getting the same edge twice
+    // (Boost.Polygon returns it duplicated in both directions)
+    std::set<const voronoi_diagram<double>::edge_type*> edge_cache;
+    
     // iterate through the diagram
-    int result = 0;
     for (voronoi_diagram<double>::const_edge_iterator it = this->vd.edges().begin(); it != this->vd.edges().end(); ++it) {
-        if (it->is_primary()) ++result;
+        (void)edge_cache.insert(it->twin());
+        if (edge_cache.count(&*it) > 0) continue;
+        if (!it->is_primary()) continue;
         
         Polyline p;
         if (!it->is_finite()) {
@@ -110,7 +116,6 @@ MedialAxis::build(Polylines* polylines)
         }
         polylines->push_back(p);
     }
-    printf("medial axis result = %d\n", result);
 }
 
 void
@@ -177,8 +182,8 @@ MedialAxis::sample_curved_edge(const voronoi_diagram<double>::edge_type& edge, P
         ? retrieve_segment(*edge.twin()->cell())
         : retrieve_segment(*edge.cell());
     
-    coord_t max_dist = 1E-3 * this->bb.size().x;
-    voronoi_visual_utils<coord_t>::discretize(point, segment, max_dist, sampled_edge);
+    double max_dist = 1E-3 * this->bb.size().x;
+    voronoi_visual_utils<double>::discretize<coord_t,coord_t,Point,Line>(point, segment, max_dist, sampled_edge);
 }
 
 Point

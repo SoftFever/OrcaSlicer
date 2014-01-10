@@ -4,7 +4,7 @@
 
 namespace Slic3r {
 
-inline bool
+bool
 Point::operator==(const Point& rhs) const {
     return this->coincides_with(rhs);
 }
