@@ -78,8 +78,7 @@ use Slic3r::Test;
         
         
     });
-    # account for one single retraction at the end of the print
-    ok $print->extruders->[0]->absolute_E + $config->retract_length->[0] > 0, 'total filament length is positive';
+    ok $print->total_used_filament > 0, 'final retraction is not considered in total used filament';
 }
 
 __END__

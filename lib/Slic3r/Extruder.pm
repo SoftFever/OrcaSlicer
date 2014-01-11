@@ -83,8 +83,8 @@ sub extrude {
 }
 
 sub extruded_volume {
-    my ($self) = @_;
-    return $self->absolute_E * ($self->filament_diameter**2) * PI/4;
+    my ($self, $E) = @_;
+    return $E * ($self->filament_diameter**2) * PI/4;
 }
 
 sub e_per_mm {
