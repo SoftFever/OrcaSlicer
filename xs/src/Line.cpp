@@ -79,6 +79,8 @@ void
 Line::from_SV_check(SV* line_sv)
 {
     if (sv_isobject(line_sv) && (SvTYPE(SvRV(line_sv)) == SVt_PVMG)) {
+        if (!sv_isa(line_sv, "Slic3r::Line") && !sv_isa(line_sv, "Slic3r::Line::Ref"))
+            CONFESS("Not a valid Slic3r::Line object");
         *this = *(Line*)SvIV((SV*)SvRV( line_sv ));
     } else {
         this->from_SV(line_sv);

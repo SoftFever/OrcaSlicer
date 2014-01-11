@@ -111,6 +111,8 @@ void
 ExPolygon::from_SV_check(SV* expoly_sv)
 {
     if (sv_isobject(expoly_sv) && (SvTYPE(SvRV(expoly_sv)) == SVt_PVMG)) {
+        if (!sv_isa(expoly_sv, "Slic3r::ExPolygon") && !sv_isa(expoly_sv, "Slic3r::ExPolygon::Ref"))
+            CONFESS("Not a valid Slic3r::ExPolygon object");
         // a XS ExPolygon was supplied
         *this = *(ExPolygon *)SvIV((SV*)SvRV( expoly_sv ));
     } else {

@@ -214,7 +214,7 @@ sub make_perimeters {
         
         # make sure we don't infill narrow parts that are already gap-filled
         # (we only consider this surface's gaps to reduce the diff() complexity)
-        @last = @{diff(\@last, \@last_gaps)};
+        @last = @{diff(\@last, [ map @$_, @last_gaps ])};
         
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
@@ -508,7 +508,7 @@ sub process_external_surfaces {
 sub _detect_bridge_direction {
     my ($self, $expolygon, $lower_layer) = @_;
     
-    my $grown = $expolygon->offset_ex(+$self->perimeter_flow->scaled_width);
+    my $grown = $expolygon->offset(+$self->perimeter_flow->scaled_width);
     my @lower = @{$lower_layer->slices};       # expolygons
     
     # detect what edges lie on lower slices
@@ -516,7 +516,7 @@ sub _detect_bridge_direction {
     foreach my $lower (@lower) {
         # turn bridge contour and holes into polylines and then clip them
         # with each lower slice's contour
-        my @clipped = map $_->split_at_first_point->clip_with_polygon($lower->contour), map @$_, @$grown;
+        my @clipped = map $_->split_at_first_point->clip_with_polygon($lower->contour), @$grown;
         if (@clipped == 2) {
             # If the split_at_first_point() call above happens to split the polygon inside the clipping area
             # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 
@@ -567,7 +567,7 @@ sub _detect_bridge_direction {
         
         # detect anchors as intersection between our bridge expolygon and the lower slices
         my $anchors = intersection_ex(
-            [ @$grown ],
+            $grown,
             [ map @$_, @lower ],
             1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
         );
