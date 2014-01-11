@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 8;
 use strict;
 use warnings;
 
@@ -79,6 +79,23 @@ use Slic3r::Test;
         
     });
     ok $print->total_used_filament > 0, 'final retraction is not considered in total used filament';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('gcode_flavor', 'sailfish');
+    $config->set('raft_layers', 3);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my @percent = ();
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'M73') {
+            push @percent, $args->{P};
+        }
+    });
+    # the extruder heater is turned off when M73 P100 is reached
+    ok !(defined first { $_ > 100 } @percent), 'M73 is never given more than 100%';
 }
 
 __END__

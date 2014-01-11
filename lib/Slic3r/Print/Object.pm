@@ -98,9 +98,12 @@ sub delete_all_copies {
     $self->_trigger_copies;
 }
 
+# this is the *total* layer count
+# this value is not supposed to be compared with $layer->id
+# since they have different semantics
 sub layer_count {
     my $self = shift;
-    return scalar @{ $self->layers };
+    return scalar @{ $self->layers } + scalar @{ $self->support_layers };
 }
 
 sub bounding_box {
@@ -354,9 +357,9 @@ sub make_perimeters {
         my $region_perimeters = $region->config->perimeters;
         
         if ($region->config->extra_perimeters && $region_perimeters > 0 && $region->config->fill_density > 0) {
-            for my $layer_id (0 .. $self->layer_count-2) {
-                my $layerm          = $self->layers->[$layer_id]->regions->[$region_id];
-                my $upper_layerm    = $self->layers->[$layer_id+1]->regions->[$region_id];
+            for my $i (0 .. $#{$self->layers}-1) {
+                my $layerm          = $self->layers->[$i]->regions->[$region_id];
+                my $upper_layerm    = $self->layers->[$i+1]->regions->[$region_id];
                 my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
                 
                 my $overlap = $perimeter_spacing;  # one perimeter
@@ -393,8 +396,7 @@ sub make_perimeters {
                         
                         # only add the perimeter if there's an intersection with the collapsed area
                         last CYCLE if !@{ intersection($diff, $hypothetical_perimeter) };
-                        
-                        Slic3r::debugf "  adding one more perimeter at layer %d\n", $layer_id;
+                        Slic3r::debugf "  adding one more perimeter at layer %d\n", $layerm->id;
                         $slice->extra_perimeters($extra_perimeters);
                     }
                 }
@@ -404,11 +406,11 @@ sub make_perimeters {
     
     Slic3r::parallelize(
         threads => $self->print->config->threads,
-        items => sub { 0 .. ($self->layer_count-1) },
+        items => sub { 0 .. $#{$self->layers} },
         thread_cb => sub {
             my $q = shift;
-            while (defined (my $layer_id = $q->dequeue)) {
-                $self->layers->[$layer_id]->make_perimeters;
+            while (defined (my $i = $q->dequeue)) {
+                $self->layers->[$i]->make_perimeters;
             }
         },
         collect_cb => sub {},
@@ -428,7 +430,7 @@ sub detect_surfaces_type {
     Slic3r::debugf "Detecting solid surfaces...\n";
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        for my $i (0 .. ($self->layer_count-1)) {
+        for my $i (0 .. $#{$self->layers}) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
         
             # prepare a reusable subroutine to make surface differences
@@ -661,8 +663,8 @@ sub process_external_surfaces {
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         $self->layers->[0]->regions->[$region_id]->process_external_surfaces(undef);
-        for my $layer_id (1 .. ($self->layer_count-1)) {
-            $self->layers->[$layer_id]->regions->[$region_id]->process_external_surfaces($self->layers->[$layer_id-1]);
+        for my $i (1 .. $#{$self->layers}) {
+            $self->layers->[$i]->regions->[$region_id]->process_external_surfaces($self->layers->[$i-1]);
         }
     }
 }
@@ -673,7 +675,7 @@ sub discover_horizontal_shells {
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        for (my $i = 0; $i < $self->layer_count; $i++) {
+        for (my $i = 0; $i <= $#{$self->layers}; $i++) {
             my $layerm = $self->layers->[$i]->regions->[$region_id];
             
             if ($layerm->config->solid_infill_every_layers && $layerm->config->fill_density > 0
@@ -705,7 +707,7 @@ sub discover_horizontal_shells {
                         abs($n - $i) <= $solid_layers-1; 
                         ($type == S_TYPE_TOP) ? $n-- : $n++) {
                     
-                    next if $n < 0 || $n >= $self->layer_count;
+                    next if $n < 0 || $n > $#{$self->layers};
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
                     my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
@@ -811,8 +813,7 @@ sub combine_infill {
     
     return unless defined first { $_->config->infill_every_layers > 1 && $_->config->fill_density > 0 } @{$self->print->regions};
     
-    my $layer_count = $self->layer_count;
-    my @layer_heights = map $self->layers->[$_]->height, 0 .. $layer_count-1;
+    my @layer_heights = map $_->height, @{$self->layers};
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         my $region = $self->print->regions->[$region_id];
@@ -922,7 +923,7 @@ sub combine_infill {
 sub generate_support_material {
     my $self = shift;
     return unless ($self->config->support_material || $self->config->raft_layers > 0)
-        && $self->layer_count >= 2;
+        && scalar(@{$self->layers}) >= 2;
     
     my $first_layer_flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
