@@ -324,7 +324,7 @@ sub validate {
         my $max_nozzle_diameter = max(@{ $self->nozzle_diameter });
         die "Invalid extrusion width (too large)\n"
             if defined first { $_ > 10 * $max_nozzle_diameter }
-                map $self->get("${_}_extrusion_width"),
+                map $self->get_value("${_}_extrusion_width"),
                 qw(perimeter infill solid_infill top_infill support_material first_layer);
     }
     
