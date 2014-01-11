@@ -480,6 +480,7 @@ our $Options = {
         cli     => 'first-layer-extrusion-width=s',
         type    => 'f',
         default => '200%',
+        ratio_over => 'first_layer_height',
     },
     'perimeter_extrusion_width' => {
         label   => 'Perimeters',
@@ -489,6 +490,7 @@ our $Options = {
         type    => 'f',
         aliases => [qw(perimeters_extrusion_width)],
         default => 0,
+        ratio_over => 'layer_height',
     },
     'infill_extrusion_width' => {
         label   => 'Infill',
@@ -497,6 +499,7 @@ our $Options = {
         cli     => 'infill-extrusion-width=s',
         type    => 'f',
         default => 0,
+        ratio_over => 'layer_height',
     },
     'solid_infill_extrusion_width' => {
         label   => 'Solid infill',
@@ -505,6 +508,7 @@ our $Options = {
         cli     => 'solid-infill-extrusion-width=s',
         type    => 'f',
         default => 0,
+        ratio_over => 'layer_height',
     },
     'top_infill_extrusion_width' => {
         label   => 'Top solid infill',
@@ -513,6 +517,7 @@ our $Options = {
         cli     => 'top-infill-extrusion-width=s',
         type    => 'f',
         default => 0,
+        ratio_over => 'layer_height',
     },
     'support_material_extrusion_width' => {
         label   => 'Support material',
@@ -521,6 +526,7 @@ our $Options = {
         cli     => 'support-material-extrusion-width=s',
         type    => 'f',
         default => 0,
+        ratio_over => 'layer_height',
     },
     'bridge_flow_ratio' => {
         label   => 'Bridge flow ratio',
@@ -1477,7 +1483,7 @@ sub validate {
         my $max_nozzle_diameter = max(@{ $self->nozzle_diameter });
         die "Invalid extrusion width (too large)\n"
             if defined first { $_ > 10 * $max_nozzle_diameter }
-                map $self->get("${_}_extrusion_width"),
+                map $self->get_value("${_}_extrusion_width"),
                 qw(perimeter infill solid_infill top_infill support_material first_layer);
     }
     
