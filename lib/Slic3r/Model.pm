@@ -386,7 +386,7 @@ sub mesh {
 
 sub update_bounding_box {
     my ($self) = @_;
-    $self->_bounding_box($self->mesh->bounding_box);
+    $self->_bounding_box($self->raw_mesh->bounding_box);
 }
 
 # this returns the bounding box of the *transformed* instances
@@ -484,7 +484,7 @@ sub print_info {
     my $self = shift;
     
     printf "Info about %s:\n", basename($self->input_file);
-        printf "  size:              x=%.3f y=%.3f z=%.3f\n", @{$self->size};
+    printf "  size:              x=%.3f y=%.3f z=%.3f\n", @{$self->bounding_box->size};
     if (my $stats = $self->mesh_stats) {
         printf "  number of facets:  %d\n", $stats->{number_of_facets};
         printf "  number of shells:  %d\n", $stats->{number_of_parts};
