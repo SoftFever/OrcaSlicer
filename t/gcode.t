@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 7;
 use strict;
 use warnings;
 
@@ -67,6 +67,20 @@ use Slic3r::Test;
     my $layer_count = 20/0.4;  # cube is 20mm tall
     is scalar(@z_moves), 2*$layer_count, 'complete_objects generates the correct number of Z moves';
     is_deeply [ @z_moves[0..($layer_count-1)] ], [ @z_moves[$layer_count..$#z_moves] ], 'complete_objects generates the correct Z moves';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('retract_length', [1000000]);
+    $config->set('use_relative_e_distances', 1);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        
+    });
+    # account for one single retraction at the end of the print
+    ok $print->extruders->[0]->absolute_E + $config->retract_length->[0] > 0, 'total filament length is positive';
 }
 
 __END__
