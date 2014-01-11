@@ -283,9 +283,11 @@ sub init_extruders {
     }
 }
 
+# this value is not supposed to be compared with $layer->id
+# since they have different semantics
 sub layer_count {
     my $self = shift;
-    return max(map { scalar @{$_->layers} } @{$self->objects});
+    return max(map $_->layer_count, @{$self->objects});
 }
 
 sub regions_count {
@@ -398,8 +400,9 @@ sub export_gcode {
             items => sub {
                 my @items = ();  # [obj_idx, layer_id]
                 for my $obj_idx (0 .. $#{$self->objects}) {
-                    for my $region_id (0 .. ($self->regions_count-1)) {
-                        push @items, map [$obj_idx, $_, $region_id], 0..($self->objects->[$obj_idx]->layer_count-1);
+                    my $object = $self->objects->[$obj_idx];
+                    for my $region_id (0 .. $#{$self->regions}) {
+                        push @items, map [$obj_idx, $_, $region_id], 0..$#{$object->layers};
                     }
                 }
                 @items;
@@ -407,9 +410,9 @@ sub export_gcode {
             thread_cb => sub {
                 my $q = shift;
                 while (defined (my $obj_layer = $q->dequeue)) {
-                    my ($obj_idx, $layer_id, $region_id) = @$obj_layer;
+                    my ($obj_idx, $layer_i, $region_id) = @$obj_layer;
                     my $object = $self->objects->[$obj_idx];
-                    my $layerm = $object->layers->[$layer_id]->regions->[$region_id];
+                    my $layerm = $object->layers->[$layer_i]->regions->[$region_id];
                     $layerm->fills->append( $object->fill_maker->make_fill($layerm) );
                 }
             },
@@ -517,29 +520,31 @@ EOF
             ($type eq 'contour' ? 'white' : 'black');
     };
     
+    my @layers = sort { $a->print_z <=> $b->print_z }
+        map { @{$_->layers}, @{$_->support_layers} }
+        @{$self->objects};
+    
+    my $layer_id = -1;
     my @previous_layer_slices = ();
-    for my $layer_id (0..$self->layer_count-1) {
-        my @layers = map $_->layers->[$layer_id], @{$self->objects};
-        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale +(grep defined $_, @layers)[0]->slice_z;
+    for my $layer (@layers) {
+        $layer_id++;
+        # TODO: remove slic3r:z for raft layers
+        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
         
         my @current_layer_slices = ();
-        for my $obj_idx (0 .. $#{$self->objects}) {
-            my $layer = $self->objects->[$obj_idx]->layers->[$layer_id] or next;
-            
-            # sort slices so that the outermost ones come first
-            my @slices = sort { $a->contour->encloses_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
-            foreach my $copy (@{$self->objects->[$obj_idx]->copies}) {
-                foreach my $slice (@slices) {
-                    my $expolygon = $slice->clone;
-                    $expolygon->translate(@$copy);
-                    $print_polygon->($expolygon->contour, 'contour');
-                    $print_polygon->($_, 'hole') for @{$expolygon->holes};
-                    push @current_layer_slices, $expolygon;
-                }
+        # sort slices so that the outermost ones come first
+        my @slices = sort { $a->contour->encloses_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
+        foreach my $copy (@{$layer->object->copies}) {
+            foreach my $slice (@slices) {
+                my $expolygon = $slice->clone;
+                $expolygon->translate(@$copy);
+                $print_polygon->($expolygon->contour, 'contour');
+                $print_polygon->($_, 'hole') for @{$expolygon->holes};
+                push @current_layer_slices, $expolygon;
             }
         }
         # generate support material
-        if ($self->has_support_material && $layer_id > 0) {
+        if ($self->has_support_material && $layer->id > 0) {
             my (@supported_slices, @unsupported_slices) = ();
             foreach my $expolygon (@current_layer_slices) {
                 my $intersection = intersection_ex(
