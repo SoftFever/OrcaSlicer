@@ -59,7 +59,7 @@ sub fill_surface {
     # not perfectly straight
     my @polylines = map Slic3r::Polyline->new(@$_),
         @{ Boost::Geometry::Utils::multi_polygon_multi_linestring_intersection(
-            [ map $_->pp, @{$expolygon->offset_ex($line_spacing*0.05)} ],
+            [ map $_->pp, @{$expolygon->offset_ex(scaled_epsilon * 100)} ],
             [ @vertical_lines ],
         ) };
     

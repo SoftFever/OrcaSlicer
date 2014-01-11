@@ -2,13 +2,15 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 34;
+plan tests => 40;
 
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
 
+use List::Util qw(first);
+use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r;
 use Slic3r::Geometry qw(scale X Y);
 use Slic3r::Geometry::Clipper qw(diff_ex);
@@ -155,11 +157,34 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         'chained path';
 }
 
-for my $pattern (qw(hilbertcurve concentric)) {
+for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('fill_pattern', $pattern);
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), "successful $pattern infill generation";
+    $config->set('perimeters', 1);
+    $config->set('skirts', 0);
+    $config->set('fill_density', 0.2);
+    $config->set('layer_height', 0.05);
+    $config->set('perimeter_extruder', 1);
+    $config->set('infill_extruder', 2);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config, scale => 2);
+    ok my $gcode = Slic3r::Test::gcode($print), "successful $pattern infill generation";
+    my $tool = undef;
+    my @perimeter_points = my @infill_points = ();
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+            if ($tool == $config->perimeter_extruder-1) {
+                push @perimeter_points, Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            } elsif ($tool == $config->infill_extruder-1) {
+                push @infill_points, Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            }
+        }
+    });
+    my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, @perimeter_points ])});
+    ok !(defined first { !$convex_hull->encloses_point($_) } @infill_points), "infill does not exceed perimeters ($pattern)";
 }
 
 {
