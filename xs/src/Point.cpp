@@ -169,6 +169,8 @@ void
 Point::from_SV_check(SV* point_sv)
 {
     if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
+        if (!sv_isa(point_sv, "Slic3r::Point") && !sv_isa(point_sv, "Slic3r::Point::Ref"))
+            CONFESS("Not a valid Slic3r::Point object");
         *this = *(Point*)SvIV((SV*)SvRV( point_sv ));
     } else {
         this->from_SV(point_sv);

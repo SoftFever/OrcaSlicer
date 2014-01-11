@@ -118,7 +118,7 @@ sub fill_surface {
         # clip paths again to prevent connection segments from crossing the expolygon boundaries
         @paths = @{intersection_pl(
             \@paths,
-            [ @{$surface->expolygon->offset_ex(scaled_epsilon)} ],
+            [ map @$_, @{$surface->expolygon->offset_ex(scaled_epsilon)} ],
         )};
     }
     
