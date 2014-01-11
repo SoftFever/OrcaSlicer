@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use List::Util qw(first);
+use List::Util qw(first max);
 
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
@@ -1471,6 +1471,15 @@ sub validate {
     die "Invalid zero value for --default-acceleration when using other acceleration settings\n"
         if ($self->perimeter_acceleration || $self->infill_acceleration || $self->bridge_acceleration || $self->first_layer_acceleration)
             && !$self->default_acceleration;
+    
+    # extrusion widths
+    {
+        my $max_nozzle_diameter = max(@{ $self->nozzle_diameter });
+        die "Invalid extrusion width (too large)\n"
+            if defined first { $_ > 10 * $max_nozzle_diameter }
+                map $self->get("${_}_extrusion_width"),
+                qw(perimeter infill solid_infill top_infill support_material first_layer);
+    }
     
     # general validation, quick and dirty
     foreach my $opt_key (keys %$Options) {
