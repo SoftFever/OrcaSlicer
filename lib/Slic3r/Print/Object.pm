@@ -127,17 +127,30 @@ sub slice {
     
         # make layers taking custom heights into account
         my $print_z = my $slice_z = my $height = my $id = 0;
+        my $first_object_layer_height = -1;
     
         # add raft layers
         if ($self->config->raft_layers > 0) {
+            $id += $self->config->raft_layers;
+        
+            # raise first object layer Z by the thickness of the raft itself
+            # plus the extra distance required by the support material logic
             $print_z += $self->config->get_value('first_layer_height');
             $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
-            $id += $self->config->raft_layers;
+        
+            # at this stage we don't know which nozzles are actually used for the first layer
+            # so we compute the average of all of them
+            my $nozzle_diameter = sum(@{$self->print->config->nozzle_diameter})/@{$self->print->config->nozzle_diameter};
+            my $distance = Slic3r::Print::SupportMaterial::contact_distance($nozzle_diameter);
+        
+            # force first layer print_z according to the contact distance
+            # (the loop below will raise print_z by such height)
+            $first_object_layer_height = $distance;
         }
     
         # loop until we have at least one layer and the max slice_z reaches the object height
         my $max_z = unscale($self->size->z);
-        while (!@{$self->layers} || ($slice_z - $height) <= $max_z) {
+        while (($slice_z - $height) <= $max_z) {
             # assign the default height to the layer according to the general settings
             $height = ($id == 0)
                 ? $self->config->get_value('first_layer_height')
@@ -153,7 +166,11 @@ sub slice {
                     next;
                 }
             }
-        
+            
+            if ($first_object_layer_height != -1 && !@{$self->layers}) {
+                $height = $first_object_layer_height;
+            }
+            
             $print_z += $height;
             $slice_z += $height/2;
         
