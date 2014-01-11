@@ -7,7 +7,8 @@ use List::Util qw(first max);
 
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
-    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid);
+    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
+    rotate scale duplicate_grid);
 
 our $Options = print_config_def();
 
@@ -106,7 +107,7 @@ sub _handle_legacy {
     my ($opt_key, $value) = @_;
     
     # handle legacy options
-    return ($opt_key, $value) if first { $_ eq $opt_key } @Ignore;
+    return () if first { $_ eq $opt_key } @Ignore;
     if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
         $opt_key = $1;
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
