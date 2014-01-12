@@ -624,26 +624,50 @@ sub make_skirt {
     
     $self->skirt->clear;  # method must be idempotent
     
+    # First off we need to decide how tall the skirt must be.
+    # The skirt_height option from config is expressed in layers, but our
+    # object might have different layer heights, so we need to find the print_z
+    # of the highest layer involved.
+    # Note that unless skirt_height == -1 (which means it's printed on all layers)
+    # the actual skirt might not reach this $skirt_height_z value since the print
+    # order of objects on each layer is not guaranteed and will not generally
+    # include the thickest object first. It is just guaranteed that a skirt is
+    # prepended to the first 'n' layers (with 'n' = skirt_height).
+    # $skirt_height_z in this case is the highest possible skirt height for safety.
+    my $skirt_height_z = -1;
+    foreach my $object (@{$self->objects}) {
+        my $skirt_height = ($self->config->skirt_height == -1)
+            ? scalar(@{$object->layers})
+            : min($self->config->skirt_height, scalar(@{$object->layers}));
+        
+        my $highest_layer = $object->layers->[$skirt_height-1];
+        $skirt_height_z = max($skirt_height_z, $highest_layer->print_z);
+    }
+    
     # collect points from all layers contained in skirt height
     my @points = ();
-    foreach my $obj_idx (0 .. $#{$self->objects}) {
-        my $object = $self->objects->[$obj_idx];
+    foreach my $object (@{$self->objects}) {
+        my @object_points = ();
         
-        # get skirt layers
-        my $skirt_height = ($self->config->skirt_height == -1)
-            ? 1 + $#{$object->layers}
-            : 1 + min($self->config->skirt_height-1, $#{$object->layers}+1);
-        
-        my @layer_points = (
-            map @$_, map @$_, map @{$object->layers->[$_]->slices}, 0..($skirt_height-1),
-        );
-        if (@{ $object->support_layers }) {
-            my @support_layers = map $object->support_layers->[$_], 0..min($self->config->skirt_height-1, $#{$object->support_layers});
-            push @layer_points,
-                (map @{$_->polyline}, map @{$_->support_fills}, grep $_->support_fills, @support_layers),
-                (map @{$_->polyline}, map @{$_->support_interface_fills}, grep $_->support_interface_fills, @support_layers);
+        # get object layers up to $skirt_height_z
+        foreach my $layer (@{$object->layers}) {
+            last if $layer->print_z > $skirt_height_z;
+            push @object_points, map @$_, map @$_, @{$layer->slices};
         }
-        push @points, map move_points($_, @layer_points), @{$object->_shifted_copies};
+        
+        # get support layers up to $skirt_height_z
+        foreach my $layer (@{$object->support_layers}) {
+            last if $layer->print_z > $skirt_height_z;
+            push @object_points, map @{$_->polyline}, @{$layer->support_fills} if $layer->support_fills;
+            push @object_points, map @{$_->polyline}, @{$layer->support_interface_fills} if $layer->support_interface_fills;
+        }
+        
+        # repeat points for each object copy
+        foreach my $copy (@{$object->_shifted_copies}) {
+            my @copy_points = map $_->clone, @object_points;
+            $_->translate(@$copy) for @copy_points;
+            push @points, @copy_points;
+        }
     }
     return if @points < 3;  # at least three points required for a convex hull
     
