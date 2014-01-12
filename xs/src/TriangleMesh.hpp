@@ -49,7 +49,7 @@ class TriangleMesh
     void require_shared_vertices();
 };
 
-enum FacetEdgeType { feNone, feTop, feBottom };
+enum FacetEdgeType { feNone, feTop, feBottom, feHorizontal };
 
 class IntersectionPoint : public Point
 {
