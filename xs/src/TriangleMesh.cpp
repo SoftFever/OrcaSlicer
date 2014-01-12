@@ -284,8 +284,7 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons>* layers)
         
         for (std::vector<double>::const_iterator it = min_layer; it != max_layer + 1; ++it) {
             std::vector<double>::size_type layer_idx = it - z.begin();
-            double slice_z_u = *it;   // unscaled
-            double slice_z = slice_z_u / SCALING_FACTOR;
+            double slice_z = *it / SCALING_FACTOR;
             std::vector<IntersectionPoint> points;
             std::vector< std::vector<IntersectionPoint>::size_type > points_on_layer;
             bool found_horizontal_edge = false;
@@ -313,8 +312,11 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons>* layers)
                     
                     /* We assume that this method is never being called for horizontal
                        facets, so no other edge is going to be on this layer. */
+                    stl_vertex* v0 = &v_scaled_shared[ this->stl.v_indices[facet_idx].vertex[0] ];
+                    stl_vertex* v1 = &v_scaled_shared[ this->stl.v_indices[facet_idx].vertex[1] ];
+                    stl_vertex* v2 = &v_scaled_shared[ this->stl.v_indices[facet_idx].vertex[2] ];
                     IntersectionLine line;
-                    if (facet->vertex[0].z < slice_z_u || facet->vertex[1].z < slice_z_u || facet->vertex[2].z < slice_z_u) {
+                    if (v0->z < slice_z || v1->z < slice_z || v2->z < slice_z) {
                         line.edge_type = feTop;
                         std::swap(a, b);
                         std::swap(a_id, b_id);
