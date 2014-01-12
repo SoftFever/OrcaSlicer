@@ -253,16 +253,11 @@ TriangleMesh::slice(const std::vector<double> &z)
         printf("z: min = %.2f, max = %.2f\n", min_z, max_z);
         #endif
         
-        if (min_z == max_z) {
-            #ifdef SLIC3R_DEBUG
-            printf("Facet is horizontal; ignoring\n");
-            #endif
-            continue;
-        }
-        
+        // find layer extents
         std::vector<double>::const_iterator min_layer, max_layer;
         min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
         max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
+        /* If no layer is <= max_z, then max_layer == -1 */
         #ifdef SLIC3R_DEBUG
         printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
         #endif
@@ -298,7 +293,9 @@ TriangleMesh::slice(const std::vector<double> &z)
                     /* We assume that this method is never being called for horizontal
                        facets, so no other edge is going to be on this layer. */
                     IntersectionLine line;
-                    if (facet->vertex[0].z < slice_z || facet->vertex[1].z < slice_z || facet->vertex[2].z < slice_z) {
+                    if (min_z == max_z) {
+                        line.edge_type = feHorizontal;
+                    } else if (facet->vertex[0].z < slice_z || facet->vertex[1].z < slice_z || facet->vertex[2].z < slice_z) {
                         line.edge_type = feTop;
                         std::swap(a, b);
                         std::swap(a_id, b_id);
@@ -314,7 +311,10 @@ TriangleMesh::slice(const std::vector<double> &z)
                     
                     lines[layer_idx].push_back(line);
                     found_horizontal_edge = true;
-                    break;
+                    
+                    // if this is a top or bottom edge, we can stop looping through edges
+                    // because we won't find anything interesting
+                    if (line.edge_type != feHorizontal) break;
                 } else if (a->z == slice_z) {
                     IntersectionPoint point;
                     point.x         = a->x;
@@ -375,6 +375,13 @@ TriangleMesh::slice(const std::vector<double> &z)
         printf("Layer %d:\n", layer_idx);
         #endif
         
+        /*
+        SVG svg("lines.svg");
+        for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line)
+            svg.AddLine(*line);
+        svg.Close();
+        */
+        
         // remove tangent edges
         for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
             if (line->skip || line->edge_type == feNone) continue;
@@ -396,6 +403,13 @@ TriangleMesh::slice(const std::vector<double> &z)
                        one since all 'top' lines were reversed at slicing) */
                     if (line->edge_type == line2->edge_type) {
                         line->skip = true;
+                        break;
+                    }
+                } else if (line->a_id == line2->b_id && line->b_id == line2->a_id) {
+                    /* if this edge joins two horizontal facets, remove both of them */
+                    if (line->edge_type == feHorizontal && line2->edge_type == feHorizontal) {
+                        line->skip = true;
+                        line2->skip = true;
                         break;
                     }
                 }

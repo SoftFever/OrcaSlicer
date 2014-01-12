@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 52;
+use List::Util qw(sum);
+use Test::More tests => 53;
 
 is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
@@ -96,6 +97,7 @@ my $cube = {
     );
     $m->repair;
     my $slices = $m->slice([ 5, 10 ]);
-    is $slices->[0][0]->area, $slices->[1][0]->area, 'slicing a tangent plane includes its area';
+    is sum(map $_->area, @{$slices->[0]}), sum(map $_->area, @{$slices->[1]}),
+        'slicing a tangent plane includes its area';
 }
 __END__

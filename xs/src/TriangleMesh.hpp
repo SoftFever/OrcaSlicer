@@ -40,7 +40,7 @@ class TriangleMesh
     #endif
 };
 
-enum FacetEdgeType { feNone, feTop, feBottom };
+enum FacetEdgeType { feNone, feTop, feBottom, feHorizontal };
 
 class IntersectionPoint : public Point
 {
