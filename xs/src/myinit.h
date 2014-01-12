@@ -23,6 +23,7 @@ extern "C" {
 #define PI 3.141592653589793238
 #define scale_(val) (val / SCALING_FACTOR)
 #define unscale(val) (val * SCALING_FACTOR)
+#define SCALED_EPSILON scale_(EPSILON)
 typedef long coord_t;
 typedef double coordf_t;
 

@@ -137,8 +137,12 @@ SV*
 TriangleMesh::slice(z)
     std::vector<double>* z
     CODE:
+        // convert doubles to floats
+        std::vector<float> z_f(z->begin(), z->end());
+        delete z;
+        
         std::vector<ExPolygons> layers;
-        THIS->slice(*z, &layers);
+        THIS->slice(z_f, &layers);
         
         AV* layers_av = newAV();
         av_extend(layers_av, layers.size()-1);
