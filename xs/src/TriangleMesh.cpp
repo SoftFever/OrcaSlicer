@@ -276,8 +276,8 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<Polygons>* layers)
         
         // find layer extents
         std::vector<double>::const_iterator min_layer, max_layer;
-        min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
-        max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
+        min_layer = std::lower_bound(z.begin(), z.end(), min_z - EPSILON); // first layer whose slice_z is >= min_z
+        max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z + EPSILON) - 1; // last layer whose slice_z is <= max_z
         #ifdef SLIC3R_DEBUG
         printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
         #endif
