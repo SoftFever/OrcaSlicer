@@ -580,10 +580,10 @@ TriangleMesh::slice(const std::vector<double> &z, std::vector<ExPolygons>* layer
         #ifdef SLIC3R_DEBUG
         size_t holes_count = 0;
         for (ExPolygons::const_iterator e = ex_slices.begin(); e != ex_slices.end(); ++e) {
-            holes_count += e->holes.count();
+            holes_count += e->holes.size();
         }
-        printf("Layer %d (slice_z = %.2f): %d surface(s) having %d holes detected from %d polylines\n",
-            layer_id, z[layer_id], ex_slices.count(), holes_count, loops->count());
+        printf("Layer %zu (slice_z = %.2f): %zu surface(s) having %zu holes detected from %zu polylines\n",
+            layer_id, z[layer_id], ex_slices.size(), holes_count, loops->size());
         #endif
         
         ExPolygons* layer = &(*layers)[layer_id];

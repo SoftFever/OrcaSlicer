@@ -379,13 +379,13 @@ sub replace_options {
     $string =~ s/\[version\]/$Slic3r::VERSION/eg;
     
     # build a regexp to match the available options
-    my @options = grep !$Slic3r::Config::Options->{$_}{multiline},
-        grep $self->has($_),
-        keys %{$Slic3r::Config::Options};
+    my @options = grep !$Slic3r::Config::Options->{$_}{multiline}, @{$self->get_keys};
     my $options_regex = join '|', @options;
     
     # use that regexp to search and replace option names with option values
-    $string =~ s/\[($options_regex)\]/$self->serialize($1)/eg;
+    # it looks like passing $1 as argument to serialize() directly causes a segfault
+    # (maybe some perl optimization? maybe regex captures are not regular SVs?)
+    $string =~ s/\[($options_regex)\]/my $opt_key = $1; $self->serialize($opt_key)/eg;
     foreach my $opt_key (grep ref $self->$_ eq 'ARRAY', @options) {
         my $value = $self->$opt_key;
         $string =~ s/\[${opt_key}_${_}\]/$value->[$_]/eg for 0 .. $#$value;
