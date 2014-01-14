@@ -585,8 +585,9 @@ sub _detect_bridge_direction {
             # generate lines in this direction
             my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
             
+            # note that @$anchors might be empty
             my @lines = ();
-            for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
+            for (my $x = ($bounding_box->x_min // 0); $x <= ($bounding_box->x_max // -1); $x += $line_increment) {
                 push @lines, [ [$x, $bounding_box->y_min], [$x, $bounding_box->y_max] ];
             }
             
