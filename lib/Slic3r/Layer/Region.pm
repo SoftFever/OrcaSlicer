@@ -484,44 +484,46 @@ sub _detect_bridge_direction {
             1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
         );
         
-        # we'll now try several directions using a rudimentary visibility check:
-        # bridge in several directions and then sum the length of lines having both
-        # endpoints within anchors
-        my %directions = ();  # angle => score
-        my $angle_increment = PI/36; # 5°
-        my $line_increment = $infill_flow->scaled_width;
-        for (my $angle = 0; $angle <= PI; $angle += $angle_increment) {
-            # rotate everything - the center point doesn't matter
-            $_->rotate($angle, [0,0]) for @$inset, @$anchors;
+        if (@$anchors) {
+            # we'll now try several directions using a rudimentary visibility check:
+            # bridge in several directions and then sum the length of lines having both
+            # endpoints within anchors
+            my %directions = ();  # angle => score
+            my $angle_increment = PI/36; # 5°
+            my $line_increment = $infill_flow->scaled_width;
+            for (my $angle = 0; $angle <= PI; $angle += $angle_increment) {
+                # rotate everything - the center point doesn't matter
+                $_->rotate($angle, [0,0]) for @$inset, @$anchors;
             
-            # generate lines in this direction
-            my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
+                # generate lines in this direction
+                my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
             
-            my @lines = ();
-            for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
-                push @lines, Slic3r::Polyline->new([$x, $bounding_box->y_min], [$x, $bounding_box->y_max]);
+                my @lines = ();
+                for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
+                    push @lines, Slic3r::Polyline->new([$x, $bounding_box->y_min], [$x, $bounding_box->y_max]);
+                }
+            
+                my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
+            
+                # remove any line not having both endpoints within anchors
+                # NOTE: these calls to contains_point() probably need to check whether the point 
+                # is on the anchor boundaries too
+                @clipped_lines = grep {
+                    my $line = $_;
+                    !(first { $_->contains_point($line->a) } @$anchors)
+                        && !(first { $_->contains_point($line->b) } @$anchors);
+                } @clipped_lines;
+            
+                # sum length of bridged lines
+                $directions{-$angle} = sum(map $_->length, @clipped_lines) // 0;
             }
-            
-            my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
-            
-            # remove any line not having both endpoints within anchors
-            # NOTE: these calls to contains_point() probably need to check whether the point 
-            # is on the anchor boundaries too
-            @clipped_lines = grep {
-                my $line = $_;
-                !(first { $_->contains_point($line->a) } @$anchors)
-                    && !(first { $_->contains_point($line->b) } @$anchors);
-            } @clipped_lines;
-            
-            # sum length of bridged lines
-            $directions{-$angle} = sum(map $_->length, @clipped_lines) // 0;
+        
+            # this could be slightly optimized with a max search instead of the sort
+            my @sorted_directions = sort { $directions{$a} <=> $directions{$b} } keys %directions;
+    
+            # the best direction is the one causing most lines to be bridged
+            $bridge_angle = Slic3r::Geometry::rad2deg_dir($sorted_directions[-1]);
         }
-        
-        # this could be slightly optimized with a max search instead of the sort
-        my @sorted_directions = sort { $directions{$a} <=> $directions{$b} } keys %directions;
-        
-        # the best direction is the one causing most lines to be bridged
-        $bridge_angle = Slic3r::Geometry::rad2deg_dir($sorted_directions[-1]);
     }
     
     Slic3r::debugf "  Optimal infill angle of bridge on layer %d is %d degrees\n",
