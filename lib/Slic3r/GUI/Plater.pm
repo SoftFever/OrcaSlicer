@@ -640,6 +640,8 @@ sub split_object {
     my $new_model = Slic3r::Model->new;
     
     foreach my $mesh (@new_meshes) {
+        $mesh->repair;
+        
         my $model_object = $new_model->add_object(
             input_file              => $current_model_object->input_file,
             config                  => $current_model_object->config->clone,
