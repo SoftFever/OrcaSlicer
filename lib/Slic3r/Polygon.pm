@@ -42,7 +42,10 @@ sub grow {
 # original orientation
 sub simplify {
     my $self = shift;
-    return @{Slic3r::Geometry::Clipper::simplify_polygons([ $self->SUPER::simplify(@_) ])};
+    my $tolerance = shift || 10;
+    
+    my $simplified = Boost::Geometry::Utils::linestring_simplify($self->pp, $tolerance);
+    return @{Slic3r::Geometry::Clipper::simplify_polygons([ $simplified ])};
 }
 
 # this method subdivides the polygon segments to that no one of them
