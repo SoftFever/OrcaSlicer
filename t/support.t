@@ -112,7 +112,7 @@ use Slic3r::Test;
             if ($layer_id <= $config->raft_layers) {
                 # this is a raft layer or the first object layer
                 my $line = Slic3r::Line->new_scale([ $self->X, $self->Y ], [ $info->{new_X}, $info->{new_Y} ]);
-                my @path = $line->grow(scale($config->support_material_extrusion_width/2));
+                my @path = @{$line->grow(scale($config->support_material_extrusion_width/2))};
                 if ($layer_id < $config->raft_layers) {
                     # this is a raft layer
                     push @raft, @path;
