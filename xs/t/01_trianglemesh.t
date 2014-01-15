@@ -83,7 +83,7 @@ my $cube = {
     my $result = $m->slice(\@z);
     my $SCALING_FACTOR = 0.000001;
     for my $i (0..$#z) {
-        is scalar(@{$result->[$i]}), 1, 'number of returned polygons per layer';
+        is scalar(@{$result->[$i]}), 1, "number of returned polygons per layer (z = " . $z[$i] . ")";
         is $result->[$i][0]->area, 20*20/($SCALING_FACTOR**2), 'size of returned polygon';
     }
 }
