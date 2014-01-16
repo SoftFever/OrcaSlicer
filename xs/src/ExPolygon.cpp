@@ -6,7 +6,8 @@ namespace Slic3r {
 
 ExPolygon::operator Polygons() const
 {
-    Polygons polygons(this->holes.size() + 1);
+    Polygons polygons;
+    polygons.reserve(this->holes.size() + 1);
     polygons.push_back(this->contour);
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
         polygons.push_back(*it);
@@ -64,7 +65,7 @@ ExPolygon::is_valid() const
 bool
 ExPolygon::contains_line(const Line* line) const
 {
-    Polylines pl(1);
+    Polylines pl;
     pl.push_back(*line);
     
     Polylines pl_out;
@@ -85,7 +86,8 @@ ExPolygon::contains_point(const Point* point) const
 Polygons
 ExPolygon::simplify_p(double tolerance) const
 {
-    Polygons pp(this->holes.size() + 1);
+    Polygons pp;
+    pp.reserve(this->holes.size() + 1);
     
     // contour
     Polygon p = this->contour;

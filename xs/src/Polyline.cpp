@@ -5,7 +5,7 @@ namespace Slic3r {
 
 Polyline::operator Polylines() const
 {
-    Polylines polylines(1);
+    Polylines polylines;
     polylines.push_back(*this);
     return polylines;
 }
