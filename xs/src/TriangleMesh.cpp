@@ -412,6 +412,22 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
 }
 
 void
+TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* layers)
+{
+    std::vector<Polygons> layers_p;
+    this->slice(z, &layers_p);
+    
+    layers->resize(z.size());
+    for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
+        #ifdef SLIC3R_DEBUG
+        printf("Layer %zu (slice_z = %.2f): ", layer_id, z[layer_id]);
+        #endif
+        
+        this->make_expolygons(*loops, &(*layers)[ loops - layers_p.begin() ]);
+    }
+}
+
+void
 TriangleMeshSlicer::slice_facet(float slice_z, const stl_facet &facet, const int &facet_idx, const float &min_z, const float &max_z, std::vector<IntersectionLine>* lines) const
 {
     std::vector<IntersectionPoint> points;
@@ -664,11 +680,8 @@ class _area_comp {
 };
 
 void
-TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* layers)
+TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
 {
-    std::vector<Polygons> layers_p;
-    this->slice(z, &layers_p);
-    
     /*
         Input loops are not suitable for evenodd nor nonzero fill types, as we might get
         two consecutive concentric loops having the same winding order - and we have to 
@@ -685,55 +698,57 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
         the previous sorting method, based on $b->contains_point($a->[0]), failed to nest
         loops correctly in some edge cases when original model had overlapping facets
     */
-    
-    layers->resize(z.size());
-    
-    for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
-        size_t layer_id = loops - layers_p.begin();
-        
-        std::vector<double> area;
-        std::vector<double> abs_area;
-        std::vector<size_t> sorted_area;  // vector of indices
-        for (Polygons::const_iterator loop = loops->begin(); loop != loops->end(); ++loop) {
-            double a = loop->area();
-            area.push_back(a);
-            abs_area.push_back(std::fabs(a));
-            sorted_area.push_back(loop - loops->begin());
-        }
-        
-        std::sort(sorted_area.begin(), sorted_area.end(), _area_comp(&abs_area));  // outer first
-    
-        // we don't perform a safety offset now because it might reverse cw loops
-        Polygons slices;
-        for (std::vector<size_t>::const_iterator loop_idx = sorted_area.begin(); loop_idx != sorted_area.end(); ++loop_idx) {
-            /* we rely on the already computed area to determine the winding order
-               of the loops, since the Orientation() function provided by Clipper
-               would do the same, thus repeating the calculation */
-            Polygons::const_iterator loop = loops->begin() + *loop_idx;
-            if (area[*loop_idx] >= 0) {
-                slices.push_back(*loop);
-            } else {
-                diff(slices, *loop, slices);
-            }
-        }
-    
-        // perform a safety offset to merge very close facets (TODO: find test case for this)
-        double safety_offset = scale_(0.0499);
-        ExPolygons ex_slices;
-        offset2_ex(slices, ex_slices, +safety_offset, -safety_offset);
-        
-        #ifdef SLIC3R_DEBUG
-        size_t holes_count = 0;
-        for (ExPolygons::const_iterator e = ex_slices.begin(); e != ex_slices.end(); ++e) {
-            holes_count += e->holes.size();
-        }
-        printf("Layer %zu (slice_z = %.2f): %zu surface(s) having %zu holes detected from %zu polylines\n",
-            layer_id, z[layer_id], ex_slices.size(), holes_count, loops->size());
-        #endif
-        
-        ExPolygons* layer = &(*layers)[layer_id];
-        layer->insert(layer->end(), ex_slices.begin(), ex_slices.end());
+
+    std::vector<double> area;
+    std::vector<double> abs_area;
+    std::vector<size_t> sorted_area;  // vector of indices
+    for (Polygons::const_iterator loop = loops.begin(); loop != loops.end(); ++loop) {
+        double a = loop->area();
+        area.push_back(a);
+        abs_area.push_back(std::fabs(a));
+        sorted_area.push_back(loop - loops.begin());
     }
+    
+    std::sort(sorted_area.begin(), sorted_area.end(), _area_comp(&abs_area));  // outer first
+
+    // we don't perform a safety offset now because it might reverse cw loops
+    Polygons p_slices;
+    for (std::vector<size_t>::const_iterator loop_idx = sorted_area.begin(); loop_idx != sorted_area.end(); ++loop_idx) {
+        /* we rely on the already computed area to determine the winding order
+           of the loops, since the Orientation() function provided by Clipper
+           would do the same, thus repeating the calculation */
+        Polygons::const_iterator loop = loops.begin() + *loop_idx;
+        if (area[*loop_idx] >= 0) {
+            p_slices.push_back(*loop);
+        } else {
+            diff(p_slices, *loop, p_slices);
+        }
+    }
+
+    // perform a safety offset to merge very close facets (TODO: find test case for this)
+    double safety_offset = scale_(0.0499);
+    ExPolygons ex_slices;
+    offset2_ex(p_slices, ex_slices, +safety_offset, -safety_offset);
+    
+    #ifdef SLIC3R_DEBUG
+    size_t holes_count = 0;
+    for (ExPolygons::const_iterator e = ex_slices.begin(); e != ex_slices.end(); ++e) {
+        holes_count += e->holes.size();
+    }
+    printf("%zu surface(s) having %zu holes detected from %zu polylines\n",
+        ex_slices.size(), holes_count, loops.size());
+    #endif
+    
+    // append to the supplied collection
+    slices->insert(slices->end(), ex_slices.begin(), ex_slices.end());
+}
+
+void
+TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices)
+{
+    Polygons pp;
+    this->make_loops(lines, &pp);
+    this->make_expolygons(pp, slices);
 }
 
 void
@@ -817,8 +832,8 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
     }
     
     // compute shape of section
-    Polygons section;
-    this->make_loops(lines, &section);
+    ExPolygons section;
+    this->make_expolygons(lines, &section);
     
     /*
     stl_get_size(&(upper->stl));

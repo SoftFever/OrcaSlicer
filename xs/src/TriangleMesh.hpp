@@ -91,6 +91,8 @@ class TriangleMeshSlicer
     t_facets_edges facets_edges;
     stl_vertex* v_scaled_shared;
     void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops);
+    void make_expolygons(const Polygons &loops, ExPolygons* slices);
+    void make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices);
 };
 
 }
