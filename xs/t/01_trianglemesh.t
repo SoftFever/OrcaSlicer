@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 42;
+use Test::More tests => 46;
 
 is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
@@ -98,4 +98,27 @@ my $cube = {
     my $slices = $m->slice([ 5, 10 ]);
     is $slices->[0][0]->area, $slices->[1][0]->area, 'slicing a tangent plane includes its area';
 }
+
+{
+    my $m = Slic3r::TriangleMesh->new;
+    $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
+    $m->repair;
+    {
+        my $upper = Slic3r::TriangleMesh->new;
+        my $lower = Slic3r::TriangleMesh->new;
+        $m->cut(0, $upper, $lower);
+        #$upper->repair; $lower->repair;
+        is $upper->facets_count, 10, 'upper mesh has all facets except those belonging to the slicing plane';
+        is $lower->facets_count,  0, 'lower mesh has no facets';
+    }
+    {
+        my $upper = Slic3r::TriangleMesh->new;
+        my $lower = Slic3r::TriangleMesh->new;
+        $m->cut(10, $upper, $lower);
+        #$upper->repair; $lower->repair;
+        is $upper->facets_count, 14, 'upper mesh has the right number of facets';
+        is $lower->facets_count, 14, 'lower mesh has the right number of facets';
+    }
+}
+
 __END__

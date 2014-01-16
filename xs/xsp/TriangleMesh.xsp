@@ -32,6 +32,8 @@
             RETVAL = new BoundingBoxf3();
             THIS->bounding_box(RETVAL);
         %};
+    int facets_count()
+        %code{% RETVAL = THIS->stl.stats.number_of_facets; %};
 %{
 
 SV*
@@ -159,6 +161,15 @@ TriangleMesh::slice(z)
         RETVAL = (SV*)newRV_noinc((SV*)layers_av);
     OUTPUT:
         RETVAL
+
+void
+TriangleMesh::cut(z, upper, lower)
+    float           z;
+    TriangleMesh*   upper;
+    TriangleMesh*   lower;
+    CODE:
+        TriangleMeshSlicer mslicer(THIS);
+        mslicer.cut(z, upper, lower);
 
 std::vector<double>
 TriangleMesh::bb3()

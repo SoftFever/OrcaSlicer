@@ -84,11 +84,13 @@ class TriangleMeshSlicer
     void slice(const std::vector<float> &z, std::vector<Polygons>* layers);
     void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers);
     void slice_facet(float slice_z, const stl_facet &facet, const int &facet_idx, const float &min_z, const float &max_z, std::vector<IntersectionLine>* lines) const;
+    void cut(float z, TriangleMesh* upper, TriangleMesh* lower);
     
     private:
     typedef std::vector< std::vector<int> > t_facets_edges;
     t_facets_edges facets_edges;
     stl_vertex* v_scaled_shared;
+    void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops);
 };
 
 }

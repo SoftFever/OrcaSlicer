@@ -68,10 +68,12 @@ TriangleMesh::write_binary(char* output_file)
     stl_write_binary(&this->stl, output_file, "");
 }
 
-
 void
 TriangleMesh::repair() {
     if (this->repaired) return;
+    
+    // admesh fails when repairing empty meshes
+    if (this->stl.stats.number_of_facets == 0) return;
     
     // checking exact
     stl_check_facets_exact(&stl);
@@ -405,132 +407,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         printf("Layer %d:\n", layer_idx);
         #endif
         
-        /*
-        SVG svg("lines.svg");
-        for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
-                svg.AddLine(*line);
-        }
-        svg.Close();
-        */
-        
-        // remove tangent edges
-        for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
-            if (line->skip || line->edge_type == feNone) continue;
-            
-            /* if the line is a facet edge, find another facet edge
-               having the same endpoints but in reverse order */
-            for (IntersectionLines::iterator line2 = line + 1; line2 != it->end(); ++line2) {
-                if (line2->skip || line2->edge_type == feNone) continue;
-                
-                // are these facets adjacent? (sharing a common edge on this layer)
-                if (line->a_id == line2->a_id && line->b_id == line2->b_id) {
-                    line2->skip = true;
-                    
-                    /* if they are both oriented upwards or downwards (like a 'V')
-                       then we can remove both edges from this layer since it won't 
-                       affect the sliced shape */
-                    /* if one of them is oriented upwards and the other is oriented
-                       downwards, let's only keep one of them (it doesn't matter which
-                       one since all 'top' lines were reversed at slicing) */
-                    if (line->edge_type == line2->edge_type) {
-                        line->skip = true;
-                        break;
-                    }
-                } else if (line->a_id == line2->b_id && line->b_id == line2->a_id) {
-                    /* if this edge joins two horizontal facets, remove both of them */
-                    if (line->edge_type == feHorizontal && line2->edge_type == feHorizontal) {
-                        line->skip = true;
-                        line2->skip = true;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // build a map of lines by edge_a_id and a_id
-        std::vector<IntersectionLinePtrs> by_edge_a_id, by_a_id;
-        by_edge_a_id.resize(this->mesh->stl.stats.number_of_facets * 3);
-        by_a_id.resize(this->mesh->stl.stats.shared_vertices);
-        for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
-            if (line->skip) continue;
-            if (line->edge_a_id != -1) by_edge_a_id[line->edge_a_id].push_back(&(*line));
-            if (line->a_id != -1) by_a_id[line->a_id].push_back(&(*line));
-        }
-        
-        CYCLE: while (1) {
-            // take first spare line and start a new loop
-            IntersectionLine* first_line = NULL;
-            for (IntersectionLines::iterator line = it->begin(); line != it->end(); ++line) {
-                if (line->skip) continue;
-                first_line = &(*line);
-                break;
-            }
-            if (first_line == NULL) break;
-            first_line->skip = true;
-            IntersectionLinePtrs loop;
-            loop.push_back(first_line);
-            
-            /*
-            printf("first_line edge_a_id = %d, edge_b_id = %d, a_id = %d, b_id = %d, a = %d,%d, b = %d,%d\n", 
-                first_line->edge_a_id, first_line->edge_b_id, first_line->a_id, first_line->b_id,
-                first_line->a.x, first_line->a.y, first_line->b.x, first_line->b.y);
-            */
-            
-            while (1) {
-                // find a line starting where last one finishes
-                IntersectionLine* next_line = NULL;
-                if (loop.back()->edge_b_id != -1) {
-                    IntersectionLinePtrs* candidates = &(by_edge_a_id[loop.back()->edge_b_id]);
-                    for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
-                        if ((*lineptr)->skip) continue;
-                        next_line = *lineptr;
-                        break;
-                    }
-                }
-                if (next_line == NULL && loop.back()->b_id != -1) {
-                    IntersectionLinePtrs* candidates = &(by_a_id[loop.back()->b_id]);
-                    for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
-                        if ((*lineptr)->skip) continue;
-                        next_line = *lineptr;
-                        break;
-                    }
-                }
-                
-                if (next_line == NULL) {
-                    // check whether we closed this loop
-                    if ((loop.front()->edge_a_id != -1 && loop.front()->edge_a_id == loop.back()->edge_b_id)
-                        || (loop.front()->a_id != -1 && loop.front()->a_id == loop.back()->b_id)) {
-                        // loop is complete
-                        Polygon p;
-                        p.points.reserve(loop.size());
-                        for (IntersectionLinePtrs::iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
-                            p.points.push_back((*lineptr)->a);
-                        }
-                        (*layers)[layer_idx].push_back(p);
-                        
-                        #ifdef SLIC3R_DEBUG
-                        printf("  Discovered %s polygon of %d points\n", (p.is_counter_clockwise() ? "ccw" : "cw"), (int)p.points.size());
-                        #endif
-                        
-                        goto CYCLE;
-                    }
-                    
-                    // we can't close this loop!
-                    //// push @failed_loops, [@loop];
-                    //#ifdef SLIC3R_DEBUG
-                    printf("  Unable to close this loop having %d points\n", (int)loop.size());
-                    //#endif
-                    goto CYCLE;
-                }
-                /*
-                printf("next_line edge_a_id = %d, edge_b_id = %d, a_id = %d, b_id = %d, a = %d,%d, b = %d,%d\n", 
-                    next_line->edge_a_id, next_line->edge_b_id, next_line->a_id, next_line->b_id,
-                    next_line->a.x, next_line->a.y, next_line->b.x, next_line->b.y);
-                */
-                loop.push_back(next_line);
-                next_line->skip = true;
-            }
-        }
+        this->make_loops(*it, &(*layers)[layer_idx]);
     }
 }
 
@@ -642,7 +519,139 @@ TriangleMeshSlicer::slice_facet(float slice_z, const stl_facet &facet, const int
         return;
     }
 }
+
+void
+TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* loops)
+{
         
+    /*
+    SVG svg("lines.svg");
+    for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++line) {
+            svg.AddLine(*line);
+    }
+    svg.Close();
+    */
+    
+    // remove tangent edges
+    for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++line) {
+        if (line->skip || line->edge_type == feNone) continue;
+        
+        /* if the line is a facet edge, find another facet edge
+           having the same endpoints but in reverse order */
+        for (IntersectionLines::iterator line2 = line + 1; line2 != lines.end(); ++line2) {
+            if (line2->skip || line2->edge_type == feNone) continue;
+            
+            // are these facets adjacent? (sharing a common edge on this layer)
+            if (line->a_id == line2->a_id && line->b_id == line2->b_id) {
+                line2->skip = true;
+                
+                /* if they are both oriented upwards or downwards (like a 'V')
+                   then we can remove both edges from this layer since it won't 
+                   affect the sliced shape */
+                /* if one of them is oriented upwards and the other is oriented
+                   downwards, let's only keep one of them (it doesn't matter which
+                   one since all 'top' lines were reversed at slicing) */
+                if (line->edge_type == line2->edge_type) {
+                    line->skip = true;
+                    break;
+                }
+            } else if (line->a_id == line2->b_id && line->b_id == line2->a_id) {
+                /* if this edge joins two horizontal facets, remove both of them */
+                if (line->edge_type == feHorizontal && line2->edge_type == feHorizontal) {
+                    line->skip = true;
+                    line2->skip = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // build a map of lines by edge_a_id and a_id
+    std::vector<IntersectionLinePtrs> by_edge_a_id, by_a_id;
+    by_edge_a_id.resize(this->mesh->stl.stats.number_of_facets * 3);
+    by_a_id.resize(this->mesh->stl.stats.shared_vertices);
+    for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++line) {
+        if (line->skip) continue;
+        if (line->edge_a_id != -1) by_edge_a_id[line->edge_a_id].push_back(&(*line));
+        if (line->a_id != -1) by_a_id[line->a_id].push_back(&(*line));
+    }
+    
+    CYCLE: while (1) {
+        // take first spare line and start a new loop
+        IntersectionLine* first_line = NULL;
+        for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++line) {
+            if (line->skip) continue;
+            first_line = &(*line);
+            break;
+        }
+        if (first_line == NULL) break;
+        first_line->skip = true;
+        IntersectionLinePtrs loop;
+        loop.push_back(first_line);
+        
+        /*
+        printf("first_line edge_a_id = %d, edge_b_id = %d, a_id = %d, b_id = %d, a = %d,%d, b = %d,%d\n", 
+            first_line->edge_a_id, first_line->edge_b_id, first_line->a_id, first_line->b_id,
+            first_line->a.x, first_line->a.y, first_line->b.x, first_line->b.y);
+        */
+        
+        while (1) {
+            // find a line starting where last one finishes
+            IntersectionLine* next_line = NULL;
+            if (loop.back()->edge_b_id != -1) {
+                IntersectionLinePtrs* candidates = &(by_edge_a_id[loop.back()->edge_b_id]);
+                for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                    if ((*lineptr)->skip) continue;
+                    next_line = *lineptr;
+                    break;
+                }
+            }
+            if (next_line == NULL && loop.back()->b_id != -1) {
+                IntersectionLinePtrs* candidates = &(by_a_id[loop.back()->b_id]);
+                for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                    if ((*lineptr)->skip) continue;
+                    next_line = *lineptr;
+                    break;
+                }
+            }
+            
+            if (next_line == NULL) {
+                // check whether we closed this loop
+                if ((loop.front()->edge_a_id != -1 && loop.front()->edge_a_id == loop.back()->edge_b_id)
+                    || (loop.front()->a_id != -1 && loop.front()->a_id == loop.back()->b_id)) {
+                    // loop is complete
+                    Polygon p;
+                    p.points.reserve(loop.size());
+                    for (IntersectionLinePtrs::iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
+                        p.points.push_back((*lineptr)->a);
+                    }
+                    loops->push_back(p);
+                    
+                    #ifdef SLIC3R_DEBUG
+                    printf("  Discovered %s polygon of %d points\n", (p.is_counter_clockwise() ? "ccw" : "cw"), (int)p.points.size());
+                    #endif
+                    
+                    goto CYCLE;
+                }
+                
+                // we can't close this loop!
+                //// push @failed_loops, [@loop];
+                //#ifdef SLIC3R_DEBUG
+                printf("  Unable to close this loop having %d points\n", (int)loop.size());
+                //#endif
+                goto CYCLE;
+            }
+            /*
+            printf("next_line edge_a_id = %d, edge_b_id = %d, a_id = %d, b_id = %d, a = %d,%d, b = %d,%d\n", 
+                next_line->edge_a_id, next_line->edge_b_id, next_line->a_id, next_line->b_id,
+                next_line->a.x, next_line->a.y, next_line->b.x, next_line->b.y);
+            */
+            loop.push_back(next_line);
+            next_line->skip = true;
+        }
+    }
+}
+
 class _area_comp {
     public:
     _area_comp(std::vector<double>* _aa) : abs_area(_aa) {};
@@ -725,6 +734,96 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
         ExPolygons* layer = &(*layers)[layer_id];
         layer->insert(layer->end(), ex_slices.begin(), ex_slices.end());
     }
+}
+
+void
+TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
+{
+    std::vector<IntersectionLine> lines;
+    
+    float scaled_z = scale_(z);
+    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; facet_idx++) {
+        stl_facet* facet = &this->mesh->stl.facet_start[facet_idx];
+        
+        // find facet extents
+        float min_z = fminf(facet->vertex[0].z, fminf(facet->vertex[1].z, facet->vertex[2].z));
+        float max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
+        
+        // intersect facet with cutting plane
+        this->slice_facet(scaled_z, *facet, facet_idx, min_z, max_z, &lines);
+        
+        if (min_z > z || (min_z == z && max_z > min_z)) {
+            // facet is above the cut plane but does not belong to it
+            if (upper != NULL) stl_add_facet(&upper->stl, facet);
+        } else if (max_z < z || (max_z == z && max_z > min_z)) {
+            // facet is below the cut plane but does not belong to it
+            if (lower != NULL) stl_add_facet(&lower->stl, facet);
+        } else if (min_z < z && max_z > z) {
+            // facet is cut by the slicing plane
+            
+            // look for the vertex on whose side of the slicing plane there are no other vertices
+            int isolated_vertex;
+            if ( (facet->vertex[0].z > z) == (facet->vertex[1].z > z) ) {
+                isolated_vertex = 2;
+            } else if ( (facet->vertex[1].z > z) == (facet->vertex[2].z > z) ) {
+                isolated_vertex = 0;
+            } else {
+                isolated_vertex = 1;
+            }
+            
+            // get vertices starting from the isolated one
+            stl_vertex* v0 = &facet->vertex[isolated_vertex];
+            stl_vertex* v1 = &facet->vertex[(isolated_vertex+1) % 3];
+            stl_vertex* v2 = &facet->vertex[(isolated_vertex+2) % 3];
+            
+            // intersect v0-v1 and v2-v0 with cutting plane and make new vertices
+            stl_vertex v0v1, v2v0;
+            v0v1.x = v1->x + (v0->x - v1->x) * (z - v1->z) / (v0->z - v1->z);
+            v0v1.y = v1->y + (v0->y - v1->y) * (z - v1->z) / (v0->z - v1->z);
+            v0v1.z = z;
+            v2v0.x = v2->x + (v0->x - v2->x) * (z - v2->z) / (v0->z - v2->z);
+            v2v0.y = v2->y + (v0->y - v2->y) * (z - v2->z) / (v0->z - v2->z);
+            v2v0.z = z;
+            
+            // build the triangular facet
+            stl_facet triangle;
+            triangle.vertex[0] = *v0;
+            triangle.vertex[1] = v0v1;
+            triangle.vertex[2] = v2v0;
+            
+            // build the facets forming a quadrilateral on the other side
+            stl_facet quadrilateral[2];
+            quadrilateral[0].vertex[0] = *v1;
+            quadrilateral[0].vertex[1] = *v2;
+            quadrilateral[0].vertex[2] = v0v1;
+            quadrilateral[1].vertex[0] = *v2;
+            quadrilateral[1].vertex[0] = v2v0;
+            quadrilateral[1].vertex[0] = v0v1;
+            
+            if (v0->z > z) {
+                if (upper != NULL) stl_add_facet(&upper->stl, &triangle);
+                if (lower != NULL) {
+                    stl_add_facet(&lower->stl, &quadrilateral[0]);
+                    stl_add_facet(&lower->stl, &quadrilateral[1]);
+                }
+            } else {
+                if (upper != NULL) {
+                    stl_add_facet(&upper->stl, &quadrilateral[0]);
+                    stl_add_facet(&upper->stl, &quadrilateral[1]);
+                }
+                if (lower != NULL) stl_add_facet(&lower->stl, &triangle);
+            }
+        }
+    }
+    
+    // compute shape of section
+    Polygons section;
+    this->make_loops(lines, &section);
+    
+    /*
+    stl_get_size(&(upper->stl));
+    stl_get_size(&(lower->stl));
+    */
 }
 
 TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : mesh(_mesh), v_scaled_shared(NULL)
