@@ -125,7 +125,7 @@ Point::distance_to(const Line &line) const
 double
 Point::ccw(const Point &p1, const Point &p2) const
 {
-    return (p2.x - p1.x)*(this->y - p1.y) - (p2.y - p1.y)*(this->x - p1.x);
+    return (double)(p2.x - p1.x)*(double)(this->y - p1.y) - (double)(p2.y - p1.y)*(double)(this->x - p1.x);
 }
 
 double

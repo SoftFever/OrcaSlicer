@@ -25,6 +25,8 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->nearest_point(points))); %};
     double distance_to(Point* point);
     %name{distance_to_line} double distance_to(Line* line);
+    double ccw(Point* p1, Point* p2)
+        %code{% RETVAL = THIS->ccw(*p1, *p2); %};
 
 %{
 

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 my $point = Slic3r::Point->new(10, 15);
 is_deeply [ @$point ], [10, 15], 'point roundtrip';
@@ -37,6 +37,13 @@ ok !$point->coincides_with($point2), 'coincides_with';
     );
     $point = Slic3r::Point->new(1664161,18335848);
     is $point->distance_to_line($line), 16671685, 'distance_to_line() does not overflow';
+}
+
+{
+    my $p0 = Slic3r::Point->new(76975850,89989996);
+    my $p1 = Slic3r::Point->new(76989990,109989991);
+    my $p2 = Slic3r::Point->new(76989987,89989994);
+    ok $p0->ccw($p1, $p2) < 0, 'ccw() does not overflow';
 }
 
 __END__

@@ -1057,7 +1057,6 @@ sub repaint {
     if (@{$parent->{objects}} && $parent->{config}->skirts) {
         my @points = map @{$_->contour}, map @$_, map @{$_->instance_thumbnails}, @{$parent->{objects}};
         if (@points >= 3) {
-            my @o = @{Slic3r::Geometry::Clipper::simplify_polygons([convex_hull(\@points)])};
             my ($convex_hull) = @{offset([convex_hull(\@points)], scale($parent->{config}->skirt_distance), 1, JT_ROUND, scale(0.1))};
             $dc->SetPen($parent->{skirt_pen});
             $dc->SetBrush($parent->{transparent_brush});
