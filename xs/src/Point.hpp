@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include <vector>
 #include <math.h>
+#include <string>
 
 namespace Slic3r {
 
@@ -20,6 +21,7 @@ class Point
     coord_t x;
     coord_t y;
     explicit Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
+    std::string wkt() const;
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, Point* center);

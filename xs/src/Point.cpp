@@ -1,8 +1,17 @@
 #include "Point.hpp"
 #include "Line.hpp"
 #include <cmath>
+#include <sstream>
 
 namespace Slic3r {
+
+std::string
+Point::wkt() const
+{
+    std::ostringstream ss;
+    ss << "POINT(" << this->x << " " << this->y << ")";
+    return ss.str();
+}
 
 void
 Point::scale(double factor)
@@ -100,8 +109,8 @@ Point::distance_to(const Line &line) const
 {
     if (line.a.coincides_with(&line.b)) return this->distance_to(&line.a);
     
-    double n = (line.b.x - line.a.x) * (line.a.y - this->y)
-        - (line.a.x - this->x) * (line.b.y - line.a.y);
+    double n = (double)(line.b.x - line.a.x) * (double)(line.a.y - this->y)
+        - (double)(line.a.x - this->x) * (double)(line.b.y - line.a.y);
     
     return std::abs(n) / line.length();
 }

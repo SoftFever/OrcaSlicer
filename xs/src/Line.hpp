@@ -16,6 +16,7 @@ class Line
     Point b;
     Line() {};
     explicit Line(Point _a, Point _b): a(_a), b(_b) {};
+    std::string wkt() const;
     operator Polyline() const;
     void scale(double factor);
     void translate(double x, double y);

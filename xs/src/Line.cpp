@@ -1,8 +1,18 @@
 #include "Line.hpp"
 #include "Polyline.hpp"
 #include <algorithm>
+#include <sstream>
 
 namespace Slic3r {
+
+std::string
+Line::wkt() const
+{
+    std::ostringstream ss;
+    ss << "LINESTRING(" << this->a.x << " " << this->a.y << ","
+        << this->b.x << " " << this->b.y << ")";
+    return ss.str();
+}
 
 Line::operator Polyline() const
 {
