@@ -18,6 +18,7 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
+use constant SELECTED_COLOR => [0,1,0];
 use constant COLORS => [ [1,1,1], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 sub new {
@@ -447,7 +448,11 @@ sub draw_mesh {
         
         glCullFace(GL_BACK);
         glNormalPointer_p($volume->{norms});
-        glColor3f(@{ $volume->{color} });
+        if ($volume->{selected}) {
+            glColor3f(@{ &SELECTED_COLOR });
+        } else {
+            glColor3f(@{ $volume->{color} });
+        }
         glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
     }
     
