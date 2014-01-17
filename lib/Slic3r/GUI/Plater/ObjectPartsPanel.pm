@@ -37,12 +37,15 @@ sub new {
             $material_id //= '_';
             
             if (!exists $nodes{$material_id}) {
-                $nodes{$material_id} = $tree->AppendItem($rootId, $object->model->get_material_name($material_id), ICON_MATERIAL);
+                my $material_name = $material_id eq ''
+                    ? 'default'
+                    : $object->model->get_material_name($material_id);
+                $nodes{$material_id} = $tree->AppendItem($rootId, "Material: $material_name", ICON_MATERIAL);
             }
             my $name = $volume->modifier ? 'Modifier mesh' : 'Solid mesh';
             my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
             my $itemId = $tree->AppendItem($nodes{$material_id}, $name, $icon);
-            $tree->SetItemData($itemId, {
+            $tree->SetPlData($itemId, {
                 type        => 'volume',
                 volume_id   => $volume_id,
             });
@@ -73,14 +76,18 @@ sub new {
     EVT_TREE_SEL_CHANGED($self, $tree, sub {
         my ($self, $event) = @_;
         
+        # deselect all meshes
+        $_->{selected} = 0 for @{$canvas->volumes};
+        
         my $nodeId = $tree->GetSelection;
-        printf "nodeId = %s\n", $nodeId;
-        my $itemData = $tree->GetItemData($nodeId);
-        if ($itemData && $itemData->{type} eq 'volume') {
-            $canvas->volumes->[ $itemData->{volume_id} ]{selected} = 1;
-        } else {
-            $_->{selected} = 0 for @{$canvas->volumes};
+        if ($nodeId->IsOk) {
+            my $itemData = $tree->GetPlData($nodeId);
+            if ($itemData && $itemData->{type} eq 'volume') {
+                $canvas->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+            }
         }
+        
+        $canvas->Render;
     });
     
     

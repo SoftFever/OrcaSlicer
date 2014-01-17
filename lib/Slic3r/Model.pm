@@ -296,8 +296,6 @@ sub get_material_name {
     my $name;
     if (exists $self->materials->{$material_id}) {
         $name //= $self->materials->{$material_id}->attributes->{$_} for qw(Name name);
-    } elsif ($material_id eq '_') {
-        $name = 'Default material';
     }
     $name //= $material_id;
     return $name;
