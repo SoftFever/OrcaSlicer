@@ -477,12 +477,10 @@ sub process {
     });
     
     # make skirt
-    $status_cb->(88, "Generating skirt");
+    $status_cb->(88, "Generating skirt/brim");
     $print_step->(STEP_SKIRT, sub {
         $self->make_skirt;
     });
-    
-    $status_cb->(88, "Generating skirt");
     $print_step->(STEP_BRIM, sub {
         $self->make_brim;  # must come after make_skirt
     });
