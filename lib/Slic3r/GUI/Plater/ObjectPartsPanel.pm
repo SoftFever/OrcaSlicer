@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(:misc :sizer :treectrl wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG);
+use File::Basename qw(basename);
+use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG);
 use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
@@ -29,33 +30,22 @@ sub new {
         $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG));
         $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/package_green.png", wxBITMAP_TYPE_PNG));
         
-        my $rootId = $tree->AddRoot("");
-        my %nodes = ();  # material_id => nodeId
-        foreach my $volume_id (0..$#{$object->volumes}) {
-            my $volume = $object->volumes->[$volume_id];
-            my $material_id = $volume->material_id;
-            $material_id //= '_';
-            
-            if (!exists $nodes{$material_id}) {
-                my $material_name = $material_id eq ''
-                    ? 'default'
-                    : $object->model->get_material_name($material_id);
-                $nodes{$material_id} = $tree->AppendItem($rootId, "Material: $material_name", ICON_MATERIAL);
-            }
-            my $name = $volume->modifier ? 'Modifier mesh' : 'Solid mesh';
-            my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
-            my $itemId = $tree->AppendItem($nodes{$material_id}, $name, $icon);
-            $tree->SetPlData($itemId, {
-                type        => 'volume',
-                volume_id   => $volume_id,
-            });
-        }
-        $tree->ExpandAll;
+        $tree->AddRoot("");
+        $self->reload_tree;
     }
+    
+    $self->{btn_load} = Wx::Button->new($self, -1, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     
     # left pane with tree
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $left_sizer->Add($tree, 0, wxEXPAND | wxALL, 10);
+    $left_sizer->Add($self->{btn_load}, 0);
+    $left_sizer->Add($self->{btn_delete}, 0);
+    if ($Slic3r::GUI::have_button_icons) {
+        $self->{btn_load}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG));
+        $self->{btn_delete}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_delete.png", wxBITMAP_TYPE_PNG));
+    }
     
     # right pane with preview canvas
     my $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self, $self->{model_object});
@@ -75,23 +65,94 @@ sub new {
     });
     EVT_TREE_SEL_CHANGED($self, $tree, sub {
         my ($self, $event) = @_;
-        
-        # deselect all meshes
-        $_->{selected} = 0 for @{$canvas->volumes};
-        
-        my $nodeId = $tree->GetSelection;
-        if ($nodeId->IsOk) {
-            my $itemData = $tree->GetPlData($nodeId);
-            if ($itemData && $itemData->{type} eq 'volume') {
-                $canvas->volumes->[ $itemData->{volume_id} ]{selected} = 1;
-            }
-        }
-        
-        $canvas->Render;
+        $self->selection_changed;
     });
+    EVT_BUTTON($self, $self->{btn_load}, \&on_btn_load);
     
+    $self->selection_changed;
     
     return $self;
+}
+
+sub reload_tree {
+    my ($self) = @_;
+    
+    my $object  = $self->{model_object};
+    my $tree    = $self->{tree};
+    my $rootId  = $tree->GetRootItem;
+    
+    $tree->DeleteChildren($rootId);
+    
+    my %nodes = ();  # material_id => nodeId
+    foreach my $volume_id (0..$#{$object->volumes}) {
+        my $volume = $object->volumes->[$volume_id];
+        my $material_id = $volume->material_id;
+        $material_id //= '_';
+        
+        if (!exists $nodes{$material_id}) {
+            my $material_name = $material_id eq '_'
+                ? 'default'
+                : $object->model->get_material_name($material_id);
+            $nodes{$material_id} = $tree->AppendItem($rootId, "Material: $material_name", ICON_MATERIAL);
+        }
+        my $name = $volume->modifier ? 'Modifier mesh' : 'Solid mesh';
+        my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
+        my $itemId = $tree->AppendItem($nodes{$material_id}, $name, $icon);
+        $tree->SetPlData($itemId, {
+            type        => 'volume',
+            volume_id   => $volume_id,
+        });
+    }
+    $tree->ExpandAll;
+}
+
+sub selection_changed {
+    my ($self) = @_;
+    
+    # deselect all meshes
+    $_->{selected} = 0 for @{$self->{canvas}->volumes};
+    
+    # disable buttons
+    $self->{btn_delete}->Disable;
+    
+    my $nodeId = $self->{tree}->GetSelection;
+    if ($nodeId->IsOk) {
+        my $itemData = $self->{tree}->GetPlData($nodeId);
+        if ($itemData && $itemData->{type} eq 'volume') {
+            $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+            $self->{btn_delete}->Enable;
+        }
+    }
+    
+    $self->{canvas}->Render;
+}
+
+sub on_btn_load {
+    my ($self) = @_;
+    
+    my @input_files = Slic3r::GUI::open_model($self);
+    foreach my $input_file (@input_files) {
+        my $model = eval { Slic3r::Model->read_from_file($input_file) };
+        if ($@) {
+            Slic3r::GUI::show_error($self, $@);
+            next;
+        }
+        
+        foreach my $object (@{$model->objects}) {
+            foreach my $volume (@{$object->volumes}) {
+                my $new_volume = $self->{model_object}->add_volume($volume);
+                if (!defined $new_volume->material_id) {
+                    my $material_name = basename($input_file);
+                    $material_name =~ s/\.(stl|obj)$//i;
+                    $self->{model_object}->model->set_material($material_name);
+                    $new_volume->material_id($material_name);
+                }
+            }
+        }
+    }
+    
+    $self->reload_tree;
+    $self->{canvas}->load_object($self->{model_object});
 }
 
 1;

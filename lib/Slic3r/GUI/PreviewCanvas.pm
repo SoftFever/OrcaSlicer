@@ -29,40 +29,7 @@ sub new {
     $self->sphi(45);
     $self->stheta(-45);
 
-    my $bb = $object->raw_mesh->bounding_box;
-    my $center = $bb->center;
-    $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
-    $bb->translate(@{ $self->object_shift });
-    $self->object_bounding_box($bb);
-    
-    # group mesh(es) by material
-    my @materials = ();
-    $self->volumes([]);
-    foreach my $volume (@{$object->volumes}) {
-        my $mesh = $volume->mesh->clone;
-        $mesh->translate(@{ $self->object_shift });  
-        
-        my $material_id = $volume->material_id // '_';
-        my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
-        if (!defined $color_idx) {
-            push @materials, $material_id;
-            $color_idx = $#materials;
-        }
-        push @{$self->volumes}, my $v = {
-            color => COLORS->[ $color_idx % scalar(@{&COLORS}) ],
-        };
-        
-        {
-            my $vertices = $mesh->vertices;
-            my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
-            $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
-        }
-        
-        {
-            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
-            $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
-        }
-    }
+    $self->load_object($object);
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
@@ -100,6 +67,45 @@ sub new {
     });
     
     return $self;
+}
+
+sub load_object {
+    my ($self, $object) = @_;
+    
+    my $bb = $object->raw_mesh->bounding_box;
+    my $center = $bb->center;
+    $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
+    $bb->translate(@{ $self->object_shift });
+    $self->object_bounding_box($bb);
+    
+    # group mesh(es) by material
+    my @materials = ();
+    $self->volumes([]);
+    foreach my $volume (@{$object->volumes}) {
+        my $mesh = $volume->mesh->clone;
+        $mesh->translate(@{ $self->object_shift });  
+        
+        my $material_id = $volume->material_id // '_';
+        my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
+        if (!defined $color_idx) {
+            push @materials, $material_id;
+            $color_idx = $#materials;
+        }
+        push @{$self->volumes}, my $v = {
+            color => COLORS->[ $color_idx % scalar(@{&COLORS}) ],
+        };
+        
+        {
+            my $vertices = $mesh->vertices;
+            my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
+            $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
+        }
+        
+        {
+            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
+            $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
+        }
+    }
 }
 
 # Given an axis and angle, compute quaternion.

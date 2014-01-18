@@ -361,14 +361,7 @@ sub filament_presets {
 sub add {
     my $self = shift;
     
-    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-    if ($dialog->ShowModal != wxID_OK) {
-        $dialog->Destroy;
-        return;
-    }
-    my @input_files = $dialog->GetPaths;
-    $dialog->Destroy;
+    my @input_files = Slic3r::GUI::open_model($self);
     $self->load_file($_) for @input_files;
 }
 

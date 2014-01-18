@@ -47,20 +47,7 @@ sub add_object {
         );
         
         foreach my $volume (@{$object->volumes}) {
-            $new_object->add_volume(
-                material_id         => $volume->material_id,
-                mesh                => $volume->mesh->clone,
-                modifier            => $volume->modifier,
-            );
-            
-            if (defined $volume->material_id) {
-                #  merge material attributes (should we rename materials in case of duplicates?)
-                my %attributes = %{ $object->model->materials->{$volume->material_id}->attributes };
-                if (exists $self->materials->{$volume->material_id}) {
-                    %attributes = (%attributes, %{ $self->materials->{$volume->material_id}->attributes });
-                }
-                $self->set_material($volume->material_id, {%attributes});
-            }
+            $new_object->add_volume($volume);
         }
         
         $new_object->add_instance(
@@ -325,14 +312,43 @@ has '_bounding_box'         => (is => 'rw');
 
 sub add_volume {
     my $self = shift;
-    my %args = @_;
     
-    push @{$self->volumes}, my $volume = Slic3r::Model::Volume->new(
-        object => $self,
-        %args,
-    );
+    my $new_volume;
+    if (@_ == 1) {
+        # we have a Model::Volume
+        my ($volume) = @_;
+        
+        $new_volume = Slic3r::Model::Volume->new(
+            object      => $self,
+            material_id => $volume->material_id,
+            mesh        => $volume->mesh->clone,
+            modifier    => $volume->modifier,
+        );
+        
+        if (defined $volume->material_id) {
+            #  merge material attributes (should we rename materials in case of duplicates?)
+            if (my $material = $volume->object->model->materials->{$volume->material_id}) {
+                my %attributes = %{ $material->attributes };
+                if (exists $self->model->materials->{$volume->material_id}) {
+                    %attributes = (%attributes, %{ $self->model->materials->{$volume->material_id}->attributes });
+                }
+                $self->model->set_material($volume->material_id, {%attributes});
+            }
+        }
+    } else {
+        my %args = @_;
+        $new_volume = Slic3r::Model::Volume->new(
+            object => $self,
+            %args,
+        );
+    }
+    
+    push @{$self->volumes}, $new_volume;
+    
+    # invalidate cached bounding box
     $self->_bounding_box(undef);
-    return $volume;
+    
+    return $new_volume;
 }
 
 sub add_instance {
@@ -411,18 +427,17 @@ sub center_around_origin {
     # center this object around the origin
     my $bb = $self->raw_mesh->bounding_box;
     
-    # first align to origin on XYZ
+    # first align to origin on XY
     my @shift = (
         -$bb->x_min,
         -$bb->y_min,
-        -$bb->z_min,
+        0,
     );
     
     # then center it on XY
     my $size = $bb->size;
     $shift[X] -= $size->x/2;
     $shift[Y] -= $size->y/2;  #//
-    $shift[Z] -= $size->z/2;
     
     $self->translate(@shift);
     
