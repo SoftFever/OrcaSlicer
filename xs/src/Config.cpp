@@ -290,6 +290,11 @@ DynamicConfig::keys(t_config_option_keys *keys) {
 }
 
 void
+DynamicConfig::erase(const t_config_option_key opt_key) {
+    this->options.erase(opt_key);
+}
+
+void
 StaticConfig::keys(t_config_option_keys *keys) {
     for (t_optiondef_map::const_iterator it = this->def->begin(); it != this->def->end(); ++it) {
         ConfigOption* opt = this->option(it->first);

@@ -132,7 +132,7 @@ sub update_optgroup {
                 my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
                 my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
                 EVT_BUTTON($self, $btn, sub {
-                    delete $self->model_object->config->{$opt_key};
+                    $self->model_object->config->erase($opt_key);
                     Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
                 });
                 return $btn;

@@ -430,6 +430,7 @@ class DynamicConfig : public ConfigBase
     ~DynamicConfig();
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     void keys(t_config_option_keys *keys);
+    void erase(const t_config_option_key opt_key);
     
     private:
     DynamicConfig(const DynamicConfig& other);              // we disable this by making it private and unimplemented
