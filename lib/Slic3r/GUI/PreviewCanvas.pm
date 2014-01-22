@@ -18,7 +18,7 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
-use constant SELECTED_COLOR => [0,1,0];
+use constant SELECTED_COLOR => [0,1,0,1];
 use constant COLORS => [ [1,1,1], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 sub new {
@@ -81,7 +81,10 @@ sub load_object {
     # group mesh(es) by material
     my @materials = ();
     $self->volumes([]);
-    foreach my $volume (@{$object->volumes}) {
+    
+    # sort volumes: non-modifiers first
+    my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
+    foreach my $volume (@volumes) {
         my $mesh = $volume->mesh->clone;
         $mesh->translate(@{ $self->object_shift });  
         
@@ -91,8 +94,11 @@ sub load_object {
             push @materials, $material_id;
             $color_idx = $#materials;
         }
+        
+        my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
+        push @$color, $volume->modifier ? 0.5 : 1;
         push @{$self->volumes}, my $v = {
-            color => COLORS->[ $color_idx % scalar(@{&COLORS}) ],
+            color => $color,
         };
         
         {
@@ -445,6 +451,8 @@ sub Render {
 sub draw_mesh {
     my $self = shift;
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -455,9 +463,9 @@ sub draw_mesh {
         glCullFace(GL_BACK);
         glNormalPointer_p($volume->{norms});
         if ($volume->{selected}) {
-            glColor3f(@{ &SELECTED_COLOR });
+            glColor4f(@{ &SELECTED_COLOR });
         } else {
-            glColor3f(@{ $volume->{color} });
+            glColor4f(@{ $volume->{color} });
         }
         glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
     }

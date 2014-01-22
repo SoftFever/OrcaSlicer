@@ -34,16 +34,19 @@ sub new {
         $self->reload_tree;
     }
     
-    $self->{btn_load} = Wx::Button->new($self, -1, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_load_part} = Wx::Button->new($self, -1, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_load_modifier} = Wx::Button->new($self, -1, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     
     # left pane with tree
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $left_sizer->Add($tree, 0, wxEXPAND | wxALL, 10);
-    $left_sizer->Add($self->{btn_load}, 0);
+    $left_sizer->Add($self->{btn_load_part}, 0);
+    $left_sizer->Add($self->{btn_load_modifier}, 0);
     $left_sizer->Add($self->{btn_delete}, 0);
     if ($Slic3r::GUI::have_button_icons) {
-        $self->{btn_load}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG));
+        $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG));
+        $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG));
         $self->{btn_delete}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_delete.png", wxBITMAP_TYPE_PNG));
     }
     
@@ -67,7 +70,9 @@ sub new {
         my ($self, $event) = @_;
         $self->selection_changed;
     });
-    EVT_BUTTON($self, $self->{btn_load}, \&on_btn_load);
+    EVT_BUTTON($self, $self->{btn_load_part}, sub { $self->on_btn_load(0) });
+    EVT_BUTTON($self, $self->{btn_load_modifier}, sub { $self->on_btn_load(1) });
+    EVT_BUTTON($self, $self->{btn_delete}, \&on_btn_delete);
     
     $self->selection_changed;
     
@@ -106,6 +111,16 @@ sub reload_tree {
     $tree->ExpandAll;
 }
 
+sub get_selection {
+    my ($self) = @_;
+    
+    my $nodeId = $self->{tree}->GetSelection;
+    if ($nodeId->IsOk) {
+        return $self->{tree}->GetPlData($nodeId);
+    }
+    return undef;
+}
+
 sub selection_changed {
     my ($self) = @_;
     
@@ -115,20 +130,17 @@ sub selection_changed {
     # disable buttons
     $self->{btn_delete}->Disable;
     
-    my $nodeId = $self->{tree}->GetSelection;
-    if ($nodeId->IsOk) {
-        my $itemData = $self->{tree}->GetPlData($nodeId);
-        if ($itemData && $itemData->{type} eq 'volume') {
-            $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
-            $self->{btn_delete}->Enable;
-        }
+    my $itemData = $self->get_selection;
+    if ($itemData && $itemData->{type} eq 'volume') {
+        $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+        $self->{btn_delete}->Enable;
     }
     
     $self->{canvas}->Render;
 }
 
 sub on_btn_load {
-    my ($self) = @_;
+    my ($self, $is_modifier) = @_;
     
     my @input_files = Slic3r::GUI::open_model($self);
     foreach my $input_file (@input_files) {
@@ -141,6 +153,7 @@ sub on_btn_load {
         foreach my $object (@{$model->objects}) {
             foreach my $volume (@{$object->volumes}) {
                 my $new_volume = $self->{model_object}->add_volume($volume);
+                $new_volume->modifier($is_modifier);
                 if (!defined $new_volume->material_id) {
                     my $material_name = basename($input_file);
                     $material_name =~ s/\.(stl|obj)$//i;
@@ -153,6 +166,28 @@ sub on_btn_load {
     
     $self->reload_tree;
     $self->{canvas}->load_object($self->{model_object});
+    $self->{canvas}->Render;
+}
+
+sub on_btn_delete {
+    my ($self) = @_;
+    
+    my $itemData = $self->get_selection;
+    if ($itemData && $itemData->{type} eq 'volume') {
+        my $volume = $self->{model_object}->volumes->[$itemData->{volume_id}];
+        
+        # if user is deleting the last solid part, throw error
+        if (!$volume->modifier && scalar(grep !$_->modifier, @{$self->{model_object}->volumes}) == 1) {
+            Slic3r::GUI::show_error($self, "You can't delete the last solid part from this object.");
+            return;
+        }
+        
+        $self->{model_object}->delete_volume($itemData->{volume_id});
+    }
+    
+    $self->reload_tree;
+    $self->{canvas}->load_object($self->{model_object});
+    $self->{canvas}->Render;
 }
 
 1;

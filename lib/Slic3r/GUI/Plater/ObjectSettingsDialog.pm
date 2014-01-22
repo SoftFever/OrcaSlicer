@@ -338,6 +338,10 @@ sub Closing {
     foreach my $volume (@{$self->model_object->volumes}) {
         if (defined $volume->material_id) {
             my $config = $self->model_object->model->materials->{ $volume->material_id }->config;
+            
+            # temporary hack for handling volumes added after the window was launched
+            $self->{mapping}{ $volume->material_id } //= 0;
+            
             $config->set('extruder', $self->{mapping}{ $volume->material_id }-1);
         }
     }

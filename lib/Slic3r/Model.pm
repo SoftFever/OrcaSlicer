@@ -351,6 +351,11 @@ sub add_volume {
     return $new_volume;
 }
 
+sub delete_volume {
+    my ($self, $i) = @_;
+    splice @{$self->volumes}, $i, 1;
+}
+
 sub add_instance {
     my $self = shift;
     my %params = @_;
