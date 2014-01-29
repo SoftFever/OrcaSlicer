@@ -71,7 +71,7 @@ sub load_config {
     my $self = shift;
     my ($config) = @_;
     
-    foreach my $opt_key (grep $self->{config}->has($_), keys %$config) {
+    foreach my $opt_key (grep $self->{config}->has($_), @{$config->get_keys}) {
         my $value = $config->get($opt_key);
         $self->{config}->set($opt_key, $value);
         $_->set_value($opt_key, $value) for @{$self->{optgroups}};
