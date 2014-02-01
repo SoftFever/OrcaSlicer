@@ -1,9 +1,7 @@
 #ifndef slic3r_Config_hpp_
 #define slic3r_Config_hpp_
 
-#include <myinit.h>
 #include <map>
-#include <sstream>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -11,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <myinit.h>
 #include "Point.hpp"
 
 namespace Slic3r {

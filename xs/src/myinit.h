@@ -6,6 +6,7 @@
 #undef seekdir
 #include <ostream>
 #include <iostream>
+#include <sstream>
 
 #ifdef SLIC3RXS
 extern "C" {

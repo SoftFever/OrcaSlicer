@@ -36,6 +36,7 @@ my $build = Module::Build::WithXSpp->new(
         cstring
         cstdlib
         ostream
+		sstream
     )]
 );
 

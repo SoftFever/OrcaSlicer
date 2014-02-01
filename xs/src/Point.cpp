@@ -1,7 +1,7 @@
-#include "Point.hpp"
-#include "Line.hpp"
 #include <cmath>
 #include <sstream>
+#include "Point.hpp"
+#include "Line.hpp"
 
 namespace Slic3r {
 
