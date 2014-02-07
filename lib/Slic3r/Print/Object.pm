@@ -584,7 +584,8 @@ sub discover_horizontal_shells {
                     next if $n < 0 || $n > $#{$self->layers};
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
-                    my $neighbor_fill_surfaces = $self->layers->[$n]->regions->[$region_id]->fill_surfaces;
+                    my $neighbor_layerm = $self->layers->[$n]->regions->[$region_id];
+                    my $neighbor_fill_surfaces = $neighbor_layerm->fill_surfaces;
                     my @neighbor_fill_surfaces = map $_->clone, @$neighbor_fill_surfaces;  # clone because we will use these surfaces even after clearing the collection
                     
                     # find intersection between neighbor and current layer's surfaces
@@ -603,41 +604,49 @@ sub discover_horizontal_shells {
                     );
                     next EXTERNAL if !@$new_internal_solid;
                     
-                    # make sure the new internal solid is wide enough, as it might get collapsed when
-                    # spacing is added in Fill.pm
+                    if ($self->config->fill_density == 0) {
+                        # if we're printing a hollow object we discard any solid shell thinner
+                        # than a perimeter width, since it's probably just crossing a sloping wall
+                        # and it's not wanted in a hollow print even if it would make sense when
+                        # obeying the solid shell count option strictly (DWIM!)
+                        my $margin = $neighbor_layerm->perimeter_flow->scaled_width;
+                        my $too_narrow = diff(
+                            $new_internal_solid,
+                            offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
+                            1,
+                        );
+                        $new_internal_solid = $solid = diff(
+                            $new_internal_solid,
+                            $too_narrow,
+                        ) if @$too_narrow;
+                    }
+                    
+                    # make sure the new internal solid is wide enough, as it might get collapsed
+                    # when spacing is added in Fill.pm
                     {
+                        my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         # we use a higher miterLimit here to handle areas with acute angles
                         # in those cases, the default miterLimit would cut the corner and we'd
                         # get a triangle in $too_narrow; if we grow it below then the shell
                         # would have a different shape from the external surface and we'd still
                         # have the same angle, so the next shell would be grown even more and so on.
-                        my $margin = 3 * $layerm->solid_infill_flow->scaled_width; # require at least this size
                         my $too_narrow = diff(
                             $new_internal_solid,
                             offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
                             1,
                         );
                         
-                        # if some parts are going to collapse, use a different strategy according to fill density
                         if (@$too_narrow) {
-                            if ($self->config->fill_density > 0) {
-                                # if we have internal infill, grow the collapsing parts and add the extra area to 
-                                # the neighbor layer as well as to our original surfaces so that we support this 
-                                # additional area in the next shell too
-
-                                # make sure our grown surfaces don't exceed the fill area
-                                my @grown = @{intersection(
-                                    offset($too_narrow, +$margin),
-                                    [ map $_->p, @neighbor_fill_surfaces ],
-                                )};
-                                $new_internal_solid = $solid = [ @grown, @$new_internal_solid ];
-                            } else {
-                                # if we're printing a hollow object, we discard such small parts
-                                $new_internal_solid = $solid = diff(
-                                    $new_internal_solid,
-                                    $too_narrow,
-                                );
-                            }
+                            # grow the collapsing parts and add the extra area to  the neighbor layer 
+                            # as well as to our original surfaces so that we support this 
+                            # additional area in the next shell too
+                        
+                            # make sure our grown surfaces don't exceed the fill area
+                            my @grown = @{intersection(
+                                offset($too_narrow, +$margin),
+                                [ map $_->p, @neighbor_fill_surfaces ],
+                            )};
+                            $new_internal_solid = $solid = [ @grown, @$new_internal_solid ];
                         }
                     }
                     
