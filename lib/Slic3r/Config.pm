@@ -171,7 +171,7 @@ sub save {
 sub setenv {
     my $self = shift;
     
-    foreach my $opt_key (sort keys %$Options) {
+    foreach my $opt_key (@{$self->get_keys}) {
         $ENV{"SLIC3R_" . uc $opt_key} = $self->serialize($opt_key);
     }
 }
