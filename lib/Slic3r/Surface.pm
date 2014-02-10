@@ -16,25 +16,12 @@ sub holes           { $_[0]->expolygon->holes }
 # static method to group surfaces having same surface_type, bridge_angle and thickness*
 sub group {
     my $class = shift;
-    my $params = ref $_[0] eq 'HASH' ? shift(@_) : {};
     my (@surfaces) = @_;
     
     my %unique_types = ();
     foreach my $surface (@surfaces) {
-        my $stype = $surface->surface_type;
-        if ($surface->is_bridge && ($params->{bridged_bottom} || $surface->surface_type != S_TYPE_BOTTOM)) {
-            $stype = 'bridge';
-        } elsif ($surface->is_solid) {
-            my $fw = $params->{solid_infill_flow};
-            if ($surface->surface_type == S_TYPE_TOP && $params->{top_infill_flow}) {
-                $fw = $params->{top_infill_flow}->width;
-            }
-            my $pattern = $surface->is_external ? $params->{solid_fill_pattern} : 'rectilinear';
-            $stype = join '_', $fw // '', $pattern // '';
-        }
-        
         my $type = join '_',
-            $stype,
+            $surface->surface_type,
             $surface->bridge_angle // '',
             $surface->thickness // '',
             $surface->thickness_layers;
