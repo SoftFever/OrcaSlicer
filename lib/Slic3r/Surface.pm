@@ -21,8 +21,20 @@ sub group {
     
     my %unique_types = ();
     foreach my $surface (@surfaces) {
+        my $stype = $surface->surface_type;
+        if ($surface->is_bridge && ($params->{bridged_bottom} || $surface->surface_type != S_TYPE_BOTTOM)) {
+            $stype = 'bridge';
+        } elsif ($surface->is_solid) {
+            my $fw = $params->{solid_infill_flow};
+            if ($surface->surface_type == S_TYPE_TOP && $params->{top_infill_flow}) {
+                $fw = $params->{top_infill_flow}->width;
+            }
+            my $pattern = $surface->is_external ? $params->{solid_fill_pattern} : 'rectilinear';
+            $stype = join '_', $fw // '', $pattern // '';
+        }
+        
         my $type = join '_',
-            ($params->{merge_solid} && $surface->is_solid) ? 'solid' : $surface->surface_type,
+            $stype,
             $surface->bridge_angle // '',
             $surface->thickness // '',
             $surface->thickness_layers;
@@ -55,6 +67,13 @@ sub is_solid {
     return $type == S_TYPE_TOP
         || $type == S_TYPE_BOTTOM
         || $type == S_TYPE_INTERNALSOLID;
+}
+
+sub is_external {
+    my $self = shift;
+    my $type = $self->surface_type;
+    return $type == S_TYPE_TOP
+        || $type == S_TYPE_BOTTOM;
 }
 
 sub is_bridge {

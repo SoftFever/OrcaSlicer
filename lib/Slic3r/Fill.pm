@@ -62,7 +62,12 @@ sub make_fill {
         my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @fill_surfaces;
         
         # give priority to bridges
-        my @groups = Slic3r::Surface->group({merge_solid => 1}, @fill_surfaces);
+        my @groups = Slic3r::Surface->group({
+            bridged_bottom          => ($layerm->id > 0),
+            solid_infill_flow       => $layerm->solid_infill_flow,
+            top_infill_flow         => $layerm->top_infill_flow,
+            solid_fill_pattern      => $layerm->config->solid_fill_pattern,
+        }, @fill_surfaces);
         @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
         
         foreach my $group (@groups) {
