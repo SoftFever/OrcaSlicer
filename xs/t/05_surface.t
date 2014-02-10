@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 16;
+use Test::More tests => 15;
 
 my $square = [  # ccw
     [100, 100],
@@ -71,7 +71,6 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
     );
     my $collection = Slic3r::Surface::Collection->new(@surfaces);
     is scalar(@{$collection->group}), 2, 'group() returns correct number of groups';
-    is scalar(@{$collection->group(1)}), 1, 'group() returns correct number of solid groups';
 }
 
 __END__

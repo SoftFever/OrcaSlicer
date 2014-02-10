@@ -64,8 +64,54 @@ sub make_fill {
     {
         my @surfaces_with_bridge_angle = grep defined $_->bridge_angle, @{$layerm->fill_surfaces};
         
+        # group surfaces by distinct properties
+        my @groups = @{$layerm->fill_surfaces->group};
+        
+        # merge compatible groups (we can generate continuous infill for them)
+        {
+            # cache flow widths and patterns used for all solid groups
+            # (we'll use them for comparing compatible groups)
+            my @is_solid = my @fw = my @pattern = ();
+            for (my $i = 0; $i <= $#groups; $i++) {
+                # we can only merge solid non-bridge surfaces, so discard
+                # non-solid surfaces
+                if ($groups[$i][0]->is_solid && (!$groups[$i][0]->is_bridge || $layerm->id == 0)) {
+                    $is_solid[$i] = 1;
+                    $fw[$i] = ($groups[$i][0]->surface_type == S_TYPE_TOP)
+                        ? $layerm->flow(FLOW_ROLE_TOP_SOLID_INFILL)->width
+                        : $solid_infill_flow->width;
+                    $pattern[$i] = $groups[$i][0]->is_external
+                        ? $layerm->config->solid_fill_pattern
+                        : 'rectilinear';
+                } else {
+                    $is_solid[$i]   = 0;
+                    $fw[$i]         = 0;
+                    $pattern[$i]    = 'none';
+                }
+            }
+            
+            # loop through solid groups
+            for (my $i = 0; $i <= $#groups; $i++) {
+                next if !$is_solid[$i];
+                
+                # find compatible groups and append them to this one
+                for (my $j = $i+1; $j <= $#groups; $j++) {
+                    next if !$is_solid[$j];
+                
+                    if ($fw[$i] == $fw[$j] && $pattern[$i] eq $pattern[$j]) {
+                        # groups are compatible, merge them
+                        push @{$groups[$i]}, @{$groups[$j]};
+                        splice @groups,     $j, 1;
+                        splice @is_solid,   $j, 1;
+                        splice @fw,         $j, 1;
+                        splice @pattern,    $j, 1;
+                    }
+                }
+            }
+        }
+        
         # give priority to bridges
-        my @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @{$layerm->fill_surfaces->group(1)};
+        @groups = sort { defined $a->[0]->bridge_angle ? -1 : 0 } @groups;
         
         foreach my $group (@groups) {
             my $union_p = union([ map $_->p, @$group ], 1);

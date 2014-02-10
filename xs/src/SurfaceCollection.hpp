@@ -11,7 +11,7 @@ class SurfaceCollection
     public:
     Surfaces surfaces;
     void simplify(double tolerance);
-    void group(std::vector<SurfacesPtr> *retval, bool merge_solid = false);
+    void group(std::vector<SurfacesPtr> *retval);
 };
 
 }

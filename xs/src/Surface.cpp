@@ -17,6 +17,13 @@ Surface::is_solid() const
 }
 
 bool
+Surface::is_external() const
+{
+    return this->surface_type == stTop
+        || this->surface_type == stBottom;
+}
+
+bool
 Surface::is_bridge() const
 {
     return this->surface_type == stBottom

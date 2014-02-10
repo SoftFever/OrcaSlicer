@@ -16,6 +16,7 @@
         %code{% RETVAL = THIS->thickness_layers; %};
     double area();
     bool is_solid() const;
+    bool is_external() const;
     bool is_bridge() const;
 %{
 

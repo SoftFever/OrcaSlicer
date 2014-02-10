@@ -76,12 +76,11 @@ SurfaceCollection::set_surface_type(index, surface_type)
         THIS->surfaces[index].surface_type = surface_type;
 
 SV*
-SurfaceCollection::group(merge_solid = false)
-    bool    merge_solid
+SurfaceCollection::group()
     CODE:
         // perform grouping
         std::vector<SurfacesPtr> groups;
-        THIS->group(&groups, merge_solid);
+        THIS->group(&groups);
         
         // build return arrayref
         AV* av = newAV();
