@@ -47,9 +47,10 @@ sub fill_surface {
         $last_pos = $paths[-1]->last_point;
     }
     
-    # clip the paths to avoid the extruder to get exactly on the first point of the loop
+    # clip the paths to prevent the extruder from getting exactly on the first point of the loop
     my $clip_length = scale $flow_spacing * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_SPACING;
     $_->clip_end($clip_length) for @paths;
+    @paths = grep $_->is_valid, @paths;  # remove empty paths (too short, thus eaten by clipping)
     
     # TODO: return ExtrusionLoop objects to get better chained paths
     return { flow_spacing => $flow_spacing, no_sort => 1 }, @paths;
