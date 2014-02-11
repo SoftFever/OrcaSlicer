@@ -51,12 +51,15 @@ sub new {
     }
     
     # right pane with preview canvas
-    my $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self, $self->{model_object});
-    $canvas->SetSize([500,500]);
+    my $canvas;
+    if ($Slic3r::GUI::have_OpenGL) {
+        $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self, $self->{model_object});
+        $canvas->SetSize([500,500]);
+    }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
     $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxALL, 0);
-    $self->{sizer}->Add($canvas, 1, wxEXPAND | wxALL, 0);
+    $self->{sizer}->Add($canvas, 1, wxEXPAND | wxALL, 0) if $canvas;
     
     $self->SetSizer($self->{sizer});
     $self->{sizer}->SetSizeHints($self);
@@ -125,18 +128,22 @@ sub selection_changed {
     my ($self) = @_;
     
     # deselect all meshes
-    $_->{selected} = 0 for @{$self->{canvas}->volumes};
+    if ($self->{canvas}) {
+        $_->{selected} = 0 for @{$self->{canvas}->volumes};
+    }
     
     # disable buttons
     $self->{btn_delete}->Disable;
     
     my $itemData = $self->get_selection;
     if ($itemData && $itemData->{type} eq 'volume') {
-        $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+        if ($self->{canvas}) {
+            $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+        }
         $self->{btn_delete}->Enable;
     }
     
-    $self->{canvas}->Render;
+    $self->{canvas}->Render if $self->{canvas};
 }
 
 sub on_btn_load {
@@ -165,8 +172,10 @@ sub on_btn_load {
     }
     
     $self->reload_tree;
-    $self->{canvas}->load_object($self->{model_object});
-    $self->{canvas}->Render;
+    if ($self->{canvas}) {
+        $self->{canvas}->load_object($self->{model_object});
+        $self->{canvas}->Render;
+    }
 }
 
 sub on_btn_delete {
@@ -186,8 +195,10 @@ sub on_btn_delete {
     }
     
     $self->reload_tree;
-    $self->{canvas}->load_object($self->{model_object});
-    $self->{canvas}->Render;
+    if ($self->{canvas}) {
+        $self->{canvas}->load_object($self->{model_object});
+        $self->{canvas}->Render;
+    }
 }
 
 1;
