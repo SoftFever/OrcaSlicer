@@ -46,13 +46,16 @@ sub process_layer {
     my $gcode = "";
     
     # check whether we're going to apply spiralvase logic
-    my $spiralvase = defined $self->spiralvase
-        && ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
-        && ($layer->id >= $Slic3r::Config->skirt_height)
-        && ($layer->id >= $Slic3r::Config->bottom_solid_layers);
+    if (defined $self->spiralvase) {
+        $self->spiralvase->enable(
+            ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
+                && ($layer->id >= $Slic3r::Config->skirt_height)
+                && ($layer->id >= $Slic3r::Config->bottom_solid_layers)
+        );
+    }
     
     # if we're going to apply spiralvase to this layer, disable loop clipping
-    $self->gcodegen->enable_loop_clipping(!$spiralvase);
+    $self->gcodegen->enable_loop_clipping(!defined $self->spiralvase && !$self->spiralvase->enable);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
         for my $t (grep $self->extruders->[$_], 0 .. $#{$Slic3r::Config->temperature}) {
@@ -178,8 +181,10 @@ sub process_layer {
     }
     
     # apply spiral vase post-processing if this layer contains suitable geometry
+    # (we must feed all the G-code into the post-processor otherwise it will 
+    # mess with positions)
     $gcode = $self->spiralvase->process_layer($gcode, $layer)
-        if $spiralvase;
+        if defined $self->spiralvase;
     
     # apply vibration limit if enabled
     $gcode = $self->vibration_limit->process($gcode)
