@@ -111,12 +111,12 @@ ConfigBase::get(t_config_option_key opt_key) {
         return newRV_noinc((SV*)av);
     } else if (ConfigOptionString* optv = dynamic_cast<ConfigOptionString*>(opt)) {
         // we don't serialize() because that would escape newlines
-        return newSVpvn(optv->value.c_str(), optv->value.length());
+        return newSVpvn_utf8(optv->value.c_str(), optv->value.length(), true);
     } else if (ConfigOptionStrings* optv = dynamic_cast<ConfigOptionStrings*>(opt)) {
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
         for (std::vector<std::string>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
-            av_store(av, it - optv->values.begin(), newSVpvn(it->c_str(), it->length()));
+            av_store(av, it - optv->values.begin(), newSVpvn_utf8(it->c_str(), it->length(), true));
         return newRV_noinc((SV*)av);
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
         return optv->point.to_SV_pureperl();
@@ -136,7 +136,7 @@ ConfigBase::get(t_config_option_key opt_key) {
         return newRV_noinc((SV*)av);
     } else {
         std::string serialized = opt->serialize();
-        return newSVpvn(serialized.c_str(), serialized.length());
+        return newSVpvn_utf8(serialized.c_str(), serialized.length(), true);
     }
 }
 
@@ -152,7 +152,7 @@ ConfigBase::get_at(t_config_option_key opt_key, size_t i) {
     } else if (ConfigOptionStrings* optv = dynamic_cast<ConfigOptionStrings*>(opt)) {
         // we don't serialize() because that would escape newlines
         std::string val = optv->get_at(i);
-        return newSVpvn(val.c_str(), val.length());
+        return newSVpvn_utf8(val.c_str(), val.length(), true);
     } else if (ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt)) {
         return optv->get_at(i).to_SV_pureperl();
     } else if (ConfigOptionBools* optv = dynamic_cast<ConfigOptionBools*>(opt)) {
