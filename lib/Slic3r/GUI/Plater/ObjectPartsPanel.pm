@@ -34,21 +34,29 @@ sub new {
         $self->reload_tree;
     }
     
+    # buttons
     $self->{btn_load_part} = Wx::Button->new($self, -1, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_load_modifier} = Wx::Button->new($self, -1, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    
-    # left pane with tree
-    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $left_sizer->Add($tree, 0, wxEXPAND | wxALL, 10);
-    $left_sizer->Add($self->{btn_load_part}, 0);
-    $left_sizer->Add($self->{btn_load_modifier}, 0);
-    $left_sizer->Add($self->{btn_delete}, 0);
     if ($Slic3r::GUI::have_button_icons) {
         $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG));
         $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG));
         $self->{btn_delete}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/brick_delete.png", wxBITMAP_TYPE_PNG));
     }
+    
+    # buttons sizer
+    my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $buttons_sizer->Add($self->{btn_load_part}, 0);
+    $buttons_sizer->Add($self->{btn_load_modifier}, 0);
+    $buttons_sizer->Add($self->{btn_delete}, 0);
+    $self->{btn_load_part}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_load_modifier}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
+    
+    # left pane with tree
+    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $left_sizer->Add($tree, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+    $left_sizer->Add($buttons_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
     
     # right pane with preview canvas
     my $canvas;
