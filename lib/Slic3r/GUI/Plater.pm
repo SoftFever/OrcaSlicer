@@ -912,6 +912,8 @@ sub update {
         $print_object->delete_all_copies;
         $print_object->add_copy(@{$_->offset}) for @{$model_object->instances};
     }
+    
+    $self->{canvas}->Refresh;
 }
 
 sub on_config_change {
