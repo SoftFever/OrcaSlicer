@@ -53,10 +53,19 @@ sub new {
     $self->{btn_load_modifier}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
     
+    # part settings panel
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new(
+        $self,
+        opt_keys => Slic3r::Config::PrintRegion->new->get_keys,
+    );
+    my $settings_sizer = Wx::StaticBoxSizer->new(Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
+    $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
+    
     # left pane with tree
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $left_sizer->Add($tree, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
     $left_sizer->Add($buttons_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+    $left_sizer->Add($settings_sizer, 1, wxEXPAND | wxALL, 0);
     
     # right pane with preview canvas
     my $canvas;
@@ -134,8 +143,9 @@ sub selection_changed {
         $_->{selected} = 0 for @{$self->{canvas}->volumes};
     }
     
-    # disable buttons
+    # disable things as if nothing is selected
     $self->{btn_delete}->Disable;
+    $self->{settings_panel}->Disable;
     
     my $itemData = $self->get_selection;
     if ($itemData && $itemData->{type} eq 'volume') {
@@ -143,6 +153,12 @@ sub selection_changed {
             $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
         }
         $self->{btn_delete}->Enable;
+        
+        my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
+        my $material = $self->{model_object}->model->materials->{ $volume->material_id // '_' };
+        $material //= $volume->assign_unique_material;
+        $self->{settings_panel}->Enable;
+        $self->{settings_panel}->set_config($material->config);
     }
     
     $self->{canvas}->Render if $self->{canvas};

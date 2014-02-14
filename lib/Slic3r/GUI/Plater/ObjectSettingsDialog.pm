@@ -72,75 +72,17 @@ sub new {
         $self->{sizer}->Add($label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
     }
     
-    # option selector
-    {
-        # get all options with object scope and sort them by category+label
-        my %settings = map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) }
-            grep { ($Slic3r::Config::Options->{$_}{scope} // '') eq 'object' }
-            keys %$Slic3r::Config::Options;
-        $self->{options} = [ sort { $settings{$a} cmp $settings{$b} } keys %settings ];
-        my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [ map $settings{$_}, @{$self->{options}} ]);
-        
-        # create the button
-        my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
-        EVT_BUTTON($self, $btn, sub {
-            my $idx = $choice->GetSelection;
-            return if $idx == -1;  # lack of selected item, can happen on Windows
-            my $opt_key = $self->{options}[$idx];
-            $self->model_object->config->apply(Slic3r::Config->new_from_defaults($opt_key));
-            $self->update_optgroup;
-        });
-        
-        my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $h_sizer->Add($choice, 1, wxEXPAND | wxALL, 0);
-        $h_sizer->Add($btn, 0, wxEXPAND | wxLEFT, 10);
-        $self->{sizer}->Add($h_sizer, 0, wxEXPAND | wxALL, 10);
-    }
-    
-    $self->{options_sizer} = Wx::BoxSizer->new(wxVERTICAL);
-    $self->{sizer}->Add($self->{options_sizer}, 0, wxEXPAND | wxALL, 10);
-    
-    $self->update_optgroup;
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new(
+        $self,
+        config => $self->model_object->config,
+        opt_keys => [ map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new ],
+    );
+    $self->{sizer}->Add($self->{settings_panel}, 1, wxEXPAND | wxLEFT | wxRIGHT, 10);
     
     $self->SetSizer($self->{sizer});
     $self->{sizer}->SetSizeHints($self);
     
     return $self;
-}
-
-sub update_optgroup {
-    my $self = shift;
-    
-    $self->{options_sizer}->Clear(1);
-    
-    my $config = $self->model_object->config;
-    my %categories = ();
-    foreach my $opt_key (@{$config->get_keys}) {
-        my $category = $Slic3r::Config::Options->{$opt_key}{category};
-        $categories{$category} ||= [];
-        push @{$categories{$category}}, $opt_key;
-    }
-    foreach my $category (sort keys %categories) {
-        my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
-            parent      => $self,
-            title       => $category,
-            config      => $config,
-            options     => [ sort @{$categories{$category}} ],
-            full_labels => 1,
-            extra_column => sub {
-                my ($line) = @_;
-                my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
-                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
-                EVT_BUTTON($self, $btn, sub {
-                    $self->model_object->config->erase($opt_key);
-                    Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
-                });
-                return $btn;
-            },
-        );
-        $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 10);
-    }
-    $self->Layout;
 }
 
 sub CanClose {

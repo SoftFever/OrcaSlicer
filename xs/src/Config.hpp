@@ -378,7 +378,6 @@ class ConfigOptionDef
     std::string tooltip;
     std::string sidetext;
     std::string cli;
-    std::string scope;
     t_config_option_key ratio_over;
     bool multiline;
     bool full_width;

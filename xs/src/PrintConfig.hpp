@@ -82,7 +82,6 @@ class PrintConfigDef
         Options["bottom_solid_layers"].category = "Layers and Perimeters";
         Options["bottom_solid_layers"].tooltip = "Number of solid layers to generate on bottom surfaces.";
         Options["bottom_solid_layers"].cli = "bottom-solid-layers=i";
-        Options["bottom_solid_layers"].scope = "object";
         Options["bottom_solid_layers"].full_label = "Bottom solid layers";
 
         Options["bridge_acceleration"].type = coFloat;
@@ -171,7 +170,6 @@ class PrintConfigDef
         Options["extra_perimeters"].category = "Layers and Perimeters";
         Options["extra_perimeters"].tooltip = "Add more perimeters when needed for avoiding gaps in sloping walls.";
         Options["extra_perimeters"].cli = "extra-perimeters!";
-        Options["extra_perimeters"].scope = "object";
 
         Options["extruder"].type = coInt;
         Options["extruder"].label = "Extruder";
@@ -211,6 +209,7 @@ class PrintConfigDef
 
         Options["extrusion_width"].type = coFloatOrPercent;
         Options["extrusion_width"].label = "Default extrusion width";
+        Options["extrusion_width"].category = "Extrusion Width";
         Options["extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width. If left to zero, Slic3r calculates a width automatically. If expressed as percentage (for example: 230%) it will be computed over layer height.";
         Options["extrusion_width"].sidetext = "mm or % (leave 0 for auto)";
         Options["extrusion_width"].cli = "extrusion-width=s";
@@ -236,6 +235,7 @@ class PrintConfigDef
 
         Options["fill_angle"].type = coInt;
         Options["fill_angle"].label = "Fill angle";
+        Options["fill_angle"].category = "Infill";
         Options["fill_angle"].tooltip = "Default base angle for infill orientation. Cross-hatching will be applied to this. Bridges will be infilled using the best direction Slic3r can detect, so this setting does not affect them.";
         Options["fill_angle"].sidetext = "°";
         Options["fill_angle"].cli = "fill-angle=i";
@@ -246,14 +246,12 @@ class PrintConfigDef
         Options["fill_density"].category = "Infill";
         Options["fill_density"].tooltip = "Density of internal infill, expressed in the range 0 - 1.";
         Options["fill_density"].cli = "fill-density=f";
-        Options["fill_density"].scope = "object";
 
         Options["fill_pattern"].type = coEnum;
         Options["fill_pattern"].label = "Fill pattern";
         Options["fill_pattern"].category = "Infill";
         Options["fill_pattern"].tooltip = "Fill pattern for general low-density infill.";
         Options["fill_pattern"].cli = "fill-pattern=s";
-        Options["fill_pattern"].scope = "object";
         Options["fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
         Options["fill_pattern"].enum_values.push_back("rectilinear");
         Options["fill_pattern"].enum_values.push_back("line");
@@ -292,6 +290,7 @@ class PrintConfigDef
 
         Options["first_layer_height"].type = coFloatOrPercent;
         Options["first_layer_height"].label = "First layer height";
+        Options["first_layer_height"].category = "Layers and Perimeters";
         Options["first_layer_height"].tooltip = "When printing with very low layer heights, you might still want to print a thicker bottom layer to improve adhesion and tolerance for non perfect build plates. This can be expressed as an absolute value or as a percentage (for example: 150%) over the default layer height.";
         Options["first_layer_height"].sidetext = "mm or %";
         Options["first_layer_height"].cli = "first-layer-height=s";
@@ -361,17 +360,18 @@ class PrintConfigDef
         Options["infill_every_layers"].tooltip = "This feature allows to combine infill and speed up your print by extruding thicker infill layers while preserving thin perimeters, thus accuracy.";
         Options["infill_every_layers"].sidetext = "layers";
         Options["infill_every_layers"].cli = "infill-every-layers=i";
-        Options["infill_every_layers"].scope = "object";
         Options["infill_every_layers"].full_label = "Combine infill every n layers";
         Options["infill_every_layers"].min = 1;
 
         Options["infill_extruder"].type = coInt;
         Options["infill_extruder"].label = "Infill extruder";
+        Options["infill_extruder"].category = "Extruders";
         Options["infill_extruder"].tooltip = "The extruder to use when printing infill.";
         Options["infill_extruder"].cli = "infill-extruder=i";
 
         Options["infill_extrusion_width"].type = coFloatOrPercent;
         Options["infill_extrusion_width"].label = "Infill";
+        Options["infill_extrusion_width"].category = "Extrusion Width";
         Options["infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) if will be computed over layer height.";
         Options["infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["infill_extrusion_width"].cli = "infill-extrusion-width=s";
@@ -386,7 +386,6 @@ class PrintConfigDef
         Options["infill_only_where_needed"].category = "Infill";
         Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material).";
         Options["infill_only_where_needed"].cli = "infill-only-where-needed!";
-        Options["infill_only_where_needed"].scope = "object";
 
         Options["infill_speed"].type = coFloat;
         Options["infill_speed"].label = "Infill";
@@ -406,6 +405,7 @@ class PrintConfigDef
 
         Options["layer_height"].type = coFloat;
         Options["layer_height"].label = "Layer height";
+        Options["layer_height"].category = "Layers and Perimeters";
         Options["layer_height"].tooltip = "This setting controls the height (and thus the total number) of the slices/layers. Thinner layers give better accuracy but take more time to print.";
         Options["layer_height"].sidetext = "mm";
         Options["layer_height"].cli = "layer-height=f";
@@ -473,7 +473,6 @@ class PrintConfigDef
         Options["overhangs"].category = "Layers and Perimeters";
         Options["overhangs"].tooltip = "Experimental option to adjust flow for overhangs (bridge flow will be used), to apply bridge speed to them and enable fan.";
         Options["overhangs"].cli = "overhangs!";
-        Options["overhangs"].scope = "object";
 
         Options["perimeter_acceleration"].type = coFloat;
         Options["perimeter_acceleration"].label = "Perimeters";
@@ -483,12 +482,14 @@ class PrintConfigDef
 
         Options["perimeter_extruder"].type = coInt;
         Options["perimeter_extruder"].label = "Perimeter extruder";
+        Options["perimeter_extruder"].category = "Extruders";
         Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters.";
         Options["perimeter_extruder"].cli = "perimeter-extruder=i";
         Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
 
         Options["perimeter_extrusion_width"].type = coFloatOrPercent;
         Options["perimeter_extrusion_width"].label = "Perimeters";
+        Options["perimeter_extrusion_width"].category = "Extrusion Width";
         Options["perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.";
         Options["perimeter_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["perimeter_extrusion_width"].cli = "perimeter-extrusion-width=s";
@@ -506,7 +507,6 @@ class PrintConfigDef
         Options["perimeters"].category = "Layers and Perimeters";
         Options["perimeters"].tooltip = "This option sets the number of perimeters to generate for each layer. Note that Slic3r may increase this number automatically when it detects sloping surfaces which benefit from a higher number of perimeters if the Extra Perimeters option is enabled.";
         Options["perimeters"].cli = "perimeters=i";
-        Options["perimeters"].scope = "object";
         Options["perimeters"].aliases.push_back("perimeter_offsets");
 
         Options["post_process"].type = coStrings;
@@ -529,7 +529,6 @@ class PrintConfigDef
         Options["raft_layers"].tooltip = "The object will be raised by this number of layers, and support material will be generated under it.";
         Options["raft_layers"].sidetext = "layers";
         Options["raft_layers"].cli = "raft-layers=i";
-        Options["raft_layers"].scope = "object";
 
         Options["randomize_start"].type = coBool;
         Options["randomize_start"].label = "Randomize starting points";
@@ -628,7 +627,6 @@ class PrintConfigDef
         Options["solid_fill_pattern"].category = "Infill";
         Options["solid_fill_pattern"].tooltip = "Fill pattern for top/bottom infill.";
         Options["solid_fill_pattern"].cli = "solid-fill-pattern=s";
-        Options["solid_fill_pattern"].scope = "object";
         Options["solid_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
         Options["solid_fill_pattern"].enum_values.push_back("rectilinear");
         Options["solid_fill_pattern"].enum_values.push_back("concentric");
@@ -647,7 +645,6 @@ class PrintConfigDef
         Options["solid_infill_below_area"].tooltip = "Force solid infill for regions having a smaller area than the specified threshold.";
         Options["solid_infill_below_area"].sidetext = "mm²";
         Options["solid_infill_below_area"].cli = "solid-infill-below-area=f";
-        Options["solid_infill_below_area"].scope = "object";
 
         Options["solid_infill_every_layers"].type = coInt;
         Options["solid_infill_every_layers"].label = "Solid infill every";
@@ -655,11 +652,11 @@ class PrintConfigDef
         Options["solid_infill_every_layers"].tooltip = "This feature allows to force a solid layer every given number of layers. Zero to disable.";
         Options["solid_infill_every_layers"].sidetext = "layers";
         Options["solid_infill_every_layers"].cli = "solid-infill-every-layers=i";
-        Options["solid_infill_every_layers"].scope = "object";
         Options["solid_infill_every_layers"].min = 0;
 
         Options["solid_infill_extrusion_width"].type = coFloatOrPercent;
         Options["solid_infill_extrusion_width"].label = "Solid infill";
+        Options["solid_infill_extrusion_width"].category = "Extrusion Width";
         Options["solid_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.";
         Options["solid_infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["solid_infill_extrusion_width"].cli = "solid-infill-extrusion-width=s";
@@ -715,7 +712,6 @@ class PrintConfigDef
         Options["support_material"].category = "Support material";
         Options["support_material"].tooltip = "Enable support material generation.";
         Options["support_material"].cli = "support-material!";
-        Options["support_material"].scope = "object";
 
         Options["support_material_angle"].type = coInt;
         Options["support_material_angle"].label = "Pattern angle";
@@ -723,7 +719,6 @@ class PrintConfigDef
         Options["support_material_angle"].tooltip = "Use this setting to rotate the support material pattern on the horizontal plane.";
         Options["support_material_angle"].sidetext = "°";
         Options["support_material_angle"].cli = "support-material-angle=i";
-        Options["support_material_angle"].scope = "object";
 
         Options["support_material_enforce_layers"].type = coInt;
         Options["support_material_enforce_layers"].label = "Enforce support for the first";
@@ -731,22 +726,24 @@ class PrintConfigDef
         Options["support_material_enforce_layers"].tooltip = "Generate support material for the specified number of layers counting from bottom, regardless of whether normal support material is enabled or not and regardless of any angle threshold. This is useful for getting more adhesion of objects having a very thin or poor footprint on the build plate.";
         Options["support_material_enforce_layers"].sidetext = "layers";
         Options["support_material_enforce_layers"].cli = "support-material-enforce-layers=f";
-        Options["support_material_enforce_layers"].scope = "object";
         Options["support_material_enforce_layers"].full_label = "Enforce support for the first n layers";
 
         Options["support_material_extruder"].type = coInt;
         Options["support_material_extruder"].label = "Support material extruder";
+        Options["support_material_extruder"].category = "Extruders";
         Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
         Options["support_material_extruder"].cli = "support-material-extruder=i";
 
         Options["support_material_extrusion_width"].type = coFloatOrPercent;
         Options["support_material_extrusion_width"].label = "Support material";
+        Options["support_material_extrusion_width"].category = "Extrusion Width";
         Options["support_material_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) if will be computed over layer height.";
         Options["support_material_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["support_material_extrusion_width"].cli = "support-material-extrusion-width=s";
 
         Options["support_material_interface_extruder"].type = coInt;
         Options["support_material_interface_extruder"].label = "Support material interface extruder";
+        Options["support_material_interface_extruder"].category = "Extruders";
         Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
         Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
 
@@ -756,7 +753,6 @@ class PrintConfigDef
         Options["support_material_interface_layers"].tooltip = "Number of interface layers to insert between the object(s) and support material.";
         Options["support_material_interface_layers"].sidetext = "layers";
         Options["support_material_interface_layers"].cli = "support-material-interface-layers=i";
-        Options["support_material_interface_layers"].scope = "object";
 
         Options["support_material_interface_spacing"].type = coFloat;
         Options["support_material_interface_spacing"].label = "Interface pattern spacing";
@@ -764,14 +760,12 @@ class PrintConfigDef
         Options["support_material_interface_spacing"].tooltip = "Spacing between interface lines. Set zero to get a solid interface.";
         Options["support_material_interface_spacing"].sidetext = "mm";
         Options["support_material_interface_spacing"].cli = "support-material-interface-spacing=f";
-        Options["support_material_interface_spacing"].scope = "object";
 
         Options["support_material_pattern"].type = coEnum;
         Options["support_material_pattern"].label = "Pattern";
         Options["support_material_pattern"].category = "Support material";
         Options["support_material_pattern"].tooltip = "Pattern used to generate support material.";
         Options["support_material_pattern"].cli = "support-material-pattern=s";
-        Options["support_material_pattern"].scope = "object";
         Options["support_material_pattern"].enum_keys_map = ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
         Options["support_material_pattern"].enum_values.push_back("rectilinear");
         Options["support_material_pattern"].enum_values.push_back("rectilinear-grid");
@@ -788,10 +782,10 @@ class PrintConfigDef
         Options["support_material_spacing"].tooltip = "Spacing between support material lines.";
         Options["support_material_spacing"].sidetext = "mm";
         Options["support_material_spacing"].cli = "support-material-spacing=f";
-        Options["support_material_spacing"].scope = "object";
 
         Options["support_material_speed"].type = coFloat;
         Options["support_material_speed"].label = "Support material";
+        Options["support_material_speed"].category = "Support material";
         Options["support_material_speed"].tooltip = "Speed for printing support material.";
         Options["support_material_speed"].sidetext = "mm/s";
         Options["support_material_speed"].cli = "support-material-speed=f";
@@ -802,7 +796,6 @@ class PrintConfigDef
         Options["support_material_threshold"].tooltip = "Support material will not be generated for overhangs whose slope angle (90° = vertical) is above the given threshold. In other words, this value represent the most horizontal slope (measured from the horizontal plane) that you can print without support material. Set to zero for automatic detection (recommended).";
         Options["support_material_threshold"].sidetext = "°";
         Options["support_material_threshold"].cli = "support-material-threshold=i";
-        Options["support_material_threshold"].scope = "object";
 
         Options["temperature"].type = coInts;
         Options["temperature"].label = "Other layers";
@@ -817,7 +810,6 @@ class PrintConfigDef
         Options["thin_walls"].category = "Layers and Perimeters";
         Options["thin_walls"].tooltip = "Detect single-width walls (parts where two extrusions don't fit and we need to collapse them into a single trace).";
         Options["thin_walls"].cli = "thin-walls!";
-        Options["thin_walls"].scope = "object";
 
         Options["threads"].type = coInt;
         Options["threads"].label = "Threads";
@@ -838,6 +830,7 @@ class PrintConfigDef
 
         Options["top_infill_extrusion_width"].type = coFloatOrPercent;
         Options["top_infill_extrusion_width"].label = "Top solid infill";
+        Options["top_infill_extrusion_width"].category = "Extrusion Width";
         Options["top_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for top surfaces. You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. If expressed as percentage (for example 90%) if will be computed over layer height.";
         Options["top_infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["top_infill_extrusion_width"].cli = "top-infill-extrusion-width=s";
@@ -854,7 +847,6 @@ class PrintConfigDef
         Options["top_solid_layers"].category = "Layers and Perimeters";
         Options["top_solid_layers"].tooltip = "Number of solid layers to generate on top surfaces.";
         Options["top_solid_layers"].cli = "top-solid-layers=i";
-        Options["top_solid_layers"].scope = "object";
         Options["top_solid_layers"].full_label = "Top solid layers";
 
         Options["travel_speed"].type = coFloat;
@@ -982,7 +974,6 @@ class PrintRegionConfig : public virtual StaticConfig
     ConfigOptionFloat               solid_infill_below_area;
     ConfigOptionFloatOrPercent      solid_infill_extrusion_width;
     ConfigOptionInt                 solid_infill_every_layers;
-    ConfigOptionInt                 solid_layers;
     ConfigOptionBool                thin_walls;
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
@@ -1030,7 +1021,6 @@ class PrintRegionConfig : public virtual StaticConfig
         if (opt_key == "solid_infill_below_area")                    return &this->solid_infill_below_area;
         if (opt_key == "solid_infill_extrusion_width")               return &this->solid_infill_extrusion_width;
         if (opt_key == "solid_infill_every_layers")                  return &this->solid_infill_every_layers;
-        if (opt_key == "solid_layers")                               return &this->solid_layers;
         if (opt_key == "thin_walls")                                 return &this->thin_walls;
         if (opt_key == "top_infill_extrusion_width")                 return &this->top_infill_extrusion_width;
         if (opt_key == "top_solid_layers")                           return &this->top_solid_layers;

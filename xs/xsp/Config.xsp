@@ -154,7 +154,6 @@ print_config_def()
             (void)hv_stores( hv, "tooltip",     newSVpvn_utf8(optdef->tooltip.c_str(), optdef->tooltip.length(), true) );
             (void)hv_stores( hv, "sidetext",    newSVpvn_utf8(optdef->sidetext.c_str(), optdef->sidetext.length(), true) );
             (void)hv_stores( hv, "cli",         newSVpvn(optdef->cli.c_str(), optdef->cli.length()) );
-            (void)hv_stores( hv, "scope",       newSVpvn(optdef->scope.c_str(), optdef->scope.length()) );
             (void)hv_stores( hv, "ratio_over",  newSVpvn(optdef->ratio_over.c_str(), optdef->ratio_over.length()) );
             (void)hv_stores( hv, "multiline",   newSViv(optdef->multiline ? 1 : 0) );
             (void)hv_stores( hv, "full_width",  newSViv(optdef->full_width ? 1 : 0) );

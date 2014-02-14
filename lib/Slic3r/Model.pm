@@ -531,6 +531,15 @@ has 'material_id'       => (is => 'rw');
 has 'mesh'              => (is => 'rw', required => 1);
 has 'modifier'          => (is => 'rw', defualt => sub { 0 });
 
+sub assign_unique_material {
+    my ($self) = @_;
+    
+    my $model = $self->object->model;
+    my $material_id = 1 + scalar keys %{$model->materials};
+    $self->material_id($material_id);
+    return $model->set_material($material_id);
+}
+
 package Slic3r::Model::Instance;
 use Moo;
 
