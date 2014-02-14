@@ -20,9 +20,9 @@ sub new {
     my $object = $self->{model_object} = $params{model_object};
     
     # create TreeCtrl
-    my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [200, 200], 
+    my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [300, 100], 
         wxTR_NO_BUTTONS | wxSUNKEN_BORDER | wxTR_HAS_VARIABLE_ROW_HEIGHT | wxTR_HIDE_ROOT
-        | wxTR_MULTIPLE | wxTR_NO_BUTTONS);
+        | wxTR_MULTIPLE | wxTR_NO_BUTTONS | wxTR_NO_LINES);
     {
         $self->{tree_icons} = Wx::ImageList->new(16, 16, 1);
         $tree->AssignImageList($self->{tree_icons});
@@ -91,27 +91,21 @@ sub reload_tree {
     
     $tree->DeleteChildren($rootId);
     
-    my %nodes = ();  # material_id => nodeId
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
-        my $material_id = $volume->material_id;
-        $material_id //= '_';
         
-        if (!exists $nodes{$material_id}) {
-            my $material_name = $material_id eq '_'
-                ? 'default'
-                : $object->model->get_material_name($material_id);
-            $nodes{$material_id} = $tree->AppendItem($rootId, "Material: $material_name", ICON_MATERIAL);
-        }
-        my $name = $volume->modifier ? 'Modifier mesh' : 'Solid mesh';
+        my $material_id = $volume->material_id // '_';
+        my $material_name = $material_id eq '_'
+            ? sprintf("Part #%d", $volume_id+1)
+            : $object->model->get_material_name($material_id);
+        
         my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
-        my $itemId = $tree->AppendItem($nodes{$material_id}, $name, $icon);
+        my $itemId = $tree->AppendItem($rootId, $material_name, $icon);
         $tree->SetPlData($itemId, {
             type        => 'volume',
             volume_id   => $volume_id,
         });
     }
-    $tree->ExpandAll;
 }
 
 sub get_selection {
