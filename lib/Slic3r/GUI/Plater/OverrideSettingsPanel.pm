@@ -58,6 +58,7 @@ sub new {
 sub set_config {
     my ($self, $config) = @_;
     $self->{config} = $config;
+    $self->update_optgroup;
 }
 
 sub update_optgroup {
