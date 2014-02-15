@@ -7,7 +7,7 @@ use strict;
 use warnings;
 require v5.10;
 
-our $VERSION = "1.0.0RC3-dev";
+our $VERSION = "1.0.0RC3";
 
 our $debug = 0;
 sub debugf {
