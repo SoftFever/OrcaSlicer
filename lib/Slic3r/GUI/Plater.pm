@@ -5,6 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum first);
+use Scalar::Util qw/looks_like_number/;
 use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
 use Slic3r::Geometry qw(X Y Z MIN MAX convex_hull scale unscale);
 use threads::shared qw(shared_clone);
@@ -946,6 +947,8 @@ sub on_config_change {
 sub _update_bed_size {
     my $self = shift;
     
+    return if (grep !looks_like_number($_), @{ $self->{config}->bed_size });
+
     # supposing the preview canvas is square, calculate the scaling factor
     # to constrain print bed area inside preview
     # when the canvas is not rendered yet, its GetSize() method returns 0,0
