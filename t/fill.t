@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 41;
+plan tests => 42;
 
 BEGIN {
     use FindBin;
@@ -185,6 +185,13 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     });
     my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, @perimeter_points ])});
     ok !(defined first { !$convex_hull->encloses_point($_) } @infill_points), "infill does not exceed perimeters ($pattern)";
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('infill_only_where_needed', 1);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok my $gcode = Slic3r::Test::gcode($print), "successful G-code generation when infill_only_where_needed is set";
 }
 
 {

@@ -416,8 +416,8 @@ sub clip_fill_surfaces {
     my $overhangs = [];  # arrayref of polygons
     for my $layer_id (reverse 0..$#{$self->layers}) {
         my $layer = $self->layers->[$layer_id];
-        my @layer_internal = ();
-        my @new_internal = ();
+        my @layer_internal = ();  # arrayref of Surface objects
+        my @new_internal = ();    # arrayref of Surface objects
         
         # clip this layer's internal surfaces to @overhangs
         foreach my $layerm (@{$layer->regions}) {
@@ -451,10 +451,10 @@ sub clip_fill_surfaces {
         if ($layer_id > 0) {
             my $solid = diff(
                 [ map @$_, @{$layer->slices} ],
-                \@layer_internal,
+                [ map $_->p, @layer_internal ],
             );
             $overhangs = offset($solid, +$additional_margin);
-            push @$overhangs, @new_internal;  # propagate upper overhangs
+            push @$overhangs, map $_->p, @new_internal;  # propagate upper overhangs
         }
     }
 }
