@@ -228,7 +228,7 @@ sub init_extruders {
         (map $self->config->get("${_}_extruder")-1, qw(perimeter infill support_material support_material_interface)),
         (values %extruder_mapping),
     );
-    for my $extruder_id (keys %{{ map {$_ => 1} @used_extruders }}) {
+    for my $extruder_id (0 .. max(@used_extruders)) {
         $self->extruders->[$extruder_id] = Slic3r::Extruder->new(
             config => $self->config,
             id => $extruder_id,

@@ -1,4 +1,4 @@
-use Test::More tests => 1;
+use Test::More tests => 2;
 use strict;
 use warnings;
 
@@ -57,6 +57,14 @@ use Slic3r::Test;
     });
     my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, @extrusion_points ])});
     ok !(first { $convex_hull->encloses_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('support_material_extruder', 3);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'no errors when using non-consecutive extruders';
 }
 
 __END__
