@@ -244,7 +244,6 @@ sub make_perimeters {
                 role        => EXTR_ROLE_EXTERNAL_PERIMETER,
                 mm3_per_mm  => $mm3_per_mm,
             );
-            printf "len = %s\n", unscale($p->length);
             push @paths, $p->isa('Slic3r::Polygon')
                 ? Slic3r::ExtrusionLoop->new(polygon  => $p, %params)
                 : Slic3r::ExtrusionPath->new(polyline => $p, %params);
