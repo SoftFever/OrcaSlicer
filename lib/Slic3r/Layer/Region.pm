@@ -175,14 +175,14 @@ sub make_perimeters {
                     # the minimum thickness of a single loop is:
                     # width/2 + spacing/2 + spacing/2 + width/2
                     @offsets = @{offset2(\@last, -(0.5*$pwidth + 0.5*$pspacing - 1), +(0.5*$pspacing - 1))};
-                
+                    
                     # look for thin walls
                     if ($self->config->thin_walls) {
                         my $diff = diff_ex(
                             \@last,
                             offset(\@offsets, +0.5*$pwidth),
                         );
-                        push @thin_walls, grep abs($_->area) >= $gap_area_threshold, @$diff;
+                        push @thin_walls, @$diff;
                     }
                 } else {
                     @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
@@ -305,14 +305,29 @@ sub make_perimeters {
     $self->perimeters->append(@loops);
     
     # process thin walls by collapsing slices to single passes
+    my $min_thin_wall_width = $pwidth/3;
+    my $min_thin_wall_length = 2*$pwidth;
+    @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -0.5*$min_thin_wall_width, +0.5*$min_thin_wall_width)};
     if (@thin_walls) {
+        if (0) {
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output(
+                "thin_walls.svg",
+                no_arrows => 1,
+                expolygons      => \@thin_walls,
+                red_polylines   => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
+            );
+        }
+        
         my @p = map $_->medial_axis($pspacing), @thin_walls;
         my @paths = ();
         for my $p (@p) {
+            next if $p->length < $min_thin_wall_length;
             my %params = (
                 role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                 flow_spacing    => $self->perimeter_flow->spacing,
             );
+            printf "len = %s\n", unscale($p->length);
             push @paths, $p->isa('Slic3r::Polygon')
                 ? Slic3r::ExtrusionLoop->new(polygon  => $p, %params)
                 : Slic3r::ExtrusionPath->new(polyline => $p, %params);

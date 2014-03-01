@@ -50,7 +50,7 @@ sub output {
             
             my $g = $svg->group(
                 style => {
-                    'stroke-width' => 2,
+                    'stroke-width' => 0,
                     'stroke' => $colour || 'black',
                     'fill' => ($type !~ /polygons/ ? 'none' : ($colour || 'grey')),
                     'fill-type' => $filltype,
@@ -68,7 +68,7 @@ sub output {
             
             my $g = $svg->group(
                 style => {
-                    'stroke-width' => 2,
+                    'stroke-width' => ($method eq 'polyline') ? 1 : 0,
                     'stroke' => $colour || 'black',
                     'fill' => ($type !~ /polygons/ ? 'none' : ($colour || 'grey')),
                 },
