@@ -76,7 +76,7 @@ my %role_speeds = (
     &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
     &EXTR_ROLE_TOPSOLIDFILL                 => 'top_solid_infill',
     &EXTR_ROLE_BRIDGE                       => 'bridge',
-    &EXTR_ROLE_INTERNALBRIDGE               => 'solid_infill',
+    &EXTR_ROLE_INTERNALBRIDGE               => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
