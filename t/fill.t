@@ -2,16 +2,17 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 34;
+plan tests => 42;
 
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
 
+use List::Util qw(first);
 use Slic3r;
-use Slic3r::Geometry qw(scale X Y);
-use Slic3r::Geometry::Clipper qw(diff_ex);
+use Slic3r::Geometry qw(scale X Y convex_hull);
+use Slic3r::Geometry::Clipper qw(union diff_ex);
 use Slic3r::Surface qw(:types);
 use Slic3r::Test;
 
@@ -166,11 +167,41 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         'chained path';
 }
 
-for my $pattern (qw(hilbertcurve concentric)) {
+for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('fill_pattern', $pattern);
+    $config->set('perimeters', 1);
+    $config->set('skirts', 0);
+    $config->set('fill_density', 0.2);
+    $config->set('layer_height', 0.05);
+    $config->set('perimeter_extruder', 1);
+    $config->set('infill_extruder', 2);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config, scale => 2);
+    ok my $gcode = Slic3r::Test::gcode($print), "successful $pattern infill generation";
+    my $tool = undef;
+    my @perimeter_points = my @infill_points = ();
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+            if ($tool == $config->perimeter_extruder-1) {
+                push @perimeter_points, Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            } elsif ($tool == $config->infill_extruder-1) {
+                push @infill_points, Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            }
+        }
+    });
+    my $convex_hull = convex_hull(\@perimeter_points);
+    ok !(defined first { !$convex_hull->contains_point($_) } @infill_points), "infill does not exceed perimeters ($pattern)";
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('infill_only_where_needed', 1);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), "successful $pattern infill generation";
+    ok my $gcode = Slic3r::Test::gcode($print), "successful G-code generation when infill_only_where_needed is set";
 }
 
 {
@@ -192,6 +223,43 @@ for my $pattern (qw(hilbertcurve concentric)) {
     
     ok !%layers_with_extrusion,
         "solid_infill_below_area and solid_infill_every_layers are ignored when fill_density is 0";
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 0);
+    $config->set('perimeters', 3);
+    $config->set('fill_density', 0);
+    $config->set('layer_height', 0.2);
+    $config->set('first_layer_height', 0.2);
+    $config->set('nozzle_diameter', [0.35]);
+    $config->set('infill_extruder', 2);
+    $config->set('infill_extrusion_width', 0.52);
+    
+    my $print = Slic3r::Test::init_print('A', config => $config);
+    my %infill = ();  # Z => [ Line, Line ... ]
+    my $tool = undef;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+            if ($tool == $config->infill_extruder-1) {
+                my $z = 1 * $self->Z;
+                $infill{$z} ||= [];
+                push @{$infill{$z}}, Slic3r::Line->new_scale(
+                    [ $self->X, $self->Y ],
+                    [ $info->{new_X}, $info->{new_Y} ],
+                );
+            }
+        }
+    });
+    my $grow_d = scale($config->infill_extrusion_width)/2;
+    my $layer0_infill = union([ map @{$_->grow($grow_d)}, @{ $infill{0.2} } ]);
+    my $layer1_infill = union([ map @{$_->grow($grow_d)}, @{ $infill{0.4} } ]);
+    my $diff = [ grep $_->area >= 2*$grow_d**2, @{diff_ex($layer0_infill, $layer1_infill)} ];
+    is scalar(@$diff), 0, 'no missing parts in solid shell when fill_density is 0';
 }
 
 __END__

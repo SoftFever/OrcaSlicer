@@ -37,9 +37,13 @@ sub write_file {
     printf $fh qq{  <metadata type="cad">Slic3r %s</metadata>\n}, $Slic3r::VERSION;
     for my $material_id (sort keys %{ $model->materials }) {
         my $material = $model->materials->{$material_id};
-        printf $fh qq{  <material id="%d">\n}, $material_id;
+        printf $fh qq{  <material id="%s">\n}, $material_id;
         for (keys %{$material->attributes}) {
              printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->attributes->{$_};
+        }
+        my $config = $material->config;
+        foreach my $opt_key (@{$config->get_keys}) {
+             printf $fh qq{    <metadata type=\"slic3r.%s\">%s</metadata>\n}, $opt_key, $config->serialize($opt_key);
         }
         printf $fh qq{  </material>\n};
     }

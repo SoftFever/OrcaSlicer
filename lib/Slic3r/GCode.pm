@@ -14,6 +14,7 @@ has 'standby_points'     => (is => 'rw');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'rw', default => sub {0});   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro', required => 1 );
+has '_layer_index'       => (is => 'rw', default => sub {-1});  # just a counter
 has 'layer'              => (is => 'rw');
 has 'region'             => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
@@ -75,7 +76,7 @@ my %role_speeds = (
     &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
     &EXTR_ROLE_TOPSOLIDFILL                 => 'top_solid_infill',
     &EXTR_ROLE_BRIDGE                       => 'bridge',
-    &EXTR_ROLE_INTERNALBRIDGE               => 'solid_infill',
+    &EXTR_ROLE_INTERNALBRIDGE               => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
@@ -104,6 +105,7 @@ sub change_layer {
     my ($self, $layer) = @_;
     
     $self->layer($layer);
+    $self->_layer_index($self->_layer_index + 1);
     
     # avoid computing islands and overhangs if they're not needed
     $self->_layer_islands($layer->islands);
@@ -124,7 +126,7 @@ sub change_layer {
     my $gcode = "";
     if ($self->print_config->gcode_flavor =~ /^(?:makerware|sailfish)$/) {
         $gcode .= sprintf "M73 P%s%s\n",
-            int(99 * ($layer->id / ($self->layer_count - 1))),
+            int(99 * ($self->_layer_index / ($self->layer_count - 1))),
             ($self->print_config->gcode_comments ? ' ; update progress' : '');
     }
     if ($self->print_config->first_layer_acceleration) {

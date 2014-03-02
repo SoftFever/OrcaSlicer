@@ -4,7 +4,6 @@ use warnings;
 
 use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
-use Storable qw();
 
 sub new_scale {
     my $class = shift;

@@ -361,14 +361,7 @@ sub filament_presets {
 sub add {
     my $self = shift;
     
-    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-    if ($dialog->ShowModal != wxID_OK) {
-        $dialog->Destroy;
-        return;
-    }
-    my @input_files = $dialog->GetPaths;
-    $dialog->Destroy;
+    my @input_files = Slic3r::GUI::open_model($self);
     $self->load_file($_) for @input_files;
 }
 
@@ -640,6 +633,8 @@ sub split_object {
     my $new_model = Slic3r::Model->new;
     
     foreach my $mesh (@new_meshes) {
+        $mesh->repair;
+        
         my $model_object = $new_model->add_object(
             input_file              => $current_model_object->input_file,
             config                  => $current_model_object->config->clone,
@@ -917,6 +912,8 @@ sub update {
         $print_object->delete_all_copies;
         $print_object->add_copy(@{$_->offset}) for @{$model_object->instances};
     }
+    
+    $self->{canvas}->Refresh;
 }
 
 sub on_config_change {
@@ -1055,7 +1052,6 @@ sub repaint {
     if (@{$parent->{objects}} && $parent->{config}->skirts) {
         my @points = map @{$_->contour}, map @$_, map @{$_->instance_thumbnails}, @{$parent->{objects}};
         if (@points >= 3) {
-            my @o = @{Slic3r::Geometry::Clipper::simplify_polygons([convex_hull(\@points)])};
             my ($convex_hull) = @{offset([convex_hull(\@points)], scale($parent->{config}->skirt_distance), 1, JT_ROUND, scale(0.1))};
             $dc->SetPen($parent->{skirt_pen});
             $dc->SetBrush($parent->{transparent_brush});

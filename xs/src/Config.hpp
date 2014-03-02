@@ -1,9 +1,7 @@
 #ifndef slic3r_Config_hpp_
 #define slic3r_Config_hpp_
 
-#include <myinit.h>
 #include <map>
-#include <sstream>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -11,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <myinit.h>
 #include "Point.hpp"
 
 namespace Slic3r {
@@ -379,7 +378,6 @@ class ConfigOptionDef
     std::string tooltip;
     std::string sidetext;
     std::string cli;
-    std::string scope;
     t_config_option_key ratio_over;
     bool multiline;
     bool full_width;
@@ -430,6 +428,7 @@ class DynamicConfig : public ConfigBase
     ~DynamicConfig();
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     void keys(t_config_option_keys *keys);
+    void erase(const t_config_option_key opt_key);
     
     private:
     DynamicConfig(const DynamicConfig& other);              // we disable this by making it private and unimplemented

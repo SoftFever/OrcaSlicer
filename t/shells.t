@@ -1,4 +1,4 @@
-use Test::More tests => 12;
+use Test::More tests => 10;
 use strict;
 use warnings;
 
@@ -7,8 +7,9 @@ BEGIN {
     use lib "$FindBin::Bin/../lib";
 }
 
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Slic3r;
+use Slic3r::Geometry qw(epsilon);
 use Slic3r::Test;
 
 {
@@ -17,6 +18,7 @@ use Slic3r::Test;
     $config->set('perimeters', 0);
     $config->set('solid_infill_speed', 99);
     $config->set('top_solid_infill_speed', 99);
+    $config->set('bridge_speed', 72);
     $config->set('first_layer_speed', '100%');
     $config->set('cooling', 0);
     
@@ -26,19 +28,25 @@ use Slic3r::Test;
         
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
         
-        my %layers_with_shells = ();  # Z => $count
+        my %z = ();                            # Z => 1
+        my %layers_with_solid_infill    = ();  # Z => $count
+        my %layers_with_bridge_infill   = ();  # Z => $count
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
             if ($self->Z > 0) {
-                $layers_with_shells{$self->Z} //= 0;
-                $layers_with_shells{$self->Z} = 1
-                    if $info->{extruding}
-                        && $info->{dist_XY} > 0
-                        && ($args->{F} // $self->F) == $config->solid_infill_speed*60;
+                $z{ $self->Z } = 1;
+                if ($info->{extruding} && $info->{dist_XY} > 0) {
+                    my $F = $args->{F} // $self->F;
+                    $layers_with_solid_infill{$self->Z} = 1
+                        if $F == $config->solid_infill_speed*60;
+                    $layers_with_bridge_infill{$self->Z} = 1
+                        if $F == $config->bridge_speed*60;
+                }
             }
         });
-        my @shells = @layers_with_shells{sort { $a <=> $b } keys %layers_with_shells};
+        my @z = sort { $a <=> $b } keys %z;
+        my @shells = map $layers_with_solid_infill{$_} || $layers_with_bridge_infill{$_}, @z;
         fail "insufficient number of bottom solid layers"
             unless !defined(first { !$_ } @shells[0..$config->bottom_solid_layers-1]);
         fail "excessive number of bottom solid layers"
@@ -47,9 +55,17 @@ use Slic3r::Test;
             unless !defined(first { !$_ } @shells[-$config->top_solid_layers..-1]);
         fail "excessive number of top solid layers"
             unless scalar(grep $_, @shells[($#shells/2)..$#shells]) == $config->top_solid_layers;
+        if ($config->top_solid_layers > 0) {
+            fail "unexpected solid infill speed in first solid layer over sparse infill"
+                if $layers_with_solid_infill{ $z[-$config->top_solid_layers] };
+            die "bridge speed not used in first solid layer over sparse infill"
+                if !$layers_with_bridge_infill{ $z[-$config->top_solid_layers] };
+        }
         1;
     };
     
+    $config->set('top_solid_layers', 3);
+    $config->set('bottom_solid_layers', 3);
     ok $test->(), "proper number of shells is applied";
     
     $config->set('top_solid_layers', 0);
@@ -68,6 +84,7 @@ use Slic3r::Test;
     $config->set('bottom_solid_layers', 0);
     $config->set('top_solid_layers', 3);
     $config->set('cooling', 0);
+    $config->set('bridge_speed', 99);
     $config->set('solid_infill_speed', 99);
     $config->set('top_solid_infill_speed', 99);
     $config->set('first_layer_speed', '100%');
@@ -147,6 +164,7 @@ use Slic3r::Test;
     $config->set('bottom_solid_layers', 0);
     $config->set('skirts', 0);
     $config->set('first_layer_height', '100%');
+    $config->set('start_gcode', '');
     
     # TODO: this needs to be tested with a model with sloping edges, where starting
     # points of each layer are not aligned - in that case we would test that no
@@ -161,21 +179,95 @@ use Slic3r::Test;
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
             
-            $started_extruding = 1 if $info->{extruding};
-            push @z_steps, ($args->{Z} - $self->Z)
-                if $started_extruding && exists $args->{Z};
-            $travel_moves_after_first_extrusion++
-                if $info->{travel} && $started_extruding && !exists $args->{Z};
+            if ($cmd eq 'G1') {
+                $started_extruding = 1 if $info->{extruding};
+                push @z_steps, $info->{dist_Z}
+                    if $started_extruding && $info->{dist_Z} > 0;
+                $travel_moves_after_first_extrusion++
+                    if $info->{travel} && $started_extruding && !exists $args->{Z};
+            }
         });
-        is $travel_moves_after_first_extrusion, 0, "no gaps in spiral vase ($description)";
-        ok !(grep { $_ > $config->layer_height } @z_steps), "no gaps in Z ($description)";
+        
+        # we allow one travel move after first extrusion: i.e. when moving to the first
+        # spiral point after moving to second layer (bottom layer had loop clipping, so
+        # we're slightly distant from the starting point of the loop)
+        ok $travel_moves_after_first_extrusion <= 1, "no gaps in spiral vase ($description)";
+        ok !(grep { $_ > $config->layer_height + epsilon } @z_steps), "no gaps in Z ($description)";
     };
     
     $test->('20mm_cube', 'solid model');
-    $test->('40x10', 'hollow model');
     
     $config->set('z_offset', -10);
     $test->('20mm_cube', 'solid model with negative z-offset');
+    
+    ### Disabled because the current unreliable medial axis code doesn't
+    ### always produce valid loops.
+    ###$test->('40x10', 'hollow model with negative z-offset');
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('spiral_vase', 1);
+    $config->set('bottom_solid_layers', 0);
+    $config->set('skirts', 0);
+    $config->set('first_layer_height', '100%');
+    $config->set('layer_height', 0.4);
+    $config->set('start_gcode', '');
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $z_moves = 0;
+    my @this_layer = ();  # [ dist_Z, dist_XY ], ...
+    
+    my $bottom_layer_not_flat = 0;
+    my $null_z_moves_not_layer_changes = 0;
+    my $null_z_moves_not_multiples_of_layer_height = 0;
+    my $sum_of_partial_z_equals_to_layer_height = 0;
+    my $all_layer_segments_have_same_slope = 0;
+    my $horizontal_extrusions = 0;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'G1') {
+            if ($z_moves < 2) {
+                # skip everything up to the second Z move
+                # (i.e. start of second layer)
+                if (exists $args->{Z}) {
+                    $z_moves++;
+                    $bottom_layer_not_flat = 1
+                        if $info->{dist_Z} > 0 && $info->{dist_Z} != $config->layer_height;
+                }
+            } elsif ($info->{dist_Z} == 0 && $args->{Z}) {
+                $null_z_moves_not_layer_changes = 1
+                    if $info->{dist_XY} != 0;
+                
+                # % doesn't work easily with floats
+                $null_z_moves_not_multiples_of_layer_height = 1
+                    if abs(($args->{Z} / $config->layer_height) * $config->layer_height - $args->{Z}) > epsilon;
+                
+                my $total_dist_XY = sum(map $_->[1], @this_layer);
+                $sum_of_partial_z_equals_to_layer_height = 1
+                    if abs(sum(map $_->[0], @this_layer) - $config->layer_height) > epsilon;
+                exit if $sum_of_partial_z_equals_to_layer_height;
+                foreach my $segment (@this_layer) {
+                    # check that segment's dist_Z is proportioned to its dist_XY
+                    $all_layer_segments_have_same_slope = 1
+                        if abs($segment->[0]*$total_dist_XY/$config->layer_height - $segment->[1]) > epsilon;
+                }
+                
+                @this_layer = ();
+            } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
+                $horizontal_extrusions = 1
+                    if $info->{dist_Z} == 0;
+                push @this_layer, [ $info->{dist_Z}, $info->{dist_XY} ];
+            }
+        }
+    });
+    ok !$bottom_layer_not_flat, 'bottom layer is flat when using spiral vase';
+    ok !$null_z_moves_not_layer_changes, 'null Z moves are layer changes';
+    ok !$null_z_moves_not_multiples_of_layer_height, 'null Z moves are multiples of layer height';
+    ok !$sum_of_partial_z_equals_to_layer_height, 'sum of partial Z increments equals to a full layer height';
+    ok !$all_layer_segments_have_same_slope, 'all layer segments have the same slope';
+    ok !$horizontal_extrusions, 'no horizontal extrusions';
 }
 
 __END__

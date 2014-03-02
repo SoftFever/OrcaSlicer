@@ -12,6 +12,7 @@
 namespace Slic3r {
 
 class TriangleMesh;
+class TriangleMeshSlicer;
 typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 
 class TriangleMesh
@@ -30,8 +31,6 @@ class TriangleMesh
     void translate(float x, float y, float z);
     void align_to_origin();
     void rotate(double angle, Point* center);
-    void slice(const std::vector<double> &z, std::vector<Polygons>* layers);
-    void slice(const std::vector<double> &z, std::vector<ExPolygons>* layers);
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh* mesh);
     void horizontal_projection(ExPolygons &retval) const;
@@ -47,9 +46,10 @@ class TriangleMesh
     
     private:
     void require_shared_vertices();
+    friend class TriangleMeshSlicer;
 };
 
-enum FacetEdgeType { feNone, feTop, feBottom };
+enum FacetEdgeType { feNone, feTop, feBottom, feHorizontal };
 
 class IntersectionPoint : public Point
 {
@@ -74,6 +74,26 @@ class IntersectionLine
 };
 typedef std::vector<IntersectionLine> IntersectionLines;
 typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
+
+class TriangleMeshSlicer
+{
+    public:
+    TriangleMesh* mesh;
+    TriangleMeshSlicer(TriangleMesh* _mesh);
+    ~TriangleMeshSlicer();
+    void slice(const std::vector<float> &z, std::vector<Polygons>* layers);
+    void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers);
+    void slice_facet(float slice_z, const stl_facet &facet, const int &facet_idx, const float &min_z, const float &max_z, std::vector<IntersectionLine>* lines) const;
+    void cut(float z, TriangleMesh* upper, TriangleMesh* lower);
+    
+    private:
+    typedef std::vector< std::vector<int> > t_facets_edges;
+    t_facets_edges facets_edges;
+    stl_vertex* v_scaled_shared;
+    void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops);
+    void make_expolygons(const Polygons &loops, ExPolygons* slices);
+    void make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices);
+};
 
 }
 

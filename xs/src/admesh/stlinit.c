@@ -54,6 +54,7 @@ stl_initialize(stl_file *stl)
   stl->stats.number_of_parts = 0;
   stl->stats.original_num_facets = 0;
   stl->stats.number_of_facets = 0;
+  stl->stats.facets_malloced = 0;
   stl->stats.volume = -1.0;
   
   stl->neighbors_start = NULL;

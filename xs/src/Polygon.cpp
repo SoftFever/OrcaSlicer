@@ -172,6 +172,15 @@ Polygon::to_SV_clone_ref() const {
     sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(*this) );
     return sv;
 }
+
+void
+Polygon::from_SV_check(SV* poly_sv)
+{
+    if (sv_isobject(poly_sv) && !sv_isa(poly_sv, "Slic3r::Polygon") && !sv_isa(poly_sv, "Slic3r::Polygon::Ref"))
+        CONFESS("Not a valid Slic3r::Polygon object");
+    
+    MultiPoint::from_SV_check(poly_sv);
+}
 #endif
 
 }

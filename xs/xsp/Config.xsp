@@ -24,6 +24,7 @@
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
         %code{% THIS->keys(&RETVAL); %};
+    void erase(t_config_option_key opt_key);
 };
 
 %name{Slic3r::Config::Print} class PrintConfig {
@@ -146,14 +147,13 @@ print_config_def()
                 throw "Unknown option type";
             }
             (void)hv_stores( hv, "type",        newSVpv(opt_type, 0) );
-            (void)hv_stores( hv, "label",       newSVpvn(optdef->label.c_str(), optdef->label.length()) );
+            (void)hv_stores( hv, "label",       newSVpvn_utf8(optdef->label.c_str(), optdef->label.length(), true) );
             if (!optdef->full_label.empty())
-                (void)hv_stores( hv, "full_label",  newSVpvn(optdef->full_label.c_str(), optdef->full_label.length()) );
+                (void)hv_stores( hv, "full_label",  newSVpvn_utf8(optdef->full_label.c_str(), optdef->full_label.length(), true) );
             (void)hv_stores( hv, "category",    newSVpvn(optdef->category.c_str(), optdef->category.length()) );
-            (void)hv_stores( hv, "tooltip",     newSVpvn(optdef->tooltip.c_str(), optdef->tooltip.length()) );
-            (void)hv_stores( hv, "sidetext",    newSVpvn(optdef->sidetext.c_str(), optdef->sidetext.length()) );
+            (void)hv_stores( hv, "tooltip",     newSVpvn_utf8(optdef->tooltip.c_str(), optdef->tooltip.length(), true) );
+            (void)hv_stores( hv, "sidetext",    newSVpvn_utf8(optdef->sidetext.c_str(), optdef->sidetext.length(), true) );
             (void)hv_stores( hv, "cli",         newSVpvn(optdef->cli.c_str(), optdef->cli.length()) );
-            (void)hv_stores( hv, "scope",       newSVpvn(optdef->scope.c_str(), optdef->scope.length()) );
             (void)hv_stores( hv, "ratio_over",  newSVpvn(optdef->ratio_over.c_str(), optdef->ratio_over.length()) );
             (void)hv_stores( hv, "multiline",   newSViv(optdef->multiline ? 1 : 0) );
             (void)hv_stores( hv, "full_width",  newSViv(optdef->full_width ? 1 : 0) );
@@ -195,7 +195,7 @@ print_config_def()
                 AV* av = newAV();
                 av_fill(av, optdef->enum_labels.size()-1);
                 for (std::vector<std::string>::iterator it = optdef->enum_labels.begin(); it != optdef->enum_labels.end(); ++it)
-                    av_store(av, it - optdef->enum_labels.begin(), newSVpvn(it->c_str(), it->length()));
+                    av_store(av, it - optdef->enum_labels.begin(), newSVpvn_utf8(it->c_str(), it->length(), true));
                 (void)hv_stores( hv, "labels", newRV_noinc((SV*)av) );
             }
             

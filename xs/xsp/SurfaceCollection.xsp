@@ -22,7 +22,7 @@ SurfaceCollection::new(...)
         RETVAL->surfaces.resize(items-1);
         for (unsigned int i = 1; i < items; i++) {
             // Note: a COPY of the input is stored
-            RETVAL->surfaces[i-1] = *(Surface *)SvIV((SV*)SvRV( ST(i) ));
+            RETVAL->surfaces[i-1].from_SV_check(ST(i));
         }
     OUTPUT:
         RETVAL
@@ -56,8 +56,9 @@ void
 SurfaceCollection::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
-            // Note: a COPY of the input is stored
-            THIS->surfaces.push_back(*(Surface *)SvIV((SV*)SvRV( ST(i) )));
+            Surface surface;
+            surface.from_SV_check( ST(i) );
+            THIS->surfaces.push_back(surface);
         }
 
 void
@@ -75,12 +76,11 @@ SurfaceCollection::set_surface_type(index, surface_type)
         THIS->surfaces[index].surface_type = surface_type;
 
 SV*
-SurfaceCollection::group(merge_solid = false)
-    bool    merge_solid
+SurfaceCollection::group()
     CODE:
         // perform grouping
         std::vector<SurfacesPtr> groups;
-        THIS->group(&groups, merge_solid);
+        THIS->group(&groups);
         
         // build return arrayref
         AV* av = newAV();

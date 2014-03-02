@@ -93,14 +93,14 @@ sub make_perimeters {
                     # the minimum thickness of a single loop is:
                     # width/2 + spacing/2 + spacing/2 + width/2
                     @offsets = @{offset2(\@last, -(0.5*$pwidth + 0.5*$pspacing - 1), +(0.5*$pspacing - 1))};
-                
+                    
                     # look for thin walls
                     if ($self->config->thin_walls) {
                         my $diff = diff_ex(
                             \@last,
                             offset(\@offsets, +0.5*$pwidth),
                         );
-                        push @thin_walls, grep abs($_->area) >= $gap_area_threshold, @$diff;
+                        push @thin_walls, @$diff;
                     }
                 } else {
                     @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
@@ -132,7 +132,7 @@ sub make_perimeters {
         
         # make sure we don't infill narrow parts that are already gap-filled
         # (we only consider this surface's gaps to reduce the diff() complexity)
-        @last = @{diff(\@last, \@last_gaps)};
+        @last = @{diff(\@last, [ map @$_, @last_gaps ])};
         
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
@@ -222,6 +222,9 @@ sub make_perimeters {
     $self->perimeters->append(@loops);
     
     # process thin walls by collapsing slices to single passes
+    my $min_thin_wall_width = $pwidth/3;
+    my $min_thin_wall_length = 2*$pwidth;
+    @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -0.5*$min_thin_wall_width, +0.5*$min_thin_wall_width)};
     if (@thin_walls) {
         my @p = map @{$_->medial_axis($pspacing)}, @thin_walls;
         
@@ -237,7 +240,7 @@ sub make_perimeters {
         
         my @paths = ();
         for my $p (@p) {
-            next if $p->length <= $pspacing * 2;
+            next if $p->length < $min_thin_wall_length;
             my %params = (
                 role        => EXTR_ROLE_EXTERNAL_PERIMETER,
                 mm3_per_mm  => $mm3_per_mm,
@@ -431,7 +434,7 @@ sub _detect_bridge_direction {
     my $perimeter_flow  = $self->flow(FLOW_ROLE_PERIMETER);
     my $infill_flow     = $self->flow(FLOW_ROLE_INFILL);
     
-    my $grown = $expolygon->offset_ex(+$perimeter_flow->scaled_width);
+    my $grown = $expolygon->offset(+$perimeter_flow->scaled_width);
     my @lower = @{$lower_layer->slices};       # expolygons
     
     # detect what edges lie on lower slices
@@ -439,7 +442,7 @@ sub _detect_bridge_direction {
     foreach my $lower (@lower) {
         # turn bridge contour and holes into polylines and then clip them
         # with each lower slice's contour
-        my @clipped = @{intersection_pl([ map $_->split_at_first_point, map @$_, @$grown ], [$lower->contour])};
+        my @clipped = @{intersection_pl([ map $_->split_at_first_point, @$grown ], [$lower->contour])};
         if (@clipped == 2) {
             # If the split_at_first_point() call above happens to split the polygon inside the clipping area
             # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 
@@ -490,49 +493,51 @@ sub _detect_bridge_direction {
         
         # detect anchors as intersection between our bridge expolygon and the lower slices
         my $anchors = intersection_ex(
-            [ @$grown ],
+            $grown,
             [ map @$_, @lower ],
             1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
         );
         
-        # we'll now try several directions using a rudimentary visibility check:
-        # bridge in several directions and then sum the length of lines having both
-        # endpoints within anchors
-        my %directions = ();  # angle => score
-        my $angle_increment = PI/36; # 5°
-        my $line_increment = $infill_flow->scaled_width;
-        for (my $angle = 0; $angle <= PI; $angle += $angle_increment) {
-            # rotate everything - the center point doesn't matter
-            $_->rotate($angle, [0,0]) for @$inset, @$anchors;
+        if (@$anchors) {
+            # we'll now try several directions using a rudimentary visibility check:
+            # bridge in several directions and then sum the length of lines having both
+            # endpoints within anchors
+            my %directions = ();  # angle => score
+            my $angle_increment = PI/36; # 5°
+            my $line_increment = $infill_flow->scaled_width;
+            for (my $angle = 0; $angle <= PI; $angle += $angle_increment) {
+                # rotate everything - the center point doesn't matter
+                $_->rotate($angle, [0,0]) for @$inset, @$anchors;
             
-            # generate lines in this direction
-            my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
+                # generate lines in this direction
+                my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
             
-            my @lines = ();
-            for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
-                push @lines, Slic3r::Polyline->new([$x, $bounding_box->y_min], [$x, $bounding_box->y_max]);
+                my @lines = ();
+                for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
+                    push @lines, Slic3r::Polyline->new([$x, $bounding_box->y_min], [$x, $bounding_box->y_max]);
+                }
+            
+                my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
+            
+                # remove any line not having both endpoints within anchors
+                # NOTE: these calls to contains_point() probably need to check whether the point 
+                # is on the anchor boundaries too
+                @clipped_lines = grep {
+                    my $line = $_;
+                    !(first { $_->contains_point($line->a) } @$anchors)
+                        && !(first { $_->contains_point($line->b) } @$anchors);
+                } @clipped_lines;
+            
+                # sum length of bridged lines
+                $directions{-$angle} = sum(map $_->length, @clipped_lines) // 0;
             }
-            
-            my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
-            
-            # remove any line not having both endpoints within anchors
-            # NOTE: these calls to contains_point() probably need to check whether the point 
-            # is on the anchor boundaries too
-            @clipped_lines = grep {
-                my $line = $_;
-                !(first { $_->contains_point($line->a) } @$anchors)
-                    && !(first { $_->contains_point($line->b) } @$anchors);
-            } @clipped_lines;
-            
-            # sum length of bridged lines
-            $directions{-$angle} = sum(map $_->length, @clipped_lines) // 0;
+        
+            # this could be slightly optimized with a max search instead of the sort
+            my @sorted_directions = sort { $directions{$a} <=> $directions{$b} } keys %directions;
+    
+            # the best direction is the one causing most lines to be bridged
+            $bridge_angle = Slic3r::Geometry::rad2deg_dir($sorted_directions[-1]);
         }
-        
-        # this could be slightly optimized with a max search instead of the sort
-        my @sorted_directions = sort { $directions{$a} <=> $directions{$b} } keys %directions;
-        
-        # the best direction is the one causing most lines to be bridged
-        $bridge_angle = Slic3r::Geometry::rad2deg_dir($sorted_directions[-1]);
     }
     
     Slic3r::debugf "  Optimal infill angle of bridge on layer %d is %d degrees\n",

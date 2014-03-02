@@ -10,6 +10,7 @@ use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::ObjectPartsPanel;
 use Slic3r::GUI::Plater::ObjectPreviewDialog;
 use Slic3r::GUI::Plater::ObjectSettingsDialog;
+use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::Preferences;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::SkeinPanel;
@@ -18,7 +19,8 @@ use Slic3r::GUI::Tab;
 
 our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
 
-use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow);
+use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow
+    :filedialog);
 use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_IDLE);
 use base 'Wx::App';
 
@@ -347,6 +349,25 @@ sub output_path {
     return ($Settings->{_}{last_output_path} && $Settings->{_}{remember_output_path})
         ? $Settings->{_}{last_output_path}
         : $dir;
+}
+
+sub open_model {
+    my ($self) = @_;
+    
+    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory}
+           || $Slic3r::GUI::Settings->{recent}{config_directory}
+           || '';
+    
+    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "",
+        &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    if ($dialog->ShowModal != wxID_OK) {
+        $dialog->Destroy;
+        return;
+    }
+    my @input_files = $dialog->GetPaths;
+    $dialog->Destroy;
+    
+    return @input_files;
 }
 
 sub CallAfter {

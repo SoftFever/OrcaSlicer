@@ -48,13 +48,16 @@ sub process_layer {
     my $object = $layer->object;
     
     # check whether we're going to apply spiralvase logic
-    my $spiralvase = defined $self->spiralvase
-        && ($layer->id > 0 || $self->print->config->brim_width == 0)
-        && ($layer->id >= $self->print->config->skirt_height && $self->print->config->skirt_height != -1)
-        && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions});
+    if (defined $self->spiralvase) {
+        $self->spiralvase->enable(
+            ($layer->id > 0 || $self->print->config->brim_width == 0)
+                && ($layer->id >= $self->print->config->skirt_height && $self->print->config->skirt_height != -1)
+                && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions})
+        );
+    }
     
     # if we're going to apply spiralvase to this layer, disable loop clipping
-    $self->gcodegen->enable_loop_clipping(!$spiralvase);
+    $self->gcodegen->enable_loop_clipping(!defined $self->spiralvase || !$self->spiralvase->enable);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
         for my $extruder_id (sort keys %{$self->extruders}) {
@@ -186,8 +189,10 @@ sub process_layer {
     }
     
     # apply spiral vase post-processing if this layer contains suitable geometry
-    $gcode = $self->spiralvase->process_layer($gcode, $layer)
-        if $spiralvase;
+    # (we must feed all the G-code into the post-processor, including the first 
+    # bottom non-spiral layers otherwise it will mess with positions)
+    $gcode = $self->spiralvase->process_layer($gcode)
+        if defined $self->spiralvase;
     
     # apply vibration limit if enabled
     $gcode = $self->vibration_limit->process($gcode)

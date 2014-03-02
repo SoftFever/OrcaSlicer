@@ -18,6 +18,7 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
+use constant SELECTED_COLOR => [0,1,0,1];
 use constant COLORS => [ [1,1,1], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 sub new {
@@ -28,40 +29,7 @@ sub new {
     $self->sphi(45);
     $self->stheta(-45);
 
-    my $bb = $object->raw_mesh->bounding_box;
-    my $center = $bb->center;
-    $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
-    $bb->translate(@{ $self->object_shift });
-    $self->object_bounding_box($bb);
-    
-    # group mesh(es) by material
-    my @materials = ();
-    $self->volumes([]);
-    foreach my $volume (@{$object->volumes}) {
-        my $mesh = $volume->mesh->clone;
-        $mesh->translate(@{ $self->object_shift });  
-        
-        my $material_id = $volume->material_id // '_';
-        my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
-        if (!defined $color_idx) {
-            push @materials, $material_id;
-            $color_idx = $#materials;
-        }
-        push @{$self->volumes}, my $v = {
-            color => COLORS->[ $color_idx % scalar(@{&COLORS}) ],
-        };
-        
-        {
-            my $vertices = $mesh->vertices;
-            my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
-            $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
-        }
-        
-        {
-            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
-            $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
-        }
-    }
+    $self->load_object($object);
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
@@ -99,6 +67,51 @@ sub new {
     });
     
     return $self;
+}
+
+sub load_object {
+    my ($self, $object) = @_;
+    
+    my $bb = $object->raw_mesh->bounding_box;
+    my $center = $bb->center;
+    $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
+    $bb->translate(@{ $self->object_shift });
+    $self->object_bounding_box($bb);
+    
+    # group mesh(es) by material
+    my @materials = ();
+    $self->volumes([]);
+    
+    # sort volumes: non-modifiers first
+    my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
+    foreach my $volume (@volumes) {
+        my $mesh = $volume->mesh->clone;
+        $mesh->translate(@{ $self->object_shift });  
+        
+        my $material_id = $volume->material_id // '_';
+        my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
+        if (!defined $color_idx) {
+            push @materials, $material_id;
+            $color_idx = $#materials;
+        }
+        
+        my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
+        push @$color, $volume->modifier ? 0.5 : 1;
+        push @{$self->volumes}, my $v = {
+            color => $color,
+        };
+        
+        {
+            my $vertices = $mesh->vertices;
+            my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
+            $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
+        }
+        
+        {
+            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
+            $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
+        }
+    }
 }
 
 # Given an axis and angle, compute quaternion.
@@ -438,6 +451,8 @@ sub Render {
 sub draw_mesh {
     my $self = shift;
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -447,7 +462,11 @@ sub draw_mesh {
         
         glCullFace(GL_BACK);
         glNormalPointer_p($volume->{norms});
-        glColor3f(@{ $volume->{color} });
+        if ($volume->{selected}) {
+            glColor4f(@{ &SELECTED_COLOR });
+        } else {
+            glColor4f(@{ $volume->{color} });
+        }
         glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
     }
     

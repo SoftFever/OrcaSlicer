@@ -18,9 +18,11 @@ class Surface
     unsigned short  extra_perimeters;
     double area() const;
     bool is_solid() const;
+    bool is_external() const;
     bool is_bridge() const;
     
     #ifdef SLIC3RXS
+    void from_SV_check(SV* surface_sv);
     SV* to_SV_ref();
     SV* to_SV_clone_ref() const;
     #endif

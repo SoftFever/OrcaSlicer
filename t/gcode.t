@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 8;
 use strict;
 use warnings;
 
@@ -66,6 +66,36 @@ use Slic3r::Test;
     my $layer_count = 20/0.4;  # cube is 20mm tall
     is scalar(@z_moves), 2*$layer_count, 'complete_objects generates the correct number of Z moves';
     is_deeply [ @z_moves[0..($layer_count-1)] ], [ @z_moves[$layer_count..$#z_moves] ], 'complete_objects generates the correct Z moves';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('retract_length', [1000000]);
+    $config->set('use_relative_e_distances', 1);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        
+    });
+    ok $print->total_used_filament > 0, 'final retraction is not considered in total used filament';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('gcode_flavor', 'sailfish');
+    $config->set('raft_layers', 3);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my @percent = ();
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'M73') {
+            push @percent, $args->{P};
+        }
+    });
+    # the extruder heater is turned off when M73 P100 is reached
+    ok !(defined first { $_ > 100 } @percent), 'M73 is never given more than 100%';
 }
 
 __END__

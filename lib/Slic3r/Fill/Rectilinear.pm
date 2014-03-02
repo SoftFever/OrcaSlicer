@@ -60,12 +60,12 @@ sub fill_surface {
         $x += $line_spacing;
     }
     
-    # clip paths against a slightly offsetted expolygon, so that the first and last paths
+    # clip paths against a slightly larger expolygon, so that the first and last paths
     # are kept even if the expolygon has vertical sides
     # the minimum offset for preventing edge lines from being clipped is scaled_epsilon;
     # however we use a larger offset to support expolygons with slightly skewed sides and 
     # not perfectly straight
-    my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset($line_spacing*0.05))};
+    my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset(scale 0.02))};
     
     # connect lines
     unless ($params{dont_connect} || !@polylines) {  # prevent calling leftmost_point() on empty collections

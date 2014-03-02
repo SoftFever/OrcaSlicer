@@ -1,12 +1,22 @@
+#include <cmath>
+#include <sstream>
 #include "Point.hpp"
 #include "Line.hpp"
-#include <cmath>
 
 namespace Slic3r {
 
 bool
-Point::operator==(const Point& rhs) const {
+Point::operator==(const Point& rhs) const
+{
     return this->coincides_with(rhs);
+}
+
+std::string
+Point::wkt() const
+{
+    std::ostringstream ss;
+    ss << "POINT(" << this->x << " " << this->y << ")";
+    return ss.str();
 }
 
 void
@@ -105,8 +115,8 @@ Point::distance_to(const Line &line) const
 {
     if (line.a.coincides_with(&line.b)) return this->distance_to(&line.a);
     
-    double n = (line.b.x - line.a.x) * (line.a.y - this->y)
-        - (line.a.x - this->x) * (line.b.y - line.a.y);
+    double n = (double)(line.b.x - line.a.x) * (double)(line.a.y - this->y)
+        - (double)(line.a.x - this->x) * (double)(line.b.y - line.a.y);
     
     return std::abs(n) / line.length();
 }
@@ -121,7 +131,7 @@ Point::distance_to(const Line &line) const
 double
 Point::ccw(const Point &p1, const Point &p2) const
 {
-    return (p2.x - p1.x)*(this->y - p1.y) - (p2.y - p1.y)*(this->x - p1.x);
+    return (double)(p2.x - p1.x)*(double)(this->y - p1.y) - (double)(p2.y - p1.y)*(double)(this->x - p1.x);
 }
 
 double
@@ -174,6 +184,8 @@ void
 Point::from_SV_check(SV* point_sv)
 {
     if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
+        if (!sv_isa(point_sv, "Slic3r::Point") && !sv_isa(point_sv, "Slic3r::Point::Ref"))
+            CONFESS("Not a valid Slic3r::Point object");
         *this = *(Point*)SvIV((SV*)SvRV( point_sv ));
     } else {
         this->from_SV(point_sv);

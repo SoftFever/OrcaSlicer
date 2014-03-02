@@ -32,6 +32,8 @@
             RETVAL = new BoundingBoxf3();
             THIS->bounding_box(RETVAL);
         %};
+    int facets_count()
+        %code{% RETVAL = THIS->stl.stats.number_of_facets; %};
 %{
 
 SV*
@@ -137,8 +139,13 @@ SV*
 TriangleMesh::slice(z)
     std::vector<double>* z
     CODE:
+        // convert doubles to floats
+        std::vector<float> z_f(z->begin(), z->end());
+        delete z;
+        
         std::vector<ExPolygons> layers;
-        THIS->slice(*z, &layers);
+        TriangleMeshSlicer mslicer(THIS);
+        mslicer.slice(z_f, &layers);
         
         AV* layers_av = newAV();
         av_extend(layers_av, layers.size()-1);
@@ -154,6 +161,15 @@ TriangleMesh::slice(z)
         RETVAL = (SV*)newRV_noinc((SV*)layers_av);
     OUTPUT:
         RETVAL
+
+void
+TriangleMesh::cut(z, upper, lower)
+    float           z;
+    TriangleMesh*   upper;
+    TriangleMesh*   lower;
+    CODE:
+        TriangleMeshSlicer mslicer(THIS);
+        mslicer.cut(z, upper, lower);
 
 std::vector<double>
 TriangleMesh::bb3()

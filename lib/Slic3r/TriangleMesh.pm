@@ -19,9 +19,4 @@ sub center {
     return $self->bounding_box->center;
 }
 
-sub facets_count {
-    my $self = shift;
-    return $self->stats->{number_of_facets};
-}
-
 1;

@@ -190,7 +190,7 @@ sub contact_area {
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
-            my $contact_z = $layer->print_z - $nozzle_diameter * 1.5;
+            my $contact_z = $layer->print_z - contact_distance($nozzle_diameter);
             ###$contact_z = $layer->print_z - $layer->height;
             
             # ignore this contact area if it's too low
@@ -737,6 +737,12 @@ sub overlapping_layers {
         my $zmin2 = ($_ == 0) ? 0 : $support_z->[$_-1];
         $zmax > $zmin2 && $zmin < $zmax2;
     } 0..$#$support_z;
+}
+
+# class method
+sub contact_distance {
+    my ($nozzle_diameter) = @_;
+    return $nozzle_diameter * 1.5;
 }
 
 1;

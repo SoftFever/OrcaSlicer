@@ -52,7 +52,6 @@ static void stl_which_vertices_to_change(stl_file *stl, stl_hash_edge *edge_a,
 			     int *facet2, int *vertex2, 
 			     stl_vertex *new_vertex1, stl_vertex *new_vertex2);
 static void stl_remove_degenerate(stl_file *stl, int facet);
-static void stl_add_facet(stl_file *stl, stl_facet *new_facet);
 extern int stl_check_normal_vector(stl_file *stl,
 				   int facet_num, int normal_fix_flag);
 static void stl_update_connects_remove_1(stl_file *stl, int facet_num);
@@ -1100,7 +1099,7 @@ Try using a smaller tolerance or don't do a nearby check\n"); */
     }
 }
 
-static void
+void
 stl_add_facet(stl_file *stl, stl_facet *new_facet)
 {
   stl->stats.facets_added += 1;

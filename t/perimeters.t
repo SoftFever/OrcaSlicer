@@ -151,6 +151,7 @@ use Slic3r::Test;
     $config->set('perimeter_speed', 99);
     $config->set('external_perimeter_speed', 99);
     $config->set('small_perimeter_speed', 99);
+    $config->set('thin_walls', 0);
     
     my $print = Slic3r::Test::init_print('ipadstand', config => $config);
     my %perimeters = ();  # z => number of loops

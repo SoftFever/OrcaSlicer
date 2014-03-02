@@ -6,7 +6,7 @@ use utf8;
 use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :window :systemsettings);
-use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
+use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN);
 use base 'Wx::ScrolledWindow';
 
 sub new {
@@ -71,7 +71,7 @@ sub load_config {
     my $self = shift;
     my ($config) = @_;
     
-    foreach my $opt_key (grep $self->{config}->has($_), keys %$config) {
+    foreach my $opt_key (grep $self->{config}->has($_), @{$config->get_keys}) {
         my $value = $config->get($opt_key);
         $self->{config}->set($opt_key, $value);
         $_->set_value($opt_key, $value) for @{$self->{optgroups}};

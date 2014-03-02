@@ -3,11 +3,12 @@ use strict;
 use warnings;
 use utf8;
 
-use List::Util qw(first);
+use List::Util qw(first max);
 
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
-    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid);
+    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
+    rotate scale duplicate_grid);
 
 our $Options = print_config_def();
 
@@ -106,7 +107,7 @@ sub _handle_legacy {
     my ($opt_key, $value) = @_;
     
     # handle legacy options
-    return ($opt_key, $value) if first { $_ eq $opt_key } @Ignore;
+    return () if first { $_ eq $opt_key } @Ignore;
     if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
         $opt_key = $1;
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
@@ -170,7 +171,7 @@ sub save {
 sub setenv {
     my $self = shift;
     
-    foreach my $opt_key (sort keys %$Options) {
+    foreach my $opt_key (@{$self->get_keys}) {
         $ENV{"SLIC3R_" . uc $opt_key} = $self->serialize($opt_key);
     }
 }
@@ -319,6 +320,15 @@ sub validate {
             if defined first { $_ } @{ $self->retract_layer_change };
     }
     
+    # extrusion widths
+    {
+        my $max_nozzle_diameter = max(@{ $self->nozzle_diameter });
+        die "Invalid extrusion width (too large)\n"
+            if defined first { $_ > 10 * $max_nozzle_diameter }
+                map $self->get_abs_value_over("${_}_extrusion_width", $self->layer_height),
+                qw(perimeter infill solid_infill top_infill support_material first_layer);
+    }
+    
     # general validation, quick and dirty
     foreach my $opt_key (@{$self->get_keys}) {
         my $opt = $Options->{$opt_key};
@@ -345,6 +355,8 @@ sub validate {
             }
         }
     }
+    
+    return 1;
 }
 
 sub replace_options {
@@ -369,13 +381,13 @@ sub replace_options {
     $string =~ s/\[version\]/$Slic3r::VERSION/eg;
     
     # build a regexp to match the available options
-    my @options = grep !$Slic3r::Config::Options->{$_}{multiline},
-        grep $self->has($_),
-        keys %{$Slic3r::Config::Options};
+    my @options = grep !$Slic3r::Config::Options->{$_}{multiline}, @{$self->get_keys};
     my $options_regex = join '|', @options;
     
     # use that regexp to search and replace option names with option values
-    $string =~ s/\[($options_regex)\]/$self->serialize($1)/eg;
+    # it looks like passing $1 as argument to serialize() directly causes a segfault
+    # (maybe some perl optimization? maybe regex captures are not regular SVs?)
+    $string =~ s/\[($options_regex)\]/my $opt_key = $1; $self->serialize($opt_key)/eg;
     foreach my $opt_key (grep ref $self->$_ eq 'ARRAY', @options) {
         my $value = $self->$opt_key;
         $string =~ s/\[${opt_key}_${_}\]/$value->[$_]/eg for 0 .. $#$value;

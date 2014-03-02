@@ -1,8 +1,18 @@
 #include "Line.hpp"
 #include "Polyline.hpp"
 #include <algorithm>
+#include <sstream>
 
 namespace Slic3r {
+
+std::string
+Line::wkt() const
+{
+    std::ostringstream ss;
+    ss << "LINESTRING(" << this->a.x << " " << this->a.y << ","
+        << this->b.x << " " << this->b.y << ")";
+    return ss.str();
+}
 
 Line::operator Polyline() const
 {
@@ -88,6 +98,8 @@ void
 Line::from_SV_check(SV* line_sv)
 {
     if (sv_isobject(line_sv) && (SvTYPE(SvRV(line_sv)) == SVt_PVMG)) {
+        if (!sv_isa(line_sv, "Slic3r::Line") && !sv_isa(line_sv, "Slic3r::Line::Ref"))
+            CONFESS("Not a valid Slic3r::Line object");
         *this = *(Line*)SvIV((SV*)SvRV( line_sv ));
     } else {
         this->from_SV(line_sv);

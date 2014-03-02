@@ -21,14 +21,14 @@ SurfaceCollection::simplify(double tolerance)
 
 /* group surfaces by common properties */
 void
-SurfaceCollection::group(std::vector<SurfacesPtr> *retval, bool merge_solid)
+SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
 {
     for (Surfaces::iterator it = this->surfaces.begin(); it != this->surfaces.end(); ++it) {
         // find a group with the same properties
         SurfacesPtr* group = NULL;
         for (std::vector<SurfacesPtr>::iterator git = retval->begin(); git != retval->end(); ++git) {
             Surface* gkey = git->front();
-            if ((gkey->surface_type == it->surface_type || (merge_solid && gkey->is_solid() && it->is_solid()))
+            if (   gkey->surface_type      == it->surface_type
                 && gkey->thickness         == it->thickness
                 && gkey->thickness_layers  == it->thickness_layers
                 && gkey->bridge_angle      == it->bridge_angle) {

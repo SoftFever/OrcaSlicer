@@ -5,7 +5,7 @@ namespace Slic3r {
 
 Polyline::operator Polylines() const
 {
-    Polylines polylines(1);
+    Polylines polylines;
     polylines.push_back(*this);
     return polylines;
 }
@@ -109,6 +109,15 @@ Polyline::to_SV_clone_ref() const
     SV* sv = newSV(0);
     sv_setref_pv( sv, "Slic3r::Polyline", new Polyline(*this) );
     return sv;
+}
+
+void
+Polyline::from_SV_check(SV* poly_sv)
+{
+    if (!sv_isa(poly_sv, "Slic3r::Polyline") && !sv_isa(poly_sv, "Slic3r::Polyline::Ref"))
+        CONFESS("Not a valid Slic3r::Polyline object");
+    
+    MultiPoint::from_SV_check(poly_sv);
 }
 #endif
 

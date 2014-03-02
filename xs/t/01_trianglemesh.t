@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 41;
+use Test::More tests => 46;
 
 is Slic3r::TriangleMesh::hello_world(), 'Hello world!',
     'hello world';
@@ -83,8 +83,41 @@ my $cube = {
     my $result = $m->slice(\@z);
     my $SCALING_FACTOR = 0.000001;
     for my $i (0..$#z) {
-        is scalar(@{$result->[$i]}), 1, 'number of returned polygons per layer';
+        is scalar(@{$result->[$i]}), 1, "number of returned polygons per layer (z = " . $z[$i] . ")";
         is $result->[$i][0]->area, 20*20/($SCALING_FACTOR**2), 'size of returned polygon';
+    }
+}
+
+{
+    my $m = Slic3r::TriangleMesh->new;
+    $m->ReadFromPerl(
+        [ [0,0,0],[0,0,20],[0,5,0],[0,5,20],[50,0,0],[50,0,20],[15,5,0],[35,5,0],[15,20,0],[50,5,0],[35,20,0],[15,5,10],[50,5,20],[35,5,10],[35,20,10],[15,20,10] ],
+        [ [0,1,2],[2,1,3],[1,0,4],[5,1,4],[0,2,4],[4,2,6],[7,6,8],[4,6,7],[9,4,7],[7,8,10],[2,3,6],[11,3,12],[7,12,9],[13,12,7],[6,3,11],[11,12,13],[3,1,5],[12,3,5],[5,4,9],[12,5,9],[13,7,10],[14,13,10],[8,15,10],[10,15,14],[6,11,8],[8,11,15],[15,11,13],[14,15,13] ],
+    );
+    $m->repair;
+    my $slices = $m->slice([ 5, 10 ]);
+    is $slices->[0][0]->area, $slices->[1][0]->area, 'slicing a tangent plane includes its area';
+}
+
+{
+    my $m = Slic3r::TriangleMesh->new;
+    $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
+    $m->repair;
+    {
+        my $upper = Slic3r::TriangleMesh->new;
+        my $lower = Slic3r::TriangleMesh->new;
+        $m->cut(0, $upper, $lower);
+        #$upper->repair; $lower->repair;
+        is $upper->facets_count, 10, 'upper mesh has all facets except those belonging to the slicing plane';
+        is $lower->facets_count,  0, 'lower mesh has no facets';
+    }
+    {
+        my $upper = Slic3r::TriangleMesh->new;
+        my $lower = Slic3r::TriangleMesh->new;
+        $m->cut(10, $upper, $lower);
+        #$upper->repair; $lower->repair;
+        is $upper->facets_count, 14, 'upper mesh has the right number of facets';
+        is $lower->facets_count, 14, 'lower mesh has the right number of facets';
     }
 }
 

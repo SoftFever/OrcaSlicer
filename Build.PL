@@ -17,7 +17,6 @@ my %prereqs = qw(
     Module::Build::WithXSpp         0.14
     Moo                             1.003001
     Scalar::Util                    0
-    Storable                        0
     Test::Harness                   0
     Test::More                      0
     IO::Scalar                      0
@@ -28,7 +27,8 @@ my %recommends = qw(
     XML::SAX::ExpatXS               0
 );
 
-my $gui = defined $ARGV[0] && $ARGV[0] eq '--gui';
+my $gui     = grep { $_ eq '--gui' } @ARGV;
+my $xs_only = grep { $_ eq '--xs' }  @ARGV;
 if ($gui) {
     %prereqs = qw(
     Wx                              0.9918
@@ -38,6 +38,8 @@ if ($gui) {
     Wx::GLCanvas                    0
     OpenGL                          0
     );
+} elsif ($xs_only) {
+    %prereqs = %recommends = ();
 }
 
 my @missing_prereqs = ();
@@ -124,9 +126,7 @@ EOF
         # with current perl binary
         if (-e './xs/Build') {
             if ($^O eq 'MSWin32') {
-                system 'cd', 'xs';
-                system 'Build', 'distclean';
-                system 'cd', '..';
+                system '.\xs\Build', 'distclean';
             } else {
                 system './xs/Build', 'distclean';
             }

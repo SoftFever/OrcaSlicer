@@ -47,20 +47,7 @@ sub add_object {
         );
         
         foreach my $volume (@{$object->volumes}) {
-            $new_object->add_volume(
-                material_id         => $volume->material_id,
-                mesh                => $volume->mesh->clone,
-                modifier            => $volume->modifier,
-            );
-            
-            if (defined $volume->material_id) {
-                #  merge material attributes (should we rename materials in case of duplicates?)
-                my %attributes = %{ $object->model->materials->{$volume->material_id}->attributes };
-                if (exists $self->materials->{$volume->material_id}) {
-                    %attributes = (%attributes, %{ $self->materials->{$volume->material_id}->attributes });
-                }
-                $self->set_material($volume->material_id, {%attributes});
-            }
+            $new_object->add_volume($volume);
         }
         
         $new_object->add_instance(
@@ -296,8 +283,6 @@ sub get_material_name {
     my $name;
     if (exists $self->materials->{$material_id}) {
         $name //= $self->materials->{$material_id}->attributes->{$_} for qw(Name name);
-    } elsif ($material_id eq '_') {
-        $name = 'Default material';
     }
     $name //= $material_id;
     return $name;
@@ -327,14 +312,48 @@ has '_bounding_box'         => (is => 'rw');
 
 sub add_volume {
     my $self = shift;
-    my %args = @_;
     
-    push @{$self->volumes}, my $volume = Slic3r::Model::Volume->new(
-        object => $self,
-        %args,
-    );
+    my $new_volume;
+    if (@_ == 1) {
+        # we have a Model::Volume
+        my ($volume) = @_;
+        
+        $new_volume = Slic3r::Model::Volume->new(
+            object      => $self,
+            material_id => $volume->material_id,
+            mesh        => $volume->mesh->clone,
+            modifier    => $volume->modifier,
+        );
+        
+        if (defined $volume->material_id) {
+            #  merge material attributes (should we rename materials in case of duplicates?)
+            if (my $material = $volume->object->model->materials->{$volume->material_id}) {
+                my %attributes = %{ $material->attributes };
+                if (exists $self->model->materials->{$volume->material_id}) {
+                    %attributes = (%attributes, %{ $self->model->materials->{$volume->material_id}->attributes });
+                }
+                $self->model->set_material($volume->material_id, {%attributes});
+            }
+        }
+    } else {
+        my %args = @_;
+        $new_volume = Slic3r::Model::Volume->new(
+            object => $self,
+            %args,
+        );
+    }
+    
+    push @{$self->volumes}, $new_volume;
+    
+    # invalidate cached bounding box
     $self->_bounding_box(undef);
-    return $volume;
+    
+    return $new_volume;
+}
+
+sub delete_volume {
+    my ($self, $i) = @_;
+    splice @{$self->volumes}, $i, 1;
 }
 
 sub add_instance {
@@ -413,18 +432,17 @@ sub center_around_origin {
     # center this object around the origin
     my $bb = $self->raw_mesh->bounding_box;
     
-    # first align to origin on XYZ
+    # first align to origin on XY
     my @shift = (
         -$bb->x_min,
         -$bb->y_min,
-        -$bb->z_min,
+        0,
     );
     
     # then center it on XY
     my $size = $bb->size;
     $shift[X] -= $size->x/2;
     $shift[Y] -= $size->y/2;  #//
-    $shift[Z] -= $size->z/2;
     
     $self->translate(@shift);
     
@@ -484,7 +502,7 @@ sub print_info {
     my $self = shift;
     
     printf "Info about %s:\n", basename($self->input_file);
-        printf "  size:              x=%.3f y=%.3f z=%.3f\n", @{$self->size};
+    printf "  size:              x=%.3f y=%.3f z=%.3f\n", @{$self->raw_mesh->bounding_box->size};
     if (my $stats = $self->mesh_stats) {
         printf "  number of facets:  %d\n", $stats->{number_of_facets};
         printf "  number of shells:  %d\n", $stats->{number_of_parts};
@@ -512,6 +530,15 @@ has 'object'            => (is => 'ro', weak_ref => 1, required => 1);
 has 'material_id'       => (is => 'rw');
 has 'mesh'              => (is => 'rw', required => 1);
 has 'modifier'          => (is => 'rw', defualt => sub { 0 });
+
+sub assign_unique_material {
+    my ($self) = @_;
+    
+    my $model = $self->object->model;
+    my $material_id = 1 + scalar keys %{$model->materials};
+    $self->material_id($material_id);
+    return $model->set_material($material_id);
+}
 
 package Slic3r::Model::Instance;
 use Moo;
