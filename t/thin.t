@@ -1,4 +1,4 @@
-use Test::More tests => 1;
+use Test::More tests => 3;
 use strict;
 use warnings;
 
@@ -9,7 +9,7 @@ BEGIN {
 
 use Slic3r;
 use List::Util qw(first);
-use Slic3r::Geometry qw(epsilon);
+use Slic3r::Geometry qw(epsilon scale);
 use Slic3r::Test;
 
 {
@@ -43,6 +43,27 @@ use Slic3r::Test;
     
     ok !(first { $_ != 3 } values %extrusion_paths),
         'no superfluous thin walls are generated for toothed profile';
+}
+
+my $square = Slic3r::Polygon->new_scale(  # ccw
+    [100, 100],
+    [200, 100],
+    [200, 200],
+    [100, 200],
+);
+my $hole_in_square = Slic3r::Polygon->new_scale(  # cw
+    [140, 140],
+    [140, 160],
+    [160, 160],
+    [160, 140],
+);
+
+{
+    my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
+    my $res = $expolygon->medial_axis(scale 10);
+    is scalar(@$res), 1, 'medial axis of a square shape is a single closed loop';
+    ok $res->[0]->length > $hole_in_square->length && $res->[0]->length < $square->length,
+        'medial axis loop has reasonable length';
 }
 
 __END__

@@ -6,7 +6,11 @@
 #include <map>
 #include <set>
 #include <vector>
-#include "voronoi_visual_utils.hpp"
+//#include "voronoi_visual_utils.hpp"
+
+#ifdef SLIC3R_DEBUG
+#include "SVG.hpp"
+#endif
 
 using namespace boost::polygon;  // provides also high() and low()
 
@@ -91,83 +95,67 @@ template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, C
 void
 MedialAxis::build(Polylines* polylines)
 {
+    /*
     // build bounding box (we use it for clipping infinite segments)
+    // --> we have no infinite segments
     this->bb = BoundingBox(this->lines);
+    */
     
     construct_voronoi(this->lines.begin(), this->lines.end(), &this->vd);
     
-    // iterate through the diagram by starting from a random edge
-    this->edge_cache.clear();
-    for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge)
-        this->process_edge(*edge, polylines);
-}
-
-void
-MedialAxis::process_edge(const VD::edge_type& edge, Polylines* polylines)
-{
-    // if we already visited this edge or its twin skip it
-    if (this->edge_cache.count(&edge) > 0) return;
-    
-    // mark this as already visited
-    (void)this->edge_cache.insert(&edge);
-    (void)this->edge_cache.insert(edge.twin());
-    
-    if (this->is_valid_edge(edge)) {
-        Line line = Line(
-            Point( edge.vertex0()->x(), edge.vertex0()->y() ),
-            Point( edge.vertex1()->x(), edge.vertex1()->y() )
-        );
-        bool appended = false;
-        if (!polylines->empty()) {
-            Polyline &last_p = polylines->back();
-            if (line.a == last_p.points.back()) {
-                // if this line starts where last polyline ends, just append the other point
-                last_p.points.push_back(line.b);
-                appended = true;
-            } else if (line.b == last_p.points.back()) {
-                // if this line ends where last polyline ends, just append the other point
-                last_p.points.push_back(line.a);
-                appended = true;
-            }
-        }
-        if (polylines->empty() || !appended) {
-            // start a new polyline
-            polylines->push_back(Polyline());
-            Polyline &p = polylines->back();
-            p.points.push_back(line.a);
-            p.points.push_back(line.b);
-        }
+    // collect valid edges (i.e. prune those not belonging to MAT)
+    this->edges.clear();
+    for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge) {
+        if (this->is_valid_edge(*edge)) this->edges.insert(&*edge);
     }
     
-    // look for connected edges (on both sides)
-    this->process_edge_neighbors(edge, polylines);
-    this->process_edge_neighbors(*edge.twin(), polylines);
+    // iterate through the valid edges to build polylines
+    while (!this->edges.empty()) {
+        const VD::edge_type& edge = **this->edges.begin();
+        
+        // start a polyline
+        Polyline polyline;
+        polyline.points.push_back(Point( edge.vertex0()->x(), edge.vertex0()->y() ));
+        polyline.points.push_back(Point( edge.vertex1()->x(), edge.vertex1()->y() ));
+        
+        // remove this edge and its twin from the available edges
+        (void)this->edges.erase(&edge);
+        (void)this->edges.erase(edge.twin());
+        
+        // get next points
+        this->process_edge_neighbors(edge, &polyline.points);
+        
+        // get previous points
+        Points pp;
+        this->process_edge_neighbors(*edge.twin(), &pp);
+        polyline.points.insert(polyline.points.begin(), pp.rbegin(), pp.rend());
+        
+        // append polyline to result
+        polylines->push_back(polyline);
+    }
 }
 
 void
-MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Polylines* polylines)
+MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Points* points)
 {
+    // Since rot_next() works on the edge starting point but we want
+    // to find neighbors on the ending point, we just swap edge with
+    // its twin.
+    const VD::edge_type& twin = *edge.twin();
+    
+    // count neighbors for this edge
     std::vector<const VD::edge_type*> neighbors;
-    for (const VD::edge_type* neighbor = edge.rot_next(); neighbor != &edge; neighbor = neighbor->rot_next()) {
-        // skip already seen edges
-        if (this->edge_cache.count(neighbor) > 0) continue;
-        
-        // skip edges that we wouldn't include in the MAT anyway
-        if (!this->is_valid_edge(*neighbor)) continue;
-        
-        neighbors.push_back(neighbor);
+    for (const VD::edge_type* neighbor = twin.rot_next(); neighbor != &twin; neighbor = neighbor->rot_next()) {
+        if (this->edges.count(neighbor) > 0) neighbors.push_back(neighbor);
     }
     
-    // process neighbors recursively
+    // if we have a single neighbor then we can continue recursively
     if (neighbors.size() == 1) {
-        this->process_edge(*neighbors.front(), polylines);
-    } else if (neighbors.size() > 1) {
-        // close current polyline and start a new one for each branch
-        for (std::vector<const VD::edge_type*>::const_iterator neighbor = neighbors.begin(); neighbor != neighbors.end(); ++neighbor) {
-            Polylines pp;
-            this->process_edge(**neighbor, &pp);
-            polylines->insert(polylines->end(), pp.begin(), pp.end());
-        }
+        const VD::edge_type& neighbor = *neighbors.front();
+        points->push_back(Point( neighbor.vertex1()->x(), neighbor.vertex1()->y() ));
+        (void)this->edges.erase(&neighbor);
+        (void)this->edges.erase(neighbor.twin());
+        this->process_edge_neighbors(neighbor, points);
     }
 }
 
@@ -199,6 +187,7 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
     return true;
 }
 
+/*
 void
 MedialAxis::clip_infinite_edge(const voronoi_diagram<double>::edge_type& edge, Points* clipped_edge)
 {
@@ -266,6 +255,7 @@ MedialAxis::sample_curved_edge(const voronoi_diagram<double>::edge_type& edge, P
     double max_dist = 1E-3 * this->bb.size().x;
     voronoi_visual_utils<double>::discretize<coord_t,coord_t,Point,Line>(point, segment, max_dist, sampled_edge);
 }
+*/
 
 Point
 MedialAxis::retrieve_point(const voronoi_diagram<double>::cell_type& cell)

@@ -420,6 +420,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
     layers->resize(z.size());
     for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
         #ifdef SLIC3R_DEBUG
+        size_t layer_id = loops - layers_p.begin();
         printf("Layer %zu (slice_z = %.2f): ", layer_id, z[layer_id]);
         #endif
         
