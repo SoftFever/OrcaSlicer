@@ -233,8 +233,9 @@ sub make_perimeters {
             Slic3r::SVG::output(
                 "medial_axis.svg",
                 no_arrows => 1,
-                #expolygons => \@thin_walls,
-                polylines => \@p,
+                expolygons      => \@thin_walls,
+                green_polylines => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
+                red_polylines   => \@p,
             );
         }
         
