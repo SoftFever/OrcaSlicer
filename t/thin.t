@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 9;
 use strict;
 use warnings;
 
@@ -9,7 +9,7 @@ BEGIN {
 
 use Slic3r;
 use List::Util qw(first);
-use Slic3r::Geometry qw(epsilon scale);
+use Slic3r::Geometry qw(epsilon scale unscale);
 use Slic3r::Test;
 
 {
@@ -45,25 +45,72 @@ use Slic3r::Test;
         'no superfluous thin walls are generated for toothed profile';
 }
 
-my $square = Slic3r::Polygon->new_scale(  # ccw
-    [100, 100],
-    [200, 100],
-    [200, 200],
-    [100, 200],
-);
-my $hole_in_square = Slic3r::Polygon->new_scale(  # cw
-    [140, 140],
-    [140, 160],
-    [160, 160],
-    [160, 140],
-);
-
 {
+    my $square = Slic3r::Polygon->new_scale(  # ccw
+        [100, 100],
+        [200, 100],
+        [200, 200],
+        [100, 200],
+    );
+    my $hole_in_square = Slic3r::Polygon->new_scale(  # cw
+        [140, 140],
+        [140, 160],
+        [160, 160],
+        [160, 140],
+    );
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
     my $res = $expolygon->medial_axis(scale 10);
     is scalar(@$res), 1, 'medial axis of a square shape is a single closed loop';
     ok $res->[0]->length > $hole_in_square->length && $res->[0]->length < $square->length,
         'medial axis loop has reasonable length';
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
+        [100, 100],
+        [120, 100],
+        [120, 200],
+        [100, 200],
+    ));
+    my $res = $expolygon->medial_axis(scale 10);
+    is scalar(@$res), 1, 'medial axis of a narrow rectangle is a single line';
+    ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
+        [100, 100],
+        [120, 100],
+        [112, 200],
+        [108, 200],
+    ));
+    my $res = $expolygon->medial_axis(scale 10);
+    is scalar(@$res), 1, 'medial axis of a narrow trapezoid is a single line';
+    ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
+        [100, 100],
+        [120, 100],
+        [120, 180],
+        [200, 180],
+        [200, 200],
+        [100, 200],
+    ));
+    my $res = $expolygon->medial_axis(scale 20);
+    is scalar(@$res), 1, 'medial axis of a L shape is a single polyline';
+    my $len = unscale($res->[0]->length) + 20;  # 20 is the thickness of the expolygon, which is subtracted from the ends
+    ok $len > 80*2 && $len < 100*2, 'medial axis has reasonable length';
+    
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output(
+            "thin.svg",
+            expolygons => [$expolygon],
+            polylines => $res,
+        );
+    }
 }
 
 __END__
