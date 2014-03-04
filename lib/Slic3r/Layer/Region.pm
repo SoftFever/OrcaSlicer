@@ -99,6 +99,7 @@ sub make_perimeters {
                         my $diff = diff_ex(
                             \@last,
                             offset(\@offsets, +0.5*$pwidth),
+                            1,  # medial axis requires non-overlapping geometry
                         );
                         push @thin_walls, @$diff;
                     }
@@ -222,9 +223,6 @@ sub make_perimeters {
     $self->perimeters->append(@loops);
     
     # process thin walls by collapsing slices to single passes
-    my $min_thin_wall_width = $pwidth/3;
-    my $min_thin_wall_length = 2*$pwidth;
-    #@thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -0.5*$min_thin_wall_width, +0.5*$min_thin_wall_width)};
     if (@thin_walls) {
         my @p = map @{$_->medial_axis($pspacing)}, @thin_walls;
         
@@ -240,6 +238,7 @@ sub make_perimeters {
         }
         
         my @paths = ();
+        my $min_thin_wall_length = 2*$pwidth;
         for my $p (@p) {
             next if $p->length < $min_thin_wall_length;
             my %params = (

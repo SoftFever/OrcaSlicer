@@ -237,7 +237,7 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
     // if we only process segments representing closed loops, none if the
     // infinite edges (if any) would be part of our MAT anyway
     if (edge.is_secondary() || edge.is_infinite()) return false;
-        
+    
     /* If the cells sharing this edge have a common vertex, we're not interested
        in this edge. Why? Because it means that the edge lies on the bisector of
        two contiguous input lines and it was included in the Voronoi graph because
