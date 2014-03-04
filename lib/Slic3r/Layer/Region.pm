@@ -224,7 +224,7 @@ sub make_perimeters {
     # process thin walls by collapsing slices to single passes
     my $min_thin_wall_width = $pwidth/3;
     my $min_thin_wall_length = 2*$pwidth;
-    @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -0.5*$min_thin_wall_width, +0.5*$min_thin_wall_width)};
+    #@thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -0.5*$min_thin_wall_width, +0.5*$min_thin_wall_width)};
     if (@thin_walls) {
         my @p = map @{$_->medial_axis($pspacing)}, @thin_walls;
         

@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use Slic3r;
-use Slic3r::Geometry qw(line_atan line_direction rad2deg_dir angle3points PI);
+use Slic3r::Geometry qw(rad2deg_dir angle3points PI);
 
 #==========================================================
 
@@ -61,3 +61,13 @@ use Slic3r::Geometry qw(line_atan line_direction rad2deg_dir angle3points PI);
 }
 
 #==========================================================
+
+sub line_atan {
+    my ($l) = @_;
+    return Slic3r::Line->new(@$l)->atan2_;
+}
+
+sub line_direction {
+    my ($l) = @_;
+    return Slic3r::Line->new(@$l)->direction;
+}

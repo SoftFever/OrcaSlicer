@@ -7,16 +7,6 @@ use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(A B X Y);
 
-sub atan {
-    my $self = shift;
-    return Slic3r::Geometry::line_atan($self);
-}
-
-sub direction {
-    my $self = shift;
-    return Slic3r::Geometry::line_direction($self);
-}
-
 sub intersection {
     my $self = shift;
     my ($line, $require_crossing) = @_;

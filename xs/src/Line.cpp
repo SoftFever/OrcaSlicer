@@ -1,6 +1,7 @@
 #include "Line.hpp"
 #include "Polyline.hpp"
 #include <algorithm>
+#include <cmath>
 #include <sstream>
 
 namespace Slic3r {
@@ -83,6 +84,21 @@ double
 Line::distance_to(const Point* point) const
 {
     return point->distance_to(this);
+}
+
+double
+Line::atan2_() const
+{
+    return atan2(this->b.y - this->a.y, this->b.x - this->a.x);
+}
+
+double
+Line::direction() const
+{
+    double atan2 = this->atan2_();
+    return (atan2 == PI) ? 0
+        : (atan2 < 0) ? (atan2 + PI)
+        : atan2;
 }
 
 #ifdef SLIC3RXS

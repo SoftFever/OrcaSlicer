@@ -20,19 +20,18 @@ class MedialAxis {
     public:
     Points points;
     Lines lines;
+    double width;
+    MedialAxis(double _width) : width(_width) {};
     void build(Polylines* polylines);
-    void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge, Points* points);
-    bool is_valid_edge(const voronoi_diagram<double>::edge_type& edge) const;
-    //void clip_infinite_edge(const voronoi_diagram<double>::edge_type& edge, Points* clipped_edge);
-    //void sample_curved_edge(const voronoi_diagram<double>::edge_type& edge, Points* sampled_edge);
-    Point retrieve_point(const voronoi_diagram<double>::cell_type& cell);
-    Line retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
     
     private:
     typedef voronoi_diagram<double> VD;
     VD vd;
-    //BoundingBox bb;
     std::set<const VD::edge_type*> edges;
+    Line edge_to_line(const VD::edge_type &edge);
+    void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge, Points* points);
+    bool is_valid_edge(const voronoi_diagram<double>::edge_type& edge) const;
+    Line retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
 };
 
 } }

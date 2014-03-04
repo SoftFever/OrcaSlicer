@@ -26,7 +26,7 @@
     ExPolygons simplify(double tolerance);
     Polygons simplify_p(double tolerance);
     Polylines medial_axis(double width)
-        %code{% THIS->medial_axis(&RETVAL); %};
+        %code{% THIS->medial_axis(width, &RETVAL); %};
 %{
 
 ExPolygon*

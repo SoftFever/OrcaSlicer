@@ -135,10 +135,10 @@ ExPolygon::simplify(double tolerance, ExPolygons &expolygons) const
 }
 
 void
-ExPolygon::medial_axis(Polylines* polylines) const
+ExPolygon::medial_axis(double width, Polylines* polylines) const
 {
     // init helper object
-    Slic3r::Geometry::MedialAxis ma;
+    Slic3r::Geometry::MedialAxis ma(width);
     
     // populate list of segments for the Voronoi diagram
     this->contour.lines(&ma.lines);

@@ -3,10 +3,10 @@
 #include "PolylineCollection.hpp"
 #include "clipper.hpp"
 #include <algorithm>
+#include <list>
 #include <map>
 #include <set>
 #include <vector>
-//#include "voronoi_visual_utils.hpp"
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
@@ -92,6 +92,16 @@ chained_path_items(Points &points, T &items, T &retval)
 }
 template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
 
+Line
+MedialAxis::edge_to_line(const VD::edge_type &edge) {
+    Line line;
+    line.a.x = edge.vertex0()->x();
+    line.a.y = edge.vertex0()->y();
+    line.b.x = edge.vertex1()->x();
+    line.b.y = edge.vertex1()->y();
+    return line;
+}
+
 void
 MedialAxis::build(Polylines* polylines)
 {
@@ -104,9 +114,71 @@ MedialAxis::build(Polylines* polylines)
     construct_voronoi(this->lines.begin(), this->lines.end(), &this->vd);
     
     // collect valid edges (i.e. prune those not belonging to MAT)
+    // note: this keeps twins, so it contains twice the number of the valid edges
     this->edges.clear();
     for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge) {
         if (this->is_valid_edge(*edge)) this->edges.insert(&*edge);
+    }
+    
+    // count valid segments for each vertex
+    std::map< const VD::vertex_type*,std::list<const VD::edge_type*> > vertex_edges;
+    std::list<const VD::vertex_type*> entry_nodes;
+    for (VD::const_vertex_iterator vertex = this->vd.vertices().begin(); vertex != this->vd.vertices().end(); ++vertex) {
+        // get a reference to the list of valid edges originating from this vertex
+        std::list<const VD::edge_type*>& edges = vertex_edges[&*vertex];
+        
+        // get one random edge originating from this vertex
+        const VD::edge_type* edge = vertex->incident_edge();
+        do {
+            if (this->edges.count(edge) > 0)    // only count valid edges
+                edges.push_back(edge);
+            edge = edge->rot_next();            // next edge originating from this vertex
+        } while (edge != vertex->incident_edge());
+        
+        // if there's only one edge starting at this vertex then it's a leaf
+        if (edges.size() == 1) entry_nodes.push_back(&*vertex);
+    }
+    
+    // iterate through the leafs to prune short branches
+    for (std::list<const VD::vertex_type*>::const_iterator vertex = entry_nodes.begin(); vertex != entry_nodes.end(); ++vertex) {
+        const VD::vertex_type* v = *vertex;
+        
+        // start a polyline from this vertex
+        Polyline polyline;
+        polyline.points.push_back(Point(v->x(), v->y()));
+        
+        // keep track of visited edges to prevent infinite loops
+        std::set<const VD::edge_type*> visited_edges;
+        
+        do {
+            // get edge starting from v
+            const VD::edge_type* edge = vertex_edges[v].front();
+            
+            // if we picked the edge going backwards (thus the twin of the previous edge)
+            if (visited_edges.count(edge->twin()) > 0) {
+                edge = vertex_edges[v].back();
+            }
+            
+            // avoid getting twice on the same edge
+            if (visited_edges.count(edge) > 0) break;
+            visited_edges.insert(edge);
+            
+            // get ending vertex for this edge and append it to the polyline
+            v = edge->vertex1();
+            polyline.points.push_back(Point( v->x(), v->y() ));
+            
+            // if two edges start at this vertex (one forward one backwards) then
+            // it's not branching and we can go on
+        } while (vertex_edges[v].size() == 2);
+        
+        // if this branch is too short, invalidate all of its edges so that 
+        // they will be ignored when building actual polylines in the loop below
+        if (polyline.length() < this->width) {
+            for (std::set<const VD::edge_type*>::const_iterator edge = visited_edges.begin(); edge != visited_edges.end(); ++edge) {
+                (void)this->edges.erase(*edge);
+                (void)this->edges.erase((*edge)->twin());
+            }
+        }
     }
     
     // iterate through the valid edges to build polylines
@@ -176,107 +248,26 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
        but I don't know how to do it. Maybe we could check the relative angle of
        the two segments (we are only interested in facing segments). */
     
-    const voronoi_diagram<double>::cell_type &cell1 = *edge.cell();
-    const voronoi_diagram<double>::cell_type &cell2 = *edge.twin()->cell();
+    const VD::cell_type &cell1 = *edge.cell();
+    const VD::cell_type &cell2 = *edge.twin()->cell();
     if (cell1.contains_segment() && cell2.contains_segment()) {
         Line segment1 = this->retrieve_segment(cell1);
         Line segment2 = this->retrieve_segment(cell2);
         if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
+        if (fabs(segment1.atan2_() - segment2.atan2_()) < PI/3) {
+            //printf("segment1 atan2 = %f, segment2 atan2 = %f\n", segment1.atan2_(), segment2.atan2_());
+            //printf("  => SAME ATAN2\n");
+            return false;
+        }
     }
     
     return true;
 }
 
-/*
-void
-MedialAxis::clip_infinite_edge(const voronoi_diagram<double>::edge_type& edge, Points* clipped_edge)
-{
-    const voronoi_diagram<double>::cell_type& cell1 = *edge.cell();
-    const voronoi_diagram<double>::cell_type& cell2 = *edge.twin()->cell();
-    Point origin, direction;
-    // Infinite edges could not be created by two segment sites.
-    if (cell1.contains_point() && cell2.contains_point()) {
-        Point p1 = retrieve_point(cell1);
-        Point p2 = retrieve_point(cell2);
-        origin.x = (p1.x + p2.x) * 0.5;
-        origin.y = (p1.y + p2.y) * 0.5;
-        direction.x = p1.y - p2.y;
-        direction.y = p2.x - p1.x;
-    } else {
-        origin = cell1.contains_segment()
-            ? retrieve_point(cell2)
-            : retrieve_point(cell1);
-        Line segment = cell1.contains_segment()
-            ? retrieve_segment(cell1)
-            : retrieve_segment(cell2);
-        coord_t dx = high(segment).x - low(segment).x;
-        coord_t dy = high(segment).y - low(segment).y;
-        if ((low(segment) == origin) ^ cell1.contains_point()) {
-            direction.x = dy;
-            direction.y = -dx;
-        } else {
-            direction.x = -dy;
-            direction.y = dx;
-        }
-    }
-    coord_t side = this->bb.size().x;
-    coord_t koef = side / (std::max)(fabs(direction.x), fabs(direction.y));
-    if (edge.vertex0() == NULL) {
-        clipped_edge->push_back(Point(
-            origin.x - direction.x * koef,
-            origin.y - direction.y * koef
-        ));
-    } else {
-        clipped_edge->push_back(
-        Point(edge.vertex0()->x(), edge.vertex0()->y()));
-    }
-    if (edge.vertex1() == NULL) {
-        clipped_edge->push_back(Point(
-            origin.x + direction.x * koef,
-            origin.y + direction.y * koef
-        ));
-    } else {
-        clipped_edge->push_back(
-        Point(edge.vertex1()->x(), edge.vertex1()->y()));
-    }
-}
-
-void
-MedialAxis::sample_curved_edge(const voronoi_diagram<double>::edge_type& edge, Points* sampled_edge)
-{
-    Point point = edge.cell()->contains_point()
-        ? retrieve_point(*edge.cell())
-        : retrieve_point(*edge.twin()->cell());
-    
-    Line segment = edge.cell()->contains_point()
-        ? retrieve_segment(*edge.twin()->cell())
-        : retrieve_segment(*edge.cell());
-    
-    double max_dist = 1E-3 * this->bb.size().x;
-    voronoi_visual_utils<double>::discretize<coord_t,coord_t,Point,Line>(point, segment, max_dist, sampled_edge);
-}
-*/
-
-Point
-MedialAxis::retrieve_point(const voronoi_diagram<double>::cell_type& cell)
-{
-    voronoi_diagram<double>::cell_type::source_index_type index = cell.source_index();
-    voronoi_diagram<double>::cell_type::source_category_type category = cell.source_category();
-    if (category == SOURCE_CATEGORY_SINGLE_POINT) {
-        return this->points[index];
-    }
-    index -= this->points.size();
-    if (category == SOURCE_CATEGORY_SEGMENT_START_POINT) {
-        return low(this->lines[index]);
-    } else {
-        return high(this->lines[index]);
-    }
-}
-
 Line
-MedialAxis::retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const
+MedialAxis::retrieve_segment(const VD::cell_type& cell) const
 {
-    voronoi_diagram<double>::cell_type::source_index_type index = cell.source_index() - this->points.size();
+    VD::cell_type::source_index_type index = cell.source_index() - this->points.size();
     return this->lines[index];
 }
 
