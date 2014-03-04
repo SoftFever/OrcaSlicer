@@ -254,11 +254,19 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         Line segment1 = this->retrieve_segment(cell1);
         Line segment2 = this->retrieve_segment(cell2);
         if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
-        if (fabs(segment1.atan2_() - segment2.atan2_()) < PI/3) {
-            //printf("segment1 atan2 = %f, segment2 atan2 = %f\n", segment1.atan2_(), segment2.atan2_());
-            //printf("  => SAME ATAN2\n");
-            return false;
-        }
+        if (fabs(segment1.atan2_() - segment2.atan2_()) < PI/3) return false;
+        
+        // we can assume that distance between any of the vertices and any of the cell segments
+        // is about the same
+        Point p0( edge.vertex0()->x(), edge.vertex0()->y() );
+        double dist = p0.distance_to(segment1);
+        
+        // if distance between this edge and the thin area boundary is greater
+        // than half the max width, then it's not a true medial axis segment;
+        // if it's too small then it's not suitable for extrusion since it would
+        // exceed the desired shape too much (this also traps some very narrow
+        // areas caused by collapsing/mitering that we should ignore)
+        if (dist > this->width/2 || dist < this->width/10) return false;
     }
     
     return true;
