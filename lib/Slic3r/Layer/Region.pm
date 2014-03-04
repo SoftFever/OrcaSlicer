@@ -224,7 +224,8 @@ sub make_perimeters {
     
     # process thin walls by collapsing slices to single passes
     if (@thin_walls) {
-        my @p = map @{$_->medial_axis($pspacing)}, @thin_walls;
+        # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
+        my @p = map @{$_->medial_axis($pwidth + $pspacing)}, @thin_walls;
         
         if (0) {
             require "Slic3r/SVG.pm";

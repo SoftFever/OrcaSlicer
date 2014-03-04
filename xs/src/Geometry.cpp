@@ -262,11 +262,8 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         double dist = p0.distance_to(segment1);
         
         // if distance between this edge and the thin area boundary is greater
-        // than half the max width, then it's not a true medial axis segment;
-        // if it's too small then it's not suitable for extrusion since it would
-        // exceed the desired shape too much (this also traps some very narrow
-        // areas caused by collapsing/mitering that we should ignore)
-        if (dist > this->width/2 || dist < this->width/10) return false;
+        // than half the max width, then it's not a true medial axis segment
+        if (dist > this->width/2) return false;
     }
     
     return true;
