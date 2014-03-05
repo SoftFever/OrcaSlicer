@@ -30,6 +30,7 @@ class Line
     double distance_to(const Point* point) const;
     double atan2_() const;
     double direction() const;
+    Vector vector() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* line_sv);

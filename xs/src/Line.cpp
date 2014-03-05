@@ -101,6 +101,12 @@ Line::direction() const
         : atan2;
 }
 
+Vector
+Line::vector() const
+{
+    return Vector(this->b.x - this->a.x, this->b.y - this->a.y);
+}
+
 #ifdef SLIC3RXS
 void
 Line::from_SV(SV* line_sv)

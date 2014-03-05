@@ -223,6 +223,8 @@ sub make_perimeters {
     $self->perimeters->append(@loops);
     
     # process thin walls by collapsing slices to single passes
+    # the following offset2 ensures nothing in @thin_walls is narrower than $pwidth/10
+    @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -$pwidth/10, +$pwidth/10)};
     if (@thin_walls) {
         # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
         my @p = map @{$_->medial_axis($pwidth + $pspacing)}, @thin_walls;

@@ -3,6 +3,7 @@
 #include "PolylineCollection.hpp"
 #include "clipper.hpp"
 #include <algorithm>
+#include <cmath>
 #include <list>
 #include <map>
 #include <set>
@@ -93,7 +94,8 @@ chained_path_items(Points &points, T &items, T &retval)
 template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
 
 Line
-MedialAxis::edge_to_line(const VD::edge_type &edge) {
+MedialAxis::edge_to_line(const VD::edge_type &edge) const
+{
     Line line;
     line.a.x = edge.vertex0()->x();
     line.a.y = edge.vertex0()->y();
@@ -254,16 +256,29 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         Line segment1 = this->retrieve_segment(cell1);
         Line segment2 = this->retrieve_segment(cell2);
         if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
-        if (fabs(segment1.atan2_() - segment2.atan2_()) < PI/3) return false;
         
-        // we can assume that distance between any of the vertices and any of the cell segments
-        // is about the same
-        Point p0( edge.vertex0()->x(), edge.vertex0()->y() );
-        double dist = p0.distance_to(segment1);
+        /*
+        Vector vec1 = segment1.vector();
+        Vector vec2 = segment2.vector();
+        double angle = atan2(vec1.x*vec2.y - vec1.y*vec2.x, vec1.x*vec2.x + vec1.y*vec2.y);
+        //if (angle > PI/2) return false;
+        
+        // each vertex is equidistant to both cell segments
+        // but such distance might differ between the two vertices;
+        // in this case it means the shape is getting narrow (like a corner)
+        // and we might need to skip the edge since it's not really part of
+        // our skeleton
+        Point v0( edge.vertex0()->x(), edge.vertex0()->y() );
+        Point v1( edge.vertex1()->x(), edge.vertex1()->y() );
+        double dist0 = v0.distance_to(segment1);
+        double dist1 = v1.distance_to(segment1);
+        double diff = fabs(dist1 - dist0);
+        //if (diff > this->edge_to_line(edge).length()/2 && diff > this->width/5) return false;
         
         // if distance between this edge and the thin area boundary is greater
         // than half the max width, then it's not a true medial axis segment
-        if (dist > this->width/2) return false;
+        //if (dist0 > this->width/2) return false;
+        */
     }
     
     return true;
