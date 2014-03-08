@@ -245,10 +245,7 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
        two contiguous input lines and it was included in the Voronoi graph because
        it's the locus of centers of circles tangent to both vertices. Due to the 
        "thin" nature of our input, these edges will be very short and not part of
-       our wanted output. The best way would be to just filter out the edges that
-       are not the locus of the maximally inscribed disks (requirement of MAT)
-       but I don't know how to do it. Maybe we could check the relative angle of
-       the two segments (we are only interested in facing segments). */
+       our wanted output. */
     
     const VD::cell_type &cell1 = *edge.cell();
     const VD::cell_type &cell2 = *edge.twin()->cell();
@@ -257,12 +254,17 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         Line segment2 = this->retrieve_segment(cell2);
         if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
         
-        /*
+        // calculate relative angle between the two boundary segments
         Vector vec1 = segment1.vector();
         Vector vec2 = segment2.vector();
         double angle = atan2(vec1.x*vec2.y - vec1.y*vec2.x, vec1.x*vec2.x + vec1.y*vec2.y);
-        //if (angle > PI/2) return false;
         
+        // fabs(angle) ranges from 0 (collinear, same direction) to PI (collinear, opposite direction)
+        // we're interested only in segments close to the second case (facing segments)
+        // so we allow some tolerance (say, 30°)
+        if (fabs(angle) < PI - PI/3) return false;
+        
+        /*
         // each vertex is equidistant to both cell segments
         // but such distance might differ between the two vertices;
         // in this case it means the shape is getting narrow (like a corner)
@@ -273,12 +275,26 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         double dist0 = v0.distance_to(segment1);
         double dist1 = v1.distance_to(segment1);
         double diff = fabs(dist1 - dist0);
-        //if (diff > this->edge_to_line(edge).length()/2 && diff > this->width/5) return false;
-        
+        double dist_between_segments1 = segment1.a.distance_to(segment2);
+        double dist_between_segments2 = segment1.b.distance_to(segment2);
+        printf("w = %f, dist0 = %f, dist1 = %f, diff = %f, seglength = %f, edgelen = %f, s2s = %f / %f\n",
+            unscale(this->width),
+            unscale(dist0), unscale(dist1), unscale(diff), unscale(segment1.length()),
+            unscale(this->edge_to_line(edge).length()),
+            unscale(dist_between_segments1), unscale(dist_between_segments2)
+            );
+        if (dist0 < SCALED_EPSILON && dist1 < SCALED_EPSILON) {
+            printf(" => too thin, skipping\n");
+            //return false;
+        }
         // if distance between this edge and the thin area boundary is greater
         // than half the max width, then it's not a true medial axis segment
-        //if (dist0 > this->width/2) return false;
+        if (dist1 > this->width*2) {
+            printf(" => too fat, skipping\n");
+            //return false;
+        }
         */
+        
     }
     
     return true;

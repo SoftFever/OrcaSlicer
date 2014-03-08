@@ -11,7 +11,7 @@ use Slic3r;
 use List::Util qw(first);
 use Slic3r::Geometry qw(epsilon scale unscale);
 use Slic3r::Test;
-
+goto TTT;
 {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('layer_height', 0.2);
@@ -65,7 +65,7 @@ use Slic3r::Test;
         'medial axis loop has reasonable length';
 }
 
-{
+TTT: {
     my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
         [100, 100],
         [120, 100],
@@ -75,6 +75,21 @@ use Slic3r::Test;
     my $res = $expolygon->medial_axis(scale 10);
     is scalar(@$res), 1, 'medial axis of a narrow rectangle is a single line';
     ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
+    
+    $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
+        [100, 100],
+        [120, 100],
+        [120, 200],
+        [105, 200],  # extra point in the short side
+        [100, 200],
+    ));
+    my $res2 = $expolygon->medial_axis(scale 10);
+    use Slic3r::SVG;
+    Slic3r::SVG::output(
+        "thin.svg",
+        expolygons => [$expolygon],
+        polylines => $res2,
+    );
 }
 
 {

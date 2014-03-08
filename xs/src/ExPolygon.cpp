@@ -141,9 +141,13 @@ ExPolygon::medial_axis(double width, Polylines* polylines) const
     Slic3r::Geometry::MedialAxis ma(width);
     
     // populate list of segments for the Voronoi diagram
-    this->contour.lines(&ma.lines);
-    for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole)
-        hole->lines(&ma.lines);
+    ExPolygons expp;
+    this->simplify(scale_(0.01), expp);
+    for (ExPolygons::const_iterator expolygon = expp.begin(); expolygon != expp.end(); ++expolygon) {
+        expolygon->contour.lines(&ma.lines);
+        for (Polygons::const_iterator hole = expolygon->holes.begin(); hole != expolygon->holes.end(); ++hole)
+            hole->lines(&ma.lines);
+    }
     
     // compute the Voronoi diagram
     ma.build(polylines);

@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 23;
+plan tests => 28;
 
 BEGIN {
     use FindBin;
@@ -164,6 +164,17 @@ my $polygons = [
     my @points = map Slic3r::Point->new_scale(@$_), [26,26],[52,26],[0,26],[26,52],[26,0],[0,52],[52,52],[52,0];
     my @ordered = @points[@{chained_path_from(\@points, $points[0])}];
     ok !(grep { abs($ordered[$_]->distance_to($ordered[$_+1]) - scale 26) > epsilon } 0..$#ordered-1), 'chained_path';
+}
+
+#==========================================================
+
+{
+    my $line = Slic3r::Line->new([0, 0], [20, 0]);
+    is +Slic3r::Point->new(10, 10)->distance_to_line($line), 10, 'distance_to';
+    is +Slic3r::Point->new(50, 10)->distance_to_line($line), 10, 'distance_to';
+    is +Slic3r::Point->new(0, 0)->distance_to_line($line), 0, 'distance_to';
+    is +Slic3r::Point->new(20, 0)->distance_to_line($line), 0, 'distance_to';
+    is +Slic3r::Point->new(10, 0)->distance_to_line($line), 0, 'distance_to';
 }
 
 #==========================================================
