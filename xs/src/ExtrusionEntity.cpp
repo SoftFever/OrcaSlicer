@@ -54,22 +54,22 @@ ExtrusionPath::last_point() const
     return new Point(this->polyline.points.back());
 }
 
-ExtrusionEntityCollection*
-ExtrusionPath::intersect_expolygons(ExPolygonCollection* collection) const
+void
+ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
     // perform clipping
     Polylines clipped;
-    intersection(this->polyline, *collection, clipped);
-    return this->_inflate_collection(clipped);
+    intersection(this->polyline, collection, clipped);
+    return this->_inflate_collection(clipped, retval);
 }
 
-ExtrusionEntityCollection*
-ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection) const
+void
+ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
     // perform clipping
     Polylines clipped;
-    diff(this->polyline, *collection, clipped);
-    return this->_inflate_collection(clipped);
+    diff(this->polyline, collection, clipped);
+    return this->_inflate_collection(clipped, retval);
 }
 
 void
@@ -90,16 +90,14 @@ ExtrusionPath::length() const
     return this->polyline.length();
 }
 
-ExtrusionEntityCollection*
-ExtrusionPath::_inflate_collection(const Polylines &polylines) const
+void
+ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const
 {
-    ExtrusionEntityCollection* retval = new ExtrusionEntityCollection();
     for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it) {
         ExtrusionPath* path = this->clone();
         path->polyline = *it;
-        retval->entities.push_back(path);
+        collection->entities.push_back(path);
     }
-    return retval;
 }
 
 ExtrusionLoop*

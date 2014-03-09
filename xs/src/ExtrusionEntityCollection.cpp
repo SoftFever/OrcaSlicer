@@ -47,6 +47,8 @@ ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse)
 {
     if (this->no_sort) return this->clone();
     ExtrusionEntityCollection* retval = new ExtrusionEntityCollection;
+    retval->entities.reserve(this->entities.size());
+    retval->orig_indices.reserve(this->entities.size());
     
     ExtrusionEntitiesPtr my_paths;
     for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
@@ -71,6 +73,7 @@ ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse)
             my_paths.at(path_index)->reverse();
         }
         retval->entities.push_back(my_paths.at(path_index));
+        retval->orig_indices.push_back(path_index);
         my_paths.erase(my_paths.begin() + path_index);
         endpoints.erase(endpoints.begin() + 2*path_index, endpoints.begin() + 2*path_index + 2);
         start_near = retval->entities.back()->last_point();

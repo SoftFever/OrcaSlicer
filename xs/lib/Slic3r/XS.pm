@@ -109,7 +109,7 @@ sub new {
 sub clone {
     my ($self, %args) = @_;
     
-    return (ref $self)->_new(
+    return __PACKAGE__->_new(
         $args{polygon}       // $self->polygon,
         $args{role}          // $self->role,
         $args{mm3_per_mm}    // $self->mm3_per_mm,
@@ -139,7 +139,7 @@ sub new {
 sub clone {
     my ($self, %args) = @_;
     
-    return (ref $self)->_new(
+    return __PACKAGE__->_new(
         $args{polyline}      // $self->polyline,
         $args{role}          // $self->role,
         $args{mm3_per_mm}    // $self->mm3_per_mm,

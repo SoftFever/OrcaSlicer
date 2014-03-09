@@ -11,6 +11,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     public:
     ExtrusionEntityCollection* clone() const;
     ExtrusionEntitiesPtr entities;
+    std::vector<int> orig_indices;
     bool no_sort;
     ExtrusionEntityCollection(): no_sort(false) {};
     ExtrusionEntityCollection* chained_path(bool no_reverse) const;

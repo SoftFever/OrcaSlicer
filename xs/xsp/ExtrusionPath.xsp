@@ -3,6 +3,7 @@
 %{
 #include <myinit.h>
 #include "ExtrusionEntity.hpp"
+#include "ExtrusionEntityCollection.hpp"
 %}
 
 %name{Slic3r::ExtrusionPath} class ExtrusionPath {
@@ -20,10 +21,6 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
     Point* last_point()
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
-    ExtrusionEntityCollection* intersect_expolygons(ExPolygonCollection* collection)
-        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->intersect_expolygons(collection); %};
-    ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection)
-        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->subtract_expolygons(collection); %};
     void clip_end(double distance);
     void simplify(double tolerance);
     double length();
@@ -86,6 +83,26 @@ ExtrusionPath::append(...)
             p.from_SV_check(ST(i));
             THIS->polyline.points.push_back(p);
         }
+
+ExtrusionEntityCollection*
+ExtrusionPath::intersect_expolygons(ExPolygonCollection* collection)
+    PREINIT:
+        const char* CLASS = "Slic3r::ExtrusionPath::Collection";
+    CODE:
+        RETVAL = new ExtrusionEntityCollection ();
+        THIS->intersect_expolygons(*collection, RETVAL);
+    OUTPUT:
+        RETVAL
+
+ExtrusionEntityCollection*
+ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection)
+    PREINIT:
+        const char* CLASS = "Slic3r::ExtrusionPath::Collection";
+    CODE:
+        RETVAL = new ExtrusionEntityCollection ();
+        THIS->subtract_expolygons(*collection, RETVAL);
+    OUTPUT:
+        RETVAL
 
 %}
 };

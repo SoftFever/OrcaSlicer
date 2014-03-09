@@ -20,6 +20,8 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
     int count()
         %code{% RETVAL = THIS->entities.size(); %};
+    std::vector<int> orig_indices()
+        %code{% RETVAL = THIS->orig_indices; %};
 %{
 
 void

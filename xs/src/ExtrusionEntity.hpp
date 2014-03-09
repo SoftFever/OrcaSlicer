@@ -50,13 +50,13 @@ class ExtrusionPath : public ExtrusionEntity
     void reverse();
     Point* first_point() const;
     Point* last_point() const;
-    ExtrusionEntityCollection* intersect_expolygons(ExPolygonCollection* collection) const;
-    ExtrusionEntityCollection* subtract_expolygons(ExPolygonCollection* collection) const;
+    void intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
+    void subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
     void clip_end(double distance);
     void simplify(double tolerance);
     double length() const;
     private:
-    ExtrusionEntityCollection* _inflate_collection(const Polylines &polylines) const;
+    void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
 };
 
 class ExtrusionLoop : public ExtrusionEntity
