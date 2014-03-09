@@ -6,7 +6,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(PI A B scale unscale chained_path points_coincide);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
-    offset offset2 offset2_ex union_pt diff intersection
+    offset offset_ex offset2 offset2_ex union_pt diff intersection
     union diff intersection_pl);
 use Slic3r::Surface ':types';
 
@@ -65,7 +65,8 @@ sub make_perimeters {
     my $mm3_per_mm          = $perimeter_flow->mm3_per_mm($self->height);
     my $pwidth              = $perimeter_flow->scaled_width;
     my $pspacing            = $perimeter_flow->scaled_spacing;
-    my $ispacing            = $self->flow(FLOW_ROLE_SOLID_INFILL)->scaled_spacing;
+    my $solid_infill_flow   = $self->flow(FLOW_ROLE_SOLID_INFILL);
+    my $ispacing            = $solid_infill_flow->scaled_spacing;
     my $gap_area_threshold  = $pwidth ** 2;
     
     $self->perimeters->clear;
@@ -277,95 +278,23 @@ sub make_perimeters {
     # append perimeters
     $self->perimeters->append(@loops);
     
-    $self->_fill_gaps(\@gaps);
-}
+    # fill gaps
+    {
+        # inset gap area to get the right spacing with the surrounding perimeters
+        @gaps = @{offset_ex([ map @$_, @gaps ], -$pspacing/2)};
+        
+        my %path_args = (
+            role        => EXTR_ROLE_GAPFILL,
+            mm3_per_mm  => $solid_infill_flow->mm3_per_mm($self->height),
+        );
+        $self->thin_fills->append(map {
+            $_->isa('Slic3r::Polygon')
+                ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # should we keep these as loops?
+                : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
+        } map @{$_->medial_axis($pwidth/2, $pwidth/10)}, @gaps);
 
-sub _fill_gaps {
-    my $self = shift;
-    my ($gaps) = @_;
-    
-    return unless @$gaps;
-    
-    my $filler = Slic3r::Fill->new->filler('rectilinear');
-    $filler->angle($self->config->fill_angle);
-    $filler->layer_id($self->layer->id);
-    
-    # we should probably use this code to handle thin walls
-    # but we need to enable dynamic extrusion width before as we can't
-    # use zigzag for thin walls.
-    
-    # medial axis-based gap fill should benefit from detection of larger gaps too, so 
-    # we could try with 1.5*$w for example, but that doesn't work well for zigzag fill
-    # because it tends to create very sparse points along the gap when the infill direction
-    # is not parallel to the gap (1.5*$w thus may only work well with a straight line)
-    my $w = $self->flow(FLOW_ROLE_PERIMETER)->width;
-    my @widths = ($w, 0.4 * $w);  # worth trying 0.2 too?
-    foreach my $width (@widths) {
-        my $flow = $self->flow(FLOW_ROLE_PERIMETER, 0, $width);
-        
-        # extract the gaps having this width
-        my @this_width = map @{$_->offset_ex(+0.5*$flow->scaled_width)},
-            map @{$_->noncollapsing_offset_ex(-0.5*$flow->scaled_width)},
-            @$gaps;
-        
-        if (0) {  # remember to re-enable t/dynamic.t
-            # fill gaps using dynamic extrusion width, by treating them like thin polygons,
-            # thus generating the skeleton and using it to fill them
-            my %path_args = (
-                role        => EXTR_ROLE_SOLIDFILL,
-                mm3_per_mm  => $flow->mm3_per_mm($self->height),
-            );
-            $self->thin_fills->append(map {
-                $_->isa('Slic3r::Polygon')
-                    ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # we should keep these as loops
-                    : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
-            } map @{$_->medial_axis($flow->scaled_width)}, @this_width);
-        
-            Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @this_width, $width
-                if @{ $self->thin_fills };
-            
-        } else {
-            # fill gaps using zigzag infill
-            
-            # since this is infill, we have to offset by half-extrusion width inwards
-            my @infill = map @{$_->offset_ex(-0.5*$flow->scaled_width)}, @this_width;
-            
-            foreach my $expolygon (@infill) {
-                my ($params, @paths) = $filler->fill_surface(
-                    Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNALSOLID),
-                    density => 1,
-                    flow    => $flow,
-                );
-                my $mm3_per_mm = $params->{flow}->mm3_per_mm($self->height);
-                
-                # Split polylines into lines so that the chained_path() search
-                # at the final stage has more freedom and will choose starting
-                # points closer than last positions. OTOH, this will make such
-                # search slower. Probably, ExtrusionPath objects should support
-                # splitting nearby a given position so that we can choose the right
-                # entry point even in the middle of the path without needing a 
-                # complex, slow, chained_path() search on all segments. TODO.
-                # Such logic will also avoid all the small travel moves that this 
-                # line-splitting causes, and it will be applicable to other things
-                # too.
-                my @lines = map @{Slic3r::Polyline->new(@$_)->lines}, @paths;
-                
-                @paths = map Slic3r::ExtrusionPath->new(
-                    polyline        => Slic3r::Polyline->new(@$_),
-                    role            => EXTR_ROLE_GAPFILL,
-                    mm3_per_mm      => $mm3_per_mm,
-                ), @lines;
-                $_->simplify($flow->scaled_width/3) for @paths;
-                
-                $self->thin_fills->append(@paths);
-            }
-        }
-        
-        # check what's left
-        @$gaps = @{diff_ex(
-            [ map @$_, @$gaps ],
-            [ map @$_, @this_width ],
-        )};
+        Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @gaps, $pwidth
+            if @{ $self->thin_fills };
     }
 }
 
