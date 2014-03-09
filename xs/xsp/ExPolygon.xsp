@@ -25,8 +25,8 @@
     bool contains_point(Point* point);
     ExPolygons simplify(double tolerance);
     Polygons simplify_p(double tolerance);
-    Polylines medial_axis(double width)
-        %code{% THIS->medial_axis(width, &RETVAL); %};
+    Polylines medial_axis(double max_width, double min_width)
+        %code{% THIS->medial_axis(max_width, min_width, &RETVAL); %};
 %{
 
 ExPolygon*

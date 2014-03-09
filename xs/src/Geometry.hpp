@@ -20,8 +20,9 @@ class MedialAxis {
     public:
     Points points;
     Lines lines;
-    double width;
-    MedialAxis(double _width) : width(_width) {};
+    double max_width;
+    double min_width;
+    MedialAxis(double _max_width, double _min_width) : max_width(_max_width), min_width(_min_width) {};
     void build(Polylines* polylines);
     
     private:

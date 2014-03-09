@@ -119,68 +119,63 @@ MedialAxis::build(Polylines* polylines)
     // note: this keeps twins, so it contains twice the number of the valid edges
     this->edges.clear();
     for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge) {
-        if (this->is_valid_edge(*edge)) this->edges.insert(&*edge);
+        // if we only process segments representing closed loops, none if the
+        // infinite edges (if any) would be part of our MAT anyway
+        if (edge->is_secondary() || edge->is_infinite()) continue;
+        this->edges.insert(&*edge);
     }
     
     // count valid segments for each vertex
-    std::map< const VD::vertex_type*,std::list<const VD::edge_type*> > vertex_edges;
-    std::list<const VD::vertex_type*> entry_nodes;
+    std::map< const VD::vertex_type*,std::set<const VD::edge_type*> > vertex_edges;
+    std::set<const VD::vertex_type*> entry_nodes;
     for (VD::const_vertex_iterator vertex = this->vd.vertices().begin(); vertex != this->vd.vertices().end(); ++vertex) {
         // get a reference to the list of valid edges originating from this vertex
-        std::list<const VD::edge_type*>& edges = vertex_edges[&*vertex];
+        std::set<const VD::edge_type*>& edges = vertex_edges[&*vertex];
         
         // get one random edge originating from this vertex
         const VD::edge_type* edge = vertex->incident_edge();
         do {
             if (this->edges.count(edge) > 0)    // only count valid edges
-                edges.push_back(edge);
+                edges.insert(edge);
             edge = edge->rot_next();            // next edge originating from this vertex
         } while (edge != vertex->incident_edge());
         
         // if there's only one edge starting at this vertex then it's a leaf
-        if (edges.size() == 1) entry_nodes.push_back(&*vertex);
+        size_t edge_count = edges.size();
+        if (edge_count == 1) {
+            entry_nodes.insert(&*vertex);
+        }
     }
     
-    // iterate through the leafs to prune short branches
-    for (std::list<const VD::vertex_type*>::const_iterator vertex = entry_nodes.begin(); vertex != entry_nodes.end(); ++vertex) {
-        const VD::vertex_type* v = *vertex;
+    // prune recursively
+    while (!entry_nodes.empty()) {
+        // get a random entry node
+        const VD::vertex_type* v = *entry_nodes.begin();
+    
+        // get edge starting from v
+        assert(!vertex_edges[v].empty());
+        const VD::edge_type* edge = *vertex_edges[v].begin();
         
-        // start a polyline from this vertex
-        Polyline polyline;
-        polyline.points.push_back(Point(v->x(), v->y()));
-        
-        // keep track of visited edges to prevent infinite loops
-        std::set<const VD::edge_type*> visited_edges;
-        
-        do {
-            // get edge starting from v
-            const VD::edge_type* edge = vertex_edges[v].front();
+        if (!this->is_valid_edge(*edge)) {
+            // if edge is not valid, erase it from edge list
+            (void)this->edges.erase(edge);
+            (void)this->edges.erase(edge->twin());
             
-            // if we picked the edge going backwards (thus the twin of the previous edge)
-            if (visited_edges.count(edge->twin()) > 0) {
-                edge = vertex_edges[v].back();
-            }
+            // decrement edge counters for the affected nodes
+            const VD::vertex_type* v1 = edge->vertex1();
+            (void)vertex_edges[v].erase(edge);
+            (void)vertex_edges[v1].erase(edge->twin());
             
-            // avoid getting twice on the same edge
-            if (visited_edges.count(edge) > 0) break;
-            visited_edges.insert(edge);
-            
-            // get ending vertex for this edge and append it to the polyline
-            v = edge->vertex1();
-            polyline.points.push_back(Point( v->x(), v->y() ));
-            
-            // if two edges start at this vertex (one forward one backwards) then
-            // it's not branching and we can go on
-        } while (vertex_edges[v].size() == 2);
-        
-        // if this branch is too short, invalidate all of its edges so that 
-        // they will be ignored when building actual polylines in the loop below
-        if (polyline.length() < this->width) {
-            for (std::set<const VD::edge_type*>::const_iterator edge = visited_edges.begin(); edge != visited_edges.end(); ++edge) {
-                (void)this->edges.erase(*edge);
-                (void)this->edges.erase((*edge)->twin());
+            // also, check whether the end vertex is a new leaf
+            if (vertex_edges[v1].size() == 1) {
+                entry_nodes.insert(v1);
+            } else if (vertex_edges[v1].empty()) {
+                entry_nodes.erase(v1);
             }
         }
+        
+        // remove node from the set to prevent it from being visited again
+        entry_nodes.erase(v);
     }
     
     // iterate through the valid edges to build polylines
@@ -204,8 +199,9 @@ MedialAxis::build(Polylines* polylines)
         this->process_edge_neighbors(*edge.twin(), &pp);
         polyline.points.insert(polyline.points.begin(), pp.rbegin(), pp.rend());
         
-        // append polyline to result
-        polylines->push_back(polyline);
+        // append polyline to result if it's not too small
+        if (polyline.length() > this->max_width)
+            polylines->push_back(polyline);
     }
 }
 
@@ -236,10 +232,6 @@ MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Points* points)
 bool
 MedialAxis::is_valid_edge(const VD::edge_type& edge) const
 {
-    // if we only process segments representing closed loops, none if the
-    // infinite edges (if any) would be part of our MAT anyway
-    if (edge.is_secondary() || edge.is_infinite()) return false;
-    
     /* If the cells sharing this edge have a common vertex, we're not interested
        in this edge. Why? Because it means that the edge lies on the bisector of
        two contiguous input lines and it was included in the Voronoi graph because
@@ -264,7 +256,7 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         // so we allow some tolerance (say, 30°)
         if (fabs(angle) < PI - PI/3) return false;
         
-        /*
+        
         // each vertex is equidistant to both cell segments
         // but such distance might differ between the two vertices;
         // in this case it means the shape is getting narrow (like a corner)
@@ -274,19 +266,28 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         Point v1( edge.vertex1()->x(), edge.vertex1()->y() );
         double dist0 = v0.distance_to(segment1);
         double dist1 = v1.distance_to(segment1);
+        
+        /*
         double diff = fabs(dist1 - dist0);
         double dist_between_segments1 = segment1.a.distance_to(segment2);
         double dist_between_segments2 = segment1.b.distance_to(segment2);
-        printf("w = %f, dist0 = %f, dist1 = %f, diff = %f, seglength = %f, edgelen = %f, s2s = %f / %f\n",
-            unscale(this->width),
-            unscale(dist0), unscale(dist1), unscale(diff), unscale(segment1.length()),
+        printf("w = %f/%f, dist0 = %f, dist1 = %f, diff = %f, seg1len = %f, seg2len = %f, edgelen = %f, s2s = %f / %f\n",
+            unscale(this->max_width), unscale(this->min_width),
+            unscale(dist0), unscale(dist1), unscale(diff),
+            unscale(segment1.length()), unscale(segment2.length()),
             unscale(this->edge_to_line(edge).length()),
             unscale(dist_between_segments1), unscale(dist_between_segments2)
             );
-        if (dist0 < SCALED_EPSILON && dist1 < SCALED_EPSILON) {
-            printf(" => too thin, skipping\n");
-            //return false;
+        */
+        
+        // if this segment is the centerline for a very thin area, we might want to skip it
+        // in case the area is too thin
+        if (dist0 < this->min_width/2 || dist1 < this->min_width/2) {
+            //printf(" => too thin, skipping\n");
+            return false;
         }
+        
+        /*
         // if distance between this edge and the thin area boundary is greater
         // than half the max width, then it's not a true medial axis segment
         if (dist1 > this->width*2) {
@@ -295,9 +296,10 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         }
         */
         
+        return true;
     }
     
-    return true;
+    return false;
 }
 
 Line

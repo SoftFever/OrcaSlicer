@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 12;
 use strict;
 use warnings;
 
@@ -9,9 +9,9 @@ BEGIN {
 
 use Slic3r;
 use List::Util qw(first);
-use Slic3r::Geometry qw(epsilon scale unscale);
+use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon Y);
 use Slic3r::Test;
-goto TTT;
+
 {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('layer_height', 0.2);
@@ -59,20 +59,20 @@ goto TTT;
         [160, 140],
     );
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
-    my $res = $expolygon->medial_axis(scale 10);
+    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a square shape is a single closed loop';
     ok $res->[0]->length > $hole_in_square->length && $res->[0]->length < $square->length,
         'medial axis loop has reasonable length';
 }
 
-TTT: {
+{
     my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
         [100, 100],
         [120, 100],
         [120, 200],
         [100, 200],
     ));
-    my $res = $expolygon->medial_axis(scale 10);
+    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a narrow rectangle is a single line';
     ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
     
@@ -83,13 +83,11 @@ TTT: {
         [105, 200],  # extra point in the short side
         [100, 200],
     ));
-    my $res2 = $expolygon->medial_axis(scale 10);
-    use Slic3r::SVG;
-    Slic3r::SVG::output(
-        "thin.svg",
-        expolygons => [$expolygon],
-        polylines => $res2,
-    );
+    my $res2 = $expolygon->medial_axis(scale 1, scale 0.5);
+    is scalar(@$res), 1, 'medial axis of a narrow rectangle with an extra vertex is still a single line';
+    ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has still a reasonable length';
+    ok !(grep { abs($_ - scale 150) < scaled_epsilon } map $_->[Y], map @$_, @$res2), "extra vertices don't influence medial axis";
+    
 }
 
 {
@@ -99,7 +97,7 @@ TTT: {
         [112, 200],
         [108, 200],
     ));
-    my $res = $expolygon->medial_axis(scale 10);
+    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a narrow trapezoid is a single line';
     ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
 }
@@ -113,19 +111,10 @@ TTT: {
         [200, 200],
         [100, 200],
     ));
-    my $res = $expolygon->medial_axis(scale 20);
+    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a L shape is a single polyline';
     my $len = unscale($res->[0]->length) + 20;  # 20 is the thickness of the expolygon, which is subtracted from the ends
     ok $len > 80*2 && $len < 100*2, 'medial axis has reasonable length';
-    
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(
-            "thin.svg",
-            expolygons => [$expolygon],
-            polylines => $res,
-        );
-    }
 }
 
 __END__

@@ -223,11 +223,13 @@ sub make_perimeters {
     $self->perimeters->append(@loops);
     
     # process thin walls by collapsing slices to single passes
-    # the following offset2 ensures nothing in @thin_walls is narrower than $pwidth/10
-    @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -$pwidth/10, +$pwidth/10)};
+    # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
+    # (actually, something larger than that still may exist due to mitering or other causes)
+    my $min_width = $pwidth / 4;
+    @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -$min_width/2, +$min_width/2)};
     if (@thin_walls) {
         # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-        my @p = map @{$_->medial_axis($pwidth + $pspacing)}, @thin_walls;
+        my @p = map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls;
         
         if (0) {
             require "Slic3r/SVG.pm";
@@ -241,9 +243,7 @@ sub make_perimeters {
         }
         
         my @paths = ();
-        my $min_thin_wall_length = 2*$pwidth;
         for my $p (@p) {
-            next if $p->length < $min_thin_wall_length;
             my %params = (
                 role        => EXTR_ROLE_EXTERNAL_PERIMETER,
                 mm3_per_mm  => $mm3_per_mm,
