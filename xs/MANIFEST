@@ -1648,7 +1648,6 @@ src/boost/utility/swap.hpp
 src/boost/utility/value_init.hpp
 src/boost/version.hpp
 src/boost/visit_each.hpp
-src/voronoi_visual_utils.hpp
 src/BoundingBox.cpp
 src/BoundingBox.hpp
 src/clipper.cpp
