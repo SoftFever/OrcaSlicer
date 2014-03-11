@@ -280,21 +280,35 @@ sub make_perimeters {
     
     # fill gaps
     {
-        # inset gap area to get the right spacing with the surrounding perimeters
-        @gaps = @{offset_ex([ map @$_, @gaps ], -$pspacing/2)};
-        
-        my %path_args = (
-            role        => EXTR_ROLE_GAPFILL,
-            mm3_per_mm  => $solid_infill_flow->mm3_per_mm($self->height),
-        );
-        $self->thin_fills->append(map {
-            $_->isa('Slic3r::Polygon')
-                ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # should we keep these as loops?
-                : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
-        } map @{$_->medial_axis($pwidth/2, $pwidth/10)}, @gaps);
+        my $fill_gaps = sub {
+            my ($min, $max, $w) = @_;
+            
+            my $this = diff_ex(
+                offset2([ map @$_, @gaps ], -$min/2, +$min/2),
+                offset2([ map @$_, @gaps ], -$max/2, +$max/2),
+                1,
+            );
+            
+            my $flow = $self->flow(FLOW_ROLE_SOLID_INFILL, 0, $w);
+            my %path_args = (
+                role        => EXTR_ROLE_GAPFILL,
+                mm3_per_mm  => $flow->mm3_per_mm($self->height),
+            );
+            my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
+            $self->thin_fills->append(map {
+                $_->isa('Slic3r::Polygon')
+                    ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # should we keep these as loops?
+                    : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
+            } @polylines);
 
-        Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @gaps, $pwidth
-            if @{ $self->thin_fills };
+            Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @$this, $w
+                if @$this;
+        };
+        
+        # where $pwidth < thickness < 2*$pspacing, infill with width = 1.5*$pwidth
+        # where 0.5*$pwidth < thickness < $pwidth, infill with width = 0.5*$pwidth
+        $fill_gaps->($pwidth, 2*$pspacing, unscale 1.5*$pwidth);
+        $fill_gaps->(0.5*$pwidth, $pwidth, unscale 0.5*$pwidth);
     }
 }
 
