@@ -1099,10 +1099,11 @@ sub auto_assign_extruders {
         if (defined $volume->material_id) {
             my $material = $model_object->model->materials->{ $volume->material_id };
             my $config = $material->config;
-            $config->set_ifndef('perimeter_extruder', $i);
-            $config->set_ifndef('infill_extruder', $i);
-            $config->set_ifndef('support_material_extruder', $i);
-            $config->set_ifndef('support_material_interface_extruder', $i);
+            my $extruder_id = $i + 1;
+            $config->set_ifndef('perimeter_extruder', $extruder_id);
+            $config->set_ifndef('infill_extruder', $extruder_id);
+            $config->set_ifndef('support_material_extruder', $extruder_id);
+            $config->set_ifndef('support_material_interface_extruder', $extruder_id);
         }
     }
 }
