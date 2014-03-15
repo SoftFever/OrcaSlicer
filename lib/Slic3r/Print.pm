@@ -1050,7 +1050,14 @@ sub expanded_output_filepath {
     } else {
         # path is a full path to a file so we use it as it is
     }
-    return $self->config->replace_options($path, { %{$self->extra_variables}, %$extra_variables });
+    
+    # get a full set options for replacing placeholders in output filename format
+    # (only use the first region's and first object's options)
+    my $full_config = Slic3r::Config->new;
+    $full_config->apply_static($self->config);
+    $full_config->apply_static($self->regions->[0]->config) if @{$self->regions};
+    $full_config->apply_static($self->objects->[0]->config) if @{$self->objects};
+    return $full_config->replace_options($path, { %{$self->extra_variables}, %$extra_variables });
 }
 
 # given the path to a file, this function returns its filename with and without extension
