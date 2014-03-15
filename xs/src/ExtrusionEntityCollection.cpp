@@ -1,4 +1,5 @@
 #include "ExtrusionEntityCollection.hpp"
+#include <map>
 
 namespace Slic3r {
 
@@ -34,25 +35,30 @@ ExtrusionEntityCollection::last_point() const
 }
 
 ExtrusionEntityCollection*
-ExtrusionEntityCollection::chained_path(bool no_reverse) const
+ExtrusionEntityCollection::chained_path(bool no_reverse, std::vector<size_t>* orig_indices) const
 {
     if (this->entities.empty()) {
         return new ExtrusionEntityCollection ();
     }
-    return this->chained_path_from(this->entities.front()->first_point(), no_reverse);
+    return this->chained_path_from(this->entities.front()->first_point(), no_reverse, orig_indices);
 }
 
 ExtrusionEntityCollection*
-ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse) const
+ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse, std::vector<size_t>* orig_indices) const
 {
     if (this->no_sort) return this->clone();
     ExtrusionEntityCollection* retval = new ExtrusionEntityCollection;
     retval->entities.reserve(this->entities.size());
     retval->orig_indices.reserve(this->entities.size());
     
+    // if we're asked to return the original indices, build a map
+    std::map<ExtrusionEntity*,size_t> indices_map;
+    
     ExtrusionEntitiesPtr my_paths;
     for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
-        my_paths.push_back((*it)->clone());
+        ExtrusionEntity* entity = (*it)->clone();
+        my_paths.push_back(entity);
+        if (orig_indices != NULL) indices_map[entity] = it - this->entities.begin();
     }
     
     Points endpoints;
@@ -69,11 +75,12 @@ ExtrusionEntityCollection::chained_path_from(Point* start_near, bool no_reverse)
         // find nearest point
         int start_index = start_near->nearest_point_index(endpoints);
         int path_index = start_index/2;
+        ExtrusionEntity* entity = my_paths.at(path_index);
         if (start_index % 2 && !no_reverse) {
-            my_paths.at(path_index)->reverse();
+            entity->reverse();
         }
         retval->entities.push_back(my_paths.at(path_index));
-        retval->orig_indices.push_back(path_index);
+        if (orig_indices != NULL) orig_indices->push_back(indices_map[entity]);
         my_paths.erase(my_paths.begin() + path_index);
         endpoints.erase(endpoints.begin() + 2*path_index, endpoints.begin() + 2*path_index + 2);
         start_near = retval->entities.back()->last_point();

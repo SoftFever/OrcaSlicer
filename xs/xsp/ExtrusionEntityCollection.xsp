@@ -20,7 +20,7 @@
         %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
     int count()
         %code{% RETVAL = THIS->entities.size(); %};
-    std::vector<int> orig_indices()
+    std::vector<size_t> orig_indices()
         %code{% RETVAL = THIS->orig_indices; %};
 %{
 
@@ -76,6 +76,17 @@ ExtrusionEntityCollection::no_sort(...)
             THIS->no_sort = SvTRUE(ST(1));
         }
         RETVAL = THIS->no_sort;
+    OUTPUT:
+        RETVAL
+
+ExtrusionEntityCollection*
+ExtrusionEntityCollection::chained_path_indices(bool no_reverse)
+    PREINIT:
+        const char* CLASS = "Slic3r::ExtrusionPath::Collection";
+    CODE:
+        std::vector<size_t> indices;
+        RETVAL = THIS->chained_path(no_reverse, &indices);
+        RETVAL->orig_indices = indices;
     OUTPUT:
         RETVAL
 

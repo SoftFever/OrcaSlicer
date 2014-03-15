@@ -233,7 +233,7 @@ sub make_perimeters {
         
         # use a nearest neighbor search to order these children
         # TODO: supply second argument to chained_path() too?
-        my $sorted_collection = $collection->chained_path(0);
+        my $sorted_collection = $collection->chained_path_indices(0);
         my @orig_indices = @{$sorted_collection->orig_indices};
         
         my @loops = ();

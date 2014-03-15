@@ -2,6 +2,7 @@
 %typemap{std::string};
 %typemap{t_config_option_key};
 %typemap{std::vector<int>};
+%typemap{std::vector<size_t>};
 %typemap{std::vector<unsigned int>*};
 %typemap{std::vector<double>};
 %typemap{std::vector<double>*};

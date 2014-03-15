@@ -1,4 +1,5 @@
 std::vector<Points::size_type>  T_STD_VECTOR_INT
+std::vector<size_t>  T_STD_VECTOR_INT
 t_config_option_key T_STD_STRING
 
 BoundingBox*         O_OBJECT
