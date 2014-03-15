@@ -29,6 +29,8 @@
     bool is_valid();
     void clip_end(double distance);
     void clip_start(double distance);
+    void extend_end(double distance);
+    void extend_start(double distance);
     void simplify(double tolerance);
 %{
 

@@ -43,7 +43,7 @@ Polyline::clip_end(double distance)
         }
         
         Line segment(last_point, *this->last_point());
-        this->points.push_back(*segment.point_at(distance));
+        this->points.push_back(segment.point_at(distance));
         distance = 0;
     }
 }
@@ -55,6 +55,23 @@ Polyline::clip_start(double distance)
     this->reverse();
     this->clip_end(distance);
     if (this->points.size() >= 2) this->reverse();
+}
+
+void
+Polyline::extend_end(double distance)
+{
+    // relocate last point by extending the last segment by the specified length
+    Line line(this->points[ this->points.size()-2 ], this->points.back());
+    this->points.pop_back();
+    this->points.push_back(line.point_at(line.length() + distance));
+}
+
+void
+Polyline::extend_start(double distance)
+{
+    // relocate first point by extending the first segment by the specified length
+    Line line(this->points[1], this->points.front());
+    this->points[0] = line.point_at(line.length() + distance);
 }
 
 /* this method returns a collection of points picked on the polygon contour
@@ -79,7 +96,7 @@ Polyline::equally_spaced_points(double distance) const
         
         double take = segment_length - (len - distance);  // how much we take of this segment
         Line segment(*(it-1), *it);
-        pts.push_back(*segment.point_at(take));
+        pts.push_back(segment.point_at(take));
         it--;
         len = -take;
     }

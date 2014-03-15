@@ -16,6 +16,8 @@ class Polyline : public MultiPoint {
     Lines lines() const;
     void clip_end(double distance);
     void clip_start(double distance);
+    void extend_end(double distance);
+    void extend_start(double distance);
     Points equally_spaced_points(double distance) const;
     void simplify(double tolerance);
     

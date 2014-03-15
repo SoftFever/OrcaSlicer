@@ -62,15 +62,22 @@ Line::midpoint() const
     return new Point ((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
 }
 
-Point*
-Line::point_at(double distance) const
+void
+Line::point_at(double distance, Point* point) const
 {
     double len = this->length();
-    Point* p = new Point(this->a);
+    *point = this->a;
     if (this->a.x != this->b.x)
-        p->x = this->a.x + (this->b.x - this->a.x) * distance / len;
+        point->x = this->a.x + (this->b.x - this->a.x) * distance / len;
     if (this->a.y != this->b.y)
-        p->y = this->a.y + (this->b.y - this->a.y) * distance / len;
+        point->y = this->a.y + (this->b.y - this->a.y) * distance / len;
+}
+
+Point
+Line::point_at(double distance) const
+{
+    Point p;
+    this->point_at(distance, &p);
     return p;
 }
 
