@@ -72,7 +72,7 @@ sub process_layer {
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
     $gcode .= $self->gcodegen->change_layer($layer);
-    $gcode .= $self->gcodegen->replace_variables($self->print->config->layer_gcode, {
+    $gcode .= $self->gcodegen->placeholder_parser->process($self->print->config->layer_gcode, {
         layer_num => $self->gcodegen->layer->id,
     }) . "\n" if $self->print->config->layer_gcode;
     

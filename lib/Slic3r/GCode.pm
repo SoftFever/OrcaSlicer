@@ -9,7 +9,7 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 use Slic3r::Surface ':types';
 
 has 'print_config'       => (is => 'ro', default => sub { Slic3r::Config::Print->new });
-has 'extra_variables'    => (is => 'rw', default => sub {{}});
+has 'placeholder_parser' => (is => 'rw', default => sub { Slic3r::GCode::PlaceholderParser->new });
 has 'standby_points'     => (is => 'rw');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'rw', default => sub {0});   # at least one extruder has wipe enabled
@@ -649,7 +649,7 @@ sub set_extruder {
     
     # append custom toolchange G-code
     if (defined $self->extruder && $self->print_config->toolchange_gcode) {
-        $gcode .= sprintf "%s\n", $self->replace_variables($self->print_config->toolchange_gcode, {
+        $gcode .= sprintf "%s\n", $self->placeholder_parser->process($self->print_config->toolchange_gcode, {
             previous_extruder   => $self->extruder->id,
             next_extruder       => $extruder_id,
         });
@@ -746,11 +746,6 @@ sub set_bed_temperature {
         if $self->print_config->gcode_flavor eq 'teacup' && $wait;
     
     return $gcode;
-}
-
-sub replace_variables {
-    my ($self, $string, $extra) = @_;
-    return $self->print_config->replace_options($string, { %{$self->extra_variables}, %{ $extra || {} } });
 }
 
 1;

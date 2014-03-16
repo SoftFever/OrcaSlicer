@@ -15,7 +15,7 @@ use Slic3r::Print::State ':steps';
 has 'config'                 => (is => 'ro', default => sub { Slic3r::Config::Print->new });
 has 'default_object_config'  => (is => 'ro', default => sub { Slic3r::Config::PrintObject->new });
 has 'default_region_config'  => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new });
-has 'extra_variables'        => (is => 'rw', default => sub {{}});
+has 'placeholder_parser'     => (is => 'rw', default => sub { Slic3r::GCode::PlaceholderParser->new });
 has 'objects'                => (is => 'rw', default => sub {[]});
 has 'status_cb'              => (is => 'rw');
 has 'regions'                => (is => 'rw', default => sub {[]});
@@ -31,6 +31,9 @@ has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->n
 
 sub apply_config {
     my ($self, $config) = @_;
+    
+    # apply variables to placeholder parser
+    $self->placeholder_parser->apply_config($config);
     
     # handle changes to print config
     my $print_diff = $self->config->diff($config);
@@ -185,12 +188,6 @@ sub add_model_object {
         splice @{$self->objects}, $obj_idx, 0, $o;
     } else {
         push @{$self->objects}, $o;
-    }
-    
-    if (!defined $self->extra_variables->{input_filename}) {
-        if (defined (my $input_file = $object->input_file)) {
-            @{$self->extra_variables}{qw(input_filename input_filename_base)} = parse_filename($input_file);
-        }
     }
     
     $self->_state->invalidate(STEP_SKIRT);
@@ -825,10 +822,13 @@ sub write_gcode {
         print  $fh "\n";
     }
     
-    # set up our extruder object
+    # prepare the helper object for replacing placeholders in custom G-code and output filename
+    
+    
+    # set up our helper object
     my $gcodegen = Slic3r::GCode->new(
         print_config        => $self->config,
-        extra_variables     => $self->extra_variables,
+        placeholder_parser  => $self->placeholder_parser,
         layer_count         => $self->layer_count,
     );
     $gcodegen->set_extruders($self->extruders);
@@ -853,7 +853,7 @@ sub write_gcode {
         }
     };
     $print_first_layer_temperature->(0);
-    printf $fh "%s\n", $gcodegen->replace_variables($self->config->start_gcode);
+    printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->start_gcode);
     $print_first_layer_temperature->(1);
     
     # set other general things
@@ -997,7 +997,7 @@ sub write_gcode {
     # write end commands to file
     print $fh $gcodegen->retract if $gcodegen->extruder;  # empty prints don't even set an extruder
     print $fh $gcodegen->set_fan(0);
-    printf $fh "%s\n", $gcodegen->replace_variables($self->config->end_gcode);
+    printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->end_gcode);
     
     $self->total_used_filament(0);
     $self->total_extruded_volume(0);
@@ -1029,15 +1029,18 @@ sub write_gcode {
 # format variables with their values
 sub expanded_output_filepath {
     my $self = shift;
-    my ($path, $input_file) = @_;
+    my ($path) = @_;
     
-    my $extra_variables = {};
-    if ($input_file) {
-        @$extra_variables{qw(input_filename input_filename_base)} = parse_filename($input_file);
-    } else {
-        # if no input file was supplied, take the first one from our objects
-        $input_file = $self->objects->[0]->model_object->input_file // return undef;
-    }
+    return undef if !@{$self->objects};
+    my $input_file = first { defined $_ } map $_->model_object->input_file, @{$self->objects};
+    return undef if !defined $input_file;
+    
+    my $filename = my $filename_base = basename($input_file);
+    $filename_base =~ s/\.[^.]+$//;  # without suffix
+    my $extra = {
+        input_filename      => $filename,
+        input_filename_base => $filename_base,
+    };
     
     if ($path && -d $path) {
         # if output path is an existing directory, we take that and append
@@ -1051,27 +1054,7 @@ sub expanded_output_filepath {
         # path is a full path to a file so we use it as it is
     }
     
-    # get a full set options for replacing placeholders in output filename format
-    # (only use the first region's and first object's options)
-    my $full_config = Slic3r::Config->new;
-    $full_config->apply_static($self->config);
-    $full_config->apply_static($self->regions->[0]->config) if @{$self->regions};
-    $full_config->apply_static($self->objects->[0]->config) if @{$self->objects};
-    return $full_config->replace_options($path, { %{$self->extra_variables}, %$extra_variables });
-}
-
-# given the path to a file, this function returns its filename with and without extension
-sub parse_filename {
-    my ($path) = @_;
-    
-    my $filename = my $filename_base = basename($path);
-    $filename_base =~ s/\.[^.]+$//;
-    return ($filename, $filename_base);
-}
-
-sub apply_extra_variables {
-    my ($self, $extra) = @_;
-    $self->extra_variables->{$_} = $extra->{$_} for keys %$extra;
+    return $self->placeholder_parser->process($path, $extra);
 }
 
 sub invalidate_step {

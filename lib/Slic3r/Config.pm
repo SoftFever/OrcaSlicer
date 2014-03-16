@@ -359,46 +359,6 @@ sub validate {
     return 1;
 }
 
-sub replace_options {
-    my $self = shift;
-    my ($string, $more_variables) = @_;
-    
-    $more_variables ||= {};
-    $more_variables->{$_} = $ENV{$_} for grep /^SLIC3R_/, keys %ENV;
-    {
-        my $variables_regex = join '|', keys %$more_variables;
-        $string =~ s/\[($variables_regex)\]/$more_variables->{$1}/eg;
-    }
-    
-    my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
-    $string =~ s/\[timestamp\]/sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0]/egx;
-    $string =~ s/\[year\]/$lt[5]/eg;
-    $string =~ s/\[month\]/$lt[4]/eg;
-    $string =~ s/\[day\]/$lt[3]/eg;
-    $string =~ s/\[hour\]/$lt[2]/eg;
-    $string =~ s/\[minute\]/$lt[1]/eg;
-    $string =~ s/\[second\]/$lt[0]/eg;
-    $string =~ s/\[version\]/$Slic3r::VERSION/eg;
-    
-    # build a regexp to match the available options
-    my @options = grep !$Slic3r::Config::Options->{$_}{multiline}, @{$self->get_keys};
-    my $options_regex = join '|', @options;
-    
-    # use that regexp to search and replace option names with option values
-    # it looks like passing $1 as argument to serialize() directly causes a segfault
-    # (maybe some perl optimization? maybe regex captures are not regular SVs?)
-    $string =~ s/\[($options_regex)\]/my $opt_key = $1; $self->serialize($opt_key)/eg;
-    foreach my $opt_key (grep ref $self->$_ eq 'ARRAY', @options) {
-        my $value = $self->$opt_key;
-        $string =~ s/\[${opt_key}_${_}\]/$value->[$_]/eg for 0 .. $#$value;
-        if ($Options->{$opt_key}{type} eq 'point') {
-            $string =~ s/\[${opt_key}_X\]/$value->[0]/eg;
-            $string =~ s/\[${opt_key}_Y\]/$value->[1]/eg;
-        }
-    }
-    return $string;
-}
-
 # min object distance is max(duplicate_distance, clearance_radius)
 sub min_object_distance {
     my $self = shift;

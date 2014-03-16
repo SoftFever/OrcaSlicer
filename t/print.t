@@ -1,4 +1,4 @@
-use Test::More tests => 4;
+use Test::More tests => 2;
 use strict;
 use warnings;
 
@@ -28,15 +28,6 @@ use Slic3r::Test;
     my $center = $bb->center;
     ok abs(unscale($center->[X]) - $config->print_center->[X]) < epsilon, 'print is centered around print_center (X)';
     ok abs(unscale($center->[Y]) - $config->print_center->[Y]) < epsilon, 'print is centered around print_center (Y)';
-}
-
-{
-    my $config = Slic3r::Config->new_from_defaults;
-    $config->set('output_filename_format', '[travel_speed]_[layer_height].gcode');
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    my $output_file = $print->expanded_output_filepath(undef, "foo.stl");
-    ok $output_file !~ /\[travel_speed\]/, 'print config options are replaced in output filename';
-    ok $output_file !~ /\[layer_height\]/, 'region config options are replaced in output filename';
 }
 
 __END__

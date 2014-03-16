@@ -101,7 +101,7 @@ sub model {
     $mesh->scale($params{scale}) if $params{scale};
     
     my $model = Slic3r::Model->new;
-    my $object = $model->add_object;
+    my $object = $model->add_object(input_file => "${model_name}.stl");
     $object->add_volume(mesh => $mesh);
     $object->add_instance(
         offset      => [0,0],
