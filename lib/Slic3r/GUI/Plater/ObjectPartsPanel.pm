@@ -144,7 +144,8 @@ sub selection_changed {
     
     # disable things as if nothing is selected
     $self->{btn_delete}->Disable;
-    $self->{settings_panel}->Disable;
+    $self->{settings_panel}->disable;
+    $self->{settings_panel}->set_config(undef);
     
     my $itemData = $self->get_selection;
     if ($itemData && $itemData->{type} eq 'volume') {
@@ -156,7 +157,7 @@ sub selection_changed {
         my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
         my $material = $self->{model_object}->model->materials->{ $volume->material_id // '_' };
         $material //= $volume->assign_unique_material;
-        $self->{settings_panel}->Enable;
+        $self->{settings_panel}->enable;
         $self->{settings_panel}->set_config($material->config);
     }
     

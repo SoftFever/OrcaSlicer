@@ -26,10 +26,10 @@ sub new {
         # get all options with object scope and sort them by category+label
         my %settings = map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) } @opt_keys;
         $self->{options} = [ sort { $settings{$a} cmp $settings{$b} } keys %settings ];
-        my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [ map $settings{$_}, @{$self->{options}} ]);
+        my $choice = $self->{choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [ map $settings{$_}, @{$self->{options}} ]);
         
         # create the button
-        my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
+        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
         EVT_BUTTON($self, $btn, sub {
             my $idx = $choice->GetSelection;
             return if $idx == -1;  # lack of selected item, can happen on Windows
@@ -94,6 +94,23 @@ sub update_optgroup {
         $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 10);
     }
     $self->Layout;
+}
+
+# work around a wxMAC bug causing controls not being disabled when calling Disable() on a Window
+sub enable {
+    my ($self) = @_;
+    
+    $self->{choice}->Enable;
+    $self->{btn_add}->Enable;
+    $self->Enable;
+}
+
+sub disable {
+    my ($self) = @_;
+    
+    $self->{choice}->Disable;
+    $self->{btn_add}->Disable;
+    $self->Disable;
 }
 
 1;
