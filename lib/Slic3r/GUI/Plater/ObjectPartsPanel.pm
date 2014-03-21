@@ -8,9 +8,8 @@ use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMA
 use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
-use constant ICON_MATERIAL      => 0;
-use constant ICON_SOLIDMESH     => 1;
-use constant ICON_MODIFIERMESH  => 2;
+use constant ICON_SOLIDMESH     => 0;
+use constant ICON_MODIFIERMESH  => 1;
 
 sub new {
     my $class = shift;
@@ -26,12 +25,10 @@ sub new {
     {
         $self->{tree_icons} = Wx::ImageList->new(16, 16, 1);
         $tree->AssignImageList($self->{tree_icons});
-        $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/tag_blue.png", wxBITMAP_TYPE_PNG));
-        $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG));
-        $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/package_green.png", wxBITMAP_TYPE_PNG));
+        $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG));   # ICON_SOLIDMESH
+        $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/plugin.png", wxBITMAP_TYPE_PNG));    # ICON_MODIFIERMESH
         
         $tree->AddRoot("");
-        $self->reload_tree;
     }
     
     # buttons
@@ -94,7 +91,7 @@ sub new {
     EVT_BUTTON($self, $self->{btn_load_modifier}, sub { $self->on_btn_load(1) });
     EVT_BUTTON($self, $self->{btn_delete}, \&on_btn_delete);
     
-    $self->selection_changed;
+    $self->reload_tree;
     
     return $self;
 }
@@ -123,6 +120,8 @@ sub reload_tree {
             volume_id   => $volume_id,
         });
     }
+    
+    $self->selection_changed;
 }
 
 sub get_selection {
