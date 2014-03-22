@@ -326,13 +326,14 @@ sub add_volume {
         );
         
         if (defined $volume->material_id) {
-            #  merge material attributes (should we rename materials in case of duplicates?)
+            #  merge material attributes and config (should we rename materials in case of duplicates?)
             if (my $material = $volume->object->model->materials->{$volume->material_id}) {
                 my %attributes = %{ $material->attributes };
                 if (exists $self->model->materials->{$volume->material_id}) {
-                    %attributes = (%attributes, %{ $self->model->materials->{$volume->material_id}->attributes });
+                    %attributes = (%attributes, %{ $self->model->materials->{$volume->material_id}->attributes })
                 }
-                $self->model->set_material($volume->material_id, {%attributes});
+                my $new_material = $self->model->set_material($volume->material_id, {%attributes});
+                $new_material->config->apply($material->config);
             }
         }
     } else {
