@@ -345,7 +345,7 @@ sub _slice_region {
             $mesh = $volume->mesh->clone;
         }
     }
-    next if !defined $mesh;
+    return if !defined $mesh;
 
     # transform mesh
     # we ignore the per-instance transformations currently and only 
