@@ -200,7 +200,7 @@ The author of the Silk icon set is Mark James.
         --top-solid-layers  Number of solid layers to do for top surfaces (range: 0+, default: 3)
         --bottom-solid-layers  Number of solid layers to do for bottom surfaces (range: 0+, default: 3)
         --solid-layers      Shortcut for setting the two options above at once
-        --fill-density      Infill density (range: 0-1, default: 0.4)
+        --fill-density      Infill density (range: 0%-100%, default: 40%)
         --fill-angle        Infill angle in degrees (range: 0-90, default: 45)
         --fill-pattern      Pattern to use to fill non-solid layers (default: honeycomb)
         --solid-fill-pattern Pattern to use to fill solid layers (default: rectilinear)

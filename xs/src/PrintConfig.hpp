@@ -241,11 +241,12 @@ class PrintConfigDef
         Options["fill_angle"].cli = "fill-angle=i";
         Options["fill_angle"].max = 359;
 
-        Options["fill_density"].type = coFloat;
+        Options["fill_density"].type = coPercent;
         Options["fill_density"].label = "Fill density";
         Options["fill_density"].category = "Infill";
-        Options["fill_density"].tooltip = "Density of internal infill, expressed in the range 0 - 1.";
-        Options["fill_density"].cli = "fill-density=f";
+        Options["fill_density"].tooltip = "Density of internal infill, expressed in the range 0% - 100%.";
+        Options["fill_density"].sidetext = "%";
+        Options["fill_density"].cli = "fill-density=s";
 
         Options["fill_pattern"].type = coEnum;
         Options["fill_pattern"].label = "Fill pattern";
@@ -962,7 +963,7 @@ class PrintRegionConfig : public virtual StaticConfig
     ConfigOptionInt                 bottom_solid_layers;
     ConfigOptionBool                extra_perimeters;
     ConfigOptionInt                 fill_angle;
-    ConfigOptionFloat               fill_density;
+    ConfigOptionPercent             fill_density;
     ConfigOptionEnum<InfillPattern> fill_pattern;
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
@@ -984,7 +985,7 @@ class PrintRegionConfig : public virtual StaticConfig
         this->bottom_solid_layers.value                          = 3;
         this->extra_perimeters.value                             = true;
         this->fill_angle.value                                   = 45;
-        this->fill_density.value                                 = 0.4;
+        this->fill_density.value                                 = 40;
         this->fill_pattern.value                                 = ipHoneycomb;
         this->infill_extruder.value                              = 1;
         this->infill_extrusion_width.value                       = 0;

@@ -119,6 +119,11 @@ sub _handle_legacy {
     if ($opt_key eq 'gcode_flavor' && $value eq 'makerbot') {
         $value = 'makerware';
     }
+    if ($opt_key eq 'fill_density' && $value <= 1) {
+        # fill_density was turned into a percent value
+        $value *= 100;
+        $value = "$value";  # force update of the PV value, workaround for bug https://rt.cpan.org/Ticket/Display.html?id=94110
+    }
     
     # For historical reasons, the world's full of configs having these very low values;
     # to avoid unexpected behavior we need to ignore them.  Banning these two hard-coded
@@ -258,9 +263,9 @@ sub validate {
     
     # --fill-density
     die "Invalid value for --fill-density\n"
-        if $self->fill_density < 0 || $self->fill_density > 1;
+        if $self->fill_density < 0 || $self->fill_density > 100;
     die "The selected fill pattern is not supposed to work at 100% density\n"
-        if $self->fill_density == 1
+        if $self->fill_density == 100
             && !first { $_ eq $self->fill_pattern } @{$Options->{solid_fill_pattern}{values}};
     
     # --infill-every-layers
@@ -343,10 +348,11 @@ sub validate {
             @values = ($self->$opt_key);
         }
         foreach my $value (@values) {
-            if ($type eq 'i' || $type eq 'f') {
+            if ($type eq 'i' || $type eq 'f' || $opt->{type} eq 'percent') {
+                $value =~ s/%$// if $opt->{type} eq 'percent';
                 die "Invalid value for $opt_key\n"
                     if ($type eq 'i' && $value !~ /^-?\d+$/)
-                    || ($type eq 'f' && $value !~ /^-?(?:\d+|\d*\.\d+)$/)
+                    || (($type eq 'f' || $opt->{type} eq 'percent') && $value !~ /^-?(?:\d+|\d*\.\d+)$/)
                     || (defined $opt->{min} && $value < $opt->{min})
                     || (defined $opt->{max} && $value > $opt->{max});
             } elsif ($type eq 's' && $opt->{type} eq 'select') {

@@ -165,7 +165,7 @@ sub _build_field {
     
     my $field;
     my $tooltip = $opt->{tooltip};
-    if ($opt->{type} =~ /^(i|f|s|s@)$/) {
+    if ($opt->{type} =~ /^(i|f|s|s@|percent)$/) {
         my $style = 0;
         $style = wxTE_MULTILINE if $opt->{multiline};
         # default width on Windows is too large

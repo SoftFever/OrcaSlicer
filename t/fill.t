@@ -172,7 +172,7 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     $config->set('fill_pattern', $pattern);
     $config->set('perimeters', 1);
     $config->set('skirts', 0);
-    $config->set('fill_density', 0.2);
+    $config->set('fill_density', 20);
     $config->set('layer_height', 0.05);
     $config->set('perimeter_extruder', 1);
     $config->set('infill_extruder', 2);

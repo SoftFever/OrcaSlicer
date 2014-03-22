@@ -181,6 +181,30 @@ class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::
     };
 };
 
+class ConfigOptionPercent : public ConfigOption
+{
+    public:
+    double value;
+    ConfigOptionPercent() : value(0) {};
+    
+    double get_abs_value(double ratio_over) const {
+        return ratio_over * this->value / 100;
+    };
+    
+    std::string serialize() const {
+        std::ostringstream ss;
+        ss << this->value;
+        std::string s(ss.str());
+        s += "%";
+        return s;
+    };
+    
+    void deserialize(std::string str) {
+        // don't try to parse the trailing % since it's optional
+        sscanf(str.c_str(), "%lf", &this->value);
+    };
+};
+
 class ConfigOptionFloatOrPercent : public ConfigOption
 {
     public:
@@ -360,6 +384,7 @@ enum ConfigOptionType {
     coInts,
     coString,
     coStrings,
+    coPercent,
     coFloatOrPercent,
     coPoint,
     coPoints,

@@ -192,7 +192,7 @@ sub make_fill {
         
         # force 100% density and rectilinear fill for external surfaces
         if ($surface->surface_type != S_TYPE_INTERNAL) {
-            $density = 1;
+            $density = 100;
             $filler = $layerm->config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
@@ -209,7 +209,7 @@ sub make_fill {
         $f->angle($layerm->config->fill_angle);
         my ($params, @polylines) = $f->fill_surface(
             $surface,
-            density => $density,
+            density => $density/100,
             flow    => $flow,
         );
         next unless @polylines;

@@ -95,6 +95,8 @@ ConfigBase::get(t_config_option_key opt_key) {
     if (opt == NULL) return &PL_sv_undef;
     if (ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt)) {
         return newSVnv(optv->value);
+    } else if (ConfigOptionPercent* optv = dynamic_cast<ConfigOptionPercent*>(opt)) {
+        return newSVnv(optv->value);
     } else if (ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt)) {
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
@@ -257,6 +259,8 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
                 opt = new ConfigOptionString ();
             } else if (optdef->type == coStrings) {
                 opt = new ConfigOptionStrings ();
+            } else if (optdef->type == coPercent) {
+                opt = new ConfigOptionPercent ();
             } else if (optdef->type == coFloatOrPercent) {
                 opt = new ConfigOptionFloatOrPercent ();
             } else if (optdef->type == coPoint) {

@@ -604,7 +604,7 @@ sub bridge_over_infill {
     
     for my $region_id (0..$#{$self->print->regions}) {
         my $fill_density = $self->print->regions->[$region_id]->config->fill_density;
-        next if $fill_density == 1 || $fill_density == 0;
+        next if $fill_density == 100 || $fill_density == 0;
         
         for my $layer_id (1..$#{$self->layers}) {
             my $layer       = $self->layers->[$layer_id];
