@@ -171,19 +171,27 @@ sub _build_field {
         # default width on Windows is too large
         my $size = Wx::Size->new($opt->{width} || 60, $opt->{height} || -1);
         
-        $field = $opt->{type} eq 'i'
-            ? Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default})
-            : Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
-        $field->Disable if $opt->{readonly};
-        
         my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
         if ($opt->{type} eq 'i') {
+            $field = Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default});
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             EVT_SPINCTRL ($self->parent, $field, $on_change);
+        } elsif ($opt->{values}) {
+            $field = Wx::ComboBox->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $opt->{labels} || $opt->{values});
+            $self->_setters->{$opt_key} = sub {
+                $field->SetValue($_[0]);
+            };
+            EVT_COMBOBOX($self->parent, $field, sub {
+                $field->SetValue($opt->{values}[ $field->GetSelection ]);  # set the text field to the selected value
+                $self->_on_change($opt_key, $on_change);
+            });
+            EVT_TEXT($self->parent, $field, $on_change);
         } else {
+            $field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
             $self->_setters->{$opt_key} = sub { $field->ChangeValue($_[0]) };
             EVT_TEXT ($self->parent, $field, $on_change);
         }
+        $field->Disable if $opt->{readonly};
         $tooltip .= " (default: " . $opt->{default} .  ")" if ($opt->{default});
     } elsif ($opt->{type} eq 'bool') {
         $field = Wx::CheckBox->new($self->parent, -1, "");

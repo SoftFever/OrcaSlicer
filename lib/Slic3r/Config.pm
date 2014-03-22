@@ -262,8 +262,6 @@ sub validate {
         if !first { $_ eq $self->solid_fill_pattern } @{$Options->{solid_fill_pattern}{values}};
     
     # --fill-density
-    die "Invalid value for --fill-density\n"
-        if $self->fill_density < 0 || $self->fill_density > 100;
     die "The selected fill pattern is not supposed to work at 100% density\n"
         if $self->fill_density == 100
             && !first { $_ eq $self->fill_pattern } @{$Options->{solid_fill_pattern}{values}};
