@@ -8,7 +8,7 @@ ConfigBase::has(const t_config_option_key opt_key) {
 }
 
 void
-ConfigBase::apply(ConfigBase &other, bool ignore_nonexistent) {
+ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent) {
     // get list of option keys to apply
     t_config_option_keys opt_keys;
     other.keys(&opt_keys);
@@ -169,13 +169,6 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
     ConfigOption* opt = this->option(opt_key, true);
     if (opt == NULL) CONFESS("Trying to set non-existing option");
     
-    ConfigOptionDef* optdef = &(*this->def)[opt_key];
-    if (!optdef->shortcut.empty()) {
-        for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it)
-            this->set(*it, value);
-        return;
-    }
-    
     if (ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt)) {
         optv->value = SvNV(value);
     } else if (ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt)) {
@@ -241,6 +234,11 @@ DynamicConfig::~DynamicConfig () {
     }
 }
 
+DynamicConfig::DynamicConfig (const DynamicConfig& other) {
+    this->def = other.def;
+    this->apply(other, false);
+}
+
 ConfigOption*
 DynamicConfig::option(const t_config_option_key opt_key, bool create) {
     if (this->options.count(opt_key) == 0) {
@@ -287,8 +285,13 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
     return this->options[opt_key];
 }
 
+const ConfigOption*
+DynamicConfig::option(const t_config_option_key opt_key) const {
+    return const_cast<DynamicConfig*>(this)->option(opt_key, false);
+}
+
 void
-DynamicConfig::keys(t_config_option_keys *keys) {
+DynamicConfig::keys(t_config_option_keys *keys) const {
     for (t_options_map::const_iterator it = this->options.begin(); it != this->options.end(); ++it)
         keys->push_back(it->first);
 }
@@ -299,11 +302,62 @@ DynamicConfig::erase(const t_config_option_key opt_key) {
 }
 
 void
-StaticConfig::keys(t_config_option_keys *keys) {
+StaticConfig::keys(t_config_option_keys *keys) const {
     for (t_optiondef_map::const_iterator it = this->def->begin(); it != this->def->end(); ++it) {
-        ConfigOption* opt = this->option(it->first);
+        const ConfigOption* opt = this->option(it->first);
         if (opt != NULL) keys->push_back(it->first);
     }
 }
+
+void
+StaticConfig::apply(const DynamicConfig &other, bool ignore_nonexistent) {
+    // clone the other config so that we can remove shortcut options after applying them
+    DynamicConfig other_clone = other;
+    
+    // get list of option keys to apply
+    t_config_option_keys opt_keys;
+    other_clone.keys(&opt_keys);
+    
+    // loop through options and apply them
+    for (t_config_option_keys::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
+        // if this is not a shortcut, skip it
+        ConfigOptionDef* optdef = &(*this->def)[*opt_key];
+        if (optdef->shortcut.empty()) continue;
+        
+        // expand the option into other_clone if it does not exist already
+        for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it) {
+            if (other_clone.has(*it)) continue;
+            ConfigOption* my_opt = other_clone.option(*it, true);
+            
+            // not the most efficient way, but easier than casting pointers to subclasses
+            my_opt->deserialize( other_clone.option(*opt_key)->serialize() );
+        }
+        
+        // remove the shortcut option from other_clone
+        other_clone.erase(*opt_key);
+    }
+    
+    static_cast<ConfigBase*>(this)->apply(other_clone, ignore_nonexistent);
+}
+
+const ConfigOption*
+StaticConfig::option(const t_config_option_key opt_key) const
+{
+    return const_cast<StaticConfig*>(this)->option(opt_key, false);
+}
+
+#ifdef SLIC3RXS
+void
+StaticConfig::set(t_config_option_key opt_key, SV* value) {
+    ConfigOptionDef* optdef = &(*this->def)[opt_key];
+    if (!optdef->shortcut.empty()) {
+        for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it)
+            this->set(*it, value);
+        return;
+    }
+    
+    static_cast<ConfigBase*>(this)->set(opt_key, value);
+}
+#endif
 
 }

@@ -408,6 +408,7 @@ sub load_model_objects {
             $o->add_instance(offset => [ @{$self->{config}->print_center} ]);
         }
     
+        $self->{print}->auto_assign_extruders($o);
         $self->{print}->add_model_object($o);
     }
     

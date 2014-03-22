@@ -431,8 +431,9 @@ class ConfigBase
     ConfigBase() : def(NULL) {};
     bool has(const t_config_option_key opt_key);
     virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
-    virtual void keys(t_config_option_keys *keys) = 0;
-    void apply(ConfigBase &other, bool ignore_nonexistent = false);
+    virtual const ConfigOption* option(const t_config_option_key opt_key) const = 0;
+    virtual void keys(t_config_option_keys *keys) const = 0;
+    void apply(const ConfigBase &other, bool ignore_nonexistent = false);
     std::string serialize(const t_config_option_key opt_key);
     void set_deserialize(const t_config_option_key opt_key, std::string str);
     double get_abs_value(const t_config_option_key opt_key);
@@ -450,13 +451,14 @@ class DynamicConfig : public ConfigBase
 {
     public:
     DynamicConfig() {};
+    DynamicConfig(const DynamicConfig& other);
     ~DynamicConfig();
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
-    void keys(t_config_option_keys *keys);
+    const ConfigOption* option(const t_config_option_key opt_key) const;
+    void keys(t_config_option_keys *keys) const;
     void erase(const t_config_option_key opt_key);
     
     private:
-    DynamicConfig(const DynamicConfig& other);              // we disable this by making it private and unimplemented
     DynamicConfig& operator= (const DynamicConfig& other);  // we disable this by making it private and unimplemented
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
     t_options_map options;
@@ -465,7 +467,18 @@ class DynamicConfig : public ConfigBase
 class StaticConfig : public ConfigBase
 {
     public:
-    void keys(t_config_option_keys *keys);
+    void keys(t_config_option_keys *keys) const;
+    void apply(const ConfigBase &other, bool ignore_nonexistent = false) {
+        // this proxy appears to be needed otherwise the inherited signature couldn't be found from .xsp
+        ConfigBase::apply(other, ignore_nonexistent);
+    };
+    void apply(const DynamicConfig &other, bool ignore_nonexistent = false);
+    virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
+    const ConfigOption* option(const t_config_option_key opt_key) const;
+    
+    #ifdef SLIC3RXS
+    void set(t_config_option_key opt_key, SV* value);
+    #endif
 };
 
 }

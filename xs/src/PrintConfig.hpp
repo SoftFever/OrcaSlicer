@@ -172,10 +172,11 @@ class PrintConfigDef
         Options["extra_perimeters"].cli = "extra-perimeters!";
 
         Options["extruder"].type = coInt;
-        Options["extruder"].label = "Extruder";
+        Options["extruder"].label = "Default extruder";
         Options["extruder"].cli = "extruder=i";
-        Options["extruder"].shortcut.push_back("perimeter_extruder");
+        Options["extruder"].min = 1;
         Options["extruder"].shortcut.push_back("infill_extruder");
+        Options["extruder"].shortcut.push_back("perimeter_extruder");
         Options["extruder"].shortcut.push_back("support_material_extruder");
         Options["extruder"].shortcut.push_back("support_material_interface_extruder");
 
@@ -397,6 +398,7 @@ class PrintConfigDef
         Options["infill_extruder"].category = "Extruders";
         Options["infill_extruder"].tooltip = "The extruder to use when printing infill.";
         Options["infill_extruder"].cli = "infill-extruder=i";
+        Options["infill_extruder"].min = 1;
 
         Options["infill_extrusion_width"].type = coFloatOrPercent;
         Options["infill_extrusion_width"].label = "Infill";
@@ -515,6 +517,7 @@ class PrintConfigDef
         Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters.";
         Options["perimeter_extruder"].cli = "perimeter-extruder=i";
         Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
+        Options["perimeter_extruder"].min = 1;
 
         Options["perimeter_extrusion_width"].type = coFloatOrPercent;
         Options["perimeter_extrusion_width"].label = "Perimeters";
@@ -762,6 +765,7 @@ class PrintConfigDef
         Options["support_material_extruder"].category = "Extruders";
         Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
         Options["support_material_extruder"].cli = "support-material-extruder=i";
+        Options["support_material_extruder"].min = 1;
 
         Options["support_material_extrusion_width"].type = coFloatOrPercent;
         Options["support_material_extrusion_width"].label = "Support material";
@@ -775,6 +779,7 @@ class PrintConfigDef
         Options["support_material_interface_extruder"].category = "Extruders";
         Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
         Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
+        Options["support_material_interface_extruder"].min = 1;
 
         Options["support_material_interface_layers"].type = coInt;
         Options["support_material_interface_layers"].label = "Interface layers";

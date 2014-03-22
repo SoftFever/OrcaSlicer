@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 91;
+use Test::More tests => 94;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -97,8 +97,6 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
 {
     my $config = Slic3r::Config->new;
     $config->set('perimeters', 2);
-    $config->set('solid_layers', 2);
-    is $config->get('top_solid_layers'), 2, 'shortcut';
     
     # test that no crash happens when using set_deserialize() with a key that hasn't been set() yet
     $config->set_deserialize('filament_diameter', '3');
@@ -126,6 +124,24 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config2->set('fill_pattern', 'hilbertcurve');
     
     is $config->get('fill_pattern'), 'line', 'no interferences between DynamicConfig objects';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('extruder', 2);
+    is $config->get('extruder'), 2, 'shortcut option value is kept in dynamic config';
+    ok !$config->has('perimeter_extruder'), 'shortcut is not expanded in dynamic config';
+    
+    {
+        my $config2 = Slic3r::Config::Full->new;
+        $config2->set('extruder', 2);
+        is $config2->get('perimeter_extruder'), 2, 'shortcut is expanded in static config (set)';
+    }
+    {
+        my $config3 = Slic3r::Config::Full->new;
+        $config3->apply_dynamic($config);
+        is $config3->get('perimeter_extruder'), 2, 'shortcut is expanded in static config (apply)';
+    }
 }
 
 __END__

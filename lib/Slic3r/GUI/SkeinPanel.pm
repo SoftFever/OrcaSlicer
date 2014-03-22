@@ -392,7 +392,7 @@ sub config {
                 $filament_config = $config;
                 next;
             }
-            foreach my $opt_key (keys %$config) {
+            foreach my $opt_key (@{$config->get_keys}) {
                 next unless ref $filament_config->get($opt_key) eq 'ARRAY';
                 push @{ $filament_config->get($opt_key) }, $config->get($opt_key)->[0];
             }
