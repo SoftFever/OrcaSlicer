@@ -17,16 +17,12 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = $params{config};  # may be passed as undef
-    my @opt_keys = @{$params{opt_keys}};
     
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     
     # option selector
     {
-        # get all options with object scope and sort them by category+label
-        my %settings = map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) } @opt_keys;
-        $self->{options} = [ sort { $settings{$a} cmp $settings{$b} } keys %settings ];
-        my $choice = $self->{choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [ map $settings{$_}, @{$self->{options}} ]);
+        my $choice = $self->{choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
         
         # create the button
         my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
@@ -50,9 +46,21 @@ sub new {
     $self->SetSizer($self->{sizer});
     $self->SetScrollbars(0, 1, 0, 1);
     
+    $self->set_opt_keys($params{opt_keys}) if $params{opt_keys};
     $self->update_optgroup;
     
     return $self;
+}
+
+sub set_opt_keys {
+    my ($self, $opt_keys) = @_;
+    
+    # sort options by category+label
+    my %settings = map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) } @$opt_keys;
+    $self->{options} = [ sort { $settings{$a} cmp $settings{$b} } keys %settings ];
+    
+    $self->{choice}->Clear;
+    $self->{choice}->Append($_) for map $settings{$_}, @{$self->{options}};
 }
 
 sub set_config {

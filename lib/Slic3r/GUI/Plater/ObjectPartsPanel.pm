@@ -8,8 +8,9 @@ use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMA
 use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
-use constant ICON_SOLIDMESH     => 0;
-use constant ICON_MODIFIERMESH  => 1;
+use constant ICON_OBJECT        => 0;
+use constant ICON_SOLIDMESH     => 1;
+use constant ICON_MODIFIERMESH  => 2;
 
 sub new {
     my $class = shift;
@@ -20,15 +21,17 @@ sub new {
     
     # create TreeCtrl
     my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [300, 100], 
-        wxTR_NO_BUTTONS | wxSUNKEN_BORDER | wxTR_HAS_VARIABLE_ROW_HEIGHT | wxTR_HIDE_ROOT
-        | wxTR_MULTIPLE | wxTR_NO_BUTTONS | wxTR_NO_LINES);
+        wxTR_NO_BUTTONS | wxSUNKEN_BORDER | wxTR_HAS_VARIABLE_ROW_HEIGHT
+        | wxTR_SINGLE | wxTR_NO_BUTTONS);
     {
         $self->{tree_icons} = Wx::ImageList->new(16, 16, 1);
         $tree->AssignImageList($self->{tree_icons});
+        $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/brick.png", wxBITMAP_TYPE_PNG));     # ICON_OBJECT
         $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG));   # ICON_SOLIDMESH
         $self->{tree_icons}->Add(Wx::Bitmap->new("$Slic3r::var/plugin.png", wxBITMAP_TYPE_PNG));    # ICON_MODIFIERMESH
         
-        $tree->AddRoot("");
+        my $rootId = $tree->AddRoot("Object", ICON_OBJECT);
+        $tree->SetPlData($rootId, { type => 'object' });
     }
     
     # buttons
@@ -51,11 +54,8 @@ sub new {
     $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
-    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new(
-        $self,
-        opt_keys => Slic3r::Config::PrintRegion->new->get_keys,
-    );
-    my $settings_sizer = Wx::StaticBoxSizer->new(Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self);
+    my $settings_sizer = Wx::StaticBoxSizer->new($self->{staticbox} = Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
     $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
     
     # left pane with tree
@@ -120,6 +120,7 @@ sub reload_tree {
             volume_id   => $volume_id,
         });
     }
+    $tree->ExpandAll;
     
     $self->selection_changed;
 }
@@ -147,18 +148,36 @@ sub selection_changed {
     $self->{settings_panel}->disable;
     $self->{settings_panel}->set_config(undef);
     
-    my $itemData = $self->get_selection;
-    if ($itemData && $itemData->{type} eq 'volume') {
-        if ($self->{canvas}) {
-            $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+    if (my $itemData = $self->get_selection) {
+        if ($itemData->{type} eq 'volume') {
+            # select volume in 3D preview
+            if ($self->{canvas}) {
+                $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+            }
+            $self->{btn_delete}->Enable;
+            
+            # attach volume material config to settings panel
+            my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
+            my $material = $self->{model_object}->model->materials->{ $volume->material_id // '_' };
+            $material //= $volume->assign_unique_material;
+            $self->{staticbox}->SetLabel('Part Settings');
+            $self->{settings_panel}->enable;
+            $self->{settings_panel}->set_opt_keys(Slic3r::Config::PrintRegion->new->get_keys);
+            $self->{settings_panel}->set_config($material->config);
+        } elsif ($itemData->{type} eq 'object') {
+            # select all object volumes in 3D preview
+            if ($self->{canvas}) {
+                $_->{selected} = 1 for @{$self->{canvas}->volumes};
+            }
+            
+            # attach object config to settings panel
+            $self->{staticbox}->SetLabel('Object Settings');
+            $self->{settings_panel}->enable;
+            $self->{settings_panel}->set_opt_keys(
+                [ map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new ]
+            );
+            $self->{settings_panel}->set_config($self->{model_object}->config);
         }
-        $self->{btn_delete}->Enable;
-        
-        my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
-        my $material = $self->{model_object}->model->materials->{ $volume->material_id // '_' };
-        $material //= $volume->assign_unique_material;
-        $self->{settings_panel}->enable;
-        $self->{settings_panel}->set_config($material->config);
     }
     
     $self->{canvas}->Render if $self->{canvas};
@@ -217,6 +236,22 @@ sub on_btn_delete {
         $self->{canvas}->load_object($self->{model_object});
         $self->{canvas}->Render;
     }
+}
+
+sub CanClose {
+    my $self = shift;
+    
+    return 1;  # skip validation for now
+    
+    # validate options before allowing user to dismiss the dialog
+    # the validate method only works on full configs so we have
+    # to merge our settings with the default ones
+    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->model_object->config);
+    eval {
+        $config->validate;
+    };
+    return 0 if Slic3r::GUI::catch_error($self);    
+    return 1;
 }
 
 1;

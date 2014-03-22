@@ -14,14 +14,13 @@ sub new {
     $self->{$_} = $params{$_} for keys %params;
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
-    $self->{tabpanel}->AddPage($self->{settings} = Slic3r::GUI::Plater::ObjectDialog::SettingsTab->new($self->{tabpanel}), "Settings");
-    $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}), "Layers");
     $self->{tabpanel}->AddPage($self->{parts} = Slic3r::GUI::Plater::ObjectPartsPanel->new($self->{tabpanel}, model_object => $params{model_object}), "Parts");
+    $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}), "Layers");
     
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
     EVT_BUTTON($self, wxID_OK, sub {
         # validate user input
-        return if !$self->{settings}->CanClose;
+        return if !$self->{parts}->CanClose;
         return if !$self->{layers}->CanClose;
         
         # notify tabs
@@ -47,54 +46,6 @@ use base 'Wx::Panel';
 sub model_object {
     my ($self) = @_;
     return $self->GetParent->GetParent->{model_object};
-}
-
-package Slic3r::GUI::Plater::ObjectDialog::SettingsTab;
-use Wx qw(:dialog :id :misc :sizer :systemsettings :button :icon);
-use Wx::Grid;
-use Wx::Event qw(EVT_BUTTON);
-use base 'Slic3r::GUI::Plater::ObjectDialog::BaseTab';
-
-sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
-    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
-    
-    $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
-    
-    # descriptive text
-    {
-        my $label = Wx::StaticText->new($self, -1, "You can use this section to override some settings just for this object.",
-            wxDefaultPosition, [-1, 25]);
-        $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-        $self->{sizer}->Add($label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
-    }
-    
-    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new(
-        $self,
-        config => $self->model_object->config,
-        opt_keys => [ map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new ],
-    );
-    $self->{sizer}->Add($self->{settings_panel}, 1, wxEXPAND | wxLEFT | wxRIGHT, 10);
-    
-    $self->SetSizer($self->{sizer});
-    $self->{sizer}->SetSizeHints($self);
-    
-    return $self;
-}
-
-sub CanClose {
-    my $self = shift;
-    
-    # validate options before allowing user to dismiss the dialog
-    # the validate method only works on full configs so we have
-    # to merge our settings with the default ones
-    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->model_object->config);
-    eval {
-        $config->validate;
-    };
-    return 0 if Slic3r::GUI::catch_error($self);    
-    return 1;
 }
 
 package Slic3r::GUI::Plater::ObjectDialog::LayersTab;
