@@ -119,7 +119,7 @@ sub _handle_legacy {
     if ($opt_key eq 'gcode_flavor' && $value eq 'makerbot') {
         $value = 'makerware';
     }
-    if ($opt_key eq 'fill_density' && $value <= 1) {
+    if ($opt_key eq 'fill_density' && defined($value) && $value <= 1) {
         # fill_density was turned into a percent value
         $value *= 100;
         $value = "$value";  # force update of the PV value, workaround for bug https://rt.cpan.org/Ticket/Display.html?id=94110

@@ -893,8 +893,10 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Save preset", wxDefaultPosition, wxDefaultSize);
     
+    my @values = grep $_ ne '- default -', @{$params{values}};
+    
     my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", wxDefaultPosition, wxDefaultSize);
-    $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, wxDefaultPosition, wxDefaultSize, $params{values},
+    $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, wxDefaultPosition, wxDefaultSize, \@values,
                                        wxTE_PROCESS_ENTER);
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     
@@ -916,10 +918,12 @@ sub accept {
     my ($self, $event) = @_;
 
     if (($self->{chosen_name} = $self->{combo}->GetValue)) {
-        if ($self->{chosen_name} =~ /^[^<>:\/\\|?*\"]+$/i) {
-            $self->EndModal(wxID_OK);
-        } else {
+        if ($self->{chosen_name} !~ /^[^<>:\/\\|?*\"]+$/i) {
             Slic3r::GUI::show_error($self, "The supplied name is not valid; the following characters are not allowed: <>:/\|?*\"");
+        } elsif ($self->{chosen_name} eq '- default -') {
+            Slic3r::GUI::show_error($self, "The supplied name is not available.");
+        } else {
+            $self->EndModal(wxID_OK);
         }
     }
 }
