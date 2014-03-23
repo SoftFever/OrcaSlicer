@@ -1165,6 +1165,7 @@ sub object_settings_dialog {
     if (!defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
     }
+    my $model_object = $self->{model}->objects->[$obj_idx];
     
     # validate config before opening the settings dialog because
     # that dialog can't be closed if validation fails, but user
@@ -1173,9 +1174,20 @@ sub object_settings_dialog {
     
     my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
 		object          => $self->{objects}[$obj_idx],
-		model_object    => $self->{model}->objects->[$obj_idx],
+		model_object    => $model_object,
 	);
 	$dlg->ShowModal;
+	
+	# update thumbnail since parts may have changed
+	if ($dlg->PartsChanged) {
+    	$self->make_thumbnail($obj_idx);
+	}
+	
+	# update print
+	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
+        $self->{print}->delete_object($obj_idx);
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    }
 }
 
 sub object_list_changed {

@@ -40,6 +40,16 @@ sub new {
     return $self;
 }
 
+sub PartsChanged {
+    my ($self) = @_;
+    return $self->{parts}->PartsChanged;
+}
+
+sub PartSettingsChanged {
+    my ($self) = @_;
+    return $self->{parts}->PartSettingsChanged;
+}
+
 package Slic3r::GUI::Plater::ObjectDialog::BaseTab;
 use base 'Wx::Panel';
 

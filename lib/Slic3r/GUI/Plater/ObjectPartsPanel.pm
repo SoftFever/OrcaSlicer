@@ -54,7 +54,7 @@ sub new {
     $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
-    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self);
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; });
     my $settings_sizer = Wx::StaticBoxSizer->new($self->{staticbox} = Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
     $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
     
@@ -210,6 +210,8 @@ sub on_btn_load {
                 # set a default extruder value, since user can't add it manually
                 my $material = $self->{model_object}->model->materials->{$new_volume->material_id};
                 $material->config->set_ifndef('extruder', 1);
+                
+                $self->{parts_changed} = 1;
             }
         }
     }
@@ -235,6 +237,7 @@ sub on_btn_delete {
         }
         
         $self->{model_object}->delete_volume($itemData->{volume_id});
+        $self->{parts_changed} = 1;
     }
     
     $self->reload_tree;
@@ -258,6 +261,16 @@ sub CanClose {
     };
     return 0 if Slic3r::GUI::catch_error($self);    
     return 1;
+}
+
+sub PartsChanged {
+    my ($self) = @_;
+    return $self->{parts_changed};
+}
+
+sub PartSettingsChanged {
+    my ($self) = @_;
+    return $self->{part_settings_changed};
 }
 
 1;

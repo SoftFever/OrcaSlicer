@@ -331,7 +331,7 @@ sub _slice_region {
     my ($self, $region_id, $z, $modifier) = @_;
 
     return [] if !defined $self->region_volumes->[$region_id];
-
+    
     # compose mesh
     my $mesh;
     foreach my $volume_id (@{$self->region_volumes->[$region_id]}) {

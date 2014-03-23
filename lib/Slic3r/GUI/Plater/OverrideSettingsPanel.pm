@@ -17,6 +17,7 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = $params{config};  # may be passed as undef
+    $self->{on_change} = $params{on_change};
     
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     
@@ -36,6 +37,7 @@ sub new {
                 EVT_MENU($menu, $id, sub {
                     $self->{config}->apply(Slic3r::Config->new_from_defaults($opt_key));
                     $self->update_optgroup;
+                    $self->{on_change}->() if $self->{on_change};
                 });
             }
             $self->PopupMenu($menu, $btn->GetPosition);
@@ -94,6 +96,7 @@ sub update_optgroup {
             label_font  => $Slic3r::GUI::small_font,
             sidetest_font => $Slic3r::GUI::small_font,
             label_width => 120,
+            on_change   => sub { $self->{on_change}->() if $self->{on_change} },
             extra_column => sub {
                 my ($line) = @_;
                 my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
@@ -105,6 +108,7 @@ sub update_optgroup {
                     wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
                 EVT_BUTTON($self, $btn, sub {
                     $self->{config}->erase($opt_key);
+                    $self->{on_change}->() if $self->{on_change};
                     Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
                 });
                 return $btn;
