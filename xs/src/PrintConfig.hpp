@@ -252,6 +252,7 @@ class PrintConfigDef
         Options["fill_density"].cli = "fill-density=s";
         Options["fill_density"].min = 0;
         Options["fill_density"].max = 100;
+        Options["fill_density"].enum_values.push_back("0");
         Options["fill_density"].enum_values.push_back("5");
         Options["fill_density"].enum_values.push_back("10");
         Options["fill_density"].enum_values.push_back("15");
@@ -265,6 +266,7 @@ class PrintConfigDef
         Options["fill_density"].enum_values.push_back("80");
         Options["fill_density"].enum_values.push_back("90");
         Options["fill_density"].enum_values.push_back("100");
+        Options["fill_density"].enum_labels.push_back("0%");
         Options["fill_density"].enum_labels.push_back("5%");
         Options["fill_density"].enum_labels.push_back("10%");
         Options["fill_density"].enum_labels.push_back("15%");
