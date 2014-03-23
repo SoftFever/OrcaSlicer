@@ -199,11 +199,17 @@ sub on_btn_load {
                 my $new_volume = $self->{model_object}->add_volume($volume);
                 $new_volume->modifier($is_modifier);
                 if (!defined $new_volume->material_id) {
+                    # it looks like this block is never entered because all input volumes seem to have an assigned material
+                    # TODO: check we can assume that for any input format
                     my $material_name = basename($input_file);
                     $material_name =~ s/\.(stl|obj)$//i;
-                    $self->{model_object}->model->set_material($material_name);
+                    my $material = $self->{model_object}->model->set_material($material_name);
                     $new_volume->material_id($material_name);
                 }
+                
+                # set a default extruder value, since user can't add it manually
+                my $material = $self->{model_object}->model->materials->{$new_volume->material_id};
+                $material->config->set_ifndef('extruder', 1);
             }
         }
     }

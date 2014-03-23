@@ -117,7 +117,7 @@ sub _build_line {
     my ($line, $grid_sizer) = @_;
     
     if ($self->extra_column) {
-        if (defined my $item = $self->extra_column->($line)) {
+        if (defined (my $item = $self->extra_column->($line))) {
             $grid_sizer->Add($item, 0, wxALIGN_CENTER_VERTICAL, 0);
         } else {
             $grid_sizer->AddSpacer(1);
