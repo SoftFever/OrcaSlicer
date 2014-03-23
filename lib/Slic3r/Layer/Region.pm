@@ -261,6 +261,12 @@ sub make_perimeters {
                         $i--;
                     }
                 }
+                
+                # order holes efficiently
+                @holes = @{Slic3r::Geometry::chained_path_items(
+                    [ map [ ($_->{outer} // $_->{hole})->first_point, $_ ], @holes ],
+                )};
+                
                 push @loops, reverse map $traverse->([$_], 0), @holes;
             }
             push @loops, $traverse->($polynode->{children}, $depth+1, $is_contour);
