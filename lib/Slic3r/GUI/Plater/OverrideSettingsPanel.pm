@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename);
 use Wx qw(:misc :sizer :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG);
-use Wx::Event qw(EVT_BUTTON);
+use Wx::Event qw(EVT_BUTTON EVT_LEFT_DOWN EVT_MENU);
 use base 'Wx::ScrolledWindow';
 
 use constant ICON_MATERIAL      => 0;
@@ -22,20 +22,23 @@ sub new {
     
     # option selector
     {
-        my $choice = $self->{choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], []);
-        
         # create the button
         my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
-        EVT_BUTTON($self, $btn, sub {
-            my $idx = $choice->GetSelection;
-            return if $idx == -1;  # lack of selected item, can happen on Windows
-            my $opt_key = $self->{options}[$idx];
-            $self->{config}->apply(Slic3r::Config->new_from_defaults($opt_key));
-            $self->update_optgroup;
+        EVT_LEFT_DOWN($btn, sub {
+            my $menu = Wx::Menu->new;
+            foreach my $opt_key (@{$self->{options}}) {
+                my $id = &Wx::NewId();
+                $menu->Append($id, $self->{option_labels}{$opt_key});
+                EVT_MENU($menu, $id, sub {
+                    $self->{config}->apply(Slic3r::Config->new_from_defaults($opt_key));
+                    $self->update_optgroup;
+                });
+            }
+            $self->PopupMenu($menu, $btn->GetPosition);
+            $menu->Destroy;
         });
         
         my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $h_sizer->Add($choice, 1, wxEXPAND | wxALL, 0);
         $h_sizer->Add($btn, 0, wxEXPAND | wxLEFT, 10);
         $self->{sizer}->Add($h_sizer, 0, wxEXPAND | wxBOTTOM, 10);
     }
@@ -56,11 +59,10 @@ sub set_opt_keys {
     my ($self, $opt_keys) = @_;
     
     # sort options by category+label
-    my %settings = map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) } @$opt_keys;
-    $self->{options} = [ sort { $settings{$a} cmp $settings{$b} } keys %settings ];
-    
-    $self->{choice}->Clear;
-    $self->{choice}->Append($_) for map $settings{$_}, @{$self->{options}};
+    $self->{option_labels} = {
+        map { $_ => sprintf('%s > %s', $Slic3r::Config::Options->{$_}{category}, $Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) } @$opt_keys
+    };
+    $self->{options} = [ sort { $self->{option_labels}{$a} cmp $self->{option_labels}{$b} } @$opt_keys ];
 }
 
 sub set_config {
@@ -108,7 +110,6 @@ sub update_optgroup {
 sub enable {
     my ($self) = @_;
     
-    $self->{choice}->Enable;
     $self->{btn_add}->Enable;
     $self->Enable;
 }
@@ -116,7 +117,6 @@ sub enable {
 sub disable {
     my ($self) = @_;
     
-    $self->{choice}->Disable;
     $self->{btn_add}->Disable;
     $self->Disable;
 }
