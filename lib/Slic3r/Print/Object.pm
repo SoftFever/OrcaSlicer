@@ -246,7 +246,10 @@ sub slice {
                     
                     # remove such parts from original region
                     $other_layerm->slices->clear;
-                    $other_layerm->append($_) for @{ diff($other_slices, $my_parts) };
+                    $other_layerm->slices->append(Slic3r::Surface->new(
+                        expolygon    => $_,
+                        surface_type => S_TYPE_INTERNAL,
+                    )) for @{ diff_ex($other_slices, [ map @$_, @$my_parts ]) };
                 }
             }
         }
