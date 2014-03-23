@@ -254,6 +254,10 @@ sub make_perimeters {
                             $i--;
                         }
                     }
+                    
+                    # order holes efficiently
+                    @holes = @holes[@{chained_path([ map {($_->{outer} // $_->{hole})->first_point} @holes ])}];
+                    
                     push @loops, reverse map $traverse->([$_], 0, 0), @holes;
                 }
                 
