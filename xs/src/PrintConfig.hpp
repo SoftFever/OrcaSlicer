@@ -173,6 +173,8 @@ class PrintConfigDef
 
         Options["extruder"].type = coInt;
         Options["extruder"].label = "Default extruder";
+        Options["extruder"].category = "Extruders";
+        Options["extruder"].tooltip = "The extruder to use (unless more specific extruder settings are specified).";
         Options["extruder"].cli = "extruder=i";
         Options["extruder"].min = 1;
         Options["extruder"].shortcut.push_back("infill_extruder");

@@ -50,6 +50,8 @@ has 'on_change'     => (is => 'ro', default => sub { sub {} });
 has 'no_labels'     => (is => 'ro', default => sub { 0 });
 has 'label_width'   => (is => 'ro', default => sub { 180 });
 has 'extra_column'  => (is => 'ro');
+has 'label_font'    => (is => 'ro');
+has 'sidetext_font' => (is => 'ro', default => sub { Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) });
 
 has 'sizer'         => (is => 'rw');
 has '_triggers'     => (is => 'ro', default => sub { {} });
@@ -72,8 +74,6 @@ sub BUILD {
     
     # TODO: border size may be related to wxWidgets 2.8.x vs. 2.9.x instead of wxMAC specific
     $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
-    
-    $self->{sidetext_font} = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     
     foreach my $line (@{$self->lines}) {
         if ($line->{widget}) {
@@ -117,12 +117,17 @@ sub _build_line {
     my ($line, $grid_sizer) = @_;
     
     if ($self->extra_column) {
-        $grid_sizer->Add($self->extra_column->($line), 0, wxALIGN_CENTER_VERTICAL, 0);
+        if (defined my $item = $self->extra_column->($line)) {
+            $grid_sizer->Add($item, 0, wxALIGN_CENTER_VERTICAL, 0);
+        } else {
+            $grid_sizer->AddSpacer(1);
+        }
     }
     
     my $label;
     if (!$self->no_labels) {
         $label = Wx::StaticText->new($self->parent, -1, $line->{label} ? "$line->{label}:" : "", wxDefaultPosition, [$self->label_width, -1]);
+        $label->SetFont($self->label_font) if $self->label_font;
         $label->Wrap($self->label_width) ;  # needed to avoid Linux/GTK bug
         $grid_sizer->Add($label, 0, wxALIGN_CENTER_VERTICAL, 0);
         $label->SetToolTipString($line->{tooltip}) if $line->{tooltip};
@@ -140,14 +145,14 @@ sub _build_line {
         for my $i (0 .. $#fields) {
             if (@fields > 1 && $field_labels[$i]) {
                 my $field_label = Wx::StaticText->new($self->parent, -1, "$field_labels[$i]:", wxDefaultPosition, wxDefaultSize);
-                $field_label->SetFont($self->{sidetext_font});
+                $field_label->SetFont($self->sidetext_font);
                 $sizer->Add($field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
             }
             $sizer->Add($fields[$i], 0, wxALIGN_CENTER_VERTICAL, 0);
         }
         if ($line->{sidetext}) {
             my $sidetext = Wx::StaticText->new($self->parent, -1, $line->{sidetext}, wxDefaultPosition, wxDefaultSize);
-            $sidetext->SetFont($self->{sidetext_font});
+            $sidetext->SetFont($self->sidetext_font);
             $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
         }
         $grid_sizer->Add($sizer);

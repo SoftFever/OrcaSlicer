@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use File::Basename qw(basename);
+use List::Util qw(first);
 use Wx qw(:misc :sizer :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG);
 use Wx::Event qw(EVT_BUTTON EVT_LEFT_DOWN EVT_MENU);
 use base 'Wx::ScrolledWindow';
@@ -20,10 +20,14 @@ sub new {
     
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     
+    $self->{options_sizer} = Wx::BoxSizer->new(wxVERTICAL);
+    $self->{sizer}->Add($self->{options_sizer}, 0, wxEXPAND | wxALL, 0);
+    
     # option selector
     {
         # create the button
-        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG));
+        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG),
+            wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
         EVT_LEFT_DOWN($btn, sub {
             my $menu = Wx::Menu->new;
             foreach my $opt_key (@{$self->{options}}) {
@@ -39,12 +43,9 @@ sub new {
         });
         
         my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $h_sizer->Add($btn, 0, wxEXPAND | wxLEFT, 10);
+        $h_sizer->Add($btn, 0, wxALL, 0);
         $self->{sizer}->Add($h_sizer, 0, wxEXPAND | wxBOTTOM, 10);
     }
-    
-    $self->{options_sizer} = Wx::BoxSizer->new(wxVERTICAL);
-    $self->{sizer}->Add($self->{options_sizer}, 0, wxEXPAND | wxALL, 0);
     
     $self->SetSizer($self->{sizer});
     $self->SetScrollbars(0, 1, 0, 1);
@@ -90,10 +91,18 @@ sub update_optgroup {
             config      => $self->{config},
             options     => [ sort @{$categories{$category}} ],
             full_labels => 1,
+            label_font  => $Slic3r::GUI::small_font,
+            sidetest_font => $Slic3r::GUI::small_font,
+            label_width => 120,
             extra_column => sub {
                 my ($line) = @_;
                 my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
-                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
+                
+                # if this option is not listed in the ones the user can add, disallow deleting it
+                return undef if !first { $_ eq $opt_key } @{$self->{options}};
+                
+                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG),
+                    wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
                 EVT_BUTTON($self, $btn, sub {
                     $self->{config}->erase($opt_key);
                     Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
@@ -101,7 +110,7 @@ sub update_optgroup {
                 return $btn;
             },
         );
-        $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 10);
+        $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 0);
     }
     $self->Layout;
 }
