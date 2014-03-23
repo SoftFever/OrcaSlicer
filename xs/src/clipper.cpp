@@ -1,10 +1,10 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.1.2                                                           *
-* Date      :  15 December 2013                                                *
+* Version   :  6.1.3a                                                          *
+* Date      :  22 January 2014                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2013                                         *
+* Copyright :  Angus Johnson 2010-2014                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
@@ -491,7 +491,52 @@ bool PointIsVertex(const IntPoint &Pt, OutPt *pp)
 }
 //------------------------------------------------------------------------------
 
-int PointInPolygon (const IntPoint& pt, OutPt* op)
+int PointInPolygon (const IntPoint &pt, const Path &path)
+{
+  //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
+  //http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
+  int result = 0;
+  size_t cnt = path.size();
+  if (cnt < 3) return 0;
+  IntPoint ip = path[0];
+  for(size_t i = 1; i <= cnt; ++i)
+  {
+    IntPoint ipNext = (i == cnt ? path[0] : path[i]);
+    if (ipNext.Y == pt.Y)
+    {
+        if ((ipNext.X == pt.X) || (ip.Y == pt.Y && 
+          ((ipNext.X > pt.X) == (ip.X < pt.X)))) return -1;
+    }
+    if ((ip.Y < pt.Y) != (ipNext.Y < pt.Y))
+    {
+      if (ip.X >= pt.X)
+      {
+        if (ipNext.X > pt.X) result = 1 - result;
+        else
+        {
+          double d = (double)(ip.X - pt.X) * (ipNext.Y - pt.Y) - 
+            (double)(ipNext.X - pt.X) * (ip.Y - pt.Y);
+          if (!d) return -1;
+          if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
+        }
+      } else
+      {
+        if (ipNext.X > pt.X)
+        {
+          double d = (double)(ip.X - pt.X) * (ipNext.Y - pt.Y) - 
+            (double)(ipNext.X - pt.X) * (ip.Y - pt.Y);
+          if (!d) return -1;
+          if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
+        }
+      }
+    }
+    ip = ipNext;
+  } 
+  return result;
+}
+//------------------------------------------------------------------------------
+
+int PointInPolygon (const IntPoint &pt, OutPt *op)
 {
   //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
   //http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
@@ -534,7 +579,7 @@ int PointInPolygon (const IntPoint& pt, OutPt* op)
 }
 //------------------------------------------------------------------------------
 
-bool Poly2ContainsPoly1(OutPt* OutPt1, OutPt* OutPt2)
+bool Poly2ContainsPoly1(OutPt *OutPt1, OutPt *OutPt2)
 {
   OutPt* op = OutPt1;
   do
@@ -1126,11 +1171,9 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
   catch(...)
   {
     delete [] edges;
-    return false; //almost certainly a vertex has exceeded range
+    throw; //range test fails
   }
-
   TEdge *eStart = &edges[0];
-  if (!Closed) eStart->Prev->OutIdx = Skip;
 
   //2. Remove duplicate vertices, and (when closed) collinear edges ...
   TEdge *E = eStart, *eLoopStop = eStart;
@@ -1171,7 +1214,11 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
     return false;
   }
 
-  if (!Closed) m_HasOpenPaths = true;
+  if (!Closed)
+  { 
+    m_HasOpenPaths = true;
+    eStart->Prev->OutIdx = Skip;
+  }
 
   //3. Do second stage of edge initialization ...
   E = eStart;
@@ -1431,21 +1478,12 @@ void Clipper::ZFillFunction(TZFillCallback zFillFunc)
 //------------------------------------------------------------------------------
 #endif
 
-void Clipper::Clear()
-{
-  if (m_edges.empty()) return; //avoids problems with ClipperBase destructor
-  DisposeAllOutRecs();
-  ClipperBase::Clear();
-}
-//------------------------------------------------------------------------------
-
 void Clipper::Reset()
 {
   ClipperBase::Reset();
   m_Scanbeam.clear();
   m_ActiveEdges = 0;
   m_SortedEdges = 0;
-  DisposeAllOutRecs();
   LocalMinima* lm = m_MinimaList;
   while (lm)
   {
@@ -1469,6 +1507,7 @@ bool Clipper::Execute(ClipType clipType, Paths &solution,
   m_UsingPolyTree = false;
   bool succeeded = ExecuteInternal();
   if (succeeded) BuildResult(solution);
+  DisposeAllOutRecs();
   m_ExecuteLocked = false;
   return succeeded;
 }
@@ -1485,6 +1524,7 @@ bool Clipper::Execute(ClipType clipType, PolyTree& polytree,
   m_UsingPolyTree = true;
   bool succeeded = ExecuteInternal();
   if (succeeded) BuildResult2(polytree);
+  DisposeAllOutRecs();
   m_ExecuteLocked = false;
   return succeeded;
 }
@@ -2674,12 +2714,13 @@ void Clipper::PrepareHorzJoins(TEdge* horzEdge, bool isTopOfScanbeam)
   //First, match up overlapping horizontal edges (eg when one polygon's
   //intermediate horz edge overlaps an intermediate horz edge of another, or
   //when one polygon sits on top of another) ...
-  for (JoinList::size_type i = 0; i < m_GhostJoins.size(); ++i)
-  {
-    Join* j = m_GhostJoins[i];
-    if (HorzSegmentsOverlap(j->OutPt1->Pt, j->OffPt, horzEdge->Bot, horzEdge->Top))
-        AddJoin(j->OutPt1, outPt, j->OffPt);
-  }
+  //for (JoinList::size_type i = 0; i < m_GhostJoins.size(); ++i)
+  //{
+  //  Join* j = m_GhostJoins[i];
+  //  if (HorzSegmentsOverlap(j->OutPt1->Pt, j->OffPt, horzEdge->Bot, horzEdge->Top))
+  //      AddJoin(j->OutPt1, outPt, j->OffPt);
+  //}
+
   //Also, since horizontal edges at the top of one SB are often removed from
   //the AEL before we process the horizontal edges at the bottom of the next,
   //we need to create 'ghost' Join records of 'contrubuting' horizontals that
@@ -4255,6 +4296,15 @@ void ReversePaths(Paths& p)
 }
 //------------------------------------------------------------------------------
 
+void SimplifyPolygon(const Path &in_poly, Paths &out_polys, PolyFillType fillType)
+{
+  Clipper c;
+  c.StrictlySimple(true);
+  c.AddPath(in_poly, ptSubject, true);
+  c.Execute(ctUnion, out_polys, fillType, fillType);
+}
+//------------------------------------------------------------------------------
+
 void SimplifyPolygons(const Paths &in_polys, Paths &out_polys, PolyFillType fillType)
 {
   Clipper c;
@@ -4428,8 +4478,8 @@ void Minkowski(const Path& poly, const Path& path,
 
   Paths quads; 
   quads.reserve((pathCnt + delta) * (polyCnt + 1));
-  for (size_t i = 0; i <= pathCnt - 2 + delta; ++i)
-    for (size_t j = 0; j <= polyCnt - 1; ++j)
+  for (size_t i = 0; i < pathCnt - 1 + delta; ++i)
+    for (size_t j = 0; j < polyCnt; ++j)
     {
       Path quad;
       quad.reserve(4);
@@ -4447,15 +4497,30 @@ void Minkowski(const Path& poly, const Path& path,
 }
 //------------------------------------------------------------------------------
 
-void MinkowskiSum(const Path& poly, const Path& path, Paths& solution, bool isClosed)
+void MinkowskiSum(const Path& pattern, const Path& path, Paths& solution, bool pathIsClosed)
 {
-  Minkowski(poly, path, solution, true, isClosed);
+  Minkowski(pattern, path, solution, true, pathIsClosed);
 }
 //------------------------------------------------------------------------------
 
-void MinkowskiDiff(const Path& poly, const Path& path, Paths& solution, bool isClosed)
+void MinkowskiSum(const Path& pattern, const Paths& paths, Paths& solution, 
+    PolyFillType pathFillType, bool pathIsClosed)
 {
-  Minkowski(poly, path, solution, false, isClosed);
+  Clipper c;
+  for (size_t i = 0; i < paths.size(); ++i)
+  {
+    Paths tmp;
+    Minkowski(pattern, paths[i], tmp, true, pathIsClosed);
+    c.AddPaths(tmp, ptSubject, true);
+  }
+  if (pathIsClosed) c.AddPaths(paths, ptClip, true);
+  c.Execute(ctUnion, solution, pathFillType, pathFillType);
+}
+//------------------------------------------------------------------------------
+
+void MinkowskiDiff(const Path& poly1, const Path& poly2, Paths& solution)
+{
+  Minkowski(poly1, poly2, solution, false, true);
 }
 //------------------------------------------------------------------------------
 

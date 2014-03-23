@@ -1,10 +1,10 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.1.2                                                           *
-* Date      :  15 December 2013                                                *
+* Version   :  6.1.3a                                                          *
+* Date      :  22 January 2014                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2013                                         *
+* Copyright :  Angus Johnson 2010-2014                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
@@ -34,7 +34,7 @@
 #ifndef clipper_hpp
 #define clipper_hpp
 
-#define CLIPPER_VERSION "6.1.2"
+#define CLIPPER_VERSION "6.1.3"
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
@@ -166,6 +166,7 @@ private:
 
 bool Orientation(const Path &poly);
 double Area(const Path &poly);
+int PointInPolygon(const IntPoint &pt, const Path &path);
 
 #ifdef use_deprecated
   void OffsetPaths(const Paths &in_polys, Paths &out_polys,
@@ -181,8 +182,10 @@ void CleanPolygon(Path& poly, double distance = 1.415);
 void CleanPolygons(const Paths& in_polys, Paths& out_polys, double distance = 1.415);
 void CleanPolygons(Paths& polys, double distance = 1.415);
 
-void MinkowskiSum(const Path& poly, const Path& path, Paths& solution, bool isClosed);
-void MinkowskiDiff(const Path& poly, const Path& path, Paths& solution, bool isClosed);
+void MinkowskiSum(const Path& pattern, const Path& path, Paths& solution, bool pathIsClosed);
+void MinkowskiSum(const Path& pattern, const Paths& paths, 
+  Paths& solution, PolyFillType pathFillType, bool pathIsClosed);
+void MinkowskiDiff(const Path& poly1, const Path& poly2, Paths& solution);
 
 void PolyTreeToPaths(const PolyTree& polytree, Paths& paths);
 void ClosedPathsFromPolyTree(const PolyTree& polytree, Paths& paths);
@@ -259,7 +262,6 @@ public:
     PolyTree &polytree,
     PolyFillType subjFillType = pftEvenOdd,
     PolyFillType clipFillType = pftEvenOdd);
-  void Clear();
   bool ReverseSolution() {return m_ReverseOutput;};
   void ReverseSolution(bool value) {m_ReverseOutput = value;};
   bool StrictlySimple() {return m_StrictSimple;};
