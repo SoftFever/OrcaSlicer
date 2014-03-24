@@ -175,6 +175,10 @@ sub extrude {
 sub extrude_loop {
     my ($self, $loop, $description) = @_;
     
+    # make a copy; don't modify the orientation of the original loop object otherwise
+    # next copies (if any) would not detect the correct orientation
+    $loop = $loop->clone;
+    
     # extrude all loops ccw
     my $was_clockwise = $loop->make_counter_clockwise;
     my $polygon = $loop->polygon;

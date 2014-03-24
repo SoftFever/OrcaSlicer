@@ -43,6 +43,7 @@ use Slic3r::Test;
     
     {
         $config->set('external_perimeter_speed', 68);
+        $config->set('duplicate', 2);  # we test two copies to make sure ExtrusionLoop objects are not modified in-place (the second object would not detect cw loops and thus would calculate wrong inwards moves)
         my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
         my $has_cw_loops = my $has_outwards_move = 0;
         my $cur_loop;
@@ -58,6 +59,11 @@ use Slic3r::Test;
                     $has_cw_loops = 1 if Slic3r::Polygon->new_scale(@$cur_loop)->is_clockwise;
                     if ($self->F == $config->external_perimeter_speed*60) {
                         my $move_dest = Slic3r::Point->new_scale(@$info{qw(new_X new_Y)});
+                        
+                        # reset counter for second object
+                        $external_loops{$self->Z} = 0
+                            if defined($external_loops{$self->Z}) && $external_loops{$self->Z} == 2;
+                        
                         $external_loops{$self->Z}++;
                         $has_outwards_move = 1
                             if !Slic3r::Polygon->new_scale(@$cur_loop)->encloses_point($move_dest)
