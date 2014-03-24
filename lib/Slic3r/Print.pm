@@ -702,10 +702,10 @@ sub write_gcode {
     } else {
         Slic3r::open(\$fh, ">", $file)
             or die "Failed to open $file for writing\n";
+        
+        # enable UTF-8 output since user might have entered Unicode characters in fields like notes
+        binmode $fh, ':utf8';
     }
-    
-    # enable UTF-8 output since user might have entered Unicode characters in fields like notes
-    binmode $fh, ':utf8';
     
     # write some information
     my @lt = localtime;
