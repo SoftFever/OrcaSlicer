@@ -633,6 +633,7 @@ sub split_object {
     # create a bogus Model object, we only need to instantiate the new Model::Object objects
     my $new_model = Slic3r::Model->new;
     
+    my @model_objects = ();
     foreach my $mesh (@new_meshes) {
         $mesh->repair;
         
@@ -659,8 +660,12 @@ sub split_object {
         }
         # we need to center this single object around origin
         $model_object->center_around_origin;
-        $self->load_model_objects($model_object);
+        push @model_objects, $model_object;
     }
+    
+    # load all model objects at once, otherwise the plate would be rearranged after each one
+    # causing original positions not to be kept
+    $self->load_model_objects(@model_objects);
 }
 
 sub export_gcode {
