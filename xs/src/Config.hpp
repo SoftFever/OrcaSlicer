@@ -265,8 +265,14 @@ class ConfigOptionPoint : public ConfigOption
     };
     
     bool deserialize(std::string str) {
-        int res = sscanf(str.c_str(), "%lf%*1[,x]%lf", &this->point.x, &this->point.y);
-        return res == 2;
+        if (strncmp(str.c_str(), "0x", 2) == 0) {
+            this->point.x = 0;
+            int res = sscanf(str.c_str()+2, "%lf", &this->point.y);
+            return res == 1;
+        } else {
+            int res = sscanf(str.c_str(), "%lf%*1[,x]%lf", &this->point.x, &this->point.y);
+            return res == 2;
+        }
     };
 };
 
@@ -286,15 +292,24 @@ class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf
     };
     
     bool deserialize(std::string str) {
-        this->values.clear();
+        std::vector<Pointf> values;
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
-            int res = sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
-            if (res != 2) return false;
-            this->values.push_back(point);
+            if (strncmp(point_str.c_str(), "0x", 2) == 0) {
+                // if string starts with "0x", only apply sscanf() to the second coordinate
+                // otherwise it would parse the string as a hex number
+                point.x = 0;
+                int res = sscanf(point_str.c_str()+2, "%lf", &point.y);
+                if (res != 1) return false;
+            } else {
+                int res = sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
+                if (res != 2) return false;
+            }
+            values.push_back(point);
         }
+        this->values = values;
         return true;
     };
 };

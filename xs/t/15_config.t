@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 94;
+use Test::More tests => 95;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -142,6 +142,15 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
         $config3->apply_dynamic($config);
         is $config3->get('perimeter_extruder'), 2, 'shortcut is expanded in static config (apply)';
     }
+}
+
+{
+    my $config = Slic3r::Config->new;
+    # the pair [0,0] is part of the test, since it checks whether the 0x0 serialized value is correctly parsed
+    $config->set('extruder_offset', [ [0,0], [20,0], [0,20] ]);
+    my $config2 = Slic3r::Config->new;
+    $config2->apply($config);
+    is_deeply $config->get('extruder_offset'), $config2->get('extruder_offset'), 'apply dynamic over dynamic';
 }
 
 __END__

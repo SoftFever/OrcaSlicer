@@ -22,7 +22,8 @@ ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent) {
         }
         
         // not the most efficient way, but easier than casting pointers to subclasses
-        my_opt->deserialize( other.option(*it)->serialize() );
+        bool res = my_opt->deserialize( other.option(*it)->serialize() );
+        if (!res) CONFESS("Unexpected failure when deserializing serialized value");
     }
 }
 
