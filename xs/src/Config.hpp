@@ -21,7 +21,7 @@ class ConfigOption {
     public:
     virtual ~ConfigOption() {};
     virtual std::string serialize() const = 0;
-    virtual void deserialize(std::string str) = 0;
+    virtual bool deserialize(std::string str) = 0;
 };
 
 template <class T>
@@ -54,8 +54,9 @@ class ConfigOptionFloat : public ConfigOption
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->value = ::atof(str.c_str());
+        return true;
     };
 };
 
@@ -72,13 +73,14 @@ class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
             this->values.push_back(::atof(item_str.c_str()));
         }
+        return true;
     };
 };
 
@@ -96,8 +98,9 @@ class ConfigOptionInt : public ConfigOption
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->value = ::atoi(str.c_str());
+        return true;
     };
 };
 
@@ -114,13 +117,14 @@ class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
             this->values.push_back(::atoi(item_str.c_str()));
         }
+        return true;
     };
 };
 
@@ -145,7 +149,7 @@ class ConfigOptionString : public ConfigOption
         return str; 
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         // s/\\n/\n/g
         size_t pos = 0;
         while ((pos = str.find("\\n", pos)) != std::string::npos) {
@@ -154,6 +158,7 @@ class ConfigOptionString : public ConfigOption
         }
         
         this->value = str;
+        return true;
     };
 };
 
@@ -171,13 +176,14 @@ class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ';')) {
             this->values.push_back(item_str);
         }
+        return true;
     };
 };
 
@@ -199,9 +205,10 @@ class ConfigOptionPercent : public ConfigOption
         return s;
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         // don't try to parse the trailing % since it's optional
-        sscanf(str.c_str(), "%lf", &this->value);
+        int res = sscanf(str.c_str(), "%lf", &this->value);
+        return res == 1;
     };
 };
 
@@ -228,14 +235,16 @@ class ConfigOptionFloatOrPercent : public ConfigOption
         return s;
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         if (str.find_first_of("%") != std::string::npos) {
-            sscanf(str.c_str(), "%lf%%", &this->value);
+            int res = sscanf(str.c_str(), "%lf%%", &this->value);
+            if (res == 0) return false;
             this->percent = true;
         } else {
             this->value = ::atof(str.c_str());
             this->percent = false;
         }
+        return true;
     };
 };
 
@@ -255,8 +264,9 @@ class ConfigOptionPoint : public ConfigOption
         return ss.str();
     };
     
-    void deserialize(std::string str) {
-        sscanf(str.c_str(), "%lf%*1[,x]%lf", &this->point.x, &this->point.y);
+    bool deserialize(std::string str) {
+        int res = sscanf(str.c_str(), "%lf%*1[,x]%lf", &this->point.x, &this->point.y);
+        return res == 2;
     };
 };
 
@@ -275,15 +285,17 @@ class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->values.clear();
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
-            sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
+            int res = sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
+            if (res != 2) return false;
             this->values.push_back(point);
         }
+        return true;
     };
 };
 
@@ -299,8 +311,9 @@ class ConfigOptionBool : public ConfigOption
         return std::string(this->value ? "1" : "0");
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->value = (str.compare("1") == 0);
+        return true;
     };
 };
 
@@ -317,13 +330,14 @@ class ConfigOptionBools : public ConfigOption, public ConfigOptionVector<bool>
         return ss.str();
     };
     
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
             this->values.push_back(item_str.compare("1") == 0);
         }
+        return true;
     };
 };
 
@@ -345,10 +359,11 @@ class ConfigOptionEnum : public ConfigOption
         return "";
     };
 
-    void deserialize(std::string str) {
+    bool deserialize(std::string str) {
         t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-        assert(enum_keys_map.count(str) > 0);
+        if (enum_keys_map.count(str) == 0) return false;
         this->value = static_cast<T>(enum_keys_map[str]);
+        return true;
     };
 
     static t_config_enum_values get_enum_values();
@@ -371,9 +386,10 @@ class ConfigOptionEnumGeneric : public ConfigOption
         return "";
     };
 
-    void deserialize(std::string str) {
-        assert(this->keys_map->count(str) != 0);
+    bool deserialize(std::string str) {
+        if (this->keys_map->count(str) == 0) return false;
         this->value = (*this->keys_map)[str];
+        return true;
     };
 };
 
@@ -435,7 +451,7 @@ class ConfigBase
     virtual void keys(t_config_option_keys *keys) const = 0;
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
     std::string serialize(const t_config_option_key opt_key);
-    void set_deserialize(const t_config_option_key opt_key, std::string str);
+    bool set_deserialize(const t_config_option_key opt_key, std::string str);
     double get_abs_value(const t_config_option_key opt_key);
     double get_abs_value(const t_config_option_key opt_key, double ratio_over);
     
@@ -443,7 +459,7 @@ class ConfigBase
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, size_t i);
-    void set(t_config_option_key opt_key, SV* value);
+    bool set(t_config_option_key opt_key, SV* value);
     #endif
 };
 
@@ -477,7 +493,7 @@ class StaticConfig : public ConfigBase
     const ConfigOption* option(const t_config_option_key opt_key) const;
     
     #ifdef SLIC3RXS
-    void set(t_config_option_key opt_key, SV* value);
+    bool set(t_config_option_key opt_key, SV* value);
     #endif
 };
 

@@ -66,7 +66,7 @@ class Pointf
     void translate(double x, double y);
     
     #ifdef SLIC3RXS
-    void from_SV(SV* point_sv);
+    bool from_SV(SV* point_sv);
     SV* to_SV_pureperl() const;
     #endif
 };

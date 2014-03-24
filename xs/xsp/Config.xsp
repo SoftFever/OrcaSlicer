@@ -12,8 +12,8 @@
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, int i);
-    void set(t_config_option_key opt_key, SV* value);
-    void set_deserialize(t_config_option_key opt_key, std::string str);
+    bool set(t_config_option_key opt_key, SV* value);
+    bool set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -34,8 +34,8 @@
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, int i);
-    void set(t_config_option_key opt_key, SV* value);
-    void set_deserialize(t_config_option_key opt_key, std::string str);
+    bool set(t_config_option_key opt_key, SV* value);
+    bool set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -54,8 +54,8 @@
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, int i);
-    void set(t_config_option_key opt_key, SV* value);
-    void set_deserialize(t_config_option_key opt_key, std::string str);
+    bool set(t_config_option_key opt_key, SV* value);
+    bool set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -75,8 +75,8 @@
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, int i);
-    void set(t_config_option_key opt_key, SV* value);
-    void set_deserialize(t_config_option_key opt_key, std::string str);
+    bool set(t_config_option_key opt_key, SV* value);
+    bool set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -96,8 +96,8 @@
     SV* as_hash();
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, int i);
-    void set(t_config_option_key opt_key, SV* value);
-    void set_deserialize(t_config_option_key opt_key, std::string str);
+    bool set(t_config_option_key opt_key, SV* value);
+    bool set_deserialize(t_config_option_key opt_key, std::string str);
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}

@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(first);
 use Wx qw(:combobox :font :misc :sizer :systemsettings :textctrl);
-use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT);
+use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT EVT_KILL_FOCUS);
 
 =head1 NAME
 
@@ -52,6 +52,7 @@ has 'label_width'   => (is => 'ro', default => sub { 180 });
 has 'extra_column'  => (is => 'ro');
 has 'label_font'    => (is => 'ro');
 has 'sidetext_font' => (is => 'ro', default => sub { Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) });
+has 'ignore_on_change_return' => (is => 'ro', default => sub { 1 });
 
 has 'sizer'         => (is => 'rw');
 has '_triggers'     => (is => 'ro', default => sub { {} });
@@ -166,7 +167,7 @@ sub _build_field {
     my ($opt) = @_;
     
     my $opt_key = $opt->{opt_key};
-    $self->_triggers->{$opt_key} = $opt->{on_change} || sub {};
+    $self->_triggers->{$opt_key} = $opt->{on_change} || sub { return 1 };
     
     my $field;
     my $tooltip = $opt->{tooltip};
@@ -176,11 +177,16 @@ sub _build_field {
         # default width on Windows is too large
         my $size = Wx::Size->new($opt->{width} || 60, $opt->{height} || -1);
         
-        my $on_change = sub { $self->_on_change($opt_key, $field->GetValue) };
+        my $on_change = sub {
+            my $value = $field->GetValue;
+            $value ||= 0 if $opt->{type} =~ /^(i|f|percent)$/; # prevent crash trying to pass empty strings to Config
+            $self->_on_change($opt_key, $value);
+        };
         if ($opt->{type} eq 'i') {
             $field = Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default});
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             EVT_SPINCTRL ($self->parent, $field, $on_change);
+            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
         } elsif ($opt->{values}) {
             $field = Wx::ComboBox->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $opt->{labels} || $opt->{values});
             $self->_setters->{$opt_key} = sub {
@@ -191,10 +197,12 @@ sub _build_field {
                 $self->_on_change($opt_key, $on_change);
             });
             EVT_TEXT($self->parent, $field, $on_change);
+            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
         } else {
             $field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
             $self->_setters->{$opt_key} = sub { $field->ChangeValue($_[0]) };
-            EVT_TEXT ($self->parent, $field, $on_change);
+            EVT_TEXT($self->parent, $field, $on_change);
+            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
         }
         $field->Disable if $opt->{readonly};
         $tooltip .= " (default: " . $opt->{default} .  ")" if ($opt->{default});
@@ -220,8 +228,10 @@ sub _build_field {
                 $tooltip . " (default: " .  join(",", @{$opt->{default}}) .  ")"
             ) for @items;
         }
-        EVT_TEXT($self->parent, $_, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) })
-            for $x_field, $y_field;
+        foreach my $field ($x_field, $y_field) {
+            EVT_TEXT($self->parent, $field, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) });
+            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
+        }
         $self->_setters->{$opt_key} = sub {
             $x_field->SetValue($_[0][0]);
             $y_field->SetValue($_[0][1]);
@@ -260,7 +270,7 @@ sub _on_change {
     my ($opt_key, $value) = @_;
     
     return if $self->sizer->GetStaticBox->GetParent->{disabled};
-    $self->_triggers->{$opt_key}->($value);
+    $self->_triggers->{$opt_key}->($value) or $self->ignore_on_change_return or return;
     $self->on_change->($opt_key, $value);
 }
 
@@ -284,6 +294,8 @@ sub set_value {
     
     return 0;
 }
+
+sub on_kill_focus {}
 
 package Slic3r::GUI::ConfigOptionsGroup;
 use Moo;
@@ -313,6 +325,7 @@ use List::Util qw(first);
 
 has 'config' => (is => 'ro', required => 1);
 has 'full_labels' => (is => 'ro', default => sub {0});
+has '+ignore_on_change_return' => (is => 'ro', default => sub { 0 });
 
 sub _trigger_options {
     my $self = shift;
@@ -323,13 +336,17 @@ sub _trigger_options {
             my $full_key = $opt;
             my ($opt_key, $index) = $self->_split_key($full_key);
             my $config_opt = $Slic3r::Config::Options->{$opt_key};
+            
+            my $default = $config_opt->{default};
+            $default = $default->[$index] if defined($index) && $index <= $#$default;
+            
             $opt = {
                 opt_key     => $full_key,
                 config      => 1,
                 label       => ($self->full_labels && defined $config_opt->{full_label}) ? $config_opt->{full_label} : $config_opt->{label},
                 (map { $_   => $config_opt->{$_} } qw(type tooltip sidetext width height full_width min max labels values multiline readonly)),
-                default     => $self->_get_config($opt_key, $index),
-                on_change   => sub { $self->_set_config($opt_key, $index, $_[0]) },
+                default     => $default,
+                on_change   => sub { return $self->_set_config($opt_key, $index, $_[0]) },
             };
         }
         $opt;
@@ -367,6 +384,16 @@ sub set_value {
     return $changed;
 }
 
+sub on_kill_focus {
+    my ($self, $full_key) = @_;
+    
+    # when a field loses focus, reapply the config value to it
+    # (thus discarding any invalid input and reverting to the last
+    # accepted value)
+    my ($key, $index) = $self->_split_key($full_key);
+    $self->SUPER::set_value($full_key, $self->_get_config($key, $index));
+}
+
 sub _split_key {
     my $self = shift;
     my ($opt_key) = @_;
@@ -378,10 +405,10 @@ sub _split_key {
 
 sub _get_config {
     my $self = shift;
-    my ($opt_key, $index) = @_;
+    my ($opt_key, $index, $config) = @_;
     
     my ($get_m, $serialized) = $self->_config_methods($opt_key, $index);
-    my $value = $self->config->$get_m($opt_key);
+    my $value = ($config // $self->config)->$get_m($opt_key);
     if (defined $index) {
         $value->[$index] //= $value->[0]; #/
         $value = $value->[$index];
@@ -400,9 +427,9 @@ sub _set_config {
         $self->config->set($opt_key, $values);
     } else {
         if ($serialized) {
-            $self->config->set_deserialize($opt_key, $value);
+            return $self->config->set_deserialize($opt_key, $value);
         } else {
-            $self->config->set($opt_key, $value);
+            return $self->config->set($opt_key, $value);
         }
     }
 }

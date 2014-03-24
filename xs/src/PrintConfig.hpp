@@ -228,6 +228,7 @@ class PrintConfigDef
         Options["fan_below_layer_time"].sidetext = "approximate seconds";
         Options["fan_below_layer_time"].cli = "fan-below-layer-time=i";
         Options["fan_below_layer_time"].width = 60;
+        Options["fan_below_layer_time"].min = 0;
         Options["fan_below_layer_time"].max = 1000;
 
         Options["filament_diameter"].type = coFloats;
@@ -235,6 +236,7 @@ class PrintConfigDef
         Options["filament_diameter"].tooltip = "Enter your filament diameter here. Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.";
         Options["filament_diameter"].sidetext = "mm";
         Options["filament_diameter"].cli = "filament-diameter=f@";
+        Options["filament_diameter"].min = 0;
 
         Options["fill_angle"].type = coInt;
         Options["fill_angle"].label = "Fill angle";
@@ -242,6 +244,7 @@ class PrintConfigDef
         Options["fill_angle"].tooltip = "Default base angle for infill orientation. Cross-hatching will be applied to this. Bridges will be infilled using the best direction Slic3r can detect, so this setting does not affect them.";
         Options["fill_angle"].sidetext = "°";
         Options["fill_angle"].cli = "fill-angle=i";
+        Options["fill_angle"].min = 0;
         Options["fill_angle"].max = 359;
 
         Options["fill_density"].type = coPercent;
