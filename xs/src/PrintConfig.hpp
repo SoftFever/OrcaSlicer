@@ -730,7 +730,7 @@ class PrintConfigDef
 
         Options["start_gcode"].type = coString;
         Options["start_gcode"].label = "Start G-code";
-        Options["start_gcode"].tooltip = "This start procedure is inserted at the beginning of the output file, right after the temperature control commands for extruder and bed. If Slic3r detects M104 or M190 in your custom codes, such commands will not be prepended automatically. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M104 S[first_layer_temperature]\" command wherever you want.";
+        Options["start_gcode"].tooltip = "This start procedure is inserted at the beginning, after bed has reached the target temperature and extruder just started heating, and before extruder has finished heating. If Slic3r detects M104 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want.";
         Options["start_gcode"].cli = "start-gcode=s";
         Options["start_gcode"].multiline = true;
         Options["start_gcode"].full_width = true;
