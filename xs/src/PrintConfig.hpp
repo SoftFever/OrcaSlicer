@@ -878,7 +878,7 @@ class PrintConfigDef
 
         Options["top_solid_infill_speed"].type = coFloatOrPercent;
         Options["top_solid_infill_speed"].label = "Top solid infill";
-        Options["top_solid_infill_speed"].tooltip = "Speed for printing top solid regions. You may want to slow down this to get a nicer surface finish. This can be expressed as a percentage (for example: 80%) over the solid infill speed above.";
+        Options["top_solid_infill_speed"].tooltip = "Speed for printing top solid layers (it only applies to the uppermost external layers and not to their internal solid layers). You may want to slow down this to get a nicer surface finish. This can be expressed as a percentage (for example: 80%) over the solid infill speed above.";
         Options["top_solid_infill_speed"].sidetext = "mm/s or %";
         Options["top_solid_infill_speed"].cli = "top-solid-infill-speed=s";
         Options["top_solid_infill_speed"].ratio_over = "solid_infill_speed";
