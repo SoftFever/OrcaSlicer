@@ -82,7 +82,10 @@ sub OnInit {
     $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
     $datadir = Slic3r::encode_path($datadir);
     Slic3r::debugf "Data directory: %s\n", $datadir;
-    my $run_wizard = (-d $datadir) ? 0 : 1;
+    
+    # just checking for existence of $datadir is not enough: it may be an empty directory
+    # supplied as argument to --datadir; in that case we should still run the wizard
+    my $run_wizard = (-d $datadir && -e "$datadir/slic3r.ini") ? 0 : 1;
     for ($datadir, "$datadir/print", "$datadir/filament", "$datadir/printer") {
         mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
             unless -d $_;
