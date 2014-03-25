@@ -337,15 +337,12 @@ sub _trigger_options {
             my ($opt_key, $index) = $self->_split_key($full_key);
             my $config_opt = $Slic3r::Config::Options->{$opt_key};
             
-            my $default = $config_opt->{default};
-            $default = $default->[$index] if defined($index) && $index <= $#$default;
-            
             $opt = {
                 opt_key     => $full_key,
                 config      => 1,
                 label       => ($self->full_labels && defined $config_opt->{full_label}) ? $config_opt->{full_label} : $config_opt->{label},
                 (map { $_   => $config_opt->{$_} } qw(type tooltip sidetext width height full_width min max labels values multiline readonly)),
-                default     => $default,
+                default     => $self->_get_config($opt_key, $index),
                 on_change   => sub { return $self->_set_config($opt_key, $index, $_[0]) },
             };
         }
