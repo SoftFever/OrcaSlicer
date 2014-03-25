@@ -319,37 +319,6 @@ StaticConfig::keys(t_config_option_keys *keys) const {
     }
 }
 
-void
-StaticConfig::apply(const DynamicConfig &other, bool ignore_nonexistent) {
-    // clone the other config so that we can remove shortcut options after applying them
-    DynamicConfig other_clone = other;
-    
-    // get list of option keys to apply
-    t_config_option_keys opt_keys;
-    other_clone.keys(&opt_keys);
-    
-    // loop through options and apply them
-    for (t_config_option_keys::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
-        // if this is not a shortcut, skip it
-        ConfigOptionDef* optdef = &(*this->def)[*opt_key];
-        if (optdef->shortcut.empty()) continue;
-        
-        // expand the option into other_clone if it does not exist already
-        for (std::vector<t_config_option_key>::iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it) {
-            if (other_clone.has(*it)) continue;
-            ConfigOption* my_opt = other_clone.option(*it, true);
-            
-            // not the most efficient way, but easier than casting pointers to subclasses
-            my_opt->deserialize( other_clone.option(*opt_key)->serialize() );
-        }
-        
-        // remove the shortcut option from other_clone
-        other_clone.erase(*opt_key);
-    }
-    
-    static_cast<ConfigBase*>(this)->apply(other_clone, ignore_nonexistent);
-}
-
 const ConfigOption*
 StaticConfig::option(const t_config_option_key opt_key) const
 {

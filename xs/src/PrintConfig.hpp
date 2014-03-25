@@ -177,10 +177,6 @@ class PrintConfigDef
         Options["extruder"].tooltip = "The extruder to use (unless more specific extruder settings are specified).";
         Options["extruder"].cli = "extruder=i";
         Options["extruder"].min = 1;
-        Options["extruder"].shortcut.push_back("infill_extruder");
-        Options["extruder"].shortcut.push_back("perimeter_extruder");
-        Options["extruder"].shortcut.push_back("support_material_extruder");
-        Options["extruder"].shortcut.push_back("support_material_interface_extruder");
 
         Options["extruder_clearance_height"].type = coFloat;
         Options["extruder_clearance_height"].label = "Height";
@@ -404,8 +400,9 @@ class PrintConfigDef
         Options["infill_extruder"].label = "Infill extruder";
         Options["infill_extruder"].category = "Extruders";
         Options["infill_extruder"].tooltip = "The extruder to use when printing infill.";
+        Options["infill_extruder"].sidetext = "(leave 0 for default)";
         Options["infill_extruder"].cli = "infill-extruder=i";
-        Options["infill_extruder"].min = 1;
+        Options["infill_extruder"].min = 0;
 
         Options["infill_extrusion_width"].type = coFloatOrPercent;
         Options["infill_extrusion_width"].label = "Infill";
@@ -528,9 +525,10 @@ class PrintConfigDef
         Options["perimeter_extruder"].label = "Perimeter extruder";
         Options["perimeter_extruder"].category = "Extruders";
         Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters.";
+        Options["perimeter_extruder"].sidetext = "(leave 0 for default)";
         Options["perimeter_extruder"].cli = "perimeter-extruder=i";
         Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
-        Options["perimeter_extruder"].min = 1;
+        Options["perimeter_extruder"].min = 0;
 
         Options["perimeter_extrusion_width"].type = coFloatOrPercent;
         Options["perimeter_extrusion_width"].label = "Perimeters";
@@ -777,8 +775,9 @@ class PrintConfigDef
         Options["support_material_extruder"].label = "Support material extruder";
         Options["support_material_extruder"].category = "Extruders";
         Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
+        Options["support_material_extruder"].sidetext = "(leave 0 for default)";
         Options["support_material_extruder"].cli = "support-material-extruder=i";
-        Options["support_material_extruder"].min = 1;
+        Options["support_material_extruder"].min = 0;
 
         Options["support_material_extrusion_width"].type = coFloatOrPercent;
         Options["support_material_extrusion_width"].label = "Support material";
@@ -791,8 +790,9 @@ class PrintConfigDef
         Options["support_material_interface_extruder"].label = "Support material interface extruder";
         Options["support_material_interface_extruder"].category = "Extruders";
         Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
+        Options["support_material_interface_extruder"].sidetext = "(leave 0 for default)";
         Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
-        Options["support_material_interface_extruder"].min = 1;
+        Options["support_material_interface_extruder"].min = 0;
 
         Options["support_material_interface_layers"].type = coInt;
         Options["support_material_interface_layers"].label = "Interface layers";
@@ -934,7 +934,26 @@ class PrintConfigDef
     };
 };
 
-class PrintObjectConfig : public virtual StaticConfig
+class DynamicPrintConfig : public DynamicConfig
+{
+    public:
+    DynamicPrintConfig() {
+        this->def = &PrintConfigDef::def;
+    };
+};
+
+class StaticPrintConfig : public virtual StaticConfig
+{
+    public:
+    StaticPrintConfig() {
+        this->def = &PrintConfigDef::def;
+    };
+    
+    protected:
+    void prepare_extruder_option(const t_config_option_key opt_key, DynamicPrintConfig& other);
+};
+
+class PrintObjectConfig : public virtual StaticPrintConfig
 {
     public:
     ConfigOptionFloatOrPercent      extrusion_width;
@@ -956,9 +975,7 @@ class PrintObjectConfig : public virtual StaticConfig
     ConfigOptionFloat               support_material_speed;
     ConfigOptionInt                 support_material_threshold;
     
-    PrintObjectConfig() {
-        this->def = &PrintConfigDef::def;
-        
+    PrintObjectConfig() : StaticPrintConfig() {
         this->extrusion_width.value                              = 0;
         this->extrusion_width.percent                            = false;
         this->first_layer_height.value                           = 0.35;
@@ -970,10 +987,10 @@ class PrintObjectConfig : public virtual StaticConfig
         this->support_material.value                             = false;
         this->support_material_angle.value                       = 0;
         this->support_material_enforce_layers.value              = 0;
-        this->support_material_extruder.value                    = 1;
+        this->support_material_extruder.value                    = 0;
         this->support_material_extrusion_width.value             = 0;
         this->support_material_extrusion_width.percent           = false;
-        this->support_material_interface_extruder.value          = 1;
+        this->support_material_interface_extruder.value          = 0;
         this->support_material_interface_layers.value            = 3;
         this->support_material_interface_spacing.value           = 0;
         this->support_material_pattern.value                     = smpHoneycomb;
@@ -1004,9 +1021,11 @@ class PrintObjectConfig : public virtual StaticConfig
         
         return NULL;
     };
+    
+    void apply(const ConfigBase &other, bool ignore_nonexistent = false);
 };
 
-class PrintRegionConfig : public virtual StaticConfig
+class PrintRegionConfig : public virtual StaticPrintConfig
 {
     public:
     ConfigOptionInt                 bottom_solid_layers;
@@ -1028,19 +1047,17 @@ class PrintRegionConfig : public virtual StaticConfig
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     
-    PrintRegionConfig() {
-        this->def = &PrintConfigDef::def;
-        
+    PrintRegionConfig() : StaticPrintConfig() {
         this->bottom_solid_layers.value                          = 3;
         this->extra_perimeters.value                             = true;
         this->fill_angle.value                                   = 45;
         this->fill_density.value                                 = 40;
         this->fill_pattern.value                                 = ipHoneycomb;
-        this->infill_extruder.value                              = 1;
+        this->infill_extruder.value                              = 0;
         this->infill_extrusion_width.value                       = 0;
         this->infill_extrusion_width.percent                     = false;
         this->infill_every_layers.value                          = 1;
-        this->perimeter_extruder.value                           = 1;
+        this->perimeter_extruder.value                           = 0;
         this->perimeter_extrusion_width.value                    = 0;
         this->perimeter_extrusion_width.percent                  = false;
         this->perimeters.value                                   = 3;
@@ -1077,9 +1094,11 @@ class PrintRegionConfig : public virtual StaticConfig
         
         return NULL;
     };
+    
+    void apply(const ConfigBase &other, bool ignore_nonexistent = false);
 };
 
-class PrintConfig : public virtual StaticConfig
+class PrintConfig : public virtual StaticPrintConfig
 {
     public:
     ConfigOptionBool                avoid_crossing_perimeters;
@@ -1166,9 +1185,7 @@ class PrintConfig : public virtual StaticConfig
     ConfigOptionBools               wipe;
     ConfigOptionFloat               z_offset;
     
-    PrintConfig() {
-        this->def = &PrintConfigDef::def;
-        
+    PrintConfig() : StaticPrintConfig() {
         this->avoid_crossing_perimeters.value                    = false;
         this->bed_size.point                                     = Pointf(200,200);
         this->bed_temperature.value                              = 0;
@@ -1372,21 +1389,20 @@ class PrintConfig : public virtual StaticConfig
     }
 };
 
-class DynamicPrintConfig : public DynamicConfig
-{
-    public:
-    DynamicPrintConfig() {
-        this->def = &PrintConfigDef::def;
-    };
-};
-
 class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig {
+    public:
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         ConfigOption* opt;
         if ((opt = PrintObjectConfig::option(opt_key, create)) != NULL) return opt;
         if ((opt = PrintRegionConfig::option(opt_key, create)) != NULL) return opt;
         if ((opt = PrintConfig::option(opt_key, create)) != NULL) return opt;
         return NULL;
+    };
+    
+    void apply(const ConfigBase &other, bool ignore_nonexistent = false) {
+        PrintObjectConfig::apply(other, ignore_nonexistent);
+        PrintRegionConfig::apply(other, ignore_nonexistent);
+        PrintConfig::apply(other, ignore_nonexistent);
     };
 };
 

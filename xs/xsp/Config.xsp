@@ -102,8 +102,6 @@
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
         double get_abs_value(t_config_option_key opt_key, double ratio_over);
-    void apply(PrintObjectConfig* other)
-        %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()

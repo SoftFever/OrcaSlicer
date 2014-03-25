@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 95;
+use Test::More tests => 99;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -127,20 +127,60 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
 }
 
 {
-    my $config = Slic3r::Config->new;
-    $config->set('extruder', 2);
-    is $config->get('extruder'), 2, 'shortcut option value is kept in dynamic config';
-    ok !$config->has('perimeter_extruder'), 'shortcut is not expanded in dynamic config';
-    
     {
-        my $config2 = Slic3r::Config::Full->new;
-        $config2->set('extruder', 2);
-        is $config2->get('perimeter_extruder'), 2, 'shortcut is expanded in static config (set)';
+        my $config = Slic3r::Config->new;
+        $config->set('infill_extruder', 2);
+        my $config2 = Slic3r::Config::PrintRegion->new;
+        $config2->apply($config);
+        is $config2->get('infill_extruder'), $config->get('infill_extruder'),
+            'non-zero infill_extruder is applied';
     }
     {
-        my $config3 = Slic3r::Config::Full->new;
-        $config3->apply_dynamic($config);
-        is $config3->get('perimeter_extruder'), 2, 'shortcut is expanded in static config (apply)';
+        my $config = Slic3r::Config->new;
+        $config->set('infill_extruder', 0);
+        my $config2 = Slic3r::Config::PrintRegion->new;
+        $config2->set('infill_extruder', 3);
+        $config2->apply($config);
+        isnt $config2->get('infill_extruder'), $config->get('infill_extruder'),
+            'zero infill_extruder is not applied';
+    }
+    {
+        my $config = Slic3r::Config->new;
+        $config->set('extruder', 3);
+        my $config2 = Slic3r::Config::PrintRegion->new;
+        $config2->set('infill_extruder', 2);
+        $config2->apply($config);
+        is $config2->get('infill_extruder'), 2, 'extruder does not overwrite non-zero role extruders';
+        is $config2->get('perimeter_extruder'), 3, 'extruder overwrites zero role extruders';
+    }
+}
+
+{
+    {
+        my $config = Slic3r::Config->new;
+        $config->set('support_material_extruder', 2);
+        my $config2 = Slic3r::Config::PrintObject->new;
+        $config2->apply($config);
+        is $config2->get('support_material_extruder'), $config->get('support_material_extruder'),
+            'non-zero support_material_extruder is applied';
+    }
+    {
+        my $config = Slic3r::Config->new;
+        $config->set('support_material_extruder', 0);
+        my $config2 = Slic3r::Config::PrintObject->new;
+        $config2->set('support_material_extruder', 3);
+        $config2->apply($config);
+        isnt $config2->get('support_material_extruder'), $config->get('support_material_extruder'),
+            'zero support_material_extruder is not applied';
+    }
+    {
+        my $config = Slic3r::Config->new;
+        $config->set('extruder', 3);
+        my $config2 = Slic3r::Config::PrintObject->new;
+        $config2->set('support_material_extruder', 2);
+        $config2->apply($config);
+        is $config2->get('support_material_extruder'), 2, 'extruder does not overwrite non-zero role extruders';
+        is $config2->get('support_material_interface_extruder'), 3, 'extruder overwrites zero role extruders';
     }
 }
 

@@ -528,7 +528,7 @@ sub build {
     
     $self->add_options_page('Multiple Extruders', 'funnel.png', optgroups => [
         {
-            title => 'Extruders',
+            title => 'Override extruders',
             options => [qw(perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder)],
         },
         {

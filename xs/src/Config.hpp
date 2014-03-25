@@ -22,6 +22,8 @@ class ConfigOption {
     virtual ~ConfigOption() {};
     virtual std::string serialize() const = 0;
     virtual bool deserialize(std::string str) = 0;
+    virtual int getInt() const { return 0; };
+    virtual void setInt(int val) {};
 };
 
 template <class T>
@@ -91,6 +93,8 @@ class ConfigOptionInt : public ConfigOption
     ConfigOptionInt() : value(0) {};
     
     operator int() const { return this->value; };
+    int getInt() const { return this->value; };
+    void setInt(int val) { this->value = val; };
     
     std::string serialize() const {
         std::ostringstream ss;
@@ -499,11 +503,6 @@ class StaticConfig : public ConfigBase
 {
     public:
     void keys(t_config_option_keys *keys) const;
-    void apply(const ConfigBase &other, bool ignore_nonexistent = false) {
-        // this proxy appears to be needed otherwise the inherited signature couldn't be found from .xsp
-        ConfigBase::apply(other, ignore_nonexistent);
-    };
-    void apply(const DynamicConfig &other, bool ignore_nonexistent = false);
     virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
     const ConfigOption* option(const t_config_option_key opt_key) const;
     
