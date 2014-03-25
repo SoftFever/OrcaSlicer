@@ -345,16 +345,13 @@ sub load_presets {
         name    => '- default -',
     }];
     
-    opendir my $dh, "$Slic3r::GUI::datadir/" . $self->name or die "Failed to read directory $Slic3r::GUI::datadir/" . $self->name . " (errno: $!)\n";
-    foreach my $file (sort grep /\.ini$/i, readdir $dh) {
-        my $name = basename($file);
-        $name =~ s/\.ini$//;
+    my %presets = Slic3r::GUI->presets($self->name);
+    foreach my $preset_name (keys %presets) {
         push @{$self->{presets}}, {
-            file => "$Slic3r::GUI::datadir/" . $self->name . "/$file",
-            name => $name,
+            name => $preset_name,
+            file => $presets{$preset_name},
         };
     }
-    closedir $dh;
     
     $self->{presets_choice}->Clear;
     $self->{presets_choice}->Append($_->{name}) for @{$self->{presets}};

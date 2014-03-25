@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
+use File::Basename qw(basename);
 use FindBin;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::ConfigWizard;
@@ -25,7 +26,9 @@ use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_IDLE);
 use base 'Wx::App';
 
 use constant MI_LOAD_CONF     => &Wx::NewId;
+use constant MI_LOAD_CONFBUNDLE => &Wx::NewId;
 use constant MI_EXPORT_CONF   => &Wx::NewId;
+use constant MI_EXPORT_CONFBUNDLE => &Wx::NewId;
 use constant MI_QUICK_SLICE   => &Wx::NewId;
 use constant MI_REPEAT_QUICK  => &Wx::NewId;
 use constant MI_QUICK_SAVE_AS => &Wx::NewId;
@@ -117,6 +120,8 @@ sub OnInit {
     {
         $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L", 'Load exported configuration file');
         $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E", 'Export current configuration to file');
+        $fileMenu->Append(MI_LOAD_CONFBUNDLE, "&Load Config Bundle…", 'Load presets from a bundle');
+        $fileMenu->Append(MI_EXPORT_CONFBUNDLE, "&Export Config Bundle…", 'Export all presets to file');
         $fileMenu->AppendSeparator();
         $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U", 'Slice file');
         $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as');
@@ -132,7 +137,9 @@ sub OnInit {
         $fileMenu->AppendSeparator();
         $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
         EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config_file });
+        EVT_MENU($frame, MI_LOAD_CONFBUNDLE, sub { $self->{skeinpanel}->load_configbundle });
         EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->export_config });
+        EVT_MENU($frame, MI_EXPORT_CONFBUNDLE, sub { $self->{skeinpanel}->export_configbundle });
         EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->quick_slice;
                                                $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
         EVT_MENU($frame, MI_REPEAT_QUICK, sub { $self->{skeinpanel}->quick_slice(reslice => 1) });
@@ -307,6 +314,21 @@ sub save_settings {
     my $class = shift;
     
     Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
+}
+
+sub presets {
+    my ($class, $section) = @_;
+    
+    my %presets = ();
+    opendir my $dh, "$Slic3r::GUI::datadir/$section" or die "Failed to read directory $Slic3r::GUI::datadir/$section (errno: $!)\n";
+    foreach my $file (grep /\.ini$/i, readdir $dh) {
+        my $name = basename($file);
+        $name =~ s/\.ini$//;
+        $presets{$name} = "$Slic3r::GUI::datadir/$section/$file";
+    }
+    closedir $dh;
+    
+    return %presets;
 }
 
 sub have_version_check {

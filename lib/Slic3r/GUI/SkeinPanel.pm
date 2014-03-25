@@ -284,6 +284,100 @@ sub load_config_file {
     }
 }
 
+sub export_configbundle {
+    my $self = shift;
+    
+    eval {
+        # validate current configuration in case it's dirty
+        $self->config->validate;
+    };
+    Slic3r::GUI::catch_error($self) and return;
+    
+    my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
+    my $filename = "Slic3r_config_bundle.ini";
+    my $dlg = Wx::FileDialog->new($self, 'Save presets bundle as:', $dir, $filename, 
+        FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if ($dlg->ShowModal == wxID_OK) {
+        my $file = $dlg->GetPath;
+        $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
+        Slic3r::GUI->save_settings;
+        
+        # leave default category empty to prevent the bundle from being parsed as a normal config file
+        my $ini = { _ => {} };
+        $ini->{settings}{$_} = $Slic3r::GUI::Settings->{_}{$_} for qw(autocenter mode);
+        $ini->{presets} = $Slic3r::GUI::Settings->{presets};
+        if (-e "$Slic3r::GUI::datadir/simple.ini") {
+            my $config = Slic3r::Config->load("$Slic3r::GUI::datadir/simple.ini");
+            $ini->{simple} = $config->as_ini->{_};
+        }
+        
+        foreach my $section (qw(print filament printer)) {
+            my %presets = Slic3r::GUI->presets($section);
+            foreach my $preset_name (keys %presets) {
+                my $config = Slic3r::Config->load($presets{$preset_name});
+                $ini->{"$section:$preset_name"} = $config->as_ini->{_};
+            }
+        }
+        
+        Slic3r::Config->write_ini($file, $ini);
+    }
+    $dlg->Destroy;
+}
+
+sub load_configbundle {
+    my $self = shift;
+    
+    my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
+    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
+            FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    return unless $dlg->ShowModal == wxID_OK;
+    my ($file) = $dlg->GetPaths;
+    $dlg->Destroy;
+    
+    $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
+    Slic3r::GUI->save_settings;
+    
+    # load .ini file
+    my $ini = Slic3r::Config->read_ini($file);
+    
+    if ($ini->{settings}) {
+        $Slic3r::GUI::Settings->{_}{$_} = $ini->{settings}{$_} for keys %{$ini->{settings}};
+        Slic3r::GUI->save_settings;
+    }
+    if ($ini->{presets}) {
+        $Slic3r::GUI::Settings->{presets} = $ini->{presets};
+        Slic3r::GUI->save_settings;
+    }
+    if ($ini->{simple}) {
+        my $config = Slic3r::Config->load_ini_hash($ini->{simple});
+        $config->save("$Slic3r::GUI::datadir/simple.ini");
+        if ($self->{mode} eq 'simple') {
+            foreach my $tab (values %{$self->{options_tabs}}) {
+                $tab->load_config($config) for values %{$self->{options_tabs}};
+            }
+        }
+    }
+    my $imported = 0;
+    foreach my $ini_category (sort keys %$ini) {
+        next unless $ini_category =~ /^(print|filament|printer):(.+)$/;
+        my ($section, $preset_name) = ($1, $2);
+        my $config = Slic3r::Config->load_ini_hash($ini->{$ini_category});
+        $config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $section, $preset_name);
+        $imported++;
+    }
+    if ($self->{mode} eq 'expert') {
+        foreach my $tab (values %{$self->{options_tabs}}) {
+            $tab->load_presets;
+        }
+    }
+    my $message = sprintf "%d presets successfully imported.", $imported;
+    if ($self->{mode} eq 'simple' && $Slic3r::GUI::Settings->{_}{mode} eq 'expert') {
+        Slic3r::GUI::show_info($self, "$message You need to restart Slic3r to make the changes effective.");
+    } else {
+        Slic3r::GUI::show_info($self, $message);
+    }
+}
+
 sub load_config {
     my $self = shift;
     my ($config) = @_;
