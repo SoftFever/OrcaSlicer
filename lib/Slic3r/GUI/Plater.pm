@@ -88,7 +88,7 @@ sub new {
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (
-            load            => "Add…",
+            add             => "Add…",
             remove          => "Delete",
             reset           => "Delete All",
             arrange         => "Arrange",
@@ -103,7 +103,7 @@ sub new {
             settings        => "Settings…",
         );
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(load remove reset arrange increase decrease rotate45ccw rotate45cw rotate changescale split view settings)) {
+        for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw rotate changescale split view settings)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
@@ -133,7 +133,7 @@ sub new {
     
     if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
-            load            brick_add.png
+            add             brick_add.png
             remove          brick_delete.png
             reset           cross.png
             arrange         bricks.png
