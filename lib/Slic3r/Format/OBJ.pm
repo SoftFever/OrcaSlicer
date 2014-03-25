@@ -1,6 +1,8 @@
 package Slic3r::Format::OBJ;
 use Moo;
 
+use File::Basename qw(basename);
+
 sub read_file {
     my $self = shift;
     my ($file) = @_;
@@ -22,8 +24,12 @@ sub read_file {
     $mesh->repair;
     
     my $model = Slic3r::Model->new;
+    
+    my $material_id = basename($file);
+    $model->set_material($material_id);
+    
     my $object = $model->add_object;
-    my $volume = $object->add_volume(mesh => $mesh);
+    my $volume = $object->add_volume(mesh => $mesh, material_id => $material_id);
     return $model;
 }
 
