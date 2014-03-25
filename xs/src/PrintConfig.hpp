@@ -399,7 +399,7 @@ class PrintConfigDef
         Options["infill_extruder"].type = coInt;
         Options["infill_extruder"].label = "Infill extruder";
         Options["infill_extruder"].category = "Extruders";
-        Options["infill_extruder"].tooltip = "The extruder to use when printing infill.";
+        Options["infill_extruder"].tooltip = "The extruder to use when printing infill. First extruder is 1, while zero means use default extruder.";
         Options["infill_extruder"].sidetext = "(leave 0 for default)";
         Options["infill_extruder"].cli = "infill-extruder=i";
         Options["infill_extruder"].min = 0;
@@ -524,7 +524,7 @@ class PrintConfigDef
         Options["perimeter_extruder"].type = coInt;
         Options["perimeter_extruder"].label = "Perimeter extruder";
         Options["perimeter_extruder"].category = "Extruders";
-        Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters.";
+        Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters. First extruder is 1, while zero means use default extruder.";
         Options["perimeter_extruder"].sidetext = "(leave 0 for default)";
         Options["perimeter_extruder"].cli = "perimeter-extruder=i";
         Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
@@ -774,7 +774,7 @@ class PrintConfigDef
         Options["support_material_extruder"].type = coInt;
         Options["support_material_extruder"].label = "Support material extruder";
         Options["support_material_extruder"].category = "Extruders";
-        Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
+        Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too. First extruder is 1, while zero means use default extruder.";
         Options["support_material_extruder"].sidetext = "(leave 0 for default)";
         Options["support_material_extruder"].cli = "support-material-extruder=i";
         Options["support_material_extruder"].min = 0;
@@ -789,7 +789,7 @@ class PrintConfigDef
         Options["support_material_interface_extruder"].type = coInt;
         Options["support_material_interface_extruder"].label = "Support material interface extruder";
         Options["support_material_interface_extruder"].category = "Extruders";
-        Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
+        Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too. First extruder is 1, while zero means use default extruder.";
         Options["support_material_interface_extruder"].sidetext = "(leave 0 for default)";
         Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
         Options["support_material_interface_extruder"].min = 0;
