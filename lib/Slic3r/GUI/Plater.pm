@@ -41,6 +41,8 @@ use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
     : 'Drag your objects here';
 use constant FILAMENT_CHOOSERS_SPACING => 3;
 
+my $PreventListEvents = 0;
+
 sub new {
     my $class = shift;
     my ($parent) = @_;
@@ -1121,6 +1123,7 @@ sub mouse_event {
 
 sub list_item_deselected {
     my ($self, $event) = @_;
+    return if $PreventListEvents;
     
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
@@ -1130,6 +1133,7 @@ sub list_item_deselected {
 
 sub list_item_selected {
     my ($self, $event) = @_;
+    return if $PreventListEvents;
     
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
@@ -1265,7 +1269,13 @@ sub select_object {
     $_->selected(0) for @{ $self->{objects} };
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
+        
+        # We use this flag to avoid circular event handling
+        # Select() happens to fire a wxEVT_LIST_ITEM_SELECTED on Windows, 
+        # whose event handler calls this method again and again and again
+        $PreventListEvents = 1;
         $self->{list}->Select($obj_idx, 1);
+        $PreventListEvents = 0;
     } else {
         # TODO: deselect all in list
     }
