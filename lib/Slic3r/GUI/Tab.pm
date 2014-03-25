@@ -738,7 +738,7 @@ sub config {
     # remove all unused values
     foreach my $opt_key ($self->_extruder_options) {
         my $values = $config->get($opt_key);
-        splice @$values, $self->{extruders_count};
+        splice @$values, $self->{extruders_count} if $self->{extruders_count} <= $#$values;
         $config->set($opt_key, $values);
     }
     
