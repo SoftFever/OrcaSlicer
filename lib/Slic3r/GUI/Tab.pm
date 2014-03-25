@@ -538,6 +538,10 @@ sub build {
             title => 'Ooze prevention',
             options => [qw(ooze_prevention standby_temperature_delta)],
         },
+        {
+            title => 'Advanced',
+            options => [qw(interface_shells)],
+        },
     ]);
     
     $self->add_options_page('Advanced', 'wrench.png', optgroups => [

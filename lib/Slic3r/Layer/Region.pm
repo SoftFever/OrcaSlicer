@@ -324,7 +324,8 @@ sub prepare_fill_surfaces {
         $_->surface_type(S_TYPE_INTERNAL) for @{$self->fill_surfaces->filter_by_type(S_TYPE_TOP)};
     }
     if ($self->config->bottom_solid_layers == 0) {
-        $_->surface_type(S_TYPE_INTERNAL) for @{$self->fill_surfaces->filter_by_type(S_TYPE_BOTTOM)};
+        $_->surface_type(S_TYPE_INTERNAL)
+            for @{$self->fill_surfaces->filter_by_type(S_TYPE_BOTTOM)}, @{$self->fill_surfaces->filter_by_type(S_TYPE_BOTTOMBRIDGE)};
     }
         
     # turn too small internal regions into solid regions according to the user setting
@@ -342,7 +343,7 @@ sub process_external_surfaces {
     my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
     
     my @bottom = ();
-    foreach my $surface (grep $_->surface_type == S_TYPE_BOTTOM, @surfaces) {
+    foreach my $surface (grep $_->is_bottom, @surfaces) {
         my $grown = $surface->expolygon->offset_ex(+$margin);
         
         # detect bridge direction before merging grown surfaces otherwise adjacent bridges
@@ -385,7 +386,7 @@ sub process_external_surfaces {
     }
     
     # subtract the new top surfaces from the other non-top surfaces and re-add them
-    my @other = grep $_->surface_type != S_TYPE_TOP && $_->surface_type != S_TYPE_BOTTOM, @surfaces;
+    my @other = grep $_->surface_type != S_TYPE_TOP && !$_->is_bottom, @surfaces;
     foreach my $group (@{Slic3r::Surface::Collection->new(@other)->group}) {
         push @new_surfaces, map $group->[0]->clone(expolygon => $_), @{diff_ex(
             [ map $_->p, @$group ],

@@ -5,7 +5,7 @@
 
 namespace Slic3r {
 
-enum SurfaceType { stTop, stBottom, stInternal, stInternalSolid, stInternalBridge, stInternalVoid };
+enum SurfaceType { stTop, stBottom, stBottomBridge, stInternal, stInternalSolid, stInternalBridge, stInternalVoid };
 
 class Surface
 {
@@ -19,6 +19,7 @@ class Surface
     double area() const;
     bool is_solid() const;
     bool is_external() const;
+    bool is_bottom() const;
     bool is_bridge() const;
     
     #ifdef SLIC3RXS

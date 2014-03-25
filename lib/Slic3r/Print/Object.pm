@@ -468,17 +468,21 @@ sub detect_surfaces_type {
             };
             
             # comparison happens against the *full* slices (considering all regions)
+            # unless internal shells are requested
             my $upper_layer = $self->layers->[$i+1];
             my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
             
-            my (@bottom, @top, @internal) = ();
-            
             # find top surfaces (difference between current surfaces
             # of current layer and upper one)
+            my @top = ();
             if ($upper_layer) {
+                my $upper_slices = $self->config->interface_shells
+                    ? [ map $_->expolygon, @{$upper_layer->regions->[$region_id]->slices} ]
+                    : $upper_layer->slices;
+                
                 @top = $difference->(
                     [ map $_->expolygon, @{$layerm->slices} ],
-                    $upper_layer->slices,
+                    $upper_slices,
                     S_TYPE_TOP,
                 );
             } else {
@@ -490,13 +494,30 @@ sub detect_surfaces_type {
             
             # find bottom surfaces (difference between current surfaces
             # of current layer and lower one)
+            my @bottom = ();
             if ($lower_layer) {
-                # lower layer's slices are already Surface objects
-                @bottom = $difference->(
+                # any surface lying on the void is a true bottom bridge
+                push @bottom, $difference->(
                     [ map $_->expolygon, @{$layerm->slices} ],
                     $lower_layer->slices,
-                    S_TYPE_BOTTOM,
+                    S_TYPE_BOTTOMBRIDGE,
                 );
+                
+                # if user requested internal shells, we need to identify surfaces
+                # lying on other slices not belonging to this region
+                if ($self->config->interface_shells) {
+                    # non-bridging bottom surfaces: any part of this layer lying 
+                    # on something else, excluding those lying on our own region
+                    my $supported = intersection_ex(
+                        [ map @{$_->expolygon}, @{$layerm->slices} ],
+                        [ map @$_, @{$lower_layer->slices} ],
+                    );
+                    push @bottom, $difference->(
+                        $supported,
+                        [ map $_->expolygon, @{$lower_layer->regions->[$region_id]->slices} ],
+                        S_TYPE_BOTTOM,
+                    );
+                }
             } else {
                 # if no lower layer, all surfaces of this one are solid
                 # we clone surfaces because we're going to clear the slices collection
@@ -515,7 +536,7 @@ sub detect_surfaces_type {
             }
             
             # find internal surfaces (difference between top/bottom surfaces and others)
-            @internal = $difference->(
+            my @internal = $difference->(
                 [ map $_->expolygon, @{$layerm->slices} ],
                 [ map $_->expolygon, @top, @bottom ],
                 S_TYPE_INTERNAL,
@@ -703,7 +724,7 @@ sub discover_horizontal_shells {
                 $_->surface_type(S_TYPE_INTERNALSOLID) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
             }
             
-            EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM) {
+            EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_BOTTOMBRIDGE) {
                 # find slices of current type for current layer
                 # use slices instead of fill_surfaces because they also include the perimeter area
                 # which needs to be propagated in shells; we need to grow slices like we did for
@@ -822,7 +843,7 @@ sub discover_horizontal_shells {
                         (expolygon => $_, surface_type => S_TYPE_INTERNALSOLID), @$internal_solid);
                     
                     # assign top and bottom surfaces to layer
-                    foreach my $s (@{Slic3r::Surface::Collection->new(grep { ($_->surface_type == S_TYPE_TOP) || ($_->surface_type == S_TYPE_BOTTOM) } @neighbor_fill_surfaces)->group}) {
+                    foreach my $s (@{Slic3r::Surface::Collection->new(grep { ($_->surface_type == S_TYPE_TOP) || $_->is_bottom } @neighbor_fill_surfaces)->group}) {
                         my $solid_surfaces = diff_ex(
                             [ map $_->p, @$s ],
                             [ map @$_, @$internal_solid, @$internal ],

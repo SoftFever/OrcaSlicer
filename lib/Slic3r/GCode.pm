@@ -114,7 +114,7 @@ sub change_layer {
     if ($layer->id > 0 && ($self->print_config->overhangs || $self->print_config->start_perimeters_at_non_overhang)) {
         $self->_layer_overhangs->append(
             # clone ExPolygons because they come from Surface objects but will be used outside here
-            map $_->expolygon, map @{$_->slices->filter_by_type(S_TYPE_BOTTOM)}, @{$layer->regions}
+            map $_->expolygon, map @{$_->slices->filter_by_type(S_TYPE_BOTTOMBRIDGE)}, @{$layer->regions}
         );
     }
     if ($self->print_config->avoid_crossing_perimeters) {

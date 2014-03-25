@@ -433,6 +433,12 @@ class PrintConfigDef
         Options["infill_speed"].aliases.push_back("print_feed_rate");
         Options["infill_speed"].aliases.push_back("infill_feed_rate");
 
+        Options["interface_shells"].type = coBool;
+        Options["interface_shells"].label = "Interface shells";
+        Options["interface_shells"].tooltip = "Force the generation of solid shells between adjacent materials/volumes. Useful for multi-extruder prints with translucent materials or manual soluble support material.";
+        Options["interface_shells"].cli = "interface-shells!";
+        Options["interface_shells"].category = "Layers and Perimeters";
+
         Options["layer_gcode"].type = coString;
         Options["layer_gcode"].label = "Layer change G-code";
         Options["layer_gcode"].tooltip = "This custom code is inserted at every layer change, right after the Z move and before the extruder moves to the first layer point. Note that you can use placeholder variables for all Slic3r settings.";
@@ -934,6 +940,7 @@ class PrintObjectConfig : public virtual StaticConfig
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionBool                infill_only_where_needed;
+    ConfigOptionBool                interface_shells;
     ConfigOptionFloat               layer_height;
     ConfigOptionInt                 raft_layers;
     ConfigOptionBool                support_material;
@@ -957,6 +964,7 @@ class PrintObjectConfig : public virtual StaticConfig
         this->first_layer_height.value                           = 0.35;
         this->first_layer_height.percent                         = false;
         this->infill_only_where_needed.value                     = false;
+        this->interface_shells.value                             = false;
         this->layer_height.value                                 = 0.4;
         this->raft_layers.value                                  = 0;
         this->support_material.value                             = false;
@@ -978,6 +986,7 @@ class PrintObjectConfig : public virtual StaticConfig
         if (opt_key == "extrusion_width")                            return &this->extrusion_width;
         if (opt_key == "first_layer_height")                         return &this->first_layer_height;
         if (opt_key == "infill_only_where_needed")                   return &this->infill_only_where_needed;
+        if (opt_key == "interface_shells")                           return &this->interface_shells;
         if (opt_key == "layer_height")                               return &this->layer_height;
         if (opt_key == "raft_layers")                                return &this->raft_layers;
         if (opt_key == "support_material")                           return &this->support_material;

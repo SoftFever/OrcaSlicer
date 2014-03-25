@@ -1,4 +1,4 @@
-use Test::More tests => 4;
+use Test::More tests => 6;
 use strict;
 use warnings;
 
@@ -92,7 +92,7 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print($model, config => $config);
         my $tool = undef;
         my %T0_shells = my %T1_shells = ();  # Z => 1
-        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        Slic3r::GCode::Reader->new->parse(my $gcode = Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
         
             if ($cmd =~ /^T(\d+)/) {
@@ -114,6 +114,12 @@ use Slic3r::Test;
         my ($t0, $t1) = $test->();
         is scalar(@$t0), 0, 'no interface shells';
         is scalar(@$t1), 0, 'no interface shells';
+    }
+    {
+        $config->set('interface_shells', 1);
+        my ($t0, $t1) = $test->();
+        is scalar(@$t0), $lower_config->top_solid_layers,    'top interface shells';
+        is scalar(@$t1), $upper_config->bottom_solid_layers, 'bottom interface shells';
     }
 }
 
