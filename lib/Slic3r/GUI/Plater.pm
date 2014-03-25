@@ -382,10 +382,12 @@ sub load_file {
     my $model = eval { Slic3r::Model->read_from_file($input_file) };
     Slic3r::GUI::show_error($self, $@) if $@;
     
-    $self->load_model_objects(@{$model->objects});
+    if (defined $model) {
+        $self->load_model_objects(@{$model->objects});
+        $self->statusbar->SetStatusText("Loaded " . basename($input_file));
+    }
     
     $process_dialog->Destroy;
-    $self->statusbar->SetStatusText("Loaded " . basename($input_file));
 }
 
 sub load_model_objects {

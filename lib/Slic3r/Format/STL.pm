@@ -7,8 +7,11 @@ sub read_file {
     my $self = shift;
     my ($file) = @_;
     
+    my $path = Slic3r::encode_path($file);
+    die "Failed to open $file\n" if !-e $path;
+    
     my $mesh = Slic3r::TriangleMesh->new;
-    $mesh->ReadSTLFile(Slic3r::encode_path($file));
+    $mesh->ReadSTLFile($path);
     $mesh->repair;
     
     my $model = Slic3r::Model->new;
