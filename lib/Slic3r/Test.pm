@@ -108,7 +108,8 @@ sub model {
     
     my $model = Slic3r::Model->new;
     my $object = $model->add_object(input_file => "${model_name}.stl");
-    $object->add_volume(mesh => mesh($model_name, %params));
+    $model->set_material($model_name);
+    $object->add_volume(mesh => mesh($model_name, %params), material_id => $model_name);
     $object->add_instance(
         offset      => [0,0],
         rotation    => $params{rotation} // 0,
@@ -134,7 +135,10 @@ sub init_print {
         }
         $model->arrange_objects($print->config->min_object_distance);
         $model->center_instances_around_point($print->config->print_center);
-        $print->add_model_object($_) for @{$model->objects};
+        foreach my $model_object (@{$model->objects}) {
+            $print->auto_assign_extruders($model_object);
+            $print->add_model_object($model_object);
+        }
     }
     $print->validate;
     

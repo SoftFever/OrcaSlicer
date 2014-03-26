@@ -32,6 +32,9 @@ has 'brim' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->n
 sub apply_config {
     my ($self, $config) = @_;
     
+    $config = $config->clone;
+    $config->normalize;
+    
     # apply variables to placeholder parser
     $self->placeholder_parser->apply_config($config);
     
@@ -52,7 +55,9 @@ sub apply_config {
         my $new = $self->default_object_config->clone;
         
         # we override the new config with object-specific options
-        $new->apply_dynamic($object->model_object->config);
+        my $model_object_config = $object->model_object->config->clone;
+        $model_object_config->normalize;
+        $new->apply_dynamic($model_object_config);
         
         # check whether the new config is different from the current one
         my $diff = $object->config->diff($new);
@@ -66,55 +71,42 @@ sub apply_config {
     # handle changes to regions config defaults
     $self->default_region_config->apply_dynamic($config);
     
-    # check whether after applying the new region config defaults to all existing regions
-    # they still have distinct configs; if not we need to re-add objects in order to 
-    # merge the now-equal regions
-    
-    # first compute the transformed region configs
-    my @new_region_configs = ();
-    foreach my $region_id (0..$#{$self->regions}) {
-        my $new = $self->default_region_config->clone;
+    # All regions now have distinct settings.
+    # Check whether applying the new region config defaults we'd get different regions.
+    my $rearrange_regions = 0;
+    REGION: foreach my $region_id (0..$#{$self->regions}) {
         foreach my $object (@{$self->objects}) {
             foreach my $volume_id (@{ $object->region_volumes->[$region_id] }) {
                 my $volume = $object->model_object->volumes->[$volume_id];
-                next if !defined $volume->material_id;
-                my $material = $object->model_object->model->materials->{$volume->material_id};
-                $new->apply_dynamic($material->config);
-                push @new_region_configs, $new;
+                
+                my $new = $self->default_region_config->clone;
+                {
+                    my $model_object_config = $object->model_object->config->clone;
+                    $model_object_config->normalize;
+                    $new->apply_dynamic($model_object_config);
+                }
+                if (defined $volume->material_id) {
+                    my $material_config = $object->model_object->model->materials->{$volume->material_id}->config->clone;
+                    $material_config->normalize;
+                    $new->apply_dynamic($material_config);
+                }
+                if (!$new->equals($self->regions->[$region_id]->config)) {
+                    $rearrange_regions = 1;
+                    last REGION;
+                }
             }
         }
     }
     
-    # then find the first pair of identical configs
-    my $have_identical_configs = 0;
-    my $region_diff = [];
-    for my $i (0..$#new_region_configs) {
-        for my $j (($i+1)..$#new_region_configs) {
-            if ($new_region_configs[$i]->equals($new_region_configs[$j])) {
-                $have_identical_configs = 1;
-            }
-        }
-        my $diff = $self->regions->[$i]->config->diff($new_region_configs[$i]);
-        push @$region_diff, @$diff;
-    }
-    
-    if ($have_identical_configs) {
-        # okay, the current subdivision of regions does not make sense anymore.
+    # Some optimization is possible: if the volumes-regions mappings don't change
+    # but still region configs are changed somehow, we could just apply the diff
+    # and invalidate the affected steps.
+    if ($rearrange_regions) {
+        # the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
         my @model_objects = map $_->model_object, @{$self->objects};
         $self->delete_all_objects;
         $self->add_model_object($_) for @model_objects;
-    } elsif (@$region_diff > 0) {
-        # if there are no identical regions even after applying the change in 
-        # region config defaults, but at least one region config option changed,
-        # store the new region configs and invalidate
-        # the affected step(s)
-        foreach my $region_id (0..$#{$self->regions}) {
-            $self->regions->[$region_id]->config->apply($new_region_configs[$region_id]);
-        }
-        
-        # TODO: only invalidate changed steps
-        $_->_state->invalidate_all for @{$self->objects};
     }
 }
 
@@ -131,6 +123,9 @@ sub add_model_object {
     my $self = shift;
     my ($object, $obj_idx) = @_;
     
+    my $object_config = $object->config->clone;
+    $object_config->normalize;
+    
     my %volumes = ();           # region_id => [ volume_id, ... ]
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
@@ -140,10 +135,11 @@ sub add_model_object {
         $config->apply($self->default_region_config);
         
         # override the defaults with per-object config and then with per-material config
-        $config->apply_dynamic($object->config);
+        $config->apply_dynamic($object_config);
         
         if (defined $volume->material_id) {
-            my $material_config = $object->model->materials->{ $volume->material_id }->config;
+            my $material_config = $object->model->materials->{ $volume->material_id }->config->clone;
+            $material_config->normalize;
             $config->apply_dynamic($material_config);
         }
         
@@ -182,7 +178,7 @@ sub add_model_object {
     
     # apply config to print object
     $o->config->apply($self->default_object_config);
-    $o->config->apply_dynamic($object->config);
+    $o->config->apply_dynamic($object_config);
     
     # store print object at the given position
     if (defined $obj_idx) {
@@ -1101,6 +1097,9 @@ sub invalidate_step {
 # but not having extruders set in the material config.
 sub auto_assign_extruders {
     my ($self, $model_object) = @_;
+    
+    # only assign extruders if object has more than one volume
+    return if @{$model_object->volumes} == 1;
     
     my $extruders = scalar @{ $self->config->nozzle_diameter };
     foreach my $i (0..$#{$model_object->volumes}) {

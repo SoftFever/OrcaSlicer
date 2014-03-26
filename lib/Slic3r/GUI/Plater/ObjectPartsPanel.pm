@@ -162,7 +162,7 @@ sub selection_changed {
             $material //= $volume->assign_unique_material;
             $self->{staticbox}->SetLabel('Part Settings');
             $self->{settings_panel}->enable;
-            $self->{settings_panel}->set_opt_keys(Slic3r::Config::PrintRegion->new->get_keys);
+            $self->{settings_panel}->set_opt_keys([ 'extruder', @{Slic3r::Config::PrintRegion->new->get_keys} ]);
             $self->{settings_panel}->set_config($material->config);
         } elsif ($itemData->{type} eq 'object') {
             # select all object volumes in 3D preview
@@ -174,7 +174,7 @@ sub selection_changed {
             $self->{staticbox}->SetLabel('Object Settings');
             $self->{settings_panel}->enable;
             $self->{settings_panel}->set_opt_keys(
-                [ map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new ]
+                [ 'extruder', map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new ]
             );
             $self->{settings_panel}->set_config($self->{model_object}->config);
         }
