@@ -1001,7 +1001,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->support_material_interface_extruder.value          = 1;
         this->support_material_interface_layers.value            = 3;
         this->support_material_interface_spacing.value           = 0;
-        this->support_material_pattern.value                     = smpHoneycomb;
+        this->support_material_pattern.value                     = smpPillars;
         this->support_material_spacing.value                     = 2.5;
         this->support_material_speed.value                       = 60;
         this->support_material_threshold.value                   = 0;
