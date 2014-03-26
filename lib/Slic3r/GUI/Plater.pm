@@ -1196,8 +1196,7 @@ sub object_settings_dialog {
 	
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
-        $self->{print}->delete_object($obj_idx);
-        $self->{print}->add_model_object($model_object, $obj_idx);
+        $self->{print}->reload_object($obj_idx);
     }
 }
 

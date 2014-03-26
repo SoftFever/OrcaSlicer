@@ -80,9 +80,9 @@ sub apply_config {
                 next if !defined $volume->material_id;
                 my $material = $object->model_object->model->materials->{$volume->material_id};
                 $new->apply_dynamic($material->config);
+                push @new_region_configs, $new;
             }
         }
-        push @new_region_configs, $new;
     }
     
     # then find the first pair of identical configs
@@ -101,7 +101,7 @@ sub apply_config {
     if ($have_identical_configs) {
         # okay, the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
-        my @model_objects = map $_->model_object, @{$self->object};
+        my @model_objects = map $_->model_object, @{$self->objects};
         $self->delete_all_objects;
         $self->add_model_object($_) for @model_objects;
     } elsif (@$region_diff > 0) {
@@ -141,6 +141,7 @@ sub add_model_object {
         
         # override the defaults with per-object config and then with per-material config
         $config->apply_dynamic($object->config);
+        
         if (defined $volume->material_id) {
             my $material_config = $object->model->materials->{ $volume->material_id }->config;
             $config->apply_dynamic($material_config);
@@ -212,6 +213,20 @@ sub delete_all_objects {
     
     $self->_state->invalidate(STEP_SKIRT);
     $self->_state->invalidate(STEP_BRIM);
+}
+
+sub reload_object {
+    my ($self, $obj_idx) = @_;
+    
+    # TODO: this method should check whether the per-object config and per-material configs
+    # have changed in such a way that regions need to be rearranged or we can just apply
+    # the diff and invalidate something.  Same logic as apply_config()
+    # For now we just re-add all objects since we haven't implemented this incremental logic yet.
+    # This should also check whether object volumes (parts) have changed.
+    
+    my @model_objects = map $_->model_object, @{$self->objects};
+    $self->delete_all_objects;
+    $self->add_model_object($_) for @model_objects;
 }
 
 sub validate {
