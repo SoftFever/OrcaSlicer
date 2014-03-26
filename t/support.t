@@ -99,6 +99,7 @@ use Slic3r::Test;
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('skirts', 0);
     $config->set('raft_layers', 3);
+    $config->set('support_material_pattern', 'honeycomb');
     $config->set('support_material_extrusion_width', 0.6);
     $config->set('first_layer_extrusion_width', '100%');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
