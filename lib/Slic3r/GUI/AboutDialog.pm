@@ -47,7 +47,7 @@ sub new {
         '<html>' .
         '<body bgcolor="#ffffff" link="#808080">' .
         '<font color="#808080">' .
-        'Copyright &copy; 2011-2013 Alessandro Ranellucci. All rights reserved. ' .
+        'Copyright &copy; 2011-2014 Alessandro Ranellucci. All rights reserved. ' .
         '<a href="http://slic3r.org/">Slic3r</a> is licensed under the ' .
         '<a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License, version 3</a>.' .
         '<br /><br /><br />' .
