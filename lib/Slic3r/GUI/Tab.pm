@@ -268,7 +268,6 @@ sub add_options_page {
     my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount}, %params, on_change => sub {
         $self->on_value_change(@_);
         $self->set_dirty(1);
-        $self->on_presets_changed;
     });
     $page->Hide;
     $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
