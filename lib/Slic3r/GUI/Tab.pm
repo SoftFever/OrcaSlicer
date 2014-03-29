@@ -311,6 +311,9 @@ sub update_tree {
 sub set_dirty {
     my $self = shift;
     my ($dirty) = @_;
+
+    return if $dirty and $self->is_dirty;
+    return if (not $dirty) and (not $self->is_dirty);
     
     my $selection = $self->{presets_choice}->GetSelection;
     my $i = $self->{dirty} // $selection; #/
