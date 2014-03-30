@@ -343,6 +343,8 @@ sub extrude_path {
     my $path_length = 0;
     {
         my $local_F = $F;
+        my $xofs = $self->shift_x - $self->extruder->extruder_offset->[X];
+        my $yofs = $self->shift_y - $self->extruder->extruder_offset->[Y];
         foreach my $line (@{$path->lines}) {
             $path_length += my $line_length = unscale $line->length;
             
@@ -353,8 +355,8 @@ sub extrude_path {
             # compose G-code line
             my $point = $line->b;
             $gcode .= sprintf "G1 X%.3f Y%.3f",
-                ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
-                ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y];  #**
+                ($point->x * &Slic3r::SCALING_FACTOR) + $xofs,
+                ($point->y * &Slic3r::SCALING_FACTOR) + $yofs;  #**
             $gcode .= sprintf(" %s%.5f", $self->_extrusion_axis, $E)
                 if $E;
             $gcode .= " F$local_F"
