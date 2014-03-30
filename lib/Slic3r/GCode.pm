@@ -340,6 +340,7 @@ sub extrude_path {
     
     # extrude arc or line
     $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge;
+    my $gcode_comments = $self->print_config->gcode_comments;
     my $path_length = 0;
     {
         my $local_F = $F;
@@ -362,7 +363,7 @@ sub extrude_path {
             $gcode .= " F$local_F"
                 if $local_F;
             $gcode .= " ; $description"
-                if $self->print_config->gcode_comments;
+                if $gcode_comments;
             $gcode .= "\n";
             
             # only include F in the first line
