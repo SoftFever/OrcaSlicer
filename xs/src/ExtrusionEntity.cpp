@@ -1,3 +1,4 @@
+#include <sstream>
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "ExPolygonCollection.hpp"
@@ -99,6 +100,67 @@ ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCo
         collection->entities.push_back(path);
     }
 }
+
+#ifdef SLIC3RXS
+std::string
+ExtrusionPath::gcode(SV* extruder, double e, double F,
+    double xofs, double yofs, std::string extrusion_axis,
+    std::string gcode_line_suffix) const
+{
+    dSP;
+
+    std::stringstream stream;
+    stream.setf(std::ios::fixed);
+
+    double local_F = F;
+
+    Lines lines = this->polyline.lines();
+    for (Lines::const_iterator line_it = lines.begin();
+        line_it != lines.end(); ++line_it)
+    {
+        const double line_length = line_it->length() * SCALING_FACTOR;
+
+        // calculate extrusion length for this line
+        double E = 0;
+        if (e != 0) {
+            PUSHMARK(SP);
+            XPUSHs(extruder);
+            XPUSHs(sv_2mortal(newSVnv(e * line_length)));
+            PUTBACK;
+
+            const int count = call_method("extrude", G_SCALAR);
+            SPAGAIN;
+
+            // TODO: check that count is 1
+            E = POPn;
+        }
+
+        // compose G-code line
+
+        Point point = line_it->b;
+        const double x = point.x * SCALING_FACTOR + xofs;
+        const double y = point.y * SCALING_FACTOR + yofs;
+        stream.precision(3);
+        stream << "G1 X" << x << " Y" << y;
+
+        if (E != 0) {
+            stream.precision(5);
+            stream << " " << extrusion_axis << E;
+        }
+
+        if (local_F != 0) {
+            stream.precision(3);
+            stream << " F" << local_F;
+            local_F = 0;
+        }
+
+        stream << gcode_line_suffix;
+        stream << "\n";
+    }
+
+    return stream.str();
+}
+#endif
 
 ExtrusionLoop*
 ExtrusionLoop::clone() const

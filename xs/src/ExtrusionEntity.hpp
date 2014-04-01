@@ -55,6 +55,13 @@ class ExtrusionPath : public ExtrusionEntity
     void clip_end(double distance);
     void simplify(double tolerance);
     double length() const;
+
+    #ifdef SLIC3RXS
+    std::string gcode(SV* extruder, double e, double F,
+        double xofs, double yofs, std::string extrusion_axis,
+        std::string gcode_line_suffix) const;
+    #endif
+
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
 };

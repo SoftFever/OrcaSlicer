@@ -340,35 +340,14 @@ sub extrude_path {
     
     # extrude arc or line
     $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge;
-    my $gcode_comments = $self->print_config->gcode_comments;
-    my $path_length = 0;
+    my $path_length = unscale $path->length;
     {
-        my $local_F = $F;
-        my $xofs = $self->shift_x - $self->extruder->extruder_offset->[X];
-        my $yofs = $self->shift_y - $self->extruder->extruder_offset->[Y];
-        foreach my $line (@{$path->lines}) {
-            $path_length += my $line_length = unscale $line->length;
-            
-            # calculate extrusion length for this line
-            my $E = 0;
-            $E = $self->extruder->extrude($e * $line_length) if $e;
-            
-            # compose G-code line
-            my $point = $line->b;
-            $gcode .= sprintf "G1 X%.3f Y%.3f",
-                ($point->x * &Slic3r::SCALING_FACTOR) + $xofs,
-                ($point->y * &Slic3r::SCALING_FACTOR) + $yofs;  #**
-            $gcode .= sprintf(" %s%.5f", $self->_extrusion_axis, $E)
-                if $E;
-            $gcode .= " F$local_F"
-                if $local_F;
-            $gcode .= " ; $description"
-                if $gcode_comments;
-            $gcode .= "\n";
-            
-            # only include F in the first line
-            $local_F = 0;
-        }
+        $gcode .= $path->gcode($self->extruder, $e, $F,
+            $self->shift_x - $self->extruder->extruder_offset->[X],
+            $self->shift_y - $self->extruder->extruder_offset->[Y],
+            $self->_extrusion_axis,
+            $self->print_config->gcode_comments ? " ; $description" : "");
+
         if ($self->enable_wipe) {
             $self->wipe_path($path->polyline->clone);
             $self->wipe_path->reverse;
