@@ -207,6 +207,9 @@ sub on_btn_load {
                     $new_volume->material_id($material_name);
                 }
                 
+                # apply the same translation we applied to the object
+                $new_volume->mesh->translate(@{$self->{model_object}->origin_translation}, 0);
+                
                 # set a default extruder value, since user can't add it manually
                 my $material = $self->{model_object}->model->materials->{$new_volume->material_id};
                 $material->config->set_ifndef('extruder', 1);

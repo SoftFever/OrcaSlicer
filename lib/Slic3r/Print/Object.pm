@@ -42,8 +42,8 @@ sub BUILD {
  	    
  	    # Translate meshes so that our toolpath generation algorithms work with smaller
  	    # XY coordinates; this translation is an optimization and not strictly required.
- 	    # However, this also aligns object to Z = 0, which on the contrary is required
- 	    # since we don't assume input is already aligned.
+ 	    # A cloned mesh will be aligned to 0 before slicing in _slice_region() since we
+ 	    # don't assume it's already aligned and we don't alter the original position in model.
  	    # We store the XY translation so that we can place copies correctly in the output G-code
  	    # (copies are expressed in G-code coordinates and this translation is not publicly exposed).
  	    $self->_copies_shift(Slic3r::Point->new_scale($bb->x_min, $bb->y_min));

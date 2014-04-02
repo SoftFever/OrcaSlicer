@@ -309,6 +309,7 @@ has 'instances'             => (is => 'rw');
 has 'config'                => (is => 'rw', default => sub { Slic3r::Config->new });
 has 'layer_height_ranges'   => (is => 'rw', default => sub { [] }); # [ z_min, z_max, layer_height ]
 has '_bounding_box'         => (is => 'rw');
+has 'origin_translation'    => (is => 'ro', default => sub { Slic3r::Point->new });  # translation vector applied by center_around_origin() 
 
 sub add_volume {
     my $self = shift;
@@ -446,6 +447,7 @@ sub center_around_origin {
     $shift[Y] -= $size->y/2;  #//
     
     $self->translate(@shift);
+    $self->origin_translation->translate(@shift[X,Y]);
     
     if (defined $self->instances) {
         foreach my $instance (@{ $self->instances }) {
