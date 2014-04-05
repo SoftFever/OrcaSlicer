@@ -207,7 +207,7 @@ Pointf::from_SV(SV* point_sv)
     AV* point_av = (AV*)SvRV(point_sv);
     SV* sv_x = *av_fetch(point_av, 0, 0);
     SV* sv_y = *av_fetch(point_av, 1, 0);
-    if (!looks_like_number(sv_x) || !looks_like_number(sv_x)) return false;
+    if (!looks_like_number(sv_x) || !looks_like_number(sv_y)) return false;
     
     this->x = SvNV(sv_x);
     this->y = SvNV(sv_y);

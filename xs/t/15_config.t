@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 94;
+use Test::More tests => 100;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -33,11 +33,13 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     ok abs($config->get_abs_value('first_layer_height') - 0.15) < 1e-4, 'set/get relative floatOrPercent';
     is $config->serialize('first_layer_height'), '50%', 'serialize relative floatOrPercent';
     
-    $config->set('print_center', [50,80]);
+    ok $config->set('print_center', [50,80]), 'valid point coordinates';
     is_deeply $config->get('print_center'), [50,80], 'set/get point';
     is $config->serialize('print_center'), '50,80', 'serialize point';
     $config->set_deserialize('print_center', '20,10');
     is_deeply $config->get('print_center'), [20,10], 'deserialize point';
+    ok !$config->set('print_center', ['t',80]), 'invalid point X';
+    ok !$config->set('print_center', [50,'t']), 'invalid point Y';
     
     $config->set('use_relative_e_distances', 1);
     is $config->get('use_relative_e_distances'), 1, 'set/get bool';
