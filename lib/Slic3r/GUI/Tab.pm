@@ -681,6 +681,7 @@ sub build {
             options => [qw(gcode_flavor use_relative_e_distances)],
         },
         {
+            class => 'Slic3r::GUI::OptionsGroup',
             title => 'Capabilities',
             options => [
                 {
