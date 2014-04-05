@@ -12,6 +12,9 @@ our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_
 
 our $Options = print_config_def();
 
+# overwrite the hard-coded readonly value (this information is not available in XS)
+$Options->{threads}{readonly} = !$Slic3r::have_threads;
+
 # generate accessors
 {
     no strict 'refs';
