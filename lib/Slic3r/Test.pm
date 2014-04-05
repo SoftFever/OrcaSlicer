@@ -98,7 +98,6 @@ sub mesh {
     $mesh->ReadFromPerl($vertices, $facets);
     $mesh->repair;
     $mesh->scale_xyz($params{scale_xyz}) if $params{scale_xyz};
-    $mesh->scale($params{scale}) if $params{scale};
     $mesh->translate(@{$params{translate}}) if $params{translate};
     return $mesh;
 }
@@ -113,6 +112,7 @@ sub model {
     $object->add_instance(
         offset      => [0,0],
         rotation    => $params{rotation} // 0,
+        scaling_factor => $params{scale} // 1,
     );
     return $model;
 }
