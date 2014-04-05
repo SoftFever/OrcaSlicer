@@ -5,6 +5,9 @@ namespace Slic3r {
 
 Flow
 Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio) {
+    // we need layer height unless it's a bridge
+    if (height <= 0 && bridge_flow_ratio == 0) CONFESS("Invalid flow height supplied to new_from_config_width()");
+    
     float w;
     if (!width.percent && width.value == 0) {
         w = Flow::_width(role, nozzle_diameter, height, bridge_flow_ratio);
@@ -19,6 +22,9 @@ Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &wid
 
 Flow
 Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge) {
+    // we need layer height unless it's a bridge
+    if (height <= 0 && !bridge) CONFESS("Invalid flow height supplied to new_from_spacing()");
+
     float w = Flow::_width_from_spacing(spacing, nozzle_diameter, height, bridge);
     Flow flow(w, spacing, nozzle_diameter);
     flow.bridge = bridge;

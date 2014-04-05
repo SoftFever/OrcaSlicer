@@ -552,6 +552,7 @@ sub generate_toolpaths {
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density     => $interface_density,
                     flow        => $interface_flow,
+                    layer_height => $layer->height,
                     complete    => 1,
                 );
                 my $mm3_per_mm = $params->{flow}->mm3_per_mm($layer->height);
@@ -602,6 +603,7 @@ sub generate_toolpaths {
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density     => $density,
                     flow        => $base_flow,
+                    layer_height => $layer->height,
                     complete    => 1,
                 );
                 my $mm3_per_mm = $params->{flow}->mm3_per_mm($layer->height);

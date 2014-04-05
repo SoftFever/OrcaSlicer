@@ -51,7 +51,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     );
     foreach my $angle (0, 45) {
         $surface->expolygon->rotate(Slic3r::Geometry::deg2rad($angle), [0,0]);
-        my ($params, @paths) = $filler->fill_surface($surface, flow => $flow, density => 0.4);
+        my ($params, @paths) = $filler->fill_surface($surface, flow => $flow, layer_height => 0.4, density => 0.4);
         is scalar @paths, 1, 'one continuous path';
     }
 }
@@ -76,6 +76,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         my ($params, @paths) = $filler->fill_surface(
             $surface,
             flow            => $flow,
+            layer_height    => 0.4,
             density         => $density // 1,
         );
         

@@ -182,11 +182,9 @@ sub make_fill {
         next if $surface->surface_type == S_TYPE_INTERNALVOID;
         my $filler          = $layerm->config->fill_pattern;
         my $density         = $fill_density;
-        my $flow            = ($surface->surface_type == S_TYPE_TOP)
-            ? $layerm->flow(FLOW_ROLE_TOP_SOLID_INFILL)
-            : $surface->is_solid
-                ? $solid_infill_flow
-                : $infill_flow;
+        my $role = ($surface->surface_type == S_TYPE_TOP) ? FLOW_ROLE_TOP_SOLID_INFILL
+            : $surface->is_solid ? FLOW_ROLE_SOLID_INFILL
+            : FLOW_ROLE_INFILL;
         my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         
@@ -196,7 +194,6 @@ sub make_fill {
             $filler = $layerm->config->solid_fill_pattern;
             if ($is_bridge) {
                 $filler = 'rectilinear';
-                $flow = $layerm->flow(FLOW_ROLE_SOLID_INFILL, 1);
             } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
                 $filler = 'rectilinear';
             }
@@ -204,19 +201,26 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
+        my $h = $surface->thickness == -1 ? $layerm->height : $surface->thickness;
+        my $flow = $layerm->region->flow(
+            $role,
+            $h,
+            $is_bridge,
+            $layerm->id == 0,
+        );
+        
         my $f = $self->filler($filler);
         $f->layer_id($layerm->id);
         $f->angle($layerm->config->fill_angle);
         my ($params, @polylines) = $f->fill_surface(
             $surface,
-            density => $density/100,
-            flow    => $flow,
+            density         => $density/100,
+            flow            => $flow,
+            layer_height    => $h,
         );
         next unless @polylines;
         
-        my $h = $surface->thickness;
-        $h = $layerm->height if $h == -1;
-        my $mm3_per_mm = $params->{flow}->mm3_per_mm($h);
+        my $mm3_per_mm = $flow->mm3_per_mm($h);
         
         # save into layer
         push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
