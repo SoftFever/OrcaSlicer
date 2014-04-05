@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 7;
 use strict;
 use warnings;
 
@@ -64,6 +64,17 @@ use Slic3r::Test;
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     ok Slic3r::Test::gcode($print), 'no errors when using non-consecutive extruders';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('perimeter_extruder', 2);
+    $config->set('infill_extruder', 2);
+    $config->set('support_material_extruder', 2);
+    $config->set('support_material_interface_extruder', 2);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'no errors when using multiple skirts with a single, non-zero, extruder';
 }
 
 {

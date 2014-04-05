@@ -90,7 +90,8 @@ sub process_layer {
                 # when printing layers > 0 ignore 'min_skirt_length' and 
                 # just use the 'skirts' setting; also just use the current extruder
                 last if ($layer->id > 0) && ($i >= $self->print->config->skirts);
-                $gcode .= $self->gcodegen->set_extruder(($i/@extruder_ids) % @extruder_ids)
+                my $extruder_id = $extruder_ids[($i/@extruder_ids) % @extruder_ids];
+                $gcode .= $self->gcodegen->set_extruder($extruder_id)
                     if $layer->id == 0;
                 $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
             }
