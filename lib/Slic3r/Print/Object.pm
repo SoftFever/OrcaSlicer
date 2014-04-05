@@ -25,20 +25,11 @@ has 'fill_maker'        => (is => 'lazy');
 has '_state'            => (is => 'ro', default => sub { Slic3r::Print::State->new });
 
 sub BUILD {
-    my $self = shift;
- 	
- 	# translate meshes so that we work with smaller coordinates
+    my ($self) = @_;
+    
+    # Compute the translation to be applied to our meshes so that we work with smaller coordinates
  	{
- 	    # compute the bounding box of the supplied meshes
- 	    my @meshes = map $self->model_object->volumes->[$_]->mesh,
- 	                    map @$_,
- 	                    grep defined $_,
- 	                    @{$self->region_volumes};
- 	   
- 	    my $bb = @meshes
- 	        ? $meshes[0]->bounding_box
- 	        : Slic3r::Geometry::BoundingBoxf3->new;
- 	    $bb->merge($_->bounding_box) for @meshes[1..$#meshes];
+ 	    my $bb = $self->model_object->bounding_box;
  	    
  	    # Translate meshes so that our toolpath generation algorithms work with smaller
  	    # XY coordinates; this translation is an optimization and not strictly required.
@@ -54,7 +45,7 @@ sub BUILD {
  	    $scaled_bb->scale(1 / &Slic3r::SCALING_FACTOR);
  	    $self->size($scaled_bb->size);
  	}
-}
+ }
 
 sub _build_fill_maker {
     my $self = shift;
