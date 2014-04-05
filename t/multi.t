@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 8;
 use strict;
 use warnings;
 
@@ -67,7 +67,15 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config->new;
+    $config->set('extruder', 2);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    like Slic3r::Test::gcode($print), qr/ T1/, 'extruder shortcut';
+}
+
+{
+    my $config = Slic3r::Config->new;
     $config->set('perimeter_extruder', 2);
     $config->set('infill_extruder', 2);
     $config->set('support_material_extruder', 2);

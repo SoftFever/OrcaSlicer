@@ -72,7 +72,10 @@ if ($opt{load}) {
 
 # merge configuration
 my $config = Slic3r::Config->new_from_defaults;
-$config->apply($_) for @external_configs, $cli_config;
+foreach my $c (@external_configs, $cli_config) {
+    $c->normalize;  # expand shortcuts before applying, otherwise destination values would be already filled with defaults
+    $config->apply($c);
+}
 
 # save configuration
 if ($opt{save}) {
