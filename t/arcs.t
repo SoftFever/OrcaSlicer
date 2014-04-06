@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 20;
+plan tests => 24;
 
 BEGIN {
     use FindBin;
@@ -44,20 +44,27 @@ use Slic3r::Geometry qw(scaled_epsilon epsilon scale unscale X Y deg2rad);
     }
 }
 
-exit;
-
 #==========================================================
 
 {
-    my $path = Slic3r::Polyline->new(
+    my $path = Slic3r::Polyline->new_scale(
         [135322.42,26654.96], [187029.11,99546.23], [222515.14,92381.93], [258001.16,99546.23], 
         [286979.42,119083.91], [306517.1,148062.17], [313681.4,183548.2],
         [306517.1,219034.23], [286979.42,248012.49], [258001.16,267550.17], [222515.14,274714.47], 
         [187029.11,267550.17], [158050.85,248012.49], [138513.17,219034.23], [131348.87,183548.2], 
         [86948.77,175149.09], [119825.35,100585],
     );
+    $path->scale(1/10000);
     
-    my $af = Slic3r::GCode::ArcFitting->new;
+    if (0) {
+        require "Slic3r::SVG";
+        Slic3r::SVG::output(
+            "arc.svg",
+            polylines => [$path],
+        );
+    }
+    
+    my $af = Slic3r::GCode::ArcFitting->new(max_relative_angle => deg2rad(30));
     my @chunks = $af->detect_arcs($path);
     
     is scalar(@chunks), 3, 'path collection now contains three paths';
@@ -65,6 +72,8 @@ exit;
     isa_ok $chunks[1], 'Slic3r::GCode::ArcFitting::Arc', 'second one is arc';
     isa_ok $chunks[2], 'Slic3r::Polyline', 'third one is polyline';
 }
+
+exit;
 
 #==========================================================
 

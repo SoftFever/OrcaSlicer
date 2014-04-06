@@ -6,9 +6,10 @@ use Slic3r::Geometry qw(X Y PI scale unscale epsilon scaled_epsilon deg2rad angl
 extends 'Slic3r::GCode::Reader';
 has 'config'                    => (is => 'ro', required => 0);
 has 'min_segments'              => (is => 'rw', default => sub { 2 });
-has 'max_angle'                 => (is => 'rw', default => sub { deg2rad(15) });
-has 'len_epsilon'               => (is => 'rw', default => sub { scale 0.1 });
-has 'angle_epsilon'             => (is => 'rw', default => sub { abs(deg2rad(1)) });
+has 'min_total_angle'           => (is => 'rw', default => sub { deg2rad(30) });
+has 'max_relative_angle'        => (is => 'rw', default => sub { deg2rad(15) });
+has 'len_epsilon'               => (is => 'rw', default => sub { scale 0.2 });
+has 'angle_epsilon'             => (is => 'rw', default => sub { abs(deg2rad(10)) });
 has '_extrusion_axis'           => (is => 'lazy');
 has '_path'                     => (is => 'rw');
 has '_cur_F'                    => (is => 'rw');
@@ -131,22 +132,28 @@ sub detect_arcs {
         # we need at least three points to check whether they form an arc
         if ($i < $#points) {
             my $len = $points[$i-1]->distance_to($points[$i]);
-            my $rel_angle = angle3points(@points[$i, $i-1, $i+1]);
-            for (my $j = $i+1; $j <= $#points; ++$j) {
-                # check whether @points[($i-1)..$j] form an arc
-                last if abs($points[$j-1]->distance_to($points[$j]) - $len) > $self->len_epsilon;
-                last if abs(angle3points(@points[$j-1, $j-2, $j]) - $rel_angle) > $self->angle_epsilon;
-                
-                $end = $j;
+            my $rel_angle = PI - angle3points(@points[$i, $i-1, $i+1]);
+            if (abs($rel_angle) <= $self->max_relative_angle) {
+                for (my $j = $i+1; $j <= $#points; ++$j) {
+                    # check whether @points[($i-1)..$j] form an arc
+                    last if abs($points[$j-1]->distance_to($points[$j]) - $len) > $self->len_epsilon;
+                    last if abs(PI - angle3points(@points[$j-1, $j-2, $j]) - $rel_angle) > $self->angle_epsilon;
+                    
+                    $end = $j;
+                }
             }
         }
         
         if (defined $end && ($end - $i + 1) >= $self->min_segments) {
-            push @chunks, polyline_to_arc(Slic3r::Polyline->new(@points[($i-1)..$end]));
+            my $arc = polyline_to_arc(Slic3r::Polyline->new(@points[($i-1)..$end]));
             
-            # continue scanning after arc points
-            $i = $end;
-            next;
+            if (1||$arc->angle >= $self->min_total_angle) {
+                push @chunks, $arc;
+                
+                # continue scanning after arc points
+                $i = $end;
+                next;
+            }
         }
         
         # if last chunk was a polyline, append to it
