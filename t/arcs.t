@@ -2,8 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan skip_all => 'arcs are currently disabled';
-plan tests => 13;
+plan tests => 20;
 
 BEGIN {
     use FindBin;
@@ -12,21 +11,59 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Geometry qw(scaled_epsilon scale X Y);
+use Slic3r::Geometry qw(scaled_epsilon epsilon scale unscale X Y deg2rad);
 
 {
-    my $path = Slic3r::ExtrusionPath->new(polyline => Slic3r::Polyline->new(
+    my $angle = deg2rad(4);
+    foreach my $ccw (1, 0) {
+        my $polyline = Slic3r::Polyline->new_scale([0,0], [0,10]);
+        {
+            my $p3 = Slic3r::Point->new_scale(0, 20);
+            $p3->rotate($angle * ($ccw ? 1 : -1), $polyline->[-1]);
+            is $ccw, ($p3->[X] < $polyline->[-1][X]) ? 1 : 0, 'third point is rotated correctly';
+            $polyline->append($p3);
+        }
+        ok abs($polyline->length - scale(20)) < scaled_epsilon, 'curved polyline length';
+        is $ccw, ($polyline->[2]->ccw(@$polyline[0,1]) > 0) ? 1 : 0, 'curved polyline has wanted orientation';
+    
+        ok my $arc = Slic3r::GCode::ArcFitting::polyline_to_arc($polyline), 'arc is detected';
+        is $ccw, $arc->is_ccw, 'arc orientation is correct';
+    
+        ok abs($arc->angle - $angle) < epsilon, 'arc relative angle is correct';
+        
+        ok $arc->start->coincides_with($polyline->[0]), 'arc start point is correct';
+        ok $arc->end->coincides_with($polyline->[-1]), 'arc end point is correct';
+        
+        # since first polyline segment is vertical we expect arc center to have same Y as its first point
+        is $arc->center->[Y], 0, 'arc center has correct Y';
+    
+        my $s1 = Slic3r::Line->new(@$polyline[0,1]);
+        my $s2 = Slic3r::Line->new(@$polyline[1,2]);
+        ok abs($arc->center->distance_to($s1->midpoint) - $arc->center->distance_to($s2->midpoint)) < scaled_epsilon,
+            'arc center is equidistant from both segments\' midpoints';
+    }
+}
+
+exit;
+
+#==========================================================
+
+{
+    my $path = Slic3r::Polyline->new(
         [135322.42,26654.96], [187029.11,99546.23], [222515.14,92381.93], [258001.16,99546.23], 
         [286979.42,119083.91], [306517.1,148062.17], [313681.4,183548.2],
         [306517.1,219034.23], [286979.42,248012.49], [258001.16,267550.17], [222515.14,274714.47], 
         [187029.11,267550.17], [158050.85,248012.49], [138513.17,219034.23], [131348.87,183548.2], 
         [86948.77,175149.09], [119825.35,100585],
-    ), role => EXTR_ROLE_FILL, mm3_per_mm => 0.5);
+    );
     
-    my @paths = $path->detect_arcs(30);
+    my $af = Slic3r::GCode::ArcFitting->new;
+    my @chunks = $af->detect_arcs($path);
     
-    is scalar(@paths), 3, 'path collection now contains three paths';
-    isa_ok $paths[1], 'Slic3r::ExtrusionPath::Arc', 'second one';
+    is scalar(@chunks), 3, 'path collection now contains three paths';
+    isa_ok $chunks[0], 'Slic3r::Polyline', 'first one is polyline';
+    isa_ok $chunks[1], 'Slic3r::GCode::ArcFitting::Arc', 'second one is arc';
+    isa_ok $chunks[2], 'Slic3r::Polyline', 'third one is polyline';
 }
 
 #==========================================================

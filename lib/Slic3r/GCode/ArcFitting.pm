@@ -1,133 +1,235 @@
 package Slic3r::GCode::ArcFitting;
 use Moo;
 
-use Slic3r::Geometry qw(X Y PI scale unscale deg2rad);
+use Slic3r::Geometry qw(X Y PI scale unscale epsilon scaled_epsilon deg2rad angle3points);
 
 extends 'Slic3r::GCode::Reader';
-has 'config'                    => (is => 'ro', required => 1);
+has 'config'                    => (is => 'ro', required => 0);
+has 'min_segments'              => (is => 'rw', default => sub { 2 });
 has 'max_angle'                 => (is => 'rw', default => sub { deg2rad(15) });
-has 'len_epsilon'               => (is => 'rw', default => sub { scale 10 });
-has 'parallel_degrees_limit'    => (is => 'rw', default => sub { abs(deg2rad(3)) });
+has 'len_epsilon'               => (is => 'rw', default => sub { scale 0.1 });
+has 'angle_epsilon'             => (is => 'rw', default => sub { abs(deg2rad(1)) });
+has '_extrusion_axis'           => (is => 'lazy');
+has '_path'                     => (is => 'rw');
+has '_cur_F'                    => (is => 'rw');
+has '_cur_E'                    => (is => 'rw');
+has '_cur_E0'                   => (is => 'rw');
+has '_comment'                  => (is => 'rw');
+
+sub _build__extrusion_axis {
+    my ($self) = @_;
+    return $self->config ? $self->config->get_extrusion_axis : 'E';
+}
 
 sub process {
     my $self = shift;
     my ($gcode) = @_;
     
-    my $new_gcode           = "";
-    my $buffer              = "";
-    my @cur_path            = ();
-    my $cur_len             = 0;
-    my $cur_relative_angle  = 0;
+    die "Arc fitting is not available (incomplete feature)\n";
+    die "Arc fitting doesn't support extrusion axis not being E\n" if $self->_extrusion_axis ne 'E';
+    
+    my $new_gcode = "";
     
     $self->parse($gcode, sub {
         my ($reader, $cmd, $args, $info) = @_;
         
         if ($info->{extruding} && $info->{dist_XY} > 0) {
-            my $point = Slic3r::Point->new_scale($args->{X}, $args->{Y});
+            # this is an extrusion segment
             
-            if (@cur_path >= 2) {
-                if ($cur_path[-1]->distance_to($point) > $self->len_epsilon) {
-                    # if the last distance is not compatible with the current arc, flush it
-                    $new_gcode .= $self->flush_path(\@cur_path, \$buffer);
-                } elsif (@cur_path >= 3) {
-                    my $rel_angle = relative_angle(@cur_path[-2,-1], $point);
-                    if (($cur_relative_angle != 0 && abs($rel_angle - $cur_relative_angle) > $self->parallel_degrees_limit)   # relative angle is too different from the previous one
-                        || abs($rel_angle) < $self->parallel_degrees_limit                            # relative angle is almost parallel
-                        || $rel_angle > $self->max_angle) {                                           # relative angle is excessive (too sharp)
-                        # in these cases, $point does not really look like an additional point of the current arc
-                        $new_gcode .= $self->flush_path(\@cur_path, \$buffer);
-                    }
-                }
+            # get segment
+            my $line = Slic3r::Line->new(
+                Slic3r::Point->new_scale($self->X, $self->Y),
+                Slic3r::Point->new_scale($args->{X}, $args->{Y}),
+            );
+            
+            # get segment speed
+            my $F = $args->{F} // $reader->F;
+            
+            # get extrusion per unscaled distance unit
+            my $e = $info->{dist_E} / unscale($line->length);
+            
+            if ($self->_path && $F == $self->_cur_F && abs($e - $self->_cur_E) < epsilon) {
+                # if speed and extrusion per unit are the same as the previous segments,
+                # append this segment to path
+                $self->_path->append($line->b);
+            } elsif ($self->_path) {
+                # segment can't be appended to previous path, so we flush the previous one
+                # and start over
+                $new_gcode .= $self->path_to_gcode;
+                $self->_path(undef);
             }
             
-            if (@cur_path == 0) {
-                # we're starting a path, so let's prepend the previous position
-                push @cur_path, Slic3r::Point->new_scale($self->X, $self->Y), $point;
-                $buffer .= $info->{raw} . "\n";
-                $cur_len = $cur_path[0]->distance_to($cur_path[1]);
-            } else {
-                push @cur_path, $point;
-                $buffer .= $info->{raw} . "\n";
-                if (@cur_path == 3) {
-                    # we have two segments, time to compute a reference angle
-                    $cur_relative_angle = relative_angle(@cur_path[0,1,2]);
-                }
+            if (!$self->_path) {
+                # if this is the first segment of a path, start it from scratch
+                $self->_path(Slic3r::Polyline->new(@$line));
+                $self->_cur_F($F);
+                $self->_cur_E($e);
+                $self->_cur_E0($self->E);
+                $self->_comment($info->{comment});
             }
         } else {
-            $new_gcode .= $self->flush_path(\@cur_path, \$buffer);
+            # if we have a path, we flush it and go on
+            $new_gcode .= $self->path_to_gcode if $self->_path;
             $new_gcode .= $info->{raw} . "\n";
+            $self->_path(undef);
         }
     });
     
-    $new_gcode .= $self->flush_path(\@cur_path, \$buffer);
+    $new_gcode .= $self->path_to_gcode if $self->_path;
     return $new_gcode;
 }
 
-sub flush_path {
-    my ($self, $cur_path, $buffer) = @_;
+sub path_to_gcode {
+    my ($self) = @_;
+    
+    my @chunks = $self->detect_arcs($self->_path);
     
     my $gcode = "";
-    
-    if (@$cur_path >= 3) {
-        # if we have enough points, then we have an arc
-        $$buffer =~ s/^/;/mg;
-        $gcode = "; these moves were replaced by an arc:\n" . $$buffer;
-        
-        my $orientation = $cur_path->[2]->ccw(@$cur_path[0,1]) ? 'ccw' : 'cw';
-        
-        # to find the center, we intersect the perpendicular lines
-        # passing by midpoints of $s1 and last segment
-        # a better method would be to draw all the perpendicular lines
-        # and find the centroid of the enclosed polygon, or to
-        # intersect multiple lines and find the centroid of the convex hull
-        # around the intersections
-        my $arc_center;
-        {
-            my $s1_mid      = Slic3r::Line->new(@$cur_path[0,1])->midpoint;
-            my $last_mid    = Slic3r::Line->new(@$cur_path[-2,-1])->midpoint;
-            my $rotation_angle = PI/2 * ($orientation eq 'ccw' ? -1 : 1);
-            my $ray1        = Slic3r::Line->new($s1_mid,   $cur_path->[1]->clone->rotate($rotation_angle, $s1_mid));
-            my $last_ray    = Slic3r::Line->new($last_mid, $cur_path->[-1]->clone->rotate($rotation_angle, $last_mid));
-            $arc_center     = $ray1->intersection($last_ray, 0) or next POINT;
+    my $E = $self->_cur_E0;
+    foreach my $chunk (@chunks) {
+        if ($chunk->isa('Slic3r::Polyline')) {
+            my @lines = @{$chunk->lines};
+            
+            $gcode .= sprintf "G1 F%s\n", $self->_cur_F;
+            foreach my $line (@lines) {
+                $E += $self->_cur_E * unscale($line->length);
+                $gcode .= sprintf "G1 X%.3f Y%.3f %s%.5f",
+                    (map unscale($_), @{$line->b}),
+                    $self->_extrusion_axis, $E;
+                $gcode .= sprintf " ; %s", $self->_comment if $self->_comment;
+                $gcode .= "\n";
+            }
+        } elsif ($chunk->isa('Slic3r::GCode::ArcFitting::Arc')) {
+            $gcode .= !$chunk->is_ccw ? "G2" : "G3";
+            $gcode .= sprintf " X%.3f Y%.3f", map unscale($_), @{$chunk->end};  # destination point
+            
+            # XY distance of the center from the start position
+            $gcode .= sprintf " I%.3f", unscale($chunk->center->[X] - $chunk->start->[X]);
+            $gcode .= sprintf " J%.3f", unscale($chunk->center->[Y] - $chunk->start->[Y]);
+            
+            $E += $self->_cur_E * unscale($chunk->length);
+            $gcode .= sprintf " %s%.5f", $self->_extrusion_axis, $E;
+            
+            $gcode .= sprintf " F%s\n", $self->_cur_F;
         }
-        my $radius = $arc_center->distance_to($cur_path->[0]);
-        my $total_angle = Slic3r::Geometry::angle3points($arc_center, @$cur_path[0,-1]);
-        my $length = $orientation eq 'ccw'
-            ? $radius * $total_angle
-            : $radius * (2*PI - $total_angle);
-        
-        # compose G-code line
-        $gcode .= $orientation eq 'cw' ? "G2" : "G3";
-        $gcode .= sprintf " X%.3f Y%.3f", map unscale($_), @{$cur_path->[-1]};  # destination point
-        
-        # XY distance of the center from the start position
-        $gcode .= sprintf " I%.3f J%.3f", map { unscale($arc_center->[$_] - $cur_path->[0][$_]) } (X,Y);
-        
-        my $E = 0;  # TODO: compute E using $length
-        $gcode .= sprintf(" %s%.5f", $self->config->get_extrusion_axis, $E)
-            if $E;
-        
-        my $F = 0;  # TODO: extract F from original moves
-        $gcode .= " F$F\n";
-    } else {
-        $gcode = $$buffer;
     }
-    
-    $$buffer = "";
-    splice @$cur_path, 0, $#$cur_path;  # keep last point as starting position for next path
     return $gcode;
 }
 
-sub relative_angle {
-    my ($p1, $p2, $p3) = @_;
+sub detect_arcs {
+    my ($self, $path) = @_;
     
-    my $s1 = Slic3r::Line->new($p1, $p2);
-    my $s2 = Slic3r::Line->new($p2, $p3);
-    my $s1_angle = $s1->atan;
-    my $s2_angle = $s2->atan;
-    $s1_angle += 2*PI if $s1_angle < 0;
-    $s2_angle += 2*PI if $s2_angle < 0;
-    return $s2_angle - $s1_angle;
+    my @chunks = ();
+    my @arc_points = ();
+    my $polyline = undef;
+    my $arc_start = undef;
+    
+    my @points = @$path;
+    for (my $i = 1; $i <= $#points; ++$i) {
+        my $end = undef;
+        
+        # we need at least three points to check whether they form an arc
+        if ($i < $#points) {
+            my $len = $points[$i-1]->distance_to($points[$i]);
+            my $rel_angle = angle3points(@points[$i, $i-1, $i+1]);
+            for (my $j = $i+1; $j <= $#points; ++$j) {
+                # check whether @points[($i-1)..$j] form an arc
+                last if abs($points[$j-1]->distance_to($points[$j]) - $len) > $self->len_epsilon;
+                last if abs(angle3points(@points[$j-1, $j-2, $j]) - $rel_angle) > $self->angle_epsilon;
+                
+                $end = $j;
+            }
+        }
+        
+        if (defined $end && ($end - $i + 1) >= $self->min_segments) {
+            push @chunks, polyline_to_arc(Slic3r::Polyline->new(@points[($i-1)..$end]));
+            
+            # continue scanning after arc points
+            $i = $end;
+            next;
+        }
+        
+        # if last chunk was a polyline, append to it
+        if (@chunks && $chunks[-1]->isa('Slic3r::Polyline')) {
+            $chunks[-1]->append($points[$i]);
+        } else {
+            push @chunks, Slic3r::Polyline->new(@points[($i-1)..$i]);
+        }
+    }
+    
+    return @chunks;
+}
+
+sub polyline_to_arc {
+    my ($polyline) = @_;
+    
+    my @points = @$polyline;
+    
+    my $is_ccw = $points[2]->ccw(@points[0,1]) > 0;
+        
+    # to find the center, we intersect the perpendicular lines
+    # passing by first and last vertex;
+    # a better method would be to draw all the perpendicular lines
+    # and find the centroid of the enclosed polygon, or to
+    # intersect multiple lines and find the centroid of the convex hull
+    # around the intersections
+    my $arc_center;
+    {
+        my $first_ray = Slic3r::Line->new(@points[0,1]);
+        $first_ray->rotate(PI/2 * ($is_ccw ? 1 : -1), $points[0]);
+        
+        my $last_ray = Slic3r::Line->new(@points[-2,-1]);
+        $last_ray->rotate(PI/2 * ($is_ccw ? -1 : 1), $points[-1]);
+        
+        # require non-parallel rays in order to compute an accurate center
+        return if abs($first_ray->atan2_ - $last_ray->atan2_) < deg2rad(30);
+        
+        $arc_center = $first_ray->intersection($last_ray, 0) or return;
+    }
+    
+    # angle measured in ccw orientation
+    my $abs_angle = Slic3r::Geometry::angle3points($arc_center, @points[0,-1]);
+    
+    my $rel_angle = $is_ccw
+        ? $abs_angle
+        : (2*PI - $abs_angle);
+    
+    my $arc = Slic3r::GCode::ArcFitting::Arc->new(
+        start   => $points[0]->clone,
+        end     => $points[-1]->clone,
+        center  => $arc_center,
+        is_ccw  => $is_ccw || 0,
+        angle   => $rel_angle,
+    );
+    
+    if (0) {
+        printf "points = %d, path length = %f, arc angle = %f, arc length = %f\n",
+            scalar(@points),
+            unscale(Slic3r::Polyline->new(@points)->length),
+            Slic3r::Geometry::rad2deg($rel_angle),
+            unscale($arc->length);
+    }
+    
+    return $arc;
+}
+
+package Slic3r::GCode::ArcFitting::Arc;
+use Moo;
+
+has 'start'  => (is => 'ro', required => 1);
+has 'end'    => (is => 'ro', required => 1);
+has 'center' => (is => 'ro', required => 1);
+has 'is_ccw' => (is => 'ro', required => 1);
+has 'angle'  => (is => 'ro', required => 1);
+
+sub radius {
+    my ($self) = @_;
+    return $self->start->distance_to($self->center);
+}
+
+sub length {
+    my ($self) = @_;
+    return $self->radius * $self->angle;
 }
 
 1;
