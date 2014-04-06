@@ -348,7 +348,7 @@ sub load_presets {
     }];
     
     my %presets = Slic3r::GUI->presets($self->name);
-    foreach my $preset_name (keys %presets) {
+    foreach my $preset_name (sort keys %presets) {
         push @{$self->{presets}}, {
             name => $preset_name,
             file => $presets{$preset_name},
