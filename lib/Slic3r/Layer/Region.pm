@@ -7,7 +7,7 @@ use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(PI A B scale unscale chained_path points_coincide);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
     offset offset_ex offset2 offset2_ex union_pt diff intersection
-    union diff intersection_pl);
+    union diff);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -343,6 +343,7 @@ sub process_external_surfaces {
     my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
     
     my @bottom = ();
+    my $bridge_detector;
     foreach my $surface (grep $_->is_bottom, @surfaces) {
         my $grown = $surface->expolygon->offset_ex(+$margin);
         
@@ -350,9 +351,16 @@ sub process_external_surfaces {
         # would get merged into a single one while they need different directions
         # also, supply the original expolygon instead of the grown one, because in case
         # of very thin (but still working) anchors, the grown expolygon would go beyond them
-        my $angle = $lower_layer
-            ? $self->_detect_bridge_direction($surface->expolygon, $lower_layer)
-            : undef;
+        my $angle;
+        if ($lower_layer) {
+            $bridge_detector //= Slic3r::Layer::BridgeDetector->new(
+                lower_slices    => $lower_layer->slices,
+                perimeter_flow  => $self->flow(FLOW_ROLE_PERIMETER),
+                infill_flow     => $self->flow(FLOW_ROLE_INFILL),
+            );
+            Slic3r::debugf "Processing bridge at layer %d:\n", $self->id;
+            $angle = $bridge_detector->detect_angle($surface->expolygon);
+        }
         
         push @bottom, map $surface->clone(expolygon => $_, bridge_angle => $angle), @$grown;
     }
@@ -395,124 +403,6 @@ sub process_external_surfaces {
     }
     $self->fill_surfaces->clear;
     $self->fill_surfaces->append(@new_surfaces);
-}
-
-sub _detect_bridge_direction {
-    my ($self, $expolygon, $lower_layer) = @_;
-    
-    my $perimeter_flow  = $self->flow(FLOW_ROLE_PERIMETER);
-    my $infill_flow     = $self->flow(FLOW_ROLE_INFILL);
-    
-    my $grown = $expolygon->offset(+$perimeter_flow->scaled_width);
-    my @lower = @{$lower_layer->slices};       # expolygons
-    
-    # detect what edges lie on lower slices
-    my @edges = (); # polylines
-    foreach my $lower (@lower) {
-        # turn bridge contour and holes into polylines and then clip them
-        # with each lower slice's contour
-        my @clipped = @{intersection_pl([ map $_->split_at_first_point, @$grown ], [$lower->contour])};
-        if (@clipped == 2) {
-            # If the split_at_first_point() call above happens to split the polygon inside the clipping area
-            # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 
-            # recombine them back into a single one in order to trigger the @edges == 2 logic below.
-            # This needs to be replaced with something way better.
-            if (points_coincide($clipped[0][0], $clipped[-1][-1])) {
-                @clipped = (Slic3r::Polyline->new(@{$clipped[-1]}, @{$clipped[0]}));
-            }
-            if (points_coincide($clipped[-1][0], $clipped[0][-1])) {
-                @clipped = (Slic3r::Polyline->new(@{$clipped[0]}, @{$clipped[1]}));
-            }
-        }
-        push @edges, @clipped;
-    }
-    
-    Slic3r::debugf "Found bridge on layer %d with %d support(s)\n", $self->id, scalar(@edges);
-    return undef if !@edges;
-    
-    my $bridge_angle = undef;
-    
-    if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output("bridge_$expolygon.svg",
-            expolygons      => [ $expolygon ],
-            red_expolygons  => [ @lower ],
-            polylines       => [ @edges ],
-        );
-    }
-    
-    if (@edges == 2) {
-        my @chords = map Slic3r::Line->new($_->[0], $_->[-1]), @edges;
-        my @midpoints = map $_->midpoint, @chords;
-        my $line_between_midpoints = Slic3r::Line->new(@midpoints);
-        $bridge_angle = Slic3r::Geometry::rad2deg_dir($line_between_midpoints->direction);
-    } elsif (@edges == 1) {
-        # TODO: this case includes both U-shaped bridges and plain overhangs;
-        # we need a trapezoidation algorithm to detect the actual bridged area
-        # and separate it from the overhang area.
-        # in the mean time, we're treating as overhangs all cases where
-        # our supporting edge is a straight line
-        if (@{$edges[0]} > 2) {
-            my $line = Slic3r::Line->new($edges[0]->[0], $edges[0]->[-1]);
-            $bridge_angle = Slic3r::Geometry::rad2deg_dir($line->direction);
-        }
-    } elsif (@edges) {
-        # inset the bridge expolygon; we'll use this one to clip our test lines
-        my $inset = $expolygon->offset_ex($infill_flow->scaled_width);
-        
-        # detect anchors as intersection between our bridge expolygon and the lower slices
-        my $anchors = intersection_ex(
-            $grown,
-            [ map @$_, @lower ],
-            1,  # safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some @edges
-        );
-        
-        if (@$anchors) {
-            # we'll now try several directions using a rudimentary visibility check:
-            # bridge in several directions and then sum the length of lines having both
-            # endpoints within anchors
-            my %directions = ();  # angle => score
-            my $angle_increment = PI/36; # 5°
-            my $line_increment = $infill_flow->scaled_width;
-            for (my $angle = 0; $angle <= PI; $angle += $angle_increment) {
-                # rotate everything - the center point doesn't matter
-                $_->rotate($angle, [0,0]) for @$inset, @$anchors;
-            
-                # generate lines in this direction
-                my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$anchors ]);
-            
-                my @lines = ();
-                for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
-                    push @lines, Slic3r::Polyline->new([$x, $bounding_box->y_min], [$x, $bounding_box->y_max]);
-                }
-            
-                my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$inset ]) };
-            
-                # remove any line not having both endpoints within anchors
-                # NOTE: these calls to contains_point() probably need to check whether the point 
-                # is on the anchor boundaries too
-                @clipped_lines = grep {
-                    my $line = $_;
-                    !(first { $_->contains_point($line->a) } @$anchors)
-                        && !(first { $_->contains_point($line->b) } @$anchors);
-                } @clipped_lines;
-            
-                # sum length of bridged lines
-                $directions{-$angle} = sum(map $_->length, @clipped_lines) // 0;
-            }
-        
-            # this could be slightly optimized with a max search instead of the sort
-            my @sorted_directions = sort { $directions{$a} <=> $directions{$b} } keys %directions;
-    
-            # the best direction is the one causing most lines to be bridged
-            $bridge_angle = Slic3r::Geometry::rad2deg_dir($sorted_directions[-1]);
-        }
-    }
-    
-    Slic3r::debugf "  Optimal infill angle of bridge on layer %d is %d degrees\n",
-        $self->id, $bridge_angle if defined $bridge_angle;
-    
-    return $bridge_angle;
 }
 
 1;

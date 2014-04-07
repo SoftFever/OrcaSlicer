@@ -59,6 +59,7 @@ use Slic3r::GCode::VibrationLimit;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
+use Slic3r::Layer::BridgeDetector;
 use Slic3r::Layer::Region;
 use Slic3r::Line;
 use Slic3r::Model;
