@@ -70,6 +70,7 @@
 %typemap{Surfaces};
 %typemap{Polygons*};
 %typemap{TriangleMeshPtrs};
+%typemap{Extruder*};
 
 %typemap{SurfaceType}{parsed}{
   %cpp_type{SurfaceType};

@@ -77,6 +77,8 @@ Clone<Surface>             O_OBJECT_SLIC3R_T
 
 SurfaceCollection*         O_OBJECT_SLIC3R
 
+Extruder*                  O_OBJECT_SLIC3R
+
 ExtrusionRole     T_UV
 FlowRole     T_UV
 PrintStep     T_UV
