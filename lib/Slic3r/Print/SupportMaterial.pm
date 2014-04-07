@@ -647,6 +647,9 @@ sub generate_toolpaths {
 sub generate_pillars_shape {
     my ($self, $contact, $support_z, $shape) = @_;
     
+    # this prevents supplying an empty point set to BoundingBox constructor
+    return if !%$contact;
+    
     my $pillar_size     = scale PILLAR_SIZE;
     my $pillar_spacing  = scale PILLAR_SPACING;
     
@@ -658,7 +661,7 @@ sub generate_pillars_shape {
             [$pillar_size, $pillar_size],
             [0, $pillar_size],
         );
-    
+        
         my @pillars = ();
         my $bb = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, values %$contact ]);
         for (my $x = $bb->x_min; $x <= $bb->x_max-$pillar_size; $x += $pillar_spacing) {

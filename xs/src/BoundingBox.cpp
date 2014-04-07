@@ -6,6 +6,7 @@ namespace Slic3r {
 template <class PointClass>
 BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &points)
 {
+    if (points.empty()) CONFESS("Empty point set supplied to BoundingBoxBase constructor");
     typename std::vector<PointClass>::const_iterator it = points.begin();
     this->min.x = this->max.x = it->x;
     this->min.y = this->max.y = it->y;
@@ -22,6 +23,7 @@ template <class PointClass>
 BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> &points)
     : BoundingBoxBase<PointClass>(points)
 {
+    if (points.empty()) CONFESS("Empty point set supplied to BoundingBox3Base constructor");
     typename std::vector<PointClass>::const_iterator it = points.begin();
     this->min.z = this->max.z = it->z;
     for (++it; it != points.end(); ++it) {
