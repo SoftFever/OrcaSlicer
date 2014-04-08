@@ -226,7 +226,7 @@ package Slic3r::Extruder;
 sub new {
     my ($class, %args) = @_;
 
-    $args{extruder_offset} = Slic3r::Point->new($args{extruder_offset});
+    $args{extruder_offset} = Slic3r::Point->new(@{$args{extruder_offset}});
 
     return $class->_new(@args{qw(
         id use_relative_e_distances
