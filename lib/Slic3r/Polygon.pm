@@ -8,6 +8,7 @@ use parent 'Slic3r::Polyline';
 use Slic3r::Geometry qw(
     polygon_segment_having_point
     PI X1 X2 Y1 Y2 epsilon);
+use Slic3r::Geometry::Clipper qw(intersection_pl);
 
 sub wkt {
     my $self = shift;
@@ -48,6 +49,38 @@ sub concave_points {
     return map $points[$_],
         grep Slic3r::Geometry::angle3points(@points_pp[$_, $_-1, $_+1]) < PI - epsilon,
         -1 .. ($#points-1);
+}
+
+sub clip_as_polyline {
+    my ($self, $polygons) = @_;
+    
+    my $self_pl = $self->split_at_first_point;
+    
+    # Clipper will remove a polyline segment if first point coincides with last one.
+    # Until that bug is not fixed upstream, we move one of those points slightly.
+    $self_pl->[0]->translate(1, 0);
+    
+    my @polylines = @{intersection_pl([$self_pl], $polygons)};
+    if (@polylines == 2) {
+        # If the split_at_first_point() call above happens to split the polygon inside the clipping area
+        # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 
+        # recombine them back into a single one in order to trigger the @edges == 2 logic below.
+        # This needs to be replaced with something way better.
+        if ($polylines[0][-1]->coincides_width($self_pl->[-1]) && $polylines[-1][0]->coincides_width($self_pl->[0])) {
+            my $p = $polylines[0]->clone;
+            $p->pop_back;
+            $p->append(@{$polylines[-1]});
+            return [$p];
+        }
+        if ($polylines[0][0]->coincides_width($self_pl->[0]) && $polylines[-1][-1]->coincides_width($self_pl->[-1])) {
+            my $p = $polylines[-1]->clone;
+            $p->pop_back;
+            $p->append(@{$polylines[0]});
+            return [$p];
+        }
+    }
+    
+    return [ @polylines ];
 }
 
 1;
