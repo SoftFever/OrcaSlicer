@@ -5,9 +5,9 @@ use List::Util qw(first sum);
 use Slic3r::Geometry qw(PI scaled_epsilon rad2deg epsilon);
 use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex);
 
-has 'lower_slices'      => (is => 'ro', required => 1);  # ExPolygons or ExPolygonCollection
-has 'perimeter_flow'    => (is => 'ro', required => 1);
-has 'infill_flow'       => (is => 'ro', required => 1);
+has 'lower_slices'      => (is => 'rw', required => 1);  # ExPolygons or ExPolygonCollection
+has 'perimeter_flow'    => (is => 'rw', required => 1);
+has 'infill_flow'       => (is => 'rw', required => 1);
 
 sub detect_angle {
     my ($self, $expolygon) = @_;
@@ -30,7 +30,7 @@ sub detect_angle {
     
     if (0) {
         require "Slic3r/SVG.pm";
-        Slic3r::SVG::output("bridge_$expolygon.svg",
+        Slic3r::SVG::output("bridge.svg",
             expolygons      => [ $expolygon ],
             red_expolygons  => [ @lower ],
             polylines       => [ @edges ],
@@ -42,7 +42,7 @@ sub detect_angle {
         my @midpoints = map $_->midpoint, @chords;
         my $line_between_midpoints = Slic3r::Line->new(@midpoints);
         $bridge_angle = $line_between_midpoints->direction;
-    } elsif (@edges == 1 && $edges[0][0]->coincides_with($edges[0][-1])) {
+    } elsif (@edges == 1 && !$edges[0][0]->coincides_with($edges[0][-1])) {
         # Don't use this logic if $edges[0] is actually a closed loop
         # TODO: this case includes both U-shaped bridges and plain overhangs;
         # we need a trapezoidation algorithm to detect the actual bridged area
