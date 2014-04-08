@@ -79,7 +79,7 @@ sub check_angle {
     
     # our epsilon is equal to the steps used by the bridge detection algorithm
     ###use XXX; YYY [ rad2deg($result), $expected ];
-    return defined $result && abs(rad2deg($result) - $expected) < rad2deg(PI/36);
+    return defined $result && abs(rad2deg($result) - $expected) < rad2deg($bd->resolution);
 }
 
 __END__

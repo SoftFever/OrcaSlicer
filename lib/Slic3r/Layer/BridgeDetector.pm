@@ -8,6 +8,7 @@ use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex);
 has 'lower_slices'      => (is => 'rw', required => 1);  # ExPolygons or ExPolygonCollection
 has 'perimeter_flow'    => (is => 'rw', required => 1);
 has 'infill_flow'       => (is => 'rw', required => 1);
+has 'resolution' =>     => (is => 'rw', default => sub { PI/36 });
 
 sub detect_angle {
     my ($self, $expolygon) = @_;
@@ -69,9 +70,8 @@ sub detect_angle {
             # bridge in several directions and then sum the length of lines having both
             # endpoints within anchors
             my %directions = ();  # angle => score
-            my $angle_increment = PI/36; # 5°
             my $line_increment = $self->infill_flow->scaled_width;
-            for (my $angle = 0; $angle < PI; $angle += $angle_increment) {
+            for (my $angle = 0; $angle < PI; $angle += $self->resolution) {
                 my $my_inset   = [ map $_->clone, @$inset ];
                 my $my_anchors = [ map $_->clone, @$anchors ];
                 
