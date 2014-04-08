@@ -8,7 +8,7 @@ use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex);
 has 'lower_slices'      => (is => 'rw', required => 1);  # ExPolygons or ExPolygonCollection
 has 'perimeter_flow'    => (is => 'rw', required => 1);
 has 'infill_flow'       => (is => 'rw', required => 1);
-has 'resolution' =>     => (is => 'rw', default => sub { PI/36 });
+has 'resolution'        => (is => 'rw', default => sub { PI/36 });
 
 sub detect_angle {
     my ($self, $expolygon) = @_;

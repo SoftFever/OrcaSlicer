@@ -71,13 +71,13 @@ sub clip_as_polyline {
         # we would get two consecutive polylines instead of a single one, so we use this ugly hack to 
         # recombine them back into a single one in order to trigger the @edges == 2 logic below.
         # This needs to be replaced with something way better.
-        if ($polylines[0][-1]->coincides_with($self_pl->[-1]) && $polylines[-1][0]->coincides_width($self_pl->[0])) {
+        if ($polylines[0][-1]->coincides_with($self_pl->[-1]) && $polylines[-1][0]->coincides_with($self_pl->[0])) {
             my $p = $polylines[0]->clone;
             $p->pop_back;
             $p->append(@{$polylines[-1]});
             return [$p];
         }
-        if ($polylines[0][0]->coincides_with($self_pl->[0]) && $polylines[-1][-1]->coincides_width($self_pl->[-1])) {
+        if ($polylines[0][0]->coincides_with($self_pl->[0]) && $polylines[-1][-1]->coincides_with($self_pl->[-1])) {
             my $p = $polylines[-1]->clone;
             $p->pop_back;
             $p->append(@{$polylines[0]});
