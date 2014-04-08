@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 3;
+plan tests => 6;
 
 BEGIN {
     use FindBin;
@@ -11,7 +11,7 @@ BEGIN {
 
 use List::Util qw(sum);
 use Slic3r;
-use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
+use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex diff_pl);
 
 {
     my $square = [ # ccw
@@ -68,3 +68,26 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex);
         'difference of a cw from two ccw is a contour with one hole';
 }
 
+#==========================================================
+
+{
+    my $square = Slic3r::Polygon->new_scale( # ccw
+        [10, 10],
+        [20, 10],
+        [20, 20],
+        [10, 20],
+    );
+    my $square_pl = $square->split_at_first_point;
+    
+    my $res = diff_pl([$square_pl], []);
+    is scalar(@$res), 1, 'no-op diff_pl returns the right number of polylines';
+    isa_ok $res->[0], 'Slic3r::Polyline', 'no-op diff_pl result';
+    
+    ### NOTE: this test will fail when a bug in Clipper is fixed that is currently
+    ### causing loss of one segment when input polyline has coinciding endpoints.
+    ### When the bug is fixed in Clipper, this test should be reverted from isnt() to is()
+    ### and workarounds in Slic3r::Polygon::clip_as_polyline() should be removed.
+    isnt scalar(@{$res->[0]}), scalar(@$square_pl), 'no-op diff_pl returns the unmodified input polyline';
+}
+
+__END__
