@@ -1,8 +1,9 @@
 package Slic3r::Layer::BridgeDetector;
 use Moo;
 
+use List::Util qw(first sum);
 use Slic3r::Geometry qw(PI);
-use Slic3r::Geometry::Clipper qw(intersection_pl);
+use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex);
 
 has 'lower_slices'      => (is => 'ro', required => 1);  # ExPolygons or ExPolygonCollection
 has 'perimeter_flow'    => (is => 'ro', required => 1);
