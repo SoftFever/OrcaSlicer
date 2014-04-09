@@ -1279,6 +1279,9 @@ sub set {
     if ($opt_key eq 'gcode_flavor' && $value eq 'makerbot') {
         $value = 'makerware';
     }
+    if ($opt_key eq 'fill_density' && $value =~ /^(.+?)%$/) {
+        $value = $1/100;
+    }
     
     # For historical reasons, the world's full of configs having these very low values;
     # to avoid unexpected behavior we need to ignore them.  Banning these two hard-coded
