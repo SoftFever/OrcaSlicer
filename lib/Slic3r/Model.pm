@@ -218,6 +218,17 @@ sub center_instances_around_point {
     }
 }
 
+sub align_instances_to_origin {
+    my ($self) = @_;
+    
+    my $bb = $self->bounding_box;
+    return if !defined $bb;
+    
+    my $new_center = $bb->size;
+    $new_center->translate(-$new_center->x/2, -$new_center->y/2);  #//
+    $self->center_instances_around_point($new_center);
+}
+
 sub translate {
     my $self = shift;
     my @shift = @_;
