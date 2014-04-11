@@ -192,6 +192,7 @@ sub make_perimeters {
                         my $diff = diff_ex(
                             offset(\@last, -0.5*$pspacing),
                             offset(\@offsets, +0.5*$pspacing),
+                            1,
                         );
                         push @gaps, @last_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff;
                     }
