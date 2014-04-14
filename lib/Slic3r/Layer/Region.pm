@@ -69,6 +69,13 @@ sub make_perimeters {
     my $ispacing            = $solid_infill_flow->scaled_spacing;
     my $gap_area_threshold  = $pwidth ** 2;
     
+    # Calculate the minimum required spacing between two adjacent traces.
+    # This should be equal to the nominal flow spacing but we experiment
+    # with some tolerance in order to avoid triggering medial axis when
+    # some squishing might work. Loops are still spaced by the entire
+    # flow spacing; this only applies to collapsing parts.
+    my $min_spacing = $pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
+    
     $self->perimeters->clear;
     $self->fill_surfaces->clear;
     $self->thin_fills->clear;
@@ -93,7 +100,11 @@ sub make_perimeters {
                 if ($i == 1) {
                     # the minimum thickness of a single loop is:
                     # width/2 + spacing/2 + spacing/2 + width/2
-                    @offsets = @{offset2(\@last, -(0.5*$pwidth + 0.5*$pspacing - 1), +(0.5*$pspacing - 1))};
+                    @offsets = @{offset2(
+                        \@last,
+                        -(0.5*$pwidth + 0.5*$min_spacing - 1),
+                        +(0.5*$min_spacing - 1),
+                    )};
                     
                     # look for thin walls
                     if ($self->config->thin_walls) {
@@ -105,7 +116,11 @@ sub make_perimeters {
                         push @thin_walls, @$diff;
                     }
                 } else {
-                    @offsets = @{offset2(\@last, -(1.5*$pspacing - 1), +(0.5*$pspacing - 1))};
+                    @offsets = @{offset2(
+                        \@last,
+                        -(1.0*$pspacing + 0.5*$min_spacing - 1),
+                        +(0.5*$min_spacing - 1),
+                    )};
                 
                     # look for gaps
                     if ($self->print->config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
@@ -134,21 +149,54 @@ sub make_perimeters {
                 }
             }
         }
-        
-        # make sure we don't infill narrow parts that are already gap-filled
-        # (we only consider this surface's gaps to reduce the diff() complexity)
-        @last = @{diff(\@last, [ map @$_, @last_gaps ])};
+    
+        # fill gaps
+        if (@gaps) {
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(
+                    "gaps.svg",
+                    expolygons => \@gaps,
+                );
+            }
+            
+            # where $pwidth < thickness < 2*$pspacing, infill with width = 1.5*$pwidth
+            # where 0.5*$pwidth < thickness < $pwidth, infill with width = 0.5*$pwidth
+            my @gap_sizes = (
+                [ $pwidth, 2*$pspacing, unscale 1.5*$pwidth ],
+                [ 0.5*$pwidth, $pwidth, unscale 0.5*$pwidth ],
+            );
+            foreach my $gap_size (@gap_sizes) {
+                my @gap_fill = $self->_fill_gaps(@$gap_size, \@gaps);
+                $self->thin_fills->append(@gap_fill);
+            
+                # Make sure we don't infill narrow parts that are already gap-filled
+                # (we only consider this surface's gaps to reduce the diff() complexity).
+                # Growing actual extrusions ensures that gaps not filled by medial axis
+                # are not subtracted from fill surfaces (they might be too short gaps
+                # that medial axis skips but infill might join with other infill regions
+                # and use zigzag).
+                my $w = $gap_size->[2];
+                my @filled = map {
+                    @{($_->isa('Slic3r::ExtrusionLoop') ? $_->split_at_first_point : $_)
+                        ->polyline
+                        ->grow(scale $w/2)};
+                } @gap_fill;
+                @last = @{diff(\@last, \@filled)};
+            }
+        }
         
         # create one more offset to be used as boundary for fill
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
         # and then we offset back and forth by half the infill spacing to only consider the
         # non-collapsing regions
+        my $min_perimeter_infill_spacing = $ispacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
         $self->fill_surfaces->append(
             map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
             @{offset2_ex(
                 [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
-                -($pspacing/2 + $ispacing/2),
-                +$ispacing/2,
+                -($pspacing/2 + $min_perimeter_infill_spacing/2),
+                +$min_perimeter_infill_spacing/2,
             )}
         );
     }
@@ -284,39 +332,32 @@ sub make_perimeters {
     
     # append perimeters
     $self->perimeters->append(@loops);
-    
-    # fill gaps
-    {
-        my $fill_gaps = sub {
-            my ($min, $max, $w) = @_;
-            
-            my $this = diff_ex(
-                offset2([ map @$_, @gaps ], -$min/2, +$min/2),
-                offset2([ map @$_, @gaps ], -$max/2, +$max/2),
-                1,
-            );
-            
-            my $flow = $self->flow(FLOW_ROLE_SOLID_INFILL, 0, $w);
-            my %path_args = (
-                role        => EXTR_ROLE_GAPFILL,
-                mm3_per_mm  => $flow->mm3_per_mm($self->height),
-            );
-            my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
-            $self->thin_fills->append(map {
-                $_->isa('Slic3r::Polygon')
-                    ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # should we keep these as loops?
-                    : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
-            } @polylines);
+}
 
-            Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @$this, $w
-                if @$this;
-        };
-        
-        # where $pwidth < thickness < 2*$pspacing, infill with width = 1.5*$pwidth
-        # where 0.5*$pwidth < thickness < $pwidth, infill with width = 0.5*$pwidth
-        $fill_gaps->($pwidth, 2*$pspacing, unscale 1.5*$pwidth);
-        $fill_gaps->(0.5*$pwidth, $pwidth, unscale 0.5*$pwidth);
-    }
+sub _fill_gaps {
+    my ($self, $min, $max, $w, $gaps) = @_;
+    
+    my $this = diff_ex(
+        offset2([ map @$_, @$gaps ], -$min/2, +$min/2),
+        offset2([ map @$_, @$gaps ], -$max/2, +$max/2),
+        1,
+    );
+
+    my $flow = $self->flow(FLOW_ROLE_SOLID_INFILL, 0, $w);
+    my %path_args = (
+        role        => EXTR_ROLE_GAPFILL,
+        mm3_per_mm  => $flow->mm3_per_mm($self->height),
+    );
+    my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
+    
+    Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @$this, $w
+        if @$this;
+    
+    return map {
+        $_->isa('Slic3r::Polygon')
+            ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # should we keep these as loops?
+            : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
+    } @polylines;
 }
 
 sub prepare_fill_surfaces {

@@ -82,6 +82,7 @@ use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
 use constant INFILL_OVERLAP_OVER_SPACING  => 0.45;
 use constant EXTERNAL_INFILL_MARGIN => 3;
+use constant INSET_OVERLAP_TOLERANCE => 0.2;
 
 sub parallelize {
     my %params = @_;
