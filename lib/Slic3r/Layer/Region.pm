@@ -109,10 +109,12 @@ sub make_perimeters {
                 
                     # look for gaps
                     if ($self->print->config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
+                        # not using safety offset here would "detect" very narrow gaps
+                        # (but still long enough to escape the area threshold) that gap fill
+                        # won't be able to fill but we'd still remove from infill area
                         my $diff = diff_ex(
                             offset(\@last, -0.5*$pspacing),
-                            offset(\@offsets, +0.5*$pspacing),
-                            1,
+                            offset(\@offsets, +0.5*$pspacing + 10),  # safety offset
                         );
                         push @gaps, @last_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff;
                     }
