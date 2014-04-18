@@ -175,13 +175,13 @@ sub _add_point_to_space {
 
     # find candidates by checking visibility from $from to them
     foreach my $idx (0..$#{$space->nodes}) {
-        my $line = Slic3r::Polyline->new($point, $space->nodes->[$idx]);
+        my $line = Slic3r::Line->new($point, $space->nodes->[$idx]);
         # if $point is inside an island, it is visible from $idx when island contains their line
         # if $point is outside an island, it is visible from $idx when their line does not cross any island
         if (
             ($inside && defined first { $_->contains_line($line) } @{$self->_inner})
                 || (!$inside && !@{intersection_pl(
-                    [ $line ],
+                    [ $line->as_polyline ],
                     [ map @$_, @{$self->islands} ],
                 )})
             ) {
