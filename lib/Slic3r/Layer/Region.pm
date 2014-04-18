@@ -83,7 +83,6 @@ sub make_perimeters {
     my @contours    = ();    # array of Polygons with ccw orientation
     my @holes       = ();    # array of Polygons with cw orientation
     my @thin_walls  = ();    # array of ExPolygons
-    my @gaps        = ();    # array of ExPolygons
     
     # we need to process each island separately because we might have different
     # extra perimeters for each one
@@ -92,7 +91,7 @@ sub make_perimeters {
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         
         my @last = @{$surface->expolygon};
-        my @last_gaps = ();
+        my @gaps = ();    # array of ExPolygons
         if ($loop_number > 0) {
             # we loop one time more than needed in order to find gaps after the last perimeter was applied
             for my $i (1 .. ($loop_number+1)) {  # outer loop is 1
@@ -131,7 +130,7 @@ sub make_perimeters {
                             offset(\@last, -0.5*$pspacing),
                             offset(\@offsets, +0.5*$pspacing + 10),  # safety offset
                         );
-                        push @gaps, @last_gaps = grep abs($_->area) >= $gap_area_threshold, @$diff;
+                        push @gaps, grep abs($_->area) >= $gap_area_threshold, @$diff;
                     }
                 }
             
@@ -149,7 +148,7 @@ sub make_perimeters {
                 }
             }
         }
-    
+        
         # fill gaps
         if (@gaps) {
             if (0) {
@@ -200,6 +199,7 @@ sub make_perimeters {
             )}
         );
     }
+    
     
     # process thin walls by collapsing slices to single passes
     my @thin_wall_polylines = ();
