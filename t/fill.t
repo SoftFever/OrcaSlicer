@@ -2,18 +2,18 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 42;
+plan tests => 43;
 
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
 
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r;
-use Slic3r::Geometry qw(scale X Y);
-use Slic3r::Geometry::Clipper qw(union diff_ex);
+use Slic3r::Geometry qw(scale unscale X Y);
+use Slic3r::Geometry::Clipper qw(union diff_ex offset);
 use Slic3r::Surface qw(:types);
 use Slic3r::Test;
 
@@ -190,8 +190,47 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
 {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('infill_only_where_needed', 1);
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok my $gcode = Slic3r::Test::gcode($print), "successful G-code generation when infill_only_where_needed is set";
+    $config->set('bottom_solid_layers', 0);
+    $config->set('infill_extruder', 2);
+    $config->set('infill_extrusion_width', 0.5);
+    $config->set('cooling', 0);                 # for preventing speeds from being altered
+    $config->set('first_layer_speed', '100%');  # for preventing speeds from being altered
+    
+    my $test = sub {
+        my $print = Slic3r::Test::init_print('pyramid', config => $config);
+        
+        my $tool = undef;
+        my @infill_extrusions = ();  # array of polylines
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+            
+            if ($cmd =~ /^T(\d+)/) {
+                $tool = $1;
+            } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+                if ($tool == $config->infill_extruder-1) {
+                    push @infill_extrusions, Slic3r::Line->new_scale(
+                        [ $self->X, $self->Y ],
+                        [ $info->{new_X}, $info->{new_Y} ],
+                    );
+                }
+            }
+        });
+        return 0 if !@infill_extrusions;  # prevent calling convex_hull() with no points
+        
+        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map $_->pp, map @$_, @infill_extrusions ])});
+        
+        return unscale unscale sum(map $_->area, @{offset([$convex_hull], scale(+$config->infill_extrusion_width/2))});
+    };
+    
+    my $tolerance = 5;  # mm^2
+    
+    $config->set('solid_infill_below_area', 0);
+    ok $test->() < $tolerance,
+        'no infill is generated when using infill_only_where_needed on a pyramid';
+    
+    $config->set('solid_infill_below_area', 70);
+    ok abs($test->() - $config->solid_infill_below_area) < $tolerance,
+        'infill is only generated under the forced solid shells';
 }
 
 {

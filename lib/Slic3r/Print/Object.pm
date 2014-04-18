@@ -411,7 +411,7 @@ sub clip_fill_surfaces {
     # We only want infill under ceilings; this is almost like an
     # internal support material.
     
-    my $additional_margin = scale 3;
+    my $additional_margin = scale 3*0;
     
     my $overhangs = [];  # arrayref of polygons
     for my $layer_id (reverse 0..$#{$self->layers}) {
@@ -450,10 +450,11 @@ sub clip_fill_surfaces {
         # (thus we also consider perimeters)
         if ($layer_id > 0) {
             my $solid = diff(
-                [ map @$_, @{$layer->slices} ],
+                [ map $_->p, map @{$_->fill_surfaces}, @{$layer->regions} ],
                 [ map $_->p, @layer_internal ],
             );
             $overhangs = offset($solid, +$additional_margin);
+            
             push @$overhangs, map $_->p, @new_internal;  # propagate upper overhangs
         }
     }
