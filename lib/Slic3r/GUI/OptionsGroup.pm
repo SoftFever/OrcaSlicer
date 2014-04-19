@@ -421,12 +421,15 @@ sub _set_config {
     if (defined $index) {
         my $values = $self->config->$get_m($opt_key);
         $values->[$index] = $value;
-        $self->config->set($opt_key, $values);
+        $self->config->set($opt_key, $values)
+            or die "Failed to set $opt_key";
     } else {
         if ($serialized) {
-            return $self->config->set_deserialize($opt_key, $value);
+            return $self->config->set_deserialize($opt_key, $value)
+            or die "Failed to set_deserialize() $opt_key";
         } else {
-            return $self->config->set($opt_key, $value);
+            return $self->config->set($opt_key, $value)
+            or die "Failed to set $opt_key";
         }
     }
 }

@@ -180,7 +180,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         const size_t len = av_len(av)+1;
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
-            if (!looks_like_number(*elem)) return false;
+            if (elem == NULL || !looks_like_number(*elem)) return false;
             values.push_back(SvNV(*elem));
         }
         optv->values = values;
@@ -193,7 +193,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         const size_t len = av_len(av)+1;
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
-            if (!looks_like_number(*elem)) return false;
+            if (elem == NULL || !looks_like_number(*elem)) return false;
             values.push_back(SvIV(*elem));
         }
         optv->values = values;
@@ -205,6 +205,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         const size_t len = av_len(av)+1;
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
+            if (elem == NULL) return false;
             optv->values.push_back(std::string(SvPV_nolen(*elem), SvCUR(*elem)));
         }
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
@@ -216,7 +217,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             Pointf point;
-            if (!point.from_SV(*elem)) return false;
+            if (elem == NULL || !point.from_SV(*elem)) return false;
             values.push_back(point);
         }
         optv->values = values;
@@ -228,6 +229,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         const size_t len = av_len(av)+1;
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
+            if (elem == NULL) return false;
             optv->values.push_back(SvTRUE(*elem));
         }
     } else {
