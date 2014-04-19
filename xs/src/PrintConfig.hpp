@@ -75,6 +75,7 @@ class PrintConfigDef
         Options["bed_temperature"].sidetext = "°C";
         Options["bed_temperature"].cli = "bed-temperature=i";
         Options["bed_temperature"].full_label = "Bed temperature";
+        Options["bed_temperature"].min = 0;
         Options["bed_temperature"].max = 300;
 
         Options["bottom_solid_layers"].type = coInt;
@@ -312,6 +313,7 @@ class PrintConfigDef
         Options["first_layer_bed_temperature"].tooltip = "Heated build plate temperature for the first layer. Set this to zero to disable bed temperature control commands in the output.";
         Options["first_layer_bed_temperature"].sidetext = "°C";
         Options["first_layer_bed_temperature"].cli = "first-layer-bed-temperature=i";
+        Options["first_layer_bed_temperature"].max = 0;
         Options["first_layer_bed_temperature"].max = 300;
 
         Options["first_layer_extrusion_width"].type = coFloatOrPercent;
@@ -340,6 +342,7 @@ class PrintConfigDef
         Options["first_layer_temperature"].tooltip = "Extruder temperature for first layer. If you want to control temperature manually during print, set this to zero to disable temperature control commands in the output file.";
         Options["first_layer_temperature"].sidetext = "°C";
         Options["first_layer_temperature"].cli = "first-layer-temperature=i@";
+        Options["first_layer_temperature"].max = 0;
         Options["first_layer_temperature"].max = 400;
 
         Options["g0"].type = coBool;
@@ -846,6 +849,7 @@ class PrintConfigDef
         Options["temperature"].sidetext = "°C";
         Options["temperature"].cli = "temperature=i@";
         Options["temperature"].full_label = "Temperature";
+        Options["temperature"].max = 0;
         Options["temperature"].max = 400;
 
         Options["thin_walls"].type = coBool;
