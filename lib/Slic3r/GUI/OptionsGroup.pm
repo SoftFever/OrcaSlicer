@@ -205,8 +205,11 @@ sub _build_field {
                 $field->SetValue($_[0]);
             };
             EVT_COMBOBOX($self->parent, $field, sub {
-                $field->SetValue($opt->{values}[ $field->GetSelection ]);  # set the text field to the selected value
-                $self->_on_change($opt_key, $on_change);
+                # Without CallAfter, the field text is not populated on Windows.
+                Slic3r::GUI->CallAfter(sub {
+                    $field->SetValue($opt->{values}[ $field->GetSelection ]);  # set the text field to the selected value
+                    $self->_on_change($opt_key, $on_change);
+                });
             });
             EVT_TEXT($self->parent, $field, $on_change);
             EVT_KILL_FOCUS($field, $on_kill_focus);
