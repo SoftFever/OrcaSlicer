@@ -479,6 +479,7 @@ class ConfigBase
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, size_t i);
     bool set(t_config_option_key opt_key, SV* value);
+    bool set_deserialize(const t_config_option_key opt_key, SV* str);
     #endif
 };
 

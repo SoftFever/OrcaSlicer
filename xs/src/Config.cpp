@@ -237,6 +237,17 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
     }
     return true;
 }
+
+/* This method is implemented as a workaround for this typemap bug:
+   https://rt.cpan.org/Public/Bug/Display.html?id=94110 */
+bool
+ConfigBase::set_deserialize(const t_config_option_key opt_key, SV* str) {
+    size_t len;
+    const char * c = SvPV(str, len);
+    std::string value(c, len);
+    
+    return this->set_deserialize(opt_key, value);
+}
 #endif
 
 DynamicConfig::~DynamicConfig () {

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 110;
+use Test::More tests => 112;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -101,6 +101,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->serialize('wipe'), '1,0', 'serialize bools';
     $config->set_deserialize('wipe', '0,1,1');
     is_deeply $config->get('wipe'), [0,1,1], 'deserialize bools';
+    $config->set_deserialize('retract_layer_change', 0);
+    is_deeply $config->get('retract_layer_change'), [0], 'deserialize bools from non-string value';
     {
         my @values = (1);
         $values[2] = 1;  # implicitely extend array; this is not the same as explicitely assigning undef to second item
