@@ -82,6 +82,11 @@ sub set_material {
     );
 }
 
+sub get_material {
+    my ($self, $material_id) = @_;
+    return $self->materials->{$material_id};
+}
+
 sub duplicate_objects_grid {
     my ($self, $grid, $distance) = @_;
     
@@ -354,6 +359,11 @@ sub add_volume {
             object => $self,
             %args,
         );
+    }
+    
+    if (defined $new_volume->material_id && !defined $self->model->get_material($new_volume->material_id)) {
+        # TODO: this should be a trigger on Volume::material_id
+        $self->model->set_material($new_volume->material_id);
     }
     
     push @{$self->volumes}, $new_volume;

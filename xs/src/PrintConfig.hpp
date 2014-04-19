@@ -944,7 +944,7 @@ class DynamicPrintConfig : public DynamicConfig
             if (!this->has("infill_extruder"))
                 this->option("infill_extruder", true)->setInt(extruder);
             if (!this->has("perimeter_extruder"))
-                this->option("infill_extruder", true)->setInt(extruder);
+                this->option("perimeter_extruder", true)->setInt(extruder);
             if (!this->has("support_material_extruder"))
                 this->option("support_material_extruder", true)->setInt(extruder);
             if (!this->has("support_material_interface_extruder"))

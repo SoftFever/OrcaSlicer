@@ -1,4 +1,4 @@
-use Test::More tests => 8;
+use Test::More tests => 12;
 use strict;
 use warnings;
 
@@ -86,13 +86,9 @@ use Slic3r::Test;
 }
 
 {
-    my $model = Slic3r::Model->new;
-    my $object = $model->add_object;
-    my $lower_config = $model->set_material('lower')->config;
-    my $upper_config = $model->set_material('upper')->config;
-    $object->add_volume(mesh => Slic3r::Test::mesh('20mm_cube'), material_id => 'lower');
-    $object->add_volume(mesh => Slic3r::Test::mesh('20mm_cube', translate => [0,0,20]), material_id => 'upper');
-    $object->add_instance(offset => [0,0]);
+    my $model = stacked_cubes();
+    my $lower_config = $model->get_material('lower')->config;
+    my $upper_config = $model->get_material('upper')->config;
     
     $lower_config->set('extruder', 1);
     $lower_config->set('bottom_solid_layers', 0);
@@ -140,6 +136,46 @@ use Slic3r::Test;
         is scalar(@$t0), $lower_config->top_solid_layers,    'top interface shells';
         is scalar(@$t1), $upper_config->bottom_solid_layers, 'bottom interface shells';
     }
+}
+
+{
+    my $model = stacked_cubes();
+    
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 0);
+    my $print = Slic3r::Test::init_print($model, config => $config);
+    
+    is $model->get_material('lower')->config->extruder, 1, 'auto_assign_extruders() assigned correct extruder to first volume';
+    is $model->get_material('upper')->config->extruder, 2, 'auto_assign_extruders() assigned correct extruder to second volume';
+    
+    my $tool = undef;
+    my %T0 = my %T1 = ();  # Z => 1
+    Slic3r::GCode::Reader->new->parse(my $gcode = Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+    
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif ($cmd eq 'G1' && $info->{extruding} && $info->{dist_XY} > 0) {
+            if ($tool == 0) {
+                $T0{$self->Z} = 1;
+            } elsif ($tool == 1) {
+                $T1{$self->Z} = 1;
+            }
+        }
+    });
+    
+    ok !(defined first { $_ > 20 } keys %T0), 'T0 is never used for upper object';
+    ok !(defined first { $_ < 20 } keys %T1), 'T1 is never used for lower object';
+}
+
+sub stacked_cubes {
+    my $model = Slic3r::Model->new;
+    my $object = $model->add_object;
+    $object->add_volume(mesh => Slic3r::Test::mesh('20mm_cube'), material_id => 'lower');
+    $object->add_volume(mesh => Slic3r::Test::mesh('20mm_cube', translate => [0,0,20]), material_id => 'upper');
+    $object->add_instance(offset => [0,0]);
+    
+    return $model;
 }
 
 __END__
