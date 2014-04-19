@@ -182,11 +182,21 @@ sub _build_field {
             $value ||= 0 if $opt->{type} =~ /^(i|f|percent)$/; # prevent crash trying to pass empty strings to Config
             $self->_on_change($opt_key, $value);
         };
+        my $on_kill_focus = sub {
+            my ($s, $event) = @_;
+            
+            # Without this, there will be nasty focus bugs on Windows.
+            # Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
+            # non-command events to allow the default handling to take place."
+            $event->Skip(1);
+            
+            $self->on_kill_focus($opt_key);
+        };
         if ($opt->{type} eq 'i') {
             $field = Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default});
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             EVT_SPINCTRL ($self->parent, $field, $on_change);
-            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
+            EVT_KILL_FOCUS($field, $on_kill_focus);
         } elsif ($opt->{values}) {
             $field = Wx::ComboBox->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $opt->{labels} || $opt->{values});
             $self->_setters->{$opt_key} = sub {
@@ -197,12 +207,12 @@ sub _build_field {
                 $self->_on_change($opt_key, $on_change);
             });
             EVT_TEXT($self->parent, $field, $on_change);
-            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
+            EVT_KILL_FOCUS($field, $on_kill_focus);
         } else {
             $field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
             $self->_setters->{$opt_key} = sub { $field->ChangeValue($_[0]) };
             EVT_TEXT($self->parent, $field, $on_change);
-            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
+            EVT_KILL_FOCUS($field, $on_kill_focus);
         }
         $field->Disable if $opt->{readonly};
         $tooltip .= " (default: " . $opt->{default} .  ")" if ($opt->{default});
@@ -230,7 +240,7 @@ sub _build_field {
         }
         foreach my $field ($x_field, $y_field) {
             EVT_TEXT($self->parent, $field, sub { $self->_on_change($opt_key, [ $x_field->GetValue, $y_field->GetValue ]) });
-            EVT_KILL_FOCUS($field, sub { $self->on_kill_focus($opt_key) });
+            EVT_KILL_FOCUS($field, $on_kill_focus);
         }
         $self->_setters->{$opt_key} = sub {
             $x_field->SetValue($_[0][0]);
