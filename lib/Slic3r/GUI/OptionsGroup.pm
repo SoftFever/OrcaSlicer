@@ -169,6 +169,17 @@ sub _build_field {
     my $opt_key = $opt->{opt_key};
     $self->_triggers->{$opt_key} = $opt->{on_change} || sub { return 1 };
     
+    my $on_kill_focus = sub {
+        my ($s, $event) = @_;
+        
+        # Without this, there will be nasty focus bugs on Windows.
+        # Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
+        # non-command events to allow the default handling to take place."
+        $event->Skip(1);
+        
+        $self->on_kill_focus($opt_key);
+    };
+    
     my $field;
     my $tooltip = $opt->{tooltip};
     if ($opt->{type} =~ /^(i|f|s|s@|percent)$/) {
@@ -181,16 +192,6 @@ sub _build_field {
             my $value = $field->GetValue;
             $value ||= 0 if $opt->{type} =~ /^(i|f|percent)$/; # prevent crash trying to pass empty strings to Config
             $self->_on_change($opt_key, $value);
-        };
-        my $on_kill_focus = sub {
-            my ($s, $event) = @_;
-            
-            # Without this, there will be nasty focus bugs on Windows.
-            # Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
-            # non-command events to allow the default handling to take place."
-            $event->Skip(1);
-            
-            $self->on_kill_focus($opt_key);
         };
         if ($opt->{type} eq 'i') {
             $field = Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default});
@@ -431,15 +432,16 @@ sub _set_config {
     if (defined $index) {
         my $values = $self->config->$get_m($opt_key);
         $values->[$index] = $value;
-        $self->config->set($opt_key, $values)
-            or die "Failed to set $opt_key";
+        
+        # ignore set() return value
+        $self->config->set($opt_key, $values);
     } else {
-        if ($serialized) {
-            return $self->config->set_deserialize($opt_key, $value)
-            or die "Failed to set_deserialize() $opt_key";
-        } else {
-            return $self->config->set($opt_key, $value)
-            or die "Failed to set $opt_key";
+        if ($serialized) {        
+            # ignore set_deserialize() return value
+            return $self->config->set_deserialize($opt_key, $value);
+        } else {        
+            # ignore set() return value
+            return $self->config->set($opt_key, $value);
         }
     }
 }
