@@ -197,6 +197,7 @@ sub _build_field {
             $field = Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default});
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             EVT_SPINCTRL ($self->parent, $field, $on_change);
+            EVT_TEXT ($self->parent, $field, $on_change);
             EVT_KILL_FOCUS($field, $on_kill_focus);
         } elsif ($opt->{values}) {
             $field = Wx::ComboBox->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $opt->{labels} || $opt->{values});
