@@ -10,6 +10,7 @@ my %prereqs = qw(
     Boost::Geometry::Utils          0.15
     Encode::Locale                  0
     ExtUtils::MakeMaker             6.80
+    ExtUtils::ParseXS               3.22
     File::Basename                  0
     File::Spec                      0
     Getopt::Long                    0
@@ -122,10 +123,6 @@ EOF
     }
     
     if (!$gui) {
-        # temporarily require this dev version until this upstream bug
-        # is resolved: https://rt.cpan.org/Ticket/Display.html?id=86367
-        system $cpanm, 'SMUELLER/ExtUtils-ParseXS-3.18_04.tar.gz';
-        
         # clean xs directory before reinstalling, to make sure Build is called
         # with current perl binary
         if (-e './xs/Build') {
