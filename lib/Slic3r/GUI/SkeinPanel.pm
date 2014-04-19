@@ -134,6 +134,11 @@ sub quick_slice {
         $sprint->apply_config($config);
         $sprint->set_model(Slic3r::Model->read_from_file($input_file));
         
+        {
+            my $extra = $self->extra_variables;
+            $sprint->placeholder_parser->set($_, $extra->{$_}) for keys %$extra;
+        }
+        
         # select output file
         my $output_file;
         if ($params{reslice}) {
