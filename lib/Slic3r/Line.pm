@@ -18,9 +18,4 @@ sub grow {
     return Slic3r::Polyline->new(@$self)->grow(@_);
 }
 
-sub as_polyline {
-    my ($self) = @_;
-    return Slic3r::Polyline->new(@$self);
-}
-
 1;
