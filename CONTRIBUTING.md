@@ -7,7 +7,7 @@ If possible, please include the following information when [reporting an issue](
 * Operating system type + version
 * Steps to reproduce the issue, including:
     * Command line parameters used, if any
-    * Slic3r configuration file (Use ``Export Config...`` from the ``File`` menu)
+    * Slic3r configuration file (Use ``Export Config...`` from the ``File`` menu - please don't export a bundle)
     * Expected result
     * Actual result
     * Any error messages
