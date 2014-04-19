@@ -145,45 +145,39 @@ sub process_layer {
             my $region = $self->print->regions->[$region_id];
             $self->gcodegen->region($region);
             
-            my @islands = ();
-            if ($self->print->config->avoid_crossing_perimeters) {
-                push @islands, { perimeters => [], fills => [] }
-                    for 1 .. (@{$layer->slices} || 1);  # make sure we have at least one island hash to avoid failure of the -1 subscript below
-                PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
-                    for my $i (0 .. $#{$layer->slices}-1) {
-                        if ($layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {
-                            push @{ $islands[$i]{perimeters} }, $perimeter;
-                            next PERIMETER;
-                        }
+            # group extrusions by island
+            my @perimeters_by_island = map [], 0..$#{$layer->slices};   # slice idx => @perimeters
+            my @infill_by_island     = map [], 0..$#{$layer->slices};   # slice idx => @fills
+            
+            PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
+                for my $i (0 .. $#{$layer->slices}-1) {
+                    if ($layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {
+                        push @{ $perimeters_by_island[$i] }, $perimeter;
+                        next PERIMETER;
                     }
-                    push @{ $islands[-1]{perimeters} }, $perimeter; # optimization
                 }
-                FILL: foreach my $fill (@{$layerm->fills}) {
-                    for my $i (0 .. $#{$layer->slices}-1) {
-                        if ($layer->slices->[$i]->contour->contains_point($fill->first_point)) {
-                            push @{ $islands[$i]{fills} }, $fill;
-                            next FILL;
-                        }
+                push @{ $perimeters_by_island[-1] }, $perimeter; # optimization
+            }
+            FILL: foreach my $fill (@{$layerm->fills}) {
+                for my $i (0 .. $#{$layer->slices}-1) {
+                    if ($layer->slices->[$i]->contour->contains_point($fill->first_point)) {
+                        push @{ $infill_by_island[$i] }, $fill;
+                        next FILL;
                     }
-                    push @{ $islands[-1]{fills} }, $fill; # optimization
                 }
-            } else {
-                push @islands, {
-                    perimeters  => $layerm->perimeters,
-                    fills       => $layerm->fills,
-                };
+                push @{ $infill_by_island[-1] }, $fill; # optimization
             }
             
-            foreach my $island (@islands) {
+            for my $i (0 .. $#{$layer->slices}) {
                 # give priority to infill if we were already using its extruder and it wouldn't
                 # be good for perimeters
                 if ($self->print->config->infill_first
                     || ($self->gcodegen->multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
-                    $gcode .= $self->_extrude_infill($island, $region);
-                    $gcode .= $self->_extrude_perimeters($island, $region);
+                    $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
+                    $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
                 } else {
-                    $gcode .= $self->_extrude_perimeters($island, $region);
-                    $gcode .= $self->_extrude_infill($island, $region);
+                    $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
+                    $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
                 }
             }
         }
@@ -208,25 +202,25 @@ sub process_layer {
 
 sub _extrude_perimeters {
     my $self = shift;
-    my ($island, $region) = @_;
+    my ($island_perimeters, $region) = @_;
     
-    return "" if !@{ $island->{perimeters} };
+    return "" if !@$island_perimeters;
     
     my $gcode = "";
     $gcode .= $self->gcodegen->set_extruder($region->config->perimeter_extruder-1);
-    $gcode .= $self->gcodegen->extrude($_, 'perimeter') for @{ $island->{perimeters} };
+    $gcode .= $self->gcodegen->extrude($_, 'perimeter') for @$island_perimeters;
     return $gcode;
 }
 
 sub _extrude_infill {
     my $self = shift;
-    my ($island, $region) = @_;
+    my ($island_fills, $region) = @_;
     
-    return "" if !@{ $island->{fills} };
+    return "" if !@$island_fills;
     
     my $gcode = "";
     $gcode .= $self->gcodegen->set_extruder($region->config->infill_extruder-1);
-    for my $fill (@{ $island->{fills} }) {
+    for my $fill (@$island_fills) {
         if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
             $gcode .= $self->gcodegen->extrude($_, 'fill') 
                 for @{$fill->chained_path_from($self->gcodegen->last_pos, 0)};
