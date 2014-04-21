@@ -1,4 +1,4 @@
-use Test::More tests => 8;
+use Test::More tests => 12;
 use strict;
 use warnings;
 
@@ -9,14 +9,14 @@ BEGIN {
 
 use List::Util qw(first);
 use Slic3r;
-use Slic3r::Geometry qw(scale epsilon rad2deg PI);
+use Slic3r::Geometry qw(scale epsilon deg2rad rad2deg PI);
 use Slic3r::Test;
 
 my $full_test = sub {
     my ($bd) = @_;
     {
         my $test = sub {
-            my ($bridge_size, $expected_angle) = @_;
+            my ($bridge_size, $rotate, $expected_angle, $tolerance) = @_;
         
             my ($x, $y) = @$bridge_size;
             my $lower = Slic3r::ExPolygon->new(
@@ -24,16 +24,19 @@ my $full_test = sub {
                 Slic3r::Polygon->new_scale([0,0], [0,$y], [$x,$y], [$x,0]),
             );
             $lower->translate(scale 20, scale 20); # avoid negative coordinates for easier SVG preview
+            $lower->rotate(deg2rad($rotate), [$x/2,$y/2]);
             my $bridge = $lower->[1]->clone;
             $bridge->reverse;
             $bridge = Slic3r::ExPolygon->new($bridge);
             $bd->lower_slices([$lower]);
-        
-            ok check_angle($bd, $bridge, $expected_angle), 'correct bridge angle for O-shaped overhang';
+            
+            ok check_angle($bd, $bridge, $expected_angle, $tolerance), 'correct bridge angle for O-shaped overhang';
         };
     
-        $test->([20,10], 90);
-        $test->([10,20],  0);
+        $test->([20,10], 0, 0);
+        $test->([10,20], 0, 90);
+        $test->([20,10], 45, 135, 20);
+        $test->([20,10], 135, 45, 20);
     }
 
     {
@@ -73,7 +76,6 @@ my $full_test = sub {
 my $flow = Slic3r::Flow->new(width => 0.5, spacing => 0.45, nozzle_diameter => 0.5);
 my $bd = Slic3r::Layer::BridgeDetector->new(
     lower_slices    => [],
-    perimeter_flow  => $flow,
     infill_flow     => $flow,
 );
 
@@ -85,13 +87,14 @@ $full_test->($bd);
 
 
 sub check_angle {
-    my ($bd, $bridge, $expected) = @_;
+    my ($bd, $bridge, $expected, $tolerance) = @_;
     
+    $tolerance //= rad2deg($bd->resolution) + epsilon;
     my $result = $bd->detect_angle($bridge);
     
     # our epsilon is equal to the steps used by the bridge detection algorithm
     ###use XXX; YYY [ rad2deg($result), $expected ];
-    return defined $result && abs(rad2deg($result) - $expected) < rad2deg($bd->resolution);
+    return defined $result && abs(rad2deg($result) - $expected) < $tolerance;
 }
 
 __END__

@@ -399,7 +399,6 @@ sub process_external_surfaces {
         if ($lower_layer) {
             $bridge_detector //= Slic3r::Layer::BridgeDetector->new(
                 lower_slices    => $lower_layer->slices,
-                perimeter_flow  => $self->flow(FLOW_ROLE_PERIMETER),
                 infill_flow     => $self->flow(FLOW_ROLE_INFILL),
             );
             Slic3r::debugf "Processing bridge at layer %d:\n", $self->id;
