@@ -14,7 +14,7 @@ class Surface
     SurfaceType     surface_type;
     double          thickness;          // in mm
     unsigned short  thickness_layers;   // in layers
-    double          bridge_angle;
+    double          bridge_angle;       // in radians, ccw, 0 = East, only 0+ (negative means undefined)
     unsigned short  extra_perimeters;
     double area() const;
     bool is_solid() const;
