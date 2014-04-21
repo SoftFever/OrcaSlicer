@@ -387,7 +387,6 @@ sub process_external_surfaces {
     my $margin = scale &Slic3r::EXTERNAL_INFILL_MARGIN;
     
     my @bottom = ();
-    my $bridge_detector;
     foreach my $surface (grep $_->is_bottom, @surfaces) {
         my $grown = $surface->expolygon->offset_ex(+$margin);
         
@@ -397,12 +396,13 @@ sub process_external_surfaces {
         # of very thin (but still working) anchors, the grown expolygon would go beyond them
         my $angle;
         if ($lower_layer) {
-            $bridge_detector //= Slic3r::Layer::BridgeDetector->new(
+            my $bridge_detector = Slic3r::Layer::BridgeDetector->new(
+                expolygon       => $surface->expolygon,
                 lower_slices    => $lower_layer->slices,
-                infill_flow     => $self->flow(FLOW_ROLE_INFILL),
+                extrusion_width => $self->flow(FLOW_ROLE_INFILL, $self->height, 1)->scaled_width,
             );
             Slic3r::debugf "Processing bridge at layer %d:\n", $self->id;
-            $angle = $bridge_detector->detect_angle($surface->expolygon);
+            $angle = $bridge_detector->detect_angle;
         }
         
         push @bottom, map $surface->clone(expolygon => $_, bridge_angle => $angle), @$grown;
