@@ -1030,10 +1030,20 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool IsClockwise)
   cInt StartX;
   if (IsHorizontal(*E))
   {
-    //it's possible for adjacent overlapping horz edges to start heading left
-    //before finishing right, so ...
-    if (IsClockwise) StartX = E->Prev->Bot.X;
-    else StartX = E->Next->Bot.X;
+    //first we need to be careful here with open paths because this
+    //may not be a true local minima (ie may be following a skip edge).
+    //also, watch for adjacent horz edges to start heading left
+    //before finishing right ...
+    if (IsClockwise)
+      {
+        if (E->Prev->Bot.Y == E->Bot.Y) StartX = E->Prev->Bot.X;
+        else StartX = E->Prev->Top.X;
+      }
+    else
+      {
+        if (E->Next->Bot.Y == E->Bot.Y) StartX = E->Next->Bot.X;
+        else StartX = E->Next->Top.X;
+      }
     if (E->Bot.X != StartX) ReverseHorizontal(*E);
   }
   
