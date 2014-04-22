@@ -334,6 +334,7 @@ sub check_version {
         } else {
             Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $p{manual};
         }
+        Slic3r::thread_cleanup();
     })->detach;
 }
 
