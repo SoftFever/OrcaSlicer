@@ -30,8 +30,8 @@ use Slic3r::Test;
         ok check_angle([$lower], $bridge, $expected_angle, $tolerance), 'correct bridge angle for O-shaped overhang';
     };
 
-    $test->([20,10], 0, 0);
-    $test->([10,20], 0, 90);
+    $test->([20,10], 0, 90);
+    $test->([10,20], 0, 0);
     $test->([20,10], 45, 135, 20);
     $test->([20,10], 135, 45, 20);
 }
@@ -81,7 +81,10 @@ sub check_angle {
     
     # our epsilon is equal to the steps used by the bridge detection algorithm
     ###use XXX; YYY [ rad2deg($result), $expected ];
-    return defined $result && abs(rad2deg($result) - $expected) < $tolerance;
+    # returned value must be non-negative, check for that too
+    my $delta=rad2deg($result) - $expected;
+    $delta-=180 if $delta>=180 - epsilon;
+    return defined $result && $result>=0 && abs($delta) < $tolerance;
 }
 
 __END__
