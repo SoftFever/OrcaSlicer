@@ -89,16 +89,16 @@ sub detect_angle {
                 my $my_anchors      = [ map $_->clone, @$anchors ];
                 
                 # rotate everything - the center point doesn't matter
-                $_->rotate($angle, [0,0]) for @$my_clip_area, @$my_anchors;
+                $_->rotate(-$angle, [0,0]) for @$my_clip_area, @$my_anchors;
             
                 # generate lines in this direction
                 my $bounding_box = Slic3r::Geometry::BoundingBox->new_from_points([ map @$_, map @$_, @$my_anchors ]);
             
                 my @lines = ();
-                for (my $x = $bounding_box->x_min; $x <= $bounding_box->x_max; $x += $line_increment) {
+                for (my $y = $bounding_box->y_min; $y <= $bounding_box->y_max; $y+= $line_increment) {
                     push @lines, Slic3r::Polyline->new(
-                        [$x, $bounding_box->y_min + scaled_epsilon],
-                        [$x, $bounding_box->y_max - scaled_epsilon],
+                        [$bounding_box->x_min, $y],
+                        [$bounding_box->x_max, $y],
                     );
                 }
                 
@@ -143,7 +143,7 @@ sub detect_angle {
     }
     
     if (defined $self->angle) {
-        if ($self->angle >= PI - epsilon) {
+        if ($self->angle >= PI) {
             $self->angle($self->angle - PI);
         }
         
