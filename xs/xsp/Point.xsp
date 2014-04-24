@@ -22,9 +22,11 @@
         %code{% RETVAL = THIS->y; %};
     int nearest_point_index(Points points);
     Point* nearest_point(Points points)
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*(THIS->nearest_point(points))); %};
-    double distance_to(Point* point);
-    %name{distance_to_line} double distance_to(Line* line);
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(); THIS->nearest_point(points, RETVAL); %};
+    double distance_to(Point* point)
+        %code{% RETVAL = THIS->distance_to(*point); %};
+    double distance_to_line(Line* line)
+        %code{% RETVAL = THIS->distance_to(*line); %};
     double ccw(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw(*p1, *p2); %};
 
@@ -45,7 +47,7 @@ Point::coincides_with(point_sv)
     CODE:
         Point point;
         point.from_SV_check(point_sv);
-        RETVAL = THIS->coincides_with(&point);
+        RETVAL = THIS->coincides_with(point);
     OUTPUT:
         RETVAL
 

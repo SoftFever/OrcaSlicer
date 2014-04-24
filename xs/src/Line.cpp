@@ -53,7 +53,7 @@ Line::reverse()
 double
 Line::length() const
 {
-    return this->a.distance_to(&(this->b));
+    return this->a.distance_to(this->b);
 }
 
 Point*
@@ -82,15 +82,15 @@ Line::point_at(double distance) const
 }
 
 bool
-Line::coincides_with(const Line* line) const
+Line::coincides_with(const Line &line) const
 {
-    return this->a.coincides_with(&line->a) && this->b.coincides_with(&line->b);
+    return this->a.coincides_with(line.a) && this->b.coincides_with(line.b);
 }
 
 double
-Line::distance_to(const Point* point) const
+Line::distance_to(const Point &point) const
 {
-    return point->distance_to(this);
+    return point.distance_to(*this);
 }
 
 double

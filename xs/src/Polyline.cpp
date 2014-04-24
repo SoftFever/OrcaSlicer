@@ -10,10 +10,20 @@ Polyline::operator Polylines() const
     return polylines;
 }
 
-Point*
+Point
 Polyline::last_point() const
 {
-    return new Point(this->points.back());
+    return this->points.back();
+}
+
+Point
+Polyline::leftmost_point() const
+{
+    Point p = this->points.front();
+    for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
+        if (it->x < p.x) p = *it;
+    }
+    return p;
 }
 
 Lines
@@ -32,7 +42,7 @@ void
 Polyline::clip_end(double distance)
 {
     while (distance > 0) {
-        Point last_point = *this->last_point();
+        Point last_point = this->last_point();
         this->points.pop_back();
         if (this->points.empty()) break;
         
@@ -42,7 +52,7 @@ Polyline::clip_end(double distance)
             continue;
         }
         
-        Line segment(last_point, *this->last_point());
+        Line segment(last_point, this->last_point());
         this->points.push_back(segment.point_at(distance));
         distance = 0;
     }
@@ -80,11 +90,11 @@ Points
 Polyline::equally_spaced_points(double distance) const
 {
     Points pts;
-    pts.push_back(*this->first_point());
+    pts.push_back(this->first_point());
     double len = 0;
     
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
-        double segment_length = it->distance_to(&*(it-1));
+        double segment_length = it->distance_to(*(it-1));
         len += segment_length;
         if (len < distance) continue;
         

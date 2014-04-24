@@ -12,7 +12,8 @@ typedef std::vector<Polyline> Polylines;
 class Polyline : public MultiPoint {
     public:
     operator Polylines() const;
-    Point* last_point() const;
+    Point last_point() const;
+    Point leftmost_point() const;
     Lines lines() const;
     void clip_end(double distance);
     void clip_start(double distance);

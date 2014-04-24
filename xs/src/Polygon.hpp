@@ -15,10 +15,10 @@ typedef std::vector<Polygon> Polygons;
 class Polygon : public MultiPoint {
     public:
     operator Polygons() const;
-    Point* last_point() const;
+    Point last_point() const;
     Lines lines() const;
     void lines(Lines* lines) const;
-    Polyline* split_at(const Point* point) const;
+    Polyline* split_at(const Point &point) const;
     Polyline* split_at_index(int index) const;
     Polyline* split_at_first_point() const;
     Points equally_spaced_points(double distance) const;
@@ -28,7 +28,7 @@ class Polygon : public MultiPoint {
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid() const;
-    bool contains_point(const Point* point) const;
+    bool contains_point(const Point &point) const;
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
     

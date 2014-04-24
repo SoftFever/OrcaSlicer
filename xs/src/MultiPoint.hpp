@@ -16,8 +16,8 @@ class MultiPoint
     void translate(double x, double y);
     void rotate(double angle, const Point &center);
     void reverse();
-    Point* first_point() const;
-    virtual Point* last_point() const = 0;
+    Point first_point() const;
+    virtual Point last_point() const = 0;
     virtual Lines lines() const = 0;
     double length() const;
     bool is_valid() const;

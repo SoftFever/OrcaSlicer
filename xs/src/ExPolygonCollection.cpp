@@ -40,7 +40,7 @@ ExPolygonCollection::rotate(double angle, const Point &center)
 }
 
 bool
-ExPolygonCollection::contains_point(const Point* point) const
+ExPolygonCollection::contains_point(const Point &point) const
 {
     for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
         if (it->contains_point(point)) return true;

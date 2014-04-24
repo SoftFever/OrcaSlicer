@@ -12,10 +12,10 @@ Polygon::operator Polygons() const
     return pp;
 }
 
-Point*
+Point
 Polygon::last_point() const
 {
-    return new Point(this->points.front());  // last point == first point for polygons
+    return this->points.front();  // last point == first point for polygons
 }
 
 Lines
@@ -37,7 +37,7 @@ Polygon::lines(Lines* lines) const
 }
 
 Polyline*
-Polygon::split_at(const Point* point) const
+Polygon::split_at(const Point &point) const
 {
     // find index of point
     for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
@@ -124,15 +124,15 @@ Polygon::is_valid() const
 }
 
 bool
-Polygon::contains_point(const Point* point) const
+Polygon::contains_point(const Point &point) const
 {
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     bool result = false;
     Points::const_iterator i = this->points.begin();
     Points::const_iterator j = this->points.end() - 1;
     for (; i != this->points.end(); j = i++) {
-        if ( ((i->y > point->y) != (j->y > point->y))
-            && (point->x < (j->x - i->x) * (point->y - i->y) / (j->y - i->y) + i->x) )
+        if ( ((i->y > point.y) != (j->y > point.y))
+            && (point.x < (j->x - i->x) * (point.y - i->y) / (j->y - i->y) + i->x) )
             result = !result;
     }
     return result;

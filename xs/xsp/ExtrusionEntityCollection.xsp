@@ -11,13 +11,21 @@
     void clear()
         %code{% THIS->entities.clear(); %};
     ExtrusionEntityCollection* chained_path(bool no_reverse)
-        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path(no_reverse); %};
+        %code{%
+            const char* CLASS = "Slic3r::ExtrusionPath::Collection";
+            RETVAL = new ExtrusionEntityCollection();
+            THIS->chained_path(RETVAL, no_reverse);
+        %};
     ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse)
-        %code{% const char* CLASS = "Slic3r::ExtrusionPath::Collection"; RETVAL = THIS->chained_path_from(start_near, no_reverse); %};
+        %code{%
+            const char* CLASS = "Slic3r::ExtrusionPath::Collection";
+            RETVAL = new ExtrusionEntityCollection();
+            THIS->chained_path_from(*start_near, RETVAL, no_reverse);
+        %};
     Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
     Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->last_point()); %};
     int count()
         %code{% RETVAL = THIS->entities.size(); %};
     std::vector<size_t> orig_indices()
@@ -84,9 +92,9 @@ ExtrusionEntityCollection::chained_path_indices(bool no_reverse)
     PREINIT:
         const char* CLASS = "Slic3r::ExtrusionPath::Collection";
     CODE:
+        RETVAL = new ExtrusionEntityCollection();
         std::vector<size_t> indices;
-        RETVAL = THIS->chained_path(no_reverse, &indices);
-        RETVAL->orig_indices = indices;
+        THIS->chained_path(RETVAL, no_reverse, &RETVAL->orig_indices);
     OUTPUT:
         RETVAL
 

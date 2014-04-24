@@ -14,6 +14,7 @@ class Pointf;
 typedef Point Vector;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
+typedef std::vector<const Point*> PointConstPtrs;
 typedef std::vector<Pointf> Pointfs;
 
 class Point
@@ -28,15 +29,13 @@ class Point
     void translate(double x, double y);
     void rotate(double angle, const Point &center);
     bool coincides_with(const Point &point) const;
-    bool coincides_with(const Point* point) const;
-    int nearest_point_index(Points &points) const;
-    int nearest_point_index(PointPtrs &points) const;
-    Point* nearest_point(Points points) const;
-    double distance_to(const Point* point) const;
-    double distance_to(const Line* line) const;
+    int nearest_point_index(const Points &points) const;
+    int nearest_point_index(const PointConstPtrs &points) const;
+    int nearest_point_index(const PointPtrs &points) const;
+    void nearest_point(const Points &points, Point* point) const;
+    double distance_to(const Point &point) const;
     double distance_to(const Line &line) const;
     double ccw(const Point &p1, const Point &p2) const;
-    double ccw(const Point* p1, const Point* p2) const;
     double ccw(const Line &line) const;
     
     #ifdef SLIC3RXS

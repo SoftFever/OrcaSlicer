@@ -18,7 +18,7 @@
     void reverse();
     Lines lines();
     Polyline* split_at(Point* point)
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at(point); %};
+        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at(*point); %};
     Polyline* split_at_index(int index)
         %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_index(index); %};
     Polyline* split_at_first_point()
@@ -32,8 +32,9 @@
     bool make_clockwise();
     bool is_valid();
     Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
-    bool contains_point(Point* point);
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
+    bool contains_point(Point* point)
+        %code{% RETVAL = THIS->contains_point(*point); %};
     Polygons simplify(double tolerance);
 %{
 

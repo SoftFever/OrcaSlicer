@@ -18,9 +18,9 @@
     Lines lines()
         %code{% RETVAL = THIS->polyline.lines(); %};
     Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
     Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->last_point()); %};
     void clip_end(double distance);
     void simplify(double tolerance);
     double length();

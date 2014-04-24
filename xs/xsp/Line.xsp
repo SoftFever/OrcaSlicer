@@ -56,7 +56,7 @@ Line::coincides_with(line_sv)
     CODE:
         Line line;
         line.from_SV_check(line_sv);
-        RETVAL = THIS->coincides_with(&line);
+        RETVAL = THIS->coincides_with(line);
     OUTPUT:
         RETVAL
 

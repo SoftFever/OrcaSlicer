@@ -26,8 +26,8 @@ class Line
     Point* midpoint() const;
     void point_at(double distance, Point* point) const;
     Point point_at(double distance) const;
-    bool coincides_with(const Line* line) const;
-    double distance_to(const Point* point) const;
+    bool coincides_with(const Line &line) const;
+    double distance_to(const Point &point) const;
     double atan2_() const;
     double direction() const;
     Vector vector() const;

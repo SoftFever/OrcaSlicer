@@ -21,9 +21,9 @@
     void reverse();
     Lines lines();
     Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->first_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
     Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = THIS->last_point(); %};
+        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->last_point()); %};
     Points equally_spaced_points(double distance);
     double length();
     bool is_valid();

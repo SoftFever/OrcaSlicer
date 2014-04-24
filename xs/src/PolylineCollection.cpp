@@ -2,32 +2,31 @@
 
 namespace Slic3r {
 
-PolylineCollection*
-PolylineCollection::chained_path(bool no_reverse) const
+void
+PolylineCollection::chained_path(PolylineCollection* retval, bool no_reverse) const
 {
-    if (this->polylines.empty()) return new PolylineCollection ();
-    return this->chained_path_from(this->polylines.front().first_point(), no_reverse);
+    if (this->polylines.empty()) return;
+    this->chained_path_from(this->polylines.front().first_point(), retval, no_reverse);
 }
 
-PolylineCollection*
-PolylineCollection::chained_path_from(const Point* start_near, bool no_reverse) const
+void
+PolylineCollection::chained_path_from(Point start_near, PolylineCollection* retval, bool no_reverse) const
 {
-    PolylineCollection* retval = new PolylineCollection;
     Polylines my_paths = this->polylines;
     
     Points endpoints;
     for (Polylines::const_iterator it = my_paths.begin(); it != my_paths.end(); ++it) {
-        endpoints.push_back(*(*it).first_point());
+        endpoints.push_back(it->first_point());
         if (no_reverse) {
-            endpoints.push_back(*(*it).first_point());
+            endpoints.push_back(it->first_point());
         } else {
-            endpoints.push_back(*(*it).last_point());
+            endpoints.push_back(it->last_point());
         }
     }
     
     while (!my_paths.empty()) {
         // find nearest point
-        int start_index = start_near->nearest_point_index(endpoints);
+        int start_index = start_near.nearest_point_index(endpoints);
         int path_index = start_index/2;
         if (start_index % 2 && !no_reverse) {
             my_paths.at(path_index).reverse();
@@ -37,20 +36,18 @@ PolylineCollection::chained_path_from(const Point* start_near, bool no_reverse) 
         endpoints.erase(endpoints.begin() + 2*path_index, endpoints.begin() + 2*path_index + 2);
         start_near = retval->polylines.back().last_point();
     }
-    
-    return retval;
 }
 
-Point*
+Point
 PolylineCollection::leftmost_point() const
 {
-    const Point* p = NULL;
-    for (Polylines::const_iterator it = this->polylines.begin(); it != this->polylines.end(); ++it) {
-        if (p == NULL || it->points.front().x < p->x)
-            p = &(it->points.front());
+    if (this->polylines.empty()) CONFESS("leftmost_point() called on empty PolylineCollection");
+    Point p = this->polylines.front().leftmost_point();
+    for (Polylines::const_iterator it = this->polylines.begin() + 1; it != this->polylines.end(); ++it) {
+        Point p2 = it->leftmost_point();
+        if (p2.x < p.x) p = p2;
     }
-    if (p == NULL) return NULL;
-    return new Point (*p);
+    return p;
 }
 
 }

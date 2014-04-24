@@ -21,8 +21,10 @@
     void translate(double x, double y);
     double area();
     bool is_valid();
-    bool contains_line(Line* line);
-    bool contains_point(Point* point);
+    bool contains_line(Line* line)
+        %code{% RETVAL = THIS->contains_line(*line); %};
+    bool contains_point(Point* point)
+        %code{% RETVAL = THIS->contains_point(*point); %};
     ExPolygons simplify(double tolerance);
     Polygons simplify_p(double tolerance);
     Polylines medial_axis(double max_width, double min_width)

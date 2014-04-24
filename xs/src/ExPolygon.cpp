@@ -76,10 +76,10 @@ ExPolygon::is_valid() const
 }
 
 bool
-ExPolygon::contains_line(const Line* line) const
+ExPolygon::contains_line(const Line &line) const
 {
     Polylines pl;
-    pl.push_back(*line);
+    pl.push_back(line);
     
     Polylines pl_out;
     diff(pl, *this, pl_out);
@@ -87,7 +87,7 @@ ExPolygon::contains_line(const Line* line) const
 }
 
 bool
-ExPolygon::contains_point(const Point* point) const
+ExPolygon::contains_point(const Point &point) const
 {
     if (!this->contour.contains_point(point)) return false;
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {

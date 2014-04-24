@@ -17,7 +17,8 @@
         %code{% THIS->rotate(angle, *center); %};
     int count()
         %code{% RETVAL = THIS->expolygons.size(); %};
-    bool contains_point(Point* point);
+    bool contains_point(Point* point)
+        %code{% RETVAL = THIS->contains_point(*point); %};
     void simplify(double tolerance);
 %{
 

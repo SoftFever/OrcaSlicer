@@ -33,8 +33,8 @@ class ExtrusionEntity
     ExtrusionRole role;
     double mm3_per_mm;  // mm^3 of plastic per mm of linear head motion
     virtual void reverse() = 0;
-    virtual Point* first_point() const = 0;
-    virtual Point* last_point() const = 0;
+    virtual Point first_point() const = 0;
+    virtual Point last_point() const = 0;
     bool is_perimeter() const;
     bool is_fill() const;
     bool is_bridge() const;
@@ -48,8 +48,8 @@ class ExtrusionPath : public ExtrusionEntity
     ExtrusionPath* clone() const;
     Polyline polyline;
     void reverse();
-    Point* first_point() const;
-    Point* last_point() const;
+    Point first_point() const;
+    Point last_point() const;
     void intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
     void subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
     void clip_end(double distance);
@@ -75,8 +75,8 @@ class ExtrusionLoop : public ExtrusionEntity
     ExtrusionPath* split_at_first_point() const;
     bool make_counter_clockwise();
     void reverse();
-    Point* first_point() const;
-    Point* last_point() const;
+    Point first_point() const;
+    Point last_point() const;
 };
 
 }

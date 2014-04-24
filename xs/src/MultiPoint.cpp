@@ -32,10 +32,10 @@ MultiPoint::reverse()
     std::reverse(this->points.begin(), this->points.end());
 }
 
-Point*
+Point
 MultiPoint::first_point() const
 {
-    return new Point(this->points.front());
+    return this->points.front();
 }
 
 double

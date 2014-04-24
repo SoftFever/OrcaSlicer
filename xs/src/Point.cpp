@@ -43,34 +43,28 @@ Point::rotate(double angle, const Point &center)
 }
 
 bool
-Point::coincides_with(const Point* point) const
-{
-    return this->coincides_with(*point);
-}
-
-bool
 Point::coincides_with(const Point &point) const
 {
     return this->x == point.x && this->y == point.y;
 }
 
 int
-Point::nearest_point_index(Points &points) const
+Point::nearest_point_index(const Points &points) const
 {
-    PointPtrs p;
+    PointConstPtrs p;
     p.reserve(points.size());
-    for (Points::iterator it = points.begin(); it != points.end(); ++it)
+    for (Points::const_iterator it = points.begin(); it != points.end(); ++it)
         p.push_back(&*it);
     return this->nearest_point_index(p);
 }
 
 int
-Point::nearest_point_index(PointPtrs &points) const
+Point::nearest_point_index(const PointConstPtrs &points) const
 {
     int idx = -1;
     double distance = -1;  // double because long is limited to 2147483647 on some platforms and it's not enough
     
-    for (PointPtrs::const_iterator it = points.begin(); it != points.end(); ++it) {
+    for (PointConstPtrs::const_iterator it = points.begin(); it != points.end(); ++it) {
         /* If the X distance of the candidate is > than the total distance of the
            best previous candidate, we know we don't want it */
         double d = pow(this->x - (*it)->x, 2);
@@ -90,30 +84,34 @@ Point::nearest_point_index(PointPtrs &points) const
     return idx;
 }
 
-Point*
-Point::nearest_point(Points points) const
+int
+Point::nearest_point_index(const PointPtrs &points) const
 {
-    return &(points.at(this->nearest_point_index(points)));
+    PointConstPtrs p;
+    p.reserve(points.size());
+    for (PointPtrs::const_iterator it = points.begin(); it != points.end(); ++it)
+        p.push_back(*it);
+    return this->nearest_point_index(p);
+}
+
+void
+Point::nearest_point(const Points &points, Point* point) const
+{
+    *point = points.at(this->nearest_point_index(points));
 }
 
 double
-Point::distance_to(const Point* point) const
+Point::distance_to(const Point &point) const
 {
-    double dx = ((double)point->x - this->x);
-    double dy = ((double)point->y - this->y);
+    double dx = ((double)point.x - this->x);
+    double dy = ((double)point.y - this->y);
     return sqrt(dx*dx + dy*dy);
-}
-
-double
-Point::distance_to(const Line* line) const
-{
-    return this->distance_to(*line);
 }
 
 double
 Point::distance_to(const Line &line) const
 {
-    if (line.a.coincides_with(&line.b)) return this->distance_to(&line.a);
+    if (line.a.coincides_with(line.b)) return this->distance_to(line.a);
     
     double n = (double)(line.b.x - line.a.x) * (double)(line.a.y - this->y)
         - (double)(line.a.x - this->x) * (double)(line.b.y - line.a.y);
@@ -132,12 +130,6 @@ double
 Point::ccw(const Point &p1, const Point &p2) const
 {
     return (double)(p2.x - p1.x)*(double)(this->y - p1.y) - (double)(p2.y - p1.y)*(double)(this->x - p1.x);
-}
-
-double
-Point::ccw(const Point* p1, const Point* p2) const
-{
-    return this->ccw(*p1, *p2);
 }
 
 double
