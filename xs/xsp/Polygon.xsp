@@ -36,6 +36,8 @@
     bool contains_point(Point* point)
         %code{% RETVAL = THIS->contains_point(*point); %};
     Polygons simplify(double tolerance);
+    Polygons triangulate_convex()
+        %code{% THIS->triangulate_convex(&RETVAL); %};
 %{
 
 Polygon*

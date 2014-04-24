@@ -3,8 +3,11 @@
 use strict;
 use warnings;
 
+use List::Util qw(first);
 use Slic3r::XS;
-use Test::More tests => 17;
+use Test::More tests => 19;
+
+use constant PI => 4 * atan2(1, 1);
 
 my $square = [  # ccw
     [100, 100],
@@ -52,6 +55,19 @@ ok ref($polygon->first_point) eq 'Slic3r::Point', 'first_point';
 
 ok $polygon->contains_point(Slic3r::Point->new(150,150)), 'ccw contains_point';
 ok $cw_polygon->contains_point(Slic3r::Point->new(150,150)), 'cw contains_point';
+
+{
+    my @points = (Slic3r::Point->new(100,0));
+    foreach my $i (1..5) {
+        my $point = $points[0]->clone;
+        $point->rotate(PI/3*$i, [0,0]);
+        push @points, $point;
+    }
+    my $hexagon = Slic3r::Polygon->new(@points);
+    my $triangles = $hexagon->triangulate_convex;
+    is scalar(@$triangles), 4, 'right number of triangles';
+    ok !(defined first { $_->is_clockwise } @$triangles), 'all triangles are ccw';
+}
 
 # this is not a test: this just demonstrates bad usage, where $polygon->clone gets
 # DESTROY'ed before the derived object ($point), causing bad memory access

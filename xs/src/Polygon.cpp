@@ -158,6 +158,20 @@ Polygon::simplify(double tolerance, Polygons &polygons) const
     polygons.insert(polygons.end(), pp.begin(), pp.end());
 }
 
+// Only call this on convex polygons or it will return invalid results
+void
+Polygon::triangulate_convex(Polygons* polygons) const
+{
+    for (Points::const_iterator it = this->points.begin() + 2; it != this->points.end(); ++it) {
+        Polygon p;
+        p.points.reserve(3);
+        p.points.push_back(this->points.front());
+        p.points.push_back(*(it-1));
+        p.points.push_back(*it);
+        polygons->push_back(p);
+    }
+}
+
 #ifdef SLIC3RXS
 SV*
 Polygon::to_SV_ref() {

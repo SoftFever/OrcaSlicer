@@ -31,6 +31,7 @@ class Polygon : public MultiPoint {
     bool contains_point(const Point &point) const;
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
+    void triangulate_convex(Polygons* polygons) const;
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);
