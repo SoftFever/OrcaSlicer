@@ -19,7 +19,7 @@ MultiPoint::translate(double x, double y)
 }
 
 void
-MultiPoint::rotate(double angle, Point* center)
+MultiPoint::rotate(double angle, const Point &center)
 {
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
         (*it).rotate(angle, center);

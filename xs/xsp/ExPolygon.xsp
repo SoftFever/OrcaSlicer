@@ -27,6 +27,8 @@
     Polygons simplify_p(double tolerance);
     Polylines medial_axis(double max_width, double min_width)
         %code{% THIS->medial_axis(max_width, min_width, &RETVAL); %};
+    Polygons get_trapezoids(double angle)
+        %code{% THIS->get_trapezoids(&RETVAL, angle); %};
 %{
 
 ExPolygon*
@@ -49,7 +51,7 @@ ExPolygon::rotate(angle, center_sv)
     CODE:
         Point center;
         center.from_SV_check(center_sv);
-        THIS->rotate(angle, &center);
+        THIS->rotate(angle, center);
 
 %}
 };

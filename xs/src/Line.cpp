@@ -38,7 +38,7 @@ Line::translate(double x, double y)
 }
 
 void
-Line::rotate(double angle, Point* center)
+Line::rotate(double angle, const Point &center)
 {
     this->a.rotate(angle, center);
     this->b.rotate(angle, center);

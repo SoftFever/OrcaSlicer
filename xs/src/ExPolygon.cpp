@@ -47,7 +47,7 @@ ExPolygon::translate(double x, double y)
 }
 
 void
-ExPolygon::rotate(double angle, Point* center)
+ExPolygon::rotate(double angle, const Point &center)
 {
     contour.rotate(angle, center);
     for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
@@ -156,6 +156,24 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     
     // clip segments to our expolygon area
     intersection(*polylines, *this, *polylines);
+}
+
+void
+ExPolygon::get_trapezoids(Polygons* polygons) const
+{
+    ExPolygons expp;
+    expp.push_back(*this);
+    boost::polygon::get_trapezoids(*polygons, expp);
+}
+
+void
+ExPolygon::get_trapezoids(Polygons* polygons, double angle) const
+{
+    ExPolygon clone = *this;
+    clone.rotate(PI/2 - angle, Point(0,0));
+    clone.get_trapezoids(polygons);
+    for (Polygons::iterator polygon = polygons->begin(); polygon != polygons->end(); ++polygon)
+        polygon->rotate(-(PI/2 - angle), Point(0,0));
 }
 
 #ifdef SLIC3RXS

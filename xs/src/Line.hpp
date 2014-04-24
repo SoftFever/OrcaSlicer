@@ -3,7 +3,6 @@
 
 #include <myinit.h>
 #include "Point.hpp"
-#include <boost/polygon/polygon.hpp>
 
 namespace Slic3r {
 
@@ -21,7 +20,7 @@ class Line
     operator Polyline() const;
     void scale(double factor);
     void translate(double x, double y);
-    void rotate(double angle, Point* center);
+    void rotate(double angle, const Point &center);
     void reverse();
     double length() const;
     Point* midpoint() const;
@@ -48,6 +47,7 @@ typedef std::vector<Line> Lines;
 }
 
 // start Boost
+#include <boost/polygon/polygon.hpp>
 namespace boost { namespace polygon {
     template <>
     struct geometry_concept<Line> { typedef segment_concept type; };

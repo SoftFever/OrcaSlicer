@@ -1,9 +1,9 @@
 package Slic3r::Layer::BridgeDetector;
 use Moo;
 
-use List::Util qw(first sum max);
+use List::Util qw(first sum max min);
 use Slic3r::Geometry qw(PI unscale scaled_epsilon rad2deg epsilon);
-use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex);
+use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex union);
 
 has 'expolygon'         => (is => 'ro', required => 1);
 has 'lower_slices'      => (is => 'rw', required => 1);  # ExPolygons or ExPolygonCollection
@@ -151,6 +151,63 @@ sub detect_angle {
     }
     
     return $self->angle;
+}
+
+sub coverage {
+    my ($self, $angle) = @_;
+    
+    if (!defined $angle) {
+        return [] if !defined($angle = $self->detect_angle);
+    }
+    
+    # Clone our expolygon and rotate it so that we work with vertical lines.
+    my $expolygon = $self->expolygon->clone;
+    $expolygon->rotate(PI/2 - $angle, [0,0]);
+    
+    # Outset the bridge expolygon by half the amount we used for detecting anchors;
+    # we'll use this one to generate our trapezoids and be sure that their vertices
+    # are inside the anchors and not on their contours leading to false negatives.
+    my $grown = $expolygon->offset_ex(+$self->extrusion_width/2);
+    
+    # Compute trapezoids according to a vertical orientation
+    my $trapezoids = [ map @{$_->get_trapezoids(PI/2)}, @$grown ];
+    
+    # get anchors and rotate them too
+    my $anchors = [ map $_->clone, @{$self->_anchors} ];
+    $_->rotate(PI/2 - $angle, [0,0]) for @$anchors;
+    
+    my @covered = ();  # polygons
+    foreach my $trapezoid (@$trapezoids) {
+        my @polylines = map $_->as_polyline, @{$trapezoid->lines};
+        my @supported = @{intersection_pl(\@polylines, [map @$_, @$anchors])};
+        
+        if (@supported >= 2) {
+            push @covered, $trapezoid;
+        }
+    }
+    
+    # merge trapezoids and rotate them back
+    my $coverage = union(\@covered);
+    $_->rotate(-(PI/2 - $angle), [0,0]) for @$coverage;
+    
+    # intersect trapezoids with actual bridge area to remove extra margins
+    $coverage = intersection_ex($coverage, [ @{$self->expolygon} ]);
+    
+    if (0) {
+        my @lines = map @{$_->lines}, @$trapezoids;
+        $_->rotate(-(PI/2 - $angle), [0,0]) for @lines;
+        
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output(
+            "coverage_" . rad2deg($angle) . ".svg",
+            expolygons          => [$self->expolygon],
+            green_expolygons    => $self->_anchors,
+            red_expolygons      => $coverage,
+            lines               => \@lines,
+        );
+    }
+    
+    return $coverage;
 }
 
 1;

@@ -13,7 +13,8 @@
         %code{% THIS->expolygons.clear(); %};
     void scale(double factor);
     void translate(double x, double y);
-    void rotate(double angle, Point* center);
+    void rotate(double angle, Point* center)
+        %code{% THIS->rotate(angle, *center); %};
     int count()
         %code{% RETVAL = THIS->expolygons.size(); %};
     bool contains_point(Point* point);

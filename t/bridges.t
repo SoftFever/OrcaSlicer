@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 12;
 use strict;
 use warnings;
 
@@ -7,7 +7,7 @@ BEGIN {
     use lib "$FindBin::Bin/../lib";
 }
 
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Slic3r;
 use Slic3r::Geometry qw(scale epsilon deg2rad rad2deg PI);
 use Slic3r::Test;
@@ -68,7 +68,10 @@ use Slic3r::Test;
 }
 
 sub check_angle {
-    my ($lower, $bridge, $expected, $tolerance) = @_;
+    my ($lower, $bridge, $expected, $tolerance, $expected_coverage) = @_;
+    
+    $expected_coverage //= -1;
+    $expected_coverage = $bridge->area if $expected_coverage == -1;
     
     my $bd = Slic3r::Layer::BridgeDetector->new(
         expolygon       => $bridge,
@@ -78,6 +81,8 @@ sub check_angle {
     
     $tolerance //= rad2deg($bd->resolution) + epsilon;
     my $result = $bd->detect_angle;
+    my $coverage = $bd->coverage;
+    is sum(map $_->area, @$coverage), $expected_coverage, 'correct coverage area';
     
     # our epsilon is equal to the steps used by the bridge detection algorithm
     ###use XXX; YYY [ rad2deg($result), $expected ];
