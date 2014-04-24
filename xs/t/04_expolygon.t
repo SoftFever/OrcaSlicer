@@ -3,9 +3,9 @@
 use strict;
 use warnings;
 
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Slic3r::XS;
-use Test::More tests => 31;
+use Test::More tests => 33;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -131,6 +131,12 @@ is $expolygon->area, 100*100-20*20, 'area';
     is scalar(@$polygons), 3, 'correct number of trapezoids returned';
     is scalar(grep { $_->area == 100*200/2 } @$polygons), 2, 'trapezoids have expected area';
     is scalar(grep { $_->area == 100*200 } @$polygons), 1, 'trapezoids have expected area';
+}
+
+{
+    my $triangles = $expolygon->triangulate;
+    is scalar(@$triangles), 8, 'expected number of triangles';
+    is sum(map $_->area, @$triangles), $expolygon->area, 'sum of triangles area equals original expolygon area';
 }
 
 __END__

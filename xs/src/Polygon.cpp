@@ -168,7 +168,9 @@ Polygon::triangulate_convex(Polygons* polygons) const
         p.points.push_back(this->points.front());
         p.points.push_back(*(it-1));
         p.points.push_back(*it);
-        polygons->push_back(p);
+        
+        // this should be replaced with a more efficient call to a merge_collinear_segments() method
+        if (p.area() > 0) polygons->push_back(p);
     }
 }
 

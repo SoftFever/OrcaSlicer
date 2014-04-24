@@ -176,6 +176,18 @@ ExPolygon::get_trapezoids(Polygons* polygons, double angle) const
         polygon->rotate(-(PI/2 - angle), Point(0,0));
 }
 
+void
+ExPolygon::triangulate(Polygons* polygons) const
+{
+    // first make trapezoids
+    Polygons trapezoids;
+    this->get_trapezoids(&trapezoids);
+    
+    // then triangulate each trapezoid
+    for (Polygons::iterator polygon = trapezoids.begin(); polygon != trapezoids.end(); ++polygon)
+        polygon->triangulate_convex(polygons);
+}
+
 #ifdef SLIC3RXS
 SV*
 ExPolygon::to_AV() {

@@ -31,6 +31,8 @@
         %code{% THIS->medial_axis(max_width, min_width, &RETVAL); %};
     Polygons get_trapezoids(double angle)
         %code{% THIS->get_trapezoids(&RETVAL, angle); %};
+    Polygons triangulate()
+        %code{% THIS->triangulate(&RETVAL); %};
 %{
 
 ExPolygon*

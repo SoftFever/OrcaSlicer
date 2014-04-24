@@ -29,6 +29,7 @@ class ExPolygon
     void medial_axis(double max_width, double min_width, Polylines* polylines) const;
     void get_trapezoids(Polygons* polygons) const;
     void get_trapezoids(Polygons* polygons, double angle) const;
+    void triangulate(Polygons* polygons) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);
