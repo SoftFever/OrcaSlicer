@@ -149,6 +149,8 @@ sub process_layer {
             my @perimeters_by_island = map [], 0..$#{$layer->slices};   # slice idx => @perimeters
             my @infill_by_island     = map [], 0..$#{$layer->slices};   # slice idx => @fills
             
+            # NOTE: we assume $layer->slices was already ordered with chained_path()!
+            
             PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
                 for my $i (0 .. $#{$layer->slices}-1) {
                     if ($layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {

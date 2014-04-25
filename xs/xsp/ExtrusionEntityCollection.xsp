@@ -93,7 +93,6 @@ ExtrusionEntityCollection::chained_path_indices(bool no_reverse)
         const char* CLASS = "Slic3r::ExtrusionPath::Collection";
     CODE:
         RETVAL = new ExtrusionEntityCollection();
-        std::vector<size_t> indices;
         THIS->chained_path(RETVAL, no_reverse, &RETVAL->orig_indices);
     OUTPUT:
         RETVAL

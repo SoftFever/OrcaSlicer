@@ -284,8 +284,16 @@ sub make_perimeters {
         
         # use a nearest neighbor search to order these children
         # TODO: supply second argument to chained_path() too?
-        my $sorted_collection = $collection->chained_path_indices(0);
-        my @orig_indices = @{$sorted_collection->orig_indices};
+        # Optimization: since islands are going to be sorted by slice anyway in the 
+        # G-code export process, we skip chained_path here
+        my ($sorted_collection, @orig_indices);
+        if ($is_contour && $depth == 0) {
+            $sorted_collection = $collection;
+            @orig_indices = (0..$#$sorted_collection);
+        } else {
+            $sorted_collection = $collection->chained_path_indices(0);
+            @orig_indices = @{$sorted_collection->orig_indices};
+        }
         
         my @loops = ();
         foreach my $loop (@$sorted_collection) {

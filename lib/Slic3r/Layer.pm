@@ -2,7 +2,7 @@ package Slic3r::Layer;
 use Moo;
 
 use List::Util qw(first);
-use Slic3r::Geometry qw(scale);
+use Slic3r::Geometry qw(scale chained_path);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
 has 'id'                => (is => 'rw', required => 1); # sequential number of layer, 0-based
@@ -44,6 +44,10 @@ sub make_slices {
     my $self = shift;
     
     my $slices = union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]);
+    
+    # sort slices
+    $slices = [ @$slices[@{chained_path([ map $_->contour->first_point, @$slices ])}] ];
+    
     $self->slices->clear;
     $self->slices->append(@$slices);
 }
