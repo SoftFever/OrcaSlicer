@@ -132,9 +132,9 @@ if (@ARGV) {  # slicing from command line
             $mesh->cut($opt{cut}, $upper, $lower);
             $upper->repair;
             $lower->repair;
-            Slic3r::Format::STL->write_file("${file}_upper.stl", $upper, binary => 0)
+            $upper->write_ascii("${file}_upper.stl")
                 if $upper->facets_count > 0;
-            Slic3r::Format::STL->write_file("${file}_lower.stl", $lower, binary => 0)
+            $lower->write_ascii("${file}_lower.stl")
                 if $lower->facets_count > 0;
         }
         exit;

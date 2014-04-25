@@ -681,6 +681,40 @@ class _area_comp {
 };
 
 void
+TriangleMeshSlicer::make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices)
+{
+    Polygons loops;
+    this->make_loops(lines, &loops);
+    
+    Polygons cw;
+    for (Polygons::const_iterator loop = loops.begin(); loop != loops.end(); ++loop) {
+        if (loop->area() >= 0) {
+            ExPolygon ex;
+            ex.contour = *loop;
+            slices->push_back(ex);
+        } else {
+            cw.push_back(*loop);
+        }
+    }
+    
+    // assign holes to contours
+    for (Polygons::const_iterator loop = cw.begin(); loop != cw.end(); ++loop) {
+        int slice_idx = -1;
+        double current_contour_area = -1;
+        for (ExPolygons::iterator slice = slices->begin(); slice != slices->end(); ++slice) {
+            if (slice->contour.contains_point(loop->points.front())) {
+                double area = slice->contour.area();
+                if (area < current_contour_area || current_contour_area == -1) {
+                    slice_idx = slice - slices->begin();
+                    current_contour_area = area;
+                }
+            }
+        }
+        (*slices)[slice_idx].holes.push_back(*loop);
+    }
+}
+
+void
 TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
 {
     /*
@@ -852,24 +886,27 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
     if (upper != NULL) {
         // compute shape of section
         ExPolygons section;
-        this->make_expolygons(upper_lines, &section);
+        this->make_expolygons_simple(upper_lines, &section);
         
         // triangulate section
         Polygons triangles;
         for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
-            expolygon->triangulate(&triangles);
+            expolygon->triangulate2(&triangles);
         
         // convert triangles to facets and append them to mesh
         for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
             Polygon p = *polygon;
             p.reverse();
             stl_facet facet;
+            facet.normal.x = 0;
+            facet.normal.y = 0;
+            facet.normal.z = -1;
             for (size_t i = 0; i <= 2; ++i) {
                 facet.vertex[i].x = unscale(p.points[i].x);
                 facet.vertex[i].y = unscale(p.points[i].y);
                 facet.vertex[i].z = z;
             }
-            //stl_add_facet(&upper->stl, &facet);
+            stl_add_facet(&upper->stl, &facet);
         }
     }
     
@@ -877,29 +914,32 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
     if (lower != NULL) {
         // compute shape of section
         ExPolygons section;
-        this->make_expolygons(lower_lines, &section);
+        this->make_expolygons_simple(lower_lines, &section);
         
         // triangulate section
         Polygons triangles;
         for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
-            expolygon->triangulate(&triangles);
+            expolygon->triangulate2(&triangles);
         
         // convert triangles to facets and append them to mesh
         for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
             stl_facet facet;
+            facet.normal.x = 0;
+            facet.normal.y = 0;
+            facet.normal.z = 1;
             for (size_t i = 0; i <= 2; ++i) {
                 facet.vertex[i].x = unscale(polygon->points[i].x);
                 facet.vertex[i].y = unscale(polygon->points[i].y);
                 facet.vertex[i].z = z;
             }
-            //stl_add_facet(&lower->stl, &facet);
+            stl_add_facet(&lower->stl, &facet);
         }
     }
     
-    /*
+    
     stl_get_size(&(upper->stl));
     stl_get_size(&(lower->stl));
-    */
+    
 }
 
 TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : mesh(_mesh), v_scaled_shared(NULL)

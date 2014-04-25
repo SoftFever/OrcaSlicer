@@ -3,6 +3,9 @@
 #include "Polygon.hpp"
 #include "Line.hpp"
 #include "ClipperUtils.hpp"
+#include "polypartition.h"
+
+#include <list>
 
 namespace Slic3r {
 
@@ -186,6 +189,54 @@ ExPolygon::triangulate(Polygons* polygons) const
     // then triangulate each trapezoid
     for (Polygons::iterator polygon = trapezoids.begin(); polygon != trapezoids.end(); ++polygon)
         polygon->triangulate_convex(polygons);
+}
+
+void
+ExPolygon::triangulate2(Polygons* polygons) const
+{
+    // convert polygons
+    std::list<TPPLPoly> input;
+    
+    // contour
+    {
+        TPPLPoly p;
+        p.Init(this->contour.points.size());
+        for (Points::const_iterator point = this->contour.points.begin(); point != this->contour.points.end(); ++point) {
+            p[ point-this->contour.points.begin() ].x = point->x;
+            p[ point-this->contour.points.begin() ].y = point->y;
+        }
+        p.SetHole(false);
+        input.push_back(p);
+    }
+    
+    // holes
+    for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole) {
+        TPPLPoly p;
+        p.Init(hole->points.size());
+        for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
+            p[ point-hole->points.begin() ].x = point->x;
+            p[ point-hole->points.begin() ].y = point->y;
+        }
+        p.SetHole(true);
+        input.push_back(p);
+    }
+    
+    // perform triangulation
+    std::list<TPPLPoly> output;
+    int res = TPPLPartition().Triangulate_MONO(&input, &output);
+    if (res != 1) CONFESS("Triangulation failed");
+    
+    // convert output polygons
+    for (std::list<TPPLPoly>::iterator poly = output.begin(); poly != output.end(); ++poly) {
+        long num_points = poly->GetNumPoints();
+        Polygon p;
+        p.points.resize(num_points);
+        for (long i = 0; i < num_points; ++i) {
+            p.points[i].x = (*poly)[i].x;
+            p.points[i].y = (*poly)[i].y;
+        }
+        polygons->push_back(p);
+    }
 }
 
 #ifdef SLIC3RXS
