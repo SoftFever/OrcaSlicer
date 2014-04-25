@@ -116,6 +116,8 @@ sub perform_cut {
         if $self->{cut_options}{keep_upper} && defined $upper_object;
     push @{$self->{new_model_objects}}, $lower_object
         if $self->{cut_options}{keep_lower} && defined $lower_object;
+    
+    $self->Close;
 }
 
 sub NewModelObjects {

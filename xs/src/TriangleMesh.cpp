@@ -126,6 +126,17 @@ TriangleMesh::repair() {
 }
 
 void
+TriangleMesh::reset_repair_stats() {
+    this->stl.stats.degenerate_facets   = 0;
+    this->stl.stats.edges_fixed         = 0;
+    this->stl.stats.facets_removed      = 0;
+    this->stl.stats.facets_added        = 0;
+    this->stl.stats.facets_reversed     = 0;
+    this->stl.stats.backwards_edges     = 0;
+    this->stl.stats.normals_fixed       = 0;
+}
+
+void
 TriangleMesh::WriteOBJFile(char* output_file) {
     stl_generate_shared_vertices(&stl);
     stl_write_obj(&stl, output_file);

@@ -34,6 +34,7 @@
         %};
     int facets_count()
         %code{% RETVAL = THIS->stl.stats.number_of_facets; %};
+    void reset_repair_stats();
 %{
 
 SV*

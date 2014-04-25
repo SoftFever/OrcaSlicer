@@ -571,15 +571,19 @@ sub cut {
         model               => $self->model,
         config              => $self->config->clone,
         layer_height_ranges => $self->layer_height_ranges,
+        origin_translation  => $self->origin_translation->clone,
     );
     my $lower = Slic3r::Model::Object->new(
         input_file          => $self->input_file,
         model               => $self->model,
         config              => $self->config->clone,
         layer_height_ranges => $self->layer_height_ranges,
+        origin_translation  => $self->origin_translation->clone,
     );
-    $upper->add_instance(offset => Slic3r::Point->new(0,0));
-    $lower->add_instance(offset => Slic3r::Point->new(0,0));
+    foreach my $instance (@{$self->instances}) {
+        $upper->add_instance(offset => $instance->offset);
+        $lower->add_instance(offset => $instance->offset);
+    }
     
     foreach my $volume (@{$self->volumes}) {
         if ($volume->modifier) {
@@ -589,9 +593,11 @@ sub cut {
         } else {
             my $upper_mesh = Slic3r::TriangleMesh->new;
             my $lower_mesh = Slic3r::TriangleMesh->new;
-            $volume->mesh->cut($z, $upper_mesh, $lower_mesh);
+            $volume->mesh->cut($z + $volume->mesh->bounding_box->z_min, $upper_mesh, $lower_mesh);
             $upper_mesh->repair;
             $lower_mesh->repair;
+            $upper_mesh->reset_repair_stats;
+            $lower_mesh->reset_repair_stats;
             
             $upper->add_volume(
                 material_id => $volume->material_id,

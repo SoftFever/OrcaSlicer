@@ -1103,7 +1103,7 @@ sub mouse_event {
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);
     } elsif ($event->ButtonDClick) {
-    	$parent->object_preview_dialog if $parent->selected_object;
+    	$parent->object_cut_dialog if $parent->selected_object;
     } elsif ($event->Dragging) {
         return if !$self->{drag_start_pos}; # concurrency problems
         my ($obj_idx, $instance_idx) = @{ $self->{drag_object} };
@@ -1146,7 +1146,7 @@ sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
     
     $obj_idx //= $event->GetIndex;
-	$self->object_preview_dialog($obj_idx);
+	$self->object_cut_dialog($obj_idx);
 }
 
 sub object_cut_dialog {
@@ -1171,6 +1171,7 @@ sub object_cut_dialog {
 	if (my @new_objects = $dlg->NewModelObjects) {
 	    $self->remove($obj_idx);
 	    $self->load_model_objects(@new_objects);
+	    $self->arrange;
 	}
 }
 
