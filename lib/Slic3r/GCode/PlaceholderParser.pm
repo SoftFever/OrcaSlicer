@@ -12,7 +12,13 @@ sub BUILD {
     # environment variables
     $s->{$_} = $ENV{$_} for grep /^SLIC3R_/, keys %ENV;
     
-    # timestamp
+    $self->update_timestamp;
+}
+
+sub update_timestamp {
+    my ($self) = @_;
+    
+    my $s = $self->_single;
     my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
     $s->{timestamp} = sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0];
     $s->{year}      = $lt[5];

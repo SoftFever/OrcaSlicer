@@ -839,7 +839,7 @@ sub write_gcode {
     }
     
     # prepare the helper object for replacing placeholders in custom G-code and output filename
-    
+    $self->placeholder_parser->update_timestamp;
     
     # set up our helper object
     my $gcodegen = Slic3r::GCode->new(
