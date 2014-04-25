@@ -693,7 +693,7 @@ class PrintConfigDef
         Options["solid_infill_every_layers"].type = coInt;
         Options["solid_infill_every_layers"].label = "Solid infill every";
         Options["solid_infill_every_layers"].category = "Infill";
-        Options["solid_infill_every_layers"].tooltip = "This feature allows to force a solid layer every given number of layers. Zero to disable.";
+        Options["solid_infill_every_layers"].tooltip = "This feature allows to force a solid layer every given number of layers. Zero to disable. You can set this to any value (for example 9999); Slic3r will automatically choose the maximum possible number of layers to combine according to nozzle diameter and layer height.";
         Options["solid_infill_every_layers"].sidetext = "layers";
         Options["solid_infill_every_layers"].cli = "solid-infill-every-layers=i";
         Options["solid_infill_every_layers"].min = 0;
