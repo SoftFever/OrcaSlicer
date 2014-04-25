@@ -253,7 +253,7 @@ sub extrude_loop {
         foreach my $path (@{$extrusion_path->intersect_expolygons($self->_layer_overhangs)}) {
             $path = $path->clone;
             $path->role(EXTR_ROLE_OVERHANG_PERIMETER);
-            $path->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, -1, 1)->mm3_per_mm(-1));
+            $path->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object)->mm3_per_mm(-1));
             push @paths, $path;
         }
         
