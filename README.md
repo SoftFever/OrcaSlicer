@@ -98,6 +98,8 @@ The author of the Silk icon set is Mark James.
     
       Non-slicing actions (no G-code will be generated):
         --repair            Repair given STL files and save them as <name>_fixed.obj
+        --cut <z>           Cut given input files at given Z (relative) and export
+                            them as <name>_upper.stl and <name>_lower.stl
         --info              Output information about the supplied file(s) and exit
     
         -j, --threads <num> Number of threads to use (1+, default: 2)

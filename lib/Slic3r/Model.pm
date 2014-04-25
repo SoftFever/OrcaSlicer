@@ -191,6 +191,21 @@ sub has_objects_with_no_instances {
     return (first { !defined $_->instances } @{$self->objects}) ? 1 : 0;
 }
 
+# makes sure all objects have at least one instance
+sub add_default_instances {
+    my ($self) = @_;
+    
+    # apply a default position to all objects not having one
+    my $added = 0;
+    foreach my $object (@{$self->objects}) {
+        if (!defined $object->instances) {
+            $object->add_instance(offset => [0,0]);
+            $added = 1;
+        }
+    }
+    return $added;
+}
+
 # this returns the bounding box of the *transformed* instances
 sub bounding_box {
     my $self = shift;

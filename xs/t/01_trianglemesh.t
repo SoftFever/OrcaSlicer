@@ -108,7 +108,7 @@ my $cube = {
         my $lower = Slic3r::TriangleMesh->new;
         $m->cut(0, $upper, $lower);
         #$upper->repair; $lower->repair;
-        is $upper->facets_count, 10, 'upper mesh has all facets except those belonging to the slicing plane';
+        is $upper->facets_count, 12, 'upper mesh has all facets except those belonging to the slicing plane';
         is $lower->facets_count,  0, 'lower mesh has no facets';
     }
     {
@@ -116,8 +116,8 @@ my $cube = {
         my $lower = Slic3r::TriangleMesh->new;
         $m->cut(10, $upper, $lower);
         #$upper->repair; $lower->repair;
-        is $upper->facets_count, 14, 'upper mesh has the right number of facets';
-        is $lower->facets_count, 14, 'lower mesh has the right number of facets';
+        is $upper->facets_count, 16, 'upper mesh has the right number of facets';
+        is $lower->facets_count, 16, 'lower mesh has the right number of facets';
     }
 }
 

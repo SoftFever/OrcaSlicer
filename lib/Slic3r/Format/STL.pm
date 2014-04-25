@@ -25,13 +25,15 @@ sub read_file {
 
 sub write_file {
     my $self = shift;
-    my ($file, $model, %params) = @_;
+    my ($file, $mesh, %params) = @_;
+    
+    $mesh = $mesh->mesh if $mesh->isa('Slic3r::Model');
     
     my $path = Slic3r::encode_path($file);
     
     $params{binary}
-        ? $model->mesh->write_binary($path)
-        : $model->mesh->write_ascii($path);
+        ? $mesh->write_binary($path)
+        : $mesh->write_ascii($path);
 }
 
 1;

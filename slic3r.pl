@@ -36,6 +36,7 @@ my %cli_options = ();
         'export-svg'            => \$opt{export_svg},
         'merge|m'               => \$opt{merge},
         'repair'                => \$opt{repair},
+        'cut=f'                 => \$opt{cut},
         'info'                  => \$opt{info},
         
         'scale=f'               => \$opt{scale},
@@ -116,6 +117,25 @@ if (@ARGV) {  # slicing from command line
             $tmesh->ReadSTLFile($file);
             $tmesh->repair;
             $tmesh->WriteOBJFile($output_file);
+        }
+        exit;
+    }
+    
+    if ($opt{cut}) {
+        foreach my $file (@ARGV) {
+            my $model = Slic3r::Model->read_from_file($file);
+            $model->add_default_instances;
+            my $mesh = $model->mesh;
+            $mesh->translate(0, 0, -$mesh->bounding_box->z_min);
+            my $upper = Slic3r::TriangleMesh->new;
+            my $lower = Slic3r::TriangleMesh->new;
+            $mesh->cut($opt{cut}, $upper, $lower);
+            $upper->repair;
+            $lower->repair;
+            Slic3r::Format::STL->write_file("${file}_upper.stl", $upper, binary => 0)
+                if $upper->facets_count > 0;
+            Slic3r::Format::STL->write_file("${file}_lower.stl", $lower, binary => 0)
+                if $lower->facets_count > 0;
         }
         exit;
     }
@@ -203,6 +223,8 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
   
   Non-slicing actions (no G-code will be generated):
     --repair            Repair given STL files and save them as <name>_fixed.obj
+    --cut <z>           Cut given input files at given Z (relative) and export
+                        them as <name>_upper.stl and <name>_lower.stl
     --info              Output information about the supplied file(s) and exit
     
 $j

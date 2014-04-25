@@ -46,13 +46,8 @@ sub set_model {
     # make method idempotent so that the object is reusable
     $self->_print->delete_all_objects;
     
-    my $need_arrange = $model->has_objects_with_no_instances;
-    if ($need_arrange) {
-        # apply a default position to all objects not having one
-        foreach my $object (@{$model->objects}) {
-            $object->add_instance(offset => [0,0]) if !defined $object->instances;
-        }
-    }
+    # make sure all objects have at least one defined instance
+    my $need_arrange = $model->add_default_instances;
     
     # apply scaling and rotation supplied from command line if any
     foreach my $instance (map @{$_->instances}, @{$model->objects}) {

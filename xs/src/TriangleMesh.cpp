@@ -755,7 +755,7 @@ TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, ExPoly
 void
 TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
 {
-    std::vector<IntersectionLine> lines;
+    std::vector<IntersectionLine> upper_lines, lower_lines;
     
     float scaled_z = scale_(z);
     for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; facet_idx++) {
@@ -766,13 +766,26 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
         float max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
         
         // intersect facet with cutting plane
+        std::vector<IntersectionLine> lines;
         this->slice_facet(scaled_z, *facet, facet_idx, min_z, max_z, &lines);
         
+        // save intersection lines for generating correct triangulations
+        for (std::vector<IntersectionLine>::iterator it = lines.begin(); it != lines.end(); ++it) {
+            if (it->edge_type == feTop) {
+                lower_lines.push_back(*it);
+            } else if (it->edge_type == feBottom) {
+                upper_lines.push_back(*it);
+            } else if (it->edge_type != feHorizontal) {
+                lower_lines.push_back(*it);
+                upper_lines.push_back(*it);
+            }
+        }
+        
         if (min_z > z || (min_z == z && max_z > min_z)) {
-            // facet is above the cut plane but does not belong to it
+            // facet is above the cut plane and does not belong to it
             if (upper != NULL) stl_add_facet(&upper->stl, facet);
         } else if (max_z < z || (max_z == z && max_z > min_z)) {
-            // facet is below the cut plane but does not belong to it
+            // facet is below the cut plane and does not belong to it
             if (lower != NULL) stl_add_facet(&lower->stl, facet);
         } else if (min_z < z && max_z > z) {
             // facet is cut by the slicing plane
@@ -803,18 +816,21 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
             
             // build the triangular facet
             stl_facet triangle;
+            triangle.normal = facet->normal;
             triangle.vertex[0] = *v0;
             triangle.vertex[1] = v0v1;
             triangle.vertex[2] = v2v0;
             
             // build the facets forming a quadrilateral on the other side
             stl_facet quadrilateral[2];
+            quadrilateral[0].normal = facet->normal;
             quadrilateral[0].vertex[0] = *v1;
             quadrilateral[0].vertex[1] = *v2;
             quadrilateral[0].vertex[2] = v0v1;
+            quadrilateral[1].normal = facet->normal;
             quadrilateral[1].vertex[0] = *v2;
-            quadrilateral[1].vertex[0] = v2v0;
-            quadrilateral[1].vertex[0] = v0v1;
+            quadrilateral[1].vertex[1] = v2v0;
+            quadrilateral[1].vertex[2] = v0v1;
             
             if (v0->z > z) {
                 if (upper != NULL) stl_add_facet(&upper->stl, &triangle);
@@ -832,9 +848,53 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
         }
     }
     
-    // compute shape of section
-    ExPolygons section;
-    this->make_expolygons(lines, &section);
+    // triangulate holes of upper mesh
+    if (upper != NULL) {
+        // compute shape of section
+        ExPolygons section;
+        this->make_expolygons(upper_lines, &section);
+        
+        // triangulate section
+        Polygons triangles;
+        for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
+            expolygon->triangulate(&triangles);
+        
+        // convert triangles to facets and append them to mesh
+        for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
+            Polygon p = *polygon;
+            p.reverse();
+            stl_facet facet;
+            for (size_t i = 0; i <= 2; ++i) {
+                facet.vertex[i].x = unscale(p.points[i].x);
+                facet.vertex[i].y = unscale(p.points[i].y);
+                facet.vertex[i].z = z;
+            }
+            //stl_add_facet(&upper->stl, &facet);
+        }
+    }
+    
+    // triangulate holes of lower mesh
+    if (lower != NULL) {
+        // compute shape of section
+        ExPolygons section;
+        this->make_expolygons(lower_lines, &section);
+        
+        // triangulate section
+        Polygons triangles;
+        for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
+            expolygon->triangulate(&triangles);
+        
+        // convert triangles to facets and append them to mesh
+        for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
+            stl_facet facet;
+            for (size_t i = 0; i <= 2; ++i) {
+                facet.vertex[i].x = unscale(polygon->points[i].x);
+                facet.vertex[i].y = unscale(polygon->points[i].y);
+                facet.vertex[i].z = z;
+            }
+            //stl_add_facet(&lower->stl, &facet);
+        }
+    }
     
     /*
     stl_get_size(&(upper->stl));
