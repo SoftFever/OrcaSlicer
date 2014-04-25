@@ -2,7 +2,7 @@ package Slic3r::Model;
 use Moo;
 
 use List::Util qw(first max);
-use Slic3r::Geometry qw(X Y Z MIN move_points);
+use Slic3r::Geometry qw(X Y Z move_points);
 
 has 'materials' => (is => 'ro', default => sub { {} });
 has 'objects'   => (is => 'ro', default => sub { [] });
@@ -331,7 +331,7 @@ use Moo;
 
 use File::Basename qw(basename);
 use List::Util qw(first sum);
-use Slic3r::Geometry qw(X Y Z MIN MAX);
+use Slic3r::Geometry qw(X Y Z rad2deg);
 
 has 'input_file'            => (is => 'rw');
 has 'model'                 => (is => 'ro', weak_ref => 1, required => 1);
@@ -502,6 +502,16 @@ sub translate {
     
     $_->mesh->translate(@shift) for @{$self->volumes};
     $self->_bounding_box->translate(@shift) if defined $self->_bounding_box;
+}
+
+sub rotate_x {
+    my ($self, $angle) = @_;
+    
+    # we accept angle in radians but mesh currently uses degrees
+    $angle = rad2deg($angle);
+    
+    $_->mesh->rotate_x($angle) for @{$self->volumes};
+    $self->_bounding_box(undef);
 }
 
 sub materials_count {

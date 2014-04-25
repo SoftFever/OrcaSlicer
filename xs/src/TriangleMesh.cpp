@@ -161,6 +161,21 @@ void TriangleMesh::translate(float x, float y, float z)
     stl_translate_relative(&(this->stl), x, y, z);
 }
 
+void TriangleMesh::rotate_x(float angle)
+{
+    stl_rotate_x(&(this->stl), angle);
+}
+
+void TriangleMesh::rotate_y(float angle)
+{
+    stl_rotate_y(&(this->stl), angle);
+}
+
+void TriangleMesh::rotate_z(float angle)
+{
+    stl_rotate_z(&(this->stl), angle);
+}
+
 void TriangleMesh::align_to_origin()
 {
     this->translate(

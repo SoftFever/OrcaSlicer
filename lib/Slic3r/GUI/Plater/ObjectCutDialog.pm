@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
+use Slic3r::Geometry qw(PI);
 use Wx qw(:dialog :id :misc :sizer wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
 use base 'Wx::Dialog';
@@ -17,9 +18,10 @@ sub new {
     
     # cut options
     $self->{cut_options} = {
-        z           => 0,
-        keep_upper  => 1,
-        keep_lower  => 1,
+        z               => 0,
+        keep_upper      => 1,
+        keep_lower      => 1,
+        rotate_lower    => 1,
     };
     my $cut_button_sizer = Wx::BoxSizer->new(wxVERTICAL);
     {
@@ -48,6 +50,13 @@ sub new {
                 label       => 'Lower part',
                 default     => $self->{cut_options}{keep_lower},
             },
+            {
+                opt_key     => 'rotate_lower',
+                type        => 'bool',
+                label       => '',
+                tooltip     => 'If enabled, the lower part will be rotated by 180° so that the flat cut surface lies on the print bed.',
+                default     => $self->{cut_options}{rotate_lower},
+            },
         ],
         lines => [
             {
@@ -57,6 +66,10 @@ sub new {
             {
                 label       => 'Keep',
                 options     => [qw(keep_upper keep_lower)],
+            },
+            {
+                label       => 'Rotate lower part',
+                options     => [qw(rotate_lower)],
             },
             {
                 sizer => $cut_button_sizer,
@@ -73,7 +86,7 @@ sub new {
                 }
             }
         },
-        label_width => 50,
+        label_width => 120,
     );
     
     # left pane with tree
@@ -112,10 +125,15 @@ sub perform_cut {
     
     my ($upper_object, $lower_object) = $self->{model_object}->cut($self->{cut_options}{z});
     $self->{new_model_objects} = [];
-    push @{$self->{new_model_objects}}, $upper_object
-        if $self->{cut_options}{keep_upper} && defined $upper_object;
-    push @{$self->{new_model_objects}}, $lower_object
-        if $self->{cut_options}{keep_lower} && defined $lower_object;
+    if ($self->{cut_options}{keep_upper} && defined $upper_object) {
+        push @{$self->{new_model_objects}}, $upper_object;
+    }
+    if ($self->{cut_options}{keep_lower} && defined $lower_object) {
+        push @{$self->{new_model_objects}}, $lower_object;
+        if ($self->{cut_options}{rotate_lower}) {
+            $lower_object->rotate_x(PI);
+        }
+    }
     
     $self->Close;
 }
