@@ -34,9 +34,11 @@ sub new {
         options => [
             {
                 opt_key     => 'z',
-                type        => 'f',
+                type        => 'slider',
                 label       => 'Z',
                 default     => $self->{cut_options}{z},
+                min         => 0,
+                max         => $self->{model_object}->bounding_box->size->z,
             },
             {
                 opt_key     => 'keep_upper',
