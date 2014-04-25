@@ -236,6 +236,8 @@ stl_rotate(float *x, float *y, float angle)
 extern void
 stl_get_size(stl_file *stl)
 {
+    if (stl->stats.number_of_facets == 0) return;
+    
   int i;
   int j;
 

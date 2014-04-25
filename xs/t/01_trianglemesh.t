@@ -107,7 +107,7 @@ my $cube = {
         my $upper = Slic3r::TriangleMesh->new;
         my $lower = Slic3r::TriangleMesh->new;
         $m->cut(0, $upper, $lower);
-        #$upper->repair; $lower->repair;
+        $upper->repair; $lower->repair;
         is $upper->facets_count, 12, 'upper mesh has all facets except those belonging to the slicing plane';
         is $lower->facets_count,  0, 'lower mesh has no facets';
     }
@@ -115,9 +115,13 @@ my $cube = {
         my $upper = Slic3r::TriangleMesh->new;
         my $lower = Slic3r::TriangleMesh->new;
         $m->cut(10, $upper, $lower);
-        #$upper->repair; $lower->repair;
-        is $upper->facets_count, 16, 'upper mesh has the right number of facets';
-        is $lower->facets_count, 16, 'lower mesh has the right number of facets';
+        $upper->repair; $lower->repair;
+        # we expect:
+        # 2 facets on external horizontal surfaces
+        # 3 facets on each side = 12 facets
+        # 6 facets on the triangulated side (8 vertices)
+        is $upper->facets_count, 2+12+6, 'upper mesh has the expected number of facets';
+        is $lower->facets_count, 2+12+6, 'lower mesh has the expected number of facets';
     }
 }
 
