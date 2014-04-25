@@ -1683,6 +1683,8 @@ src/Polyline.cpp
 src/Polyline.hpp
 src/PolylineCollection.cpp
 src/PolylineCollection.hpp
+src/polypartition.cpp
+src/polypartition.h
 src/PrintConfig.cpp
 src/PrintConfig.hpp
 src/Print.cpp
