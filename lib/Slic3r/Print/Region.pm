@@ -36,7 +36,6 @@ sub flow {
         }
     }
     if ($config_width eq '0') {
-        use XXX; ZZZ "Here" if !defined $object;
         $config_width = $object->config->extrusion_width;
     }
     
