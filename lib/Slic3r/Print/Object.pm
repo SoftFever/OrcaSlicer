@@ -1006,7 +1006,7 @@ sub support_material_flow {
     # we use a bogus layer_height because we use the same flow for all
     # support material layers
     return Slic3r::Flow->new_from_width(
-        width               => $self->config->support_material_extrusion_width,
+        width               => $self->config->support_material_extrusion_width || $self->config->extrusion_width,
         role                => $role,
         nozzle_diameter     => $self->print->config->nozzle_diameter->[$extruder-1] // $self->print->config->nozzle_diameter->[0],
         layer_height        => $self->config->layer_height,

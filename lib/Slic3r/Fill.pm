@@ -207,6 +207,7 @@ sub make_fill {
             $h,
             $is_bridge,
             $layerm->id == 0,
+            $layerm->object,
         );
         
         my $f = $self->filler($filler);

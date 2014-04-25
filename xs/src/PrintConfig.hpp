@@ -318,7 +318,7 @@ class PrintConfigDef
 
         Options["first_layer_extrusion_width"].type = coFloatOrPercent;
         Options["first_layer_extrusion_width"].label = "First layer";
-        Options["first_layer_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) if will be computed over first layer height.";
+        Options["first_layer_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) it will be computed over first layer height.";
         Options["first_layer_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["first_layer_extrusion_width"].cli = "first-layer-extrusion-width=s";
         Options["first_layer_extrusion_width"].ratio_over = "first_layer_height";
@@ -409,7 +409,7 @@ class PrintConfigDef
         Options["infill_extrusion_width"].type = coFloatOrPercent;
         Options["infill_extrusion_width"].label = "Infill";
         Options["infill_extrusion_width"].category = "Extrusion Width";
-        Options["infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) if will be computed over layer height.";
+        Options["infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) it will be computed over layer height.";
         Options["infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["infill_extrusion_width"].cli = "infill-extrusion-width=s";
 
@@ -534,7 +534,7 @@ class PrintConfigDef
         Options["perimeter_extrusion_width"].type = coFloatOrPercent;
         Options["perimeter_extrusion_width"].label = "Perimeters";
         Options["perimeter_extrusion_width"].category = "Extrusion Width";
-        Options["perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.";
+        Options["perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 90%) it will be computed over layer height.";
         Options["perimeter_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["perimeter_extrusion_width"].cli = "perimeter-extrusion-width=s";
         Options["perimeter_extrusion_width"].aliases.push_back("perimeters_extrusion_width");
@@ -701,7 +701,7 @@ class PrintConfigDef
         Options["solid_infill_extrusion_width"].type = coFloatOrPercent;
         Options["solid_infill_extrusion_width"].label = "Solid infill";
         Options["solid_infill_extrusion_width"].category = "Extrusion Width";
-        Options["solid_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If expressed as percentage (for example 90%) if will be computed over layer height.";
+        Options["solid_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If expressed as percentage (for example 90%) it will be computed over layer height.";
         Options["solid_infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["solid_infill_extrusion_width"].cli = "solid-infill-extrusion-width=s";
 
@@ -782,7 +782,7 @@ class PrintConfigDef
         Options["support_material_extrusion_width"].type = coFloatOrPercent;
         Options["support_material_extrusion_width"].label = "Support material";
         Options["support_material_extrusion_width"].category = "Extrusion Width";
-        Options["support_material_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) if will be computed over layer height.";
+        Options["support_material_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) it will be computed over layer height.";
         Options["support_material_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["support_material_extrusion_width"].cli = "support-material-extrusion-width=s";
 
@@ -878,7 +878,7 @@ class PrintConfigDef
         Options["top_infill_extrusion_width"].type = coFloatOrPercent;
         Options["top_infill_extrusion_width"].label = "Top solid infill";
         Options["top_infill_extrusion_width"].category = "Extrusion Width";
-        Options["top_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for top surfaces. You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. If expressed as percentage (for example 90%) if will be computed over layer height.";
+        Options["top_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for top surfaces. You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. If expressed as percentage (for example 90%) it will be computed over layer height.";
         Options["top_infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["top_infill_extrusion_width"].cli = "top-infill-extrusion-width=s";
 

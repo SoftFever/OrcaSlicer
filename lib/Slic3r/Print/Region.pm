@@ -11,7 +11,7 @@ has 'print'             => (is => 'ro', required => 1, weak_ref => 1);
 has 'config'            => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new});
 
 sub flow {
-    my ($self, $role, $layer_height, $bridge, $first_layer, $width) = @_;
+    my ($self, $role, $layer_height, $bridge, $first_layer, $width, $object) = @_;
     
     $bridge         //= 0;
     $first_layer    //= 0;
@@ -34,6 +34,10 @@ sub flow {
         } else {
             die "Unknown role $role";
         }
+    }
+    if ($config_width eq '0') {
+        use XXX; ZZZ "Here" if !defined $object;
+        $config_width = $object->config->extrusion_width;
     }
     
     # get the configured nozzle_diameter for the extruder associated

@@ -55,6 +55,7 @@ sub flow {
         $bridge // 0,
         $self->layer->id == 0,
         $width,
+        $self->object,
     );
 }
 
