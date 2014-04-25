@@ -86,7 +86,7 @@ sub new {
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_VIEW, "View", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_VIEW, "View/Cut…", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (
@@ -101,7 +101,7 @@ sub new {
             rotate          => "Rotate…",
             changescale     => "Scale…",
             split           => "Split",
-            view            => "View",
+            view            => "View/Cut…",
             settings        => "Settings…",
         );
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -173,7 +173,7 @@ sub new {
         EVT_TOOL($self, TB_ROTATE, sub { $_[0]->rotate(undef) });
         EVT_TOOL($self, TB_SCALE, \&changescale);
         EVT_TOOL($self, TB_SPLIT, \&split_object);
-        EVT_TOOL($self, TB_VIEW, sub { $_[0]->object_preview_dialog });
+        EVT_TOOL($self, TB_VIEW, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
     } else {
         EVT_BUTTON($self, $self->{btn_add}, \&add);
@@ -187,7 +187,7 @@ sub new {
         EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
         EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
         EVT_BUTTON($self, $self->{btn_split}, \&split_object);
-        EVT_BUTTON($self, $self->{btn_view}, sub { $_[0]->object_preview_dialog });
+        EVT_BUTTON($self, $self->{btn_view}, sub { $_[0]->object_cut_dialog });
         EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
     }
     
@@ -1149,7 +1149,7 @@ sub list_item_activated {
 	$self->object_preview_dialog($obj_idx);
 }
 
-sub object_preview_dialog {
+sub object_cut_dialog {
     my $self = shift;
     my ($obj_idx) = @_;
     
@@ -1162,11 +1162,16 @@ sub object_preview_dialog {
         return;
     }
     
-    my $dlg = Slic3r::GUI::Plater::ObjectPreviewDialog->new($self,
-		object          => $self->{objects}[$obj_idx],
-		model_object    => $self->{model}->objects->[$obj_idx],
+    my $dlg = Slic3r::GUI::Plater::ObjectCutDialog->new($self,
+		object              => $self->{objects}[$obj_idx],
+		model_object        => $self->{model}->objects->[$obj_idx],
 	);
 	$dlg->ShowModal;
+	
+	if (my @new_objects = $dlg->NewModelObjects) {
+	    $self->remove($obj_idx);
+	    $self->load_model_objects(@new_objects);
+	}
 }
 
 sub object_settings_dialog {

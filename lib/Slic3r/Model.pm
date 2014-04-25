@@ -562,6 +562,53 @@ sub print_info {
     }
 }
 
+sub cut {
+    my ($self, $z) = @_;
+    
+    # clone this one
+    my $upper = Slic3r::Model::Object->new(
+        input_file          => $self->input_file,
+        model               => $self->model,
+        config              => $self->config->clone,
+        layer_height_ranges => $self->layer_height_ranges,
+    );
+    my $lower = Slic3r::Model::Object->new(
+        input_file          => $self->input_file,
+        model               => $self->model,
+        config              => $self->config->clone,
+        layer_height_ranges => $self->layer_height_ranges,
+    );
+    $upper->add_instance(offset => Slic3r::Point->new(0,0));
+    $lower->add_instance(offset => Slic3r::Point->new(0,0));
+    
+    foreach my $volume (@{$self->volumes}) {
+        if ($volume->modifier) {
+            # don't cut modifiers
+            $upper->add_volume($volume);
+            $lower->add_volume($volume);
+        } else {
+            my $upper_mesh = Slic3r::TriangleMesh->new;
+            my $lower_mesh = Slic3r::TriangleMesh->new;
+            $volume->mesh->cut($z, $upper_mesh, $lower_mesh);
+            $upper_mesh->repair;
+            $lower_mesh->repair;
+            
+            $upper->add_volume(
+                material_id => $volume->material_id,
+                mesh        => $upper_mesh,
+                modifier    => $volume->modifier,
+            );
+            $lower->add_volume(
+                material_id => $volume->material_id,
+                mesh        => $lower_mesh,
+                modifier    => $volume->modifier,
+            );
+        }
+    }
+    
+    return ($upper, $lower);
+}
+
 package Slic3r::Model::Volume;
 use Moo;
 

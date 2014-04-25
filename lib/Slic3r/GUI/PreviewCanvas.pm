@@ -14,7 +14,9 @@ use Wx::GLCanvas qw(:all);
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               object_bounding_box object_shift
                               volumes initpos
-                              sphi stheta) );
+                              sphi stheta
+                              cutting_plane_z
+                              ) );
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
@@ -112,6 +114,11 @@ sub load_object {
             $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
         }
     }
+}
+
+sub SetCuttingPlane {
+    my ($self, $z) = @_;
+    $self->cutting_plane_z($z);
 }
 
 # Given an axis and angle, compute quaternion.
@@ -440,6 +447,23 @@ sub Render {
             glVertex3f($axis_len, $y, $ground_z);
         }
         glEnd();
+        
+        # draw cutting plane
+        if (defined $self->cutting_plane_z) {
+            my $plane_z = $z0 + $self->cutting_plane_z;
+            glDisable(GL_CULL_FACE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBegin(GL_QUADS);
+            glColor4f(1, 0.8, 0.8, 0.5);
+            glVertex3f(-$axis_len, -$axis_len, $plane_z);
+            glVertex3f($axis_len, -$axis_len, $plane_z);
+            glVertex3f($axis_len, $axis_len, $plane_z);
+            glVertex3f(-$axis_len, $axis_len, $plane_z);
+            glEnd();
+            glEnable(GL_CULL_FACE);
+            glDisable(GL_BLEND);
+        }
     }
 
     glPopMatrix();

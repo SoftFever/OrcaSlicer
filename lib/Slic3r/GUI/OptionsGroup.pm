@@ -77,7 +77,9 @@ sub BUILD {
     $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
     
     foreach my $line (@{$self->lines}) {
-        if ($line->{widget}) {
+        if ($line->{sizer}) {
+            $self->sizer->Add($line->{sizer}, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
+        } elsif ($line->{widget}) {
             my $window = $line->{widget}->GetWindow($self->parent);
             $self->sizer->Add($window, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
         } else {
