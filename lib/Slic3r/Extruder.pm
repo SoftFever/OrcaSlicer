@@ -25,18 +25,18 @@ use constant EXTRUDER_ROLE_INFILL                       => 2;
 use constant EXTRUDER_ROLE_SUPPORT_MATERIAL             => 3;
 use constant EXTRUDER_ROLE_SUPPORT_MATERIAL_INTERFACE   => 4;
 
-sub new_from_config {
-    my ($class, $config, $extruder_id) = @_;
-    
-    my %conf = (
-        id => $extruder_id,
-        use_relative_e_distances => $config->use_relative_e_distances,
-    );
-    foreach my $opt_key (@{&OPTIONS}) {
-        $conf{$opt_key} = $config->get_at($opt_key, $extruder_id);
+
+# generate accessors
+{
+    no strict 'refs';
+    for my $opt_key (@{&Slic3r::Extruder::OPTIONS}) {
+        *{$opt_key} = sub {
+            my $self = shift;
+            $self->config->get_at($opt_key, $self->id);
+        };
     }
-    return $class->new(%conf);
 }
+
 
 sub e_per_mm3 {
     my $self = shift;

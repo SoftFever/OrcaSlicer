@@ -221,20 +221,9 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::Extruder;
+package Slic3r::Config::Print::Ref;
+our @ISA = 'Slic3r::Config::Print';
 
-sub new {
-    my ($class, %args) = @_;
-
-    $args{extruder_offset} = Slic3r::Point->new(@{$args{extruder_offset}});
-
-    return $class->_new(@args{qw(
-        id use_relative_e_distances
-        extruder_offset
-        nozzle_diameter filament_diameter extrusion_multiplier temperature
-        first_layer_temperature retract_length retract_lift retract_speed
-        retract_restart_extra retract_before_travel retract_layer_change
-        retract_length_toolchange retract_restart_extra_toolchange wipe)});
-}
+sub DESTROY {}
 
 1;

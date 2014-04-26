@@ -53,7 +53,7 @@ sub set_extruders {
     my ($self, $extruder_ids) = @_;
     
     foreach my $i (@$extruder_ids) {
-        $self->extruders->{$i} = my $e = Slic3r::Extruder->new_from_config($self->print_config, $i);
+        $self->extruders->{$i} = my $e = Slic3r::Extruder->new($i, $self->print_config);
         $self->enable_wipe(1) if $e->wipe;
     }
     

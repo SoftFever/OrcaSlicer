@@ -6,22 +6,7 @@
 %}
 
 %name{Slic3r::Extruder} class Extruder {
-    %name{_new} Extruder(int id, bool use_relative_e_distances,
-        Point *extruder_offset,
-        double nozzle_diameter,
-        double filament_diameter,
-        double extrusion_multiplier,
-        int temperature,
-        int first_layer_temperature,
-        double retract_length,
-        double retract_lift,
-        int retract_speed,
-        double retract_restart_extra,
-        double retract_before_travel,
-        bool retract_layer_change,
-        double retract_length_toolchange,
-        double retract_restart_extra_toolchange,
-        double wipe);
+    Extruder(int id, PrintConfig *config);
 
     ~Extruder();
     void reset();
@@ -29,6 +14,7 @@
 
     int id() const
         %code%{ RETVAL = THIS->id; %};
+
 
     double E() const
         %code%{ RETVAL = THIS->E; %};
@@ -47,38 +33,9 @@
     double set_restart_extra(double val) const
         %code%{ RETVAL = THIS->restart_extra = val; %};
 
-    Point *extruder_offset() const
+    PrintConfig *config()
         %code%{
-            const char *CLASS = "Slic3r::Point";
-            RETVAL = new Point(THIS->extruder_offset);
+            const char *CLASS = "Slic3r::Config::Print::Ref";
+            RETVAL = &THIS->config;
         %};
-
-    double nozzle_diameter() const
-        %code%{ RETVAL = THIS->nozzle_diameter; %};
-    double filament_diameter() const
-        %code%{ RETVAL = THIS->filament_diameter; %};
-    double extrusion_multiplier() const
-        %code%{ RETVAL = THIS->extrusion_multiplier; %};
-    int temperature() const
-        %code%{ RETVAL = THIS->temperature; %};
-    int first_layer_temperature() const
-        %code%{ RETVAL = THIS->first_layer_temperature; %};
-    double retract_length() const
-        %code%{ RETVAL = THIS->retract_length; %};
-    double retract_lift() const
-        %code%{ RETVAL = THIS->retract_lift; %};
-    int retract_speed() const
-        %code%{ RETVAL = THIS->retract_speed; %};
-    double retract_restart_extra() const
-        %code%{ RETVAL = THIS->retract_restart_extra; %};
-    double retract_before_travel() const
-        %code%{ RETVAL = THIS->retract_before_travel; %};
-    bool retract_layer_change() const
-        %code%{ RETVAL = THIS->retract_layer_change; %};
-    double retract_length_toolchange() const
-        %code%{ RETVAL = THIS->retract_length_toolchange; %};
-    double retract_restart_extra_toolchange() const
-        %code%{ RETVAL = THIS->retract_restart_extra_toolchange; %};
-    double wipe() const
-        %code%{ RETVAL = THIS->wipe; %};
 };
