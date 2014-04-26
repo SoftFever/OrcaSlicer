@@ -78,7 +78,7 @@ use Slic3r::Test;
     ];
     $_->translate(scale 20, scale 20) for $bridge, @$lower; # avoid negative coordinates for easier SVG preview
     
-    ok check_angle($lower, $bridge, 45, undef, $bridge->area/2), 'correct bridge angle for L-shaped overhang';
+    ok check_angle($lower, $bridge, 45, undef, $bridge->area/2), 'correct bridge angle for square overhang with L-shaped anchors';
 }
 
 sub check_angle {
