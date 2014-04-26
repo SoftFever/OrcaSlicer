@@ -159,8 +159,13 @@ sub contact_area {
                     # outside the lower slice boundary, thus no overhang
                 }
             
-                # TODO: this is the place to remove bridged areas
-            
+                # remove bridged areas
+                $diff = diff(
+                    $diff,
+                    [ map @$_, @{$layerm->bridged} ],
+                    1,
+                );
+                
                 next if !@$diff;
                 push @overhang, @$diff;  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!
             

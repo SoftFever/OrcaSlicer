@@ -30,6 +30,9 @@ has 'thin_fills' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collect
 # collection of surfaces for infill generation
 has 'fill_surfaces' => (is => 'rw', default => sub { Slic3r::Surface::Collection->new });
 
+# collection of expolygons representing the bridged areas (thus not needing support material)
+has 'bridged' => (is => 'rw', default => sub { Slic3r::ExPolygon::Collection->new });
+
 # ordered collection of extrusion paths/loops to build all perimeters
 has 'perimeters' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
@@ -412,6 +415,10 @@ sub process_external_surfaces {
             );
             Slic3r::debugf "Processing bridge at layer %d:\n", $self->id;
             $angle = $bridge_detector->detect_angle;
+            
+            if (defined $angle && $self->object->config->support_material) {
+                $self->bridged->append(@{ $bridge_detector->coverage($angle) });
+            }
         }
         
         push @bottom, map $surface->clone(expolygon => $_, bridge_angle => $angle), @$grown;

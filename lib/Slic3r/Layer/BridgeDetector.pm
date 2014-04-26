@@ -157,7 +157,7 @@ sub coverage {
     my ($self, $angle) = @_;
     
     if (!defined $angle) {
-        return [] if !defined($angle = $self->detect_angle);
+        return [] if !defined($angle = $self->angle);
     }
     
     # Clone our expolygon and rotate it so that we work with vertical lines.
@@ -180,6 +180,9 @@ sub coverage {
     foreach my $trapezoid (@$trapezoids) {
         my @polylines = map $_->as_polyline, @{$trapezoid->lines};
         my @supported = @{intersection_pl(\@polylines, [map @$_, @$anchors])};
+        
+        # not nice, we need a more robust non-numeric check
+        @supported = grep $_->length >= $self->extrusion_width, @supported;
         
         if (@supported >= 2) {
             push @covered, $trapezoid;

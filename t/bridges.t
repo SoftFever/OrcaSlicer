@@ -1,4 +1,4 @@
-use Test::More tests => 12;
+use Test::More tests => 14;
 use strict;
 use warnings;
 
@@ -65,6 +65,20 @@ use Slic3r::Test;
     $_->translate(scale 20, scale 20) for $bridge, @$lower; # avoid negative coordinates for easier SVG preview
     
     ok check_angle($lower, $bridge, 135), 'correct bridge angle for C-shaped overhang';
+}
+
+{
+    my $bridge = Slic3r::ExPolygon->new(
+        Slic3r::Polygon->new_scale([10,10],[20,10],[20,20], [10,20]),
+    );
+    my $lower = [
+        Slic3r::ExPolygon->new(
+            Slic3r::Polygon->new_scale([10,10],[10,20],[20,20],[20,30],[0,30],[0,10]),
+        ),
+    ];
+    $_->translate(scale 20, scale 20) for $bridge, @$lower; # avoid negative coordinates for easier SVG preview
+    
+    ok check_angle($lower, $bridge, 45, undef, $bridge->area/2), 'correct bridge angle for L-shaped overhang';
 }
 
 sub check_angle {
