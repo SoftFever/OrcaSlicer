@@ -257,6 +257,8 @@ The author of the Silk icon set is Mark James.
         --support-material-enforce-layers
                             Enforce support material on the specified number of layers from bottom,
                             regardless of --support-material and threshold (0+, default: 0)
+        --dont-support-bridges
+                            Experimental option for preventing support material from being generated under bridged areas (default: yes)
     
        Retraction options:
         --retract-length    Length of retraction in mm when pausing extrusion (default: 1)

@@ -3,7 +3,7 @@ use Moo;
 
 use List::Util qw(first sum max min);
 use Slic3r::Geometry qw(PI unscale scaled_epsilon rad2deg epsilon);
-use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex union);
+use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex union offset diff_pl union_ex);
 
 has 'expolygon'         => (is => 'ro', required => 1);
 has 'lower_slices'      => (is => 'rw', required => 1);  # ExPolygons or ExPolygonCollection
@@ -211,6 +211,43 @@ sub coverage {
     }
     
     return $coverage;
+}
+
+# this method returns the bridge edges (as polylines) that are not supported
+# but would allow the entire bridge area to be bridged with detected angle
+# if supported too
+sub unsupported_edges {
+    my ($self, $angle) = @_;
+    
+    if (!defined $angle) {
+        return [] if !defined($angle = $self->angle);
+    }
+    
+    # get bridge edges (both contour and holes)
+    my @bridge_edges = map $_->split_at_first_point, @{$self->expolygon};
+    $_->[0]->translate(1,0) for @bridge_edges;  # workaround for Clipper bug, see comments in Slic3r::Polygon::clip_as_polyline()
+    
+    # get unsupported edges
+    my $grown_lower = offset([ map @$_, @{$self->lower_slices} ], +$self->extrusion_width);
+    my $unsupported = diff_pl(
+        \@bridge_edges,
+        $grown_lower,
+    );
+    
+    if (0) {
+        require "Slic3r/SVG.pm";
+        Slic3r::SVG::output(
+            "unsupported_" . rad2deg($angle) . ".svg",
+            expolygons          => [$self->expolygon],
+            green_expolygons    => $self->_anchors,
+            red_expolygons      => union_ex($grown_lower),
+            no_arrows           => 1,
+            polylines           => [ map $_->split_at_first_point, @{$self->expolygon} ],
+            red_polylines       => $unsupported,
+        );
+    }
+    
+    return $unsupported;
 }
 
 1;

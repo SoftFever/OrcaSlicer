@@ -493,7 +493,8 @@ sub build {
         {
             title => 'Options for support material and raft',
             options => [qw(support_material_pattern support_material_spacing support_material_angle
-                support_material_interface_layers support_material_interface_spacing)],
+                support_material_interface_layers support_material_interface_spacing
+                dont_support_bridges)],
         },
     ]);
     

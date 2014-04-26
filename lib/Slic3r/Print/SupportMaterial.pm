@@ -158,13 +158,34 @@ sub contact_area {
                     # Void $diff means that there's no upper perimeter whose centerline is
                     # outside the lower slice boundary, thus no overhang
                 }
-            
-                # remove bridged areas
-                $diff = diff(
-                    $diff,
-                    [ map @$_, @{$layerm->bridged} ],
-                    1,
-                );
+                
+                if ($self->object_config->dont_support_bridges) {
+                    if (1) {
+                        # remove the entire bridges and only support the unsupported edges
+                        my @bridges = map $_->expolygon,
+                            grep $_->bridge_angle != -1,
+                            @{$layerm->fill_surfaces->filter_by_type(S_TYPE_BOTTOMBRIDGE)};
+                    
+                        $diff = diff(
+                            $diff,
+                            [ map @$_, @bridges ],
+                            1,
+                        );
+                    
+                        push @$diff, @{intersection(
+                            [ map @{$_->grow(+scale MARGIN)}, @{$layerm->unsupported_bridge_edges} ],
+                            [ map @$_, @bridges ],
+                        )}
+                    
+                    } else {
+                        # just remove bridged areas
+                        $diff = diff(
+                            $diff,
+                            [ map @$_, @{$layerm->bridged} ],
+                            1,
+                        );
+                    }
+                }
                 
                 next if !@$diff;
                 push @overhang, @$diff;  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!

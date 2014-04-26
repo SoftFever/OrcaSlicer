@@ -33,6 +33,9 @@ has 'fill_surfaces' => (is => 'rw', default => sub { Slic3r::Surface::Collection
 # collection of expolygons representing the bridged areas (thus not needing support material)
 has 'bridged' => (is => 'rw', default => sub { Slic3r::ExPolygon::Collection->new });
 
+# collection of polylines representing the unsupported bridge edges
+has 'unsupported_bridge_edges' => (is => 'rw', default => sub { Slic3r::Polyline::Collection->new });
+
 # ordered collection of extrusion paths/loops to build all perimeters
 has 'perimeters' => (is => 'rw', default => sub { Slic3r::ExtrusionPath::Collection->new });
 
@@ -418,6 +421,7 @@ sub process_external_surfaces {
             
             if (defined $angle && $self->object->config->support_material) {
                 $self->bridged->append(@{ $bridge_detector->coverage($angle) });
+                $self->unsupported_bridge_edges->append(@{ $bridge_detector->unsupported_edges }); 
             }
         }
         

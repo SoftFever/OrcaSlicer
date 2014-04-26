@@ -381,6 +381,8 @@ $j
     --support-material-enforce-layers
                         Enforce support material on the specified number of layers from bottom,
                         regardless of --support-material and threshold (0+, default: $config->{support_material_enforce_layers})
+    --dont-support-bridges
+                        Experimental option for preventing support material from being generated under bridged areas (default: yes)
   
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion (default: $config->{retract_length}[0])

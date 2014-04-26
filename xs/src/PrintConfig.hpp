@@ -139,6 +139,11 @@ class PrintConfigDef
         Options["disable_fan_first_layers"].cli = "disable-fan-first-layers=i";
         Options["disable_fan_first_layers"].max = 1000;
 
+        Options["dont_support_bridges"].type = coBool;
+        Options["dont_support_bridges"].label = "Don't support bridges";
+        Options["dont_support_bridges"].tooltip = "Experimental option for preventing support material from being generated under bridged areas.";
+        Options["dont_support_bridges"].cli = "dont-support-bridges!";
+
         Options["duplicate_distance"].type = coFloat;
         Options["duplicate_distance"].label = "Distance between copies";
         Options["duplicate_distance"].tooltip = "Distance used for the auto-arrange feature of the plater.";
@@ -968,6 +973,7 @@ class StaticPrintConfig : public virtual StaticConfig
 class PrintObjectConfig : public virtual StaticPrintConfig
 {
     public:
+    ConfigOptionBool                dont_support_bridges;
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionBool                infill_only_where_needed;
@@ -988,6 +994,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 support_material_threshold;
     
     PrintObjectConfig() : StaticPrintConfig() {
+        this->dont_support_bridges.value                         = true;
         this->extrusion_width.value                              = 0;
         this->extrusion_width.percent                            = false;
         this->first_layer_height.value                           = 0.35;
@@ -1012,6 +1019,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
+        if (opt_key == "dont_support_bridges")                       return &this->dont_support_bridges;
         if (opt_key == "extrusion_width")                            return &this->extrusion_width;
         if (opt_key == "first_layer_height")                         return &this->first_layer_height;
         if (opt_key == "infill_only_where_needed")                   return &this->infill_only_where_needed;
