@@ -1,4 +1,7 @@
 #include "PolylineCollection.hpp"
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -49,5 +52,9 @@ PolylineCollection::leftmost_point() const
     }
     return p;
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(PolylineCollection, "Polyline::Collection");
+#endif
 
 }

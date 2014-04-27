@@ -3,6 +3,7 @@
 %{
 #include <myinit.h>
 #include "ExtrusionEntityCollection.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
@@ -12,20 +13,16 @@
         %code{% THIS->entities.clear(); %};
     ExtrusionEntityCollection* chained_path(bool no_reverse)
         %code{%
-            const char* CLASS = "Slic3r::ExtrusionPath::Collection";
             RETVAL = new ExtrusionEntityCollection();
             THIS->chained_path(RETVAL, no_reverse);
         %};
     ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse)
         %code{%
-            const char* CLASS = "Slic3r::ExtrusionPath::Collection";
             RETVAL = new ExtrusionEntityCollection();
             THIS->chained_path_from(*start_near, RETVAL, no_reverse);
         %};
-    Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
-    Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->last_point()); %};
+    Clone<Point> first_point();
+    Clone<Point> last_point();
     int count()
         %code{% RETVAL = THIS->entities.size(); %};
     std::vector<size_t> orig_indices()
@@ -50,11 +47,13 @@ ExtrusionEntityCollection::arrayref()
             SV* sv = newSV(0);
             // return our item by reference
             if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(*it)) {
-                sv_setref_pv( sv, "Slic3r::ExtrusionPath::Ref", path );
+                sv_setref_pv( sv, perl_class_name_ref(path), path );
             } else if (ExtrusionLoop* loop = dynamic_cast<ExtrusionLoop*>(*it)) {
-                sv_setref_pv( sv, "Slic3r::ExtrusionLoop::Ref", loop );
+                sv_setref_pv( sv, perl_class_name_ref(loop), loop );
+            } else if (ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(*it)) {
+                sv_setref_pv( sv, perl_class_name_ref(collection), collection );
             } else {
-                sv_setref_pv( sv, "Slic3r::ExtrusionPath::Collection::Ref", *it );
+                croak("Unexpected type in ExtrusionEntityCollection");
             }
             av_store(av, i++, sv);
         }
@@ -66,14 +65,19 @@ void
 ExtrusionEntityCollection::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
+            if(!sv_isobject( ST(i) ) || (SvTYPE(SvRV( ST(i) )) != SVt_PVMG)) {
+                croak("Argument %d is not object", i);
+            }
             ExtrusionEntity* entity = (ExtrusionEntity *)SvIV((SV*)SvRV( ST(i) ));
             // append COPIES
             if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(entity)) {
                 THIS->entities.push_back( new ExtrusionPath(*path) );
             } else if (ExtrusionLoop* loop = dynamic_cast<ExtrusionLoop*>(entity)) {
                 THIS->entities.push_back( new ExtrusionLoop(*loop) );
+            } else if(ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(entity)) {
+                THIS->entities.push_back( collection->clone() );
             } else {
-                THIS->entities.push_back( (*(ExtrusionEntityCollection*)entity).clone() );
+                croak("Argument %d is of unknown type", i);
             }
         }
 
@@ -89,8 +93,6 @@ ExtrusionEntityCollection::no_sort(...)
 
 ExtrusionEntityCollection*
 ExtrusionEntityCollection::chained_path_indices(bool no_reverse)
-    PREINIT:
-        const char* CLASS = "Slic3r::ExtrusionPath::Collection";
     CODE:
         RETVAL = new ExtrusionEntityCollection();
         THIS->chained_path(RETVAL, no_reverse, &RETVAL->orig_indices);

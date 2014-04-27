@@ -4,12 +4,13 @@
 #include <myinit.h>
 #include "Surface.hpp"
 #include "ClipperUtils.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Surface} class Surface {
     ~Surface();
-    ExPolygon* expolygon()
-        %code{% const char* CLASS = "Slic3r::ExPolygon::Ref"; RETVAL = &(THIS->expolygon); %};
+    Ref<ExPolygon> expolygon()
+        %code{% RETVAL = &(THIS->expolygon); %};
     double thickness()
         %code{% RETVAL = THIS->thickness; %};
     unsigned short thickness_layers()

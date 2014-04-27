@@ -1,8 +1,11 @@
-#include <sstream>
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "ExPolygonCollection.hpp"
 #include "ClipperUtils.hpp"
+#include <sstream>
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -102,6 +105,9 @@ ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCo
 }
 
 #ifdef SLIC3RXS
+
+REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
+
 std::string
 ExtrusionPath::gcode(SV* extruder, double e, double F,
     double xofs, double yofs, std::string extrusion_axis,
@@ -211,5 +217,9 @@ ExtrusionLoop::last_point() const
 {
     return this->polygon.points.front();  // in polygons, first == last
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
+#endif
 
 }

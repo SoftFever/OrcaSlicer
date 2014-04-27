@@ -2,6 +2,9 @@
 #include "ClipperUtils.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -175,25 +178,28 @@ Polygon::triangulate_convex(Polygons* polygons) const
 }
 
 #ifdef SLIC3RXS
+
+REGISTER_CLASS(Polygon, "Polygon");
+
 SV*
 Polygon::to_SV_ref() {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polygon::Ref", (void*)this );
+    sv_setref_pv( sv, perl_class_name_ref(this), (void*)this );
     return sv;
 }
 
 SV*
 Polygon::to_SV_clone_ref() const {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polygon", new Polygon(*this) );
+    sv_setref_pv( sv, perl_class_name(this), new Polygon(*this) );
     return sv;
 }
 
 void
 Polygon::from_SV_check(SV* poly_sv)
 {
-    if (sv_isobject(poly_sv) && !sv_isa(poly_sv, "Slic3r::Polygon") && !sv_isa(poly_sv, "Slic3r::Polygon::Ref"))
-        CONFESS("Not a valid Slic3r::Polygon object");
+    if (sv_isobject(poly_sv) && !sv_isa(poly_sv, perl_class_name(this)) && !sv_isa(poly_sv, perl_class_name_ref(this)))
+        CONFESS("Not a valid %s object", perl_class_name(this));
     
     MultiPoint::from_SV_check(poly_sv);
 }

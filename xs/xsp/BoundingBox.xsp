@@ -4,26 +4,23 @@
 #include <myinit.h>
 #include "BoundingBox.hpp"
 #include "Point.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Geometry::BoundingBox} class BoundingBox {
     ~BoundingBox();
-    BoundingBox* clone()
-        %code{% const char* CLASS = "Slic3r::Geometry::BoundingBox"; RETVAL = new BoundingBox(*THIS); %};
+    Clone<BoundingBox> clone()
+        %code{% RETVAL = THIS; %};
     void merge(BoundingBox* bb) %code{% THIS->merge(*bb); %};
     void merge_point(Point* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y);
     Polygon* polygon()
-        %code{% const char* CLASS = "Slic3r::Polygon"; RETVAL = new Polygon(); THIS->polygon(RETVAL); %};
-    Point* size()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->size()); %};
-    Point* center()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->center()); %};
-    Point* min_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->min); %};
-    Point* max_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->max); %};
+        %code{% RETVAL = new Polygon(); THIS->polygon(RETVAL); %};
+    Clone<Point> size();
+    Clone<Point> center();
+    Clone<Point> min_point() %code{% RETVAL = THIS->min; %};
+    Clone<Point> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min.x; %};
     double x_max() %code{% RETVAL = THIS->max.x; %};
     double y_min() %code{% RETVAL = THIS->min.y; %};
@@ -45,15 +42,13 @@ new_from_points(CLASS, points)
 
 %name{Slic3r::Geometry::BoundingBoxf3} class BoundingBoxf3 {
     ~BoundingBoxf3();
-    BoundingBoxf3* clone()
-        %code{% const char* CLASS = "Slic3r::Geometry::BoundingBoxf3"; RETVAL = new BoundingBoxf3(*THIS); %};
+    Clone<BoundingBoxf3> clone()
+        %code{% RETVAL = THIS; %};
     void merge(BoundingBoxf3* bb) %code{% THIS->merge(*bb); %};
     void scale(double factor);
     void translate(double x, double y, double z);
-    Pointf3* size()
-        %code{% const char* CLASS = "Slic3r::Pointf3"; RETVAL = new Pointf3(THIS->size()); %};
-    Pointf3* center()
-        %code{% const char* CLASS = "Slic3r::Pointf3"; RETVAL = new Pointf3(THIS->center()); %};
+    Clone<Pointf3> size();
+    Clone<Pointf3> center();
     double x_min() %code{% RETVAL = THIS->min.x; %};
     double x_max() %code{% RETVAL = THIS->max.x; %};
     double y_min() %code{% RETVAL = THIS->min.y; %};

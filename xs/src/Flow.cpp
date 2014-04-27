@@ -1,5 +1,8 @@
 #include "Flow.hpp"
 #include <cmath>
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -111,5 +114,9 @@ Flow::_spacing(float width, float nozzle_diameter, float height, float bridge_fl
     }
     return width - OVERLAP_FACTOR * (width - min_flow_spacing);
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(Flow, "Flow");
+#endif
 
 }

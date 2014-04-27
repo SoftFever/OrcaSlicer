@@ -3,18 +3,19 @@
 %{
 #include <myinit.h>
 #include "ExPolygon.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExPolygon} class ExPolygon {
     ~ExPolygon();
-    ExPolygon* clone()
-        %code{% const char* CLASS = "Slic3r::ExPolygon"; RETVAL = new ExPolygon(*THIS); %};
+    Clone<ExPolygon> clone()
+        %code{% RETVAL = THIS; %};
     SV* arrayref()
         %code{% RETVAL = THIS->to_AV(); %};
     SV* pp()
         %code{% RETVAL = THIS->to_SV_pureperl(); %};
-    Polygon* contour()
-        %code{% const char* CLASS = "Slic3r::Polygon::Ref"; RETVAL = &(THIS->contour); %};
+    Ref<Polygon> contour()
+        %code{% RETVAL = &(THIS->contour); %};
     Polygons* holes()
         %code{% RETVAL = &(THIS->holes); %};
     void scale(double factor);

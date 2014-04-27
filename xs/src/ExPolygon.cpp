@@ -4,6 +4,9 @@
 #include "Line.hpp"
 #include "ClipperUtils.hpp"
 #include "polypartition.h"
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 #include <list>
 
@@ -240,6 +243,9 @@ ExPolygon::triangulate2(Polygons* polygons) const
 }
 
 #ifdef SLIC3RXS
+
+REGISTER_CLASS(ExPolygon, "ExPolygon");
+
 SV*
 ExPolygon::to_AV() {
     const unsigned int num_holes = this->holes.size();
@@ -257,14 +263,14 @@ ExPolygon::to_AV() {
 SV*
 ExPolygon::to_SV_ref() {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::ExPolygon::Ref", this );
+    sv_setref_pv( sv, perl_class_name_ref(this), this );
     return sv;
 }
 
 SV*
 ExPolygon::to_SV_clone_ref() const {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::ExPolygon", new ExPolygon(*this) );
+    sv_setref_pv( sv, perl_class_name(this), new ExPolygon(*this) );
     return sv;
 }
 
@@ -300,8 +306,8 @@ void
 ExPolygon::from_SV_check(SV* expoly_sv)
 {
     if (sv_isobject(expoly_sv) && (SvTYPE(SvRV(expoly_sv)) == SVt_PVMG)) {
-        if (!sv_isa(expoly_sv, "Slic3r::ExPolygon") && !sv_isa(expoly_sv, "Slic3r::ExPolygon::Ref"))
-            CONFESS("Not a valid Slic3r::ExPolygon object");
+        if (!sv_isa(expoly_sv, perl_class_name(this)) && !sv_isa(expoly_sv, perl_class_name_ref(this)))
+          CONFESS("Not a valid %s object", perl_class_name(this));
         // a XS ExPolygon was supplied
         *this = *(ExPolygon *)SvIV((SV*)SvRV( expoly_sv ));
     } else {

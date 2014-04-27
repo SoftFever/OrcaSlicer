@@ -1,5 +1,8 @@
 #include "SurfaceCollection.hpp"
 #include <map>
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -47,5 +50,9 @@ SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
         group->push_back(&*it);
     }
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(SurfaceCollection, "Surface::Collection");
+#endif
 
 }

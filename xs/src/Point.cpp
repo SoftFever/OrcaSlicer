@@ -1,7 +1,10 @@
-#include <cmath>
-#include <sstream>
 #include "Point.hpp"
 #include "Line.hpp"
+#include <cmath>
+#include <sstream>
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -139,17 +142,20 @@ Point::ccw(const Line &line) const
 }
 
 #ifdef SLIC3RXS
+
+REGISTER_CLASS(Point, "Point");
+
 SV*
 Point::to_SV_ref() {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Point::Ref", (void*)this );
+    sv_setref_pv( sv, perl_class_name_ref(this), (void*)this );
     return sv;
 }
 
 SV*
 Point::to_SV_clone_ref() const {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Point", new Point(*this) );
+    sv_setref_pv( sv, perl_class_name(this), new Point(*this) );
     return sv;
 }
 
@@ -176,13 +182,33 @@ void
 Point::from_SV_check(SV* point_sv)
 {
     if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
-        if (!sv_isa(point_sv, "Slic3r::Point") && !sv_isa(point_sv, "Slic3r::Point::Ref"))
-            CONFESS("Not a valid Slic3r::Point object");
+        if (!sv_isa(point_sv, perl_class_name(this)) && !sv_isa(point_sv, perl_class_name_ref(this)))
+            CONFESS("Not a valid %s object (got %s)", perl_class_name(this), HvNAME(SvSTASH(SvRV(point_sv))));
         *this = *(Point*)SvIV((SV*)SvRV( point_sv ));
     } else {
         this->from_SV(point_sv);
     }
 }
+
+#endif
+
+void
+Pointf::scale(double factor)
+{
+    this->x *= factor;
+    this->y *= factor;
+}
+
+void
+Pointf::translate(double x, double y)
+{
+    this->x += x;
+    this->y += y;
+}
+
+#ifdef SLIC3RXS
+
+REGISTER_CLASS(Pointf, "Pointf");
 
 SV*
 Pointf::to_SV_pureperl() const {
@@ -208,20 +234,6 @@ Pointf::from_SV(SV* point_sv)
 #endif
 
 void
-Pointf::scale(double factor)
-{
-    this->x *= factor;
-    this->y *= factor;
-}
-
-void
-Pointf::translate(double x, double y)
-{
-    this->x += x;
-    this->y += y;
-}
-
-void
 Pointf3::scale(double factor)
 {
     Pointf::scale(factor);
@@ -234,5 +246,9 @@ Pointf3::translate(double x, double y, double z)
     Pointf::translate(x, y);
     this->z += z;
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(Pointf3, "Pointf3");
+#endif
 
 }

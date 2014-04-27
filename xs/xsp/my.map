@@ -2,30 +2,80 @@ std::vector<Points::size_type>  T_STD_VECTOR_INT
 std::vector<size_t>  T_STD_VECTOR_INT
 t_config_option_key T_STD_STRING
 
-BoundingBox*         O_OBJECT
-BoundingBoxf3*         O_OBJECT
-DynamicPrintConfig*  O_OBJECT
-PrintObjectConfig*  O_OBJECT
-PrintRegionConfig*  O_OBJECT
-PrintConfig*  O_OBJECT
-FullPrintConfig*  O_OBJECT
-ZTable*         O_OBJECT
-TriangleMesh*         O_OBJECT
-Point*         O_OBJECT
-Pointf3*         O_OBJECT
-Line*           O_OBJECT
-Polyline*       O_OBJECT
-PolylineCollection*    O_OBJECT
-Polygon*        O_OBJECT
-ExPolygon*      O_OBJECT
-ExPolygonCollection*    O_OBJECT
-ExtrusionEntityCollection*    O_OBJECT
-ExtrusionPath*  O_OBJECT
-ExtrusionLoop*  O_OBJECT
-Flow*           O_OBJECT
-PrintState*  O_OBJECT
-Surface*        O_OBJECT
-SurfaceCollection*      O_OBJECT
+BoundingBox*               O_OBJECT_SLIC3R
+Ref<BoundingBox>           O_OBJECT_SLIC3R_T
+Clone<BoundingBox>         O_OBJECT_SLIC3R_T
+
+BoundingBoxf3*             O_OBJECT_SLIC3R
+Ref<BoundingBoxf3>         O_OBJECT_SLIC3R_T
+Clone<BoundingBoxf3>       O_OBJECT_SLIC3R_T
+
+DynamicPrintConfig*        O_OBJECT_SLIC3R
+PrintObjectConfig*         O_OBJECT_SLIC3R
+PrintRegionConfig*         O_OBJECT_SLIC3R
+PrintConfig*               O_OBJECT_SLIC3R
+FullPrintConfig*           O_OBJECT_SLIC3R
+ZTable*                    O_OBJECT
+
+TriangleMesh*              O_OBJECT_SLIC3R
+Ref<TriangleMesh>          O_OBJECT_SLIC3R_T
+Clone<TriangleMesh>        O_OBJECT_SLIC3R_T
+
+Point*                     O_OBJECT_SLIC3R
+Ref<Point>                 O_OBJECT_SLIC3R_T
+Clone<Point>               O_OBJECT_SLIC3R_T
+
+Pointf3*                   O_OBJECT_SLIC3R
+Ref<Pointf3>               O_OBJECT_SLIC3R_T
+Clone<Pointf3>             O_OBJECT_SLIC3R_T
+
+Line*                      O_OBJECT_SLIC3R
+Ref<Line>                  O_OBJECT_SLIC3R_T
+Clone<Line>                O_OBJECT_SLIC3R_T
+
+Polyline*                  O_OBJECT_SLIC3R
+Ref<Polyline>              O_OBJECT_SLIC3R_T
+Clone<Polyline>            O_OBJECT_SLIC3R_T
+
+PolylineCollection*        O_OBJECT_SLIC3R
+Ref<PolylineCollection>    O_OBJECT_SLIC3R_T
+Clone<PolylineCollection>  O_OBJECT_SLIC3R_T
+
+Polygon*                   O_OBJECT_SLIC3R
+Ref<Polygon>               O_OBJECT_SLIC3R_T
+Clone<Polygon>             O_OBJECT_SLIC3R_T
+
+ExPolygon*                 O_OBJECT_SLIC3R
+Ref<ExPolygon>             O_OBJECT_SLIC3R_T
+Clone<ExPolygon>           O_OBJECT_SLIC3R_T
+
+ExPolygonCollection*       O_OBJECT_SLIC3R
+Ref<ExPolygonCollection>   O_OBJECT_SLIC3R_T
+Clone<ExPolygonCollection> O_OBJECT_SLIC3R_T
+
+ExtrusionEntityCollection*              O_OBJECT_SLIC3R
+Ref<ExtrusionEntityCollection>          O_OBJECT_SLIC3R_T
+Clone<ExtrusionEntityCollection>        O_OBJECT_SLIC3R_T
+
+ExtrusionPath*             O_OBJECT_SLIC3R
+Ref<ExtrusionPath>         O_OBJECT_SLIC3R_T
+Clone<ExtrusionPath>       O_OBJECT_SLIC3R_T
+
+ExtrusionLoop*             O_OBJECT_SLIC3R
+Ref<ExtrusionLoop>         O_OBJECT_SLIC3R_T
+Clone<ExtrusionLoop>       O_OBJECT_SLIC3R_T
+
+Flow*                      O_OBJECT_SLIC3R
+Ref<Flow>                  O_OBJECT_SLIC3R_T
+Clone<Flow>                O_OBJECT_SLIC3R_T
+
+PrintState*                O_OBJECT_SLIC3R
+
+Surface*                   O_OBJECT_SLIC3R
+Ref<Surface>               O_OBJECT_SLIC3R_T
+Clone<Surface>             O_OBJECT_SLIC3R_T
+
+SurfaceCollection*         O_OBJECT_SLIC3R
 
 ExtrusionRole     T_UV
 FlowRole     T_UV
@@ -55,6 +105,19 @@ TriangleMeshPtrs T_PTR_ARRAYREF
 
 INPUT
 
+O_OBJECT_SLIC3R
+    if( sv_isobject($arg) && (SvTYPE(SvRV($arg)) == SVt_PVMG) ) {
+        if ( sv_isa($arg, perl_class_name($var) ) ||  sv_isa($arg, perl_class_name_ref($var) )) {
+              $var = ($type)SvIV((SV*)SvRV( $arg ));
+        } else {
+              croak(\"$var is not of type %s (got %s)\", perl_class_name($var), HvNAME(SvSTASH(SvRV($arg))));
+              XSRETURN_UNDEF;
+        }
+    } else {
+        warn( \"${Package}::$func_name() -- $var is not a blessed SV reference\" );
+        XSRETURN_UNDEF;
+    }
+
 T_ARRAYREF
     if (SvROK($arg) && SvTYPE(SvRV($arg)) == SVt_PVAV) {
         AV* av = (AV*)SvRV($arg);
@@ -72,6 +135,14 @@ T_ARRAYREF
 	             \"$var\");
 
 OUTPUT
+# return object from pointer
+O_OBJECT_SLIC3R
+        sv_setref_pv( $arg, perl_class_name($var), (void*)$var );
+
+# return value handled by template class
+O_OBJECT_SLIC3R_T
+        sv_setref_pv( $arg, $type\::CLASS(), (void*)$var );
+
 
 T_ARRAYREF
 	AV* av = newAV();

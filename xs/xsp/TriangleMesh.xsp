@@ -3,13 +3,14 @@
 %{
 #include <myinit.h>
 #include "TriangleMesh.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::TriangleMesh} class TriangleMesh {
     TriangleMesh();
     ~TriangleMesh();
-    TriangleMesh* clone()
-        %code{% const char* CLASS = "Slic3r::TriangleMesh"; RETVAL = new TriangleMesh(*THIS); %};
+    Clone<TriangleMesh> clone()
+        %code{% RETVAL = THIS; %};
     void ReadSTLFile(char* input_file);
     void write_ascii(char* output_file);
     void write_binary(char* output_file);
@@ -31,7 +32,6 @@
         %code{% THIS->horizontal_projection(RETVAL); %};
     BoundingBoxf3* bounding_box()
         %code{%
-            const char* CLASS = "Slic3r::Geometry::BoundingBoxf3";
             RETVAL = new BoundingBoxf3();
             THIS->bounding_box(RETVAL);
         %};
@@ -189,8 +189,6 @@ TriangleMesh::bb3()
 
 Polygon*
 TriangleMesh::convex_hull()
-    PREINIT:
-        const char* CLASS = "Slic3r::Polygon";
     CODE:
         RETVAL = new Polygon ();
         THIS->convex_hull(RETVAL);
