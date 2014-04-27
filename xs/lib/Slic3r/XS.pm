@@ -28,6 +28,11 @@ our @ISA = 'Slic3r::Point';
 
 sub DESTROY {}
 
+package Slic3r::Pointf;
+use overload
+    '@{}' => sub { [ $_[0]->x, $_[0]->y ] },  #,
+    'fallback' => 1;
+
 package Slic3r::Pointf3;
 use overload
     '@{}' => sub { [ $_[0]->x, $_[0]->y, $_[0]->z ] },  #,
