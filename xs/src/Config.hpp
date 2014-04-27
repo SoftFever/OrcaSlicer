@@ -33,7 +33,7 @@ class ConfigOptionVector
     virtual ~ConfigOptionVector() {};
     std::vector<T> values;
     
-    T get_at(size_t i) {
+    T get_at(size_t i) const {
         try {
             return this->values.at(i);
         } catch (const std::out_of_range& oor) {
