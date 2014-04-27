@@ -23,8 +23,7 @@ class Extruder
     double retracted;
     double restart_extra;
 
-    // TODO: maybe better to keep a reference to an existing object than copy it
-    PrintConfig config;
+    PrintConfig *config;
 };
 
 }

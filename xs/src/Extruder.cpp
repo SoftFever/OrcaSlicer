@@ -7,7 +7,7 @@ namespace Slic3r {
 
 Extruder::Extruder(int id, PrintConfig *config)
 :   id(id),
-    config(*config) // make a copy
+    config(config)
 {
     reset();
 }
@@ -37,7 +37,7 @@ bool
 Extruder::use_relative_e_distances() const
 {
     // TODO: figure out way to avoid static_cast to access hidden const method
-    const ConfigOption *opt = static_cast<const ConfigBase*>(&this->config)
+    const ConfigOption *opt = static_cast<const ConfigBase*>(this->config)
         ->option("use_relative_e_distances");
     return *static_cast<const ConfigOptionBool*>(opt);
 }
