@@ -15,7 +15,23 @@ class Extruder
     void reset();
     double extrude(double dE);
 
+
     bool use_relative_e_distances() const;
+    Pointf extruder_offset() const;
+    double nozzle_diameter() const;
+    double filament_diameter() const;
+    double extrusion_multiplier() const;
+    int temperature() const;
+    int first_layer_temperature() const;
+    double retract_length() const;
+    double retract_lift() const;
+    int retract_speed() const;
+    double retract_restart_extra() const;
+    double retract_before_travel() const;
+    bool retract_layer_change() const;
+    double retract_length_toolchange() const;
+    double retract_restart_extra_toolchange() const;
+    bool wipe() const;
 
     int id;
     double E;
@@ -24,6 +40,13 @@ class Extruder
     double restart_extra;
 
     PrintConfig *config;
+
+
+    private:
+
+    // get value from a ConfigOptionVector subtype, indexed by extruder id
+    template <typename Val, class OptType>
+    Val get_config(const char *name) const;
 };
 
 }

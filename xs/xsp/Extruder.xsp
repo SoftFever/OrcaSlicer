@@ -33,9 +33,19 @@
     double set_restart_extra(double val) const
         %code%{ RETVAL = THIS->restart_extra = val; %};
 
-    PrintConfig *config()
-        %code%{
-            const char *CLASS = "Slic3r::Config::Print::Ref";
-            RETVAL = &THIS->config;
-        %};
+    Clone<Pointf> extruder_offset() const;
+    double nozzle_diameter() const;
+    double filament_diameter() const;
+    double extrusion_multiplier() const;
+    int temperature() const;
+    int first_layer_temperature() const;
+    double retract_length() const;
+    double retract_lift() const;
+    int retract_speed() const;
+    double retract_restart_extra() const;
+    double retract_before_travel() const;
+    bool retract_layer_change() const;
+    double retract_length_toolchange() const;
+    double retract_restart_extra_toolchange() const;
+    bool wipe() const;
 };

@@ -12,6 +12,9 @@
 %typemap{Point*};
 %typemap{Ref<Point>}{simple};
 %typemap{Clone<Point>}{simple};
+%typemap{Pointf*};
+%typemap{Ref<Pointf>}{simple};
+%typemap{Clone<Pointf>}{simple};
 %typemap{Pointf3*};
 %typemap{Ref<Pointf3>}{simple};
 %typemap{Clone<Pointf3>}{simple};
