@@ -1,4 +1,7 @@
 #include "Extruder.hpp"
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -38,5 +41,9 @@ Extruder::use_relative_e_distances() const
         ->option("use_relative_e_distances");
     return *static_cast<const ConfigOptionBool*>(opt);
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(Extruder, "Extruder");
+#endif
 
 }
