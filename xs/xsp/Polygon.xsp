@@ -3,12 +3,13 @@
 %{
 #include <myinit.h>
 #include "Polygon.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Polygon} class Polygon {
     ~Polygon();
-    Polygon* clone()
-        %code{% const char* CLASS = "Slic3r::Polygon"; RETVAL = new Polygon(*THIS); %};
+    Clone<Polygon> clone()
+        %code{% RETVAL = THIS; %};
     SV* arrayref()
         %code{% RETVAL = THIS->to_AV(); %};
     SV* pp()
@@ -18,11 +19,11 @@
     void reverse();
     Lines lines();
     Polyline* split_at(Point* point)
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at(*point); %};
+        %code{% RETVAL = THIS->split_at(*point); %};
     Polyline* split_at_index(int index)
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_index(index); %};
+        %code{% RETVAL = THIS->split_at_index(index); %};
     Polyline* split_at_first_point()
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = THIS->split_at_first_point(); %};
+        %code{% RETVAL = THIS->split_at_first_point(); %};
     Points equally_spaced_points(double distance);
     double length();
     double area();
@@ -31,8 +32,7 @@
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid();
-    Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
+    Clone<Point> first_point();
     bool contains_point(Point* point)
         %code{% RETVAL = THIS->contains_point(*point); %};
     Polygons simplify(double tolerance);

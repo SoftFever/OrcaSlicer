@@ -1,4 +1,7 @@
 #include "Print.hpp"
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -39,5 +42,9 @@ PrintState::invalidate_all()
     this->_started.clear();
     this->_done.clear();
 }
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(PrintState, "Print::State");
+#endif
 
 }

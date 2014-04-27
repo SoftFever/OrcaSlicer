@@ -3,13 +3,14 @@
 %{
 #include <myinit.h>
 #include "Point.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Point} class Point {
     Point(long _x = 0, long _y = 0);
     ~Point();
-    Point* clone()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(*THIS); %};
+    Clone<Point> clone()
+        %code{% RETVAL=THIS; %}; 
     void scale(double factor);
     void translate(double x, double y);
     SV* arrayref()
@@ -22,7 +23,7 @@
         %code{% RETVAL = THIS->y; %};
     int nearest_point_index(Points points);
     Point* nearest_point(Points points)
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(); THIS->nearest_point(points, RETVAL); %};
+        %code{% RETVAL = new Point(); THIS->nearest_point(points, RETVAL); %};
     double distance_to(Point* point)
         %code{% RETVAL = THIS->distance_to(*point); %};
     double distance_to_line(Line* line)
@@ -58,8 +59,8 @@ Point::coincides_with(point_sv)
 %name{Slic3r::Pointf3} class Pointf3 {
     Pointf3(double _x = 0, double _y = 0, double _z = 0);
     ~Pointf3();
-    Pointf3* clone()
-        %code{% const char* CLASS = "Slic3r::Pointf3"; RETVAL = new Pointf3(*THIS); %};
+    Clone<Pointf3> clone()
+        %code{% RETVAL = THIS; %};
     double x()
         %code{% RETVAL = THIS->x; %};
     double y()

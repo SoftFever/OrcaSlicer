@@ -4,12 +4,13 @@
 #include <myinit.h>
 #include "ClipperUtils.hpp"
 #include "Polyline.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Polyline} class Polyline {
     ~Polyline();
-    Polyline* clone()
-        %code{% const char* CLASS = "Slic3r::Polyline"; RETVAL = new Polyline(*THIS); %};
+    Clone<Polyline> clone()
+        %code{% RETVAL = THIS; %};
     SV* arrayref()
         %code{% RETVAL = THIS->to_AV(); %};
     SV* pp()
@@ -20,10 +21,8 @@
         %code{% THIS->points.pop_back(); %};
     void reverse();
     Lines lines();
-    Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
-    Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->last_point()); %};
+    Clone<Point> first_point();
+    Clone<Point> last_point();
     Points equally_spaced_points(double distance);
     double length();
     bool is_valid();

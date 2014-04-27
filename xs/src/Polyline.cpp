@@ -1,5 +1,8 @@
 #include "Polyline.hpp"
 #include "Polygon.hpp"
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 namespace Slic3r {
 
@@ -122,11 +125,14 @@ Polyline::simplify(double tolerance)
 
 
 #ifdef SLIC3RXS
+
+REGISTER_CLASS(Polyline, "Polyline");
+
 SV*
 Polyline::to_SV_ref()
 {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polyline::Ref", (void*)this );
+    sv_setref_pv( sv, perl_class_name_ref(this), (void*)this );
     return sv;
 }
 
@@ -134,15 +140,15 @@ SV*
 Polyline::to_SV_clone_ref() const
 {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::Polyline", new Polyline(*this) );
+    sv_setref_pv( sv, perl_class_name(this), new Polyline(*this) );
     return sv;
 }
 
 void
 Polyline::from_SV_check(SV* poly_sv)
 {
-    if (!sv_isa(poly_sv, "Slic3r::Polyline") && !sv_isa(poly_sv, "Slic3r::Polyline::Ref"))
-        CONFESS("Not a valid Slic3r::Polyline object");
+    if (!sv_isa(poly_sv, perl_class_name(this)) && !sv_isa(poly_sv, perl_class_name_ref(this)))
+        CONFESS("Not a valid %s object",perl_class_name(this));
     
     MultiPoint::from_SV_check(poly_sv);
 }

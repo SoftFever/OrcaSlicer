@@ -3,12 +3,13 @@
 %{
 #include <myinit.h>
 #include "ExPolygonCollection.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExPolygon::Collection} class ExPolygonCollection {
     ~ExPolygonCollection();
-    ExPolygonCollection* clone()
-        %code{% const char* CLASS = "Slic3r::ExPolygon::Collection"; RETVAL = new ExPolygonCollection(*THIS); %};
+    Clone<ExPolygonCollection> clone() 
+        %code{% RETVAL = THIS; %};
     void clear()
         %code{% THIS->expolygons.clear(); %};
     void scale(double factor);
@@ -72,8 +73,6 @@ ExPolygonCollection::append(...)
 
 Polygon*
 ExPolygonCollection::convex_hull()
-    PREINIT:
-        const char* CLASS = "Slic3r::Polygon";
     CODE:
         RETVAL = new Polygon ();
         THIS->convex_hull(RETVAL);

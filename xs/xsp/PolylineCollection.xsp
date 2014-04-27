@@ -3,30 +3,28 @@
 %{
 #include <myinit.h>
 #include "PolylineCollection.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Polyline::Collection} class PolylineCollection {
     ~PolylineCollection();
-    PolylineCollection* clone()
-        %code{% const char* CLASS = "Slic3r::Polyline::Collection"; RETVAL = new PolylineCollection(*THIS); %};
+    Clone<PolylineCollection> clone()
+        %code{% RETVAL = THIS; %};
     void clear()
         %code{% THIS->polylines.clear(); %};
     PolylineCollection* chained_path(bool no_reverse)
         %code{%
-            const char* CLASS = "Slic3r::Polyline::Collection";
             RETVAL = new PolylineCollection();
             THIS->chained_path(RETVAL, no_reverse);
         %};
     PolylineCollection* chained_path_from(Point* start_near, bool no_reverse)
         %code{%
-            const char* CLASS = "Slic3r::Polyline::Collection";
             RETVAL = new PolylineCollection();
             THIS->chained_path_from(*start_near, RETVAL, no_reverse);
         %};
     int count()
         %code{% RETVAL = THIS->polylines.size(); %};
-    Point* leftmost_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->leftmost_point()); %};
+    Clone<Point> leftmost_point();
 %{
 
 PolylineCollection*

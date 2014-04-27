@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <math.h>
 #include <assert.h>
+#ifdef SLIC3RXS
+#include "perlglue.hpp"
+#endif
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
@@ -320,10 +323,13 @@ TriangleMesh::require_shared_vertices()
 }
 
 #ifdef SLIC3RXS
+
+REGISTER_CLASS(TriangleMesh, "TriangleMesh");
+
 SV*
 TriangleMesh::to_SV() {
     SV* sv = newSV(0);
-    sv_setref_pv( sv, "Slic3r::TriangleMesh", (void*)this );
+    sv_setref_pv( sv, perl_class_name(this), (void*)this );
     return sv;
 }
 

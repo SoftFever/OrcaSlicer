@@ -17,10 +17,8 @@
     void reverse();
     Lines lines()
         %code{% RETVAL = THIS->polyline.lines(); %};
-    Point* first_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->first_point()); %};
-    Point* last_point()
-        %code{% const char* CLASS = "Slic3r::Point"; RETVAL = new Point(THIS->last_point()); %};
+    Clone<Point> first_point();
+    Clone<Point> last_point();
     void clip_end(double distance);
     void simplify(double tolerance);
     double length();
@@ -46,10 +44,8 @@ _new(CLASS, polyline_sv, role, mm3_per_mm)
     OUTPUT:
         RETVAL
 
-Polyline*
+Ref<Polyline>
 ExtrusionPath::polyline(...)
-    PREINIT:
-        const char* CLASS = "Slic3r::Polyline::Ref";
     CODE:
         if (items > 1) {
             THIS->polyline.from_SV_check( ST(1) );
@@ -89,8 +85,6 @@ ExtrusionPath::append(...)
 
 ExtrusionEntityCollection*
 ExtrusionPath::intersect_expolygons(ExPolygonCollection* collection)
-    PREINIT:
-        const char* CLASS = "Slic3r::ExtrusionPath::Collection";
     CODE:
         RETVAL = new ExtrusionEntityCollection ();
         THIS->intersect_expolygons(*collection, RETVAL);
@@ -99,8 +93,6 @@ ExtrusionPath::intersect_expolygons(ExPolygonCollection* collection)
 
 ExtrusionEntityCollection*
 ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection)
-    PREINIT:
-        const char* CLASS = "Slic3r::ExtrusionPath::Collection";
     CODE:
         RETVAL = new ExtrusionEntityCollection ();
         THIS->subtract_expolygons(*collection, RETVAL);
