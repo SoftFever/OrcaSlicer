@@ -15,6 +15,18 @@ Polygon::operator Polygons() const
     return pp;
 }
 
+Point&
+Polygon::operator[](Points::size_type idx)
+{
+    return this->points[idx];
+}
+
+const Point&
+Polygon::operator[](Points::size_type idx) const
+{
+    return this->points[idx];
+}
+
 Point
 Polygon::last_point() const
 {

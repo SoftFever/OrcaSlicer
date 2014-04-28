@@ -170,7 +170,7 @@ sub coverage {
     my $grown = $expolygon->offset_ex(+$self->extrusion_width/2);
     
     # Compute trapezoids according to a vertical orientation
-    my $trapezoids = [ map @{$_->get_trapezoids(PI/2)}, @$grown ];
+    my $trapezoids = [ map @{$_->get_trapezoids2(PI/2)}, @$grown ];
     
     # get anchors and rotate them too
     my $anchors = [ map $_->clone, @{$self->_anchors} ];

@@ -107,14 +107,14 @@ is $expolygon->area, 100*100-20*20, 'area';
 
 {
     my $expolygon = Slic3r::ExPolygon->new($square);
-    my $polygons = $expolygon->get_trapezoids(PI/2);
+    my $polygons = $expolygon->get_trapezoids2(PI/2);
     is scalar(@$polygons), 1, 'correct number of trapezoids returned';
     is scalar(@{$polygons->[0]}), 4, 'trapezoid has 4 points';
     is $polygons->[0]->area, $expolygon->area, 'trapezoid has correct area';
 }
 
 {
-    my $polygons = $expolygon->get_trapezoids(PI/2);
+    my $polygons = $expolygon->get_trapezoids2(PI/2);
     is scalar(@$polygons), 4, 'correct number of trapezoids returned';
     
     # trapezoid polygons might have more than 4 points in case of collinear segments
@@ -127,7 +127,7 @@ is $expolygon->area, 100*100-20*20, 'area';
 
 {
     my $expolygon = Slic3r::ExPolygon->new([ [0,100],[100,0],[200,0],[300,100],[200,200],[100,200] ]);
-    my $polygons = $expolygon->get_trapezoids(PI/2);
+    my $polygons = $expolygon->get_trapezoids2(PI/2);
     is scalar(@$polygons), 3, 'correct number of trapezoids returned';
     is scalar(grep { $_->area == 100*200/2 } @$polygons), 2, 'trapezoids have expected area';
     is scalar(grep { $_->area == 100*200 } @$polygons), 1, 'trapezoids have expected area';

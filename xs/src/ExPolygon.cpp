@@ -1,3 +1,4 @@
+#include "BoundingBox.hpp"
 #include "ExPolygon.hpp"
 #include "Geometry.hpp"
 #include "Polygon.hpp"
@@ -8,6 +9,7 @@
 #include "perlglue.hpp"
 #endif
 
+#include <algorithm>
 #include <list>
 
 namespace Slic3r {
@@ -178,6 +180,61 @@ ExPolygon::get_trapezoids(Polygons* polygons, double angle) const
     ExPolygon clone = *this;
     clone.rotate(PI/2 - angle, Point(0,0));
     clone.get_trapezoids(polygons);
+    for (Polygons::iterator polygon = polygons->begin(); polygon != polygons->end(); ++polygon)
+        polygon->rotate(-(PI/2 - angle), Point(0,0));
+}
+
+// This algorithm may return more trapezoids than necessary
+// (i.e. it may break a single trapezoid in several because
+// other parts of the object have x coordinates in the middle)
+void
+ExPolygon::get_trapezoids2(Polygons* polygons) const
+{
+    // get all points of this ExPolygon
+    Points pp = *this;
+    
+    // build our bounding box
+    BoundingBox bb(pp);
+    
+    // get all x coordinates
+    std::vector<coord_t> xx;
+    xx.reserve(pp.size());
+    for (Points::const_iterator p = pp.begin(); p != pp.end(); ++p)
+        xx.push_back(p->x);
+    std::sort(xx.begin(), xx.end());
+    
+    // find trapezoids by looping from first to next-to-last coordinate
+    for (std::vector<coord_t>::const_iterator x = xx.begin(); x != xx.end()-1; ++x) {
+        coord_t next_x = *(x + 1);
+        if (*x == next_x) continue;
+        
+        // build rectangle
+        Polygon poly;
+        poly.points.resize(4);
+        poly[0].x = *x;
+        poly[0].y = bb.min.y;
+        poly[1].x = next_x;
+        poly[1].y = bb.min.y;
+        poly[2].x = next_x;
+        poly[2].y = bb.max.y;
+        poly[3].x = *x;
+        poly[3].y = bb.max.y;
+        
+        // intersect with this expolygon
+        Polygons trapezoids;
+        intersection(poly, *this, trapezoids);
+        
+        // append results to return value
+        polygons->insert(polygons->end(), trapezoids.begin(), trapezoids.end());
+    }
+}
+
+void
+ExPolygon::get_trapezoids2(Polygons* polygons, double angle) const
+{
+    ExPolygon clone = *this;
+    clone.rotate(PI/2 - angle, Point(0,0));
+    clone.get_trapezoids2(polygons);
     for (Polygons::iterator polygon = polygons->begin(); polygon != polygons->end(); ++polygon)
         polygon->rotate(-(PI/2 - angle), Point(0,0));
 }

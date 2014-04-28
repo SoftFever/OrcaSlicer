@@ -29,6 +29,8 @@ class ExPolygon
     void medial_axis(double max_width, double min_width, Polylines* polylines) const;
     void get_trapezoids(Polygons* polygons) const;
     void get_trapezoids(Polygons* polygons, double angle) const;
+    void get_trapezoids2(Polygons* polygons) const;
+    void get_trapezoids2(Polygons* polygons, double angle) const;
     void triangulate(Polygons* polygons) const;
     void triangulate2(Polygons* polygons) const;
     
