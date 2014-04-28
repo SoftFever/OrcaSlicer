@@ -244,7 +244,7 @@ ExPolygon::triangulate(Polygons* polygons) const
 {
     // first make trapezoids
     Polygons trapezoids;
-    this->get_trapezoids(&trapezoids);
+    this->get_trapezoids2(&trapezoids);
     
     // then triangulate each trapezoid
     for (Polygons::iterator polygon = trapezoids.begin(); polygon != trapezoids.end(); ++polygon)
