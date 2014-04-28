@@ -3,7 +3,23 @@
 use strict;
 use warnings;
 
+use ExtUtils::CppGuess;
 use Module::Build::WithXSpp;
+
+# _GLIBCXX_USE_C99 : to get the long long type for g++
+# HAS_BOOL         : stops Perl/lib/CORE/handy.h from doing "#  define bool char" for MSVC
+# NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
+my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS);
+if ($ENV{SLIC3R_DEBUG}) {
+    push @cflags, qw(-DSLIC3R_DEBUG -g -ftemplate-backtrace-limit=0);
+}
+if (ExtUtils::CppGuess->new->is_gcc) {
+    # check whether we're dealing with a buggy GCC version
+    # see https://github.com/alexrj/Slic3r/issues/1965
+    if (`cc --version` =~ / 4\.7\.[012]/) {
+        push @cflags, qw(-O1 -fcaller-saves -fcrossjumping -fcse-follow-jumps -fdevirtualize -fexpensive-optimizations -fgcse -findirect-inlining -finline-small-functions -fipa-cp -fipa-sra -foptimize-register-move -foptimize-sibling-calls -foptimize-strlen -fpartial-inlining -fpeephole2 -free -fregmove -freorder-blocks -freorder-functions -frerun-cse-after-loop -fschedule-insns2 -fstrict-aliasing -fstrict-overflow -fthread-jumps -ftree-builtin-call-dce -ftree-pre -ftree-switch-conversion -ftree-tail-merge -ftree-vrp);
+    }
+}
 
 my $build = Module::Build::WithXSpp->new(
     module_name     => 'Slic3r::XS',
@@ -21,10 +37,7 @@ my $build = Module::Build::WithXSpp->new(
         Module::Build               0.38
         Module::Build::WithXSpp     0.13
     )},
-    # _GLIBCXX_USE_C99 : to get the long long type for g++
-    # HAS_BOOL         : stops Perl/lib/CORE/handy.h from doing "#  define bool char" for MSVC
-    # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
-    extra_compiler_flags => [qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS), ($ENV{SLIC3R_DEBUG} ? ' -DSLIC3R_DEBUG -g -ftemplate-backtrace-limit=0' : '')],
+    extra_compiler_flags => \@cflags,
     
     # Provides extra C typemaps that are auto-merged
     extra_typemap_modules => {
