@@ -1660,6 +1660,8 @@ src/ExPolygon.cpp
 src/ExPolygon.hpp
 src/ExPolygonCollection.cpp
 src/ExPolygonCollection.hpp
+src/Extruder.cpp
+src/Extruder.hpp
 src/ExtrusionEntity.cpp
 src/ExtrusionEntity.hpp
 src/ExtrusionEntityCollection.cpp
@@ -1721,6 +1723,7 @@ xsp/Clipper.xsp
 xsp/Config.xsp
 xsp/ExPolygon.xsp
 xsp/ExPolygonCollection.xsp
+xsp/Extruder.xsp
 xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp

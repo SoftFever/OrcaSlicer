@@ -56,6 +56,17 @@ Point::coincides_with(point_sv)
 
 };
 
+%name{Slic3r::Pointf} class Pointf {
+    Pointf(double _x = 0, double _y = 0);
+    ~Pointf();
+    Clone<Pointf> clone()
+        %code{% RETVAL = THIS; %};
+    double x()
+        %code{% RETVAL = THIS->x; %};
+    double y()
+        %code{% RETVAL = THIS->y; %};
+};
+
 %name{Slic3r::Pointf3} class Pointf3 {
     Pointf3(double _x = 0, double _y = 0, double _z = 0);
     ~Pointf3();

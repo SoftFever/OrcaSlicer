@@ -9,6 +9,7 @@ namespace Slic3r {
 
 class ExPolygonCollection;
 class ExtrusionEntityCollection;
+class Extruder;
 
 enum ExtrusionRole {
     erPerimeter,
@@ -57,7 +58,7 @@ class ExtrusionPath : public ExtrusionEntity
     double length() const;
 
     #ifdef SLIC3RXS
-    std::string gcode(SV* extruder, double e, double F,
+    std::string gcode(Extruder* extruder, double e, double F,
         double xofs, double yofs, std::string extrusion_axis,
         std::string gcode_line_suffix) const;
     #endif

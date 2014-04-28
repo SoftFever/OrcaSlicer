@@ -53,7 +53,7 @@ sub set_extruders {
     my ($self, $extruder_ids) = @_;
     
     foreach my $i (@$extruder_ids) {
-        $self->extruders->{$i} = my $e = Slic3r::Extruder->new_from_config($self->print_config, $i);
+        $self->extruders->{$i} = my $e = Slic3r::Extruder->new($i, $self->print_config);
         $self->enable_wipe(1) if $e->wipe;
     }
     
@@ -508,8 +508,8 @@ sub retract {
             $gcode .= $self->G1(@$lift);
         }
     }
-    $self->extruder->retracted($self->extruder->retracted + $length);
-    $self->extruder->restart_extra($restart_extra);
+    $self->extruder->set_retracted($self->extruder->retracted + $length);
+    $self->extruder->set_restart_extra($restart_extra);
     $self->lifted($self->_retract_lift) if $lift;
     
     # reset extrusion distance during retracts
@@ -547,8 +547,8 @@ sub unretract {
             $gcode .= " ; compensate retraction" if $self->print_config->gcode_comments;
             $gcode .= "\n";
         }
-        $self->extruder->retracted(0);
-        $self->extruder->restart_extra(0);
+        $self->extruder->set_retracted(0);
+        $self->extruder->set_restart_extra(0);
     }
     
     return $gcode;
@@ -558,7 +558,7 @@ sub reset_e {
     my ($self) = @_;
     return "" if $self->print_config->gcode_flavor =~ /^(?:mach3|makerware|sailfish)$/;
     
-    $self->extruder->E(0) if $self->extruder;
+    $self->extruder->set_E(0) if $self->extruder;
     return sprintf "G92 %s0%s\n", $self->_extrusion_axis, ($self->print_config->gcode_comments ? ' ; reset extrusion distance' : '')
         if $self->_extrusion_axis && !$self->print_config->use_relative_e_distances;
 }
@@ -587,7 +587,7 @@ sub _G0_G1 {
     
     if ($point) {
         $gcode .= sprintf " X%.3f Y%.3f", 
-            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X], 
+            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X],
             ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
         $self->last_pos($point->clone);
     }

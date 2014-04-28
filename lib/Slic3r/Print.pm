@@ -714,7 +714,7 @@ sub make_skirt {
         if ($self->config->min_skirt_length > 0) {
             $extruded_length[$extruder_idx] ||= 0;
             if (!$extruders_e_per_mm[$extruder_idx]) {
-                my $extruder = Slic3r::Extruder->new_from_config($self->config, $extruder_idx);
+                my $extruder = Slic3r::Extruder->new($extruder_idx, $self->config);
                 $extruders_e_per_mm[$extruder_idx] = $extruder->e_per_mm($mm3_per_mm);
             }
             $extruded_length[$extruder_idx] += unscale $loop->length * $extruders_e_per_mm[$extruder_idx];

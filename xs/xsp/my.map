@@ -25,6 +25,10 @@ Point*                     O_OBJECT_SLIC3R
 Ref<Point>                 O_OBJECT_SLIC3R_T
 Clone<Point>               O_OBJECT_SLIC3R_T
 
+Pointf*                    O_OBJECT_SLIC3R
+Ref<Pointf>                O_OBJECT_SLIC3R_T
+Clone<Pointf>              O_OBJECT_SLIC3R_T
+
 Pointf3*                   O_OBJECT_SLIC3R
 Ref<Pointf3>               O_OBJECT_SLIC3R_T
 Clone<Pointf3>             O_OBJECT_SLIC3R_T
@@ -76,6 +80,8 @@ Ref<Surface>               O_OBJECT_SLIC3R_T
 Clone<Surface>             O_OBJECT_SLIC3R_T
 
 SurfaceCollection*         O_OBJECT_SLIC3R
+
+Extruder*                  O_OBJECT_SLIC3R
 
 ExtrusionRole     T_UV
 FlowRole     T_UV
