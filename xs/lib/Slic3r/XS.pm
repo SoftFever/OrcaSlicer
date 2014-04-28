@@ -33,6 +33,11 @@ use overload
     '@{}' => sub { [ $_[0]->x, $_[0]->y ] },  #,
     'fallback' => 1;
 
+package Slic3r::Pointf::Ref;
+our @ISA = 'Slic3r::Pointf';
+
+sub DESTROY {}
+
 package Slic3r::Pointf3;
 use overload
     '@{}' => sub { [ $_[0]->x, $_[0]->y, $_[0]->z ] },  #,
@@ -225,10 +230,5 @@ package Slic3r::Surface::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
-
-package Slic3r::Config::Print::Ref;
-our @ISA = 'Slic3r::Config::Print';
-
-sub DESTROY {}
 
 1;

@@ -149,6 +149,7 @@ sub thread_cleanup {
     *Slic3r::Geometry::BoundingBoxf3::DESTROY = sub {};
     *Slic3r::Line::DESTROY                  = sub {};
     *Slic3r::Point::DESTROY                 = sub {};
+    *Slic3r::Pointf::DESTROY                = sub {};
     *Slic3r::Pointf3::DESTROY               = sub {};
     *Slic3r::Polygon::DESTROY               = sub {};
     *Slic3r::Polyline::DESTROY              = sub {};

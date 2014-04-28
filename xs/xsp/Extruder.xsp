@@ -7,15 +7,13 @@
 
 %name{Slic3r::Extruder} class Extruder {
     Extruder(int id, PrintConfig *config);
-
     ~Extruder();
     void reset();
     double extrude(double dE);
-
+    
     int id() const
         %code%{ RETVAL = THIS->id; %};
-
-
+    
     double E() const
         %code%{ RETVAL = THIS->E; %};
     double set_E(double val) const
@@ -32,7 +30,7 @@
         %code%{ RETVAL = THIS->restart_extra; %};
     double set_restart_extra(double val) const
         %code%{ RETVAL = THIS->restart_extra = val; %};
-
+    
     Clone<Pointf> extruder_offset() const;
     double nozzle_diameter() const;
     double filament_diameter() const;

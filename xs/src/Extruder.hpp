@@ -14,9 +14,8 @@ class Extruder
     virtual ~Extruder() {}
     void reset();
     double extrude(double dE);
-
-
-    bool use_relative_e_distances() const;
+    
+    
     Pointf extruder_offset() const;
     double nozzle_diameter() const;
     double filament_diameter() const;
@@ -32,21 +31,14 @@ class Extruder
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
     bool wipe() const;
-
+    
     int id;
     double E;
     double absolute_E;
     double retracted;
     double restart_extra;
-
+    
     PrintConfig *config;
-
-
-    private:
-
-    // get value from a ConfigOptionVector subtype, indexed by extruder id
-    template <typename Val, class OptType>
-    Val get_config(const char *name) const;
 };
 
 }

@@ -343,8 +343,8 @@ sub extrude_path {
     my $path_length = unscale $path->length;
     {
         $gcode .= $path->gcode($self->extruder, $e, $F,
-            $self->shift_x - $self->extruder->extruder_offset->[X],
-            $self->shift_y - $self->extruder->extruder_offset->[Y],
+            $self->shift_x - $self->extruder->extruder_offset->x,
+            $self->shift_y - $self->extruder->extruder_offset->y,  #,,
             $self->_extrusion_axis,
             $self->print_config->gcode_comments ? " ; $description" : "");
 
@@ -587,8 +587,8 @@ sub _G0_G1 {
     
     if ($point) {
         $gcode .= sprintf " X%.3f Y%.3f", 
-            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->[X],
-            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->[Y]; #**
+            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->extruder->extruder_offset->x,
+            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->extruder->extruder_offset->y; #**
         $self->last_pos($point->clone);
     }
     if (defined $z && (!defined $self->z || $z != $self->z)) {
