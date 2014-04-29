@@ -244,9 +244,9 @@ sub make_fill {
     }
     
     # add thin fill regions
-    if ($layerm->thin_fills->count > 0) {
-        push @fills, Slic3r::ExtrusionPath::Collection->new(@{$layerm->thin_fills});
-        push @fills_ordering_points, $fills[-1]->first_point;
+    foreach my $thin_fill (@{$layerm->thin_fills}) {
+        push @fills, Slic3r::ExtrusionPath::Collection->new($thin_fill);
+        push @fills_ordering_points, $thin_fill->first_point;
     }
     
     # organize infill paths using a nearest-neighbor search
