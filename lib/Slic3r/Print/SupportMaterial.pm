@@ -806,6 +806,9 @@ sub clip_with_shape {
     my ($self, $support, $shape) = @_;
     
     foreach my $i (keys %$support) {
+        # don't clip bottom layer with shape so that we 
+        # can generate a continuous base flange
+        next if $i == 0;
         $support->{$i} = intersection(
             $support->{$i},
             $shape->[$i],
