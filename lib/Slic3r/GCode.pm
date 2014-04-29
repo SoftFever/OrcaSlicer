@@ -5,7 +5,7 @@ use List::Util qw(min max first);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI X Y B);
-use Slic3r::Geometry::Clipper qw(union_ex);
+use Slic3r::Geometry::Clipper qw(union_ex offset_ex);
 use Slic3r::Surface ':types';
 
 has 'print_config'       => (is => 'ro', default => sub { Slic3r::Config::Print->new });
@@ -19,7 +19,7 @@ has 'layer'              => (is => 'rw');
 has 'region'             => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
-has '_layer_overhangs'   => (is => 'ro', default => sub { Slic3r::ExPolygon::Collection->new });
+has '_lower_layer_slices'   => (is => 'ro', default => sub { Slic3r::ExPolygon::Collection->new });
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -111,11 +111,15 @@ sub change_layer {
     # avoid computing islands and overhangs if they're not needed
     $self->_layer_islands($layer->islands);
     $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
-    $self->_layer_overhangs->clear;
-    if ($layer->id > 0 && ($self->print_config->overhangs || $self->print_config->start_perimeters_at_non_overhang)) {
-        $self->_layer_overhangs->append(
+    $self->_lower_layer_slices->clear;
+    if ($layer->lower_layer && ($self->print_config->overhangs || $self->print_config->start_perimeters_at_non_overhang)) {
+        # We consider overhang any part where the entire nozzle diameter is not supported by the
+        # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
+        # in the current layer
+        my $max_nozzle_diameter = max(map $layer->print->config->get_at('nozzle_diameter', $_->region->config->perimeter_extruder-1), @{$layer->regions});
+        $self->_lower_layer_slices->append(
             # clone ExPolygons because they come from Surface objects but will be used outside here
-            map $_->expolygon, map @{$_->slices->filter_by_type(S_TYPE_BOTTOMBRIDGE)}, @{$layer->regions}
+            @{offset_ex([ map @$_, @{$layer->lower_layer->slices} ], +scale($max_nozzle_diameter/2))},
         );
     }
     if ($self->print_config->avoid_crossing_perimeters) {
@@ -205,7 +209,7 @@ sub extrude_loop {
     }
     my @candidates = ();
     if ($self->print_config->start_perimeters_at_non_overhang) {
-        @candidates = grep !$self->_layer_overhangs->contains_point($_), @concave;
+        @candidates = grep $self->_lower_layer_slices->contains_point($_), @concave;
     }
     if (!@candidates) {
         # if none, look for any concave vertex
@@ -213,7 +217,7 @@ sub extrude_loop {
         if (!@candidates) {
             # if none, look for any non-overhang vertex
             if ($self->print_config->start_perimeters_at_non_overhang) {
-                @candidates = grep !$self->_layer_overhangs->contains_point($_), @$polygon;
+                @candidates = grep $self->_lower_layer_slices->contains_point($_), @$polygon;
             }
             if (!@candidates) {
                 # if none, all points are valid candidates
@@ -243,14 +247,16 @@ sub extrude_loop {
     
     my @paths = ();
     # detect overhanging/bridging perimeters
-    if ($self->layer->print->config->overhangs && $extrusion_path->is_perimeter && $self->_layer_overhangs->count > 0) {
-        # get non-overhang paths by subtracting overhangs from the loop
+    if ($self->layer->print->config->overhangs && $extrusion_path->is_perimeter && $self->_lower_layer_slices->count > 0) {
+        # get non-overhang paths by intersecting this loop with the grown lower slices
         push @paths,
             map $_->clone,
-            @{$extrusion_path->subtract_expolygons($self->_layer_overhangs)};
+            @{$extrusion_path->intersect_expolygons($self->_lower_layer_slices)};
         
-        # get overhang paths by intersecting overhangs with the loop
-        foreach my $path (@{$extrusion_path->intersect_expolygons($self->_layer_overhangs)}) {
+        # get overhang paths by checking what parts of this loop fall 
+        # outside the grown lower slices (thus where the distance between
+        # the loop centerline and original lower slices is >= half nozzle diameter
+        foreach my $path (@{$extrusion_path->subtract_expolygons($self->_lower_layer_slices)}) {
             $path = $path->clone;
             $path->role(EXTR_ROLE_OVERHANG_PERIMETER);
             $path->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object)->mm3_per_mm(-1));

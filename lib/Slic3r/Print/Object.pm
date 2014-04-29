@@ -176,6 +176,7 @@ sub slice {
             );
             if (@{$self->layers} >= 2) {
                 $self->layers->[-2]->upper_layer($self->layers->[-1]);
+                $self->layers->[-1]->lower_layer($self->layers->[-2]);
             }
             $id++;
         

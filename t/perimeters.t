@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 9;
 use strict;
 use warnings;
 
@@ -234,6 +234,35 @@ use Slic3r::Test;
     }
     
     ok !(defined first { $_->area > ($pflow->scaled_width**2) } @$non_covered), 'no gap between perimeters and infill';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 0);
+    $config->set('perimeters', 3);
+    $config->set('layer_height', 0.4);
+    $config->set('bridge_speed', 99);
+    $config->set('fill_density', 0);                # to prevent bridging over sparse infill
+    $config->set('overhangs', 1);
+    $config->set('cooling', 0);                     # to prevent speeds from being altered
+    $config->set('first_layer_speed', '100%');      # to prevent speeds from being altered
+    
+    my $test = sub {
+        my ($print) = @_;
+        my $has_bridges = 0;
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+        
+            if ($info->{extruding} && $info->{dist_XY} > 0) {
+                $has_bridges++ if ($args->{F} // $self->F) == $config->bridge_speed*60;
+            }
+        });
+        return $has_bridges;
+    };
+    ok !$test->(Slic3r::Test::init_print('V', config => $config)),
+        'no overhangs printed with bridge speed';
+    ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])),
+        'overhangs printed with bridge speed';
 }
 
 __END__

@@ -8,6 +8,7 @@ use Slic3r::Geometry::Clipper qw(union_ex);
 has 'id'                => (is => 'rw', required => 1); # sequential number of layer, 0-based
 has 'object'            => (is => 'ro', weak_ref => 1, required => 1, handles => [qw(print config)]);
 has 'upper_layer'       => (is => 'rw', weak_ref => 1);
+has 'lower_layer'       => (is => 'rw', weak_ref => 1);
 has 'regions'           => (is => 'ro', default => sub { [] });
 has 'slicing_errors'    => (is => 'rw');
 
