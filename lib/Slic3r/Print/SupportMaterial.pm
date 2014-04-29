@@ -6,7 +6,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad convex_hull);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
-    intersection_pl offset2_ex);
+    intersection_pl offset2_ex diff_pl);
 use Slic3r::Surface ':types';
 
 has 'print_config'      => (is => 'rw', required => 1);
@@ -160,16 +160,53 @@ sub contact_area {
                 }
                 
                 if ($self->object_config->dont_support_bridges) {
-                    # TODO: also remove the area of bridging perimeters
+                    # compute the area of bridging perimeters
+                    # Note: this is duplicate code from GCode.pm, we need to refactor
+                    
+                    my $bridged_perimeters;  # Polygons
+                    {
+                        my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $layerm->region->config->perimeter_extruder-1);
+                        my $lower_grown_slices = offset([ map @$_, @{$lower_layer->slices} ], +scale($nozzle_diameter/2));
+                        
+                        # TODO: split_at_first_point() could split a bridge mid-way
+                        my @overhang_perimeters = map $_->polygon->split_at_first_point, @{$layerm->perimeters};
+                        
+                        # workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
+                        $_->[0]->translate(1,0) for @overhang_perimeters;
+                        @overhang_perimeters = @{diff_pl(
+                            \@overhang_perimeters,
+                            $lower_grown_slices,
+                        )};
+                        
+                        # only consider straight overhangs
+                        @overhang_perimeters = grep $_->is_straight, @overhang_perimeters;
+                        
+                        # only consider overhangs having endpoints inside layer's slices
+                        foreach my $polyline (@overhang_perimeters) {
+                            $polyline->extend_start($fw);
+                            $polyline->extend_end($fw);
+                        }
+                        @overhang_perimeters = grep {
+                            $layer->slices->contains_point($_->first_point) && $layer->slices->contains_point($_->last_point)
+                        } @overhang_perimeters;
+                        
+                        $bridged_perimeters = union([
+                            map @{$_->grow($fw/2)}, @overhang_perimeters
+                        ]);
+                    }
+                    
                     if (1) {
                         # remove the entire bridges and only support the unsupported edges
                         my @bridges = map $_->expolygon,
                             grep $_->bridge_angle != -1,
                             @{$layerm->fill_surfaces->filter_by_type(S_TYPE_BOTTOMBRIDGE)};
-                    
+                            
                         $diff = diff(
                             $diff,
-                            [ map @$_, @bridges ],
+                            [
+                                (map @$_, @bridges),
+                                @$bridged_perimeters,
+                            ],
                             1,
                         );
                         

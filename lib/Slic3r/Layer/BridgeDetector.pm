@@ -77,12 +77,14 @@ sub detect_angle {
     
     # we also test angles of each open supporting edge
     # (this finds the optimal angle for C-shaped supports)
-    push @angles, map Slic3r::Line->new($_->first_point, $_->last_point)->direction,
+    push @angles,
+        map Slic3r::Line->new($_->first_point, $_->last_point)->direction,
         grep { !$_->first_point->coincides_with($_->last_point) }
         @edges;
     
     # remove duplicates
     my $min_resolution = PI/180; # 1 degree
+    @angles = map { ($_ >= &PI-&epsilon) ? ($_-&PI) : $_ } @angles;
     @angles = sort @angles;
     for (my $i = 1; $i <= $#angles; ++$i) {
         if (abs($angles[$i] - $angles[$i-1]) < $min_resolution) {
@@ -239,6 +241,14 @@ sub unsupported_edges {
         $grown_lower,
     );
     
+    # filter out edges parallel to the bridging angle
+    for (my $i = 0; $i <= $#$unsupported; ++$i) {
+        if (first { abs($_->direction - $angle) < epsilon } @{$unsupported->[$i]->lines}) {
+            splice @$unsupported, $i, 1;
+            --$i;
+        }
+    }
+    
     if (0) {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output(
@@ -247,7 +257,7 @@ sub unsupported_edges {
             green_expolygons    => $self->_anchors,
             red_expolygons      => union_ex($grown_lower),
             no_arrows           => 1,
-            polylines           => [ map $_->split_at_first_point, @{$self->expolygon} ],
+            polylines           => \@bridge_edges,
             red_polylines       => $unsupported,
         );
     }

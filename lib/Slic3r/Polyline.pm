@@ -2,7 +2,7 @@ package Slic3r::Polyline;
 use strict;
 use warnings;
 
-use Slic3r::Geometry qw(A B X Y X1 X2 Y1 Y2);
+use Slic3r::Geometry qw(X Y epsilon);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 
 sub new_scale {
@@ -24,6 +24,23 @@ sub bounding_box {
 sub size {
     my $self = shift;
     return [ Slic3r::Geometry::size_2D($self) ];
+}
+
+sub is_straight {
+    my ($self) = @_;
+    
+    my $last_dir;
+    foreach my $line (@{$self->lines}) {
+        my $dir = $line->direction;
+        if (defined $last_dir) {
+            if (abs($dir - $last_dir) > epsilon) {
+                return 0;
+            }
+        }
+        $last_dir = $dir;
+    }
+    
+    return 1;
 }
 
 1;
