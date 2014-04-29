@@ -43,7 +43,7 @@ sub apply_config {
     foreach my $opt_key (@opt_keys) {
         my $value = $config->$opt_key;
         next unless ref($value) eq 'ARRAY';
-        $m->{"${opt_key}_" . ($_+1)} = $value->[$_] for 0..$#$value;
+        $m->{"${opt_key}_" . $_} = $value->[$_] for 0..$#$value;
         $m->{$opt_key} = $value->[0];
         if ($Slic3r::Config::Options->{$opt_key}{type} eq 'point') {
             $m->{"${opt_key}_X"} = $value->[0];
@@ -73,8 +73,8 @@ sub process {
         my $regex = join '|', keys %{$self->_multiple};
         $string =~ s/\[($regex)\]/$self->_multiple->{$1}/egx;
         
-        # unhandled indices are populated using the first value, except _0 which is ignored for safety
-        $string =~ s/\[($regex)_[1-9]\d*\]/$self->_multiple->{$1}/egx;
+        # unhandled indices are populated using the first value
+        $string =~ s/\[($regex)_\d+\]/$self->_multiple->{$1}/egx;
     }
     
     return $string;

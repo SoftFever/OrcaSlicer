@@ -1,4 +1,4 @@
-use Test::More tests => 14;
+use Test::More tests => 13;
 use strict;
 use warnings;
 
@@ -88,10 +88,9 @@ use Slic3r::Test;
     }
     
     $config->set('start_gcode', qq!
-;__temp0:[infill_extruder][first_layer_temperature_0]__
+;__temp0:[first_layer_temperature_0]__
 ;__temp1:[first_layer_temperature_1]__
 ;__temp2:[first_layer_temperature_2]__
-;__temp3:[first_layer_temperature_3]__
     !);
     {
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -99,10 +98,9 @@ use Slic3r::Test;
         # we use the [infill_extruder] placeholder to make sure this test doesn't
         # catch a false positive caused by the unparsed start G-code option itself
         # being embedded in the G-code
-        ok $gcode =~ /temp0:1\[/, 'temperature placeholder for _0 ignored';
-        ok $gcode =~ /temp1:200/, 'temperature placeholder for first extruder correctly populated';
-        ok $gcode =~ /temp2:205/, 'temperature placeholder for second extruder correctly populated';
-        ok $gcode =~ /temp3:200/, 'tempearture placeholder for unused extruder populated with first value';
+        ok $gcode =~ /temp0:200/, 'temperature placeholder for first extruder correctly populated';
+        ok $gcode =~ /temp1:205/, 'temperature placeholder for second extruder correctly populated';
+        ok $gcode =~ /temp2:200/, 'tempearture placeholder for unused extruder populated with first value';
     }
 }
 
