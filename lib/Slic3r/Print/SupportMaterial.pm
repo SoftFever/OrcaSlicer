@@ -160,6 +160,7 @@ sub contact_area {
                 }
                 
                 if ($self->object_config->dont_support_bridges) {
+                    # TODO: also remove the area of bridging perimeters
                     if (1) {
                         # remove the entire bridges and only support the unsupported edges
                         my @bridges = map $_->expolygon,
@@ -171,11 +172,11 @@ sub contact_area {
                             [ map @$_, @bridges ],
                             1,
                         );
-                    
+                        
                         push @$diff, @{intersection(
                             [ map @{$_->grow(+scale MARGIN)}, @{$layerm->unsupported_bridge_edges} ],
                             [ map @$_, @bridges ],
-                        )}
+                        )};
                     
                     } else {
                         # just remove bridged areas
