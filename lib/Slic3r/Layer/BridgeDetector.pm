@@ -81,11 +81,21 @@ sub detect_angle {
         grep { !$_->first_point->coincides_with($_->last_point) }
         @edges;
     
+    # remove duplicates
+    my $min_resolution = PI/180; # 1 degree
+    @angles = sort @angles;
+    for (my $i = 1; $i <= $#angles; ++$i) {
+        if (abs($angles[$i] - $angles[$i-1]) < $min_resolution) {
+            splice @angles, $i, 1;
+            --$i;
+        }
+    }
+    
     my %directions_coverage     = ();  # angle => score
     my %directions_avg_length   = ();  # angle => score
     my $line_increment = $self->extrusion_width;
     my %unique_angles = map { $_ => 1 } @angles;
-    for my $angle (keys %unique_angles) {
+    for my $angle (@angles) {
         my $my_clip_area    = [ map $_->clone, @$clip_area ];
         my $my_anchors      = [ map $_->clone, @$anchors ];
         
@@ -106,8 +116,6 @@ sub detect_angle {
         my @clipped_lines = map Slic3r::Line->new(@$_), @{ intersection_pl(\@lines, [ map @$_, @$my_clip_area ]) };
         
         # remove any line not having both endpoints within anchors
-        # NOTE: these calls to contains_point() probably need to check whether the point 
-        # is on the anchor boundaries too
         @clipped_lines = grep {
             my $line = $_;
             (first { $_->contains_point($line->a) } @$my_anchors)
