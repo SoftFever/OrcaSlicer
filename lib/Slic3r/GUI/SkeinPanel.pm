@@ -497,7 +497,6 @@ sub config {
                 my $value = $filament_config->get($opt_key);
                 next unless ref $value eq 'ARRAY';
                 $value->[$i] = $config->get($opt_key)->[0];
-#                use XXX; YYY $value if $opt_key eq 'first_layer_temperature';
                 $filament_config->set($opt_key, $value);
             }
         }
