@@ -6,7 +6,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad convex_hull);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
-    intersection_pl);
+    intersection_pl offset2_ex);
 use Slic3r::Surface ':types';
 
 has 'print_config'      => (is => 'rw', required => 1);
@@ -332,13 +332,13 @@ sub generate_interface_layers {
     
     # let's now generate interface layers below contact areas
     my %interface = ();  # layer_id => [ polygons ]
-    my $interface_layers = $self->object_config->support_material_interface_layers;
+    my $interface_layers_num = $self->object_config->support_material_interface_layers;
     for my $layer_id (0 .. $#$support_z) {
         my $z = $support_z->[$layer_id];
         my $this = $contact->{$z} // next;
         
         # count contact layer as interface layer
-        for (my $i = $layer_id-1; $i >= 0 && $i > $layer_id-$interface_layers; $i--) {
+        for (my $i = $layer_id-1; $i >= 0 && $i > $layer_id-$interface_layers_num; $i--) {
             $z = $support_z->[$i];
             my @overlapping_layers = $self->overlapping_layers($i, $support_z);
             my @overlapping_z = map $support_z->[$_], @overlapping_layers;
@@ -403,6 +403,9 @@ sub generate_base_layers {
     return $base;
 }
 
+# This method removes object silhouette from support material
+# (it's used with interface and base only). It removes a bit more,
+# leaving a thin gap between object and support in the XY plane.
 sub clip_with_object {
     my ($self, $support, $support_z, $object) = @_;
     
@@ -414,6 +417,10 @@ sub clip_with_object {
         my @layers = grep { $_->print_z > $zmin && ($_->print_z - $_->height) < $zmax }
             @{$object->layers};
         
+        # $layer->slices contains the full shape of layer, thus including
+        # perimeter's width. $support contains the full shape of support
+        # material, thus including the width of its foremost extrusion.
+        # We leave a gap equal to a full extrusion width.
         $support->{$i} = diff(
             $support->{$i},
             offset([ map @$_, map @{$_->slices}, @layers ], +$self->flow->scaled_width),
@@ -555,6 +562,9 @@ sub generate_toolpaths {
         if (@$interface || @$contact_infill) {
             $fillers{interface}->angle($interface_angle);
             
+            # find centerline of the external loop
+            $interface = offset2($interface, +scaled_epsilon, -(scaled_epsilon + $interface_flow->scaled_width/2));
+            
             # join regions by offsetting them to ensure they're merged
             $interface = offset([ @$interface, @$contact_infill ], scaled_epsilon);
             
@@ -604,8 +614,9 @@ sub generate_toolpaths {
             my $density     = $support_density;
             my $base_flow   = $flow;
             
-            # TODO: use offset2_ex()
-            my $to_infill = union_ex($base, 1);
+            # find centerline of the external loop/extrusions
+            my $to_infill = offset2_ex($base, +scaled_epsilon, -(scaled_epsilon + $flow->scaled_width/2));
+            
             my @paths = ();
             
             # base flange
