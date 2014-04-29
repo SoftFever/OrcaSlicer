@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 14;
 use strict;
 use warnings;
 
@@ -46,7 +46,7 @@ use Slic3r::Test;
 {
     my $parser = Slic3r::GCode::PlaceholderParser->new;
     $parser->apply_config(my $config = Slic3r::Config->new_from_defaults);
-    is $parser->process('[temperature_[foo]]', { foo => '0' }),
+    is $parser->process('[temperature_[foo]]', { foo => '1' }),
         $config->temperature->[0],
         "nested config options";
 }
@@ -65,6 +65,45 @@ use Slic3r::Test;
     my ($t, $h) = map $config->$_, qw(travel_speed layer_height);
     ok $gcode =~ /TRAVEL:$t/, 'print config options are replaced in custom G-code';
     ok $gcode =~ /HEIGHT:$h/, 'region config options are replaced in custom G-code';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('extruder', 2);
+    $config->set('first_layer_temperature', [200,205]);
+    
+    {
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        my $gcode = Slic3r::Test::gcode($print);
+        ok $gcode =~ /M104 S205 T1/, 'temperature set correctly for non-zero yet single extruder';
+        ok $gcode !~ /M104 S\d+ T0/, 'unused extruder correctly ignored';
+    }
+    
+    $config->set('infill_extruder', 1);
+    {
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        my $gcode = Slic3r::Test::gcode($print);
+        ok $gcode =~ /M104 S200 T0/, 'temperature set correctly for first extruder';
+        ok $gcode =~ /M104 S205 T1/, 'temperature set correctly for second extruder';
+    }
+    
+    $config->set('start_gcode', qq!
+;__temp0:[infill_extruder][first_layer_temperature_0]__
+;__temp1:[first_layer_temperature_1]__
+;__temp2:[first_layer_temperature_2]__
+;__temp3:[first_layer_temperature_3]__
+    !);
+    {
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        my $gcode = Slic3r::Test::gcode($print);
+        # we use the [infill_extruder] placeholder to make sure this test doesn't
+        # catch a false positive caused by the unparsed start G-code option itself
+        # being embedded in the G-code
+        ok $gcode =~ /temp0:1\[/, 'temperature placeholder for _0 ignored';
+        ok $gcode =~ /temp1:200/, 'temperature placeholder for first extruder correctly populated';
+        ok $gcode =~ /temp2:205/, 'temperature placeholder for second extruder correctly populated';
+        ok $gcode =~ /temp3:200/, 'tempearture placeholder for unused extruder populated with first value';
+    }
 }
 
 __END__

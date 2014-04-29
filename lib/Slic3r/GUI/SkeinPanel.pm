@@ -484,16 +484,21 @@ sub config {
     } else {
         # TODO: handle dirty presets.
         # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
+        my $i = -1;
         foreach my $preset_idx ($self->{plater}->filament_presets) {
+            $i++;
             my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
             my $config = $self->{options_tabs}{filament}->get_preset_config($preset);
             if (!$filament_config) {
-                $filament_config = $config;
+                $filament_config = $config->clone;
                 next;
             }
             foreach my $opt_key (@{$config->get_keys}) {
-                next unless ref $filament_config->get($opt_key) eq 'ARRAY';
-                push @{ $filament_config->get($opt_key) }, $config->get($opt_key)->[0];
+                my $value = $filament_config->get($opt_key);
+                next unless ref $value eq 'ARRAY';
+                $value->[$i] = $config->get($opt_key)->[0];
+                use XXX; YYY $value if $opt_key eq 'first_layer_temperature';
+                $filament_config->set($opt_key, $value);
             }
         }
     }
