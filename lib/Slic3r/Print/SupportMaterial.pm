@@ -544,6 +544,8 @@ sub generate_toolpaths {
                 polyline    => $_,
                 role        => EXTR_ROLE_SUPPORTMATERIAL,
                 mm3_per_mm  => $mm3_per_mm,
+                width       => $interface_flow->width,
+                height      => $layer->height,
             ), @loops;
             
             $layer->support_interface_fills->append(@loops);
@@ -587,6 +589,8 @@ sub generate_toolpaths {
                     polyline    => Slic3r::Polyline->new(@$_),
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
+                    width       => $params->{flow}->width,
+                    height      => $layer->height,
                 ), @p;
             }
             
@@ -618,6 +622,8 @@ sub generate_toolpaths {
                     polyline    => $_->split_at_first_point,
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
+                    width       => $flow->width,
+                    height      => $layer->height,
                 ), map @$_, @$to_infill;
                 
                 # TODO: use offset2_ex()
@@ -638,6 +644,8 @@ sub generate_toolpaths {
                     polyline    => Slic3r::Polyline->new(@$_),
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
+                    width       => $params->{flow}->width,
+                    height      => $layer->height,
                 ), @p;
             }
             

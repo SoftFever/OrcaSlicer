@@ -264,6 +264,8 @@ sub make_perimeters {
                 polygon         => $polygon,
                 role            => $role,
                 mm3_per_mm      => $mm3_per_mm,
+                width           => $perimeter_flow->width,
+                height          => $self->height,
             ));
             
             # save the children
@@ -278,6 +280,8 @@ sub make_perimeters {
                     polyline        => $polyline,
                     role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                     mm3_per_mm      => $mm3_per_mm,
+                    width           => $perimeter_flow->width,
+                    height          => $self->height,
                 ));
             }
         }
@@ -355,6 +359,8 @@ sub _fill_gaps {
     my %path_args = (
         role        => EXTR_ROLE_GAPFILL,
         mm3_per_mm  => $flow->mm3_per_mm($self->height),
+        width       => $flow->width,
+        height      => $self->height,
     );
     my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
     

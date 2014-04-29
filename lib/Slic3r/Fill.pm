@@ -237,7 +237,9 @@ sub make_fill {
                         : $is_solid
                             ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                             : EXTR_ROLE_FILL),
-                mm3_per_mm => $mm3_per_mm,
+                mm3_per_mm  => $mm3_per_mm,
+                width       => $flow->width,
+                height      => $h,
             ), @polylines,
         );
         push @fills_ordering_points, $polylines[0]->first_point;

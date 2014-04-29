@@ -25,16 +25,20 @@
 %{
 
 ExtrusionLoop*
-_new(CLASS, polygon_sv, role, mm3_per_mm)
+_new(CLASS, polygon_sv, role, mm3_per_mm, width, height)
     char*           CLASS;
     SV*             polygon_sv;
     ExtrusionRole   role;
     double          mm3_per_mm;
+    float           width;
+    float           height;
     CODE:
         RETVAL = new ExtrusionLoop ();
         RETVAL->polygon.from_SV_check(polygon_sv);
         RETVAL->role            = role;
         RETVAL->mm3_per_mm      = mm3_per_mm;
+        RETVAL->width           = width;
+        RETVAL->height          = height;
     OUTPUT:
         RETVAL
 
@@ -65,6 +69,26 @@ ExtrusionLoop::mm3_per_mm(...)
             THIS->mm3_per_mm = (double)SvNV(ST(1));
         }
         RETVAL = THIS->mm3_per_mm;
+    OUTPUT:
+        RETVAL
+
+float
+ExtrusionLoop::width(...)
+    CODE:
+        if (items > 1) {
+            THIS->width = (float)SvNV(ST(1));
+        }
+        RETVAL = THIS->width;
+    OUTPUT:
+        RETVAL
+
+float
+ExtrusionLoop::height(...)
+    CODE:
+        if (items > 1) {
+            THIS->height = (float)SvNV(ST(1));
+        }
+        RETVAL = THIS->height;
     OUTPUT:
         RETVAL
 

@@ -29,10 +29,13 @@ enum ExtrusionRole {
 class ExtrusionEntity
 {
     public:
+    ExtrusionEntity() : mm3_per_mm(-1), width(-1), height(-1) {};
     virtual ExtrusionEntity* clone() const = 0;
     virtual ~ExtrusionEntity() {};
     ExtrusionRole role;
     double mm3_per_mm;  // mm^3 of plastic per mm of linear head motion
+    float width;
+    float height;
     virtual void reverse() = 0;
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;

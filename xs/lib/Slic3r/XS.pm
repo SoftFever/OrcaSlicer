@@ -112,7 +112,9 @@ sub new {
     return $class->_new(
         $args{polygon},      # required
         $args{role},         # required
-        $args{mm3_per_mm}   // -1,
+        $args{mm3_per_mm}   // die("Missing required mm3_per_mm in ExtrusionLoop constructor"),
+        $args{width}        // -1,
+        $args{height}       // -1,
     );
 }
 
@@ -123,6 +125,8 @@ sub clone {
         $args{polygon}       // $self->polygon,
         $args{role}          // $self->role,
         $args{mm3_per_mm}    // $self->mm3_per_mm,
+        $args{width}         // $self->width,
+        $args{height}        // $self->height,
     );
 }
 
@@ -142,7 +146,9 @@ sub new {
     return $class->_new(
         $args{polyline},     # required
         $args{role},         # required
-        $args{mm3_per_mm}   // -1,
+        $args{mm3_per_mm}   // die("Missing required mm3_per_mm in ExtrusionPath constructor"),
+        $args{width}        // -1,
+        $args{height}       // -1,
     );
 }
 
@@ -153,6 +159,8 @@ sub clone {
         $args{polyline}      // $self->polyline,
         $args{role}          // $self->role,
         $args{mm3_per_mm}    // $self->mm3_per_mm,
+        $args{width}         // $self->width,
+        $args{height}        // $self->height,
     );
 }
 

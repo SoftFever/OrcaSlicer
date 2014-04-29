@@ -709,6 +709,8 @@ sub make_skirt {
             polygon         => Slic3r::Polygon->new(@$loop),
             role            => EXTR_ROLE_SKIRT,
             mm3_per_mm      => $mm3_per_mm,
+            width           => $flow->width,
+            height          => $first_layer_height,
         ));
         
         if ($self->config->min_skirt_length > 0) {
@@ -790,6 +792,8 @@ sub make_brim {
         polygon         => Slic3r::Polygon->new(@$_),
         role            => EXTR_ROLE_SKIRT,
         mm3_per_mm      => $mm3_per_mm,
+        width           => $flow->width,
+        height          => $first_layer_height,
     ), reverse @{union_pt_chained(\@loops)});
 }
 

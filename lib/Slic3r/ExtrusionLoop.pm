@@ -9,6 +9,8 @@ sub split_at {
         polyline        => $self->polygon->split_at(@_),
         role            => $self->role,
         mm3_per_mm      => $self->mm3_per_mm,
+        width           => $self->width,
+        height          => $self->height,
     );
 }
 

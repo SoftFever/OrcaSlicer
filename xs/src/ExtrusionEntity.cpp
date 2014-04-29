@@ -172,6 +172,8 @@ ExtrusionLoop::split_at_index(int index) const
     path->polyline      = *poly;
     path->role          = this->role;
     path->mm3_per_mm    = this->mm3_per_mm;
+    path->width         = this->width;
+    path->height        = this->height;
     
     delete poly;
     return path;
