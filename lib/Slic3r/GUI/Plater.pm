@@ -413,7 +413,7 @@ sub load_model_objects {
         }
     
         $self->{print}->auto_assign_extruders($o);
-        $self->{print}->add_model_object($o);
+        $self->{print}->add_model_object($self->{model}, $o);
     }
     
     # if user turned autocentering off, automatic arranging would disappoint them
@@ -542,12 +542,12 @@ sub rotate {
     
     {
         my $new_angle = $model_instance->rotation + $angle;
-        $_->rotation($new_angle) for @{ $model_object->instances };
+        $_->set_rotation($new_angle) for @{ $model_object->instances };
         $model_object->update_bounding_box;
         
         # update print
         $self->{print}->delete_object($obj_idx);
-        $self->{print}->add_model_object($model_object, $obj_idx);
+        $self->{print}->add_model_object($self->{model}, $model_object, $obj_idx);
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
@@ -578,12 +578,13 @@ sub changescale {
             $range->[0] *= $variation;
             $range->[1] *= $variation;
         }
-        $_->scaling_factor($scale) for @{ $model_object->instances };
+        $_->set_scaling_factor($scale) for @{ $model_object->instances };
         $model_object->update_bounding_box;
         
         # update print
         $self->{print}->delete_object($obj_idx);
-        $self->{print}->add_model_object($model_object, $obj_idx);
+        $self->{print}->add_model_object($self->{model},
+            $model_object, $obj_idx);
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
@@ -1108,10 +1109,11 @@ sub mouse_event {
         return if !$self->{drag_start_pos}; # concurrency problems
         my ($obj_idx, $instance_idx) = @{ $self->{drag_object} };
         my $model_object = $parent->{model}->objects->[$obj_idx];
-        $model_object->instances->[$instance_idx]->offset([
-            unscale($pos->[X] - $self->{drag_start_pos}[X]),
-            unscale($pos->[Y] - $self->{drag_start_pos}[Y]),
-        ]);
+        $model_object->instances->[$instance_idx]->set_offset(
+            Slic3r::Pointf->new(
+                unscale($pos->[X] - $self->{drag_start_pos}[X]),
+                unscale($pos->[Y] - $self->{drag_start_pos}[Y]),
+            ));
         $model_object->update_bounding_box;
         $parent->Refresh;
     } elsif ($event->Moving) {

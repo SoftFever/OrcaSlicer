@@ -86,7 +86,7 @@ sub apply_config {
                     $new->apply_dynamic($model_object_config);
                 }
                 if (defined $volume->material_id) {
-                    my $material_config = $object->model_object->model->materials->{$volume->material_id}->config->clone;
+                    my $material_config = $object->model_object->model->get_material($volume->material_id)->config->clone;
                     $material_config->normalize;
                     $new->apply_dynamic($material_config);
                 }
@@ -104,9 +104,9 @@ sub apply_config {
     if ($rearrange_regions) {
         # the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
-        my @model_objects = map $_->model_object, @{$self->objects};
+        my @models_objects = map [$_->model, $_->model_object], @{$self->objects};
         $self->delete_all_objects;
-        $self->add_model_object($_) for @model_objects;
+        $self->add_model_object(@$_) for @models_objects;
     }
 }
 
@@ -121,7 +121,7 @@ sub has_support_material {
 # and have explicit instance positions
 sub add_model_object {
     my $self = shift;
-    my ($object, $obj_idx) = @_;
+    my ($model, $object, $obj_idx) = @_;
     
     my $object_config = $object->config->clone;
     $object_config->normalize;
@@ -138,7 +138,7 @@ sub add_model_object {
         $config->apply_dynamic($object_config);
         
         if (defined $volume->material_id) {
-            my $material_config = $object->model->materials->{ $volume->material_id }->config->clone;
+            my $material_config = $object->model->get_material($volume->material_id)->config->clone;
             $material_config->normalize;
             $config->apply_dynamic($material_config);
         }
@@ -170,6 +170,7 @@ sub add_model_object {
     # initialize print object
     my $o = Slic3r::Print::Object->new(
         print               => $self,
+        model               => $model,  # for strong ref
         model_object        => $object,
         region_volumes      => [ map $volumes{$_}, 0..$#{$self->regions} ],
         copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
@@ -220,9 +221,9 @@ sub reload_object {
     # For now we just re-add all objects since we haven't implemented this incremental logic yet.
     # This should also check whether object volumes (parts) have changed.
     
-    my @model_objects = map $_->model_object, @{$self->objects};
+    my @models_objects = map [$_->model, $_->model_object], @{$self->objects};
     $self->delete_all_objects;
-    $self->add_model_object($_) for @model_objects;
+    $self->add_model_object(@$_) for @models_objects;
 }
 
 sub validate {
@@ -1112,7 +1113,7 @@ sub auto_assign_extruders {
     foreach my $i (0..$#{$model_object->volumes}) {
         my $volume = $model_object->volumes->[$i];
         if (defined $volume->material_id) {
-            my $material = $model_object->model->materials->{ $volume->material_id };
+            my $material = $model_object->model->get_material($volume->material_id);
             my $config = $material->config;
             my $extruder_id = $i + 1;
             $config->set_ifndef('extruder', $extruder_id);

@@ -51,8 +51,8 @@ sub set_model {
     
     # apply scaling and rotation supplied from command line if any
     foreach my $instance (map @{$_->instances}, @{$model->objects}) {
-        $instance->scaling_factor($instance->scaling_factor * $self->scale);
-        $instance->rotation($instance->rotation + $self->rotate);
+        $instance->set_scaling_factor($instance->scaling_factor * $self->scale);
+        $instance->set_rotation($instance->rotation + $self->rotate);
     }
     
     if ($self->duplicate_grid->[X] > 1 || $self->duplicate_grid->[Y] > 1) {
@@ -67,7 +67,7 @@ sub set_model {
     
     foreach my $model_object (@{$model->objects}) {
         $self->_print->auto_assign_extruders($model_object);
-        $self->_print->add_model_object($model_object);
+        $self->_print->add_model_object($model, $model_object);
     }
 }
 

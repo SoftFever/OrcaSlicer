@@ -8,12 +8,17 @@ struct ClassTraits {
     static const char* name;
     static const char* name_ref; 
 };
-    
-#define REGISTER_CLASS(cname,perlname)                                               \
-    class cname;                                                                     \
+
+// use this for typedefs for which the forward prototype
+// in REGISTER_CLASS won't work
+#define __REGISTER_CLASS(cname, perlname)                                            \
     template <>const char* ClassTraits<cname>::name = "Slic3r::" perlname;           \
     template <>const char* ClassTraits<cname>::name_ref = "Slic3r::" perlname "::Ref"; 
-    
+
+#define REGISTER_CLASS(cname,perlname)                                               \
+    class cname;                                                                     \
+    __REGISTER_CLASS(cname, perlname);
+
 template<class T>
 const char* perl_class_name(const T*) { return ClassTraits<T>::name; }
 template<class T>

@@ -13,30 +13,15 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::Line::Ref;
-our @ISA = 'Slic3r::Line';
-
-sub DESTROY {}
-
 package Slic3r::Point;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::Point::Ref;
-our @ISA = 'Slic3r::Point';
-
-sub DESTROY {}
-
 package Slic3r::Pointf;
 use overload
     '@{}' => sub { [ $_[0]->x, $_[0]->y ] },  #,
     'fallback' => 1;
-
-package Slic3r::Pointf::Ref;
-our @ISA = 'Slic3r::Pointf';
-
-sub DESTROY {}
 
 package Slic3r::Pointf3;
 use overload
@@ -48,20 +33,10 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::ExPolygon::Ref;
-our @ISA = 'Slic3r::ExPolygon';
-
-sub DESTROY {}
-
 package Slic3r::Polyline;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
-
-package Slic3r::Polyline::Ref;
-our @ISA = 'Slic3r::Polyline';
-
-sub DESTROY {}
 
 package Slic3r::Polyline::Collection;
 use overload
@@ -72,11 +47,6 @@ package Slic3r::Polygon;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
-
-package Slic3r::Polygon::Ref;
-our @ISA = 'Slic3r::Polygon';
-
-sub DESTROY {}
 
 package Slic3r::ExPolygon::Collection;
 use overload
@@ -95,11 +65,6 @@ sub new {
     $self->append(@paths);
     return $self;
 }
-
-package Slic3r::ExtrusionPath::Collection::Ref;
-our @ISA = 'Slic3r::ExtrusionPath::Collection';
-
-sub DESTROY {}
 
 package Slic3r::ExtrusionLoop;
 use overload
@@ -130,11 +95,6 @@ sub clone {
     );
 }
 
-package Slic3r::ExtrusionLoop::Ref;
-our @ISA = 'Slic3r::ExtrusionLoop';
-
-sub DESTROY {}
-
 package Slic3r::ExtrusionPath;
 use overload
     '@{}' => sub { $_[0]->arrayref },
@@ -163,11 +123,6 @@ sub clone {
         $args{height}        // $self->height,
     );
 }
-
-package Slic3r::ExtrusionPath::Ref;
-our @ISA = 'Slic3r::ExtrusionPath';
-
-sub DESTROY {}
 
 package Slic3r::Flow;
 
@@ -229,14 +184,53 @@ sub clone {
     );
 }
 
-package Slic3r::Surface::Ref;
-our @ISA = 'Slic3r::Surface';
-
-sub DESTROY {}
-
 package Slic3r::Surface::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
+
+package Slic3r::StringMap;
+
+sub to_hash {
+    my $self = shift;
+    my %tiehash;
+    tie %tiehash, 'Slic3r::StringMap', $self;
+    return \%tiehash;
+}
+
+sub TIEHASH {
+    my ($class, $self) = @_;
+    return $self;
+}
+
+package main;
+for my $class (qw(
+        Slic3r::Config
+        Slic3r::Config::Print
+        Slic3r::ExPolygon
+        Slic3r::ExtrusionLoop
+        Slic3r::ExtrusionPath
+        Slic3r::ExtrusionPath::Collection
+        Slic3r::Geometry::BoundingBoxf3
+        Slic3r::Line
+        Slic3r::Model
+        Slic3r::Model::Instance
+        Slic3r::Model::Material
+        Slic3r::Model::Object
+        Slic3r::Model::Volume
+        Slic3r::Point
+        Slic3r::Pointf
+        Slic3r::Pointf3
+        Slic3r::Polygon
+        Slic3r::Polyline
+        Slic3r::StringMap
+        Slic3r::Surface
+        Slic3r::TriangleMesh
+    ))
+{
+    no strict 'refs';
+    my $ref_class = $class . "::Ref";
+    eval "package $ref_class; our \@ISA = '$class'; sub DESTROY {};";
+}
 
 1;

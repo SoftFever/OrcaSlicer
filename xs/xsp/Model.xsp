@@ -1,0 +1,216 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "Model.hpp"
+#include "PrintConfig.hpp"
+#include "StringMap.hpp"
+#include "perlglue.hpp"
+%}
+
+%name{Slic3r::Model} class Model {
+    Model();
+    ~Model();
+
+    Clone<Model> clone()
+        %code%{ RETVAL = THIS; %};
+
+    Ref<ModelObject> _add_object(std::string input_file,
+            DynamicPrintConfig *config,
+            t_layer_height_ranges layer_height_ranges,
+            Point *origin_translation)
+        %code%{
+            RETVAL = THIS->add_object(input_file, config, layer_height_ranges,
+                *origin_translation);
+        %};
+    
+    void delete_object(size_t idx);
+    void delete_all_objects();
+    void delete_all_materials();
+    
+    %name{_set_material} Ref<ModelMaterial> set_material(t_model_material_id material_id,
+            StringMap attributes)
+        %code%{ RETVAL = THIS->set_material(material_id, attributes); %};
+
+    Ref<ModelMaterial> get_material(t_model_material_id material_id)
+        %code%{
+            ModelMaterialMap::iterator i = THIS->materials.find(material_id);
+            if (i == THIS->materials.end()) {
+                XSRETURN_UNDEF;
+            }
+
+            RETVAL = i->second;
+        %};
+
+    bool has_material(t_model_material_id material_id) const
+        %code%{
+            RETVAL = (THIS->materials.find(material_id) != THIS->materials.end());
+        %};
+
+    std::vector<std::string> material_names() const
+        %code%{
+            for (ModelMaterialMap::iterator i = THIS->materials.begin();
+                i != THIS->materials.end(); ++i)
+            {
+                RETVAL.push_back(i->first);
+            }
+        %};
+
+    size_t material_count() const
+        %code%{ RETVAL = THIS->materials.size(); %};
+
+    // void duplicate_objects_grid(coordf_t x, coordf_t y, coordf_t distance);
+    // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
+    // void arrange_objects(coordf_t distance, const BoundingBox &bb);
+    // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
+    bool has_objects_with_no_instances() const;
+    // void bounding_box(BoundingBox* bb) const;
+    // void center_instances_around_point(const Pointf &point);
+    // void align_instances_to_origin();
+    // void translate(coordf_t x, coordf_t y, coordf_t z);
+    // void mesh(TriangleMesh* mesh) const;
+    // void split_meshes();
+    // std::string get_material_name(t_model_material_id material_id);
+
+    ModelObjectPtrs *objects()
+        %code%{
+            if (THIS->objects.empty()) {
+                XSRETURN_UNDEF;
+            }
+
+            RETVAL = &THIS->objects;
+        %};
+};
+
+
+%name{Slic3r::Model::Material} class ModelMaterial {
+    ~ModelMaterial();
+
+    Ref<Model> model()
+        %code%{ RETVAL = THIS->model; %};
+
+    Ref<StringMap> _attributes()
+        %code%{ RETVAL = &THIS->attributes; %};
+
+    Ref<DynamicPrintConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
+};
+
+
+%name{Slic3r::Model::Object} class ModelObject {
+    ModelObject(Model *model, std::string input_file,
+        DynamicPrintConfig *config, t_layer_height_ranges layer_height_ranges,
+        Point *origin_translation)
+        %code%{
+            RETVAL = new ModelObject(model, input_file, config,
+                layer_height_ranges, *origin_translation);
+        %};
+
+    ~ModelObject();
+
+    ModelVolumePtrs *volumes()
+        %code%{
+            if (THIS->volumes.empty()) {
+                XSRETURN_UNDEF;
+            }
+
+            RETVAL = &THIS->volumes;
+        %};
+
+    ModelInstancePtrs *instances()
+        %code%{
+            if (THIS->instances.empty()) {
+                XSRETURN_UNDEF;
+            }
+
+            RETVAL = &THIS->instances;
+        %};
+
+
+    void invalidate_bounding_box();
+
+    Ref<BoundingBoxf3> _bounding_box(BoundingBoxf3 *new_bbox = NULL)
+        %code{%
+            if (NULL != new_bbox) {
+                THIS->_bounding_box = *new_bbox;
+                THIS->_bounding_box_valid = true;
+            }
+
+            if (!THIS->_bounding_box_valid) {
+                XSRETURN_UNDEF;
+            }
+
+            RETVAL = &THIS->_bounding_box;
+        %};
+
+    %name{_add_volume} Ref<ModelVolume> add_volume(
+            t_model_material_id material_id, TriangleMesh *mesh, bool modifier)
+        %code%{ RETVAL = THIS->add_volume(material_id, mesh, modifier); %};
+
+    void delete_volume(size_t idx);
+    void clear_volumes();
+
+    %name{_add_instance} Ref<ModelInstance> add_instance(
+            double rotation, double scaling_factor, std::vector<double> offset)
+        %code%{
+            RETVAL = THIS->add_instance(rotation, scaling_factor,
+                Pointf(offset[0], offset[1]));
+        %};
+    void delete_last_instance();
+    void clear_instances();
+
+    std::string input_file()
+        %code%{ RETVAL = THIS->input_file; %};
+    void set_input_file(std::string value)
+        %code%{ THIS->input_file = value; %};
+    Ref<DynamicPrintConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
+
+    Ref<Model> model()
+        %code%{ RETVAL = THIS->model; %};
+
+    t_layer_height_ranges layer_height_ranges()
+        %code%{ RETVAL = THIS->layer_height_ranges; %};
+
+    Clone<Point> origin_translation()
+        %code%{ RETVAL = THIS->origin_translation; %};
+};
+
+
+%name{Slic3r::Model::Volume} class ModelVolume {
+    ~ModelVolume();
+
+    Ref<ModelObject> object()
+        %code%{ RETVAL = THIS->object; %};
+    
+    t_model_material_id material_id()
+        %code%{ RETVAL = THIS->material_id; %};
+    
+    Ref<TriangleMesh> mesh()
+        %code%{ RETVAL = &THIS->mesh; %};
+    
+    bool modifier()
+        %code%{ RETVAL = THIS->modifier; %};
+};
+
+
+%name{Slic3r::Model::Instance} class ModelInstance {
+    ~ModelInstance();
+
+    Ref<ModelObject> object()
+        %code%{ RETVAL = THIS->object; %};
+
+    double rotation()
+        %code%{ RETVAL = THIS->rotation; %};
+    double scaling_factor()
+        %code%{ RETVAL = THIS->scaling_factor; %};
+    Clone<Pointf> offset()
+        %code%{ RETVAL = THIS->offset; %};
+
+    void set_rotation(double val)
+        %code%{ THIS->rotation = val; %};
+    void set_scaling_factor(double val)
+        %code%{ THIS->scaling_factor = val; %};
+    void set_offset(Pointf *offset)
+        %code%{ THIS->offset = *offset; %};
+};

@@ -1673,6 +1673,7 @@ src/Geometry.hpp
 src/Layer.hpp
 src/Line.cpp
 src/Line.hpp
+src/Model.cpp
 src/Model.hpp
 src/MultiPoint.cpp
 src/MultiPoint.hpp
@@ -1705,6 +1706,8 @@ src/Print.cpp
 src/Print.hpp
 src/PrintConfig.cpp
 src/PrintConfig.hpp
+src/StringMap.cpp
+src/StringMap.hpp
 src/Surface.cpp
 src/Surface.hpp
 src/SurfaceCollection.cpp
@@ -1742,6 +1745,7 @@ xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
 xsp/Geometry.xsp
 xsp/Line.xsp
+xsp/Model.xsp
 xsp/my.map
 xsp/mytype.map
 xsp/Point.xsp
@@ -1749,6 +1753,7 @@ xsp/Polygon.xsp
 xsp/Polyline.xsp
 xsp/PolylineCollection.xsp
 xsp/Print.xsp
+xsp/StringMap.xsp
 xsp/Surface.xsp
 xsp/SurfaceCollection.xsp
 xsp/TriangleMesh.xsp

@@ -151,7 +151,7 @@ sub init_print {
         $model->center_instances_around_point($print->config->print_center);
         foreach my $model_object (@{$model->objects}) {
             $print->auto_assign_extruders($model_object);
-            $print->add_model_object($model_object);
+            $print->add_model_object($model, $model_object);
         }
     }
     $print->validate;

@@ -1,0 +1,59 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "StringMap.hpp"
+#include "perlglue.hpp"
+%}
+
+%name{Slic3r::StringMap} class StringMap {
+    std::string FETCH(std::string key)
+        %code%{
+            StringMap::iterator i = THIS->find(key);
+            if (i == THIS->end()) {
+                XSRETURN_UNDEF;
+            }
+
+            RETVAL = i->second;
+        %};
+
+    void STORE(std::string key, std::string val)
+        %code%{ (*THIS)[key] = val; %};
+
+    void DELETE(std::string key)
+        %code%{ THIS->erase(key); %};
+
+    void CLEAR()
+        %code%{ THIS->clear(); %};
+
+    bool EXISTS(std::string key)
+        %code%{ RETVAL = (THIS->find(key) != THIS->end()); %};
+
+    std::string FIRSTKEY()
+        %code%{
+            StringMap::iterator i = THIS->begin();
+            if (i == THIS->end()) {
+                XSRETURN_UNDEF;
+            } else {
+                RETVAL = i->first;
+            }
+        %};
+
+    std::string NEXTKEY(std::string lastkey)
+        %code%{
+            StringMap::iterator i = THIS->find(lastkey);
+            if (i == THIS->end()) {
+                XSRETURN_UNDEF;
+            }
+
+            ++i;
+            if (i == THIS->end()) {
+                XSRETURN_UNDEF;
+            } else {
+                RETVAL = i->first;
+            }
+        %};
+
+    bool SCALAR()
+        %code%{ RETVAL = !THIS->empty(); %};
+};
