@@ -169,7 +169,9 @@ sub contact_area {
                         my $lower_grown_slices = offset([ map @$_, @{$lower_layer->slices} ], +scale($nozzle_diameter/2));
                         
                         # TODO: split_at_first_point() could split a bridge mid-way
-                        my @overhang_perimeters = map $_->polygon->split_at_first_point, @{$layerm->perimeters};
+                        my @overhang_perimeters =
+                            map { $_->isa('Slic3r::ExtrusionLoop') ? $_->polygon->split_at_first_point : $_->polyline->clone }
+                            @{$layerm->perimeters};
                         
                         # workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
                         $_->[0]->translate(1,0) for @overhang_perimeters;
