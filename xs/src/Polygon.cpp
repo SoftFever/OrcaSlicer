@@ -147,7 +147,7 @@ Polygon::contains_point(const Point &point) const
     Points::const_iterator j = this->points.end() - 1;
     for (; i != this->points.end(); j = i++) {
         if ( ((i->y > point.y) != (j->y > point.y))
-            && (point.x < (j->x - i->x) * (point.y - i->y) / (j->y - i->y) + i->x) )
+            && ((double)point.x < (double)(j->x - i->x) * (double)(point.y - i->y) / (double)(j->y - i->y) + (double)i->x) )
             result = !result;
     }
     return result;
