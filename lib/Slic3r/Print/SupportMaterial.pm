@@ -165,6 +165,8 @@ sub contact_area {
                     
                     my $bridged_perimeters;  # Polygons
                     {
+                        my $bridge_flow = $layerm->flow(FLOW_ROLE_PERIMETER, 1);
+                        
                         my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $layerm->region->config->perimeter_extruder-1);
                         my $lower_grown_slices = offset([ map @$_, @{$lower_layer->slices} ], +scale($nozzle_diameter/2));
                         
@@ -192,9 +194,16 @@ sub contact_area {
                             $layer->slices->contains_point($_->first_point) && $layer->slices->contains_point($_->last_point)
                         } @overhang_perimeters;
                         
-                        $bridged_perimeters = union([
-                            map @{$_->grow($fw/2)}, @overhang_perimeters
-                        ]);
+                        # convert bridging polylines into polygons by inflating them with their thickness
+                        {
+                            # since we're dealing with bridges, we can't assume width is larger than spacing,
+                            # so we take the largest value and also apply safety offset to be ensure no gaps
+                            # are left in between
+                            my $w = max($bridge_flow->scaled_width, $bridge_flow->scaled_spacing);
+                            $bridged_perimeters = union([
+                                map @{$_->grow($w/2 + 10)}, @overhang_perimeters
+                            ]);
+                        }
                     }
                     
                     if (1) {

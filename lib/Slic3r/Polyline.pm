@@ -2,6 +2,7 @@ package Slic3r::Polyline;
 use strict;
 use warnings;
 
+use List::Util qw(first);
 use Slic3r::Geometry qw(X Y epsilon);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 
@@ -29,18 +30,11 @@ sub size {
 sub is_straight {
     my ($self) = @_;
     
-    my $last_dir;
-    foreach my $line (@{$self->lines}) {
-        my $dir = $line->direction;
-        if (defined $last_dir) {
-            if (abs($dir - $last_dir) > epsilon) {
-                return 0;
-            }
-        }
-        $last_dir = $dir;
-    }
-    
-    return 1;
+    # Check that each segment's direction is equal to the line connecting
+    # first point and last point. (Checking each line against the previous
+    # one would have caused the error to accumulate.)
+    my $dir = Slic3r::Line->new($self->first_point, $self->last_point)->direction;
+    return !defined first { abs($_->direction - $dir) > epsilon } @{$self->lines};
 }
 
 1;

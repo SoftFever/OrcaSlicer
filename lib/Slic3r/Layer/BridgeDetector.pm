@@ -243,7 +243,7 @@ sub unsupported_edges {
     
     # filter out edges parallel to the bridging angle
     for (my $i = 0; $i <= $#$unsupported; ++$i) {
-        if (first { abs($_->direction - $angle) < epsilon } @{$unsupported->[$i]->lines}) {
+        if ($unsupported->[$i]->is_straight && abs($unsupported->[$i]->lines->[0]->direction < $angle) < epsilon) {
             splice @$unsupported, $i, 1;
             --$i;
         }
