@@ -51,6 +51,8 @@ sub process_layer {
             ($layer->id > 0 || $Slic3r::Config->brim_width == 0)
                 && ($layer->id >= $Slic3r::Config->skirt_height)
                 && ($layer->id >= $Slic3r::Config->bottom_solid_layers)
+                && !defined(first { @{$_->perimeters} > 1 } @{$layer->regions})
+                && !defined(first { @{$_->fills} > 0 } @{$layer->regions})
         );
     }
     
