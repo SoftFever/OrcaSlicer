@@ -53,6 +53,8 @@ sub process_layer {
             ($layer->id > 0 || $self->print->config->brim_width == 0)
                 && ($layer->id >= $self->print->config->skirt_height && $self->print->config->skirt_height != -1)
                 && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions})
+                && !defined(first { @{$_->perimeters} > 1 } @{$layer->regions})
+                && !defined(first { @{$_->fills} > 0 } @{$layer->regions})
         );
     }
     

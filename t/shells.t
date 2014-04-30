@@ -1,4 +1,4 @@
-use Test::More tests => 10;
+use Test::More tests => 17;
 use strict;
 use warnings;
 
@@ -208,11 +208,16 @@ use Slic3r::Test;
 {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('spiral_vase', 1);
+    $config->set('perimeters', 1);
+    $config->set('fill_density', 0);
+    $config->set('top_solid_layers', 0);
     $config->set('bottom_solid_layers', 0);
+    $config->set('retract_layer_change', [0]);
     $config->set('skirts', 0);
     $config->set('first_layer_height', '100%');
     $config->set('layer_height', 0.4);
     $config->set('start_gcode', '');
+    $config->validate;
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my $z_moves = 0;
@@ -224,6 +229,7 @@ use Slic3r::Test;
     my $sum_of_partial_z_equals_to_layer_height = 0;
     my $all_layer_segments_have_same_slope = 0;
     my $horizontal_extrusions = 0;
+    
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         
@@ -247,11 +253,11 @@ use Slic3r::Test;
                 my $total_dist_XY = sum(map $_->[1], @this_layer);
                 $sum_of_partial_z_equals_to_layer_height = 1
                     if abs(sum(map $_->[0], @this_layer) - $config->layer_height) > epsilon;
-                exit if $sum_of_partial_z_equals_to_layer_height;
+                
                 foreach my $segment (@this_layer) {
                     # check that segment's dist_Z is proportioned to its dist_XY
                     $all_layer_segments_have_same_slope = 1
-                        if abs($segment->[0]*$total_dist_XY/$config->layer_height - $segment->[1]) > epsilon;
+                        if abs($segment->[0]*$total_dist_XY/$config->layer_height - $segment->[1]) > 0.1;
                 }
                 
                 @this_layer = ();
@@ -268,6 +274,33 @@ use Slic3r::Test;
     ok !$sum_of_partial_z_equals_to_layer_height, 'sum of partial Z increments equals to a full layer height';
     ok !$all_layer_segments_have_same_slope, 'all layer segments have the same slope';
     ok !$horizontal_extrusions, 'no horizontal extrusions';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('perimeters', 1);
+    $config->set('fill_density', 0);
+    $config->set('top_solid_layers', 0);
+    $config->set('spiral_vase', 1);
+    $config->set('bottom_solid_layers', 0);
+    $config->set('skirts', 0);
+    $config->set('first_layer_height', '100%');
+    $config->set('start_gcode', '');
+    
+    my $print = Slic3r::Test::init_print('two_hollow_squares', config => $config);
+    my $diagonal_moves = 0;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'G1') {
+            if ($info->{extruding} && $info->{dist_XY} > 0) {
+                if ($info->{dist_Z} > 0) {
+                    $diagonal_moves++;
+                }
+            }
+        }
+    });
+    is $diagonal_moves, 0, 'no spiral moves on two-island object';
 }
 
 __END__
