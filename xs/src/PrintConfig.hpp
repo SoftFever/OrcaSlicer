@@ -386,7 +386,7 @@ class PrintConfigDef
         Options["gcode_flavor"].enum_labels.push_back("Teacup");
         Options["gcode_flavor"].enum_labels.push_back("MakerWare (MakerBot)");
         Options["gcode_flavor"].enum_labels.push_back("Sailfish (MakerBot)");
-        Options["gcode_flavor"].enum_labels.push_back("Mach3/EMC");
+        Options["gcode_flavor"].enum_labels.push_back("Mach3/LinuxCNC");
         Options["gcode_flavor"].enum_labels.push_back("No extrusion");
 
         Options["infill_acceleration"].type = coFloat;
