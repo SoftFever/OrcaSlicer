@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 28;
+plan tests => 29;
 
 BEGIN {
     use FindBin;
@@ -12,6 +12,17 @@ BEGIN {
 use Slic3r;
 use Slic3r::Geometry qw(PI polygon_is_convex
     chained_path_from epsilon scale);
+
+{
+    # this test was failing on Windows (GH #1950)
+    my $polygon = Slic3r::Polygon->new(
+        [207802834,-57084522],[196528149,-37556190],[173626821,-25420928],[171285751,-21366123],
+        [118673592,-21366123],[116332562,-25420928],[93431208,-37556191],[82156517,-57084523],
+        [129714478,-84542120],[160244873,-84542120],
+    );
+    my $point = Slic3r::Point->new(95706562, -57294774);
+    ok $polygon->contains_point($point), 'contains_point';
+}
 
 #==========================================================
 
