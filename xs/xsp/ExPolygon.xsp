@@ -36,8 +36,8 @@
         %code{% THIS->get_trapezoids2(&RETVAL, angle); %};
     Polygons triangulate()
         %code{% THIS->triangulate(&RETVAL); %};
-    Polygons triangulate2()
-        %code{% THIS->triangulate2(&RETVAL); %};
+    Polygons triangulate_pp()
+        %code{% THIS->triangulate_pp(&RETVAL); %};
 %{
 
 ExPolygon*

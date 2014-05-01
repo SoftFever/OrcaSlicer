@@ -442,14 +442,24 @@ static void traverse_pt(ClipperLib::PolyNodes &nodes, Slic3r::Polygons &retval)
     }
 }
 
-void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval)
+void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool preserve_collinear)
 {
     // convert into Clipper polygons
     ClipperLib::Paths* input_subject = new ClipperLib::Paths();
     Slic3rMultiPoints_to_ClipperPaths(subject, *input_subject);
     
     ClipperLib::Paths* output = new ClipperLib::Paths();
-    ClipperLib::SimplifyPolygons(*input_subject, *output, ClipperLib::pftNonZero);
+    
+    if (preserve_collinear) {
+        ClipperLib::Clipper c;
+        c.PreserveCollinear(true);
+        c.StrictlySimple(true);
+        c.AddPaths(*input_subject, ClipperLib::ptSubject, true);
+        c.Execute(ClipperLib::ctUnion, *output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    } else {
+        ClipperLib::SimplifyPolygons(*input_subject, *output, ClipperLib::pftNonZero);
+    }
+    
     delete input_subject;
     
     // convert into Slic3r polygons

@@ -98,7 +98,7 @@ void union_pt(const Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, boo
 void union_pt_chained(const Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset_ = false);
 static void traverse_pt(ClipperLib::PolyNodes &nodes, Slic3r::Polygons &retval);
 
-void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval);
+void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool preserve_collinear = false);
 
 void safety_offset(ClipperLib::Paths* &subject);
 

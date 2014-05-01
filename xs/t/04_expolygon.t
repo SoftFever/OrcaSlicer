@@ -134,7 +134,7 @@ is $expolygon->area, 100*100-20*20, 'area';
 }
 
 {
-    my $triangles = $expolygon->triangulate2;
+    my $triangles = $expolygon->triangulate_pp;
     is scalar(@$triangles), 8, 'expected number of triangles';
     is sum(map $_->area, @$triangles), $expolygon->area, 'sum of triangles area equals original expolygon area';
 }

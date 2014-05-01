@@ -923,7 +923,7 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
         // triangulate section
         Polygons triangles;
         for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
-            expolygon->triangulate2(&triangles);
+            expolygon->triangulate_pp(&triangles);
         
         // convert triangles to facets and append them to mesh
         for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
@@ -951,7 +951,7 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
         // triangulate section
         Polygons triangles;
         for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
-            expolygon->triangulate2(&triangles);
+            expolygon->triangulate_pp(&triangles);
         
         // convert triangles to facets and append them to mesh
         for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {

@@ -239,6 +239,8 @@ ExPolygon::get_trapezoids2(Polygons* polygons, double angle) const
         polygon->rotate(-(PI/2 - angle), Point(0,0));
 }
 
+// While this triangulates successfully, it's NOT a constrained triangulation
+// as it will create more vertices on the boundaries than the ones supplied.
 void
 ExPolygon::triangulate(Polygons* polygons) const
 {
@@ -252,33 +254,44 @@ ExPolygon::triangulate(Polygons* polygons) const
 }
 
 void
-ExPolygon::triangulate2(Polygons* polygons) const
+ExPolygon::triangulate_pp(Polygons* polygons) const
 {
     // convert polygons
     std::list<TPPLPoly> input;
     
-    // contour
-    {
-        TPPLPoly p;
-        p.Init(this->contour.points.size());
-        for (Points::const_iterator point = this->contour.points.begin(); point != this->contour.points.end(); ++point) {
-            p[ point-this->contour.points.begin() ].x = point->x;
-            p[ point-this->contour.points.begin() ].y = point->y;
-        }
-        p.SetHole(false);
-        input.push_back(p);
-    }
+    Polygons pp = *this;
+    simplify_polygons(pp, pp, true);
+    ExPolygons expp;
+    union_(pp, expp);
     
-    // holes
-    for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole) {
-        TPPLPoly p;
-        p.Init(hole->points.size());
-        for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
-            p[ point-hole->points.begin() ].x = point->x;
-            p[ point-hole->points.begin() ].y = point->y;
+    for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+        // contour
+        {
+            TPPLPoly p;
+            p.Init(ex->contour.points.size());
+            //printf("%zu\n0\n", ex->contour.points.size());
+            for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
+                p[ point-ex->contour.points.begin() ].x = point->x;
+                p[ point-ex->contour.points.begin() ].y = point->y;
+                //printf("%ld %ld\n", point->x, point->y);
+            }
+            p.SetHole(false);
+            input.push_back(p);
         }
-        p.SetHole(true);
-        input.push_back(p);
+    
+        // holes
+        for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
+            TPPLPoly p;
+            p.Init(hole->points.size());
+            //printf("%zu\n1\n", hole->points.size());
+            for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
+                p[ point-hole->points.begin() ].x = point->x;
+                p[ point-hole->points.begin() ].y = point->y;
+                //printf("%ld %ld\n", point->x, point->y);
+            }
+            p.SetHole(true);
+            input.push_back(p);
+        }
     }
     
     // perform triangulation
