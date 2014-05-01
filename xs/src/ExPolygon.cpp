@@ -5,6 +5,7 @@
 #include "Line.hpp"
 #include "ClipperUtils.hpp"
 #include "polypartition.h"
+#include "poly2tri/poly2tri.h"
 #ifdef SLIC3RXS
 #include "perlglue.hpp"
 #endif
@@ -309,6 +310,50 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
             p.points[i].y = (*poly)[i].y;
         }
         polygons->push_back(p);
+    }
+}
+
+void
+ExPolygon::triangulate_p2t(Polygons* polygons) const
+{
+    ExPolygons expp;
+    simplify_polygons(*this, expp, true);
+    
+    for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+        p2t::CDT* cdt;
+        
+        // TODO: prevent duplicate points
+        
+        // contour
+        {
+            std::vector<p2t::Point*> points;
+            for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
+                points.push_back(new p2t::Point(point->x, point->y));
+            }
+            cdt = new p2t::CDT(points);
+        }
+    
+        // holes
+        for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
+            std::vector<p2t::Point*> points;
+            for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
+                points.push_back(new p2t::Point(point->x, point->y));
+            }
+            cdt->AddHole(points);
+        }
+        
+        // perform triangulation
+        cdt->Triangulate();
+        std::vector<p2t::Triangle*> triangles = cdt->GetTriangles();
+        
+        for (std::vector<p2t::Triangle*>::const_iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle) {
+            Polygon p;
+            for (int i = 0; i <= 2; ++i) {
+                p2t::Point* point = (*triangle)->GetPoint(i);
+                p.points.push_back(Point(point->x, point->y));
+            }
+            polygons->push_back(p);
+        }
     }
 }
 

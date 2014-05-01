@@ -467,6 +467,31 @@ void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval
     delete output;
 }
 
+void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool preserve_collinear)
+{
+    if (!preserve_collinear) {
+        Polygons polygons;
+        simplify_polygons(subject, polygons, preserve_collinear);
+        union_(polygons, retval);
+        return;
+    }
+    
+    // convert into Clipper polygons
+    ClipperLib::Paths input_subject;
+    Slic3rMultiPoints_to_ClipperPaths(subject, input_subject);
+    
+    ClipperLib::PolyTree polytree;
+    
+    ClipperLib::Clipper c;
+    c.PreserveCollinear(true);
+    c.StrictlySimple(true);
+    c.AddPaths(input_subject, ClipperLib::ptSubject, true);
+    c.Execute(ClipperLib::ctUnion, polytree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    
+    // convert into ExPolygons
+    PolyTreeToExPolygons(polytree, retval);
+}
+
 void safety_offset(ClipperLib::Paths* &subject)
 {
     // scale input
