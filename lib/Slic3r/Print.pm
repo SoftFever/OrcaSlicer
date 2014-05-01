@@ -1074,6 +1074,8 @@ sub expanded_output_filepath {
         # path is a full path to a file so we use it as it is
     }
     
+    # make sure we use an up-to-date timestamp
+    $self->placeholder_parser->update_timestamp;
     return $self->placeholder_parser->process($path, $extra);
 }
 
