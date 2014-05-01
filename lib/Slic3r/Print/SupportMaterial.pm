@@ -146,8 +146,8 @@ sub contact_area {
                     ) if $d > $fw/2;
                 } else {
                     $diff = diff(
-                        offset([ map $_->p, @{$layerm->slices} ], -$fw/2),
-                        [ map @$_, @{$lower_layer->slices} ],
+                        [ map $_->p, @{$layerm->slices} ],
+                        offset([ map @$_, @{$lower_layer->slices} ], +$fw*2),
                     );
                 
                     # collapse very tiny spots

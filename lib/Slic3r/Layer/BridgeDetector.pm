@@ -128,7 +128,11 @@ sub detect_angle {
         
         # sum length of bridged lines
         $directions_coverage{$angle} = sum(@lengths) // 0;
-    
+        
+        ### The following produces more correct results in some cases and more broken in others.
+        ### TODO: investigate, as it looks more reliable than line clipping.
+        ###$directions_coverage{$angle} = sum(map $_->area, @{$self->coverage($angle)}) // 0;
+        
         # max length of bridged lines
         $directions_avg_length{$angle} = @lengths ? (max(@lengths)) : -1;
     }
@@ -241,13 +245,11 @@ sub unsupported_edges {
         $grown_lower,
     );
     
-    # filter out edges parallel to the bridging angle
-    for (my $i = 0; $i <= $#$unsupported; ++$i) {
-        if ($unsupported->[$i]->is_straight && abs($unsupported->[$i]->lines->[0]->direction < $angle) < epsilon) {
-            splice @$unsupported, $i, 1;
-            --$i;
-        }
-    }
+    # split into individual segments and filter out edges parallel to the bridging angle
+    @$unsupported = map $_->as_polyline,
+        grep { abs($_->direction - $angle) < epsilon }
+        map @{$_->lines},
+        @$unsupported;
     
     if (0) {
         require "Slic3r/SVG.pm";
