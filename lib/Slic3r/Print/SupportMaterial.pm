@@ -244,7 +244,7 @@ sub contact_area {
                 # We increment the area in steps because we don't want our support to overflow
                 # on the other side of the object (if it's very thin).
                 {
-                    my @slices_margin = @{offset([ map @$_, @{$lower_layer->slices} ], $fw/2)};
+                    my @slices_margin = @{offset([ map @$_, @{$lower_layer->slices} ], +$fw/2)};
                     for ($fw/2, map {scale MARGIN_STEP} 1..(MARGIN / MARGIN_STEP)) {
                         $diff = diff(
                             offset($diff, $_),
@@ -547,10 +547,14 @@ sub generate_toolpaths {
             push @$base, @$contact;
         } elsif (@$contact && $contact_loops > 0) {
             # generate the outermost loop
+            
+            # find centerline of the external loop (or any other kind of extrusions should the loop be skipped)
+            $contact = offset($contact, -$interface_flow->scaled_width/2);
+            
             my @loops0 = ();
             {
                 # find centerline of the external loop of the contours
-                my @external_loops = @{offset($contact, -$interface_flow->scaled_width/2)};
+                my @external_loops = @$contact;
                 
                 # only consider the loops facing the overhang
                 {
