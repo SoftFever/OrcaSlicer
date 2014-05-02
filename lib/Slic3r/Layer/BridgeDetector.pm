@@ -247,7 +247,7 @@ sub unsupported_edges {
     
     # split into individual segments and filter out edges parallel to the bridging angle
     @$unsupported = map $_->as_polyline,
-        grep $_->parallel_to($angle),
+        grep !$_->parallel_to($angle),
         map @{$_->lines},
         @$unsupported;
     
