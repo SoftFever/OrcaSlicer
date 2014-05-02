@@ -3,6 +3,7 @@
 %{
 #include <myinit.h>
 #include "PrintConfig.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Config} class DynamicPrintConfig {
