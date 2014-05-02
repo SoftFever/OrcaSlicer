@@ -3,6 +3,7 @@
 %{
 #include <myinit.h>
 #include "Print.hpp"
+#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Print::State} class PrintState {
