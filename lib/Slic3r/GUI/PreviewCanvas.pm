@@ -23,6 +23,9 @@ use constant TURNTABLE_MODE => 1;
 use constant SELECTED_COLOR => [0,1,0,1];
 use constant COLORS => [ [1,1,1], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
+# make OpenGL::Array thread-safe
+*OpenGL::Array::CLONE_SKIP = sub { 1 };
+
 sub new {
     my ($class, $parent, $object) = @_;
     my $self = $class->SUPER::new($parent);
