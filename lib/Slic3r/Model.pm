@@ -609,19 +609,25 @@ sub cut {
             $upper_mesh->reset_repair_stats;
             $lower_mesh->reset_repair_stats;
             
-            $upper->add_volume(
-                material_id => $volume->material_id,
-                mesh        => $upper_mesh,
-                modifier    => $volume->modifier,
-            );
+            if ($upper_mesh->facets_count > 0) {
+                $upper->add_volume(
+                    material_id => $volume->material_id,
+                    mesh        => $upper_mesh,
+                    modifier    => $volume->modifier,
+                );
+            }
+            if ($lower_mesh->facets_count > 0) {
             $lower->add_volume(
-                material_id => $volume->material_id,
-                mesh        => $lower_mesh,
-                modifier    => $volume->modifier,
-            );
+                    material_id => $volume->material_id,
+                    mesh        => $lower_mesh,
+                    modifier    => $volume->modifier,
+                );
+            }
         }
     }
     
+    $upper = undef if !@{$upper->volumes};
+    $lower = undef if !@{$lower->volumes};
     return ($upper, $lower);
 }
 
