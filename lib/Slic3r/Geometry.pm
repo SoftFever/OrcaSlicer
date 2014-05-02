@@ -20,7 +20,7 @@ our @EXPORT_OK = qw(
     rad2deg_dir bounding_box_center line_intersects_any douglas_peucker
     polyline_remove_short_segments normal triangle_normal polygon_is_convex
     scaled_epsilon bounding_box_3D size_3D size_2D
-    convex_hull
+    convex_hull directions_parallel directions_parallel_within
 );
 
 

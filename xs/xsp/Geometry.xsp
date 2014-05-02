@@ -11,6 +11,25 @@
 
 %{
 
+bool
+directions_parallel(angle1, angle2)
+    double      angle1
+    double      angle2
+    CODE:
+        RETVAL = Slic3r::Geometry::directions_parallel(angle1, angle2);
+    OUTPUT:
+        RETVAL
+
+bool
+directions_parallel_within(angle1, angle2, max_diff)
+    double      angle1
+    double      angle2
+    double      max_diff
+    CODE:
+        RETVAL = Slic3r::Geometry::directions_parallel(angle1, angle2, max_diff);
+    OUTPUT:
+        RETVAL
+
 Polygon*
 convex_hull(points)
     Points      points

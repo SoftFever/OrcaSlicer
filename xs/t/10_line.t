@@ -54,12 +54,12 @@ foreach my $base_angle (0, PI/4, PI/2, PI) {
     }
     {
         my $line2 = $line->clone;
-        $line2->rotate(+EPSILON/2, [0,0]);
+        $line2->rotate(+(EPSILON)/2, [0,0]);
         ok $line->parallel_to_line($line2), 'line is parallel within epsilon';
     }
     {
         my $line2 = $line->clone;
-        $line2->rotate(-EPSILON/2, [0,0]);
+        $line2->rotate(-(EPSILON)/2, [0,0]);
         ok $line->parallel_to_line($line2), 'line is parallel within epsilon';
     }
 }

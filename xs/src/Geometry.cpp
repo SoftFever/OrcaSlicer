@@ -93,6 +93,14 @@ chained_path_items(Points &points, T &items, T &retval)
 }
 template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
 
+bool
+directions_parallel(double angle1, double angle2, double max_diff)
+{
+    double diff = fabs(angle1 - angle2);
+    max_diff += EPSILON;
+    return diff < max_diff || fabs(diff - PI) < max_diff;
+}
+
 Line
 MedialAxis::edge_to_line(const VD::edge_type &edge) const
 {

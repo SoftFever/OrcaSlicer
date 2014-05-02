@@ -1,3 +1,4 @@
+#include "Geometry.hpp"
 #include "Line.hpp"
 #include "Polyline.hpp"
 #include <algorithm>
@@ -113,8 +114,7 @@ Line::direction() const
 
 bool
 Line::parallel_to(double angle) const {
-    double diff = abs(this->direction() - angle);
-    return (diff < EPSILON) || (abs(diff - PI) < EPSILON);
+    return Slic3r::Geometry::directions_parallel(this->direction(), angle);
 }
 
 bool

@@ -4,7 +4,9 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 2;
+use Test::More tests => 8;
+
+use constant PI => 4 * atan2(1, 1);
 
 {
     my @points = (
@@ -19,4 +21,14 @@ use Test::More tests => 2;
     is scalar(@$hull), 4, 'convex_hull returns the correct number of points';
 }
 
+# directions_parallel() and directions_parallel_within() are tested
+# also with Slic3r::Line::parallel_to() tests in 10_line.t
+{
+    ok Slic3r::Geometry::directions_parallel_within(0, 0, 0), 'directions_parallel_within';
+    ok Slic3r::Geometry::directions_parallel_within(0, PI, 0), 'directions_parallel_within';
+    ok Slic3r::Geometry::directions_parallel_within(0, 0, PI/180), 'directions_parallel_within';
+    ok Slic3r::Geometry::directions_parallel_within(0, PI, PI/180), 'directions_parallel_within';
+    ok !Slic3r::Geometry::directions_parallel_within(PI/2, PI, 0), 'directions_parallel_within';
+    ok !Slic3r::Geometry::directions_parallel_within(PI/2, PI, PI/180), 'directions_parallel_within';
+}
 __END__

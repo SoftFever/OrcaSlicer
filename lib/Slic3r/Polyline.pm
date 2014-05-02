@@ -34,7 +34,7 @@ sub is_straight {
     # first point and last point. (Checking each line against the previous
     # one would have caused the error to accumulate.)
     my $dir = Slic3r::Line->new($self->first_point, $self->last_point)->direction;
-    return !defined first { abs($_->direction - $dir) > epsilon } @{$self->lines};
+    return !defined first { !$_->parallel_to($dir) } @{$self->lines};
 }
 
 1;

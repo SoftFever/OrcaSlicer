@@ -2,7 +2,7 @@ package Slic3r::Layer::BridgeDetector;
 use Moo;
 
 use List::Util qw(first sum max min);
-use Slic3r::Geometry qw(PI unscale scaled_epsilon rad2deg epsilon);
+use Slic3r::Geometry qw(PI unscale scaled_epsilon rad2deg epsilon directions_parallel_within);
 use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex union offset diff_pl union_ex);
 
 has 'expolygon'         => (is => 'ro', required => 1);
@@ -84,10 +84,11 @@ sub detect_angle {
     
     # remove duplicates
     my $min_resolution = PI/180; # 1 degree
-    @angles = map { ($_ >= &PI-&epsilon) ? ($_-&PI) : $_ } @angles;
-    @angles = sort @angles;
-    for (my $i = 1; $i <= $#angles; ++$i) {
-        if (abs($angles[$i] - $angles[$i-1]) < $min_resolution) {
+    # proceed in reverse order so that when we compare first value with last one (-1)
+    # we remove the greatest one (PI) in case they are parallel (PI, 0)
+    @angles = reverse sort @angles;
+    for (my $i = 0; $i <= $#angles; ++$i) {
+        if (directions_parallel_within($angles[$i], $angles[$i-1], $min_resolution)) {
             splice @angles, $i, 1;
             --$i;
         }
@@ -246,8 +247,13 @@ sub unsupported_edges {
     );
     
     # split into individual segments and filter out edges parallel to the bridging angle
+    # TODO: angle tolerance should probably be based on segment length and flow width,
+    # so that we build supports whenever there's a chance that at least one or two bridge
+    # extrusions would be anchored within such length (i.e. a slightly non-parallel bridging
+    # direction might still benefit from anchors if long enough)
+    my $angle_tolerance = PI/180*5;
     @$unsupported = map $_->as_polyline,
-        grep !$_->parallel_to($angle),
+        grep !directions_parallel_within($_->direction, $angle, $angle_tolerance),
         map @{$_->lines},
         @$unsupported;
     
