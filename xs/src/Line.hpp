@@ -28,6 +28,8 @@ class Line
     Point point_at(double distance) const;
     bool coincides_with(const Line &line) const;
     double distance_to(const Point &point) const;
+    bool parallel_to(double angle) const;
+    bool parallel_to(const Line &line) const;
     double atan2_() const;
     double direction() const;
     Vector vector() const;

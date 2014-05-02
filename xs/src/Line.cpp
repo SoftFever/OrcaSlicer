@@ -111,6 +111,17 @@ Line::direction() const
         : atan2;
 }
 
+bool
+Line::parallel_to(double angle) const {
+    double diff = abs(this->direction() - angle);
+    return (diff < EPSILON) || (abs(diff - PI) < EPSILON);
+}
+
+bool
+Line::parallel_to(const Line &line) const {
+    return this->parallel_to(line.direction());
+}
+
 Vector
 Line::vector() const
 {
