@@ -779,14 +779,14 @@ sub export_gcode2 {
             my @warnings = ();
             local $SIG{__WARN__} = sub { push @warnings, $_[0] };
             
-            $print->status_cb(sub { $params{progressbar}->(@_) });
+            $print->set_status_cb(sub { $params{progressbar}->(@_) });
             if ($params{export_svg}) {
                 $print->export_svg(output_file => $output_file);
             } else {
                 $print->process;
                 $print->export_gcode(output_file => $output_file);
             }
-            $print->status_cb(undef);
+            $print->set_status_cb(undef);
             Slic3r::GUI::warning_catcher($self, $Slic3r::have_threads ? sub {
                 Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
             } : undef)->($_) for @warnings;

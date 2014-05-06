@@ -145,6 +145,7 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::DESTROY         = sub {};
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
+    *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf3::DESTROY = sub {};
     *Slic3r::Line::DESTROY                  = sub {};
@@ -156,7 +157,9 @@ sub thread_cleanup {
     *Slic3r::Polygon::DESTROY               = sub {};
     *Slic3r::Polyline::DESTROY              = sub {};
     *Slic3r::Polyline::Collection::DESTROY  = sub {};
+    *Slic3r::Print::DESTROY                 = sub {};
     *Slic3r::Print::State::DESTROY          = sub {};
+    *Slic3r::Print::Region::DESTROY         = sub {};
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};
     *Slic3r::TriangleMesh::DESTROY          = sub {};

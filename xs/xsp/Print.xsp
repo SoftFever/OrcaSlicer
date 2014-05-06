@@ -3,6 +3,7 @@
 %{
 #include <myinit.h>
 #include "Print.hpp"
+#include "PlaceholderParser.hpp"
 %}
 
 %name{Slic3r::Print::State} class PrintState {
@@ -40,3 +41,129 @@ _constant()
 
 %}
 
+
+%name{Slic3r::Print::Region} class PrintRegion {
+    // owned by Print, no constructor/destructor
+
+    Ref<PrintRegionConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
+    Ref<Print> print()
+        %code%{ RETVAL = THIS->print; %};
+    Ref<PrintConfig> print_config()
+        %code%{ RETVAL = &THIS->print_config(); %};
+};
+
+
+%name{Slic3r::Print::Object} class PrintObject {
+    // owned by Print, no constructor/destructor
+
+    void add_region_volume(int region_id, int volume_id);
+    std::vector<int> get_region_volumes(int region_id)
+        %code%{
+            if (0 <= region_id && region_id < THIS->region_volumes.size())
+                RETVAL = THIS->region_volumes[region_id];
+        %};
+    int region_count()
+        %code%{ RETVAL = THIS->print->regions.size(); %};
+
+    Ref<Print> print()
+        %code%{ RETVAL = THIS->print; %};
+    Ref<ModelObject> model_object()
+        %code%{ RETVAL = THIS->model_object; %};
+    Ref<PrintObjectConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
+    Points copies()
+        %code%{ RETVAL = THIS->copies; %};
+    t_layer_height_ranges layer_height_ranges()
+        %code%{ RETVAL = THIS->layer_height_ranges; %};
+    Ref<PrintState> _state()
+        %code%{ RETVAL = &THIS->_state; %};
+    Ref<Point3> size()
+        %code%{ RETVAL = &THIS->size; %};
+    Ref<Point> _copies_shift()
+        %code%{ RETVAL = &THIS->_copies_shift; %};
+
+    Points _shifted_copies()
+        %code%{ RETVAL = THIS->_shifted_copies; %};
+    void set_shifted_copies(Points value)
+        %code%{ THIS->_shifted_copies = value; %};
+
+    void set_copies(Points copies)
+        %code%{ THIS->copies = copies; %};
+    void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
+        %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
+
+    size_t layer_count();
+    void clear_layers();
+    Ref<Layer> get_layer(int idx);
+    Ref<Layer> add_layer(int id, coordf_t height, coordf_t print_z,
+        coordf_t slice_z);
+    void delete_layer(int idx);
+
+    size_t support_layer_count();
+    void clear_support_layers();
+    Ref<SupportLayer> get_support_layer(int idx);
+    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z,
+        coordf_t slice_z);
+    void delete_support_layer(int idx);
+};
+
+
+%name{Slic3r::Print} class Print {
+    %name{_new} Print();
+    ~Print();
+
+    Ref<PrintConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
+    Ref<PrintObjectConfig> default_object_config()
+        %code%{ RETVAL = &THIS->default_object_config; %};
+    Ref<PrintRegionConfig> default_region_config()
+        %code%{ RETVAL = &THIS->default_region_config; %};
+    Ref<PlaceholderParser> placeholder_parser()
+        %code%{ RETVAL = &THIS->placeholder_parser; %};
+    // TODO: status_cb
+    Ref<PrintState> _state()
+        %code%{ RETVAL = &THIS->_state; %};
+    Ref<ExtrusionEntityCollection> skirt()
+        %code%{ RETVAL = &THIS->skirt; %};
+    Ref<ExtrusionEntityCollection> brim()
+        %code%{ RETVAL = &THIS->brim; %};
+
+    double total_used_filament(...)
+        %code%{
+            if (items > 1) {
+                THIS->total_used_filament = (double)SvNV(ST(1));
+            }
+            RETVAL = THIS->total_used_filament;
+        %};
+
+    double total_extruded_volume(...)
+        %code%{
+            if (items > 1) {
+                THIS->total_extruded_volume = (double)SvNV(ST(1));
+            }
+            RETVAL = THIS->total_extruded_volume;
+        %};
+
+    PrintObjectPtrs* objects()
+        %code%{ RETVAL = &THIS->objects; %};
+    void clear_objects();
+    Ref<PrintObject> get_object(int idx);
+    Ref<PrintObject> add_object(ModelObject* model_object,
+        BoundingBoxf3 *modobj_bbox)
+        %code%{ RETVAL = THIS->add_object(model_object, *modobj_bbox); %};
+    Ref<PrintObject> set_new_object(size_t idx, ModelObject* model_object,
+        BoundingBoxf3 *modobj_bbox)
+        %code%{ RETVAL = THIS->set_new_object(idx, model_object, *modobj_bbox); %};
+    void delete_object(int idx);
+    size_t object_count()
+        %code%{ RETVAL = THIS->objects.size(); %};
+
+    PrintRegionPtrs* regions()
+        %code%{ RETVAL = &THIS->regions; %};
+    void clear_regions();
+    Ref<PrintRegion> get_region(int idx);
+    Ref<PrintRegion> add_region();
+    size_t region_count()
+        %code%{ RETVAL = THIS->regions.size(); %};
+};

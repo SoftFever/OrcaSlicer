@@ -18,10 +18,19 @@ Clone<BoundingBoxf3>       O_OBJECT_SLIC3R_T
 
 DynamicPrintConfig*        O_OBJECT_SLIC3R
 Ref<DynamicPrintConfig>    O_OBJECT_SLIC3R_T
+
 PrintObjectConfig*         O_OBJECT_SLIC3R
+Ref<PrintObjectConfig>     O_OBJECT_SLIC3R_T
+
 PrintRegionConfig*         O_OBJECT_SLIC3R
+Ref<PrintRegionConfig>     O_OBJECT_SLIC3R_T
+
 PrintConfig*               O_OBJECT_SLIC3R
+Ref<PrintConfig>           O_OBJECT_SLIC3R_T
+
 FullPrintConfig*           O_OBJECT_SLIC3R
+Ref<FullPrintConfig>       O_OBJECT_SLIC3R_T
+
 ZTable*                    O_OBJECT
 
 TriangleMesh*              O_OBJECT_SLIC3R
@@ -31,6 +40,10 @@ Clone<TriangleMesh>        O_OBJECT_SLIC3R_T
 Point*                     O_OBJECT_SLIC3R
 Ref<Point>                 O_OBJECT_SLIC3R_T
 Clone<Point>               O_OBJECT_SLIC3R_T
+
+Point3*                    O_OBJECT_SLIC3R
+Ref<Point3>                O_OBJECT_SLIC3R_T
+Clone<Point3>              O_OBJECT_SLIC3R_T
 
 Pointf*                    O_OBJECT_SLIC3R
 Ref<Pointf>                O_OBJECT_SLIC3R_T
@@ -81,12 +94,15 @@ Ref<Flow>                  O_OBJECT_SLIC3R_T
 Clone<Flow>                O_OBJECT_SLIC3R_T
 
 PrintState*                O_OBJECT_SLIC3R
+Ref<PrintState>            O_OBJECT_SLIC3R_T
+Clone<PrintState>          O_OBJECT_SLIC3R_T
 
 Surface*                   O_OBJECT_SLIC3R
 Ref<Surface>               O_OBJECT_SLIC3R_T
 Clone<Surface>             O_OBJECT_SLIC3R_T
 
 SurfaceCollection*         O_OBJECT_SLIC3R
+Ref<SurfaceCollection>     O_OBJECT_SLIC3R_T
 
 Extruder*                  O_OBJECT_SLIC3R
 
@@ -110,6 +126,34 @@ ModelInstance*             O_OBJECT_SLIC3R
 Ref<ModelInstance>         O_OBJECT_SLIC3R_T
 Clone<ModelInstance>       O_OBJECT_SLIC3R_T
 
+PrintRegion*               O_OBJECT_SLIC3R
+Ref<PrintRegion>           O_OBJECT_SLIC3R_T
+Clone<PrintRegion>         O_OBJECT_SLIC3R_T
+
+PrintObject*               O_OBJECT_SLIC3R
+Ref<PrintObject>           O_OBJECT_SLIC3R_T
+Clone<PrintObject>         O_OBJECT_SLIC3R_T
+
+Print*                     O_OBJECT_SLIC3R
+Ref<Print>                 O_OBJECT_SLIC3R_T
+Clone<Print>               O_OBJECT_SLIC3R_T
+
+LayerRegion*               O_OBJECT_SLIC3R
+Ref<LayerRegion>           O_OBJECT_SLIC3R_T
+Clone<LayerRegion>         O_OBJECT_SLIC3R_T
+
+Layer*                     O_OBJECT_SLIC3R
+Ref<Layer>                 O_OBJECT_SLIC3R_T
+Clone<Layer>               O_OBJECT_SLIC3R_T
+
+SupportLayer*              O_OBJECT_SLIC3R
+Ref<SupportLayer>          O_OBJECT_SLIC3R_T
+Clone<SupportLayer>        O_OBJECT_SLIC3R_T
+
+PlaceholderParser*         O_OBJECT_SLIC3R
+Ref<PlaceholderParser>     O_OBJECT_SLIC3R_T
+Clone<PlaceholderParser>   O_OBJECT_SLIC3R_T
+
 
 ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV
@@ -132,10 +176,14 @@ Surfaces        T_ARRAYREF
 # we return these types whenever we want the items to be returned
 # by reference and marked ::Ref because they're contained in another
 # Perl object
-Polygons*       T_ARRAYREF_PTR
-ModelObjectPtrs* T_PTR_ARRAYREF_PTR
-ModelVolumePtrs* T_PTR_ARRAYREF_PTR
-ModelInstancePtrs*   T_PTR_ARRAYREF_PTR
+Polygons*           T_ARRAYREF_PTR
+ModelObjectPtrs*    T_PTR_ARRAYREF_PTR
+ModelVolumePtrs*    T_PTR_ARRAYREF_PTR
+ModelInstancePtrs*  T_PTR_ARRAYREF_PTR
+PrintRegionPtrs*    T_PTR_ARRAYREF_PTR
+PrintObjectPtrs*    T_PTR_ARRAYREF_PTR
+LayerPtrs*          T_PTR_ARRAYREF_PTR
+SupportLayerPtrs*   T_PTR_ARRAYREF_PTR
 
 # we return these types whenever we want the items to be returned
 # by reference and not marked ::Ref because they're newly allocated

@@ -18,6 +18,11 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+package Slic3r::Point3;
+use overload
+    '@{}' => sub { [ $_[0]->x, $_[0]->y, $_[0]->z ] },  #,
+    'fallback' => 1;
+
 package Slic3r::Pointf;
 use overload
     '@{}' => sub { [ $_[0]->x, $_[0]->y ] },  #,
@@ -177,11 +182,16 @@ package main;
 for my $class (qw(
         Slic3r::Config
         Slic3r::Config::Print
+        Slic3r::Config::PrintRegion
         Slic3r::ExPolygon
         Slic3r::ExtrusionLoop
         Slic3r::ExtrusionPath
         Slic3r::ExtrusionPath::Collection
         Slic3r::Geometry::BoundingBoxf3
+        Slic3r::GCode::PlaceholderParser
+        Slic3r::Layer
+        Slic3r::Layer::Region
+        Slic3r::Layer::Support
         Slic3r::Line
         Slic3r::Model
         Slic3r::Model::Instance
@@ -189,10 +199,14 @@ for my $class (qw(
         Slic3r::Model::Object
         Slic3r::Model::Volume
         Slic3r::Point
+        Slic3r::Point3
         Slic3r::Pointf
         Slic3r::Pointf3
         Slic3r::Polygon
         Slic3r::Polyline
+        Slic3r::Print
+        Slic3r::Print::Object
+        Slic3r::Print::Region
         Slic3r::Surface
         Slic3r::TriangleMesh
     ))

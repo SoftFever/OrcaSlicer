@@ -1671,6 +1671,7 @@ src/Flow.hpp
 src/GCode.hpp
 src/Geometry.cpp
 src/Geometry.hpp
+src/Layer.cpp
 src/Layer.hpp
 src/Line.cpp
 src/Line.hpp
@@ -1680,6 +1681,8 @@ src/MultiPoint.cpp
 src/MultiPoint.hpp
 src/myinit.h
 src/perlglue.hpp
+src/PlaceholderParser.cpp
+src/PlaceholderParser.hpp
 src/Point.cpp
 src/Point.hpp
 src/poly2tri/common/shapes.cc
@@ -1744,10 +1747,12 @@ xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
 xsp/Geometry.xsp
+xsp/Layer.xsp
 xsp/Line.xsp
 xsp/Model.xsp
 xsp/my.map
 xsp/mytype.map
+xsp/PlaceholderParser.xsp
 xsp/Point.xsp
 xsp/Polygon.xsp
 xsp/Polyline.xsp

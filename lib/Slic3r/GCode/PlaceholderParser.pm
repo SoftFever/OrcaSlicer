@@ -1,60 +1,60 @@
 package Slic3r::GCode::PlaceholderParser;
-use Moo;
 
-has '_single'   => (is => 'ro', default => sub { {} });
-has '_multiple' => (is => 'ro', default => sub { {} });
-
-sub BUILD {
-    my ($self) = @_;
-    
-    my $s = $self->_single;
-    
-    # environment variables
-    $s->{$_} = $ENV{$_} for grep /^SLIC3R_/, keys %ENV;
-    
+sub new {
+    # TODO: move this code to C++ constructor, remove this method
+    my ($class) = @_;
+    my $self = $class->_new;
+    $self->apply_env_variables;
     $self->update_timestamp;
+    return $self;
+}
+
+sub apply_env_variables {
+    my ($self) = @_;
+    $self->_single_set($_, $ENV{$_}) for grep /^SLIC3R_/, keys %ENV;
 }
 
 sub update_timestamp {
     my ($self) = @_;
-    
-    my $s = $self->_single;
+
     my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
-    $s->{timestamp} = sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0];
-    $s->{year}      = $lt[5];
-    $s->{month}     = $lt[4];
-    $s->{day}       = $lt[3];
-    $s->{hour}      = $lt[2];
-    $s->{minute}    = $lt[1];
-    $s->{second}    = $lt[0];
-    $s->{version}   = $Slic3r::VERSION;
+    $self->_single_set('timestamp', sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0]);
+    $self->_single_set('year',      $lt[5]);
+    $self->_single_set('month',     $lt[4]);
+    $self->_single_set('day',       $lt[3]);
+    $self->_single_set('hour',      $lt[2]);
+    $self->_single_set('minute',    $lt[1]);
+    $self->_single_set('second',    $lt[0]);
+    $self->_single_set('version',   $Slic3r::VERSION);
 }
 
 sub apply_config {
     my ($self, $config) = @_;
     
     # options with single value
-    my $s = $self->_single;
     my @opt_keys = grep !$Slic3r::Config::Options->{$_}{multiline}, @{$config->get_keys};
-    $s->{$_} = $config->serialize($_) for @opt_keys;
-    
+    $self->_single_set($_, $config->serialize($_)) for @opt_keys;
+
     # options with multiple values
-    my $m = $self->_multiple;
     foreach my $opt_key (@opt_keys) {
         my $value = $config->$opt_key;
         next unless ref($value) eq 'ARRAY';
-        $m->{"${opt_key}_" . $_} = $value->[$_] for 0..$#$value;
-        $m->{$opt_key} = $value->[0];
+        # TODO: this is a workaroud for XS string param handling
+        # https://rt.cpan.org/Public/Bug/Display.html?id=94110
+        "$_" for @$value;
+        $self->_multiple_set("${opt_key}_" . $_, $value->[$_]) for 0..$#$value;
+        $self->_multiple_set($opt_key, $value->[0]);
         if ($Slic3r::Config::Options->{$opt_key}{type} eq 'point') {
-            $m->{"${opt_key}_X"} = $value->[0];
-            $m->{"${opt_key}_Y"} = $value->[1];
+            $self->_multiple_set("${opt_key}_X", $value->[0]);
+            $self->_multiple_set("${opt_key}_Y", $value->[1]);
         }
     }
 }
 
+# TODO: or this could be an alias
 sub set {
     my ($self, $key, $val) = @_;
-    $self->_single->{$key} = $val;
+    $self->_single_set($key, $val);
 }
 
 sub process {
@@ -66,15 +66,15 @@ sub process {
         $string =~ s/\[($regex)\]/$extra->{$1}/eg;
     }
     {
-        my $regex = join '|', keys %{$self->_single};
-        $string =~ s/\[($regex)\]/$self->_single->{$1}/eg;
+        my $regex = join '|', @{$self->_single_keys};
+        $string =~ s/\[($regex)\]/$self->_single_get("$1")/eg;
     }
     {
-        my $regex = join '|', keys %{$self->_multiple};
-        $string =~ s/\[($regex)\]/$self->_multiple->{$1}/egx;
+        my $regex = join '|', @{$self->_multiple_keys};
+        $string =~ s/\[($regex)\]/$self->_multiple_get("$1")/egx;
         
         # unhandled indices are populated using the first value
-        $string =~ s/\[($regex)_\d+\]/$self->_multiple->{$1}/egx;
+        $string =~ s/\[($regex)_\d+\]/$self->_multiple_get("$1")/egx;
     }
     
     return $string;
