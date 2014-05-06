@@ -57,7 +57,7 @@ Model::delete_object(size_t idx)
 void
 Model::clear_objects()
 {
-    for (size_t i = 0; i < this->objects.size(); ++i)
+    for (size_t i = this->objects.size()-1; i >= 0; --i)
         this->delete_object(i);
 }
 
@@ -222,7 +222,7 @@ ModelObject::delete_volume(size_t idx)
 void
 ModelObject::clear_volumes()
 {
-    for (size_t i = 0; i < this->volumes.size(); ++i)
+    for (size_t i = this->volumes.size()-1; i >= 0; --i)
         this->delete_volume(i);
 }
 
