@@ -105,7 +105,7 @@ sub apply_config {
         # the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
         my @models_objects = map [$_->model, $_->model_object], @{$self->objects};
-        $self->delete_all_objects;
+        $self->clear_objects;
         $self->add_model_object(@$_) for @models_objects;
     }
 }
@@ -202,7 +202,7 @@ sub delete_object {
     $self->_state->invalidate(STEP_BRIM);
 }
 
-sub delete_all_objects {
+sub clear_objects {
     my ($self) = @_;
     
     @{$self->objects} = ();
@@ -222,7 +222,7 @@ sub reload_object {
     # This should also check whether object volumes (parts) have changed.
     
     my @models_objects = map [$_->model, $_->model_object], @{$self->objects};
-    $self->delete_all_objects;
+    $self->clear_objects;
     $self->add_model_object(@$_) for @models_objects;
 }
 

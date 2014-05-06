@@ -36,11 +36,12 @@ class Model
     Model();
     Model(const Model &other);
     ~Model();
-    ModelObject *add_object(std::string input_file, DynamicPrintConfig *config,
-        t_layer_height_ranges layer_height_ranges, Point origin_translation);
+    ModelObject* add_object(const std::string &input_file, const DynamicPrintConfig &config,
+        const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
     void delete_object(size_t idx);
-    void delete_all_objects();
-    void delete_all_materials();
+    void clear_objects();
+    void delete_material(t_model_material_id material_id);
+    void clear_materials();
     ModelMaterial *set_material(t_model_material_id material_id);
     // void duplicate_objects_grid(unsigned int x, unsigned int y, coordf_t distance);
     // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
@@ -80,22 +81,23 @@ class ModelObject
     ModelVolumePtrs volumes;
     DynamicPrintConfig config;
     t_layer_height_ranges layer_height_ranges;
-    Point origin_translation;
+    Pointf origin_translation;
     BoundingBoxf3 _bounding_box;
     bool _bounding_box_valid;
     
-    ModelObject(Model *model, std::string input_file, DynamicPrintConfig *config,
-        t_layer_height_ranges layer_height_ranges, Point origin_translation);
+    ModelObject(Model *model, const std::string &input_file, const DynamicPrintConfig &config,
+        const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
     ModelObject(const ModelObject &other);
     ~ModelObject();
 
-    ModelVolume *add_volume(t_model_material_id material_id,
-        TriangleMesh *mesh, bool modifier);
+    ModelVolume* add_volume(const t_model_material_id &material_id,
+        const TriangleMesh &mesh, bool modifier);
     void delete_volume(size_t idx);
     void clear_volumes();
 
-    ModelInstance *add_instance(double rotation=0, double scaling_factor=1,
-        Pointf offset=Pointf(0, 0));
+    ModelInstance *add_instance(double rotation=0, double scaling_factor = 1,
+        Pointf offset = Pointf(0, 0));
+    void delete_instance(size_t idx);
     void delete_last_instance();
     void clear_instances();
 
@@ -127,9 +129,8 @@ class ModelVolume
     TriangleMesh mesh;
     bool modifier;
 
-    ModelVolume(ModelObject *object, t_model_material_id material_id,
-        TriangleMesh *mesh, bool modifier);
-    ~ModelVolume();
+    ModelVolume(ModelObject *object, const t_model_material_id &material_id,
+        const TriangleMesh &mesh, bool modifier);
 
     #ifdef SLIC3RXS
     SV* to_SV_ref();
@@ -145,7 +146,7 @@ class ModelInstance
     Pointf offset;              // in unscaled coordinates
 
     ModelInstance(ModelObject *object, double rotation, double scaling_factor,
-        Pointf offset);
+        const Pointf &offset);
     ~ModelInstance();
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate) const;

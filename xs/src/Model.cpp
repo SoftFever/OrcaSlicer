@@ -6,13 +6,9 @@
 
 namespace Slic3r {
 
-Model::Model()
-{
-}
+Model::Model() {}
 
 Model::Model(const Model &other)
-:   materials(),
-    objects()
 {
     objects.reserve(other.objects.size());
 
@@ -36,15 +32,15 @@ Model::Model(const Model &other)
 
 Model::~Model()
 {
-    delete_all_objects();
-    delete_all_materials();
+    this->clear_objects();
+    this->clear_materials();
 }
 
-ModelObject *
-Model::add_object(std::string input_file, DynamicPrintConfig *config,
-    t_layer_height_ranges layer_height_ranges, Point origin_translation)
+ModelObject*
+Model::add_object(const std::string &input_file, const DynamicPrintConfig &config,
+    const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation)
 {
-    ModelObject *object = new ModelObject(this, input_file, config,
+    ModelObject* object = new ModelObject(this, input_file, config,
         layer_height_ranges, origin_translation);
     this->objects.push_back(object);
     return object;
@@ -59,27 +55,27 @@ Model::delete_object(size_t idx)
 }
 
 void
-Model::delete_all_objects()
+Model::clear_objects()
 {
-    for (ModelObjectPtrs::iterator i = this->objects.begin();
-        i != this->objects.end(); ++i)
-    {
-        delete *i;
-    }
-
-    objects.clear();
+    for (size_t i = 0; i < this->objects.size(); ++i)
+        this->delete_object(i);
 }
 
 void
-Model::delete_all_materials()
+Model::delete_material(t_model_material_id material_id)
 {
-    for (ModelMaterialMap::iterator i = this->materials.begin();
-        i != this->materials.end(); ++i)
-    {
+    ModelMaterialMap::iterator i = this->materials.find(material_id);
+    if (i != this->materials.end()) {
         delete i->second;
+        this->materials.erase(i);
     }
+}
 
-    this->materials.clear();
+void
+Model::clear_materials()
+{
+    while (!this->materials.empty())
+        this->delete_material( this->materials.begin()->first );
 }
 
 ModelMaterial *
@@ -154,12 +150,12 @@ REGISTER_CLASS(ModelMaterial, "Model::Material");
 #endif
 
 
-ModelObject::ModelObject(Model *model, std::string input_file,
-    DynamicPrintConfig *config, t_layer_height_ranges layer_height_ranges,
-    Point origin_translation)
+ModelObject::ModelObject(Model *model, const std::string &input_file,
+    const DynamicPrintConfig &config, const t_layer_height_ranges &layer_height_ranges,
+    const Pointf &origin_translation)
 :   model(model),
     input_file(input_file),
-    config(*config),
+    config(config),
     layer_height_ranges(layer_height_ranges),
     origin_translation(origin_translation),
     _bounding_box_valid(false)
@@ -205,8 +201,8 @@ ModelObject::~ModelObject()
 }
 
 ModelVolume *
-ModelObject::add_volume(t_model_material_id material_id,
-        TriangleMesh *mesh, bool modifier)
+ModelObject::add_volume(const t_model_material_id &material_id,
+        const TriangleMesh &mesh, bool modifier)
 {
     ModelVolume *v = new ModelVolume(this, material_id, mesh, modifier);
     this->volumes.push_back(v);
@@ -226,13 +222,8 @@ ModelObject::delete_volume(size_t idx)
 void
 ModelObject::clear_volumes()
 {
-    for (ModelVolumePtrs::iterator i = this->volumes.begin();
-        i != this->volumes.end(); ++i)
-    {
-        delete *i;
-    }
-
-    this->volumes.clear();
+    for (size_t i = 0; i < this->volumes.size(); ++i)
+        this->delete_volume(i);
 }
 
 ModelInstance *
@@ -247,23 +238,25 @@ ModelObject::add_instance(double rotation, double scaling_factor,
 }
 
 void
+ModelObject::delete_instance(size_t idx)
+{
+    ModelInstancePtrs::iterator i = this->instances.begin() + idx;
+    delete *i;
+    this->instances.erase(i);
+    this->invalidate_bounding_box();
+}
+
+void
 ModelObject::delete_last_instance()
 {
-    delete this->instances.back();
-    this->instances.pop_back();
-    this->invalidate_bounding_box();
+    this->delete_instance(this->instances.size() - 1);
 }
 
 void
 ModelObject::clear_instances()
 {
-    for (ModelInstancePtrs::iterator i = this->instances.begin();
-        i != this->instances.end(); ++i)
-    {
-        delete *i;
-    }
-
-    this->instances.clear();
+    for (size_t i = 0; i < this->instances.size(); ++i)
+        this->delete_instance(i);
 }
 
 void
@@ -284,16 +277,12 @@ ModelObject::to_SV_ref() {
 #endif
 
 
-ModelVolume::ModelVolume(ModelObject *object, t_model_material_id material_id,
-    TriangleMesh *mesh, bool modifier)
+ModelVolume::ModelVolume(ModelObject* object, const t_model_material_id &material_id,
+    const TriangleMesh &mesh, bool modifier)
 :   object(object),
     material_id(material_id),
-    mesh(*mesh),
+    mesh(mesh),
     modifier(modifier)
-{
-}
-
-ModelVolume::~ModelVolume()
 {
 }
 
@@ -310,7 +299,7 @@ ModelVolume::to_SV_ref() {
 
 
 ModelInstance::ModelInstance(ModelObject *object, double rotation,
-    double scaling_factor, Pointf offset)
+    double scaling_factor, const Pointf &offset)
 :   object(object),
     rotation(rotation),
     scaling_factor(scaling_factor),

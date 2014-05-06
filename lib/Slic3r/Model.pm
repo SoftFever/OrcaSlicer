@@ -58,7 +58,7 @@ sub add_object {
             $args{input_file},
             $args{config} // Slic3r::Config->new,
             $args{layer_height_ranges} // [],
-            $args{origin_translation} // Slic3r::Point->new,
+            $args{origin_translation} // Slic3r::Pointf->new,
             );
     }
     

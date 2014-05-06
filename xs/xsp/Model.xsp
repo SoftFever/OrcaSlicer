@@ -15,17 +15,18 @@
         %code%{ RETVAL = THIS; %};
 
     Ref<ModelObject> _add_object(std::string input_file,
-            DynamicPrintConfig *config,
+            DynamicPrintConfig* config,
             t_layer_height_ranges layer_height_ranges,
-            Point *origin_translation)
+            Pointf* origin_translation)
         %code%{
-            RETVAL = THIS->add_object(input_file, config, layer_height_ranges,
+            RETVAL = THIS->add_object(input_file, *config, layer_height_ranges,
                 *origin_translation);
         %};
     
     void delete_object(size_t idx);
-    void delete_all_objects();
-    void delete_all_materials();
+    void clear_objects();
+    void delete_material(t_model_material_id material_id);
+    void clear_materials();
     
     %name{_set_material} Ref<ModelMaterial> set_material(t_model_material_id material_id)
         %code%{ RETVAL = THIS->set_material(material_id); %};
@@ -114,11 +115,11 @@ ModelMaterial::attributes()
 
 
 %name{Slic3r::Model::Object} class ModelObject {
-    ModelObject(Model *model, std::string input_file,
-        DynamicPrintConfig *config, t_layer_height_ranges layer_height_ranges,
-        Point *origin_translation)
+    ModelObject(Model* model, std::string input_file,
+        DynamicPrintConfig* config, t_layer_height_ranges layer_height_ranges,
+        Pointf* origin_translation)
         %code%{
-            RETVAL = new ModelObject(model, input_file, config,
+            RETVAL = new ModelObject(model, input_file, *config,
                 layer_height_ranges, *origin_translation);
         %};
 
@@ -160,8 +161,8 @@ ModelMaterial::attributes()
         %};
 
     %name{_add_volume} Ref<ModelVolume> add_volume(
-            t_model_material_id material_id, TriangleMesh *mesh, bool modifier)
-        %code%{ RETVAL = THIS->add_volume(material_id, mesh, modifier); %};
+            t_model_material_id material_id, TriangleMesh* mesh, bool modifier)
+        %code%{ RETVAL = THIS->add_volume(material_id, *mesh, modifier); %};
 
     void delete_volume(size_t idx);
     void clear_volumes();
@@ -188,7 +189,7 @@ ModelMaterial::attributes()
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
 
-    Clone<Point> origin_translation()
+    Clone<Pointf> origin_translation()
         %code%{ RETVAL = THIS->origin_translation; %};
 };
 

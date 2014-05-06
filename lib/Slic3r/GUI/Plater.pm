@@ -471,8 +471,8 @@ sub reset {
     my $self = shift;
     
     @{$self->{objects}} = ();
-    $self->{model}->delete_all_objects;
-    $self->{print}->delete_all_objects;
+    $self->{model}->clear_objects;
+    $self->{print}->clear_objects;
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     

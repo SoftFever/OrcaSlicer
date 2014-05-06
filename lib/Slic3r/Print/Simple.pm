@@ -44,7 +44,7 @@ sub set_model {
     my ($self, $model) = @_;
     
     # make method idempotent so that the object is reusable
-    $self->_print->delete_all_objects;
+    $self->_print->clear_objects;
     
     # make sure all objects have at least one defined instance
     my $need_arrange = $model->add_default_instances;
