@@ -104,9 +104,8 @@ sub apply_config {
     if ($rearrange_regions) {
         # the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
-        my @models_objects = map [$_->model, $_->model_object], @{$self->objects};
         $self->clear_objects;
-        $self->add_model_object(@$_) for @models_objects;
+        $self->add_model_object($_->model_object) for @{$self->objects};
     }
 }
 
@@ -121,7 +120,7 @@ sub has_support_material {
 # and have explicit instance positions
 sub add_model_object {
     my $self = shift;
-    my ($model, $object, $obj_idx) = @_;
+    my ($object, $obj_idx) = @_;
     
     my $object_config = $object->config->clone;
     $object_config->normalize;
@@ -170,7 +169,6 @@ sub add_model_object {
     # initialize print object
     my $o = Slic3r::Print::Object->new(
         print               => $self,
-        model               => $model,  # for strong ref
         model_object        => $object,
         region_volumes      => [ map $volumes{$_}, 0..$#{$self->regions} ],
         copies              => [ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ],
@@ -221,9 +219,9 @@ sub reload_object {
     # For now we just re-add all objects since we haven't implemented this incremental logic yet.
     # This should also check whether object volumes (parts) have changed.
     
-    my @models_objects = map [$_->model, $_->model_object], @{$self->objects};
+    my @models_objects = map $_->model_object, @{$self->objects};
     $self->clear_objects;
-    $self->add_model_object(@$_) for @models_objects;
+    $self->add_model_object($_) for @models_objects;
 }
 
 sub validate {

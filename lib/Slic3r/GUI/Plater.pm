@@ -413,7 +413,7 @@ sub load_model_objects {
         }
     
         $self->{print}->auto_assign_extruders($o);
-        $self->{print}->add_model_object($self->{model}, $o);
+        $self->{print}->add_model_object($o);
     }
     
     # if user turned autocentering off, automatic arranging would disappoint them
@@ -547,7 +547,7 @@ sub rotate {
         
         # update print
         $self->{print}->delete_object($obj_idx);
-        $self->{print}->add_model_object($self->{model}, $model_object, $obj_idx);
+        $self->{print}->add_model_object($model_object, $obj_idx);
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
@@ -583,8 +583,7 @@ sub changescale {
         
         # update print
         $self->{print}->delete_object($obj_idx);
-        $self->{print}->add_model_object($self->{model},
-            $model_object, $obj_idx);
+        $self->{print}->add_model_object($model_object, $obj_idx);
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }

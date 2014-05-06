@@ -67,7 +67,7 @@ sub set_model {
     
     foreach my $model_object (@{$model->objects}) {
         $self->_print->auto_assign_extruders($model_object);
-        $self->_print->add_model_object($model, $model_object);
+        $self->_print->add_model_object($model_object);
     }
 }
 
