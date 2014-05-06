@@ -181,14 +181,21 @@ use overload
 package main;
 for my $class (qw(
         Slic3r::Config
+        Slic3r::Config::Full
         Slic3r::Config::Print
+        Slic3r::Config::PrintObject
         Slic3r::Config::PrintRegion
         Slic3r::ExPolygon
+        Slic3r::ExPolygon::Collection
+        Slic3r::Extruder
         Slic3r::ExtrusionLoop
         Slic3r::ExtrusionPath
         Slic3r::ExtrusionPath::Collection
-        Slic3r::Geometry::BoundingBoxf3
+        Slic3r::Flow
         Slic3r::GCode::PlaceholderParser
+        Slic3r::Geometry::BoundingBox
+        Slic3r::Geometry::BoundingBoxf
+        Slic3r::Geometry::BoundingBoxf3
         Slic3r::Layer
         Slic3r::Layer::Region
         Slic3r::Layer::Support
@@ -204,10 +211,13 @@ for my $class (qw(
         Slic3r::Pointf3
         Slic3r::Polygon
         Slic3r::Polyline
+        Slic3r::Polyline::Collection
         Slic3r::Print
         Slic3r::Print::Object
         Slic3r::Print::Region
+        Slic3r::Print::State
         Slic3r::Surface
+        Slic3r::Surface::Collection
         Slic3r::TriangleMesh
     ))
 {
