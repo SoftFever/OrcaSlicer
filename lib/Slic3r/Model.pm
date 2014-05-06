@@ -69,7 +69,11 @@ sub set_material {
     my $self = shift;
     my ($material_id, $attributes) = @_;
     
-    return $self->_set_material($material_id, $attributes || {});
+    $attributes //= {};
+    
+    my $material = $self->_set_material($material_id);
+    $material->set_attribute($_, $attributes->{$_}) for keys %$attributes;
+    return $material;
 }
 
 sub duplicate_objects_grid {
@@ -218,7 +222,8 @@ sub center_instances_around_point {
         foreach my $instance (@{$object->instances}) {
             $instance->set_offset(Slic3r::Pointf->new(
                 $instance->offset->x + $shift[X],
-                $instance->offset->y + $shift[Y]));
+                $instance->offset->y + $shift[Y],  #++
+            ));
         }
         $object->update_bounding_box;
     }
@@ -308,10 +313,6 @@ sub get_material_name {
 }
 
 package Slic3r::Model::Material;
-
-sub attributes {
-    $_[0]->_attributes->to_hash;
-}
 
 package Slic3r::Model::Object;
 

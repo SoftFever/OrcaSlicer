@@ -11,9 +11,6 @@
 %typemap{std::vector<double>*};
 %typemap{std::vector<std::string>};
 %typemap{t_layer_height_ranges};
-%typemap{StringMap};
-%typemap{StringMap*};
-%typemap{Ref<StringMap>}{simple};
 %typemap{SV*};
 %typemap{AV*};
 %typemap{Point*};

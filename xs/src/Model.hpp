@@ -41,8 +41,7 @@ class Model
     void delete_object(size_t idx);
     void delete_all_objects();
     void delete_all_materials();
-    ModelMaterial *set_material(t_model_material_id material_id,
-        const t_model_material_attributes &attributes);
+    ModelMaterial *set_material(t_model_material_id material_id);
     // void duplicate_objects_grid(unsigned int x, unsigned int y, coordf_t distance);
     // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     // void arrange_objects(coordf_t distance, const BoundingBox &bb);

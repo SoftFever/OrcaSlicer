@@ -8,11 +8,6 @@ t_model_material_id T_STD_STRING
 t_layer_height_ranges   T_LAYER_HEIGHT_RANGES
 
 
-StringMap                  T_STRING_MAP
-StringMap*                 O_OBJECT_SLIC3R
-Ref<StringMap>             O_OBJECT_SLIC3R_T
-
-
 BoundingBox*               O_OBJECT_SLIC3R
 Ref<BoundingBox>           O_OBJECT_SLIC3R_T
 Clone<BoundingBox>         O_OBJECT_SLIC3R_T
@@ -176,28 +171,6 @@ T_ARRAYREF
         Perl_croak(aTHX_ \"%s: %s is not an array reference\",
 	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
 	             \"$var\");
-
-# http://www.perlmonks.org/?node_id=853194
-T_STRING_MAP
-    {
-        HV *hv;
-        HE *he;
-        std::map<std::string, std::string> t_sm;
-        if(SvROK($arg) && SvTYPE(SvRV($arg)) == SVt_PVHV) {
-            hv = (HV *)SvRV($arg);
-            hv_iterinit(hv);
-        } else {
-            warn(\"${Package}::$func_name() -- $var is not a hash reference\");
-            XSRETURN_UNDEF;
-        }
-
-        while((he = hv_iternext(hv)) != NULL) {
-            SV *svkey = HeSVKEY_force(he);
-            SV *svval = HeVAL(he);
-            t_sm[SvPV_nolen(svkey)] = SvPV_nolen(svval);
-        }
-        $var = t_sm;
-    }
 
 T_LAYER_HEIGHT_RANGES
     {

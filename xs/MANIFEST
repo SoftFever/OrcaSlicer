@@ -1706,8 +1706,6 @@ src/Print.cpp
 src/Print.hpp
 src/PrintConfig.cpp
 src/PrintConfig.hpp
-src/StringMap.cpp
-src/StringMap.hpp
 src/Surface.cpp
 src/Surface.hpp
 src/SurfaceCollection.cpp
@@ -1753,7 +1751,6 @@ xsp/Polygon.xsp
 xsp/Polyline.xsp
 xsp/PolylineCollection.xsp
 xsp/Print.xsp
-xsp/StringMap.xsp
 xsp/Surface.xsp
 xsp/SurfaceCollection.xsp
 xsp/TriangleMesh.xsp

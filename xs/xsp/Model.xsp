@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "Model.hpp"
 #include "PrintConfig.hpp"
-#include "StringMap.hpp"
 #include "perlglue.hpp"
 %}
 
@@ -28,9 +27,8 @@
     void delete_all_objects();
     void delete_all_materials();
     
-    %name{_set_material} Ref<ModelMaterial> set_material(t_model_material_id material_id,
-            StringMap attributes)
-        %code%{ RETVAL = THIS->set_material(material_id, attributes); %};
+    %name{_set_material} Ref<ModelMaterial> set_material(t_model_material_id material_id)
+        %code%{ RETVAL = THIS->set_material(material_id); %};
 
     Ref<ModelMaterial> get_material(t_model_material_id material_id)
         %code%{
@@ -89,11 +87,29 @@
     Ref<Model> model()
         %code%{ RETVAL = THIS->model; %};
 
-    Ref<StringMap> _attributes()
-        %code%{ RETVAL = &THIS->attributes; %};
-
     Ref<DynamicPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
+    
+    std::string get_attribute(std::string name)
+        %code%{ if (THIS->attributes.find(name) != THIS->attributes.end()) RETVAL = THIS->attributes[name]; %};
+    
+    void set_attribute(std::string name, std::string value)
+        %code%{ THIS->attributes[name] = value; %};
+
+%{
+
+SV*
+ModelMaterial::attributes()
+    CODE:
+        HV* hv = newHV();
+        for (t_model_material_attributes::const_iterator attr = THIS->attributes.begin(); attr != THIS->attributes.end(); ++attr) {
+            (void)hv_store( hv, attr->first.c_str(), attr->first.length(), newSVpv(attr->second.c_str(), attr->second.length()), 0 );
+        }
+        RETVAL = (SV*)newRV_noinc((SV*)hv);
+    OUTPUT:
+        RETVAL
+%}
+
 };
 
 

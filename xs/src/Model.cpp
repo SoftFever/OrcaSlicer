@@ -83,19 +83,17 @@ Model::delete_all_materials()
 }
 
 ModelMaterial *
-Model::set_material(t_model_material_id material_id,
-    const t_model_material_attributes &attributes)
+Model::set_material(t_model_material_id material_id)
 {
     ModelMaterialMap::iterator i = this->materials.find(material_id);
-
+    
     ModelMaterial *mat;
     if (i == this->materials.end()) {
         mat = this->materials[material_id] = new ModelMaterial(this);
     } else {
         mat = i->second;
     }
-
-    mat->apply(attributes);
+    
     return mat;
 }
 
@@ -142,12 +140,7 @@ REGISTER_CLASS(Model, "Model");
 #endif
 
 
-ModelMaterial::ModelMaterial(Model *model)
-:   model(model),
-    attributes(),
-    config()
-{
-}
+ModelMaterial::ModelMaterial(Model *model) : model(model) {}
 
 void
 ModelMaterial::apply(const t_model_material_attributes &attributes)

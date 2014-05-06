@@ -189,20 +189,6 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::StringMap;
-
-sub to_hash {
-    my $self = shift;
-    my %tiehash;
-    tie %tiehash, 'Slic3r::StringMap', $self;
-    return \%tiehash;
-}
-
-sub TIEHASH {
-    my ($class, $self) = @_;
-    return $self;
-}
-
 package main;
 for my $class (qw(
         Slic3r::Config
@@ -223,7 +209,6 @@ for my $class (qw(
         Slic3r::Pointf3
         Slic3r::Polygon
         Slic3r::Polyline
-        Slic3r::StringMap
         Slic3r::Surface
         Slic3r::TriangleMesh
     ))
