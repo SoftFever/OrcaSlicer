@@ -51,43 +51,41 @@ Polygon::lines(Lines* lines) const
     lines->push_back(Line(this->points.back(), this->points.front()));
 }
 
-Polyline*
-Polygon::split_at(const Point &point) const
+void
+Polygon::split_at(const Point &point, Polyline* polyline) const
 {
     // find index of point
     for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-        if (it->coincides_with(point))
-            return this->split_at_index(it - this->points.begin());
+        if (it->coincides_with(point)) {
+            this->split_at_index(it - this->points.begin(), polyline);
+            return;
+        }
     }
     CONFESS("Point not found");
-    return NULL;
 }
 
-Polyline*
-Polygon::split_at_index(int index) const
+void
+Polygon::split_at_index(int index, Polyline* polyline) const
 {
-    Polyline* poly = new Polyline;
-    poly->points.reserve(this->points.size() + 1);
+    polyline->points.reserve(this->points.size() + 1);
     for (Points::const_iterator it = this->points.begin() + index; it != this->points.end(); ++it)
-        poly->points.push_back(*it);
+        polyline->points.push_back(*it);
     for (Points::const_iterator it = this->points.begin(); it != this->points.begin() + index + 1; ++it)
-        poly->points.push_back(*it);
-    return poly;
+        polyline->points.push_back(*it);
 }
 
-Polyline*
-Polygon::split_at_first_point() const
+void
+Polygon::split_at_first_point(Polyline* polyline) const
 {
-    return this->split_at_index(0);
+    this->split_at_index(0, polyline);
 }
 
-Points
-Polygon::equally_spaced_points(double distance) const
+void
+Polygon::equally_spaced_points(double distance, Points* points) const
 {
-    Polyline* polyline = this->split_at_first_point();
-    Points pts = polyline->equally_spaced_points(distance);
-    delete polyline;
-    return pts;
+    Polyline polyline;
+    this->split_at_first_point(&polyline);
+    polyline.equally_spaced_points(distance, points);
 }
 
 double

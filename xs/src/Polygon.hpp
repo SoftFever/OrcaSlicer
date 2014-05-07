@@ -20,10 +20,10 @@ class Polygon : public MultiPoint {
     Point last_point() const;
     Lines lines() const;
     void lines(Lines* lines) const;
-    Polyline* split_at(const Point &point) const;
-    Polyline* split_at_index(int index) const;
-    Polyline* split_at_first_point() const;
-    Points equally_spaced_points(double distance) const;
+    void split_at(const Point &point, Polyline* polyline) const;
+    void split_at_index(int index, Polyline* polyline) const;
+    void split_at_first_point(Polyline* polyline) const;
+    void equally_spaced_points(double distance, Points* points) const;
     double area() const;
     bool is_counter_clockwise() const;
     bool is_clockwise() const;

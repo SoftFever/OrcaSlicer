@@ -89,11 +89,10 @@ Polyline::extend_start(double distance)
 
 /* this method returns a collection of points picked on the polygon contour
    so that they are evenly spaced according to the input distance */
-Points
-Polyline::equally_spaced_points(double distance) const
+void
+Polyline::equally_spaced_points(double distance, Points* points) const
 {
-    Points pts;
-    pts.push_back(this->first_point());
+    points->push_back(this->first_point());
     double len = 0;
     
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
@@ -102,19 +101,17 @@ Polyline::equally_spaced_points(double distance) const
         if (len < distance) continue;
         
         if (len == distance) {
-            pts.push_back(*it);
+            points->push_back(*it);
             len = 0;
             continue;
         }
         
         double take = segment_length - (len - distance);  // how much we take of this segment
         Line segment(*(it-1), *it);
-        pts.push_back(segment.point_at(take));
+        points->push_back(segment.point_at(take));
         it--;
         len = -take;
     }
-    
-    return pts;
 }
 
 void

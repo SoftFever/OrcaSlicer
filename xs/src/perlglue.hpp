@@ -33,7 +33,7 @@ template <class T>
 class Clone {
     T* val;
 public:
-    Clone() {}
+    Clone() : val() {}
     Clone(T* t) : val(new T(*t)) {}
     Clone(const T& t) : val(new T(t)) {}
     operator T*() const {return val; }

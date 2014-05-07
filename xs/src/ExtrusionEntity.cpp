@@ -157,56 +157,85 @@ ExtrusionPath::gcode(Extruder* extruder, double e, double F,
 }
 #endif
 
+ExtrusionLoop::ExtrusionLoop(const Polygon &polygon, ExtrusionRole role)
+{
+    this->role = role;
+    this->set_polygon(polygon);
+}
+
 ExtrusionLoop*
 ExtrusionLoop::clone() const
 {
     return new ExtrusionLoop (*this);
 }
 
-ExtrusionPath*
-ExtrusionLoop::split_at_index(int index) const
+void
+ExtrusionLoop::split_at_index(int index, ExtrusionPath* path) const
 {
-    Polyline* poly = this->polygon.split_at_index(index);
+    Polygon polygon;
+    this->polygon(&polygon);
     
-    ExtrusionPath* path = new ExtrusionPath();
-    path->polyline      = *poly;
+    polygon.split_at_index(index, &path->polyline);
+    
     path->role          = this->role;
     path->mm3_per_mm    = this->mm3_per_mm;
     path->width         = this->width;
     path->height        = this->height;
-    
-    delete poly;
-    return path;
 }
 
-ExtrusionPath*
-ExtrusionLoop::split_at_first_point() const
+void
+ExtrusionLoop::split_at_first_point(ExtrusionPath* path) const
 {
-    return this->split_at_index(0);
+    return this->split_at_index(0, path);
 }
 
 bool
 ExtrusionLoop::make_counter_clockwise()
 {
-    return this->polygon.make_counter_clockwise();
+    Polygon polygon;
+    this->polygon(&polygon);
+    
+    bool was_cw = polygon.is_clockwise();
+    if (was_cw) this->reverse();
+    return was_cw;
 }
 
 void
 ExtrusionLoop::reverse()
 {
-    // no-op
+    for (Polylines::iterator polyline = this->polylines.begin(); polyline != this->polylines.end(); ++polyline)
+        polyline->reverse();
+    std::reverse(this->polylines.begin(), this->polylines.end());
 }
 
 Point
 ExtrusionLoop::first_point() const
 {
-    return this->polygon.points.front();
+    return this->polylines.front().points.front();
 }
 
 Point
 ExtrusionLoop::last_point() const
 {
-    return this->polygon.points.front();  // in polygons, first == last
+    return this->polylines.back().points.back();  // which coincides with first_point(), by the way
+}
+
+void
+ExtrusionLoop::set_polygon(const Polygon &polygon)
+{
+    Polyline polyline;
+    polygon.split_at_first_point(&polyline);
+    this->polylines.clear();
+    this->polylines.push_back(polyline);
+}
+
+void
+ExtrusionLoop::polygon(Polygon* polygon) const
+{
+    for (Polylines::const_iterator polyline = this->polylines.begin(); polyline != this->polylines.end(); ++polyline) {
+        // for each polyline, append all points except the last one (because it coincides with the first one of the next polyline)
+        polygon->points.insert(polygon->points.end(), polyline->points.begin(), polyline->points.end()-1);
+    }
 }
 
 #ifdef SLIC3RXS

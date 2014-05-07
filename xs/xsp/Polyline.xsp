@@ -23,7 +23,8 @@
     Lines lines();
     Clone<Point> first_point();
     Clone<Point> last_point();
-    Points equally_spaced_points(double distance);
+    Points equally_spaced_points(double distance)
+        %code{% THIS->equally_spaced_points(distance, &RETVAL); %};
     double length();
     bool is_valid();
     void clip_end(double distance);

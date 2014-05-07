@@ -73,14 +73,18 @@ class ExtrusionPath : public ExtrusionEntity
 class ExtrusionLoop : public ExtrusionEntity
 {
     public:
+    Polylines polylines;
+    
+    ExtrusionLoop(const Polygon &polygon, ExtrusionRole role);
     ExtrusionLoop* clone() const;
-    Polygon polygon;
-    ExtrusionPath* split_at_index(int index) const;
-    ExtrusionPath* split_at_first_point() const;
+    void split_at_index(int index, ExtrusionPath* path) const;
+    void split_at_first_point(ExtrusionPath* path) const;
     bool make_counter_clockwise();
     void reverse();
     Point first_point() const;
     Point last_point() const;
+    void set_polygon(const Polygon &polygon);
+    void polygon(Polygon* polygon) const;
 };
 
 }

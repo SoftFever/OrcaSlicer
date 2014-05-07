@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 my $square = [
     [100, 100],
@@ -18,7 +18,8 @@ my $loop = Slic3r::ExtrusionLoop->new(
     role     => Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
     mm3_per_mm => 1,
 );
-isa_ok $loop->polygon, 'Slic3r::Polygon::Ref', 'loop polygon';
+isa_ok $loop, 'Slic3r::ExtrusionLoop';
+isa_ok $loop->polygon, 'Slic3r::Polygon', 'loop polygon';
 is_deeply $loop->polygon->pp, $square, 'polygon points roundtrip';
 
 $loop = $loop->clone;

@@ -19,12 +19,13 @@
     void reverse();
     Lines lines();
     Polyline* split_at(Point* point)
-        %code{% RETVAL = THIS->split_at(*point); %};
+        %code{% RETVAL = new Polyline(); THIS->split_at(*point, RETVAL); %};
     Polyline* split_at_index(int index)
-        %code{% RETVAL = THIS->split_at_index(index); %};
+        %code{% RETVAL = new Polyline(); THIS->split_at_index(index, RETVAL); %};
     Polyline* split_at_first_point()
-        %code{% RETVAL = THIS->split_at_first_point(); %};
-    Points equally_spaced_points(double distance);
+        %code{% RETVAL = new Polyline(); THIS->split_at_first_point(RETVAL); %};
+    Points equally_spaced_points(double distance)
+        %code{% THIS->equally_spaced_points(distance, &RETVAL); %};
     double length();
     double area();
     bool is_counter_clockwise();

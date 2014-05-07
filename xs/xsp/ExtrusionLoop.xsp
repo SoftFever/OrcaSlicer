@@ -9,13 +9,14 @@
 %name{Slic3r::ExtrusionLoop} class ExtrusionLoop {
     ~ExtrusionLoop();
     SV* arrayref()
-        %code{% RETVAL = THIS->polygon.to_AV(); %};
+        %code{% Polygon polygon; THIS->polygon(&polygon); RETVAL = polygon.to_AV(); %};
     SV* pp()
-        %code{% RETVAL = THIS->polygon.to_SV_pureperl(); %};
-    void reverse()
-        %code{% THIS->polygon.reverse(); %};
-    ExtrusionPath* split_at_index(int index);
-    ExtrusionPath* split_at_first_point();
+        %code{% Polygon polygon; THIS->polygon(&polygon); RETVAL = polygon.to_SV_pureperl(); %};
+    void reverse();
+    ExtrusionPath* split_at_index(int index)
+        %code{% RETVAL = new ExtrusionPath (); THIS->split_at_index(index, RETVAL); %};
+    ExtrusionPath* split_at_first_point()
+        %code{% RETVAL = new ExtrusionPath (); THIS->split_at_first_point(RETVAL); %};
     bool make_counter_clockwise();
     Clone<Point> first_point();
     Clone<Point> last_point();
@@ -33,22 +34,25 @@ _new(CLASS, polygon_sv, role, mm3_per_mm, width, height)
     float           width;
     float           height;
     CODE:
-        RETVAL = new ExtrusionLoop ();
-        RETVAL->polygon.from_SV_check(polygon_sv);
-        RETVAL->role            = role;
+        Polygon polygon;
+        polygon.from_SV_check(polygon_sv);
+        RETVAL = new ExtrusionLoop (polygon, role);
         RETVAL->mm3_per_mm      = mm3_per_mm;
         RETVAL->width           = width;
         RETVAL->height          = height;
     OUTPUT:
         RETVAL
 
-Ref<Polygon>
+Polygon*
 ExtrusionLoop::polygon(...)
     CODE:
         if (items > 1) {
-            THIS->polygon.from_SV_check( ST(1) );
+            Polygon polygon;
+            polygon.from_SV_check( ST(1) );
+            THIS->set_polygon(polygon);
         }
-        RETVAL = &(THIS->polygon);
+        RETVAL = new Polygon ();
+        THIS->polygon(RETVAL);
     OUTPUT:
         RETVAL
 
