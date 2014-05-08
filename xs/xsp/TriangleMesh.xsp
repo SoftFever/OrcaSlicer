@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "TriangleMesh.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::TriangleMesh} class TriangleMesh {
@@ -158,7 +157,7 @@ TriangleMesh::slice(z)
             av_extend(expolygons_av, layers[i].size()-1);
             unsigned int j = 0;
             for (ExPolygons::iterator it = layers[i].begin(); it != layers[i].end(); ++it) {
-                av_store(expolygons_av, j++, (*it).to_SV_clone_ref());
+                av_store(expolygons_av, j++, perl_to_SV_clone_ref(*it));
             }
             av_store(layers_av, i, newRV_noinc((SV*)expolygons_av));
         }

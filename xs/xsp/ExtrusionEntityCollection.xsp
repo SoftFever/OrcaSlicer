@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "ExtrusionEntityCollection.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {

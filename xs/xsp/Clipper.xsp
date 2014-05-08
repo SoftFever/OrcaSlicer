@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "clipper.hpp"
 #include "ClipperUtils.hpp"
-#include "perlglue.hpp"
 %}
 
 %package{Slic3r::Geometry::Clipper};

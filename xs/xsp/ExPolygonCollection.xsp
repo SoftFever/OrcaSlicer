@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "ExPolygonCollection.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExPolygon::Collection} class ExPolygonCollection {
@@ -45,7 +44,7 @@ ExPolygonCollection::arrayref()
         av_fill(av, THIS->expolygons.size()-1);
         int i = 0;
         for (ExPolygons::iterator it = THIS->expolygons.begin(); it != THIS->expolygons.end(); ++it) {
-            av_store(av, i++, (*it).to_SV_ref());
+            av_store(av, i++, perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:

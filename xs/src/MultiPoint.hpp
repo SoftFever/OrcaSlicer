@@ -1,6 +1,7 @@
 #ifndef slic3r_MultiPoint_hpp_
 #define slic3r_MultiPoint_hpp_
 
+#include <myinit.h>
 #include "Line.hpp"
 #include "Point.hpp"
 #include <algorithm>

@@ -39,8 +39,6 @@ class ExPolygon
     void from_SV(SV* poly_sv);
     void from_SV_check(SV* poly_sv);
     SV* to_AV();
-    SV* to_SV_ref();
-    SV* to_SV_clone_ref() const;
     SV* to_SV_pureperl() const;
     #endif
 };

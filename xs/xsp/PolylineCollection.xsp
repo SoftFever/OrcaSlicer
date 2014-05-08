@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "PolylineCollection.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Polyline::Collection} class PolylineCollection {
@@ -47,7 +46,7 @@ PolylineCollection::arrayref()
         av_fill(av, THIS->polylines.size()-1);
         int i = 0;
         for (Polylines::iterator it = THIS->polylines.begin(); it != THIS->polylines.end(); ++it) {
-            av_store(av, i++, (*it).to_SV_ref());
+            av_store(av, i++, perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:

@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 namespace Slic3r {
 
@@ -157,29 +154,10 @@ Line::to_AV() {
     AV* av = newAV();
     av_extend(av, 1);
     
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(&this->a), &(this->a) );
-    av_store(av, 0, sv);
-    
-    sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(&this->b), &(this->b) );
-    av_store(av, 1, sv);
+    av_store(av, 0, perl_to_SV_ref(this->a));
+    av_store(av, 1, perl_to_SV_ref(this->b));
     
     return newRV_noinc((SV*)av);
-}
-
-SV*
-Line::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), this );
-    return sv;
-}
-
-SV*
-Line::to_SV_clone_ref() const {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name(this), new Line(*this) );
-    return sv;
 }
 
 SV*

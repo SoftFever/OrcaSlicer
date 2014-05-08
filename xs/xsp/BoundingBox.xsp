@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "BoundingBox.hpp"
 #include "Point.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Geometry::BoundingBox} class BoundingBox {

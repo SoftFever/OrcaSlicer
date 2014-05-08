@@ -129,7 +129,7 @@ MultiPoint::to_AV() {
     AV* av = newAV();
     av_extend(av, num_points-1);
     for (unsigned int i = 0; i < num_points; i++) {
-        av_store(av, i, this->points[i].to_SV_ref());
+        av_store(av, i, perl_to_SV_ref(this->points[i]));
     }
     return newRV_noinc((SV*)av);
 }

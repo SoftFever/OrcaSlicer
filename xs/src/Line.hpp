@@ -38,8 +38,6 @@ class Line
     void from_SV(SV* line_sv);
     void from_SV_check(SV* line_sv);
     SV* to_AV();
-    SV* to_SV_ref();
-    SV* to_SV_clone_ref() const;
     SV* to_SV_pureperl() const;
     #endif
 };

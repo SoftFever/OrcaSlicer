@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExtrusionPath} class ExtrusionPath {

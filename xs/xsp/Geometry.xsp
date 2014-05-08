@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "Geometry.hpp"
-#include "perlglue.hpp"
 %}
 
 

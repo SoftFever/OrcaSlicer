@@ -6,9 +6,6 @@
 #include "ClipperUtils.hpp"
 #include "polypartition.h"
 #include "poly2tri/poly2tri.h"
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 #include <algorithm>
 #include <list>
@@ -367,26 +364,12 @@ ExPolygon::to_AV() {
     AV* av = newAV();
     av_extend(av, num_holes);  // -1 +1
     
-    av_store(av, 0, this->contour.to_SV_ref());
+    av_store(av, 0, perl_to_SV_ref(this->contour));
     
     for (unsigned int i = 0; i < num_holes; i++) {
-        av_store(av, i+1, this->holes[i].to_SV_ref());
+        av_store(av, i+1, perl_to_SV_ref(this->holes[i]));
     }
     return newRV_noinc((SV*)av);
-}
-
-SV*
-ExPolygon::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), this );
-    return sv;
-}
-
-SV*
-ExPolygon::to_SV_clone_ref() const {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name(this), new ExPolygon(*this) );
-    return sv;
 }
 
 SV*

@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "Line.hpp"
 #include "Polyline.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Line} class Line {

@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "Extruder.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Extruder} class Extruder {

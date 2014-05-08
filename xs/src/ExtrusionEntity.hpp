@@ -64,11 +64,6 @@ class ExtrusionPath : public ExtrusionEntity
         double xofs, double yofs, std::string extrusion_axis,
         std::string gcode_line_suffix) const;
 
-    #ifdef SLIC3RXS
-    SV* to_SV_ref();
-    SV* to_SV_clone_ref() const;
-    #endif
-
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
 };

@@ -4,9 +4,6 @@
 #include "ClipperUtils.hpp"
 #include "Extruder.hpp"
 #include <sstream>
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 namespace Slic3r {
 
@@ -106,20 +103,6 @@ ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCo
 }
 
 #ifdef SLIC3RXS
-SV*
-ExtrusionPath::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), this );
-    return sv;
-}
-
-SV*
-ExtrusionPath::to_SV_clone_ref() const {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name(this), new ExtrusionPath(*this) );
-    return sv;
-}
-
 REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
 #endif
 

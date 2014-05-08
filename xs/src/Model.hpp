@@ -85,6 +85,10 @@ class ModelObject
     t_layer_height_ranges layer_height_ranges;
     Pointf origin_translation;
     
+    // these should be private but we need to expose them via XS until all methods are ported
+    BoundingBoxf3 _bounding_box;
+    bool _bounding_box_valid;
+    
     ModelObject(Model *model, const std::string &input_file, const DynamicPrintConfig &config,
         const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
     ModelObject(const ModelObject &other);
@@ -115,14 +119,7 @@ class ModelObject
     size_t facets_count() const;
     bool needed_repair() const;
     
-    #ifdef SLIC3RXS
-    SV* to_SV_ref();
-    #endif
-
     private:
-    BoundingBoxf3 _bounding_box;
-    bool _bounding_box_valid;
-    
     void update_bounding_box();
 };
 
@@ -136,10 +133,6 @@ class ModelVolume
 
     ModelVolume(ModelObject *object, const t_model_material_id &material_id,
         const TriangleMesh &mesh, bool modifier);
-
-    #ifdef SLIC3RXS
-    SV* to_SV_ref();
-    #endif
 };
 
 class ModelInstance
@@ -155,10 +148,6 @@ class ModelInstance
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate) const;
     void transform_polygon(Polygon* polygon) const;
-
-    #ifdef SLIC3RXS
-    SV* to_SV_ref();
-    #endif
 };
 
 }

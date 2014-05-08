@@ -1,9 +1,6 @@
 #include "ExtrusionEntityCollection.hpp"
 #include <algorithm>
 #include <map>
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 namespace Slic3r {
 

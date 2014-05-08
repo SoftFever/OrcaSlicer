@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "Flow.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Flow} class Flow {

@@ -237,7 +237,7 @@ T_ARRAYREF
 	av_extend(av, $var.size()-1);
 	int i = 0;
     for (${type}::const_iterator it = $var.begin(); it != $var.end(); ++it) {
-        av_store(av, i++, it->to_SV_clone_ref());
+        av_store(av, i++, perl_to_SV_clone_ref(*it));
 	}
 	$var.clear();
 
@@ -248,7 +248,7 @@ T_ARRAYREF_PTR
 	av_extend(av, $var->size()-1);
 	int i = 0;
     for (${ my $t = $type; $t =~ s/\*$//; \$t }::iterator it = $var->begin(); it != $var->end(); ++it) {
-        av_store(av, i++, it->to_SV_ref());
+        av_store(av, i++, perl_to_SV_ref(*it));
 	}
 
 T_PTR_ARRAYREF_PTR
@@ -258,7 +258,7 @@ T_PTR_ARRAYREF_PTR
     av_extend(av, $var->size()-1);
     int i = 0;
     for (${ my $t = $type; $t =~ s/\*$//; \$t }::iterator it = $var->begin(); it != $var->end(); ++it) {
-        av_store(av, i++, (*it)->to_SV_ref());
+        av_store(av, i++, perl_to_SV_ref(**it));
     }
 
 T_PTR_ARRAYREF

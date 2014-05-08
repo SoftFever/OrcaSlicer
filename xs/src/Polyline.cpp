@@ -1,8 +1,5 @@
 #include "Polyline.hpp"
 #include "Polygon.hpp"
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 namespace Slic3r {
 
@@ -122,24 +119,7 @@ Polyline::simplify(double tolerance)
 
 
 #ifdef SLIC3RXS
-
 REGISTER_CLASS(Polyline, "Polyline");
-
-SV*
-Polyline::to_SV_ref()
-{
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), (void*)this );
-    return sv;
-}
-
-SV*
-Polyline::to_SV_clone_ref() const
-{
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name(this), new Polyline(*this) );
-    return sv;
-}
 
 void
 Polyline::from_SV_check(SV* poly_sv)

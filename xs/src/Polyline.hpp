@@ -24,8 +24,6 @@ class Polyline : public MultiPoint {
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);
-    SV* to_SV_ref();
-    SV* to_SV_clone_ref() const;
     #endif
 };
 

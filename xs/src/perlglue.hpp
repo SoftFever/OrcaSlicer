@@ -23,7 +23,21 @@ template<class T>
 const char* perl_class_name(const T*) { return ClassTraits<T>::name; }
 template<class T>
 const char* perl_class_name_ref(const T*) { return ClassTraits<T>::name_ref; }
-    
+
+template<class T>
+SV* perl_to_SV_ref(T &t) {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, perl_class_name_ref(&t), &t );
+    return sv;
+}
+
+template<class T>
+SV* perl_to_SV_clone_ref(const T &t) {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, perl_class_name(&t), new T(t) );
+    return sv;
+}
+
 template <class T> 
 class Ref {
     T* val;

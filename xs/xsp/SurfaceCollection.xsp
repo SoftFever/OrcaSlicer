@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "SurfaceCollection.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Surface::Collection} class SurfaceCollection {
@@ -35,7 +34,7 @@ SurfaceCollection::arrayref()
         av_fill(av, THIS->surfaces.size()-1);
         int i = 0;
         for (Surfaces::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
-            av_store(av, i++, (*it).to_SV_ref());
+            av_store(av, i++, perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -47,7 +46,7 @@ SurfaceCollection::filter_by_type(surface_type)
     CODE:
         AV* av = newAV();
         for (Surfaces::iterator it = THIS->surfaces.begin(); it != THIS->surfaces.end(); ++it) {
-            if ((*it).surface_type == surface_type) av_push(av, (*it).to_SV_ref());
+            if ((*it).surface_type == surface_type) av_push(av, perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -92,7 +91,7 @@ SurfaceCollection::group()
             av_fill(innerav, it->size()-1);
             size_t j = 0;
             for (SurfacesPtr::iterator it_s = it->begin(); it_s != it->end(); ++it_s) {
-                av_store(innerav, j++, (*it_s)->to_SV_clone_ref());
+                av_store(innerav, j++, perl_to_SV_clone_ref(**it_s));
             }
             av_store(av, i++, newRV_noinc((SV*)innerav));
         }

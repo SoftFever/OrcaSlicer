@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "ExtrusionEntity.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::ExtrusionLoop} class ExtrusionLoop {
@@ -36,7 +35,7 @@ ExtrusionLoop::arrayref()
         av_fill(av, THIS->paths.size()-1);
         int i = 0;
         for (ExtrusionPaths::iterator it = THIS->paths.begin(); it != THIS->paths.end(); ++it) {
-            av_store(av, i++, it->to_SV_ref());
+            av_store(av, i++, perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:

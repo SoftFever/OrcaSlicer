@@ -11,9 +11,6 @@
 #include <algorithm>
 #include <math.h>
 #include <assert.h>
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"

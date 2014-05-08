@@ -17,6 +17,7 @@ extern "C" {
 #undef do_open
 #undef do_close
 }
+#include "perlglue.hpp"
 #endif
 
 #define EPSILON 1e-4

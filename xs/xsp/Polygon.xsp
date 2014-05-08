@@ -3,7 +3,6 @@
 %{
 #include <myinit.h>
 #include "Polygon.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Polygon} class Polygon {

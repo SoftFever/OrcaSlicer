@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "Surface.hpp"
 #include "ClipperUtils.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Surface} class Surface {

@@ -4,7 +4,6 @@
 #include <myinit.h>
 #include "Model.hpp"
 #include "PrintConfig.hpp"
-#include "perlglue.hpp"
 %}
 
 %name{Slic3r::Model} class Model {

@@ -2,9 +2,6 @@
 #include "Line.hpp"
 #include <cmath>
 #include <sstream>
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
 
 namespace Slic3r {
 
@@ -144,20 +141,6 @@ Point::ccw(const Line &line) const
 #ifdef SLIC3RXS
 
 REGISTER_CLASS(Point, "Point");
-
-SV*
-Point::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), (void*)this );
-    return sv;
-}
-
-SV*
-Point::to_SV_clone_ref() const {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name(this), new Point(*this) );
-    return sv;
-}
 
 SV*
 Point::to_SV_pureperl() const {

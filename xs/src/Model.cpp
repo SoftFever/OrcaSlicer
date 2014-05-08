@@ -1,8 +1,4 @@
 #include "Model.hpp"
-#ifdef SLIC3RXS
-#include "perlglue.hpp"
-#endif
-
 
 namespace Slic3r {
 
@@ -301,13 +297,6 @@ ModelObject::invalidate_bounding_box()
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelObject, "Model::Object");
-
-SV*
-ModelObject::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), this );
-    return sv;
-}
 #endif
 
 
@@ -322,13 +311,6 @@ ModelVolume::ModelVolume(ModelObject* object, const t_model_material_id &materia
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelVolume, "Model::Volume");
-
-SV*
-ModelVolume::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), this );
-    return sv;
-}
 #endif
 
 
@@ -343,13 +325,6 @@ ModelInstance::ModelInstance(ModelObject *object, double rotation,
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelInstance, "Model::Instance");
-
-SV*
-ModelInstance::to_SV_ref() {
-    SV* sv = newSV(0);
-    sv_setref_pv( sv, perl_class_name_ref(this), this );
-    return sv;
-}
 #endif
 
 }
