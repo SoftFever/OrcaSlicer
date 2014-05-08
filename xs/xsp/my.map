@@ -97,6 +97,7 @@ Lines           T_ARRAYREF
 Polygons        T_ARRAYREF
 Polylines       T_ARRAYREF
 ExPolygons      T_ARRAYREF
+ExtrusionPaths  T_ARRAYREF
 Surfaces        T_ARRAYREF
 
 # we return these types whenever we want the items to be returned

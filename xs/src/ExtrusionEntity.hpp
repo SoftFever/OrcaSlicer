@@ -19,7 +19,7 @@ enum ExtrusionRole {
     erFill,
     erSolidFill,
     erTopSolidFill,
-    erBrige,
+    erBridge,
     erInternalBridge,
     erSkirt,
     erSupportMaterial,
@@ -29,19 +29,11 @@ enum ExtrusionRole {
 class ExtrusionEntity
 {
     public:
-    ExtrusionEntity() : mm3_per_mm(-1), width(-1), height(-1) {};
     virtual ExtrusionEntity* clone() const = 0;
     virtual ~ExtrusionEntity() {};
-    ExtrusionRole role;
-    double mm3_per_mm;  // mm^3 of plastic per mm of linear head motion
-    float width;
-    float height;
     virtual void reverse() = 0;
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;
-    bool is_perimeter() const;
-    bool is_fill() const;
-    bool is_bridge() const;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -49,8 +41,14 @@ typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
 class ExtrusionPath : public ExtrusionEntity
 {
     public:
-    ExtrusionPath* clone() const;
     Polyline polyline;
+    ExtrusionRole role;
+    double mm3_per_mm;  // mm^3 of plastic per mm of linear head motion
+    float width;
+    float height;
+    
+    ExtrusionPath() : mm3_per_mm(-1), width(-1), height(-1) {};
+    ExtrusionPath* clone() const;
     void reverse();
     Point first_point() const;
     Point last_point() const;
@@ -59,32 +57,41 @@ class ExtrusionPath : public ExtrusionEntity
     void clip_end(double distance);
     void simplify(double tolerance);
     double length() const;
-
-    #ifdef SLIC3RXS
+    bool is_perimeter() const;
+    bool is_fill() const;
+    bool is_bridge() const;
     std::string gcode(Extruder* extruder, double e, double F,
         double xofs, double yofs, std::string extrusion_axis,
         std::string gcode_line_suffix) const;
+
+    #ifdef SLIC3RXS
+    SV* to_SV_ref();
+    SV* to_SV_clone_ref() const;
     #endif
 
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
 };
 
+typedef std::vector<ExtrusionPath> ExtrusionPaths;
+
 class ExtrusionLoop : public ExtrusionEntity
 {
     public:
-    Polylines polylines;
+    ExtrusionPaths paths;
     
-    ExtrusionLoop(const Polygon &polygon, ExtrusionRole role);
+    operator Polygon() const;
     ExtrusionLoop* clone() const;
-    void split_at_index(int index, ExtrusionPath* path) const;
-    void split_at_first_point(ExtrusionPath* path) const;
+    bool make_clockwise();
     bool make_counter_clockwise();
     void reverse();
     Point first_point() const;
     Point last_point() const;
-    void set_polygon(const Polygon &polygon);
     void polygon(Polygon* polygon) const;
+    double length() const;
+    void split_at(const Point &point);
+    void clip_end(double distance, ExtrusionPaths* paths) const;
+    bool has_overhang_point(const Point &point) const;
 };
 
 }

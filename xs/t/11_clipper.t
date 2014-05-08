@@ -4,20 +4,20 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 11;
+use Test::More tests => 17;
 
-my $square = [  # ccw
+my $square = Slic3r::Polygon->new(  # ccw
     [200, 100],
     [200, 200],
     [100, 200],
     [100, 100],
-];
-my $hole_in_square = [  # cw
+);
+my $hole_in_square = Slic3r::Polygon->new(  # cw
     [160, 140],
     [140, 140],
     [140, 160],
     [160, 160],
-];
+);
 my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
 
 {
@@ -103,6 +103,55 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
         is scalar(grep $_->length == 50, @$result), 1, 'diff_pl - the left result line has correct length';
         is scalar(grep $_->length == 100, @$result), 1, 'diff_pl - two right result line has correct length';
         is scalar(grep $_->length == 20, @$result), 1, 'diff_pl - the central result line has correct length';
+    }
+}
+
+if (0) {  # Clipper does not preserve polyline orientation
+    my $polyline = Slic3r::Polyline->new([50,150], [300,150]);
+    my $result = Slic3r::Geometry::Clipper::intersection_pl([$polyline], [$square]);
+    is scalar(@$result), 1, 'intersection_pl - correct number of result lines';
+    is_deeply $result->[0]->pp, [[100,150], [200,150]], 'clipped line orientation is preserved';
+}
+
+if (0) {  # Clipper does not preserve polyline orientation
+    my $polyline = Slic3r::Polyline->new([300,150], [50,150]);
+    my $result = Slic3r::Geometry::Clipper::intersection_pl([$polyline], [$square]);
+    is scalar(@$result), 1, 'intersection_pl - correct number of result lines';
+    is_deeply $result->[0]->pp, [[200,150], [100,150]], 'clipped line orientation is preserved';
+}
+
+if (0) {  # Clipper does not preserve polyline orientation
+    my $result = Slic3r::Geometry::Clipper::intersection_ppl([$hole_in_square], [$square]);
+    is_deeply $result->[0]->pp, $hole_in_square->split_at_first_point->pp,
+        'intersection_ppl - clipping cw polygon as polyline preserves winding order';
+}
+
+{
+    my $square2 = $square->clone;
+    $square2->translate(50,50);
+    {
+        my $result = Slic3r::Geometry::Clipper::intersection_ppl([$square2], [$square]);
+        is scalar(@$result), 1, 'intersection_ppl - result contains a single line';
+        is scalar(@{$result->[0]}), 3, 'intersection_ppl - result contains expected number of points';
+        # Clipper does not preserve polyline orientation so we only check the middle point
+        ###ok $result->[0][0]->coincides_with(Slic3r::Point->new(150,200)), 'intersection_ppl - expected point order';
+        ok $result->[0][1]->coincides_with(Slic3r::Point->new(150,150)), 'intersection_ppl - expected point order';
+        ###ok $result->[0][2]->coincides_with(Slic3r::Point->new(200,150)), 'intersection_ppl - expected point order';
+    }
+}
+
+{
+    my $square2 = $square->clone;
+    $square2->reverse;
+    $square2->translate(50,50);
+    {
+        my $result = Slic3r::Geometry::Clipper::intersection_ppl([$square2], [$square]);
+        is scalar(@$result), 1, 'intersection_ppl - result contains a single line';
+        is scalar(@{$result->[0]}), 3, 'intersection_ppl - result contains expected number of points';
+        # Clipper does not preserve polyline orientation so we only check the middle point
+        ###ok $result->[0][0]->coincides_with(Slic3r::Point->new(200,150)), 'intersection_ppl - expected point order';
+        ok $result->[0][1]->coincides_with(Slic3r::Point->new(150,150)), 'intersection_ppl - expected point order';
+        ###ok $result->[0][2]->coincides_with(Slic3r::Point->new(150,200)), 'intersection_ppl - expected point order';
     }
 }
 

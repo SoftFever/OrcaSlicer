@@ -223,7 +223,7 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
         
         // intersect with this expolygon
         Polygons trapezoids;
-        intersection(poly, *this, trapezoids);
+        intersection<Polygons,Polygons>(poly, *this, trapezoids);
         
         // append results to return value
         polygons->insert(polygons->end(), trapezoids.begin(), trapezoids.end());

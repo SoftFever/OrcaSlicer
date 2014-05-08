@@ -70,6 +70,7 @@
 %typemap{Polylines};
 %typemap{PrintState};
 %typemap{ExPolygons};
+%typemap{ExtrusionPaths};
 %typemap{Surfaces};
 %typemap{Polygons*};
 %typemap{TriangleMeshPtrs};

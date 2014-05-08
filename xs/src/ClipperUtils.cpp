@@ -300,23 +300,24 @@ void _clipper_do(const ClipperLib::ClipType clipType, const Slic3r::Polygons &su
 }
 
 void _clipper_do(const ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
-    const Slic3r::Polygons &clip, ClipperLib::PolyTree &retval, const ClipperLib::PolyFillType fillType)
+    const Slic3r::Polygons &clip, ClipperLib::PolyTree &retval, const ClipperLib::PolyFillType fillType,
+    const bool safety_offset_)
 {
     // read input
-    ClipperLib::Paths* input_subject = new ClipperLib::Paths();
-    ClipperLib::Paths* input_clip    = new ClipperLib::Paths();
-    Slic3rMultiPoints_to_ClipperPaths(subject, *input_subject);
-    Slic3rMultiPoints_to_ClipperPaths(clip,    *input_clip);
+    ClipperLib::Paths input_subject, input_clip;
+    Slic3rMultiPoints_to_ClipperPaths(subject, input_subject);
+    Slic3rMultiPoints_to_ClipperPaths(clip,    input_clip);
+    
+    // perform safety offset
+    if (safety_offset_) safety_offset(&input_clip);
     
     // init Clipper
     ClipperLib::Clipper clipper;
     clipper.Clear();
     
     // add polygons
-    clipper.AddPaths(*input_subject, ClipperLib::ptSubject, false);
-    delete input_subject;
-    clipper.AddPaths(*input_clip, ClipperLib::ptClip, true);
-    delete input_clip;
+    clipper.AddPaths(input_subject, ClipperLib::ptSubject, false);
+    clipper.AddPaths(input_clip,    ClipperLib::ptClip,    true);
     
     // perform operation
     clipper.Execute(clipType, retval, fillType, fillType);
@@ -338,52 +339,114 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
     const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_)
 {
     // perform operation
-    ClipperLib::PolyTree* polytree = new ClipperLib::PolyTree();
-    _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, *polytree, ClipperLib::pftNonZero, safety_offset_);
+    ClipperLib::PolyTree polytree;
+    _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, polytree, ClipperLib::pftNonZero, safety_offset_);
     
     // convert into ExPolygons
-    PolyTreeToExPolygons(*polytree, retval);
-    delete polytree;
+    PolyTreeToExPolygons(polytree, retval);
 }
 
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
-    const Slic3r::Polygons &clip, Slic3r::Polylines &retval)
+    const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_)
 {
     // perform operation
     ClipperLib::PolyTree polytree;
-    _clipper_do(clipType, subject, clip, polytree, ClipperLib::pftNonZero);
+    _clipper_do(clipType, subject, clip, polytree, ClipperLib::pftNonZero, safety_offset_);
     
-    // convert into Polygons
+    // convert into Polylines
     ClipperLib::Paths output;
     ClipperLib::PolyTreeToPaths(polytree, output);
     ClipperPaths_to_Slic3rMultiPoints(output, retval);
 }
 
-template <class T>
-void diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_)
+void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
+    const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_)
+{
+    // transform input polygons into polylines
+    Slic3r::Polylines polylines;
+    polylines.reserve(subject.size());
+    for (Slic3r::Polygons::const_iterator polygon = subject.begin(); polygon != subject.end(); ++polygon)
+        polylines.push_back(*polygon);  // implicit call to split_at_first_point()
+    
+    /* Clipper will remove a polyline segment if first point coincides with last one.
+       Until that bug is not fixed upstream, we move one of those points slightly. */
+    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
+        polyline->points.front().translate(1, 0);
+    
+    // perform clipping
+    _clipper(clipType, polylines, clip, retval, safety_offset_);
+    
+    // compensate for the above hack
+    for (Slic3r::Polylines::iterator polyline = retval.begin(); polyline != retval.end(); ++polyline) {
+        for (Slic3r::Polylines::iterator subj_polyline = polylines.begin(); subj_polyline != polylines.end(); ++subj_polyline) {
+            // if first point of clipped line coincides with first point of subject line, compensate for hack
+            if (polyline->points.front().coincides_with(subj_polyline->points.front())) {
+                polyline->points.front().translate(-1, 0);
+                break;
+            }
+            // since Clipper does not preserve orientation of polylines, check last point too
+            if (polyline->points.back().coincides_with(subj_polyline->points.front())) {
+                polyline->points.back().translate(-1, 0);
+                break;
+            }
+        }
+    }
+    
+    /* If the split_at_first_point() call above happens to split the polygon inside the clipping area
+       we would get two consecutive polylines instead of a single one, so we go through them in order
+       to recombine continuous polylines. */
+    for (size_t i = 0; i < retval.size(); ++i) {
+        for (size_t j = i+1; j < retval.size(); ++j) {
+            if (retval[i].points.back().coincides_with(retval[j].points.front())) {
+                /* If last point of i coincides with first point of j,
+                   append points of j to i and delete j */
+                retval[i].points.insert(retval[i].points.end(), retval[j].points.begin()+1, retval[j].points.end());
+                retval.erase(retval.begin() + j);
+                --j;
+            } else if (retval[i].points.front().coincides_with(retval[j].points.back())) {
+                /* If first point of i coincides with last point of j,
+                   prepend points of j to i and delete j */
+                retval[i].points.insert(retval[i].points.begin(), retval[j].points.begin(), retval[j].points.end()-1);
+                retval.erase(retval.begin() + j);
+                --j;
+            } else if (retval[i].points.front().coincides_with(retval[j].points.front())) {
+                /* Since Clipper does not preserve orientation of polylines, 
+                   also check the case when first point of i coincides with first point of j. */
+                retval[j].reverse();
+                retval[i].points.insert(retval[i].points.begin(), retval[j].points.begin(), retval[j].points.end()-1);
+                retval.erase(retval.begin() + j);
+                --j;
+            } else if (retval[i].points.back().coincides_with(retval[j].points.back())) {
+                /* Since Clipper does not preserve orientation of polylines, 
+                   also check the case when last point of i coincides with last point of j. */
+                retval[j].reverse();
+                retval[i].points.insert(retval[i].points.end(), retval[j].points.begin()+1, retval[j].points.end());
+                retval.erase(retval.begin() + j);
+                --j;
+            }
+        }
+    }   
+}
+
+template <class SubjectType, class ResultType>
+void diff(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &retval, bool safety_offset_)
 {
     _clipper(ClipperLib::ctDifference, subject, clip, retval, safety_offset_);
 }
-template void diff<Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
-template void diff<Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
+template void diff<Slic3r::Polygons, Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
+template void diff<Slic3r::Polygons, Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
+template void diff<Slic3r::Polygons, Slic3r::Polylines>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_);
+template void diff<Slic3r::Polylines, Slic3r::Polylines>(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_);
 
-void diff(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval)
-{
-    _clipper(ClipperLib::ctDifference, subject, clip, retval);
-}
-
-template <class T>
-void intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_)
+template <class SubjectType, class ResultType>
+void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &retval, bool safety_offset_)
 {
     _clipper(ClipperLib::ctIntersection, subject, clip, retval, safety_offset_);
 }
-template void intersection<Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
-template void intersection<Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
-
-void intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval)
-{
-    _clipper(ClipperLib::ctIntersection, subject, clip, retval);
-}
+template void intersection<Slic3r::Polygons, Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
+template void intersection<Slic3r::Polygons, Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
+template void intersection<Slic3r::Polygons, Slic3r::Polylines>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_);
+template void intersection<Slic3r::Polylines, Slic3r::Polylines>(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_);
 
 void xor_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
     bool safety_offset_)
@@ -492,24 +555,19 @@ void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::ExPolygons &retv
     PolyTreeToExPolygons(polytree, retval);
 }
 
-void safety_offset(ClipperLib::Paths* &subject)
+void safety_offset(ClipperLib::Paths* paths)
 {
     // scale input
-    scaleClipperPolygons(*subject, CLIPPER_OFFSET_SCALE);
+    scaleClipperPolygons(*paths, CLIPPER_OFFSET_SCALE);
     
     // perform offset (delta = scale 1e-05)
-    ClipperLib::Paths* retval = new ClipperLib::Paths();
     ClipperLib::ClipperOffset co;
     co.MiterLimit = 2;
-    co.AddPaths(*subject, ClipperLib::jtMiter, ClipperLib::etClosedPolygon);
-    co.Execute(*retval, 10.0 * CLIPPER_OFFSET_SCALE);
+    co.AddPaths(*paths, ClipperLib::jtMiter, ClipperLib::etClosedPolygon);
+    co.Execute(*paths, 10.0 * CLIPPER_OFFSET_SCALE);
     
     // unscale output
-    scaleClipperPolygons(*retval, 1.0/CLIPPER_OFFSET_SCALE);
-    
-    // delete original data and switch pointer
-    delete subject;
-    subject = retval;
+    scaleClipperPolygons(*paths, 1.0/CLIPPER_OFFSET_SCALE);
 }
 
 ///////////////////////

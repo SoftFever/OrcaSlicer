@@ -18,10 +18,12 @@ my $path = Slic3r::ExtrusionPath->new(
     mm3_per_mm => 1,
 );
 
-my $loop = Slic3r::ExtrusionLoop->new(
-    polygon => Slic3r::Polygon->new(@$points),
-    role     => Slic3r::ExtrusionPath::EXTR_ROLE_FILL,
-    mm3_per_mm => 1,
+my $loop = Slic3r::ExtrusionLoop->new_from_paths(
+    Slic3r::ExtrusionPath->new(
+        polyline => Slic3r::Polygon->new(@$points)->split_at_first_point,
+        role     => Slic3r::ExtrusionPath::EXTR_ROLE_FILL,
+        mm3_per_mm => 1,
+    ),
 );
 
 my $collection = Slic3r::ExtrusionPath::Collection->new($path);

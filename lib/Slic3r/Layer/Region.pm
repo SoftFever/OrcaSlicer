@@ -7,7 +7,7 @@ use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(PI A B scale unscale chained_path points_coincide);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
     offset offset_ex offset2 offset2_ex union_pt diff intersection
-    union diff);
+    union diff intersection_ppl diff_ppl);
 use Slic3r::Surface ':types';
 
 has 'layer' => (
@@ -63,6 +63,8 @@ sub make_perimeters {
     
     my $perimeter_flow      = $self->flow(FLOW_ROLE_PERIMETER);
     my $mm3_per_mm          = $perimeter_flow->mm3_per_mm($self->height);
+    my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object);
+    my $mm3_per_mm_overhang = $overhang_flow->mm3_per_mm(-1);
     my $pwidth              = $perimeter_flow->scaled_width;
     my $pspacing            = $perimeter_flow->scaled_spacing;
     my $solid_infill_flow   = $self->flow(FLOW_ROLE_SOLID_INFILL);
@@ -229,6 +231,19 @@ sub make_perimeters {
     my $contours_pt = union_pt(\@contours);
     my $holes_pt    = union_pt(\@holes);
     
+    # prepare grown lower layer slices for overhang detection
+    my $lower_slices = Slic3r::ExPolygon::Collection->new;
+    if ($self->layer->lower_layer && $self->layer->print->config->overhangs) {
+        # We consider overhang any part where the entire nozzle diameter is not supported by the
+        # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
+        # in the current layer
+        my $nozzle_diameter = $self->layer->print->config->get_at('nozzle_diameter', $self->region->config->perimeter_extruder-1);
+        $lower_slices->append(
+            @{offset_ex([ map @$_, @{$self->layer->lower_layer->slices} ], scale +$nozzle_diameter/2)},
+        );
+    }
+    my $lower_slices_p = $lower_slices->polygons;
+    
     # prepare a coderef for traversing the PolyTree object
     # external contours are root items of $contours_pt
     # internal contours are the ones next to external
@@ -242,15 +257,6 @@ sub make_perimeters {
         foreach my $polynode (@$polynodes) {
             my $polygon = ($polynode->{outer} // $polynode->{hole})->clone;
             
-            # return ccw contours and cw holes
-            # GCode.pm will convert all of them to ccw, but it needs to know
-            # what the holes are in order to compute the correct inwards move
-            if ($is_contour) {
-                $polygon->make_counter_clockwise;
-            } else {
-                $polygon->make_clockwise;
-            }
-            
             my $role = EXTR_ROLE_PERIMETER;
             if ($is_contour ? $depth == 0 : !@{ $polynode->{children} }) {
                 # external perimeters are root level in case of contours
@@ -260,13 +266,62 @@ sub make_perimeters {
                 $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
             
-            $collection->append(Slic3r::ExtrusionLoop->new(
-                polygon         => $polygon,
-                role            => $role,
-                mm3_per_mm      => $mm3_per_mm,
-                width           => $perimeter_flow->width,
-                height          => $self->height,
-            ));
+            # detect overhanging/bridging perimeters
+            my @paths = ();
+            if ($self->layer->print->config->overhangs && $lower_slices->count > 0) {
+                # get non-overhang paths by intersecting this loop with the grown lower slices
+                foreach my $polyline (@{ intersection_ppl([ $polygon ], $lower_slices_p) }) {
+                    push @paths, Slic3r::ExtrusionPath->new(
+                        polyline        => $polyline,
+                        role            => $role,
+                        mm3_per_mm      => $mm3_per_mm,
+                        width           => $perimeter_flow->width,
+                        height          => $self->height,
+                    );
+                }
+                
+                # get overhang paths by checking what parts of this loop fall 
+                # outside the grown lower slices (thus where the distance between
+                # the loop centerline and original lower slices is >= half nozzle diameter
+                foreach my $polyline (@{ diff_ppl([ $polygon ], $lower_slices_p) }) {
+                    push @paths, Slic3r::ExtrusionPath->new(
+                        polyline        => $polyline,
+                        role            => EXTR_ROLE_OVERHANG_PERIMETER,
+                        mm3_per_mm      => $mm3_per_mm_overhang,
+                        width           => $overhang_flow->width,
+                        height          => $self->height,
+                    );
+                }
+        
+                # reapply the nearest point search for starting point
+                # (clone because the collection gets DESTROY'ed)
+                # We allow polyline reversal because Clipper may have randomly
+                # reversed polylines during clipping.
+                my $collection = Slic3r::ExtrusionPath::Collection->new(@paths);
+                @paths = map $_->clone, @{$collection->chained_path(0)};
+            } else {
+                push @paths, Slic3r::ExtrusionPath->new(
+                    polyline        => $polygon->split_at_first_point,
+                    role            => $role,
+                    mm3_per_mm      => $mm3_per_mm,
+                    width           => $perimeter_flow->width,
+                    height          => $self->height,
+                );
+            }
+            my $loop = Slic3r::ExtrusionLoop->new_from_paths(@paths);
+            
+            # return ccw contours and cw holes
+            # GCode.pm will convert all of them to ccw, but it needs to know
+            # what the holes are in order to compute the correct inwards move
+            # We do this on the final Loop object instead of the polygon because
+            # overhang clipping might have reversed its order since Clipper does
+            # not preserve polyline orientation.
+            if ($is_contour) {
+                $loop->make_counter_clockwise;
+            } else {
+                $loop->make_clockwise;
+            }
+            $collection->append($loop);
             
             # save the children
             push @children, $polynode->{children};
@@ -367,11 +422,16 @@ sub _fill_gaps {
     Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @$this, $w
         if @$this;
     
-    return map {
-        $_->isa('Slic3r::Polygon')
-            ? Slic3r::ExtrusionLoop->new(polygon => $_, %path_args)->split_at_first_point  # should we keep these as loops?
-            : Slic3r::ExtrusionPath->new(polyline => $_, %path_args),
-    } @polylines;
+    for my $i (0..$#polylines) {
+        if ($polylines[$i]->isa('Slic3r::Polygon')) {
+            my $loop = Slic3r::ExtrusionLoop->new;
+            $loop->append(Slic3r::ExtrusionPath->new(polyline => $polylines[$i]->split_at_first_point, %path_args));
+            $polylines[$i] = $loop;
+        } else {
+            $polylines[$i] = Slic3r::ExtrusionPath->new(polyline => $polylines[$i], %path_args);
+        }
+    }
+    return @polylines;
 }
 
 sub prepare_fill_surfaces {

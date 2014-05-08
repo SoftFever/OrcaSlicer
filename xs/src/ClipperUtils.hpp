@@ -70,7 +70,7 @@ template <class T>
 void _clipper_do(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
     const Slic3r::Polygons &clip, T &retval, bool safety_offset_);
 void _clipper_do(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
-    const Slic3r::Polygons &clip, ClipperLib::Paths &retval);
+    const Slic3r::Polygons &clip, ClipperLib::Paths &retval, bool safety_offset_);
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
     const Slic3r::Polygons &clip, Slic3r::Polygons &retval, bool safety_offset_);
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
@@ -78,15 +78,11 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
     const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
 
-template <class T>
-void diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_ = false);
+template <class SubjectType, class ResultType>
+void diff(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &retval, bool safety_offset_ = false);
 
-void diff(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
-
-template <class T>
-void intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, T &retval, bool safety_offset_ = false);
-
-void intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
+template <class SubjectType, class ResultType>
+void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &retval, bool safety_offset_ = false);
 
 void xor_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
     bool safety_offset_ = false);
@@ -101,7 +97,7 @@ static void traverse_pt(ClipperLib::PolyNodes &nodes, Slic3r::Polygons &retval);
 void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool preserve_collinear = false);
 void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::ExPolygons &retval, bool preserve_collinear = false);
 
-void safety_offset(ClipperLib::Paths* &subject);
+void safety_offset(ClipperLib::Paths* paths);
 
 /////////////////
 

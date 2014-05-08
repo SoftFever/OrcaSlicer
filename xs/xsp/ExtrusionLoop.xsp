@@ -7,92 +7,38 @@
 %}
 
 %name{Slic3r::ExtrusionLoop} class ExtrusionLoop {
+    ExtrusionLoop();
     ~ExtrusionLoop();
-    SV* arrayref()
-        %code{% Polygon polygon; THIS->polygon(&polygon); RETVAL = polygon.to_AV(); %};
-    SV* pp()
-        %code{% Polygon polygon; THIS->polygon(&polygon); RETVAL = polygon.to_SV_pureperl(); %};
+    Clone<ExtrusionLoop> clone()
+        %code{% RETVAL = THIS; %};
     void reverse();
-    ExtrusionPath* split_at_index(int index)
-        %code{% RETVAL = new ExtrusionPath (); THIS->split_at_index(index, RETVAL); %};
-    ExtrusionPath* split_at_first_point()
-        %code{% RETVAL = new ExtrusionPath (); THIS->split_at_first_point(RETVAL); %};
+    bool make_clockwise();
     bool make_counter_clockwise();
     Clone<Point> first_point();
     Clone<Point> last_point();
-    bool is_perimeter();
-    bool is_fill();
-    bool is_bridge();
+    Polygon* polygon()
+        %code{% RETVAL = new Polygon (*THIS); %};
+    void append(ExtrusionPath* path)
+        %code{% THIS->paths.push_back(*path); %};
+    double length();
+    void split_at(Point* point)
+        %code{% THIS->split_at(*point); %};
+    ExtrusionPaths clip_end(double distance)
+        %code{% THIS->clip_end(distance, &RETVAL); %};
+    bool has_overhang_point(Point* point)
+        %code{% RETVAL = THIS->has_overhang_point(*point); %};
 %{
 
-ExtrusionLoop*
-_new(CLASS, polygon_sv, role, mm3_per_mm, width, height)
-    char*           CLASS;
-    SV*             polygon_sv;
-    ExtrusionRole   role;
-    double          mm3_per_mm;
-    float           width;
-    float           height;
+SV*
+ExtrusionLoop::arrayref()
     CODE:
-        Polygon polygon;
-        polygon.from_SV_check(polygon_sv);
-        RETVAL = new ExtrusionLoop (polygon, role);
-        RETVAL->mm3_per_mm      = mm3_per_mm;
-        RETVAL->width           = width;
-        RETVAL->height          = height;
-    OUTPUT:
-        RETVAL
-
-Polygon*
-ExtrusionLoop::polygon(...)
-    CODE:
-        if (items > 1) {
-            Polygon polygon;
-            polygon.from_SV_check( ST(1) );
-            THIS->set_polygon(polygon);
+        AV* av = newAV();
+        av_fill(av, THIS->paths.size()-1);
+        int i = 0;
+        for (ExtrusionPaths::iterator it = THIS->paths.begin(); it != THIS->paths.end(); ++it) {
+            av_store(av, i++, it->to_SV_ref());
         }
-        RETVAL = new Polygon ();
-        THIS->polygon(RETVAL);
-    OUTPUT:
-        RETVAL
-
-ExtrusionRole
-ExtrusionLoop::role(...)
-    CODE:
-        if (items > 1) {
-            THIS->role = (ExtrusionRole)SvUV(ST(1));
-        }
-        RETVAL = THIS->role;
-    OUTPUT:
-        RETVAL
-
-double
-ExtrusionLoop::mm3_per_mm(...)
-    CODE:
-        if (items > 1) {
-            THIS->mm3_per_mm = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->mm3_per_mm;
-    OUTPUT:
-        RETVAL
-
-float
-ExtrusionLoop::width(...)
-    CODE:
-        if (items > 1) {
-            THIS->width = (float)SvNV(ST(1));
-        }
-        RETVAL = THIS->width;
-    OUTPUT:
-        RETVAL
-
-float
-ExtrusionLoop::height(...)
-    CODE:
-        if (items > 1) {
-            THIS->height = (float)SvNV(ST(1));
-        }
-        RETVAL = THIS->height;
+        RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
         RETVAL
 

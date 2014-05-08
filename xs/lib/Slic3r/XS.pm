@@ -106,28 +106,12 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-sub new {
-    my ($class, %args) = @_;
+sub new_from_paths {
+    my ($class, @paths) = @_;
     
-    return $class->_new(
-        $args{polygon},      # required
-        $args{role},         # required
-        $args{mm3_per_mm}   // die("Missing required mm3_per_mm in ExtrusionLoop constructor"),
-        $args{width}        // -1,
-        $args{height}       // -1,
-    );
-}
-
-sub clone {
-    my ($self, %args) = @_;
-    
-    return __PACKAGE__->_new(
-        $args{polygon}       // $self->polygon,
-        $args{role}          // $self->role,
-        $args{mm3_per_mm}    // $self->mm3_per_mm,
-        $args{width}         // $self->width,
-        $args{height}        // $self->height,
-    );
+    my $loop = $class->new;
+    $loop->append($_) for @paths;
+    return $loop;
 }
 
 package Slic3r::ExtrusionLoop::Ref;

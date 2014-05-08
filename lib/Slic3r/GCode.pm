@@ -19,7 +19,6 @@ has 'layer'              => (is => 'rw');
 has 'region'             => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
-has '_lower_layer_slices'   => (is => 'ro', default => sub { Slic3r::ExPolygon::Collection->new });
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -111,17 +110,6 @@ sub change_layer {
     # avoid computing islands and overhangs if they're not needed
     $self->_layer_islands($layer->islands);
     $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
-    $self->_lower_layer_slices->clear;
-    if ($layer->lower_layer && ($self->print_config->overhangs || $self->print_config->start_perimeters_at_non_overhang)) {
-        # We consider overhang any part where the entire nozzle diameter is not supported by the
-        # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
-        # in the current layer
-        my $max_nozzle_diameter = max(map $layer->print->config->get_at('nozzle_diameter', $_->region->config->perimeter_extruder-1), @{$layer->regions});
-        $self->_lower_layer_slices->append(
-            # clone ExPolygons because they come from Surface objects but will be used outside here
-            @{offset_ex([ map @$_, @{$layer->lower_layer->slices} ], +scale($max_nozzle_diameter/2))},
-        );
-    }
     if ($self->print_config->avoid_crossing_perimeters) {
         $self->layer_mp(Slic3r::GCode::MotionPlanner->new(
             islands => union_ex([ map @$_, @{$layer->slices} ], 1),
@@ -199,17 +187,17 @@ sub extrude_loop {
     
     # extrude all loops ccw
     my $was_clockwise = $loop->make_counter_clockwise;
-    my $polygon = $loop->polygon;
     
     # find candidate starting points
     # start looking for concave vertices not being overhangs
+    my $polygon = $loop->polygon;
     my @concave = ();
     if ($self->print_config->start_perimeters_at_concave_points) {
         @concave = $polygon->concave_points;
     }
     my @candidates = ();
     if ($self->print_config->start_perimeters_at_non_overhang) {
-        @candidates = grep $self->_lower_layer_slices->contains_point($_), @concave;
+        @candidates = grep !$loop->has_overhang_point($_), @concave;
     }
     if (!@candidates) {
         # if none, look for any concave vertex
@@ -217,11 +205,11 @@ sub extrude_loop {
         if (!@candidates) {
             # if none, look for any non-overhang vertex
             if ($self->print_config->start_perimeters_at_non_overhang) {
-                @candidates = grep $self->_lower_layer_slices->contains_point($_), @$polygon;
+                @candidates = grep !$loop->has_overhang_point($_), @$polygon;
             }
             if (!@candidates) {
                 # if none, all points are valid candidates
-                @candidates = @{$polygon};
+                @candidates = @$polygon;
             }
         }
     }
@@ -234,71 +222,49 @@ sub extrude_loop {
         $last_pos->rotate(rand(2*PI), $self->print_config->print_center);
     }
     
-    # split the loop at the starting point and make a path
-    my $start_at = $last_pos->nearest_point(\@candidates);
-    my $extrusion_path = $loop->split_at($start_at);
+    # split the loop at the starting point
+    $loop->split_at($last_pos->nearest_point(\@candidates));
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so
     # we discard it in that case
-    $extrusion_path->clip_end(scale($self->extruder->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER)
-        if $self->enable_loop_clipping;
-    return '' if !@{$extrusion_path->polyline};
+    my $clip_length = $self->enable_loop_clipping
+        ? scale($self->extruder->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER
+        : 0;
     
-    my @paths = ();
-    # detect overhanging/bridging perimeters
-    if ($self->layer->print->config->overhangs && $extrusion_path->is_perimeter && $self->_lower_layer_slices->count > 0) {
-        # get non-overhang paths by intersecting this loop with the grown lower slices
-        push @paths,
-            map $_->clone,
-            @{$extrusion_path->intersect_expolygons($self->_lower_layer_slices)};
-        
-        # get overhang paths by checking what parts of this loop fall 
-        # outside the grown lower slices (thus where the distance between
-        # the loop centerline and original lower slices is >= half nozzle diameter
-        foreach my $path (@{$extrusion_path->subtract_expolygons($self->_lower_layer_slices)}) {
-            $path = $path->clone;
-            $path->role(EXTR_ROLE_OVERHANG_PERIMETER);
-            $path->mm3_per_mm($self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object)->mm3_per_mm(-1));
-            push @paths, $path;
-        }
-        
-        # reapply the nearest point search for starting point
-        # (clone because the collection gets DESTROY'ed)
-        my $collection = Slic3r::ExtrusionPath::Collection->new(@paths);
-        @paths = map $_->clone, @{$collection->chained_path_from($start_at, 1)};
-    } else {
-        push @paths, $extrusion_path;
-    }
+    # get paths
+    my @paths = @{$loop->clip_end($clip_length)};
+    return '' if !@paths;
     
     # apply the small perimeter speed
     my %params = ();
-    if ($extrusion_path->is_perimeter && abs($extrusion_path->length) <= &Slic3r::SMALL_PERIMETER_LENGTH) {
+    if ($paths[0]->is_perimeter && abs($loop->length) <= &Slic3r::SMALL_PERIMETER_LENGTH) {
         $params{speed} = 'small_perimeter';
     }
     
     # extrude along the path
     my $gcode = join '', map $self->extrude_path($_, $description, %params), @paths;
-    $self->wipe_path($extrusion_path->polyline->clone) if $self->enable_wipe;
+    $self->wipe_path($paths[-1]->polyline->clone) if $self->enable_wipe;  # TODO: don't limit wipe to last path
     
     # make a little move inwards before leaving loop
-    if ($loop->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->region->config->perimeters > 1) {
+    if ($paths[-1]->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->region->config->perimeters > 1) {
+        my $last_path_polyline = $paths[-1]->polyline;
         # detect angle between last and first segment
         # the side depends on the original winding order of the polygon (left for contours, right for holes)
         my @points = $was_clockwise ? (-2, 1) : (1, -2);
-        my $angle = Slic3r::Geometry::angle3points(@{$extrusion_path->polyline}[0, @points]) / 3;
+        my $angle = Slic3r::Geometry::angle3points(@$last_path_polyline[0, @points]) / 3;
         $angle *= -1 if $was_clockwise;
         
         # create the destination point along the first segment and rotate it
         # we make sure we don't exceed the segment length because we don't know
         # the rotation of the second segment so we might cross the object boundary
-        my $first_segment = Slic3r::Line->new(@{$extrusion_path->polyline}[0,1]);
+        my $first_segment = Slic3r::Line->new(@$last_path_polyline[0,1]);
         my $distance = min(scale($self->extruder->nozzle_diameter), $first_segment->length);
         my $point = $first_segment->point_at($distance);
-        $point->rotate($angle, $extrusion_path->first_point);
+        $point->rotate($angle, $last_path_polyline->first_point);
         
         # generate the travel move
-        $gcode .= $self->travel_to($point, $loop->role, "move inwards before travel");
+        $gcode .= $self->travel_to($point, $paths[-1]->role, "move inwards before travel");
     }
     
     return $gcode;

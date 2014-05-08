@@ -21,6 +21,8 @@
     bool contains_point(Point* point)
         %code{% RETVAL = THIS->contains_point(*point); %};
     void simplify(double tolerance);
+    Polygons polygons()
+        %code{% RETVAL = *THIS; %};
 %{
 
 ExPolygonCollection*

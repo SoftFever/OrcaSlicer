@@ -705,12 +705,14 @@ sub make_skirt {
     for (my $i = $self->config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
         my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
-        $self->skirt->append(Slic3r::ExtrusionLoop->new(
-            polygon         => Slic3r::Polygon->new(@$loop),
-            role            => EXTR_ROLE_SKIRT,
-            mm3_per_mm      => $mm3_per_mm,
-            width           => $flow->width,
-            height          => $first_layer_height,
+        $self->skirt->append(Slic3r::ExtrusionLoop->new_from_paths(
+            Slic3r::ExtrusionPath->new(
+                polyline        => Slic3r::Polygon->new(@$loop)->split_at_first_point,
+                role            => EXTR_ROLE_SKIRT,
+                mm3_per_mm      => $mm3_per_mm,
+                width           => $flow->width,
+                height          => $first_layer_height,
+            ),
         ));
         
         if ($self->config->min_skirt_length > 0) {
@@ -788,12 +790,14 @@ sub make_brim {
         push @loops, @{offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, 100000, JT_SQUARE)};
     }
     
-    $self->brim->append(map Slic3r::ExtrusionLoop->new(
-        polygon         => Slic3r::Polygon->new(@$_),
-        role            => EXTR_ROLE_SKIRT,
-        mm3_per_mm      => $mm3_per_mm,
-        width           => $flow->width,
-        height          => $first_layer_height,
+    $self->brim->append(map Slic3r::ExtrusionLoop->new_from_paths(
+        Slic3r::ExtrusionPath->new(
+            polyline        => Slic3r::Polygon->new(@$_)->split_at_first_point,
+            role            => EXTR_ROLE_SKIRT,
+            mm3_per_mm      => $mm3_per_mm,
+            width           => $flow->width,
+            height          => $first_layer_height,
+        ),
     ), reverse @{union_pt_chained(\@loops)});
 }
 
@@ -913,7 +917,7 @@ sub write_gcode {
     
     # calculate wiping points if needed
     if ($self->config->ooze_prevention) {
-        my @skirt_points = map @$_, @{$self->skirt};
+        my @skirt_points = map @$_, map @$_, @{$self->skirt};
         if (@skirt_points) {
             my $outer_skirt = convex_hull(\@skirt_points);
             my @skirts = ();

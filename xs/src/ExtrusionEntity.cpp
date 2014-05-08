@@ -10,31 +10,6 @@
 
 namespace Slic3r {
 
-bool
-ExtrusionEntity::is_perimeter() const
-{
-    return this->role == erPerimeter
-        || this->role == erExternalPerimeter
-        || this->role == erOverhangPerimeter
-        || this->role == erContourInternalPerimeter;
-}
-
-bool
-ExtrusionEntity::is_fill() const
-{
-    return this->role == erFill
-        || this->role == erSolidFill
-        || this->role == erTopSolidFill;
-}
-
-bool
-ExtrusionEntity::is_bridge() const
-{
-    return this->role == erBrige
-        || this->role == erInternalBridge
-        || this->role == erOverhangPerimeter;
-}
-
 ExtrusionPath*
 ExtrusionPath::clone() const
 {
@@ -64,7 +39,7 @@ ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, Extru
 {
     // perform clipping
     Polylines clipped;
-    intersection(this->polyline, collection, clipped);
+    intersection<Polylines,Polylines>(this->polyline, collection, clipped);
     return this->_inflate_collection(clipped, retval);
 }
 
@@ -73,7 +48,7 @@ ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, Extrus
 {
     // perform clipping
     Polylines clipped;
-    diff(this->polyline, collection, clipped);
+    diff<Polylines,Polylines>(this->polyline, collection, clipped);
     return this->_inflate_collection(clipped, retval);
 }
 
@@ -95,6 +70,31 @@ ExtrusionPath::length() const
     return this->polyline.length();
 }
 
+bool
+ExtrusionPath::is_perimeter() const
+{
+    return this->role == erPerimeter
+        || this->role == erExternalPerimeter
+        || this->role == erOverhangPerimeter
+        || this->role == erContourInternalPerimeter;
+}
+
+bool
+ExtrusionPath::is_fill() const
+{
+    return this->role == erFill
+        || this->role == erSolidFill
+        || this->role == erTopSolidFill;
+}
+
+bool
+ExtrusionPath::is_bridge() const
+{
+    return this->role == erBridge
+        || this->role == erInternalBridge
+        || this->role == erOverhangPerimeter;
+}
+
 void
 ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const
 {
@@ -106,8 +106,22 @@ ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCo
 }
 
 #ifdef SLIC3RXS
+SV*
+ExtrusionPath::to_SV_ref() {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, perl_class_name_ref(this), this );
+    return sv;
+}
+
+SV*
+ExtrusionPath::to_SV_clone_ref() const {
+    SV* sv = newSV(0);
+    sv_setref_pv( sv, perl_class_name(this), new ExtrusionPath(*this) );
+    return sv;
+}
 
 REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
+#endif
 
 std::string
 ExtrusionPath::gcode(Extruder* extruder, double e, double F,
@@ -155,12 +169,12 @@ ExtrusionPath::gcode(Extruder* extruder, double e, double F,
 
     return stream.str();
 }
-#endif
 
-ExtrusionLoop::ExtrusionLoop(const Polygon &polygon, ExtrusionRole role)
+ExtrusionLoop::operator Polygon() const
 {
-    this->role = role;
-    this->set_polygon(polygon);
+    Polygon polygon;
+    this->polygon(&polygon);
+    return polygon;
 }
 
 ExtrusionLoop*
@@ -169,32 +183,19 @@ ExtrusionLoop::clone() const
     return new ExtrusionLoop (*this);
 }
 
-void
-ExtrusionLoop::split_at_index(int index, ExtrusionPath* path) const
+bool
+ExtrusionLoop::make_clockwise()
 {
-    Polygon polygon;
-    this->polygon(&polygon);
-    
-    polygon.split_at_index(index, &path->polyline);
-    
-    path->role          = this->role;
-    path->mm3_per_mm    = this->mm3_per_mm;
-    path->width         = this->width;
-    path->height        = this->height;
-}
-
-void
-ExtrusionLoop::split_at_first_point(ExtrusionPath* path) const
-{
-    return this->split_at_index(0, path);
+    Polygon polygon = *this;
+    bool was_ccw = polygon.is_counter_clockwise();
+    if (was_ccw) this->reverse();
+    return was_ccw;
 }
 
 bool
 ExtrusionLoop::make_counter_clockwise()
 {
-    Polygon polygon;
-    this->polygon(&polygon);
-    
+    Polygon polygon = *this;
     bool was_cw = polygon.is_clockwise();
     if (was_cw) this->reverse();
     return was_cw;
@@ -203,39 +204,114 @@ ExtrusionLoop::make_counter_clockwise()
 void
 ExtrusionLoop::reverse()
 {
-    for (Polylines::iterator polyline = this->polylines.begin(); polyline != this->polylines.end(); ++polyline)
-        polyline->reverse();
-    std::reverse(this->polylines.begin(), this->polylines.end());
+    for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        path->reverse();
+    std::reverse(this->paths.begin(), this->paths.end());
 }
 
 Point
 ExtrusionLoop::first_point() const
 {
-    return this->polylines.front().points.front();
+    return this->paths.front().polyline.points.front();
 }
 
 Point
 ExtrusionLoop::last_point() const
 {
-    return this->polylines.back().points.back();  // which coincides with first_point(), by the way
-}
-
-void
-ExtrusionLoop::set_polygon(const Polygon &polygon)
-{
-    Polyline polyline;
-    polygon.split_at_first_point(&polyline);
-    this->polylines.clear();
-    this->polylines.push_back(polyline);
+    return this->paths.back().polyline.points.back();  // which coincides with first_point(), by the way
 }
 
 void
 ExtrusionLoop::polygon(Polygon* polygon) const
 {
-    for (Polylines::const_iterator polyline = this->polylines.begin(); polyline != this->polylines.end(); ++polyline) {
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
         // for each polyline, append all points except the last one (because it coincides with the first one of the next polyline)
-        polygon->points.insert(polygon->points.end(), polyline->points.begin(), polyline->points.end()-1);
+        polygon->points.insert(polygon->points.end(), path->polyline.points.begin(), path->polyline.points.end()-1);
     }
+}
+
+double
+ExtrusionLoop::length() const
+{
+    double len = 0;
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        len += path->polyline.length();
+    return len;
+}
+
+void
+ExtrusionLoop::split_at(const Point &point)
+{
+    for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+        int idx = path->polyline.find_point(point);
+        if (idx != -1) {
+            if (this->paths.size() == 1) {
+                // just change the order of points
+                path->polyline.points.insert(path->polyline.points.end(), path->polyline.points.begin() + 1, path->polyline.points.begin() + idx + 1);
+                path->polyline.points.erase(path->polyline.points.begin(), path->polyline.points.begin() + idx);
+            } else {
+                // if we have multiple paths we assume they have different types, so no need to
+                // check for continuity as we do for the single path case above
+                
+                // new paths list starts with the second half of current path
+                ExtrusionPaths new_paths;
+                {
+                    ExtrusionPath p = *path;
+                    p.polyline.points.erase(p.polyline.points.begin(), p.polyline.points.begin() + idx);
+                    if (!p.polyline.points.empty()) new_paths.push_back(p);
+                }
+            
+                // then we add all paths until the end of current path list
+                new_paths.insert(new_paths.end(), this->paths.begin(), path);  // not including this path
+            
+                // then we add all paths since the beginning of current list up to the previous one
+                new_paths.insert(new_paths.end(), path+1, this->paths.end());  // not including this path
+            
+                // finally we add the first half of current path
+                {
+                    ExtrusionPath p = *path;
+                    p.polyline.points.erase(p.polyline.points.begin() + idx + 1, p.polyline.points.end());
+                    if (!p.polyline.points.empty()) new_paths.push_back(p);
+                }
+                // we can now override the old path list with the new one and stop looping
+                this->paths = new_paths;
+            }
+            return;
+        }
+    }
+    CONFESS("Point not found");
+}
+
+void
+ExtrusionLoop::clip_end(double distance, ExtrusionPaths* paths) const
+{
+    *paths = this->paths;
+    
+    while (distance > 0 && !paths->empty()) {
+        ExtrusionPath &last = paths->back();
+        double len = last.length();
+        if (len <= distance) {
+            paths->pop_back();
+            distance -= len;
+        } else {
+            last.polyline.clip_end(distance);
+            break;
+        }
+    }
+}
+
+bool
+ExtrusionLoop::has_overhang_point(const Point &point) const
+{
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+        int pos = path->polyline.find_point(point);
+        if (pos != -1) {
+            // point belongs to this path
+            // we consider it overhang only if it's not an endpoint
+            return (path->is_bridge() && pos > 0 && pos != path->polyline.points.size()-1);
+        }
+    }
+    return false;
 }
 
 #ifdef SLIC3RXS

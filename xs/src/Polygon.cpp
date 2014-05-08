@@ -15,6 +15,13 @@ Polygon::operator Polygons() const
     return pp;
 }
 
+Polygon::operator Polyline() const
+{
+    Polyline polyline;
+    this->split_at_first_point(&polyline);
+    return polyline;
+}
+
 Point&
 Polygon::operator[](Points::size_type idx)
 {

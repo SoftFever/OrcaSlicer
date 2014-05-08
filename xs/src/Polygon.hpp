@@ -15,6 +15,7 @@ typedef std::vector<Polygon> Polygons;
 class Polygon : public MultiPoint {
     public:
     operator Polygons() const;
+    operator Polyline() const;
     Point& operator[](Points::size_type idx);
     const Point& operator[](Points::size_type idx) const;
     Point last_point() const;

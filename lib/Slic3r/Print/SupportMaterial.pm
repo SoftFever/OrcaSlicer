@@ -70,14 +70,20 @@ sub generate {
     $self->clip_with_shape($base, $shape) if @$shape;
     
     # Install support layers into object.
-    push @{$object->support_layers}, map Slic3r::Layer::Support->new(
-        object  => $object,
-        id      => $_,
-        height  => ($_ == 0) ? $support_z->[$_] : ($support_z->[$_] - $support_z->[$_-1]),
-        print_z => $support_z->[$_],
-        slice_z => -1,
-        slices  => [],
-    ), 0 .. $#$support_z;
+    for my $i (0 .. $#$support_z) {
+        push @{$object->support_layers}, Slic3r::Layer::Support->new(
+            object  => $object,
+            id      => $i,
+            height  => ($i == 0) ? $support_z->[$i] : ($support_z->[$i] - $support_z->[$i-1]),
+            print_z => $support_z->[$i],
+            slice_z => -1,
+            slices  => [],
+        );
+        if ($i >= 1) {
+            $object->support_layers->[-2]->upper_layer($object->support_layers->[-1]);
+            $object->support_layers->[-1]->lower_layer($object->support_layers->[-2]);
+        }
+    }
     
     # Generate the actual toolpaths and save them into each layer.
     $self->generate_toolpaths($object, $overhang, $contact, $interface, $base);

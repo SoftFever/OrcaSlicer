@@ -55,6 +55,15 @@ MultiPoint::is_valid() const
     return this->points.size() >= 2;
 }
 
+int
+MultiPoint::find_point(const Point &point) const
+{
+    for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
+        if (it->coincides_with(point)) return it - this->points.begin();
+    }
+    return -1;  // not found
+}
+
 Points
 MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {

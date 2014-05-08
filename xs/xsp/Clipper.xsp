@@ -101,6 +101,15 @@ diff_pl(subject, clip)
     OUTPUT:
         RETVAL
 
+Polylines
+diff_ppl(subject, clip)
+    Polygons    subject
+    Polygons    clip
+    CODE:
+        diff(subject, clip, RETVAL);
+    OUTPUT:
+        RETVAL
+
 Polygons
 intersection(subject, clip, safety_offset = false)
     Polygons                    subject
@@ -124,6 +133,15 @@ intersection_ex(subject, clip, safety_offset = false)
 Polylines
 intersection_pl(subject, clip)
     Polylines                   subject
+    Polygons                    clip
+    CODE:
+        intersection(subject, clip, RETVAL);
+    OUTPUT:
+        RETVAL
+
+Polylines
+intersection_ppl(subject, clip)
+    Polygons                    subject
     Polygons                    clip
     CODE:
         intersection(subject, clip, RETVAL);

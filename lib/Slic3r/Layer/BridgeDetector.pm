@@ -3,7 +3,8 @@ use Moo;
 
 use List::Util qw(first sum max min);
 use Slic3r::Geometry qw(PI unscale scaled_epsilon rad2deg epsilon directions_parallel_within);
-use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex union offset diff_pl union_ex);
+use Slic3r::Geometry::Clipper qw(intersection_pl intersection_ex union offset diff_pl union_ex
+    intersection_ppl);
 
 has 'expolygon'         => (is => 'ro', required => 1);
 has 'lower_slices'      => (is => 'rw', required => 1);  # ExPolygons or ExPolygonCollection
@@ -26,7 +27,7 @@ sub BUILD {
     foreach my $lower (@{$self->lower_slices}) {
         # turn bridge contour and holes into polylines and then clip them
         # with each lower slice's contour
-        push @$edges, map @{$_->clip_as_polyline([$lower->contour])}, @$grown;
+        push @$edges, @{intersection_ppl($grown, [ $lower->contour ])};
     }
     Slic3r::debugf "  bridge has %d support(s)\n", scalar(@$edges);
     

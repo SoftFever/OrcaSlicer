@@ -140,7 +140,7 @@ _constant()
     EXTR_ROLE_FILL                         = erFill
     EXTR_ROLE_SOLIDFILL                    = erSolidFill
     EXTR_ROLE_TOPSOLIDFILL                 = erTopSolidFill
-    EXTR_ROLE_BRIDGE                       = erBrige
+    EXTR_ROLE_BRIDGE                       = erBridge
     EXTR_ROLE_INTERNALBRIDGE               = erInternalBridge
     EXTR_ROLE_SKIRT                        = erSkirt
     EXTR_ROLE_SUPPORTMATERIAL              = erSupportMaterial
