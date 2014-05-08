@@ -471,8 +471,8 @@ sub reset {
     my $self = shift;
     
     @{$self->{objects}} = ();
-    $self->{model}->delete_all_objects;
-    $self->{print}->delete_all_objects;
+    $self->{model}->clear_objects;
+    $self->{print}->clear_objects;
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     
@@ -542,7 +542,7 @@ sub rotate {
     
     {
         my $new_angle = $model_instance->rotation + $angle;
-        $_->rotation($new_angle) for @{ $model_object->instances };
+        $_->set_rotation($new_angle) for @{ $model_object->instances };
         $model_object->update_bounding_box;
         
         # update print
@@ -578,7 +578,7 @@ sub changescale {
             $range->[0] *= $variation;
             $range->[1] *= $variation;
         }
-        $_->scaling_factor($scale) for @{ $model_object->instances };
+        $_->set_scaling_factor($scale) for @{ $model_object->instances };
         $model_object->update_bounding_box;
         
         # update print
@@ -1108,10 +1108,11 @@ sub mouse_event {
         return if !$self->{drag_start_pos}; # concurrency problems
         my ($obj_idx, $instance_idx) = @{ $self->{drag_object} };
         my $model_object = $parent->{model}->objects->[$obj_idx];
-        $model_object->instances->[$instance_idx]->offset([
-            unscale($pos->[X] - $self->{drag_start_pos}[X]),
-            unscale($pos->[Y] - $self->{drag_start_pos}[Y]),
-        ]);
+        $model_object->instances->[$instance_idx]->set_offset(
+            Slic3r::Pointf->new(
+                unscale($pos->[X] - $self->{drag_start_pos}[X]),
+                unscale($pos->[Y] - $self->{drag_start_pos}[Y]),
+            ));
         $model_object->update_bounding_box;
         $parent->Refresh;
     } elsif ($event->Moving) {

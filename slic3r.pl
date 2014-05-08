@@ -172,7 +172,6 @@ if (@ARGV) {  # slicing from command line
         
         $sprint->apply_config($config);
         $sprint->set_model($model);
-        undef $model;  # free memory
         
         if ($opt{export_svg}) {
             $sprint->export_svg;

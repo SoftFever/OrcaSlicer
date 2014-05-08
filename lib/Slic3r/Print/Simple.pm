@@ -44,15 +44,15 @@ sub set_model {
     my ($self, $model) = @_;
     
     # make method idempotent so that the object is reusable
-    $self->_print->delete_all_objects;
+    $self->_print->clear_objects;
     
     # make sure all objects have at least one defined instance
     my $need_arrange = $model->add_default_instances;
     
     # apply scaling and rotation supplied from command line if any
     foreach my $instance (map @{$_->instances}, @{$model->objects}) {
-        $instance->scaling_factor($instance->scaling_factor * $self->scale);
-        $instance->rotation($instance->rotation + $self->rotate);
+        $instance->set_scaling_factor($instance->scaling_factor * $self->scale);
+        $instance->set_rotation($instance->rotation + $self->rotate);
     }
     
     if ($self->duplicate_grid->[X] > 1 || $self->duplicate_grid->[Y] > 1) {

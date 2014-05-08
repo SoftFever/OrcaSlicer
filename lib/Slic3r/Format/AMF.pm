@@ -35,8 +35,8 @@ sub write_file {
     printf $fh qq{<?xml version="1.0" encoding="UTF-8"?>\n};
     printf $fh qq{<amf unit="millimeter">\n};
     printf $fh qq{  <metadata type="cad">Slic3r %s</metadata>\n}, $Slic3r::VERSION;
-    for my $material_id (sort keys %{ $model->materials }) {
-        my $material = $model->materials->{$material_id};
+    for my $material_id (sort @{ $model->material_names }) {
+        my $material = $model->get_material($material_id);
         printf $fh qq{  <material id="%s">\n}, $material_id;
         for (keys %{$material->attributes}) {
              printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->attributes->{$_};

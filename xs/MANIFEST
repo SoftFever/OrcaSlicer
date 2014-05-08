@@ -1673,6 +1673,7 @@ src/Geometry.hpp
 src/Layer.hpp
 src/Line.cpp
 src/Line.hpp
+src/Model.cpp
 src/Model.hpp
 src/MultiPoint.cpp
 src/MultiPoint.hpp
@@ -1742,6 +1743,7 @@ xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
 xsp/Geometry.xsp
 xsp/Line.xsp
+xsp/Model.xsp
 xsp/my.map
 xsp/mytype.map
 xsp/Point.xsp

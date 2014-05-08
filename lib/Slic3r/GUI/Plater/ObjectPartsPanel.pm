@@ -158,7 +158,7 @@ sub selection_changed {
             
             # attach volume material config to settings panel
             my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
-            my $material = $self->{model_object}->model->materials->{ $volume->material_id // '_' };
+            my $material = $self->{model_object}->model->get_material($volume->material_id // '_');
             $material //= $volume->assign_unique_material;
             $self->{staticbox}->SetLabel('Part Settings');
             $self->{settings_panel}->enable;
@@ -211,7 +211,7 @@ sub on_btn_load {
                 $new_volume->mesh->translate(@{$self->{model_object}->origin_translation}, 0);
                 
                 # set a default extruder value, since user can't add it manually
-                my $material = $self->{model_object}->model->materials->{$new_volume->material_id};
+                my $material = $self->{model_object}->model->get_material($new_volume->material_id);
                 $material->config->set_ifndef('extruder', 1);
                 
                 $self->{parts_changed} = 1;

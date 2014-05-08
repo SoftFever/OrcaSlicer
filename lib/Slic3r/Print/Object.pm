@@ -10,7 +10,7 @@ use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
 has 'print'             => (is => 'ro', weak_ref => 1, required => 1);
-has 'model_object'      => (is => 'ro', required => 1);
+has 'model_object'      => (is => 'ro', required => 1);  # caller is responsible for holding the Model object
 has 'region_volumes'    => (is => 'rw', default => sub { [] });  # by region_id
 has 'copies'            => (is => 'ro');  # Slic3r::Point objects in scaled G-code coordinates
 has 'config'            => (is => 'ro', default => sub { Slic3r::Config::PrintObject->new });
