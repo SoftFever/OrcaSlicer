@@ -20,6 +20,8 @@ class TriangleMesh
     public:
     TriangleMesh();
     TriangleMesh(const TriangleMesh &other);
+    TriangleMesh& operator= (TriangleMesh other);
+    void swap(TriangleMesh &other);
     ~TriangleMesh();
     void ReadSTLFile(char* input_file);
     void write_ascii(char* output_file);

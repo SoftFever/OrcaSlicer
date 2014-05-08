@@ -250,6 +250,18 @@ ConfigBase::set_deserialize(const t_config_option_key opt_key, SV* str) {
 }
 #endif
 
+DynamicConfig& DynamicConfig::operator= (DynamicConfig other)
+{
+    this->swap(other);
+    return *this;
+}
+
+void
+DynamicConfig::swap(DynamicConfig &other)
+{
+    std::swap(this->options, other.options);
+}
+
 DynamicConfig::~DynamicConfig () {
     for (t_options_map::iterator it = this->options.begin(); it != this->options.end(); ++it) {
         ConfigOption* opt = it->second;

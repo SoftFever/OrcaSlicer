@@ -35,6 +35,8 @@ class Model
     
     Model();
     Model(const Model &other);
+    Model& operator= (Model other);
+    void swap(Model &other);
     ~Model();
     ModelObject* add_object(const std::string &input_file, const DynamicPrintConfig &config,
         const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
@@ -82,12 +84,12 @@ class ModelObject
     DynamicPrintConfig config;
     t_layer_height_ranges layer_height_ranges;
     Pointf origin_translation;
-    BoundingBoxf3 _bounding_box;
-    bool _bounding_box_valid;
     
     ModelObject(Model *model, const std::string &input_file, const DynamicPrintConfig &config,
         const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
     ModelObject(const ModelObject &other);
+    ModelObject& operator= (ModelObject other);
+    void swap(ModelObject &other);
     ~ModelObject();
 
     ModelVolume* add_volume(const t_model_material_id &material_id,
@@ -118,6 +120,9 @@ class ModelObject
     #endif
 
     private:
+    BoundingBoxf3 _bounding_box;
+    bool _bounding_box_valid;
+    
     void update_bounding_box();
 };
 
@@ -147,7 +152,6 @@ class ModelInstance
 
     ModelInstance(ModelObject *object, double rotation, double scaling_factor,
         const Pointf &offset);
-    ~ModelInstance();
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate) const;
     void transform_polygon(Polygon* polygon) const;

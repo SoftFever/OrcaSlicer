@@ -30,6 +30,19 @@ Model::Model(const Model &other)
     }
 }
 
+Model& Model::operator= (Model other)
+{
+    this->swap(other);
+    return *this;
+}
+
+void
+Model::swap(Model &other)
+{
+    std::swap(this->materials,  other.materials);
+    std::swap(this->objects,    other.objects);
+}
+
 Model::~Model()
 {
     this->clear_objects();
@@ -57,7 +70,8 @@ Model::delete_object(size_t idx)
 void
 Model::clear_objects()
 {
-    for (size_t i = this->objects.size()-1; i >= 0; --i)
+    // int instead of size_t because it can be -1 when vector is empty
+    for (int i = this->objects.size()-1; i >= 0; --i)
         this->delete_object(i);
 }
 
@@ -194,6 +208,25 @@ ModelObject::ModelObject(const ModelObject &other)
     }
 }
 
+ModelObject& ModelObject::operator= (ModelObject other)
+{
+    this->swap(other);
+    return *this;
+}
+
+void
+ModelObject::swap(ModelObject &other)
+{
+    std::swap(this->input_file,             other.input_file);
+    std::swap(this->instances,              other.instances);
+    std::swap(this->volumes,                other.volumes);
+    std::swap(this->config,                 other.config);
+    std::swap(this->layer_height_ranges,    other.layer_height_ranges);
+    std::swap(this->origin_translation,     other.origin_translation);
+    std::swap(this->_bounding_box,          other._bounding_box);
+    std::swap(this->_bounding_box_valid,    other._bounding_box_valid);
+}
+
 ModelObject::~ModelObject()
 {
     this->clear_volumes();
@@ -222,7 +255,8 @@ ModelObject::delete_volume(size_t idx)
 void
 ModelObject::clear_volumes()
 {
-    for (size_t i = this->volumes.size()-1; i >= 0; --i)
+    // int instead of size_t because it can be -1 when vector is empty
+    for (int i = this->volumes.size()-1; i >= 0; --i)
         this->delete_volume(i);
 }
 
@@ -304,10 +338,6 @@ ModelInstance::ModelInstance(ModelObject *object, double rotation,
     rotation(rotation),
     scaling_factor(scaling_factor),
     offset(offset)
-{
-}
-
-ModelInstance::~ModelInstance()
 {
 }
 

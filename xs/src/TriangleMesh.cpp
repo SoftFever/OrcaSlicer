@@ -50,6 +50,23 @@ TriangleMesh::TriangleMesh(const TriangleMesh &other)
     }
 }
 
+TriangleMesh& TriangleMesh::operator= (TriangleMesh other)
+{
+    this->swap(other);
+    return *this;
+}
+
+void
+TriangleMesh::swap(TriangleMesh &other)
+{
+    std::swap(this->stl,                 other.stl);
+    std::swap(this->repaired,            other.repaired);
+    std::swap(this->stl.facet_start,     other.stl.facet_start);
+    std::swap(this->stl.neighbors_start, other.stl.neighbors_start);
+    std::swap(this->stl.v_indices,       other.stl.v_indices);
+    std::swap(this->stl.v_shared,        other.stl.v_shared);
+}
+
 TriangleMesh::~TriangleMesh() {
     stl_close(&this->stl);
 }

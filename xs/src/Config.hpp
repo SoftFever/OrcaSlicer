@@ -488,6 +488,8 @@ class DynamicConfig : public ConfigBase
     public:
     DynamicConfig() {};
     DynamicConfig(const DynamicConfig& other);
+    DynamicConfig& operator= (DynamicConfig other);
+    void swap(DynamicConfig &other);
     ~DynamicConfig();
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     const ConfigOption* option(const t_config_option_key opt_key) const;
@@ -495,7 +497,6 @@ class DynamicConfig : public ConfigBase
     void erase(const t_config_option_key opt_key);
     
     private:
-    DynamicConfig& operator= (const DynamicConfig& other);  // we disable this by making it private and unimplemented
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
     t_options_map options;
 };
