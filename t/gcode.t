@@ -78,7 +78,7 @@ use Slic3r::Test;
         
         
     });
-    ok $print->total_used_filament > 0, 'final retraction is not considered in total used filament';
+    ok $print->print->total_used_filament > 0, 'final retraction is not considered in total used filament';
 }
 
 {

@@ -38,13 +38,16 @@ class Model
     Model& operator= (Model other);
     void swap(Model &other);
     ~Model();
-    ModelObject* add_object(const std::string &input_file, const DynamicPrintConfig &config,
-        const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
+    ModelObject* add_object();
+    ModelObject* add_object(const ModelObject &other);
     void delete_object(size_t idx);
     void clear_objects();
+    
+    ModelMaterial* add_material(t_model_material_id material_id);
+    ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
+    ModelMaterial* get_material(t_model_material_id material_id);
     void delete_material(t_model_material_id material_id);
     void clear_materials();
-    ModelMaterial *set_material(t_model_material_id material_id);
     // void duplicate_objects_grid(unsigned int x, unsigned int y, coordf_t distance);
     // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     // void arrange_objects(coordf_t distance, const BoundingBox &bb);
@@ -65,19 +68,25 @@ class Model
 
 class ModelMaterial
 {
+    friend class Model;
     public:
-    Model* model;
     t_model_material_attributes attributes;
     DynamicPrintConfig config;
 
-    ModelMaterial(Model *model);
+    Model* get_model() const { return this->model; };
     void apply(const t_model_material_attributes &attributes);
+    
+    private:
+    Model* model;
+    
+    ModelMaterial(Model *model);
+    ModelMaterial(Model *model, const ModelMaterial &other);
 };
 
 class ModelObject
 {
+    friend class Model;
     public:
-    Model* model;
     std::string input_file;
     ModelInstancePtrs instances;
     ModelVolumePtrs volumes;
@@ -89,65 +98,76 @@ class ModelObject
     BoundingBoxf3 _bounding_box;
     bool _bounding_box_valid;
     
-    ModelObject(Model *model, const std::string &input_file, const DynamicPrintConfig &config,
-        const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation);
-    ModelObject(const ModelObject &other);
-    ModelObject& operator= (ModelObject other);
-    void swap(ModelObject &other);
-    ~ModelObject();
-
-    ModelVolume* add_volume(const t_model_material_id &material_id,
-        const TriangleMesh &mesh, bool modifier);
+    Model* get_model() const { return this->model; };
+    
+    ModelVolume* add_volume(const TriangleMesh &mesh);
+    ModelVolume* add_volume(const ModelVolume &volume);
     void delete_volume(size_t idx);
     void clear_volumes();
 
-    ModelInstance *add_instance(double rotation=0, double scaling_factor = 1,
-        Pointf offset = Pointf(0, 0));
+    ModelInstance* add_instance();
+    ModelInstance* add_instance(const ModelInstance &instance);
     void delete_instance(size_t idx);
     void delete_last_instance();
     void clear_instances();
 
     void invalidate_bounding_box();
 
-    void raw_mesh(TriangleMesh* mesh) const;
-    void mesh(TriangleMesh* mesh) const;
-    void instance_bounding_box(size_t instance_idx, BoundingBox* bb) const;
-    void center_around_origin();
-    void translate(coordf_t x, coordf_t y, coordf_t z);
-    size_t materials_count() const;
-    void unique_materials(std::vector<t_model_material_id>* materials) const;
-    size_t facets_count() const;
-    bool needed_repair() const;
+    //void raw_mesh(TriangleMesh* mesh) const;
+    //void mesh(TriangleMesh* mesh) const;
+    //void instance_bounding_box(size_t instance_idx, BoundingBox* bb) const;
+    //void center_around_origin();
+    //void translate(coordf_t x, coordf_t y, coordf_t z);
+    //size_t materials_count() const;
+    //void unique_materials(std::vector<t_model_material_id>* materials) const;
+    //size_t facets_count() const;
+    //bool needed_repair() const;
     
     private:
+    Model* model;
+    
+    ModelObject(Model *model);
+    ModelObject(Model *model, const ModelObject &other);
+    ModelObject& operator= (ModelObject other);
+    void swap(ModelObject &other);
+    ~ModelObject();
     void update_bounding_box();
 };
 
 class ModelVolume
 {
+    friend class ModelObject;
     public:
-    ModelObject* object;
     t_model_material_id material_id;
     TriangleMesh mesh;
     bool modifier;
-
-    ModelVolume(ModelObject *object, const t_model_material_id &material_id,
-        const TriangleMesh &mesh, bool modifier);
+    
+    ModelObject* get_object() const { return this->object; };
+    
+    private:
+    ModelObject* object;
+    
+    ModelVolume(ModelObject *object, const TriangleMesh &mesh);
+    ModelVolume(ModelObject *object, const ModelVolume &other);
 };
 
 class ModelInstance
 {
+    friend class ModelObject;
     public:
-    ModelObject* object;
     double rotation;            // around mesh center point
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
-
-    ModelInstance(ModelObject *object, double rotation, double scaling_factor,
-        const Pointf &offset);
     
+    ModelObject* get_object() const { return this->object; };
     void transform_mesh(TriangleMesh* mesh, bool dont_translate) const;
     void transform_polygon(Polygon* polygon) const;
+    
+    private:
+    ModelObject* object;
+    
+    ModelInstance(ModelObject *object);
+    ModelInstance(ModelObject *object, const ModelInstance &other);
 };
 
 }

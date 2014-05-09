@@ -6,24 +6,14 @@ Model::Model() {}
 
 Model::Model(const Model &other)
 {
-    objects.reserve(other.objects.size());
-
-    for (ModelMaterialMap::const_iterator i = other.materials.begin();
-        i != other.materials.end(); ++i)
-    {
-        ModelMaterial *copy = new ModelMaterial(*i->second);
-        copy->model = this;
-        materials[i->first] = copy;
-
-    }
-
-    for (ModelObjectPtrs::const_iterator i = other.objects.begin();
-        i != other.objects.end(); ++i)
-    {
-        ModelObject *copy = new ModelObject(**i);
-        copy->model = this;
-        objects.push_back(copy);
-    }
+    // copy materials
+    for (ModelMaterialMap::const_iterator i = other.materials.begin(); i != other.materials.end(); ++i)
+        this->add_material(i->first, *i->second);
+    
+    // copy objects
+    this->objects.reserve(other.objects.size());
+    for (ModelObjectPtrs::const_iterator i = other.objects.begin(); i != other.objects.end(); ++i)
+        this->add_object(**i);
 }
 
 Model& Model::operator= (Model other)
@@ -46,13 +36,19 @@ Model::~Model()
 }
 
 ModelObject*
-Model::add_object(const std::string &input_file, const DynamicPrintConfig &config,
-    const t_layer_height_ranges &layer_height_ranges, const Pointf &origin_translation)
+Model::add_object()
 {
-    ModelObject* object = new ModelObject(this, input_file, config,
-        layer_height_ranges, origin_translation);
-    this->objects.push_back(object);
-    return object;
+    ModelObject* new_object = new ModelObject(this);
+    this->objects.push_back(new_object);
+    return new_object;
+}
+
+ModelObject*
+Model::add_object(const ModelObject &other)
+{
+    ModelObject* new_object = new ModelObject(this, other);
+    this->objects.push_back(new_object);
+    return new_object;
 }
 
 void
@@ -88,19 +84,40 @@ Model::clear_materials()
         this->delete_material( this->materials.begin()->first );
 }
 
-ModelMaterial *
-Model::set_material(t_model_material_id material_id)
+ModelMaterial*
+Model::add_material(t_model_material_id material_id)
 {
-    ModelMaterialMap::iterator i = this->materials.find(material_id);
-    
-    ModelMaterial *mat;
-    if (i == this->materials.end()) {
-        mat = this->materials[material_id] = new ModelMaterial(this);
-    } else {
-        mat = i->second;
+    ModelMaterial* material = this->get_material(material_id);
+    if (material == NULL) {
+        material = this->materials[material_id] = new ModelMaterial(this);
+    }
+    return material;
+}
+
+ModelMaterial*
+Model::add_material(t_model_material_id material_id, const ModelMaterial &other)
+{
+    // delete existing material if any
+    ModelMaterial* material = this->get_material(material_id);
+    if (material != NULL) {
+        delete material;
     }
     
-    return mat;
+    // set new material
+    material = new ModelMaterial(this, other);
+    this->materials[material_id] = material;
+    return material;
+}
+
+ModelMaterial*
+Model::get_material(t_model_material_id material_id)
+{
+    ModelMaterialMap::iterator i = this->materials.find(material_id);
+    if (i == this->materials.end()) {
+        return NULL;
+    } else {
+        return i->second;
+    }
 }
 
 /*
@@ -147,6 +164,9 @@ REGISTER_CLASS(Model, "Model");
 
 
 ModelMaterial::ModelMaterial(Model *model) : model(model) {}
+ModelMaterial::ModelMaterial(Model *model, const ModelMaterial &other)
+    : model(model), config(other.config), attributes(other.attributes)
+{}
 
 void
 ModelMaterial::apply(const t_model_material_attributes &attributes)
@@ -160,20 +180,12 @@ REGISTER_CLASS(ModelMaterial, "Model::Material");
 #endif
 
 
-ModelObject::ModelObject(Model *model, const std::string &input_file,
-    const DynamicPrintConfig &config, const t_layer_height_ranges &layer_height_ranges,
-    const Pointf &origin_translation)
-:   model(model),
-    input_file(input_file),
-    config(config),
-    layer_height_ranges(layer_height_ranges),
-    origin_translation(origin_translation),
-    _bounding_box_valid(false)
-{
-}
+ModelObject::ModelObject(Model *model)
+    : model(model)
+{}
 
-ModelObject::ModelObject(const ModelObject &other)
-:   model(other.model),
+ModelObject::ModelObject(Model *model, const ModelObject &other)
+:   model(model),
     input_file(other.input_file),
     instances(),
     volumes(),
@@ -183,25 +195,14 @@ ModelObject::ModelObject(const ModelObject &other)
     _bounding_box(other._bounding_box),
     _bounding_box_valid(other._bounding_box_valid)
 {
-    volumes.reserve(other.volumes.size());
-    instances.reserve(other.instances.size());
 
-    for (ModelVolumePtrs::const_iterator i = other.volumes.begin();
-        i != other.volumes.end(); ++i)
-    {
-        ModelVolume *v = new ModelVolume(**i);
-        v->object = this;
-        volumes.push_back(v);
+    this->volumes.reserve(other.volumes.size());
+    for (ModelVolumePtrs::const_iterator i = other.volumes.begin(); i != other.volumes.end(); ++i)
+        this->add_volume(**i);
 
-    }
-
-    for (ModelInstancePtrs::const_iterator i = other.instances.begin();
-        i != other.instances.end(); ++i)
-    {
-        ModelInstance *in = new ModelInstance(**i);
-        in->object = this;
-        instances.push_back(in);
-    }
+    this->instances.reserve(other.instances.size());
+    for (ModelInstancePtrs::const_iterator i = other.instances.begin(); i != other.instances.end(); ++i)
+        this->add_instance(**i);
 }
 
 ModelObject& ModelObject::operator= (ModelObject other)
@@ -229,11 +230,19 @@ ModelObject::~ModelObject()
     this->clear_instances();
 }
 
-ModelVolume *
-ModelObject::add_volume(const t_model_material_id &material_id,
-        const TriangleMesh &mesh, bool modifier)
+ModelVolume*
+ModelObject::add_volume(const TriangleMesh &mesh)
 {
-    ModelVolume *v = new ModelVolume(this, material_id, mesh, modifier);
+    ModelVolume* v = new ModelVolume(this, mesh);
+    this->volumes.push_back(v);
+    this->invalidate_bounding_box();
+    return v;
+}
+
+ModelVolume*
+ModelObject::add_volume(const ModelVolume &other)
+{
+    ModelVolume* v = new ModelVolume(this, other);
     this->volumes.push_back(v);
     this->invalidate_bounding_box();
     return v;
@@ -256,12 +265,19 @@ ModelObject::clear_volumes()
         this->delete_volume(i);
 }
 
-ModelInstance *
-ModelObject::add_instance(double rotation, double scaling_factor,
-    Pointf offset)
+ModelInstance*
+ModelObject::add_instance()
 {
-    ModelInstance *i = new ModelInstance(
-        this, rotation, scaling_factor, offset);
+    ModelInstance* i = new ModelInstance(this);
+    this->instances.push_back(i);
+    this->invalidate_bounding_box();
+    return i;
+}
+
+ModelInstance*
+ModelObject::add_instance(const ModelInstance &other)
+{
+    ModelInstance* i = new ModelInstance(this, other);
     this->instances.push_back(i);
     this->invalidate_bounding_box();
     return i;
@@ -300,28 +316,26 @@ REGISTER_CLASS(ModelObject, "Model::Object");
 #endif
 
 
-ModelVolume::ModelVolume(ModelObject* object, const t_model_material_id &material_id,
-    const TriangleMesh &mesh, bool modifier)
-:   object(object),
-    material_id(material_id),
-    mesh(mesh),
-    modifier(modifier)
-{
-}
+ModelVolume::ModelVolume(ModelObject* object, const TriangleMesh &mesh)
+:   object(object), mesh(mesh), modifier(false)
+{}
+
+ModelVolume::ModelVolume(ModelObject* object, const ModelVolume &other)
+:   object(object), material_id(other.material_id), mesh(other.mesh), modifier(other.modifier)
+{}
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelVolume, "Model::Volume");
 #endif
 
 
-ModelInstance::ModelInstance(ModelObject *object, double rotation,
-    double scaling_factor, const Pointf &offset)
-:   object(object),
-    rotation(rotation),
-    scaling_factor(scaling_factor),
-    offset(offset)
-{
-}
+ModelInstance::ModelInstance(ModelObject *object)
+:   object(object), rotation(0), scaling_factor(1)
+{}
+
+ModelInstance::ModelInstance(ModelObject *object, const ModelInstance &other)
+:   object(object), rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset)
+{}
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelInstance, "Model::Instance");

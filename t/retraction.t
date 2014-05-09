@@ -42,8 +42,8 @@ use Slic3r::Test qw(_eq);
         
             if ($info->{dist_Z}) {
                 # lift move or lift + change layer
-                if (_eq($info->{dist_Z}, $print->config->get_at('retract_lift', $tool))
-                    || (_eq($info->{dist_Z}, $conf->layer_height + $print->config->get_at('retract_lift', $tool)) && $print->config->get_at('retract_lift', $tool) > 0)) {
+                if (_eq($info->{dist_Z}, $print->print->config->get_at('retract_lift', $tool))
+                    || (_eq($info->{dist_Z}, $conf->layer_height + $print->print->config->get_at('retract_lift', $tool)) && $print->print->config->get_at('retract_lift', $tool) > 0)) {
                     fail 'only lifting while retracted' if !$retracted[$tool] && !($conf->g0 && $info->{retracting});
                     fail 'double lift' if $lifted;
                     $lifted = 1;
@@ -51,8 +51,8 @@ use Slic3r::Test qw(_eq);
                 if ($info->{dist_Z} < 0) {
                     fail 'going down only after lifting' if !$lifted;
                     fail 'going down by the same amount of the lift or by the amount needed to get to next layer'
-                        if !_eq($info->{dist_Z}, -$print->config->get_at('retract_lift', $tool))
-                            && !_eq($info->{dist_Z}, -$print->config->get_at('retract_lift', $tool) + $conf->layer_height);
+                        if !_eq($info->{dist_Z}, -$print->print->config->get_at('retract_lift', $tool))
+                            && !_eq($info->{dist_Z}, -$print->print->config->get_at('retract_lift', $tool) + $conf->layer_height);
                     $lifted = 0;
                 }
                 fail 'move Z at travel speed' if ($args->{F} // $self->F) != $conf->travel_speed * 60;
@@ -60,9 +60,9 @@ use Slic3r::Test qw(_eq);
             if ($info->{retracting}) {
                 $retracted[$tool] = 1;
                 $retracted_length[$tool] += -$info->{dist_E};
-                if (_eq($retracted_length[$tool], $print->config->get_at('retract_length', $tool))) {
+                if (_eq($retracted_length[$tool], $print->print->config->get_at('retract_length', $tool))) {
                     # okay
-                } elsif (_eq($retracted_length[$tool], $print->config->get_at('retract_length_toolchange', $tool))) {
+                } elsif (_eq($retracted_length[$tool], $print->print->config->get_at('retract_length_toolchange', $tool))) {
                     $wait_for_toolchange = 1;
                 } else {
                     fail 'retracted by the correct amount';
@@ -73,9 +73,9 @@ use Slic3r::Test qw(_eq);
             if ($info->{extruding}) {
                 fail 'only extruding while not lifted' if $lifted;
                 if ($retracted[$tool]) {
-                    my $expected_amount = $retracted_length[$tool] + $print->config->get_at('retract_restart_extra', $tool);
+                    my $expected_amount = $retracted_length[$tool] + $print->print->config->get_at('retract_restart_extra', $tool);
                     if ($changed_tool && $toolchange_count[$tool] > 1) {
-                        $expected_amount = $print->config->get_at('retract_length_toolchange', $tool) + $print->config->get_at('retract_restart_extra_toolchange', $tool);
+                        $expected_amount = $print->print->config->get_at('retract_length_toolchange', $tool) + $print->print->config->get_at('retract_restart_extra_toolchange', $tool);
                         $changed_tool = 0;
                     }
                     fail 'unretracted by the correct amount'
@@ -84,7 +84,7 @@ use Slic3r::Test qw(_eq);
                     $retracted_length[$tool] = 0;
                 }
             }
-            if ($info->{travel} && $info->{dist_XY} >= $print->config->get_at('retract_before_travel', $tool)) {
+            if ($info->{travel} && $info->{dist_XY} >= $print->print->config->get_at('retract_before_travel', $tool)) {
                 fail 'retracted before long travel move' if !$retracted[$tool];
             }
         });

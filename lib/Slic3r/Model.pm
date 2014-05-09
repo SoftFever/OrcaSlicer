@@ -31,48 +31,34 @@ sub merge {
 sub add_object {
     my $self = shift;
     
-    my $new_object;
     if (@_ == 1) {
         # we have a Model::Object
         my ($object) = @_;
-
-        $new_object = $self->add_object(
-            input_file          => $object->input_file,
-            config              => $object->config,
-            layer_height_ranges => $object->layer_height_ranges,    # TODO: clone!
-            origin_translation  => $object->origin_translation,
-        );
-        
-        foreach my $volume (@{$object->volumes}) {
-            $new_object->add_volume($volume);
-        }
-        
-        $new_object->add_instance(
-            offset              => [ @{$_->offset} ],
-            rotation            => $_->rotation,
-            scaling_factor      => $_->scaling_factor,
-        ) for @{ $object->instances // [] };
+        return $self->_add_object_clone($object);
     } else {
         my (%args) = @_;
-        $new_object = $self->_add_object(
-            $args{input_file},
-            $args{config} // Slic3r::Config->new,
-            $args{layer_height_ranges} // [],
-            $args{origin_translation} // Slic3r::Pointf->new,
-            );
+        
+        my $new_object = $self->_add_object;
+        
+        $new_object->set_input_file($args{input_file})
+            if defined $args{input_file};
+        $new_object->config->apply($args{config})
+            if defined $args{config};
+        $new_object->set_layer_height_ranges($args{layer_height_ranges})
+            if defined $args{layer_height_ranges};
+        $new_object->set_origin_translation($args{origin_translation})
+            if defined $args{origin_translation};
+        
+        return $new_object;
     }
-    
-    return $new_object;
 }
 
 sub set_material {
     my $self = shift;
     my ($material_id, $attributes) = @_;
     
-    $attributes //= {};
-    
-    my $material = $self->_set_material($material_id);
-    $material->set_attribute($_, $attributes->{$_}) for keys %$attributes;
+    my $material = $self->add_material($material_id);
+    $material->apply($attributes // {});
     return $material;
 }
 
@@ -89,10 +75,10 @@ sub duplicate_objects_grid {
     for my $x_copy (1..$grid->[X]) {
         for my $y_copy (1..$grid->[Y]) {
             $object->add_instance(
-                offset => [
+                offset => Slic3r::Pointf->new(
                     ($size->[X] + $distance) * ($x_copy-1),
                     ($size->[Y] + $distance) * ($y_copy-1),
-                ],
+                ),
             );
         }
     }
@@ -106,12 +92,7 @@ sub duplicate_objects {
     foreach my $object (@{$self->objects}) {
         my @instances = @{$object->instances};
         foreach my $instance (@instances) {
-            ### $object->add_instance($instance->clone);  if we had clone()
-            $object->add_instance(
-                offset          => [ @{$instance->offset} ],
-                rotation        => $instance->rotation,
-                scaling_factor  => $instance->scaling_factor,
-            ) for 2..$copies_num;
+            $object->add_instance($instance) for 2..$copies_num;
         }
     }
     
@@ -151,9 +132,8 @@ sub duplicate {
         my @instances = @{$object->instances};  # store separately to avoid recursion from add_instance() below
         foreach my $instance (@instances) {
             foreach my $pos (@positions) {
-                ### $object->add_instance($instance->clone);  if we had clone()
                 $object->add_instance(
-                    offset          => [ $instance->offset->[X] + $pos->[X], $instance->offset->[Y] + $pos->[Y] ],
+                    offset          => Slic3r::Pointf->new($instance->offset->[X] + $pos->[X], $instance->offset->[Y] + $pos->[Y]),
                     rotation        => $instance->rotation,
                     scaling_factor  => $instance->scaling_factor,
                 );
@@ -187,8 +167,8 @@ sub add_default_instances {
     # apply a default position to all objects not having one
     my $added = 0;
     foreach my $object (@{$self->objects}) {
-        if (!defined $object->instances) {
-            $object->add_instance(offset => [0,0]);
+        if ($object->instances_count == 0) {
+            $object->add_instance(offset => Slic3r::Pointf->new(0,0));
             $added = 1;
         }
     }
@@ -286,7 +266,7 @@ sub split_meshes {
             
             # add one instance per original instance
             $new_object->add_instance(
-                offset          => [ @{$_->offset} ],
+                offset          => Slic3r::Pointf->new(@{$_->offset}),
                 rotation        => $_->rotation,
                 scaling_factor  => $_->scaling_factor,
             ) for @{ $object->instances // [] };
@@ -314,6 +294,11 @@ sub get_material_name {
 
 package Slic3r::Model::Material;
 
+sub apply {
+    my ($self, $attributes) = @_;
+    $self->set_attribute($_, $attributes{$_}) for keys %$attributes;
+}
+
 package Slic3r::Model::Object;
 
 use File::Basename qw(basename);
@@ -328,8 +313,7 @@ sub add_volume {
         # we have a Model::Volume
         my ($volume) = @_;
         
-        $new_volume = $self->_add_volume(
-            $volume->material_id, $volume->mesh->clone, $volume->modifier);
+        $new_volume = $self->_add_volume_clone($volume);
         
         # TODO: material_id can't be undef.
         if (defined $volume->material_id) {
@@ -345,10 +329,13 @@ sub add_volume {
         }
     } else {
         my %args = @_;
-        $new_volume = $self->_add_volume(
-            $args{material_id},
-            $args{mesh},
-            $args{modifier} // 0);
+        
+        $new_volume = $self->_add_volume($args{mesh});
+        
+        $new_volume->set_material_id($args{material_id})
+            if defined $args{material_id};
+        $new_volume->set_modifier($args{modifier})
+            if defined $args{modifier};
     }
     
     if (defined $new_volume->material_id && !defined $self->model->get_material($new_volume->material_id)) {
@@ -356,7 +343,7 @@ sub add_volume {
         $self->model->set_material($new_volume->material_id);
     }
     
-    $self->invalidate_bounding_box();
+    $self->invalidate_bounding_box;
     
     return $new_volume;
 }
@@ -364,16 +351,25 @@ sub add_volume {
 sub add_instance {
     my $self = shift;
     my %params = @_;
-
-    return $self->_add_instance(
-        $params{rotation} // 0,
-        $params{scaling_factor} // 1,
-        $params{offset} // []);
-}
-
-sub instances_count {
-    my $self = shift;
-    return scalar(@{ $self->instances // [] });
+    
+    if (@_ == 1) {
+        # we have a Model::Instance
+        my ($instance) = @_;
+        return $self->_add_instance_clone($instance);
+    } else {
+        my (%args) = @_;
+        
+        my $new_instance = $self->_add_instance;
+        
+        $new_instance->set_rotation($args{rotation})
+            if defined $args{rotation};
+        $new_instance->set_scaling_factor($args{scaling_factor})
+            if defined $args{scaling_factor};
+        $new_instance->set_offset($args{offset})
+            if defined $args{offset};
+        
+        return $new_instance;
+    }
 }
 
 sub raw_mesh {
@@ -446,11 +442,12 @@ sub center_around_origin {
     $self->translate(@shift);
     $self->origin_translation->translate(@shift[X,Y]);
     
-    if (defined $self->instances) {
+    if ($self->instances_count > 0) {
         foreach my $instance (@{ $self->instances }) {
             $instance->set_offset(Slic3r::Pointf->new(
                 $instance->offset->x - $shift[X],
-                $instance->offset->y - $shift[Y]));
+                $instance->offset->y - $shift[Y],   #--
+            ));
         }
         $self->update_bounding_box;
     }
@@ -538,23 +535,12 @@ sub cut {
     my ($self, $z) = @_;
     
     # clone this one
-    my $upper = Slic3r::Model::Object->new(
-        $self->model,
-        $self->input_file,
-        $self->config,  # config is cloned by new()
-        $self->layer_height_ranges,
-        $self->origin_translation,
-    );
-    my $lower = Slic3r::Model::Object->new(
-        $self->model,
-        $self->input_file,
-        $self->config,  # config is cloned by new()
-        $self->layer_height_ranges,
-        $self->origin_translation,
-    );
+    my $upper = $self->model->add_object($self);
+    my $lower = $self->model->add_object($self);
+    
     foreach my $instance (@{$self->instances}) {
-        $upper->add_instance(offset => [ @{$instance->offset} ]);
-        $lower->add_instance(offset => [ @{$instance->offset} ]);
+        $upper->add_instance(offset => Slic3r::Pointf->new(@{$instance->offset}));
+        $lower->add_instance(offset => Slic3r::Pointf->new(@{$instance->offset}));
     }
     
     foreach my $volume (@{$self->volumes}) {

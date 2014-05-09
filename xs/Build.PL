@@ -11,7 +11,8 @@ use Module::Build::WithXSpp;
 # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
 my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS);
 if ($ENV{SLIC3R_DEBUG}) {
-    push @cflags, qw(-DSLIC3R_DEBUG -g -ftemplate-backtrace-limit=0);
+    # only on newer GCCs: -ftemplate-backtrace-limit=0
+    push @cflags, qw(-DSLIC3R_DEBUG -g);
 }
 if (ExtUtils::CppGuess->new->is_gcc) {
     # check whether we're dealing with a buggy GCC version

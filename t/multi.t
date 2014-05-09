@@ -173,7 +173,7 @@ sub stacked_cubes {
     my $object = $model->add_object;
     $object->add_volume(mesh => Slic3r::Test::mesh('20mm_cube'), material_id => 'lower');
     $object->add_volume(mesh => Slic3r::Test::mesh('20mm_cube', translate => [0,0,20]), material_id => 'upper');
-    $object->add_instance(offset => [0,0]);
+    $object->add_instance(offset => Slic3r::Pointf->new(0,0));
     
     return $model;
 }

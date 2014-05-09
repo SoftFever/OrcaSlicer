@@ -18,7 +18,7 @@ $ARGV[0] or usage(1);
 
 if (-e $ARGV[0]) {
     my $model = Slic3r::Format::STL->read_file($ARGV[0]);
-    $model->objects->[0]->add_instance(offset => [0,0]);
+    $model->objects->[0]->add_instance(offset => Slic3r::Pointf->new(0,0));
     my $mesh = $model->mesh;
     $mesh->repair;
     printf "VERTICES = %s\n", join ',', map "[$_->[0],$_->[1],$_->[2]]", @{$mesh->vertices};

@@ -12,38 +12,30 @@
 
     Clone<Model> clone()
         %code%{ RETVAL = THIS; %};
-
-    Ref<ModelObject> _add_object(std::string input_file,
-            DynamicPrintConfig* config,
-            t_layer_height_ranges layer_height_ranges,
-            Pointf* origin_translation)
-        %code%{
-            RETVAL = THIS->add_object(input_file, *config, layer_height_ranges,
-                *origin_translation);
-        %};
     
+    %name{_add_object} Ref<ModelObject> add_object();
+    Ref<ModelObject> _add_object_clone(ModelObject* other)
+        %code%{ RETVAL = THIS->add_object(*other); %};
     void delete_object(size_t idx);
     void clear_objects();
-    void delete_material(t_model_material_id material_id);
-    void clear_materials();
-    
-    %name{_set_material} Ref<ModelMaterial> set_material(t_model_material_id material_id)
-        %code%{ RETVAL = THIS->set_material(material_id); %};
 
     Ref<ModelMaterial> get_material(t_model_material_id material_id)
         %code%{
-            ModelMaterialMap::iterator i = THIS->materials.find(material_id);
-            if (i == THIS->materials.end()) {
+            RETVAL = THIS->get_material(material_id);
+            if (RETVAL == NULL) {
                 XSRETURN_UNDEF;
             }
-
-            RETVAL = i->second;
         %};
 
+    %name{add_material} Ref<ModelMaterial> add_material(t_model_material_id material_id);
+    Ref<ModelMaterial> add_material_clone(t_model_material_id material_id, ModelMaterial* other)
+        %code%{ RETVAL = THIS->add_material(material_id, *other); %};
     bool has_material(t_model_material_id material_id) const
         %code%{
-            RETVAL = (THIS->materials.find(material_id) != THIS->materials.end());
+            RETVAL = (THIS->get_material(material_id) != NULL);
         %};
+    void delete_material(t_model_material_id material_id);
+    void clear_materials();
 
     std::vector<std::string> material_names() const
         %code%{
@@ -70,22 +62,14 @@
     // void split_meshes();
     // std::string get_material_name(t_model_material_id material_id);
 
-    ModelObjectPtrs *objects()
-        %code%{
-            if (THIS->objects.empty()) {
-                XSRETURN_UNDEF;
-            }
-
-            RETVAL = &THIS->objects;
-        %};
+    ModelObjectPtrs* objects()
+        %code%{ RETVAL = &THIS->objects; %};
 };
 
 
 %name{Slic3r::Model::Material} class ModelMaterial {
-    ~ModelMaterial();
-
     Ref<Model> model()
-        %code%{ RETVAL = THIS->model; %};
+        %code%{ RETVAL = THIS->get_model(); %};
 
     Ref<DynamicPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
@@ -114,44 +98,21 @@ ModelMaterial::attributes()
 
 
 %name{Slic3r::Model::Object} class ModelObject {
-    ModelObject(Model* model, std::string input_file,
-        DynamicPrintConfig* config, t_layer_height_ranges layer_height_ranges,
-        Pointf* origin_translation)
-        %code%{
-            RETVAL = new ModelObject(model, input_file, *config,
-                layer_height_ranges, *origin_translation);
-        %};
+    ModelVolumePtrs* volumes()
+        %code%{ RETVAL = &THIS->volumes; %};
 
-    ~ModelObject();
-
-    ModelVolumePtrs *volumes()
-        %code%{
-            if (THIS->volumes.empty()) {
-                XSRETURN_UNDEF;
-            }
-
-            RETVAL = &THIS->volumes;
-        %};
-
-    ModelInstancePtrs *instances()
-        %code%{
-            if (THIS->instances.empty()) {
-                XSRETURN_UNDEF;
-            }
-
-            RETVAL = &THIS->instances;
-        %};
-
-
+    ModelInstancePtrs* instances()
+        %code%{ RETVAL = &THIS->instances; %};
+    
     void invalidate_bounding_box();
 
-    Ref<BoundingBoxf3> _bounding_box(BoundingBoxf3 *new_bbox = NULL)
+    Ref<BoundingBoxf3> _bounding_box(BoundingBoxf3* new_bbox = NULL)
         %code{%
             if (NULL != new_bbox) {
                 THIS->_bounding_box = *new_bbox;
                 THIS->_bounding_box_valid = true;
             }
-
+            
             if (!THIS->_bounding_box_valid) {
                 XSRETURN_UNDEF;
             }
@@ -159,21 +120,21 @@ ModelMaterial::attributes()
             RETVAL = &THIS->_bounding_box;
         %};
 
-    %name{_add_volume} Ref<ModelVolume> add_volume(
-            t_model_material_id material_id, TriangleMesh* mesh, bool modifier)
-        %code%{ RETVAL = THIS->add_volume(material_id, *mesh, modifier); %};
+    %name{_add_volume} Ref<ModelVolume> add_volume(TriangleMesh* mesh)
+        %code%{ RETVAL = THIS->add_volume(*mesh); %};
+    Ref<ModelVolume> _add_volume_clone(ModelVolume* other)
+        %code%{ RETVAL = THIS->add_volume(*other); %};
 
     void delete_volume(size_t idx);
     void clear_volumes();
 
-    %name{_add_instance} Ref<ModelInstance> add_instance(
-            double rotation, double scaling_factor, std::vector<double> offset)
-        %code%{
-            RETVAL = THIS->add_instance(rotation, scaling_factor,
-                Pointf(offset[0], offset[1]));
-        %};
+    %name{_add_instance} Ref<ModelInstance> add_instance();
+    Ref<ModelInstance> _add_instance_clone(ModelInstance* other)
+        %code%{ RETVAL = THIS->add_instance(*other); %};
     void delete_last_instance();
     void clear_instances();
+    int instances_count()
+        %code%{ RETVAL = THIS->instances.size(); %};
 
     std::string input_file()
         %code%{ RETVAL = THIS->input_file; %};
@@ -183,38 +144,42 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->config; %};
 
     Ref<Model> model()
-        %code%{ RETVAL = THIS->model; %};
+        %code%{ RETVAL = THIS->get_model(); %};
 
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
+    void set_layer_height_ranges(t_layer_height_ranges ranges)
+        %code%{ THIS->layer_height_ranges = ranges; %};
 
     Clone<Pointf> origin_translation()
         %code%{ RETVAL = THIS->origin_translation; %};
+    void set_origin_translation(Pointf* point)
+        %code%{ THIS->origin_translation = *point; %};
 };
 
 
 %name{Slic3r::Model::Volume} class ModelVolume {
-    ~ModelVolume();
-
     Ref<ModelObject> object()
-        %code%{ RETVAL = THIS->object; %};
+        %code%{ RETVAL = THIS->get_object(); %};
     
     t_model_material_id material_id()
         %code%{ RETVAL = THIS->material_id; %};
+    void set_material_id(t_model_material_id material_id)
+        %code%{ THIS->material_id = material_id; %};
     
     Ref<TriangleMesh> mesh()
         %code%{ RETVAL = &THIS->mesh; %};
     
     bool modifier()
         %code%{ RETVAL = THIS->modifier; %};
+    void set_modifier(bool modifier)
+        %code%{ THIS->modifier = modifier; %};
 };
 
 
 %name{Slic3r::Model::Instance} class ModelInstance {
-    ~ModelInstance();
-
     Ref<ModelObject> object()
-        %code%{ RETVAL = THIS->object; %};
+        %code%{ RETVAL = THIS->get_object(); %};
 
     double rotation()
         %code%{ RETVAL = THIS->rotation; %};

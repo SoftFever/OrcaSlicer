@@ -126,7 +126,7 @@ sub end_document {
         foreach my $instance (@{ $self->{_instances}{$object_id} }) {
             $self->{_model}->objects->[$new_object_id]->add_instance(
                 rotation => $instance->{rz} || 0,
-                offset   => [ $instance->{deltax} || 0, $instance->{deltay} || 0 ],
+                offset   => Slic3r::Pointf->new($instance->{deltax} || 0, $instance->{deltay} || 0),
             );
         }
     }

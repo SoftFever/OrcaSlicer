@@ -124,9 +124,9 @@ sub model {
     $model->set_material($model_name);
     $object->add_volume(mesh => mesh($model_name, %params), material_id => $model_name);
     $object->add_instance(
-        offset      => [0,0],
-        rotation    => $params{rotation} // 0,
-        scaling_factor => $params{scale} // 1,
+        offset          => Slic3r::Pointf->new(0,0),
+        rotation        => $params{rotation} // 0,
+        scaling_factor  => $params{scale} // 1,
     );
     return $model;
 }
@@ -142,7 +142,8 @@ sub init_print {
     $print->apply_config($config);
     
     $models = [$models] if ref($models) ne 'ARRAY';
-    for my $model (map { ref($_) ? $_ : model($_, %params) } @$models) {
+    $models = [ map { ref($_) ? $_ : model($_, %params) } @$models ];
+    for my $model (@$models) {
         die "Unknown model in test" if !defined $model;
         if (defined $params{duplicate} && $params{duplicate} > 1) {
             $model->duplicate($params{duplicate} // 1, $print->config->min_object_distance);
@@ -156,11 +157,17 @@ sub init_print {
     }
     $print->validate;
     
-    return $print;
+    # We return a proxy object in order to keep $models alive as required by the Print API.
+    return Slic3r::Test::Print->new(
+        print   => $print,
+        models  => $models,
+    );
 }
 
 sub gcode {
     my ($print) = @_;
+    
+    $print = $print->print if $print->isa('Slic3r::Test::Print');
     
     my $fh = IO::Scalar->new(\my $gcode);
     $print->process;
@@ -188,5 +195,11 @@ sub add_facet {
         $facets->[-1][$i] = $v;
     }
 }
+
+package Slic3r::Test::Print;
+use Moo;
+
+has 'print'     => (is => 'ro', required => 1);
+has 'models'    => (is => 'ro', required => 1);
 
 1;
