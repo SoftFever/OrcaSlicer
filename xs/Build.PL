@@ -18,7 +18,9 @@ if (ExtUtils::CppGuess->new->is_gcc) {
     # check whether we're dealing with a buggy GCC version
     # see https://github.com/alexrj/Slic3r/issues/1965
     if (`cc --version` =~ / 4\.7\.[012]/) {
-        push @cflags, qw(-O1 -fcaller-saves -fcrossjumping -fcse-follow-jumps -fdevirtualize -fexpensive-optimizations -fgcse -findirect-inlining -finline-small-functions -fipa-cp -fipa-sra -foptimize-register-move -foptimize-sibling-calls -foptimize-strlen -fpartial-inlining -fpeephole2 -free -fregmove -freorder-blocks -freorder-functions -frerun-cse-after-loop -fschedule-insns2 -fstrict-aliasing -fstrict-overflow -fthread-jumps -ftree-builtin-call-dce -ftree-pre -ftree-switch-conversion -ftree-tail-merge -ftree-vrp);
+        # Workaround suggested by Boost devs:
+        # https://svn.boost.org/trac/boost/ticket/8695
+        push @cflags, qw(-fno-inline-small-functions);
     }
 }
 
