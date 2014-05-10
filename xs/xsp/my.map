@@ -272,10 +272,14 @@ T_LAYER_HEIGHT_RANGES
 OUTPUT
 # return object from pointer
 O_OBJECT_SLIC3R
+        if ($var == NULL)
+            XSRETURN_UNDEF;
         sv_setref_pv( $arg, perl_class_name($var), (void*)$var );
 
 # return value handled by template class
 O_OBJECT_SLIC3R_T
+        if ($var == NULL)
+            XSRETURN_UNDEF;
         sv_setref_pv( $arg, $type\::CLASS(), (void*)$var );
 
 
