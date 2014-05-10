@@ -1668,6 +1668,7 @@ src/ExtrusionEntityCollection.cpp
 src/ExtrusionEntityCollection.hpp
 src/Flow.cpp
 src/Flow.hpp
+src/GCode.hpp
 src/Geometry.cpp
 src/Geometry.hpp
 src/Layer.hpp
