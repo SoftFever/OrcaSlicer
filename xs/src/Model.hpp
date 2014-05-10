@@ -138,14 +138,17 @@ class ModelVolume
 {
     friend class ModelObject;
     public:
-    t_model_material_id material_id;
     TriangleMesh mesh;
     bool modifier;
     
     ModelObject* get_object() const { return this->object; };
+    t_model_material_id material_id() const;
+    void material_id(t_model_material_id material_id);
+    ModelMaterial* material() const;
     
     private:
     ModelObject* object;
+    t_model_material_id _material_id;
     
     ModelVolume(ModelObject *object, const TriangleMesh &mesh);
     ModelVolume(ModelObject *object, const ModelVolume &other);

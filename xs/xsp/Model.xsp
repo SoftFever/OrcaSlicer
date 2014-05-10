@@ -162,10 +162,10 @@ ModelMaterial::attributes()
     Ref<ModelObject> object()
         %code%{ RETVAL = THIS->get_object(); %};
     
-    t_model_material_id material_id()
-        %code%{ RETVAL = THIS->material_id; %};
+    t_model_material_id material_id();
     void set_material_id(t_model_material_id material_id)
-        %code%{ THIS->material_id = material_id; %};
+        %code%{ THIS->material_id(material_id); %};
+    Ref<ModelMaterial> material();
     
     Ref<TriangleMesh> mesh()
         %code%{ RETVAL = &THIS->mesh; %};

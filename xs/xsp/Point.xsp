@@ -64,6 +64,7 @@ Point::coincides_with(point_sv)
         %code{% RETVAL = THIS->x; %};
     double y()
         %code{% RETVAL = THIS->y; %};
+    void translate(double x, double y);
 };
 
 %name{Slic3r::Pointf3} class Pointf3 {

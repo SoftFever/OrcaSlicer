@@ -403,7 +403,7 @@ sub load_model_objects {
         );
         push @obj_idx, $#{ $self->{objects} };
     
-        if (!defined $model_object->instances) {
+        if ($model_object->instances_count == 0) {
             # if object has no defined position(s) we need to rearrange everything after loading
             $need_arrange = 1;
         

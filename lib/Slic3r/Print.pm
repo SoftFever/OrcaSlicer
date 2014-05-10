@@ -104,8 +104,9 @@ sub apply_config {
     if ($rearrange_regions) {
         # the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
+        my @model_objects = map $_->model_object, @{$self->objects};
         $self->clear_objects;
-        $self->add_model_object($_->model_object) for @{$self->objects};
+        $self->add_model_object($_) for @model_objects;
     }
 }
 
@@ -137,7 +138,7 @@ sub add_model_object {
         $config->apply_dynamic($object_config);
         
         if (defined $volume->material_id) {
-            my $material_config = $object->model->get_material($volume->material_id)->config->clone;
+            my $material_config = $volume->material->config->clone;
             $material_config->normalize;
             $config->apply_dynamic($material_config);
         }

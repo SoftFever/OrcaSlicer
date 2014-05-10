@@ -321,8 +321,31 @@ ModelVolume::ModelVolume(ModelObject* object, const TriangleMesh &mesh)
 {}
 
 ModelVolume::ModelVolume(ModelObject* object, const ModelVolume &other)
-:   object(object), material_id(other.material_id), mesh(other.mesh), modifier(other.modifier)
-{}
+:   object(object), mesh(other.mesh), modifier(other.modifier)
+{
+    this->material_id(other.material_id());
+}
+
+t_model_material_id
+ModelVolume::material_id() const
+{
+    return this->_material_id;
+}
+
+void
+ModelVolume::material_id(t_model_material_id material_id)
+{
+    this->_material_id = material_id;
+    
+    // ensure this->_material_id references an existing material
+    (void)this->object->get_model()->add_material(material_id);
+}
+
+ModelMaterial*
+ModelVolume::material() const
+{
+    return this->object->get_model()->get_material(this->_material_id);
+}
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelVolume, "Model::Volume");
