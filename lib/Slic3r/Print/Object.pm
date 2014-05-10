@@ -965,6 +965,9 @@ sub combine_infill {
 
 sub generate_support_material {
     my $self = shift;
+    
+    # TODO: make this method idempotent by removing all support layers
+    # before checking whether we need to generate support or not
     return unless ($self->config->support_material || $self->config->raft_layers > 0)
         && scalar(@{$self->layers}) >= 2;
     

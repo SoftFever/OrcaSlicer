@@ -625,10 +625,13 @@ EOF
 
 sub make_skirt {
     my $self = shift;
+    
+    # since this method must be idempotent, we clear skirt paths *before*
+    # checking whether we need to generate them
+    $self->skirt->clear;
+    
     return unless $self->config->skirts > 0
         || ($self->config->ooze_prevention && @{$self->extruders} > 1);
-    
-    $self->skirt->clear;  # method must be idempotent
     
     # First off we need to decide how tall the skirt must be.
     # The skirt_height option from config is expressed in layers, but our
@@ -737,9 +740,12 @@ sub make_skirt {
 
 sub make_brim {
     my $self = shift;
-    return unless $self->config->brim_width > 0;
     
-    $self->brim->clear;  # method must be idempotent
+    # since this method must be idempotent, we clear brim paths *before*
+    # checking whether we need to generate them
+    $self->brim->clear;
+    
+    return unless $self->config->brim_width > 0;
     
     # brim is only printed on first layer and uses support material extruder
     my $first_layer_height = $self->objects->[0]->config->get_abs_value('first_layer_height');
