@@ -608,7 +608,7 @@ sub generate_toolpaths {
             my $mm3_per_mm = $interface_flow->mm3_per_mm($layer->height);
             @loops = map Slic3r::ExtrusionPath->new(
                 polyline    => $_,
-                role        => EXTR_ROLE_SUPPORTMATERIAL,
+                role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                 mm3_per_mm  => $mm3_per_mm,
                 width       => $interface_flow->width,
                 height      => $layer->height,
@@ -656,7 +656,7 @@ sub generate_toolpaths {
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
-                    role        => EXTR_ROLE_SUPPORTMATERIAL,
+                    role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $params->{flow}->width,
                     height      => $layer->height,

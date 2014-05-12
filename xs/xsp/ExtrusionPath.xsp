@@ -141,6 +141,7 @@ _constant()
     EXTR_ROLE_GAPFILL                      = erGapFill
     EXTR_ROLE_SKIRT                        = erSkirt
     EXTR_ROLE_SUPPORTMATERIAL              = erSupportMaterial
+    EXTR_ROLE_SUPPORTMATERIAL_INTERFACE    = erSupportMaterialInterface
   PROTOTYPE:
   CODE:
     RETVAL = ix;

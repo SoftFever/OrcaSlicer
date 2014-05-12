@@ -23,6 +23,7 @@ enum ExtrusionRole {
     erGapFill,
     erSkirt,
     erSupportMaterial,
+    erSupportMaterialInterface,
 };
 
 /* Special flags describing loop */
