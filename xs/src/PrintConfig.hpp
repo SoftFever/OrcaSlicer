@@ -1054,6 +1054,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
+    ConfigOptionBool                overhangs;
     ConfigOptionInt                 perimeter_extruder;
     ConfigOptionFloatOrPercent      perimeter_extrusion_width;
     ConfigOptionInt                 perimeters;
@@ -1075,6 +1076,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         this->infill_extrusion_width.value                       = 0;
         this->infill_extrusion_width.percent                     = false;
         this->infill_every_layers.value                          = 1;
+        this->overhangs.value                                    = true;
         this->perimeter_extruder.value                           = 1;
         this->perimeter_extrusion_width.value                    = 0;
         this->perimeter_extrusion_width.percent                  = false;
@@ -1099,6 +1101,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         if (opt_key == "infill_extruder")                            return &this->infill_extruder;
         if (opt_key == "infill_extrusion_width")                     return &this->infill_extrusion_width;
         if (opt_key == "infill_every_layers")                        return &this->infill_every_layers;
+        if (opt_key == "overhangs")                                  return &this->overhangs;
         if (opt_key == "perimeter_extruder")                         return &this->perimeter_extruder;
         if (opt_key == "perimeter_extrusion_width")                  return &this->perimeter_extrusion_width;
         if (opt_key == "perimeters")                                 return &this->perimeters;
@@ -1164,7 +1167,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionBool                only_retract_when_crossing_perimeters;
     ConfigOptionBool                ooze_prevention;
     ConfigOptionString              output_filename_format;
-    ConfigOptionBool                overhangs;
     ConfigOptionFloat               perimeter_acceleration;
     ConfigOptionFloat               perimeter_speed;
     ConfigOptionStrings             post_process;
@@ -1257,7 +1259,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->only_retract_when_crossing_perimeters.value        = true;
         this->ooze_prevention.value                              = false;
         this->output_filename_format.value                       = "[input_filename_base].gcode";
-        this->overhangs.value                                    = true;
         this->perimeter_acceleration.value                       = 0;
         this->perimeter_speed.value                              = 30;
         this->print_center.point                                 = Pointf(100,100);
@@ -1355,7 +1356,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "only_retract_when_crossing_perimeters")      return &this->only_retract_when_crossing_perimeters;
         if (opt_key == "ooze_prevention")                            return &this->ooze_prevention;
         if (opt_key == "output_filename_format")                     return &this->output_filename_format;
-        if (opt_key == "overhangs")                                  return &this->overhangs;
         if (opt_key == "perimeter_acceleration")                     return &this->perimeter_acceleration;
         if (opt_key == "perimeter_speed")                            return &this->perimeter_speed;
         if (opt_key == "post_process")                               return &this->post_process;

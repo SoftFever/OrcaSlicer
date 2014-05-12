@@ -234,7 +234,7 @@ sub make_perimeters {
     
     # prepare grown lower layer slices for overhang detection
     my $lower_slices = Slic3r::ExPolygon::Collection->new;
-    if ($self->layer->lower_layer && $self->layer->print->config->overhangs) {
+    if ($self->layer->lower_layer && $self->region->config->overhangs) {
         # We consider overhang any part where the entire nozzle diameter is not supported by the
         # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
         # in the current layer
@@ -271,7 +271,7 @@ sub make_perimeters {
             
             # detect overhanging/bridging perimeters
             my @paths = ();
-            if ($self->layer->print->config->overhangs && $lower_slices->count > 0) {
+            if ($self->region->config->overhangs && $lower_slices->count > 0) {
                 # get non-overhang paths by intersecting this loop with the grown lower slices
                 foreach my $polyline (@{ intersection_ppl([ $polygon ], $lower_slices_p) }) {
                     push @paths, Slic3r::ExtrusionPath->new(
