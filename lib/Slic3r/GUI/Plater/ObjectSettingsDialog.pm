@@ -150,7 +150,7 @@ sub Closing {
     my $self = shift;
     
     # save ranges into the plater object
-    $self->model_object->layer_height_ranges([ $self->_get_ranges ]);
+    $self->model_object->set_layer_height_ranges([ $self->_get_ranges ]);
 }
 
 sub _get_ranges {
