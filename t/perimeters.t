@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 10;
 use strict;
 use warnings;
 
@@ -263,6 +263,13 @@ use Slic3r::Test;
         'no overhangs printed with bridge speed';
     ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])),
         'overhangs printed with bridge speed';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('randomize_start', 1);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'successful generation of G-code with randomize_start option';
 }
 
 __END__

@@ -2,6 +2,7 @@ package Slic3r::Layer::Region;
 use Moo;
 
 use List::Util qw(sum first);
+use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(PI A B scale unscale chained_path points_coincide);
@@ -257,13 +258,15 @@ sub make_perimeters {
         foreach my $polynode (@$polynodes) {
             my $polygon = ($polynode->{outer} // $polynode->{hole})->clone;
             
-            my $role = EXTR_ROLE_PERIMETER;
+            my $role        = EXTR_ROLE_PERIMETER;
+            my $loop_role   = EXTRL_ROLE_DEFAULT;
             if ($is_contour ? $depth == 0 : !@{ $polynode->{children} }) {
                 # external perimeters are root level in case of contours
                 # and items with no children in case of holes
-                $role = EXTR_ROLE_EXTERNAL_PERIMETER;
+                $role       = EXTR_ROLE_EXTERNAL_PERIMETER;
+                $loop_role  = EXTRL_ROLE_EXTERNAL_PERIMETER;
             } elsif ($depth == 1 && $is_contour) {
-                $role = EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER;
+                $loop_role  = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
             
             # detect overhanging/bridging perimeters
@@ -309,6 +312,7 @@ sub make_perimeters {
                 );
             }
             my $loop = Slic3r::ExtrusionLoop->new_from_paths(@paths);
+            $loop->role($loop_role);
             
             # return ccw contours and cw holes
             # GCode.pm will convert all of them to ccw, but it needs to know

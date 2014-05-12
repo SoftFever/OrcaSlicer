@@ -41,5 +41,31 @@ ExtrusionLoop::arrayref()
     OUTPUT:
         RETVAL
 
+ExtrusionLoopRole
+ExtrusionLoop::role(...)
+    CODE:
+        if (items > 1) {
+            THIS->role = (ExtrusionLoopRole)SvUV(ST(1));
+        }
+        RETVAL = THIS->role;
+    OUTPUT:
+        RETVAL
+
 %}
 };
+
+%package{Slic3r::ExtrusionLoop};
+%{
+
+IV
+_constant()
+  ALIAS:
+    EXTRL_ROLE_DEFAULT                      = elrDefault
+    EXTRL_ROLE_EXTERNAL_PERIMETER           = elrExternalPerimeter
+    EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER   = erInternalInfill
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
+%}

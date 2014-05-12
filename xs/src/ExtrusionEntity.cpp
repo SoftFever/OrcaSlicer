@@ -72,23 +72,21 @@ ExtrusionPath::is_perimeter() const
 {
     return this->role == erPerimeter
         || this->role == erExternalPerimeter
-        || this->role == erOverhangPerimeter
-        || this->role == erContourInternalPerimeter;
+        || this->role == erOverhangPerimeter;
 }
 
 bool
 ExtrusionPath::is_fill() const
 {
-    return this->role == erFill
-        || this->role == erSolidFill
-        || this->role == erTopSolidFill;
+    return this->role == erInternalInfill
+        || this->role == erSolidInfill
+        || this->role == erTopSolidInfill;
 }
 
 bool
 ExtrusionPath::is_bridge() const
 {
-    return this->role == erBridge
-        || this->role == erInternalBridge
+    return this->role == erBridgeInfill
         || this->role == erOverhangPerimeter;
 }
 

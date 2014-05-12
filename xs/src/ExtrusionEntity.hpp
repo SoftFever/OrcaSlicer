@@ -11,19 +11,25 @@ class ExPolygonCollection;
 class ExtrusionEntityCollection;
 class Extruder;
 
+/* Each ExtrusionRole value identifies a distinct set of { extruder, speed } */
 enum ExtrusionRole {
     erPerimeter,
     erExternalPerimeter,
     erOverhangPerimeter,
-    erContourInternalPerimeter,
-    erFill,
-    erSolidFill,
-    erTopSolidFill,
-    erBridge,
-    erInternalBridge,
+    erInternalInfill,
+    erSolidInfill,
+    erTopSolidInfill,
+    erBridgeInfill,
+    erGapFill,
     erSkirt,
     erSupportMaterial,
-    erGapFill,
+};
+
+/* Special flags describing loop */
+enum ExtrusionLoopRole {
+    elrDefault,
+    elrExternalPerimeter,
+    elrContourInternalPerimeter,
 };
 
 class ExtrusionEntity
@@ -47,7 +53,7 @@ class ExtrusionPath : public ExtrusionEntity
     float width;
     float height;
     
-    ExtrusionPath() : mm3_per_mm(-1), width(-1), height(-1) {};
+    ExtrusionPath(ExtrusionRole role) : role(role), mm3_per_mm(-1), width(-1), height(-1) {};
     ExtrusionPath* clone() const;
     void reverse();
     Point first_point() const;
@@ -74,7 +80,9 @@ class ExtrusionLoop : public ExtrusionEntity
 {
     public:
     ExtrusionPaths paths;
+    ExtrusionLoopRole role;
     
+    ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
     operator Polygon() const;
     ExtrusionLoop* clone() const;
     bool make_clockwise();

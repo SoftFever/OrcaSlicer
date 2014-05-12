@@ -2,6 +2,7 @@ package Slic3r::GCode;
 use Moo;
 
 use List::Util qw(min max first);
+use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI X Y B);
@@ -76,12 +77,10 @@ my %role_speeds = (
     &EXTR_ROLE_PERIMETER                    => 'perimeter',
     &EXTR_ROLE_EXTERNAL_PERIMETER           => 'external_perimeter',
     &EXTR_ROLE_OVERHANG_PERIMETER           => 'bridge',
-    &EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   => 'perimeter',
     &EXTR_ROLE_FILL                         => 'infill',
     &EXTR_ROLE_SOLIDFILL                    => 'solid_infill',
     &EXTR_ROLE_TOPSOLIDFILL                 => 'top_solid_infill',
     &EXTR_ROLE_BRIDGE                       => 'bridge',
-    &EXTR_ROLE_INTERNALBRIDGE               => 'bridge',
     &EXTR_ROLE_SKIRT                        => 'perimeter',
     &EXTR_ROLE_GAPFILL                      => 'gap_fill',
 );
@@ -217,7 +216,7 @@ sub extrude_loop {
     # find the point of the loop that is closest to the current extruder position
     # or randomize if requested
     my $last_pos = $self->last_pos;
-    if ($self->print_config->randomize_start && $loop->role == EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER) {
+    if ($self->print_config->randomize_start && $loop->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER) {
         $last_pos = Slic3r::Point->new(scale $self->print_config->print_center->[X], scale $self->print_config->bed_size->[Y]);
         $last_pos->rotate(rand(2*PI), $self->print_config->print_center);
     }

@@ -112,6 +112,12 @@
     $CVar = (SurfaceType)SvUV($PerlVar);
   %};
 };
+%typemap{ExtrusionLoopRole}{parsed}{
+  %cpp_type{ExtrusionLoopRole};
+  %precall_code{%
+    $CVar = (ExtrusionLoopRole)SvUV($PerlVar);
+  %};
+};
 %typemap{ExtrusionRole}{parsed}{
   %cpp_type{ExtrusionRole};
   %precall_code{%
