@@ -15,6 +15,11 @@ sub wkt {
     return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
 }
 
+sub dump_perl {
+    my $self = shift;
+    return sprintf "[%s]", join ',', map "[$_->[0],$_->[1]]", @$self;
+}
+
 sub grow {
     my $self = shift;
     return $self->split_at_first_point->grow(@_);

@@ -302,7 +302,7 @@ sub make_perimeters {
                         height          => $self->height,
                     );
                 }
-        
+                
                 # reapply the nearest point search for starting point
                 # (clone because the collection gets DESTROY'ed)
                 # We allow polyline reversal because Clipper may have randomly
