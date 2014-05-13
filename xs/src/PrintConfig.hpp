@@ -1394,15 +1394,6 @@ class PrintConfig : public virtual StaticPrintConfig
         
         return NULL;
     };
-    
-    std::string get_extrusion_axis() {
-        if (this->gcode_flavor == gcfMach3) {
-            return std::string("A");
-        } else if (this->gcode_flavor == gcfNoExtrusion) {
-            return std::string("");
-        }
-        return this->extrusion_axis;
-    }
 };
 
 class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig {
@@ -1414,6 +1405,15 @@ class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, publ
         if ((opt = PrintConfig::option(opt_key, create)) != NULL) return opt;
         return NULL;
     };
+    
+    std::string get_extrusion_axis() {
+        if (this->gcode_flavor == gcfMach3) {
+            return std::string("A");
+        } else if (this->gcode_flavor == gcfNoExtrusion) {
+            return std::string("");
+        }
+        return this->extrusion_axis;
+    }
 };
 
 }

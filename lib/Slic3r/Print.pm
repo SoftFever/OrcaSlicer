@@ -857,11 +857,11 @@ sub write_gcode {
     
     # set up our helper object
     my $gcodegen = Slic3r::GCode->new(
-        print_config        => $self->config,
         placeholder_parser  => $self->placeholder_parser,
         layer_count         => $self->layer_count,
     );
-    $gcodegen->set_extruders($self->extruders);
+    $gcodegen->config->apply_print_config($self->config);
+    $gcodegen->set_extruders($self->extruders, $self->config);
     
     print $fh "G21 ; set units to millimeters\n" if $self->config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;

@@ -46,6 +46,7 @@ sub process_layer {
     my $gcode = "";
     
     my $object = $layer->object;
+    $self->gcodegen->config->apply_object_config($object->config);
     
     # check whether we're going to apply spiralvase logic
     if (defined $self->spiralvase) {
@@ -122,13 +123,13 @@ sub process_layer {
         if ($layer->isa('Slic3r::Layer::Support')) {
             if ($layer->support_interface_fills->count > 0) {
                 $gcode .= $self->gcodegen->set_extruder($object->config->support_material_interface_extruder-1);
-                my %params = (speed => $object->config->support_material_speed*60);
+                my %params = (speed => $object->config->support_material_speed);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material interface', %params) 
                     for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills->count > 0) {
                 $gcode .= $self->gcodegen->set_extruder($object->config->support_material_extruder-1);
-                my %params = (speed => $object->config->support_material_speed*60);
+                my %params = (speed => $object->config->support_material_speed);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material', %params) 
                     for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
             }
@@ -145,7 +146,7 @@ sub process_layer {
         foreach my $region_id (@region_ids) {
             my $layerm = $layer->regions->[$region_id] or next;
             my $region = $self->print->regions->[$region_id];
-            $self->gcodegen->region($region);
+            $self->gcodegen->config->apply_region_config($region->config);
             
             # group extrusions by island
             my @perimeters_by_island = map [], 0..$#{$layer->slices};   # slice idx => @perimeters

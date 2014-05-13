@@ -45,7 +45,6 @@
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
         %code{% THIS->keys(&RETVAL); %};
-    std::string get_extrusion_axis();
 };
 
 %name{Slic3r::Config::PrintRegion} class PrintRegionConfig {
@@ -103,10 +102,17 @@
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
         double get_abs_value(t_config_option_key opt_key, double ratio_over);
+    void apply_print_config(PrintConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    void apply_object_config(PrintObjectConfig* other)
+        %code{% THIS->apply(*other, true); %};
+    void apply_region_config(PrintRegionConfig* other)
+        %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
         %code{% THIS->keys(&RETVAL); %};
+    std::string get_extrusion_axis();
 };
 
 %package{Slic3r::Config};
