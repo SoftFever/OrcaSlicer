@@ -1676,6 +1676,8 @@ src/Line.cpp
 src/Line.hpp
 src/Model.cpp
 src/Model.hpp
+src/MotionPlanner.cpp
+src/MotionPlanner.hpp
 src/MultiPoint.cpp
 src/MultiPoint.hpp
 src/myinit.h
@@ -1716,6 +1718,8 @@ src/SVG.hpp
 src/TriangleMesh.cpp
 src/TriangleMesh.hpp
 src/utils.cpp
+src/visilibity.cpp
+src/visilibity.hpp
 t/01_trianglemesh.t
 t/03_point.t
 t/04_expolygon.t

@@ -6,11 +6,19 @@
 
 namespace Slic3r {
 
+class ExPolygonCollection;
+typedef std::vector<ExPolygonCollection> ExPolygonCollections;
+
 class ExPolygonCollection
 {
     public:
     ExPolygons expolygons;
+    
+    ExPolygonCollection() {};
+    ExPolygonCollection(const ExPolygons &expolygons) : expolygons(expolygons) {};
+    operator Points() const;
     operator Polygons() const;
+    operator ExPolygons&();
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, const Point &center);

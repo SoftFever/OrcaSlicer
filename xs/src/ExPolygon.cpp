@@ -84,11 +84,14 @@ ExPolygon::is_valid() const
 bool
 ExPolygon::contains_line(const Line &line) const
 {
-    Polylines pl;
-    pl.push_back(line);
-    
+    return this->contains_polyline(line);
+}
+
+bool
+ExPolygon::contains_polyline(const Polyline &polyline) const
+{
     Polylines pl_out;
-    diff(pl, *this, pl_out);
+    diff((Polylines)polyline, *this, pl_out);
     return pl_out.empty();
 }
 

@@ -30,9 +30,11 @@ Lines
 Polyline::lines() const
 {
     Lines lines;
-    lines.reserve(this->points.size() - 1);
-    for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
-        lines.push_back(Line(*it, *(it + 1)));
+    if (this->points.size() >= 2) {
+        lines.reserve(this->points.size() - 1);
+        for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
+            lines.push_back(Line(*it, *(it + 1)));
+        }
     }
     return lines;
 }
