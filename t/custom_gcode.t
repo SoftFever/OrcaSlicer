@@ -53,16 +53,16 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('output_filename_format', '[travel_speed]_[layer_height].gcode');
+    $config->set('output_filename_format', 'ts_[travel_speed]_lh_[layer_height].gcode');
     $config->set('start_gcode', "TRAVEL:[travel_speed] HEIGHT:[layer_height]\n");
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     
     my $output_file = $print->print->expanded_output_filepath;
-    ok $output_file !~ /\[travel_speed\]/, 'print config options are replaced in output filename';
-    ok $output_file !~ /\[layer_height\]/, 'region config options are replaced in output filename';
+    my ($t, $h) = map $config->$_, qw(travel_speed layer_height);
+    ok $output_file =~ /ts_${t}_/, 'print config options are replaced in output filename';
+    ok $output_file =~ /lh_$h\./, 'region config options are replaced in output filename';
     
     my $gcode = Slic3r::Test::gcode($print);
-    my ($t, $h) = map $config->$_, qw(travel_speed layer_height);
     ok $gcode =~ /TRAVEL:$t/, 'print config options are replaced in custom G-code';
     ok $gcode =~ /HEIGHT:$h/, 'region config options are replaced in custom G-code';
 }
@@ -100,7 +100,7 @@ use Slic3r::Test;
         # being embedded in the G-code
         ok $gcode =~ /temp0:200/, 'temperature placeholder for first extruder correctly populated';
         ok $gcode =~ /temp1:205/, 'temperature placeholder for second extruder correctly populated';
-        ok $gcode =~ /temp2:200/, 'tempearture placeholder for unused extruder populated with first value';
+        ok $gcode =~ /temp2:200/, 'temperature placeholder for unused extruder populated with first value';
     }
 }
 
