@@ -22,8 +22,6 @@ has '_upper_layer_islands'  => (is => 'rw');
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
-has '_extrusion_axis'    => (is => 'rw');
-has '_retract_lift'      => (is => 'rw');
 has 'extruders'          => (is => 'ro', default => sub {{}});
 has 'multiple_extruders' => (is => 'rw', default => sub {0});
 has 'extruder'           => (is => 'rw');
@@ -36,13 +34,6 @@ has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
 has 'wipe_path'          => (is => 'rw');
-
-sub BUILD {
-    my ($self) = @_;
-    
-    $self->_extrusion_axis($self->config->get_extrusion_axis);
-    $self->_retract_lift($self->config->retract_lift->[0]);
-}
 
 sub set_extruders {
     my ($self, $extruder_ids, $print_config) = @_;
@@ -272,7 +263,7 @@ sub extrude_path {
     
     # calculate extrusion length per distance unit
     my $e = $self->extruder->e_per_mm3 * $path->mm3_per_mm;
-    $e = 0 if !$self->_extrusion_axis;
+    $e = 0 if !$self->config->get_extrusion_axis;
     
     # set speed
     my $F;
@@ -291,7 +282,7 @@ sub extrude_path {
     } elsif ($path->role == EXTR_ROLE_GAPFILL) {
         $F = $self->config->get_abs_value('gap_fill_speed');
     } else {
-        $F = $speed;
+        $F = $speed // -1;
         die "Invalid speed" if $F < 0;   # $speed == -1
     }
     $F *= 60;  # convert mm/sec to mm/min
@@ -307,7 +298,7 @@ sub extrude_path {
         $gcode .= $path->gcode($self->extruder, $e, $F,
             $self->shift_x - $self->extruder->extruder_offset->x,
             $self->shift_y - $self->extruder->extruder_offset->y,  #,,
-            $self->_extrusion_axis,
+            $self->config->get_extrusion_axis,
             $self->config->gcode_comments ? " ; $description" : "");
 
         if ($self->enable_wipe) {
@@ -427,9 +418,9 @@ sub retract {
     
     # prepare moves
     my $retract = [undef, undef, -$length, $self->extruder->retract_speed_mm_min, $comment];
-    my $lift    = ($self->_retract_lift == 0 || defined $params{move_z}) && !$self->lifted
+    my $lift    = ($self->config->retract_lift->[0] == 0 || defined $params{move_z}) && !$self->lifted
         ? undef
-        : [undef, $self->z + $self->_retract_lift, 0, $self->config->travel_speed*60, 'lift plate during travel'];
+        : [undef, $self->z + $self->config->retract_lift->[0], 0, $self->config->travel_speed*60, 'lift plate during travel'];
     
     # check that we have a positive wipe length
     if ($wipe_path) {
@@ -454,17 +445,17 @@ sub retract {
         $gcode .= $self->G1(@$retract);
     }
     if (!$self->lifted) {
-        if (defined $params{move_z} && $self->_retract_lift > 0) {
-            my $travel = [undef, $params{move_z} + $self->_retract_lift, 0, $self->config->travel_speed*60, 'move to next layer (' . $self->layer->id . ') and lift'];
+        if (defined $params{move_z} && $self->config->retract_lift->[0] > 0) {
+            my $travel = [undef, $params{move_z} + $self->config->retract_lift->[0], 0, $self->config->travel_speed*60, 'move to next layer (' . $self->layer->id . ') and lift'];
             $gcode .= $self->G0(@$travel);
-            $self->lifted($self->_retract_lift);
+            $self->lifted($self->config->retract_lift->[0]);
         } elsif ($lift) {
             $gcode .= $self->G1(@$lift);
         }
     }
     $self->extruder->set_retracted($self->extruder->retracted + $length);
     $self->extruder->set_restart_extra($restart_extra);
-    $self->lifted($self->_retract_lift) if $lift;
+    $self->lifted($self->config->retract_lift->[0]) if $lift;
     
     # reset extrusion distance during retracts
     # this makes sure we leave sufficient precision in the firmware
@@ -490,10 +481,10 @@ sub unretract {
     if ($to_unretract) {
         if ($self->config->use_firmware_retraction) {
             $gcode .= "G11 ; unretract\n";
-        } elsif ($self->_extrusion_axis) {
+        } elsif ($self->config->get_extrusion_axis) {
             # use G1 instead of G0 because G0 will blend the restart with the previous travel move
             $gcode .= sprintf "G1 %s%.5f F%.3f",
-                $self->_extrusion_axis,
+                $self->config->get_extrusion_axis,
                 $self->extruder->extrude($to_unretract),
                 $self->extruder->retract_speed_mm_min;
             $gcode .= " ; compensate retraction" if $self->config->gcode_comments;
@@ -511,8 +502,8 @@ sub reset_e {
     return "" if $self->config->gcode_flavor =~ /^(?:mach3|makerware|sailfish)$/;
     
     $self->extruder->set_E(0) if $self->extruder;
-    return sprintf "G92 %s0%s\n", $self->_extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '')
-        if $self->_extrusion_axis && !$self->config->use_relative_e_distances;
+    return sprintf "G92 %s0%s\n", $self->config->get_extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '')
+        if $self->config->get_extrusion_axis && !$self->config->use_relative_e_distances;
 }
 
 sub set_acceleration {
@@ -553,12 +544,12 @@ sub _G0_G1 {
 
 sub _Gx {
     my ($self, $gcode, $e, $F, $comment) = @_;
-    
+    use XXX; ZZZ "here" if $F =~ /move/i;
     $gcode .= sprintf " F%.3f", $F;
     
     # output extrusion distance
-    if ($e && $self->_extrusion_axis) {
-        $gcode .= sprintf " %s%.5f", $self->_extrusion_axis, $self->extruder->extrude($e);
+    if ($e && $self->config->get_extrusion_axis) {
+        $gcode .= sprintf " %s%.5f", $self->config->get_extrusion_axis, $self->extruder->extrude($e);
     }
     
     $gcode .= " ; $comment" if $comment && $self->config->gcode_comments;
