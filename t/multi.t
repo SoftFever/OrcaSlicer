@@ -1,4 +1,4 @@
-use Test::More tests => 12;
+use Test::More tests => 13;
 use strict;
 use warnings;
 
@@ -10,6 +10,7 @@ BEGIN {
 use List::Util qw(first);
 use Slic3r;
 use Slic3r::Geometry qw(scale convex_hull);
+use Slic3r::Geometry::Clipper qw(offset);
 use Slic3r::Test;
 
 {
@@ -39,9 +40,11 @@ use Slic3r::Test;
                     : $config->temperature->[$tool];
                 die 'standby temperature was not set before toolchange'
                     if $tool_temp[$tool] != $expected_temp + $config->standby_temperature_delta;
+                
+                # ignore initial toolchange
+                push @toolchange_points, Slic3r::Point->new_scale($self->X, $self->Y);
             }
             $tool = $1;
-            push @toolchange_points, Slic3r::Point->new_scale($self->X, $self->Y);
         } elsif ($cmd eq 'M104' || $cmd eq 'M109') {
             my $t = $args->{T} // $tool;
             if ($tool_temp[$t] == 0) {
@@ -55,7 +58,12 @@ use Slic3r::Test;
         }
     });
     my $convex_hull = convex_hull(\@extrusion_points);
-    ok !(first { $convex_hull->contains_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';
+    ok !(defined first { $convex_hull->contains_point($_) } @toolchange_points), 'all toolchanges happen outside skirt';
+    
+    # offset the skirt by the maximum displacement between extruders plus a safety extra margin
+    my $delta = scale(20 * sqrt(2) + 1);
+    my $outer_convex_hull = offset([$convex_hull], +$delta)->[0];
+    ok !(defined first { !$outer_convex_hull->contains_point($_) } @toolchange_points), 'all toolchanges happen within expected area';
 }
 
 {

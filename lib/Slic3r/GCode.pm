@@ -544,7 +544,7 @@ sub _G0_G1 {
 
 sub _Gx {
     my ($self, $gcode, $e, $F, $comment) = @_;
-    use XXX; ZZZ "here" if $F =~ /move/i;
+    
     $gcode .= sprintf " F%.3f", $F;
     
     # output extrusion distance
@@ -583,7 +583,13 @@ sub set_extruder {
     # set the current extruder to the standby temperature
     if ($self->standby_points && defined $self->extruder) {
         # move to the nearest standby point
-        $gcode .= $self->travel_to($self->last_pos->nearest_point($self->standby_points));
+        {
+            my $last_pos = $self->last_pos->clone;
+            $last_pos->translate(scale +$self->shift_x, scale +$self->shift_y);
+            my $standby_point = $last_pos->nearest_point($self->standby_points);
+            $standby_point->translate(scale -$self->shift_x, scale -$self->shift_y);
+            $gcode .= $self->travel_to($standby_point);
+        }
         
         my $temp = defined $self->layer && $self->layer->id == 0
             ? $self->extruder->first_layer_temperature
