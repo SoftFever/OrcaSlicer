@@ -151,8 +151,8 @@ ModelMaterial::attributes()
     void set_layer_height_ranges(t_layer_height_ranges ranges)
         %code%{ THIS->layer_height_ranges = ranges; %};
 
-    Clone<Pointf> origin_translation()
-        %code%{ RETVAL = THIS->origin_translation; %};
+    Ref<Pointf> origin_translation()
+        %code%{ RETVAL = &THIS->origin_translation; %};
     void set_origin_translation(Pointf* point)
         %code%{ THIS->origin_translation = *point; %};
 };
@@ -185,8 +185,8 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->rotation; %};
     double scaling_factor()
         %code%{ RETVAL = THIS->scaling_factor; %};
-    Clone<Pointf> offset()
-        %code%{ RETVAL = THIS->offset; %};
+    Ref<Pointf> offset()
+        %code%{ RETVAL = &THIS->offset; %};
 
     void set_rotation(double val)
         %code%{ THIS->rotation = val; %};
