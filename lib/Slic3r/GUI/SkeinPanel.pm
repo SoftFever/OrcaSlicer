@@ -235,15 +235,6 @@ sub extra_variables {
     return { %extra_variables };
 }
 
-sub init_print {
-    my $self = shift;
-    
-    return Slic3r::Print->new(
-        config          => $self->config,
-        extra_variables => $self->extra_variables,
-    );
-}
-
 sub export_config {
     my $self = shift;
     
