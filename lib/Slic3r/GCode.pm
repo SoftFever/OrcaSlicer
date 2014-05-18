@@ -141,7 +141,7 @@ sub extrude {
 }
 
 sub extrude_loop {
-    my ($self, $loop, $description) = @_;
+    my ($self, $loop, $description, $speed) = @_;
     
     # make a copy; don't modify the orientation of the original loop object otherwise
     # next copies (if any) would not detect the correct orientation
@@ -199,10 +199,10 @@ sub extrude_loop {
     return '' if !@paths;
     
     # apply the small perimeter speed
-    my $speed = -1;
     if ($paths[0]->is_perimeter && $loop->length <= &Slic3r::SMALL_PERIMETER_LENGTH) {
-        $speed = $self->config->get_abs_value('small_perimeter_speed');
+        $speed //= $self->config->get_abs_value('small_perimeter_speed');
     }
+    $speed //= -1;
     
     # extrude along the path
     my $gcode = join '', map $self->extrude_path($_, $description, $speed), @paths;
@@ -267,7 +267,7 @@ sub extrude_path {
     
     # set speed
     my $F;
-    if ($path->role == EXTR_ROLE_PERIMETER || $path->role == EXTR_ROLE_SKIRT) {
+    if ($path->role == EXTR_ROLE_PERIMETER) {
         $F = $self->config->get_abs_value('perimeter_speed');
     } elsif ($path->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
         $F = $self->config->get_abs_value('external_perimeter_speed');

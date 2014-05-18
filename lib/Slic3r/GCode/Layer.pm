@@ -96,7 +96,7 @@ sub process_layer {
                 my $extruder_id = $extruder_ids[($i/@extruder_ids) % @extruder_ids];
                 $gcode .= $self->gcodegen->set_extruder($extruder_id)
                     if $layer->id == 0;
-                $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
+                $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt', $object->config->support_material_speed);
             }
         }
         $self->skirt_done->{$layer->print_z} = 1;
@@ -107,7 +107,8 @@ sub process_layer {
     if (!$self->brim_done) {
         $gcode .= $self->gcodegen->set_extruder($self->print->objects->[0]->config->support_material_extruder-1);
         $self->gcodegen->set_shift(@{$self->shift});
-        $gcode .= $self->gcodegen->extrude_loop($_, 'brim') for @{$self->print->brim};
+        $gcode .= $self->gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
+            for @{$self->print->brim};
         $self->brim_done(1);
         $self->gcodegen->straight_once(1);
     }
