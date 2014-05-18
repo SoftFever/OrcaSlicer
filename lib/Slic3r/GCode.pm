@@ -591,11 +591,13 @@ sub set_extruder {
             $gcode .= $self->travel_to($standby_point);
         }
         
-        my $temp = defined $self->layer && $self->layer->id == 0
-            ? $self->extruder->first_layer_temperature
-            : $self->extruder->temperature;
-        # we assume that heating is always slower than cooling, so no need to block
-        $gcode .= $self->set_temperature($temp + $self->config->standby_temperature_delta, 0);
+        if ($self->config->standby_temperature_delta != 0) {
+            my $temp = defined $self->layer && $self->layer->id == 0
+                ? $self->extruder->first_layer_temperature
+                : $self->extruder->temperature;
+            # we assume that heating is always slower than cooling, so no need to block
+            $gcode .= $self->set_temperature($temp + $self->config->standby_temperature_delta, 0);
+        }
     }
     
     # set the new extruder
@@ -612,7 +614,7 @@ sub set_extruder {
     $gcode .= $self->reset_e;
     
     # set the new extruder to the operating temperature
-    if ($self->config->ooze_prevention) {
+    if ($self->config->ooze_prevention && $self->config->standby_temperature_delta != 0) {
         my $temp = defined $self->layer && $self->layer->id == 0
             ? $self->extruder->first_layer_temperature
             : $self->extruder->temperature;
