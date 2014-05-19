@@ -82,8 +82,8 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object,
         // don't assume it's already aligned and we don't alter the original position in model.
         // We store the XY translation so that we can place copies correctly in the output G-code
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
-        this->_copies_shift = Point(modobj_bbox.min.x, modobj_bbox.min.y);
-        this->_copies_shift.scale(SCALING_FACTOR);
+        this->_copies_shift = Point(
+            scale_(modobj_bbox.min.x), scale_(modobj_bbox.min.y));
 
         // TODO: $self->_trigger_copies;
 
