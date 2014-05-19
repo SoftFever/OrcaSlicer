@@ -95,7 +95,6 @@ Clone<Flow>                O_OBJECT_SLIC3R_T
 
 PrintState*                O_OBJECT_SLIC3R
 Ref<PrintState>            O_OBJECT_SLIC3R_T
-Clone<PrintState>          O_OBJECT_SLIC3R_T
 
 Surface*                   O_OBJECT_SLIC3R
 Ref<Surface>               O_OBJECT_SLIC3R_T
@@ -128,11 +127,9 @@ Clone<ModelInstance>       O_OBJECT_SLIC3R_T
 
 PrintRegion*               O_OBJECT_SLIC3R
 Ref<PrintRegion>           O_OBJECT_SLIC3R_T
-Clone<PrintRegion>         O_OBJECT_SLIC3R_T
 
 PrintObject*               O_OBJECT_SLIC3R
 Ref<PrintObject>           O_OBJECT_SLIC3R_T
-Clone<PrintObject>         O_OBJECT_SLIC3R_T
 
 Print*                     O_OBJECT_SLIC3R
 Ref<Print>                 O_OBJECT_SLIC3R_T
@@ -140,15 +137,12 @@ Clone<Print>               O_OBJECT_SLIC3R_T
 
 LayerRegion*               O_OBJECT_SLIC3R
 Ref<LayerRegion>           O_OBJECT_SLIC3R_T
-Clone<LayerRegion>         O_OBJECT_SLIC3R_T
 
 Layer*                     O_OBJECT_SLIC3R
 Ref<Layer>                 O_OBJECT_SLIC3R_T
-Clone<Layer>               O_OBJECT_SLIC3R_T
 
 SupportLayer*              O_OBJECT_SLIC3R
 Ref<SupportLayer>          O_OBJECT_SLIC3R_T
-Clone<SupportLayer>        O_OBJECT_SLIC3R_T
 
 PlaceholderParser*         O_OBJECT_SLIC3R
 Ref<PlaceholderParser>     O_OBJECT_SLIC3R_T
