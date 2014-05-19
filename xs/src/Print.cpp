@@ -48,7 +48,7 @@ REGISTER_CLASS(PrintState, "Print::State");
 
 
 PrintRegion::PrintRegion(Print* print)
-:   config(), print(print)
+:   config(), _print(print)
 {
 }
 
@@ -56,10 +56,16 @@ PrintRegion::~PrintRegion()
 {
 }
 
+Print*
+PrintRegion::print()
+{
+    return this->_print;
+}
+
 PrintConfig &
 PrintRegion::print_config()
 {
-    return print->config;
+    return this->_print->config;
 }
 
 #ifdef SLIC3RXS
@@ -69,10 +75,10 @@ REGISTER_CLASS(PrintRegion, "Print::Region");
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object,
         const BoundingBoxf3 &modobj_bbox)
-:   print(print),
-    model_object(model_object)
+:   _print(print),
+    _model_object(model_object)
 {
-    region_volumes.resize(print->regions.size());
+    region_volumes.resize(this->_print->regions.size());
 
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {
@@ -95,6 +101,18 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object,
 
 PrintObject::~PrintObject()
 {
+}
+
+Print*
+PrintObject::print()
+{
+    return this->_print;
+}
+
+ModelObject*
+PrintObject::model_object()
+{
+    return this->_model_object;
 }
 
 void

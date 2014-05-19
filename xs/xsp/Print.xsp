@@ -47,8 +47,7 @@ _constant()
 
     Ref<PrintRegionConfig> config()
         %code%{ RETVAL = &THIS->config; %};
-    Ref<Print> print()
-        %code%{ RETVAL = THIS->print; %};
+    Ref<Print> print();
     Ref<PrintConfig> print_config()
         %code%{ RETVAL = &THIS->print_config(); %};
 };
@@ -64,12 +63,10 @@ _constant()
                 RETVAL = THIS->region_volumes[region_id];
         %};
     int region_count()
-        %code%{ RETVAL = THIS->print->regions.size(); %};
+        %code%{ RETVAL = THIS->print()->regions.size(); %};
 
-    Ref<Print> print()
-        %code%{ RETVAL = THIS->print; %};
-    Ref<ModelObject> model_object()
-        %code%{ RETVAL = THIS->model_object; %};
+    Ref<Print> print();
+    Ref<ModelObject> model_object();
     Ref<PrintObjectConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     Points copies()

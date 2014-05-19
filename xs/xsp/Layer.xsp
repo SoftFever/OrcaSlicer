@@ -9,10 +9,8 @@
 %name{Slic3r::Layer::Region} class LayerRegion {
     // owned by Layer, no constructor/destructor
 
-    Ref<Layer> layer()
-        %code%{ RETVAL = THIS->layer; %};
-    Ref<PrintRegion> region()
-        %code%{ RETVAL = THIS->region; %};
+    Ref<Layer> layer();
+    Ref<PrintRegion> region();
 
     Ref<SurfaceCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
@@ -33,10 +31,8 @@
 %name{Slic3r::Layer} class Layer {
     // owned by PrintObject, no constructor/destructor
 
-    int id()
-        %code%{ RETVAL = THIS->id; %};
-    Ref<PrintObject> object()
-        %code%{ RETVAL = THIS->object; %};
+    int id();
+    Ref<PrintObject> object();
     Ref<Layer> upper_layer()
         %code%{ RETVAL = THIS->upper_layer; %};
     Ref<Layer> lower_layer()

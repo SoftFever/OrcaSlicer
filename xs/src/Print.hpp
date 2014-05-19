@@ -46,11 +46,13 @@ class PrintRegion
 
     public:
     PrintRegionConfig config;
-    Print* print;
 
+    Print* print();
     PrintConfig &print_config();
 
     private:
+    Print* _print;
+
     PrintRegion(Print* print);
     virtual ~PrintRegion();
 };
@@ -65,9 +67,6 @@ class PrintObject
     friend class Print;
 
     public:
-    Print* print;
-    ModelObject* model_object;
-
     // vector of (vectors of volume ids), indexed by region_id
     std::vector<std::vector<int> > region_volumes;
     Points copies;      // Slic3r::Point objects in scaled G-code coordinates
@@ -89,6 +88,10 @@ class PrintObject
     // TODO: Fill* fill_maker        => (is => 'lazy');
     PrintState _state;
 
+
+    Print* print();
+    ModelObject* model_object();
+
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);
 
@@ -107,6 +110,9 @@ class PrintObject
     void delete_support_layer(int idx);
 
     private:
+    Print* _print;
+    ModelObject* _model_object;
+
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
     PrintObject(Print* print, ModelObject* model_object,

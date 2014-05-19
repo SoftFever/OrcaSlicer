@@ -4,13 +4,25 @@
 namespace Slic3r {
 
 LayerRegion::LayerRegion(Layer *layer, PrintRegion *region)
-:   layer(layer),
-    region(region)
+:   _layer(layer),
+    _region(region)
 {
 }
 
 LayerRegion::~LayerRegion()
 {
+}
+
+Layer*
+LayerRegion::layer()
+{
+    return this->_layer;
+}
+
+PrintRegion*
+LayerRegion::region()
+{
+    return this->_region;
 }
 
 #ifdef SLIC3RXS
@@ -20,8 +32,8 @@ REGISTER_CLASS(LayerRegion, "Layer::Region");
 
 Layer::Layer(int id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z)
-:   id(id),
-    object(object),
+:   _id(id),
+    _object(object),
     upper_layer(NULL),
     lower_layer(NULL),
     regions(),
@@ -46,6 +58,19 @@ Layer::~Layer()
 
     this->clear_regions();
 }
+
+int
+Layer::id()
+{
+    return this->_id;
+}
+
+PrintObject*
+Layer::object()
+{
+    return this->_object;
+}
+
 
 size_t
 Layer::region_count()
