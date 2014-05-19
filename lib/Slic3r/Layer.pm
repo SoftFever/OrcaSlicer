@@ -58,6 +58,8 @@ sub make_perimeters {
 
 package Slic3r::Layer::Support;
 
+our @ISA = qw(Slic3r::Layer);
+
 sub islands {
     my $self = shift;
     return [ @{$self->slices}, @{$self->support_islands} ];
