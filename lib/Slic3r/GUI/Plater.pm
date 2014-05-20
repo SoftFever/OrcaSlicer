@@ -692,6 +692,7 @@ sub export_gcode {
         $self->{print}->apply_config($config);
         $self->{print}->validate;
     };
+    Slic3r::GUI::catch_error($self) and return;
     
     # apply extra variables
     {
