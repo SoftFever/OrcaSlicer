@@ -1046,9 +1046,11 @@ sub write_gcode {
     
     # append full config
     print $fh "\n";
-    foreach my $opt_key (sort @{$self->config->get_keys}) {
-        next if $Slic3r::Config::Options->{$opt_key}{shortcut};
-        printf $fh "; %s = %s\n", $opt_key, $self->config->serialize($opt_key);
+    foreach my $config ($self->config, $self->default_object_config, $self->default_region_config) {
+        foreach my $opt_key (sort @{$config->get_keys}) {
+            next if $Slic3r::Config::Options->{$opt_key}{shortcut};
+            printf $fh "; %s = %s\n", $opt_key, $config->serialize($opt_key);
+        }
     }
     
     # close our gcode file
