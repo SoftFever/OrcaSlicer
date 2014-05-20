@@ -743,7 +743,13 @@ sub _build_extruder_pages {
         # extend options
         foreach my $opt_key ($self->_extruder_options) {
             my $values = $self->{config}->get($opt_key);
-            $values->[$extruder_idx] //= $default_config->get_at($opt_key, 0);
+            if (!defined $values) {
+                $values = [ $default_config->get_at($opt_key, 0) ];
+            } else {
+                # use last extruder's settings for the new one
+                my $last_value = $values->[-1];
+                $values->[$extruder_idx] //= $last_value;
+            }
             $self->{config}->set($opt_key, $values)
                 or die "Unable to extend $opt_key";
         }
