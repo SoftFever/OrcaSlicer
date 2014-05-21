@@ -231,7 +231,9 @@ sub _build_field {
             });
         } else {
             $field = Wx::TextCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style);
-            $self->_setters->{$opt_key} = sub { $field->ChangeValue($_[0]) };
+            # value supplied to the setter callback might be undef in case user loads a config
+            # that has empty string for multi-value options like 'wipe'
+            $self->_setters->{$opt_key} = sub { $field->ChangeValue($_[0]) if defined $_[0] };
             EVT_TEXT($self->parent, $field, $on_change);
             EVT_KILL_FOCUS($field, $on_kill_focus);
         }
