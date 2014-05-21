@@ -825,6 +825,7 @@ class PrintConfigDef
         Options["support_material_interface_speed"].tooltip = "Speed for printing support material interface layers. If expressed as percentage (for example 50%) it will be calculated over support material speed.";
         Options["support_material_interface_speed"].sidetext = "mm/s or %";
         Options["support_material_interface_speed"].cli = "support-material-interface-speed=s";
+        Options["support_material_interface_speed"].ratio_over = "support_material_speed";
 
         Options["support_material_pattern"].type = coEnum;
         Options["support_material_pattern"].label = "Pattern";
