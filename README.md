@@ -170,6 +170,9 @@ The author of the Silk icon set is Mark James.
                             (default: 50)
         --support-material-speed
                             Speed of support material print moves in mm/s (default: 60)
+        --support-material-interface-speed
+                            Speed of support material interface print moves in mm/s or % over support material
+                            speed (default: 100%)
         --bridge-speed      Speed of bridge print moves in mm/s (default: 60)
         --gap-fill-speed    Speed of gap fill print moves in mm/s (default: 20)
         --first-layer-speed Speed of print moves for bottom layer, expressed either as an absolute

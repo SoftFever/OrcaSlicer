@@ -124,12 +124,12 @@ sub process_layer {
         if ($layer->isa('Slic3r::Layer::Support')) {
             if ($layer->support_interface_fills->count > 0) {
                 $gcode .= $self->gcodegen->set_extruder($object->config->support_material_interface_extruder-1);
-                $gcode .= $self->gcodegen->extrude_path($_, 'support material interface', $object->config->support_material_speed) 
+                $gcode .= $self->gcodegen->extrude_path($_, 'support material interface', $object->config->get_abs_value('support_material_interface_speed')) 
                     for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills->count > 0) {
                 $gcode .= $self->gcodegen->set_extruder($object->config->support_material_extruder-1);
-                $gcode .= $self->gcodegen->extrude_path($_, 'support material', $object->config->support_material_speed) 
+                $gcode .= $self->gcodegen->extrude_path($_, 'support material', $object->config->get_abs_value('support_material_speed')) 
                     for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
             }
         }

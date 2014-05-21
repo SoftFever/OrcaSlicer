@@ -819,6 +819,13 @@ class PrintConfigDef
         Options["support_material_interface_spacing"].sidetext = "mm";
         Options["support_material_interface_spacing"].cli = "support-material-interface-spacing=f";
 
+        Options["support_material_interface_speed"].type = coFloatOrPercent;
+        Options["support_material_interface_speed"].label = "Support material interface";
+        Options["support_material_interface_speed"].category = "Support material";
+        Options["support_material_interface_speed"].tooltip = "Speed for printing support material interface layers. If expressed as percentage (for example 50%) it will be calculated over support material speed.";
+        Options["support_material_interface_speed"].sidetext = "mm/s or %";
+        Options["support_material_interface_speed"].cli = "support-material-interface-speed=s";
+
         Options["support_material_pattern"].type = coEnum;
         Options["support_material_pattern"].label = "Pattern";
         Options["support_material_pattern"].category = "Support material";
@@ -996,6 +1003,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 support_material_interface_extruder;
     ConfigOptionInt                 support_material_interface_layers;
     ConfigOptionFloat               support_material_interface_spacing;
+    ConfigOptionFloatOrPercent      support_material_interface_speed;
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
@@ -1020,6 +1028,8 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->support_material_interface_extruder.value          = 1;
         this->support_material_interface_layers.value            = 3;
         this->support_material_interface_spacing.value           = 0;
+        this->support_material_interface_speed.value             = 100;
+        this->support_material_interface_speed.percent           = true;
         this->support_material_pattern.value                     = smpPillars;
         this->support_material_spacing.value                     = 2.5;
         this->support_material_speed.value                       = 60;
@@ -1042,6 +1052,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         if (opt_key == "support_material_interface_extruder")        return &this->support_material_interface_extruder;
         if (opt_key == "support_material_interface_layers")          return &this->support_material_interface_layers;
         if (opt_key == "support_material_interface_spacing")         return &this->support_material_interface_spacing;
+        if (opt_key == "support_material_interface_speed")           return &this->support_material_interface_speed;
         if (opt_key == "support_material_pattern")                   return &this->support_material_pattern;
         if (opt_key == "support_material_spacing")                   return &this->support_material_spacing;
         if (opt_key == "support_material_speed")                     return &this->support_material_speed;
