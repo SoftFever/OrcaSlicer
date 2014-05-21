@@ -343,8 +343,13 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject,
     /* Clipper will remove a polyline segment if first point coincides with last one.
        Until that bug is not fixed upstream, we move one of those points slightly. */
     Slic3r::Polylines polylines = subject;  // temp copy to avoid dropping the const qualifier
-    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
-        polyline->points.front().translate(1, 0);
+    std::vector<bool> translated(subject.size(), false); // keep track of polylines we applied the hack to
+    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline) {
+        if (polyline->points.front().coincides_with(polyline->points.back())) {
+            polyline->points.front().translate(1, 0);
+            translated[ polyline - polylines.begin() ] = true;
+        }
+    }
     
     // perform operation
     ClipperLib::PolyTree polytree;
@@ -358,6 +363,7 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject,
     // compensate for the above hack
     for (Slic3r::Polylines::iterator polyline = retval.begin(); polyline != retval.end(); ++polyline) {
         for (Slic3r::Polylines::const_iterator subj_polyline = polylines.begin(); subj_polyline != polylines.end(); ++subj_polyline) {
+            if (!translated[ subj_polyline - polylines.begin() ]) continue;
             // if first point of clipped line coincides with first point of subject line, compensate for hack
             if (polyline->points.front().coincides_with(subj_polyline->points.front())) {
                 polyline->points.front().translate(-1, 0);
