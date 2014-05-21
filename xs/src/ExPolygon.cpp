@@ -155,7 +155,9 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     ma.build(polylines);
     
     // extend initial and final segments of each polyline (they will be clipped)
+    // unless they represent closed loops
     for (Polylines::iterator polyline = polylines->begin(); polyline != polylines->end(); ++polyline) {
+        if (polyline->points.front().coincides_with(polyline->points.back())) continue;
         polyline->extend_start(max_width);
         polyline->extend_end(max_width);
     }

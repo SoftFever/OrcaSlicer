@@ -339,36 +339,25 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
     const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_)
 {
+    
+    /* Clipper will remove a polyline segment if first point coincides with last one.
+       Until that bug is not fixed upstream, we move one of those points slightly. */
+    Slic3r::Polylines polylines = subject;  // temp copy to avoid dropping the const qualifier
+    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
+        polyline->points.front().translate(1, 0);
+    
     // perform operation
     ClipperLib::PolyTree polytree;
-    _clipper_do(clipType, subject, clip, polytree, ClipperLib::pftNonZero, safety_offset_);
+    _clipper_do(clipType, polylines, clip, polytree, ClipperLib::pftNonZero, safety_offset_);
     
     // convert into Polylines
     ClipperLib::Paths output;
     ClipperLib::PolyTreeToPaths(polytree, output);
     ClipperPaths_to_Slic3rMultiPoints(output, retval);
-}
-
-void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
-    const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_)
-{
-    // transform input polygons into polylines
-    Slic3r::Polylines polylines;
-    polylines.reserve(subject.size());
-    for (Slic3r::Polygons::const_iterator polygon = subject.begin(); polygon != subject.end(); ++polygon)
-        polylines.push_back(*polygon);  // implicit call to split_at_first_point()
-    
-    /* Clipper will remove a polyline segment if first point coincides with last one.
-       Until that bug is not fixed upstream, we move one of those points slightly. */
-    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
-        polyline->points.front().translate(1, 0);
-    
-    // perform clipping
-    _clipper(clipType, polylines, clip, retval, safety_offset_);
     
     // compensate for the above hack
     for (Slic3r::Polylines::iterator polyline = retval.begin(); polyline != retval.end(); ++polyline) {
-        for (Slic3r::Polylines::iterator subj_polyline = polylines.begin(); subj_polyline != polylines.end(); ++subj_polyline) {
+        for (Slic3r::Polylines::const_iterator subj_polyline = polylines.begin(); subj_polyline != polylines.end(); ++subj_polyline) {
             // if first point of clipped line coincides with first point of subject line, compensate for hack
             if (polyline->points.front().coincides_with(subj_polyline->points.front())) {
                 polyline->points.front().translate(-1, 0);
@@ -381,6 +370,19 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
             }
         }
     }
+}
+
+void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
+    const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_)
+{
+    // transform input polygons into polylines
+    Slic3r::Polylines polylines;
+    polylines.reserve(subject.size());
+    for (Slic3r::Polygons::const_iterator polygon = subject.begin(); polygon != subject.end(); ++polygon)
+        polylines.push_back(*polygon);  // implicit call to split_at_first_point()
+    
+    // perform clipping
+    _clipper(clipType, polylines, clip, retval, safety_offset_);
     
     /* If the split_at_first_point() call above happens to split the polygon inside the clipping area
        we would get two consecutive polylines instead of a single one, so we go through them in order
