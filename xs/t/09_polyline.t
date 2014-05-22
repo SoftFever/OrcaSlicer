@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 10;
+use Test::More tests => 14;
 
 my $points = [
     [100, 100],
@@ -49,6 +49,18 @@ is_deeply $polyline->pp, [ @$points, @$points ], 'append_polyline';
     is $polyline->length, 100*2 + 50, 'extend_end';
     $polyline->extend_start(50);
     is $polyline->length, 100*2 + 50 + 50, 'extend_start';
+}
+
+{
+    my $polyline = Slic3r::Polyline->new(@$points);
+    my $p1 = Slic3r::Polyline->new;
+    my $p2 = Slic3r::Polyline->new;
+    my $point = Slic3r::Point->new(150, 100);
+    $polyline->split_at($point, $p1, $p2);
+    is scalar(@$p1), 2, 'split_at';
+    is scalar(@$p2), 3, 'split_at';
+    ok $p1->last_point->coincides_with($point), 'split_at';
+    ok $p2->first_point->coincides_with($point), 'split_at';
 }
 
 __END__

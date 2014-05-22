@@ -185,7 +185,11 @@ sub extrude_loop {
     }
     
     # split the loop at the starting point
-    $loop->split_at($last_pos->nearest_point(\@candidates));
+    if ($self->config->spiral_vase) {
+        $loop->split_at($last_pos);
+    } else {
+        $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
+    }
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;
     # if polyline was shorter than the clipping distance we'd get a null polyline, so

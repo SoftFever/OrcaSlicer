@@ -17,8 +17,8 @@
     void translate(double x, double y);
     void reverse();
     Lines lines();
-    Polyline* split_at(Point* point)
-        %code{% RETVAL = new Polyline(); THIS->split_at(*point, RETVAL); %};
+    Polyline* split_at_vertex(Point* point)
+        %code{% RETVAL = new Polyline(); THIS->split_at_vertex(*point, RETVAL); %};
     Polyline* split_at_index(int index)
         %code{% RETVAL = new Polyline(); THIS->split_at_index(index, RETVAL); %};
     Polyline* split_at_first_point()

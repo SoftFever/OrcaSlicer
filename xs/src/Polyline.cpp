@@ -117,6 +117,42 @@ Polyline::simplify(double tolerance)
     this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
 }
 
+void
+Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
+{
+    if (this->points.empty()) return;
+    
+    // find the line to split at
+    size_t line_idx = 0;
+    Point p = this->first_point();
+    double min = point.distance_to(p);
+    Lines lines = this->lines();
+    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
+        Point p_tmp = point.projection_onto(*line);
+        if (point.distance_to(p_tmp) < min) {
+	        p = p_tmp;
+	        min = point.distance_to(p);
+	        line_idx = line - lines.begin();
+        }
+    }
+    
+    // create first half
+    p1->points.clear();
+    for (Lines::const_iterator line = lines.begin(); line != lines.begin() + line_idx + 1; ++line) {
+        if (!line->a.coincides_with(p)) p1->points.push_back(line->a);
+    }
+    // we add point instead of p because they might differ because of numerical issues
+    // and caller might want to rely on point belonging to result polylines
+    p1->points.push_back(point);
+    
+    // create second half
+    p2->points.clear();
+    p2->points.push_back(point);
+    for (Lines::const_iterator line = lines.begin() + line_idx; line != lines.end(); ++line) {
+        if (!line->b.coincides_with(p)) p2->points.push_back(line->b);
+    }
+}
+
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(Polyline, "Polyline");

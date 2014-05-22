@@ -56,7 +56,7 @@ Polygon::lines(Lines* lines) const
 }
 
 void
-Polygon::split_at(const Point &point, Polyline* polyline) const
+Polygon::split_at_vertex(const Point &point, Polyline* polyline) const
 {
     // find index of point
     for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {

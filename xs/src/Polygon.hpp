@@ -21,7 +21,7 @@ class Polygon : public MultiPoint {
     Point last_point() const;
     Lines lines() const;
     void lines(Lines* lines) const;
-    void split_at(const Point &point, Polyline* polyline) const;
+    void split_at_vertex(const Point &point, Polyline* polyline) const;
     void split_at_index(int index, Polyline* polyline) const;
     void split_at_first_point(Polyline* polyline) const;
     void equally_spaced_points(double distance, Points* points) const;

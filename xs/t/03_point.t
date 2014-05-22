@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 13;
+use Test::More tests => 15;
 
 my $point = Slic3r::Point->new(10, 15);
 is_deeply [ @$point ], [10, 15], 'point roundtrip';
@@ -56,6 +56,12 @@ ok !$point->coincides_with($point2), 'coincides_with';
     
     $point = Slic3r::Point->new(25, 15);
     is_deeply $point->projection_onto_line($line)->pp, [20,10], 'project_onto_line';
+    
+    $point = Slic3r::Point->new(10,10);
+    is_deeply $point->projection_onto_line($line)->pp, [10,10], 'project_onto_line';
+    
+    $point = Slic3r::Point->new(12, 10);
+    is_deeply $point->projection_onto_line($line)->pp, [12,10], 'project_onto_line';
 }
 
 __END__

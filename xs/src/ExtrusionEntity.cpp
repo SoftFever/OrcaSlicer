@@ -221,7 +221,7 @@ ExtrusionLoop::length() const
 }
 
 void
-ExtrusionLoop::split_at(const Point &point)
+ExtrusionLoop::split_at_vertex(const Point &point)
 {
     for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
         int idx = path->polyline.find_point(point);
@@ -239,7 +239,7 @@ ExtrusionLoop::split_at(const Point &point)
                 {
                     ExtrusionPath p = *path;
                     p.polyline.points.erase(p.polyline.points.begin(), p.polyline.points.begin() + idx);
-                    if (!p.polyline.points.empty()) new_paths.push_back(p);
+                    if (p.polyline.is_valid()) new_paths.push_back(p);
                 }
             
                 // then we add all paths until the end of current path list
@@ -252,7 +252,7 @@ ExtrusionLoop::split_at(const Point &point)
                 {
                     ExtrusionPath p = *path;
                     p.polyline.points.erase(p.polyline.points.begin() + idx + 1, p.polyline.points.end());
-                    if (!p.polyline.points.empty()) new_paths.push_back(p);
+                    if (p.polyline.is_valid()) new_paths.push_back(p);
                 }
                 // we can now override the old path list with the new one and stop looping
                 this->paths = new_paths;
@@ -261,6 +261,39 @@ ExtrusionLoop::split_at(const Point &point)
         }
     }
     CONFESS("Point not found");
+}
+
+void
+ExtrusionLoop::split_at(const Point &point)
+{
+    if (this->paths.empty()) return;
+    
+    // find the closest path and closest point
+    size_t path_idx = 0;
+    Point p = this->paths.front().first_point();
+    double min = point.distance_to(p);
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+        Point p_tmp = point.projection_onto(path->polyline);
+        double dist = point.distance_to(p_tmp);
+        if (dist < min) {
+            p = p_tmp;
+            min = dist;
+            path_idx = path - this->paths.begin();
+        }
+    }
+    
+    // now split path_idx in two parts
+    ExtrusionPath p1 = this->paths[path_idx];
+    ExtrusionPath p2 = p1;
+    this->paths[path_idx].polyline.split_at(p, &p1.polyline, &p2.polyline);
+    
+    // install the two paths
+    this->paths.erase(this->paths.begin() + path_idx);
+    if (p2.polyline.is_valid()) this->paths.insert(this->paths.begin() + path_idx, p2);
+    if (p1.polyline.is_valid()) this->paths.insert(this->paths.begin() + path_idx, p1);
+    
+    // split at the new vertex
+    this->split_at_vertex(p);
 }
 
 void

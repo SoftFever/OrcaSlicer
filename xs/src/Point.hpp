@@ -24,6 +24,7 @@ class Point
     coord_t x;
     coord_t y;
     explicit Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
+    Point(double x, double y);
     bool operator==(const Point& rhs) const;
     std::string wkt() const;
     void scale(double factor);

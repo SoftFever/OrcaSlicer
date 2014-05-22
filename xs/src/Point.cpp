@@ -6,6 +6,12 @@
 
 namespace Slic3r {
 
+Point::Point(double x, double y)
+{
+    this->x = lrint(x);
+    this->y = lrint(y);
+}
+
 bool
 Point::operator==(const Point& rhs) const
 {
