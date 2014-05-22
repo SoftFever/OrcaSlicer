@@ -1,4 +1,4 @@
-use Test::More tests => 10;
+use Test::More tests => 9;
 use strict;
 use warnings;
 
@@ -83,28 +83,6 @@ use Slic3r::Test;
         });
         ok !$has_cw_loops, 'all perimeters extruded ccw';
         ok !$has_outwards_move, 'move inwards after completing external loop';
-    }
-    
-    {
-        $config->set('start_perimeters_at_concave_points', 1);
-        my $print = Slic3r::Test::init_print('L', config => $config);
-        my $loop_starts_from_convex_point = 0;
-        my $cur_loop;
-        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-            my ($self, $cmd, $args, $info) = @_;
-            
-            if ($info->{extruding} && $info->{dist_XY} > 0) {
-                $cur_loop ||= [ [$self->X, $self->Y] ];
-                push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
-            } else {
-                if ($cur_loop) {
-                    $loop_starts_from_convex_point = 1
-                        if Slic3r::Geometry::angle3points(@$cur_loop[0,-1,1]) >= PI;
-                    $cur_loop = undef;
-                }
-            }
-        });
-        ok !$loop_starts_from_convex_point, 'avoid starting from convex points';
     }
     
     {
@@ -267,9 +245,9 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('randomize_start', 1);
+    $config->set('seal_position', 'random');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), 'successful generation of G-code with randomize_start option';
+    ok Slic3r::Test::gcode($print), 'successful generation of G-code with seal_position = random';
 }
 
 __END__

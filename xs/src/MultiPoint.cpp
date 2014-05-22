@@ -1,6 +1,12 @@
 #include "MultiPoint.hpp"
+#include "BoundingBox.hpp"
 
 namespace Slic3r {
+
+MultiPoint::operator Points() const
+{
+    return this->points;
+}
 
 void
 MultiPoint::scale(double factor)
@@ -62,6 +68,12 @@ MultiPoint::find_point(const Point &point) const
         if (it->coincides_with(point)) return it - this->points.begin();
     }
     return -1;  // not found
+}
+
+void
+MultiPoint::bounding_box(BoundingBox* bb) const
+{
+    *bb = BoundingBox(this->points);
 }
 
 Points

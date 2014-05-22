@@ -8,7 +8,8 @@ use List::Util qw(first max);
 # cemetery of old config settings
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
     adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
-    rotate scale duplicate_grid);
+    rotate scale duplicate_grid start_perimeters_at_concave_points start_perimeters_at_non_overhang
+    randomize_start);
 
 our $Options = print_config_def();
 
@@ -139,6 +140,10 @@ sub _handle_legacy {
         # fill_density was turned into a percent value
         $value *= 100;
         $value = "$value";  # force update of the PV value, workaround for bug https://rt.cpan.org/Ticket/Display.html?id=94110
+    }
+    if ($opt_key eq 'randomize_start' && $value) {
+        $opt_key = 'seal_position';
+        $value = 'random';
     }
     
     # For historical reasons, the world's full of configs having these very low values;

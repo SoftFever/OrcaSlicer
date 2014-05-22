@@ -260,12 +260,19 @@ sub make_perimeters {
             
             my $role        = EXTR_ROLE_PERIMETER;
             my $loop_role   = EXTRL_ROLE_DEFAULT;
-            if ($is_contour ? $depth == 0 : !@{ $polynode->{children} }) {
+            
+            my $root_level  = $depth == 0;
+            my $no_children = !@{ $polynode->{children} };
+            my $is_external = $is_contour ? $root_level : $no_children;
+            my $is_internal = $is_contour ? $no_children : $root_level;
+            if ($is_external) {
                 # external perimeters are root level in case of contours
                 # and items with no children in case of holes
                 $role       = EXTR_ROLE_EXTERNAL_PERIMETER;
                 $loop_role  = EXTRL_ROLE_EXTERNAL_PERIMETER;
-            } elsif ($depth == 1 && $is_contour) {
+            } elsif ($is_contour && $is_internal) {
+                # internal perimeters are root level in case of holes
+                # and items with no children in case of contours
                 $loop_role  = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
             

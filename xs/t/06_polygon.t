@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(first);
 use Slic3r::XS;
-use Test::More tests => 19;
+use Test::More tests => 20;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -67,6 +67,10 @@ ok $cw_polygon->contains_point(Slic3r::Point->new(150,150)), 'cw contains_point'
     my $triangles = $hexagon->triangulate_convex;
     is scalar(@$triangles), 4, 'right number of triangles';
     ok !(defined first { $_->is_clockwise } @$triangles), 'all triangles are ccw';
+}
+
+{
+    is_deeply $polygon->centroid->pp, [150,150], 'centroid';
 }
 
 # this is not a test: this just demonstrates bad usage, where $polygon->clone gets

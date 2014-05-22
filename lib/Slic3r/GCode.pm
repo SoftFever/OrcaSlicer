@@ -19,6 +19,7 @@ has '_layer_index'       => (is => 'rw', default => sub {-1});  # just a counter
 has 'layer'              => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
+has '_seal_position'     => (is => 'ro', default => sub { {} });  # $object => pos
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -150,45 +151,37 @@ sub extrude_loop {
     # extrude all loops ccw
     my $was_clockwise = $loop->make_counter_clockwise;
     
-    # find candidate starting points
-    # start looking for concave vertices not being overhangs
-    my $polygon = $loop->polygon;
-    my @concave = ();
-    if ($self->config->start_perimeters_at_concave_points) {
-        @concave = $polygon->concave_points;
-    }
-    my @candidates = ();
-    if ($self->config->start_perimeters_at_non_overhang) {
-        @candidates = grep !$loop->has_overhang_point($_), @concave;
-    }
-    if (!@candidates) {
-        # if none, look for any concave vertex
-        @candidates = @concave;
-        if (!@candidates) {
-            # if none, look for any non-overhang vertex
-            if ($self->config->start_perimeters_at_non_overhang) {
-                @candidates = grep !$loop->has_overhang_point($_), @$polygon;
-            }
-            if (!@candidates) {
-                # if none, all points are valid candidates
-                @candidates = @$polygon;
-            }
-        }
-    }
-    
     # find the point of the loop that is closest to the current extruder position
     # or randomize if requested
     my $last_pos = $self->last_pos;
-    if ($self->config->randomize_start && $loop->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER) {
-        $last_pos = Slic3r::Point->new(scale $self->config->print_center->[X], scale $self->config->bed_size->[Y]);
-        $last_pos->rotate(rand(2*PI), $self->config->print_center);
-    }
-    
-    # split the loop at the starting point
     if ($self->config->spiral_vase) {
         $loop->split_at($last_pos);
-    } else {
-        $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
+    } elsif ($self->config->seal_position eq 'nearest' || $self->config->seal_position eq 'aligned') {
+        my $polygon = $loop->polygon;
+        my @candidates = @{$polygon->concave_points(PI*4/3)};
+        @candidates = @{$polygon->convex_points(PI*2/3)} if !@candidates;
+        @candidates = @{$polygon} if !@candidates;
+        
+        my @non_overhang = grep !$loop->has_overhang_point($_), @candidates;
+        @candidates = @non_overhang if @non_overhang;
+        
+        if ($self->config->seal_position eq 'nearest') {
+            $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
+        } elsif ($self->config->seal_position eq 'aligned') {
+            if (defined $self->layer && defined $self->_seal_position->{$self->layer->object}) {
+                $last_pos = $self->_seal_position->{$self->layer->object};
+            }
+            my $point = $self->_seal_position->{$self->layer->object} = $last_pos->nearest_point(\@candidates);
+            $loop->split_at_vertex($point);
+        }
+    } elsif ($self->config->seal_position eq 'random') {
+        if ($loop->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER) {
+            my $polygon = $loop->polygon;
+            my $centroid = $polygon->centroid;
+            $last_pos = Slic3r::Point->new($polygon->bounding_box->x_max, $centroid->y);  #))
+            $last_pos->rotate(rand(2*PI), $centroid);
+        }
+        $loop->split_at($last_pos);
     }
     
     # clip the path to avoid the extruder to get exactly on the first point of the loop;

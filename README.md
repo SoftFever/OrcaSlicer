@@ -219,7 +219,7 @@ The author of the Silk icon set is Mark James.
                             home X axis [G28 X], disable motors [M84]).
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
-        --randomize-start   Randomize starting point across layers (default: yes)
+        --seal-position     Position of loop starting points (random/nearest/aligned, default: aligned).
         --external-perimeters-first Reverse perimeter order. (default: no)
         --spiral-vase       Experimental option to raise Z gradually when printing single-walled vases
                             (default: no)
@@ -236,10 +236,6 @@ The author of the Silk icon set is Mark James.
        Quality options (slower slicing):
         --extra-perimeters  Add more perimeters when needed (default: yes)
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
-        --start-perimeters-at-concave-points
-                            Try to start perimeters at concave points if any (default: no)
-        --start-perimeters-at-non-overhang
-                            Try to start perimeters at non-overhang points if any (default: no)
         --thin-walls        Detect single-width walls (default: yes)
         --overhangs         Experimental option to use bridge flow, speed and fan for overhangs
                             (default: yes)

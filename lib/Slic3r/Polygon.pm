@@ -40,15 +40,34 @@ sub subdivide {
     return Slic3r::Polygon->new(@new_points);
 }
 
-# for cw polygons this will return convex points!
+# angle is checked on the internal side of the polygon
 sub concave_points {
-    my $self = shift;
+    my ($self, $angle) = @_;
+    
+    $angle //= PI;
     
     my @points = @$self;
     my @points_pp = @{$self->pp};
-    return map $points[$_],
-        grep Slic3r::Geometry::angle3points(@points_pp[$_, $_-1, $_+1]) < PI - epsilon,
-        -1 .. ($#points-1);
+    return [
+        map $points[$_],
+        grep Slic3r::Geometry::angle3points(@points_pp[$_, $_-1, $_+1]) < $angle,
+        -1 .. ($#points-1)
+    ];
+}
+
+# angle is checked on the internal side of the polygon
+sub convex_points {
+    my ($self, $angle) = @_;
+    
+    $angle //= PI;
+    
+    my @points = @$self;
+    my @points_pp = @{$self->pp};
+    return [
+        map $points[$_],
+        grep Slic3r::Geometry::angle3points(@points_pp[$_, $_-1, $_+1]) > $angle,
+        -1 .. ($#points-1)
+    ];
 }
 
 1;

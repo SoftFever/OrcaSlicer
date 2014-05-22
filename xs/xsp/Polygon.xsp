@@ -38,6 +38,12 @@
     Polygons simplify(double tolerance);
     Polygons triangulate_convex()
         %code{% THIS->triangulate_convex(&RETVAL); %};
+    Clone<Point> centroid();
+    BoundingBox* bounding_box()
+        %code{%
+            RETVAL = new BoundingBox();
+            THIS->bounding_box(RETVAL);
+        %};
 %{
 
 Polygon*

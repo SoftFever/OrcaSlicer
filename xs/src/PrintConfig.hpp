@@ -18,6 +18,10 @@ enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb, smpPillars,
 };
 
+enum SealPosition {
+    spRandom, spNearest, spAligned
+};
+
 template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     t_config_enum_values keys_map;
     keys_map["reprap"]          = gcfRepRap;
@@ -47,6 +51,14 @@ template<> inline t_config_enum_values ConfigOptionEnum<SupportMaterialPattern>:
     keys_map["rectilinear-grid"]    = smpRectilinearGrid;
     keys_map["honeycomb"]           = smpHoneycomb;
     keys_map["pillars"]             = smpPillars;
+    return keys_map;
+}
+
+template<> inline t_config_enum_values ConfigOptionEnum<SealPosition>::get_enum_values() {
+    t_config_enum_values keys_map;
+    keys_map["random"]              = spRandom;
+    keys_map["nearest"]             = spNearest;
+    keys_map["aligned"]             = spAligned;
     return keys_map;
 }
 
@@ -584,11 +596,6 @@ class PrintConfigDef
         Options["raft_layers"].sidetext = "layers";
         Options["raft_layers"].cli = "raft-layers=i";
 
-        Options["randomize_start"].type = coBool;
-        Options["randomize_start"].label = "Randomize starting points";
-        Options["randomize_start"].tooltip = "Start each layer from a different vertex to prevent plastic build-up on the same corner.";
-        Options["randomize_start"].cli = "randomize-start!";
-
         Options["resolution"].type = coFloat;
         Options["resolution"].label = "Resolution";
         Options["resolution"].tooltip = "Minimum detail resolution, used to simplify the input file for speeding up the slicing job and reducing memory usage. High-resolution models often carry more detail than printers can render. Set to zero to disable any simplification and use full resolution from input.";
@@ -643,6 +650,19 @@ class PrintConfigDef
         Options["retract_speed"].sidetext = "mm/s";
         Options["retract_speed"].cli = "retract-speed=f@";
         Options["retract_speed"].max = 1000;
+
+        Options["seal_position"].type = coEnum;
+        Options["seal_position"].label = "Seal position";
+        Options["seal_position"].category = "Layers and perimeters";
+        Options["seal_position"].tooltip = "Position of perimeters starting points.";
+        Options["seal_position"].cli = "seal-position=s";
+        Options["seal_position"].enum_keys_map = ConfigOptionEnum<SealPosition>::get_enum_values();
+        Options["seal_position"].enum_values.push_back("random");
+        Options["seal_position"].enum_values.push_back("nearest");
+        Options["seal_position"].enum_values.push_back("aligned");
+        Options["seal_position"].enum_labels.push_back("Random");
+        Options["seal_position"].enum_labels.push_back("Nearest");
+        Options["seal_position"].enum_labels.push_back("Aligned");
 
         Options["skirt_distance"].type = coFloat;
         Options["skirt_distance"].label = "Distance from object";
@@ -752,16 +772,6 @@ class PrintConfigDef
         Options["start_gcode"].multiline = true;
         Options["start_gcode"].full_width = true;
         Options["start_gcode"].height = 120;
-
-        Options["start_perimeters_at_concave_points"].type = coBool;
-        Options["start_perimeters_at_concave_points"].label = "Concave points";
-        Options["start_perimeters_at_concave_points"].tooltip = "Prefer to start perimeters at a concave point.";
-        Options["start_perimeters_at_concave_points"].cli = "start-perimeters-at-concave-points!";
-
-        Options["start_perimeters_at_non_overhang"].type = coBool;
-        Options["start_perimeters_at_non_overhang"].label = "Non-overhang points";
-        Options["start_perimeters_at_non_overhang"].tooltip = "Prefer to start perimeters at non-overhanging points.";
-        Options["start_perimeters_at_non_overhang"].cli = "start-perimeters-at-non-overhang!";
 
         Options["support_material"].type = coBool;
         Options["support_material"].label = "Generate support material";
@@ -996,6 +1006,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionBool                interface_shells;
     ConfigOptionFloat               layer_height;
     ConfigOptionInt                 raft_layers;
+    ConfigOptionEnum<SealPosition>  seal_position;
     ConfigOptionBool                support_material;
     ConfigOptionInt                 support_material_angle;
     ConfigOptionInt                 support_material_enforce_layers;
@@ -1020,6 +1031,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->interface_shells.value                             = false;
         this->layer_height.value                                 = 0.4;
         this->raft_layers.value                                  = 0;
+        this->seal_position.value                                = spAligned;
         this->support_material.value                             = false;
         this->support_material_angle.value                       = 0;
         this->support_material_enforce_layers.value              = 0;
@@ -1045,6 +1057,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         if (opt_key == "interface_shells")                           return &this->interface_shells;
         if (opt_key == "layer_height")                               return &this->layer_height;
         if (opt_key == "raft_layers")                                return &this->raft_layers;
+        if (opt_key == "seal_position")                              return &this->seal_position;
         if (opt_key == "support_material")                           return &this->support_material;
         if (opt_key == "support_material_angle")                     return &this->support_material_angle;
         if (opt_key == "support_material_enforce_layers")            return &this->support_material_enforce_layers;
@@ -1214,7 +1227,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionFloat               perimeter_acceleration;
     ConfigOptionStrings             post_process;
     ConfigOptionPoint               print_center;
-    ConfigOptionBool                randomize_start;
     ConfigOptionFloat               resolution;
     ConfigOptionFloats              retract_before_travel;
     ConfigOptionBools               retract_layer_change;
@@ -1231,8 +1243,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionBool                spiral_vase;
     ConfigOptionInt                 standby_temperature_delta;
     ConfigOptionString              start_gcode;
-    ConfigOptionBool                start_perimeters_at_concave_points;
-    ConfigOptionBool                start_perimeters_at_non_overhang;
     ConfigOptionInts                temperature;
     ConfigOptionInt                 threads;
     ConfigOptionString              toolchange_gcode;
@@ -1296,7 +1306,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->output_filename_format.value                       = "[input_filename_base].gcode";
         this->perimeter_acceleration.value                       = 0;
         this->print_center.point                                 = Pointf(100,100);
-        this->randomize_start.value                              = false;
         this->resolution.value                                   = 0;
         this->retract_before_travel.values.resize(1);
         this->retract_before_travel.values[0]                    = 2;
@@ -1321,8 +1330,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->spiral_vase.value                                  = false;
         this->standby_temperature_delta.value                    = -5;
         this->start_gcode.value                                  = "G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n";
-        this->start_perimeters_at_concave_points.value           = false;
-        this->start_perimeters_at_non_overhang.value             = false;
         this->temperature.values.resize(1);
         this->temperature.values[0]                              = 200;
         this->threads.value                                      = 2;
@@ -1383,7 +1390,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "perimeter_acceleration")                     return &this->perimeter_acceleration;
         if (opt_key == "post_process")                               return &this->post_process;
         if (opt_key == "print_center")                               return &this->print_center;
-        if (opt_key == "randomize_start")                            return &this->randomize_start;
         if (opt_key == "resolution")                                 return &this->resolution;
         if (opt_key == "retract_before_travel")                      return &this->retract_before_travel;
         if (opt_key == "retract_layer_change")                       return &this->retract_layer_change;
@@ -1400,8 +1406,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "spiral_vase")                                return &this->spiral_vase;
         if (opt_key == "standby_temperature_delta")                  return &this->standby_temperature_delta;
         if (opt_key == "start_gcode")                                return &this->start_gcode;
-        if (opt_key == "start_perimeters_at_concave_points")         return &this->start_perimeters_at_concave_points;
-        if (opt_key == "start_perimeters_at_non_overhang")           return &this->start_perimeters_at_non_overhang;
         if (opt_key == "temperature")                                return &this->temperature;
         if (opt_key == "threads")                                    return &this->threads;
         if (opt_key == "toolchange_gcode")                           return &this->toolchange_gcode;
