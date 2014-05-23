@@ -1,8 +1,8 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.1.3a                                                          *
-* Date      :  22 January 2014                                                 *
+* Version   :  6.1.5                                                           *
+* Date      :  22 May 2014                                                     *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2014                                         *
 *                                                                              *
@@ -34,7 +34,7 @@
 #ifndef clipper_hpp
 #define clipper_hpp
 
-#define CLIPPER_VERSION "6.1.3"
+#define CLIPPER_VERSION "6.1.5"
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
@@ -69,11 +69,15 @@ enum PolyType { ptSubject, ptClip };
 enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
 #ifdef use_int32
-typedef int cInt;
-typedef unsigned int cUInt;
+  typedef int cInt;
+  static cInt const loRange = 46340;
+  static cInt const hiRange = 46340;
 #else
-typedef signed long long cInt;
-typedef unsigned long long cUInt;
+  typedef signed long long cInt;
+  typedef signed long long long64;     //used by Int128 class
+  typedef unsigned long long ulong64;
+  static cInt const loRange = 0x3FFFFFFF;
+  static cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
 #endif
 
 struct IntPoint {
@@ -117,7 +121,7 @@ struct DoublePoint
 //------------------------------------------------------------------------------
 
 #ifdef use_xyz
-typedef void (*TZFillCallback)(IntPoint& z1, IntPoint& z2, IntPoint& pt);
+typedef void (*TZFillCallback)(IntPoint& e1bot, IntPoint& e1top, IntPoint& e2bot, IntPoint& e2top, IntPoint& pt);
 #endif
 
 enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveCollinear = 4};
@@ -183,8 +187,7 @@ void CleanPolygons(const Paths& in_polys, Paths& out_polys, double distance = 1.
 void CleanPolygons(Paths& polys, double distance = 1.415);
 
 void MinkowskiSum(const Path& pattern, const Path& path, Paths& solution, bool pathIsClosed);
-void MinkowskiSum(const Path& pattern, const Paths& paths, 
-  Paths& solution, PolyFillType pathFillType, bool pathIsClosed);
+void MinkowskiSum(const Path& pattern, const Paths& paths, Paths& solution, bool pathIsClosed);
 void MinkowskiDiff(const Path& poly1, const Path& poly2, Paths& solution);
 
 void PolyTreeToPaths(const PolyTree& polytree, Paths& paths);
@@ -308,15 +311,13 @@ private:
   bool IsTopHorz(const cInt XPos);
   void SwapPositionsInAEL(TEdge *edge1, TEdge *edge2);
   void DoMaxima(TEdge *e);
-  void PrepareHorzJoins(TEdge* horzEdge, bool isTopOfScanbeam);
   void ProcessHorizontals(bool IsTopOfScanbeam);
   void ProcessHorizontal(TEdge *horzEdge, bool isTopOfScanbeam);
   void AddLocalMaxPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutPt* AddLocalMinPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutRec* GetOutRec(int idx);
   void AppendPolygon(TEdge *e1, TEdge *e2);
-  void IntersectEdges(TEdge *e1, TEdge *e2,
-    const IntPoint &pt, bool protect = false);
+  void IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &pt);
   OutRec* CreateOutRec();
   OutPt* AddOutPt(TEdge *e, const IntPoint &pt);
   void DisposeAllOutRecs();
@@ -344,7 +345,7 @@ private:
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
   void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec);
 #ifdef use_xyz
-  void SetZ(IntPoint& pt, TEdge& e);
+  void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
 };
 //------------------------------------------------------------------------------

@@ -339,43 +339,14 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
     const Slic3r::Polygons &clip, Slic3r::Polylines &retval, bool safety_offset_)
 {
-    
-    /* Clipper will remove a polyline segment if first point coincides with last one.
-       Until that bug is not fixed upstream, we move one of those points slightly. */
-    Slic3r::Polylines polylines = subject;  // temp copy to avoid dropping the const qualifier
-    std::vector<bool> translated(subject.size(), false); // keep track of polylines we applied the hack to
-    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline) {
-        if (polyline->points.front().coincides_with(polyline->points.back())) {
-            polyline->points.front().translate(1, 0);
-            translated[ polyline - polylines.begin() ] = true;
-        }
-    }
-    
     // perform operation
     ClipperLib::PolyTree polytree;
-    _clipper_do(clipType, polylines, clip, polytree, ClipperLib::pftNonZero, safety_offset_);
+    _clipper_do(clipType, subject, clip, polytree, ClipperLib::pftNonZero, safety_offset_);
     
     // convert into Polylines
     ClipperLib::Paths output;
     ClipperLib::PolyTreeToPaths(polytree, output);
     ClipperPaths_to_Slic3rMultiPoints(output, retval);
-    
-    // compensate for the above hack
-    for (Slic3r::Polylines::iterator polyline = retval.begin(); polyline != retval.end(); ++polyline) {
-        for (Slic3r::Polylines::const_iterator subj_polyline = polylines.begin(); subj_polyline != polylines.end(); ++subj_polyline) {
-            if (!translated[ subj_polyline - polylines.begin() ]) continue;
-            // if first point of clipped line coincides with first point of subject line, compensate for hack
-            if (polyline->points.front().coincides_with(subj_polyline->points.front())) {
-                polyline->points.front().translate(-1, 0);
-                break;
-            }
-            // since Clipper does not preserve orientation of polylines, check last point too
-            if (polyline->points.back().coincides_with(subj_polyline->points.front())) {
-                polyline->points.back().translate(-1, 0);
-                break;
-            }
-        }
-    }
 }
 
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
