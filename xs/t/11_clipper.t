@@ -163,7 +163,7 @@ if (0) {  # Clipper does not preserve polyline orientation
         Slic3r::Polygon->new([75200000,45200000],[54800000,45200000],[54800000,24800000],[75200000,24800000]),
     ];
     my $result = Slic3r::Geometry::Clipper::intersection_pl([$subject], $clip);
-    is scalar(@$result), 2, 'intersection_pl - result is not empty';
+    is scalar(@$result), 1, 'intersection_pl - result is not empty';
 }
 
 {
