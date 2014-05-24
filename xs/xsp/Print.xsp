@@ -158,7 +158,6 @@ _constant()
 
     PrintRegionPtrs* regions()
         %code%{ RETVAL = &THIS->regions; %};
-    void clear_regions();
     Ref<PrintRegion> get_region(int idx);
     Ref<PrintRegion> add_region();
     size_t region_count()

@@ -154,9 +154,11 @@ class Print
         const BoundingBoxf3 &modobj_bbox);
     void delete_object(int idx);
 
-    void clear_regions();
     PrintRegion* get_region(int idx);
     PrintRegion* add_region();
+
+    private:
+    void clear_regions();
     void delete_region(int idx);
 };
 

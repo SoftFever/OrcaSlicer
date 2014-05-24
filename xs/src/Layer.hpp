@@ -82,18 +82,20 @@ class Layer {
 
 
     size_t region_count();
-    void clear_regions();
     LayerRegion* get_region(int idx);
     LayerRegion* add_region(PrintRegion* print_region);
-    void delete_region(int idx);
 
     protected:
     int _id;     // sequential number of layer, 0-based
     PrintObject *_object;
 
+
     Layer(int id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
     virtual ~Layer();
+
+    void clear_regions();
+    void delete_region(int idx);
 };
 
 

@@ -52,7 +52,6 @@
         %code%{ THIS->lower_layer = layer; %};
 
     size_t region_count();
-    void clear_regions();
     Ref<LayerRegion> get_region(int idx);
     Ref<LayerRegion> add_region(PrintRegion* print_region);
 
@@ -96,10 +95,8 @@
         %code%{ THIS->lower_layer = layer; %};
 
     size_t region_count();
-    void clear_regions();
     Ref<LayerRegion> get_region(int idx);
     Ref<LayerRegion> add_region(PrintRegion* print_region);
-    void delete_region(int idx);
 
     Ref<ExPolygonCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
