@@ -126,22 +126,6 @@ _constant()
     Ref<ExtrusionEntityCollection> brim()
         %code%{ RETVAL = &THIS->brim; %};
 
-    double total_used_filament(...)
-        %code%{
-            if (items > 1) {
-                THIS->total_used_filament = (double)SvNV(ST(1));
-            }
-            RETVAL = THIS->total_used_filament;
-        %};
-
-    double total_extruded_volume(...)
-        %code%{
-            if (items > 1) {
-                THIS->total_extruded_volume = (double)SvNV(ST(1));
-            }
-            RETVAL = THIS->total_extruded_volume;
-        %};
-
     PrintObjectPtrs* objects()
         %code%{ RETVAL = &THIS->objects; %};
     void clear_objects();
@@ -162,4 +146,27 @@ _constant()
     Ref<PrintRegion> add_region();
     size_t region_count()
         %code%{ RETVAL = THIS->regions.size(); %};
+%{
+
+double
+Print::total_used_filament(...)
+    CODE:
+        if (items > 1) {
+            THIS->total_used_filament = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->total_used_filament;
+    OUTPUT:
+        RETVAL
+
+double
+Print::total_extruded_volume(...)
+    CODE:
+        if (items > 1) {
+            THIS->total_extruded_volume = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->total_extruded_volume;
+    OUTPUT:
+        RETVAL
+
+%}
 };
