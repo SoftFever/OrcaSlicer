@@ -72,10 +72,8 @@
 
     // copies of some Layer methods, because the parameter wrapper code
     // gets confused about getting a Layer::Support instead of a Layer
-    int id()
-        %code%{ RETVAL = THIS->id; %};
-    Ref<PrintObject> object()
-        %code%{ RETVAL = THIS->object; %};
+    int id();
+    Ref<PrintObject> object();
     Ref<SupportLayer> upper_layer()
         %code%{ RETVAL = (SupportLayer*)THIS->upper_layer; %};
     Ref<SupportLayer> lower_layer()
