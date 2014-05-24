@@ -66,6 +66,7 @@ _constant()
         %code%{ RETVAL = THIS->print()->regions.size(); %};
 
     Ref<Print> print();
+    int id();
     Ref<ModelObject> model_object();
     Ref<PrintObjectConfig> config()
         %code%{ RETVAL = &THIS->config; %};

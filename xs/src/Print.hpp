@@ -90,6 +90,7 @@ class PrintObject
 
 
     Print* print();
+    int id();
     ModelObject* model_object();
 
     // adds region_id, too, if necessary
@@ -111,11 +112,12 @@ class PrintObject
 
     private:
     Print* _print;
+    int _id;
     ModelObject* _model_object;
 
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
-    PrintObject(Print* print, ModelObject* model_object,
+    PrintObject(Print* print, int id, ModelObject* model_object,
         const BoundingBoxf3 &modobj_bbox);
     virtual ~PrintObject();
 };

@@ -168,10 +168,11 @@ sub extrude_loop {
         if ($self->config->seal_position eq 'nearest') {
             $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
         } elsif ($self->config->seal_position eq 'aligned') {
-            if (defined $self->layer && defined $self->_seal_position->{$self->layer->object}) {
-                $last_pos = $self->_seal_position->{$self->layer->object};
+            my $object_id = $self->layer->object->id;
+            if (defined $self->layer && defined $self->_seal_position->{$object_id}) {
+                $last_pos = $self->_seal_position->{$object_id};
             }
-            my $point = $self->_seal_position->{$self->layer->object} = $last_pos->nearest_point(\@candidates);
+            my $point = $self->_seal_position->{$object_id} = $last_pos->nearest_point(\@candidates);
             $loop->split_at_vertex($point);
         }
     } elsif ($self->config->seal_position eq 'random') {

@@ -73,9 +73,10 @@ REGISTER_CLASS(PrintRegion, "Print::Region");
 #endif
 
 
-PrintObject::PrintObject(Print* print, ModelObject* model_object,
+PrintObject::PrintObject(Print* print, int id, ModelObject* model_object,
         const BoundingBoxf3 &modobj_bbox)
 :   _print(print),
+    _id(id),
     _model_object(model_object)
 {
     region_volumes.resize(this->_print->regions.size());
@@ -107,6 +108,12 @@ Print*
 PrintObject::print()
 {
     return this->_print;
+}
+
+int
+PrintObject::id()
+{
+    return this->_id;
 }
 
 ModelObject*
@@ -239,7 +246,8 @@ PrintObject*
 Print::add_object(ModelObject *model_object,
         const BoundingBoxf3 &modobj_bbox)
 {
-    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
+    PrintObject *object = new PrintObject(this,
+        this->objects.size(), model_object, modobj_bbox);
     objects.push_back(object);
     return object;
 }
@@ -253,7 +261,7 @@ Print::set_new_object(size_t idx, ModelObject *model_object,
     PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
     delete *old_it;
 
-    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
+    PrintObject *object = new PrintObject(this, idx, model_object, modobj_bbox);
     this->objects[idx] = object;
     return object;
 }
