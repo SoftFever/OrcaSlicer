@@ -219,7 +219,7 @@ The author of the Silk icon set is Mark James.
                             home X axis [G28 X], disable motors [M84]).
         --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
         --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
-        --seal-position     Position of loop starting points (random/nearest/aligned, default: aligned).
+        --seam-position     Position of loop starting points (random/nearest/aligned, default: aligned).
         --external-perimeters-first Reverse perimeter order. (default: no)
         --spiral-vase       Experimental option to raise Z gradually when printing single-walled vases
                             (default: no)

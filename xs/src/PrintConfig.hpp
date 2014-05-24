@@ -18,7 +18,7 @@ enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb, smpPillars,
 };
 
-enum SealPosition {
+enum SeamPosition {
     spRandom, spNearest, spAligned
 };
 
@@ -54,7 +54,7 @@ template<> inline t_config_enum_values ConfigOptionEnum<SupportMaterialPattern>:
     return keys_map;
 }
 
-template<> inline t_config_enum_values ConfigOptionEnum<SealPosition>::get_enum_values() {
+template<> inline t_config_enum_values ConfigOptionEnum<SeamPosition>::get_enum_values() {
     t_config_enum_values keys_map;
     keys_map["random"]              = spRandom;
     keys_map["nearest"]             = spNearest;
@@ -651,18 +651,18 @@ class PrintConfigDef
         Options["retract_speed"].cli = "retract-speed=f@";
         Options["retract_speed"].max = 1000;
 
-        Options["seal_position"].type = coEnum;
-        Options["seal_position"].label = "Seal position";
-        Options["seal_position"].category = "Layers and perimeters";
-        Options["seal_position"].tooltip = "Position of perimeters starting points.";
-        Options["seal_position"].cli = "seal-position=s";
-        Options["seal_position"].enum_keys_map = ConfigOptionEnum<SealPosition>::get_enum_values();
-        Options["seal_position"].enum_values.push_back("random");
-        Options["seal_position"].enum_values.push_back("nearest");
-        Options["seal_position"].enum_values.push_back("aligned");
-        Options["seal_position"].enum_labels.push_back("Random");
-        Options["seal_position"].enum_labels.push_back("Nearest");
-        Options["seal_position"].enum_labels.push_back("Aligned");
+        Options["seam_position"].type = coEnum;
+        Options["seam_position"].label = "Seam position";
+        Options["seam_position"].category = "Layers and perimeters";
+        Options["seam_position"].tooltip = "Position of perimeters starting points.";
+        Options["seam_position"].cli = "seam-position=s";
+        Options["seam_position"].enum_keys_map = ConfigOptionEnum<SeamPosition>::get_enum_values();
+        Options["seam_position"].enum_values.push_back("random");
+        Options["seam_position"].enum_values.push_back("nearest");
+        Options["seam_position"].enum_values.push_back("aligned");
+        Options["seam_position"].enum_labels.push_back("Random");
+        Options["seam_position"].enum_labels.push_back("Nearest");
+        Options["seam_position"].enum_labels.push_back("Aligned");
 
         Options["skirt_distance"].type = coFloat;
         Options["skirt_distance"].label = "Distance from object";
@@ -1006,7 +1006,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionBool                interface_shells;
     ConfigOptionFloat               layer_height;
     ConfigOptionInt                 raft_layers;
-    ConfigOptionEnum<SealPosition>  seal_position;
+    ConfigOptionEnum<SeamPosition>  seam_position;
     ConfigOptionBool                support_material;
     ConfigOptionInt                 support_material_angle;
     ConfigOptionInt                 support_material_enforce_layers;
@@ -1031,7 +1031,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->interface_shells.value                             = false;
         this->layer_height.value                                 = 0.4;
         this->raft_layers.value                                  = 0;
-        this->seal_position.value                                = spAligned;
+        this->seam_position.value                                = spAligned;
         this->support_material.value                             = false;
         this->support_material_angle.value                       = 0;
         this->support_material_enforce_layers.value              = 0;
@@ -1057,7 +1057,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         if (opt_key == "interface_shells")                           return &this->interface_shells;
         if (opt_key == "layer_height")                               return &this->layer_height;
         if (opt_key == "raft_layers")                                return &this->raft_layers;
-        if (opt_key == "seal_position")                              return &this->seal_position;
+        if (opt_key == "seam_position")                              return &this->seam_position;
         if (opt_key == "support_material")                           return &this->support_material;
         if (opt_key == "support_material_angle")                     return &this->support_material_angle;
         if (opt_key == "support_material_enforce_layers")            return &this->support_material_enforce_layers;

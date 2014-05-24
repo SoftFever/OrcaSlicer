@@ -19,7 +19,7 @@ has '_layer_index'       => (is => 'rw', default => sub {-1});  # just a counter
 has 'layer'              => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
-has '_seal_position'     => (is => 'ro', default => sub { {} });  # $object => pos
+has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => pos
 has 'shift_x'            => (is => 'rw', default => sub {0} );
 has 'shift_y'            => (is => 'rw', default => sub {0} );
 has 'z'                  => (is => 'rw');
@@ -156,7 +156,7 @@ sub extrude_loop {
     my $last_pos = $self->last_pos;
     if ($self->config->spiral_vase) {
         $loop->split_at($last_pos);
-    } elsif ($self->config->seal_position eq 'nearest' || $self->config->seal_position eq 'aligned') {
+    } elsif ($self->config->seam_position eq 'nearest' || $self->config->seam_position eq 'aligned') {
         my $polygon = $loop->polygon;
         my @candidates = @{$polygon->concave_points(PI*4/3)};
         @candidates = @{$polygon->convex_points(PI*2/3)} if !@candidates;
@@ -165,16 +165,16 @@ sub extrude_loop {
         my @non_overhang = grep !$loop->has_overhang_point($_), @candidates;
         @candidates = @non_overhang if @non_overhang;
         
-        if ($self->config->seal_position eq 'nearest') {
+        if ($self->config->seam_position eq 'nearest') {
             $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
-        } elsif ($self->config->seal_position eq 'aligned') {
-            if (defined $self->layer && defined $self->_seal_position->{$self->layer->object}) {
-                $last_pos = $self->_seal_position->{$self->layer->object};
+        } elsif ($self->config->seam_position eq 'aligned') {
+            if (defined $self->layer && defined $self->_seam_position->{$self->layer->object}) {
+                $last_pos = $self->_seam_position->{$self->layer->object};
             }
-            my $point = $self->_seal_position->{$self->layer->object} = $last_pos->nearest_point(\@candidates);
+            my $point = $self->_seam_position->{$self->layer->object} = $last_pos->nearest_point(\@candidates);
             $loop->split_at_vertex($point);
         }
-    } elsif ($self->config->seal_position eq 'random') {
+    } elsif ($self->config->seam_position eq 'random') {
         if ($loop->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER) {
             my $polygon = $loop->polygon;
             my $centroid = $polygon->centroid;

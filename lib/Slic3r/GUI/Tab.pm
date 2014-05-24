@@ -427,7 +427,7 @@ sub build {
         },
         {
             title => 'Advanced',
-            options => [qw(seal_position external_perimeters_first)],
+            options => [qw(seam_position external_perimeters_first)],
         },
     ]);
     

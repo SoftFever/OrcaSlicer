@@ -245,9 +245,9 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('seal_position', 'random');
+    $config->set('seam_position', 'random');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), 'successful generation of G-code with seal_position = random';
+    ok Slic3r::Test::gcode($print), 'successful generation of G-code with seam_position = random';
 }
 
 __END__
