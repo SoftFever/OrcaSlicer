@@ -308,11 +308,10 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    my $first_object_layer_id = $self->config->raft_layers;
-    while (@{$self->layers} && !@{$self->layers->[$first_object_layer_id]->slices}) {
-        splice @{$self->layers}, $first_object_layer_id, 1;
-        for (my $i = $first_object_layer_id; $i <= $#{$self->layers}; $i++) {
-            $self->layers->[$i]->id($i);
+    while (@{$self->layers} && !@{$self->layers->[0]->slices}) {
+        shift @{$self->layers};
+        for (my $i = 0; $i <= $#{$self->layers}; $i++) {
+            $self->layers->[$i]->id( $self->layers->[$i]->id-1 );
         }
     }
     

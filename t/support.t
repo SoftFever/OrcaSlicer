@@ -1,4 +1,4 @@
-use Test::More tests => 15;
+use Test::More tests => 16;
 use strict;
 use warnings;
 
@@ -130,10 +130,10 @@ use Slic3r::Test;
         'first object layer is completely supported by raft';
 }
 
-{
+foreach my $raft_layers (2, 70) {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('skirts', 0);
-    $config->set('raft_layers', 2);
+    $config->set('raft_layers', $raft_layers);
     $config->set('layer_height', 0.35);
     $config->set('first_layer_height', 0.3);
     $config->set('nozzle_diameter', [0.5]);
