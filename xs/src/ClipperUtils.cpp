@@ -1,6 +1,14 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 
+#ifndef use_lines
+    #error "use_lines directive is not enabled in clipper.hpp"
+#endif
+
+#ifdef use_deprecated
+    #error "use_deprecated is not disabled in clipper.hpp"
+#endif
+
 namespace Slic3r {
 
 //-----------------------------------------------------------
