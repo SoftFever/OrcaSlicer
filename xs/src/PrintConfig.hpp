@@ -985,6 +985,13 @@ class DynamicPrintConfig : public DynamicConfig
             if (!this->has("support_material_interface_extruder"))
                 this->option("support_material_interface_extruder", true)->setInt(extruder);
         }
+        if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
+            {
+                // this should be actually done only on the spiral layers instead of all
+                ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
+                opt->values.assign(opt->values.size(), false);  // set all values to false
+            }
+        }
     };
 };
 

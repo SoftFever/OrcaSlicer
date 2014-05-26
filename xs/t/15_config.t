@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 114;
+use Test::More tests => 115;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -174,6 +174,14 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     ok !$config->has('extruder'), 'extruder option is removed after normalize()';
     is $config->get('infill_extruder'), 2, 'undefined extruder is populated with default extruder';
     is $config->get('perimeter_extruder'), 3, 'defined extruder is not overwritten by default extruder';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('spiral_vase', 1);
+    $config->set('retract_layer_change', [1,0]);
+    $config->normalize;
+    is_deeply $config->get('retract_layer_change'), [0,0], 'retract_layer_change is disabled with spiral_vase';
 }
 
 __END__

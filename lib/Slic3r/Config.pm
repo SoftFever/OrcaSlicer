@@ -335,7 +335,7 @@ sub validate {
         die "Can't make less than one perimeter when spiral vase mode is enabled\n"
             if $self->perimeters < 1;
         
-        die "Spiral vase mode is not compatible with non-zero fill density\n"
+        die "Spiral vase mode can only print hollow objects, so you need to set Fill density to 0\n"
             if $self->fill_density > 0;
         
         die "Spiral vase mode is not compatible with top solid layers\n"
@@ -343,11 +343,6 @@ sub validate {
         
         die "Spiral vase mode is not compatible with support material\n"
             if $self->support_material || $self->support_material_enforce_layers > 0;
-        
-        # This should be enforce automatically only on spiral layers and
-        # done on the others
-        die "Spiral vase mode is not compatible with retraction on layer change\n"
-            if defined first { $_ } @{ $self->retract_layer_change };
     }
     
     # extrusion widths

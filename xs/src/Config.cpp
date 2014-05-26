@@ -320,6 +320,15 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
     return this->options[opt_key];
 }
 
+template<class T>
+T*
+DynamicConfig::opt(const t_config_option_key opt_key, bool create) {
+    return dynamic_cast<T*>(this->option(opt_key, create));
+}
+template ConfigOptionInt* DynamicConfig::opt<ConfigOptionInt>(const t_config_option_key opt_key, bool create);
+template ConfigOptionBool* DynamicConfig::opt<ConfigOptionBool>(const t_config_option_key opt_key, bool create);
+template ConfigOptionBools* DynamicConfig::opt<ConfigOptionBools>(const t_config_option_key opt_key, bool create);
+
 const ConfigOption*
 DynamicConfig::option(const t_config_option_key opt_key) const {
     return const_cast<DynamicConfig*>(this)->option(opt_key, false);
