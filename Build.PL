@@ -134,7 +134,7 @@ EOF
                 system './xs/Build', 'distclean';
             }
         }
-        my $res = system $cpanm, @cpanm_args, '--reinstall', './xs';
+        my $res = system $cpanm, @cpanm_args, '--reinstall', '--verbose', './xs';
         if ($res != 0) {
             die "The XS/C++ code failed to compile, aborting\n";
         }
