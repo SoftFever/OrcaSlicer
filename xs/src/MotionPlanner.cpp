@@ -20,6 +20,12 @@ MotionPlanner::initialize()
 {
     if (this->initialized) return;
     
+    ExPolygons expp;
+    for (ExPolygons::const_iterator island = this->islands.begin(); island != this->islands.end(); ++island) {
+        island->simplify(SCALED_EPSILON, expp);
+    }
+    this->islands = expp;
+    
     // loop through islands in order to create inner expolygons and collect their contours
     this->inner.reserve(this->islands.size());
     Polygons outer_holes;
@@ -66,6 +72,13 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
     int island_idx = -1;
     for (ExPolygons::const_iterator island = this->islands.begin(); island != this->islands.end(); ++island) {
         if (island->contains_point(from) && island->contains_point(to)) {
+            // since both points are in the same island, is a direct move possible?
+            // if so, we avoid generating the visibility environment
+            if (island->contains_line(Line(from, to))) {
+                polyline->points.push_back(from);
+                polyline->points.push_back(to);
+                return;
+            }
             island_idx = island - this->islands.begin();
             break;
         }
