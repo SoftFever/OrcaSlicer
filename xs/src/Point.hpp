@@ -43,6 +43,7 @@ class Point
     double ccw(const Line &line) const;
     Point projection_onto(const MultiPoint &poly) const;
     Point projection_onto(const Line &line) const;
+    Point negative() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);

@@ -35,6 +35,8 @@
         %code{% RETVAL = new Point(THIS->projection_onto(*polyline)); %};
     Clone<Point> projection_onto_line(Line* line)
         %code{% RETVAL = new Point(THIS->projection_onto(*line)); %};
+    Clone<Point> negative()
+        %code{% RETVAL = new Point(THIS->negative()); %};
 
 %{
 

@@ -953,6 +953,7 @@ sub write_gcode {
         
         my $finished_objects = 0;
         for my $obj_idx (@obj_idx) {
+            my $object = $self->objects->[$obj_idx];
             for my $copy (@{ $self->objects->[$obj_idx]->_shifted_copies }) {
                 # move to the origin position for the copy we're going to print.
                 # this happens before Z goes down to layer 0 again, so that 
@@ -960,7 +961,7 @@ sub write_gcode {
                 if ($finished_objects > 0) {
                     $gcodegen->set_shift(map unscale $copy->[$_], X,Y);
                     print $fh $gcodegen->retract;
-                    print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, $gcodegen->config->travel_speed*60, 'move to origin position for next object');
+                    print $fh $gcodegen->G0($object->_copies_shift->negative, undef, 0, $gcodegen->config->travel_speed*60, 'move to origin position for next object');
                 }
                 
                 my $buffer = Slic3r::GCode::CoolingBuffer->new(
@@ -968,7 +969,6 @@ sub write_gcode {
                     gcodegen    => $gcodegen,
                 );
                 
-                my $object = $self->objects->[$obj_idx];
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
                 for my $layer (@layers) {
                     # if we are printing the bottom layer of an object, and we have already finished

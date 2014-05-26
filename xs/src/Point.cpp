@@ -191,6 +191,12 @@ Point::projection_onto(const Line &line) const
 }
 
 Point
+Point::negative() const
+{
+    return Point(-this->x, -this->y);
+}
+
+Point
 operator+(const Point& point1, const Point& point2)
 {
     return Point(point1.x + point2.x, point1.y + point2.y);
