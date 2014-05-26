@@ -627,12 +627,6 @@ sub split_object {
         Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
         return;
     }
-
-    # remove the original object before spawning the object_loaded event, otherwise 
-    # we'll pass the wrong $obj_idx to it (which won't be recognized after the
-    # thumbnail thread returns)
-    $self->remove($obj_idx);
-    $current_object = $obj_idx = undef;
     
     # create a bogus Model object, we only need to instantiate the new Model::Object objects
     my $new_model = Slic3r::Model->new;
@@ -666,6 +660,12 @@ sub split_object {
         $model_object->center_around_origin;
         push @model_objects, $model_object;
     }
+
+    # remove the original object before spawning the object_loaded event, otherwise 
+    # we'll pass the wrong $obj_idx to it (which won't be recognized after the
+    # thumbnail thread returns)
+    $self->remove($obj_idx);
+    $current_object = $obj_idx = undef;
     
     # load all model objects at once, otherwise the plate would be rearranged after each one
     # causing original positions not to be kept
