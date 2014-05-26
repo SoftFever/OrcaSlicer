@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 17;
+use Test::More tests => 22;
 
 my $square = Slic3r::Polygon->new(  # ccw
     [100, 100],
