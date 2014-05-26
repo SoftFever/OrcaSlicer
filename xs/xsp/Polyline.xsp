@@ -2,6 +2,7 @@
 
 %{
 #include <myinit.h>
+#include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Polyline.hpp"
 %}
