@@ -180,8 +180,7 @@ sub make_perimeters {
                 # and use zigzag).
                 my $w = $gap_size->[2];
                 my @filled = map {
-                    @{($_->isa('Slic3r::ExtrusionLoop') ? $_->split_at_first_point : $_)
-                        ->polyline
+                    @{($_->isa('Slic3r::ExtrusionLoop') ? $_->polygon->split_at_first_point : $_->polyline)
                         ->grow(scale $w/2)};
                 } @gap_fill;
                 @last = @{diff(\@last, \@filled)};
@@ -437,6 +436,11 @@ sub _fill_gaps {
         if ($polylines[$i]->isa('Slic3r::Polygon')) {
             my $loop = Slic3r::ExtrusionLoop->new;
             $loop->append(Slic3r::ExtrusionPath->new(polyline => $polylines[$i]->split_at_first_point, %path_args));
+            $polylines[$i] = $loop;
+        } elsif ($polylines[$i]->is_valid && $polylines[$i]->first_point->coincides_with($polylines[$i]->last_point)) {
+            # since medial_axis() now returns only Polyline objects, detect loops here
+            my $loop = Slic3r::ExtrusionLoop->new;
+            $loop->append(Slic3r::ExtrusionPath->new(polyline => $polylines[$i], %path_args));
             $polylines[$i] = $loop;
         } else {
             $polylines[$i] = Slic3r::ExtrusionPath->new(polyline => $polylines[$i], %path_args);
