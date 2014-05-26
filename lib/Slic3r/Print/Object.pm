@@ -308,11 +308,10 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    my $first_object_layer_id = $self->config->raft_layers;
-    while (@{$self->layers} && !@{$self->layers->[$first_object_layer_id]->slices}) {
-        splice @{$self->layers}, $first_object_layer_id, 1;
-        for (my $i = $first_object_layer_id; $i <= $#{$self->layers}; $i++) {
-            $self->layers->[$i]->id($i);
+    while (@{$self->layers} && !@{$self->layers->[0]->slices}) {
+        shift @{$self->layers};
+        for (my $i = 0; $i <= $#{$self->layers}; $i++) {
+            $self->layers->[$i]->id( $self->layers->[$i]->id-1 );
         }
     }
     
@@ -965,6 +964,9 @@ sub combine_infill {
 
 sub generate_support_material {
     my $self = shift;
+    
+    # TODO: make this method idempotent by removing all support layers
+    # before checking whether we need to generate support or not
     return unless ($self->config->support_material || $self->config->raft_layers > 0)
         && scalar(@{$self->layers}) >= 2;
     

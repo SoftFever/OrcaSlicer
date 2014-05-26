@@ -2,6 +2,7 @@
 
 %{
 #include <myinit.h>
+#include "BoundingBox.hpp"
 #include "Polygon.hpp"
 %}
 
@@ -17,8 +18,8 @@
     void translate(double x, double y);
     void reverse();
     Lines lines();
-    Polyline* split_at(Point* point)
-        %code{% RETVAL = new Polyline(); THIS->split_at(*point, RETVAL); %};
+    Polyline* split_at_vertex(Point* point)
+        %code{% RETVAL = new Polyline(); THIS->split_at_vertex(*point, RETVAL); %};
     Polyline* split_at_index(int index)
         %code{% RETVAL = new Polyline(); THIS->split_at_index(index, RETVAL); %};
     Polyline* split_at_first_point()
@@ -38,6 +39,12 @@
     Polygons simplify(double tolerance);
     Polygons triangulate_convex()
         %code{% THIS->triangulate_convex(&RETVAL); %};
+    Clone<Point> centroid();
+    BoundingBox* bounding_box()
+        %code{%
+            RETVAL = new BoundingBox();
+            THIS->bounding_box(RETVAL);
+        %};
 %{
 
 Polygon*

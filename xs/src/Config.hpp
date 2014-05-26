@@ -491,6 +491,7 @@ class DynamicConfig : public ConfigBase
     DynamicConfig& operator= (DynamicConfig other);
     void swap(DynamicConfig &other);
     ~DynamicConfig();
+    template<class T> T* opt(const t_config_option_key opt_key, bool create = false);
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     const ConfigOption* option(const t_config_option_key opt_key) const;
     void keys(t_config_option_keys *keys) const;

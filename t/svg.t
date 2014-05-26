@@ -1,4 +1,4 @@
-use Test::More tests => 1;
+use Test::More tests => 2;
 use strict;
 use warnings;
 
@@ -17,7 +17,19 @@ use Slic3r::Test;
         $print->print->export_svg(output_fh => $fh, quiet => 1);
         $fh->close;
     };
+    die $@ if $@;
     ok !$@, 'successful SVG export';
+}
+
+{
+    my $print = Slic3r::Test::init_print('two_hollow_squares');
+    eval {
+        my $fh = IO::Scalar->new(\my $gcode);
+        $print->print->export_svg(output_fh => $fh, quiet => 1);
+        $fh->close;
+    };
+    die $@ if $@;
+    ok !$@, 'successful SVG export of object with two islands';
 }
 
 __END__

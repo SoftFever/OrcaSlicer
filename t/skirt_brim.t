@@ -16,7 +16,7 @@ use Slic3r::Test;
     $config->set('skirts', 1);
     $config->set('skirt_height', 2);
     $config->set('perimeters', 0);
-    $config->set('perimeter_speed', 99);
+    $config->set('support_material_speed', 99);
     $config->set('cooling', 0);                     # to prevent speeds to be altered
     $config->set('first_layer_speed', '100%');      # to prevent speeds to be altered
     
@@ -33,7 +33,7 @@ use Slic3r::Test;
             if (defined $self->Z) {
                 $layers_with_skirt{$self->Z} //= 0;
                 $layers_with_skirt{$self->Z} = 1
-                    if $info->{extruding} && ($args->{F} // $self->F) == $config->perimeter_speed*60;
+                    if $info->{extruding} && ($args->{F} // $self->F) == $config->support_material_speed*60;
             }
         });
         fail "wrong number of layers with skirt"
@@ -50,6 +50,7 @@ use Slic3r::Test;
     $config->set('top_solid_layers', 0);            # to prevent solid shells and their speeds
     $config->set('bottom_solid_layers', 0);         # to prevent solid shells and their speeds
     $config->set('brim_width', 5);
+    $config->set('support_material_speed', 99);
     $config->set('cooling', 0);                     # to prevent speeds to be altered
     $config->set('first_layer_speed', '100%');      # to prevent speeds to be altered
     

@@ -43,7 +43,7 @@ sub process_layer {
         }
     });
     
-    #use XXX; YYY [ $gcode, $layer_height, $z, $total_layer_length ];
+    #use XXX; XXX [ $gcode, $layer_height, $z, $total_layer_length ];
     # remove layer height from initial Z
     $z -= $layer_height;
     
@@ -57,16 +57,19 @@ sub process_layer {
             my $line = $info->{raw};
             $line =~ s/ Z[.0-9]+/ Z$z/;
             $new_gcode .= "$line\n";
-        } elsif ($cmd eq 'G1' && !exists $args->{Z} && $info->{dist_XY}) {
+        } elsif ($cmd eq 'G1' && !exists($args->{Z}) && $info->{dist_XY}) {
             # horizontal move
             my $line = $info->{raw};
             if ($info->{extruding}) {
                 $z += $info->{dist_XY} * $layer_height / $total_layer_length;
                 $line =~ s/^G1 /sprintf 'G1 Z%.3f ', $z/e;
                 $new_gcode .= "$line\n";
-            } else {
-                $new_gcode .= "$line\n";
             }
+            # skip travel moves: the move to first perimeter point will
+            # cause a visible seam when loops are not aligned in XY; by skipping
+            # it we blend the first loop move in the XY plane (although the smoothness
+            # of such blend depend on how long the first segment is; maybe we should
+            # enforce some minimum length?)
         } else {
             $new_gcode .= "$info->{raw}\n";
         }

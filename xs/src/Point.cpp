@@ -1,9 +1,16 @@
 #include "Point.hpp"
 #include "Line.hpp"
+#include "MultiPoint.hpp"
 #include <cmath>
 #include <sstream>
 
 namespace Slic3r {
+
+Point::Point(double x, double y)
+{
+    this->x = lrint(x);
+    this->y = lrint(y);
+}
 
 bool
 Point::operator==(const Point& rhs) const
@@ -136,6 +143,69 @@ double
 Point::ccw(const Line &line) const
 {
     return this->ccw(line.a, line.b);
+}
+
+Point
+Point::projection_onto(const MultiPoint &poly) const
+{
+    Point running_projection = poly.first_point();
+    double running_min = this->distance_to(running_projection);
+    
+    Lines lines = poly.lines();
+    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
+        Point point_temp = this->projection_onto(*line);
+        if (this->distance_to(point_temp) < running_min) {
+	        running_projection = point_temp;
+	        running_min = this->distance_to(running_projection);
+        }
+    }
+    return running_projection;
+}
+
+Point
+Point::projection_onto(const Line &line) const
+{
+    if (line.a.coincides_with(line.b)) return line.a;
+    
+    /*
+        (Ported from VisiLibity by Karl J. Obermeyer)
+        The projection of point_temp onto the line determined by
+        line_segment_temp can be represented as an affine combination
+        expressed in the form projection of
+        Point = theta*line_segment_temp.first + (1.0-theta)*line_segment_temp.second.
+        If theta is outside the interval [0,1], then one of the Line_Segment's endpoints
+        must be closest to calling Point.
+    */
+    double theta = ( (double)(line.b.x - this->x)*(double)(line.b.x - line.a.x) + (double)(line.b.y- this->y)*(double)(line.b.y - line.a.y) ) 
+          / ( (double)pow(line.b.x - line.a.x, 2) + (double)pow(line.b.y - line.a.y, 2) );
+    
+    if (0.0 <= theta && theta <= 1.0)
+        return theta * line.a + (1.0-theta) * line.b;
+    
+    // Else pick closest endpoint.
+    if (this->distance_to(line.a) < this->distance_to(line.b)) {
+        return line.a;
+    } else {
+        return line.b;
+    }
+}
+
+Point
+Point::negative() const
+{
+    return Point(-this->x, -this->y);
+}
+
+Point
+operator+(const Point& point1, const Point& point2)
+{
+    return Point(point1.x + point2.x, point1.y + point2.y);
+}
+
+Point
+operator*(double scalar, const Point& point2)
+{
+    return Point(scalar * point2.x, scalar * point2.y);
 }
 
 #ifdef SLIC3RXS

@@ -56,7 +56,7 @@ Polygon::lines(Lines* lines) const
 }
 
 void
-Polygon::split_at(const Point &point, Polyline* polyline) const
+Polygon::split_at_vertex(const Point &point, Polyline* polyline) const
 {
     // find index of point
     for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
@@ -189,6 +189,24 @@ Polygon::triangulate_convex(Polygons* polygons) const
         // this should be replaced with a more efficient call to a merge_collinear_segments() method
         if (p.area() > 0) polygons->push_back(p);
     }
+}
+
+// center of mass
+Point
+Polygon::centroid() const
+{
+    double area_temp = this->area();
+    double x_temp = 0;
+    double y_temp = 0;
+    
+    Polyline polyline;
+    this->split_at_first_point(&polyline);
+    for (Points::const_iterator point = polyline.points.begin(); point != polyline.points.end() - 1; ++point) {
+        x_temp += (double)( point->x + (point+1)->x ) * ( (double)point->x*(point+1)->y - (double)(point+1)->x*point->y );
+        y_temp += (double)( point->y + (point+1)->y ) * ( (double)point->x*(point+1)->y - (double)(point+1)->x*point->y );
+    }
+    
+    return Point(x_temp/(6*area_temp), y_temp/(6*area_temp));
 }
 
 #ifdef SLIC3RXS

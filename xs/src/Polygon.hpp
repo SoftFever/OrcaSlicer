@@ -21,7 +21,7 @@ class Polygon : public MultiPoint {
     Point last_point() const;
     Lines lines() const;
     void lines(Lines* lines) const;
-    void split_at(const Point &point, Polyline* polyline) const;
+    void split_at_vertex(const Point &point, Polyline* polyline) const;
     void split_at_index(int index, Polyline* polyline) const;
     void split_at_first_point(Polyline* polyline) const;
     void equally_spaced_points(double distance, Points* points) const;
@@ -35,6 +35,7 @@ class Polygon : public MultiPoint {
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
     void triangulate_convex(Polygons* polygons) const;
+    Point centroid() const;
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);

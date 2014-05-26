@@ -123,6 +123,21 @@ MedialAxis::build(Polylines* polylines)
     
     construct_voronoi(this->lines.begin(), this->lines.end(), &this->vd);
     
+    /*
+    // DEBUG: dump all Voronoi edges
+    {
+        for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge) {
+            if (edge->is_infinite()) continue;
+            
+            Polyline polyline;
+            polyline.points.push_back(Point( edge->vertex0()->x(), edge->vertex0()->y() ));
+            polyline.points.push_back(Point( edge->vertex1()->x(), edge->vertex1()->y() ));
+            polylines->push_back(polyline);
+        }
+        return;
+    }
+    */
+    
     // collect valid edges (i.e. prune those not belonging to MAT)
     // note: this keeps twins, so it contains twice the number of the valid edges
     this->edges.clear();

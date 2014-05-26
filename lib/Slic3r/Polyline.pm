@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use List::Util qw(first);
-use Slic3r::Geometry qw(X Y epsilon);
+use Slic3r::Geometry qw(X Y PI epsilon);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 
 sub new_scale {

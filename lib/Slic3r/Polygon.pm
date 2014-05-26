@@ -15,6 +15,11 @@ sub wkt {
     return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
 }
 
+sub dump_perl {
+    my $self = shift;
+    return sprintf "[%s]", join ',', map "[$_->[0],$_->[1]]", @$self;
+}
+
 sub grow {
     my $self = shift;
     return $self->split_at_first_point->grow(@_);
@@ -40,15 +45,52 @@ sub subdivide {
     return Slic3r::Polygon->new(@new_points);
 }
 
-# for cw polygons this will return convex points!
 sub concave_points {
-    my $self = shift;
+    my ($self, $angle) = @_;
+    
+    $angle //= PI;
+    
+    # input angle threshold is checked on the internal side of the polygon
+    # but angle3points measures CCW angle, so we calculate the complementary angle
+    my $ccw_angle = 2*PI-$angle;
     
     my @points = @$self;
     my @points_pp = @{$self->pp};
-    return map $points[$_],
-        grep Slic3r::Geometry::angle3points(@points_pp[$_, $_-1, $_+1]) < PI - epsilon,
-        -1 .. ($#points-1);
+    
+    my @concave = ();
+    for my $i (-1 .. ($#points-1)) {
+        next if $points[$i-1]->coincides_with($points[$i]);
+        # angle is measured in ccw orientation
+        my $vertex_angle = Slic3r::Geometry::angle3points(@points_pp[$i, $i-1, $i+1]);
+        if ($vertex_angle <= $ccw_angle) {
+            push @concave, $points[$i];
+        }
+    }
+    return [@concave];
+}
+
+sub convex_points {
+    my ($self, $angle) = @_;
+    
+    $angle //= PI;
+    
+    # input angle threshold is checked on the internal side of the polygon
+    # but angle3points measures CCW angle, so we calculate the complementary angle
+    my $ccw_angle = 2*PI-$angle;
+    
+    my @points = @$self;
+    my @points_pp = @{$self->pp};
+    
+    my @convex = ();
+    for my $i (-1 .. ($#points-1)) {
+        next if $points[$i-1]->coincides_with($points[$i]);
+        # angle is measured in ccw orientation
+        my $vertex_angle = Slic3r::Geometry::angle3points(@points_pp[$i, $i-1, $i+1]);
+        if ($vertex_angle >= $ccw_angle) {
+            push @convex, $points[$i];
+        }
+    }
+    return [@convex];
 }
 
 1;

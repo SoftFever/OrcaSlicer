@@ -20,6 +20,8 @@
     void append(ExtrusionPath* path)
         %code{% THIS->paths.push_back(*path); %};
     double length();
+    void split_at_vertex(Point* point)
+        %code{% THIS->split_at_vertex(*point); %};
     void split_at(Point* point)
         %code{% THIS->split_at(*point); %};
     ExtrusionPaths clip_end(double distance)
@@ -41,5 +43,31 @@ ExtrusionLoop::arrayref()
     OUTPUT:
         RETVAL
 
+ExtrusionLoopRole
+ExtrusionLoop::role(...)
+    CODE:
+        if (items > 1) {
+            THIS->role = (ExtrusionLoopRole)SvUV(ST(1));
+        }
+        RETVAL = THIS->role;
+    OUTPUT:
+        RETVAL
+
 %}
 };
+
+%package{Slic3r::ExtrusionLoop};
+%{
+
+IV
+_constant()
+  ALIAS:
+    EXTRL_ROLE_DEFAULT                      = elrDefault
+    EXTRL_ROLE_EXTERNAL_PERIMETER           = elrExternalPerimeter
+    EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER   = elrContourInternalPerimeter
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
+%}

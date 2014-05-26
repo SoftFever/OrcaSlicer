@@ -580,7 +580,7 @@ EOF
         
         my @current_layer_slices = ();
         # sort slices so that the outermost ones come first
-        my @slices = sort { $a->contour->encloses_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
+        my @slices = sort { $a->contour->contains_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
         foreach my $copy (@{$layer->object->copies}) {
             foreach my $slice (@slices) {
                 my $expolygon = $slice->clone;
@@ -625,10 +625,13 @@ EOF
 
 sub make_skirt {
     my $self = shift;
+    
+    # since this method must be idempotent, we clear skirt paths *before*
+    # checking whether we need to generate them
+    $self->skirt->clear;
+    
     return unless $self->config->skirts > 0
         || ($self->config->ooze_prevention && @{$self->extruders} > 1);
-    
-    $self->skirt->clear;  # method must be idempotent
     
     # First off we need to decide how tall the skirt must be.
     # The skirt_height option from config is expressed in layers, but our
@@ -737,9 +740,12 @@ sub make_skirt {
 
 sub make_brim {
     my $self = shift;
-    return unless $self->config->brim_width > 0;
     
-    $self->brim->clear;  # method must be idempotent
+    # since this method must be idempotent, we clear brim paths *before*
+    # checking whether we need to generate them
+    $self->brim->clear;
+    
+    return unless $self->config->brim_width > 0;
     
     # brim is only printed on first layer and uses support material extruder
     my $first_layer_height = $self->objects->[0]->config->get_abs_value('first_layer_height');
@@ -851,11 +857,11 @@ sub write_gcode {
     
     # set up our helper object
     my $gcodegen = Slic3r::GCode->new(
-        print_config        => $self->config,
         placeholder_parser  => $self->placeholder_parser,
         layer_count         => $self->layer_count,
     );
-    $gcodegen->set_extruders($self->extruders);
+    $gcodegen->config->apply_print_config($self->config);
+    $gcodegen->set_extruders($self->extruders, $self->config);
     
     print $fh "G21 ; set units to millimeters\n" if $self->config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;
@@ -944,6 +950,7 @@ sub write_gcode {
         
         my $finished_objects = 0;
         for my $obj_idx (@obj_idx) {
+            my $object = $self->objects->[$obj_idx];
             for my $copy (@{ $self->objects->[$obj_idx]->_shifted_copies }) {
                 # move to the origin position for the copy we're going to print.
                 # this happens before Z goes down to layer 0 again, so that 
@@ -951,7 +958,7 @@ sub write_gcode {
                 if ($finished_objects > 0) {
                     $gcodegen->set_shift(map unscale $copy->[$_], X,Y);
                     print $fh $gcodegen->retract;
-                    print $fh $gcodegen->G0(Slic3r::Point->new(0,0), undef, 0, 'move to origin position for next object');
+                    print $fh $gcodegen->G0($object->_copies_shift->negative, undef, 0, $gcodegen->config->travel_speed*60, 'move to origin position for next object');
                 }
                 
                 my $buffer = Slic3r::GCode::CoolingBuffer->new(
@@ -959,7 +966,6 @@ sub write_gcode {
                     gcodegen    => $gcodegen,
                 );
                 
-                my $object = $self->objects->[$obj_idx];
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
                 for my $layer (@layers) {
                     # if we are printing the bottom layer of an object, and we have already finished
@@ -1037,9 +1043,11 @@ sub write_gcode {
     
     # append full config
     print $fh "\n";
-    foreach my $opt_key (sort @{$self->config->get_keys}) {
-        next if $Slic3r::Config::Options->{$opt_key}{shortcut};
-        printf $fh "; %s = %s\n", $opt_key, $self->config->serialize($opt_key);
+    foreach my $config ($self->config, $self->default_object_config, $self->default_region_config) {
+        foreach my $opt_key (sort @{$config->get_keys}) {
+            next if $Slic3r::Config::Options->{$opt_key}{shortcut};
+            printf $fh "; %s = %s\n", $opt_key, $config->serialize($opt_key);
+        }
     }
     
     # close our gcode file

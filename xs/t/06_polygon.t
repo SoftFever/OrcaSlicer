@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(first);
 use Slic3r::XS;
-use Test::More tests => 19;
+use Test::More tests => 20;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -36,7 +36,7 @@ is_deeply [ map $_->pp, @$lines ], [
 
 is_deeply $polygon->split_at_first_point->pp, [ @$square[0,1,2,3,0] ], 'split_at_first_point';
 is_deeply $polygon->split_at_index(2)->pp, [ @$square[2,3,0,1,2] ], 'split_at_index';
-is_deeply $polygon->split_at(Slic3r::Point->new(@{$square->[2]}))->pp, [ @$square[2,3,0,1,2] ], 'split_at';
+is_deeply $polygon->split_at_vertex(Slic3r::Point->new(@{$square->[2]}))->pp, [ @$square[2,3,0,1,2] ], 'split_at';
 is $polygon->area, 100*100, 'area';
 
 ok $polygon->is_counter_clockwise, 'is_counter_clockwise';
@@ -67,6 +67,10 @@ ok $cw_polygon->contains_point(Slic3r::Point->new(150,150)), 'cw contains_point'
     my $triangles = $hexagon->triangulate_convex;
     is scalar(@$triangles), 4, 'right number of triangles';
     ok !(defined first { $_->is_clockwise } @$triangles), 'all triangles are ccw';
+}
+
+{
+    is_deeply $polygon->centroid->pp, [150,150], 'centroid';
 }
 
 # this is not a test: this just demonstrates bad usage, where $polygon->clone gets

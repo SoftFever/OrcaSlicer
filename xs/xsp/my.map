@@ -114,6 +114,7 @@ MotionPlanner*             O_OBJECT_SLIC3R
 Ref<MotionPlanner>         O_OBJECT_SLIC3R_T
 Clone<MotionPlanner>       O_OBJECT_SLIC3R_T
 
+ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV
 FlowRole     T_UV
 PrintStep     T_UV

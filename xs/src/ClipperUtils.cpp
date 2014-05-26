@@ -358,29 +358,8 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
     for (Slic3r::Polygons::const_iterator polygon = subject.begin(); polygon != subject.end(); ++polygon)
         polylines.push_back(*polygon);  // implicit call to split_at_first_point()
     
-    /* Clipper will remove a polyline segment if first point coincides with last one.
-       Until that bug is not fixed upstream, we move one of those points slightly. */
-    for (Slic3r::Polylines::iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
-        polyline->points.front().translate(1, 0);
-    
     // perform clipping
     _clipper(clipType, polylines, clip, retval, safety_offset_);
-    
-    // compensate for the above hack
-    for (Slic3r::Polylines::iterator polyline = retval.begin(); polyline != retval.end(); ++polyline) {
-        for (Slic3r::Polylines::iterator subj_polyline = polylines.begin(); subj_polyline != polylines.end(); ++subj_polyline) {
-            // if first point of clipped line coincides with first point of subject line, compensate for hack
-            if (polyline->points.front().coincides_with(subj_polyline->points.front())) {
-                polyline->points.front().translate(-1, 0);
-                break;
-            }
-            // since Clipper does not preserve orientation of polylines, check last point too
-            if (polyline->points.back().coincides_with(subj_polyline->points.front())) {
-                polyline->points.back().translate(-1, 0);
-                break;
-            }
-        }
-    }
     
     /* If the split_at_first_point() call above happens to split the polygon inside the clipping area
        we would get two consecutive polylines instead of a single one, so we go through them in order

@@ -86,28 +86,6 @@ use Slic3r::Test;
     }
     
     {
-        $config->set('start_perimeters_at_concave_points', 1);
-        my $print = Slic3r::Test::init_print('L', config => $config);
-        my $loop_starts_from_convex_point = 0;
-        my $cur_loop;
-        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-            my ($self, $cmd, $args, $info) = @_;
-            
-            if ($info->{extruding} && $info->{dist_XY} > 0) {
-                $cur_loop ||= [ [$self->X, $self->Y] ];
-                push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
-            } else {
-                if ($cur_loop) {
-                    $loop_starts_from_convex_point = 1
-                        if Slic3r::Geometry::angle3points(@$cur_loop[0,-1,1]) >= PI;
-                    $cur_loop = undef;
-                }
-            }
-        });
-        ok !$loop_starts_from_convex_point, 'avoid starting from convex points';
-    }
-    
-    {
         $config->set('perimeters', 1);
         $config->set('perimeter_speed', 77);
         $config->set('external_perimeter_speed', 66);
@@ -263,6 +241,13 @@ use Slic3r::Test;
         'no overhangs printed with bridge speed';
     ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])),
         'overhangs printed with bridge speed';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('seam_position', 'random');
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'successful generation of G-code with seam_position = random';
 }
 
 __END__

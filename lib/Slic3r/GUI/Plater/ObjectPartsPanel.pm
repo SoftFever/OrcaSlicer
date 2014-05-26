@@ -197,7 +197,7 @@ sub on_btn_load {
         foreach my $object (@{$model->objects}) {
             foreach my $volume (@{$object->volumes}) {
                 my $new_volume = $self->{model_object}->add_volume($volume);
-                $new_volume->modifier($is_modifier);
+                $new_volume->set_modifier($is_modifier);
                 if (!defined $new_volume->material_id) {
                     # it looks like this block is never entered because all input volumes seem to have an assigned material
                     # TODO: check we can assume that for any input format

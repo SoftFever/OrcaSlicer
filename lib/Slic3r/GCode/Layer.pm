@@ -46,6 +46,7 @@ sub process_layer {
     my $gcode = "";
     
     my $object = $layer->object;
+    $self->gcodegen->config->apply_object_config($object->config);
     
     # check whether we're going to apply spiralvase logic
     if (defined $self->spiralvase) {
@@ -95,7 +96,7 @@ sub process_layer {
                 my $extruder_id = $extruder_ids[($i/@extruder_ids) % @extruder_ids];
                 $gcode .= $self->gcodegen->set_extruder($extruder_id)
                     if $layer->id == 0;
-                $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt');
+                $gcode .= $self->gcodegen->extrude_loop($skirt_loops[$i], 'skirt', $object->config->support_material_speed);
             }
         }
         $self->skirt_done->{$layer->print_z} = 1;
@@ -106,7 +107,8 @@ sub process_layer {
     if (!$self->brim_done) {
         $gcode .= $self->gcodegen->set_extruder($self->print->objects->[0]->config->support_material_extruder-1);
         $self->gcodegen->set_shift(@{$self->shift});
-        $gcode .= $self->gcodegen->extrude_loop($_, 'brim') for @{$self->print->brim};
+        $gcode .= $self->gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
+            for @{$self->print->brim};
         $self->brim_done(1);
         $self->gcodegen->straight_once(1);
     }
@@ -122,14 +124,12 @@ sub process_layer {
         if ($layer->isa('Slic3r::Layer::Support')) {
             if ($layer->support_interface_fills->count > 0) {
                 $gcode .= $self->gcodegen->set_extruder($object->config->support_material_interface_extruder-1);
-                my %params = (speed => $object->config->support_material_speed*60);
-                $gcode .= $self->gcodegen->extrude_path($_, 'support material interface', %params) 
+                $gcode .= $self->gcodegen->extrude_path($_, 'support material interface', $object->config->get_abs_value('support_material_interface_speed')) 
                     for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills->count > 0) {
                 $gcode .= $self->gcodegen->set_extruder($object->config->support_material_extruder-1);
-                my %params = (speed => $object->config->support_material_speed*60);
-                $gcode .= $self->gcodegen->extrude_path($_, 'support material', %params) 
+                $gcode .= $self->gcodegen->extrude_path($_, 'support material', $object->config->get_abs_value('support_material_speed')) 
                     for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
             }
         }
@@ -145,7 +145,7 @@ sub process_layer {
         foreach my $region_id (@region_ids) {
             my $layerm = $layer->regions->[$region_id] or next;
             my $region = $self->print->regions->[$region_id];
-            $self->gcodegen->region($region);
+            $self->gcodegen->config->apply_region_config($region->config);
             
             # group extrusions by island
             my @perimeters_by_island = map [], 0..$#{$layer->slices};   # slice idx => @perimeters

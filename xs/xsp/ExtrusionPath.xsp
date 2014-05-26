@@ -39,9 +39,8 @@ _new(CLASS, polyline_sv, role, mm3_per_mm, width, height)
     float           width;
     float           height;
     CODE:
-        RETVAL = new ExtrusionPath ();
+        RETVAL = new ExtrusionPath (role);
         RETVAL->polyline.from_SV_check(polyline_sv);
-        RETVAL->role            = role;
         RETVAL->mm3_per_mm      = mm3_per_mm;
         RETVAL->width           = width;
         RETVAL->height          = height;
@@ -135,15 +134,14 @@ _constant()
     EXTR_ROLE_PERIMETER                    = erPerimeter
     EXTR_ROLE_EXTERNAL_PERIMETER           = erExternalPerimeter
     EXTR_ROLE_OVERHANG_PERIMETER           = erOverhangPerimeter
-    EXTR_ROLE_CONTOUR_INTERNAL_PERIMETER   = erContourInternalPerimeter
-    EXTR_ROLE_FILL                         = erFill
-    EXTR_ROLE_SOLIDFILL                    = erSolidFill
-    EXTR_ROLE_TOPSOLIDFILL                 = erTopSolidFill
-    EXTR_ROLE_BRIDGE                       = erBridge
-    EXTR_ROLE_INTERNALBRIDGE               = erInternalBridge
+    EXTR_ROLE_FILL                         = erInternalInfill
+    EXTR_ROLE_SOLIDFILL                    = erSolidInfill
+    EXTR_ROLE_TOPSOLIDFILL                 = erTopSolidInfill
+    EXTR_ROLE_BRIDGE                       = erBridgeInfill
+    EXTR_ROLE_GAPFILL                      = erGapFill
     EXTR_ROLE_SKIRT                        = erSkirt
     EXTR_ROLE_SUPPORTMATERIAL              = erSupportMaterial
-    EXTR_ROLE_GAPFILL                      = erGapFill
+    EXTR_ROLE_SUPPORTMATERIAL_INTERFACE    = erSupportMaterialInterface
   PROTOTYPE:
   CODE:
     RETVAL = ix;

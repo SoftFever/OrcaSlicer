@@ -21,6 +21,7 @@ class Polyline : public MultiPoint {
     void extend_start(double distance);
     void equally_spaced_points(double distance, Points* points) const;
     void simplify(double tolerance);
+    void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);

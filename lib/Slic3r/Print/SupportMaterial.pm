@@ -132,7 +132,7 @@ sub contact_area {
                 # If a threshold angle was specified, use a different logic for detecting overhangs.
                 if (defined $threshold_rad
                     || $layer_id < $self->object_config->support_material_enforce_layers
-                    || $self->object_config->raft_layers > 0) {
+                    || ($self->object_config->raft_layers > 0 && $layer_id == 0)) {
                     my $d = defined $threshold_rad
                         ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                         : 0;
@@ -608,7 +608,7 @@ sub generate_toolpaths {
             my $mm3_per_mm = $interface_flow->mm3_per_mm($layer->height);
             @loops = map Slic3r::ExtrusionPath->new(
                 polyline    => $_,
-                role        => EXTR_ROLE_SUPPORTMATERIAL,
+                role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                 mm3_per_mm  => $mm3_per_mm,
                 width       => $interface_flow->width,
                 height      => $layer->height,
@@ -656,7 +656,7 @@ sub generate_toolpaths {
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
-                    role        => EXTR_ROLE_SUPPORTMATERIAL,
+                    role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $params->{flow}->width,
                     height      => $layer->height,

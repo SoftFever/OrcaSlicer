@@ -1,4 +1,4 @@
-use Test::More tests => 8;
+use Test::More tests => 9;
 use strict;
 use warnings;
 
@@ -9,7 +9,7 @@ BEGIN {
 
 use List::Util qw(first);
 use Slic3r;
-use Slic3r::Geometry qw(scale);
+use Slic3r::Geometry qw(scale convex_hull);
 use Slic3r::Test;
 
 {
@@ -46,6 +46,7 @@ use Slic3r::Test;
     # - complete objects does not crash
     # - no hard-coded "E" are generated
     # - Z moves are correctly generated for both objects
+    # - no travel moves go outside skirt
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('gcode_comments', 1);
     $config->set('complete_objects', 1);
@@ -56,16 +57,30 @@ use Slic3r::Test;
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 2);
     ok my $gcode = Slic3r::Test::gcode($print), "complete_objects";
     my @z_moves = ();
+    my @travel_moves = ();  # array of scaled points
+    my @extrusions = ();    # array of scaled points
     Slic3r::GCode::Reader->new->parse($gcode, sub {
         my ($self, $cmd, $args, $info) = @_;
         fail 'unexpected E argument' if defined $args->{E};
         if (defined $args->{Z}) {
             push @z_moves, $args->{Z};
         }
+        
+        if ($info->{dist_XY}) {
+            if ($info->{extruding} || $args->{A}) {
+                push @extrusions, Slic3r::Point->new_scale($info->{new_X}, $info->{new_Y});
+            } else {
+                push @travel_moves, Slic3r::Point->new_scale($info->{new_X}, $info->{new_Y})
+                    if @extrusions;  # skip initial travel move to first skirt point
+            }
+        }
     });
     my $layer_count = 20/0.4;  # cube is 20mm tall
     is scalar(@z_moves), 2*$layer_count, 'complete_objects generates the correct number of Z moves';
     is_deeply [ @z_moves[0..($layer_count-1)] ], [ @z_moves[$layer_count..$#z_moves] ], 'complete_objects generates the correct Z moves';
+    
+    my $convex_hull = convex_hull(\@extrusions);
+    ok !(defined first { !$convex_hull->contains_point($_) } @travel_moves), 'all travel moves happen within skirt';
 }
 
 {

@@ -9,6 +9,7 @@
 namespace Slic3r {
 
 class Line;
+class MultiPoint;
 class Point;
 class Pointf;
 typedef Point Vector;
@@ -22,7 +23,10 @@ class Point
     public:
     coord_t x;
     coord_t y;
-    explicit Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
+    Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
+    Point(int _x, int _y): x(_x), y(_y) {};
+    Point(long long _x, long long _y): x(_x), y(_y) {};  // for Clipper
+    Point(double x, double y);
     bool operator==(const Point& rhs) const;
     std::string wkt() const;
     void scale(double factor);
@@ -37,6 +41,9 @@ class Point
     double distance_to(const Line &line) const;
     double ccw(const Point &p1, const Point &p2) const;
     double ccw(const Line &line) const;
+    Point projection_onto(const MultiPoint &poly) const;
+    Point projection_onto(const Line &line) const;
+    Point negative() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);
@@ -44,6 +51,9 @@ class Point
     SV* to_SV_pureperl() const;
     #endif
 };
+
+Point operator+(const Point& point1, const Point& point2);
+Point operator*(double scalar, const Point& point2);
 
 class Point3 : public Point
 {

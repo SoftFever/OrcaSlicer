@@ -1,4 +1,4 @@
-use Test::More tests => 11;
+use Test::More tests => 13;
 use strict;
 use warnings;
 
@@ -62,7 +62,9 @@ if (0) {
     );
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
     my $res = $expolygon->medial_axis(scale 1, scale 0.5);
-    is scalar(@$res), 1, 'medial axis of a square shape is a single closed loop';
+    is scalar(@$res), 1, 'medial axis of a square shape is a single path';
+    isa_ok $res->[0], 'Slic3r::Polyline', 'medial axis result is a polyline';
+    ok $res->[0]->first_point->coincides_with($res->[0]->last_point), 'polyline forms a closed loop';
     ok $res->[0]->length > $hole_in_square->length && $res->[0]->length < $square->length,
         'medial axis loop has reasonable length';
 }

@@ -82,12 +82,7 @@ use Slic3r::Geometry::Clipper qw(intersection_ex union_ex diff_ex diff_pl);
     my $res = diff_pl([$square_pl], []);
     is scalar(@$res), 1, 'no-op diff_pl returns the right number of polylines';
     isa_ok $res->[0], 'Slic3r::Polyline', 'no-op diff_pl result';
-    
-    ### NOTE: this test will fail when a bug in Clipper is fixed that is currently
-    ### causing loss of one segment when input polyline has coinciding endpoints.
-    ### When the bug is fixed in Clipper, this test should be reverted from isnt() to is()
-    ### and workarounds in Slic3r::Polygon::clip_as_polyline() should be removed.
-    isnt scalar(@{$res->[0]}), scalar(@$square_pl), 'no-op diff_pl returns the unmodified input polyline';
+    is scalar(@{$res->[0]}), scalar(@$square_pl), 'no-op diff_pl returns the unmodified input polyline';
 }
 
 __END__
