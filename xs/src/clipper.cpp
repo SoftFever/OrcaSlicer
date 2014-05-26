@@ -2,7 +2,7 @@
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
 * Version   :  6.1.5                                                           *
-* Date      :  26 May 2014                                                     *
+* Date      :  22 May 2014                                                     *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2014                                         *
 *                                                                              *
@@ -898,38 +898,112 @@ TEdge* FindNextLocMin(TEdge* E)
 }
 //------------------------------------------------------------------------------
 
-TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
+TEdge* ClipperBase::ProcessBound(TEdge* E, bool IsClockwise)
 {
-  TEdge *Result = E;
+  TEdge *EStart = E, *Result = E;
   TEdge *Horz = 0;
+  cInt StartX;
+  if (IsHorizontal(*E))
+  {
+	//first we need to be careful here with open paths because this
+	//may not be a true local minima (ie may be following a skip edge).
+	//also, watch for adjacent horz edges to start heading left
+	//before finishing right ...
+	if (IsClockwise)
+	{
+		if (E->Prev->Bot.Y == E->Bot.Y) StartX = E->Prev->Bot.X;
+		else StartX = E->Prev->Top.X;
+	}
+	else
+	{
+		if (E->Next->Bot.Y == E->Bot.Y) StartX = E->Next->Bot.X;
+		else StartX = E->Next->Top.X;
+	}
+    if (E->Bot.X != StartX) ReverseHorizontal(*E);
+  }
+  
+  if (Result->OutIdx != Skip)
+  {
+    if (IsClockwise)
+    {
+      while (Result->Top.Y == Result->Next->Bot.Y && Result->Next->OutIdx != Skip)
+        Result = Result->Next;
+      if (IsHorizontal(*Result) && Result->Next->OutIdx != Skip)
+      {
+        //nb: at the top of a bound, horizontals are added to the bound
+        //only when the preceding edge attaches to the horizontal's left vertex
+        //unless a Skip edge is encountered when that becomes the top divide
+        Horz = Result;
+        while (IsHorizontal(*Horz->Prev)) Horz = Horz->Prev;
+        if (Horz->Prev->Top.X == Result->Next->Top.X) 
+        {
+          if (!IsClockwise) Result = Horz->Prev;
+        }
+        else if (Horz->Prev->Top.X > Result->Next->Top.X) Result = Horz->Prev;
+      }
+      while (E != Result) 
+      {
+        E->NextInLML = E->Next;
+        if (IsHorizontal(*E) && E != EStart &&
+          E->Bot.X != E->Prev->Top.X) ReverseHorizontal(*E);
+        E = E->Next;
+      }
+      if (IsHorizontal(*E) && E != EStart && E->Bot.X != E->Prev->Top.X) 
+        ReverseHorizontal(*E);
+      Result = Result->Next; //move to the edge just beyond current bound
+    } else
+    {
+      while (Result->Top.Y == Result->Prev->Bot.Y && Result->Prev->OutIdx != Skip) 
+        Result = Result->Prev;
+      if (IsHorizontal(*Result) && Result->Prev->OutIdx != Skip)
+      {
+        Horz = Result;
+        while (IsHorizontal(*Horz->Next)) Horz = Horz->Next;
+        if (Horz->Next->Top.X == Result->Prev->Top.X) 
+        {
+          if (!IsClockwise) Result = Horz->Next;
+        }
+        else if (Horz->Next->Top.X > Result->Prev->Top.X) Result = Horz->Next;
+      }
 
-  if (E->OutIdx == Skip)
+      while (E != Result)
+      {
+        E->NextInLML = E->Prev;
+        if (IsHorizontal(*E) && E != EStart && E->Bot.X != E->Next->Top.X) 
+          ReverseHorizontal(*E);
+        E = E->Prev;
+      }
+      if (IsHorizontal(*E) && E != EStart && E->Bot.X != E->Next->Top.X) 
+        ReverseHorizontal(*E);
+      Result = Result->Prev; //move to the edge just beyond current bound
+    }
+  }
+
+  if (Result->OutIdx == Skip) 
   {
     //if edges still remain in the current bound beyond the skip edge then
     //create another LocMin and call ProcessBound once more
-    if (NextIsForward)
+    E = Result;
+    if (IsClockwise)
     {
       while (E->Top.Y == E->Next->Bot.Y) E = E->Next;
       //don't include top horizontals when parsing a bound a second time,
       //they will be contained in the opposite bound ...
       while (E != Result && IsHorizontal(*E)) E = E->Prev;
-    }
-    else
+    } else
     {
       while (E->Top.Y == E->Prev->Bot.Y) E = E->Prev;
       while (E != Result && IsHorizontal(*E)) E = E->Next;
     }
-
     if (E == Result)
     {
-      if (NextIsForward) Result = E->Next;
+      if (IsClockwise) Result = E->Next;
       else Result = E->Prev;
-    }
-    else
+    } else
     {
       //there are more edges in the bound beyond result starting with E
-      if (NextIsForward)
-        E = Result->Next;
+      if (IsClockwise)
+        E = Result->Next; 
       else
         E = Result->Prev;
       LocalMinima* locMin = new LocalMinima;
@@ -937,88 +1011,11 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
       locMin->Y = E->Bot.Y;
       locMin->LeftBound = 0;
       locMin->RightBound = E;
-      E->WindDelta = 0;
-      Result = ProcessBound(E, NextIsForward);
+      locMin->RightBound->WindDelta = 0;
+      Result = ProcessBound(locMin->RightBound, IsClockwise);
       InsertLocalMinima(locMin);
     }
-    return Result;
   }
-
-  TEdge *EStart;
-
-  if (IsHorizontal(*E))
-  {
-    //We need to be careful with open paths because this may not be a
-    //true local minima (ie E may be following a skip edge).
-    //Also, consecutive horz. edges may start heading left before going right.
-    if (NextIsForward) 
-      EStart = E->Prev;
-    else 
-      EStart = E->Next;
-    if (IsHorizontal(*EStart)) //ie an adjoining horizontal skip edge
-    {
-      if (EStart->Bot.X != E->Bot.X && EStart->Top.X != E->Bot.X) 
-        ReverseHorizontal(*E);
-    }
-    else if (EStart->Bot.X != E->Bot.X) 
-      ReverseHorizontal(*E);
-  }
-  
-  EStart = E;
-  if (NextIsForward)
-  {
-    while (Result->Top.Y == Result->Next->Bot.Y && Result->Next->OutIdx != Skip)
-      Result = Result->Next;
-    if (IsHorizontal(*Result) && Result->Next->OutIdx != Skip)
-    {
-      //nb: at the top of a bound, horizontals are added to the bound
-      //only when the preceding edge attaches to the horizontal's left vertex
-      //unless a Skip edge is encountered when that becomes the top divide
-      Horz = Result;
-      while (IsHorizontal(*Horz->Prev)) Horz = Horz->Prev;
-      if (Horz->Prev->Top.X == Result->Next->Top.X) 
-      {
-        if (!NextIsForward) Result = Horz->Prev;
-      }
-      else if (Horz->Prev->Top.X > Result->Next->Top.X) Result = Horz->Prev;
-    }
-    while (E != Result) 
-    {
-      E->NextInLML = E->Next;
-      if (IsHorizontal(*E) && E != EStart &&
-        E->Bot.X != E->Prev->Top.X) ReverseHorizontal(*E);
-      E = E->Next;
-    }
-    if (IsHorizontal(*E) && E != EStart && E->Bot.X != E->Prev->Top.X) 
-      ReverseHorizontal(*E);
-    Result = Result->Next; //move to the edge just beyond current bound
-  } else
-  {
-    while (Result->Top.Y == Result->Prev->Bot.Y && Result->Prev->OutIdx != Skip) 
-      Result = Result->Prev;
-    if (IsHorizontal(*Result) && Result->Prev->OutIdx != Skip)
-    {
-      Horz = Result;
-      while (IsHorizontal(*Horz->Next)) Horz = Horz->Next;
-      if (Horz->Next->Top.X == Result->Prev->Top.X) 
-      {
-        if (!NextIsForward) Result = Horz->Next;
-      }
-      else if (Horz->Next->Top.X > Result->Prev->Top.X) Result = Horz->Next;
-    }
-
-    while (E != Result)
-    {
-      E->NextInLML = E->Prev;
-      if (IsHorizontal(*E) && E != EStart && E->Bot.X != E->Next->Top.X) 
-        ReverseHorizontal(*E);
-      E = E->Prev;
-    }
-    if (IsHorizontal(*E) && E != EStart && E->Bot.X != E->Next->Top.X) 
-      ReverseHorizontal(*E);
-    Result = Result->Prev; //move to the edge just beyond current bound
-  }
-
   return Result;
 }
 //------------------------------------------------------------------------------
@@ -1151,7 +1148,7 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
   }
 
   m_edges.push_back(edges);
-  bool leftBoundIsForward;
+  bool clockwise;
   TEdge* EMin = 0;
 
   //workaround to avoid an endless loop in the while loop below when
@@ -1173,12 +1170,12 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
     {
       locMin->LeftBound = E->Prev;
       locMin->RightBound = E;
-      leftBoundIsForward = false; //Q.nextInLML = Q.prev
+      clockwise = false; //Q.nextInLML = Q.prev
     } else
     {
       locMin->LeftBound = E;
       locMin->RightBound = E->Prev;
-      leftBoundIsForward = true; //Q.nextInLML = Q.next
+      clockwise = true; //Q.nextInLML = Q.next
     }
     locMin->LeftBound->Side = esLeft;
     locMin->RightBound->Side = esRight;
@@ -1189,15 +1186,15 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
     else locMin->LeftBound->WindDelta = 1;
     locMin->RightBound->WindDelta = -locMin->LeftBound->WindDelta;
 
-    E = ProcessBound(locMin->LeftBound, leftBoundIsForward);
-    TEdge* E2 = ProcessBound(locMin->RightBound, !leftBoundIsForward);
+    E = ProcessBound(locMin->LeftBound, clockwise);
+    TEdge* E2 = ProcessBound(locMin->RightBound, !clockwise);
 
     if (locMin->LeftBound->OutIdx == Skip)
       locMin->LeftBound = 0;
     else if (locMin->RightBound->OutIdx == Skip)
       locMin->RightBound = 0;
     InsertLocalMinima(locMin);
-    if (!leftBoundIsForward) E = E2;
+    if (!clockwise) E = E2;
   }
   return true;
 }
