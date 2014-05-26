@@ -132,7 +132,7 @@ sub contact_area {
                 # If a threshold angle was specified, use a different logic for detecting overhangs.
                 if (defined $threshold_rad
                     || $layer_id < $self->object_config->support_material_enforce_layers
-                    || $self->object_config->raft_layers > 0) {
+                    || ($self->object_config->raft_layers > 0 && $layer_id == 0)) {
                     my $d = defined $threshold_rad
                         ? scale $lower_layer->height * ((cos $threshold_rad) / (sin $threshold_rad))
                         : 0;
