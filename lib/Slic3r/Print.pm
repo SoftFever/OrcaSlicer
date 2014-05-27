@@ -783,7 +783,7 @@ sub make_brim {
     # if brim touches skirt, make it around skirt too
     # TODO: calculate actual skirt width (using each extruder's flow in multi-extruder setups)
     if ($self->config->skirt_distance + (($self->config->skirts - 1) * $flow->spacing) <= $self->config->brim_width) {
-        push @islands, map @{$_->split_at_first_point->polyline->grow($grow_distance)}, @{$self->skirt};
+        push @islands, map @{$_->polygon->split_at_first_point->grow($grow_distance)}, @{$self->skirt};
     }
     
     my @loops = ();

@@ -1,4 +1,4 @@
-use Test::More tests => 2;
+use Test::More tests => 3;
 use strict;
 use warnings;
 
@@ -67,6 +67,15 @@ use Slic3r::Test;
         }
     });
     is scalar(grep $_, values %layers_with_brim), 1, "brim is generated";
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 1);
+    $config->set('brim_width', 10);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'successful G-code generation when skirt is smaller than brim width';
 }
 
 __END__
