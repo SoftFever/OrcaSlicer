@@ -3,6 +3,11 @@
 use strict;
 use warnings;
 
+BEGIN {
+    use FindBin;
+    use lib "$FindBin::Bin/../../lib";
+}
+
 use Slic3r::XS;
 use Test::More tests => 22;
 
@@ -30,6 +35,18 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
     my $to = Slic3r::Point->new(180,180);
     $_->scale(1/0.000001) for $from, $to;
     my $path = $mp->shortest_path($from, $to);
+    require "Slic3r.pm";
+    require "Slic3r/SVG.pm";
+    Slic3r::SVG::output(
+        "path.svg",
+        expolygons => [$expolygon],
+        polylines => [$path],
+    );
+    use XXX; YYY [
+        $from->pp,
+        $path->pp,
+        $to->pp,
+    ];
     ok $path->is_valid(), 'return path is valid';
     ok $path->length > Slic3r::Line->new($from, $to)->length, 'path length is greater than straight line';
     ok $path->first_point->coincides_with($from), 'first path point coincides with initial point';

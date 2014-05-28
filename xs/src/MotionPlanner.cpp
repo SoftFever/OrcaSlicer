@@ -1,5 +1,10 @@
 #include "BoundingBox.hpp"
 #include "MotionPlanner.hpp"
+#include <limits> // for numeric_limits
+
+#include "boost/polygon/voronoi.hpp"
+using boost::polygon::voronoi_builder;
+using boost::polygon::voronoi_diagram;
 
 namespace Slic3r {
 
@@ -9,9 +14,7 @@ MotionPlanner::MotionPlanner(const ExPolygons &islands)
 
 MotionPlanner::~MotionPlanner()
 {
-    for (std::vector<VisiLibity::Environment*>::iterator env = this->envs.begin(); env != this->envs.end(); ++env)
-        delete *env;
-    for (std::vector<VisiLibity::Visibility_Graph*>::iterator graph = this->graphs.begin(); graph != this->graphs.end(); ++graph)
+    for (std::vector<MotionPlannerGraph*>::iterator graph = this->graphs.begin(); graph != this->graphs.end(); ++graph)
         delete *graph;
 }
 
@@ -58,7 +61,6 @@ MotionPlanner::initialize()
     assert(outer.size() == 1);
     this->outer = outer.front();
     
-    this->envs.resize(this->islands.size() + 1, NULL);
     this->graphs.resize(this->islands.size() + 1, NULL);
     this->initialized = true;
 }
@@ -83,9 +85,6 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
             break;
         }
     }
-    
-    // Generate environment.
-    this->generate_environment(island_idx);
     
     // Now check whether points are inside the environment.
     Point inner_from    = from;
@@ -112,79 +111,164 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
     }
     
     // perform actual path search
-    *polyline = convert_polyline(this->envs[island_idx + 1]->shortest_path(convert_point(inner_from),
-        convert_point(inner_to), *this->graphs[island_idx + 1], SCALED_EPSILON));
+    MotionPlannerGraph* graph = this->init_graph(island_idx);
+    graph->shortest_path(graph->find_node(inner_from), graph->find_node(inner_to), polyline);
     
-    // if start point was outside the environment, prepend it
-    if (!from_is_inside) polyline->points.insert(polyline->points.begin(), from);
-    
-    // if end point was outside the environment, append it
-    if (!to_is_inside) polyline->points.push_back(to);
+    polyline->points.insert(polyline->points.begin(), from);
+    polyline->points.push_back(to);
+}
+
+MotionPlannerGraph*
+MotionPlanner::init_graph(int island_idx)
+{
+    if (this->graphs[island_idx + 1] == NULL) {
+        Polygons pp;
+        if (island_idx == -1) {
+            pp = this->outer;
+        } else {
+            pp = this->inner[island_idx];
+        }
+        
+        MotionPlannerGraph* graph = this->graphs[island_idx + 1] = new MotionPlannerGraph();
+        
+        // add polygon boundaries as edges
+        size_t node_idx = 0;
+        Lines lines;
+        for (Polygons::const_iterator polygon = pp.begin(); polygon != pp.end(); ++polygon) {
+            graph->nodes.push_back(polygon->points.back());
+            node_idx++;
+            for (Points::const_iterator p = polygon->points.begin(); p != polygon->points.end(); ++p) {
+                graph->nodes.push_back(*p);
+                double dist = graph->nodes[node_idx-1].distance_to(*p);
+                graph->add_edge(node_idx-1, node_idx, dist);
+                graph->add_edge(node_idx, node_idx-1, dist);
+                node_idx++;
+            }
+            polygon->lines(&lines);
+        }
+        
+        // add Voronoi edges as internal edges
+        {
+            typedef voronoi_diagram<double> VD;
+            typedef std::map<const VD::vertex_type*,size_t> t_vd_vertices;
+            VD vd;
+            t_vd_vertices vd_vertices;
+            
+            boost::polygon::construct_voronoi(lines.begin(), lines.end(), &vd);
+            for (VD::const_edge_iterator edge = vd.edges().begin(); edge != vd.edges().end(); ++edge) {
+                if (edge->is_infinite()) continue;
+                
+                const VD::vertex_type* v0 = edge->vertex0();
+                const VD::vertex_type* v1 = edge->vertex1();
+                Point p0 = Point(v0->x(), v0->y());
+                Point p1 = Point(v1->x(), v1->y());
+                // contains_point() should probably be faster than contains_line(),
+                // and should it fail on any boundary points it's not a big problem
+                if (island_idx == -1) {
+                    if (!this->outer.contains_point(p0) || !this->outer.contains_point(p1)) continue;
+                } else {
+                    if (!this->inner[island_idx].contains_point(p0) || !this->inner[island_idx].contains_point(p1)) continue;
+                }
+                
+                t_vd_vertices::const_iterator i_v0 = vd_vertices.find(v0);
+                size_t v0_idx;
+                if (i_v0 == vd_vertices.end()) {
+                    graph->nodes.push_back(p0);
+                    v0_idx = node_idx;
+                    vd_vertices[v0] = node_idx;
+                    node_idx++;
+                } else {
+                    v0_idx = i_v0->second;
+                }
+                
+                t_vd_vertices::const_iterator i_v1 = vd_vertices.find(v1);
+                size_t v1_idx;
+                if (i_v1 == vd_vertices.end()) {
+                    graph->nodes.push_back(p1);
+                    v1_idx = node_idx;
+                    vd_vertices[v1] = node_idx;
+                    node_idx++;
+                } else {
+                    v1_idx = i_v1->second;
+                }
+                
+                double dist = graph->nodes[v0_idx].distance_to(graph->nodes[v1_idx]);
+                graph->add_edge(v0_idx, v1_idx, dist);
+            }
+        }
+        
+        return graph;
+    }
+    return this->graphs[island_idx + 1];
 }
 
 void
-MotionPlanner::generate_environment(int island_idx)
+MotionPlannerGraph::add_edge(size_t from, size_t to, double weight)
 {
-    if (this->envs[island_idx + 1] != NULL) return;
+    // extend adjacency list until this start node
+    if (this->adjacency_list.size() < from+1)
+        this->adjacency_list.resize(from+1);
     
-    Polygons pp;
-    if (island_idx == -1) {
-        pp = this->outer;
-    } else {
-        pp = this->inner[island_idx];
+    this->adjacency_list[from].push_back(neighbor(to, weight));
+}
+
+size_t
+MotionPlannerGraph::find_node(const Point &point) const
+{
+    /*
+    for (Points::const_iterator p = this->nodes.begin(); p != this->nodes.end(); ++p) {
+        if (p->coincides_with(point)) return p - this->nodes.begin();
     }
-        
-    // populate VisiLibity polygons
-    std::vector<VisiLibity::Polygon> v_polygons;
-    for (Polygons::const_iterator p = pp.begin(); p != pp.end(); ++p)
-        v_polygons.push_back(convert_polygon(*p));
+    */
+    return point.nearest_point_index(this->nodes);
+}
+
+void
+MotionPlannerGraph::shortest_path(size_t from, size_t to, Polyline* polyline)
+{
+    const weight_t max_weight = std::numeric_limits<weight_t>::infinity();
     
-    // generate graph and environment
-    this->envs[island_idx + 1] = new VisiLibity::Environment(v_polygons);
-    this->graphs[island_idx + 1] = new VisiLibity::Visibility_Graph(*this->envs[island_idx + 1], SCALED_EPSILON);
-}
+    std::vector<weight_t> min_distance;
+    std::vector<node_t> previous;
+    {
+        int n = this->adjacency_list.size();
+        min_distance.clear();
+        min_distance.resize(n, max_weight);
+        min_distance[from] = 0;
+        previous.clear();
+        previous.resize(n, -1);
+        std::set<std::pair<weight_t, node_t> > vertex_queue;
+        vertex_queue.insert(std::make_pair(min_distance[from], from));
+ 
+        while (!vertex_queue.empty()) 
+        {
+            weight_t dist = vertex_queue.begin()->first;
+            node_t u = vertex_queue.begin()->second;
+            vertex_queue.erase(vertex_queue.begin());
+ 
+            // Visit each edge exiting u
+            const std::vector<neighbor> &neighbors = this->adjacency_list[u];
+            for (std::vector<neighbor>::const_iterator neighbor_iter = neighbors.begin();
+                 neighbor_iter != neighbors.end();
+                 neighbor_iter++)
+            {
+                node_t v = neighbor_iter->target;
+                weight_t weight = neighbor_iter->weight;
+                weight_t distance_through_u = dist + weight;
+                if (distance_through_u < min_distance[v]) {
+                    vertex_queue.erase(std::make_pair(min_distance[v], v));
+                    min_distance[v] = distance_through_u;
+                    previous[v] = u;
+                    vertex_queue.insert(std::make_pair(min_distance[v], v));
+                }
 
-VisiLibity::Polyline
-MotionPlanner::convert_polyline(const Polyline &polyline)
-{
-    VisiLibity::Polyline v_polyline;
-    for (Points::const_iterator point = polyline.points.begin(); point != polyline.points.end(); ++point) {
-        v_polyline.push_back(convert_point(*point));
+            }
+        }
     }
-    return v_polyline;
-}
-
-Polyline
-MotionPlanner::convert_polyline(const VisiLibity::Polyline &v_polyline)
-{
-    Polyline polyline;
-    polyline.points.reserve(v_polyline.size());
-    for (size_t i = 0; i < v_polyline.size(); ++i) {
-        polyline.points.push_back(convert_point(v_polyline[i]));
-    }
-    return polyline;
-}
-
-VisiLibity::Polygon
-MotionPlanner::convert_polygon(const Polygon &polygon)
-{
-    VisiLibity::Polygon v_polygon;
-    for (Points::const_iterator point = polygon.points.begin(); point != polygon.points.end(); ++point) {
-        v_polygon.push_back(convert_point(*point));
-    }
-    return v_polygon;
-}
-
-VisiLibity::Point
-MotionPlanner::convert_point(const Point &point)
-{
-    return VisiLibity::Point(point.x, point.y);
-}
-
-Point
-MotionPlanner::convert_point(const VisiLibity::Point &v_point)
-{
-    return Point((coord_t)v_point.x(), (coord_t)v_point.y());
+    
+    for (node_t vertex = to; vertex != -1; vertex = previous[vertex])
+        polyline->points.push_back(this->nodes[vertex]);
+    polyline->reverse();
 }
 
 #ifdef SLIC3RXS
