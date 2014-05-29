@@ -121,7 +121,8 @@ sub contact_area {
         if ($layer_id == 0) {
             # this is the first object layer, so we're here just to get the object
             # footprint for the raft
-            push @overhang, map $_->clone, map @$_, @{$layer->slices};
+            # we only consider contours and discard holes to get a more continuous raft
+            push @overhang, map $_->clone, map $_->contour, @{$layer->slices};
             push @contact, @{offset(\@overhang, scale +MARGIN)};
         } else {
             my $lower_layer = $object->layers->[$layer_id-1];
