@@ -9,7 +9,8 @@ Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &wid
     if (height <= 0 && bridge_flow_ratio == 0) CONFESS("Invalid flow height supplied to new_from_config_width()");
     
     float w;
-    if (!width.percent && width.value == 0) {
+    // use automatic extrusion width if user left 0 or we need a bridge flow
+    if ((!width.percent && width.value == 0) || bridge_flow_ratio > 0) {
         w = Flow::_width(role, nozzle_diameter, height, bridge_flow_ratio);
     } else {
         w = width.get_abs_value(height);
