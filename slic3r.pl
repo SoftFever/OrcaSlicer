@@ -53,9 +53,6 @@ my %cli_options = ();
     GetOptions(%options) or usage(1);
 }
 
-# process command line options
-my $cli_config = Slic3r::Config->new_from_cli(%cli_options);
-
 # load configuration files
 my @external_configs = ();
 if ($opt{load}) {
@@ -71,18 +68,21 @@ if ($opt{load}) {
     }
 }
 
-# merge configuration
-my $config = Slic3r::Config->new_from_defaults;
-foreach my $c (@external_configs, $cli_config) {
+# process command line options
+my $cli_config = Slic3r::Config->new;
+foreach my $c (@external_configs, Slic3r::Config->new_from_cli(%cli_options)) {
     $c->normalize;  # expand shortcuts before applying, otherwise destination values would be already filled with defaults
-    $config->apply($c);
+    $cli_config->apply($c);
 }
 
 # save configuration
 if ($opt{save}) {
-    $config->validate;
-    $config->save($opt{save});
+    $cli_config->save($opt{save});
 }
+
+# apply command line config on top of default config
+my $config = Slic3r::Config->new_from_defaults;
+$config->apply($cli_config);
 
 # launch GUI
 my $gui;
