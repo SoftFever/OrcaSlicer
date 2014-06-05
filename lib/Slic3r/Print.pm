@@ -3,7 +3,7 @@ use Moo;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
-use List::Util qw(min max first);
+use List::Util qw(min max first sum);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
@@ -855,10 +855,20 @@ sub write_gcode {
     # prepare the helper object for replacing placeholders in custom G-code and output filename
     $self->placeholder_parser->update_timestamp;
     
+    # estimate the total number of layer changes
+    # TODO: only do this when M73 is enabled
+    my $layer_count;
+    if ($self->config->complete_objects) {
+        $layer_count = sum(map { $_->layer_count * @{$_->copies} } @{$self->objects});
+    } else {
+        # if sequential printing is not enable, all copies of the same object share the same layer change command(s)
+        $layer_count = sum(map { $_->layer_count } @{$self->objects});
+    }
+    
     # set up our helper object
     my $gcodegen = Slic3r::GCode->new(
         placeholder_parser  => $self->placeholder_parser,
-        layer_count         => $self->layer_count,
+        layer_count         => $layer_count,
     );
     $gcodegen->config->apply_print_config($self->config);
     $gcodegen->set_extruders($self->extruders, $self->config);

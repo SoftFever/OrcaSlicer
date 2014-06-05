@@ -82,6 +82,7 @@ sub change_layer {
     
     my $gcode = "";
     if ($self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/) {
+        # TODO: cap this to 99% and add an explicit M73 P100 in the end G-code
         $gcode .= sprintf "M73 P%s%s\n",
             int(99 * ($self->_layer_index / ($self->layer_count - 1))),
             ($self->config->gcode_comments ? ' ; update progress' : '');
