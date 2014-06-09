@@ -44,7 +44,12 @@ sub region {
 sub make_slices {
     my $self = shift;
     
-    my $slices = union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]);
+    my $slices;
+    if (@{$self->regions} == 1) {
+        $slices = [ map $_->expolygon->clone, @{$self->regions->[0]->slices} ];
+    } else {
+        $slices = union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]);
+    }
     
     # sort slices
     $slices = [ @$slices[@{chained_path([ map $_->contour->first_point, @$slices ])}] ];
