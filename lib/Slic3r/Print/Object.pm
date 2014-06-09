@@ -372,11 +372,12 @@ sub make_perimeters {
                 my $layerm          = $self->layers->[$i]->regions->[$region_id];
                 my $upper_layerm    = $self->layers->[$i+1]->regions->[$region_id];
                 my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
+                my $ext_perimeter_spacing   = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_spacing;
                 
                 my $overlap = $perimeter_spacing;  # one perimeter
                 
                 my $diff = diff(
-                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($region_perimeters * $perimeter_spacing)),
+                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($ext_perimeter_spacing + ($region_perimeters-1) * $perimeter_spacing)),
                     offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap),
                 );
                 next if !@$diff;
@@ -453,7 +454,7 @@ sub detect_surfaces_type {
                 );
                 
                 # collapse very narrow parts (using the safety offset in the diff is not enough)
-                my $offset = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_width / 10;
+                my $offset = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_width / 10;
                 return map Slic3r::Surface->new(expolygon => $_, surface_type => $result_type),
                     @{ offset2_ex($diff, -$offset, +$offset) };
             };
@@ -768,7 +769,7 @@ sub discover_horizontal_shells {
                         # than a perimeter width, since it's probably just crossing a sloping wall
                         # and it's not wanted in a hollow print even if it would make sense when
                         # obeying the solid shell count option strictly (DWIM!)
-                        my $margin = $neighbor_layerm->flow(FLOW_ROLE_PERIMETER)->scaled_width;
+                        my $margin = $neighbor_layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_width;
                         my $too_narrow = diff(
                             $new_internal_solid,
                             offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),

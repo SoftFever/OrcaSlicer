@@ -65,6 +65,7 @@ _new_from_spacing(CLASS, spacing, nozzle_diameter, height, bridge)
 IV
 _constant()
   ALIAS:
+    FLOW_ROLE_EXTERNAL_PERIMETER            = frExternalPerimeter
     FLOW_ROLE_PERIMETER                     = frPerimeter
     FLOW_ROLE_INFILL                        = frInfill
     FLOW_ROLE_SOLID_INFILL                  = frSolidInfill

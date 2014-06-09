@@ -11,6 +11,7 @@ namespace Slic3r {
 #define OVERLAP_FACTOR 1.0
 
 enum FlowRole {
+    frExternalPerimeter,
     frPerimeter,
     frInfill,
     frSolidInfill,

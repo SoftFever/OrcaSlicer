@@ -544,7 +544,7 @@ sub build {
         {
             title => 'Extrusion width',
             label_width => 180,
-            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width top_infill_extrusion_width support_material_extrusion_width)],
+            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width top_infill_extrusion_width support_material_extrusion_width)],
         },
         {
             title => 'Flow',

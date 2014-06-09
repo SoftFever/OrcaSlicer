@@ -456,6 +456,8 @@ $j
                         Set a different extrusion width for first layer
     --perimeter-extrusion-width
                         Set a different extrusion width for perimeters
+    --external-perimeter-extrusion-width
+                        Set a different extrusion width for external perimeters
     --infill-extrusion-width
                         Set a different extrusion width for infill
     --solid-infill-extrusion-width

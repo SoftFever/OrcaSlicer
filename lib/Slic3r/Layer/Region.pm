@@ -62,12 +62,23 @@ sub flow {
 sub make_perimeters {
     my $self = shift;
     
+    # external perimeters
+    my $ext_perimeter_flow  = $self->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
+    my $ext_mm3_per_mm      = $ext_perimeter_flow->mm3_per_mm($self->height);
+    my $ext_pwidth          = $ext_perimeter_flow->scaled_width;
+    my $ext_pspacing        = $ext_perimeter_flow->scaled_spacing;
+    
+    # other perimeters
     my $perimeter_flow      = $self->flow(FLOW_ROLE_PERIMETER);
     my $mm3_per_mm          = $perimeter_flow->mm3_per_mm($self->height);
-    my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object);
-    my $mm3_per_mm_overhang = $overhang_flow->mm3_per_mm(-1);
     my $pwidth              = $perimeter_flow->scaled_width;
     my $pspacing            = $perimeter_flow->scaled_spacing;
+    
+    # overhang perimeters
+    my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object);
+    my $mm3_per_mm_overhang = $overhang_flow->mm3_per_mm(-1);
+    
+    # solid infill
     my $solid_infill_flow   = $self->flow(FLOW_ROLE_SOLID_INFILL);
     my $ispacing            = $solid_infill_flow->scaled_spacing;
     my $gap_area_threshold  = $pwidth ** 2;
@@ -77,7 +88,8 @@ sub make_perimeters {
     # with some tolerance in order to avoid triggering medial axis when
     # some squishing might work. Loops are still spaced by the entire
     # flow spacing; this only applies to collapsing parts.
-    my $min_spacing = $pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
+    my $min_spacing         = $pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
+    my $ext_min_spacing     = $ext_pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
     
     $self->perimeters->clear;
     $self->fill_surfaces->clear;
@@ -101,26 +113,30 @@ sub make_perimeters {
                 my @offsets = ();
                 if ($i == 1) {
                     # the minimum thickness of a single loop is:
-                    # width/2 + spacing/2 + spacing/2 + width/2
+                    # ext_width/2 + ext_spacing/2 + spacing/2 + width/2
                     @offsets = @{offset2(
                         \@last,
-                        -(0.5*$pwidth + 0.5*$min_spacing - 1),
-                        +(0.5*$min_spacing - 1),
+                        -(0.5*$ext_pwidth + 0.5*$ext_min_spacing - 1),
+                        +(0.5*$ext_min_spacing - 1),
                     )};
                     
                     # look for thin walls
                     if ($self->config->thin_walls) {
                         my $diff = diff_ex(
                             \@last,
-                            offset(\@offsets, +0.5*$pwidth),
+                            offset(\@offsets, +0.5*$ext_pwidth),
                             1,  # medial axis requires non-overlapping geometry
                         );
                         push @thin_walls, @$diff;
                     }
                 } else {
+                    my $distance = ($i == 2)
+                        ? (0.5*$ext_pspacing + 0.5*$pspacing)
+                        : (1.0*$pspacing);
+                    
                     @offsets = @{offset2(
                         \@last,
-                        -(1.0*$pspacing + 0.5*$min_spacing - 1),
+                        -($distance + 0.5*$min_spacing - 1),
                         +(0.5*$min_spacing - 1),
                     )};
                 
@@ -283,8 +299,8 @@ sub make_perimeters {
                     push @paths, Slic3r::ExtrusionPath->new(
                         polyline        => $polyline,
                         role            => $role,
-                        mm3_per_mm      => $mm3_per_mm,
-                        width           => $perimeter_flow->width,
+                        mm3_per_mm      => ($is_external ? $ext_mm3_per_mm : $mm3_per_mm),
+                        width           => ($is_external ? $ext_perimeter_flow->width : $perimeter_flow->width),
                         height          => $self->height,
                     );
                 }

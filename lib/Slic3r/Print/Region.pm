@@ -23,6 +23,8 @@ sub flow {
         # (might be an absolute value, or a percent value, or zero for auto)
         if ($first_layer && $self->print->config->first_layer_extrusion_width) {
             $config_width = $self->print->config->first_layer_extrusion_width;
+        } elsif ($role == FLOW_ROLE_EXTERNAL_PERIMETER) {
+            $config_width = $self->config->external_perimeter_extrusion_width;
         } elsif ($role == FLOW_ROLE_PERIMETER) {
             $config_width = $self->config->perimeter_extrusion_width;
         } elsif ($role == FLOW_ROLE_INFILL) {
@@ -42,7 +44,7 @@ sub flow {
     # get the configured nozzle_diameter for the extruder associated
     # to the flow role requested
     my $extruder;  # 1-based
-    if ($role == FLOW_ROLE_PERIMETER) {
+    if ($role == FLOW_ROLE_PERIMETER || $role == FLOW_ROLE_EXTERNAL_PERIMETER) {
         $extruder = $self->config->perimeter_extruder;
     } elsif ($role == FLOW_ROLE_INFILL || $role == FLOW_ROLE_SOLID_INFILL || $role == FLOW_ROLE_TOP_SOLID_INFILL) {
         $extruder = $self->config->infill_extruder;

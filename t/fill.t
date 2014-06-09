@@ -275,6 +275,7 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     $config->set('nozzle_diameter', [0.35]);
     $config->set('infill_extruder', 2);
     $config->set('infill_extrusion_width', 0.52);
+    $config->set('first_layer_extrusion_width', 0);
     
     my $print = Slic3r::Test::init_print('A', config => $config);
     my %infill = ();  # Z => [ Line, Line ... ]
@@ -298,7 +299,7 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $grow_d = scale($config->infill_extrusion_width)/2;
     my $layer0_infill = union([ map @{$_->grow($grow_d)}, @{ $infill{0.2} } ]);
     my $layer1_infill = union([ map @{$_->grow($grow_d)}, @{ $infill{0.4} } ]);
-    my $diff = [ grep $_->area >= 2*$grow_d**2, @{diff_ex($layer0_infill, $layer1_infill)} ];
+    my $diff = [ grep $_->area >= 4*($grow_d**2), @{diff_ex($layer0_infill, $layer1_infill)} ];
     is scalar(@$diff), 0, 'no missing parts in solid shell when fill_density is 0';
 }
 

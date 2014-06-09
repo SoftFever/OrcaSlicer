@@ -835,6 +835,8 @@ sub write_gcode {
     my $first_object = $self->objects->[0];
     my $layer_height = $first_object->config->layer_height;
     for my $region_id (0..$#{$self->regions}) {
+        printf $fh "; external perimeters extrusion width = %.2fmm\n",
+            $self->regions->[$region_id]->flow(FLOW_ROLE_EXTERNAL_PERIMETER, $layer_height, 0, 0, undef, $first_object)->width;
         printf $fh "; perimeters extrusion width = %.2fmm\n",
             $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 0, undef, $first_object)->width;
         printf $fh "; infill extrusion width = %.2fmm\n",

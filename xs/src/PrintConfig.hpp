@@ -172,6 +172,13 @@ class PrintConfigDef
         Options["end_gcode"].full_width = true;
         Options["end_gcode"].height = 120;
 
+        Options["external_perimeter_extrusion_width"].type = coFloatOrPercent;
+        Options["external_perimeter_extrusion_width"].label = "External perimeters";
+        Options["external_perimeter_extrusion_width"].category = "Extrusion Width";
+        Options["external_perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for external perimeters. If left zero, an automatic value will be used that maximizes accuracy of the external visible surfaces. If expressed as percentage (for example 200%) it will be computed over layer height.";
+        Options["external_perimeter_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
+        Options["external_perimeter_extrusion_width"].cli = "external-perimeter-extrusion-width=s";
+
         Options["external_perimeter_speed"].type = coFloatOrPercent;
         Options["external_perimeter_speed"].label = "External perimeters";
         Options["external_perimeter_speed"].category = "Speed";
@@ -555,7 +562,7 @@ class PrintConfigDef
         Options["perimeter_extrusion_width"].type = coFloatOrPercent;
         Options["perimeter_extrusion_width"].label = "Perimeters";
         Options["perimeter_extrusion_width"].category = "Extrusion Width";
-        Options["perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 90%) it will be computed over layer height.";
+        Options["perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If expressed as percentage (for example 200%) it will be computed over layer height.";
         Options["perimeter_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
         Options["perimeter_extrusion_width"].cli = "perimeter-extrusion-width=s";
         Options["perimeter_extrusion_width"].aliases.push_back("perimeters_extrusion_width");
@@ -1088,6 +1095,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     public:
     ConfigOptionInt                 bottom_solid_layers;
     ConfigOptionFloat               bridge_speed;
+    ConfigOptionFloatOrPercent      external_perimeter_extrusion_width;
     ConfigOptionFloatOrPercent      external_perimeter_speed;
     ConfigOptionBool                extra_perimeters;
     ConfigOptionInt                 fill_angle;
@@ -1117,6 +1125,8 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     PrintRegionConfig() : StaticPrintConfig() {
         this->bottom_solid_layers.value                          = 3;
         this->bridge_speed.value                                 = 60;
+        this->external_perimeter_extrusion_width.value           = 0;
+        this->external_perimeter_extrusion_width.percent         = false;
         this->external_perimeter_speed.value                     = 70;
         this->external_perimeter_speed.percent                   = true;
         this->extra_perimeters.value                             = true;
@@ -1155,6 +1165,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         if (opt_key == "bottom_solid_layers")                        return &this->bottom_solid_layers;
         if (opt_key == "bridge_speed")                               return &this->bridge_speed;
+        if (opt_key == "external_perimeter_extrusion_width")         return &this->external_perimeter_extrusion_width;
         if (opt_key == "external_perimeter_speed")                   return &this->external_perimeter_speed;
         if (opt_key == "extra_perimeters")                           return &this->extra_perimeters;
         if (opt_key == "fill_angle")                                 return &this->fill_angle;
