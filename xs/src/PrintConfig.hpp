@@ -962,6 +962,13 @@ class PrintConfigDef
         Options["wipe"].tooltip = "This flag will move the nozzle while retracting to minimize the possible blob on leaky extruders.";
         Options["wipe"].cli = "wipe!";
 
+        Options["xy_size_compensation"].type = coFloat;
+        Options["xy_size_compensation"].label = "XY Size Compensation";
+        Options["xy_size_compensation"].category = "Advanced";
+        Options["xy_size_compensation"].tooltip = "The object will be grown/shrunk in the XY plane by the configured value (negative = inwards, positive = outwards). This might be useful for fine-tuning hole sizes.";
+        Options["xy_size_compensation"].sidetext = "mm";
+        Options["xy_size_compensation"].cli = "xy-size-compensation=f";
+
         Options["z_offset"].type = coFloat;
         Options["z_offset"].label = "Z offset";
         Options["z_offset"].tooltip = "This value will be added (or subtracted) from all the Z coordinates in the output G-code. It is used to compensate for bad Z endstop position: for example, if your endstop zero actually leaves the nozzle 0.3mm far from the print bed, set this to -0.3 (or fix your endstop).";
@@ -1034,6 +1041,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
     ConfigOptionInt                 support_material_threshold;
+    ConfigOptionFloat               xy_size_compensation;
     
     PrintObjectConfig() : StaticPrintConfig() {
         this->dont_support_bridges.value                         = true;
@@ -1061,6 +1069,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->support_material_spacing.value                     = 2.5;
         this->support_material_speed.value                       = 60;
         this->support_material_threshold.value                   = 0;
+        this->xy_size_compensation.value                         = 0;
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
@@ -1085,6 +1094,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         if (opt_key == "support_material_spacing")                   return &this->support_material_spacing;
         if (opt_key == "support_material_speed")                     return &this->support_material_speed;
         if (opt_key == "support_material_threshold")                 return &this->support_material_threshold;
+        if (opt_key == "xy_size_compensation")                       return &this->xy_size_compensation;
         
         return NULL;
     };

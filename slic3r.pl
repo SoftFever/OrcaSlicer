@@ -436,6 +436,8 @@ $j
     --bed-size          Bed size, only used for auto-arrange (mm, default: $config->{bed_size}->[0],$config->{bed_size}->[1])
     --duplicate-grid    Number of items with grid arrangement (default: 1,1)
     --duplicate-distance Distance in mm between copies (default: $config->{duplicate_distance})
+    --xy-size-compensation
+                        Grow/shrink objects by the configured absolute distance (mm, default: $config->{xy_size_compensation})
    
    Sequential printing options:
     --complete-objects  When printing multiple objects and/or copies, complete each one before

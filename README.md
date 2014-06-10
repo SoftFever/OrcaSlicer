@@ -313,6 +313,8 @@ The author of the Silk icon set is Mark James.
         --bed-size          Bed size, only used for auto-arrange (mm, default: 200,200)
         --duplicate-grid    Number of items with grid arrangement (default: 1,1)
         --duplicate-distance Distance in mm between copies (default: 6)
+        --xy-size-compensation
+                            Grow/shrink objects by the configured absolute distance (mm, default: 0)
     
        Sequential printing options:
         --complete-objects  When printing multiple objects and/or copies, complete each one before

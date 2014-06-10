@@ -251,6 +251,59 @@ sub slice {
     pop @{$self->layers} while @{$self->layers} && (!map @{$_->slices}, @{$self->layers->[-1]->regions});
     
     foreach my $layer (@{ $self->layers }) {
+        # apply size compensation
+        if ($self->config->xy_size_compensation != 0) {
+            my $delta = scale($self->config->xy_size_compensation);
+            if (@{$layer->regions} == 1) {
+                # single region
+                my $layerm = $layer->regions->[0];
+                my $slices = [ map $_->p, @{$layerm->slices} ];
+                $layerm->slices->clear;
+                $layerm->slices->append(Slic3r::Surface->new(
+                    expolygon    => $_,
+                    surface_type => S_TYPE_INTERNAL,
+                )) for @{offset_ex($slices, $delta)};
+            } else {
+                if ($delta < 0) {
+                    # multiple regions, shrinking
+                    # we apply the offset to the combined shape, then intersect it
+                    # with the original slices for each region
+                    my $slices = union([ map $_->p, map @{$_->slices}, @{$layer->regions} ]);
+                    $slices = offset($slices, $delta);
+                    foreach my $layerm (@{$layer->regions}) {
+                        my $this_slices = intersection_ex(
+                            $slices,
+                            [ map $_->p, @{$layerm->slices} ],
+                        );
+                        $layerm->slices->clear;
+                        $layerm->slices->append(Slic3r::Surface->new(
+                            expolygon    => $_,
+                            surface_type => S_TYPE_INTERNAL,
+                        )) for @$this_slices;
+                    }
+                } else {
+                    # multiple regions, growing
+                    # this is an ambiguous case, since it's not clear how to grow regions where they are going to overlap
+                    # so we give priority to the first one and so on
+                    for my $i (0..$#{$layer->regions}) {
+                        my $layerm = $layer->regions->[$i];
+                        my $slices = offset_ex([ map $_->p, @{$layerm->slices} ], $delta);
+                        if ($i > 0) {
+                            $slices = diff_ex(
+                                [ map @$_, @$slices ],
+                                [ map $_->p, map @{$_->slices}, map $layer->regions->[$_], 0..($i-1) ],  # slices of already processed regions
+                            );
+                        }
+                        $layerm->slices->clear;
+                        $layerm->slices->append(Slic3r::Surface->new(
+                            expolygon    => $_,
+                            surface_type => S_TYPE_INTERNAL,
+                        )) for @$slices;
+                    }
+                }
+            }
+        }
+        
         # merge all regions' slices to get islands
         $layer->make_slices;
     }

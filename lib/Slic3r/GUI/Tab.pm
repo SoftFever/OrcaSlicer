@@ -552,7 +552,7 @@ sub build {
         },
         {
             title => 'Other',
-            options => [($Slic3r::have_threads ? qw(threads) : ()), qw(resolution)],
+            options => [($Slic3r::have_threads ? qw(threads) : ()), qw(resolution xy_size_compensation)],
         },
     ]);
 }
