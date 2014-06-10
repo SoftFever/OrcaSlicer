@@ -972,7 +972,7 @@ sub write_gcode {
                     }
                     print $fh $buffer->append(
                         $layer_gcode->process_layer($layer, [$copy]),
-                        $layer->object."",
+                        $layer->object->ptr,
                         $layer->id,
                         $layer->print_z,
                     );
@@ -1005,7 +1005,7 @@ sub write_gcode {
                 foreach my $layer (@{ $layers{$print_z}[$obj_idx] // [] }) {
                     print $fh $buffer->append(
                         $layer_gcode->process_layer($layer, $layer->object->_shifted_copies),
-                        $layer->object . ref($layer),  # differentiate $obj_id between normal layers and support layers
+                        $layer->object->ptr . ref($layer),  # differentiate $obj_id between normal layers and support layers
                         $layer->id,
                         $layer->print_z,
                     );

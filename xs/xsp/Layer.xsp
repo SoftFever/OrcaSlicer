@@ -57,6 +57,9 @@
 
     Ref<ExPolygonCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
+    
+    int ptr()
+        %code%{ RETVAL = (int)(intptr_t)THIS; %};
 };
 
 %name{Slic3r::Layer::Support} class SupportLayer {
