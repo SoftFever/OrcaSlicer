@@ -6,20 +6,6 @@
 #include "PlaceholderParser.hpp"
 %}
 
-%name{Slic3r::Print::State} class PrintState {
-    PrintState();
-    ~PrintState();
-    bool started(PrintStep step) const;
-    bool done(PrintStep step) const;
-    void set_started(PrintStep step);
-    void set_done(PrintStep step);
-    void invalidate(PrintStep step);
-    void invalidate_all();
-%{
-
-%}
-};
-
 %package{Slic3r::Print::State};
 %{
 
@@ -27,11 +13,11 @@ IV
 _constant()
   ALIAS:
     STEP_INIT_EXTRUDERS     = psInitExtruders
-    STEP_SLICE              = psSlice
-    STEP_PERIMETERS         = psPerimeters
-    STEP_PREPARE_INFILL     = prPrepareInfill
-    STEP_INFILL             = psInfill
-    STEP_SUPPORTMATERIAL    = psSupportMaterial
+    STEP_SLICE              = posSlice
+    STEP_PERIMETERS         = posPerimeters
+    STEP_PREPARE_INFILL     = posPrepareInfill
+    STEP_INFILL             = posInfill
+    STEP_SUPPORTMATERIAL    = posSupportMaterial
     STEP_SKIRT              = psSkirt
     STEP_BRIM               = psBrim
   PROTOTYPE:
@@ -71,8 +57,6 @@ _constant()
         %code%{ RETVAL = THIS->copies; %};
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
-    Ref<PrintState> _state()
-        %code%{ RETVAL = &THIS->_state; %};
     Ref<Point3> size()
         %code%{ RETVAL = &THIS->size; %};
     Ref<Point> _copies_shift()
@@ -98,9 +82,19 @@ _constant()
     size_t support_layer_count();
     void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
-    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
+    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_support_layer(int idx);
+    
+    bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
+    void invalidate_step(PrintObjectStep step);
+    void invalidate_all_steps()
+        %code%{ THIS->state.invalidate_all(); %};
+    bool step_done(PrintObjectStep step)
+        %code%{ RETVAL = THIS->state.done(step); %};
+    void set_step_done(PrintObjectStep step)
+        %code%{ THIS->state.set_done(step); %};
+    void set_step_started(PrintObjectStep step)
+        %code%{ THIS->state.set_started(step); %};
     
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
@@ -120,8 +114,6 @@ _constant()
     Ref<PlaceholderParser> placeholder_parser()
         %code%{ RETVAL = &THIS->placeholder_parser; %};
     // TODO: status_cb
-    Ref<PrintState> _state()
-        %code%{ RETVAL = &THIS->_state; %};
     Ref<ExtrusionEntityCollection> skirt()
         %code%{ RETVAL = &THIS->skirt; %};
     Ref<ExtrusionEntityCollection> brim()
@@ -147,6 +139,17 @@ _constant()
     Ref<PrintRegion> add_region();
     size_t region_count()
         %code%{ RETVAL = THIS->regions.size(); %};
+    
+    bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
+    void invalidate_step(PrintStep step);
+    void invalidate_all_steps()
+        %code%{ THIS->state.invalidate_all(); %};
+    bool step_done(PrintStep step)
+        %code%{ RETVAL = THIS->state.done(step); %};
+    void set_step_done(PrintStep step)
+        %code%{ THIS->state.set_done(step); %};
+    void set_step_started(PrintStep step)
+        %code%{ THIS->state.set_started(step); %};
 %{
 
 double

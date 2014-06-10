@@ -3,52 +3,56 @@
 
 namespace Slic3r {
 
+template <class StepClass>
 bool
-PrintState::started(PrintStep step) const
+PrintState<StepClass>::started(StepClass step) const
 {
     return this->_started.find(step) != this->_started.end();
 }
 
+template <class StepClass>
 bool
-PrintState::done(PrintStep step) const
+PrintState<StepClass>::done(StepClass step) const
 {
     return this->_done.find(step) != this->_done.end();
 }
 
+template <class StepClass>
 void
-PrintState::set_started(PrintStep step)
+PrintState<StepClass>::set_started(StepClass step)
 {
     this->_started.insert(step);
 }
 
+template <class StepClass>
 void
-PrintState::set_done(PrintStep step)
+PrintState<StepClass>::set_done(StepClass step)
 {
     this->_done.insert(step);
 }
 
+template <class StepClass>
 void
-PrintState::invalidate(PrintStep step)
+PrintState<StepClass>::invalidate(StepClass step)
 {
     this->_started.erase(step);
     this->_done.erase(step);
 }
 
+template <class StepClass>
 void
-PrintState::invalidate_all()
+PrintState<StepClass>::invalidate_all()
 {
     this->_started.clear();
     this->_done.clear();
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(PrintState, "Print::State");
-#endif
-
+template class PrintState<PrintStep>;
+template class PrintState<PrintObjectStep>;
 
 
 PrintRegion::PrintRegion(Print* print)
-:   config(), _print(print)
+    : _print(print)
 {
 }
 
@@ -67,8 +71,7 @@ REGISTER_CLASS(PrintRegion, "Print::Region");
 #endif
 
 
-PrintObject::PrintObject(Print* print, ModelObject* model_object,
-        const BoundingBoxf3 &modobj_bbox)
+PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox)
 :   _print(print),
     _model_object(model_object)
 {
@@ -139,8 +142,7 @@ PrintObject::get_layer(int idx)
 }
 
 Layer*
-PrintObject::add_layer(int id, coordf_t height, coordf_t print_z,
-    coordf_t slice_z)
+PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
 {
     Layer* layer = new Layer(id, this, height, print_z, slice_z);
     layers.push_back(layer);
@@ -191,6 +193,68 @@ PrintObject::delete_support_layer(int idx)
     this->support_layers.erase(i);
 }
 
+bool
+PrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+{
+    std::set<PrintObjectStep> steps;
+    
+    // this method only accepts PrintObjectConfig option keys
+    for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
+        if (*opt_key == "perimeters") {
+            steps.insert(posPerimeters);
+        } else if (*opt_key == "resolution"
+            || *opt_key == "layer_height"
+            || *opt_key == "first_layer_height"
+            || *opt_key == "xy_size_compensation"
+            || *opt_key == "raft_layers") {
+            steps.insert(posSlice);
+        } else if (*opt_key == "support_material"
+            || *opt_key == "support_material_angle"
+            || *opt_key == "support_material_extrusion_width"
+            || *opt_key == "support_material_interface_layers"
+            || *opt_key == "support_material_interface_spacing"
+            || *opt_key == "support_material_interface_speed"
+            || *opt_key == "support_material_pattern"
+            || *opt_key == "support_material_spacing"
+            || *opt_key == "support_material_threshold"
+            || *opt_key == "dont_support_bridges") {
+            steps.insert(posSupportMaterial);
+        } else if (*opt_key == "interface_shells"
+            || *opt_key == "infill_only_where_needed") {
+            steps.insert(posPrepareInfill);
+        } else {
+            // for legacy, if we can't handle this option let's signal the caller to invalidate all steps
+            return false;
+        }
+    }
+    
+    for (std::set<PrintObjectStep>::const_iterator step = steps.begin(); step != steps.end(); ++step)
+        this->invalidate_step(*step);
+    
+    return true;
+}
+
+void
+PrintObject::invalidate_step(PrintObjectStep step)
+{
+    this->state.invalidate(step);
+    
+    // propagate to dependent steps
+    if (step == posPerimeters) {
+        this->invalidate_step(posPrepareInfill);
+        this->_print->invalidate_step(psSkirt);
+        this->_print->invalidate_step(psBrim);
+    } else if (step == posPrepareInfill) {
+        this->invalidate_step(posInfill);
+    } else if (step == posInfill) {
+        this->_print->invalidate_step(psSkirt);
+        this->_print->invalidate_step(psBrim);
+    } else if (step == posSlice) {
+        this->invalidate_step(posPerimeters);
+        this->invalidate_step(posSupportMaterial);
+    }
+}
+
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(PrintObject, "Print::Object");
@@ -217,8 +281,8 @@ Print::clear_objects()
 
     this->clear_regions();
 
-    this->_state.invalidate(psSkirt);
-    this->_state.invalidate(psBrim);
+    this->state.invalidate(psSkirt);
+    this->state.invalidate(psBrim);
 }
 
 PrintObject*
@@ -239,7 +303,7 @@ Print::add_object(ModelObject *model_object,
 PrintObject*
 Print::set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
 {
-    if (idx < 0 || idx >= this->objects.size()) throw "bad idx";
+    if (idx >= this->objects.size()) throw "bad idx";
 
     PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
     delete *old_it;
@@ -258,8 +322,8 @@ Print::delete_object(size_t idx)
 
     // TODO: purge unused regions
 
-    this->_state.invalidate(psSkirt);
-    this->_state.invalidate(psBrim);
+    this->state.invalidate(psSkirt);
+    this->state.invalidate(psBrim);
 }
 
 void
@@ -289,6 +353,48 @@ Print::delete_region(size_t idx)
     PrintRegionPtrs::iterator i = this->regions.begin() + idx;
     delete *i;
     this->regions.erase(i);
+}
+
+bool
+Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+{
+    std::set<PrintStep> steps;
+    
+    // this method only accepts PrintConfig option keys
+    for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
+        if (*opt_key == "skirts"
+            || *opt_key == "skirt_height"
+            || *opt_key == "skirt_distance"
+            || *opt_key == "min_skirt_length") {
+            steps.insert(psSkirt);
+        } else if (*opt_key == "brim_width") {
+            steps.insert(psBrim);
+        } else {
+            // for legacy, if we can't handle this option let's signal the caller to invalidate all steps
+            return false;
+        }
+    }
+    
+    for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step)
+        this->invalidate_step(*step);
+    
+    return true;
+}
+
+void
+Print::invalidate_step(PrintStep step)
+{
+    this->state.invalidate(step);
+    
+    // propagate to dependent steps
+    if (step == psSkirt) {
+        this->invalidate_step(psBrim);
+    } else if (step == psInitExtruders) {
+        for (PrintObjectPtrs::iterator object = this->objects.begin(); object != this->objects.end(); ++object) {
+            (*object)->invalidate_step(posPerimeters);
+            (*object)->invalidate_step(posSupportMaterial);
+        }
+    }
 }
 
 

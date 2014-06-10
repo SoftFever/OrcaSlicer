@@ -17,22 +17,25 @@ class ModelObject;
 
 
 enum PrintStep {
-    psInitExtruders, psSlice, psPerimeters, prPrepareInfill,
-    psInfill, psSupportMaterial, psSkirt, psBrim,
+    psInitExtruders, psSkirt, psBrim,
+};
+enum PrintObjectStep {
+    posSlice, posPerimeters, posPrepareInfill,
+    posInfill, posSupportMaterial,
 };
 
+template <class StepType>
 class PrintState
 {
     private:
-    std::set<PrintStep> _started;
-    std::set<PrintStep> _done;
+    std::set<StepType> _started, _done;
     
     public:
-    bool started(PrintStep step) const;
-    bool done(PrintStep step) const;
-    void set_started(PrintStep step);
-    void set_done(PrintStep step);
-    void invalidate(PrintStep step);
+    bool started(StepType step) const;
+    bool done(StepType step) const;
+    void set_started(StepType step);
+    void set_done(StepType step);
+    void invalidate(StepType step);
     void invalidate_all();
 };
 
@@ -83,7 +86,7 @@ class PrintObject
     LayerPtrs layers;
     SupportLayerPtrs support_layers;
     // TODO: Fill* fill_maker        => (is => 'lazy');
-    PrintState _state;
+    PrintState<PrintObjectStep> state;
     
     Print* print();
     ModelObject* model_object();
@@ -102,7 +105,11 @@ class PrintObject
     SupportLayer* get_support_layer(int idx);
     SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_support_layer(int idx);
-
+    
+    // methods for handling state
+    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    void invalidate_step(PrintObjectStep step);
+    
     private:
     Print* _print;
     ModelObject* _model_object;
@@ -127,7 +134,7 @@ class Print
     PlaceholderParser placeholder_parser;
     // TODO: status_cb
     double total_used_filament, total_extruded_volume;
-    PrintState _state;
+    PrintState<PrintStep> state;
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
@@ -145,6 +152,10 @@ class Print
     // methods for handling regions
     PrintRegion* get_region(size_t idx);
     PrintRegion* add_region();
+    
+    // methods for handling state
+    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    void invalidate_step(PrintStep step);
 
     private:
     void clear_regions();

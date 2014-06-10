@@ -176,3 +176,9 @@
     $CVar = (PrintStep)SvUV($PerlVar);
   %};
 };
+%typemap{PrintObjectStep}{parsed}{
+  %cpp_type{PrintObjectStep};
+  %precall_code{%
+    $CVar = (PrintObjectStep)SvUV($PerlVar);
+  %};
+};

@@ -13,7 +13,6 @@ use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex inter
     offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 use Slic3r::Print::State ':steps';
 
-
 our $status_cb;
 
 sub new {
@@ -49,8 +48,8 @@ sub apply_config {
     if (@$print_diff) {
         $self->config->apply_dynamic($config);
         
-        # TODO: only invalidate changed steps
-        $self->_state->invalidate_all;
+        $self->invalidate_all_steps
+            if !$self->invalidate_state_by_config_options($print_diff);
     }
     
     # handle changes to object config defaults
@@ -59,6 +58,7 @@ sub apply_config {
         # we don't assume that $config contains a full ObjectConfig,
         # so we base it on the current print-wise default
         my $new = $self->default_object_config->clone;
+        $new->apply_dynamic($config);
         
         # we override the new config with object-specific options
         my $model_object_config = $object->model_object->config->clone;
@@ -69,8 +69,8 @@ sub apply_config {
         my $diff = $object->config->diff($new);
         if (@$diff) {
             $object->config->apply($new);
-            # TODO: only invalidate changed steps
-            $object->_state->invalidate_all;
+            $object->invalidate_all_steps
+                if !$object->invalidate_state_by_config_options($diff);
         }
     }
     
@@ -188,8 +188,8 @@ sub add_model_object {
     $o->config->apply($self->default_object_config);
     $o->config->apply_dynamic($object_config);
     
-    $self->_state->invalidate(STEP_SKIRT);
-    $self->_state->invalidate(STEP_BRIM);
+    $self->invalidate_step(STEP_SKIRT);
+    $self->invalidate_step(STEP_BRIM);
 }
 
 sub reload_object {
@@ -352,20 +352,20 @@ sub process {
     
     my $print_step = sub {
         my ($step, $cb) = @_;
-        if (!$self->_state->done($step)) {
-            $self->_state->set_started($step);
+        if (!$self->step_done($step)) {
+            $self->set_step_started($step);
             $cb->();
-            $self->_state->set_done($step);
+            $self->set_step_done($step);
         }
     };
     my $object_step = sub {
         my ($step, $cb) = @_;
         for my $obj_idx (0..($self->object_count - 1)) {
             my $object = $self->objects->[$obj_idx];
-            if (!$object->_state->done($step)) {
-                $object->_state->set_started($step);
+            if (!$object->step_done($step)) {
+                $object->set_step_started($step);
                 $cb->($obj_idx);
-                $object->_state->set_done($step);
+                $object->set_step_done($step);
             }
         }
     };
@@ -1080,27 +1080,6 @@ sub expanded_output_filepath {
     # make sure we use an up-to-date timestamp
     $self->placeholder_parser->update_timestamp;
     return $self->placeholder_parser->process($path, $extra);
-}
-
-sub invalidate_step {
-    my ($self, $step, $obj_idx) = @_;
-    
-    # invalidate $step in the correct state object
-    if ($Slic3r::Print::State::print_step->{$step}) {
-        $self->_state->invalidate($step);
-    } else {
-        # object step
-        if (defined $obj_idx) {
-            $self->objects->[$obj_idx]->_state->invalidate($step);
-        } else {
-            $_->_state->invalidate($step) for @{$self->objects};
-        }
-    }
-    
-    # recursively invalidate steps depending on $step
-    $self->invalidate_step($_)
-        for grep { grep { $_ == $step } @{$Slic3r::Print::State::prereqs{$_}} }
-            keys %Slic3r::Print::State::prereqs;
 }
 
 # This method assigns extruders to the volumes having a material

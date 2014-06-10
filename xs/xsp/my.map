@@ -153,6 +153,7 @@ ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV
 FlowRole     T_UV
 PrintStep     T_UV
+PrintObjectStep     T_UV
 SurfaceType     T_UV
 ClipperLib::JoinType		T_UV
 ClipperLib::PolyFillType		T_UV

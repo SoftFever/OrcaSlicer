@@ -49,8 +49,8 @@ sub _trigger_copies {
         } @{$self->copies}[@{chained_path($self->copies)}]
     ]);
     
-    $self->print->_state->invalidate(STEP_SKIRT);
-    $self->print->_state->invalidate(STEP_BRIM);
+    $self->print->invalidate_step(STEP_SKIRT);
+    $self->print->invalidate_step(STEP_BRIM);
 }
 
 # in unscaled coordinates
