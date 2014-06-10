@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include "BoundingBox.hpp"
 #include "Polygon.hpp"
+#include "BoundingBox.hpp"
 %}
 
 %name{Slic3r::Polygon} class Polygon {

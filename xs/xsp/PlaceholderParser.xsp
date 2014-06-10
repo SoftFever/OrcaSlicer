@@ -1,0 +1,40 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include <vector>
+#include "PlaceholderParser.hpp"
+%}
+
+%name{Slic3r::GCode::PlaceholderParser} class PlaceholderParser {
+    %name{_new} PlaceholderParser();
+    ~PlaceholderParser();
+
+    void _single_set(std::string k, std::string v)
+        %code%{ THIS->_single[k] = v; %};
+    void _multiple_set(std::string k, std::string v)
+        %code%{ THIS->_multiple[k] = v; %};
+
+    std::string _single_get(std::string k)
+        %code%{ RETVAL = THIS->_single[k]; %};
+    std::string _multiple_get(std::string k)
+        %code%{ RETVAL = THIS->_multiple[k]; %};
+
+    std::vector<std::string> _single_keys()
+        %code{%
+            for (std::map<std::string, std::string>::iterator i = THIS->_single.begin();
+                i != THIS->_single.end(); ++i)
+            {
+                RETVAL.push_back(i->first);
+            }
+        %};
+
+    std::vector<std::string> _multiple_keys()
+        %code{%
+            for (std::map<std::string, std::string>::iterator i = THIS->_multiple.begin();
+                i != THIS->_multiple.end(); ++i)
+            {
+                RETVAL.push_back(i->first);
+            }
+        %};
+};

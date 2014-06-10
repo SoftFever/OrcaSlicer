@@ -74,14 +74,14 @@ sub set_model {
 sub _before_export {
     my ($self) = @_;
     
-    $self->_print->status_cb($self->status_cb);
+    $self->_print->set_status_cb($self->status_cb);
     $self->_print->validate;
 }
 
 sub _after_export {
     my ($self) = @_;
     
-    $self->_print->status_cb(undef);
+    $self->_print->set_status_cb(undef);
 }
 
 sub export_gcode {

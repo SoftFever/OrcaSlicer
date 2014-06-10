@@ -243,6 +243,9 @@ Point::from_SV_check(SV* point_sv)
     }
 }
 
+
+REGISTER_CLASS(Point3, "Point3");
+
 #endif
 
 void
