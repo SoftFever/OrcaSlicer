@@ -19,12 +19,12 @@ sub update_timestamp {
 
     my @lt = localtime; $lt[5] += 1900; $lt[4] += 1;
     $self->_single_set('timestamp', sprintf '%04d%02d%02d-%02d%02d%02d', @lt[5,4,3,2,1,0]);
-    $self->_single_set('year',      $lt[5]);
-    $self->_single_set('month',     $lt[4]);
-    $self->_single_set('day',       $lt[3]);
-    $self->_single_set('hour',      $lt[2]);
-    $self->_single_set('minute',    $lt[1]);
-    $self->_single_set('second',    $lt[0]);
+    $self->_single_set('year',      "$lt[5]");
+    $self->_single_set('month',     "$lt[4]");
+    $self->_single_set('day',       "$lt[3]");
+    $self->_single_set('hour',      "$lt[2]");
+    $self->_single_set('minute',    "$lt[1]");
+    $self->_single_set('second',    "$lt[0]");
     $self->_single_set('version',   $Slic3r::VERSION);
 }
 
@@ -42,11 +42,11 @@ sub apply_config {
         # TODO: this is a workaroud for XS string param handling
         # https://rt.cpan.org/Public/Bug/Display.html?id=94110
         "$_" for @$value;
-        $self->_multiple_set("${opt_key}_" . $_, $value->[$_]) for 0..$#$value;
-        $self->_multiple_set($opt_key, $value->[0]);
+        $self->_multiple_set("${opt_key}_" . $_, $value->[$_]."") for 0..$#$value;
+        $self->_multiple_set($opt_key, $value->[0]."");
         if ($Slic3r::Config::Options->{$opt_key}{type} eq 'point') {
-            $self->_multiple_set("${opt_key}_X", $value->[0]);
-            $self->_multiple_set("${opt_key}_Y", $value->[1]);
+            $self->_multiple_set("${opt_key}_X", $value->[0]."");
+            $self->_multiple_set("${opt_key}_Y", $value->[1]."");
         }
     }
 }

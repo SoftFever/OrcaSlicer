@@ -62,21 +62,14 @@ PrintRegion::print()
     return this->_print;
 }
 
-PrintConfig &
-PrintRegion::print_config()
-{
-    return this->_print->config;
-}
-
 #ifdef SLIC3RXS
 REGISTER_CLASS(PrintRegion, "Print::Region");
 #endif
 
 
-PrintObject::PrintObject(Print* print, int id, ModelObject* model_object,
+PrintObject::PrintObject(Print* print, ModelObject* model_object,
         const BoundingBoxf3 &modobj_bbox)
 :   _print(print),
-    _id(id),
     _model_object(model_object)
 {
     region_volumes.resize(this->_print->regions.size());
@@ -108,12 +101,6 @@ Print*
 PrintObject::print()
 {
     return this->_print;
-}
-
-int
-PrintObject::id()
-{
-    return this->_id;
 }
 
 ModelObject*
@@ -164,9 +151,8 @@ void
 PrintObject::delete_layer(int idx)
 {
     LayerPtrs::iterator i = this->layers.begin() + idx;
-    Layer* item = *i;
+    delete *i;
     this->layers.erase(i);
-    delete item;
 }
 
 size_t
@@ -201,9 +187,8 @@ void
 PrintObject::delete_support_layer(int idx)
 {
     SupportLayerPtrs::iterator i = this->support_layers.begin() + idx;
-    SupportLayer* item = *i;
+    delete *i;
     this->support_layers.erase(i);
-    delete item;
 }
 
 
@@ -237,7 +222,7 @@ Print::clear_objects()
 }
 
 PrintObject*
-Print::get_object(int idx)
+Print::get_object(size_t idx)
 {
     return objects.at(idx);
 }
@@ -246,33 +231,30 @@ PrintObject*
 Print::add_object(ModelObject *model_object,
         const BoundingBoxf3 &modobj_bbox)
 {
-    PrintObject *object = new PrintObject(this,
-        this->objects.size(), model_object, modobj_bbox);
+    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
     objects.push_back(object);
     return object;
 }
 
 PrintObject*
-Print::set_new_object(size_t idx, ModelObject *model_object,
-        const BoundingBoxf3 &modobj_bbox)
+Print::set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
 {
     if (idx < 0 || idx >= this->objects.size()) throw "bad idx";
 
     PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
     delete *old_it;
 
-    PrintObject *object = new PrintObject(this, idx, model_object, modobj_bbox);
+    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
     this->objects[idx] = object;
     return object;
 }
 
 void
-Print::delete_object(int idx)
+Print::delete_object(size_t idx)
 {
     PrintObjectPtrs::iterator i = this->objects.begin() + idx;
-    PrintObject* item = *i;
+    delete *i;
     this->objects.erase(i);
-    delete item;
 
     // TODO: purge unused regions
 
@@ -288,7 +270,7 @@ Print::clear_regions()
 }
 
 PrintRegion*
-Print::get_region(int idx)
+Print::get_region(size_t idx)
 {
     return regions.at(idx);
 }
@@ -302,12 +284,11 @@ Print::add_region()
 }
 
 void
-Print::delete_region(int idx)
+Print::delete_region(size_t idx)
 {
     PrintRegionPtrs::iterator i = this->regions.begin() + idx;
-    PrintRegion* item = *i;
+    delete *i;
     this->regions.erase(i);
-    delete item;
 }
 
 

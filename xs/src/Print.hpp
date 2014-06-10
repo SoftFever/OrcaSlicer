@@ -36,8 +36,6 @@ class PrintState
     void invalidate_all();
 };
 
-// TODO: make stuff private
-
 // A PrintRegion object represents a group of volumes to print
 // sharing the same config (including the same assigned extruder(s))
 class PrintRegion
@@ -48,13 +46,12 @@ class PrintRegion
     PrintRegionConfig config;
 
     Print* print();
-    PrintConfig &print_config();
 
     private:
     Print* _print;
 
     PrintRegion(Print* print);
-    virtual ~PrintRegion();
+    ~PrintRegion();
 };
 
 
@@ -87,10 +84,8 @@ class PrintObject
     SupportLayerPtrs support_layers;
     // TODO: Fill* fill_maker        => (is => 'lazy');
     PrintState _state;
-
-
+    
     Print* print();
-    int id();
     ModelObject* model_object();
 
     // adds region_id, too, if necessary
@@ -99,27 +94,23 @@ class PrintObject
     size_t layer_count();
     void clear_layers();
     Layer* get_layer(int idx);
-    Layer* add_layer(int id, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
+    Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_layer(int idx);
 
     size_t support_layer_count();
     void clear_support_layers();
     SupportLayer* get_support_layer(int idx);
-    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
+    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_support_layer(int idx);
 
     private:
     Print* _print;
-    int _id;
     ModelObject* _model_object;
 
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
-    PrintObject(Print* print, int id, ModelObject* model_object,
-        const BoundingBoxf3 &modobj_bbox);
-    virtual ~PrintObject();
+    PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
+    ~PrintObject();
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;
@@ -135,33 +126,29 @@ class Print
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
     // TODO: status_cb
-    double total_used_filament;
-    double total_extruded_volume;
+    double total_used_filament, total_extruded_volume;
     PrintState _state;
 
-    // ordered collection of extrusion paths to build skirt loops
-    ExtrusionEntityCollection skirt;
-
-    // ordered collection of extrusion paths to build a brim
-    ExtrusionEntityCollection brim;
+    // ordered collections of extrusion paths to build skirt loops and brim
+    ExtrusionEntityCollection skirt, brim;
 
     Print();
-    virtual ~Print();
-
+    ~Print();
+    
+    // methods for handling objects
     void clear_objects();
-    PrintObject* get_object(int idx);
-    PrintObject* add_object(ModelObject *model_object,
-        const BoundingBoxf3 &modobj_bbox);
-    PrintObject* set_new_object(size_t idx, ModelObject *model_object,
-        const BoundingBoxf3 &modobj_bbox);
-    void delete_object(int idx);
+    PrintObject* get_object(size_t idx);
+    PrintObject* add_object(ModelObject *model_object, const BoundingBoxf3 &modobj_bbox);
+    PrintObject* set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox);
+    void delete_object(size_t idx);
 
-    PrintRegion* get_region(int idx);
+    // methods for handling regions
+    PrintRegion* get_region(size_t idx);
     PrintRegion* add_region();
 
     private:
     void clear_regions();
-    void delete_region(int idx);
+    void delete_region(size_t idx);
 };
 
 }

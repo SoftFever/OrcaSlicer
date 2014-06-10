@@ -169,10 +169,11 @@ sub extrude_loop {
         if ($self->config->seam_position eq 'nearest') {
             $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
         } elsif ($self->config->seam_position eq 'aligned') {
-            if (defined $self->layer && defined $self->_seam_position->{$self->layer->object}) {
-                $last_pos = $self->_seam_position->{$self->layer->object};
+            my $obj_ptr = $self->layer->object->ptr;
+            if (defined $self->layer && defined $self->_seam_position->{$obj_ptr}) {
+                $last_pos = $self->_seam_position->{$obj_ptr};
             }
-            my $point = $self->_seam_position->{$self->layer->object} = $last_pos->nearest_point(\@candidates);
+            my $point = $self->_seam_position->{$obj_ptr} = $last_pos->nearest_point(\@candidates);
             $loop->split_at_vertex($point);
         }
     } elsif ($self->config->seam_position eq 'random') {

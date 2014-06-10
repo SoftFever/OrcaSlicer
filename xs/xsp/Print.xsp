@@ -48,8 +48,6 @@ _constant()
     Ref<PrintRegionConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     Ref<Print> print();
-    Ref<PrintConfig> print_config()
-        %code%{ RETVAL = &THIS->print_config(); %};
 };
 
 
@@ -66,7 +64,6 @@ _constant()
         %code%{ RETVAL = THIS->print()->regions.size(); %};
 
     Ref<Print> print();
-    int id();
     Ref<ModelObject> model_object();
     Ref<PrintObjectConfig> config()
         %code%{ RETVAL = &THIS->config; %};
@@ -104,6 +101,9 @@ _constant()
     Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
     void delete_support_layer(int idx);
+    
+    int ptr()
+        %code%{ RETVAL = (int)(intptr_t)THIS; %};
 };
 
 

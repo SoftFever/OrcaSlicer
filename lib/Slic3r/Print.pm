@@ -1,4 +1,6 @@
 package Slic3r::Print;
+use strict;
+use warnings;
 
 use File::Basename qw(basename fileparse);
 use File::Spec;
@@ -16,7 +18,7 @@ our $status_cb;
 
 sub new {
     # TODO: port PlaceholderParser methods to C++, then its own constructor
-        # can call them and no need for this new() method at all
+    # can call them and no need for this new() method at all
     my ($class) = @_;
     my $self = $class->_new;
     $self->placeholder_parser->apply_env_variables;
@@ -840,10 +842,10 @@ sub write_gcode {
     # TODO: only do this when M73 is enabled
     my $layer_count;
     if ($self->config->complete_objects) {
-        $layer_count = sum(map { $_->layer_count * @{$_->copies} } @{$self->objects});
+        $layer_count = sum(map { $_->total_layer_count * @{$_->copies} } @{$self->objects});
     } else {
         # if sequential printing is not enable, all copies of the same object share the same layer change command(s)
-        $layer_count = sum(map { $_->layer_count } @{$self->objects});
+        $layer_count = sum(map { $_->total_layer_count } @{$self->objects});
     }
     
     # set up our helper object

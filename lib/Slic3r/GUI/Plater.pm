@@ -540,7 +540,6 @@ sub rotate {
         $model_object->update_bounding_box;
         
         # update print
-        $self->{print}->delete_object($obj_idx);
         $self->{print}->add_model_object($model_object, $obj_idx);
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
@@ -576,7 +575,6 @@ sub changescale {
         $model_object->update_bounding_box;
         
         # update print
-        $self->{print}->delete_object($obj_idx);
         $self->{print}->add_model_object($model_object, $obj_idx);
         
         $object->transform_thumbnail($self->{model}, $obj_idx);

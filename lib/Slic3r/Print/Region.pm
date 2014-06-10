@@ -1,4 +1,6 @@
 package Slic3r::Print::Region;
+use strict;
+use warnings;
 
 use Slic3r::Extruder ':roles';
 use Slic3r::Flow ':roles';
@@ -47,14 +49,14 @@ sub flow {
     } else {
         die "Unknown role $role";
     }
-    my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $extruder-1);
+    my $nozzle_diameter = $self->print->config->get_at('nozzle_diameter', $extruder-1);
     
     return Slic3r::Flow->new_from_width(
         width               => $config_width,
         role                => $role,
         nozzle_diameter     => $nozzle_diameter,
         layer_height        => $layer_height,
-        bridge_flow_ratio   => ($bridge ? $self->print_config->bridge_flow_ratio : 0),
+        bridge_flow_ratio   => ($bridge ? $self->print->config->bridge_flow_ratio : 0),
     );
 }
 

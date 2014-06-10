@@ -1,4 +1,6 @@
 package Slic3r::Print::Object;
+use strict;
+use warnings;
 
 use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
@@ -54,7 +56,7 @@ sub _trigger_copies {
 # in unscaled coordinates
 sub add_copy {
     my ($self, $x, $y) = @_;
-    my @copies = $self->copies;
+    my @copies = @{$self->copies};
     push @copies, Slic3r::Point->new_scale($x, $y);
     $self->set_copies(\@copies);
     $self->_trigger_copies;
