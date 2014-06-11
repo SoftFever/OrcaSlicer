@@ -198,9 +198,14 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
 {
     std::set<PrintObjectStep> steps;
     
-    // this method only accepts PrintObjectConfig option keys
+    // this method only accepts PrintObjectConfig and PrintRegionConfig option keys
     for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
-        if (*opt_key == "perimeters") {
+        if (*opt_key == "perimeters"
+            || *opt_key == "extra_perimeters"
+            || *opt_key == "gap_fill_speed"
+            || *opt_key == "overhangs"
+            || *opt_key == "perimeter_extrusion_width"
+            || *opt_key == "thin_walls") {
             steps.insert(posPerimeters);
         } else if (*opt_key == "resolution"
             || *opt_key == "layer_height"
@@ -210,8 +215,10 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             steps.insert(posSlice);
         } else if (*opt_key == "support_material"
             || *opt_key == "support_material_angle"
+            || *opt_key == "support_material_extruder"
             || *opt_key == "support_material_extrusion_width"
             || *opt_key == "support_material_interface_layers"
+            || *opt_key == "support_material_interface_extruder"
             || *opt_key == "support_material_interface_spacing"
             || *opt_key == "support_material_interface_speed"
             || *opt_key == "support_material_pattern"
@@ -220,8 +227,28 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "dont_support_bridges") {
             steps.insert(posSupportMaterial);
         } else if (*opt_key == "interface_shells"
-            || *opt_key == "infill_only_where_needed") {
+            || *opt_key == "infill_only_where_needed"
+            || *opt_key == "bottom_solid_layers"
+            || *opt_key == "top_solid_layers"
+            || *opt_key == "infill_extruder"
+            || *opt_key == "infill_extrusion_width") {
             steps.insert(posPrepareInfill);
+        } else if (*opt_key == "fill_angle"
+            || *opt_key == "fill_pattern"
+            || *opt_key == "solid_fill_pattern"
+            || *opt_key == "infill_every_layers"
+            || *opt_key == "solid_infill_below_area"
+            || *opt_key == "solid_infill_every_layers"
+            || *opt_key == "top_infill_extrusion_width") {
+            steps.insert(posInfill);
+        } else if (*opt_key == "fill_density"
+            || *opt_key == "solid_infill_extrusion_width") {
+            steps.insert(posPerimeters);
+            steps.insert(posPrepareInfill);
+        } else if (*opt_key == "external_perimeter_extrusion_width"
+            || *opt_key == "perimeter_extruder") {
+            steps.insert(posPerimeters);
+            steps.insert(posSupportMaterial);
         } else {
             // for legacy, if we can't handle this option let's signal the caller to invalidate all steps
             return false;

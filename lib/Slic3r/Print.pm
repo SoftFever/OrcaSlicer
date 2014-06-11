@@ -80,7 +80,10 @@ sub apply_config {
     # All regions now have distinct settings.
     # Check whether applying the new region config defaults we'd get different regions.
     my $rearrange_regions = 0;
+    my @other_region_configs = ();
     REGION: foreach my $region_id (0..($self->region_count - 1)) {
+        my $region = $self->regions->[$region_id];
+        my @this_region_configs = ();
         foreach my $object (@{$self->objects}) {
             foreach my $volume_id (@{ $object->get_region_volumes($region_id) }) {
                 my $volume = $object->model_object->volumes->[$volume_id];
@@ -96,17 +99,40 @@ sub apply_config {
                     $material_config->normalize;
                     $new->apply_dynamic($material_config);
                 }
-                if (!$new->equals($self->regions->[$region_id]->config)) {
+                if (defined first { !$_->equals($new) } @this_region_configs) {
+                    # if the new config for this volume differs from the other
+                    # volume configs currently associated to this region, it means
+                    # the region subdivision does not make sense anymore
                     $rearrange_regions = 1;
                     last REGION;
                 }
+                push @this_region_configs, $new;
+                
+                if (defined first { $_->equals($new) } @other_region_configs) {
+                    # if the new config for this volume equals any of the other
+                    # volume configs that are not currently associated to this
+                    # region, it means the region subdivision does not make
+                    # sense anymore
+                    $rearrange_regions = 1;
+                    last REGION;
+                }
+                
+                # if we're here and the new region config is different from the old
+                # one, we need to apply the new config and invalidate all objects
+                # (possible optimization: only invalidate objects using this region)
+                my $region_config_diff = $region->config->diff($new);
+                if (@$region_config_diff) {
+                    $region->config->apply($new);
+                    foreach my $o (@{$self->objects}) {
+                        $o->invalidate_all_steps
+                            if !$o->invalidate_state_by_config_options($region_config_diff);
+                    }
+                }
             }
         }
+        push @other_region_configs, @this_region_configs;
     }
     
-    # Some optimization is possible: if the volumes-regions mappings don't change
-    # but still region configs are changed somehow, we could just apply the diff
-    # and invalidate the affected steps.
     if ($rearrange_regions) {
         # the current subdivision of regions does not make sense anymore.
         # we need to remove all objects and re-add them
@@ -442,12 +468,14 @@ sub process {
                 while (defined (my $obj_layer = $q->dequeue)) {
                     my ($i, $region_id) = @$obj_layer;
                     my $layerm = $object->layers->[$i]->regions->[$region_id];
+                    $layerm->fills->clear;
                     $layerm->fills->append( $object->fill_maker->make_fill($layerm) );
                 }
             },
             collect_cb => sub {},
             no_threads_cb => sub {
                 foreach my $layerm (map @{$_->regions}, @{$object->layers}) {
+                    $layerm->fills->clear;
                     $layerm->fills->append($object->fill_maker->make_fill($layerm));
                 }
             },

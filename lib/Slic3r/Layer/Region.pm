@@ -447,6 +447,10 @@ sub _fill_gaps {
 sub prepare_fill_surfaces {
     my $self = shift;
     
+    # Note: in order to make the psPrepareInfill step idempotent, we should never
+    # alter fill_surfaces boundaries on which our idempotency relies since that's
+    # the only meaningful information returned by psPerimeters.
+    
     # if no solid layers are requested, turn top/bottom surfaces to internal
     if ($self->config->top_solid_layers == 0) {
         $_->surface_type(S_TYPE_INTERNAL) for @{$self->fill_surfaces->filter_by_type(S_TYPE_TOP)};

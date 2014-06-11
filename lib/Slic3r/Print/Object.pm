@@ -580,6 +580,10 @@ sub detect_surfaces_type {
         # clip surfaces to the fill boundaries
         foreach my $layer (@{$self->layers}) {
             my $layerm = $layer->regions->[$region_id];
+            
+            # Note: this method should be idempotent, but fill_surfaces gets modified 
+            # in place. However we're now only using its boundaries (which are invariant)
+            # so we're safe
             my $fill_boundaries = [ map $_->clone->p, @{$layerm->fill_surfaces} ];
             $layerm->fill_surfaces->clear;
             foreach my $surface (@{$layerm->slices}) {
