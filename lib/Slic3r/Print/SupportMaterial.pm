@@ -826,7 +826,9 @@ sub clip_with_shape {
     foreach my $i (keys %$support) {
         # don't clip bottom layer with shape so that we 
         # can generate a continuous base flange
+        # also don't clip raft layers
         next if $i == 0;
+        next if $i < $self->object_config->raft_layers;
         $support->{$i} = intersection(
             $support->{$i},
             $shape->[$i],
