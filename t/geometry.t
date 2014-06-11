@@ -191,7 +191,7 @@ my $polygons = [
 #==========================================================
 
 {
-    my $square = Slic3r::Polygon->new(
+    my $square = Slic3r::Polygon->new_scale(
         [150,100],
         [200,100],
         [200,200],
@@ -203,7 +203,7 @@ my $polygons = [
 }
 
 {
-    my $square = Slic3r::Polygon->new(
+    my $square = Slic3r::Polygon->new_scale(
         [200,200],
         [100,200],
         [100,100],
