@@ -43,19 +43,19 @@ sub make_perimeters {
     
     # external perimeters
     my $ext_perimeter_flow  = $self->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
-    my $ext_mm3_per_mm      = $ext_perimeter_flow->mm3_per_mm($self->height);
+    my $ext_mm3_per_mm      = $ext_perimeter_flow->mm3_per_mm;
     my $ext_pwidth          = $ext_perimeter_flow->scaled_width;
     my $ext_pspacing        = $ext_perimeter_flow->scaled_spacing;
     
     # other perimeters
     my $perimeter_flow      = $self->flow(FLOW_ROLE_PERIMETER);
-    my $mm3_per_mm          = $perimeter_flow->mm3_per_mm($self->height);
+    my $mm3_per_mm          = $perimeter_flow->mm3_per_mm;
     my $pwidth              = $perimeter_flow->scaled_width;
     my $pspacing            = $perimeter_flow->scaled_spacing;
     
     # overhang perimeters
     my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object);
-    my $mm3_per_mm_overhang = $overhang_flow->mm3_per_mm(-1);
+    my $mm3_per_mm_overhang = $overhang_flow->mm3_per_mm;
     
     # solid infill
     my $solid_infill_flow   = $self->flow(FLOW_ROLE_SOLID_INFILL);
@@ -418,7 +418,7 @@ sub _fill_gaps {
     my $flow = $self->flow(FLOW_ROLE_SOLID_INFILL, 0, $w);
     my %path_args = (
         role        => EXTR_ROLE_GAPFILL,
-        mm3_per_mm  => $flow->mm3_per_mm($self->height),
+        mm3_per_mm  => $flow->mm3_per_mm,
         width       => $flow->width,
         height      => $self->height,
     );

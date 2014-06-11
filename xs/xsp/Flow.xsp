@@ -7,7 +7,9 @@
 
 %name{Slic3r::Flow} class Flow {
     ~Flow();
-    %name{_new} Flow(float width, float spacing, float nozzle_diameter);
+    %name{_new} Flow(float width, float height, float nozzle_diameter);
+    void set_height(float height)
+        %code{% THIS->height = height; %};
     void set_bridge(bool bridge)
         %code{% THIS->bridge = bridge; %};
     Clone<Flow> clone()
@@ -15,18 +17,16 @@
     
     float width()
         %code{% RETVAL = THIS->width; %};
-    float spacing()
-        %code{% RETVAL = THIS->spacing; %};
+    float height()
+        %code{% RETVAL = THIS->height; %};
     float nozzle_diameter()
         %code{% RETVAL = THIS->nozzle_diameter; %};
     bool bridge()
         %code{% RETVAL = THIS->bridge; %};
-    long scaled_width()
-        %code{% RETVAL = THIS->scaled_width; %};
-    long scaled_spacing()
-        %code{% RETVAL = THIS->scaled_spacing; %};
-    
-    double mm3_per_mm(float height);
+    float spacing();
+    long scaled_width();
+    long scaled_spacing();
+    double mm3_per_mm();
 %{
 
 Flow*

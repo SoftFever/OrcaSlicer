@@ -222,7 +222,7 @@ sub make_fill {
         );
         next unless @polylines;
         
-        my $mm3_per_mm = $flow->mm3_per_mm($h);
+        my $mm3_per_mm = $flow->mm3_per_mm;
         
         # save into layer
         push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;

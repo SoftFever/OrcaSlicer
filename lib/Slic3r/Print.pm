@@ -704,7 +704,7 @@ sub make_skirt {
         bridge_flow_ratio   => 0,
     );
     my $spacing = $flow->spacing;
-    my $mm3_per_mm = $flow->mm3_per_mm($first_layer_height);
+    my $mm3_per_mm = $flow->mm3_per_mm;
     
     my @extruders_e_per_mm = ();
     my $extruder_idx = 0;
@@ -763,7 +763,7 @@ sub make_brim {
         layer_height        => $first_layer_height,
         bridge_flow_ratio   => 0,
     );
-    my $mm3_per_mm = $flow->mm3_per_mm($first_layer_height);
+    my $mm3_per_mm = $flow->mm3_per_mm;
     
     my $grow_distance = $flow->scaled_width / 2;
     my @islands = (); # array of polygons

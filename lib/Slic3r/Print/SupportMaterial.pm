@@ -602,7 +602,7 @@ sub generate_toolpaths {
             );
             
             # transform loops into ExtrusionPath objects
-            my $mm3_per_mm = $interface_flow->mm3_per_mm($layer->height);
+            my $mm3_per_mm = $interface_flow->mm3_per_mm;
             @loops = map Slic3r::ExtrusionPath->new(
                 polyline    => $_,
                 role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
@@ -649,7 +649,7 @@ sub generate_toolpaths {
                     layer_height => $layer->height,
                     complete    => 1,
                 );
-                my $mm3_per_mm = $params->{flow}->mm3_per_mm($layer->height);
+                my $mm3_per_mm = $params->{flow}->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
@@ -684,7 +684,7 @@ sub generate_toolpaths {
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
-                my $mm3_per_mm = $flow->mm3_per_mm($layer->height);
+                my $mm3_per_mm = $flow->mm3_per_mm;
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => $_->split_at_first_point,
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
@@ -705,7 +705,7 @@ sub generate_toolpaths {
                     layer_height => $layer->height,
                     complete    => 1,
                 );
-                my $mm3_per_mm = $params->{flow}->mm3_per_mm($layer->height);
+                my $mm3_per_mm = $params->{flow}->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
