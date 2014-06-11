@@ -48,6 +48,7 @@ PrintConfigDef::build_def() {
 
     Options["bridge_flow_ratio"].type = coFloat;
     Options["bridge_flow_ratio"].label = "Bridge flow ratio";
+    Options["bridge_flow_ratio"].category = "Advanced";
     Options["bridge_flow_ratio"].tooltip = "This factor affects the amount of plastic for bridging. You can decrease it slightly to pull the extrudates and prevent sagging, although default settings are usually good and you should experiment with cooling (use a fan) before tweaking this.";
     Options["bridge_flow_ratio"].cli = "bridge-flow-ratio=f";
 

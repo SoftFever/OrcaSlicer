@@ -249,6 +249,9 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "perimeter_extruder") {
             steps.insert(posPerimeters);
             steps.insert(posSupportMaterial);
+        } else if (*opt_key == "bridge_flow_ratio") {
+            steps.insert(posPerimeters);
+            steps.insert(posInfill);
         } else {
             // for legacy, if we can't handle this option let's signal the caller to invalidate all steps
             return false;

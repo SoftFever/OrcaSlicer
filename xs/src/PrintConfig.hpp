@@ -195,6 +195,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
 {
     public:
     ConfigOptionInt                 bottom_solid_layers;
+    ConfigOptionFloat               bridge_flow_ratio;
     ConfigOptionFloat               bridge_speed;
     ConfigOptionFloatOrPercent      external_perimeter_extrusion_width;
     ConfigOptionFloatOrPercent      external_perimeter_speed;
@@ -225,6 +226,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     
     PrintRegionConfig() : StaticPrintConfig() {
         this->bottom_solid_layers.value                          = 3;
+        this->bridge_flow_ratio.value                            = 1;
         this->bridge_speed.value                                 = 60;
         this->external_perimeter_extrusion_width.value           = 0;
         this->external_perimeter_extrusion_width.percent         = false;
@@ -265,6 +267,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         if (opt_key == "bottom_solid_layers")                        return &this->bottom_solid_layers;
+        if (opt_key == "bridge_flow_ratio")                          return &this->bridge_flow_ratio;
         if (opt_key == "bridge_speed")                               return &this->bridge_speed;
         if (opt_key == "external_perimeter_extrusion_width")         return &this->external_perimeter_extrusion_width;
         if (opt_key == "external_perimeter_speed")                   return &this->external_perimeter_speed;
@@ -305,7 +308,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 bed_temperature;
     ConfigOptionFloat               bridge_acceleration;
     ConfigOptionInt                 bridge_fan_speed;
-    ConfigOptionFloat               bridge_flow_ratio;
     ConfigOptionFloat               brim_width;
     ConfigOptionBool                complete_objects;
     ConfigOptionBool                cooling;
@@ -378,7 +380,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->bed_temperature.value                              = 0;
         this->bridge_acceleration.value                          = 0;
         this->bridge_fan_speed.value                             = 100;
-        this->bridge_flow_ratio.value                            = 1;
         this->brim_width.value                                   = 0;
         this->complete_objects.value                             = false;
         this->cooling.value                                      = true;
@@ -468,7 +469,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "bed_temperature")                            return &this->bed_temperature;
         if (opt_key == "bridge_acceleration")                        return &this->bridge_acceleration;
         if (opt_key == "bridge_fan_speed")                           return &this->bridge_fan_speed;
-        if (opt_key == "bridge_flow_ratio")                          return &this->bridge_flow_ratio;
         if (opt_key == "brim_width")                                 return &this->brim_width;
         if (opt_key == "complete_objects")                           return &this->complete_objects;
         if (opt_key == "cooling")                                    return &this->cooling;
