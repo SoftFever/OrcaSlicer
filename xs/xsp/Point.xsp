@@ -37,6 +37,8 @@
         %code{% RETVAL = new Point(THIS->projection_onto(*line)); %};
     Clone<Point> negative()
         %code{% RETVAL = new Point(THIS->negative()); %};
+    bool coincides_with_epsilon(Point* point)
+        %code{% RETVAL = THIS->coincides_with_epsilon(*point); %};
 
 %{
 

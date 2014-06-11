@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 11;
 use strict;
 use warnings;
 
@@ -248,6 +248,40 @@ use Slic3r::Test;
     $config->set('seam_position', 'random');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     ok Slic3r::Test::gcode($print), 'successful generation of G-code with seam_position = random';
+}
+
+{
+    my $test = sub {
+        my ($model_name) = @_;
+        my $config = Slic3r::Config->new_from_defaults;
+        $config->set('seam_position', 'aligned');
+        $config->set('skirts', 0);
+        $config->set('perimeters', 1);
+        $config->set('fill_density', 0);
+        $config->set('top_solid_layers', 0);
+        $config->set('bottom_solid_layers', 0);
+        $config->set('retract_layer_change', [0]);
+    
+        my $was_extruding = 0;
+        my @seam_points = ();
+        my $print = Slic3r::Test::init_print($model_name, config => $config);
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+    
+            if ($info->{extruding}) {
+                if (!$was_extruding) {
+                    push @seam_points, Slic3r::Point->new_scale($self->X, $self->Y);
+                }
+                $was_extruding = 1;
+            } else {
+                $was_extruding = 0;
+            }
+        });
+        my @dist = map unscale($_), map $seam_points[$_]->distance_to($seam_points[$_+1]), 0..($#seam_points-1);
+        ok !(defined first { $_ > 3 } @dist), 'seam is aligned';
+    };
+    $test->('20mm_cube');
+    $test->('small_dorito');
 }
 
 __END__
