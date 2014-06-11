@@ -205,7 +205,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "gap_fill_speed"
             || *opt_key == "overhangs"
             || *opt_key == "perimeter_extrusion_width"
-            || *opt_key == "thin_walls") {
+            || *opt_key == "thin_walls"
+            || *opt_key == "external_perimeters_first") {
             steps.insert(posPerimeters);
         } else if (*opt_key == "resolution"
             || *opt_key == "layer_height"

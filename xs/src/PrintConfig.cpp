@@ -126,6 +126,7 @@ PrintConfigDef::build_def() {
 
     Options["external_perimeters_first"].type = coBool;
     Options["external_perimeters_first"].label = "External perimeters first";
+    Options["external_perimeters_first"].category = "Layers and Perimeters";
     Options["external_perimeters_first"].tooltip = "Print contour perimeters from the outermost one to the innermost one instead of the default inverse order.";
     Options["external_perimeters_first"].cli = "external-perimeters-first!";
 

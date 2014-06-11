@@ -399,7 +399,7 @@ sub make_perimeters {
     # we continue inwards after having finished the brim
     # TODO: add test for perimeter order
     @loops = reverse @loops
-        if $self->print->config->external_perimeters_first
+        if $self->region->config->external_perimeters_first
             || ($self->layer->id == 0 && $self->print->config->brim_width > 0);
     
     # append perimeters

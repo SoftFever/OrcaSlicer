@@ -199,6 +199,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionFloat               bridge_speed;
     ConfigOptionFloatOrPercent      external_perimeter_extrusion_width;
     ConfigOptionFloatOrPercent      external_perimeter_speed;
+    ConfigOptionBool                external_perimeters_first;
     ConfigOptionBool                extra_perimeters;
     ConfigOptionInt                 fill_angle;
     ConfigOptionPercent             fill_density;
@@ -232,6 +233,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         this->external_perimeter_extrusion_width.percent         = false;
         this->external_perimeter_speed.value                     = 70;
         this->external_perimeter_speed.percent                   = true;
+        this->external_perimeters_first.value                    = false;
         this->extra_perimeters.value                             = true;
         this->fill_angle.value                                   = 45;
         this->fill_density.value                                 = 40;
@@ -271,6 +273,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         if (opt_key == "bridge_speed")                               return &this->bridge_speed;
         if (opt_key == "external_perimeter_extrusion_width")         return &this->external_perimeter_extrusion_width;
         if (opt_key == "external_perimeter_speed")                   return &this->external_perimeter_speed;
+        if (opt_key == "external_perimeters_first")                  return &this->external_perimeters_first;
         if (opt_key == "extra_perimeters")                           return &this->extra_perimeters;
         if (opt_key == "fill_angle")                                 return &this->fill_angle;
         if (opt_key == "fill_density")                               return &this->fill_density;
@@ -315,7 +318,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 disable_fan_first_layers;
     ConfigOptionFloat               duplicate_distance;
     ConfigOptionString              end_gcode;
-    ConfigOptionBool                external_perimeters_first;
     ConfigOptionFloat               extruder_clearance_height;
     ConfigOptionFloat               extruder_clearance_radius;
     ConfigOptionPoints              extruder_offset;
@@ -387,7 +389,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->disable_fan_first_layers.value                     = 1;
         this->duplicate_distance.value                           = 6;
         this->end_gcode.value                                    = "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n";
-        this->external_perimeters_first.value                    = false;
         this->extruder_clearance_height.value                    = 20;
         this->extruder_clearance_radius.value                    = 20;
         this->extruder_offset.values.resize(1);
@@ -476,7 +477,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "disable_fan_first_layers")                   return &this->disable_fan_first_layers;
         if (opt_key == "duplicate_distance")                         return &this->duplicate_distance;
         if (opt_key == "end_gcode")                                  return &this->end_gcode;
-        if (opt_key == "external_perimeters_first")                  return &this->external_perimeters_first;
         if (opt_key == "extruder_clearance_height")                  return &this->extruder_clearance_height;
         if (opt_key == "extruder_clearance_radius")                  return &this->extruder_clearance_radius;
         if (opt_key == "extruder_offset")                            return &this->extruder_offset;
