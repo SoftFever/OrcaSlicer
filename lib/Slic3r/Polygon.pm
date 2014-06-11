@@ -64,7 +64,6 @@ sub concave_points {
         my $vertex_angle = Slic3r::Geometry::angle3points(@points_pp[$i, $i-1, $i+1]);
         if ($vertex_angle <= $ccw_angle) {
             push @concave, $points[$i];
-            use XXX; YYY ($points[$i]->pp);
         }
     }
     return [@concave];
