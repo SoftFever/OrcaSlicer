@@ -1,4 +1,4 @@
-use Test::More tests => 16;
+use Test::More tests => 18;
 use strict;
 use warnings;
 
@@ -130,31 +130,43 @@ use Slic3r::Test;
         'first object layer is completely supported by raft';
 }
 
-foreach my $raft_layers (2, 70) {
+{
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('skirts', 0);
-    $config->set('raft_layers', $raft_layers);
     $config->set('layer_height', 0.35);
     $config->set('first_layer_height', 0.3);
     $config->set('nozzle_diameter', [0.5]);
     $config->set('support_material_extruder', 2);
     $config->set('support_material_interface_extruder', 2);
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    my %raft_z = ();  # z => 1
-    my $tool = undef;
-    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-        my ($self, $cmd, $args, $info) = @_;
-        
-        if ($cmd =~ /^T(\d+)/) {
-            $tool = $1;
-        } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
-            if ($tool == $config->support_material_extruder-1) {
-                $raft_z{$self->Z} = 1;
-            }
-        }
-    });
     
-    is scalar(keys %raft_z), $config->raft_layers, 'correct number of raft layers is generated';
+    my $test = sub {
+        my ($raft_layers) = @_;
+        $config->set('raft_layers', $raft_layers);
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        my %raft_z = ();  # z => 1
+        my $tool = undef;
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+        
+            if ($cmd =~ /^T(\d+)/) {
+                $tool = $1;
+            } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
+                if ($tool == $config->support_material_extruder-1) {
+                    $raft_z{$self->Z} = 1;
+                }
+            }
+        });
+    
+        is scalar(keys %raft_z), $config->raft_layers, 'correct number of raft layers is generated';
+    };
+    
+    $test->(2);
+    $test->(70);
+    
+    $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', 0.35);
+    $test->(3);
+    $test->(70);
 }
 
 __END__

@@ -338,7 +338,6 @@ sub support_layers_z {
     # layer_height > nozzle_diameter * 0.75
     my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->object_config->support_material_extruder-1);
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
-    
     my @z = sort { $a <=> $b } @$contact_z, @$top_z, (map $_ + $nozzle_diameter, @$top_z);
     
     # enforce first layer height
@@ -352,7 +351,7 @@ sub support_layers_z {
         # $z[1] is last raft layer (contact layer for the first layer object)
         my $height = ($z[1] - $z[0]) / ($self->object_config->raft_layers - 1);
         splice @z, 1, 0,
-            map { int($_*100)/100 }
+            map { sprintf "%.2f", $_ }
             map { $z[0] + $height * $_ }
             0..($self->object_config->raft_layers - 1);
     }
