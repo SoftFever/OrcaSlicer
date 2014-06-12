@@ -41,17 +41,17 @@ sub flow {
 sub make_perimeters {
     my $self = shift;
     
-    # external perimeters
-    my $ext_perimeter_flow  = $self->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
-    my $ext_mm3_per_mm      = $ext_perimeter_flow->mm3_per_mm;
-    my $ext_pwidth          = $ext_perimeter_flow->scaled_width;
-    my $ext_pspacing        = $ext_perimeter_flow->scaled_spacing;
-    
     # other perimeters
     my $perimeter_flow      = $self->flow(FLOW_ROLE_PERIMETER);
     my $mm3_per_mm          = $perimeter_flow->mm3_per_mm;
     my $pwidth              = $perimeter_flow->scaled_width;
     my $pspacing            = $perimeter_flow->scaled_spacing;
+    
+    # external perimeters
+    my $ext_perimeter_flow  = $self->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
+    my $ext_mm3_per_mm      = $ext_perimeter_flow->mm3_per_mm;
+    my $ext_pwidth          = $ext_perimeter_flow->scaled_width;
+    my $ext_pspacing        = scale($ext_perimeter_flow->spacing_to($perimeter_flow));
     
     # overhang perimeters
     my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object);
@@ -109,9 +109,7 @@ sub make_perimeters {
                         push @thin_walls, @$diff;
                     }
                 } else {
-                    my $distance = ($i == 2)
-                        ? (0.5*$ext_pspacing + 0.5*$pspacing)
-                        : (1.0*$pspacing);
+                    my $distance = ($i == 2) ? $ext_pspacing : $pspacing;
                     
                     @offsets = @{offset2(
                         \@last,

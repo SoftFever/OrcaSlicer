@@ -40,7 +40,7 @@ Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, bool 
 float
 Flow::spacing() const {
     if (this->bridge) {
-        return width + BRIDGE_EXTRA_SPACING;
+        return this->width + BRIDGE_EXTRA_SPACING;
     }
     
     float min_flow_spacing;
@@ -52,6 +52,21 @@ Flow::spacing() const {
         min_flow_spacing = this->nozzle_diameter * (1 - PI/4.0) + this->width * PI/4.0;
     }
     return this->width - OVERLAP_FACTOR * (this->width - min_flow_spacing);
+}
+
+/* This method returns the centerline spacing between an extrusion using this
+   flow and another one using another flow.
+   this->spacing(other) shall return the same value as other.spacing(*this) */
+float
+Flow::spacing(const Flow &other) const {
+    assert(this->height == other.height);
+    assert(this->bridge == other.bridge);
+    
+    if (this->bridge) {
+        return this->width/2 + other.width/2 + BRIDGE_EXTRA_SPACING;
+    }
+    
+    return this->spacing()/2 + other.spacing()/2;
 }
 
 /* This method returns extrusion volume per head move unit. */

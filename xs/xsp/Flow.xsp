@@ -24,6 +24,8 @@
     bool bridge()
         %code{% RETVAL = THIS->bridge; %};
     float spacing();
+    float spacing_to(Flow* other)
+        %code{% RETVAL = THIS->spacing(*other); %};
     long scaled_width();
     long scaled_spacing();
     double mm3_per_mm();
