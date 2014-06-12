@@ -1,4 +1,6 @@
 package Slic3r::Layer;
+use strict;
+use warnings;
 
 use List::Util qw(first);
 use Slic3r::Geometry qw(scale chained_path);

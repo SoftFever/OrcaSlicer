@@ -1,4 +1,6 @@
 package Slic3r::Layer::Region;
+use strict;
+use warnings;
 
 use List::Util qw(sum first);
 use Slic3r::ExtrusionLoop ':roles';
