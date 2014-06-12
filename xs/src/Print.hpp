@@ -36,7 +36,7 @@ class PrintState
     void set_started(StepType step);
     void set_done(StepType step);
     void invalidate(StepType step);
-    void invalidate_all();
+    bool invalidate_all();
 };
 
 // A PrintRegion object represents a group of volumes to print

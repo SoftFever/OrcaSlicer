@@ -43,13 +43,17 @@ sub apply_config {
     # apply variables to placeholder parser
     $self->placeholder_parser->apply_config($config);
     
+    my $invalidated = 0;
+    
     # handle changes to print config
     my $print_diff = $self->config->diff($config);
     if (@$print_diff) {
         $self->config->apply_dynamic($config);
         
-        $self->invalidate_all_steps
+        my $res;
+        $res = $self->invalidate_all_steps
             if !$self->invalidate_state_by_config_options($print_diff);
+        $invalidated = 1 if $res;
     }
     
     # handle changes to object config defaults
@@ -69,8 +73,11 @@ sub apply_config {
         my $diff = $object->config->diff($new);
         if (@$diff) {
             $object->config->apply($new);
-            $object->invalidate_all_steps
+            
+            my $res;
+            $res = $object->invalidate_all_steps
                 if !$object->invalidate_state_by_config_options($diff);
+            $invalidated = 1 if $res;
         }
     }
     
@@ -124,8 +131,10 @@ sub apply_config {
                 if (@$region_config_diff) {
                     $region->config->apply($new);
                     foreach my $o (@{$self->objects}) {
-                        $o->invalidate_all_steps
+                        my $res;
+                        $res = $o->invalidate_all_steps
                             if !$o->invalidate_state_by_config_options($region_config_diff);
+                        $invalidated = 1 if $res;
                     }
                 }
             }
@@ -139,7 +148,10 @@ sub apply_config {
         my @model_objects = map $_->model_object, @{$self->objects};
         $self->clear_objects;
         $self->add_model_object($_) for @model_objects;
+        $invalidated = 1;
     }
+    
+    return $invalidated;
 }
 
 sub has_support_material {

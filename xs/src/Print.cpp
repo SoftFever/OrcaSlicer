@@ -40,11 +40,13 @@ PrintState<StepClass>::invalidate(StepClass step)
 }
 
 template <class StepClass>
-void
+bool
 PrintState<StepClass>::invalidate_all()
 {
+    bool empty = this->_started.empty();
     this->_started.clear();
     this->_done.clear();
+    return !empty;  // return true if we invalidated something
 }
 
 template class PrintState<PrintStep>;
