@@ -8,7 +8,9 @@ use List::Util qw(sum first);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale);
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc :panel :sizer :toolbar :window);
-use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL EVT_CHOICE);
+use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
+    EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
+    EVT_CHOICE EVT_TIMER);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -26,6 +28,7 @@ use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_VIEW    => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
+use constant PROCESS_TIMER_EVENT => &Wx::NewId;
 
 # package variables to avoid passing lexicals to threads
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
@@ -36,6 +39,7 @@ our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
 use constant CANVAS_SIZE => [335,335];
 use constant FILAMENT_CHOOSERS_SPACING => 3;
+use constant PROCESS_DELAY => 1 * 1000; # milliseconds
 
 my $PreventListEvents = 0;
 
@@ -49,6 +53,8 @@ sub new {
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
     $self->{objects} = [];
+    $self->{process_timer} = Wx::Timer->new($self, PROCESS_TIMER_EVENT)
+        if $Slic3r::have_threads;
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
@@ -225,6 +231,11 @@ sub new {
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
         $self->on_process_completed($event->GetData);
+    });
+    
+    EVT_TIMER($self, PROCESS_TIMER_EVENT, sub {
+        my ($self, $event) = @_;
+        $self->start_background_process;
     });
     
     $self->{canvas}->update_bed_size;
@@ -449,8 +460,7 @@ sub objects_loaded {
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
     
-    # TODO: start timer for new export thread
-    $self->start_background_process;
+    $self->schedule_background_process;
 }
 
 sub remove {
@@ -676,6 +686,18 @@ sub split_object {
     $self->load_model_objects(@model_objects);
 }
 
+sub schedule_background_process {
+    my ($self) = @_;
+    
+    return if !$Slic3r::GUI::Settings->{_}{background_processing};
+    
+    # kill current thread if any
+    $self->stop_background_process;
+    
+    # (re)start timer
+    $self->{process_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
+}
+
 sub start_background_process {
     my ($self) = @_;
     
@@ -731,6 +753,7 @@ sub start_background_process {
 sub stop_background_process {
     my ($self) = @_;
     
+    $self->{process_timer}->Stop;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
@@ -1022,14 +1045,10 @@ sub on_config_change {
     
     return if !$self->skeinpanel->is_loaded;
     # TODO: pause export thread
-    my $invalidated = $self->{print}->apply_config($self->skeinpanel->config);
-    if ($invalidated) {
-        # kill export thread
-        $self->stop_background_process;
-        
-        # TODO: start timer for new export thread
-        $self->start_background_process;
-    }
+    
+    # schedule a new process thread if new config invalidates any step
+    $self->schedule_background_process
+        if $self->{print}->apply_config($self->skeinpanel->config);
 }
 
 sub list_item_deselected {

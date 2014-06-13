@@ -63,6 +63,7 @@ our $Settings = {
         mode => 'simple',
         version_check => 1,
         autocenter => 1,
+        background_processing => 1,
     },
 };
 
@@ -101,6 +102,7 @@ sub OnInit {
         $last_version = $Settings->{_}{version};
         $Settings->{_}{mode} ||= 'expert';
         $Settings->{_}{autocenter} //= 1;
+        $Settings->{_}{background_processing} //= 1;
     }
     $Settings->{_}{version} = $Slic3r::VERSION;
     Slic3r::GUI->save_settings;
