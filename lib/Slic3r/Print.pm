@@ -409,16 +409,17 @@ sub export_gcode {
     my $self = shift;
     my %params = @_;
     
-    my $status_cb = $self->status_cb // sub {};
+    # prerequisites
+    $self->process;
     
     # output everything to a G-code file
     my $output_file = $self->expanded_output_filepath($params{output_file});
-    $status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
+    $self->status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
     $self->write_gcode($params{output_fh} || $output_file);
     
     # run post-processing scripts
     if (@{$self->config->post_process}) {
-        $status_cb->(95, "Running post-processing scripts");
+        $self->status_cb->(95, "Running post-processing scripts");
         $self->config->setenv;
         for (@{$self->config->post_process}) {
             Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
@@ -528,14 +529,17 @@ sub make_skirt {
     
     return if $self->step_done(STEP_SKIRT);
     $self->set_step_started(STEP_SKIRT);
-    $self->status_cb->(88, "Generating skirt/brim");
     
     # since this method must be idempotent, we clear skirt paths *before*
     # checking whether we need to generate them
     $self->skirt->clear;
     
-    return unless $self->config->skirts > 0
-        || ($self->config->ooze_prevention && @{$self->extruders} > 1);
+    if ($self->config->skirts == 0
+        && (!$self->config->ooze_prevention || @{$self->extruders} == 1)) {
+        $self->set_step_done(STEP_SKIRT);
+        return;
+    }
+    $self->status_cb->(88, "Generating skirt");
     
     # First off we need to decide how tall the skirt must be.
     # The skirt_height option from config is expressed in layers, but our
@@ -655,13 +659,16 @@ sub make_brim {
     
     return if $self->step_done(STEP_BRIM);
     $self->set_step_started(STEP_BRIM);
-    $self->status_cb->(88, "Generating skirt/brim");
     
     # since this method must be idempotent, we clear brim paths *before*
     # checking whether we need to generate them
     $self->brim->clear;
     
-    return unless $self->config->brim_width > 0;
+    if ($self->config->brim_width == 0) {
+        $self->set_step_done(STEP_BRIM);
+        return;
+    }
+    $self->status_cb->(88, "Generating brim");
     
     # brim is only printed on first layer and uses support material extruder
     my $first_layer_height = $self->objects->[0]->config->get_abs_value('first_layer_height');

@@ -582,12 +582,14 @@ sub generate_support_material {
     
     return if $self->step_done(STEP_SUPPORTMATERIAL);
     $self->set_step_started(STEP_SUPPORTMATERIAL);
-    $self->print->status_cb->(85, "Generating support material");
     
     $self->clear_support_layers;
     
-    return unless ($self->config->support_material || $self->config->raft_layers > 0)
-        && scalar(@{$self->layers}) >= 2;
+    if ((!$self->config->support_material && $self->config->raft_layers == 0) || scalar(@{$self->layers}) < 2) {
+        $self->set_step_done(STEP_SUPPORTMATERIAL);
+        return;
+    }
+    $self->print->status_cb->(85, "Generating support material");
     
     my $first_layer_flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),

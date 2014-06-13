@@ -88,10 +88,7 @@ sub export_gcode {
     my ($self) = @_;
     
     $self->_before_export;
-    
-    $self->_print->process;
     $self->_print->export_gcode(output_file => $self->output_file);
-    
     $self->_after_export;
 }
 
