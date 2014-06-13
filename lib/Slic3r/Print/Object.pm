@@ -158,9 +158,10 @@ sub slice {
             ### Slic3r::debugf "Layer %d: height = %s; slice_z = %s; print_z = %s\n", $id, $height, $slice_z, $print_z;
         
             $self->add_layer($id, $height, $print_z, $slice_z);
-            if (@{$self->layers} >= 2) {
-                $self->layers->[-2]->set_upper_layer($self->layers->[-1]);
-                $self->layers->[-1]->set_lower_layer($self->layers->[-2]);
+            if ($self->layer_count >= 2) {
+                my $lc = $self->layer_count;
+                $self->get_layer($lc - 2)->set_upper_layer($self->get_layer($lc - 1));
+                $self->get_layer($lc - 1)->set_lower_layer($self->get_layer($lc - 2));
             }
             $id++;
         
@@ -181,7 +182,7 @@ sub slice {
     for my $region_id (0..($self->region_count - 1)) {
         my $expolygons_by_layer = $self->_slice_region($region_id, \@z, 0);
         for my $layer_id (0..$#$expolygons_by_layer) {
-            my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
+            my $layerm = $self->get_layer($layer_id)->regions->[$region_id];
             $layerm->slices->clear;
             foreach my $expolygon (@{ $expolygons_by_layer->[$layer_id] }) {
                 $layerm->slices->append(Slic3r::Surface->new(
@@ -202,8 +203,8 @@ sub slice {
                 next if $other_region_id == $region_id;
                 
                 for my $layer_id (0..$#$expolygons_by_layer) {
-                    my $layerm = $self->layers->[$layer_id]->regions->[$region_id];
-                    my $other_layerm = $self->layers->[$layer_id]->regions->[$other_region_id];
+                    my $layerm = $self->get_layer($layer_id)->regions->[$region_id];
+                    my $other_layerm = $self->get_layer($layer_id)->regions->[$other_region_id];
                     
                     my $other_slices = [ map $_->p, @{$other_layerm->slices} ];  # Polygons
                     my $my_parts = intersection_ex(
@@ -233,7 +234,7 @@ sub slice {
     
     # remove last layer(s) if empty
     $self->delete_layer($self->layer_count - 1)
-        while $self->layer_count && (!map @{$_->slices}, @{$self->layers->[-1]->regions});
+        while $self->layer_count && (!map @{$_->slices}, @{$self->get_layer($self->layer_count - 1)->regions});
     
     foreach my $layer (@{ $self->layers }) {
         # apply size compensation
@@ -296,7 +297,7 @@ sub slice {
     # detect slicing errors
     my $warning_thrown = 0;
     for my $i (0 .. ($self->layer_count - 1)) {
-        my $layer = $self->layers->[$i];
+        my $layer = $self->get_layer($i);
         next unless $layer->slicing_errors;
         if (!$warning_thrown) {
             warn "The model has overlapping or self-intersecting facets. I tried to repair it, "
@@ -313,14 +314,14 @@ sub slice {
             
             my (@upper_surfaces, @lower_surfaces);
             for (my $j = $i+1; $j < $self->layer_count; $j++) {
-                if (!$self->layers->[$j]->slicing_errors) {
-                    @upper_surfaces = @{$self->layers->[$j]->region($region_id)->slices};
+                if (!$self->get_layer($j)->slicing_errors) {
+                    @upper_surfaces = @{$self->get_layer($j)->region($region_id)->slices};
                     last;
                 }
             }
             for (my $j = $i-1; $j >= 0; $j--) {
-                if (!$self->layers->[$j]->slicing_errors) {
-                    @lower_surfaces = @{$self->layers->[$j]->region($region_id)->slices};
+                if (!$self->get_layer($j)->slicing_errors) {
+                    @lower_surfaces = @{$self->get_layer($j)->region($region_id)->slices};
                     last;
                 }
             }
@@ -346,10 +347,10 @@ sub slice {
     }
     
     # remove empty layers from bottom
-    while (@{$self->layers} && !@{$self->layers->[0]->slices}) {
+    while (@{$self->layers} && !@{$self->get_layer(0)->slices}) {
         shift @{$self->layers};
         for (my $i = 0; $i <= $#{$self->layers}; $i++) {
-            $self->layers->[$i]->id( $self->layers->[$i]->id-1 );
+            $self->get_layer($i)->id( $self->get_layer($i)->id-1 );
         }
     }
     
@@ -407,8 +408,8 @@ sub make_perimeters {
         
         if ($region->config->extra_perimeters && $region_perimeters > 0 && $region->config->fill_density > 0) {
             for my $i (0 .. ($self->layer_count - 2)) {
-                my $layerm          = $self->layers->[$i]->regions->[$region_id];
-                my $upper_layerm    = $self->layers->[$i+1]->regions->[$region_id];
+                my $layerm          = $self->get_layer($i)->regions->[$region_id];
+                my $upper_layerm    = $self->get_layer($i+1)->regions->[$region_id];
                 my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
                 my $ext_perimeter_spacing   = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_spacing;
                 
@@ -460,7 +461,7 @@ sub make_perimeters {
         thread_cb => sub {
             my $q = shift;
             while (defined (my $i = $q->dequeue)) {
-                $self->layers->[$i]->make_perimeters;
+                $self->get_layer($i)->make_perimeters;
             }
         },
         collect_cb => sub {},
@@ -481,7 +482,7 @@ sub detect_surfaces_type {
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for my $i (0 .. ($self->layer_count - 1)) {
-            my $layerm = $self->layers->[$i]->regions->[$region_id];
+            my $layerm = $self->get_layer($i)->regions->[$region_id];
         
             # prepare a reusable subroutine to make surface differences
             my $difference = sub {
@@ -499,8 +500,8 @@ sub detect_surfaces_type {
             
             # comparison happens against the *full* slices (considering all regions)
             # unless internal shells are requested
-            my $upper_layer = $self->layers->[$i+1];
-            my $lower_layer = $i > 0 ? $self->layers->[$i-1] : undef;
+            my $upper_layer = $i < $self->layer_count - 1 ? $self->get_layer($i+1) : undef;
+            my $lower_layer = $i > 0 ? $self->get_layer($i-1) : undef;
             
             # find top surfaces (difference between current surfaces
             # of current layer and upper one)
@@ -613,7 +614,7 @@ sub clip_fill_surfaces {
     
     my $overhangs = [];  # arrayref of polygons
     for my $layer_id (reverse 0..($self->layer_count - 1)) {
-        my $layer = $self->layers->[$layer_id];
+        my $layer = $self->get_layer($layer_id);
         my @layer_internal = ();  # arrayref of Surface objects
         my @new_internal = ();    # arrayref of Surface objects
         
@@ -666,9 +667,9 @@ sub bridge_over_infill {
         next if $fill_density == 100 || $fill_density == 0;
         
         for my $layer_id (1..($self->layer_count - 1)) {
-            my $layer       = $self->layers->[$layer_id];
+            my $layer       = $self->get_layer($layer_id);
             my $layerm      = $layer->regions->[$region_id];
-            my $lower_layer = $self->layers->[$layer_id-1];
+            my $lower_layer = $self->get_layer($layer_id-1);
             
             # compute the areas needing bridge math 
             my @internal_solid = @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNALSOLID)};
@@ -704,9 +705,9 @@ sub bridge_over_infill {
             # Update: do not exclude any infill. Sparse infill is able to absorb the excess material.
             if (0) {
                 my $excess = $layerm->extruders->{infill}->bridge_flow->width - $layerm->height;
-                for (my $i = $layer_id-1; $excess >= $self->layers->[$i]->height; $i--) {
+                for (my $i = $layer_id-1; $excess >= $self->get_layer($i)->height; $i--) {
                     Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
-                    foreach my $lower_layerm (@{$self->layers->[$i]->regions}) {
+                    foreach my $lower_layerm (@{$self->get_layer($i)->regions}) {
                         my @new_surfaces = ();
                         # subtract the area from all types of surfaces
                         foreach my $group (@{$lower_layerm->fill_surfaces->group}) {
@@ -727,7 +728,7 @@ sub bridge_over_infill {
                         $lower_layerm->fill_surfaces->append(@new_surfaces);
                     }
                     
-                    $excess -= $self->layers->[$i]->height;
+                    $excess -= $self->get_layer($i)->height;
                 }
             }
         }
@@ -738,9 +739,9 @@ sub process_external_surfaces {
     my ($self) = @_;
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
-        $self->layers->[0]->regions->[$region_id]->process_external_surfaces(undef);
+        $self->get_layer(0)->regions->[$region_id]->process_external_surfaces(undef);
         for my $i (1 .. ($self->layer_count - 1)) {
-            $self->layers->[$i]->regions->[$region_id]->process_external_surfaces($self->layers->[$i-1]);
+            $self->get_layer($i)->regions->[$region_id]->process_external_surfaces($self->get_layer($i-1));
         }
     }
 }
@@ -752,7 +753,7 @@ sub discover_horizontal_shells {
     
     for my $region_id (0 .. ($self->print->regions_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
-            my $layerm = $self->layers->[$i]->regions->[$region_id];
+            my $layerm = $self->get_layer($i)->regions->[$region_id];
             
             if ($layerm->config->solid_infill_every_layers && $layerm->config->fill_density > 0
                 && ($i % $layerm->config->solid_infill_every_layers) == 0) {
@@ -786,7 +787,7 @@ sub discover_horizontal_shells {
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
-                    my $neighbor_layerm = $self->layers->[$n]->regions->[$region_id];
+                    my $neighbor_layerm = $self->get_layer($n)->regions->[$region_id];
                     my $neighbor_fill_surfaces = $neighbor_layerm->fill_surfaces;
                     my @neighbor_fill_surfaces = map $_->clone, @$neighbor_fill_surfaces;  # clone because we will use these surfaces even after clearing the collection
                     
@@ -912,7 +913,7 @@ sub combine_infill {
         {
             my $current_height = my $layers = 0;
             for my $layer_id (1 .. $#layer_heights) {
-                my $height = $self->layers->[$layer_id]->height;
+                my $height = $self->get_layer($layer_id)->height;
                 
                 if ($current_height + $height >= $nozzle_diameter || $layers >= $every) {
                     $combine[$layer_id-1] = $layers;
@@ -927,7 +928,7 @@ sub combine_infill {
         # skip bottom layer
         for my $layer_id (1 .. $#combine) {
             next unless ($combine[$layer_id] // 1) > 1;
-            my @layerms = map $self->layers->[$_]->regions->[$region_id],
+            my @layerms = map $self->get_layer($_)->regions->[$region_id],
                 ($layer_id - ($combine[$layer_id]-1) .. $layer_id);
             
             # only combine internal infill

@@ -111,7 +111,7 @@ sub contact_area {
             # the 'overhangs' of the first object layer
             last if $layer_id > 0;
         }
-        my $layer = $object->layers->[$layer_id];
+        my $layer = $object->get_layer($layer_id);
         
         # detect overhangs and contact areas needed to support them
         my (@overhang, @contact) = ();
@@ -122,7 +122,7 @@ sub contact_area {
             push @overhang, map $_->clone, map $_->contour, @{$layer->slices};
             push @contact, @{offset(\@overhang, scale +MARGIN)};
         } else {
-            my $lower_layer = $object->layers->[$layer_id-1];
+            my $lower_layer = $object->get_layer($layer_id-1);
             foreach my $layerm (@{$layer->regions}) {
                 my $fw = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_width;
                 my $diff;
