@@ -7,6 +7,7 @@ use File::Basename qw(basename dirname);
 use List::Util qw(sum first);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale);
 use threads::shared qw(shared_clone);
+use Thread::Semaphore;
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc :panel :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
@@ -39,9 +40,11 @@ our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
 use constant CANVAS_SIZE => [335,335];
 use constant FILAMENT_CHOOSERS_SPACING => 3;
-use constant PROCESS_DELAY => 1 * 1000; # milliseconds
+use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
 my $PreventListEvents = 0;
+
+my $sema = Thread::Semaphore->new;
 
 sub new {
     my $class = shift;
@@ -566,6 +569,7 @@ sub rotate {
         $model_object->update_bounding_box;
         
         # update print and start background processing
+        $self->suspend_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
         $self->schedule_background_process;
         
@@ -602,6 +606,7 @@ sub changescale {
         $model_object->update_bounding_box;
         
         # update print and start background processing
+        $self->suspend_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
         $self->schedule_background_process;
         
@@ -647,6 +652,8 @@ sub split_object {
         Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
         return;
     }
+    
+    $self->suspend_background_process;
     
     # create a bogus Model object, we only need to instantiate the new Model::Object objects
     my $new_model = Slic3r::Model->new;
@@ -700,7 +707,9 @@ sub schedule_background_process {
 sub async_apply_config {
     my ($self) = @_;
     
-    # TODO: pause process thread before applying new config
+    # pause process thread before applying new config
+    # since we don't want to touch data that is being used by the threads
+    $self->suspend_background_process;
     
     # apply new config
     my $invalidated = $self->{print}->apply_config($self->skeinpanel->config);
@@ -720,6 +729,8 @@ sub async_apply_config {
 
 sub start_background_process {
     my ($self) = @_;
+    
+    $self->resume_background_process;
     
     return if !$Slic3r::have_threads;
     return if !@{$self->{objects}};
@@ -750,6 +761,10 @@ sub start_background_process {
             Slic3r::debugf "Background process cancelled; exiting thread...\n";
             Slic3r::thread_cleanup();
             threads->exit();
+        };
+        local $SIG{'STOP'} = sub {
+            $sema->down;
+            $sema->up;
         };
         
         eval {
@@ -788,6 +803,19 @@ sub stop_background_process {
         $self->{export_thread}->kill('KILL')->join;
         $self->{export_thread} = undef;
     }
+}
+
+sub suspend_background_process {
+    my ($self) = @_;
+    
+    $sema->down;
+    $_->kill('STOP') for grep $_, $self->{process_thread}, $self->{export_thread};
+}
+
+sub resume_background_process {
+    my ($self) = @_;
+    
+    $sema->up;
 }
 
 sub export_gcode {
@@ -884,6 +912,10 @@ sub on_process_completed {
                 Slic3r::debugf "Export process cancelled; exiting thread...\n";
                 Slic3r::thread_cleanup();
                 threads->exit();
+            };
+            local $SIG{'STOP'} = sub {
+                $sema->down;
+                $sema->up;
             };
         
             eval {

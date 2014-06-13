@@ -19,6 +19,7 @@ my %prereqs = qw(
     Scalar::Util                    0
     Test::Harness                   0
     Test::More                      0
+    Thread::Semaphore               0
     IO::Scalar                      0
     Time::HiRes                     0
 );
