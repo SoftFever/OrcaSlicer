@@ -1,4 +1,4 @@
-use Test::More tests => 5;
+use Test::More tests => 6;
 use strict;
 use warnings;
 
@@ -40,6 +40,7 @@ use Slic3r::Test;
     # user sets a per-region option
     $print->print->objects->[0]->model_object->config->set('fill_density', 100);
     $print->print->reload_object(0);
+    is $print->print->regions->[0]->config->fill_density, 100, 'region config inherits model object config';
     
     # user exports G-code, thus the default config is reapplied
     $print->print->apply_config($config);
