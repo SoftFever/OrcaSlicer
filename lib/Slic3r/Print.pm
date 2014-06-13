@@ -557,7 +557,7 @@ sub make_skirt {
             ? scalar(@{$object->layers})
             : min($self->config->skirt_height, scalar(@{$object->layers}));
         
-        my $highest_layer = $object->layers->[$skirt_height-1];
+        my $highest_layer = $object->get_layer($skirt_height - 1);
         $skirt_height_z = max($skirt_height_z, $highest_layer->print_z);
     }
     
@@ -685,7 +685,7 @@ sub make_brim {
     my @islands = (); # array of polygons
     foreach my $obj_idx (0 .. ($self->object_count - 1)) {
         my $object = $self->objects->[$obj_idx];
-        my $layer0 = $object->layers->[0];
+        my $layer0 = $object->get_layer(0);
         my @object_islands = (
             (map $_->contour, @{$layer0->slices}),
         );
