@@ -31,7 +31,7 @@ sub set_status_cb {
 }
 
 sub status_cb {
-    return $status_cb;
+    return $status_cb // sub {};
 }
 
 sub apply_config {
