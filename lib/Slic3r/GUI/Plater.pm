@@ -565,8 +565,9 @@ sub rotate {
         $_->set_rotation($new_angle) for @{ $model_object->instances };
         $model_object->update_bounding_box;
         
-        # update print
+        # update print and start background processing
         $self->{print}->add_model_object($model_object, $obj_idx);
+        $self->start_background_process;
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
@@ -600,8 +601,9 @@ sub changescale {
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
         $model_object->update_bounding_box;
         
-        # update print
+        # update print and start background processing
         $self->{print}->add_model_object($model_object, $obj_idx);
+        $self->start_background_process;
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }

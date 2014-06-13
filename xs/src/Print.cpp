@@ -333,11 +333,15 @@ Print::get_object(size_t idx)
 }
 
 PrintObject*
-Print::add_object(ModelObject *model_object,
-        const BoundingBoxf3 &modobj_bbox)
+Print::add_object(ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
 {
     PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
     objects.push_back(object);
+    
+    // invalidate steps
+    this->invalidate_step(psSkirt);
+    this->invalidate_step(psBrim);
+    
     return object;
 }
 
@@ -347,6 +351,9 @@ Print::set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3
     if (idx >= this->objects.size()) throw "bad idx";
 
     PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
+    // before deleting object, invalidate all of its steps in order to 
+    // invalidate all of the dependent ones in Print
+    (*old_it)->invalidate_all_steps();
     delete *old_it;
 
     PrintObject *object = new PrintObject(this, model_object, modobj_bbox);

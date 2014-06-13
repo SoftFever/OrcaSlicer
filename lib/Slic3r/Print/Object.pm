@@ -97,7 +97,10 @@ sub bounding_box {
 # this should be idempotent
 sub slice {
     my $self = shift;
-    my %params = @_;
+    
+    return if $self->step_done(STEP_SLICE);
+    $self->set_step_started(STEP_SLICE);
+    $self->print->status_cb->(10, "Processing triangulated mesh");
     
     # init layers
     {
@@ -357,6 +360,11 @@ sub slice {
     if ($self->print->config->resolution) {
         $self->_simplify_slices(scale($self->print->config->resolution));
     }
+    
+    die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
+        if !@{$self->layers};
+    
+    $self->set_step_done(STEP_SLICE);
 }
 
 sub _slice_region {
@@ -393,6 +401,14 @@ sub _slice_region {
 
 sub make_perimeters {
     my $self = shift;
+    
+    # prerequisites
+    $self->print->init_extruders;
+    $self->slice;
+    
+    return if $self->step_done(STEP_PERIMETERS);
+    $self->set_step_started(STEP_PERIMETERS);
+    $self->print->status_cb->(20, "Generating perimeters");
     
     # compare each layer to the one below, and mark those slices needing
     # one additional inner perimeter, like the top of domed objects-
@@ -473,6 +489,125 @@ sub make_perimeters {
     # we only need the max resolution for perimeters
     ### This makes this method not-idempotent, so we keep it disabled for now.
     ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
+    
+    $self->set_step_done(STEP_PERIMETERS);
+}
+
+sub prepare_infill {
+    my ($self) = @_;
+    
+    # prerequisites
+    $self->make_perimeters;
+    
+    return if $self->step_done(STEP_PREPARE_INFILL);
+    $self->set_step_started(STEP_PREPARE_INFILL);
+    $self->print->status_cb->(30, "Preparing infill");
+    
+    # this will assign a type (top/bottom/internal) to $layerm->slices
+    # and transform $layerm->fill_surfaces from expolygon 
+    # to typed top/bottom/internal surfaces;
+    $self->detect_surfaces_type;
+
+    # decide what surfaces are to be filled
+    $_->prepare_fill_surfaces for map @{$_->regions}, @{$self->layers};
+
+    # this will detect bridges and reverse bridges
+    # and rearrange top/bottom/internal surfaces
+    $self->process_external_surfaces;
+
+    # detect which fill surfaces are near external layers
+    # they will be split in internal and internal-solid surfaces
+    $self->discover_horizontal_shells;
+    $self->clip_fill_surfaces;
+    
+    # the following step needs to be done before combination because it may need
+    # to remove only half of the combined infill
+    $self->bridge_over_infill;
+
+    # combine fill surfaces to honor the "infill every N layers" option
+    $self->combine_infill;
+    
+    $self->set_step_done(STEP_PREPARE_INFILL);
+}
+
+sub infill {
+    my ($self) = @_;
+    
+    # prerequisites
+    $self->prepare_infill;
+    
+    return if $self->step_done(STEP_INFILL);
+    $self->set_step_started(STEP_INFILL);
+    $self->print->status_cb->(70, "Infilling layers");
+    
+    Slic3r::parallelize(
+        threads => $self->print->config->threads,
+        items => sub {
+            my @items = ();  # [layer_id, region_id]
+            for my $region_id (0 .. ($self->print->regions_count-1)) {
+                push @items, map [$_, $region_id], 0..($self->layer_count - 1);
+            }
+            @items;
+        },
+        thread_cb => sub {
+            my $q = shift;
+            while (defined (my $obj_layer = $q->dequeue)) {
+                my ($i, $region_id) = @$obj_layer;
+                my $layerm = $self->layers->[$i]->regions->[$region_id];
+                $layerm->fills->clear;
+                $layerm->fills->append( $self->fill_maker->make_fill($layerm) );
+            }
+        },
+        collect_cb => sub {},
+        no_threads_cb => sub {
+            foreach my $layerm (map @{$_->regions}, @{$self->layers}) {
+                $layerm->fills->clear;
+                $layerm->fills->append($self->fill_maker->make_fill($layerm));
+            }
+        },
+    );
+
+    ### we could free memory now, but this would make this step not idempotent
+    ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
+    
+    $self->set_step_done(STEP_INFILL);
+}
+
+sub generate_support_material {
+    my $self = shift;
+    
+    # prerequisites
+    $self->print->init_extruders;
+    $self->slice;
+    
+    return if $self->step_done(STEP_SUPPORTMATERIAL);
+    $self->set_step_started(STEP_SUPPORTMATERIAL);
+    $self->print->status_cb->(85, "Generating support material");
+    
+    $self->clear_support_layers;
+    
+    return unless ($self->config->support_material || $self->config->raft_layers > 0)
+        && scalar(@{$self->layers}) >= 2;
+    
+    my $first_layer_flow = Slic3r::Flow->new_from_width(
+        width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
+        role                => FLOW_ROLE_SUPPORT_MATERIAL,
+        nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ]
+                                // $self->print->config->nozzle_diameter->[0],
+        layer_height        => $self->config->get_abs_value('first_layer_height'),
+        bridge_flow_ratio   => 0,
+    );
+    
+    my $s = Slic3r::Print::SupportMaterial->new(
+        print_config        => $self->print->config,
+        object_config       => $self->config,
+        first_layer_flow    => $first_layer_flow,
+        flow                => $self->support_material_flow,
+        interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
+    );
+    $s->generate($self);
+    
+    $self->set_step_done(STEP_SUPPORTMATERIAL);
 }
 
 sub detect_surfaces_type {
@@ -1003,33 +1138,6 @@ sub combine_infill {
             }
         }
     }
-}
-
-sub generate_support_material {
-    my $self = shift;
-    
-    $self->clear_support_layers;
-    
-    return unless ($self->config->support_material || $self->config->raft_layers > 0)
-        && scalar(@{$self->layers}) >= 2;
-    
-    my $first_layer_flow = Slic3r::Flow->new_from_width(
-        width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
-        role                => FLOW_ROLE_SUPPORT_MATERIAL,
-        nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ]
-                                // $self->print->config->nozzle_diameter->[0],
-        layer_height        => $self->config->get_abs_value('first_layer_height'),
-        bridge_flow_ratio   => 0,
-    );
-    
-    my $s = Slic3r::Print::SupportMaterial->new(
-        print_config        => $self->print->config,
-        object_config       => $self->config,
-        first_layer_flow    => $first_layer_flow,
-        flow                => $self->support_material_flow,
-        interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
-    );
-    $s->generate($self);
 }
 
 sub _simplify_slices {

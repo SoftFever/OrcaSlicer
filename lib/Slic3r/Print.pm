@@ -219,9 +219,6 @@ sub add_model_object {
     # apply config to print object
     $o->config->apply($self->default_object_config);
     $o->config->apply_dynamic($object_config);
-    
-    $self->invalidate_step(STEP_SKIRT);
-    $self->invalidate_step(STEP_BRIM);
 }
 
 sub reload_object {
@@ -328,12 +325,17 @@ sub extruders {
 sub init_extruders {
     my $self = shift;
     
+    return if $self->step_done(STEP_INIT_EXTRUDERS);
+    $self->set_step_started(STEP_INIT_EXTRUDERS);
+    
     # enforce tall skirt if using ooze_prevention
     # FIXME: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
     if ($self->config->ooze_prevention && @{$self->extruders} > 1) {
         $self->config->set('skirt_height', -1);
         $self->config->set('skirts', 1) if $self->config->skirts == 0;
     }
+    
+    $self->set_step_done(STEP_INIT_EXTRUDERS);
 }
 
 # this value is not supposed to be compared with $layer->id
@@ -380,131 +382,11 @@ sub _simplify_slices {
 sub process {
     my ($self) = @_;
     
-    my $status_cb = $self->status_cb // sub {};
-    
-    my $print_step = sub {
-        my ($step, $cb) = @_;
-        if (!$self->step_done($step)) {
-            $self->set_step_started($step);
-            $cb->();
-            $self->set_step_done($step);
-        }
-    };
-    my $object_step = sub {
-        my ($step, $cb) = @_;
-        for my $obj_idx (0..($self->object_count - 1)) {
-            my $object = $self->objects->[$obj_idx];
-            if (!$object->step_done($step)) {
-                $object->set_step_started($step);
-                $cb->($obj_idx);
-                $object->set_step_done($step);
-            }
-        }
-    };
-    
-    # STEP_INIT_EXTRUDERS
-    $print_step->(STEP_INIT_EXTRUDERS, sub {
-        $self->init_extruders;
-    });
-    
-    # STEP_SLICE
-    # skein the STL into layers
-    # each layer has surfaces with holes
-    $status_cb->(10, "Processing triangulated mesh");
-    $object_step->(STEP_SLICE, sub {
-        $self->objects->[$_[0]]->slice;
-    });
-    
-    die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
-        if !grep @{$_->layers}, @{$self->objects};
-    
-    # make perimeters
-    # this will add a set of extrusion loops to each layer
-    # as well as generate infill boundaries
-    $status_cb->(20, "Generating perimeters");
-    $object_step->(STEP_PERIMETERS, sub {
-        $self->objects->[$_[0]]->make_perimeters;
-    });
-    
-    $status_cb->(30, "Preparing infill");
-    $object_step->(STEP_PREPARE_INFILL, sub {
-        my $object = $self->objects->[$_[0]];
-        
-        # this will assign a type (top/bottom/internal) to $layerm->slices
-        # and transform $layerm->fill_surfaces from expolygon 
-        # to typed top/bottom/internal surfaces;
-        $object->detect_surfaces_type;
-    
-        # decide what surfaces are to be filled
-        $_->prepare_fill_surfaces for map @{$_->regions}, @{$object->layers};
-    
-        # this will detect bridges and reverse bridges
-        # and rearrange top/bottom/internal surfaces
-        $object->process_external_surfaces;
-    
-        # detect which fill surfaces are near external layers
-        # they will be split in internal and internal-solid surfaces
-        $object->discover_horizontal_shells;
-        $object->clip_fill_surfaces;
-        
-        # the following step needs to be done before combination because it may need
-        # to remove only half of the combined infill
-        $object->bridge_over_infill;
-    
-        # combine fill surfaces to honor the "infill every N layers" option
-        $object->combine_infill;
-    });
-    
-    # this will generate extrusion paths for each layer
-    $status_cb->(70, "Infilling layers");
-    $object_step->(STEP_INFILL, sub {
-        my $object = $self->objects->[$_[0]];
-        
-        Slic3r::parallelize(
-            threads => $self->config->threads,
-            items => sub {
-                my @items = ();  # [layer_id, region_id]
-                for my $region_id (0 .. ($self->regions_count-1)) {
-                    push @items, map [$_, $region_id], 0..($object->layer_count - 1);
-                }
-                @items;
-            },
-            thread_cb => sub {
-                my $q = shift;
-                while (defined (my $obj_layer = $q->dequeue)) {
-                    my ($i, $region_id) = @$obj_layer;
-                    my $layerm = $object->layers->[$i]->regions->[$region_id];
-                    $layerm->fills->clear;
-                    $layerm->fills->append( $object->fill_maker->make_fill($layerm) );
-                }
-            },
-            collect_cb => sub {},
-            no_threads_cb => sub {
-                foreach my $layerm (map @{$_->regions}, @{$object->layers}) {
-                    $layerm->fills->clear;
-                    $layerm->fills->append($object->fill_maker->make_fill($layerm));
-                }
-            },
-        );
-    
-        ### we could free memory now, but this would make this step not idempotent
-        ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
-    });
-    
-    # generate support material
-    $status_cb->(85, "Generating support material") if $self->has_support_material;
-    $object_step->(STEP_SUPPORTMATERIAL, sub {
-        $self->objects->[$_[0]]->generate_support_material;
-    });
-    
-    # make skirt
-    $status_cb->(88, "Generating skirt/brim");
-    $print_step->(STEP_SKIRT, sub {
-        $self->make_skirt;
-    });
-    $print_step->(STEP_BRIM, sub {
-        $self->make_brim;  # must come after make_skirt
-    });
+    $_->make_perimeters for @{$self->objects};
+    $_->infill for @{$self->objects};
+    $_->generate_support_material for @{$self->objects};
+    $self->make_skirt;
+    $self->make_brim;  # must come after make_skirt
     
     # time to make some statistics
     if (0) {
@@ -639,6 +521,15 @@ EOF
 sub make_skirt {
     my $self = shift;
     
+    # prerequisites
+    $_->make_perimeters for @{$self->objects};
+    $_->infill for @{$self->objects};
+    $_->generate_support_material for @{$self->objects};
+    
+    return if $self->step_done(STEP_SKIRT);
+    $self->set_step_started(STEP_SKIRT);
+    $self->status_cb->(88, "Generating skirt/brim");
+    
     # since this method must be idempotent, we clear skirt paths *before*
     # checking whether we need to generate them
     $self->skirt->clear;
@@ -749,10 +640,22 @@ sub make_skirt {
     }
     
     $self->skirt->reverse;
+    
+    $self->set_step_done(STEP_SKIRT);
 }
 
 sub make_brim {
     my $self = shift;
+    
+    # prerequisites
+    $_->make_perimeters for @{$self->objects};
+    $_->infill for @{$self->objects};
+    $_->generate_support_material for @{$self->objects};
+    $self->make_skirt;
+    
+    return if $self->step_done(STEP_BRIM);
+    $self->set_step_started(STEP_BRIM);
+    $self->status_cb->(88, "Generating skirt/brim");
     
     # since this method must be idempotent, we clear brim paths *before*
     # checking whether we need to generate them
@@ -818,6 +721,8 @@ sub make_brim {
             height          => $first_layer_height,
         ),
     ), reverse @{union_pt_chained(\@loops)});
+    
+    $self->set_step_done(STEP_BRIM);
 }
 
 sub write_gcode {
