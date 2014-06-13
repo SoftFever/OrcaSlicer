@@ -28,7 +28,7 @@ use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_VIEW    => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
-use constant PROCESS_TIMER_EVENT => &Wx::NewId;
+use constant apply_config_timer_EVENT => &Wx::NewId;
 
 # package variables to avoid passing lexicals to threads
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
@@ -53,7 +53,7 @@ sub new {
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
     $self->{objects} = [];
-    $self->{process_timer} = Wx::Timer->new($self, PROCESS_TIMER_EVENT)
+    $self->{apply_config_timer} = Wx::Timer->new($self, apply_config_timer_EVENT)
         if $Slic3r::have_threads;
     
     $self->{print}->set_status_cb(sub {
@@ -168,7 +168,10 @@ sub new {
     }
     $self->selection_changed(0);
     $self->object_list_changed;
-    EVT_BUTTON($self, $self->{btn_export_gcode}, \&export_gcode);
+    EVT_BUTTON($self, $self->{btn_export_gcode}, sub {
+        $self->export_gcode;
+        Slic3r::thread_cleanup();
+    });
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
@@ -231,11 +234,12 @@ sub new {
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
         $self->on_process_completed($event->GetData);
+        Slic3r::thread_cleanup();
     });
     
-    EVT_TIMER($self, PROCESS_TIMER_EVENT, sub {
+    EVT_TIMER($self, apply_config_timer_EVENT, sub {
         my ($self, $event) = @_;
-        $self->start_background_process;
+        $self->async_apply_config;
     });
     
     $self->{canvas}->update_bed_size;
@@ -460,7 +464,7 @@ sub objects_loaded {
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
     
-    $self->schedule_background_process;
+    $self->start_background_process;
 }
 
 sub remove {
@@ -686,16 +690,25 @@ sub split_object {
     $self->load_model_objects(@model_objects);
 }
 
-sub schedule_background_process {
+sub async_apply_config {
     my ($self) = @_;
+    
+    # TODO: pause process thread before applying new config
+    
+    # apply new config
+    my $invalidated = $self->{print}->apply_config($self->skeinpanel->config);
     
     return if !$Slic3r::GUI::Settings->{_}{background_processing};
     
-    # kill current thread if any
-    $self->stop_background_process;
+    if ($invalidated) {
+        # kill current thread if any
+        $self->stop_background_process;
     
-    # (re)start timer
-    $self->{process_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
+        # schedule a new process thread
+        $self->start_background_process;
+    } else {
+        # TODO: restore process thread
+    }
 }
 
 sub start_background_process {
@@ -753,7 +766,7 @@ sub start_background_process {
 sub stop_background_process {
     my ($self) = @_;
     
-    $self->{process_timer}->Stop;
+    $self->{apply_config_timer}->Stop;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
@@ -840,9 +853,6 @@ sub export_gcode {
         my $result = !Slic3r::GUI::catch_error($self);
         $self->on_export_completed($result);
     }
-    
-    # this method gets executed in a separate thread by wxWidgets since it's a button handler
-    Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
 # This gets called only if we have threads.
@@ -862,6 +872,10 @@ sub on_process_completed {
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {
         @_ = ();
+        
+        # workaround for "Attempt to free un referenced scalar..."
+        our $_thread_self = $self;
+        
         $self->{export_thread} = threads->create(sub {
             local $SIG{'KILL'} = sub {
                 Slic3r::debugf "Export process cancelled; exiting thread...\n";
@@ -870,13 +884,13 @@ sub on_process_completed {
             };
         
             eval {
-                $self->{print}->export_gcode(output_file => $self->{export_gcode_output_file});
+                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file});
             };
             if ($@) {
-                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $ERROR_EVENT, shared_clone([ $@ ])));
-                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 0));
+                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $ERROR_EVENT, shared_clone([ $@ ])));
+                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 0));
             } else {
-                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 1));
+                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 1));
             }
             Slic3r::thread_cleanup();
         });
@@ -1044,11 +1058,9 @@ sub on_config_change {
     }
     
     return if !$self->skeinpanel->is_loaded;
-    # TODO: pause export thread
     
-    # schedule a new process thread if new config invalidates any step
-    $self->schedule_background_process
-        if $self->{print}->apply_config($self->skeinpanel->config);
+    # (re)start timer
+    $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
 }
 
 sub list_item_deselected {
