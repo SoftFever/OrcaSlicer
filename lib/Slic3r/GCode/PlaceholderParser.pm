@@ -34,7 +34,9 @@ sub apply_config {
     my ($self, $config) = @_;
     
     # options with single value
-    my @opt_keys = grep !$Slic3r::Config::Options->{$_}{multiline}, @{$config->get_keys};
+    my @opt_keys = grep $Slic3r::Config::Options->{$_}{cli} !~ /\@$/,
+        grep !$Slic3r::Config::Options->{$_}{multiline},
+        @{$config->get_keys};
     $self->_single_set($_, $config->serialize($_)) for @opt_keys;
 
     # options with multiple values

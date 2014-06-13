@@ -27,16 +27,14 @@ enum PrintObjectStep {
 template <class StepType>
 class PrintState
 {
-    private:
-    std::set<StepType> _started, _done;
-    
     public:
-    bool started(StepType step) const;
-    bool done(StepType step) const;
+    std::set<StepType> started, done;
+    
+    bool is_started(StepType step) const;
+    bool is_done(StepType step) const;
     void set_started(StepType step);
     void set_done(StepType step);
-    void invalidate(StepType step);
-    bool invalidate_all();
+    bool invalidate(StepType step);
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -108,7 +106,8 @@ class PrintObject
     
     // methods for handling state
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
-    void invalidate_step(PrintObjectStep step);
+    bool invalidate_step(PrintObjectStep step);
+    bool invalidate_all_steps();
     
     private:
     Print* _print;
@@ -155,7 +154,8 @@ class Print
     
     // methods for handling state
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
-    void invalidate_step(PrintStep step);
+    bool invalidate_step(PrintStep step);
+    bool invalidate_all_steps();
 
     private:
     void clear_regions();

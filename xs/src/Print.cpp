@@ -5,48 +5,39 @@ namespace Slic3r {
 
 template <class StepClass>
 bool
-PrintState<StepClass>::started(StepClass step) const
+PrintState<StepClass>::is_started(StepClass step) const
 {
-    return this->_started.find(step) != this->_started.end();
+    return this->started.find(step) != this->started.end();
 }
 
 template <class StepClass>
 bool
-PrintState<StepClass>::done(StepClass step) const
+PrintState<StepClass>::is_done(StepClass step) const
 {
-    return this->_done.find(step) != this->_done.end();
+    return this->done.find(step) != this->done.end();
 }
 
 template <class StepClass>
 void
 PrintState<StepClass>::set_started(StepClass step)
 {
-    this->_started.insert(step);
+    this->started.insert(step);
 }
 
 template <class StepClass>
 void
 PrintState<StepClass>::set_done(StepClass step)
 {
-    this->_done.insert(step);
-}
-
-template <class StepClass>
-void
-PrintState<StepClass>::invalidate(StepClass step)
-{
-    this->_started.erase(step);
-    this->_done.erase(step);
+    this->done.insert(step);
 }
 
 template <class StepClass>
 bool
-PrintState<StepClass>::invalidate_all()
+PrintState<StepClass>::invalidate(StepClass step)
 {
-    bool empty = this->_started.empty();
-    this->_started.clear();
-    this->_done.clear();
-    return !empty;  // return true if we invalidated something
+    bool invalidated = this->started.erase(step) > 0;
+    this->done.erase(step);
+    return invalidated;
 }
 
 template class PrintState<PrintStep>;
@@ -256,21 +247,23 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             steps.insert(posPerimeters);
             steps.insert(posInfill);
         } else {
-            // for legacy, if we can't handle this option let's signal the caller to invalidate all steps
-            return false;
+            // for legacy, if we can't handle this option let's invalidate all steps
+            return this->invalidate_all_steps();
         }
     }
     
-    for (std::set<PrintObjectStep>::const_iterator step = steps.begin(); step != steps.end(); ++step)
-        this->invalidate_step(*step);
+    bool invalidated = false;
+    for (std::set<PrintObjectStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
+        if (this->invalidate_step(*step)) invalidated = true;
+    }
     
-    return true;
+    return invalidated;
 }
 
-void
+bool
 PrintObject::invalidate_step(PrintObjectStep step)
 {
-    this->state.invalidate(step);
+    bool invalidated = this->state.invalidate(step);
     
     // propagate to dependent steps
     if (step == posPerimeters) {
@@ -286,6 +279,21 @@ PrintObject::invalidate_step(PrintObjectStep step)
         this->invalidate_step(posPerimeters);
         this->invalidate_step(posSupportMaterial);
     }
+    
+    return invalidated;
+}
+
+bool
+PrintObject::invalidate_all_steps()
+{
+    // make a copy because when invalidating steps the iterators are not working anymore
+    std::set<PrintObjectStep> steps = this->state.started;
+    
+    bool invalidated = false;
+    for (std::set<PrintObjectStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
+        if (this->invalidate_step(*step)) invalidated = true;
+    }
+    return invalidated;
 }
 
 
@@ -403,21 +411,23 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
         } else if (*opt_key == "brim_width") {
             steps.insert(psBrim);
         } else {
-            // for legacy, if we can't handle this option let's signal the caller to invalidate all steps
-            return false;
+            // for legacy, if we can't handle this option let's invalidate all steps
+            return this->invalidate_all_steps();
         }
     }
     
-    for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step)
-        this->invalidate_step(*step);
+    bool invalidated = false;
+    for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
+        if (this->invalidate_step(*step)) invalidated = true;
+    }
     
-    return true;
+    return invalidated;
 }
 
-void
+bool
 Print::invalidate_step(PrintStep step)
 {
-    this->state.invalidate(step);
+    bool invalidated = this->state.invalidate(step);
     
     // propagate to dependent steps
     if (step == psSkirt) {
@@ -428,6 +438,21 @@ Print::invalidate_step(PrintStep step)
             (*object)->invalidate_step(posSupportMaterial);
         }
     }
+    
+    return invalidated;
+}
+
+bool
+Print::invalidate_all_steps()
+{
+    // make a copy because when invalidating steps the iterators are not working anymore
+    std::set<PrintStep> steps = this->state.started;
+    
+    bool invalidated = false;
+    for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
+        if (this->invalidate_step(*step)) invalidated = true;
+    }
+    return invalidated;
 }
 
 

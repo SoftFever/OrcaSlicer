@@ -86,11 +86,10 @@ _constant()
     void delete_support_layer(int idx);
     
     bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
-    void invalidate_step(PrintObjectStep step);
-    bool invalidate_all_steps()
-        %code%{ RETVAL = THIS->state.invalidate_all(); %};
+    bool invalidate_step(PrintObjectStep step);
+    bool invalidate_all_steps();
     bool step_done(PrintObjectStep step)
-        %code%{ RETVAL = THIS->state.done(step); %};
+        %code%{ RETVAL = THIS->state.is_done(step); %};
     void set_step_done(PrintObjectStep step)
         %code%{ THIS->state.set_done(step); %};
     void set_step_started(PrintObjectStep step)
@@ -141,11 +140,10 @@ _constant()
         %code%{ RETVAL = THIS->regions.size(); %};
     
     bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
-    void invalidate_step(PrintStep step);
-    bool invalidate_all_steps()
-        %code%{ RETVAL = THIS->state.invalidate_all(); %};
+    bool invalidate_step(PrintStep step);
+    bool invalidate_all_steps();
     bool step_done(PrintStep step)
-        %code%{ RETVAL = THIS->state.done(step); %};
+        %code%{ RETVAL = THIS->state.is_done(step); %};
     void set_step_done(PrintStep step)
         %code%{ THIS->state.set_done(step); %};
     void set_step_started(PrintStep step)

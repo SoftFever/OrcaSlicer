@@ -33,6 +33,7 @@ our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
 our $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 our $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
+our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
 use constant CANVAS_SIZE => [335,335];
 use constant FILAMENT_CHOOSERS_SPACING => 3;
@@ -216,6 +217,14 @@ sub new {
     EVT_COMMAND($self, -1, $EXPORT_FAILED_EVENT, sub {
         my ($self, $event) = @_;
         $self->on_export_failed;
+    });
+    
+    EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
+        my ($self, $event) = @_;
+        
+        Slic3r::debugf "Background processing completed.\n";
+        $self->{process_thread}->detach if $self->{process_thread};
+        $self->{process_thread} = undef;
     });
     
     $self->{canvas}->update_bed_size;
@@ -439,6 +448,9 @@ sub objects_loaded {
     $self->{list}->Update;
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
+    
+    # TODO: start timer for new export thread
+    $self->start_background_process;
 }
 
 sub remove {
@@ -664,10 +676,60 @@ sub split_object {
     $self->load_model_objects(@model_objects);
 }
 
+sub start_background_process {
+    my ($self) = @_;
+    
+    return if !$Slic3r::have_threads;
+    return if !@{$self->{objects}};
+    
+    if ($self->{process_thread}) {
+        warn "Can't start new process thread because one is already running\n";
+        return;
+    }
+    
+    # It looks like declaring a local $SIG{__WARN__} prevents the ugly
+    # "Attempt to free unreferenced scalar" warning...
+    local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
+    
+    # don't start process thread if config is not valid
+    eval {
+        # this will throw errors if config is not valid
+        $self->skeinpanel->config->validate;
+        $self->{print}->validate;
+    };
+    return if $@;
+    
+    # apply extra variables
+    {
+        my $extra = $self->skeinpanel->extra_variables;
+        $self->{print}->placeholder_parser->set($_, $extra->{$_}) for keys %$extra;
+    }
+    
+    # start thread
+    $self->{process_thread} = threads->create(sub {
+        $self->{print}->process;
+        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
+        Slic3r::thread_cleanup();
+    });
+    Slic3r::debugf "Background processing started.\n";
+}
+
+sub stop_background_process {
+    my ($self) = @_;
+    
+    if ($self->{process_thread}) {
+        Slic3r::debugf "Killing background process.\n";
+        $self->{process_thread}->kill('KILL')->join;
+        $self->{process_thread} = undef;
+    } else {
+        Slic3r::debugf "No background process running.\n";
+    }
+}
+
 sub export_gcode {
     my $self = shift;
     
-    if ($self->{export_thread}) {
+    if ($self->{export_gcode_output_file}) {
         Wx::MessageDialog->new($self, "Another slicing job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
         return;
     }
@@ -912,6 +974,7 @@ sub update {
 sub on_config_change {
     my $self = shift;
     my ($opt_key, $value) = @_;
+    
     if ($opt_key eq 'extruders_count' && defined $value) {
         my $choices = $self->{preset_choosers}{filament};
         while (@$choices < $value) {
@@ -936,6 +999,17 @@ sub on_config_change {
             $self->update;
         }
         $self->update if $opt_key eq 'print_center';
+    }
+    
+    return if !$self->skeinpanel->is_loaded;
+    # TODO: pause export thread
+    my $invalidated = $self->{print}->apply_config($self->skeinpanel->config);
+    if ($invalidated) {
+        # kill export thread
+        $self->stop_background_process;
+        
+        # TODO: start timer for new export thread
+        $self->start_background_process;
     }
 }
 

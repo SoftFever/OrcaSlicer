@@ -50,10 +50,8 @@ sub apply_config {
     if (@$print_diff) {
         $self->config->apply_dynamic($config);
         
-        my $res;
-        $res = $self->invalidate_all_steps
-            if !$self->invalidate_state_by_config_options($print_diff);
-        $invalidated = 1 if $res;
+        $invalidated = 1
+            if $self->invalidate_state_by_config_options($print_diff);
     }
     
     # handle changes to object config defaults
@@ -74,10 +72,8 @@ sub apply_config {
         if (@$diff) {
             $object->config->apply($new);
             
-            my $res;
-            $res = $object->invalidate_all_steps
-                if !$object->invalidate_state_by_config_options($diff);
-            $invalidated = 1 if $res;
+            $invalidated = 1
+                if $self->invalidate_state_by_config_options($diff);
         }
     }
     
@@ -131,10 +127,8 @@ sub apply_config {
                 if (@$region_config_diff) {
                     $region->config->apply($new);
                     foreach my $o (@{$self->objects}) {
-                        my $res;
-                        $res = $o->invalidate_all_steps
-                            if !$o->invalidate_state_by_config_options($region_config_diff);
-                        $invalidated = 1 if $res;
+                        $invalidated = 1
+                            if $o->invalidate_state_by_config_options($region_config_diff);
                     }
                 }
             }

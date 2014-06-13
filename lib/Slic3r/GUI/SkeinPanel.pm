@@ -31,6 +31,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{mode} = $params{mode};
     $self->{mode} = 'expert' if $self->{mode} !~ /^(?:simple|expert)$/;
+    $self->{loaded} = 0;
     
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{plater} = Slic3r::GUI::Plater->new($self->{tabpanel}), "Plater")
@@ -81,7 +82,13 @@ sub new {
     $self->SetSizer($sizer);
     $self->Layout;
     
+    $self->{loaded} = 1;
     return $self;
+}
+
+sub is_loaded {
+    my ($self) = @_;
+    return $self->{loaded};
 }
 
 sub quick_slice {
