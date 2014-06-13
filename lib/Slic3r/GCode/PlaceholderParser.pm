@@ -45,6 +45,7 @@ sub apply_config {
         next unless ref($value) eq 'ARRAY';
         # TODO: this is a workaroud for XS string param handling
         # https://rt.cpan.org/Public/Bug/Display.html?id=94110
+        no warnings 'void';
         "$_" for @$value;
         $self->_multiple_set("${opt_key}_" . $_, $value->[$_]."") for 0..$#$value;
         $self->_multiple_set($opt_key, $value->[0]."");
