@@ -464,7 +464,7 @@ sub objects_loaded {
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
     
-    $self->start_background_process;
+    $self->schedule_background_process;
 }
 
 sub remove {
@@ -567,7 +567,7 @@ sub rotate {
         
         # update print and start background processing
         $self->{print}->add_model_object($model_object, $obj_idx);
-        $self->start_background_process;
+        $self->schedule_background_process;
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
@@ -603,7 +603,7 @@ sub changescale {
         
         # update print and start background processing
         $self->{print}->add_model_object($model_object, $obj_idx);
-        $self->start_background_process;
+        $self->schedule_background_process;
         
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
@@ -692,6 +692,11 @@ sub split_object {
     $self->load_model_objects(@model_objects);
 }
 
+sub schedule_background_process {
+    my ($self) = @_;
+    $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
+}
+
 sub async_apply_config {
     my ($self) = @_;
     
@@ -705,12 +710,12 @@ sub async_apply_config {
     if ($invalidated) {
         # kill current thread if any
         $self->stop_background_process;
-    
-        # schedule a new process thread
-        $self->start_background_process;
     } else {
         # TODO: restore process thread
     }
+    
+    # schedule a new process thread in case it wasn't running
+    $self->start_background_process;
 }
 
 sub start_background_process {
@@ -718,11 +723,7 @@ sub start_background_process {
     
     return if !$Slic3r::have_threads;
     return if !@{$self->{objects}};
-    
-    if ($self->{process_thread}) {
-        warn "Can't start new process thread because one is already running\n";
-        return;
-    }
+    return if $self->{process_thread};
     
     # It looks like declaring a local $SIG{__WARN__} prevents the ugly
     # "Attempt to free unreferenced scalar" warning...
@@ -1062,7 +1063,7 @@ sub on_config_change {
     return if !$self->skeinpanel->is_loaded;
     
     # (re)start timer
-    $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
+    $self->schedule_background_process;
 }
 
 sub list_item_deselected {
@@ -1145,6 +1146,7 @@ sub object_settings_dialog {
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
         $self->{print}->reload_object($obj_idx);
+        $self->schedule_background_process;
     }
 }
 

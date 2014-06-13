@@ -321,9 +321,6 @@ Print::clear_objects()
         this->delete_object(i);
 
     this->clear_regions();
-
-    this->state.invalidate(psSkirt);
-    this->state.invalidate(psBrim);
 }
 
 PrintObject*
