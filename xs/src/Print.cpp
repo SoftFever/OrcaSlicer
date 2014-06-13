@@ -246,6 +246,16 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
         } else if (*opt_key == "bridge_flow_ratio") {
             steps.insert(posPerimeters);
             steps.insert(posInfill);
+        } else if (*opt_key == "seam_position"
+            || *opt_key == "support_material_speed"
+            || *opt_key == "bridge_speed"
+            || *opt_key == "external_perimeter_speed"
+            || *opt_key == "infill_speed"
+            || *opt_key == "perimeter_speed"
+            || *opt_key == "small_perimeter_speed"
+            || *opt_key == "solid_infill_speed"
+            || *opt_key == "top_solid_infill_speed") {
+            // these options only affect G-code export, so nothing to invalidate
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             return this->invalidate_all_steps();
@@ -414,6 +424,69 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             steps.insert(psSkirt);
         } else if (*opt_key == "brim_width") {
             steps.insert(psBrim);
+        } else if (*opt_key == "nozzle_diameter") {
+            steps.insert(psInitExtruders);
+        } else if (*opt_key == "avoid_crossing_perimeters"
+            || *opt_key == "bed_size"
+            || *opt_key == "bed_temperature"
+            || *opt_key == "bridge_acceleration"
+            || *opt_key == "bridge_fan_speed"
+            || *opt_key == "complete_objects"
+            || *opt_key == "cooling"
+            || *opt_key == "default_acceleration"
+            || *opt_key == "disable_fan_first_layers"
+            || *opt_key == "duplicate_distance"
+            || *opt_key == "end_gcode"
+            || *opt_key == "extruder_clearance_height"
+            || *opt_key == "extruder_clearance_radius"
+            || *opt_key == "extruder_offset"
+            || *opt_key == "extrusion_axis"
+            || *opt_key == "extrusion_multiplier"
+            || *opt_key == "fan_always_on"
+            || *opt_key == "fan_below_layer_time"
+            || *opt_key == "filament_diameter"
+            || *opt_key == "first_layer_acceleration"
+            || *opt_key == "first_layer_bed_temperature"
+            || *opt_key == "first_layer_speed"
+            || *opt_key == "first_layer_temperature"
+            || *opt_key == "g0"
+            || *opt_key == "gcode_arcs"
+            || *opt_key == "gcode_comments"
+            || *opt_key == "gcode_flavor"
+            || *opt_key == "infill_acceleration"
+            || *opt_key == "infill_first"
+            || *opt_key == "layer_gcode"
+            || *opt_key == "min_fan_speed"
+            || *opt_key == "max_fan_speed"
+            || *opt_key == "min_print_speed"
+            || *opt_key == "notes"
+            || *opt_key == "only_retract_when_crossing_perimeters"
+            || *opt_key == "output_filename_format"
+            || *opt_key == "perimeter_acceleration"
+            || *opt_key == "post_process"
+            || *opt_key == "print_center"
+            || *opt_key == "retract_before_travel"
+            || *opt_key == "retract_layer_change"
+            || *opt_key == "retract_length"
+            || *opt_key == "retract_length_toolchange"
+            || *opt_key == "retract_lift"
+            || *opt_key == "retract_restart_extra"
+            || *opt_key == "retract_restart_extra_toolchange"
+            || *opt_key == "retract_speed"
+            || *opt_key == "slowdown_below_layer_time"
+            || *opt_key == "spiral_vase"
+            || *opt_key == "standby_temperature_delta"
+            || *opt_key == "start_gcode"
+            || *opt_key == "temperature"
+            || *opt_key == "threads"
+            || *opt_key == "toolchange_gcode"
+            || *opt_key == "travel_speed"
+            || *opt_key == "use_firmware_retraction"
+            || *opt_key == "use_relative_e_distances"
+            || *opt_key == "vibration_limit"
+            || *opt_key == "wipe"
+            || *opt_key == "z_offset") {
+            // these options only affect G-code export, so nothing to invalidate
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             return this->invalidate_all_steps();
