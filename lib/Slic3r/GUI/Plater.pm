@@ -30,9 +30,8 @@ use constant TB_SETTINGS => &Wx::NewId;
 # package variables to avoid passing lexicals to threads
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
 our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
-our $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
+our $ERROR_EVENT             : shared = Wx::NewEventType;
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
-our $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
 our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
 use constant CANVAS_SIZE => [335,335];
@@ -50,6 +49,16 @@ sub new {
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
     $self->{objects} = [];
+    
+    $self->{print}->set_status_cb(sub {
+        my ($percent, $message) = @_;
+        
+        if ($Slic3r::have_threads) {
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([$percent, $message])));
+        } else {
+            $self->on_progress_event($percent, $message);
+        }
+    });
     
     $self->{canvas} = Slic3r::GUI::Plater::2D->new($self, CANVAS_SIZE, $self->{objects}, $self->{model}, $self->{config});
     $self->{canvas}->on_select_object(sub {
@@ -200,31 +209,22 @@ sub new {
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
         my ($self, $event) = @_;
         my ($percent, $message) = @{$event->GetData};
-        $self->statusbar->SetProgress($percent);
-        $self->statusbar->SetStatusText("$message…");
+        $self->on_progress_event($percent, $message);
     });
     
-    EVT_COMMAND($self, -1, $MESSAGE_DIALOG_EVENT, sub {
+    EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
         my ($self, $event) = @_;
-        Wx::MessageDialog->new($self, @{$event->GetData})->ShowModal;
+        Slic3r::GUI::show_error($self, @{$event->GetData});
     });
     
     EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_export_completed(@{$event->GetData});
-    });
-    
-    EVT_COMMAND($self, -1, $EXPORT_FAILED_EVENT, sub {
-        my ($self, $event) = @_;
-        $self->on_export_failed;
+        $self->on_export_completed($event->GetData);
     });
     
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        
-        Slic3r::debugf "Background processing completed.\n";
-        $self->{process_thread}->detach if $self->{process_thread};
-        $self->{process_thread} = undef;
+        $self->on_process_completed($event->GetData);
     });
     
     $self->{canvas}->update_bed_size;
@@ -706,9 +706,23 @@ sub start_background_process {
     }
     
     # start thread
+    @_ = ();
     $self->{process_thread} = threads->create(sub {
-        $self->{print}->process;
-        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
+        local $SIG{'KILL'} = sub {
+            Slic3r::debugf "Background process cancelled; exiting thread...\n";
+            Slic3r::thread_cleanup();
+            threads->exit();
+        };
+        
+        eval {
+            $self->{print}->process;
+        };
+        if ($@) {
+            Slic3r::debugf "Discarding background process error: $@\n";
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, 0));
+        } else {
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, 1));
+        }
         Slic3r::thread_cleanup();
     });
     Slic3r::debugf "Background processing started.\n";
@@ -717,6 +731,10 @@ sub start_background_process {
 sub stop_background_process {
     my ($self) = @_;
     
+    $self->statusbar->SetCancelCallback(undef);
+    $self->statusbar->StopBusy;
+    $self->statusbar->SetStatusText("");
+    
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
         $self->{process_thread}->kill('KILL')->join;
@@ -724,19 +742,32 @@ sub stop_background_process {
     } else {
         Slic3r::debugf "No background process running.\n";
     }
+    
+    # if there's an export process, kill that one as well
+    if ($self->{export_thread}) {
+        Slic3r::debugf "Killing background export process.\n";
+        $self->{export_thread}->kill('KILL')->join;
+        $self->{export_thread} = undef;
+    }
 }
 
 sub export_gcode {
     my $self = shift;
     
     if ($self->{export_gcode_output_file}) {
-        Wx::MessageDialog->new($self, "Another slicing job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
+        Wx::MessageDialog->new($self, "Another export job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
         return;
     }
     
-    # It looks like declaring a local $SIG{__WARN__} prevents the ugly
-    # "Attempt to free unreferenced scalar" warning...
-    local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
+    # if process is not running, validate config
+    # (we assume that if it is running, config is valid)
+    eval {
+        # this will throw errors if config is not valid
+        $self->skeinpanel->config->validate;
+        $self->{print}->validate;
+    };
+    Slic3r::GUI::catch_error($self) and return;
+    
     
     # apply config and validate print
     my $config = $self->skeinpanel->config;
@@ -746,131 +777,119 @@ sub export_gcode {
         $self->{print}->apply_config($config);
         $self->{print}->validate;
     };
-    Slic3r::GUI::catch_error($self) and return;
-    
-    # apply extra variables
-    {
-        my $extra = $self->skeinpanel->extra_variables;
-        $self->{print}->placeholder_parser->set($_, $extra->{$_}) for keys %$extra;
+    if (!$Slic3r::have_threads) {
+        Slic3r::GUI::catch_error($self) and return;
     }
     
     # select output file
-    $self->{output_file} = $main::opt{output};
+    $self->{export_gcode_output_file} = $main::opt{output};
     {
-        my $output_file = $self->{print}->expanded_output_filepath($self->{output_file});
-        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', Slic3r::GUI->output_path(dirname($output_file)),
-            basename($output_file), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
+        my $default_output_file = $self->{print}->expanded_output_filepath($self->{export_gcode_output_file});
+        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', Slic3r::GUI->output_path(dirname($default_output_file)),
+            basename($default_output_file), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
+            $self->{export_gcode_output_file} = undef;
             return;
         }
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
         Slic3r::GUI->save_settings;
-        $self->{output_file} = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
+        $self->{export_gcode_output_file} = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
     
     $self->statusbar->StartBusy;
     
     if ($Slic3r::have_threads) {
-        @_ = ();
-        
-        # some perls (including 5.14.2) crash on threads->exit if we pass lexicals to the thread
-        our $_thread_self = $self;
-        
-        $self->{export_thread} = threads->create(sub {
-            $_thread_self->export_gcode2(
-                $_thread_self->{output_file},
-                progressbar     => sub { Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([@_]))) },
-                message_dialog  => sub { Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_]))) },
-                on_completed    => sub { Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, shared_clone([@_]))) },
-                catch_error     => sub {
-                    Slic3r::GUI::catch_error($_thread_self, $_[0], sub {
-                        Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
-                        Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_FAILED_EVENT, undef));
-                    });
-                },
-            );
-            Slic3r::thread_cleanup();
-        });
         $self->statusbar->SetCancelCallback(sub {
-            $self->{export_thread}->kill('KILL')->join;
-            $self->{export_thread} = undef;
-            $self->statusbar->StopBusy;
+            $self->stop_background_process;
             $self->statusbar->SetStatusText("Export cancelled");
         });
+        
+        # start background process, whose completion event handler
+        # will detect $self->{export_gcode_output_file} and proceed with export
+        $self->start_background_process;
     } else {
-        $self->export_gcode2(
-            $self->{output_file},
-            progressbar => sub {
-                my ($percent, $message) = @_;
-                $self->statusbar->SetProgress($percent);
-                $self->statusbar->SetStatusText("$message…");
-            },
-            message_dialog => sub { Wx::MessageDialog->new($self, @_)->ShowModal },
-            on_completed => sub { $self->on_export_completed(@_) },
-            catch_error => sub { Slic3r::GUI::catch_error($self, @_) && $self->on_export_failed },
-        );
+        eval {
+            $self->{print}->process;
+            $self->{print}->export_gcode(output_file => $self->{export_gcode_output_file});
+        };
+        my $result = !Slic3r::GUI::catch_error($self);
+        $self->on_export_completed($result);
     }
     
     # this method gets executed in a separate thread by wxWidgets since it's a button handler
     Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
-sub export_gcode2 {
-    my $self = shift;
-    my ($output_file, %params) = @_;
-    local $SIG{'KILL'} = sub {
-        Slic3r::debugf "Exporting cancelled; exiting thread...\n";
-        Slic3r::thread_cleanup();
-        threads->exit();
-    } if $Slic3r::have_threads;
+# This gets called only if we have threads.
+sub on_process_completed {
+    my ($self, $result) = @_;
     
-    my $print = $self->{print};
-    
-    eval {
-        {
-            my @warnings = ();
-            local $SIG{__WARN__} = sub { push @warnings, $_[0] };
-            
-            $print->set_status_cb(sub { $params{progressbar}->(@_) });
-            if ($params{export_svg}) {
-                $print->export_svg(output_file => $output_file);
-            } else {
-                $print->process;
-                $print->export_gcode(output_file => $output_file);
-            }
-            $print->set_status_cb(undef);
-            Slic3r::GUI::warning_catcher($self, $Slic3r::have_threads ? sub {
-                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $MESSAGE_DIALOG_EVENT, shared_clone([@_])));
-            } : undef)->($_) for @warnings;
-        }
-        
-        $params{on_completed}->();
-    };
-    $params{catch_error}->();
-}
-
-sub on_export_completed {
-    my $self = shift;
-    
-    $self->{export_thread}->detach if $self->{export_thread};
-    $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
-    my $message = "G-code file exported to $self->{output_file}";
+    $self->statusbar->SetStatusText("");
+    
+    Slic3r::debugf "Background processing completed.\n";
+    $self->{process_thread}->detach if $self->{process_thread};
+    $self->{process_thread} = undef;
+    
+    return if !$result;
+    
+    # if we have an export filename, start a new thread for exporting G-code
+    if ($self->{export_gcode_output_file}) {
+        @_ = ();
+        $self->{export_thread} = threads->create(sub {
+            local $SIG{'KILL'} = sub {
+                Slic3r::debugf "Export process cancelled; exiting thread...\n";
+                Slic3r::thread_cleanup();
+                threads->exit();
+            };
+        
+            eval {
+                $self->{print}->export_gcode(output_file => $self->{export_gcode_output_file});
+            };
+            if ($@) {
+                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $ERROR_EVENT, shared_clone([ $@ ])));
+                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 0));
+            } else {
+                Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 1));
+            }
+            Slic3r::thread_cleanup();
+        });
+        Slic3r::debugf "Background G-code export started.\n";
+    }
+}
+
+# This gets called also if we have no threads.
+sub on_progress_event {
+    my ($self, $percent, $message) = @_;
+    
+    $self->statusbar->SetProgress($percent);
+    $self->statusbar->SetStatusText("$message…");
+}
+
+# This gets called also if we don't have threads.
+sub on_export_completed {
+    my ($self, $result) = @_;
+    
+    $self->statusbar->SetCancelCallback(undef);
+    $self->statusbar->StopBusy;
+    $self->statusbar->SetStatusText("");
+    
+    Slic3r::debugf "Background export process completed.\n";
+    $self->{export_thread}->detach if $self->{export_thread};
+    $self->{export_thread} = undef;
+    
+    my $message;
+    if ($result) {
+        $message = "G-code file exported to " . $self->{export_gcode_output_file};
+    } else {
+        $message = "Export failed";
+    }
+    $self->{export_gcode_output_file} = undef;
     $self->statusbar->SetStatusText($message);
     &Wx::wxTheApp->notify($message);
-}
-
-sub on_export_failed {
-    my $self = shift;
-    
-    $self->{export_thread}->detach if $self->{export_thread};
-    $self->{export_thread} = undef;
-    $self->statusbar->SetCancelCallback(undef);
-    $self->statusbar->StopBusy;
-    $self->statusbar->SetStatusText("Export failed");
 }
 
 sub export_stl {

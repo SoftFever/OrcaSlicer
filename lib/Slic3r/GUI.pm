@@ -264,10 +264,9 @@ sub catch_error {
     my ($self, $cb, $message_dialog) = @_;
     if (my $err = $@) {
         $cb->() if $cb;
-        my @params = ($err, 'Error', wxOK | wxICON_ERROR);
         $message_dialog
-            ? $message_dialog->(@params)
-            : Wx::MessageDialog->new($self, @params)->ShowModal;
+            ? $message_dialog->($err, 'Error', wxOK | wxICON_ERROR)
+            : Slic3r::GUI::show_error($self, $err);
         return 1;
     }
     return 0;
