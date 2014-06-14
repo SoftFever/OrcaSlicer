@@ -77,7 +77,7 @@ sub new {
 sub load_object {
     my ($self, $object) = @_;
     
-    my $bb = $object->raw_mesh->bounding_box;
+    my $bb = $object->instance_bounding_box;
     my $center = $bb->center;
     $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
     $bb->translate(@{ $self->object_shift });
@@ -91,6 +91,7 @@ sub load_object {
     my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
     foreach my $volume (@volumes) {
         my $mesh = $volume->mesh->clone;
+        $object->instances->[0]->transform_mesh($mesh);
         $mesh->translate(@{ $self->object_shift });  
         
         my $material_id = $volume->material_id // '_';
