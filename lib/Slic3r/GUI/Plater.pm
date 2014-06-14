@@ -877,6 +877,8 @@ sub resume_background_process {
 sub export_gcode {
     my $self = shift;
     
+    return if !@{$self->{objects}};
+    
     if ($self->{export_gcode_output_file}) {
         Wx::MessageDialog->new($self, "Another export job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
         return;
@@ -1022,6 +1024,8 @@ sub on_export_completed {
 
 sub export_stl {
     my $self = shift;
+    
+    return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('STL') or return;
     Slic3r::Format::STL->write_file($output_file, $self->{model}, binary => 1);
@@ -1033,6 +1037,8 @@ sub export_stl {
 
 sub export_amf {
     my $self = shift;
+    
+    return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('AMF') or return;
     Slic3r::Format::AMF->write_file($output_file, $self->{model});
