@@ -9,42 +9,6 @@ use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedi
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::Frame';
 
-use constant MI_LOAD_CONF     => &Wx::NewId;
-use constant MI_LOAD_CONFBUNDLE => &Wx::NewId;
-use constant MI_EXPORT_CONF   => &Wx::NewId;
-use constant MI_EXPORT_CONFBUNDLE => &Wx::NewId;
-use constant MI_QUICK_SLICE   => &Wx::NewId;
-use constant MI_REPEAT_QUICK  => &Wx::NewId;
-use constant MI_QUICK_SAVE_AS => &Wx::NewId;
-use constant MI_SLICE_SVG     => &Wx::NewId;
-use constant MI_REPAIR_STL    => &Wx::NewId;
-use constant MI_COMBINE_STLS  => &Wx::NewId;
-
-use constant MI_PLATER_EXPORT_GCODE => &Wx::NewId;
-use constant MI_PLATER_EXPORT_STL   => &Wx::NewId;
-use constant MI_PLATER_EXPORT_AMF   => &Wx::NewId;
-
-use constant MI_OBJECT_REMOVE       => &Wx::NewId;
-use constant MI_OBJECT_MORE         => &Wx::NewId;
-use constant MI_OBJECT_FEWER        => &Wx::NewId;
-use constant MI_OBJECT_ROTATE_45CW  => &Wx::NewId;
-use constant MI_OBJECT_ROTATE_45CCW => &Wx::NewId;
-use constant MI_OBJECT_ROTATE       => &Wx::NewId;
-use constant MI_OBJECT_SCALE        => &Wx::NewId;
-use constant MI_OBJECT_SPLIT        => &Wx::NewId;
-use constant MI_OBJECT_VIEWCUT      => &Wx::NewId;
-use constant MI_OBJECT_SETTINGS     => &Wx::NewId;
-
-use constant MI_TAB_PLATER    => &Wx::NewId;
-use constant MI_TAB_PRINT     => &Wx::NewId;
-use constant MI_TAB_FILAMENT  => &Wx::NewId;
-use constant MI_TAB_PRINTER   => &Wx::NewId;
-
-use constant MI_CONF_WIZARD   => &Wx::NewId;
-use constant MI_WEBSITE       => &Wx::NewId;
-use constant MI_VERSIONCHECK  => &Wx::NewId;
-use constant MI_DOCUMENTATION => &Wx::NewId;
-
 our $last_input_file;
 our $last_output_file;
 our $last_config;
@@ -149,38 +113,51 @@ sub _init_menubar {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L", 'Load exported configuration file');
-        $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E", 'Export current configuration to file');
-        $fileMenu->Append(MI_LOAD_CONFBUNDLE, "&Load Config Bundle…", 'Load presets from a bundle');
-        $fileMenu->Append(MI_EXPORT_CONFBUNDLE, "&Export Config Bundle…", 'Export all presets to file');
+        $self->_append_menu_item($fileMenu, "&Load Config…\tCtrl+L", 'Load exported configuration file', sub {
+            $self->load_config_file;
+        });
+        $self->_append_menu_item($fileMenu, "&Export Config…\tCtrl+E", 'Export current configuration to file', sub {
+            $self->export_config;
+        });
+        $self->_append_menu_item($fileMenu, "&Load Config Bundle…", 'Load presets from a bundle', sub {
+            $self->load_configbundle;
+        });
+        $self->_append_menu_item($fileMenu, "&Export Config Bundle…", 'Export all presets to file', sub {
+            $self->export_configbundle;
+        });
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U", 'Slice file');
-        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as');
-        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice');
+        my $repeat;
+        $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice file', sub {
+            $self->quick_slice;
+            $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+        });
+        $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as', sub {
+            $self->quick_slice(save_as => 1);
+            $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+        });
+        $repeat = $self->_append_menu_item($fileMenu, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice', sub {
+            $self->quick_slice(reslice => 1);
+        });
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
+        $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG', sub {
+            $self->quick_slice(save_as => 1, export_svg => 1);
+        });
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_REPAIR_STL, "Repair STL file…", 'Automatically repair an STL file');
-        $fileMenu->Append(MI_COMBINE_STLS, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file');
+        $self->_append_menu_item($fileMenu, "Repair STL file…", 'Automatically repair an STL file', sub {
+            $self->repair_stl;
+        });
+        $self->_append_menu_item($fileMenu, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file', sub {
+            $self->combine_stls;
+        });
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_PREFERENCES, "Preferences…", 'Application preferences');
+        $self->_append_menu_item($fileMenu, "Preferences…", 'Application preferences', sub {
+            Slic3r::GUI::Preferences->new($self)->ShowModal;
+        });
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
-        EVT_MENU($self, MI_LOAD_CONF, sub { $self->load_config_file });
-        EVT_MENU($self, MI_LOAD_CONFBUNDLE, sub { $self->load_configbundle });
-        EVT_MENU($self, MI_EXPORT_CONF, sub { $self->export_config });
-        EVT_MENU($self, MI_EXPORT_CONFBUNDLE, sub { $self->export_configbundle });
-        EVT_MENU($self, MI_QUICK_SLICE, sub { $self->quick_slice;
-                                               $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file) });
-        EVT_MENU($self, MI_REPEAT_QUICK, sub { $self->quick_slice(reslice => 1) });
-        EVT_MENU($self, MI_QUICK_SAVE_AS, sub { $self->quick_slice(save_as => 1);
-                                                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file) });
-        EVT_MENU($self, MI_SLICE_SVG, sub { $self->quick_slice(save_as => 1, export_svg => 1) });
-        EVT_MENU($self, MI_REPAIR_STL, sub { $self->repair_stl });
-        EVT_MENU($self, MI_COMBINE_STLS, sub { $self->combine_stls });
-        EVT_MENU($self, wxID_PREFERENCES, sub { Slic3r::GUI::Preferences->new($self)->ShowModal });
-        EVT_MENU($self, wxID_EXIT, sub {$_[0]->Close(0)});
+        $self->_append_menu_item($fileMenu, "&Quit", 'Quit Slic3r', sub {
+            $self->Close(0);
+        });
     }
     
     # Plater menu
@@ -188,36 +165,49 @@ sub _init_menubar {
         my $plater = $self->{plater};
         
         $self->{plater_menu} = Wx::Menu->new;
-        $self->{plater_menu}->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
-        $self->{plater_menu}->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
-        $self->{plater_menu}->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
-        EVT_MENU($self, MI_PLATER_EXPORT_GCODE, sub { $plater->export_gcode });
-        EVT_MENU($self, MI_PLATER_EXPORT_STL, sub { $plater->export_stl });
-        EVT_MENU($self, MI_PLATER_EXPORT_AMF, sub { $plater->export_amf });
+        $self->_append_menu_item($self->{plater_menu}, "Export G-code...", 'Export current plate as G-code', sub {
+            $plater->export_gcode;
+        });
+        $self->_append_menu_item($self->{plater_menu}, "Export STL...", 'Export current plate as STL', sub {
+            $plater->export_stl;
+        });
+        $self->_append_menu_item($self->{plater_menu}, "Export AMF...", 'Export current plate as AMF', sub {
+            $plater->export_amf;
+        });
         
         $self->{object_menu} = Wx::Menu->new;
-        $self->{object_menu}->Append(MI_OBJECT_REMOVE, "Delete\tCtrl+Del", 'Remove the selected object');
-        $self->{object_menu}->Append(MI_OBJECT_MORE, "Increase copies\tCtrl++", 'Place one more copy of the selected object');
-        $self->{object_menu}->Append(MI_OBJECT_FEWER, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object');
+        $self->_append_menu_item($self->{object_menu}, "Delete\tCtrl+Del", 'Remove the selected object', sub {
+            $plater->remove;
+        });
+        $self->_append_menu_item($self->{object_menu}, "Increase copies\tCtrl++", 'Place one more copy of the selected object', sub {
+            $plater->increase;
+        });
+        $self->_append_menu_item($self->{object_menu}, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
+            $plater->decrease;
+        });
         $self->{object_menu}->AppendSeparator();
-        $self->{object_menu}->Append(MI_OBJECT_ROTATE_45CW, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise');
-        $self->{object_menu}->Append(MI_OBJECT_ROTATE_45CCW, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise');
-        $self->{object_menu}->Append(MI_OBJECT_ROTATE, "Rotate…", 'Rotate the selected object by an arbitrary angle around Z axis');
-        $self->{object_menu}->Append(MI_OBJECT_SCALE, "Scale…", 'Scale the selected object by an arbitrary factor');
-        $self->{object_menu}->Append(MI_OBJECT_SPLIT, "Split", 'Split the selected object into individual parts');
-        $self->{object_menu}->Append(MI_OBJECT_VIEWCUT, "View/Cut…", 'Open the 3D cutting tool');
+        $self->_append_menu_item($self->{object_menu}, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
+            $plater->rotate(-45);
+        });
+        $self->_append_menu_item($self->{object_menu}, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
+            $plater->rotate(+45);
+        });
+        $self->_append_menu_item($self->{object_menu}, "Rotate…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
+            $plater->rotate(undef);
+        });
+        $self->_append_menu_item($self->{object_menu}, "Scale…", 'Scale the selected object by an arbitrary factor', sub {
+            $plater->changescale;
+        });
+        $self->_append_menu_item($self->{object_menu}, "Split", 'Split the selected object into individual parts', sub {
+            $plater->split_object;
+        });
+        $self->_append_menu_item($self->{object_menu}, "View/Cut…", 'Open the 3D cutting tool', sub {
+            $plater->object_cut_dialog;
+        });
         $self->{object_menu}->AppendSeparator();
-        $self->{object_menu}->Append(MI_OBJECT_SETTINGS, "Settings…", 'Open the object editor dialog');
-        EVT_MENU($self, MI_OBJECT_REMOVE, sub { $plater->remove });
-        EVT_MENU($self, MI_OBJECT_MORE, sub { $plater->increase });
-        EVT_MENU($self, MI_OBJECT_FEWER, sub { $plater->decrease });
-        EVT_MENU($self, MI_OBJECT_ROTATE_45CW, sub { $plater->rotate(-45) });
-        EVT_MENU($self, MI_OBJECT_ROTATE_45CCW, sub { $plater->rotate(45) });
-        EVT_MENU($self, MI_OBJECT_ROTATE, sub { $plater->rotate(undef) });
-        EVT_MENU($self, MI_OBJECT_SCALE, sub { $plater->changescale });
-        EVT_MENU($self, MI_OBJECT_SPLIT, sub { $plater->split_object });
-        EVT_MENU($self, MI_OBJECT_VIEWCUT, sub { $plater->object_cut_dialog });
-        EVT_MENU($self, MI_OBJECT_SETTINGS, sub { $plater->object_settings_dialog });
+        $self->_append_menu_item($self->{object_menu}, "Settings…", 'Open the object editor dialog', sub {
+            $plater->object_settings_dialog;
+        });
         $self->on_plater_selection_changed(0);
     }
     
@@ -225,32 +215,41 @@ sub _init_menubar {
     my $windowMenu = Wx::Menu->new;
     {
         my $tab_count = $self->{no_plater} ? 3 : 4;
-        $windowMenu->Append(MI_TAB_PLATER, "Select &Plater Tab\tCtrl+1", 'Show the plater') unless $self->{no_plater};
-        $windowMenu->Append(MI_TAB_PRINT, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings');
-        $windowMenu->Append(MI_TAB_FILAMENT, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings');
-        $windowMenu->Append(MI_TAB_PRINTER, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings');
-        EVT_MENU($self, MI_TAB_PLATER, sub { $self->select_tab(0) }) unless $self->{no_plater};
-        EVT_MENU($self, MI_TAB_PRINT, sub { $self->select_tab($tab_count-3) });
-        EVT_MENU($self, MI_TAB_FILAMENT, sub { $self->select_tab($tab_count-2) });
-        EVT_MENU($self, MI_TAB_PRINTER, sub { $self->select_tab($tab_count-1) });
+        $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
+            $self->select_tab(0);
+        }) unless $self->{no_plater};
+        $self->_append_menu_item($windowMenu, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings', sub {
+            $self->select_tab($tab_count-3);
+        });
+        $self->_append_menu_item($windowMenu, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings', sub {
+            $self->select_tab($tab_count-2);
+        });
+        $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
+            $self->select_tab($tab_count-1);
+        });
     }
     
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
+        $self->_append_menu_item($helpMenu, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard", sub {
+            $self->config_wizard;
+        });
         $helpMenu->AppendSeparator();
-        $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
-        my $versioncheck = $helpMenu->Append(MI_VERSIONCHECK, "Check for &Updates...", 'Check for new Slic3r versions');
+        $self->_append_menu_item($helpMenu, "Slic3r &Website", 'Open the Slic3r website in your browser', sub {
+            Wx::LaunchDefaultBrowser('http://slic3r.org/');
+        });
+        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", 'Check for new Slic3r versions', sub {
+            wxTheApp->check_version(manual => 1);
+        });
         $versioncheck->Enable(wxTheApp->have_version_check);
-        $helpMenu->Append(MI_DOCUMENTATION, "Slic3r &Manual", 'Open the Slic3r manual in your browser');
+        $self->_append_menu_item($helpMenu, "Slic3r &Manual", 'Open the Slic3r manual in your browser', sub {
+            Wx::LaunchDefaultBrowser('http://manual.slic3r.org/');
+        });
         $helpMenu->AppendSeparator();
-        $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
-        EVT_MENU($self, MI_CONF_WIZARD, sub { $self->config_wizard });
-        EVT_MENU($self, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
-        EVT_MENU($self, MI_VERSIONCHECK, sub { wxTheApp->check_version(manual => 1) });
-        EVT_MENU($self, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('http://manual.slic3r.org/') });
-        EVT_MENU($self, wxID_ABOUT, sub { wxTheApp->about });
+        $self->_append_menu_item($helpMenu, "&About Slic3r", 'Show about dialog', sub {
+            wxTheApp->about;
+        });
     }
     
     # menubar
@@ -738,6 +737,15 @@ sub check_unsaved_changes {
 sub select_tab {
     my ($self, $tab) = @_;
     $self->{tabpanel}->ChangeSelection($tab);
+}
+
+sub _append_menu_item {
+    my ($self, $menu, $string, $description, $cb) = @_;
+    
+    my $id = &Wx::NewId();
+    my $item = $menu->Append($id, $string, $description);
+    EVT_MENU($self, $id, $cb);
+    return $item;
 }
 
 1;
