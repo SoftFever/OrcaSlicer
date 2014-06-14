@@ -176,61 +176,7 @@ sub _init_menubar {
             $plater->export_amf;
         });
         
-        $self->{object_menu} = Wx::Menu->new;
-        $self->_append_menu_item($self->{object_menu}, "Delete\tCtrl+Del", 'Remove the selected object', sub {
-            $plater->remove;
-        });
-        $self->_append_menu_item($self->{object_menu}, "Increase copies\tCtrl++", 'Place one more copy of the selected object', sub {
-            $plater->increase;
-        });
-        $self->_append_menu_item($self->{object_menu}, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
-            $plater->decrease;
-        });
-        $self->{object_menu}->AppendSeparator();
-        $self->_append_menu_item($self->{object_menu}, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
-            $plater->rotate(-45);
-        });
-        $self->_append_menu_item($self->{object_menu}, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
-            $plater->rotate(+45);
-        });
-        
-        my $rotateMenu = Wx::Menu->new;
-        $self->{object_menu}->AppendSubMenu($rotateMenu, "Rotate…", 'Rotate the selected object by an arbitrary angle');
-        $self->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
-            $plater->rotate(undef, X);
-        });
-        $self->_append_menu_item($rotateMenu, "Around Y axis…", 'Rotate the selected object by an arbitrary angle around Y axis', sub {
-            $plater->rotate(undef, Y);
-        });
-        $self->_append_menu_item($rotateMenu, "Around Z axis…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
-            $plater->rotate(undef, Z);
-        });
-        
-        my $flipMenu = Wx::Menu->new;
-        $self->{object_menu}->AppendSubMenu($flipMenu, "Flip…", 'Mirror the selected object');
-        $self->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
-            $plater->flip(X);
-        });
-        $self->_append_menu_item($flipMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
-            $plater->flip(Y);
-        });
-        $self->_append_menu_item($flipMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
-            $plater->flip(Z);
-        });
-        
-        $self->_append_menu_item($self->{object_menu}, "Scale…", 'Scale the selected object by an arbitrary factor', sub {
-            $plater->changescale;
-        });
-        $self->_append_menu_item($self->{object_menu}, "Split", 'Split the selected object into individual parts', sub {
-            $plater->split_object;
-        });
-        $self->_append_menu_item($self->{object_menu}, "View/Cut…", 'Open the 3D cutting tool', sub {
-            $plater->object_cut_dialog;
-        });
-        $self->{object_menu}->AppendSeparator();
-        $self->_append_menu_item($self->{object_menu}, "Settings…", 'Open the object editor dialog', sub {
-            $plater->object_settings_dialog;
-        });
+        $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
     }
     

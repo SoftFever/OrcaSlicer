@@ -26,6 +26,7 @@ sub new {
     $self->{config}             = $config;
     $self->{on_select_object}   = sub {};
     $self->{on_double_click}    = sub {};
+    $self->{on_right_click}     = sub {};
     $self->{on_instance_moved}  = sub {};
     
     $self->{objects_brush}      = Wx::Brush->new(Wx::Colour->new(210,210,210), wxSOLID);
@@ -51,6 +52,11 @@ sub on_select_object {
 sub on_double_click {
     my ($self, $cb) = @_;
     $self->{on_double_click} = $cb;
+}
+
+sub on_right_click {
+    my ($self, $cb) = @_;
+    $self->{on_right_click} = $cb;
 }
 
 sub on_instance_moved {
@@ -170,21 +176,29 @@ sub mouse_event {
     my $point = $event->GetPosition;
     my $pos = $self->point_to_model_units([ $point->x, $point->y ]);  #]]
     $pos = Slic3r::Point->new_scale(@$pos);
-    if ($event->ButtonDown(&Wx::wxMOUSE_BTN_LEFT)) {
+    if ($event->ButtonDown) {
         $self->{on_select_object}->(undef);
-        for my $obj_idx (0 .. $#{$self->{objects}}) {
+        OBJECTS: for my $obj_idx (0 .. $#{$self->{objects}}) {
             my $object = $self->{objects}->[$obj_idx];
             for my $instance_idx (0 .. $#{ $object->instance_thumbnails }) {
                 my $thumbnail = $object->instance_thumbnails->[$instance_idx];
                 if (defined first { $_->contour->contains_point($pos) } @$thumbnail) {
                     $self->{on_select_object}->($obj_idx);
-                    my $instance = $self->{model}->objects->[$obj_idx]->instances->[$instance_idx];
-                    my $instance_origin = [ map scale($_), @{$instance->offset} ];
-                    $self->{drag_start_pos} = [   # displacement between the click and the instance origin in scaled model units
-                        $pos->x - $instance_origin->[X],
-                        $pos->y - $instance_origin->[Y],  #-
-                    ];
-                    $self->{drag_object} = [ $obj_idx, $instance_idx ];
+                    
+                    if ($event->LeftDown) {
+                        # start dragging
+                        my $instance = $self->{model}->objects->[$obj_idx]->instances->[$instance_idx];
+                        my $instance_origin = [ map scale($_), @{$instance->offset} ];
+                        $self->{drag_start_pos} = [   # displacement between the click and the instance origin in scaled model units
+                            $pos->x - $instance_origin->[X],
+                            $pos->y - $instance_origin->[Y],  #-
+                        ];
+                        $self->{drag_object} = [ $obj_idx, $instance_idx ];
+                    } elsif ($event->RightDown) {
+                        $self->{on_right_click}->($point);
+                    }
+                    
+                    last OBJECTS;
                 }
             }
         }

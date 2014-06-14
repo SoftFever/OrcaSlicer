@@ -77,6 +77,16 @@ sub new {
     $self->{canvas}->on_double_click(sub {
         $self->object_cut_dialog if $self->selected_object;
     });
+    $self->{canvas}->on_right_click(sub {
+        my ($click_pos) = @_;
+        
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+        
+        my $menu = $self->object_menu;
+        $self->{canvas}->PopupMenu($menu, $click_pos);
+        $menu->Destroy;
+    });
     $self->{canvas}->on_instance_moved(sub {
         $self->update;
     });
@@ -1335,6 +1345,69 @@ sub validate_config {
 sub statusbar {
     my $self = shift;
     return $self->GetFrame->{statusbar};
+}
+
+sub object_menu {
+    my ($self) = @_;
+    
+    my $frame = $self->GetFrame;
+    my $menu = Wx::Menu->new;
+    $frame->_append_menu_item($menu, "Delete\tCtrl+Del", 'Remove the selected object', sub {
+        $self->remove;
+    });
+    $frame->_append_menu_item($menu, "Increase copies\tCtrl++", 'Place one more copy of the selected object', sub {
+        $self->increase;
+    });
+    $frame->_append_menu_item($menu, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
+        $self->decrease;
+    });
+    $menu->AppendSeparator();
+    $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
+        $self->rotate(-45);
+    });
+    $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
+        $self->rotate(+45);
+    });
+    
+    my $rotateMenu = Wx::Menu->new;
+    $menu->AppendSubMenu($rotateMenu, "Rotate…", 'Rotate the selected object by an arbitrary angle');
+    $frame->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
+        $self->rotate(undef, X);
+    });
+    $frame->_append_menu_item($rotateMenu, "Around Y axis…", 'Rotate the selected object by an arbitrary angle around Y axis', sub {
+        $self->rotate(undef, Y);
+    });
+    $frame->_append_menu_item($rotateMenu, "Around Z axis…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
+        $self->rotate(undef, Z);
+    });
+    
+    my $flipMenu = Wx::Menu->new;
+    $menu->AppendSubMenu($flipMenu, "Flip…", 'Mirror the selected object');
+    $frame->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
+        $self->flip(X);
+    });
+    $frame->_append_menu_item($flipMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
+        $self->flip(Y);
+    });
+    $frame->_append_menu_item($flipMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
+        $self->flip(Z);
+    });
+    
+    $frame->_append_menu_item($menu, "Scale…", 'Scale the selected object by an arbitrary factor', sub {
+        $self->changescale;
+    });
+    $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
+        $self->split_object;
+    });
+    $frame->_append_menu_item($menu, "View/Cut…", 'Open the 3D cutting tool', sub {
+        $self->object_cut_dialog;
+    });
+    $menu->AppendSeparator();
+    $frame->_append_menu_item($menu, "Settings…", 'Open the object editor dialog', sub {
+        $self->object_settings_dialog;
+    });
+    
+    return $menu;
 }
 
 package Slic3r::GUI::Plater::DropTarget;
