@@ -3,6 +3,8 @@
 %{
 #include <myinit.h>
 #include "Point.hpp"
+#include "Polygon.hpp"
+#include "Polyline.hpp"
 %}
 
 %name{Slic3r::Point} class Point {
