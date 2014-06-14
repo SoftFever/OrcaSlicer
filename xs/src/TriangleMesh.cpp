@@ -193,6 +193,21 @@ void TriangleMesh::rotate_z(float angle)
     stl_rotate_z(&(this->stl), angle);
 }
 
+void TriangleMesh::flip_x()
+{
+    stl_mirror_yz(&this->stl);
+}
+
+void TriangleMesh::flip_y()
+{
+    stl_mirror_xz(&this->stl);
+}
+
+void TriangleMesh::flip_z()
+{
+    stl_mirror_xy(&this->stl);
+}
+
 void TriangleMesh::align_to_origin()
 {
     this->translate(

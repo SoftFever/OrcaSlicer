@@ -206,6 +206,18 @@ sub _init_menubar {
             $plater->rotate(undef, Z);
         });
         
+        my $flipMenu = Wx::Menu->new;
+        $self->{object_menu}->AppendSubMenu($flipMenu, "Flip…", 'Mirror the selected object');
+        $self->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
+            $plater->flip(X);
+        });
+        $self->_append_menu_item($flipMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
+            $plater->flip(Y);
+        });
+        $self->_append_menu_item($flipMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
+            $plater->flip(Z);
+        });
+        
         $self->_append_menu_item($self->{object_menu}, "Scale…", 'Scale the selected object by an arbitrary factor', sub {
             $plater->changescale;
         });

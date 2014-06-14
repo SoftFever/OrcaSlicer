@@ -578,8 +578,8 @@ sub rotate {
         } else {
             # rotation around X and Y needs to be performed on mesh
             # so we first apply any Z rotation
-            if ($model_object->instances->[0]->rotation != 0) {
-                $model_object->rotate(deg2rad($model_object->instances->[0]->rotation), Z);
+            if ($model_instance->rotation != 0) {
+                $model_object->rotate(deg2rad($model_instance->rotation), Z);
                 $_->set_rotation(0) for @{ $model_object->instances };
             }
             $model_object->rotate(deg2rad($angle), $axis);
@@ -593,6 +593,35 @@ sub rotate {
         $self->schedule_background_process;
         
     }
+    $self->selection_changed;  # refresh info (size etc.)
+    $self->update;
+    $self->{canvas}->Refresh;
+}
+
+sub flip {
+    my ($self, $axis) = @_;
+    
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    my $model_instance = $model_object->instances->[0];
+    
+    # apply Z rotation before flipping
+    if ($model_instance->rotation != 0) {
+        $model_object->rotate(deg2rad($model_instance->rotation), Z);
+        $_->set_rotation(0) for @{ $model_object->instances };
+    }
+    
+    $model_object->flip($axis);
+    $model_object->update_bounding_box;
+    $self->make_thumbnail($obj_idx);
+        
+    # update print and start background processing
+    $self->stop_background_process;
+    $self->{print}->add_model_object($model_object, $obj_idx);
+    $self->schedule_background_process;
+    
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
     $self->{canvas}->Refresh;

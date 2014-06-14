@@ -479,6 +479,19 @@ sub rotate {
     $self->invalidate_bounding_box;
 }
 
+sub flip {
+    my ($self, $axis) = @_;
+    
+    if ($axis == X) {
+        $_->mesh->flip_x for @{$self->volumes};
+    } elsif ($axis == Y) {
+        $_->mesh->flip_y for @{$self->volumes};
+    } elsif ($axis == Z) {
+        $_->mesh->flip_z for @{$self->volumes};
+    }
+    $self->invalidate_bounding_box;
+}
+
 sub materials_count {
     my $self = shift;
     
