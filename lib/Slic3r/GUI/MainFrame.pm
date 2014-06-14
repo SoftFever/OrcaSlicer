@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
+use File::Basename qw/dirname/;
 use List::Util qw(min);
 use Slic3r::Geometry qw(X Y Z);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
