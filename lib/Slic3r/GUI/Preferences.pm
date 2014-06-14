@@ -28,7 +28,7 @@ sub new {
                 label       => 'Check for updates',
                 tooltip     => 'If this is enabled, Slic3r will check for updates daily and display a reminder if a newer version is available.',
                 default     => $Slic3r::GUI::Settings->{_}{version_check} // 1,
-                readonly    => !Slic3r::GUI->have_version_check,
+                readonly    => !&Wx::wxTheApp->have_version_check,
             },
             {
                 opt_key     => 'remember_output_path',
@@ -77,7 +77,7 @@ sub _accept {
     }
     
     $Slic3r::GUI::Settings->{_}{$_} = $self->{values}{$_} for keys %{$self->{values}};
-    Slic3r::GUI->save_settings;
+    &Wx::wxTheApp->save_settings;
     
     $self->EndModal(wxID_OK);
     $self->Close;  # needed on Linux

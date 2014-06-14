@@ -217,7 +217,7 @@ sub on_select_preset {
         $self->select_default_preset;
     }
     
-    Slic3r::GUI->save_settings;
+    &Wx::wxTheApp->save_settings;
 }
 
 sub get_preset_config {
@@ -347,7 +347,7 @@ sub load_presets {
         name    => '- default -',
     }];
     
-    my %presets = Slic3r::GUI->presets($self->name);
+    my %presets = &Wx::wxTheApp->presets($self->name);
     foreach my $preset_name (sort keys %presets) {
         push @{$self->{presets}}, {
             name => $preset_name,

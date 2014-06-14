@@ -8,6 +8,7 @@ use FindBin;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::MainFrame;
+use Slic3r::GUI::Notifier;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::2D;
 use Slic3r::GUI::Plater::ObjectPartsPanel;
@@ -16,8 +17,8 @@ use Slic3r::GUI::Plater::ObjectPreviewDialog;
 use Slic3r::GUI::Plater::ObjectSettingsDialog;
 use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::Preferences;
+use Slic3r::GUI::ProgressStatusBar;
 use Slic3r::GUI::OptionsGroup;
-use Slic3r::GUI::SkeinPanel;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 
@@ -27,6 +28,17 @@ use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
     :filedialog);
 use Wx::Event qw(EVT_IDLE);
 use base 'Wx::App';
+
+use constant FILE_WILDCARDS => {
+    known   => 'Known files (*.stl, *.obj, *.amf, *.xml)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML',
+    stl     => 'STL files (*.stl)|*.stl;*.STL',
+    obj     => 'OBJ files (*.obj)|*.obj;*.OBJ',
+    amf     => 'AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML',
+    ini     => 'INI files *.ini|*.ini;*.INI',
+    gcode   => 'G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC',
+    svg     => 'SVG files *.svg|*.svg;*.SVG',
+};
+use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf)};
 
 our $datadir;
 our $no_plater;
@@ -50,7 +62,7 @@ our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
 
 sub OnInit {
-    my $self = shift;
+    my ($self) = @_;
     
     $self->SetAppName('Slic3r');
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
@@ -81,30 +93,29 @@ sub OnInit {
         $Settings->{_}{background_processing} //= 1;
     }
     $Settings->{_}{version} = $Slic3r::VERSION;
-    Slic3r::GUI->save_settings;
+    &Wx::wxTheApp->save_settings;
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
-    my $frame = Slic3r::GUI::MainFrame->new(
+    $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         mode        => $mode // $Settings->{_}{mode},
         no_plater   => $no_plater,
     );
-    $self->{skeinpanel} = $frame->{skeinpanel};
     $self->SetTopWindow($frame);
     
     if (!$run_wizard && (!defined $last_version || $last_version ne $Slic3r::VERSION)) {
         # user was running another Slic3r version on this computer
         if (!defined $last_version || $last_version =~ /^0\./) {
-            show_info($self->{skeinpanel}, "Hello! Support material was improved since the "
+            show_info($self->{mainframe}, "Hello! Support material was improved since the "
                 . "last version of Slic3r you used. It is strongly recommended to revert "
                 . "your support material settings to the factory defaults and start from "
                 . "those. Enjoy and provide feedback!", "Support Material");
         }
     }
-    $self->{skeinpanel}->config_wizard if $run_wizard;
+    $self->{mainframe}->config_wizard if $run_wizard;
     
-    Slic3r::GUI->check_version
-        if Slic3r::GUI->have_version_check
+    &Wx::wxTheApp->check_version
+        if &Wx::wxTheApp->have_version_check
             && ($Settings->{_}{version_check} // 1)
             && (!$Settings->{_}{last_version_check} || (time - $Settings->{_}{last_version_check}) >= 86400);
     
@@ -118,13 +129,14 @@ sub OnInit {
 }
 
 sub about {
-    my $frame = shift;
+    my ($self) = @_;
     
-    my $about = Slic3r::GUI::AboutDialog->new($frame);
+    my $about = Slic3r::GUI::AboutDialog->new(undef);
     $about->ShowModal;
     $about->Destroy;
 }
 
+# static method accepting a wxWindow object as first parameter
 sub catch_error {
     my ($self, $cb, $message_dialog) = @_;
     if (my $err = $@) {
@@ -137,24 +149,28 @@ sub catch_error {
     return 0;
 }
 
+# static method accepting a wxWindow object as first parameter
 sub show_error {
     my $self = shift;
     my ($message) = @_;
     Wx::MessageDialog->new($self, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
 }
 
+# static method accepting a wxWindow object as first parameter
 sub show_info {
     my $self = shift;
     my ($message, $title) = @_;
     Wx::MessageDialog->new($self, $message, $title || 'Notice', wxOK | wxICON_INFORMATION)->ShowModal;
 }
 
+# static method accepting a wxWindow object as first parameter
 sub fatal_error {
     my $self = shift;
     $self->show_error(@_);
     exit 1;
 }
 
+# static method accepting a wxWindow object as first parameter
 sub warning_catcher {
     my ($self, $message_dialog) = @_;
     return sub {
@@ -168,8 +184,7 @@ sub warning_catcher {
 }
 
 sub notify {
-    my $self = shift;
-    my ($message) = @_;
+    my ($self, $message) = @_;
 
     my $frame = $self->GetTopWindow;
     # try harder to attract user attention on OS X
@@ -180,13 +195,12 @@ sub notify {
 }
 
 sub save_settings {
-    my $class = shift;
-    
+    my ($self) = @_;
     Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
 }
 
 sub presets {
-    my ($class, $section) = @_;
+    my ($self, $section) = @_;
     
     my %presets = ();
     opendir my $dh, "$Slic3r::GUI::datadir/$section" or die "Failed to read directory $Slic3r::GUI::datadir/$section (errno: $!)\n";
@@ -201,15 +215,15 @@ sub presets {
 }
 
 sub have_version_check {
-    my $class = shift;
+    my ($self) = @_;
     
     # return an explicit 0
     return ($Slic3r::have_threads && $Slic3r::build && eval "use LWP::UserAgent; 1") || 0;
 }
 
 sub check_version {
-    my $class = shift;
-    my %p = @_;
+    my ($self, %p) = @_;
+    
     Slic3r::debugf "Checking for updates...\n";
     
     @_ = ();
@@ -226,7 +240,7 @@ sub check_version {
                 Slic3r::GUI::show_info(undef, "You're using the latest version. No updates are available.") if $p{manual};
             }
             $Settings->{_}{last_version_check} = time();
-            Slic3r::GUI->save_settings;
+            &Wx::wxTheApp->save_settings;
         } else {
             Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $p{manual};
         }
@@ -235,8 +249,7 @@ sub check_version {
 }
 
 sub output_path {
-    my $class = shift;
-    my ($dir) = @_;
+    my ($self, $dir) = @_;
     
     return ($Settings->{_}{last_output_path} && $Settings->{_}{remember_output_path})
         ? $Settings->{_}{last_output_path}
@@ -244,14 +257,14 @@ sub output_path {
 }
 
 sub open_model {
-    my ($self) = @_;
+    my ($self, $window) = @_;
     
     my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory}
            || $Slic3r::GUI::Settings->{recent}{config_directory}
            || '';
     
-    my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "",
-        &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    my $dialog = Wx::FileDialog->new($window // $self->GetTopWindow, 'Choose one or more files (STL/OBJ/AMF):', $dir, "",
+        MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;
@@ -263,189 +276,8 @@ sub open_model {
 }
 
 sub CallAfter {
-    my $class = shift;
-    my ($cb) = @_;
+    my ($self, $cb) = @_;
     push @cb, $cb;
-}
-
-package Slic3r::GUI::ProgressStatusBar;
-use Wx qw(:gauge :misc);
-use base 'Wx::StatusBar';
-
-sub new {
-    my $class = shift;
-    my $self = $class->SUPER::new(@_);
-    
-    $self->{busy} = 0;
-    $self->{timer} = Wx::Timer->new($self);
-    $self->{prog} = Wx::Gauge->new($self, wxGA_HORIZONTAL, 100, wxDefaultPosition, wxDefaultSize);
-    $self->{prog}->Hide;
-    $self->{cancelbutton} = Wx::Button->new($self, -1, "Cancel", wxDefaultPosition, wxDefaultSize);
-    $self->{cancelbutton}->Hide;
-    
-    $self->SetFieldsCount(3);
-    $self->SetStatusWidths(-1, 150, 155);
-    
-    Wx::Event::EVT_TIMER($self, \&OnTimer, $self->{timer});
-    Wx::Event::EVT_SIZE($self, \&OnSize);
-    Wx::Event::EVT_BUTTON($self, $self->{cancelbutton}, sub {
-        $self->{cancel_cb}->();
-        $self->{cancelbutton}->Hide;
-    });
-    
-    return $self;
-}
-
-sub DESTROY {
-    my $self = shift;    
-    $self->{timer}->Stop if $self->{timer} && $self->{timer}->IsRunning;
-}
-
-sub OnSize {
-    my ($self, $event) = @_;
-    
-    my %fields = (
-        # 0 is reserved for status text
-        1 => $self->{cancelbutton},
-        2 => $self->{prog},
-    );
-
-    foreach (keys %fields) {
-        my $rect = $self->GetFieldRect($_);
-        my $offset = &Wx::wxGTK ? 1 : 0; # add a cosmetic 1 pixel offset on wxGTK
-        my $pos = [$rect->GetX + $offset, $rect->GetY + $offset];
-        $fields{$_}->Move($pos);
-        $fields{$_}->SetSize($rect->GetWidth - $offset, $rect->GetHeight);
-    }
-
-    $event->Skip;
-}
-
-sub OnTimer {
-    my ($self, $event) = @_;
-    
-    if ($self->{prog}->IsShown) {
-        $self->{timer}->Stop;
-    }
-    $self->{prog}->Pulse if $self->{_busy};
-}
-
-sub SetCancelCallback {
-    my $self = shift;
-    my ($cb) = @_;
-    $self->{cancel_cb} = $cb;
-    $cb ? $self->{cancelbutton}->Show : $self->{cancelbutton}->Hide;
-}
-
-sub Run {
-    my $self = shift;
-    my $rate = shift || 100;
-    if (!$self->{timer}->IsRunning) {
-        $self->{timer}->Start($rate);
-    }
-}
-
-sub GetProgress {
-    my $self = shift;
-    return $self->{prog}->GetValue;
-}
-
-sub SetProgress {
-    my $self = shift;
-    my ($val) = @_;
-    if (!$self->{prog}->IsShown) {
-        $self->ShowProgress(1);
-    }
-    if ($val == $self->{prog}->GetRange) {
-        $self->{prog}->SetValue(0);
-        $self->ShowProgress(0);
-    } else {
-        $self->{prog}->SetValue($val);
-    }
-}
-
-sub SetRange {
-    my $self = shift;
-    my ($val) = @_;
-    
-    if ($val != $self->{prog}->GetRange) {
-        $self->{prog}->SetRange($val);
-    }
-}
-
-sub ShowProgress {
-    my $self = shift;
-    my ($show) = @_;
-    
-    $self->{prog}->Show($show);
-    $self->{prog}->Pulse;
-}
-
-sub StartBusy {
-    my $self = shift;
-    my $rate = shift || 100;
-    
-    $self->{_busy} = 1;
-    $self->ShowProgress(1);
-    if (!$self->{timer}->IsRunning) {
-        $self->{timer}->Start($rate);
-    }
-}
-
-sub StopBusy {
-    my $self = shift;
-    
-    $self->{timer}->Stop;
-    $self->ShowProgress(0);
-    $self->{prog}->SetValue(0);
-    $self->{_busy} = 0;
-}
-
-sub IsBusy {
-    my $self = shift;
-    return $self->{_busy};
-}
-
-package Slic3r::GUI::Notifier;
-
-sub new {
-    my $class = shift;
-    my $self;
-
-    $self->{icon} = "$Slic3r::var/Slic3r.png";
-
-    if (eval 'use Growl::GNTP; 1') {
-        # register with growl
-        eval {
-            $self->{growler} = Growl::GNTP->new(AppName => 'Slic3r', AppIcon => $self->{icon});
-            $self->{growler}->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
-        };
-    }
-
-    bless $self, $class;
-
-    return $self;
-}
-
-sub notify {
-    my ($self, $message) = @_;
-    my $title = 'Slicing Done!';
-
-    eval {
-        $self->{growler}->notify(Event => 'SKEIN_DONE', Title => $title, Message => $message)
-            if $self->{growler};
-    };
-    # Net::DBus is broken in multithreaded environment
-    if (0 && eval 'use Net::DBus; 1') {
-        eval {
-            my $session = Net::DBus->session;
-            my $serv = $session->get_service('org.freedesktop.Notifications');
-            my $notifier = $serv->get_object('/org/freedesktop/Notifications',
-                                             'org.freedesktop.Notifications');
-            $notifier->Notify('Slic3r', 0, $self->{icon}, $title, $message, [], {}, -1);
-            undef $Net::DBus::bus_session;
-        };
-    }
 }
 
 1;

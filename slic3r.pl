@@ -96,8 +96,8 @@ if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     }
     $gui = Slic3r::GUI->new;
     setlocale(LC_NUMERIC, 'C');
-    $gui->{skeinpanel}->load_config_file($_) for @{$opt{load}};
-    $gui->{skeinpanel}->load_config($cli_config);
+    $gui->{mainframe}->load_config_file($_) for @{$opt{load}};
+    $gui->{mainframe}->load_config($cli_config);
     $gui->MainLoop;
     exit;
 }

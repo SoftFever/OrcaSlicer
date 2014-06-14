@@ -208,7 +208,7 @@ sub _build_field {
             };
             EVT_COMBOBOX($self->parent, $field, sub {
                 # Without CallAfter, the field text is not populated on Windows.
-                Slic3r::GUI->CallAfter(sub {
+                &Wx::wxTheApp->CallAfter(sub {
                     $field->SetValue($opt->{values}[ $field->GetSelection ]);  # set the text field to the selected value
                     $self->_on_change($opt_key, $on_change);
                 });

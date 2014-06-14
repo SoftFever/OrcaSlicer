@@ -109,7 +109,7 @@ sub update_optgroup {
                 EVT_BUTTON($self, $btn, sub {
                     $self->{config}->erase($opt_key);
                     $self->{on_change}->() if $self->{on_change};
-                    Slic3r::GUI->CallAfter(sub { $self->update_optgroup });
+                    &Wx::wxTheApp->CallAfter(sub { $self->update_optgroup });
                 });
                 return $btn;
             },

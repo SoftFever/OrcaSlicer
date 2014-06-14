@@ -251,7 +251,7 @@ sub new {
     
     {
         my $presets;
-        if ($self->skeinpanel->{mode} eq 'expert') {
+        if ($self->GetFrame->{mode} eq 'expert') {
             $presets = Wx::BoxSizer->new(wxVERTICAL);
             my %group_labels = (
                 print       => 'Print settings',
@@ -352,23 +352,15 @@ sub on_select_preset {
 		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0]) . ".ini";
 		$Slic3r::GUI::Settings->{presets}{"filament_${_}"} = $choice->GetString($filament_presets[$_])
 			for 1 .. $#filament_presets;
-		Slic3r::GUI->save_settings;
+		&Wx::wxTheApp->save_settings;
 		return;
 	}
-	$self->skeinpanel->{options_tabs}{$group}->select_preset($choice->GetSelection);
+	$self->GetFrame->{options_tabs}{$group}->select_preset($choice->GetSelection);
 }
 
 sub GetFrame {
     my ($self) = @_;
-    
-    my $frame = &Wx::GetTopLevelParent($self);
-    bless $frame, 'Slic3r::GUI::MainFrame';  # Wx returns a generic Wx::Frame object
-    return $frame;
-}
-
-sub skeinpanel {
-    my $self = shift;
-    return $self->GetParent->GetParent;
+    return &Wx::GetTopLevelParent($self);
 }
 
 sub update_presets {
@@ -393,7 +385,7 @@ sub filament_presets {
 sub add {
     my $self = shift;
     
-    my @input_files = Slic3r::GUI::open_model($self);
+    my @input_files = &Wx::wxTheApp->open_model($self);
     $self->load_file($_) for @input_files;
 }
 
@@ -402,7 +394,7 @@ sub load_file {
     my ($input_file) = @_;
     
     $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
-    Slic3r::GUI->save_settings;
+    &Wx::wxTheApp->save_settings;
     
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;
@@ -636,7 +628,7 @@ sub arrange {
     ]);
     
     eval {
-        $self->{model}->arrange_objects($self->skeinpanel->config->min_object_distance, $bb);
+        $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
     };
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
@@ -721,7 +713,7 @@ sub async_apply_config {
     $self->suspend_background_process;
     
     # apply new config
-    my $invalidated = $self->{print}->apply_config($self->skeinpanel->config);
+    my $invalidated = $self->{print}->apply_config($self->GetFrame->config);
     
     return if !$Slic3r::GUI::Settings->{_}{background_processing};
     
@@ -752,14 +744,14 @@ sub start_background_process {
     # don't start process thread if config is not valid
     eval {
         # this will throw errors if config is not valid
-        $self->skeinpanel->config->validate;
+        $self->GetFrame->config->validate;
         $self->{print}->validate;
     };
     return if $@;
     
     # apply extra variables
     {
-        my $extra = $self->skeinpanel->extra_variables;
+        my $extra = $self->GetFrame->extra_variables;
         $self->{print}->placeholder_parser->set($_, $extra->{$_}) for keys %$extra;
     }
     
@@ -838,14 +830,14 @@ sub export_gcode {
     # (we assume that if it is running, config is valid)
     eval {
         # this will throw errors if config is not valid
-        $self->skeinpanel->config->validate;
+        $self->GetFrame->config->validate;
         $self->{print}->validate;
     };
     Slic3r::GUI::catch_error($self) and return;
     
     
     # apply config and validate print
-    my $config = $self->skeinpanel->config;
+    my $config = $self->GetFrame->config;
     eval {
         # this will throw errors if config is not valid
         $config->validate;
@@ -860,16 +852,16 @@ sub export_gcode {
     $self->{export_gcode_output_file} = $main::opt{output};
     {
         my $default_output_file = $self->{print}->expanded_output_filepath($self->{export_gcode_output_file});
-        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', Slic3r::GUI->output_path(dirname($default_output_file)),
-            basename($default_output_file), &Slic3r::GUI::SkeinPanel::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
+        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', &Wx::wxTheApp->output_path(dirname($default_output_file)),
+            basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             $self->{export_gcode_output_file} = undef;
             return;
         }
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
-        Slic3r::GUI->save_settings;
-        $self->{export_gcode_output_file} = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
+        &Wx::wxTheApp->save_settings;
+        $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
     
@@ -1005,12 +997,12 @@ sub _get_export_file {
         $output_file = $self->{print}->expanded_output_filepath($output_file);
         $output_file =~ s/\.gcode$/$suffix/i;
         my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
-            basename($output_file), &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = $Slic3r::GUI::SkeinPanel::last_output_file = $dlg->GetPath;
+        $output_file = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
     return $output_file;
@@ -1100,7 +1092,7 @@ sub on_config_change {
         $self->update if $opt_key eq 'print_center';
     }
     
-    return if !$self->skeinpanel->is_loaded;
+    return if !$self->GetFrame->is_loaded;
     
     # (re)start timer
     $self->schedule_background_process;
@@ -1288,7 +1280,7 @@ sub validate_config {
     my $self = shift;
     
     eval {
-        $self->skeinpanel->config->validate;
+        $self->GetFrame->config->validate;
     };
     return 0 if Slic3r::GUI::catch_error($self);    
     return 1;
@@ -1296,7 +1288,7 @@ sub validate_config {
 
 sub statusbar {
     my $self = shift;
-    return $self->skeinpanel->GetParent->{statusbar};
+    return $self->GetFrame->{statusbar};
 }
 
 package Slic3r::GUI::Plater::DropTarget;

@@ -186,7 +186,7 @@ sub selection_changed {
 sub on_btn_load {
     my ($self, $is_modifier) = @_;
     
-    my @input_files = Slic3r::GUI::open_model($self);
+    my @input_files = &Wx::wxTheApp->open_model($self);
     foreach my $input_file (@input_files) {
         my $model = eval { Slic3r::Model->read_from_file($input_file) };
         if ($@) {
