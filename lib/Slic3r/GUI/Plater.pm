@@ -475,6 +475,8 @@ sub remove {
     my $self = shift;
     my ($obj_idx) = @_;
     
+    $self->stop_background_process;
+    
     # if no object index is supplied, remove the selected one
     if (!defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
@@ -489,10 +491,14 @@ sub remove {
     $self->select_object(undef);
     $self->update;
     $self->{canvas}->Refresh;
+    
+    $self->schedule_background_process;
 }
 
 sub reset {
     my $self = shift;
+    
+    $self->stop_background_process;
     
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
