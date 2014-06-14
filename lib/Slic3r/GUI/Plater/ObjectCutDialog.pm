@@ -125,7 +125,8 @@ sub new {
 sub perform_cut {
     my ($self) = @_;
     
-    my ($upper_object, $lower_object) = $self->{model_object}->cut($self->{cut_options}{z});
+    my ($new_model, $upper_object, $lower_object) = $self->{model_object}->cut($self->{cut_options}{z});
+    $self->{new_model} = $new_model;
     $self->{new_model_objects} = [];
     if ($self->{cut_options}{keep_upper} && defined $upper_object) {
         push @{$self->{new_model_objects}}, $upper_object;

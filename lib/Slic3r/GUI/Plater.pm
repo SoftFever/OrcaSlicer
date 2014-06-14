@@ -1201,7 +1201,7 @@ sub object_cut_dialog {
 	
 	if (my @new_objects = $dlg->NewModelObjects) {
 	    $self->remove($obj_idx);
-	    $self->load_model_objects(@new_objects);
+	    $self->load_model_objects(grep defined($_), @new_objects);
 	    $self->arrange;
 	}
 }
