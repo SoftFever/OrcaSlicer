@@ -93,7 +93,7 @@ sub OnInit {
         $Settings->{_}{background_processing} //= 1;
     }
     $Settings->{_}{version} = $Slic3r::VERSION;
-    &Wx::wxTheApp->save_settings;
+    $self->save_settings;
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
@@ -114,8 +114,8 @@ sub OnInit {
     }
     $self->{mainframe}->config_wizard if $run_wizard;
     
-    &Wx::wxTheApp->check_version
-        if &Wx::wxTheApp->have_version_check
+    $self->check_version
+        if $self->have_version_check
             && ($Settings->{_}{version_check} // 1)
             && (!$Settings->{_}{last_version_check} || (time - $Settings->{_}{last_version_check}) >= 86400);
     
@@ -240,7 +240,7 @@ sub check_version {
                 Slic3r::GUI::show_info(undef, "You're using the latest version. No updates are available.") if $p{manual};
             }
             $Settings->{_}{last_version_check} = time();
-            &Wx::wxTheApp->save_settings;
+            $self->save_settings;
         } else {
             Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $p{manual};
         }

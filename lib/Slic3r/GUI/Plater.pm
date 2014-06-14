@@ -9,7 +9,7 @@ use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale);
 use threads::shared qw(shared_clone);
 use Thread::Semaphore;
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
-    :panel :sizer :toolbar :window);
+    :panel :sizer :toolbar :window wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_TIMER);
@@ -352,7 +352,7 @@ sub on_select_preset {
 		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0]) . ".ini";
 		$Slic3r::GUI::Settings->{presets}{"filament_${_}"} = $choice->GetString($filament_presets[$_])
 			for 1 .. $#filament_presets;
-		&Wx::wxTheApp->save_settings;
+		wxTheApp->save_settings;
 		return;
 	}
 	$self->GetFrame->{options_tabs}{$group}->select_preset($choice->GetSelection);
@@ -385,7 +385,7 @@ sub filament_presets {
 sub add {
     my $self = shift;
     
-    my @input_files = &Wx::wxTheApp->open_model($self);
+    my @input_files = wxTheApp->open_model($self);
     $self->load_file($_) for @input_files;
 }
 
@@ -394,7 +394,7 @@ sub load_file {
     my ($input_file) = @_;
     
     $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
-    &Wx::wxTheApp->save_settings;
+    wxTheApp->save_settings;
     
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     $process_dialog->Pulse;
@@ -852,7 +852,7 @@ sub export_gcode {
     $self->{export_gcode_output_file} = $main::opt{output};
     {
         my $default_output_file = $self->{print}->expanded_output_filepath($self->{export_gcode_output_file});
-        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', &Wx::wxTheApp->output_path(dirname($default_output_file)),
+        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
@@ -860,7 +860,7 @@ sub export_gcode {
             return;
         }
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
-        &Wx::wxTheApp->save_settings;
+        wxTheApp->save_settings;
         $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
@@ -961,7 +961,7 @@ sub on_export_completed {
     }
     $self->{export_gcode_output_file} = undef;
     $self->statusbar->SetStatusText($message);
-    &Wx::wxTheApp->notify($message);
+    wxTheApp->notify($message);
 }
 
 sub export_stl {

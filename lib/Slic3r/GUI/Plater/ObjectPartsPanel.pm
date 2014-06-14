@@ -4,7 +4,8 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename);
-use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG);
+use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG
+    wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
@@ -186,7 +187,7 @@ sub selection_changed {
 sub on_btn_load {
     my ($self, $is_modifier) = @_;
     
-    my @input_files = &Wx::wxTheApp->open_model($self);
+    my @input_files = wxTheApp->open_model($self);
     foreach my $input_file (@input_files) {
         my $model = eval { Slic3r::Model->read_from_file($input_file) };
         if ($@) {

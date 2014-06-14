@@ -5,7 +5,8 @@ use utf8;
 
 use File::Basename qw(basename);
 use List::Util qw(first);
-use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window);
+use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window
+    wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
 
@@ -217,7 +218,7 @@ sub on_select_preset {
         $self->select_default_preset;
     }
     
-    &Wx::wxTheApp->save_settings;
+    wxTheApp->save_settings;
 }
 
 sub get_preset_config {
@@ -347,7 +348,7 @@ sub load_presets {
         name    => '- default -',
     }];
     
-    my %presets = &Wx::wxTheApp->presets($self->name);
+    my %presets = wxTheApp->presets($self->name);
     foreach my $preset_name (sort keys %presets) {
         push @{$self->{presets}}, {
             name => $preset_name,

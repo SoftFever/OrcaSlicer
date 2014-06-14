@@ -5,7 +5,7 @@ use utf8;
 
 use List::Util qw(min);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
-    :font :icon);
+    :font :icon wxTheApp);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::Frame';
 
@@ -128,7 +128,7 @@ sub _init_tabpanel {
                         # so that user gets the config when switching to expert mode
                         $tab->config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $tab->name, 'Simple Mode');
                         $Slic3r::GUI::Settings->{presets}{$tab->name} = 'Simple Mode.ini';
-                        &Wx::wxTheApp->save_settings;
+                        wxTheApp->save_settings;
                     }
                     $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave;
                 }
@@ -241,15 +241,15 @@ sub _init_menubar {
         $helpMenu->AppendSeparator();
         $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
         my $versioncheck = $helpMenu->Append(MI_VERSIONCHECK, "Check for &Updates...", 'Check for new Slic3r versions');
-        $versioncheck->Enable(&Wx::wxTheApp->have_version_check);
+        $versioncheck->Enable(wxTheApp->have_version_check);
         $helpMenu->Append(MI_DOCUMENTATION, "Slic3r &Manual", 'Open the Slic3r manual in your browser');
         $helpMenu->AppendSeparator();
         $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
         EVT_MENU($self, MI_CONF_WIZARD, sub { $self->config_wizard });
         EVT_MENU($self, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
-        EVT_MENU($self, MI_VERSIONCHECK, sub { &Wx::wxTheApp->check_version(manual => 1) });
+        EVT_MENU($self, MI_VERSIONCHECK, sub { wxTheApp->check_version(manual => 1) });
         EVT_MENU($self, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('http://manual.slic3r.org/') });
-        EVT_MENU($self, wxID_ABOUT, sub { &Wx::wxTheApp->about });
+        EVT_MENU($self, wxID_ABOUT, sub { wxTheApp->about });
     }
     
     # menubar
@@ -316,7 +316,7 @@ sub quick_slice {
         }
         my $input_file_basename = basename($input_file);
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
-        &Wx::wxTheApp->save_settings;
+        wxTheApp->save_settings;
         
         my $sprint = Slic3r::Print::Simple->new(
             status_cb       => sub {
@@ -342,7 +342,7 @@ sub quick_slice {
             $output_file = $sprint->expanded_output_filepath;
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
-                &Wx::wxTheApp->output_path(dirname($output_file)),
+                wxTheApp->output_path(dirname($output_file)),
                 basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
             if ($dlg->ShowModal != wxID_OK) {
                 $dlg->Destroy;
@@ -351,7 +351,7 @@ sub quick_slice {
             $output_file = $dlg->GetPath;
             $last_output_file = $output_file unless $params{export_svg};
             $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($output_file);
-            &Wx::wxTheApp->save_settings;
+            wxTheApp->save_settings;
             $dlg->Destroy;
         }
         
@@ -377,7 +377,7 @@ sub quick_slice {
         undef $progress_dialog;
         
         my $message = "$input_file_basename was successfully sliced.";
-        &Wx::wxTheApp->notify($message);
+        wxTheApp->notify($message);
         Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
@@ -447,7 +447,7 @@ sub export_config {
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-        &Wx::wxTheApp->save_settings;
+        wxTheApp->save_settings;
         $last_config = $file;
         $config->save($file);
     }
@@ -468,7 +468,7 @@ sub load_config_file {
         $dlg->Destroy;
     }
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-    &Wx::wxTheApp->save_settings;
+    wxTheApp->save_settings;
     $last_config = $file;
     for my $tab (values %{$self->{options_tabs}}) {
         $tab->load_config_file($file);
@@ -491,7 +491,7 @@ sub export_configbundle {
     if ($dlg->ShowModal == wxID_OK) {
         my $file = $dlg->GetPath;
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-        &Wx::wxTheApp->save_settings;
+        wxTheApp->save_settings;
         
         # leave default category empty to prevent the bundle from being parsed as a normal config file
         my $ini = { _ => {} };
@@ -503,7 +503,7 @@ sub export_configbundle {
         }
         
         foreach my $section (qw(print filament printer)) {
-            my %presets = &Wx::wxTheApp->presets($section);
+            my %presets = wxTheApp->presets($section);
             foreach my $preset_name (keys %presets) {
                 my $config = Slic3r::Config->load($presets{$preset_name});
                 $ini->{"$section:$preset_name"} = $config->as_ini->{_};
@@ -526,18 +526,18 @@ sub load_configbundle {
     $dlg->Destroy;
     
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-    &Wx::wxTheApp->save_settings;
+    wxTheApp->save_settings;
     
     # load .ini file
     my $ini = Slic3r::Config->read_ini($file);
     
     if ($ini->{settings}) {
         $Slic3r::GUI::Settings->{_}{$_} = $ini->{settings}{$_} for keys %{$ini->{settings}};
-        &Wx::wxTheApp->save_settings;
+        wxTheApp->save_settings;
     }
     if ($ini->{presets}) {
         $Slic3r::GUI::Settings->{presets} = $ini->{presets};
-        &Wx::wxTheApp->save_settings;
+        wxTheApp->save_settings;
     }
     if ($ini->{simple}) {
         my $config = Slic3r::Config->load_ini_hash($ini->{simple});

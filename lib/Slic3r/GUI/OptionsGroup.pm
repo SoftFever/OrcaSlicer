@@ -2,7 +2,7 @@ package Slic3r::GUI::OptionsGroup;
 use Moo;
 
 use List::Util qw(first);
-use Wx qw(:combobox :font :misc :sizer :systemsettings :textctrl);
+use Wx qw(:combobox :font :misc :sizer :systemsettings :textctrl wxTheApp);
 use Wx::Event qw(EVT_CHECKBOX EVT_COMBOBOX EVT_SPINCTRL EVT_TEXT EVT_KILL_FOCUS EVT_SLIDER);
 
 =head1 NAME
@@ -208,7 +208,7 @@ sub _build_field {
             };
             EVT_COMBOBOX($self->parent, $field, sub {
                 # Without CallAfter, the field text is not populated on Windows.
-                &Wx::wxTheApp->CallAfter(sub {
+                wxTheApp->CallAfter(sub {
                     $field->SetValue($opt->{values}[ $field->GetSelection ]);  # set the text field to the selected value
                     $self->_on_change($opt_key, $on_change);
                 });

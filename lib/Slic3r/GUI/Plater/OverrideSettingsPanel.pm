@@ -4,7 +4,8 @@ use warnings;
 use utf8;
 
 use List::Util qw(first);
-use Wx qw(:misc :sizer :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG);
+use Wx qw(:misc :sizer :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG
+    wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_LEFT_DOWN EVT_MENU);
 use base 'Wx::ScrolledWindow';
 
@@ -109,7 +110,7 @@ sub update_optgroup {
                 EVT_BUTTON($self, $btn, sub {
                     $self->{config}->erase($opt_key);
                     $self->{on_change}->() if $self->{on_change};
-                    &Wx::wxTheApp->CallAfter(sub { $self->update_optgroup });
+                    wxTheApp->CallAfter(sub { $self->update_optgroup });
                 });
                 return $btn;
             },
