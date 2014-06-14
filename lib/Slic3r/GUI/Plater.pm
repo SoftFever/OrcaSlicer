@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first);
-use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale);
+use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use threads::shared qw(shared_clone);
 use Thread::Semaphore;
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
@@ -25,7 +25,6 @@ use constant TB_MORE    => &Wx::NewId;
 use constant TB_FEWER   => &Wx::NewId;
 use constant TB_45CW    => &Wx::NewId;
 use constant TB_45CCW   => &Wx::NewId;
-use constant TB_ROTATE  => &Wx::NewId;
 use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_VIEW    => &Wx::NewId;
@@ -96,7 +95,6 @@ sub new {
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ROTATE, "Rotate…", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
@@ -160,7 +158,6 @@ sub new {
             decrease        delete.png
             rotate45cw      arrow_rotate_clockwise.png
             rotate45ccw     arrow_rotate_anticlockwise.png
-            rotate          arrow_rotate_clockwise.png
             changescale     arrow_out.png
             split           shape_ungroup.png
             view            package.png
@@ -187,7 +184,6 @@ sub new {
         EVT_TOOL($self, TB_FEWER, \&decrease);
         EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
         EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
-        EVT_TOOL($self, TB_ROTATE, sub { $_[0]->rotate(undef) });
         EVT_TOOL($self, TB_SCALE, \&changescale);
         EVT_TOOL($self, TB_SPLIT, \&split_object);
         EVT_TOOL($self, TB_VIEW, sub { $_[0]->object_cut_dialog });
@@ -202,7 +198,6 @@ sub new {
         EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
         EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
         EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
-        EVT_BUTTON($self, $self->{btn_rotate}, sub { $_[0]->rotate(undef) });
         EVT_BUTTON($self, $self->{btn_split}, \&split_object);
         EVT_BUTTON($self, $self->{btn_view}, sub { $_[0]->object_cut_dialog });
         EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
@@ -555,9 +550,13 @@ sub decrease {
 
 sub rotate {
     my $self = shift;
-    my ($angle) = @_;
+    my ($angle, $axis) = @_;
+    
+    $axis //= Z;
     
     my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $model_instance = $model_object->instances->[0];
     
@@ -565,14 +564,27 @@ sub rotate {
     return if !$object->thumbnail;
     
     if (!defined $angle) {
-        $angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate", $model_instance->rotation, -364, 364, $self);
+        my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
+        $angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate around $axis_name axis", $model_instance->rotation, -364, 364, $self);
         return if !$angle || $angle == -1;
         $angle = 0 - $angle;  # rotate clockwise (be consistent with button icon)
     }
     
     {
-        my $new_angle = $model_instance->rotation + $angle;
-        $_->set_rotation($new_angle) for @{ $model_object->instances };
+        if ($axis == Z) {
+            my $new_angle = $model_instance->rotation + $angle;
+            $_->set_rotation($new_angle) for @{ $model_object->instances };
+            $object->transform_thumbnail($self->{model}, $obj_idx);
+        } else {
+            # rotation around X and Y needs to be performed on mesh
+            # so we first apply any Z rotation
+            if ($model_object->instances->[0]->rotation != 0) {
+                $model_object->rotate(deg2rad($model_object->instances->[0]->rotation), Z);
+                $_->set_rotation(0) for @{ $model_object->instances };
+            }
+            $model_object->rotate(deg2rad($angle), $axis);
+            $self->make_thumbnail($obj_idx);
+        }
         $model_object->update_bounding_box;
         
         # update print and start background processing
@@ -580,7 +592,6 @@ sub rotate {
         $self->{print}->add_model_object($model_object, $obj_idx);
         $self->schedule_background_process;
         
-        $object->transform_thumbnail($self->{model}, $obj_idx);
     }
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
@@ -1210,11 +1221,11 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw rotate changescale split view settings);
+        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw changescale split view settings);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_ROTATE, TB_SCALE, TB_SPLIT, TB_VIEW, TB_SETTINGS);
+            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_VIEW, TB_SETTINGS);
     }
     
     if ($self->{object_info_size}) { # have we already loaded the info pane?
@@ -1338,8 +1349,10 @@ has 'selected'              => (is => 'rw', default => sub { 0 });
 sub make_thumbnail {
     my ($self, $model, $obj_idx) = @_;
     
-    my $mesh = $model->objects->[$obj_idx]->raw_mesh;
+    # make method idempotent
+    $self->thumbnail->clear;
     
+    my $mesh = $model->objects->[$obj_idx]->raw_mesh;
     if ($mesh->facets_count <= 5000) {
         # remove polygons with area <= 1mm
         my $area_threshold = Slic3r::Geometry::scale 1;

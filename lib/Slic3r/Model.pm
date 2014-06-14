@@ -463,13 +463,19 @@ sub translate {
     $self->_bounding_box->translate(@shift) if defined $self->_bounding_box;
 }
 
-sub rotate_x {
-    my ($self, $angle) = @_;
+sub rotate {
+    my ($self, $angle, $axis) = @_;
     
     # we accept angle in radians but mesh currently uses degrees
     $angle = rad2deg($angle);
     
-    $_->mesh->rotate_x($angle) for @{$self->volumes};
+    if ($axis == X) {
+        $_->mesh->rotate_x($angle) for @{$self->volumes};
+    } elsif ($axis == Y) {
+        $_->mesh->rotate_y($angle) for @{$self->volumes};
+    } elsif ($axis == Z) {
+        $_->mesh->rotate_z($angle) for @{$self->volumes};
+    }
     $self->invalidate_bounding_box;
 }
 

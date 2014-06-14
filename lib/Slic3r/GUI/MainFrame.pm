@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 
 use List::Util qw(min);
+use Slic3r::Geometry qw(X Y Z);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
@@ -192,9 +193,19 @@ sub _init_menubar {
         $self->_append_menu_item($self->{object_menu}, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
             $plater->rotate(+45);
         });
-        $self->_append_menu_item($self->{object_menu}, "Rotate…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
-            $plater->rotate(undef);
+        
+        my $rotateMenu = Wx::Menu->new;
+        $self->{object_menu}->AppendSubMenu($rotateMenu, "Rotate…", 'Rotate the selected object by an arbitrary angle');
+        $self->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
+            $plater->rotate(undef, X);
         });
+        $self->_append_menu_item($rotateMenu, "Around Y axis…", 'Rotate the selected object by an arbitrary angle around Y axis', sub {
+            $plater->rotate(undef, Y);
+        });
+        $self->_append_menu_item($rotateMenu, "Around Z axis…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
+            $plater->rotate(undef, Z);
+        });
+        
         $self->_append_menu_item($self->{object_menu}, "Scale…", 'Scale the selected object by an arbitrary factor', sub {
             $plater->changescale;
         });
