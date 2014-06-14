@@ -8,7 +8,8 @@ use List::Util qw(sum first);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale);
 use threads::shared qw(shared_clone);
 use Thread::Semaphore;
-use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc :panel :sizer :toolbar :window);
+use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
+    :panel :sizer :toolbar :window);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_TIMER);
@@ -357,6 +358,11 @@ sub on_select_preset {
 	$self->skeinpanel->{options_tabs}{$group}->select_preset($choice->GetSelection);
 }
 
+sub GetFrame {
+    my ($self) = @_;
+    return &Wx::GetTopLevelParent($self);
+}
+
 sub skeinpanel {
     my $self = shift;
     return $self->GetParent->GetParent;
@@ -569,7 +575,7 @@ sub rotate {
         $model_object->update_bounding_box;
         
         # update print and start background processing
-        $self->suspend_background_process;
+        $self->stop_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
         $self->schedule_background_process;
         
@@ -606,7 +612,7 @@ sub changescale {
         $model_object->update_bounding_box;
         
         # update print and start background processing
-        $self->suspend_background_process;
+        $self->stop_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
         $self->schedule_background_process;
         
@@ -653,7 +659,7 @@ sub split_object {
         return;
     }
     
-    $self->suspend_background_process;
+    $self->stop_background_process;
     
     # create a bogus Model object, we only need to instantiate the new Model::Object objects
     my $new_model = Slic3r::Model->new;
@@ -814,7 +820,6 @@ sub suspend_background_process {
 
 sub resume_background_process {
     my ($self) = @_;
-    
     $sema->up;
 }
 
@@ -1244,6 +1249,10 @@ sub selection_changed {
         }
         $self->Layout;
     }
+    
+    # prepagate the event to the frame (a custom Wx event would be cleaner)
+    ###$self->GetFrame->on_plater_selection_changed($have_sel);
+    Slic3r::GUI::on_plater_selection_changed($self->GetFrame, $have_sel);
 }
 
 sub select_object {

@@ -42,6 +42,17 @@ use constant MI_PLATER_EXPORT_GCODE => &Wx::NewId;
 use constant MI_PLATER_EXPORT_STL   => &Wx::NewId;
 use constant MI_PLATER_EXPORT_AMF   => &Wx::NewId;
 
+use constant MI_OBJECT_REMOVE       => &Wx::NewId;
+use constant MI_OBJECT_MORE         => &Wx::NewId;
+use constant MI_OBJECT_FEWER        => &Wx::NewId;
+use constant MI_OBJECT_ROTATE_45CW  => &Wx::NewId;
+use constant MI_OBJECT_ROTATE_45CCW => &Wx::NewId;
+use constant MI_OBJECT_ROTATE       => &Wx::NewId;
+use constant MI_OBJECT_SCALE        => &Wx::NewId;
+use constant MI_OBJECT_SPLIT        => &Wx::NewId;
+use constant MI_OBJECT_VIEWCUT      => &Wx::NewId;
+use constant MI_OBJECT_SETTINGS     => &Wx::NewId;
+
 use constant MI_TAB_PLATER    => &Wx::NewId;
 use constant MI_TAB_PRINT     => &Wx::NewId;
 use constant MI_TAB_FILAMENT  => &Wx::NewId;
@@ -160,15 +171,41 @@ sub OnInit {
     }
     
     # Plater menu
-    my $platerMenu;
     unless ($no_plater) {
-        $platerMenu = Wx::Menu->new;
-        $platerMenu->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
-        $platerMenu->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
-        $platerMenu->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
-        EVT_MENU($frame, MI_PLATER_EXPORT_GCODE, sub { $self->{skeinpanel}{plater}->export_gcode });
-        EVT_MENU($frame, MI_PLATER_EXPORT_STL, sub { $self->{skeinpanel}{plater}->export_stl });
-        EVT_MENU($frame, MI_PLATER_EXPORT_AMF, sub { $self->{skeinpanel}{plater}->export_amf });
+        my $plater = $self->{skeinpanel}{plater};
+        
+        $frame->{plater_menu} = Wx::Menu->new;
+        $frame->{plater_menu}->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
+        $frame->{plater_menu}->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
+        $frame->{plater_menu}->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
+        EVT_MENU($frame, MI_PLATER_EXPORT_GCODE, sub { $plater->export_gcode });
+        EVT_MENU($frame, MI_PLATER_EXPORT_STL, sub { $plater->export_stl });
+        EVT_MENU($frame, MI_PLATER_EXPORT_AMF, sub { $plater->export_amf });
+        
+        $frame->{object_menu} = Wx::Menu->new;
+        $frame->{object_menu}->Append(MI_OBJECT_REMOVE, "Delete\tCtrl+Del", 'Remove the selected object');
+        $frame->{object_menu}->Append(MI_OBJECT_MORE, "Increase copies\tCtrl++", 'Place one more copy of the selected object');
+        $frame->{object_menu}->Append(MI_OBJECT_FEWER, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object');
+        $frame->{object_menu}->AppendSeparator();
+        $frame->{object_menu}->Append(MI_OBJECT_ROTATE_45CW, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise');
+        $frame->{object_menu}->Append(MI_OBJECT_ROTATE_45CCW, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise');
+        $frame->{object_menu}->Append(MI_OBJECT_ROTATE, "Rotate…", 'Rotate the selected object by an arbitrary angle around Z axis');
+        $frame->{object_menu}->Append(MI_OBJECT_SCALE, "Scale…", 'Scale the selected object by an arbitrary factor');
+        $frame->{object_menu}->Append(MI_OBJECT_SPLIT, "Split", 'Split the selected object into individual parts');
+        $frame->{object_menu}->Append(MI_OBJECT_VIEWCUT, "View/Cut…", 'Open the 3D cutting tool');
+        $frame->{object_menu}->AppendSeparator();
+        $frame->{object_menu}->Append(MI_OBJECT_SETTINGS, "Settings…", 'Open the object editor dialog');
+        EVT_MENU($frame, MI_OBJECT_REMOVE, sub { $plater->remove });
+        EVT_MENU($frame, MI_OBJECT_MORE, sub { $plater->increase });
+        EVT_MENU($frame, MI_OBJECT_FEWER, sub { $plater->decrease });
+        EVT_MENU($frame, MI_OBJECT_ROTATE_45CW, sub { $plater->rotate(-45) });
+        EVT_MENU($frame, MI_OBJECT_ROTATE_45CCW, sub { $plater->rotate(45) });
+        EVT_MENU($frame, MI_OBJECT_ROTATE, sub { $plater->rotate(undef) });
+        EVT_MENU($frame, MI_OBJECT_SCALE, sub { $plater->changescale });
+        EVT_MENU($frame, MI_OBJECT_SPLIT, sub { $plater->split_object });
+        EVT_MENU($frame, MI_OBJECT_VIEWCUT, sub { $plater->object_cut_dialog });
+        EVT_MENU($frame, MI_OBJECT_SETTINGS, sub { $plater->object_settings_dialog });
+        $self->on_plater_selection_changed(0);
     }
     
     # Window menu
@@ -209,7 +246,8 @@ sub OnInit {
     {
         my $menubar = Wx::MenuBar->new;
         $menubar->Append($fileMenu, "&File");
-        $menubar->Append($platerMenu, "&Plater") if $platerMenu;
+        $menubar->Append($frame->{plater_menu}, "&Plater") if $frame->{plater_menu};
+        $menubar->Append($frame->{object_menu}, "&Object") if $frame->{object_menu};
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($helpMenu, "&Help");
         $frame->SetMenuBar($menubar);
@@ -252,6 +290,14 @@ sub OnInit {
     });
     
     return 1;
+}
+
+sub on_plater_selection_changed {
+    my ($self, $have_selection) = @_;
+    
+    return if !defined $self->{object_menu};
+    $self->{object_menu}->Enable($_->GetId, $have_selection)
+        for $self->{object_menu}->GetMenuItems;
 }
 
 sub about {
