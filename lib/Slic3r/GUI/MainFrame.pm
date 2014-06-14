@@ -52,7 +52,7 @@ our $last_config;
 sub new {
     my ($class, %params) = @_;
     
-    my $self = $class->SUPER::new(undef, -1, 'Slic3r', wxDefaultPosition, [760, 470], wxDEFAULT_FRAME_STYLE);
+    my $self = $class->SUPER::new(undef, -1, 'Slic3r', wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
     $self->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
     
     # store input params
@@ -89,7 +89,8 @@ sub new {
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
         $self->Fit;
-        $self->SetMinSize($self->GetSize);
+        $self->SetMinSize([760, 470]);
+        $self->SetSize($self->GetMinSize);
         $self->Show;
         $self->Layout;
     }
