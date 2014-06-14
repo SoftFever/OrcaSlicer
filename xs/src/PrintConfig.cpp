@@ -32,18 +32,21 @@ PrintConfigDef::build_def() {
     Options["bottom_solid_layers"].tooltip = "Number of solid layers to generate on bottom surfaces.";
     Options["bottom_solid_layers"].cli = "bottom-solid-layers=i";
     Options["bottom_solid_layers"].full_label = "Bottom solid layers";
+    Options["bottom_solid_layers"].min = 0;
 
     Options["bridge_acceleration"].type = coFloat;
     Options["bridge_acceleration"].label = "Bridge";
     Options["bridge_acceleration"].tooltip = "This is the acceleration your printer will use for bridges. Set zero to disable acceleration control for bridges.";
     Options["bridge_acceleration"].sidetext = "mm/s²";
     Options["bridge_acceleration"].cli = "bridge-acceleration=f";
+    Options["bridge_acceleration"].min = 0;
 
     Options["bridge_fan_speed"].type = coInt;
     Options["bridge_fan_speed"].label = "Bridges fan speed";
     Options["bridge_fan_speed"].tooltip = "This fan speed is enforced during all bridges and overhangs.";
     Options["bridge_fan_speed"].sidetext = "%";
     Options["bridge_fan_speed"].cli = "bridge-fan-speed=i";
+    Options["bridge_fan_speed"].min = 0;
     Options["bridge_fan_speed"].max = 100;
 
     Options["bridge_flow_ratio"].type = coFloat;
@@ -51,6 +54,7 @@ PrintConfigDef::build_def() {
     Options["bridge_flow_ratio"].category = "Advanced";
     Options["bridge_flow_ratio"].tooltip = "This factor affects the amount of plastic for bridging. You can decrease it slightly to pull the extrudates and prevent sagging, although default settings are usually good and you should experiment with cooling (use a fan) before tweaking this.";
     Options["bridge_flow_ratio"].cli = "bridge-flow-ratio=f";
+    Options["bridge_flow_ratio"].min = 0;
 
     Options["bridge_speed"].type = coFloat;
     Options["bridge_speed"].label = "Bridges";
@@ -59,12 +63,14 @@ PrintConfigDef::build_def() {
     Options["bridge_speed"].sidetext = "mm/s";
     Options["bridge_speed"].cli = "bridge-speed=f";
     Options["bridge_speed"].aliases.push_back("bridge_feed_rate");
+    Options["bridge_speed"].min = 0;
 
     Options["brim_width"].type = coFloat;
     Options["brim_width"].label = "Brim width";
     Options["brim_width"].tooltip = "Horizontal width of the brim that will be printed around each object on the first layer.";
     Options["brim_width"].sidetext = "mm";
     Options["brim_width"].cli = "brim-width=f";
+    Options["brim_width"].min = 0;
 
     Options["complete_objects"].type = coBool;
     Options["complete_objects"].label = "Complete individual objects";
@@ -81,12 +87,14 @@ PrintConfigDef::build_def() {
     Options["default_acceleration"].tooltip = "This is the acceleration your printer will be reset to after the role-specific acceleration values are used (perimeter/infill). Set zero to prevent resetting acceleration at all.";
     Options["default_acceleration"].sidetext = "mm/s²";
     Options["default_acceleration"].cli = "default-acceleration=f";
+    Options["default_acceleration"].min = 0;
 
     Options["disable_fan_first_layers"].type = coInt;
     Options["disable_fan_first_layers"].label = "Disable fan for the first";
     Options["disable_fan_first_layers"].tooltip = "You can set this to a positive value to disable fan at all during the first layers, so that it does not make adhesion worse.";
     Options["disable_fan_first_layers"].sidetext = "layers";
     Options["disable_fan_first_layers"].cli = "disable-fan-first-layers=i";
+    Options["disable_fan_first_layers"].min = 0;
     Options["disable_fan_first_layers"].max = 1000;
 
     Options["dont_support_bridges"].type = coBool;
@@ -100,6 +108,7 @@ PrintConfigDef::build_def() {
     Options["duplicate_distance"].sidetext = "mm";
     Options["duplicate_distance"].cli = "duplicate-distance=f";
     Options["duplicate_distance"].aliases.push_back("multiply_distance");
+    Options["duplicate_distance"].min = 0;
 
     Options["end_gcode"].type = coString;
     Options["end_gcode"].label = "End G-code";
@@ -148,12 +157,14 @@ PrintConfigDef::build_def() {
     Options["extruder_clearance_height"].tooltip = "Set this to the vertical distance between your nozzle tip and (usually) the X carriage rods. In other words, this is the height of the clearance cylinder around your extruder, and it represents the maximum depth the extruder can peek before colliding with other printed objects.";
     Options["extruder_clearance_height"].sidetext = "mm";
     Options["extruder_clearance_height"].cli = "extruder-clearance-height=f";
+    Options["extruder_clearance_height"].min = 0;
 
     Options["extruder_clearance_radius"].type = coFloat;
     Options["extruder_clearance_radius"].label = "Radius";
     Options["extruder_clearance_radius"].tooltip = "Set this to the clearance radius around your extruder. If the extruder is not centered, choose the largest value for safety. This setting is used to check for collisions and to display the graphical preview in the plater.";
     Options["extruder_clearance_radius"].sidetext = "mm";
     Options["extruder_clearance_radius"].cli = "extruder-clearance-radius=f";
+    Options["extruder_clearance_radius"].min = 0;
 
     Options["extruder_offset"].type = coPoints;
     Options["extruder_offset"].label = "Extruder offset";
@@ -271,6 +282,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_acceleration"].tooltip = "This is the acceleration your printer will use for first layer. Set zero to disable acceleration control for first layer.";
     Options["first_layer_acceleration"].sidetext = "mm/s²";
     Options["first_layer_acceleration"].cli = "first-layer-acceleration=f";
+    Options["first_layer_acceleration"].min = 0;
 
     Options["first_layer_bed_temperature"].type = coInt;
     Options["first_layer_bed_temperature"].label = "First layer";
@@ -306,7 +318,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_temperature"].tooltip = "Extruder temperature for first layer. If you want to control temperature manually during print, set this to zero to disable temperature control commands in the output file.";
     Options["first_layer_temperature"].sidetext = "°C";
     Options["first_layer_temperature"].cli = "first-layer-temperature=i@";
-    Options["first_layer_temperature"].max = 0;
+    Options["first_layer_temperature"].min = 0;
     Options["first_layer_temperature"].max = 400;
 
     Options["g0"].type = coBool;
@@ -320,6 +332,7 @@ PrintConfigDef::build_def() {
     Options["gap_fill_speed"].tooltip = "Speed for filling small gaps using short zigzag moves. Keep this reasonably low to avoid too much shaking and resonance issues. Set zero to disable gaps filling.";
     Options["gap_fill_speed"].sidetext = "mm/s";
     Options["gap_fill_speed"].cli = "gap-fill-speed=f";
+    Options["gap_fill_speed"].min = 0;
 
     Options["gcode_arcs"].type = coBool;
     Options["gcode_arcs"].label = "Use native G-code arcs";
@@ -354,6 +367,7 @@ PrintConfigDef::build_def() {
     Options["infill_acceleration"].tooltip = "This is the acceleration your printer will use for infill. Set zero to disable acceleration control for infill.";
     Options["infill_acceleration"].sidetext = "mm/s²";
     Options["infill_acceleration"].cli = "infill-acceleration=f";
+    Options["infill_acceleration"].min = 0;
 
     Options["infill_every_layers"].type = coInt;
     Options["infill_every_layers"].label = "Combine infill every";
@@ -397,6 +411,7 @@ PrintConfigDef::build_def() {
     Options["infill_speed"].cli = "infill-speed=f";
     Options["infill_speed"].aliases.push_back("print_feed_rate");
     Options["infill_speed"].aliases.push_back("infill_feed_rate");
+    Options["infill_speed"].min = 0;
 
     Options["interface_shells"].type = coBool;
     Options["interface_shells"].label = "Interface shells";
@@ -418,12 +433,14 @@ PrintConfigDef::build_def() {
     Options["layer_height"].tooltip = "This setting controls the height (and thus the total number) of the slices/layers. Thinner layers give better accuracy but take more time to print.";
     Options["layer_height"].sidetext = "mm";
     Options["layer_height"].cli = "layer-height=f";
+    Options["layer_height"].min = 0;
 
     Options["max_fan_speed"].type = coInt;
     Options["max_fan_speed"].label = "Max";
     Options["max_fan_speed"].tooltip = "This setting represents the maximum speed of your fan.";
     Options["max_fan_speed"].sidetext = "%";
     Options["max_fan_speed"].cli = "max-fan-speed=i";
+    Options["max_fan_speed"].min = 0;
     Options["max_fan_speed"].max = 100;
 
     Options["min_fan_speed"].type = coInt;
@@ -431,6 +448,7 @@ PrintConfigDef::build_def() {
     Options["min_fan_speed"].tooltip = "This setting represents the minimum PWM your fan needs to work.";
     Options["min_fan_speed"].sidetext = "%";
     Options["min_fan_speed"].cli = "min-fan-speed=i";
+    Options["min_fan_speed"].min = 0;
     Options["min_fan_speed"].max = 100;
 
     Options["min_print_speed"].type = coInt;
@@ -438,6 +456,7 @@ PrintConfigDef::build_def() {
     Options["min_print_speed"].tooltip = "Slic3r will not scale speed down below this speed.";
     Options["min_print_speed"].sidetext = "mm/s";
     Options["min_print_speed"].cli = "min-print-speed=f";
+    Options["min_print_speed"].min = 0;
     Options["min_print_speed"].max = 1000;
 
     Options["min_skirt_length"].type = coFloat;
@@ -512,6 +531,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_speed"].sidetext = "mm/s";
     Options["perimeter_speed"].cli = "perimeter-speed=f";
     Options["perimeter_speed"].aliases.push_back("perimeter_feed_rate");
+    Options["perimeter_speed"].min = 0;
 
     Options["perimeters"].type = coInt;
     Options["perimeters"].label = "Perimeters (minimum)";
@@ -519,6 +539,7 @@ PrintConfigDef::build_def() {
     Options["perimeters"].tooltip = "This option sets the number of perimeters to generate for each layer. Note that Slic3r may increase this number automatically when it detects sloping surfaces which benefit from a higher number of perimeters if the Extra Perimeters option is enabled.";
     Options["perimeters"].cli = "perimeters=i";
     Options["perimeters"].aliases.push_back("perimeter_offsets");
+    Options["perimeters"].min = 0;
 
     Options["post_process"].type = coStrings;
     Options["post_process"].label = "Post-processing scripts";
@@ -540,6 +561,7 @@ PrintConfigDef::build_def() {
     Options["raft_layers"].tooltip = "The object will be raised by this number of layers, and support material will be generated under it.";
     Options["raft_layers"].sidetext = "layers";
     Options["raft_layers"].cli = "raft-layers=i";
+    Options["raft_layers"].min = 0;
 
     Options["resolution"].type = coFloat;
     Options["resolution"].label = "Resolution";
@@ -614,6 +636,7 @@ PrintConfigDef::build_def() {
     Options["skirt_distance"].tooltip = "Distance between skirt and object(s). Set this to zero to attach the skirt to the object(s) and get a brim for better adhesion.";
     Options["skirt_distance"].sidetext = "mm";
     Options["skirt_distance"].cli = "skirt-distance=f";
+    Options["skirt_distance"].min = 0;
 
     Options["skirt_height"].type = coInt;
     Options["skirt_height"].label = "Skirt height";
@@ -625,13 +648,15 @@ PrintConfigDef::build_def() {
     Options["skirts"].label = "Loops";
     Options["skirts"].tooltip = "Number of loops for this skirt, in other words its thickness. Set this to zero to disable skirt.";
     Options["skirts"].cli = "skirts=i";
-
+    Options["skirts"].min = 0;
+    
     Options["slowdown_below_layer_time"].type = coInt;
     Options["slowdown_below_layer_time"].label = "Slow down if layer print time is below";
     Options["slowdown_below_layer_time"].tooltip = "If layer print time is estimated below this number of seconds, print moves speed will be scaled down to extend duration to this value.";
     Options["slowdown_below_layer_time"].sidetext = "approximate seconds";
     Options["slowdown_below_layer_time"].cli = "slowdown-below-layer-time=i";
     Options["slowdown_below_layer_time"].width = 60;
+    Options["slowdown_below_layer_time"].min = 0;
     Options["slowdown_below_layer_time"].max = 1000;
 
     Options["small_perimeter_speed"].type = coFloatOrPercent;
@@ -665,6 +690,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_below_area"].tooltip = "Force solid infill for regions having a smaller area than the specified threshold.";
     Options["solid_infill_below_area"].sidetext = "mm²";
     Options["solid_infill_below_area"].cli = "solid-infill-below-area=f";
+    Options["solid_infill_below_area"].min = 0;
 
     Options["solid_infill_every_layers"].type = coInt;
     Options["solid_infill_every_layers"].label = "Solid infill every";
@@ -696,6 +722,7 @@ PrintConfigDef::build_def() {
     Options["solid_layers"].cli = "solid-layers=i";
     Options["solid_layers"].shortcut.push_back("top_solid_layers");
     Options["solid_layers"].shortcut.push_back("bottom_solid_layers");
+    Options["solid_layers"].min = 0;
 
     Options["spiral_vase"].type = coBool;
     Options["spiral_vase"].label = "Spiral vase";
@@ -730,6 +757,8 @@ PrintConfigDef::build_def() {
     Options["support_material_angle"].tooltip = "Use this setting to rotate the support material pattern on the horizontal plane.";
     Options["support_material_angle"].sidetext = "°";
     Options["support_material_angle"].cli = "support-material-angle=i";
+    Options["support_material_angle"].min = 0;
+    Options["support_material_angle"].max = 359;
 
     Options["support_material_enforce_layers"].type = coInt;
     Options["support_material_enforce_layers"].label = "Enforce support for the first";
@@ -738,6 +767,7 @@ PrintConfigDef::build_def() {
     Options["support_material_enforce_layers"].sidetext = "layers";
     Options["support_material_enforce_layers"].cli = "support-material-enforce-layers=f";
     Options["support_material_enforce_layers"].full_label = "Enforce support for the first n layers";
+    Options["support_material_enforce_layers"].min = 0;
 
     Options["support_material_extruder"].type = coInt;
     Options["support_material_extruder"].label = "Support material extruder";
@@ -766,6 +796,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_layers"].tooltip = "Number of interface layers to insert between the object(s) and support material.";
     Options["support_material_interface_layers"].sidetext = "layers";
     Options["support_material_interface_layers"].cli = "support-material-interface-layers=i";
+    Options["support_material_interface_layers"].min = 0;
 
     Options["support_material_interface_spacing"].type = coFloat;
     Options["support_material_interface_spacing"].label = "Interface pattern spacing";
@@ -773,6 +804,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_spacing"].tooltip = "Spacing between interface lines. Set zero to get a solid interface.";
     Options["support_material_interface_spacing"].sidetext = "mm";
     Options["support_material_interface_spacing"].cli = "support-material-interface-spacing=f";
+    Options["support_material_interface_spacing"].min = 0;
 
     Options["support_material_interface_speed"].type = coFloatOrPercent;
     Options["support_material_interface_speed"].label = "Support material interface";
@@ -803,6 +835,7 @@ PrintConfigDef::build_def() {
     Options["support_material_spacing"].tooltip = "Spacing between support material lines.";
     Options["support_material_spacing"].sidetext = "mm";
     Options["support_material_spacing"].cli = "support-material-spacing=f";
+    Options["support_material_spacing"].min = 0;
 
     Options["support_material_speed"].type = coFloat;
     Options["support_material_speed"].label = "Support material";
@@ -810,6 +843,7 @@ PrintConfigDef::build_def() {
     Options["support_material_speed"].tooltip = "Speed for printing support material.";
     Options["support_material_speed"].sidetext = "mm/s";
     Options["support_material_speed"].cli = "support-material-speed=f";
+    Options["support_material_speed"].min = 0;
 
     Options["support_material_threshold"].type = coInt;
     Options["support_material_threshold"].label = "Overhang threshold";
@@ -817,6 +851,8 @@ PrintConfigDef::build_def() {
     Options["support_material_threshold"].tooltip = "Support material will not be generated for overhangs whose slope angle (90° = vertical) is above the given threshold. In other words, this value represent the most horizontal slope (measured from the horizontal plane) that you can print without support material. Set to zero for automatic detection (recommended).";
     Options["support_material_threshold"].sidetext = "°";
     Options["support_material_threshold"].cli = "support-material-threshold=i";
+    Options["support_material_threshold"].min = 0;
+    Options["support_material_threshold"].max = 90;
 
     Options["temperature"].type = coInts;
     Options["temperature"].label = "Other layers";
@@ -871,6 +907,7 @@ PrintConfigDef::build_def() {
     Options["top_solid_layers"].tooltip = "Number of solid layers to generate on top surfaces.";
     Options["top_solid_layers"].cli = "top-solid-layers=i";
     Options["top_solid_layers"].full_label = "Top solid layers";
+    Options["top_solid_layers"].min = 0;
 
     Options["travel_speed"].type = coFloat;
     Options["travel_speed"].label = "Travel";
@@ -878,6 +915,7 @@ PrintConfigDef::build_def() {
     Options["travel_speed"].sidetext = "mm/s";
     Options["travel_speed"].cli = "travel-speed=f";
     Options["travel_speed"].aliases.push_back("travel_feed_rate");
+    Options["travel_speed"].min = 0;
 
     Options["use_firmware_retraction"].type = coBool;
     Options["use_firmware_retraction"].label = "Use firmware retraction";
@@ -894,6 +932,7 @@ PrintConfigDef::build_def() {
     Options["vibration_limit"].tooltip = "This experimental option will slow down those moves hitting the configured frequency limit. The purpose of limiting vibrations is to avoid mechanical resonance. Set zero to disable.";
     Options["vibration_limit"].sidetext = "Hz";
     Options["vibration_limit"].cli = "vibration-limit=f";
+    Options["vibration_limit"].min = 0;
 
     Options["wipe"].type = coBools;
     Options["wipe"].label = "Wipe while retracting";
@@ -906,6 +945,7 @@ PrintConfigDef::build_def() {
     Options["xy_size_compensation"].tooltip = "The object will be grown/shrunk in the XY plane by the configured value (negative = inwards, positive = outwards). This might be useful for fine-tuning hole sizes.";
     Options["xy_size_compensation"].sidetext = "mm";
     Options["xy_size_compensation"].cli = "xy-size-compensation=f";
+    Options["xy_size_compensation"].min = 0;
 
     Options["z_offset"].type = coFloat;
     Options["z_offset"].label = "Z offset";
