@@ -7,6 +7,7 @@ use File::Basename qw(basename);
 use FindBin;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::ConfigWizard;
+use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::2D;
 use Slic3r::GUI::Plater::ObjectPartsPanel;
@@ -22,46 +23,10 @@ use Slic3r::GUI::Tab;
 
 our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
 
-use Wx 0.9901 qw(:bitmap :dialog :frame :icon :id :misc :systemsettings :toplevelwindow
+use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
     :filedialog);
-use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_IDLE);
+use Wx::Event qw(EVT_IDLE);
 use base 'Wx::App';
-
-use constant MI_LOAD_CONF     => &Wx::NewId;
-use constant MI_LOAD_CONFBUNDLE => &Wx::NewId;
-use constant MI_EXPORT_CONF   => &Wx::NewId;
-use constant MI_EXPORT_CONFBUNDLE => &Wx::NewId;
-use constant MI_QUICK_SLICE   => &Wx::NewId;
-use constant MI_REPEAT_QUICK  => &Wx::NewId;
-use constant MI_QUICK_SAVE_AS => &Wx::NewId;
-use constant MI_SLICE_SVG     => &Wx::NewId;
-use constant MI_REPAIR_STL    => &Wx::NewId;
-use constant MI_COMBINE_STLS  => &Wx::NewId;
-
-use constant MI_PLATER_EXPORT_GCODE => &Wx::NewId;
-use constant MI_PLATER_EXPORT_STL   => &Wx::NewId;
-use constant MI_PLATER_EXPORT_AMF   => &Wx::NewId;
-
-use constant MI_OBJECT_REMOVE       => &Wx::NewId;
-use constant MI_OBJECT_MORE         => &Wx::NewId;
-use constant MI_OBJECT_FEWER        => &Wx::NewId;
-use constant MI_OBJECT_ROTATE_45CW  => &Wx::NewId;
-use constant MI_OBJECT_ROTATE_45CCW => &Wx::NewId;
-use constant MI_OBJECT_ROTATE       => &Wx::NewId;
-use constant MI_OBJECT_SCALE        => &Wx::NewId;
-use constant MI_OBJECT_SPLIT        => &Wx::NewId;
-use constant MI_OBJECT_VIEWCUT      => &Wx::NewId;
-use constant MI_OBJECT_SETTINGS     => &Wx::NewId;
-
-use constant MI_TAB_PLATER    => &Wx::NewId;
-use constant MI_TAB_PRINT     => &Wx::NewId;
-use constant MI_TAB_FILAMENT  => &Wx::NewId;
-use constant MI_TAB_PRINTER   => &Wx::NewId;
-
-use constant MI_CONF_WIZARD   => &Wx::NewId;
-use constant MI_WEBSITE       => &Wx::NewId;
-use constant MI_VERSIONCHECK  => &Wx::NewId;
-use constant MI_DOCUMENTATION => &Wx::NewId;
 
 our $datadir;
 our $no_plater;
@@ -120,152 +85,12 @@ sub OnInit {
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
-    my $frame = Wx::Frame->new(undef, -1, 'Slic3r', wxDefaultPosition, [760, 470], wxDEFAULT_FRAME_STYLE);
-    $frame->SetIcon(Wx::Icon->new("$Slic3r::var/Slic3r_128px.png", wxBITMAP_TYPE_PNG) );
-    $self->{skeinpanel} = Slic3r::GUI::SkeinPanel->new($frame,
+    my $frame = Slic3r::GUI::MainFrame->new(
         mode        => $mode // $Settings->{_}{mode},
         no_plater   => $no_plater,
     );
+    $self->{skeinpanel} = $frame->{skeinpanel};
     $self->SetTopWindow($frame);
-    
-    # status bar
-    $frame->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($frame, -1);
-    $frame->{statusbar}->SetStatusText("Version $Slic3r::VERSION - Remember to check for updates at http://slic3r.org/");
-    $frame->SetStatusBar($frame->{statusbar});
-    
-    # File menu
-    my $fileMenu = Wx::Menu->new;
-    {
-        $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L", 'Load exported configuration file');
-        $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E", 'Export current configuration to file');
-        $fileMenu->Append(MI_LOAD_CONFBUNDLE, "&Load Config Bundle…", 'Load presets from a bundle');
-        $fileMenu->Append(MI_EXPORT_CONFBUNDLE, "&Export Config Bundle…", 'Export all presets to file');
-        $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U", 'Slice file');
-        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as');
-        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice');
-        $repeat->Enable(0);
-        $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
-        $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_REPAIR_STL, "Repair STL file…", 'Automatically repair an STL file');
-        $fileMenu->Append(MI_COMBINE_STLS, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file');
-        $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_PREFERENCES, "Preferences…", 'Application preferences');
-        $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
-        EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config_file });
-        EVT_MENU($frame, MI_LOAD_CONFBUNDLE, sub { $self->{skeinpanel}->load_configbundle });
-        EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->export_config });
-        EVT_MENU($frame, MI_EXPORT_CONFBUNDLE, sub { $self->{skeinpanel}->export_configbundle });
-        EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->quick_slice;
-                                               $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
-        EVT_MENU($frame, MI_REPEAT_QUICK, sub { $self->{skeinpanel}->quick_slice(reslice => 1) });
-        EVT_MENU($frame, MI_QUICK_SAVE_AS, sub { $self->{skeinpanel}->quick_slice(save_as => 1);
-                                                 $repeat->Enable(defined $Slic3r::GUI::SkeinPanel::last_input_file) });
-        EVT_MENU($frame, MI_SLICE_SVG, sub { $self->{skeinpanel}->quick_slice(save_as => 1, export_svg => 1) });
-        EVT_MENU($frame, MI_REPAIR_STL, sub { $self->{skeinpanel}->repair_stl });
-        EVT_MENU($frame, MI_COMBINE_STLS, sub { $self->{skeinpanel}->combine_stls });
-        EVT_MENU($frame, wxID_PREFERENCES, sub { Slic3r::GUI::Preferences->new($frame)->ShowModal });
-        EVT_MENU($frame, wxID_EXIT, sub {$_[0]->Close(0)});
-    }
-    
-    # Plater menu
-    unless ($no_plater) {
-        my $plater = $self->{skeinpanel}{plater};
-        
-        $frame->{plater_menu} = Wx::Menu->new;
-        $frame->{plater_menu}->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
-        $frame->{plater_menu}->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
-        $frame->{plater_menu}->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
-        EVT_MENU($frame, MI_PLATER_EXPORT_GCODE, sub { $plater->export_gcode });
-        EVT_MENU($frame, MI_PLATER_EXPORT_STL, sub { $plater->export_stl });
-        EVT_MENU($frame, MI_PLATER_EXPORT_AMF, sub { $plater->export_amf });
-        
-        $frame->{object_menu} = Wx::Menu->new;
-        $frame->{object_menu}->Append(MI_OBJECT_REMOVE, "Delete\tCtrl+Del", 'Remove the selected object');
-        $frame->{object_menu}->Append(MI_OBJECT_MORE, "Increase copies\tCtrl++", 'Place one more copy of the selected object');
-        $frame->{object_menu}->Append(MI_OBJECT_FEWER, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object');
-        $frame->{object_menu}->AppendSeparator();
-        $frame->{object_menu}->Append(MI_OBJECT_ROTATE_45CW, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise');
-        $frame->{object_menu}->Append(MI_OBJECT_ROTATE_45CCW, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise');
-        $frame->{object_menu}->Append(MI_OBJECT_ROTATE, "Rotate…", 'Rotate the selected object by an arbitrary angle around Z axis');
-        $frame->{object_menu}->Append(MI_OBJECT_SCALE, "Scale…", 'Scale the selected object by an arbitrary factor');
-        $frame->{object_menu}->Append(MI_OBJECT_SPLIT, "Split", 'Split the selected object into individual parts');
-        $frame->{object_menu}->Append(MI_OBJECT_VIEWCUT, "View/Cut…", 'Open the 3D cutting tool');
-        $frame->{object_menu}->AppendSeparator();
-        $frame->{object_menu}->Append(MI_OBJECT_SETTINGS, "Settings…", 'Open the object editor dialog');
-        EVT_MENU($frame, MI_OBJECT_REMOVE, sub { $plater->remove });
-        EVT_MENU($frame, MI_OBJECT_MORE, sub { $plater->increase });
-        EVT_MENU($frame, MI_OBJECT_FEWER, sub { $plater->decrease });
-        EVT_MENU($frame, MI_OBJECT_ROTATE_45CW, sub { $plater->rotate(-45) });
-        EVT_MENU($frame, MI_OBJECT_ROTATE_45CCW, sub { $plater->rotate(45) });
-        EVT_MENU($frame, MI_OBJECT_ROTATE, sub { $plater->rotate(undef) });
-        EVT_MENU($frame, MI_OBJECT_SCALE, sub { $plater->changescale });
-        EVT_MENU($frame, MI_OBJECT_SPLIT, sub { $plater->split_object });
-        EVT_MENU($frame, MI_OBJECT_VIEWCUT, sub { $plater->object_cut_dialog });
-        EVT_MENU($frame, MI_OBJECT_SETTINGS, sub { $plater->object_settings_dialog });
-        $self->on_plater_selection_changed(0);
-    }
-    
-    # Window menu
-    my $windowMenu = Wx::Menu->new;
-    {
-        my $tab_count = $no_plater ? 3 : 4;
-        $windowMenu->Append(MI_TAB_PLATER, "Select &Plater Tab\tCtrl+1", 'Show the plater') unless $no_plater;
-        $windowMenu->Append(MI_TAB_PRINT, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings');
-        $windowMenu->Append(MI_TAB_FILAMENT, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings');
-        $windowMenu->Append(MI_TAB_PRINTER, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings');
-        EVT_MENU($frame, MI_TAB_PLATER, sub { $self->{skeinpanel}->select_tab(0) }) unless $no_plater;
-        EVT_MENU($frame, MI_TAB_PRINT, sub { $self->{skeinpanel}->select_tab($tab_count-3) });
-        EVT_MENU($frame, MI_TAB_FILAMENT, sub { $self->{skeinpanel}->select_tab($tab_count-2) });
-        EVT_MENU($frame, MI_TAB_PRINTER, sub { $self->{skeinpanel}->select_tab($tab_count-1) });
-    }
-    
-    # Help menu
-    my $helpMenu = Wx::Menu->new;
-    {
-        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
-        $helpMenu->AppendSeparator();
-        $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
-        my $versioncheck = $helpMenu->Append(MI_VERSIONCHECK, "Check for &Updates...", 'Check for new Slic3r versions');
-        $versioncheck->Enable(Slic3r::GUI->have_version_check);
-        $helpMenu->Append(MI_DOCUMENTATION, "Slic3r &Manual", 'Open the Slic3r manual in your browser');
-        $helpMenu->AppendSeparator();
-        $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
-        EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
-        EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
-        EVT_MENU($frame, MI_VERSIONCHECK, sub { Slic3r::GUI->check_version(manual => 1) });
-        EVT_MENU($frame, MI_DOCUMENTATION, sub { Wx::LaunchDefaultBrowser('http://manual.slic3r.org/') });
-        EVT_MENU($frame, wxID_ABOUT, \&about);
-    }
-    
-    # menubar
-    # assign menubar to frame after appending items, otherwise special items
-    # will not be handled correctly
-    {
-        my $menubar = Wx::MenuBar->new;
-        $menubar->Append($fileMenu, "&File");
-        $menubar->Append($frame->{plater_menu}, "&Plater") if $frame->{plater_menu};
-        $menubar->Append($frame->{object_menu}, "&Object") if $frame->{object_menu};
-        $menubar->Append($windowMenu, "&Window");
-        $menubar->Append($helpMenu, "&Help");
-        $frame->SetMenuBar($menubar);
-    }
-    
-    EVT_CLOSE($frame, sub {
-        my (undef, $event) = @_;
-        if ($event->CanVeto && !$self->{skeinpanel}->check_unsaved_changes) {
-            $event->Veto;
-            return;
-        }
-        $event->Skip;
-    });
-    
-    $frame->Fit;
-    $frame->SetMinSize($frame->GetSize);
-    $frame->Show;
-    $frame->Layout;
     
     if (!$run_wizard && (!defined $last_version || $last_version ne $Slic3r::VERSION)) {
         # user was running another Slic3r version on this computer
@@ -290,14 +115,6 @@ sub OnInit {
     });
     
     return 1;
-}
-
-sub on_plater_selection_changed {
-    my ($self, $have_selection) = @_;
-    
-    return if !defined $self->{object_menu};
-    $self->{object_menu}->Enable($_->GetId, $have_selection)
-        for $self->{object_menu}->GetMenuItems;
 }
 
 sub about {

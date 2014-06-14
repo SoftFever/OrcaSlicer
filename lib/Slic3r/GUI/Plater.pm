@@ -360,7 +360,10 @@ sub on_select_preset {
 
 sub GetFrame {
     my ($self) = @_;
-    return &Wx::GetTopLevelParent($self);
+    
+    my $frame = &Wx::GetTopLevelParent($self);
+    bless $frame, 'Slic3r::GUI::MainFrame';  # Wx returns a generic Wx::Frame object
+    return $frame;
 }
 
 sub skeinpanel {
@@ -1251,8 +1254,7 @@ sub selection_changed {
     }
     
     # prepagate the event to the frame (a custom Wx event would be cleaner)
-    ###$self->GetFrame->on_plater_selection_changed($have_sel);
-    Slic3r::GUI::on_plater_selection_changed($self->GetFrame, $have_sel);
+    $self->GetFrame->on_plater_selection_changed($have_sel);
 }
 
 sub select_object {
