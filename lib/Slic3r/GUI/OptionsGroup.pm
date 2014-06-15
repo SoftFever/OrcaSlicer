@@ -48,6 +48,7 @@ has 'options'       => (is => 'ro', required => 1, trigger => 1);
 has 'lines'         => (is => 'lazy');
 has 'on_change'     => (is => 'ro', default => sub { sub {} });
 has 'no_labels'     => (is => 'ro', default => sub { 0 });
+has 'staticbox'     => (is => 'ro', default => sub { 1 });
 has 'label_width'   => (is => 'ro', default => sub { 180 });
 has 'extra_column'  => (is => 'ro');
 has 'label_font'    => (is => 'ro');
@@ -63,9 +64,11 @@ sub _trigger_options {}
 sub BUILD {
     my $self = shift;
     
-    {
+    if ($self->staticbox) {
         my $box = Wx::StaticBox->new($self->parent, -1, $self->title);
         $self->sizer(Wx::StaticBoxSizer->new($box, wxVERTICAL));
+    } else {
+        $self->sizer(Wx::BoxSizer->new(wxVERTICAL));
     }
     
     my $num_columns = $self->extra_column ? 3 : 2;
@@ -79,9 +82,9 @@ sub BUILD {
     foreach my $line (@{$self->lines}) {
         if ($line->{sizer}) {
             $self->sizer->Add($line->{sizer}, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
-        } elsif ($line->{widget}) {
-            my $window = $line->{widget}->GetWindow($self->parent);
-            $self->sizer->Add($window, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
+        } elsif ($line->{widget} && $line->{full_width}) {
+            my $sizer = $line->{widget}->($self->parent);
+            $self->sizer->Add($sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
         } else {
             $self->_build_line($line, $grid_sizer);
         }
@@ -143,7 +146,7 @@ sub _build_line {
         push @fields, $self->_build_field($opt);
         push @field_labels, $opt->{label};
     }
-    if (@fields > 1 || $line->{sidetext}) {
+    if (@fields > 1 || $line->{widget} || $line->{sidetext}) {
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         for my $i (0 .. $#fields) {
             if (@fields > 1 && $field_labels[$i]) {
@@ -153,7 +156,10 @@ sub _build_line {
             }
             $sizer->Add($fields[$i], 0, wxALIGN_CENTER_VERTICAL, 0);
         }
-        if ($line->{sidetext}) {
+        if ($line->{widget}) {
+            my $widget_sizer = $line->{widget}->($self->parent);
+            $sizer->Add($widget_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
+        } elsif ($line->{sidetext}) {
             my $sidetext = Wx::StaticText->new($self->parent, -1, $line->{sidetext}, wxDefaultPosition, wxDefaultSize);
             $sidetext->SetFont($self->sidetext_font);
             $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
@@ -479,26 +485,24 @@ sub _config_methods {
 }
 
 package Slic3r::GUI::OptionsGroup::StaticTextLine;
-use Moo;
 use Wx qw(:misc :systemsettings);
+use base 'Wx::StaticText';
 
-sub GetWindow {
-    my $self = shift;
-    my ($parent) = @_;
+sub new {
+    my ($class, $parent) = @_;
     
-    $self->{statictext} = Wx::StaticText->new($parent, -1, "foo", wxDefaultPosition, wxDefaultSize);
+    my $self = $class->SUPER::new($parent, -1, "", wxDefaultPosition, wxDefaultSize);
     my $font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $self->{statictext}->SetFont($font);
-    return $self->{statictext};
+    $self->SetFont($font);
+    return $self;
 }
 
 sub SetText {
-    my $self = shift;
-    my ($value) = @_;
+    my ($self, $value) = @_;
     
-    $self->{statictext}->SetLabel($value);
-    $self->{statictext}->Wrap(400);
-    $self->{statictext}->GetParent->Layout;
+    $self->SetLabel($value);
+    $self->Wrap(400);
+    $self->GetParent->Layout;
 }
 
 1;

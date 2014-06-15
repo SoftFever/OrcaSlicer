@@ -599,7 +599,11 @@ sub build {
                 Slic3r::GUI::OptionsGroup->single_option_line('cooling'),
                 {
                     label => '',
-                    widget => ($self->{description_line} = Slic3r::GUI::OptionsGroup::StaticTextLine->new),
+                    full_width => 1,
+                    widget => sub {
+                        my ($parent) = @_;
+                        return $self->{description_line} = Slic3r::GUI::OptionsGroup::StaticTextLine->new($parent);
+                    },
                 },
             ],
         },
@@ -662,6 +666,8 @@ sub on_value_change {
 
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
+use Wx qw(:sizer :button :bitmap :misc :id);
+use Wx::Event qw(EVT_BUTTON);
 
 sub name { 'printer' }
 sub title { 'Printer Settings' }
@@ -671,10 +677,42 @@ sub build {
     
     $self->{extruders_count} = 1;
     
+    my $bed_shape_widget = sub {
+        my ($parent) = @_;
+        
+        my $btn = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+        $btn->SetFont($Slic3r::GUI::small_font);
+        if ($Slic3r::GUI::have_button_icons) {
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+        }
+        
+        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $sizer->Add($btn);
+        
+        EVT_BUTTON($self, $btn, sub {
+            my $dlg = Slic3r::GUI::BedShapeDialog->new($self, $self->{config}->bed_shape);
+            if ($dlg->ShowModal == wxID_OK) {
+                my $value = $dlg->GetValue;
+                $self->{config}->set('bed_shape', $value);
+                $self->on_value_change('bed_shape', $value);
+            }
+        });
+        
+        return $sizer;
+    };
+    
     $self->add_options_page('General', 'printer_empty.png', optgroups => [
         {
             title => 'Size and coordinates',
-            options => [qw(bed_size print_center z_offset)],
+            options => [qw(bed_shape print_center z_offset)],
+            lines => [
+                {
+                    label => 'Bed shape',
+                    widget => $bed_shape_widget,
+                },
+                Slic3r::GUI::OptionsGroup->single_option_line('print_center'),
+                Slic3r::GUI::OptionsGroup->single_option_line('z_offset'),
+            ],
         },
         {
             title => 'Firmware',

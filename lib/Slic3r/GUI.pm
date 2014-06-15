@@ -6,6 +6,7 @@ use utf8;
 use File::Basename qw(basename);
 use FindBin;
 use Slic3r::GUI::AboutDialog;
+use Slic3r::GUI::BedShapeDialog;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Notifier;

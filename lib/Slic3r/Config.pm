@@ -23,7 +23,7 @@ $Options->{threads}{readonly} = !$Slic3r::have_threads;
         *{$opt_key} = sub { $_[0]->get($opt_key) };
     }
 }
-
+sub bed_size { [200,200] }
 sub new_from_defaults {
     my $class = shift;
     my (@opt_keys) = @_;

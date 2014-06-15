@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 34;
+use Test::More tests => 39;
 
 use constant PI         => 4 * atan2(1, 1);
 use constant EPSILON    => 1E-4;
@@ -40,10 +40,17 @@ isa_ok $line->[0], 'Slic3r::Point::Ref', 'line point is blessed';
     ], 'translate';
 }
 
+{
+    ok +Slic3r::Line->new([0,0],[200,0])->parallel_to_line(Slic3r::Line->new([200,200],[0,200])), 'parallel_to';
+}
+
 foreach my $base_angle (0, PI/4, PI/2, PI) {
     my $line = Slic3r::Line->new([0,0], [100,0]);
     $line->rotate($base_angle, [0,0]);
-    ok $line->parallel_to_line($line->clone), 'line is parallel to self';
+    my $clone = $line->clone;
+    ok $line->parallel_to_line($clone), 'line is parallel to self';
+    $clone->reverse;
+    ok $line->parallel_to_line($clone), 'line is parallel to self + PI';
     ok $line->parallel_to($line->direction), 'line is parallel to its direction';
     ok $line->parallel_to($line->direction + PI), 'line is parallel to its direction + PI';
     ok $line->parallel_to($line->direction - PI), 'line is parallel to its direction - PI';
