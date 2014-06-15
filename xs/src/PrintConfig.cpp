@@ -945,7 +945,6 @@ PrintConfigDef::build_def() {
     Options["xy_size_compensation"].tooltip = "The object will be grown/shrunk in the XY plane by the configured value (negative = inwards, positive = outwards). This might be useful for fine-tuning hole sizes.";
     Options["xy_size_compensation"].sidetext = "mm";
     Options["xy_size_compensation"].cli = "xy-size-compensation=f";
-    Options["xy_size_compensation"].min = 0;
 
     Options["z_offset"].type = coFloat;
     Options["z_offset"].label = "Z offset";
