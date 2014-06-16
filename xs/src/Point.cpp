@@ -293,6 +293,18 @@ Pointf::from_SV(SV* point_sv)
     this->y = SvNV(sv_y);
     return true;
 }
+
+void
+Pointf::from_SV_check(SV* point_sv)
+{
+    if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
+        if (!sv_isa(point_sv, perl_class_name(this)) && !sv_isa(point_sv, perl_class_name_ref(this)))
+            CONFESS("Not a valid %s object (got %s)", perl_class_name(this), HvNAME(SvSTASH(SvRV(point_sv))));
+        *this = *(Pointf*)SvIV((SV*)SvRV( point_sv ));
+    } else {
+        this->from_SV(point_sv);
+    }
+}
 #endif
 
 void

@@ -427,7 +427,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
         } else if (*opt_key == "nozzle_diameter") {
             steps.insert(psInitExtruders);
         } else if (*opt_key == "avoid_crossing_perimeters"
-            || *opt_key == "bed_size"
+            || *opt_key == "bed_shape"
             || *opt_key == "bed_temperature"
             || *opt_key == "bridge_acceleration"
             || *opt_key == "bridge_fan_speed"

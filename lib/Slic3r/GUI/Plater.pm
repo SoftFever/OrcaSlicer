@@ -38,7 +38,6 @@ our $ERROR_EVENT             : shared = Wx::NewEventType;
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
-use constant CANVAS_SIZE => [335,335];
 use constant FILAMENT_CHOOSERS_SPACING => 3;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
@@ -51,7 +50,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
-        bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance
+        bed_shape print_center complete_objects extruder_clearance_radius skirts skirt_distance
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
@@ -69,7 +68,7 @@ sub new {
         }
     });
     
-    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self, CANVAS_SIZE, $self->{objects}, $self->{model}, $self->{config});
+    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self, [335,335], $self->{objects}, $self->{model}, $self->{config});
     $self->{canvas}->on_select_object(sub {
         my ($obj_idx) = @_;
         $self->select_object($obj_idx);
@@ -133,7 +132,7 @@ sub new {
         }
     }
 
-    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize, wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
+    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [250,-1], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
     $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 145);
     $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 45);
     $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
@@ -285,6 +284,7 @@ sub new {
         {
             my $box = Wx::StaticBox->new($self, -1, "Info");
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
+            $object_info_sizer->SetMinSize([350,-1]);
             my $grid_sizer = Wx::FlexGridSizer->new(3, 4, 5, 5);
             $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
             $grid_sizer->AddGrowableCol(1, 1);
@@ -300,14 +300,14 @@ sub new {
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
-                my $text = Wx::StaticText->new($self, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                my $text = Wx::StaticText->new($box, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 $grid_sizer->Add($text, 0);
                 
-                $self->{"object_info_$field"} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $self->{"object_info_$field"} = Wx::StaticText->new($box, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 if ($field eq 'manifold') {
-                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new("$Slic3r::var/error.png", wxBITMAP_TYPE_PNG));
+                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($box, -1, Wx::Bitmap->new("$Slic3r::var/error.png", wxBITMAP_TYPE_PNG));
                     $self->{object_info_manifold_warning_icon}->Hide;
                     
                     my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -334,8 +334,8 @@ sub new {
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $hsizer->Add($self->{canvas}, 0, wxTOP, 1);
-        $hsizer->Add($right_sizer, 1, wxEXPAND | wxBOTTOM, 0);
+        $hsizer->Add($self->{canvas}, 1, wxEXPAND | wxTOP, 1);
+        $hsizer->Add($right_sizer, 0, wxEXPAND | wxBOTTOM, 0);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
@@ -677,12 +677,7 @@ sub changescale {
 sub arrange {
     my $self = shift;
     
-    # get the bounding box of the model area shown in the viewport
-    my $bb = Slic3r::Geometry::BoundingBox->new_from_points([
-        Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units([0,0]) }),
-        Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units(CANVAS_SIZE) }),
-    ]);
-    
+    my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
     eval {
         $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
     };
@@ -758,7 +753,8 @@ sub split_object {
 
 sub schedule_background_process {
     my ($self) = @_;
-    $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
+    $self->{apply_config_timer}->Start(PROCESS_DELAY, 1)  # 1 = one shot
+        if defined $self->{apply_config_timer};
 }
 
 sub async_apply_config {
@@ -841,7 +837,7 @@ sub start_background_process {
 sub stop_background_process {
     my ($self) = @_;
     
-    $self->{apply_config_timer}->Stop;
+    $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
@@ -1147,7 +1143,7 @@ sub on_config_change {
         $self->Layout;
     } elsif ($self->{config}->has($opt_key)) {
         $self->{config}->set($opt_key, $value);
-        if ($opt_key eq 'bed_size') {
+        if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
             $self->update;
         }

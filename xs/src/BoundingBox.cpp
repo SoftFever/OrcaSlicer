@@ -18,6 +18,7 @@ BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &poin
     }
 }
 template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
+template BoundingBoxBase<Pointf>::BoundingBoxBase(const std::vector<Pointf> &points);
 
 template <class PointClass>
 BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> &points)
@@ -65,6 +66,7 @@ BoundingBoxBase<PointClass>::scale(double factor)
     this->max.scale(factor);
 }
 template void BoundingBoxBase<Point>::scale(double factor);
+template void BoundingBoxBase<Pointf>::scale(double factor);
 template void BoundingBoxBase<Pointf3>::scale(double factor);
 
 template <class PointClass> void
@@ -76,6 +78,7 @@ BoundingBoxBase<PointClass>::merge(const PointClass &point)
     this->max.y = std::max(point.y, this->max.y);
 }
 template void BoundingBoxBase<Point>::merge(const Point &point);
+template void BoundingBoxBase<Pointf>::merge(const Pointf &point);
 
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
@@ -86,6 +89,7 @@ BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
     this->max.y = std::max(bb.max.y, this->max.y);
 }
 template void BoundingBoxBase<Point>::merge(const BoundingBoxBase<Point> &bb);
+template void BoundingBoxBase<Pointf>::merge(const BoundingBoxBase<Pointf> &bb);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const PointClass &point)
@@ -111,6 +115,7 @@ BoundingBoxBase<PointClass>::size() const
     return PointClass(this->max.x - this->min.x, this->max.y - this->min.y);
 }
 template Point BoundingBoxBase<Point>::size() const;
+template Pointf BoundingBoxBase<Pointf>::size() const;
 
 template <class PointClass> PointClass
 BoundingBox3Base<PointClass>::size() const
@@ -126,6 +131,7 @@ BoundingBoxBase<PointClass>::translate(coordf_t x, coordf_t y)
     this->max.translate(x, y);
 }
 template void BoundingBoxBase<Point>::translate(coordf_t x, coordf_t y);
+template void BoundingBoxBase<Pointf>::translate(coordf_t x, coordf_t y);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::translate(coordf_t x, coordf_t y, coordf_t z)
@@ -144,6 +150,7 @@ BoundingBoxBase<PointClass>::center() const
     );
 }
 template Point BoundingBoxBase<Point>::center() const;
+template Pointf BoundingBoxBase<Pointf>::center() const;
 
 template <class PointClass> PointClass
 BoundingBox3Base<PointClass>::center() const

@@ -12,6 +12,10 @@ BoundingBox*               O_OBJECT_SLIC3R
 Ref<BoundingBox>           O_OBJECT_SLIC3R_T
 Clone<BoundingBox>         O_OBJECT_SLIC3R_T
 
+BoundingBoxf*              O_OBJECT_SLIC3R
+Ref<BoundingBoxf>          O_OBJECT_SLIC3R_T
+Clone<BoundingBoxf>        O_OBJECT_SLIC3R_T
+
 BoundingBoxf3*             O_OBJECT_SLIC3R
 Ref<BoundingBoxf3>         O_OBJECT_SLIC3R_T
 Clone<BoundingBoxf3>       O_OBJECT_SLIC3R_T

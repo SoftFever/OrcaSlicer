@@ -74,6 +74,7 @@ class Pointf
     
     #ifdef SLIC3RXS
     bool from_SV(SV* point_sv);
+    void from_SV_check(SV* point_sv);
     SV* to_SV_pureperl() const;
     #endif
 };

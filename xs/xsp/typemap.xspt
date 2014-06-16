@@ -28,6 +28,9 @@
 %typemap{BoundingBox*};
 %typemap{Ref<BoundingBox>}{simple};
 %typemap{Clone<BoundingBox>}{simple};
+%typemap{BoundingBoxf*};
+%typemap{Ref<BoundingBoxf>}{simple};
+%typemap{Clone<BoundingBoxf>}{simple};
 %typemap{BoundingBoxf3*};
 %typemap{Ref<BoundingBoxf3>}{simple};
 %typemap{Clone<BoundingBoxf3>}{simple};

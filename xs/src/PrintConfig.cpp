@@ -11,11 +11,8 @@ PrintConfigDef::build_def() {
     Options["avoid_crossing_perimeters"].tooltip = "Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.";
     Options["avoid_crossing_perimeters"].cli = "avoid-crossing-perimeters!";
 
-    Options["bed_size"].type = coPoint;
-    Options["bed_size"].label = "Bed size";
-    Options["bed_size"].tooltip = "Size of your bed. This is used to adjust the preview in the plater and for auto-arranging parts in it.";
-    Options["bed_size"].sidetext = "mm";
-    Options["bed_size"].cli = "bed-size=s";
+    Options["bed_shape"].type = coPoints;
+    Options["bed_shape"].label = "Bed shape";
 
     Options["bed_temperature"].type = coInt;
     Options["bed_temperature"].label = "Other layers";

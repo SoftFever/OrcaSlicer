@@ -48,6 +48,7 @@ has 'options'       => (is => 'ro', required => 1, trigger => 1);
 has 'lines'         => (is => 'lazy');
 has 'on_change'     => (is => 'ro', default => sub { sub {} });
 has 'no_labels'     => (is => 'ro', default => sub { 0 });
+has 'staticbox'     => (is => 'ro', default => sub { 1 });
 has 'label_width'   => (is => 'ro', default => sub { 180 });
 has 'extra_column'  => (is => 'ro');
 has 'label_font'    => (is => 'ro');
@@ -63,9 +64,11 @@ sub _trigger_options {}
 sub BUILD {
     my $self = shift;
     
-    {
+    if ($self->staticbox) {
         my $box = Wx::StaticBox->new($self->parent, -1, $self->title);
         $self->sizer(Wx::StaticBoxSizer->new($box, wxVERTICAL));
+    } else {
+        $self->sizer(Wx::BoxSizer->new(wxVERTICAL));
     }
     
     my $num_columns = $self->extra_column ? 3 : 2;
@@ -77,11 +80,18 @@ sub BUILD {
     $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
     
     foreach my $line (@{$self->lines}) {
+        # build default callbacks in case we don't call _build_line() below
+        foreach my $opt_key (@{$line->{options}}) {
+            my $opt = first { $_->{opt_key} eq $opt_key } @{$self->options};
+            $self->_setters->{$opt_key} //= sub {};
+            $self->_triggers->{$opt_key} = $opt->{on_change} || sub { return 1 };
+        }
+        
         if ($line->{sizer}) {
             $self->sizer->Add($line->{sizer}, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
-        } elsif ($line->{widget}) {
-            my $window = $line->{widget}->GetWindow($self->parent);
-            $self->sizer->Add($window, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
+        } elsif ($line->{widget} && $line->{full_width}) {
+            my $sizer = $line->{widget}->($self->parent);
+            $self->sizer->Add($sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
         } else {
             $self->_build_line($line, $grid_sizer);
         }
@@ -140,10 +150,10 @@ sub _build_line {
     my @field_labels = ();
     foreach my $opt_key (@{$line->{options}}) {
         my $opt = first { $_->{opt_key} eq $opt_key } @{$self->options};
-        push @fields, $self->_build_field($opt);
+        push @fields, $self->_build_field($opt) unless $line->{widget};
         push @field_labels, $opt->{label};
     }
-    if (@fields > 1 || $line->{sidetext}) {
+    if (@fields > 1 || $line->{widget} || $line->{sidetext}) {
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         for my $i (0 .. $#fields) {
             if (@fields > 1 && $field_labels[$i]) {
@@ -153,7 +163,10 @@ sub _build_line {
             }
             $sizer->Add($fields[$i], 0, wxALIGN_CENTER_VERTICAL, 0);
         }
-        if ($line->{sidetext}) {
+        if ($line->{widget}) {
+            my $widget_sizer = $line->{widget}->($self->parent);
+            $sizer->Add($widget_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
+        } elsif ($line->{sidetext}) {
             my $sidetext = Wx::StaticText->new($self->parent, -1, $line->{sidetext}, wxDefaultPosition, wxDefaultSize);
             $sidetext->SetFont($self->sidetext_font);
             $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
@@ -169,7 +182,6 @@ sub _build_field {
     my ($opt) = @_;
     
     my $opt_key = $opt->{opt_key};
-    $self->_triggers->{$opt_key} = $opt->{on_change} || sub { return 1 };
     
     my $on_kill_focus = sub {
         my ($s, $event) = @_;
@@ -363,6 +375,7 @@ has '+ignore_on_change_return' => (is => 'ro', default => sub { 0 });
 sub _trigger_options {
     my $self = shift;
     
+    $self->SUPER::_trigger_options;
     @{$self->options} = map {
         my $opt = $_;
         if (ref $opt ne 'HASH') {
@@ -408,10 +421,17 @@ sub set_value {
         if ($key eq $opt_key) {
             $self->config->set($key, $value);
             $self->SUPER::set_value($full_key, $self->_get_config($key, $index));
-            $changed = 1;
+            return 1;
         }
     }
-    return $changed;
+    
+    # if we're here, we know this option but we found no setter, so we just propagate it
+    if ($self->config->has($opt_key)) {
+        $self->config->set($opt_key, $value);
+        $self->SUPER::set_value($opt_key, $value);
+        return 1;
+    }
+    return 0;
 }
 
 sub on_kill_focus {
@@ -479,26 +499,24 @@ sub _config_methods {
 }
 
 package Slic3r::GUI::OptionsGroup::StaticTextLine;
-use Moo;
 use Wx qw(:misc :systemsettings);
+use base 'Wx::StaticText';
 
-sub GetWindow {
-    my $self = shift;
-    my ($parent) = @_;
+sub new {
+    my ($class, $parent) = @_;
     
-    $self->{statictext} = Wx::StaticText->new($parent, -1, "foo", wxDefaultPosition, wxDefaultSize);
+    my $self = $class->SUPER::new($parent, -1, "", wxDefaultPosition, wxDefaultSize);
     my $font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    $self->{statictext}->SetFont($font);
-    return $self->{statictext};
+    $self->SetFont($font);
+    return $self;
 }
 
 sub SetText {
-    my $self = shift;
-    my ($value) = @_;
+    my ($self, $value) = @_;
     
-    $self->{statictext}->SetLabel($value);
-    $self->{statictext}->Wrap(400);
-    $self->{statictext}->GetParent->Layout;
+    $self->SetLabel($value);
+    $self->Wrap(400);
+    $self->GetParent->Layout;
 }
 
 1;

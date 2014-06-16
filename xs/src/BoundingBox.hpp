@@ -53,9 +53,14 @@ class BoundingBox : public BoundingBoxBase<Point>
 };
 
 /*
-class BoundingBoxf  : public BoundingBoxBase<Pointf> {};
 class BoundingBox3  : public BoundingBox3Base<Point3> {};
 */
+
+class BoundingBoxf : public BoundingBoxBase<Pointf> {
+    public:
+    BoundingBoxf() {};
+    BoundingBoxf(const std::vector<Pointf> &points) : BoundingBoxBase<Pointf>(points) {};
+};
 
 class BoundingBoxf3 : public BoundingBox3Base<Pointf3> {
     public:
