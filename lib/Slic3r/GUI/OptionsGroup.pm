@@ -80,6 +80,13 @@ sub BUILD {
     $self->sizer->Add($grid_sizer, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 5);
     
     foreach my $line (@{$self->lines}) {
+        # build default callbacks in case we don't call _build_line() below
+        foreach my $opt_key (@{$line->{options}}) {
+            my $opt = first { $_->{opt_key} eq $opt_key } @{$self->options};
+            $self->_setters->{$opt_key} //= sub {};
+            $self->_triggers->{$opt_key} = $opt->{on_change} || sub { return 1 };
+        }
+        
         if ($line->{sizer}) {
             $self->sizer->Add($line->{sizer}, 0, wxEXPAND | wxALL, &Wx::wxMAC ? 0 : 15);
         } elsif ($line->{widget} && $line->{full_width}) {
@@ -143,7 +150,7 @@ sub _build_line {
     my @field_labels = ();
     foreach my $opt_key (@{$line->{options}}) {
         my $opt = first { $_->{opt_key} eq $opt_key } @{$self->options};
-        push @fields, $self->_build_field($opt);
+        push @fields, $self->_build_field($opt) unless $line->{widget};
         push @field_labels, $opt->{label};
     }
     if (@fields > 1 || $line->{widget} || $line->{sidetext}) {
@@ -175,7 +182,6 @@ sub _build_field {
     my ($opt) = @_;
     
     my $opt_key = $opt->{opt_key};
-    $self->_triggers->{$opt_key} = $opt->{on_change} || sub { return 1 };
     
     my $on_kill_focus = sub {
         my ($s, $event) = @_;
@@ -369,6 +375,7 @@ has '+ignore_on_change_return' => (is => 'ro', default => sub { 0 });
 sub _trigger_options {
     my $self = shift;
     
+    $self->SUPER::_trigger_options;
     @{$self->options} = map {
         my $opt = $_;
         if (ref $opt ne 'HASH') {
@@ -414,10 +421,17 @@ sub set_value {
         if ($key eq $opt_key) {
             $self->config->set($key, $value);
             $self->SUPER::set_value($full_key, $self->_get_config($key, $index));
-            $changed = 1;
+            return 1;
         }
     }
-    return $changed;
+    
+    # if we're here, we know this option but we found no setter, so we just propagate it
+    if ($self->config->has($opt_key)) {
+        $self->config->set($opt_key, $value);
+        $self->SUPER::set_value($opt_key, $value);
+        return 1;
+    }
+    return 0;
 }
 
 sub on_kill_focus {

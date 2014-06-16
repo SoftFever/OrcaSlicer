@@ -551,13 +551,13 @@ sub config_wizard {
     my $self = shift;
 
     return unless $self->check_unsaved_changes;
-    if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {use XXX; YYY $config->bed_shape;
+    if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
         if ($self->{mode} eq 'expert') {
             for my $tab (values %{$self->{options_tabs}}) {
                 $tab->select_default_preset;
             }
         }
-        $self->load_config($config);use XXX; YYY $self->config->bed_shape;
+        $self->load_config($config);
         if ($self->{mode} eq 'expert') {
             for my $tab (values %{$self->{options_tabs}}) {
                 $tab->save_preset('My Settings');

@@ -709,6 +709,7 @@ sub build {
                 {
                     label => 'Bed shape',
                     widget => $bed_shape_widget,
+                    options => ['bed_shape'],
                 },
                 Slic3r::GUI::OptionsGroup->single_option_line('print_center'),
                 Slic3r::GUI::OptionsGroup->single_option_line('z_offset'),
