@@ -694,6 +694,7 @@ sub build {
             if ($dlg->ShowModal == wxID_OK) {
                 my $value = $dlg->GetValue;
                 $self->{config}->set('bed_shape', $value);
+                $self->set_dirty(1);
                 $self->on_value_change('bed_shape', $value);
             }
         });
