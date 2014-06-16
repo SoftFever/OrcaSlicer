@@ -36,6 +36,11 @@ has 'status_cb' => (
     default => sub { sub {} },
 );
 
+has 'print_center' => (
+    is      => 'rw',
+    default => sub { [100,100] },
+);
+
 has 'output_file' => (
     is      => 'rw',
 );
@@ -63,7 +68,7 @@ sub set_model {
         # if all input objects have defined position(s) apply duplication to the whole model
         $model->duplicate($self->duplicate, $self->_print->config->min_object_distance);
     }
-    $model->center_instances_around_point($self->_print->config->print_center);
+    $model->center_instances_around_point($self->print_center);
     
     foreach my $model_object (@{$model->objects}) {
         $self->_print->auto_assign_extruders($model_object);

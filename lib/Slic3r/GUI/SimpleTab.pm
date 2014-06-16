@@ -196,7 +196,7 @@ sub build {
     
     $self->append_optgroup(
         title => 'Size and coordinates',
-        options => [qw(bed_size print_center z_offset)],
+        options => [qw(bed_size z_offset)],
     );
     
     $self->append_optgroup(

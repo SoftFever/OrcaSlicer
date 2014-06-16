@@ -546,12 +546,6 @@ PrintConfigDef::build_def() {
     Options["post_process"].full_width = true;
     Options["post_process"].height = 60;
 
-    Options["print_center"].type = coPoint;
-    Options["print_center"].label = "Print center";
-    Options["print_center"].tooltip = "These G-code coordinates are used to center your plater viewport.";
-    Options["print_center"].sidetext = "mm";
-    Options["print_center"].cli = "print-center=s";
-
     Options["raft_layers"].type = coInt;
     Options["raft_layers"].label = "Raft layers";
     Options["raft_layers"].category = "Support material";

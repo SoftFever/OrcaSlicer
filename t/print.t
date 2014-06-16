@@ -14,8 +14,8 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('print_center', [100,100]);
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $print_center = [100,100];
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config, print_center => $print_center);
     my @extrusion_points = ();
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
@@ -26,8 +26,8 @@ use Slic3r::Test;
     });
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points(\@extrusion_points);
     my $center = $bb->center;
-    ok abs(unscale($center->[X]) - $config->print_center->[X]) < epsilon, 'print is centered around print_center (X)';
-    ok abs(unscale($center->[Y]) - $config->print_center->[Y]) < epsilon, 'print is centered around print_center (Y)';
+    ok abs(unscale($center->[X]) - $print_center->[X]) < epsilon, 'print is centered around print_center (X)';
+    ok abs(unscale($center->[Y]) - $print_center->[Y]) < epsilon, 'print is centered around print_center (Y)';
 }
 
 {

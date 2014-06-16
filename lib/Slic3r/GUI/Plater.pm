@@ -50,7 +50,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
-        bed_shape print_center complete_objects extruder_clearance_radius skirts skirt_distance
+        bed_shape complete_objects extruder_clearance_radius skirts skirt_distance
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
@@ -420,6 +420,8 @@ sub load_file {
 sub load_model_objects {
     my ($self, @model_objects) = @_;
     
+    my $bed_centerf = $self->bed_centerf;
+    
     my $need_arrange = 0;
     my @obj_idx = ();
     foreach my $model_object (@model_objects) {
@@ -436,7 +438,7 @@ sub load_model_objects {
         
             # add a default instance and center object around origin
             $o->center_around_origin;
-            $o->add_instance(offset => Slic3r::Pointf->new(@{$self->{config}->print_center}));
+            $o->add_instance(offset => $bed_centerf);
         }
     
         $self->{print}->auto_assign_extruders($o);
@@ -474,6 +476,14 @@ sub objects_loaded {
     $self->object_list_changed;
     
     $self->schedule_background_process;
+}
+
+sub bed_centerf {
+    my ($self) = @_;
+    
+    my $bed_shape = Slic3r::Polygon->new_scale(@{$self->{config}->bed_shape});
+    my $bed_center = $bed_shape->bounding_box->center;
+    return Slic3r::Pointf->new(unscale($bed_center->x), unscale($bed_center->y)); #)
 }
 
 sub remove {
@@ -1105,7 +1115,7 @@ sub update {
     my ($self, $force_autocenter) = @_;
     
     if ($Slic3r::GUI::Settings->{_}{autocenter} || $force_autocenter) {
-        $self->{model}->center_instances_around_point($self->{config}->print_center);
+        $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
     # sync model and print object instances
@@ -1147,7 +1157,6 @@ sub on_config_change {
             $self->{canvas}->update_bed_size;
             $self->update;
         }
-        $self->update if $opt_key eq 'print_center';
     }
     
     return if !$self->GetFrame->is_loaded;

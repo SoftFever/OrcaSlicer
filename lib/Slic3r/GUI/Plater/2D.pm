@@ -87,14 +87,14 @@ sub repaint {
     
     # draw print center
     if (@{$self->{objects}} && $Slic3r::GUI::Settings->{_}{autocenter}) {
-        my $center = $self->unscaled_point_to_pixel($self->{config}->print_center);
+        my $center = $self->unscaled_point_to_pixel($self->{print_center});
         $dc->SetPen($self->{print_center_pen});
         $dc->DrawLine($center->[X], 0, $center->[X], $size[Y]);
         $dc->DrawLine(0, $center->[Y], $size[X], $center->[Y]);
         $dc->SetTextForeground(Wx::Colour->new(0,0,0));
         $dc->SetFont(Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel("X = " . $self->{config}->print_center->[X], Wx::Rect->new(0, 0, $center->[X]*2, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
-        $dc->DrawRotatedText("Y = " . $self->{config}->print_center->[Y], 0, $center->[Y]+15, 90);
+        $dc->DrawLabel("X = " . $self->{print_center}->[X], Wx::Rect->new(0, 0, $center->[X]*2, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
+        $dc->DrawRotatedText("Y = " . $self->{print_center}->[Y], 0, $center->[Y]+15, 90);
     }
     
     # draw frame
@@ -257,6 +257,10 @@ sub update_bed_size {
         $self->GetSize->GetWidth/2  - (unscale($bb->x_max + $bb->x_min)/2 * $self->{scaling_factor}),
         $canvas_h - ($self->GetSize->GetHeight/2 - (unscale($bb->y_max + $bb->y_min)/2 * $self->{scaling_factor})),
     ];
+    
+    # calculate print center
+    my $center = $bb->center;
+    $self->{print_center} = [ unscale($center->x), unscale($center->y) ]; #))
     
     # cache bed contours and grid
     {

@@ -156,7 +156,7 @@ sub init_print {
             $model->duplicate($params{duplicate} // 1, $print->config->min_object_distance);
         }
         $model->arrange_objects($print->config->min_object_distance);
-        $model->center_instances_around_point($print->config->print_center);
+        $model->center_instances_around_point($params{print_center} // [100,100]);
         foreach my $model_object (@{$model->objects}) {
             $print->auto_assign_extruders($model_object);
             $print->add_model_object($model_object);

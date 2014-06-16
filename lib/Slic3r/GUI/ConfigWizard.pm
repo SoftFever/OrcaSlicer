@@ -53,14 +53,6 @@ sub run {
         # it would be cleaner to have these defined inside each page class,
         # in some event getting called before leaving the page
         {
-            # set print_center to center of bed_shape
-            {
-                my $bed_shape = $self->{config}->bed_shape;
-                my $polygon = Slic3r::Polygon->new_scale(@$bed_shape);
-                my $center = $polygon->centroid;
-                $self->{config}->set('print_center', [ map unscale($_), @$center ]);
-            }
-            
             # set first_layer_height + layer_height based on nozzle_diameter
             my $nozzle = $self->{config}->nozzle_diameter;
             $self->{config}->set('first_layer_height', $nozzle->[0]);

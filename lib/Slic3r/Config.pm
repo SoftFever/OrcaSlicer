@@ -9,7 +9,7 @@ use List::Util qw(first max);
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
     adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
     rotate scale duplicate_grid start_perimeters_at_concave_points start_perimeters_at_non_overhang
-    randomize_start seal_position bed_size);
+    randomize_start seal_position bed_size print_center);
 
 our $Options = print_config_def();
 
@@ -63,7 +63,7 @@ sub new_from_cli {
         
         # we use set_deserialize() for bool options since GetOpt::Long doesn't handle 
         # arrays of boolean values
-        if ($opt_key =~ /^(?:print_center|bed_size|duplicate_grid|extruder_offset)$/ || $opt_def->{type} eq 'bool') {
+        if ($opt_key =~ /^(?:bed_shape|duplicate_grid|extruder_offset)$/ || $opt_def->{type} eq 'bool') {
             $self->set_deserialize($opt_key, $args{$opt_key});
         } elsif (my $shortcut = $opt_def->{shortcut}) {
             $self->set($_, $args{$opt_key}) for @$shortcut;
@@ -279,11 +279,6 @@ sub validate {
     
     die "--use-firmware-retraction is not compatible with --wipe\n"
         if $self->use_firmware_retraction && first {$_} @{$self->wipe};
-    
-    # --print-center
-    die "Invalid value for --print-center\n"
-        if !ref $self->print_center 
-            && (!$self->print_center || $self->print_center !~ /^\d+,\d+$/);
     
     # --fill-pattern
     die "Invalid value for --fill-pattern\n"

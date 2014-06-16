@@ -704,14 +704,13 @@ sub build {
     $self->add_options_page('General', 'printer_empty.png', optgroups => [
         {
             title => 'Size and coordinates',
-            options => [qw(bed_shape print_center z_offset)],
+            options => [qw(bed_shape z_offset)],
             lines => [
                 {
                     label => 'Bed shape',
                     widget => $bed_shape_widget,
                     options => ['bed_shape'],
                 },
-                Slic3r::GUI::OptionsGroup->single_option_line('print_center'),
                 Slic3r::GUI::OptionsGroup->single_option_line('z_offset'),
             ],
         },

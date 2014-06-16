@@ -464,7 +464,6 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "output_filename_format"
             || *opt_key == "perimeter_acceleration"
             || *opt_key == "post_process"
-            || *opt_key == "print_center"
             || *opt_key == "retract_before_travel"
             || *opt_key == "retract_layer_change"
             || *opt_key == "retract_length"

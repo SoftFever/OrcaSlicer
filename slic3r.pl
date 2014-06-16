@@ -43,6 +43,7 @@ my %cli_options = ();
         'rotate=i'              => \$opt{rotate},
         'duplicate=i'           => \$opt{duplicate},
         'duplicate-grid=s'      => \$opt{duplicate_grid},
+        'print-center=s'        => \$opt{print_center},
     );
     foreach my $opt_key (keys %{$Slic3r::Config::Options}) {
         my $cli = $Slic3r::Config::Options->{$opt_key}->{cli} or next;
@@ -157,12 +158,16 @@ if (@ARGV) {  # slicing from command line
         if (defined $opt{duplicate_grid}) {
             $opt{duplicate_grid} = [ split /[,x]/, $opt{duplicate_grid}, 2 ];
         }
+        if (defined $opt{print_center}) {
+            $opt{print_center} = [ split /[,x]/, $opt{print_center}, 2 ];
+        }
         
         my $sprint = Slic3r::Print::Simple->new(
             scale           => $opt{scale}          // 1,
             rotate          => $opt{rotate}         // 0,
             duplicate       => $opt{duplicate}      // 1,
             duplicate_grid  => $opt{duplicate_grid} // [1,1],
+            print_center    => $opt{print_center}   // [100,100],
             status_cb       => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
@@ -248,8 +253,8 @@ $j
   
   Printer options:
     --nozzle-diameter   Diameter of nozzle in mm (default: $config->{nozzle_diameter}->[0])
-    --print-center      Coordinates in mm of the point to center the print around 
-                        (default: $config->{print_center}->[0],$config->{print_center}->[1])
+    --print-center      Coordinates in mm of the point to center the print around
+                        (default: 100,100)
     --z-offset          Additional height in mm to add to vertical coordinates
                         (+/-, default: $config->{z_offset})
     --gcode-flavor      The type of G-code to generate (reprap/teacup/makerware/sailfish/mach3/no-extrusion,
