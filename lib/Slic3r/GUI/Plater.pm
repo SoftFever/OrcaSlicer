@@ -50,7 +50,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
-        bed_size print_center complete_objects extruder_clearance_radius skirts skirt_distance
+        bed_size bed_shape print_center complete_objects extruder_clearance_radius skirts skirt_distance
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
@@ -676,12 +676,7 @@ sub changescale {
 sub arrange {
     my $self = shift;
     
-    # get the bounding box of the model area shown in the viewport
-    my $bb = Slic3r::Geometry::BoundingBox->new_from_points([
-        Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units([0,0]) }),
-        Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units([ map { $_->GetWidth, $_->GetHeight } $self->{canvas}->GetSize ]) }),
-    ]);
-    
+    my $bb = Slic3r::Polygon->new_scale(@{$self->{config}->bed_shape})->bounding_box;
     eval {
         $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
     };

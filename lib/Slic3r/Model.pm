@@ -146,6 +146,7 @@ sub duplicate {
 sub _arrange {
     my ($self, $sizes, $distance, $bb) = @_;
     
+    # we supply unscaled data to arrange()
     return Slic3r::Geometry::arrange(
         scalar(@$sizes),                # number of parts
         max(map $_->x, @$sizes),        # cell width
