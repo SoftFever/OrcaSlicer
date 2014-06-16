@@ -38,7 +38,6 @@ our $ERROR_EVENT             : shared = Wx::NewEventType;
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
-use constant CANVAS_SIZE => [335,335];
 use constant FILAMENT_CHOOSERS_SPACING => 3;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
@@ -69,7 +68,7 @@ sub new {
         }
     });
     
-    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self, CANVAS_SIZE, $self->{objects}, $self->{model}, $self->{config});
+    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self, [335,335], $self->{objects}, $self->{model}, $self->{config});
     $self->{canvas}->on_select_object(sub {
         my ($obj_idx) = @_;
         $self->select_object($obj_idx);
@@ -334,8 +333,8 @@ sub new {
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $hsizer->Add($self->{canvas}, 0, wxTOP, 1);
-        $hsizer->Add($right_sizer, 1, wxEXPAND | wxBOTTOM, 0);
+        $hsizer->Add($self->{canvas}, 1, wxEXPAND | wxTOP, 1);
+        $hsizer->Add($right_sizer, 0, wxEXPAND | wxBOTTOM, 0);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
@@ -680,7 +679,7 @@ sub arrange {
     # get the bounding box of the model area shown in the viewport
     my $bb = Slic3r::Geometry::BoundingBox->new_from_points([
         Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units([0,0]) }),
-        Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units(CANVAS_SIZE) }),
+        Slic3r::Point->new(@{ $self->{canvas}->point_to_model_units([ map { $_->GetWidth, $_->GetHeight } $self->{canvas}->GetSize ]) }),
     ]);
     
     eval {
