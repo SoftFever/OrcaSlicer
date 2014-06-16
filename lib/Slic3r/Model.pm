@@ -502,6 +502,13 @@ sub flip {
     $self->invalidate_bounding_box;
 }
 
+sub scale_xyz {
+    my ($self, $versor) = @_;
+    
+    $_->mesh->scale_xyz($versor) for @{$self->volumes};
+    $self->invalidate_bounding_box;
+}
+
 sub materials_count {
     my $self = shift;
     

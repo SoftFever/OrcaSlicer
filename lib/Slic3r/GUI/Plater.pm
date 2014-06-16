@@ -611,7 +611,6 @@ sub rotate {
         $self->stop_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
         $self->schedule_background_process;
-        
     }
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
@@ -648,37 +647,55 @@ sub flip {
 }
 
 sub changescale {
-    my $self = shift;
+    my ($self, $axis) = @_;
     
     my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $model_instance = $model_object->instances->[0];
     
     # we need thumbnail to be computed before allowing scaling
     return if !$object->thumbnail;
     
-    # max scale factor should be above 2540 to allow importing files exported in inches
-    my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $model_instance->scaling_factor*100, 0, 100000, $self);
-    return if !$scale || $scale == -1;
+    if (defined $axis) {
+        my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
+        my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale along $axis_name", 100, 0, 100000, $self);
+        return if !$scale || $scale < 0;
+        
+        # apply Z rotation before scaling
+        if ($model_instance->rotation != 0) {
+            $model_object->rotate(deg2rad($model_instance->rotation), Z);
+            $_->set_rotation(0) for @{ $model_object->instances };
+        }
+        
+        my $versor = [1,1,1];
+        $versor->[$axis] = $scale/100;
+        $model_object->scale_xyz($versor);
+        $self->make_thumbnail($obj_idx);
+    } else {
+        # max scale factor should be above 2540 to allow importing files exported in inches
+        my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", 'Scale', $model_instance->scaling_factor*100, 0, 100000, $self);
+        return if !$scale || $scale < 0;
     
-    $self->{list}->SetItem($obj_idx, 2, "$scale%");
-    $scale /= 100;  # turn percent into factor
-    {
+        $self->{list}->SetItem($obj_idx, 2, "$scale%");
+        $scale /= 100;  # turn percent into factor
+        
         my $variation = $scale / $model_instance->scaling_factor;
         foreach my $range (@{ $model_object->layer_height_ranges }) {
             $range->[0] *= $variation;
             $range->[1] *= $variation;
         }
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
-        $model_object->update_bounding_box;
-        
-        # update print and start background processing
-        $self->stop_background_process;
-        $self->{print}->add_model_object($model_object, $obj_idx);
-        $self->schedule_background_process;
-        
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
+    $model_object->update_bounding_box;
+    
+    # update print and start background processing
+    $self->stop_background_process;
+    $self->{print}->add_model_object($model_object, $obj_idx);
+    $self->schedule_background_process;
+    
     $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->update;
     $self->{canvas}->Refresh;
@@ -1381,7 +1398,7 @@ sub object_menu {
     });
     
     my $rotateMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($rotateMenu, "Rotate…", 'Rotate the selected object by an arbitrary angle');
+    $menu->AppendSubMenu($rotateMenu, "Rotate", 'Rotate the selected object by an arbitrary angle');
     $frame->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
         $self->rotate(undef, X);
     });
@@ -1393,7 +1410,7 @@ sub object_menu {
     });
     
     my $flipMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($flipMenu, "Flip…", 'Mirror the selected object');
+    $menu->AppendSubMenu($flipMenu, "Flip", 'Mirror the selected object');
     $frame->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
         $self->flip(X);
     });
@@ -1404,9 +1421,21 @@ sub object_menu {
         $self->flip(Z);
     });
     
-    $frame->_append_menu_item($menu, "Scale…", 'Scale the selected object by an arbitrary factor', sub {
-        $self->changescale;
+    my $scaleMenu = Wx::Menu->new;
+    $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
+    $frame->_append_menu_item($scaleMenu, "Uniformly…", 'Scale the selected object along the XYZ axes', sub {
+        $self->changescale(undef);
     });
+    $frame->_append_menu_item($scaleMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
+        $self->changescale(X);
+    });
+    $frame->_append_menu_item($scaleMenu, "Along Y axis…", 'Scale the selected object along the Y axis', sub {
+        $self->changescale(Y);
+    });
+    $frame->_append_menu_item($scaleMenu, "Along Z axis…", 'Scale the selected object along the Z axis', sub {
+        $self->changescale(Z);
+    });
+    
     $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
         $self->split_object;
     });
