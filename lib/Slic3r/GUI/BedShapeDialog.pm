@@ -9,6 +9,43 @@ use Wx qw(:dialog :id :misc :sizer :choicebook wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON EVT_CHOICE);
 use base 'Wx::Dialog';
 
+sub new {
+    my $class = shift;
+    my ($parent, $default) = @_;
+    my $self = $class->SUPER::new($parent, -1, "Bed Shape", wxDefaultPosition, [350,700], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    
+    $self->{panel} = my $panel = Slic3r::GUI::BedShapePanel->new($self, $default);
+    
+    my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $main_sizer->Add($panel, 1, wxEXPAND);
+    $main_sizer->Add($self->CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND);
+    
+    $self->SetSizer($main_sizer);
+    $self->SetMinSize($self->GetSize);
+    $main_sizer->SetSizeHints($self);
+    
+    # needed to actually free memory
+    EVT_CLOSE($self, sub {
+        $self->EndModal(wxID_OK);
+        $self->Destroy;
+    });
+    
+    return $self;
+}
+
+sub GetValue {
+    my ($self) = @_;
+    return $self->{panel}->GetValue;
+}
+
+package Slic3r::GUI::BedShapePanel;
+
+use List::Util qw(min max);
+use Slic3r::Geometry qw(PI X Y unscale);
+use Wx qw(:dialog :id :misc :sizer :choicebook wxTAB_TRAVERSAL);
+use Wx::Event qw(EVT_CLOSE EVT_BUTTON EVT_CHOICE);
+use base 'Wx::Panel';
+
 use constant SHAPE_RECTANGULAR  => 0;
 use constant SHAPE_CIRCULAR     => 1;
 use constant SHAPE_CUSTOM       => 2;
@@ -16,7 +53,9 @@ use constant SHAPE_CUSTOM       => 2;
 sub new {
     my $class = shift;
     my ($parent, $default) = @_;
-    my $self = $class->SUPER::new($parent, -1, "Bed Shape", wxDefaultPosition, [350,700], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    my $self = $class->SUPER::new($parent, -1);
+    
+    $self->on_change(undef);
     
     my $box = Wx::StaticBox->new($self, -1, "Shape");
     my $sbsizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
@@ -53,24 +92,17 @@ sub new {
     $top_sizer->Add($sbsizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
     $top_sizer->Add($canvas, 1, wxEXPAND | wxALL, 0) if $canvas;
     
-    my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $main_sizer->Add($top_sizer, 1, wxEXPAND);
-    $main_sizer->Add($self->CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND);
-    
-    $self->SetSizer($main_sizer);
-    $self->SetMinSize($self->GetSize);
-    $main_sizer->SetSizeHints($self);
-    
-    # needed to actually free memory
-    EVT_CLOSE($self, sub {
-        $self->EndModal(wxID_OK);
-        $self->Destroy;
-    });
+    $self->SetSizerAndFit($top_sizer);
     
     $self->_set_shape($default);
     $self->_update_preview;
     
     return $self;
+}
+
+sub on_change {
+    my ($self, $cb) = @_;
+    $self->{on_change} = $cb // sub {};
 }
 
 sub _set_shape {
@@ -131,6 +163,7 @@ sub _update_shape {
         ];
     }
     
+    $self->{on_change}->();
     $self->_update_preview;
 }
 
