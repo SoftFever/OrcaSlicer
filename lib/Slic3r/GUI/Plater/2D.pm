@@ -221,8 +221,8 @@ sub mouse_event {
         my $model_object = $self->{model}->objects->[$obj_idx];
         $model_object->instances->[$instance_idx]->set_offset(
             Slic3r::Pointf->new(
-                unscale($pos->[X] - $self->{drag_start_pos}[X]),
-                unscale($pos->[Y] - $self->{drag_start_pos}[Y]),
+                unscale($point->[X] - $self->{drag_start_pos}[X]),
+                unscale($point->[Y] - $self->{drag_start_pos}[Y]),
             ));
         $model_object->update_bounding_box;
         $self->Refresh;
@@ -305,14 +305,11 @@ sub scaled_points_to_pixel {
 sub point_to_model_units {
     my ($self, $point) = @_;
     
-    my $canvas_height = $self->GetSize->GetHeight;
     my $zero = $self->{bed_origin};
-    my $p = Slic3r::Point->new(
+    return Slic3r::Point->new(
         scale ($point->[X] - $zero->[X]) / $self->{scaling_factor},
-        scale ($point->[Y] - $zero->[Y]) / $self->{scaling_factor},
+        scale ($zero->[Y] - $point->[Y]) / $self->{scaling_factor},
     );
-    use XXX; YYY $p->pp;
-    return $p;
 }
 
 1;

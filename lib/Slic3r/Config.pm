@@ -9,7 +9,7 @@ use List::Util qw(first max);
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
     adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
     rotate scale duplicate_grid start_perimeters_at_concave_points start_perimeters_at_non_overhang
-    randomize_start seal_position);
+    randomize_start seal_position bed_size);
 
 our $Options = print_config_def();
 
@@ -23,7 +23,7 @@ $Options->{threads}{readonly} = !$Slic3r::have_threads;
         *{$opt_key} = sub { $_[0]->get($opt_key) };
     }
 }
-sub bed_size { [200,200] }
+
 sub new_from_defaults {
     my $class = shift;
     my (@opt_keys) = @_;
@@ -296,11 +296,6 @@ sub validate {
     # --infill-every-layers
     die "Invalid value for --infill-every-layers\n"
         if $self->infill_every_layers !~ /^\d+$/ || $self->infill_every_layers < 1;
-    
-    # --bed-size
-    die "Invalid value for --bed-size\n"
-        if !ref $self->bed_size 
-            && (!$self->bed_size || $self->bed_size !~ /^\d+,\d+$/);
     
     # --skirt-height
     die "Invalid value for --skirt-height\n"
