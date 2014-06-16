@@ -124,7 +124,6 @@ sub _handle_legacy {
     my ($opt_key, $value) = @_;
     
     # handle legacy options
-    return () if first { $_ eq $opt_key } @Ignore;
     if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
         $opt_key = $1;
         $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
@@ -145,6 +144,12 @@ sub _handle_legacy {
         $opt_key = 'seam_position';
         $value = 'random';
     }
+    if ($opt_key eq 'bed_size' && $value) {
+        $opt_key = 'bed_shape';
+        my ($x, $y) = split /,/, $value;
+        $value = "0x0,${x}x0,${x}x${y},0x${y}";
+    }
+    return () if first { $_ eq $opt_key } @Ignore;
     
     # For historical reasons, the world's full of configs having these very low values;
     # to avoid unexpected behavior we need to ignore them.  Banning these two hard-coded

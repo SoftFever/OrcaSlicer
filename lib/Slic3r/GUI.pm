@@ -112,6 +112,11 @@ sub OnInit {
                 . "your support material settings to the factory defaults and start from "
                 . "those. Enjoy and provide feedback!", "Support Material");
         }
+        if (!defined $last_version || $last_version =~ /^(?:0|1\.[01])\./) {
+            show_info($self->{mainframe}, "Hello! In this version a new Bed Shape option was "
+                . "added. If the bed placement in the plater preview screen looks wrong, go "
+                . "to Print Settings and click the \"Set\" button next to \"Bed Shape\".", "Bed Shape");
+        }
     }
     $self->{mainframe}->config_wizard if $run_wizard;
     
