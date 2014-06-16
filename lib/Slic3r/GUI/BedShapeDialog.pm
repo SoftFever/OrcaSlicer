@@ -6,7 +6,7 @@ use utf8;
 use List::Util qw(min max);
 use Slic3r::Geometry qw(PI X Y unscale);
 use Wx qw(:dialog :id :misc :sizer :choicebook wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_CLOSE EVT_BUTTON EVT_CHOICE);
+use Wx::Event qw(EVT_CLOSE);
 use base 'Wx::Dialog';
 
 sub new {
@@ -40,10 +40,10 @@ sub GetValue {
 
 package Slic3r::GUI::BedShapePanel;
 
-use List::Util qw(min max);
-use Slic3r::Geometry qw(PI X Y unscale);
+use List::Util qw(min max sum first);
+use Slic3r::Geometry qw(PI X Y unscale scaled_epsilon);
 use Wx qw(:dialog :id :misc :sizer :choicebook wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_CLOSE EVT_BUTTON EVT_CHOICE);
+use Wx::Event qw(EVT_CLOSE EVT_CHOICEBOOK_PAGE_CHANGED);
 use base 'Wx::Panel';
 
 use constant SHAPE_RECTANGULAR  => 0;
@@ -83,6 +83,20 @@ sub new {
             default     => 'corner',
         },
     ]);
+    $self->_init_shape_options_page('Circular', [
+        {
+            opt_key     => 'diameter',
+            type        => 'f',
+            label       => 'Diameter',
+            tooltip     => 'Diameter of the print bed. It is assumed that origin (0,0) is located in the center.',
+            sidetext    => 'mm',
+            default     => 200,
+        },
+    ]);
+    
+    EVT_CHOICEBOOK_PAGE_CHANGED($self, -1, sub {
+        $self->_update_shape;
+    });
     
     # right pane with preview canvas
     my $canvas;
@@ -137,6 +151,21 @@ sub _set_shape {
         }
     }
     
+    # is this a circle?
+    {
+        my $polygon = Slic3r::Polygon->new_scale(@$points);
+        my $center = $polygon->bounding_box->center;
+        my @vertex_distances = map $center->distance_to($_), @$polygon;
+        my $avg_dist = sum(@vertex_distances)/@vertex_distances;
+        if (!defined first { abs($_ - $avg_dist) > scaled_epsilon } @vertex_distances) {
+            # all vertices are equidistant to center
+            $self->{shape_options_book}->SetSelection(SHAPE_CIRCULAR);
+            my $optgroup = $self->{optgroups}[SHAPE_CIRCULAR];
+            $optgroup->set_value('diameter', sprintf("%.0f", unscale($avg_dist*2)));
+            return;
+        }
+    }
+    
     $self->{shape_options_book}->SetSelection(SHAPE_CUSTOM);
 }
 
@@ -161,6 +190,18 @@ sub _update_shape {
             [$x1,$y1],
             [$x0,$y1],
         ];
+    } elsif ($page_idx == SHAPE_CIRCULAR) {
+        return if grep !defined($self->{"_$_"}), qw(diameter);  # not loaded yet
+        my $r = $self->{_diameter}/2;
+        my $twopi = 2*PI;
+        my $edges = 60;
+        my $polygon = Slic3r::Polygon->new_scale(
+            map [ $r * cos $_, $r * sin $_ ],
+                map { $twopi/$edges*$_ } 1..$edges
+        );
+        $self->{bed_shape} = [
+            map [ unscale($_->x), unscale($_->y) ], @$polygon  #))
+        ];
     }
     
     $self->{on_change}->();
@@ -176,18 +217,21 @@ sub _update_preview {
 sub _init_shape_options_page {
     my ($self, $title, $options) = @_;
     
+    my $on_change = sub {
+        my ($opt_key, $value) = @_;
+        $self->{"_$opt_key"} = $value;
+        $self->_update_shape;
+    };
+    
     my $panel = Wx::Panel->new($self->{shape_options_book});
     push @{$self->{optgroups}}, my $optgroup = Slic3r::GUI::OptionsGroup->new(
         parent      => $panel,
         title       => 'Settings',
         options     => $options,
-        on_change   => sub {
-            my ($opt_key, $value) = @_;
-            $self->{"_$opt_key"} = $value;
-            $self->_update_shape;
-        },
+        on_change   => $on_change,
         label_width => 100,
     );
+    $on_change->($_->{opt_key}, $_->{default}) for @$options;  # populate with defaults
     $panel->SetSizerAndFit($optgroup->sizer);
     $self->{shape_options_book}->AddPage($panel, $title);
 }

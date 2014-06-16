@@ -114,7 +114,7 @@ sub OnInit {
         }
         if (!defined $last_version || $last_version =~ /^(?:0|1\.[01])\./) {
             show_info($self->{mainframe}, "Hello! In this version a new Bed Shape option was "
-                . "added. If the bed placement in the plater preview screen looks wrong, go "
+                . "added. If the bed coordinates in the plater preview screen look wrong, go "
                 . "to Print Settings and click the \"Set\" button next to \"Bed Shape\".", "Bed Shape");
         }
     }

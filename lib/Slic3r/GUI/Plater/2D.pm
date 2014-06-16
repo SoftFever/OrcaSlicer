@@ -5,7 +5,7 @@ use utf8;
 
 use List::Util qw(min max first);
 use Slic3r::Geometry qw(X Y scale unscale convex_hull);
-use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
+use Slic3r::Geometry::Clipper qw(offset JT_ROUND intersection_pl);
 use Wx qw(:misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_MOUSE_EVENTS EVT_PAINT EVT_SIZE);
 use base 'Wx::Panel';
@@ -261,13 +261,15 @@ sub update_bed_size {
     # cache bed contours and grid
     {
         my $step = scale 10;  # 1cm grid
-        $self->{grid} = my $grid = [];   # arrayref of lines
+        my @polylines = ();
         for (my $x = $bb->x_min + $step; $x < $bb->x_max; $x += $step) {
-            push @$grid, $self->scaled_points_to_pixel([[$x, $bb->y_min], [$x, $bb->y_max]], 1);
+            push @polylines, Slic3r::Polyline->new([$x, $bb->y_min], [$x, $bb->y_max]);
         }
         for (my $y = $bb->y_min + $step; $y < $bb->y_max; $y += $step) {
-            push @$grid, $self->scaled_points_to_pixel([[$bb->x_min, $y], [$bb->x_max, $y]], 1);
+            push @polylines, Slic3r::Polyline->new([$bb->x_min, $y], [$bb->x_max, $y]);
         }
+        @polylines = @{intersection_pl(\@polylines, [$polygon])};
+        $self->{grid} = [ map $self->scaled_points_to_pixel(\@$_, 1), @polylines ];
     }
 }
 
