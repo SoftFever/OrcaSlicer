@@ -237,6 +237,15 @@ sub mesh {
     return $mesh;
 }
 
+# flattens everything to a single mesh
+sub raw_mesh {
+    my $self = shift;
+    
+    my $mesh = Slic3r::TriangleMesh->new;
+    $mesh->merge($_->raw_mesh) for @{$self->objects};
+    return $mesh;
+}
+
 # this method splits objects into multiple distinct objects by walking their meshes
 sub split_meshes {
     my $self = shift;

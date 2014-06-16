@@ -42,8 +42,8 @@ package Slic3r::GUI::BedShapePanel;
 
 use List::Util qw(min max sum first);
 use Slic3r::Geometry qw(PI X Y unscale scaled_epsilon);
-use Wx qw(:dialog :id :misc :sizer :choicebook wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_CLOSE EVT_CHOICEBOOK_PAGE_CHANGED);
+use Wx qw(:dialog :id :misc :sizer :choicebook :filedialog wxTAB_TRAVERSAL);
+use Wx::Event qw(EVT_CLOSE EVT_CHOICEBOOK_PAGE_CHANGED EVT_BUTTON);
 use base 'Wx::Panel';
 
 use constant SHAPE_RECTANGULAR  => 0;
@@ -91,6 +91,20 @@ sub new {
             tooltip     => 'Diameter of the print bed. It is assumed that origin (0,0) is located in the center.',
             sidetext    => 'mm',
             default     => 200,
+        },
+    ]);
+    
+    my $custom = sub {
+        my ($parent) = @_;
+        
+        my $btn = Wx::Button->new($parent, -1, "Load shape from STL...", wxDefaultPosition, wxDefaultSize);
+        EVT_BUTTON($self, $btn, sub { $self->_load_stl });
+        return $btn;
+    };
+    $self->_init_shape_options_page('Custom', [], [
+        {
+            full_width => 1,
+            widget => $custom,
         },
     ]);
     
@@ -215,7 +229,7 @@ sub _update_preview {
 }
 
 sub _init_shape_options_page {
-    my ($self, $title, $options) = @_;
+    my ($self, $title, $options, $lines) = @_;
     
     my $on_change = sub {
         my ($opt_key, $value) = @_;
@@ -228,12 +242,41 @@ sub _init_shape_options_page {
         parent      => $panel,
         title       => 'Settings',
         options     => $options,
+        $lines ? (lines => $lines) : (),
         on_change   => $on_change,
         label_width => 100,
     );
     $on_change->($_->{opt_key}, $_->{default}) for @$options;  # populate with defaults
     $panel->SetSizerAndFit($optgroup->sizer);
     $self->{shape_options_book}->AddPage($panel, $title);
+}
+
+sub _load_stl {
+    my ($self) = @_;
+    
+    my $dialog = Wx::FileDialog->new($self, 'Choose a file to import bed shape from (STL/OBJ/AMF):', "", "", &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if ($dialog->ShowModal != wxID_OK) {
+        $dialog->Destroy;
+        return;
+    }
+    my $input_file = $dialog->GetPaths;
+    $dialog->Destroy;
+    
+    my $model = Slic3r::Model->read_from_file($input_file);
+    my $mesh = $model->raw_mesh;
+    my $expolygons = $mesh->horizontal_projection;
+    
+    if (@$expolygons == 0) {
+        Slic3r::GUI::show_error($self, "The selected file contains no geometry.");
+        return;
+    }
+    if (@$expolygons > 1) {
+        Slic3r::GUI::show_error($self, "The selected file contains several disjoint areas. This is not supported.");
+        return;
+    }
+    
+    my $polygon = $expolygons->[0]->contour;
+    $self->{bed_shape} = [ map [ unscale($_->x), unscale($_->y) ], @$polygon ];  #))
 }
 
 sub GetValue {
