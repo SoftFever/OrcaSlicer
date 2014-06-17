@@ -73,7 +73,7 @@ sub apply_config {
             $object->config->apply($new);
             
             $invalidated = 1
-                if $self->invalidate_state_by_config_options($diff);
+                if $object->invalidate_state_by_config_options($diff);
         }
     }
     
