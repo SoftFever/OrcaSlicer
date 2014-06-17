@@ -185,29 +185,29 @@ sub new {
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
-        EVT_TOOL($self, TB_ADD, \&add);
+        EVT_TOOL($self, TB_ADD, sub { $self->add; });
         EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
-        EVT_TOOL($self, TB_RESET, \&reset);
-        EVT_TOOL($self, TB_ARRANGE, \&arrange);
-        EVT_TOOL($self, TB_MORE, \&increase);
-        EVT_TOOL($self, TB_FEWER, \&decrease);
+        EVT_TOOL($self, TB_RESET, sub { $self->reset; });
+        EVT_TOOL($self, TB_ARRANGE, sub { $self->arrange; });
+        EVT_TOOL($self, TB_MORE, sub { $self->increase; });
+        EVT_TOOL($self, TB_FEWER, sub { $self->decrease; });
         EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
         EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
-        EVT_TOOL($self, TB_SCALE, \&changescale);
-        EVT_TOOL($self, TB_SPLIT, \&split_object);
+        EVT_TOOL($self, TB_SCALE, sub { $self->changescale(undef); });
+        EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
         EVT_TOOL($self, TB_VIEW, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
     } else {
-        EVT_BUTTON($self, $self->{btn_add}, \&add);
+        EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
         EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
-        EVT_BUTTON($self, $self->{btn_reset}, \&reset);
-        EVT_BUTTON($self, $self->{btn_arrange}, \&arrange);
-        EVT_BUTTON($self, $self->{btn_increase}, \&increase);
-        EVT_BUTTON($self, $self->{btn_decrease}, \&decrease);
+        EVT_BUTTON($self, $self->{btn_reset}, sub { $self->reset; });
+        EVT_BUTTON($self, $self->{btn_arrange}, sub { $self->arrange; });
+        EVT_BUTTON($self, $self->{btn_increase}, sub { $self->increase; });
+        EVT_BUTTON($self, $self->{btn_decrease}, sub { $self->decrease; });
         EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
         EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
-        EVT_BUTTON($self, $self->{btn_changescale}, \&changescale);
-        EVT_BUTTON($self, $self->{btn_split}, \&split_object);
+        EVT_BUTTON($self, $self->{btn_changescale}, sub { $self->changescale(undef); });
+        EVT_BUTTON($self, $self->{btn_split}, sub { $self->split_object; });
         EVT_BUTTON($self, $self->{btn_view}, sub { $_[0]->object_cut_dialog });
         EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
     }
