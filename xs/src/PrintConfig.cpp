@@ -96,6 +96,7 @@ PrintConfigDef::build_def() {
 
     Options["dont_support_bridges"].type = coBool;
     Options["dont_support_bridges"].label = "Don't support bridges";
+    Options["dont_support_bridges"].category = "Support material";
     Options["dont_support_bridges"].tooltip = "Experimental option for preventing support material from being generated under bridged areas.";
     Options["dont_support_bridges"].cli = "dont-support-bridges!";
 
