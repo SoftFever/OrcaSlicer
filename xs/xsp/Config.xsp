@@ -154,6 +154,8 @@ print_config_def()
                 throw "Unknown option type";
             }
             (void)hv_stores( hv, "type",        newSVpv(opt_type, 0) );
+            (void)hv_stores( hv, "gui_type",    newSVpvn(optdef->gui_type.c_str(), optdef->gui_type.length()) );
+            (void)hv_stores( hv, "gui_flags",   newSVpvn(optdef->gui_flags.c_str(), optdef->gui_flags.length()) );
             (void)hv_stores( hv, "label",       newSVpvn_utf8(optdef->label.c_str(), optdef->label.length(), true) );
             if (!optdef->full_label.empty())
                 (void)hv_stores( hv, "full_label",  newSVpvn_utf8(optdef->full_label.c_str(), optdef->full_label.length(), true) );

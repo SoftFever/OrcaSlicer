@@ -150,6 +150,7 @@ sub selection_changed {
     $self->{settings_panel}->set_config(undef);
     
     if (my $itemData = $self->get_selection) {
+        my ($config, @opt_keys);
         if ($itemData->{type} eq 'volume') {
             # select volume in 3D preview
             if ($self->{canvas}) {
@@ -162,9 +163,11 @@ sub selection_changed {
             my $material = $self->{model_object}->model->get_material($volume->material_id // '_');
             $material //= $volume->assign_unique_material;
             $self->{staticbox}->SetLabel('Part Settings');
-            $self->{settings_panel}->enable;
-            $self->{settings_panel}->set_opt_keys([ 'extruder', @{Slic3r::Config::PrintRegion->new->get_keys} ]);
-            $self->{settings_panel}->set_config($material->config);
+            
+            # get default values
+            @opt_keys = @{Slic3r::Config::PrintRegion->new->get_keys};
+            
+            $config = $material->config;
         } elsif ($itemData->{type} eq 'object') {
             # select all object volumes in 3D preview
             if ($self->{canvas}) {
@@ -173,12 +176,21 @@ sub selection_changed {
             
             # attach object config to settings panel
             $self->{staticbox}->SetLabel('Object Settings');
-            $self->{settings_panel}->enable;
-            $self->{settings_panel}->set_opt_keys(
-                [ 'extruder', map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new ]
-            );
-            $self->{settings_panel}->set_config($self->{model_object}->config);
+            @opt_keys = (map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new);
+            $config = $self->{model_object}->config;
         }
+        # get default values
+        my $default_config = Slic3r::Config->new_from_defaults(@opt_keys);
+        
+        # append default extruder
+        push @opt_keys, 'extruder';
+        $default_config->set('extruder', 0);
+        $config->set_ifndef('extruder', 0);
+        $self->{settings_panel}->set_default_config($default_config);
+        $self->{settings_panel}->set_config($config);
+        $self->{settings_panel}->set_opt_keys(\@opt_keys);
+        $self->{settings_panel}->set_fixed_options([qw(extruder)]);
+        $self->{settings_panel}->enable;
     }
     
     $self->{canvas}->Render if $self->{canvas};

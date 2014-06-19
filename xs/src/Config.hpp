@@ -432,6 +432,8 @@ class ConfigOptionDef
 {
     public:
     ConfigOptionType type;
+    std::string gui_type;
+    std::string gui_flags;
     std::string label;
     std::string full_label;
     std::string category;

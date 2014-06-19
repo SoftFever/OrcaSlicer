@@ -17,8 +17,10 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $self->{config} = $params{config};  # may be passed as undef
+    $self->{default_config} = Slic3r::Config->new;
+    $self->{config} = Slic3r::Config->new;
     $self->{on_change} = $params{on_change};
+    $self->{fixed_options} = {};
     
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     
@@ -36,7 +38,7 @@ sub new {
                 my $id = &Wx::NewId();
                 $menu->Append($id, $self->{option_labels}{$opt_key});
                 EVT_MENU($menu, $id, sub {
-                    $self->{config}->apply(Slic3r::Config->new_from_defaults($opt_key));
+                    $self->{config}->apply($self->{default_config}->get($opt_key));
                     $self->update_optgroup;
                     $self->{on_change}->() if $self->{on_change};
                 });
@@ -59,6 +61,17 @@ sub new {
     return $self;
 }
 
+sub set_default_config {
+    my ($self, $config) = @_;
+    $self->{default_config} = $config;
+}
+
+sub set_config {
+    my ($self, $config) = @_;
+    $self->{config} = $config;
+    $self->update_optgroup;
+}
+
 sub set_opt_keys {
     my ($self, $opt_keys) = @_;
     
@@ -69,9 +82,9 @@ sub set_opt_keys {
     $self->{options} = [ sort { $self->{option_labels}{$a} cmp $self->{option_labels}{$b} } @$opt_keys ];
 }
 
-sub set_config {
-    my ($self, $config) = @_;
-    $self->{config} = $config;
+sub set_fixed_options {
+    my ($self, $opt_keys) = @_;
+    $self->{fixed_options} = { map {$_ => 1} @$opt_keys };
     $self->update_optgroup;
 }
 
@@ -102,8 +115,8 @@ sub update_optgroup {
                 my ($line) = @_;
                 my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
                 
-                # if this option is not listed in the ones the user can add, disallow deleting it
-                return undef if !first { $_ eq $opt_key } @{$self->{options}};
+                # disallow deleting fixed options
+                return undef if $self->{fixed_options}{$opt_key};
                 
                 my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG),
                     wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);

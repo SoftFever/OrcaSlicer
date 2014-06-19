@@ -81,14 +81,16 @@ class DynamicPrintConfig : public DynamicConfig
         if (this->has("extruder")) {
             int extruder = this->option("extruder")->getInt();
             this->erase("extruder");
-            if (!this->has("infill_extruder"))
-                this->option("infill_extruder", true)->setInt(extruder);
-            if (!this->has("perimeter_extruder"))
-                this->option("perimeter_extruder", true)->setInt(extruder);
-            if (!this->has("support_material_extruder"))
-                this->option("support_material_extruder", true)->setInt(extruder);
-            if (!this->has("support_material_interface_extruder"))
-                this->option("support_material_interface_extruder", true)->setInt(extruder);
+            if (extruder != 0) {
+                if (!this->has("infill_extruder"))
+                    this->option("infill_extruder", true)->setInt(extruder);
+                if (!this->has("perimeter_extruder"))
+                    this->option("perimeter_extruder", true)->setInt(extruder);
+                if (!this->has("support_material_extruder"))
+                    this->option("support_material_extruder", true)->setInt(extruder);
+                if (!this->has("support_material_interface_extruder"))
+                    this->option("support_material_interface_extruder", true)->setInt(extruder);
+            }
         }
         if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
             {

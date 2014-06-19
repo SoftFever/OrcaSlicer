@@ -144,11 +144,17 @@ PrintConfigDef::build_def() {
     Options["extra_perimeters"].cli = "extra-perimeters!";
 
     Options["extruder"].type = coInt;
-    Options["extruder"].label = "Default extruder";
+    Options["extruder"].gui_type = "i_enum_open";
+    Options["extruder"].label = "Extruder";
     Options["extruder"].category = "Extruders";
     Options["extruder"].tooltip = "The extruder to use (unless more specific extruder settings are specified).";
     Options["extruder"].cli = "extruder=i";
-    Options["extruder"].min = 1;
+    Options["extruder"].min = 0;  // 0 = inherit defaults
+    Options["extruder"].enum_labels.push_back("default");  // override label for item 0
+    Options["extruder"].enum_labels.push_back("1");
+    Options["extruder"].enum_labels.push_back("2");
+    Options["extruder"].enum_labels.push_back("3");
+    Options["extruder"].enum_labels.push_back("4");
 
     Options["extruder_clearance_height"].type = coFloat;
     Options["extruder_clearance_height"].label = "Height";
@@ -218,6 +224,8 @@ PrintConfigDef::build_def() {
     Options["fill_angle"].max = 359;
 
     Options["fill_density"].type = coPercent;
+    Options["fill_density"].gui_type = "i_enum_open";
+    Options["fill_density"].gui_flags = "show_value";
     Options["fill_density"].label = "Fill density";
     Options["fill_density"].category = "Infill";
     Options["fill_density"].tooltip = "Density of internal infill, expressed in the range 0% - 100%.";

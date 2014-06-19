@@ -196,7 +196,8 @@ sub _build_field {
     
     my $field;
     my $tooltip = $opt->{tooltip};
-    if ($opt->{type} =~ /^(i|f|s|s@|percent|slider)$/) {
+    my $type = $opt->{gui_type} || $opt->{type};
+    if ($type =~ /^(i|i_enum_open|i_enum_closed|f|s|s@|percent|slider)$/) {
         my $style = 0;
         $style = wxTE_MULTILINE if $opt->{multiline};
         # default width on Windows is too large
@@ -204,30 +205,82 @@ sub _build_field {
         
         my $on_change = sub {
             my $value = $field->GetValue;
-            $value ||= 0 if $opt->{type} =~ /^(i|f|percent)$/; # prevent crash trying to pass empty strings to Config
+            $value ||= 0 if $type =~ /^(i|i_enum_open|i_enum_closed|f|percent)$/; # prevent crash trying to pass empty strings to Config
             $self->_on_change($opt_key, $value);
         };
-        if ($opt->{type} eq 'i') {
+        if ($type eq 'i') {
             $field = Wx::SpinCtrl->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $style, $opt->{min} || 0, $opt->{max} || 2147483647, $opt->{default});
             $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
             EVT_SPINCTRL ($self->parent, $field, $on_change);
             EVT_TEXT ($self->parent, $field, $on_change);
             EVT_KILL_FOCUS($field, $on_kill_focus);
-        } elsif ($opt->{values}) {
+        } elsif ($type eq 'i_enum_open' || $type eq 'i_enum_closed') {
             $field = Wx::ComboBox->new($self->parent, -1, $opt->{default}, wxDefaultPosition, $size, $opt->{labels} || $opt->{values});
             $self->_setters->{$opt_key} = sub {
-                $field->SetValue($_[0]);
+                my ($value) = @_;
+                
+                if ($opt->{gui_flags} =~ /\bshow_value\b/) {
+                    $field->SetValue($value);
+                    return;
+                }
+                
+                if ($opt->{values}) {
+                    # check whether we have a value index
+                    my $value_idx = first { $opt->{values}[$_] eq $value } 0..$#{$opt->{values}};
+                    if (defined $value_idx) {
+                        $field->SetSelection($value_idx);
+                        return;
+                    }
+                }
+                if ($opt->{labels} && $value <= $#{$opt->{labels}}) {
+                    $field->SetValue($opt->{labels}[$value]);
+                    return;
+                }
+                $field->SetValue($value);
             };
+            $self->_setters->{$opt_key}->($opt->{default});  # use label if any
             EVT_COMBOBOX($self->parent, $field, sub {
                 # Without CallAfter, the field text is not populated on Windows.
                 wxTheApp->CallAfter(sub {
-                    $field->SetValue($opt->{values}[ $field->GetSelection ]);  # set the text field to the selected value
-                    $self->_on_change($opt_key, $on_change);
+                    my $value = $field->GetSelection;
+                    my $label;
+                    
+                    if ($opt->{values}) {
+                        $label = $value = $opt->{values}[$value];
+                    } elsif ($value <= $#{$opt->{labels}}) {
+                        $label = $opt->{labels}[$value];
+                    } else {
+                        $label = $value;
+                    }
+                    
+                    $field->SetValue($label);
+                    $self->_on_change($opt_key, $value);
                 });
             });
-            EVT_TEXT($self->parent, $field, $on_change);
-            EVT_KILL_FOCUS($field, $on_kill_focus);
-        } elsif ($opt->{type} eq 'slider') {
+            EVT_TEXT($self->parent, $field, sub {
+                my ($s, $event) = @_;
+                $event->Skip;
+                wxTheApp->CallAfter(sub {
+                    my $label = $field->GetValue;
+                    if (defined (my $value = first { $opt->{labels}[$_] eq $label } 0..$#{$opt->{labels}})) {
+                        if ($opt->{values}) {
+                            $value = $opt->{values}[$value];
+                        }
+                        $self->_on_change($opt_key, $value);
+                    } elsif ($label !~ /^[0-9]+$/) {
+                        # if typed text is not numeric, select the default value
+                        my $default = 0;
+                        if ($opt->{values}) {
+                            $default = $opt->{values}[0];
+                        }
+                        $self->_setters->{$opt_key}->($default);
+                        $self->_on_change($opt_key, $default);
+                    } else {
+                        $self->_on_change($opt_key, $label);
+                    }
+                });
+            });
+        } elsif ($type eq 'slider') {
             my $scale = 10;
             $field = Wx::BoxSizer->new(wxHORIZONTAL);
             my $slider = Wx::Slider->new($self->parent, -1, ($opt->{default} // $opt->{min})*$scale, ($opt->{min} // 0)*$scale, ($opt->{max} // 100)*$scale, wxDefaultPosition, $size);
@@ -251,14 +304,14 @@ sub _build_field {
         }
         $field->Disable if $opt->{readonly};
         $tooltip .= " (default: " . $opt->{default} .  ")" if ($opt->{default});
-    } elsif ($opt->{type} eq 'bool') {
+    } elsif ($type eq 'bool') {
         $field = Wx::CheckBox->new($self->parent, -1, "");
         $field->SetValue($opt->{default});
         $field->Disable if $opt->{readonly};
         EVT_CHECKBOX($self->parent, $field, sub { $self->_on_change($opt_key, $field->GetValue); });
         $self->_setters->{$opt_key} = sub { $field->SetValue($_[0]) };
         $tooltip .= " (default: " . ($opt->{default} ? 'yes' : 'no') .  ")" if defined($opt->{default});
-    } elsif ($opt->{type} eq 'point') {
+    } elsif ($type eq 'point') {
         $field = Wx::BoxSizer->new(wxHORIZONTAL);
         my $field_size = Wx::Size->new(40, -1);
         my @items = (
@@ -281,7 +334,7 @@ sub _build_field {
             $x_field->SetValue($_[0][0]);
             $y_field->SetValue($_[0][1]);
         };
-    } elsif ($opt->{type} eq 'select') {
+    } elsif ($type eq 'select') {
         $field = Wx::ComboBox->new($self->parent, -1, "", wxDefaultPosition, wxDefaultSize, $opt->{labels} || $opt->{values}, wxCB_READONLY);
         EVT_COMBOBOX($self->parent, $field, sub {
             $self->_on_change($opt_key, $opt->{values}[$field->GetSelection]);
@@ -295,7 +348,7 @@ sub _build_field {
                  . $opt->{labels}[ first { $opt->{values}[$_] eq $opt->{default} } 0..$#{$opt->{values}} ] 
                  . ")" if ($opt->{default});
     } else {
-        die "Unsupported option type: " . $opt->{type};
+        die "Unsupported option type: " . $type;
     }
     if ($tooltip && $field->can('SetToolTipString')) {
         $field->SetToolTipString($tooltip);
@@ -387,7 +440,7 @@ sub _trigger_options {
                 opt_key     => $full_key,
                 config      => 1,
                 label       => ($self->full_labels && defined $config_opt->{full_label}) ? $config_opt->{full_label} : $config_opt->{label},
-                (map { $_   => $config_opt->{$_} } qw(type tooltip sidetext width height full_width min max labels values multiline readonly)),
+                (map { $_   => $config_opt->{$_} } qw(type gui_type gui_flags tooltip sidetext width height full_width min max labels values multiline readonly)),
                 default     => $self->_get_config($opt_key, $index),
                 on_change   => sub { return $self->_set_config($opt_key, $index, $_[0]) },
             };
