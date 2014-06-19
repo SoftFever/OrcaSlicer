@@ -383,8 +383,10 @@ sub InitGL {
  
 sub Render {
     my ($self, $dc) = @_;
- 
-    return unless $self->GetContext;
+    
+    # prevent calling SetCurrent() when window is not shown yet
+    return unless $self->IsShownOnScreen;
+    return unless my $context = $self->GetContext;
     $self->SetCurrent($self->GetContext);
     $self->InitGL;
 
