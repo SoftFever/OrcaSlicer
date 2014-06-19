@@ -252,7 +252,7 @@ T_LAYER_HEIGHT_RANGES
             coordf_t vals[3];
             for (unsigned int j = 0; j < 3; ++j) {
                 SV *elem_elem = *av_fetch(elemAV, j, 0);
-                if (!SvNOK(elem_elem)) {
+                if (!looks_like_number(elem_elem)) {
                     Perl_croak(
                         aTHX_ \"%s: layer ranges and heights must be numbers\",
                             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]});
