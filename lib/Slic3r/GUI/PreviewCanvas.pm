@@ -387,7 +387,7 @@ sub Render {
     # prevent calling SetCurrent() when window is not shown yet
     return unless $self->IsShownOnScreen;
     return unless my $context = $self->GetContext;
-    $self->SetCurrent($self->GetContext);
+    $self->SetCurrent($context);
     $self->InitGL;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
