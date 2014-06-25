@@ -139,7 +139,7 @@ SV*
 MultiPoint::to_AV() {
     const unsigned int num_points = this->points.size();
     AV* av = newAV();
-    av_extend(av, num_points-1);
+    if (num_points > 0) av_extend(av, num_points-1);
     for (unsigned int i = 0; i < num_points; i++) {
         av_store(av, i, perl_to_SV_ref(this->points[i]));
     }
@@ -150,7 +150,7 @@ SV*
 MultiPoint::to_SV_pureperl() const {
     const unsigned int num_points = this->points.size();
     AV* av = newAV();
-    av_extend(av, num_points-1);
+    if (num_points > 0) av_extend(av, num_points-1);
     for (unsigned int i = 0; i < num_points; i++) {
         av_store(av, i, this->points[i].to_SV_pureperl());
     }

@@ -30,7 +30,7 @@ my $build = Module::Build::WithXSpp->new(
     build_requires => {qw(
         ExtUtils::ParseXS           3.18
         ExtUtils::Typemap           1.00
-        ExtUtils::Typemaps::Default 1.03
+        ExtUtils::Typemaps::Default 1.05
         ExtUtils::XSpp              0.17
         Module::Build               0.3601
         Test::More                  0

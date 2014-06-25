@@ -154,10 +154,12 @@ TriangleMesh::slice(z)
         mslicer.slice(z_f, &layers);
         
         AV* layers_av = newAV();
-        av_extend(layers_av, layers.size()-1);
+        size_t len = layers.size();
+        if (len > 0) av_extend(layers_av, len-1);
         for (unsigned int i = 0; i < layers.size(); i++) {
             AV* expolygons_av = newAV();
-            av_extend(expolygons_av, layers[i].size()-1);
+            len = layers[i].size();
+            if (len > 0) av_extend(expolygons_av, len-1);
             unsigned int j = 0;
             for (ExPolygons::iterator it = layers[i].begin(); it != layers[i].end(); ++it) {
                 av_store(expolygons_av, j++, perl_to_SV_clone_ref(*it));

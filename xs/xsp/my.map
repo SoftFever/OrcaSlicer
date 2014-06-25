@@ -286,7 +286,8 @@ T_ARRAYREF
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
 	sv_2mortal($arg);
-	av_extend(av, $var.size()-1);
+	const unsigned int len = $var.size();
+	if (len > 0) av_extend(av, len-1);
 	int i = 0;
     for (${type}::const_iterator it = $var.begin(); it != $var.end(); ++it) {
         av_store(av, i++, perl_to_SV_clone_ref(*it));
@@ -297,7 +298,8 @@ T_ARRAYREF_PTR
     AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
 	sv_2mortal($arg);
-	av_extend(av, $var->size()-1);
+	const unsigned int len = $var->size();
+	if (len > 0) av_extend(av, len-1);
 	int i = 0;
     for (${ my $t = $type; $t =~ s/\*$//; \$t }::iterator it = $var->begin(); it != $var->end(); ++it) {
         av_store(av, i++, perl_to_SV_ref(*it));
@@ -307,7 +309,8 @@ T_PTR_ARRAYREF_PTR
     AV* av = newAV();
     $arg = newRV_noinc((SV*)av);
     sv_2mortal($arg);
-    av_extend(av, $var->size()-1);
+	const unsigned int len = $var->size();
+	if (len > 0) av_extend(av, len-1);
     int i = 0;
     for (${ my $t = $type; $t =~ s/\*$//; \$t }::iterator it = $var->begin(); it != $var->end(); ++it) {
         av_store(av, i++, perl_to_SV_ref(**it));
@@ -317,7 +320,8 @@ T_PTR_ARRAYREF
     AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
 	sv_2mortal($arg);
-	av_extend(av, $var.size()-1);
+	const unsigned int len = $var.size();
+	if (len > 0) av_extend(av, len-1);
 	int i = 0;
     for (${type}::iterator it = $var.begin(); it != $var.end(); ++it) {
         av_store(av, i++, (*it)->to_SV());
@@ -327,7 +331,8 @@ T_LAYER_HEIGHT_RANGES
     AV* av = newAV();
     $arg = newRV_noinc((SV*)av);
     sv_2mortal($arg);
-    av_extend(av, $var.size() - 1);
+	const unsigned int len = $var.size();
+	if (len > 0) av_extend(av, len-1);
     // map is sorted, so we can just copy it in order
     int i = 0;
     for (${type}::iterator it = $var.begin(); it != $var.end(); ++it) {
