@@ -209,7 +209,13 @@ sub on_select_preset {
         
         $self->on_preset_loaded;
         $self->reload_values;
-        $self->set_dirty(0);
+        
+        # use CallAfter because some field triggers schedule on_change calls using CallAfter,
+        # and we don't want them to be called after this set_dirty(0) as they would mark the 
+        # preset dirty again
+        wxTheApp->CallAfter(sub {
+            $self->set_dirty(0);
+        });
         $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
     };
     if ($@) {
