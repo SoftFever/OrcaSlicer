@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use File::Basename qw/dirname/;
+use File::Basename qw(basename dirname);
 use List::Util qw(min);
 use Slic3r::Geometry qw(X Y Z);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
@@ -296,8 +296,11 @@ sub quick_slice {
             },
         );
         
+        # keep model around
+        my $model = Slic3r::Model->read_from_file($input_file);
+        
         $sprint->apply_config($config);
-        $sprint->set_model(Slic3r::Model->read_from_file($input_file));
+        $sprint->set_model($model);
         
         {
             my $extra = $self->extra_variables;
