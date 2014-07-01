@@ -195,6 +195,18 @@ sub _build_field {
         : $field->wxSizer;
 }
 
+sub get_option {
+    my ($self, $opt_id) = @_;
+    return undef if !exists $self->_options->{$opt_id};
+    return $self->_options->{$opt_id};
+}
+
+sub get_field {
+    my ($self, $opt_id) = @_;
+    return undef if !exists $self->_fields->{$opt_id};
+    return $self->_fields->{$opt_id};
+}
+
 sub get_value {
     my ($self, $opt_id) = @_;
     
@@ -267,6 +279,8 @@ has 'readonly'      => (is => 'rw', default => sub { 0 });
 package Slic3r::GUI::ConfigOptionsGroup;
 use Moo;
 
+use List::Util qw(first);
+
 extends 'Slic3r::GUI::OptionsGroup';
 has 'config'        => (is => 'ro', required => 1);
 has 'full_labels'   => (is => 'ro', default => sub { 0 });
@@ -326,6 +340,15 @@ sub reload_config {
         my $option = $self->_options->{$opt_id};
         $self->set_value($opt_id, $self->_get_config_value($opt_key, $opt_index, $option->gui_flags =~ /\bserialized\b/));
     }
+}
+
+sub get_fieldc {
+    my ($self, $opt_key, $opt_index) = @_;
+    
+    $opt_index //= -1;
+    my $opt_id = first { $self->_opt_map->{$_}[0] eq $opt_key && $self->_opt_map->{$_}[1] == $opt_index }
+        keys %{$self->_opt_map};
+    return defined($opt_id) ? $self->get_field($opt_id) : undef;
 }
 
 sub _get_config_value {

@@ -28,6 +28,11 @@ sub set_tooltip {
         if $tooltip && $self->can('SetToolTipString');
 }
 
+sub toggle {
+    my ($self, $enable) = @_;
+    $enable ? $self->enable : $self->disable;
+}
+
 sub _on_change {
     my ($self, $opt_id) = @_;
     
@@ -78,6 +83,20 @@ sub set_value {
 sub get_value {
     my ($self) = @_;
     return $self->wxWindow->GetValue;
+}
+
+sub enable {
+    my ($self) = @_;
+    
+    $self->wxWindow->Enable;
+    $self->wxWindow->Refresh;
+}
+
+sub disable {
+    my ($self) = @_;
+    
+    $self->wxWindow->Disable;
+    $self->wxWindow->Refresh;
 }
 
 
@@ -152,6 +171,20 @@ sub BUILD {
     EVT_KILL_FOCUS($field, sub {
         $self->_on_kill_focus($self->option->opt_id, @_);
     });
+}
+
+sub enable {
+    my ($self) = @_;
+    
+    $self->wxWindow->Enable;
+    $self->wxWindow->SetEditable(1);
+}
+
+sub disable {
+    my ($self) = @_;
+    
+    $self->wxWindow->Disable;
+    $self->wxWindow->SetEditable(0);
 }
 
 
@@ -341,6 +374,20 @@ sub get_value {
         $self->x_textctrl->GetValue,
         $self->y_textctrl->GetValue,
     ];
+}
+
+sub enable {
+    my ($self) = @_;
+    
+    $self->x_textctrl->Enable;
+    $self->y_textctrl->Enable;
+}
+
+sub disable {
+    my ($self) = @_;
+    
+    $self->x_textctrl->Disable;
+    $self->y_textctrl->Disable;
 }
 
 

@@ -31,13 +31,26 @@ sub new {
         on_change   => sub {
             my ($opt_id) = @_;
             
-            my $value = $optgroup->get_value($opt_id);
-            $self->{cut_options}{$opt_id} = $value;
-            if ($opt_id eq 'z') {
-                if ($self->{canvas}) {
-                    $self->{canvas}->SetCuttingPlane($value);
-                    $self->{canvas}->Render;
-                }
+            $self->{cut_options}{$opt_id} = $optgroup->get_value($opt_id);
+            
+            # update canvas
+            if ($self->{canvas}) {
+                $self->{canvas}->SetCuttingPlane($self->{cut_options}{z});
+                $self->{canvas}->Render;
+            }
+            
+            # update controls
+            my $z = $self->{cut_options}{z};
+            $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
+            $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
+            $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
+            
+            # update cut button
+            if (($self->{cut_options}{keep_upper} && $have_upper)
+                || ($self->{cut_options}{keep_lower} && $have_lower)) {
+                $self->{btn_cut}->Enable;
+            } else {
+                $self->{btn_cut}->Disable;
             }
         },
         label_width  => 120,

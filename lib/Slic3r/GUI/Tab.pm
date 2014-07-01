@@ -103,6 +103,7 @@ sub new {
     
     $self->{config} = Slic3r::Config->new;
     $self->build;
+    $self->_update;
     if ($self->hidden_options) {
         $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
     }
@@ -166,7 +167,10 @@ sub _on_value_change {
     
     $self->set_dirty(1);
     $self->{on_value_change}->(@_) if $self->{on_value_change};
+    $self->_update;
 }
+
+sub _update {}
 
 sub _on_presets_changed {
     my $self = shift;
@@ -388,6 +392,16 @@ sub load_config {
         $self->set_dirty(1);
     }
     $self->reload_config;
+}
+
+sub get_field {
+    my ($self, $opt_key, $opt_index) = @_;
+    
+    foreach my $page (@{ $self->{pages} }) {
+        my $field = $page->get_field($opt_key, $opt_index);
+        return $field if defined $field;
+    }
+    return undef;
 }
 
 package Slic3r::GUI::Tab::Print;
@@ -663,6 +677,47 @@ sub build {
     }
 }
 
+sub _update {
+    my ($self) = @_;
+    
+    my $config = $self->{config};
+    
+    my $have_perimeters = $config->perimeters > 0;
+    $self->get_field('spiral_vase')->toggle($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0);
+    $self->get_field($_)->toggle($have_perimeters)
+        for qw(extra_perimeters thin_walls overhangs seam_position external_perimeters_first);
+    
+    my $have_infill = $config->fill_density > 0;
+    $self->get_field($_)->toggle($have_infill)
+        for qw(fill_pattern infill_every_layers infill_only_where_needed solid_infill_every_layers);
+    
+    my $have_default_acceleration = $config->default_acceleration > 0;
+    $self->get_field($_)->toggle($have_default_acceleration)
+        for qw(perimeter_acceleration infill_acceleration bridge_acceleration first_layer_acceleration);
+    
+    my $have_skirt = $config->skirts > 0 || $config->min_skirt_length > 0;
+    $self->get_field($_)->toggle($have_skirt)
+        for qw(skirt_distance skirt_height);
+    
+    my $have_support_material = $config->support_material || $config->raft_layers > 0;
+    my $have_support_interface = $config->support_material_interface_layers > 0;
+    $self->get_field($_)->toggle($have_support_material)
+        for qw(support_material_threshold support_material_enforce_layers
+            support_material_pattern support_material_spacing support_material_angle
+            support_material_interface_layers dont_support_bridges
+            support_material_extruder);
+    $self->get_field($_)->toggle($have_support_material && $have_support_interface)
+        for qw(support_material_interface_spacing support_material_interface_extruder);
+    
+    my $have_sequential_printing = $config->complete_objects;
+    $self->get_field($_)->toggle($have_sequential_printing)
+        for qw(extruder_clearance_radius extruder_clearance_height);
+    
+    my $have_ooze_prevention = $config->ooze_prevention;
+    $self->get_field($_)->toggle($have_ooze_prevention)
+        for qw(standby_temperature_delta);
+}
+
 sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
 
 package Slic3r::GUI::Tab::Filament;
@@ -754,8 +809,23 @@ sub build {
             $optgroup->append_single_option_line('min_print_speed');
         }
     }
+}
+
+sub _on_value_change {
+    my $self = shift;
+    my ($opt_key) = @_;
+    $self->SUPER::_on_value_change(@_);
+}
+
+sub _update {
+    my ($self) = @_;
     
     $self->_update_description;
+    
+    my $cooling = $self->{config}->cooling;
+    $self->get_field($_)->toggle($cooling)
+        for qw(min_fan_speed max_fan_speed disable_fan_first_layers 
+            fan_below_layer_time slowdown_below_layer_time min_print_speed);
 }
 
 sub _update_description {
@@ -785,14 +855,6 @@ sub _update_description {
         $msg = "Fan $fan_other_layers";
     }
     $self->{description_line}->SetText($msg);
-}
-
-sub _on_value_change {
-    my $self = shift;
-    my ($opt_key) = @_;
-    $self->SUPER::_on_value_change(@_);
-    
-    $self->_update_description;
 }
 
 package Slic3r::GUI::Tab::Printer;
@@ -879,6 +941,7 @@ sub build {
                 if ($opt_id eq 'extruders_count') {
                     $self->{extruders_count} = $optgroup->get_value('extruders_count');
                     $self->_build_extruder_pages;
+                    $self->_update;
                 }
             });
         }
@@ -1000,6 +1063,41 @@ sub _build_extruder_pages {
     $self->update_tree(0);
 }
 
+sub _update {
+    my ($self) = @_;
+    
+    my $config = $self->{config};
+    
+    $self->get_field('toolchange_gcode')->toggle($self->{extruders_count} > 1);
+    
+    for my $i (0 .. ($self->{extruders_count}-1)) {
+        # disable extruder offset for first extruder
+        $self->get_field('extruder_offset', $i)->toggle($i != 0);
+        
+        my $have_retract_length = $config->get_at('retract_length', $i) > 0;
+        
+        # when using firmware retraction, firmware decides retraction length
+        $self->get_field('retract_length', $i)->toggle(!$config->use_firmware_retraction);
+        
+        # user can customize travel length if we have retraction length or we're using
+        # firmware retraction
+        $self->get_field('retract_before_travel', $i)->toggle($have_retract_length || $config->use_firmware_retraction);
+        
+        # user can customize other retraction options if retraction is enabled
+        my $retraction = ($have_retract_length || $config->use_firmware_retraction);
+        $self->get_field($_, $i)->toggle($retraction)
+            for qw(retract_lift retract_layer_change);
+        
+        # some options only apply when not using firmware retraction
+        $self->get_field($_, $i)->toggle($retraction && !$config->use_firmware_retraction)
+            for qw(retract_speed retract_restart_extra wipe);
+        
+        my $toolchange_retraction = $config->get_at('retract_length_toolchange', $i) > 0;
+        $self->get_field($_, $i)->toggle($toolchange_retraction)
+            for qw(retract_restart_extra_toolchange);
+    }
+}
+
 # this gets executed after preset is loaded and before GUI fields are updated
 sub on_preset_loaded {
     my $self = shift;
@@ -1065,6 +1163,16 @@ sub new_optgroup {
 sub reload_config {
     my ($self) = @_;
     $_->reload_config for @{$self->{optgroups}};
+}
+
+sub get_field {
+    my ($self, $opt_key, $opt_index) = @_;
+    
+    foreach my $optgroup (@{ $self->{optgroups} }) {
+        my $field = $optgroup->get_fieldc($opt_key, $opt_index);
+        return $field if defined $field;
+    }
+    return undef;
 }
 
 sub set_value {

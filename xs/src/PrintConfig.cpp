@@ -724,7 +724,7 @@ PrintConfigDef::build_def() {
 
     Options["spiral_vase"].type = coBool;
     Options["spiral_vase"].label = "Spiral vase";
-    Options["spiral_vase"].tooltip = "This experimental feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. By enabling this option other settings will be overridden to enforce a single perimeter, no infill, no top solid layers, no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than an object.";
+    Options["spiral_vase"].tooltip = "This feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. This option requires a single perimeter, no infill, no top solid layers and no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than an object.";
     Options["spiral_vase"].cli = "spiral-vase!";
 
     Options["standby_temperature_delta"].type = coInt;
