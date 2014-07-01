@@ -17,7 +17,6 @@ PrintConfigDef::build_def() {
     Options["bed_temperature"].type = coInt;
     Options["bed_temperature"].label = "Other layers";
     Options["bed_temperature"].tooltip = "Bed temperature for layers after the first one. Set this to zero to disable bed temperature control commands in the output.";
-    Options["bed_temperature"].sidetext = "°C";
     Options["bed_temperature"].cli = "bed-temperature=i";
     Options["bed_temperature"].full_label = "Bed temperature";
     Options["bed_temperature"].min = 0;
@@ -224,7 +223,7 @@ PrintConfigDef::build_def() {
     Options["fill_angle"].max = 359;
 
     Options["fill_density"].type = coPercent;
-    Options["fill_density"].gui_type = "i_enum_open";
+    Options["fill_density"].gui_type = "f_enum_open";
     Options["fill_density"].gui_flags = "show_value";
     Options["fill_density"].label = "Fill density";
     Options["fill_density"].category = "Infill";
@@ -293,7 +292,6 @@ PrintConfigDef::build_def() {
     Options["first_layer_bed_temperature"].type = coInt;
     Options["first_layer_bed_temperature"].label = "First layer";
     Options["first_layer_bed_temperature"].tooltip = "Heated build plate temperature for the first layer. Set this to zero to disable bed temperature control commands in the output.";
-    Options["first_layer_bed_temperature"].sidetext = "°C";
     Options["first_layer_bed_temperature"].cli = "first-layer-bed-temperature=i";
     Options["first_layer_bed_temperature"].max = 0;
     Options["first_layer_bed_temperature"].max = 300;
@@ -322,7 +320,6 @@ PrintConfigDef::build_def() {
     Options["first_layer_temperature"].type = coInts;
     Options["first_layer_temperature"].label = "First layer";
     Options["first_layer_temperature"].tooltip = "Extruder temperature for first layer. If you want to control temperature manually during print, set this to zero to disable temperature control commands in the output file.";
-    Options["first_layer_temperature"].sidetext = "°C";
     Options["first_layer_temperature"].cli = "first-layer-temperature=i@";
     Options["first_layer_temperature"].min = 0;
     Options["first_layer_temperature"].max = 400;
@@ -551,6 +548,7 @@ PrintConfigDef::build_def() {
     Options["post_process"].label = "Post-processing scripts";
     Options["post_process"].tooltip = "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Slic3r config settings by reading environment variables.";
     Options["post_process"].cli = "post-process=s@";
+    Options["post_process"].gui_flags = "serialized";
     Options["post_process"].multiline = true;
     Options["post_process"].full_width = true;
     Options["post_process"].height = 60;
@@ -857,7 +855,6 @@ PrintConfigDef::build_def() {
     Options["temperature"].type = coInts;
     Options["temperature"].label = "Other layers";
     Options["temperature"].tooltip = "Extruder temperature for layers after the first one. Set this to zero to disable temperature control commands in the output.";
-    Options["temperature"].sidetext = "°C";
     Options["temperature"].cli = "temperature=i@";
     Options["temperature"].full_label = "Temperature";
     Options["temperature"].max = 0;

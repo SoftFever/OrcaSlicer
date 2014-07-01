@@ -20,6 +20,7 @@ use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::Preferences;
 use Slic3r::GUI::ProgressStatusBar;
 use Slic3r::GUI::OptionsGroup;
+use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 

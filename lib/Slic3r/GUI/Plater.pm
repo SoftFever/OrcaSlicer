@@ -270,7 +270,7 @@ sub new {
                 my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [140, -1], []);
                 $choice->SetFont($Slic3r::GUI::small_font);
                 $self->{preset_choosers}{$group} = [$choice];
-                EVT_CHOICE($choice, $choice, sub { $self->on_select_preset($group, @_) });
+                EVT_CHOICE($choice, $choice, sub { $self->_on_select_preset($group, @_) });
                 
                 $self->{preset_choosers_sizers}{$group} = Wx::BoxSizer->new(wxVERTICAL);
                 $self->{preset_choosers_sizers}{$group}->Add($choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
@@ -345,13 +345,21 @@ sub new {
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
     }
+    
     return $self;
 }
 
+# sets the callback
 sub on_select_preset {
+    my ($self, $cb) = @_;
+    $self->{on_select_preset} = $cb;
+}
+
+sub _on_select_preset {
 	my $self = shift;
 	my ($group, $choice) = @_;
 	
+	# if user changed filament preset, don't propagate this to the tabs
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
 		my @filament_presets = $self->filament_presets;
 		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0]) . ".ini";
@@ -360,7 +368,11 @@ sub on_select_preset {
 		wxTheApp->save_settings;
 		return;
 	}
-	$self->GetFrame->{options_tabs}{$group}->select_preset($choice->GetSelection);
+	$self->{on_select_preset}->($group, $choice->GetSelection)
+	    if $self->{on_select_preset};
+	
+	# get new config and generate on_config_change() event for updating plater and other things
+	$self->on_config_change($self->GetFrame->config);
 }
 
 sub GetFrame {
@@ -590,28 +602,28 @@ sub rotate {
         $angle = 0 - $angle;  # rotate clockwise (be consistent with button icon)
     }
     
-    {
-        if ($axis == Z) {
-            my $new_angle = $model_instance->rotation + $angle;
-            $_->set_rotation($new_angle) for @{ $model_object->instances };
-            $object->transform_thumbnail($self->{model}, $obj_idx);
-        } else {
-            # rotation around X and Y needs to be performed on mesh
-            # so we first apply any Z rotation
-            if ($model_instance->rotation != 0) {
-                $model_object->rotate(deg2rad($model_instance->rotation), Z);
-                $_->set_rotation(0) for @{ $model_object->instances };
-            }
-            $model_object->rotate(deg2rad($angle), $axis);
-            $self->make_thumbnail($obj_idx);
+    $self->stop_background_process;
+    
+    if ($axis == Z) {
+        my $new_angle = $model_instance->rotation + $angle;
+        $_->set_rotation($new_angle) for @{ $model_object->instances };
+        $object->transform_thumbnail($self->{model}, $obj_idx);
+    } else {
+        # rotation around X and Y needs to be performed on mesh
+        # so we first apply any Z rotation
+        if ($model_instance->rotation != 0) {
+            $model_object->rotate(deg2rad($model_instance->rotation), Z);
+            $_->set_rotation(0) for @{ $model_object->instances };
         }
-        $model_object->update_bounding_box;
-        
-        # update print and start background processing
-        $self->stop_background_process;
-        $self->{print}->add_model_object($model_object, $obj_idx);
-        $self->schedule_background_process;
+        $model_object->rotate(deg2rad($angle), $axis);
+        $self->make_thumbnail($obj_idx);
     }
+    
+    $model_object->update_bounding_box;
+    # update print and start background processing
+    $self->{print}->add_model_object($model_object, $obj_idx);
+    $self->schedule_background_process;
+    
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
     $self->{canvas}->Refresh;
@@ -799,8 +811,9 @@ sub async_apply_config {
     if ($invalidated) {
         # kill current thread if any
         $self->stop_background_process;
+        $self->resume_background_process;
     } else {
-        # TODO: restore process thread
+        $self->resume_background_process;
     }
     
     # schedule a new process thread in case it wasn't running
@@ -809,8 +822,6 @@ sub async_apply_config {
 
 sub start_background_process {
     my ($self) = @_;
-    
-    $self->resume_background_process;
     
     return if !$Slic3r::have_threads;
     return if !@{$self->{objects}};
@@ -1147,29 +1158,33 @@ sub update {
     $self->{canvas}->Refresh;
 }
 
+sub on_extruders_change {
+    my ($self, $num_extruders) = @_;
+    
+    my $choices = $self->{preset_choosers}{filament};
+    while (@$choices < $num_extruders) {
+        my @presets = $choices->[0]->GetStrings;
+        push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
+        $choices->[-1]->SetFont($Slic3r::GUI::small_font);
+        $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
+        my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
+        $choices->[-1]->SetSelection($i || 0);
+    }
+    while (@$choices > $num_extruders) {
+        $self->{preset_choosers_sizers}{filament}->Remove(-1);
+        $choices->[-1]->Destroy;
+        pop @$choices;
+    }
+    $self->Layout;
+}
+
 sub on_config_change {
     my $self = shift;
-    my ($opt_key, $value) = @_;
+    my ($config) = @_;
     
-    if ($opt_key eq 'extruders_count' && defined $value) {
-        my $choices = $self->{preset_choosers}{filament};
-        while (@$choices < $value) {
-        	my @presets = $choices->[0]->GetStrings;
-            push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
-            $choices->[-1]->SetFont($Slic3r::GUI::small_font);
-            $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-            EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->on_select_preset('filament', @_) });
-            my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
-        	$choices->[-1]->SetSelection($i || 0);
-        }
-        while (@$choices > $value) {
-            $self->{preset_choosers_sizers}{filament}->Remove(-1);
-            $choices->[-1]->Destroy;
-            pop @$choices;
-        }
-        $self->Layout;
-    } elsif ($self->{config}->has($opt_key)) {
-        $self->{config}->set($opt_key, $value);
+    foreach my $opt_key (@{$self->{config}->diff($config)}) {
+        $self->{config}->set($opt_key, $config->get($opt_key));
         if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
             $self->update;
@@ -1252,6 +1267,7 @@ sub object_settings_dialog {
 		object          => $self->{objects}[$obj_idx],
 		model_object    => $model_object,
 	);
+	$self->suspend_background_process;
 	$dlg->ShowModal;
 	
 	# update thumbnail since parts may have changed
@@ -1261,8 +1277,12 @@ sub object_settings_dialog {
 	
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
+	    $self->stop_background_process;
+        $self->resume_background_process;
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
+    } else {
+        $self->resume_background_process;
     }
 }
 

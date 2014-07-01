@@ -14,8 +14,6 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-    $self->{options} = []; # array of option names handled by this tab
-    $self->{$_} = $params{$_} for qw(on_value_change on_presets_changed);
     
     # horizontal sizer
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -82,7 +80,7 @@ sub new {
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
         $self->on_select_preset;
-        $self->on_presets_changed;
+        $self->_on_presets_changed;
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub { $self->save_preset });
@@ -100,16 +98,14 @@ sub new {
         $self->{presets_choice}->Delete($i);
         $self->{presets_choice}->SetSelection(0);
         $self->on_select_preset;
-        $self->on_presets_changed;
+        $self->_on_presets_changed;
     });
     
     $self->{config} = Slic3r::Config->new;
     $self->build;
     if ($self->hidden_options) {
         $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
-        push @{$self->{options}}, $self->hidden_options;
     }
-    $self->load_presets;
     
     return $self;
 }
@@ -151,17 +147,30 @@ sub save_preset {
     $self->load_presets;
     $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $name . ".ini" } 1 .. $#{$self->{presets}});
     $self->on_select_preset;
-    $self->on_presets_changed;
+    $self->_on_presets_changed;
 }
 
-# propagate event to the parent
 sub on_value_change {
-    my $self = shift;
-    $self->{on_value_change}->(@_) if $self->{on_value_change};
+    my ($self, $cb) = @_;
+    $self->{on_value_change} = $cb;
 }
 
 sub on_presets_changed {
+    my ($self, $cb) = @_;
+    $self->{on_presets_changed} = $cb;
+}
+
+# propagate event to the parent
+sub _on_value_change {
     my $self = shift;
+    
+    $self->set_dirty(1);
+    $self->{on_value_change}->(@_) if $self->{on_value_change};
+}
+
+sub _on_presets_changed {
+    my $self = shift;
+    
     $self->{on_presets_changed}->([$self->{presets_choice}->GetStrings], $self->{presets_choice}->GetSelection)
         if $self->{on_presets_changed};
 }
@@ -184,7 +193,7 @@ sub select_preset {
 sub on_select_preset {
     my $self = shift;
     
-    if (defined $self->{dirty}) {
+    if ($self->{dirty}) {
         my $name = $self->{dirty} == 0 ? 'Default preset' : "Preset \"$self->{presets}[$self->{dirty}]{name}\"";
         my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes. Discard changes and continue anyway?",
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
@@ -199,7 +208,7 @@ sub on_select_preset {
     my $preset_config = $self->get_preset_config($preset);
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-        foreach my $opt_key (@{$self->{options}}) {
+        foreach my $opt_key (@{$self->{config}->get_keys}) {
             $self->{config}->set($opt_key, $preset_config->get($opt_key))
                 if $preset_config->has($opt_key);
         }
@@ -208,7 +217,7 @@ sub on_select_preset {
             : $self->{btn_delete_preset}->Enable;
         
         $self->on_preset_loaded;
-        $self->reload_values;
+        $self->reload_config;
         
         # use CallAfter because some field triggers schedule on_change calls using CallAfter,
         # and we don't want them to be called after this set_dirty(0) as they would mark the 
@@ -232,7 +241,7 @@ sub get_preset_config {
     my ($preset) = @_;
     
     if ($preset->{default}) {
-        return Slic3r::Config->new_from_defaults(@{$self->{options}});
+        return Slic3r::Config->new_from_defaults(@{$self->{config}->get_keys});
     } else {
         if (!-e $preset->{file}) {
             Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
@@ -243,10 +252,15 @@ sub get_preset_config {
         my $external_config = Slic3r::Config->load($preset->{file});
         my $config = Slic3r::Config->new;
         $config->set($_, $external_config->get($_))
-            for grep $external_config->has($_), @{$self->{options}};
+            for grep $external_config->has($_), @{$self->{config}->get_keys};
         
         return $config;
     }
+}
+
+sub init_config_options {
+    my ($self, @opt_keys) = @_;
+    $self->{config}->apply(Slic3r::Config->new_from_defaults(@opt_keys));
 }
 
 sub add_options_page {
@@ -259,23 +273,7 @@ sub add_options_page {
         $self->{iconcount}++;
     }
     
-    {
-        # get all config options being added to the current page; remove indexes; associate defaults
-        my @options = map { $_ =~ s/#.+//; $_ } grep !ref($_), map @{$_->{options}}, @{$params{optgroups}};
-        my %defaults_to_set = map { $_ => 1 } @options;
-        
-        # apply default values for the options we don't have already
-        delete $defaults_to_set{$_} for @{$self->{options}};
-        $self->{config}->apply(Slic3r::Config->new_from_defaults(keys %defaults_to_set)) if %defaults_to_set;
-        
-        # append such options to our list
-        push @{$self->{options}}, @options;
-    }
-    
-    my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount}, %params, on_change => sub {
-        $self->on_value_change(@_);
-        $self->set_dirty(1);
-    });
+    my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount});
     $page->Hide;
     $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
@@ -283,22 +281,9 @@ sub add_options_page {
     return $page;
 }
 
-sub set_value {
+sub reload_config {
     my $self = shift;
-    my ($opt_key, $value) = @_;
-    
-    my $changed = 0;
-    foreach my $page (@{$self->{pages}}) {
-        $changed = 1 if $page->set_value($opt_key, $value);
-    }
-    return $changed;
-}
-
-sub reload_values {
-    my $self = shift;
-    
-    $self->set_value($_, $self->{config}->get($_))
-        for @{$self->{config}->get_keys};
+    $_->reload_config for @{$self->{pages}};
 }
 
 sub update_tree {
@@ -338,7 +323,7 @@ sub set_dirty {
         $self->{presets_choice}->SetString($i, $text);
         $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
     }
-    $self->on_presets_changed;
+    $self->_on_presets_changed;
 }
 
 sub is_dirty {
@@ -370,7 +355,7 @@ sub load_presets {
         $self->{presets_choice}->SetSelection($i || 0);
         $self->on_select_preset;
     }
-    $self->on_presets_changed;
+    $self->_on_presets_changed;
 }
 
 sub load_config_file {
@@ -391,7 +376,18 @@ sub load_config_file {
     }
     $self->{presets_choice}->SetSelection($i);
     $self->on_select_preset;
-    $self->on_presets_changed;
+    $self->_on_presets_changed;
+}
+
+sub load_config {
+    my $self = shift;
+    my ($config) = @_;
+    
+    foreach my $opt_key (@{$self->{config}->diff($config)}) {
+        $self->{config}->set($opt_key, $config->get($opt_key));
+        $self->set_dirty(1);
+    }
+    $self->reload_config;
 }
 
 package Slic3r::GUI::Tab::Print;
@@ -403,165 +399,268 @@ sub title { 'Print Settings' }
 sub build {
     my $self = shift;
     
-    $self->add_options_page('Layers and perimeters', 'layers.png', optgroups => [
-        {
-            title => 'Layer height',
-            options => [qw(layer_height first_layer_height)],
-        },
-        {
-            title => 'Vertical shells',
-            options => [qw(perimeters spiral_vase)],
-        },
-        {
-            title => 'Horizontal shells',
-            options => [qw(top_solid_layers bottom_solid_layers)],
-            lines => [
-                {
-                    label   => 'Solid layers',
-                    options => [qw(top_solid_layers bottom_solid_layers)],
-                },
-            ],
-        },
-        {
-            title => 'Quality (slower slicing)',
-            options => [qw(extra_perimeters avoid_crossing_perimeters thin_walls overhangs)],
-            lines => [
-                Slic3r::GUI::OptionsGroup->single_option_line('extra_perimeters'),
-                Slic3r::GUI::OptionsGroup->single_option_line('avoid_crossing_perimeters'),
-                Slic3r::GUI::OptionsGroup->single_option_line('thin_walls'),
-                Slic3r::GUI::OptionsGroup->single_option_line('overhangs'),
-            ],
-        },
-        {
-            title => 'Advanced',
-            options => [qw(seam_position external_perimeters_first)],
-        },
-    ]);
+    $self->init_config_options(qw(
+        layer_height first_layer_height
+        perimeters spiral_vase
+        top_solid_layers bottom_solid_layers
+        extra_perimeters avoid_crossing_perimeters thin_walls overhangs
+        seam_position external_perimeters_first
+        fill_density fill_pattern solid_fill_pattern
+        infill_every_layers infill_only_where_needed
+        solid_infill_every_layers fill_angle solid_infill_below_area 
+        only_retract_when_crossing_perimeters infill_first
+        perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed 
+        solid_infill_speed top_solid_infill_speed support_material_speed 
+        support_material_interface_speed bridge_speed gap_fill_speed
+        travel_speed
+        first_layer_speed
+        perimeter_acceleration infill_acceleration bridge_acceleration 
+        first_layer_acceleration default_acceleration
+        skirts skirt_distance skirt_height min_skirt_length
+        brim_width
+        support_material support_material_threshold support_material_enforce_layers
+        raft_layers
+        support_material_pattern support_material_spacing support_material_angle
+        support_material_interface_layers support_material_interface_spacing
+        dont_support_bridges
+        notes
+        complete_objects extruder_clearance_radius extruder_clearance_height
+        gcode_comments output_filename_format
+        post_process
+        perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder
+        ooze_prevention standby_temperature_delta
+        interface_shells
+        extrusion_width first_layer_extrusion_width perimeter_extrusion_width 
+        external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width 
+        top_infill_extrusion_width support_material_extrusion_width
+        bridge_flow_ratio
+        xy_size_compensation threads resolution
+    ));
     
-    $self->add_options_page('Infill', 'shading.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Layers and perimeters', 'layers.png');
         {
-            title => 'Infill',
-            options => [qw(fill_density fill_pattern solid_fill_pattern)],
-        },
+            my $optgroup = $page->new_optgroup('Layer height');
+            $optgroup->append_single_option_line('layer_height');
+            $optgroup->append_single_option_line('first_layer_height');
+        }
         {
-            title => 'Reducing printing time',
-            options => [qw(infill_every_layers infill_only_where_needed)],
-        },
+            my $optgroup = $page->new_optgroup('Vertical shells');
+            $optgroup->append_single_option_line('perimeters');
+            $optgroup->append_single_option_line('spiral_vase');
+        }
         {
-            title => 'Advanced',
-            options => [qw(solid_infill_every_layers fill_angle
-                solid_infill_below_area only_retract_when_crossing_perimeters infill_first)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Horizontal shells');
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Solid layers',
+            );
+            $line->append_option($optgroup->get_option('top_solid_layers'));
+            $line->append_option($optgroup->get_option('bottom_solid_layers'));
+            $optgroup->append_line($line);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Quality (slower slicing)');
+            $optgroup->append_single_option_line('extra_perimeters');
+            $optgroup->append_single_option_line('avoid_crossing_perimeters');
+            $optgroup->append_single_option_line('thin_walls');
+            $optgroup->append_single_option_line('overhangs');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Advanced');
+            $optgroup->append_single_option_line('seam_position');
+            $optgroup->append_single_option_line('external_perimeters_first');
+        }
+    }
     
-    $self->add_options_page('Speed', 'time.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Infill', 'shading.png');
         {
-            title => 'Speed for print moves',
-            options => [qw(perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed support_material_speed support_material_interface_speed bridge_speed gap_fill_speed)],
-        },
+            my $optgroup = $page->new_optgroup('Infill');
+            $optgroup->append_single_option_line('fill_density');
+            $optgroup->append_single_option_line('fill_pattern');
+            $optgroup->append_single_option_line('solid_fill_pattern');
+        }
         {
-            title => 'Speed for non-print moves',
-            options => [qw(travel_speed)],
-        },
+            my $optgroup = $page->new_optgroup('Reducing printing time');
+            $optgroup->append_single_option_line('infill_every_layers');
+            $optgroup->append_single_option_line('infill_only_where_needed');
+        }
         {
-            title => 'Modifiers',
-            options => [qw(first_layer_speed)],
-        },
-        {
-            title => 'Acceleration control (advanced)',
-            options => [qw(perimeter_acceleration infill_acceleration bridge_acceleration first_layer_acceleration default_acceleration)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Advanced');
+            $optgroup->append_single_option_line('solid_infill_every_layers');
+            $optgroup->append_single_option_line('fill_angle');
+            $optgroup->append_single_option_line('solid_infill_below_area');
+            $optgroup->append_single_option_line('only_retract_when_crossing_perimeters');
+            $optgroup->append_single_option_line('infill_first');
+        }
+    }
     
-    $self->add_options_page('Skirt and brim', 'box.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Speed', 'time.png');
         {
-            title => 'Skirt',
-            options => [qw(skirts skirt_distance skirt_height min_skirt_length)],
-        },
+            my $optgroup = $page->new_optgroup('Speed for print moves');
+            $optgroup->append_single_option_line('perimeter_speed');
+            $optgroup->append_single_option_line('small_perimeter_speed');
+            $optgroup->append_single_option_line('external_perimeter_speed');
+            $optgroup->append_single_option_line('infill_speed');
+            $optgroup->append_single_option_line('solid_infill_speed');
+            $optgroup->append_single_option_line('top_solid_infill_speed');
+            $optgroup->append_single_option_line('support_material_speed');
+            $optgroup->append_single_option_line('support_material_interface_speed');
+            $optgroup->append_single_option_line('bridge_speed');
+            $optgroup->append_single_option_line('gap_fill_speed');
+        }
         {
-            title => 'Brim',
-            options => [qw(brim_width)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Speed for non-print moves');
+            $optgroup->append_single_option_line('travel_speed');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Modifiers');
+            $optgroup->append_single_option_line('first_layer_speed');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Acceleration control (advanced)');
+            $optgroup->append_single_option_line('perimeter_acceleration');
+            $optgroup->append_single_option_line('infill_acceleration');
+            $optgroup->append_single_option_line('bridge_acceleration');
+            $optgroup->append_single_option_line('first_layer_acceleration');
+            $optgroup->append_single_option_line('default_acceleration');
+        }
+    }
     
-    $self->add_options_page('Support material', 'building.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Skirt and brim', 'box.png');
         {
-            title => 'Support material',
-            options => [qw(support_material support_material_threshold support_material_enforce_layers)],
-        },
+            my $optgroup = $page->new_optgroup('Skirt');
+            $optgroup->append_single_option_line('skirts');
+            $optgroup->append_single_option_line('skirt_distance');
+            $optgroup->append_single_option_line('skirt_height');
+            $optgroup->append_single_option_line('min_skirt_length');
+        }
         {
-            title => 'Raft',
-            options => [qw(raft_layers)],
-        },
-        {
-            title => 'Options for support material and raft',
-            options => [qw(support_material_pattern support_material_spacing support_material_angle
-                support_material_interface_layers support_material_interface_spacing
-                dont_support_bridges)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Brim');
+            $optgroup->append_single_option_line('brim_width');
+        }
+    }
     
-    $self->add_options_page('Notes', 'note.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Support material', 'building.png');
         {
-            title => 'Notes',
-            no_labels => 1,
-            options => [qw(notes)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Support material');
+            $optgroup->append_single_option_line('support_material');
+            $optgroup->append_single_option_line('support_material_threshold');
+            $optgroup->append_single_option_line('support_material_enforce_layers');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Raft');
+            $optgroup->append_single_option_line('raft_layers');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Options for support material and raft');
+            $optgroup->append_single_option_line('support_material_pattern');
+            $optgroup->append_single_option_line('support_material_spacing');
+            $optgroup->append_single_option_line('support_material_angle');
+            $optgroup->append_single_option_line('support_material_interface_layers');
+            $optgroup->append_single_option_line('support_material_interface_spacing');
+            $optgroup->append_single_option_line('dont_support_bridges');
+        }
+    }
     
-    $self->add_options_page('Output options', 'page_white_go.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Notes', 'note.png');
         {
-            title => 'Sequential printing',
-            options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
-            lines => [
-                Slic3r::GUI::OptionsGroup->single_option_line('complete_objects'),
-                {
-                    label   => 'Extruder clearance (mm)',
-                    options => [qw(extruder_clearance_radius extruder_clearance_height)],
-                },
-            ],
-        },
-        {
-            title => 'Output file',
-            options => [qw(gcode_comments output_filename_format)],
-        },
-        {
-            title => 'Post-processing scripts',
-            no_labels => 1,
-            options => [qw(post_process)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Notes',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('notes');
+            $option->full_width(1);
+            $option->height(250);
+            $optgroup->append_single_option_line($option);
+        }
+    }
     
-    $self->add_options_page('Multiple Extruders', 'funnel.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Output options', 'page_white_go.png');
         {
-            title => 'Extruders',
-            options => [qw(perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder)],
-        },
+            my $optgroup = $page->new_optgroup('Sequential printing');
+            $optgroup->append_single_option_line('complete_objects');
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Extruder clearance (mm)',
+            );
+            foreach my $opt_key (qw(extruder_clearance_radius extruder_clearance_height)) {
+                my $option = $optgroup->get_option($opt_key);
+                $option->width(60);
+                $line->append_option($option);
+            }
+            $optgroup->append_line($line);
+        }
         {
-            title => 'Ooze prevention',
-            options => [qw(ooze_prevention standby_temperature_delta)],
-        },
+            my $optgroup = $page->new_optgroup('Output file');
+            $optgroup->append_single_option_line('gcode_comments');
+            
+            {
+                my $option = $optgroup->get_option('output_filename_format');
+                $option->full_width(1);
+                $optgroup->append_single_option_line($option);
+            }
+        }
         {
-            title => 'Advanced',
-            options => [qw(interface_shells)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Post-processing scripts',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('post_process');
+            $option->full_width(1);
+            $option->height(50);
+            $optgroup->append_single_option_line($option);
+        }
+    }
     
-    $self->add_options_page('Advanced', 'wrench.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Multiple Extruders', 'funnel.png');
         {
-            title => 'Extrusion width',
-            label_width => 180,
-            options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width top_infill_extrusion_width support_material_extrusion_width)],
-        },
+            my $optgroup = $page->new_optgroup('Extruders');
+            $optgroup->append_single_option_line('perimeter_extruder');
+            $optgroup->append_single_option_line('infill_extruder');
+            $optgroup->append_single_option_line('support_material_extruder');
+            $optgroup->append_single_option_line('support_material_interface_extruder');
+        }
         {
-            title => 'Flow',
-            options => [qw(bridge_flow_ratio)],
-        },
+            my $optgroup = $page->new_optgroup('Ooze prevention');
+            $optgroup->append_single_option_line('ooze_prevention');
+            $optgroup->append_single_option_line('standby_temperature_delta');
+        }
         {
-            title => 'Other',
-            options => [qw(xy_size_compensation), ($Slic3r::have_threads ? qw(threads) : ()), qw(resolution)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Advanced');
+            $optgroup->append_single_option_line('interface_shells');
+        }
+    }
+    
+    {
+        my $page = $self->add_options_page('Advanced', 'wrench.png');
+        {
+            my $optgroup = $page->new_optgroup('Extrusion width',
+                label_width => 180,
+            );
+            $optgroup->append_single_option_line('extrusion_width');
+            $optgroup->append_single_option_line('first_layer_extrusion_width');
+            $optgroup->append_single_option_line('perimeter_extrusion_width');
+            $optgroup->append_single_option_line('external_perimeter_extrusion_width');
+            $optgroup->append_single_option_line('infill_extrusion_width');
+            $optgroup->append_single_option_line('solid_infill_extrusion_width');
+            $optgroup->append_single_option_line('top_infill_extrusion_width');
+            $optgroup->append_single_option_line('support_material_extrusion_width');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Flow');
+            $optgroup->append_single_option_line('bridge_flow_ratio');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Other');
+            $optgroup->append_single_option_line('xy_size_compensation');
+            $optgroup->append_single_option_line('threads') if $Slic3r::have_threads;
+            $optgroup->append_single_option_line('resolution');
+        }
+    }
 }
 
 sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
@@ -575,62 +674,88 @@ sub title { 'Filament Settings' }
 sub build {
     my $self = shift;
     
-    $self->add_options_page('Filament', 'spool.png', optgroups => [
-        {
-            title => 'Filament',
-            options => ['filament_diameter#0', 'extrusion_multiplier#0'],
-        },
-        {
-            title => 'Temperature (°C)',
-            options => ['temperature#0', 'first_layer_temperature#0', qw(bed_temperature first_layer_bed_temperature)],
-            lines => [
-                {
-                    label   => 'Extruder',
-                    options => ['first_layer_temperature#0', 'temperature#0'],
-                },
-                {
-                    label   => 'Bed',
-                    options => [qw(first_layer_bed_temperature bed_temperature)],
-                },
-            ],
-        },
-    ]);
+    $self->init_config_options(qw(
+        filament_diameter extrusion_multiplier
+        temperature first_layer_temperature bed_temperature first_layer_bed_temperature
+        fan_always_on cooling
+        min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
+        fan_below_layer_time slowdown_below_layer_time min_print_speed
+    ));
     
-    $self->add_options_page('Cooling', 'hourglass.png', optgroups => [
+    {
+        my $page = $self->add_options_page('Filament', 'spool.png');
         {
-            title => 'Enable',
-            options => [qw(fan_always_on cooling)],
-            lines => [
-                Slic3r::GUI::OptionsGroup->single_option_line('fan_always_on'),
-                Slic3r::GUI::OptionsGroup->single_option_line('cooling'),
-                {
-                    label => '',
-                    full_width => 1,
-                    widget => sub {
-                        my ($parent) = @_;
-                        return $self->{description_line} = Slic3r::GUI::OptionsGroup::StaticTextLine->new($parent);
-                    },
+            my $optgroup = $page->new_optgroup('Filament');
+            $optgroup->append_single_option_line('filament_diameter', 0);
+            $optgroup->append_single_option_line('extrusion_multiplier', 0);
+        }
+    
+        {
+            my $optgroup = $page->new_optgroup('Temperature (°C)');
+        
+            {
+                my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                    label => 'Extruder',
+                );
+                $line->append_option($optgroup->get_option('first_layer_temperature', 0));
+                $line->append_option($optgroup->get_option('temperature', 0));
+                $optgroup->append_line($line);
+            }
+        
+            {
+                my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                    label => 'Bed',
+                );
+                $line->append_option($optgroup->get_option('first_layer_bed_temperature'));
+                $line->append_option($optgroup->get_option('bed_temperature'));
+                $optgroup->append_line($line);
+            }
+        }
+    }
+    
+    {
+        my $page = $self->add_options_page('Cooling', 'hourglass.png');
+        {
+            my $optgroup = $page->new_optgroup('Enable');
+            $optgroup->append_single_option_line('fan_always_on');
+            $optgroup->append_single_option_line('cooling');
+            
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label       => '',
+                full_width  => 1,
+                widget      => sub {
+                    my ($parent) = @_;
+                    return $self->{description_line} = Slic3r::GUI::OptionsGroup::StaticText->new($parent);
                 },
-            ],
-        },
+            );
+            $optgroup->append_line($line);
+        }
         {
-            title => 'Fan settings',
-            options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers)],
-            lines => [
-                {
-                    label   => 'Fan speed',
-                    options => [qw(min_fan_speed max_fan_speed)],
-                },
-                Slic3r::GUI::OptionsGroup->single_option_line('bridge_fan_speed'),
-                Slic3r::GUI::OptionsGroup->single_option_line('disable_fan_first_layers'),
-            ],
-        },
+            my $optgroup = $page->new_optgroup('Fan settings');
+            
+            {
+                my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                    label => 'Fan speed',
+                );
+                $line->append_option($optgroup->get_option('min_fan_speed'));
+                $line->append_option($optgroup->get_option('max_fan_speed'));
+                $optgroup->append_line($line);
+            }
+            
+            $optgroup->append_single_option_line('bridge_fan_speed');
+            $optgroup->append_single_option_line('disable_fan_first_layers');
+        }
         {
-            title => 'Cooling thresholds',
-            label_width => 250,
-            options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Cooling thresholds',
+                label_width => 250,
+            );
+            $optgroup->append_single_option_line('fan_below_layer_time');
+            $optgroup->append_single_option_line('slowdown_below_layer_time');
+            $optgroup->append_single_option_line('min_print_speed');
+        }
+    }
+    
+    $self->_update_description;
 }
 
 sub _update_description {
@@ -662,10 +787,10 @@ sub _update_description {
     $self->{description_line}->SetText($msg);
 }
 
-sub on_value_change {
+sub _on_value_change {
     my $self = shift;
     my ($opt_key) = @_;
-    $self->SUPER::on_value_change(@_);
+    $self->SUPER::_on_value_change(@_);
     
     $self->_update_description;
 }
@@ -681,7 +806,15 @@ sub title { 'Printer Settings' }
 sub build {
     my $self = shift;
     
-    $self->{extruders_count} = 1;
+    $self->init_config_options(qw(
+        bed_shape z_offset
+        gcode_flavor use_relative_e_distances
+        use_firmware_retraction vibration_limit
+        start_gcode end_gcode layer_gcode toolchange_gcode
+        nozzle_diameter extruder_offset
+        retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
+        retract_length_toolchange retract_restart_extra_toolchange
+    ));
     
     my $bed_shape_widget = sub {
         my ($parent) = @_;
@@ -701,73 +834,99 @@ sub build {
                 my $value = $dlg->GetValue;
                 $self->{config}->set('bed_shape', $value);
                 $self->set_dirty(1);
-                $self->on_value_change('bed_shape', $value);
+                $self->_on_value_change('bed_shape', $value);
             }
         });
         
         return $sizer;
     };
     
-    $self->add_options_page('General', 'printer_empty.png', optgroups => [
-        {
-            title => 'Size and coordinates',
-            options => [qw(bed_shape z_offset)],
-            lines => [
-                {
-                    label => 'Bed shape',
-                    widget => $bed_shape_widget,
-                    options => ['bed_shape'],
-                },
-                Slic3r::GUI::OptionsGroup->single_option_line('z_offset'),
-            ],
-        },
-        {
-            title => 'Firmware',
-            options => [qw(gcode_flavor use_relative_e_distances)],
-        },
-        {
-            class => 'Slic3r::GUI::OptionsGroup',
-            title => 'Capabilities',
-            options => [
-                {
-                    opt_key => 'extruders_count',
-                    label   => 'Extruders',
-                    tooltip => 'Number of extruders of the printer.',
-                    type    => 'i',
-                    min     => 1,
-                    default => 1,
-                    on_change => sub { $self->{extruders_count} = $_[0] },
-                },
-            ],
-        },
-        {
-            title => 'Advanced',
-            options => [qw(use_firmware_retraction vibration_limit)],
-        },
-    ]);
+    $self->{extruders_count} = 1;
     
-    $self->add_options_page('Custom G-code', 'cog.png', optgroups => [
+    {
+        my $page = $self->add_options_page('General', 'printer_empty.png');
         {
-            title => 'Start G-code',
-            no_labels => 1,
-            options => [qw(start_gcode)],
-        },
+            my $optgroup = $page->new_optgroup('Size and coordinates');
+            
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label       => 'Bed shape',
+                widget      => $bed_shape_widget,
+            );
+            $optgroup->append_line($line);
+            
+            $optgroup->append_single_option_line('z_offset');
+        }
         {
-            title => 'End G-code',
-            no_labels => 1,
-            options => [qw(end_gcode)],
-        },
+            my $optgroup = $page->new_optgroup('Firmware');
+            $optgroup->append_single_option_line('gcode_flavor');
+            $optgroup->append_single_option_line('use_relative_e_distances');
+        }
         {
-            title => 'Layer change G-code',
-            no_labels => 1,
-            options => [qw(layer_gcode)],
-        },
+            my $optgroup = $page->new_optgroup('Capabilities');
+            {
+                my $option = Slic3r::GUI::OptionsGroup::Option->new(
+                    opt_id      => 'extruders_count',
+                    type        => 'i',
+                    default     => 1,
+                    label       => 'Extruders',
+                    tooltip     => 'Number of extruders of the printer.',
+                    min         => 1,
+                );
+                $optgroup->append_single_option_line($option);
+            }
+            $optgroup->on_change(sub {
+                my ($opt_id) = @_;
+                if ($opt_id eq 'extruders_count') {
+                    $self->{extruders_count} = $optgroup->get_value('extruders_count');
+                    $self->_build_extruder_pages;
+                }
+            });
+        }
         {
-            title => 'Tool change G-code',
-            no_labels => 1,
-            options => [qw(toolchange_gcode)],
-        },
-    ]);
+            my $optgroup = $page->new_optgroup('Advanced');
+            $optgroup->append_single_option_line('use_firmware_retraction');
+            $optgroup->append_single_option_line('vibration_limit');
+        }
+    }
+    {
+        my $page = $self->add_options_page('Custom G-code', 'cog.png');
+        {
+            my $optgroup = $page->new_optgroup('Start G-code',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('start_gcode');
+            $option->full_width(1);
+            $option->height(150);
+            $optgroup->append_single_option_line($option);
+        }
+        {
+            my $optgroup = $page->new_optgroup('End G-code',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('end_gcode');
+            $option->full_width(1);
+            $option->height(150);
+            $optgroup->append_single_option_line($option);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Layer change G-code',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('layer_gcode');
+            $option->full_width(1);
+            $option->height(150);
+            $optgroup->append_single_option_line($option);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Tool change G-code',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('toolchange_gcode');
+            $option->full_width(1);
+            $option->height(150);
+            $optgroup->append_single_option_line($option);
+        }
+    }
     
     $self->{extruder_pages} = [];
     $self->_build_extruder_pages;
@@ -797,30 +956,26 @@ sub _build_extruder_pages {
         }
         
         # build page
-        $self->{extruder_pages}[$extruder_idx] = $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png', optgroups => [
-            {
-                title => 'Size',
-                options => ['nozzle_diameter#' . $extruder_idx],
-            },
-            {
-                title => 'Position (for multi-extruder printers)',
-                options => ['extruder_offset#' . $extruder_idx],
-            },
-            {
-                title => 'Retraction',
-                options => [
-                    map "${_}#${extruder_idx}",
-                        qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe)
-                ],
-            },
-            {
-                title => 'Retraction when tool is disabled (advanced settings for multi-extruder setups)',
-                options => [
-                    map "${_}#${extruder_idx}",
-                        qw(retract_length_toolchange retract_restart_extra_toolchange)
-                ],
-            },
-        ]);
+        my $page = $self->{extruder_pages}[$extruder_idx] = $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png');
+        {
+            my $optgroup = $page->new_optgroup('Size');
+            $optgroup->append_single_option_line('nozzle_diameter', $extruder_idx);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Position (for multi-extruder printers)');
+            $optgroup->append_single_option_line('extruder_offset', $extruder_idx);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Retraction');
+            $optgroup->append_single_option_line($_, $extruder_idx)
+                for qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Retraction when tool is disabled (advanced settings for multi-extruder setups)');
+            $optgroup->append_single_option_line($_, $extruder_idx)
+                for qw(retract_length_toolchange retract_restart_extra_toolchange);
+        }
+        
         $self->{extruder_pages}[$extruder_idx]{disabled} = 0;
     }
     
@@ -842,33 +997,20 @@ sub _build_extruder_pages {
         (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}}),
         @{$self->{extruder_pages}}[ 0 .. $self->{extruders_count}-1 ],
     );
-}
-
-sub on_value_change {
-    my $self = shift;
-    my ($opt_key) = @_;
-    $self->SUPER::on_value_change(@_);
-    
-    if ($opt_key eq 'extruders_count') {
-        # add extra pages or remove unused
-        $self->_build_extruder_pages;
-        
-        # update page list and select first page (General)
-        $self->update_tree(0);
-    }
+    $self->update_tree(0);
 }
 
 # this gets executed after preset is loaded and before GUI fields are updated
 sub on_preset_loaded {
     my $self = shift;
-    
+    return;
     # update the extruders count field
     {
         # update the GUI field according to the number of nozzle diameters supplied
         $self->set_value('extruders_count', scalar @{ $self->{config}->nozzle_diameter });
         
         # update extruder page list
-        $self->on_value_change('extruders_count');
+        $self->_on_value_change('extruders_count');
     }
 }
 
@@ -889,7 +1031,7 @@ use base 'Wx::ScrolledWindow';
 
 sub new {
     my $class = shift;
-    my ($parent, $title, $iconID, %params) = @_;
+    my ($parent, $title, $iconID) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{optgroups}  = [];
     $self->{title}      = $title;
@@ -900,30 +1042,29 @@ sub new {
     $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->SetSizer($self->{vsizer});
     
-    if ($params{optgroups}) {
-        $self->append_optgroup(
-            %$_,
-            config      => $parent->{config},
-            on_change   => $params{on_change},
-        ) for @{$params{optgroups}};
-    }
-    
     return $self;
 }
 
-sub append_optgroup {
-    my $self = shift;
-    my %params = @_;
+sub new_optgroup {
+    my ($self, $title, %params) = @_;
     
-    my $class = $params{class} || 'Slic3r::GUI::ConfigOptionsGroup';
-    my $optgroup = $class->new(
-        parent      => $self,
-        config      => $self->GetParent->{config},
-        label_width => 200,
-        %params,
+    my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+        parent          => $self,
+        title           => $title,
+        config          => $self->GetParent->{config},
+        label_width     => $params{label_width} // 200,
+        on_change       => sub { $self->GetParent->_on_value_change(@_) },
     );
-    $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 5);
+    
     push @{$self->{optgroups}}, $optgroup;
+    $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 10);
+    
+    return $optgroup;
+}
+
+sub reload_config {
+    my ($self) = @_;
+    $_->reload_config for @{$self->{optgroups}};
 }
 
 sub set_value {

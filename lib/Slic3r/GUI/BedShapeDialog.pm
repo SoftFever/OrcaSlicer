@@ -65,48 +65,51 @@ sub new {
     $sbsizer->Add($self->{shape_options_book});
     
     $self->{optgroups} = [];
-    $self->_init_shape_options_page('Rectangular', [
-        {
-            opt_key     => 'rect_size',
+    {
+        my $optgroup = $self->_init_shape_options_page('Rectangular');
+        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id      => 'rect_size',
             type        => 'point',
             label       => 'Size',
             tooltip     => 'Size in X and Y of the rectangular plate.',
             default     => [200,200],
-        },
-        {
-            opt_key     => 'rect_origin',
+        ));
+        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id      => 'rect_origin',
             type        => 'select',
             label       => 'Origin',
             tooltip     => 'Position of the 0,0 point.',
             labels      => ['Front left corner','Center'],
             values      => ['corner','center'],
             default     => 'corner',
-        },
-    ]);
-    $self->_init_shape_options_page('Circular', [
-        {
-            opt_key     => 'diameter',
+        ));
+        $optgroup->on_change->($_) for qw(rect_size rect_origin);  # set defaults
+    }
+    {
+        my $optgroup = $self->_init_shape_options_page('Circular');
+        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id      => 'diameter',
             type        => 'f',
             label       => 'Diameter',
             tooltip     => 'Diameter of the print bed. It is assumed that origin (0,0) is located in the center.',
             sidetext    => 'mm',
             default     => 200,
-        },
-    ]);
-    
-    my $custom = sub {
-        my ($parent) = @_;
-        
-        my $btn = Wx::Button->new($parent, -1, "Load shape from STL...", wxDefaultPosition, wxDefaultSize);
-        EVT_BUTTON($self, $btn, sub { $self->_load_stl });
-        return $btn;
-    };
-    $self->_init_shape_options_page('Custom', [], [
-        {
-            full_width => 1,
-            widget => $custom,
-        },
-    ]);
+        ));
+        $optgroup->on_change->($_) for qw(diameter);  # set defaults
+    }
+    {
+        my $optgroup = $self->_init_shape_options_page('Custom');
+        $optgroup->append_line(Slic3r::GUI::OptionsGroup::Line->new(
+            full_width  => 1,
+            widget      => sub {
+                my ($parent) = @_;
+                
+                my $btn = Wx::Button->new($parent, -1, "Load shape from STL...", wxDefaultPosition, wxDefaultSize);
+                EVT_BUTTON($self, $btn, sub { $self->_load_stl });
+                return $btn;
+            }
+        ));
+    }
     
     EVT_CHOICEBOOK_PAGE_CHANGED($self, -1, sub {
         $self->_update_shape;
@@ -229,26 +232,24 @@ sub _update_preview {
 }
 
 sub _init_shape_options_page {
-    my ($self, $title, $options, $lines) = @_;
-    
-    my $on_change = sub {
-        my ($opt_key, $value) = @_;
-        $self->{"_$opt_key"} = $value;
-        $self->_update_shape;
-    };
+    my ($self, $title) = @_;
     
     my $panel = Wx::Panel->new($self->{shape_options_book});
-    push @{$self->{optgroups}}, my $optgroup = Slic3r::GUI::OptionsGroup->new(
+    my $optgroup;
+    push @{$self->{optgroups}}, $optgroup = Slic3r::GUI::OptionsGroup->new(
         parent      => $panel,
         title       => 'Settings',
-        options     => $options,
-        $lines ? (lines => $lines) : (),
-        on_change   => $on_change,
         label_width => 100,
+        on_change   => sub {
+            my ($opt_id) = @_;
+            $self->{"_$opt_id"} = $optgroup->get_value($opt_id);
+            $self->_update_shape;
+        },
     );
-    $on_change->($_->{opt_key}, $_->{default}) for @$options;  # populate with defaults
     $panel->SetSizerAndFit($optgroup->sizer);
     $self->{shape_options_book}->AddPage($panel, $title);
+    
+    return $optgroup;
 }
 
 sub _load_stl {

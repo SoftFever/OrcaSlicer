@@ -38,7 +38,7 @@ sub new {
                 my $id = &Wx::NewId();
                 $menu->Append($id, $self->{option_labels}{$opt_key});
                 EVT_MENU($menu, $id, sub {
-                    $self->{config}->apply($self->{default_config}->get($opt_key));
+                    $self->{config}->set($opt_key, $self->{default_config}->get($opt_key));
                     $self->update_optgroup;
                     $self->{on_change}->() if $self->{on_change};
                 });
@@ -102,18 +102,18 @@ sub update_optgroup {
     }
     foreach my $category (sort keys %categories) {
         my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
-            parent      => $self,
-            title       => $category,
-            config      => $self->{config},
-            options     => [ sort @{$categories{$category}} ],
-            full_labels => 1,
-            label_font  => $Slic3r::GUI::small_font,
-            sidetest_font => $Slic3r::GUI::small_font,
-            label_width => 120,
-            on_change   => sub { $self->{on_change}->() if $self->{on_change} },
-            extra_column => sub {
+            parent          => $self,
+            title           => $category,
+            config          => $self->{config},
+            full_labels     => 1,
+            label_font      => $Slic3r::GUI::small_font,
+            sidetext_font   => $Slic3r::GUI::small_font,
+            label_width     => 120,
+            on_change       => sub { $self->{on_change}->() if $self->{on_change} },
+            extra_column    => sub {
                 my ($line) = @_;
-                my ($opt_key) = @{$line->{options}};  # we assume that we have one option per line
+                
+                my $opt_key = $line->get_options->[0]->opt_id;  # we assume that we have one option per line
                 
                 # disallow deleting fixed options
                 return undef if $self->{fixed_options}{$opt_key};
@@ -128,6 +128,9 @@ sub update_optgroup {
                 return $btn;
             },
         );
+        foreach my $opt_key (sort @{$categories{$category}}) {
+            $optgroup->append_single_option_line($opt_key);
+        }
         $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 0);
     }
     $self->Layout;

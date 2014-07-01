@@ -23,73 +23,66 @@ sub new {
         keep_lower      => 1,
         rotate_lower    => 1,
     };
-    my $cut_button_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    {
-        $self->{btn_cut} = Wx::Button->new($self, -1, "Perform cut", wxDefaultPosition, wxDefaultSize);
-        $cut_button_sizer->Add($self->{btn_cut}, 0, wxALIGN_RIGHT | wxALL, 10);
-    }
-    my $optgroup = Slic3r::GUI::OptionsGroup->new(
-        parent  => $self,
-        title   => 'Cut',
-        options => [
-            {
-                opt_key     => 'z',
-                type        => 'slider',
-                label       => 'Z',
-                default     => $self->{cut_options}{z},
-                min         => 0,
-                max         => $self->{model_object}->bounding_box->size->z,
-            },
-            {
-                opt_key     => 'keep_upper',
-                type        => 'bool',
-                label       => 'Upper part',
-                default     => $self->{cut_options}{keep_upper},
-            },
-            {
-                opt_key     => 'keep_lower',
-                type        => 'bool',
-                label       => 'Lower part',
-                default     => $self->{cut_options}{keep_lower},
-            },
-            {
-                opt_key     => 'rotate_lower',
-                type        => 'bool',
-                label       => '',
-                tooltip     => 'If enabled, the lower part will be rotated by 180° so that the flat cut surface lies on the print bed.',
-                default     => $self->{cut_options}{rotate_lower},
-            },
-        ],
-        lines => [
-            {
-                label       => 'Z',
-                options     => [qw(z)],
-            },
-            {
-                label       => 'Keep',
-                options     => [qw(keep_upper keep_lower)],
-            },
-            {
-                label       => 'Rotate lower part',
-                options     => [qw(rotate_lower)],
-            },
-            {
-                sizer => $cut_button_sizer,
-            },
-        ],
-        on_change => sub {
-            my ($opt_key, $value) = @_;
+    
+    my $optgroup;
+    $optgroup = Slic3r::GUI::OptionsGroup->new(
+        parent      => $self,
+        title       => 'Cut',
+        on_change   => sub {
+            my ($opt_id) = @_;
             
-            $self->{cut_options}{$opt_key} = $value;
-            if ($opt_key eq 'z') {
+            my $value = $optgroup->get_value($opt_id);
+            $self->{cut_options}{$opt_id} = $value;
+            if ($opt_id eq 'z') {
                 if ($self->{canvas}) {
                     $self->{canvas}->SetCuttingPlane($value);
                     $self->{canvas}->Render;
                 }
             }
         },
-        label_width => 120,
+        label_width  => 120,
     );
+    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id      => 'z',
+        type        => 'slider',
+        label       => 'Z',
+        default     => $self->{cut_options}{z},
+        min         => 0,
+        max         => $self->{model_object}->bounding_box->size->z,
+    ));
+    {
+        my $line = Slic3r::GUI::OptionsGroup::Line->new(
+            label => 'Keep',
+        );
+        $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id  => 'keep_upper',
+            type    => 'bool',
+            label   => 'Upper part',
+            default => $self->{cut_options}{keep_upper},
+        ));
+        $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id  => 'keep_lower',
+            type    => 'bool',
+            label   => 'Lower part',
+            default => $self->{cut_options}{keep_lower},
+        ));
+        $optgroup->append_line($line);
+    }
+    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id      => 'rotate_lower',
+        label       => 'Rotate lower part upwards',
+        type        => 'bool',
+        tooltip     => 'If enabled, the lower part will be rotated by 180° so that the flat cut surface lies on the print bed.',
+        default     => $self->{cut_options}{rotate_lower},
+    ));
+    {
+        my $cut_button_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $self->{btn_cut} = Wx::Button->new($self, -1, "Perform cut", wxDefaultPosition, wxDefaultSize);
+        $cut_button_sizer->Add($self->{btn_cut}, 0, wxALIGN_RIGHT | wxALL, 10);
+        $optgroup->append_line(Slic3r::GUI::OptionsGroup::Line->new(
+            sizer => $cut_button_sizer,
+        ));
+    }
     
     # left pane with tree
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
