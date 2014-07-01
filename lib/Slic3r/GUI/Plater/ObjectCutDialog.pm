@@ -25,33 +25,14 @@ sub new {
     };
     
     my $optgroup;
-    $optgroup = Slic3r::GUI::OptionsGroup->new(
+    $optgroup = $self->{optgroup} = Slic3r::GUI::OptionsGroup->new(
         parent      => $self,
         title       => 'Cut',
         on_change   => sub {
             my ($opt_id) = @_;
             
             $self->{cut_options}{$opt_id} = $optgroup->get_value($opt_id);
-            
-            # update canvas
-            if ($self->{canvas}) {
-                $self->{canvas}->SetCuttingPlane($self->{cut_options}{z});
-                $self->{canvas}->Render;
-            }
-            
-            # update controls
-            my $z = $self->{cut_options}{z};
-            $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
-            $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
-            $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
-            
-            # update cut button
-            if (($self->{cut_options}{keep_upper} && $have_upper)
-                || ($self->{cut_options}{keep_lower} && $have_lower)) {
-                $self->{btn_cut}->Enable;
-            } else {
-                $self->{btn_cut}->Disable;
-            }
+            $self->_update;
         },
         label_width  => 120,
     );
@@ -125,7 +106,35 @@ sub new {
     
     EVT_BUTTON($self, $self->{btn_cut}, sub { $self->perform_cut });
     
+    $self->_update;
+    
     return $self;
+}
+
+sub _update {
+    my ($self) = @_;
+    
+    my $optgroup = $self->{optgroup};
+    
+    # update canvas
+    if ($self->{canvas}) {
+        $self->{canvas}->SetCuttingPlane($self->{cut_options}{z});
+        $self->{canvas}->Render;
+    }
+    
+    # update controls
+    my $z = $self->{cut_options}{z};
+    $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
+    $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
+    $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
+    
+    # update cut button
+    if (($self->{cut_options}{keep_upper} && $have_upper)
+        || ($self->{cut_options}{keep_lower} && $have_lower)) {
+        $self->{btn_cut}->Enable;
+    } else {
+        $self->{btn_cut}->Disable;
+    }
 }
 
 sub perform_cut {
