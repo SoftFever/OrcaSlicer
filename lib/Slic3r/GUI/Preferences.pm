@@ -46,7 +46,7 @@ sub new {
         opt_id      => 'autocenter',
         type        => 'bool',
         label       => 'Auto-center parts',
-        tooltip     => 'If this is enabled, Slic3r will auto-center objects around the configured print center.',
+        tooltip     => 'If this is enabled, Slic3r will auto-center objects around the print bed center.',
         default     => $Slic3r::GUI::Settings->{_}{autocenter},
     ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
