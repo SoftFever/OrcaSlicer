@@ -47,7 +47,7 @@ sub PartsChanged {
 
 sub PartSettingsChanged {
     my ($self) = @_;
-    return $self->{parts}->PartSettingsChanged;
+    return $self->{parts}->PartSettingsChanged || $self->{layers}->LayersChanged;
 }
 
 package Slic3r::GUI::Plater::ObjectDialog::BaseTab;
@@ -113,6 +113,8 @@ sub new {
             }
         }
         $grid->AppendRows(1);
+        
+        $self->{layers_changed} = 1;
     });
     
     $self->SetSizer($sizer);
@@ -163,6 +165,11 @@ sub _get_ranges {
         push @ranges, [ $min, $max, $height ];
     }
     return sort { $a->[0] <=> $b->[0] } @ranges;
+}
+
+sub LayersChanged {
+    my ($self) = @_;
+    return $self->{layers_changed};
 }
 
 1;

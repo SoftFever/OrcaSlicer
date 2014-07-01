@@ -343,14 +343,10 @@ T_LAYER_HEIGHT_RANGES
             };
 
         AV *rangeAV = newAV();
-        SV *rangeAV_ref = newRV_noinc((SV*)rangeAV);
-        sv_2mortal(rangeAV_ref);
         av_extend(rangeAV, 2);
         for (int j = 0; j < 3; ++j) {
-            SV *val = sv_newmortal();
-            sv_setnv(val, range_values[j]);
-            av_store(rangeAV, j, val);
+            av_store(rangeAV, j, newSVnv(range_values[j]));
         }
 
-        av_store(av, i++, (SV*)rangeAV_ref);
+        av_store(av, i++, (SV*)newRV_noinc((SV*)rangeAV));
     }
