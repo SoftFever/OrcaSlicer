@@ -847,7 +847,7 @@ sub start_background_process {
     
     # start thread
     @_ = ();
-    $self->{process_thread} = threads->create(sub {
+    $self->{process_thread} = Slic3r::spawn_thread(sub {
         local $SIG{'KILL'} = sub {
             Slic3r::debugf "Background process cancelled; exiting thread...\n";
             Slic3r::thread_cleanup();
@@ -882,7 +882,7 @@ sub stop_background_process {
     
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
-        $self->{process_thread}->kill('KILL')->join;
+        Slic3r::kill_all_threads();
         $self->{process_thread} = undef;
     } else {
         Slic3r::debugf "No background process running.\n";
@@ -891,7 +891,7 @@ sub stop_background_process {
     # if there's an export process, kill that one as well
     if ($self->{export_thread}) {
         Slic3r::debugf "Killing background export process.\n";
-        $self->{export_thread}->kill('KILL')->join;
+        Slic3r::kill_all_threads();
         $self->{export_thread} = undef;
     }
 }
@@ -999,7 +999,7 @@ sub on_process_completed {
         # workaround for "Attempt to free un referenced scalar..."
         our $_thread_self = $self;
         
-        $self->{export_thread} = threads->create(sub {
+        $self->{export_thread} = Slic3r::spawn_thread(sub {
             local $SIG{'KILL'} = sub {
                 Slic3r::debugf "Export process cancelled; exiting thread...\n";
                 Slic3r::thread_cleanup();

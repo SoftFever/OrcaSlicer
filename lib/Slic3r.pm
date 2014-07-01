@@ -85,7 +85,15 @@ use constant EXTERNAL_INFILL_MARGIN => 3;
 use constant INSET_OVERLAP_TOLERANCE => 0.2;
 
 # keep track of threads we created
-my @threads = ();
+my @threads : shared = ();
+
+sub spawn_thread {
+    my ($cb) = @_;
+    
+    my $thread = threads->create($cb);
+    push @threads, $thread->tid;
+    return $thread;
+}
 
 sub parallelize {
     my %params = @_;
@@ -96,8 +104,11 @@ sub parallelize {
         $q->enqueue(@items, (map undef, 1..$params{threads}));
         
         my $thread_cb = sub {
-            # ignore threads created by our parent
-            @threads = ();
+            local $SIG{'KILL'} = sub {
+                Slic3r::debugf "Exiting child thread...\n";
+                Slic3r::thread_cleanup();
+                threads->exit;
+            };
             
             # execute thread callback
             $params{thread_cb}->($q);
@@ -120,9 +131,7 @@ sub parallelize {
         $params{collect_cb} ||= sub {};
             
         @_ = ();
-        my @my_threads = map threads->create($thread_cb), 1..$params{threads};
-        push @threads, map $_->tid, @my_threads;
-        
+        my @my_threads = map spawn_thread($thread_cb), 1..$params{threads};
         foreach my $th (@my_threads) {
             $params{collect_cb}->($th->join);
         }
@@ -176,11 +185,16 @@ sub thread_cleanup {
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};
     *Slic3r::TriangleMesh::DESTROY          = sub {};
-    
-    # detach any running thread created in the current one
-    $_->detach for grep defined($_), map threads->object($_), @threads;
-    
     return undef;  # this prevents a "Scalars leaked" warning
+}
+
+sub kill_all_threads {
+    # detach any running thread created in the current one
+    foreach my $thread (grep defined($_), map threads->object($_), @threads) {
+        $thread->kill('KILL');
+        $thread->detach;
+    }
+    @threads = ();
 }
 
 sub encode_path {
