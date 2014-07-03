@@ -350,6 +350,11 @@ sub regions_count {
     return scalar @{$self->regions};
 }
 
+sub max_layer_height {
+    my ($self) = @_;
+    return max(@{$self->config->nozzle_diameter});
+}
+
 sub bounding_box {
     my $self = shift;
     

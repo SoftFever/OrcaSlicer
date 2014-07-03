@@ -5,8 +5,8 @@ use utf8;
 
 use List::Util qw();
 use Slic3r::Geometry qw();
-use Wx qw(:misc :sizer :slider);
-use Wx::Event qw(EVT_SLIDER);
+use Wx qw(:misc :sizer :slider :statictext);
+use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN);
 use base 'Wx::Panel';
 
 sub new {
@@ -17,19 +17,10 @@ sub new {
     
     # init print
     $self->{print} = $print;
-    $self->{layers} = {};  # print_z => [ layer*, layer* ... ]
-    foreach my $object (@{$print->objects}) {
-        foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
-            $self->{layers}{$layer->print_z} //= [];
-            push @{ $self->{layers}{$layer->print_z} }, $layer;
-        }
-    }
-    $self->{layers_z} = [ sort { $a <=> $b } keys %{$self->{layers}} ];   # [ z, z ... ]
+    $self->reload_print;
     
     # init GUI elements
-    my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $canvas = $self->{canvas} = Slic3r::GUI::Plater::2DToolpaths::Canvas->new($self, $print);
-    $sizer->Add($canvas, 1, wxALL | wxEXPAND, 10);
     my $slider = $self->{slider} = Wx::Slider->new(
         $self, -1,
         0,                              # default
@@ -39,20 +30,60 @@ sub new {
         wxDefaultSize,
         wxVERTICAL | wxSL_INVERSE,
     );
-    $sizer->Add($slider, 0, wxALL | wxEXPAND, 10);
+    my $z_label = $self->{z_label} = Wx::StaticText->new($self, -1, "", wxDefaultPosition,
+        [40,-1], wxALIGN_CENTRE_HORIZONTAL);
+    $z_label->SetFont($Slic3r::GUI::small_font);
+    
+    my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
+    $vsizer->Add($slider, 1, wxALL | wxEXPAND | wxALIGN_CENTER, 3);
+    $vsizer->Add($z_label, 0, wxALL | wxEXPAND | wxALIGN_CENTER, 3);
+    
+    my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
+    $sizer->Add($vsizer, 0, wxTOP | wxBOTTOM | wxEXPAND, 5);
     
     EVT_SLIDER($self, $slider, sub {
-        my $z = $self->{layers_z}[$slider->GetValue];
-        $canvas->set_layers($self->{layers}{$z});
+        $self->set_z($self->{layers_z}[$slider->GetValue]);
+    });
+    EVT_KEY_DOWN($canvas, sub {
+        my ($s, $event) = @_;
+        
+        my $key = $event->GetKeyCode;
+        if ($key == 85 || $key == 315) {
+            $slider->SetValue($slider->GetValue + 1);
+            $self->set_z($self->{layers_z}[$slider->GetValue]);
+        } elsif ($key == 68 || $key == 317) {
+            $slider->SetValue($slider->GetValue - 1);
+            $self->set_z($self->{layers_z}[$slider->GetValue]);
+        }
     });
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
     $sizer->SetSizeHints($self);
     
-    $canvas->set_layers($self->{layers}{ $self->{layers_z}[0] });
+    $self->set_z($self->{layers_z}[0]);
     
     return $self;
+}
+
+sub reload_print {
+    my ($self) = @_;
+    
+    my %z = ();  # z => 1
+    foreach my $object (@{$self->{print}->objects}) {
+        foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
+            $z{$layer->print_z} = 1;
+        }
+    }
+    $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
+}
+
+sub set_z {
+    my ($self, $z) = @_;
+    
+    $self->{z_label}->SetLabel(sprintf '%.2f', $z);
+    $self->{canvas}->set_z($z);
 }
 
 
@@ -62,10 +93,10 @@ use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL
 use OpenGL qw(:glconstants :glfunctions :glufunctions);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
-use List::Util qw(min);
-use Slic3r::Geometry qw(scale unscale);
+use List::Util qw(min first);
+use Slic3r::Geometry qw(scale unscale epsilon);
 
-__PACKAGE__->mk_accessors(qw(print layers init dirty bb));
+__PACKAGE__->mk_accessors(qw(print z layers color init dirty bb));
 
 # make OpenGL::Array thread-safe
 {
@@ -95,10 +126,32 @@ sub new {
     return $self;
 }
 
-sub set_layers {
-    my ($self, $layers) = @_;
+sub set_z {
+    my ($self, $z) = @_;
     
-    $self->layers($layers);
+    my $print = $self->print;
+    
+    # can we have interlaced layers?
+    my $interlaced = (defined first { $_->config->support_material } @{$print->objects})
+        || (defined first { $_->config->infill_every_layers > 1 } @{$print->regions});
+    
+    my $max_layer_height = $print->max_layer_height;
+    
+    my @layers = ();
+    foreach my $object (@{$print->objects}) {
+        foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
+            if ($interlaced) {
+                push @layers, $layer
+                    if $z > ($layer->print_z - $max_layer_height - epsilon)
+                        && $z <= $layer->print_z + epsilon;
+            } else {
+                push @layers, $layer if abs($layer->print_z - $z) < epsilon;
+            }
+        }
+    }
+    
+    $self->z($z);
+    $self->layers([ @layers ]);
     $self->dirty(1);
 }
 
@@ -136,18 +189,19 @@ sub Render {
     
     foreach my $layer (@{$self->layers}) {
         my $object = $layer->object;
+        my $print_z = $layer->print_z;
         foreach my $layerm (@{$layer->regions}) {
-            glColor3f(0.7, 0, 0);
-            $self->_draw_extrusionpath($object, $_) for @{$layerm->perimeters};
+            $self->color([0.7, 0, 0]);
+            $self->_draw($object, $print_z, $_) for @{$layerm->perimeters};
             
-            glColor3f(0, 0, 0.7);
-            $self->_draw_extrusionpath($object, $_) for map @$_, @{$layerm->fills};
+            $self->color([0, 0, 0.7]);
+            $self->_draw($object, $print_z, $_) for map @$_, @{$layerm->fills};
         }
         
         if ($layer->isa('Slic3r::Layer::Support')) {
-            glColor3f(0, 0, 0);
-            $self->_draw_extrusionpath($object, $_) for @{$layer->support_fills};
-            $self->_draw_extrusionpath($object, $_) for @{$layer->support_interface_fills};
+            $self->color([0, 0, 0]);
+            $self->_draw($object, $print_z, $_) for @{$layer->support_fills};
+            $self->_draw($object, $print_z, $_) for @{$layer->support_interface_fills};
         }
     }
     
@@ -155,16 +209,30 @@ sub Render {
     $self->SwapBuffers;
 }
 
-sub _draw_extrusionpath {
-    my ($self, $object, $path) = @_;
+sub _draw {
+    my ($self, $object, $print_z, $path) = @_;
     
-    my $polyline = $path->isa('Slic3r::ExtrusionLoop')
-        ? $path->polygon->split_at_first_point
-        : $path->polyline;
+    my @paths = $path->isa('Slic3r::ExtrusionLoop')
+        ? @$path
+        : ($path);
+    
+    $self->_draw_path($object, $print_z, $_) for @paths;
+}
+
+sub _draw_path {
+    my ($self, $object, $print_z, $path) = @_;
+    
+    return if $print_z - $path->height > $self->z - epsilon;
+    
+    if (abs($print_z - $self->z) < epsilon) {
+        glColor3f(@{$self->color});
+    } else {
+        glColor3f(0.8, 0.8, 0.8);
+    }
     
     glLineWidth(1);
     foreach my $copy (@{ $object->_shifted_copies }) {
-        foreach my $line (@{$polyline->lines}) {
+        foreach my $line (@{$path->polyline->lines}) {
             $line->translate(@$copy);
             glBegin(GL_LINES);
             glVertex2f(@{$line->a});
@@ -180,8 +248,6 @@ sub InitGL {
     return if $self->init;
     return unless $self->GetContext;
     $self->init(1);
-    
-    
 }
 
 sub GetContext {
@@ -211,17 +277,7 @@ sub Resize {
     $self->dirty(0);
  
     $self->SetCurrent($self->GetContext);
-    
-    my ($x1, $y1, $x2, $y2) = (0, 0, $x, $y);
-    if (0 && $x > $y) {
-        $x2 = $y;
-        $x1 = ($x - $y)/2;
-    }
-    if (0 && $y > $x) {
-        $y2 = $x;
-        $y1 = ($y - $x)/2;
-    }
-    glViewport($x1, $y1, $x2, $y2);
+    glViewport(0, 0, $x, $y);
 }
 
 sub line {

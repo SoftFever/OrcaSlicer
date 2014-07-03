@@ -238,7 +238,7 @@ sub make_fill {
                             : EXTR_ROLE_FILL),
                 mm3_per_mm  => $mm3_per_mm,
                 width       => $flow->width,
-                height      => $h,
+                height      => ($is_bridge ? $flow->width : $h),
             ), @polylines,
         );
         push @fills_ordering_points, $polylines[0]->first_point;
