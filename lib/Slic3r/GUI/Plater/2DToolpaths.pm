@@ -19,12 +19,12 @@ sub new {
     $self->{print} = $print;
     $self->{layers} = {};  # print_z => [ layer*, layer* ... ]
     foreach my $object (@{$print->objects}) {
-        foreach my $layer (@{$object->layers}) {
+        foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
             $self->{layers}{$layer->print_z} //= [];
             push @{ $self->{layers}{$layer->print_z} }, $layer;
         }
     }
-    $self->{layers_z} = [ sort keys %{$self->{layers}} ];   # [ z, z ... ]
+    $self->{layers_z} = [ sort { $a <=> $b } keys %{$self->{layers}} ];   # [ z, z ... ]
     
     # init GUI elements
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -142,6 +142,12 @@ sub Render {
             
             glColor3f(0, 0, 0.7);
             $self->_draw_extrusionpath($object, $_) for map @$_, @{$layerm->fills};
+        }
+        
+        if ($layer->isa('Slic3r::Layer::Support')) {
+            glColor3f(0, 0, 0);
+            $self->_draw_extrusionpath($object, $_) for @{$layer->support_fills};
+            $self->_draw_extrusionpath($object, $_) for @{$layer->support_interface_fills};
         }
     }
     
