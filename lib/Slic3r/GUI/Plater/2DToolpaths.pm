@@ -14,17 +14,27 @@ sub new {
     my ($parent, $print) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
-    $self->{print} = $print;
-    my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     
+    # init print
+    $self->{print} = $print;
+    $self->{layers} = {};  # print_z => [ layer*, layer* ... ]
+    foreach my $object (@{$print->objects}) {
+        foreach my $layer (@{$object->layers}) {
+            $self->{layers}{$layer->print_z} //= [];
+            push @{ $self->{layers}{$layer->print_z} }, $layer;
+        }
+    }
+    $self->{layers_z} = [ sort keys %{$self->{layers}} ];   # [ z, z ... ]
+    
+    # init GUI elements
+    my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $canvas = $self->{canvas} = Slic3r::GUI::Plater::2DToolpaths::Canvas->new($self, $print);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 10);
-    
     my $slider = $self->{slider} = Wx::Slider->new(
         $self, -1,
         0,                              # default
         0,                              # min
-        $print->total_layer_count-1,    # max
+        scalar(@{$self->{layers_z}})-1,    # max
         wxDefaultPosition,
         wxDefaultSize,
         wxVERTICAL | wxSL_INVERSE,
@@ -32,14 +42,15 @@ sub new {
     $sizer->Add($slider, 0, wxALL | wxEXPAND, 10);
     
     EVT_SLIDER($self, $slider, sub {
-        $canvas->set_layer($slider->GetValue);
+        my $z = $self->{layers_z}[$slider->GetValue];
+        $canvas->set_layers($self->{layers}{$z});
     });
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
     $sizer->SetSizeHints($self);
     
-    $canvas->set_layer(0);
+    $canvas->set_layers($self->{layers}{ $self->{layers_z}[0] });
     
     return $self;
 }
@@ -54,7 +65,7 @@ use Wx::GLCanvas qw(:all);
 use List::Util qw(min);
 use Slic3r::Geometry qw(scale unscale);
 
-__PACKAGE__->mk_accessors(qw(print layer_id init dirty bb));
+__PACKAGE__->mk_accessors(qw(print layers init dirty bb));
 
 # make OpenGL::Array thread-safe
 {
@@ -84,10 +95,10 @@ sub new {
     return $self;
 }
 
-sub set_layer {
-    my ($self, $layer_id) = @_;
+sub set_layers {
+    my ($self, $layers) = @_;
     
-    $self->layer_id($layer_id);
+    $self->layers($layers);
     $self->dirty(1);
 }
 
@@ -123,8 +134,8 @@ sub Render {
     glClearColor(1, 1, 1, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    foreach my $object (@{$self->print->objects}) {
-        my $layer = $object->get_layer($self->layer_id);
+    foreach my $layer (@{$self->layers}) {
+        my $object = $layer->object;
         foreach my $layerm (@{$layer->regions}) {
             glColor3f(0.7, 0, 0);
             $self->_draw_extrusionpath($object, $_) for @{$layerm->perimeters};
