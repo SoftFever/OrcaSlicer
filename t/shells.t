@@ -1,4 +1,4 @@
-use Test::More tests => 17;
+use Test::More tests => 21;
 use strict;
 use warnings;
 
@@ -165,6 +165,8 @@ use Slic3r::Test;
     $config->set('skirts', 0);
     $config->set('first_layer_height', '100%');
     $config->set('start_gcode', '');
+    $config->set('temperature', [200]);
+    $config->set('first_layer_temperature', [205]);
     
     # TODO: this needs to be tested with a model with sloping edges, where starting
     # points of each layer are not aligned - in that case we would test that no
@@ -175,6 +177,8 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print($model_name, config => $config);
         my $travel_moves_after_first_extrusion = 0;
         my $started_extruding = 0;
+        my $first_layer_temperature_set = 0;
+        my $temperature_set = 0;
         my @z_steps = ();
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
@@ -185,8 +189,14 @@ use Slic3r::Test;
                     if $started_extruding && $info->{dist_Z} > 0;
                 $travel_moves_after_first_extrusion++
                     if $info->{travel} && $started_extruding && !exists $args->{Z};
+            } elsif ($cmd eq 'M104') {
+                $first_layer_temperature_set = 1 if $args->{S} == 205;
+                $temperature_set = 1 if $args->{S} == 200;
             }
         });
+        
+        ok $first_layer_temperature_set, 'first layer temperature is preserved';
+        ok $temperature_set, 'temperature is preserved';
         
         # we allow one travel move after first extrusion: i.e. when moving to the first
         # spiral point after moving to second layer (bottom layer had loop clipping, so
