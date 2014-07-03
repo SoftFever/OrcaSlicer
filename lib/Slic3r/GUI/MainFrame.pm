@@ -190,6 +190,10 @@ sub _init_menubar {
         $self->_append_menu_item($self->{plater_menu}, "Export AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
         });
+        $self->{plater_menu}->AppendSeparator();
+        $self->_append_menu_item($self->{plater_menu}, "Toolpaths preview…", 'Open a viewer with toolpaths preview', sub {
+            $plater->toolpaths_preview;
+        });
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
