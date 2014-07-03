@@ -167,9 +167,9 @@ sub add_model_object {
     # initialize print object and store it at the given position
     my $o;
     if (defined $obj_idx) {
-        $o = $self->set_new_object($obj_idx, $object, $object->bounding_box);
+        $o = $self->set_new_object($obj_idx, $object, $object->raw_bounding_box);
     } else {
-        $o = $self->add_object($object, $object->bounding_box);
+        $o = $self->add_object($object, $object->raw_bounding_box);
     }
 
     $o->set_copies([ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ]);

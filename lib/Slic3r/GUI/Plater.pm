@@ -1286,6 +1286,19 @@ sub object_settings_dialog {
     }
 }
 
+sub toolpaths_preview {
+    my ($self) = @_;
+    
+    # TODO: we should check whether steps are done in $print rather then checking the thread
+    if ($self->{process_thread}) {
+        Slic3r::GUI::show_error($self, "Unable to show preview while toolpaths are being generated.");
+        return;
+    }
+    
+    my $dlg = Slic3r::GUI::Plater::2DToolpaths::Dialog->new($self, $self->{print});
+	$dlg->ShowModal;
+}
+
 sub object_list_changed {
     my $self = shift;
     

@@ -8,7 +8,7 @@ has '_print' => (
     default => sub { Slic3r::Print->new },
     handles => [qw(apply_config extruders expanded_output_filepath
                     total_used_filament total_extruded_volume
-                    placeholder_parser)],
+                    placeholder_parser process)],
 );
 
 has 'duplicate' => (

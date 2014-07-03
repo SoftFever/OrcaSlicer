@@ -824,8 +824,9 @@ sub _update {
     
     my $cooling = $self->{config}->cooling;
     $self->get_field($_)->toggle($cooling)
-        for qw(min_fan_speed max_fan_speed disable_fan_first_layers 
-            fan_below_layer_time slowdown_below_layer_time min_print_speed);
+        for qw(max_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed);
+    $self->get_field($_)->toggle($cooling || $self->{config}->fan_always_on)
+        for qw(min_fan_speed disable_fan_first_layers);
 }
 
 sub _update_description {
