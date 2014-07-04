@@ -393,8 +393,12 @@ sub raw_mesh {
 sub raw_bounding_box {
     my $self = shift;
     
-    my @meshes = map $_->mesh, grep !$_->modifier, @{ $self->volumes };
+    my @meshes = map $_->mesh->clone, grep !$_->modifier, @{ $self->volumes };
     die "No meshes found" if !@meshes;
+    
+    my $instance = $self->instances->[0];
+    $instance->transform_mesh($_, 1) for @meshes;
+    
     my $bb = (shift @meshes)->bounding_box;
     $bb->merge($_->bounding_box) for @meshes;
     return $bb;

@@ -171,7 +171,7 @@ sub add_model_object {
     } else {
         $o = $self->add_object($object, $object->raw_bounding_box);
     }
-
+    
     $o->set_copies([ map Slic3r::Point->new_scale(@{ $_->offset }), @{ $object->instances } ]);
     $o->set_layer_height_ranges($object->layer_height_ranges);
 
