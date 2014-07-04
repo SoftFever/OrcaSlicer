@@ -149,10 +149,13 @@ sub new {
     });
     
     # right pane buttons
-    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_toolpaths_preview} = Wx::Button->new($self, -1, "Toolpaths preview…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_toolpaths_preview}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_toolpaths_preview}->Disable;
     
     if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
@@ -162,6 +165,7 @@ sub new {
             arrange         bricks.png
             export_gcode    cog_go.png
             export_stl      brick_go.png
+            toolpaths_preview joystick.png
             
             increase        add.png
             decrease        delete.png
@@ -183,6 +187,7 @@ sub new {
         Slic3r::thread_cleanup();
     });
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
+    EVT_BUTTON($self, $self->{btn_toolpaths_preview}, \&toolpaths_preview);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
@@ -323,6 +328,7 @@ sub new {
         my $right_buttons_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_buttons_sizer->Add($presets, 0, wxEXPAND, 0) if defined $presets;
         $right_buttons_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxTOP, 8);
+        $right_buttons_sizer->Add($self->{btn_toolpaths_preview}, 0, wxEXPAND | wxTOP, 2);
         $right_buttons_sizer->Add($self->{btn_export_stl}, 0, wxEXPAND | wxTOP, 2);
         
         my $right_top_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -792,8 +798,11 @@ sub split_object {
 
 sub schedule_background_process {
     my ($self) = @_;
-    $self->{apply_config_timer}->Start(PROCESS_DELAY, 1)  # 1 = one shot
-        if defined $self->{apply_config_timer};
+    
+    if (defined $self->{apply_config_timer}) {
+        $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
+        $self->{btn_toolpaths_preview}->Disable;
+    }
 }
 
 sub async_apply_config {
@@ -879,6 +888,7 @@ sub stop_background_process {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
+    $self->{btn_toolpaths_preview}->Disable;
     
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
@@ -991,6 +1001,7 @@ sub on_process_completed {
     $self->{process_thread} = undef;
     
     return if !$result;
+    $self->{btn_toolpaths_preview}->Enable;
     
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {
