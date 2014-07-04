@@ -43,6 +43,7 @@ sub new {
         default     => $self->{cut_options}{z},
         min         => 0,
         max         => $self->{model_object}->bounding_box->size->z,
+        full_width  => 1,
     ));
     {
         my $line = Slic3r::GUI::OptionsGroup::Line->new(
