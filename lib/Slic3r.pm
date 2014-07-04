@@ -190,10 +190,12 @@ sub thread_cleanup {
 
 sub kill_all_threads {
     # detach any running thread created in the current one
+    my @killed = ();
     foreach my $thread (grep defined($_), map threads->object($_), @threads) {
         $thread->kill('KILL');
-        $thread->detach;
+        push @killed, $thread;
     }
+    $_->join for @killed;  # block until threads are killed
     @threads = ();
 }
 
