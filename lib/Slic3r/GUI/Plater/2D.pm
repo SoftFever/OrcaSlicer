@@ -42,6 +42,7 @@ sub new {
     EVT_MOUSE_EVENTS($self, \&mouse_event);
     EVT_SIZE($self, sub {
         $self->update_bed_size;
+        $self->Refresh;
     });
     
     return $self;
