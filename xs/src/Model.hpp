@@ -139,6 +139,7 @@ class ModelVolume
     friend class ModelObject;
     public:
     TriangleMesh mesh;
+    DynamicPrintConfig config;
     bool modifier;
     
     ModelObject* get_object() const { return this->object; };

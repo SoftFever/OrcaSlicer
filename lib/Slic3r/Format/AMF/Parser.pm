@@ -39,9 +39,9 @@ sub start_element {
     } elsif ($data->{LocalName} eq 'material') {
         my $material_id = $self->_get_attribute($data, 'id') // '_';
         $self->{_material} = $self->{_model}->set_material($material_id);
-    } elsif ($data->{LocalName} eq 'metadata' && $self->{_tree}[-1] eq 'material') {
-        $self->{_material_metadata_type} = $self->_get_attribute($data, 'type');
-        $self->{_material}->set_attribute($self->{_material_metadata_type}, "");
+    } elsif ($data->{LocalName} eq 'metadata') {
+        $self->{_metadata_type} = $self->_get_attribute($data, 'type');
+        $self->{_metadata_value} = '';
     } elsif ($data->{LocalName} eq 'constellation') {
         $self->{_constellation} = 1; # we merge all constellations as we don't support more than one
     } elsif ($data->{LocalName} eq 'instance' && $self->{_constellation}) {
@@ -63,10 +63,8 @@ sub characters {
         $self->{_vertex}[ $xyz_index{$self->{_coordinate}} ] .= $data->{Data};
     } elsif ($self->{_triangle} && defined $self->{_vertex_idx}) {
         $self->{_triangle}[ $self->{_vertex_idx} ] .= $data->{Data};
-    } elsif ($self->{_material_metadata_type}) {
-        my $value = $self->{_material}->get_attribute($self->{_material_metadata_type});
-        $value .= $data->{Data};
-        $self->{_material}->set_attribute($self->{_material_metadata_type}, $value);
+    } elsif ($self->{_metadata_type}) {
+        $self->{_metadata_value} .= $data->{Data};
     } elsif ($self->{_instance_property}) {
         $self->{_instance}{ $self->{_instance_property} } .= $data->{Data};
     }
@@ -98,14 +96,29 @@ sub end_element {
         $self->{_vertex_idx} = undef;
     } elsif ($data->{LocalName} eq 'material') {
         $self->{_material} = undef;
-    } elsif ($data->{LocalName} eq 'metadata' && $self->{_material}) {
-        if ($self->{_material_metadata_type} =~ /^slic3r\.(.+)/) {
+    } elsif ($data->{LocalName} eq 'metadata') {
+        my $value = $self->{_metadata_value};
+        if ($self->{_metadata_type} =~ /^slic3r\.(.+)/) {
             my $opt_key = $1;
             if (exists $Slic3r::Config::Options->{$opt_key}) {
-                $self->{_material}->config->set_deserialize($opt_key, $self->{_material}->get_attribute("slic3r.$opt_key"));
+                my $config;
+                if ($self->{_material}) {
+                    $config = $self->{_material}->config;
+                } elsif ($self->{_volume}) {
+                    $config = $self->{_volume}->config;
+                } elsif ($self->{_object}) {
+                    $config = $self->{_object}->config;
+                }
+                
+                $config->set_deserialize($opt_key, $value) if defined $config;
+            } elsif ($opt_key eq 'modifier' && $self->{_volume}) {
+                $self->{_volume}->set_modifier($value);
             }
+        } elsif ($self->{_material}) {
+            $self->{_material}->set_attribute($self->{_metadata_type}, $value);
         }
-        $self->{_material_metadata_type} = undef;
+        $self->{_metadata_type} = undef;
+        $self->{_metadata_value} = undef;
     } elsif ($data->{LocalName} eq 'constellation') {
         $self->{_constellation} = undef;
     } elsif ($data->{LocalName} eq 'instance') {

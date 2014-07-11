@@ -51,6 +51,12 @@ sub write_file {
     for my $object_id (0 .. $#{ $model->objects }) {
         my $object = $model->objects->[$object_id];
         printf $fh qq{  <object id="%d">\n}, $object_id;
+        
+        my $config = $object->config;
+        foreach my $opt_key (@{$config->get_keys}) {
+             printf $fh qq{    <metadata type=\"slic3r.%s\">%s</metadata>\n}, $opt_key, $config->serialize($opt_key);
+        }
+        
         printf $fh qq{    <mesh>\n};
         printf $fh qq{      <vertices>\n};
         my @vertices_offset = ();
@@ -76,6 +82,15 @@ sub write_file {
             my $vertices_offset = shift @vertices_offset;
             printf $fh qq{      <volume%s>\n},
                 (!defined $volume->material_id) ? '' : (sprintf ' materialid="%s"', $volume->material_id);
+            
+            my $config = $volume->config;
+            foreach my $opt_key (@{$config->get_keys}) {
+                 printf $fh qq{        <metadata type=\"slic3r.%s\">%s</metadata>\n}, $opt_key, $config->serialize($opt_key);
+            }
+            if ($volume->modifier) {
+                printf $fh qq{        <metadata type=\"slic3r.modifier\">1</metadata>\n};
+            }
+        
             foreach my $facet (@{$volume->mesh->facets}) {
                 printf $fh qq{        <triangle>\n};
                 printf $fh qq{          <v%d>%d</v%d>\n}, $_, $facet->[$_-1] + $vertices_offset, $_ for 1..3;

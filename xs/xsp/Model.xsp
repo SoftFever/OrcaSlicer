@@ -167,6 +167,8 @@ ModelMaterial::attributes()
         %code%{ THIS->material_id(material_id); %};
     Ref<ModelMaterial> material();
     
+    Ref<DynamicPrintConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
     Ref<TriangleMesh> mesh()
         %code%{ RETVAL = &THIS->mesh; %};
     

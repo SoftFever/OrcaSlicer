@@ -186,8 +186,9 @@ sub add_model_object {
         my $config = Slic3r::Config::PrintRegion->new;
         $config->apply($self->default_region_config);
         
-        # override the defaults with per-object config and then with per-material config
+        # override the defaults with per-object config and then with per-material and per-volume configs
         $config->apply_dynamic($object_config);
+        $config->apply_dynamic($volume->config);
         
         if (defined $volume->material_id) {
             my $material_config = $volume->material->config->clone;
