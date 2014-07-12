@@ -208,6 +208,7 @@ sub slice {
                 for my $layer_id (0..$#$expolygons_by_layer) {
                     my $layerm = $self->get_layer($layer_id)->regions->[$region_id];
                     my $other_layerm = $self->get_layer($layer_id)->regions->[$other_region_id];
+                    next if !defined $other_layerm;
                     
                     my $other_slices = [ map $_->p, @{$other_layerm->slices} ];  # Polygons
                     my $my_parts = intersection_ex(
