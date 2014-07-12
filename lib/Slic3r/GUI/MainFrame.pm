@@ -163,9 +163,6 @@ sub _init_menubar {
         $self->_append_menu_item($fileMenu, "Repair STL file…", 'Automatically repair an STL file', sub {
             $self->repair_stl;
         });
-        $self->_append_menu_item($fileMenu, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file', sub {
-            $self->combine_stls;
-        });
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Preferences…", 'Application preferences', sub {
             Slic3r::GUI::Preferences->new($self)->ShowModal;
@@ -586,63 +583,6 @@ sub config_wizard {
             }
         }
     }
-}
-
-sub combine_stls {
-    my $self = shift;
-    
-    # get input files
-    my @input_files = ();
-    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
-    {
-        my $dlg_message = 'Choose one or more files to combine (STL/OBJ)';
-        while (1) {
-            my $dialog = Wx::FileDialog->new($self, "$dlg_message:", $dir, "", &Slic3r::GUI::MODEL_WILDCARD, 
-                wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-            if ($dialog->ShowModal != wxID_OK) {
-                $dialog->Destroy;
-                last;
-            }
-            push @input_files, $dialog->GetPaths;
-            $dialog->Destroy;
-            $dlg_message .= " or hit Cancel if you have finished";
-            $dir = dirname($input_files[0]);
-        }
-        return if !@input_files;
-    }
-    
-    # get output file
-    my $output_file = $input_files[0];
-    {
-        $output_file =~ s/\.(?:stl|obj)$/.amf.xml/i;
-        my $dlg = Wx::FileDialog->new($self, 'Save multi-material AMF file as:', dirname($output_file),
-            basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{amf}, wxFD_SAVE);
-        if ($dlg->ShowModal != wxID_OK) {
-            $dlg->Destroy;
-            return;
-        }
-        $output_file = $dlg->GetPath;
-    }
-    
-    my @models = eval { map Slic3r::Model->read_from_file($_), @input_files };
-    Slic3r::GUI::show_error($self, $@) if $@;
-    
-    my $new_model = Slic3r::Model->new;
-    my $new_object = $new_model->add_object;
-    for my $m (0 .. $#models) {
-        my $model = $models[$m];
-        
-        my $material_name = basename($input_files[$m]);
-        $material_name =~ s/\.(stl|obj)$//i;
-        
-        $new_model->set_material($m, { Name => $material_name });
-        $new_object->add_volume(
-            material_id => $m,
-            mesh        => $model->objects->[0]->volumes->[0]->mesh,
-        );
-    }
-    
-    Slic3r::Format::AMF->write_file($output_file, $new_model);
 }
 
 =head2 config
