@@ -74,6 +74,7 @@ use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
 our $build = eval "use Slic3r::Build; 1";
+use Thread::Semaphore;
 
 use constant SCALING_FACTOR         => 0.000001;
 use constant RESOLUTION             => 0.0125;
@@ -86,11 +87,25 @@ use constant INSET_OVERLAP_TOLERANCE => 0.2;
 
 # keep track of threads we created
 my @threads : shared = ();
+my $sema = Thread::Semaphore->new;
+my $paused = 0;
 
 sub spawn_thread {
     my ($cb) = @_;
     
-    my $thread = threads->create($cb);
+    @_ = ();
+    my $thread = threads->create(sub {
+        local $SIG{'KILL'} = sub {
+            Slic3r::debugf "Exiting thread...\n";
+            Slic3r::thread_cleanup();
+            threads->exit();
+        };
+        local $SIG{'STOP'} = sub {
+            $sema->down;
+            $sema->up;
+        };
+        $cb->();
+    });
     push @threads, $thread->tid;
     return $thread;
 }
@@ -104,12 +119,6 @@ sub parallelize {
         $q->enqueue(@items, (map undef, 1..$params{threads}));
         
         my $thread_cb = sub {
-            local $SIG{'KILL'} = sub {
-                Slic3r::debugf "Exiting child thread...\n";
-                Slic3r::thread_cleanup();
-                threads->exit;
-            };
-            
             # execute thread callback
             $params{thread_cb}->($q);
             
@@ -188,15 +197,36 @@ sub thread_cleanup {
     return undef;  # this prevents a "Scalars leaked" warning
 }
 
+sub get_running_threads {
+    return grep defined($_), map threads->object($_), @threads;
+}
+
 sub kill_all_threads {
     # detach any running thread created in the current one
     my @killed = ();
-    foreach my $thread (grep defined($_), map threads->object($_), @threads) {
+    foreach my $thread (get_running_threads()) {
         $thread->kill('KILL');
         push @killed, $thread;
     }
+    
+    # unlock semaphore before we block on wait
+    # otherwise we'd get a deadlock if threads were paused
+    resume_threads();
     $_->join for @killed;  # block until threads are killed
     @threads = ();
+}
+
+sub pause_threads {
+    return if $paused;
+    $paused = 1;
+    $sema->down;
+    $_->kill('STOP') for get_running_threads();
+}
+
+sub resume_threads {
+    return unless $paused;
+    $paused = 0;
+    $sema->up;
 }
 
 sub encode_path {

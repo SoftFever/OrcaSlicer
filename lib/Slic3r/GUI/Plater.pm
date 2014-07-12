@@ -7,7 +7,6 @@ use File::Basename qw(basename dirname);
 use List::Util qw(sum first);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use threads::shared qw(shared_clone);
-use Thread::Semaphore;
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
@@ -42,8 +41,6 @@ use constant FILAMENT_CHOOSERS_SPACING => 3;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
 my $PreventListEvents = 0;
-
-my $sema = Thread::Semaphore->new;
 
 sub new {
     my $class = shift;
@@ -810,7 +807,7 @@ sub async_apply_config {
     
     # pause process thread before applying new config
     # since we don't want to touch data that is being used by the threads
-    $self->suspend_background_process;
+    Slic3r::pause_threads();
     
     # apply new config
     my $invalidated = $self->{print}->apply_config($self->GetFrame->config);
@@ -820,9 +817,8 @@ sub async_apply_config {
     if ($invalidated) {
         # kill current thread if any
         $self->stop_background_process;
-        $self->resume_background_process;
     } else {
-        $self->resume_background_process;
+        Slic3r::resume_threads();
     }
     
     # schedule a new process thread in case it wasn't running
@@ -857,16 +853,6 @@ sub start_background_process {
     # start thread
     @_ = ();
     $self->{process_thread} = Slic3r::spawn_thread(sub {
-        local $SIG{'KILL'} = sub {
-            Slic3r::debugf "Background process cancelled; exiting thread...\n";
-            Slic3r::thread_cleanup();
-            threads->exit();
-        };
-        local $SIG{'STOP'} = sub {
-            $sema->down;
-            $sema->up;
-        };
-        
         eval {
             $self->{print}->process;
         };
@@ -904,18 +890,6 @@ sub stop_background_process {
         Slic3r::kill_all_threads();
         $self->{export_thread} = undef;
     }
-}
-
-sub suspend_background_process {
-    my ($self) = @_;
-    
-    $sema->down;
-    $_->kill('STOP') for grep $_, $self->{process_thread}, $self->{export_thread};
-}
-
-sub resume_background_process {
-    my ($self) = @_;
-    $sema->up;
 }
 
 sub export_gcode {
@@ -1011,16 +985,6 @@ sub on_process_completed {
         our $_thread_self = $self;
         
         $self->{export_thread} = Slic3r::spawn_thread(sub {
-            local $SIG{'KILL'} = sub {
-                Slic3r::debugf "Export process cancelled; exiting thread...\n";
-                Slic3r::thread_cleanup();
-                threads->exit();
-            };
-            local $SIG{'STOP'} = sub {
-                $sema->down;
-                $sema->up;
-            };
-        
             eval {
                 $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file});
             };
@@ -1278,7 +1242,7 @@ sub object_settings_dialog {
 		object          => $self->{objects}[$obj_idx],
 		model_object    => $model_object,
 	);
-	$self->suspend_background_process;
+	Slic3r::pause_threads();
 	$dlg->ShowModal;
 	
 	# update thumbnail since parts may have changed
@@ -1289,11 +1253,10 @@ sub object_settings_dialog {
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
 	    $self->stop_background_process;
-        $self->resume_background_process;
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
     } else {
-        $self->resume_background_process;
+        Slic3r::resume_threads();
     }
 }
 
