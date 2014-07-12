@@ -807,7 +807,7 @@ sub async_apply_config {
     
     # pause process thread before applying new config
     # since we don't want to touch data that is being used by the threads
-    Slic3r::pause_threads();
+    $self->pause_background_process;
     
     # apply new config
     my $invalidated = $self->{print}->apply_config($self->GetFrame->config);
@@ -818,7 +818,7 @@ sub async_apply_config {
         # kill current thread if any
         $self->stop_background_process;
     } else {
-        Slic3r::resume_threads();
+        $self->resume_background_process;
     }
     
     # schedule a new process thread in case it wasn't running
@@ -889,6 +889,26 @@ sub stop_background_process {
         Slic3r::debugf "Killing background export process.\n";
         Slic3r::kill_all_threads();
         $self->{export_thread} = undef;
+    }
+}
+
+sub pause_background_process {
+    my ($self) = @_;
+    
+    if ($self->{process_thread} || $self->{export_thread}) {
+        $self->pause_background_process;
+    } elsif (defined $self->{apply_config_timer} && $self->{apply_config_timer}->IsRunning) {
+        $self->{apply_config_timer}->Stop;
+    }
+}
+
+sub resume_background_process {
+    my ($self) = @_;
+    
+    if ($self->{process_thread} || $self->{export_thread}) {
+        $self->resume_background_process;
+    } else {
+        $self->schedule_background_process;
     }
 }
 
@@ -1242,7 +1262,7 @@ sub object_settings_dialog {
 		object          => $self->{objects}[$obj_idx],
 		model_object    => $model_object,
 	);
-	Slic3r::pause_threads();
+	$self->pause_background_process;
 	$dlg->ShowModal;
 	
 	# update thumbnail since parts may have changed
@@ -1256,7 +1276,7 @@ sub object_settings_dialog {
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
     } else {
-        Slic3r::resume_threads();
+        $self->resume_background_process;
     }
 }
 
