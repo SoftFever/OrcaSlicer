@@ -106,11 +106,12 @@ sub reload_tree {
     
     $tree->DeleteChildren($rootId);
     
+    my $itemId;
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
         
         my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
-        my $itemId = $tree->AppendItem($rootId, $volume->name || $volume_id, $icon);
+        $itemId = $tree->AppendItem($rootId, $volume->name || $volume_id, $icon);
         $tree->SetPlData($itemId, {
             type        => 'volume',
             volume_id   => $volume_id,
@@ -118,7 +119,11 @@ sub reload_tree {
     }
     $tree->ExpandAll;
     
-    $self->selection_changed;
+    # select last appended part
+    # This will trigger the selection_changed() event
+    Slic3r::GUI->CallAfter(sub {
+        $self->{tree}->SelectItem($itemId);
+    });
 }
 
 sub get_selection {
