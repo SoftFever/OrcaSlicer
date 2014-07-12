@@ -21,7 +21,7 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
 use constant SELECTED_COLOR => [0,1,0,1];
-use constant COLORS => [ [1,1,1], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
+use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 # make OpenGL::Array thread-safe
 {
@@ -342,7 +342,10 @@ sub Resize {
  
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-$x/2, $x/2, -$y/2, $y/2, 0.5, 2 * max(@{ $self->object_bounding_box->size }));
+    glOrtho(
+        -$x/2, $x/2, -$y/2, $y/2,
+        0.5, 5 * max(@{ $self->object_bounding_box->size }),
+    );
  
     glMatrixMode(GL_MODELVIEW);
     unless ($self->mview_init) {
@@ -358,30 +361,40 @@ sub InitGL {
     return unless $self->GetContext;
     $self->init(1);
     
-    glEnable(GL_NORMALIZE);
-    glEnable(GL_LIGHTING);
-    glDepthFunc(GL_LESS);
+    glClearColor(0, 0, 0, 1);
+    glColor3f(1, 0, 0);
     glEnable(GL_DEPTH_TEST);
+    glClearDepth(1.0);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    # Settings for our light.
-    my @LightPos        = (0, 0, 2, 1.0);
-    my @LightAmbient    = (0.1, 0.1, 0.1, 1.0);
-    my @LightDiffuse    = (0.7, 0.5, 0.5, 1.0);
-    my @LightSpecular   = (0.1, 0.1, 0.1, 0.1);
+    # ambient lighting
+    glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.1, 0.1, 0.1, 1);
+    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    glLightfv_p(GL_LIGHT0, GL_POSITION, 0.5, 0.5, 1, 0);
+    glLightfv_p(GL_LIGHT0, GL_SPECULAR, 0.5, 0.5, 0.5, 1);
+    glLightfv_p(GL_LIGHT0, GL_DIFFUSE,  0.8, 0.8, 0.8, 1);
+    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 0.5, 0);
+    glLightfv_p(GL_LIGHT1, GL_SPECULAR, 0.5, 0.5, 0.5, 1);
+    glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  1, 1, 1, 1);
     
     # Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
     glShadeModel(GL_SMOOTH);
     
-    # Set up a light, turn it on.
-    glLightfv_p(GL_LIGHT1, GL_POSITION, @LightPos);
-    glLightfv_p(GL_LIGHT1, GL_AMBIENT,  @LightAmbient);
-    glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  @LightDiffuse);
-    glLightfv_p(GL_LIGHT1, GL_SPECULAR, @LightSpecular);
-    glEnable(GL_LIGHT1);
-      
+    glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 0.5, 0.3, 0.3, 1);
+    glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR, 1, 1, 1, 1);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50);
+    glMaterialfv_p(GL_FRONT_AND_BACK, GL_EMISSION, 0.1, 0, 0, 0.9);
+    
     # A handy trick -- have surface material mirror the color.
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_MULTISAMPLE);
 }
  
 sub Render {
@@ -392,7 +405,10 @@ sub Render {
     return unless my $context = $self->GetContext;
     $self->SetCurrent($context);
     $self->InitGL;
-
+    
+    glClearColor(1, 1, 1, 1);
+    glClearDepth(1);
+    glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
@@ -408,6 +424,8 @@ sub Render {
     glTranslatef(-$center->x, -$center->y, -$center->z);  #,,
 
     $self->draw_mesh;
+    
+    glDisable(GL_LIGHTING);
     
     my $z0 = 0;
     # draw axes
@@ -433,20 +451,23 @@ sub Render {
         my $ground_z = $z0-0.02;
         glDisable(GL_CULL_FACE);
         glEnable(GL_BLEND);
-	    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBegin(GL_QUADS);
-        glColor4f(1, 1, 1, 0.5);
+        glColor4f(0.5, 0.5, 0.5, 0.3);
+        glNormal3d(0,0,1);
         glVertex3f(-$axis_len, -$axis_len, $ground_z);
         glVertex3f($axis_len, -$axis_len, $ground_z);
         glVertex3f($axis_len, $axis_len, $ground_z);
         glVertex3f(-$axis_len, $axis_len, $ground_z);
         glEnd();
-        glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
         
         # draw grid
+        glLineWidth(3);
+        glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_LINES);
-        glColor3f(1, 1, 1);
+        $ground_z += 0.02;
         for (my $x = -$axis_len; $x <= $axis_len; $x += 10) {
             glVertex3f($x, -$axis_len, $ground_z);
             glVertex3f($x, $axis_len, $ground_z);
@@ -464,7 +485,7 @@ sub Render {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glBegin(GL_QUADS);
-            glColor4f(1, 0.8, 0.8, 0.5);
+            glColor4f(0.8, 0.8, 0.8, 0.5);
             glVertex3f(-$axis_len, -$axis_len, $plane_z);
             glVertex3f($axis_len, -$axis_len, $plane_z);
             glVertex3f($axis_len, $axis_len, $plane_z);
@@ -474,6 +495,8 @@ sub Render {
             glDisable(GL_BLEND);
         }
     }
+    
+    glEnable(GL_LIGHTING);
 
     glPopMatrix();
     glFlush();
