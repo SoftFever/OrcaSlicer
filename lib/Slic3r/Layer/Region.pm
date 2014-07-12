@@ -41,7 +41,7 @@ sub flow {
 }
 
 sub make_perimeters {
-    my $self = shift;
+    my ($self, $slices, $fill_surfaces) = @_;
     
     # other perimeters
     my $perimeter_flow      = $self->flow(FLOW_ROLE_PERIMETER);
@@ -73,7 +73,6 @@ sub make_perimeters {
     my $ext_min_spacing     = $ext_pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
     
     $self->perimeters->clear;
-    $self->fill_surfaces->clear;
     $self->thin_fills->clear;
     
     my @contours    = ();    # array of Polygons with ccw orientation
@@ -82,7 +81,7 @@ sub make_perimeters {
     
     # we need to process each island separately because we might have different
     # extra perimeters for each one
-    foreach my $surface (@{$self->slices}) {
+    foreach my $surface (@$slices) {
         # detect how many perimeters must be generated for this island
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         
@@ -187,7 +186,7 @@ sub make_perimeters {
         # and then we offset back and forth by half the infill spacing to only consider the
         # non-collapsing regions
         my $min_perimeter_infill_spacing = $ispacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
-        $self->fill_surfaces->append(
+        $fill_surfaces->append(
             map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
             @{offset2_ex(
                 [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
