@@ -136,6 +136,10 @@ ModelMaterial::attributes()
     int instances_count()
         %code%{ RETVAL = THIS->instances.size(); %};
 
+    std::string name()
+        %code%{ RETVAL = THIS->name; %};
+    void set_name(std::string value)
+        %code%{ THIS->name = value; %};
     std::string input_file()
         %code%{ RETVAL = THIS->input_file; %};
     void set_input_file(std::string value)
@@ -162,6 +166,10 @@ ModelMaterial::attributes()
     Ref<ModelObject> object()
         %code%{ RETVAL = THIS->get_object(); %};
     
+    std::string name()
+        %code%{ RETVAL = THIS->name; %};
+    void set_name(std::string value)
+        %code%{ THIS->name = value; %};
     t_model_material_id material_id();
     void set_material_id(t_model_material_id material_id)
         %code%{ THIS->material_id(material_id); %};

@@ -97,7 +97,7 @@ sub apply_config {
                     $model_object_config->normalize;
                     $new->apply_dynamic($model_object_config);
                 }
-                if (defined $volume->material_id) {
+                if ($volume->material_id ne '') {
                     my $material_config = $object->model_object->model->get_material($volume->material_id)->config->clone;
                     $material_config->normalize;
                     $new->apply_dynamic($material_config);
@@ -190,7 +190,7 @@ sub add_model_object {
         $config->apply_dynamic($object_config);
         $config->apply_dynamic($volume->config);
         
-        if (defined $volume->material_id) {
+        if ($volume->material_id ne '') {
             my $material_config = $volume->material->config->clone;
             $material_config->normalize;
             $config->apply_dynamic($material_config);
@@ -1045,7 +1045,7 @@ sub auto_assign_extruders {
     my $extruders = scalar @{ $self->config->nozzle_diameter };
     foreach my $i (0..$#{$model_object->volumes}) {
         my $volume = $model_object->volumes->[$i];
-        if (defined $volume->material_id) {
+        if ($volume->material_id ne '') {
             my $material = $model_object->model->get_material($volume->material_id);
             my $config = $material->config;
             my $extruder_id = $i + 1;

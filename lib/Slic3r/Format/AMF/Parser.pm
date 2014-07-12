@@ -114,6 +114,10 @@ sub end_element {
             } elsif ($opt_key eq 'modifier' && $self->{_volume}) {
                 $self->{_volume}->set_modifier($value);
             }
+        } elsif ($self->{_metadata_type} eq 'name' && $self->{_volume}) {
+            $self->{_volume}->set_name($value);
+        } elsif ($self->{_metadata_type} eq 'name' && $self->{_object}) {
+            $self->{_object}->set_name($value);
         } elsif ($self->{_material}) {
             $self->{_material}->set_attribute($self->{_metadata_type}, $value);
         }

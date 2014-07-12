@@ -186,6 +186,7 @@ ModelObject::ModelObject(Model *model)
 
 ModelObject::ModelObject(Model *model, const ModelObject &other)
 :   model(model),
+    name(other.name),
     input_file(other.input_file),
     instances(),
     volumes(),
@@ -321,7 +322,8 @@ ModelVolume::ModelVolume(ModelObject* object, const TriangleMesh &mesh)
 {}
 
 ModelVolume::ModelVolume(ModelObject* object, const ModelVolume &other)
-:   object(object), mesh(other.mesh), config(other.config), modifier(other.modifier)
+:   object(object), name(other.name), mesh(other.mesh), config(other.config),
+    modifier(other.modifier)
 {
     this->material_id(other.material_id());
 }

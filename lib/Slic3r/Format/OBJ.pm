@@ -25,11 +25,9 @@ sub read_file {
     
     my $model = Slic3r::Model->new;
     
-    my $material_id = basename($file);
-    $model->set_material($material_id);
-    
-    my $object = $model->add_object;
-    my $volume = $object->add_volume(mesh => $mesh, material_id => $material_id);
+    my $basename = basename($file);
+    my $object = $model->add_object(input_file => $file, name => $basename);
+    my $volume = $object->add_volume(mesh => $mesh, name => $basename);
     return $model;
 }
 

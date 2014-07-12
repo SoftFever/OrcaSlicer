@@ -40,6 +40,8 @@ sub add_object {
         
         my $new_object = $self->_add_object;
         
+        $new_object->set_name($args{name})
+            if defined $args{name};
         $new_object->set_input_file($args{input_file})
             if defined $args{input_file};
         $new_object->config->apply($args{config})
@@ -271,7 +273,9 @@ sub split_meshes {
             );
             $new_object->add_volume(
                 mesh        => $mesh,
+                name        => $volume->name,
                 material_id => $volume->material_id,
+                config      => $volume->config,
             );
             
             # add one instance per original instance
@@ -325,8 +329,7 @@ sub add_volume {
         
         $new_volume = $self->_add_volume_clone($volume);
         
-        # TODO: material_id can't be undef.
-        if (defined $volume->material_id) {
+        if ($volume->material_id ne '') {
             #  merge material attributes and config (should we rename materials in case of duplicates?)
             if (my $material = $volume->object->model->get_material($volume->material_id)) {
                 my %attributes = %{ $material->attributes };
@@ -342,13 +345,17 @@ sub add_volume {
         
         $new_volume = $self->_add_volume($args{mesh});
         
+        $new_volume->set_name($args{name})
+            if defined $args{name};
         $new_volume->set_material_id($args{material_id})
             if defined $args{material_id};
         $new_volume->set_modifier($args{modifier})
             if defined $args{modifier};
+        $new_volume->config->apply($args{config})
+            if defined $args{config};
     }
     
-    if (defined $new_volume->material_id && !defined $self->model->get_material($new_volume->material_id)) {
+    if ($new_volume->material_id ne '' && !defined $self->model->get_material($new_volume->material_id)) {
         # TODO: this should be a trigger on Volume::material_id
         $self->model->set_material($new_volume->material_id);
     }
@@ -607,16 +614,20 @@ sub cut {
             
             if ($upper_mesh->facets_count > 0) {
                 $upper->add_volume(
+                    name        => $volume->name,
                     material_id => $volume->material_id,
                     mesh        => $upper_mesh,
                     modifier    => $volume->modifier,
+                    config      => $volume->config,
                 );
             }
             if ($lower_mesh->facets_count > 0) {
                 $lower->add_volume(
+                    name        => $volume->name,
                     material_id => $volume->material_id,
                     mesh        => $lower_mesh,
                     modifier    => $volume->modifier,
+                    config      => $volume->config,
                 );
             }
         }

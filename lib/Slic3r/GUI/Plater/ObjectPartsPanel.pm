@@ -109,13 +109,8 @@ sub reload_tree {
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
         
-        my $material_id = $volume->material_id // '_';
-        my $material_name = $material_id eq '_'
-            ? sprintf("Part #%d", $volume_id+1)
-            : $object->model->get_material_name($material_id);
-        
         my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
-        my $itemId = $tree->AppendItem($rootId, $material_name, $icon);
+        my $itemId = $tree->AppendItem($rootId, $volume->name || $volume_id, $icon);
         $tree->SetPlData($itemId, {
             type        => 'volume',
             volume_id   => $volume_id,
@@ -158,7 +153,7 @@ sub selection_changed {
             }
             $self->{btn_delete}->Enable;
             
-            # attach volume material config to settings panel
+            # attach volume config to settings panel
             my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
             $config = $volume->config;
             $self->{staticbox}->SetLabel('Part Settings');
@@ -208,6 +203,7 @@ sub on_btn_load {
             foreach my $volume (@{$object->volumes}) {
                 my $new_volume = $self->{model_object}->add_volume($volume);
                 $new_volume->set_modifier($is_modifier);
+                $new_volume->set_name(basename($input_file));
                 
                 # apply the same translation we applied to the object
                 $new_volume->mesh->translate(@{$self->{model_object}->origin_translation}, 0);

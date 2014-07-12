@@ -87,6 +87,7 @@ class ModelObject
 {
     friend class Model;
     public:
+    std::string name;
     std::string input_file;
     ModelInstancePtrs instances;
     ModelVolumePtrs volumes;
@@ -138,6 +139,7 @@ class ModelVolume
 {
     friend class ModelObject;
     public:
+    std::string name;
     TriangleMesh mesh;
     DynamicPrintConfig config;
     bool modifier;
