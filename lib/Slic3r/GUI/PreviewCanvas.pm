@@ -8,7 +8,8 @@ use OpenGL qw(:glconstants :glfunctions :glufunctions);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
 use List::Util qw(reduce min max first);
-use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan);
+use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale);
+use Slic3r::Geometry::Clipper qw(offset_ex);
 use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
@@ -16,6 +17,7 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               volumes initpos
                               sphi stheta
                               cutting_plane_z
+                              cut_lines_vertices
                               ) );
 
 use constant TRACKBALLSIZE => 0.8;
@@ -107,6 +109,7 @@ sub load_object {
         my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
         push @$color, $volume->modifier ? 0.5 : 1;
         push @{$self->volumes}, my $v = {
+            mesh  => $mesh,
             color => $color,
         };
         
@@ -125,7 +128,25 @@ sub load_object {
 
 sub SetCuttingPlane {
     my ($self, $z) = @_;
+    
     $self->cutting_plane_z($z);
+    
+    # perform cut and cache section lines
+    my @verts = ();
+    foreach my $volume (@{$self->volumes}) {
+        foreach my $volume (@{$self->volumes}) {
+            my $expolygons = $volume->{mesh}->slice([ $z ])->[0];
+            $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
+            
+            foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
+                push @verts, (
+                    unscale($line->a->x), unscale($line->a->y), $z,  #))
+                    unscale($line->b->x), unscale($line->b->y), $z,  #))
+                );
+            }
+        }
+    }
+    $self->cut_lines_vertices(OpenGL::Array->new_list(GL_FLOAT, @verts));
 }
 
 # Given an axis and angle, compute quaternion.
@@ -525,8 +546,16 @@ sub draw_mesh {
         }
         glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
     }
-    
     glDisableClientState(GL_NORMAL_ARRAY);
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    
+    if (defined $self->cutting_plane_z) {
+        glLineWidth(2);
+        glColor3f(0, 0, 0);
+        glVertexPointer_p(3, $self->cut_lines_vertices);
+        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
+    }
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 

@@ -19,6 +19,7 @@ my %opt = ();
 {
     my %options = (
         'help'                  => sub { usage() },
+        'cut=f'                 => \$opt{cut},
     );
     GetOptions(%options) or usage(1);
     $ARGV[0] or usage(1);
@@ -32,6 +33,7 @@ my %opt = ();
     
     $Slic3r::ViewMesh::object = $model->objects->[0];
     my $app = Slic3r::ViewMesh->new;
+    $app->{canvas}->SetCuttingPlane($opt{cut}) if defined $opt{cut};
     $app->MainLoop;
 }
 
@@ -43,6 +45,7 @@ sub usage {
 Usage: view-mesh.pl [ OPTIONS ] file.stl
 
     --help              Output this usage screen and exit
+    --cut Z             Display the cutting plane at the given Z
     
 EOF
     exit ($exit_code || 0);
@@ -61,7 +64,7 @@ sub OnInit {
     my $panel = Wx::Panel->new($frame, -1);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($panel, $object), 1, wxEXPAND, 0);
+    $sizer->Add($self->{canvas} = Slic3r::GUI::PreviewCanvas->new($panel, $object), 1, wxEXPAND, 0);
     $panel->SetSizer($sizer);
     $sizer->SetSizeHints($panel);
     
