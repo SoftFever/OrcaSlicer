@@ -94,8 +94,8 @@ sub repaint {
         $dc->DrawLine(0, $center->[Y], $size[X], $center->[Y]);
         $dc->SetTextForeground(Wx::Colour->new(0,0,0));
         $dc->SetFont(Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel("X = " . $self->{print_center}->[X], Wx::Rect->new(0, 0, $center->[X]*2, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
-        $dc->DrawRotatedText("Y = " . $self->{print_center}->[Y], 0, $center->[Y]+15, 90);
+        $dc->DrawLabel("X = " . sprintf('%.0f', $self->{print_center}->[X]), Wx::Rect->new(0, 0, $center->[X]*2, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
+        $dc->DrawRotatedText("Y = " . sprintf('%.0f', $self->{print_center}->[Y]), 0, $center->[Y]+15, 90);
     }
     
     # draw frame
