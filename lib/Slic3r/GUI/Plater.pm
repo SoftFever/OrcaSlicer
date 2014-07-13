@@ -8,7 +8,7 @@ use List::Util qw(sum first);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
-    :panel :sizer :toolbar :window wxTheApp);
+    :panel :sizer :toolbar :window wxTheApp :notebook);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_TIMER);
@@ -65,7 +65,12 @@ sub new {
         }
     });
     
-    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self, [335,335], $self->{objects}, $self->{model}, $self->{config});
+    # Initialize preview notebook
+    $self->{preview_notebook} = Wx::Notebook->new($self, -1, wxDefaultPosition, [335,335], wxNB_BOTTOM);
+    
+    # Initialize 2D preview canvas
+    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
+    $self->{preview_notebook}->AddPage($self->{canvas}, '2D');
     $self->{canvas}->on_select_object(sub {
         my ($obj_idx) = @_;
         $self->select_object($obj_idx);
@@ -87,6 +92,12 @@ sub new {
         $self->update;
     });
     
+    # Initialize 3D preview canvas
+    if ($Slic3r::GUI::have_OpenGL) {
+        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
+        $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
+    }
+    
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
@@ -103,8 +114,8 @@ sub new {
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_VIEW, "Cut…", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_VIEW, "View/Cut…", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (
@@ -337,7 +348,7 @@ sub new {
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $hsizer->Add($self->{canvas}, 1, wxEXPAND | wxTOP, 1);
+        $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
         $hsizer->Add($right_sizer, 0, wxEXPAND | wxBOTTOM, 0);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -558,7 +569,7 @@ sub increase {
     if ($Slic3r::GUI::Settings->{_}{autocenter}) {
         $self->arrange;
     } else {
-        $self->{canvas}->Refresh;
+        $self->update;
     }
 }
 
@@ -580,7 +591,6 @@ sub decrease {
         $self->{list}->Select($obj_idx, 1);
     }
     $self->update;
-    $self->{canvas}->Refresh;
 }
 
 sub rotate {
@@ -1151,6 +1161,7 @@ sub update {
     }
     
     $self->{canvas}->Refresh;
+    $self->{canvas3D}->update if $self->{canvas3D};
 }
 
 sub on_extruders_change {
@@ -1466,7 +1477,7 @@ sub object_menu {
     $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
         $self->split_object;
     });
-    $frame->_append_menu_item($menu, "View/Cut…", 'Open the 3D cutting tool', sub {
+    $frame->_append_menu_item($menu, "Cut…", 'Open the 3D cutting tool', sub {
         $self->object_cut_dialog;
     });
     $menu->AppendSeparator();

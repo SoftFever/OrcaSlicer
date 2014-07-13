@@ -446,6 +446,8 @@ sub bounding_box {
 sub instance_bounding_box {
     my ($self, $instance_idx) = @_;
     
+    $instance_idx //= 0;
+    
     my $mesh = $self->raw_mesh;
     $self->instances->[$instance_idx]->transform_mesh($mesh);
     return $mesh->bounding_box;

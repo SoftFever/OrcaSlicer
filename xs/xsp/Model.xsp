@@ -18,6 +18,8 @@
         %code%{ RETVAL = THIS->add_object(*other); %};
     void delete_object(size_t idx);
     void clear_objects();
+    size_t objects_count()
+        %code%{ RETVAL = THIS->objects.size(); %};
 
     Ref<ModelMaterial> get_material(t_model_material_id material_id)
         %code%{

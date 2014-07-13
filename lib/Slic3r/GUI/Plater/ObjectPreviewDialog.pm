@@ -13,8 +13,11 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, $params{object}->name, wxDefaultPosition, [500,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->{model_object} = $params{model_object};
     
+    my $canvas = Slic3r::GUI::PreviewCanvas->new($self);
+    $canvas->load_object($self->{model_object});
+    
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::PreviewCanvas->new($self, $self->{model_object}), 1, wxEXPAND, 0);
+    $sizer->Add($canvas, 1, wxEXPAND, 0);
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
     

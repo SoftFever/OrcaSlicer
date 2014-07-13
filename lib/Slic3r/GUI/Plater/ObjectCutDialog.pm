@@ -86,7 +86,8 @@ sub new {
     # right pane with preview canvas
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
-        $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self, $self->{model_object});
+        $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self);
+        $canvas->load_object($self->{model_object});
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
     }

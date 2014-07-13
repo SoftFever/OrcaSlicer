@@ -13,6 +13,7 @@ use Slic3r::GUI::Notifier;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::2D;
 use Slic3r::GUI::Plater::2DToolpaths;
+use Slic3r::GUI::Plater::3D;
 use Slic3r::GUI::Plater::ObjectPartsPanel;
 use Slic3r::GUI::Plater::ObjectCutDialog;
 use Slic3r::GUI::Plater::ObjectPreviewDialog;

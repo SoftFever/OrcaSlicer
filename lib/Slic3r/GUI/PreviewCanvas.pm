@@ -32,23 +32,25 @@ use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 }
 
 sub new {
-    my ($class, $parent, $object) = @_;
+    my ($class, $parent) = @_;
     my $self = $class->SUPER::new($parent);
    
     $self->quat((0, 0, 0, 1));
     $self->sphi(45);
     $self->stheta(-45);
-
-    $self->load_object($object);
+    
+    $self->reset_objects;
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
+        return if !@{$self->volumes};
         $self->Render($dc);
     });
     EVT_SIZE($self, sub { $self->dirty(1) });
     EVT_IDLE($self, sub {
         return unless $self->dirty;
         return if !$self->IsShownOnScreen;
+        return if !@{$self->volumes};
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
     });
@@ -79,51 +81,69 @@ sub new {
     return $self;
 }
 
-sub load_object {
-    my ($self, $object) = @_;
+sub reset_objects {
+    my ($self) = @_;
     
-    my $bb = $object->instance_bounding_box;
+    $self->volumes([]);
+    $self->dirty(1);
+}
+
+# this method accepts a Slic3r::BoudingBox3f object
+sub set_bounding_box {
+    my ($self, $bb) = @_;
+    
     my $center = $bb->center;
     $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
     $bb->translate(@{ $self->object_shift });
     $self->object_bounding_box($bb);
+    $self->dirty(1);
+}
+
+sub load_object {
+    my ($self, $object, $all_instances) = @_;
+    
+    $self->set_bounding_box($object->instance_bounding_box)
+        if !$all_instances;
     
     # group mesh(es) by material
     my @materials = ();
-    $self->volumes([]);
     
     # sort volumes: non-modifiers first
     my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
     foreach my $volume (@volumes) {
-        my $mesh = $volume->mesh->clone;
-        $object->instances->[0]->transform_mesh($mesh);
-        $mesh->translate(@{ $self->object_shift });  
+        my @instances = $all_instances ? @{$object->instances} : $object->instances->[0];
+        foreach my $instance (@instances) {
+            my $mesh = $volume->mesh->clone;
+            $instance->transform_mesh($mesh);
+            $mesh->translate(@{ $self->object_shift });  
         
-        my $material_id = $volume->material_id // '_';
-        my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
-        if (!defined $color_idx) {
-            push @materials, $material_id;
-            $color_idx = $#materials;
-        }
+            my $material_id = $volume->material_id // '_';
+            my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
+            if (!defined $color_idx) {
+                push @materials, $material_id;
+                $color_idx = $#materials;
+            }
         
-        my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
-        push @$color, $volume->modifier ? 0.5 : 1;
-        push @{$self->volumes}, my $v = {
-            mesh  => $mesh,
-            color => $color,
-        };
+            my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
+            push @$color, $volume->modifier ? 0.5 : 1;
+            push @{$self->volumes}, my $v = {
+                mesh  => $mesh,
+                color => $color,
+            };
         
-        {
-            my $vertices = $mesh->vertices;
-            my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
-            $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
-        }
+            {
+                my $vertices = $mesh->vertices;
+                my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
+                $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
+            }
         
-        {
-            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
-            $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
+            {
+                my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
+                $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
+            }
         }
     }
+    $self->dirty(1);
 }
 
 sub SetCuttingPlane {

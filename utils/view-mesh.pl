@@ -31,8 +31,8 @@ my %opt = ();
     # make sure all objects have at least one defined instance
     $model->add_default_instances;
     
-    $Slic3r::ViewMesh::object = $model->objects->[0];
     my $app = Slic3r::ViewMesh->new;
+    $app->{canvas}->load_object($model->objects->[0]);
     $app->{canvas}->SetCuttingPlane($opt{cut}) if defined $opt{cut};
     $app->MainLoop;
 }
@@ -55,16 +55,16 @@ package Slic3r::ViewMesh;
 use Wx qw(:sizer);
 use base qw(Wx::App);
 
-our $object;
-
 sub OnInit {
     my $self = shift;
     
     my $frame = Wx::Frame->new(undef, -1, 'Mesh Viewer', [-1, -1], [500, 400]);
     my $panel = Wx::Panel->new($frame, -1);
     
+    $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($panel);
+    
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($self->{canvas} = Slic3r::GUI::PreviewCanvas->new($panel, $object), 1, wxEXPAND, 0);
+    $sizer->Add($self->{canvas}, 1, wxEXPAND, 0);
     $panel->SetSizer($sizer);
     $sizer->SetSizeHints($panel);
     
