@@ -143,7 +143,6 @@ sub load_object {
             }
         }
     }
-    $self->dirty(1);
 }
 
 sub SetCuttingPlane {

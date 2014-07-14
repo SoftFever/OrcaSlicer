@@ -531,7 +531,6 @@ sub remove {
     
     $self->select_object(undef);
     $self->update;
-    $self->{canvas}->Refresh;
     
     $self->schedule_background_process;
 }
@@ -548,7 +547,7 @@ sub reset {
     $self->object_list_changed;
     
     $self->select_object(undef);
-    $self->{canvas}->Refresh;
+    $self->update;
 }
 
 sub increase {
