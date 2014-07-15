@@ -66,7 +66,8 @@ REGISTER_CLASS(PrintRegion, "Print::Region");
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox)
 :   _print(print),
-    _model_object(model_object)
+    _model_object(model_object),
+    typed_slices(false)
 {
     region_volumes.resize(this->_print->regions.size());
 

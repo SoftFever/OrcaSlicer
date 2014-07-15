@@ -70,6 +70,10 @@ class PrintObject
     Points copies;      // Slic3r::Point objects in scaled G-code coordinates
     PrintObjectConfig config;
     t_layer_height_ranges layer_height_ranges;
+    
+    // this is set to true when LayerRegion->slices is split in top/internal/bottom
+    // so that next call to make_perimeters() performs a union() before computing loops
+    bool typed_slices;
 
     Point3 size;           // XYZ in scaled coordinates
 

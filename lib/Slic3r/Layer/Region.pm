@@ -40,6 +40,17 @@ sub flow {
     );
 }
 
+sub merge_slices {
+    my ($self) = @_;
+    
+    my $expolygons = union_ex([ map $_->p, @{$self->slices} ]);
+    $self->slices->clear;
+    $self->slices->append(Slic3r::Surface->new(
+        expolygon    => $_,
+        surface_type => S_TYPE_INTERNAL,
+    )) for @$expolygons;
+}
+
 sub make_perimeters {
     my ($self, $slices, $fill_surfaces) = @_;
     

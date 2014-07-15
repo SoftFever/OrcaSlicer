@@ -61,7 +61,12 @@ _constant()
         %code%{ RETVAL = &THIS->size; %};
     Ref<Point> _copies_shift()
         %code%{ RETVAL = &THIS->_copies_shift; %};
-
+    
+    bool typed_slices()
+        %code%{ RETVAL = THIS->typed_slices; %};
+    void set_typed_slices(bool value)
+        %code%{ THIS->typed_slices = value; %};
+    
     Points _shifted_copies()
         %code%{ RETVAL = THIS->_shifted_copies; %};
     void set_shifted_copies(Points value)

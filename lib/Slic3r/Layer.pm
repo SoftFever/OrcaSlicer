@@ -57,6 +57,11 @@ sub make_slices {
     $self->slices->append(@$slices);
 }
 
+sub merge_slices {
+    my ($self) = @_;
+    $_->merge_slices for @{$self->regions};
+}
+
 sub make_perimeters {
     my $self = shift;
     Slic3r::debugf "Making perimeters for layer %d\n", $self->id;

@@ -366,6 +366,7 @@ sub slice {
     die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
         if !@{$self->layers};
     
+    $self->set_typed_slices(0);
     $self->set_step_done(STEP_SLICE);
 }
 
@@ -411,6 +412,13 @@ sub make_perimeters {
     return if $self->step_done(STEP_PERIMETERS);
     $self->set_step_started(STEP_PERIMETERS);
     $self->print->status_cb->(20, "Generating perimeters");
+    
+    # merge slices if they were split into types
+    if ($self->typed_slices) {
+        $_->merge_slices for @{$self->layers};
+        $self->set_typed_slices(0);
+        $self->invalidate_step(STEP_PREPARE_INFILL);
+    }
     
     # compare each layer to the one below, and mark those slices needing
     # one additional inner perimeter, like the top of domed objects-
@@ -509,7 +517,8 @@ sub prepare_infill {
     # and transform $layerm->fill_surfaces from expolygon 
     # to typed top/bottom/internal surfaces;
     $self->detect_surfaces_type;
-
+    $self->set_typed_slices(1);
+    
     # decide what surfaces are to be filled
     $_->prepare_fill_surfaces for map @{$_->regions}, @{$self->layers};
 
