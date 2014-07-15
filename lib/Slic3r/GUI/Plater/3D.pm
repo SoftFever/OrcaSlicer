@@ -36,6 +36,7 @@ sub update {
     return if $self->{model}->objects_count == 0;
     
     $self->set_bounding_box($self->{model}->bounding_box);
+    $self->set_bed_shape($self->{config}->bed_shape);
     
     foreach my $model_object (@{$self->{model}->objects}) {
         $self->load_object($model_object, 1);

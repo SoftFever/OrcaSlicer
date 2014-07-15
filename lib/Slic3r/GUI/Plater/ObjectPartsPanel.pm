@@ -70,6 +70,8 @@ sub new {
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self);
         $canvas->load_object($self->{model_object});
+        $canvas->set_bounding_box($self->{model_object}->bounding_box);
+        $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
     }
     

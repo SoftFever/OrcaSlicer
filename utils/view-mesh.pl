@@ -33,6 +33,8 @@ my %opt = ();
     
     my $app = Slic3r::ViewMesh->new;
     $app->{canvas}->load_object($model->objects->[0]);
+    $app->{canvas}->set_bounding_box($model->objects->[0]->bounding_box);
+    $app->{canvas}->set_auto_bed_shape;
     $app->{canvas}->SetCuttingPlane($opt{cut}) if defined $opt{cut};
     $app->MainLoop;
 }

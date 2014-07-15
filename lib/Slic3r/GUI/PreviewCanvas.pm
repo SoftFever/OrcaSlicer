@@ -9,19 +9,23 @@ use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
 use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale);
-use Slic3r::Geometry::Clipper qw(offset_ex);
+use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
-                              object_bounding_box object_shift
+                              object_bounding_box
                               volumes initpos
                               sphi stheta
                               cutting_plane_z
                               cut_lines_vertices
+                              bed_triangles
+                              bed_grid_lines
+                              origin
                               ) );
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
+use constant GROUND_Z       => 0.02;
 use constant SELECTED_COLOR => [0,1,0,1];
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
@@ -43,14 +47,14 @@ sub new {
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
-        return if !@{$self->volumes};
+        return if !$self->object_bounding_box;
         $self->Render($dc);
     });
     EVT_SIZE($self, sub { $self->dirty(1) });
     EVT_IDLE($self, sub {
         return unless $self->dirty;
         return if !$self->IsShownOnScreen;
-        return if !@{$self->volumes};
+        return if !$self->object_bounding_box;
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
     });
@@ -92,18 +96,61 @@ sub reset_objects {
 sub set_bounding_box {
     my ($self, $bb) = @_;
     
-    my $center = $bb->center;
-    $self->object_shift(Slic3r::Pointf3->new(-$center->x, -$center->y, -$bb->z_min));  #,,
-    $bb->translate(@{ $self->object_shift });
     $self->object_bounding_box($bb);
     $self->dirty(1);
 }
 
+sub set_auto_bed_shape {
+    my ($self, $bed_shape) = @_;
+    
+    # draw a default square bed around object center
+    my $max_size = max(@{ $self->object_bounding_box->size });
+    my $center = $self->object_bounding_box->center;
+    $self->set_bed_shape([
+        [ $center->x - $max_size, $center->y - $max_size ],  #--
+        [ $center->x + $max_size, $center->y - $max_size ],  #--
+        [ $center->x + $max_size, $center->y + $max_size ],  #++
+        [ $center->x - $max_size, $center->y + $max_size ],  #++
+    ]);
+    $self->origin(Slic3r::Pointf->new(@$center[X,Y]));
+}
+
+sub set_bed_shape {
+    my ($self, $bed_shape) = @_;
+    
+    # triangulate bed
+    my $expolygon = Slic3r::ExPolygon->new([ map [map scale($_), @$_], @$bed_shape ]);
+    my $bed_bb = $expolygon->bounding_box;
+    
+    {
+        my @points = ();
+        foreach my $triangle (@{ $expolygon->triangulate }) {
+            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$triangle;  #))
+        }
+        $self->bed_triangles(OpenGL::Array->new_list(GL_FLOAT, @points));
+    }
+    
+    {
+        my @lines = ();
+        for (my $x = $bed_bb->x_min; $x <= $bed_bb->x_max; $x += scale 10) {
+            push @lines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
+        }
+        for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
+            push @lines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
+        }
+        @lines = @{intersection_pl(\@lines, [ @$expolygon ])};
+        my @points = ();
+        foreach my $polyline (@lines) {
+            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$polyline;  #))
+        }
+        $self->bed_grid_lines(OpenGL::Array->new_list(GL_FLOAT, @points));
+    }
+    
+    $self->origin(Slic3r::Pointf->new(0,0));
+}
+
 sub load_object {
     my ($self, $object, $all_instances) = @_;
-    
-    $self->set_bounding_box($object->instance_bounding_box)
-        if !$all_instances;
     
     # group mesh(es) by material
     my @materials = ();
@@ -115,8 +162,7 @@ sub load_object {
         foreach my $instance (@instances) {
             my $mesh = $volume->mesh->clone;
             $instance->transform_mesh($mesh);
-            $mesh->translate(@{ $self->object_shift });  
-        
+            
             my $material_id = $volume->material_id // '_';
             my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
             if (!defined $color_idx) {
@@ -338,6 +384,8 @@ sub ZoomTo {
 
 sub Zoom {
     my ($self, $factor) =  @_;
+    
+    glMatrixMode(GL_MODELVIEW);
     glScalef($factor, $factor, 1);
 }
 
@@ -367,7 +415,7 @@ sub ResetModelView {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     my $win_size = $self->GetClientSize();
-    my $ratio = $factor * min($win_size->width, $win_size->height) / max(@{ $self->object_bounding_box->size });
+    my $ratio = $factor * min($win_size->width, $win_size->height) / (2 * max(@{ $self->object_bounding_box->size }));
     glScalef($ratio, $ratio, 1);
 }
 
@@ -384,7 +432,7 @@ sub Resize {
     glLoadIdentity();
     glOrtho(
         -$x/2, $x/2, -$y/2, $y/2,
-        0.5, 5 * max(@{ $self->object_bounding_box->size }),
+        -200, 10 * max(@{ $self->object_bounding_box->size }),
     );
  
     glMatrixMode(GL_MODELVIEW);
@@ -450,73 +498,81 @@ sub Render {
     glClearDepth(1);
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    
+    glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-
-    my $object_size = $self->object_bounding_box->size;
+    
+    my $bb = $self->object_bounding_box;
+    my $object_size = $bb->size;
     glTranslatef(0, 0, -max(@$object_size[0..1]));
     my @rotmat = quat_to_rotmatrix($self->quat);
     glMultMatrixd_p(@rotmat[0..15]);
     glRotatef($self->stheta, 1, 0, 0);
     glRotatef($self->sphi, 0, 0, 1);
     
-    my $center = $self->object_bounding_box->center;
-    glTranslatef(-$center->x, -$center->y, -$center->z);  #,,
-
+    # center everything around 0,0 since that's where we're looking at (glOrtho())
+    my $center = $bb->center;
+    glTranslatef(-$center->x, -$center->y, 0); #,,
+    
+    # draw objects
     $self->draw_mesh;
     
-    glDisable(GL_LIGHTING);
+    # raise everything so that we draw our plane at Z = 0
+    glTranslatef(0, 0, +$bb->z_min);
     
+    # draw ground and axes
+    glDisable(GL_LIGHTING);
     my $z0 = 0;
-    # draw axes
+    
     {
-        my $axis_len = 2 * max(@{ $object_size });
-        glLineWidth(2);
-        glBegin(GL_LINES);
-        # draw line for x axis
-        glColor3f(1, 0, 0);
-        glVertex3f(0, 0, $z0);
-        glVertex3f($axis_len, 0, $z0);
-        # draw line for y axis
-        glColor3f(0, 1, 0);
-        glVertex3f(0, 0, $z0);
-        glVertex3f(0, $axis_len, $z0);
-        # draw line for Z axis
-        glColor3f(0, 0, 1);
-        glVertex3f(0, 0, $z0);
-        glVertex3f(0, 0, $z0+$axis_len);
-        glEnd();
-        
         # draw ground
-        my $ground_z = $z0-0.02;
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        glColor4f(0.5, 0.5, 0.5, 0.3);
-        glNormal3d(0,0,1);
-        glVertex3f(-$axis_len, -$axis_len, $ground_z);
-        glVertex3f($axis_len, -$axis_len, $ground_z);
-        glVertex3f($axis_len, $axis_len, $ground_z);
-        glVertex3f(-$axis_len, $axis_len, $ground_z);
-        glEnd();
-        glDisable(GL_BLEND);
-        glEnable(GL_CULL_FACE);
+        my $ground_z = GROUND_Z;
+        if ($self->bed_triangles) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_CULL_FACE);
+            
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glColor4f(0.5, 0.5, 0.5, 0.3);
+            glNormal3d(0,0,1);
+            glVertexPointer_p(3, $self->bed_triangles);
+            glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            
+            glDisable(GL_BLEND);
+            glDisable(GL_CULL_FACE);
         
-        # draw grid
-        glLineWidth(3);
-        glColor3f(1.0, 1.0, 1.0);
-        glBegin(GL_LINES);
-        $ground_z += 0.02;
-        for (my $x = -$axis_len; $x <= $axis_len; $x += 10) {
-            glVertex3f($x, -$axis_len, $ground_z);
-            glVertex3f($x, $axis_len, $ground_z);
+            # draw grid
+            glTranslatef(0, 0, 0.02);
+            glLineWidth(3);
+            glColor3f(1.0, 1.0, 1.0);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer_p(3, $self->bed_grid_lines);
+            glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
+            glDisableClientState(GL_VERTEX_ARRAY);
         }
-        for (my $y = -$axis_len; $y <= $axis_len; $y += 10) {
-            glVertex3f(-$axis_len, $y, $ground_z);
-            glVertex3f($axis_len, $y, $ground_z);
+        
+        {
+            # draw axes
+            $ground_z += 0.02;
+            my $origin = $self->origin;
+            my $axis_len = 2 * max(@{ $object_size });
+            glLineWidth(2);
+            glBegin(GL_LINES);
+            # draw line for x axis
+            glColor3f(1, 0, 0);
+            glVertex3f(@$origin, $ground_z);
+            glVertex3f($origin->x + $axis_len, $origin->y, $ground_z);  #,,
+            # draw line for y axis
+            glColor3f(0, 1, 0);
+            glVertex3f(@$origin, $ground_z);
+            glVertex3f($origin->x, $origin->y + $axis_len, $ground_z);  #++
+            # draw line for Z axis
+            glColor3f(0, 0, 1);
+            glVertex3f(@$origin, $ground_z);
+            glVertex3f(@$origin, $ground_z+$axis_len);
+            glEnd();
         }
-        glEnd();
         
         # draw cutting plane
         if (defined $self->cutting_plane_z) {
@@ -526,10 +582,10 @@ sub Render {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glBegin(GL_QUADS);
             glColor4f(0.8, 0.8, 0.8, 0.5);
-            glVertex3f(-$axis_len, -$axis_len, $plane_z);
-            glVertex3f($axis_len, -$axis_len, $plane_z);
-            glVertex3f($axis_len, $axis_len, $plane_z);
-            glVertex3f(-$axis_len, $axis_len, $plane_z);
+            glVertex3f($bb->x_min-20, $bb->y_min-20, $plane_z);
+            glVertex3f($bb->x_max+20, $bb->y_min-20, $plane_z);
+            glVertex3f($bb->x_max+20, $bb->y_max+20, $plane_z);
+            glVertex3f($bb->x_min-20, $bb->y_max+20, $plane_z);
             glEnd();
             glEnable(GL_CULL_FACE);
             glDisable(GL_BLEND);
@@ -537,7 +593,7 @@ sub Render {
     }
     
     glEnable(GL_LIGHTING);
-
+    
     glPopMatrix();
     glFlush();
  

@@ -15,6 +15,8 @@ sub new {
     
     my $canvas = Slic3r::GUI::PreviewCanvas->new($self);
     $canvas->load_object($self->{model_object});
+    $canvas->set_bounding_box($self->{model_object}->bounding_box);
+    $canvas->set_auto_bed_shape;
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($canvas, 1, wxEXPAND, 0);
