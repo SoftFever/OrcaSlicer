@@ -152,7 +152,9 @@ sub set_bed_shape {
 sub load_object {
     my ($self, $object, $all_instances) = @_;
     
-    # group mesh(es) by material
+    my $z_min = $object->raw_bounding_box->z_min;
+    
+    # color mesh(es) by material
     my @materials = ();
     
     # sort volumes: non-modifiers first
@@ -175,6 +177,7 @@ sub load_object {
             push @{$self->volumes}, my $v = {
                 mesh  => $mesh,
                 color => $color,
+                z_min => $z_min,
             };
         
             {
@@ -517,9 +520,6 @@ sub Render {
     # draw objects
     $self->draw_mesh;
     
-    # raise everything so that we draw our plane at Z = 0
-    glTranslatef(0, 0, +$bb->z_min);
-    
     # draw ground and axes
     glDisable(GL_LIGHTING);
     my $z0 = 0;
@@ -610,6 +610,8 @@ sub draw_mesh {
     glEnableClientState(GL_NORMAL_ARRAY);
     
     foreach my $volume (@{$self->volumes}) {
+        glTranslatef(0, 0, -$volume->{z_min});
+        
         glVertexPointer_p(3, $volume->{verts});
         
         glCullFace(GL_BACK);
@@ -620,6 +622,8 @@ sub draw_mesh {
             glColor4f(@{ $volume->{color} });
         }
         glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
+        
+        glTranslatef(0, 0, +$volume->{z_min});
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);
