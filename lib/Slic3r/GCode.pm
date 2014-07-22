@@ -335,6 +335,7 @@ sub travel_to {
     # *and* in an island in the upper layer (so that the ooze will not be visible)
     if ($travel->length < scale $self->extruder->retract_before_travel
         || ($self->config->only_retract_when_crossing_perimeters
+            && $self->config->fill_density > 0
             && (first { $_->contains_line($travel) } @{$self->_upper_layer_islands})
             && (first { $_->contains_line($travel) } @{$self->_layer_islands}))
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->contains_line($travel) } @{$self->layer->support_islands}))
