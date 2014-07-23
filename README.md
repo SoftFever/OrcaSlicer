@@ -196,7 +196,7 @@ The author of the Silk icon set is Mark James.
                             have been applied. (mm/s^2, set zero to disable; default: 130)
     
       Accuracy options:
-        --layer-height      Layer height in mm (default: 0.4)
+        --layer-height      Layer height in mm (default: 0.3)
         --first-layer-height Layer height for first layer (mm or %, default: 0.35)
         --infill-every-layers
                             Infill every N layers (default: 1)

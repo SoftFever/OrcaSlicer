@@ -144,7 +144,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->first_layer_height.percent                         = false;
         this->infill_only_where_needed.value                     = false;
         this->interface_shells.value                             = false;
-        this->layer_height.value                                 = 0.4;
+        this->layer_height.value                                 = 0.3;
         this->raft_layers.value                                  = 0;
         this->seam_position.value                                = spAligned;
         this->support_material.value                             = false;
