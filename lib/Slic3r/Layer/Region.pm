@@ -105,11 +105,18 @@ sub make_perimeters {
                 if ($i == 1) {
                     # the minimum thickness of a single loop is:
                     # ext_width/2 + ext_spacing/2 + spacing/2 + width/2
-                    @offsets = @{offset2(
-                        \@last,
-                        -(0.5*$ext_pwidth + 0.5*$ext_min_spacing - 1),
-                        +(0.5*$ext_min_spacing - 1),
-                    )};
+                    if ($self->config->thin_walls) {
+                        @offsets = @{offset2(
+                            \@last,
+                            -(0.5*$ext_pwidth + 0.5*$ext_min_spacing - 1),
+                            +(0.5*$ext_min_spacing - 1),
+                        )};
+                    } else {
+                        @offsets = @{offset(
+                            \@last,
+                            -0.5*$ext_pwidth,
+                        )};
+                    }
                     
                     # look for thin walls
                     if ($self->config->thin_walls) {
@@ -123,12 +130,19 @@ sub make_perimeters {
                 } else {
                     my $distance = ($i == 2) ? $ext_pspacing : $pspacing;
                     
-                    @offsets = @{offset2(
-                        \@last,
-                        -($distance + 0.5*$min_spacing - 1),
-                        +(0.5*$min_spacing - 1),
-                    )};
-                
+                    if ($self->config->thin_walls) {
+                        @offsets = @{offset2(
+                            \@last,
+                            -($distance + 0.5*$min_spacing - 1),
+                            +(0.5*$min_spacing - 1),
+                        )};
+                    } else {
+                        @offsets = @{offset(
+                            \@last,
+                            -$distance,
+                        )};
+                    }
+                    
                     # look for gaps
                     if ($self->region->config->gap_fill_speed > 0 && $self->config->fill_density > 0) {
                         # not using safety offset here would "detect" very narrow gaps
