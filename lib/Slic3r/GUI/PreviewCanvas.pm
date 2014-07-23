@@ -203,7 +203,7 @@ sub SetCuttingPlane {
     my @verts = ();
     foreach my $volume (@{$self->volumes}) {
         foreach my $volume (@{$self->volumes}) {
-            my $expolygons = $volume->{mesh}->slice([ $z ])->[0];
+            my $expolygons = $volume->{mesh}->slice([ $z + $volume->{z_min} ])->[0];
             $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
             
             foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
