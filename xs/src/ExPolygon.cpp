@@ -154,15 +154,20 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     // compute the Voronoi diagram
     ma.build(polylines);
     
+    // clip segments to our expolygon area
+    // (do this before extending endpoints as external segments coule be extended into
+    // expolygon, this leaving wrong things inside)
+    intersection(*polylines, *this, *polylines);
+    
     // extend initial and final segments of each polyline (they will be clipped)
     // unless they represent closed loops
     for (Polylines::iterator polyline = polylines->begin(); polyline != polylines->end(); ++polyline) {
-        if (polyline->points.front().coincides_with(polyline->points.back())) continue;
+        if (polyline->points.front().distance_to(polyline->points.back()) < min_width) continue;
         polyline->extend_start(max_width);
         polyline->extend_end(max_width);
     }
     
-    // clip segments to our expolygon area
+    // clip again after extending endpoints to prevent them from exceeding the expolygon boundaries
     intersection(*polylines, *this, *polylines);
 }
 
