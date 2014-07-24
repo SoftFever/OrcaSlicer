@@ -14,6 +14,7 @@
     void merge_point(Point* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y);
+    void offset(double delta);
     Polygon* polygon()
         %code{% RETVAL = new Polygon(); THIS->polygon(RETVAL); %};
     Clone<Point> size();

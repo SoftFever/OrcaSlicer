@@ -109,7 +109,7 @@ sub new {
     
     my $self = $class->SUPER::new($parent);
     $self->print($print);
-    $self->bb($self->print->bounding_box);
+    $self->bb($self->print->total_bounding_box);
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
@@ -187,9 +187,24 @@ sub Render {
     glClearColor(1, 1, 1, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     
+    my $skirt_drawn = 0;
+    my $brim_drawn = 0;
     foreach my $layer (@{$self->layers}) {
         my $object = $layer->object;
         my $print_z = $layer->print_z;
+        
+        # draw brim
+        if ($layer->id == 0 && !$brim_drawn) {
+            $self->color([0, 0, 0]);
+            $self->_draw(undef, $print_z, $_) for @{$self->print->brim};
+            $brim_drawn = 1;
+        }
+        if (($self->print->config->skirt_height == -1 || $self->print->config->skirt_height >= $layer->id) && !$skirt_drawn) {
+            $self->color([0, 0, 0]);
+            $self->_draw(undef, $print_z, $_) for @{$self->print->skirt};
+            $skirt_drawn = 1;
+        }
+        
         foreach my $layerm (@{$layer->regions}) {
             $self->color([0.7, 0, 0]);
             $self->_draw($object, $print_z, $_) for @{$layerm->perimeters};
@@ -231,9 +246,19 @@ sub _draw_path {
     }
     
     glLineWidth(1);
-    foreach my $copy (@{ $object->_shifted_copies }) {
+    
+    if (defined $object) {
+        foreach my $copy (@{ $object->_shifted_copies }) {
+            foreach my $line (@{$path->polyline->lines}) {
+                $line->translate(@$copy);
+                glBegin(GL_LINES);
+                glVertex2f(@{$line->a});
+                glVertex2f(@{$line->b});
+                glEnd();
+            }
+        }
+    } else {
         foreach my $line (@{$path->polyline->lines}) {
-            $line->translate(@$copy);
             glBegin(GL_LINES);
             glVertex2f(@{$line->a});
             glVertex2f(@{$line->b});

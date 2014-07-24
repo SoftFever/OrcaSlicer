@@ -141,6 +141,23 @@ BoundingBox3Base<PointClass>::translate(coordf_t x, coordf_t y, coordf_t z)
 }
 template void BoundingBox3Base<Pointf3>::translate(coordf_t x, coordf_t y, coordf_t z);
 
+template <class PointClass> void
+BoundingBoxBase<PointClass>::offset(coordf_t delta)
+{
+    this->min.translate(-delta, -delta);
+    this->max.translate(delta, delta);
+}
+template void BoundingBoxBase<Point>::offset(coordf_t delta);
+template void BoundingBoxBase<Pointf>::offset(coordf_t delta);
+
+template <class PointClass> void
+BoundingBox3Base<PointClass>::offset(coordf_t delta)
+{
+    this->min.translate(-delta, -delta, -delta);
+    this->max.translate(delta, delta, delta);
+}
+template void BoundingBox3Base<Pointf3>::offset(coordf_t delta);
+
 template <class PointClass> PointClass
 BoundingBoxBase<PointClass>::center() const
 {
