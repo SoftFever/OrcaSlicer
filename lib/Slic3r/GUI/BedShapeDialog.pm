@@ -76,12 +76,10 @@ sub new {
         ));
         $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
             opt_id      => 'rect_origin',
-            type        => 'select',
+            type        => 'point',
             label       => 'Origin',
-            tooltip     => 'Position of the 0,0 point.',
-            labels      => ['Front left corner','Center'],
-            values      => ['corner','center'],
-            default     => 'corner',
+            tooltip     => 'Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.',
+            default     => [0,0],
         ));
         $optgroup->on_change->($_) for qw(rect_size rect_origin);  # set defaults
     }
@@ -147,24 +145,20 @@ sub _set_shape {
         my $lines = $polygon->lines;
         if ($lines->[0]->parallel_to_line($lines->[2]) && $lines->[1]->parallel_to_line($lines->[3])) {
             # okay, it's a rectangle
-            # let's check whether origin is at a known point
-            my $x_min = min(map $_->[X], @$points);
-            my $x_max = max(map $_->[X], @$points);
-            my $y_min = min(map $_->[Y], @$points);
-            my $y_max = max(map $_->[Y], @$points);
-            my $origin;
-            if ($x_min == 0 && $y_min == 0) {
-                $origin = 'corner';
-            } elsif (($x_min + $x_max)/2 == 0 && ($y_min + $y_max)/2 == 0) {
-                $origin = 'center';
-            }
-            if (defined $origin) {
-                $self->{shape_options_book}->SetSelection(SHAPE_RECTANGULAR);
-                my $optgroup = $self->{optgroups}[SHAPE_RECTANGULAR];
-                $optgroup->set_value('rect_size', [ $x_max-$x_min, $y_max-$y_min ]);
-                $optgroup->set_value('rect_origin', $origin);
-                return;
-            }
+            
+            # find origin
+            # the || 0 hack prevents "-0" which might confuse the user
+            my $x_min = min(map $_->[X], @$points) || 0;
+            my $x_max = max(map $_->[X], @$points) || 0;
+            my $y_min = min(map $_->[Y], @$points) || 0;
+            my $y_max = max(map $_->[Y], @$points) || 0;
+            my $origin = [-$x_min, -$y_min];
+            
+            $self->{shape_options_book}->SetSelection(SHAPE_RECTANGULAR);
+            my $optgroup = $self->{optgroups}[SHAPE_RECTANGULAR];
+            $optgroup->set_value('rect_size', [ $x_max-$x_min, $y_max-$y_min ]);
+            $optgroup->set_value('rect_origin', $origin);
+            return;
         }
     }
     
@@ -195,11 +189,12 @@ sub _update_shape {
         my ($x, $y) = @{$self->{_rect_size}};
         my ($x0, $y0) = (0,0);
         my ($x1, $y1) = ($x,$y);
-        if ($self->{_rect_origin} eq 'center') {
-            $x0 -= $x/2;
-            $x1 -= $x/2;
-            $y0 -= $y/2;
-            $y1 -= $y/2;
+        {
+            my ($dx, $dy) = @{$self->{_rect_origin}};
+            $x0 -= $dx;
+            $x1 -= $dx;
+            $y0 -= $dy;
+            $y1 -= $dy;
         }
         $self->{bed_shape} = [
             [$x0,$y0],
