@@ -166,7 +166,7 @@ sub repaint {
     if (@{$self->{objects}} && $self->{config}->skirts) {
         my @points = map @{$_->contour}, map @$_, map @{$_->instance_thumbnails}, @{$self->{objects}};
         if (@points >= 3) {
-            my ($convex_hull) = @{offset([convex_hull(\@points)], scale($self->{config}->skirt_distance), 1, JT_ROUND, scale(0.1))};
+            my ($convex_hull) = @{offset([convex_hull(\@points)], scale max($self->{config}->brim_width + $self->{config}->skirt_distance), 1, JT_ROUND, scale(0.1))};
             $dc->SetPen($self->{skirt_pen});
             $dc->SetBrush($self->{transparent_brush});
             $dc->DrawPolygon($self->scaled_points_to_pixel($convex_hull, 1), 0, 0);

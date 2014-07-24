@@ -384,11 +384,11 @@ sub total_bounding_box {
     if ($self->has_support_material) {
         $extra = &Slic3r::Print::SupportMaterial::MARGIN;
     }
+    $extra = max($extra, $self->config->brim_width);
     if ($self->config->skirts > 0) {
         my $skirt_flow = $self->skirt_flow;
-        $extra = max($extra, $self->config->skirt_distance + ($self->config->skirts * $skirt_flow->spacing));
+        $extra = max($extra, $self->config->brim_width + $self->config->skirt_distance + ($self->config->skirts * $skirt_flow->spacing));
     }
-    $extra = max($extra, $self->config->brim_width);
     
     if ($extra > 0) {
         $bb->offset(scale $extra);
@@ -638,7 +638,7 @@ sub make_skirt {
     
     # draw outlines from outside to inside
     # loop while we have less skirts than required or any extruder hasn't reached the min length if any
-    my $distance = scale $self->config->skirt_distance;
+    my $distance = scale max($self->config->skirt_distance, $self->config->brim_width);
     for (my $i = $self->config->skirts; $i > 0; $i--) {
         $distance += scale $spacing;
         my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
@@ -721,12 +721,6 @@ sub make_brim {
         foreach my $copy (@{$object->_shifted_copies}) {
             push @islands, map { $_->translate(@$copy); $_ } map $_->clone, @object_islands;
         }
-    }
-    
-    # if brim touches skirt, make it around skirt too
-    # TODO: calculate actual skirt width (using each extruder's flow in multi-extruder setups)
-    if ($self->config->skirt_distance + (($self->config->skirts - 1) * $flow->spacing) <= $self->config->brim_width) {
-        push @islands, map @{$_->polygon->split_at_first_point->grow($grow_distance)}, @{$self->skirt};
     }
     
     my @loops = ();

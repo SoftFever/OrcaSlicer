@@ -425,6 +425,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             steps.insert(psSkirt);
         } else if (*opt_key == "brim_width") {
             steps.insert(psBrim);
+            steps.insert(psSkirt);
         } else if (*opt_key == "nozzle_diameter") {
             steps.insert(psInitExtruders);
         } else if (*opt_key == "avoid_crossing_perimeters"
