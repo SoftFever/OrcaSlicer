@@ -7,7 +7,7 @@ use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(
     polygon_segment_having_point
-    PI X1 X2 Y1 Y2 epsilon);
+    PI X1 X2 Y1 Y2 epsilon scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(intersection_pl);
 
 sub wkt {
@@ -54,18 +54,18 @@ sub concave_points {
     # but angle3points measures CCW angle, so we calculate the complementary angle
     my $ccw_angle = 2*PI-$angle;
     
+    my @concave = ();
     my @points = @$self;
     my @points_pp = @{$self->pp};
-    
-    my @concave = ();
+
     for my $i (-1 .. ($#points-1)) {
-        next if $points[$i-1]->coincides_with_epsilon($points[$i]) || $points[$i+1]->coincides_with_epsilon($points[$i]);
         # angle is measured in ccw orientation
         my $vertex_angle = Slic3r::Geometry::angle3points(@points_pp[$i, $i-1, $i+1]);
         if ($vertex_angle <= $ccw_angle) {
             push @concave, $points[$i];
         }
     }
+    
     return [@concave];
 }
 
@@ -78,12 +78,11 @@ sub convex_points {
     # but angle3points measures CCW angle, so we calculate the complementary angle
     my $ccw_angle = 2*PI-$angle;
     
+    my @convex = ();
     my @points = @$self;
     my @points_pp = @{$self->pp};
     
-    my @convex = ();
     for my $i (-1 .. ($#points-1)) {
-        next if $points[$i-1]->coincides_with_epsilon($points[$i]) || $points[$i+1]->coincides_with_epsilon($points[$i]);
         # angle is measured in ccw orientation
         my $vertex_angle = Slic3r::Geometry::angle3points(@points_pp[$i, $i-1, $i+1]);
         if ($vertex_angle >= $ccw_angle) {

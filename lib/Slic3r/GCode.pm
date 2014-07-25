@@ -158,24 +158,40 @@ sub extrude_loop {
     if ($self->config->spiral_vase) {
         $loop->split_at($last_pos);
     } elsif ($self->config->seam_position eq 'nearest' || $self->config->seam_position eq 'aligned') {
+        # simplify polygon in order to skip false positives in concave/convex detection
         my $polygon = $loop->polygon;
-        my @candidates = @{$polygon->concave_points(PI*4/3)};
-        @candidates = @{$polygon->convex_points(PI*2/3)} if !@candidates;
-        @candidates = @{$polygon} if !@candidates;
+        my @simplified = @{$polygon->simplify(scale $self->extruder->nozzle_diameter/2)};
         
-        my @non_overhang = grep !$loop->has_overhang_point($_), @candidates;
-        @candidates = @non_overhang if @non_overhang;
+        # concave vertices have priority
+        my @candidates = map @{$_->concave_points(PI*4/3)}, @simplified;
         
-        if ($self->config->seam_position eq 'nearest') {
-            $loop->split_at_vertex($last_pos->nearest_point(\@candidates));
-        } elsif ($self->config->seam_position eq 'aligned') {
-            my $obj_ptr = $self->layer->object->ptr;
-            if (defined $self->layer && defined $self->_seam_position->{$obj_ptr}) {
+        # if no concave points were found, look for convex vertices
+        @candidates = map @{$_->convex_points(PI*2/3)}, @simplified if !@candidates;
+        
+        # retrieve the last start position for this object
+        my $obj_ptr;
+        if (defined $self->layer) {
+            $obj_ptr = $self->layer->object->ptr;
+            if (defined $self->_seam_position->{$self->layer->object}) {
                 $last_pos = $self->_seam_position->{$obj_ptr};
             }
-            my $point = $self->_seam_position->{$obj_ptr} = $last_pos->nearest_point(\@candidates);
-            $loop->split_at_vertex($point);
         }
+        
+        my $point;
+        if ($self->config->seam_position eq 'nearest') {
+            @candidates = @$polygon if !@candidates;
+            $point = $last_pos->nearest_point(\@candidates);
+            $loop->split_at_vertex($point);
+        } elsif (@candidates) {
+            my @non_overhang = grep !$loop->has_overhang_point($_), @candidates;
+            @candidates = @non_overhang if @non_overhang;
+            $point = $last_pos->nearest_point(\@candidates);
+            $loop->split_at_vertex($point);
+        } else {
+            $point = $last_pos->projection_onto_polygon($polygon);
+            $loop->split_at($point);
+        }
+        $self->_seam_position->{$obj_ptr} = $point;
     } elsif ($self->config->seam_position eq 'random') {
         if ($loop->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER) {
             my $polygon = $loop->polygon;
