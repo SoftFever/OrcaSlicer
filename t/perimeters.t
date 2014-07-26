@@ -186,12 +186,13 @@ use Slic3r::Test;
     
     # compute the covered area
     my $pflow = $layerm->flow(FLOW_ROLE_PERIMETER);
+    my $iflow = $layerm->flow(FLOW_ROLE_INFILL);
     my $covered_by_perimeters = union_ex([
         (map @{$_->polygon->split_at_first_point->grow($pflow->scaled_width/2)}, @{$layerm->perimeters}),
     ]);
     my $covered_by_infill = union_ex([
         (map $_->p, @{$layerm->fill_surfaces}),
-        (map @{$_->polyline->grow($pflow->scaled_width/2)}, @{$layerm->thin_fills}),
+        (map @{$_->polyline->grow($iflow->scaled_width/2)}, @{$layerm->thin_fills}),
     ]);
     
     # compute the non covered area
@@ -211,7 +212,7 @@ use Slic3r::Test;
         );
     }
     
-    ok !(defined first { $_->area > ($pflow->scaled_width**2) } @$non_covered), 'no gap between perimeters and infill';
+    ok !(defined first { $_->area > ($iflow->scaled_width**2) } @$non_covered), 'no gap between perimeters and infill';
 }
 
 {

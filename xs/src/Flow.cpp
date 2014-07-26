@@ -43,14 +43,8 @@ Flow::spacing() const {
         return this->width + BRIDGE_EXTRA_SPACING;
     }
     
-    float min_flow_spacing;
-    if (this->width >= (this->nozzle_diameter + this->height)) {
-        // rectangle with semicircles at the ends
-        min_flow_spacing = this->width - this->height * (1 - PI/4.0);
-    } else {
-        // rectangle with shrunk semicircles at the ends
-        min_flow_spacing = this->nozzle_diameter * (1 - PI/4.0) + this->width * PI/4.0;
-    }
+    // rectangle with semicircles at the ends
+    float min_flow_spacing = this->width - this->height * (1 - PI/4.0);
     return this->width - OVERLAP_FACTOR * (this->width - min_flow_spacing);
 }
 
@@ -74,13 +68,10 @@ double
 Flow::mm3_per_mm() const {
     if (this->bridge) {
         return (this->width * this->width) * PI/4.0;
-    } else if (this->width >= (this->nozzle_diameter + this->height)) {
-        // rectangle with semicircles at the ends
-        return this->width * this->height + (this->height*this->height) / 4.0 * (PI-4.0);
-    } else {
-        // rectangle with shrunk semicircles at the ends
-        return this->nozzle_diameter * this->height * (1 - PI/4.0) + this->height * this->width * PI/4.0;
     }
+    
+    // rectangle with semicircles at the ends
+    return this->width * this->height + (this->height*this->height) / 4.0 * (PI-4.0);
 }
 
 /* This static method returns bridge width for a given nozzle diameter. */
@@ -94,16 +85,8 @@ Flow::_bridge_width(float nozzle_diameter, float bridge_flow_ratio) {
 float
 Flow::_auto_width(FlowRole role, float nozzle_diameter, float height) {
     // here we calculate a sane default by matching the flow speed (at the nozzle) and the feed rate
-    float volume = (nozzle_diameter*nozzle_diameter) * PI/4.0;
-    float shape_threshold = nozzle_diameter * height + (height*height) * PI/4.0;
-    float width;
-    if (volume >= shape_threshold) {
-        // rectangle with semicircles at the ends
-        width = ((nozzle_diameter*nozzle_diameter) * PI + (height*height) * (4.0 - PI)) / (4.0 * height);
-    } else {
-        // rectangle with squished semicircles at the ends
-        width = nozzle_diameter * (nozzle_diameter/height - 4.0/PI + 1);
-    }
+    // shape: rectangle with semicircles at the ends
+    float width = ((nozzle_diameter*nozzle_diameter) * PI + (height*height) * (4.0 - PI)) / (4.0 * height);
     
     float min = nozzle_diameter * 1.05;
     float max = -1;
@@ -126,16 +109,8 @@ Flow::_width_from_spacing(float spacing, float nozzle_diameter, float height, bo
         return spacing - BRIDGE_EXTRA_SPACING;
     }
     
-    float w_threshold = height + nozzle_diameter;
-    float s_threshold = w_threshold - OVERLAP_FACTOR * (w_threshold - (w_threshold - height * (1 - PI/4.0)));
-    
-    if (spacing >= s_threshold) {
-        // rectangle with semicircles at the ends
-        return spacing + OVERLAP_FACTOR * height * (1 - PI/4.0);
-    } else {
-        // rectangle with shrunk semicircles at the ends
-        return (spacing + nozzle_diameter * OVERLAP_FACTOR * (PI/4.0 - 1)) / (1 + OVERLAP_FACTOR * (PI/4.0 - 1));
-    }
+    // rectangle with semicircles at the ends
+    return spacing + OVERLAP_FACTOR * height * (1 - PI/4.0);
 }
 
 #ifdef SLIC3RXS
