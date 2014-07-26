@@ -150,6 +150,8 @@ use Slic3r::Test;
     my $model = stacked_cubes();
     
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', '100%');
     $config->set('skirts', 0);
     my $print = Slic3r::Test::init_print($model, config => $config);
     
