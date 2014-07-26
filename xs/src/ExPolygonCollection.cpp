@@ -3,6 +3,17 @@
 
 namespace Slic3r {
 
+ExPolygonCollection::operator Points() const
+{
+    Points points;
+    Polygons pp = *this;
+    for (Polygons::const_iterator poly = pp.begin(); poly != pp.end(); ++poly) {
+        for (Points::const_iterator point = poly->points.begin(); point != poly->points.end(); ++point)
+            points.push_back(*point);
+    }
+    return points;
+}
+
 ExPolygonCollection::operator Polygons() const
 {
     Polygons polygons;
@@ -13,6 +24,11 @@ ExPolygonCollection::operator Polygons() const
         }
     }
     return polygons;
+}
+
+ExPolygonCollection::operator ExPolygons&()
+{
+    return this->expolygons;
 }
 
 void

@@ -48,6 +48,7 @@ class BoundingBox : public BoundingBoxBase<Point>
 {
     public:
     void polygon(Polygon* polygon) const;
+    Polygon polygon() const;
     
     BoundingBox() {};
     BoundingBox(const Points &points) : BoundingBoxBase<Point>(points) {};

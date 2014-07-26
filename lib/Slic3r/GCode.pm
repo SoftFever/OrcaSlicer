@@ -75,8 +75,8 @@ sub change_layer {
     $self->_layer_islands($layer->islands);
     $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
     if ($self->config->avoid_crossing_perimeters) {
-        $self->layer_mp(Slic3r::GCode::MotionPlanner->new(
-            islands => union_ex([ map @$_, @{$layer->slices} ], 1),
+        $self->layer_mp(Slic3r::MotionPlanner->new(
+            union_ex([ map @$_, @{$layer->slices} ], 1),
         ));
     }
     

@@ -158,11 +158,6 @@ sub _arrange {
     );
 }
 
-sub has_objects_with_no_instances {
-    my ($self) = @_;
-    return (first { !defined $_->instances } @{$self->objects}) ? 1 : 0;
-}
-
 # makes sure all objects have at least one instance
 sub add_default_instances {
     my ($self) = @_;

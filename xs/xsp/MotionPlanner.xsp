@@ -1,0 +1,14 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "MotionPlanner.hpp"
+%}
+
+%name{Slic3r::MotionPlanner} class MotionPlanner {
+    MotionPlanner(ExPolygons islands);
+    ~MotionPlanner();
+
+    Polyline* shortest_path(Point* from, Point* to)
+        %code%{ RETVAL = new Polyline(); THIS->shortest_path(*from, *to, RETVAL); %};
+};

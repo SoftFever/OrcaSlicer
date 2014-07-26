@@ -23,6 +23,8 @@
     bool is_valid();
     bool contains_line(Line* line)
         %code{% RETVAL = THIS->contains_line(*line); %};
+    bool contains_polyline(Polyline* polyline)
+        %code{% RETVAL = THIS->contains_polyline(*polyline); %};
     bool contains_point(Point* point)
         %code{% RETVAL = THIS->contains_point(*point); %};
     ExPolygons simplify(double tolerance);

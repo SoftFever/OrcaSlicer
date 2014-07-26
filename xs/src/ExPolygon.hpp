@@ -2,6 +2,7 @@
 #define slic3r_ExPolygon_hpp_
 
 #include "Polygon.hpp"
+#include "Polyline.hpp"
 #include <vector>
 
 namespace Slic3r {
@@ -22,6 +23,7 @@ class ExPolygon
     double area() const;
     bool is_valid() const;
     bool contains_line(const Line &line) const;
+    bool contains_polyline(const Polyline &polyline) const;
     bool contains_point(const Point &point) const;
     Polygons simplify_p(double tolerance) const;
     ExPolygons simplify(double tolerance) const;

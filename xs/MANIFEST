@@ -1677,6 +1677,8 @@ src/Line.cpp
 src/Line.hpp
 src/Model.cpp
 src/Model.hpp
+src/MotionPlanner.cpp
+src/MotionPlanner.hpp
 src/MultiPoint.cpp
 src/MultiPoint.hpp
 src/myinit.h
@@ -1735,6 +1737,7 @@ t/14_geometry.t
 t/15_config.t
 t/16_flow.t
 t/17_boundingbox.t
+t/18_motionplanner.t
 t/19_model.t
 t/20_print.t
 xsp/BoundingBox.xsp
@@ -1751,6 +1754,7 @@ xsp/Geometry.xsp
 xsp/Layer.xsp
 xsp/Line.xsp
 xsp/Model.xsp
+xsp/MotionPlanner.xsp
 xsp/my.map
 xsp/mytype.map
 xsp/PlaceholderParser.xsp

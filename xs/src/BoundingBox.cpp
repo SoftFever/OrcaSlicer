@@ -59,6 +59,14 @@ BoundingBox::polygon(Polygon* polygon) const
     polygon->points[3].y = this->max.y;
 }
 
+Polygon
+BoundingBox::polygon() const
+{
+    Polygon p;
+    this->polygon(&p);
+    return p;
+}
+
 template <class PointClass> void
 BoundingBoxBase<PointClass>::scale(double factor)
 {

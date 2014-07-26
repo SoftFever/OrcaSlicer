@@ -77,6 +77,9 @@
 %typemap{PolylineCollection*};
 %typemap{Ref<PolylineCollection>}{simple};
 %typemap{Clone<PolylineCollection>}{simple};
+%typemap{MotionPlanner*};
+%typemap{Ref<MotionPlanner>}{simple};
+%typemap{Clone<MotionPlanner>}{simple};
 
 %typemap{PrintState*};
 %typemap{Ref<PrintState>}{simple};
