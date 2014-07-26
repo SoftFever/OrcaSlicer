@@ -379,6 +379,7 @@ sub mouse_to_3d {
 sub ZoomTo {
     my ($self, $factor, $tox, $toy) =  @_;
     
+    return if !$self->init;
     glTranslatef($tox, $toy, 0);
     glMatrixMode(GL_MODELVIEW);
     $self->Zoom($factor);
