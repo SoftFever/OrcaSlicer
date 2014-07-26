@@ -2,6 +2,7 @@ package Slic3r::Fill;
 use Moo;
 
 use Slic3r::ExtrusionPath ':roles';
+use Slic3r::Fill::3DHoneycomb;
 use Slic3r::Fill::ArchimedeanChords;
 use Slic3r::Fill::Base;
 use Slic3r::Fill::Concentric;
@@ -30,6 +31,7 @@ our %FillTypes = (
     line                => 'Slic3r::Fill::Line',
     concentric          => 'Slic3r::Fill::Concentric',
     honeycomb           => 'Slic3r::Fill::Honeycomb',
+    '3dhoneycomb'       => 'Slic3r::Fill::3DHoneycomb',
 );
 
 sub filler {
@@ -213,6 +215,7 @@ sub make_fill {
         
         my $f = $self->filler($filler);
         $f->layer_id($layerm->id);
+        $f->z($layerm->print_z);
         $f->angle(deg2rad($layerm->config->fill_angle));
         my ($params, @polylines) = $f->fill_surface(
             $surface,

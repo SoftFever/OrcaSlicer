@@ -271,6 +271,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_values.push_back("line");
     Options["fill_pattern"].enum_values.push_back("concentric");
     Options["fill_pattern"].enum_values.push_back("honeycomb");
+    Options["fill_pattern"].enum_values.push_back("3dhoneycomb");
     Options["fill_pattern"].enum_values.push_back("hilbertcurve");
     Options["fill_pattern"].enum_values.push_back("archimedeanchords");
     Options["fill_pattern"].enum_values.push_back("octagramspiral");
@@ -278,6 +279,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_labels.push_back("line");
     Options["fill_pattern"].enum_labels.push_back("concentric");
     Options["fill_pattern"].enum_labels.push_back("honeycomb");
+    Options["fill_pattern"].enum_labels.push_back("3D honeycomb");
     Options["fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
     Options["fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
     Options["fill_pattern"].enum_labels.push_back("octagramspiral (slow)");

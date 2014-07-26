@@ -2,6 +2,7 @@ package Slic3r::Fill::Base;
 use Moo;
 
 has 'layer_id'            => (is => 'rw');
+has 'z'                   => (is => 'rw'); # in unscaled coordinates
 has 'angle'               => (is => 'rw'); # in radians, ccw, 0 = East
 has 'bounding_box'        => (is => 'ro', required => 0);  # Slic3r::Geometry::BoundingBox object
 

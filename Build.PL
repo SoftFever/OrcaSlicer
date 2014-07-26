@@ -16,6 +16,7 @@ my %prereqs = qw(
     Math::PlanePath                 53
     Module::Build::WithXSpp         0.14
     Moo                             1.003001
+    POSIX                           0
     Scalar::Util                    0
     Test::Harness                   0
     Test::More                      0
