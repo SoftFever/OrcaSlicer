@@ -2,6 +2,7 @@ package Slic3r::Fill::Honeycomb;
 use Moo;
 
 extends 'Slic3r::Fill::Base';
+with qw(Slic3r::Fill::WithDirection);
 
 has 'cache'         => (is => 'rw', default => sub {{}});
 
