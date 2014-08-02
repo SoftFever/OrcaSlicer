@@ -25,7 +25,7 @@ use overload
 
 package Slic3r::Pointf;
 use overload
-    '@{}' => sub { [ $_[0]->x, $_[0]->y ] },  #,
+    '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
 package Slic3r::Pointf3;

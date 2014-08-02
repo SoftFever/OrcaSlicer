@@ -41,9 +41,10 @@ sub GetValue {
 package Slic3r::GUI::BedShapePanel;
 
 use List::Util qw(min max sum first);
-use Slic3r::Geometry qw(PI X Y unscale scaled_epsilon);
-use Wx qw(:dialog :id :misc :sizer :choicebook :filedialog wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_CLOSE EVT_CHOICEBOOK_PAGE_CHANGED EVT_BUTTON);
+use Slic3r::Geometry qw(PI X Y scale unscale scaled_epsilon deg2rad);
+use Slic3r::Geometry::Clipper qw(intersection_pl);
+use Wx qw(:font :id :misc :sizer :choicebook :filedialog :pen :brush wxTAB_TRAVERSAL);
+use Wx::Event qw(EVT_CLOSE EVT_CHOICEBOOK_PAGE_CHANGED EVT_BUTTON EVT_PAINT);
 use base 'Wx::Panel';
 
 use constant SHAPE_RECTANGULAR  => 0;
@@ -114,12 +115,15 @@ sub new {
     });
     
     # right pane with preview canvas
-    my $canvas;
+    my $canvas = $self->{canvas} = Wx::Panel->new($self, -1, wxDefaultPosition, [250,-1], wxTAB_TRAVERSAL);
+    EVT_PAINT($canvas, sub {
+        $self->_repaint_canvas;
+    });
     
     # main sizer
     my $top_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $top_sizer->Add($sbsizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
-    $top_sizer->Add($canvas, 1, wxEXPAND | wxALL, 0) if $canvas;
+    $top_sizer->Add($canvas, 1, wxEXPAND | wxALL, 10) if $canvas;
     
     $self->SetSizerAndFit($top_sizer);
     
@@ -187,10 +191,12 @@ sub _update_shape {
     if ($page_idx == SHAPE_RECTANGULAR) {
         return if grep !defined($self->{"_$_"}), qw(rect_size rect_origin);  # not loaded yet
         my ($x, $y) = @{$self->{_rect_size}};
+        return if !$x || !$y;  # empty strings
         my ($x0, $y0) = (0,0);
         my ($x1, $y1) = ($x,$y);
         {
             my ($dx, $dy) = @{$self->{_rect_origin}};
+            return if $dx eq '' || $dy eq '';  # empty strings
             $x0 -= $dx;
             $x1 -= $dx;
             $y0 -= $dy;
@@ -204,6 +210,7 @@ sub _update_shape {
         ];
     } elsif ($page_idx == SHAPE_CIRCULAR) {
         return if grep !defined($self->{"_$_"}), qw(diameter);  # not loaded yet
+        return if !$self->{_diameter};
         my $r = $self->{_diameter}/2;
         my $twopi = 2*PI;
         my $edges = 60;
@@ -222,8 +229,130 @@ sub _update_shape {
 
 sub _update_preview {
     my ($self) = @_;
+    $self->{canvas}->Refresh if $self->{canvas};
+}
+
+sub _repaint_canvas {
+    my ($self) = @_;
     
+    my $canvas = $self->{canvas};
+    my $dc = Wx::PaintDC->new($canvas);
+    my ($cw, $ch) = $canvas->GetSizeWH;
+    return if $cw == 0;  # when canvas is not rendered yet, size is 0,0
     
+    # turn $cw and $ch from sizes to max coordinates
+    $cw--;
+    $ch--;
+    
+    my $cbb = Slic3r::Geometry::BoundingBoxf->new_from_points([
+        Slic3r::Pointf->new(0, 0),
+        Slic3r::Pointf->new($cw, $ch),
+    ]);
+    
+    # leave space for origin point
+    $cbb->set_x_min($cbb->x_min + 2);
+    $cbb->set_y_max($cbb->y_max - 2);
+    
+    # leave space for origin label
+    $cbb->set_y_max($cbb->y_max - 10);
+    
+    # read new size
+    ($cw, $ch) = @{$cbb->size};
+    my $ccenter = $cbb->center;
+    
+    # get bounding box of bed shape in G-code coordinates
+    my $bed_shape = $self->{bed_shape};
+    my $bed_polygon = Slic3r::Polygon->new_scale(@$bed_shape);
+    my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($bed_shape);
+    $bb->merge_point(Slic3r::Pointf->new(0,0));  # origin needs to be in the visible area
+    my ($bw, $bh) = @{$bb->size};
+    my $bcenter = $bb->center;
+    
+    # calculate the scaling factor for fitting bed shape in canvas area
+    my $sfactor = min($cw/$bw, $ch/$bh);
+    my $shift = [
+        $ccenter->x - $bcenter->x * $sfactor,
+        $ccenter->y - $bcenter->y * $sfactor,  #-
+    ];
+    
+    # prepare function to convert G-code coordinates into pixels
+    my $to_pixel = sub {
+        my ($point) = @_;
+        
+        my $p = Slic3r::Pointf->new(@$point);
+        $p->scale($sfactor);
+        $p->translate(@$shift);
+        return [ $p->x + $cbb->x_min, $ch-$p->y + $cbb->y_min ];  #++
+    };
+    
+    # draw bed fill
+    {
+        $dc->SetPen(Wx::Pen->new(Wx::Colour->new(0,0,0), 1, wxSOLID));
+        $dc->SetBrush(Wx::Brush->new(Wx::Colour->new(255,255,255), wxSOLID));
+        $dc->DrawPolygon([ map $to_pixel->($_), @$bed_shape ], 0, 0);
+    }
+    
+    # draw grid
+    {
+        my $step = 10;  # 1cm grid
+        my @polylines = ();
+        for (my $x = $bb->x_min - ($bb->x_min % $step) + $step; $x < $bb->x_max; $x += $step) {
+            push @polylines, Slic3r::Polyline->new_scale([$x, $bb->y_min], [$x, $bb->y_max]);
+        }
+        for (my $y = $bb->y_min - ($bb->y_min % $step) + $step; $y < $bb->y_max; $y += $step) {
+            push @polylines, Slic3r::Polyline->new_scale([$bb->x_min, $y], [$bb->x_max, $y]);
+        }
+        @polylines = @{intersection_pl(\@polylines, [$bed_polygon])};
+        
+        $dc->SetPen(Wx::Pen->new(Wx::Colour->new(230,230,230), 1, wxSOLID));
+        $dc->DrawLine(map @{$to_pixel->([map unscale($_), @$_])}, @$_) for @polylines;
+    }
+    
+    # draw bed contour
+    {
+        $dc->SetPen(Wx::Pen->new(Wx::Colour->new(0,0,0), 1, wxSOLID));
+        $dc->SetBrush(Wx::Brush->new(Wx::Colour->new(255,255,255), wxTRANSPARENT));
+        $dc->DrawPolygon([ map $to_pixel->($_), @$bed_shape ], 0, 0);
+    }
+    
+    my $origin_px = $to_pixel->(Slic3r::Pointf->new(0,0));
+    
+    # draw axes
+    {
+        my $axes_len = 50;
+        my $arrow_len = 6;
+        my $arrow_angle = deg2rad(45);
+        $dc->SetPen(Wx::Pen->new(Wx::Colour->new(255,0,0), 2, wxSOLID));  # red
+        my $x_end = Slic3r::Pointf->new($origin_px->[X] + $axes_len, $origin_px->[Y]);
+        $dc->DrawLine(@$origin_px, @$x_end);
+        foreach my $angle (-$arrow_angle, +$arrow_angle) {
+            my $end = $x_end->clone;
+            $end->translate(-$arrow_len, 0);
+            $end->rotate($angle, $x_end);
+            $dc->DrawLine(@$x_end, @$end);
+        }
+        
+        $dc->SetPen(Wx::Pen->new(Wx::Colour->new(0,255,0), 2, wxSOLID));  # green
+        my $y_end = Slic3r::Pointf->new($origin_px->[X], $origin_px->[Y] - $axes_len);
+        $dc->DrawLine(@$origin_px, @$y_end);
+        foreach my $angle (-$arrow_angle, +$arrow_angle) {
+            my $end = $y_end->clone;
+            $end->translate(0, +$arrow_len);
+            $end->rotate($angle, $y_end);
+            $dc->DrawLine(@$y_end, @$end);
+        }
+    }
+    
+    # draw origin
+    {
+        $dc->SetPen(Wx::Pen->new(Wx::Colour->new(0,0,0), 1, wxSOLID));
+        $dc->SetBrush(Wx::Brush->new(Wx::Colour->new(0,0,0), wxSOLID));
+        $dc->DrawCircle(@$origin_px, 3);
+        
+        $dc->SetTextForeground(Wx::Colour->new(0,0,0));
+        $dc->SetFont(Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL));
+        $dc->DrawText("(0,0)", $origin_px->[X] + 1, $origin_px->[Y] + 2);
+    }
 }
 
 sub _init_shape_options_page {

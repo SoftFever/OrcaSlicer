@@ -268,6 +268,15 @@ Pointf::translate(double x, double y)
     this->y += y;
 }
 
+void
+Pointf::rotate(double angle, const Pointf &center)
+{
+    double cur_x = this->x;
+    double cur_y = this->y;
+    this->x = center.x + cos(angle) * (cur_x - center.x) - sin(angle) * (cur_y - center.y);
+    this->y = center.y + cos(angle) * (cur_y - center.y) + sin(angle) * (cur_x - center.x);
+}
+
 #ifdef SLIC3RXS
 
 REGISTER_CLASS(Pointf, "Pointf");

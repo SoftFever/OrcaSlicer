@@ -71,6 +71,7 @@ class Pointf
     explicit Pointf(coordf_t _x = 0, coordf_t _y = 0): x(_x), y(_y) {};
     void scale(double factor);
     void translate(double x, double y);
+    void rotate(double angle, const Pointf &center);
     
     #ifdef SLIC3RXS
     bool from_SV(SV* point_sv);

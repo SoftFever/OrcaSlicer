@@ -56,6 +56,10 @@ new_from_points(CLASS, points)
     double x_max() %code{% RETVAL = THIS->max.x; %};
     double y_min() %code{% RETVAL = THIS->min.y; %};
     double y_max() %code{% RETVAL = THIS->max.y; %};
+    void set_x_min(double val) %code{% THIS->min.x = val; %};
+    void set_x_max(double val) %code{% THIS->max.x = val; %};
+    void set_y_min(double val) %code{% THIS->min.y = val; %};
+    void set_y_max(double val) %code{% THIS->max.y = val; %};
     
 %{
 

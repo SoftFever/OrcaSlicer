@@ -85,11 +85,18 @@ Point::coincides_with(point_sv)
     ~Pointf();
     Clone<Pointf> clone()
         %code{% RETVAL = THIS; %};
+    SV* arrayref()
+        %code{% RETVAL = THIS->to_SV_pureperl(); %};
+    SV* pp()
+        %code{% RETVAL = THIS->to_SV_pureperl(); %};
     double x()
         %code{% RETVAL = THIS->x; %};
     double y()
         %code{% RETVAL = THIS->y; %};
     void translate(double x, double y);
+    void scale(double factor);
+    void rotate(double angle, Pointf* center)
+        %code{% THIS->rotate(angle, *center); %};
 };
 
 %name{Slic3r::Pointf3} class Pointf3 {

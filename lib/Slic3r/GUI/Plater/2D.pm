@@ -75,16 +75,16 @@ sub repaint {
     my $size = $self->GetSize;
     my @size = ($size->GetWidth, $size->GetHeight);
     
+    # draw grid
+    $dc->SetPen($self->{grid_pen});
+    $dc->DrawLine(map @$_, @$_) for @{$self->{grid}};
+    
     # draw bed
     {
         $dc->SetPen($self->{print_center_pen});
         $dc->SetBrush($self->{transparent_brush});
         $dc->DrawPolygon($self->scaled_points_to_pixel($self->{bed_polygon}, 1), 0, 0);
     }
-    
-    # draw grid
-    $dc->SetPen($self->{grid_pen});
-    $dc->DrawLine(map @$_, @$_) for @{$self->{grid}};
     
     # draw print center
     if (@{$self->{objects}} && $Slic3r::GUI::Settings->{_}{autocenter}) {
@@ -255,8 +255,8 @@ sub update_bed_size {
     
     # calculate the displacement needed to center bed
     $self->{bed_origin} = [
-        $self->GetSize->GetWidth/2  - (unscale($bb->x_max + $bb->x_min)/2 * $self->{scaling_factor}),
-        $canvas_h - ($self->GetSize->GetHeight/2 - (unscale($bb->y_max + $bb->y_min)/2 * $self->{scaling_factor})),
+        $canvas_w/2  - (unscale($bb->x_max + $bb->x_min)/2 * $self->{scaling_factor}),
+        $canvas_h - ($canvas_h/2 - (unscale($bb->y_max + $bb->y_min)/2 * $self->{scaling_factor})),
     ];
     
     # calculate print center
@@ -267,10 +267,10 @@ sub update_bed_size {
     {
         my $step = scale 10;  # 1cm grid
         my @polylines = ();
-        for (my $x = $bb->x_min + $step; $x < $bb->x_max; $x += $step) {
+        for (my $x = $bb->x_min - ($bb->x_min % $step) + $step; $x < $bb->x_max; $x += $step) {
             push @polylines, Slic3r::Polyline->new([$x, $bb->y_min], [$x, $bb->y_max]);
         }
-        for (my $y = $bb->y_min + $step; $y < $bb->y_max; $y += $step) {
+        for (my $y = $bb->y_min - ($bb->y_min % $step) + $step; $y < $bb->y_max; $y += $step) {
             push @polylines, Slic3r::Polyline->new([$bb->x_min, $y], [$bb->x_max, $y]);
         }
         @polylines = @{intersection_pl(\@polylines, [$polygon])};
