@@ -1,5 +1,6 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include <algorithm>
 
 namespace Slic3r {
 
@@ -511,7 +512,7 @@ Print::invalidate_step(PrintStep step)
     if (step == psSkirt) {
         this->invalidate_step(psBrim);
     } else if (step == psInitExtruders) {
-        for (PrintObjectPtrs::iterator object = this->objects.begin(); object != this->objects.end(); ++object) {
+        FOREACH_OBJECT(this, object) {
             (*object)->invalidate_step(posPerimeters);
             (*object)->invalidate_step(posSupportMaterial);
         }
@@ -531,6 +532,77 @@ Print::invalidate_all_steps()
         if (this->invalidate_step(*step)) invalidated = true;
     }
     return invalidated;
+}
+
+// returns 0-based indices of used extruders
+std::set<size_t>
+Print::extruders() const
+{
+    std::set<size_t> extruders;
+    
+    FOREACH_REGION(this, region) {
+        extruders.insert((*region)->config.perimeter_extruder - 1);
+        extruders.insert((*region)->config.infill_extruder - 1);
+    }
+    FOREACH_OBJECT(this, object) {
+        extruders.insert((*object)->config.support_material_extruder - 1);
+        extruders.insert((*object)->config.support_material_interface_extruder - 1);
+    }
+    
+    return extruders;
+}
+
+void
+Print::_simplify_slices(double distance)
+{
+    FOREACH_OBJECT(this, object) {
+        FOREACH_LAYER(*object, layer) {
+            (*layer)->slices.simplify(distance);
+            FOREACH_LAYERREGION(*layer, layerm) {
+                (*layerm)->slices.simplify(distance);
+            }
+        }
+    }
+}
+
+double
+Print::max_allowed_layer_height() const
+{
+    std::vector<double> nozzle_diameter;
+    
+    std::set<size_t> extruders = this->extruders();
+    for (std::set<size_t>::const_iterator e = extruders.begin(); e != extruders.end(); ++e) {
+        nozzle_diameter.push_back(this->config.nozzle_diameter.get_at(*e));
+    }
+    
+    return *std::max_element(nozzle_diameter.begin(), nozzle_diameter.end());
+}
+
+void
+Print::init_extruders()
+{
+    if (this->state.is_done(psInitExtruders)) return;
+    this->state.set_done(psInitExtruders);
+    
+    // enforce tall skirt if using ooze_prevention
+    // FIXME: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
+    if (this->config.ooze_prevention && this->extruders().size() > 1) {
+        this->config.skirt_height.value = -1;
+        if (this->config.skirts == 0) this->config.skirts.value = 1;
+    }
+    
+    this->state.set_done(psInitExtruders);
+}
+
+bool
+Print::has_support_material() const
+{
+    FOREACH_OBJECT(this, object) {
+        PrintObjectConfig &config = (*object)->config;
+        if (config.support_material || config.raft_layers > 0 || config.support_material_enforce_layers > 0)
+            return true;
+    }
+    return false;
 }
 
 

@@ -3,6 +3,26 @@
 
 namespace Slic3r {
 
+SurfaceCollection::operator Polygons() const
+{
+    Polygons polygons;
+    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        Polygons surface_p = surface->expolygon;
+        polygons.insert(polygons.end(), surface_p.begin(), surface_p.end());
+    }
+    return polygons;
+}
+
+SurfaceCollection::operator ExPolygons() const
+{
+    ExPolygons expp;
+    expp.reserve(this->surfaces.size());
+    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        expp.push_back(surface->expolygon);
+    }
+    return expp;
+}
+
 void
 SurfaceCollection::simplify(double tolerance)
 {

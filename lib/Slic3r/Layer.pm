@@ -39,24 +39,6 @@ sub regions {
     return [ map $self->get_region($_), 0..($self->region_count-1) ];
 }
 
-# merge all regions' slices to get islands
-sub make_slices {
-    my $self = shift;
-    
-    my $slices;
-    if (@{$self->regions} == 1) {
-        $slices = [ map $_->expolygon->clone, @{$self->regions->[0]->slices} ];
-    } else {
-        $slices = union_ex([ map $_->p, map @{$_->slices}, @{$self->regions} ]);
-    }
-    
-    # sort slices
-    $slices = [ @$slices[@{chained_path([ map $_->contour->first_point, @$slices ])}] ];
-    
-    $self->slices->clear;
-    $self->slices->append(@$slices);
-}
-
 sub merge_slices {
     my ($self) = @_;
     $_->merge_slices for @{$self->regions};

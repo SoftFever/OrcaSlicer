@@ -84,6 +84,8 @@ class Layer {
     size_t region_count();
     LayerRegion* get_region(int idx);
     LayerRegion* add_region(PrintRegion* print_region);
+    
+    void make_slices();
 
     protected:
     int _id;     // sequential number of layer, 0-based

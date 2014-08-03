@@ -173,7 +173,7 @@ sub slice {
     }
     
     # make sure all layers contain layer region objects for all regions
-    my $regions_count = $self->print->regions_count;
+    my $regions_count = $self->print->region_count;
     foreach my $layer (@{ $self->layers }) {
         $layer->region($_) for 0 .. ($regions_count-1);
     }
@@ -427,7 +427,7 @@ sub make_perimeters {
     # but we don't generate any extra perimeter if fill density is zero, as they would be floating
     # inside the object - infill_only_where_needed should be the method of choice for printing
     # hollow objects
-    for my $region_id (0 .. ($self->print->regions_count-1)) {
+    for my $region_id (0 .. ($self->print->region_count-1)) {
         my $region = $self->print->regions->[$region_id];
         my $region_perimeters = $region->config->perimeters;
         
@@ -555,7 +555,7 @@ sub infill {
         threads => $self->print->config->threads,
         items => sub {
             my @items = ();  # [layer_id, region_id]
-            for my $region_id (0 .. ($self->print->regions_count-1)) {
+            for my $region_id (0 .. ($self->print->region_count-1)) {
                 push @items, map [$_, $region_id], 0..($self->layer_count - 1);
             }
             @items;
@@ -627,7 +627,7 @@ sub detect_surfaces_type {
     my $self = shift;
     Slic3r::debugf "Detecting solid surfaces...\n";
     
-    for my $region_id (0 .. ($self->print->regions_count-1)) {
+    for my $region_id (0 .. ($self->print->region_count-1)) {
         for my $i (0 .. ($self->layer_count - 1)) {
             my $layerm = $self->get_layer($i)->regions->[$region_id];
         
@@ -885,7 +885,7 @@ sub bridge_over_infill {
 sub process_external_surfaces {
     my ($self) = @_;
     
-    for my $region_id (0 .. ($self->print->regions_count-1)) {
+    for my $region_id (0 .. ($self->print->region_count-1)) {
         $self->get_layer(0)->regions->[$region_id]->process_external_surfaces(undef);
         for my $i (1 .. ($self->layer_count - 1)) {
             $self->get_layer($i)->regions->[$region_id]->process_external_surfaces($self->get_layer($i-1));
@@ -898,7 +898,7 @@ sub discover_horizontal_shells {
     
     Slic3r::debugf "==> DISCOVERING HORIZONTAL SHELLS\n";
     
-    for my $region_id (0 .. ($self->print->regions_count-1)) {
+    for my $region_id (0 .. ($self->print->region_count-1)) {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->get_layer($i)->regions->[$region_id];
             
@@ -1048,7 +1048,7 @@ sub combine_infill {
     
     my @layer_heights = map $_->height, @{$self->layers};
     
-    for my $region_id (0 .. ($self->print->regions_count-1)) {
+    for my $region_id (0 .. ($self->print->region_count-1)) {
         my $region = $self->print->regions->[$region_id];
         my $every = $region->config->infill_every_layers;
         

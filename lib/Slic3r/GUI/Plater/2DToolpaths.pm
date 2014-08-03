@@ -135,7 +135,7 @@ sub set_z {
     my $interlaced = (defined first { $_->config->support_material } @{$print->objects})
         || (defined first { $_->config->infill_every_layers > 1 } @{$print->regions});
     
-    my $max_layer_height = $print->max_layer_height;
+    my $max_layer_height = $print->max_allowed_layer_height;
     
     my @layers = ();
     foreach my $object (@{$print->objects}) {

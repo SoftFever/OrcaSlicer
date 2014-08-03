@@ -10,6 +10,9 @@ class SurfaceCollection
 {
     public:
     Surfaces surfaces;
+    
+    operator Polygons() const;
+    operator ExPolygons() const;
     void simplify(double tolerance);
     void group(std::vector<SurfacesPtr> *retval);
 };

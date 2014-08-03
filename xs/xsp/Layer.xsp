@@ -60,6 +60,8 @@
     
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
+    
+    void make_slices();
 };
 
 %name{Slic3r::Layer::Support} class SupportLayer {

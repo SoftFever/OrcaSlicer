@@ -1,4 +1,7 @@
 #include "Layer.hpp"
+#include "ClipperUtils.hpp"
+#include "Geometry.hpp"
+#include "Print.hpp"
 
 
 namespace Slic3r {
@@ -106,6 +109,42 @@ Layer::delete_region(int idx)
     LayerRegion* item = *i;
     this->regions.erase(i);
     delete item;
+}
+
+// merge all regions' slices to get islands
+void
+Layer::make_slices()
+{
+    ExPolygons slices;
+    if (this->regions.size() == 1) {
+        // optimization: if we only have one region, take its slices
+        slices = this->regions.front()->slices;
+    } else {
+        Polygons slices_p;
+        FOREACH_LAYERREGION(this, layerm) {
+            Polygons region_slices_p = (*layerm)->slices;
+            slices_p.insert(slices_p.end(), region_slices_p.begin(), region_slices_p.end());
+        }
+        union_(slices_p, slices);
+    }
+    
+    this->slices.expolygons.clear();
+    this->slices.expolygons.reserve(slices.size());
+    
+    // prepare ordering points
+    Points ordering_points;
+    ordering_points.reserve(slices.size());
+    for (ExPolygons::const_iterator ex = slices.begin(); ex != slices.end(); ++ex)
+        ordering_points.push_back(ex->contour.first_point());
+    
+    // sort slices
+    std::vector<Points::size_type> order;
+    Slic3r::Geometry::chained_path(ordering_points, order);
+    
+    // populate slices vector
+    for (std::vector<Points::size_type>::const_iterator it = order.begin(); it != order.end(); ++it) {
+        this->slices.expolygons.push_back(slices[*it]);
+    }
 }
 
 

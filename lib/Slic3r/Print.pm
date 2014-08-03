@@ -148,13 +148,6 @@ sub apply_config {
     return $invalidated;
 }
 
-sub has_support_material {
-    my $self = shift;
-    return (first { $_->config->support_material } @{$self->objects})
-        || (first { $_->config->raft_layers > 0 } @{$self->objects})
-        || (first { $_->config->support_material_enforce_layers > 0 } @{$self->objects});
-}
-
 # caller is responsible for supplying models whose objects don't collide
 # and have explicit instance positions
 sub add_model_object {
@@ -311,58 +304,11 @@ sub validate {
     }
 }
 
-# 0-based indices of used extruders
-sub extruders {
-    my ($self) = @_;
-    
-    # initialize all extruder(s) we need
-    my @used_extruders = ();
-    foreach my $region (@{$self->regions}) {
-        push @used_extruders,
-            map $region->config->get("${_}_extruder")-1,
-            qw(perimeter infill);
-    }
-    foreach my $object (@{$self->objects}) {
-        push @used_extruders,
-            map $object->config->get("${_}_extruder")-1,
-            qw(support_material support_material_interface);
-    }
-    
-    my %h = map { $_ => 1 } @used_extruders;
-    return [ sort keys %h ];
-}
-
-sub init_extruders {
-    my $self = shift;
-    
-    return if $self->step_done(STEP_INIT_EXTRUDERS);
-    $self->set_step_started(STEP_INIT_EXTRUDERS);
-    
-    # enforce tall skirt if using ooze_prevention
-    # FIXME: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
-    if ($self->config->ooze_prevention && @{$self->extruders} > 1) {
-        $self->config->set('skirt_height', -1);
-        $self->config->set('skirts', 1) if $self->config->skirts == 0;
-    }
-    
-    $self->set_step_done(STEP_INIT_EXTRUDERS);
-}
-
 # this value is not supposed to be compared with $layer->id
 # since they have different semantics
 sub total_layer_count {
     my $self = shift;
     return max(map $_->total_layer_count, @{$self->objects});
-}
-
-sub regions_count {
-    my $self = shift;
-    return scalar @{$self->regions};
-}
-
-sub max_layer_height {
-    my ($self) = @_;
-    return max(@{$self->config->nozzle_diameter});
 }
 
 # the bounding box of objects placed in copies position
@@ -408,16 +354,6 @@ sub total_bounding_box {
 sub size {
     my $self = shift;
     return $self->bounding_box->size;
-}
-
-sub _simplify_slices {
-    my $self = shift;
-    my ($distance) = @_;
-    
-    foreach my $layer (map @{$_->layers}, @{$self->objects}) {
-        $layer->slices->simplify($distance);
-        $_->slices->simplify($distance) for @{$layer->regions};
-    }
 }
 
 sub process {

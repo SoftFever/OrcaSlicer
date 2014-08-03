@@ -135,7 +135,7 @@ sub process_layer {
         }
         
         # tweak region ordering to save toolchanges
-        my @region_ids = 0 .. ($self->print->regions_count-1);
+        my @region_ids = 0 .. ($self->print->region_count-1);
         if ($self->gcodegen->multiple_extruders) {
             my $last_extruder = $self->gcodegen->extruder;
             my $best_region_id = first { $self->print->regions->[$_]->config->perimeter_extruder-1 eq $last_extruder } @region_ids;
