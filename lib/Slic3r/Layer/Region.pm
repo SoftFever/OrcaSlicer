@@ -28,18 +28,6 @@ sub print   { return $_[0]->layer->print; }
 
 sub config  { return $_[0]->region->config; }
 
-sub flow {
-    my ($self, $role, $bridge, $width) = @_;
-    return $self->region->flow(
-        $role,
-        $self->layer->height,
-        $bridge // 0,
-        $self->layer->id == 0,
-        $width,
-        $self->object,
-    );
-}
-
 sub merge_slices {
     my ($self) = @_;
     
@@ -67,7 +55,7 @@ sub make_perimeters {
     my $ext_pspacing        = scale($ext_perimeter_flow->spacing_to($perimeter_flow));
     
     # overhang perimeters
-    my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, undef, $self->layer->object);
+    my $overhang_flow       = $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, -1, $self->layer->object);
     my $mm3_per_mm_overhang = $overhang_flow->mm3_per_mm;
     
     # solid infill

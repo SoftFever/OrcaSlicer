@@ -2,6 +2,7 @@
 #define slic3r_Layer_hpp_
 
 #include <myinit.h>
+#include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "ExPolygonCollection.hpp"
@@ -49,7 +50,9 @@ class LayerRegion
 
     // ordered collection of extrusion paths to fill surfaces
     ExtrusionEntityCollection fills;
-
+    
+    Flow flow(FlowRole role, bool bridge = false, double width = -1) const;
+    
     private:
     Layer *_layer;
     PrintRegion *_region;

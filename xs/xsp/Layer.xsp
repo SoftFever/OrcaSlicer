@@ -26,6 +26,9 @@
         %code%{ RETVAL = &THIS->perimeters; %};
     Ref<ExtrusionEntityCollection> fills()
         %code%{ RETVAL = &THIS->fills; %};
+    
+    Flow* flow(FlowRole role, bool bridge = false, double width = -1)
+        %code%{ RETVAL = new Flow(THIS->flow(role, bridge, width)); %};
 };
 
 %name{Slic3r::Layer} class Layer {

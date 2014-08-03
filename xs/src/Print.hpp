@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include <set>
 #include <vector>
+#include "Flow.hpp"
 #include "PrintConfig.hpp"
 #include "Point.hpp"
 #include "Layer.hpp"
@@ -13,6 +14,7 @@
 namespace Slic3r {
 
 class Print;
+class PrintObject;
 class ModelObject;
 
 
@@ -47,6 +49,7 @@ class PrintRegion
     PrintRegionConfig config;
 
     Print* print();
+    Flow flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const;
 
     private:
     Print* _print;

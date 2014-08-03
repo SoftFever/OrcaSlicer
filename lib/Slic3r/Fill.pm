@@ -209,7 +209,7 @@ sub make_fill {
             $h,
             $is_bridge,
             $layerm->id == 0,
-            undef,
+            -1,
             $layerm->object,
         );
         

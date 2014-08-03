@@ -737,20 +737,20 @@ sub write_gcode {
     my $layer_height = $first_object->config->layer_height;
     for my $region_id (0..$#{$self->regions}) {
         printf $fh "; external perimeters extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_EXTERNAL_PERIMETER, $layer_height, 0, 0, undef, $first_object)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_EXTERNAL_PERIMETER, $layer_height, 0, 0, -1, $first_object)->width;
         printf $fh "; perimeters extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 0, undef, $first_object)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 0, -1, $first_object)->width;
         printf $fh "; infill extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_INFILL, $layer_height, 0, 0, undef, $first_object)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_INFILL, $layer_height, 0, 0, -1, $first_object)->width;
         printf $fh "; solid infill extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_SOLID_INFILL, $layer_height, 0, 0, undef, $first_object)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_SOLID_INFILL, $layer_height, 0, 0, -1, $first_object)->width;
         printf $fh "; top infill extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_TOP_SOLID_INFILL, $layer_height, 0, 0, undef, $first_object)->width;
+            $self->regions->[$region_id]->flow(FLOW_ROLE_TOP_SOLID_INFILL, $layer_height, 0, 0, -1, $first_object)->width;
         printf $fh "; support material extrusion width = %.2fmm\n",
             $self->objects->[0]->support_material_flow->width
             if $self->has_support_material;
         printf $fh "; first layer extrusion width = %.2fmm\n",
-            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 1, undef, $self->objects->[0])->width
+            $self->regions->[$region_id]->flow(FLOW_ROLE_PERIMETER, $layer_height, 0, 1, -1, $self->objects->[0])->width
             if $self->regions->[$region_id]->config->first_layer_extrusion_width;
         print  $fh "\n";
     }

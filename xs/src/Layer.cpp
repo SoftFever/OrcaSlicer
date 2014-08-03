@@ -28,6 +28,19 @@ LayerRegion::region()
     return this->_region;
 }
 
+Flow
+LayerRegion::flow(FlowRole role, bool bridge, double width) const
+{
+    return this->_region->flow(
+        role,
+        this->_layer->height,
+        bridge,
+        this->_layer->id() == 0,
+        width,
+        *this->_layer->object()
+    );
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(LayerRegion, "Layer::Region");
 #endif
