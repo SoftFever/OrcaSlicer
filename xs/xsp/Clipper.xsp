@@ -3,7 +3,7 @@
 %{
 #include <myinit.h>
 #include "clipper.hpp"
-#include "ClipperUtils.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 %}
 
 %package{Slic3r::Geometry::Clipper};

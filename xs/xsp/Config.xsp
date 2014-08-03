@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "PrintConfig.hpp"
+#include "libslic3r/PrintConfig.hpp"
 %}
 
 %name{Slic3r::Config} class DynamicPrintConfig {

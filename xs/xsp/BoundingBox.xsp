@@ -2,8 +2,8 @@
 
 %{
 #include <myinit.h>
-#include "BoundingBox.hpp"
-#include "Point.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Point.hpp"
 %}
 
 %name{Slic3r::Geometry::BoundingBox} class BoundingBox {

@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "Geometry.hpp"
+#include "libslic3r/Geometry.hpp"
 %}
 
 

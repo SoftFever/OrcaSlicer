@@ -2,8 +2,8 @@
 
 %{
 #include <myinit.h>
-#include "Line.hpp"
-#include "Polyline.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Polyline.hpp"
 %}
 
 %name{Slic3r::Line} class Line {

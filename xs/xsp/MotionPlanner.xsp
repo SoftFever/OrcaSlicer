@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "MotionPlanner.hpp"
+#include "libslic3r/MotionPlanner.hpp"
 %}
 
 %name{Slic3r::MotionPlanner} class MotionPlanner {

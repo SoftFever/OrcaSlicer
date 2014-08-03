@@ -2,9 +2,9 @@
 
 %{
 #include <myinit.h>
-#include "BoundingBox.hpp"
-#include "ClipperUtils.hpp"
-#include "Polyline.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/Polyline.hpp"
 %}
 
 %name{Slic3r::Polyline} class Polyline {

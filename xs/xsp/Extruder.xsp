@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "Extruder.hpp"
+#include "libslic3r/Extruder.hpp"
 %}
 
 %name{Slic3r::Extruder} class Extruder {

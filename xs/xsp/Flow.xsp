@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "Flow.hpp"
+#include "libslic3r/Flow.hpp"
 %}
 
 %name{Slic3r::Flow} class Flow {

@@ -2,8 +2,8 @@
 
 %{
 #include <myinit.h>
-#include "Surface.hpp"
-#include "ClipperUtils.hpp"
+#include "libslic3r/Surface.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 %}
 
 %name{Slic3r::Surface} class Surface {

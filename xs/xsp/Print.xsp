@@ -2,8 +2,8 @@
 
 %{
 #include <myinit.h>
-#include "Print.hpp"
-#include "PlaceholderParser.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/PlaceholderParser.hpp"
 %}
 
 %package{Slic3r::Print::State};

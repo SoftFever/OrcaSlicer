@@ -2,8 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "Layer.hpp"
-#include "perlglue.hpp"
+#include "libslic3r/Layer.hpp"
 %}
 
 %name{Slic3r::Layer::Region} class LayerRegion {

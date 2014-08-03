@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "TriangleMesh.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 %}
 
 %name{Slic3r::TriangleMesh} class TriangleMesh {

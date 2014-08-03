@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "SurfaceCollection.hpp"
+#include "libslic3r/SurfaceCollection.hpp"
 %}
 
 %name{Slic3r::Surface::Collection} class SurfaceCollection {

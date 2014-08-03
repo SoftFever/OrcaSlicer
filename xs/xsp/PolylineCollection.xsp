@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "PolylineCollection.hpp"
+#include "libslic3r/PolylineCollection.hpp"
 %}
 
 %name{Slic3r::Polyline::Collection} class PolylineCollection {

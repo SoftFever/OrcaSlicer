@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "ExtrusionEntityCollection.hpp"
+#include "libslic3r/ExtrusionEntityCollection.hpp"
 %}
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {

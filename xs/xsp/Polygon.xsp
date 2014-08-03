@@ -2,9 +2,9 @@
 
 %{
 #include <myinit.h>
-#include "BoundingBox.hpp"
-#include "Polygon.hpp"
-#include "BoundingBox.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/BoundingBox.hpp"
 %}
 
 %name{Slic3r::Polygon} class Polygon {

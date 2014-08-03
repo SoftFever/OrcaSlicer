@@ -3,7 +3,7 @@
 %{
 #include <myinit.h>
 #include <vector>
-#include "PlaceholderParser.hpp"
+#include "libslic3r/PlaceholderParser.hpp"
 %}
 
 %name{Slic3r::GCode::PlaceholderParser} class PlaceholderParser {

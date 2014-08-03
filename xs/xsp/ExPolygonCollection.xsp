@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "ExPolygonCollection.hpp"
+#include "libslic3r/ExPolygonCollection.hpp"
 %}
 
 %name{Slic3r::ExPolygon::Collection} class ExPolygonCollection {
