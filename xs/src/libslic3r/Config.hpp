@@ -48,6 +48,7 @@ class ConfigOptionFloat : public ConfigOption
     double value;  // use double instead of float for preserving compatibility with values coming from Perl
     ConfigOptionFloat() : value(0) {};
     
+    operator float() const { return this->value; };
     operator double() const { return this->value; };
     
     std::string serialize() const {
