@@ -114,7 +114,7 @@ class ModelObject
 
     void invalidate_bounding_box();
 
-    //void raw_mesh(TriangleMesh* mesh) const;
+    void raw_mesh(TriangleMesh* mesh) const;
     //void mesh(TriangleMesh* mesh) const;
     //void instance_bounding_box(size_t instance_idx, BoundingBox* bb) const;
     //void center_around_origin();
@@ -149,6 +149,8 @@ class ModelVolume
     void material_id(t_model_material_id material_id);
     ModelMaterial* material() const;
     
+    ModelMaterial* assign_unique_material();
+    
     private:
     ModelObject* object;
     t_model_material_id _material_id;
@@ -166,7 +168,7 @@ class ModelInstance
     Pointf offset;              // in unscaled coordinates
     
     ModelObject* get_object() const { return this->object; };
-    void transform_mesh(TriangleMesh* mesh, bool dont_translate) const;
+    void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     void transform_polygon(Polygon* polygon) const;
     
     private:

@@ -277,7 +277,7 @@ TriangleMesh::split() const
 }
 
 void
-TriangleMesh::merge(const TriangleMesh* mesh)
+TriangleMesh::merge(const TriangleMesh &mesh)
 {
     // reset stats and metadata
     int number_of_facets = this->stl.stats.number_of_facets;
@@ -285,13 +285,13 @@ TriangleMesh::merge(const TriangleMesh* mesh)
     this->repaired = false;
     
     // update facet count and allocate more memory
-    this->stl.stats.number_of_facets = number_of_facets + mesh->stl.stats.number_of_facets;
+    this->stl.stats.number_of_facets = number_of_facets + mesh.stl.stats.number_of_facets;
     this->stl.stats.original_num_facets = this->stl.stats.number_of_facets;
     stl_reallocate(&this->stl);
     
     // copy facets
-    for (int i = 0; i < mesh->stl.stats.number_of_facets; i++) {
-        this->stl.facet_start[number_of_facets + i] = mesh->stl.facet_start[i];
+    for (int i = 0; i < mesh.stl.stats.number_of_facets; i++) {
+        this->stl.facet_start[number_of_facets + i] = mesh.stl.facet_start[i];
     }
     
     // update size

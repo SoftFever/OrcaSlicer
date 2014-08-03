@@ -107,6 +107,8 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->instances; %};
     
     void invalidate_bounding_box();
+    TriangleMesh* raw_mesh()
+        %code%{ RETVAL = new TriangleMesh(); THIS->raw_mesh(RETVAL); %};
 
     Ref<BoundingBoxf3> _bounding_box(BoundingBoxf3* new_bbox = NULL)
         %code{%
@@ -186,6 +188,8 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->modifier; %};
     void set_modifier(bool modifier)
         %code%{ THIS->modifier = modifier; %};
+    
+    ModelMaterial* assign_unique_material();
 };
 
 
@@ -206,4 +210,7 @@ ModelMaterial::attributes()
         %code%{ THIS->scaling_factor = val; %};
     void set_offset(Pointf *offset)
         %code%{ THIS->offset = *offset; %};
+    
+    void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
+    void transform_polygon(Polygon* polygon) const;
 };

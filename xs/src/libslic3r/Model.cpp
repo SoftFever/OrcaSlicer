@@ -312,6 +312,15 @@ ModelObject::invalidate_bounding_box()
     this->_bounding_box_valid = false;
 }
 
+void
+ModelObject::raw_mesh(TriangleMesh* mesh) const
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        if ((*v)->modifier) continue;
+        mesh->merge((*v)->mesh);
+    }
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelObject, "Model::Object");
 #endif
@@ -349,6 +358,15 @@ ModelVolume::material() const
     return this->object->get_model()->get_material(this->_material_id);
 }
 
+ModelMaterial*
+ModelVolume::assign_unique_material()
+{
+    Model* model = this->get_object()->get_model();
+    
+    this->_material_id = 1 + model->materials.size();
+    return model->add_material(this->_material_id);
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelVolume, "Model::Volume");
 #endif
@@ -361,6 +379,22 @@ ModelInstance::ModelInstance(ModelObject *object)
 ModelInstance::ModelInstance(ModelObject *object, const ModelInstance &other)
 :   object(object), rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset)
 {}
+
+void
+ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
+{
+    mesh->rotate_z(this->rotation);                 // rotate around mesh origin
+    mesh->scale(this->scaling_factor);              // scale around mesh origin
+    if (!dont_translate)
+        mesh->translate(this->offset.x, this->offset.y, 0);
+}
+
+void
+ModelInstance::transform_polygon(Polygon* polygon) const
+{
+    polygon->rotate(this->rotation, Point(0,0));    // rotate around polygon origin
+    polygon->scale(this->scaling_factor);           // scale around polygon origin
+}
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(ModelInstance, "Model::Instance");

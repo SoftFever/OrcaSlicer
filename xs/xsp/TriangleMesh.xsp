@@ -29,7 +29,8 @@
     void align_to_origin();
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split();
-    void merge(TriangleMesh* mesh);
+    void merge(TriangleMesh* mesh)
+        %code{% THIS->merge(*mesh); %};
     ExPolygons horizontal_projection()
         %code{% THIS->horizontal_projection(RETVAL); %};
     BoundingBoxf3* bounding_box()

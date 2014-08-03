@@ -384,14 +384,6 @@ sub add_instance {
     }
 }
 
-sub raw_mesh {
-    my $self = shift;
-    
-    my $mesh = Slic3r::TriangleMesh->new;
-    $mesh->merge($_->mesh) for grep !$_->modifier, @{ $self->volumes };
-    return $mesh;
-}
-
 sub raw_bounding_box {
     my $self = shift;
     
@@ -633,34 +625,6 @@ sub cut {
     $upper = undef if !@{$upper->volumes};
     $lower = undef if !@{$lower->volumes};
     return ($model, $upper, $lower);
-}
-
-package Slic3r::Model::Volume;
-
-sub assign_unique_material {
-    my ($self) = @_;
-    
-    my $model = $self->object->model;
-    my $material_id = 1 + $model->material_count;
-    $self->material_id($material_id);
-    return $model->set_material($material_id);
-}
-
-package Slic3r::Model::Instance;
-
-sub transform_mesh {
-    my ($self, $mesh, $dont_translate) = @_;
-    
-    $mesh->rotate($self->rotation, Slic3r::Point->new(0,0));   # rotate around mesh origin
-    $mesh->scale($self->scaling_factor);                       # scale around mesh origin
-    $mesh->translate(@{$self->offset}, 0) unless $dont_translate;
-}
-
-sub transform_polygon {
-    my ($self, $polygon) = @_;
-    
-    $polygon->rotate($self->rotation, Slic3r::Point->new(0,0));   # rotate around origin
-    $polygon->scale($self->scaling_factor);                       # scale around origin
 }
 
 1;
