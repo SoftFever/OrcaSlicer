@@ -34,6 +34,7 @@ has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'last_fan_speed'     => (is => 'rw', default => sub {0});
+has 'last_acceleration'  => (is => 'rw', default => sub {0});
 has 'wipe_path'          => (is => 'rw');
 
 sub set_extruders {
@@ -86,13 +87,6 @@ sub change_layer {
         $gcode .= sprintf "M73 P%s%s\n",
             int(99 * ($self->_layer_index / ($self->layer_count - 1))),
             ($self->config->gcode_comments ? ' ; update progress' : '');
-    }
-    if ($self->config->first_layer_acceleration) {
-        if ($layer->id == 0) {
-            $gcode .= $self->set_acceleration($self->config->first_layer_acceleration);
-        } elsif ($layer->id == 1) {
-            $gcode .= $self->set_acceleration($self->config->default_acceleration);
-        }
     }
     
     $gcode .= $self->move_z($layer->print_z);
@@ -220,7 +214,11 @@ sub extrude_loop {
     $speed //= -1;
     
     # extrude along the path
-    my $gcode = join '', map $self->extrude_path($_, $description, $speed), @paths;
+    my $gcode = join '', map $self->_extrude_path($_, $description, $speed), @paths;
+    
+    # reset acceleration
+    $gcode .= $self->set_acceleration($self->config->default_acceleration);
+    
     $self->wipe_path($paths[-1]->polyline->clone) if $self->enable_wipe;  # TODO: don't limit wipe to last path
     
     # make a little move inwards before leaving loop
@@ -250,6 +248,17 @@ sub extrude_loop {
 sub extrude_path {
     my ($self, $path, $description, $speed) = @_;
     
+    my $gcode = $self->_extrude_path($path, $description, $speed);
+    
+    # reset acceleration
+    $gcode .= $self->set_acceleration($self->config->default_acceleration);
+    
+    return $gcode;
+}
+
+sub _extrude_path {
+    my ($self, $path, $description, $speed) = @_;
+    
     $path->simplify(&Slic3r::SCALED_RESOLUTION);
     
     # go to first point of extrusion path
@@ -264,16 +273,20 @@ sub extrude_path {
     $gcode .= $self->unretract;
     
     # adjust acceleration
-    my $acceleration;
-    if (!$self->config->first_layer_acceleration || $self->layer->id != 0) {
-        if ($self->config->perimeter_acceleration && $path->is_perimeter) {
+    {
+        my $acceleration;
+        if ($self->config->first_layer_acceleration && $self->layer->id == 0) {
+            $acceleration = $self->config->first_layer_acceleration;
+        } elsif ($self->config->perimeter_acceleration && $path->is_perimeter) {
             $acceleration = $self->config->perimeter_acceleration;
         } elsif ($self->config->infill_acceleration && $path->is_fill) {
             $acceleration = $self->config->infill_acceleration;
         } elsif ($self->config->infill_acceleration && $path->is_bridge) {
             $acceleration = $self->config->bridge_acceleration;
+        } else {
+            $acceleration = $self->config->default_acceleration;
         }
-        $gcode .= $self->set_acceleration($acceleration) if $acceleration;
+        $gcode .= $self->set_acceleration($acceleration);
     }
     
     # calculate extrusion length per distance unit
@@ -328,10 +341,6 @@ sub extrude_path {
         my $path_time = $path_length / $F * 60;
         $self->elapsed_time($self->elapsed_time + $path_time);
     }
-    
-    # reset acceleration
-    $gcode .= $self->set_acceleration($self->config->default_acceleration)
-        if $acceleration && $self->config->default_acceleration;
     
     return $gcode;
 }
@@ -524,8 +533,10 @@ sub reset_e {
 
 sub set_acceleration {
     my ($self, $acceleration) = @_;
-    return "" if !$acceleration;
     
+    return "" if !$acceleration || $acceleration == $self->last_acceleration;
+    
+    $self->last_acceleration($acceleration);
     return sprintf "M204 S%s%s\n",
         $acceleration, ($self->config->gcode_comments ? ' ; adjust acceleration' : '');
 }
