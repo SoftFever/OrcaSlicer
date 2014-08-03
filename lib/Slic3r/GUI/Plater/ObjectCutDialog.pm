@@ -144,7 +144,11 @@ sub _update {
 sub perform_cut {
     my ($self) = @_;
     
-    my ($new_model, $upper_object, $lower_object) = $self->{model_object}->cut($self->{cut_options}{z});
+    # scale Z down to original size since we're using the transformed mesh for 3D preview
+    # and cut dialog but ModelObject::cut() needs Z without any instance transformation
+    my $z = $self->{cut_options}{z} / $self->{model_object}->instances->[0]->scaling_factor;
+    
+    my ($new_model, $upper_object, $lower_object) = $self->{model_object}->cut($z);
     $self->{new_model} = $new_model;
     $self->{new_model_objects} = [];
     if ($self->{cut_options}{keep_upper} && defined $upper_object) {
