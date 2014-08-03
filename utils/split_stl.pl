@@ -30,11 +30,16 @@ my %opt = ();
     $basename =~ s/\.stl$//i;
     
     my $part_count = 0;
-    foreach my $new_mesh ($model->mesh->split_mesh) {
+    my $mesh = $model->objects->[0]->volumes->[0]->mesh;
+    foreach my $new_mesh (@{$mesh->split}) {
+        $new_mesh->repair;
+        
         my $new_model = Slic3r::Model->new;
         $new_model
-            ->add_object(vertices   => $new_mesh->vertices)
-            ->add_volume(facets     => $new_mesh->facets);
+            ->add_object()
+            ->add_volume(mesh => $new_mesh);
+        
+        $new_model->add_default_instances;
         
         my $output_file = sprintf '%s_%02d.stl', $basename, ++$part_count;
         printf "Writing to %s\n", basename($output_file);
