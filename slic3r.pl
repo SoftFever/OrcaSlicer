@@ -8,6 +8,7 @@ BEGIN {
     use lib "$FindBin::Bin/lib";
 }
 
+use File::Basename qw(basename);
 use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
@@ -37,6 +38,7 @@ my %cli_options = ();
         'merge|m'               => \$opt{merge},
         'repair'                => \$opt{repair},
         'cut=f'                 => \$opt{cut},
+        'split'                 => \$opt{split},
         'info'                  => \$opt{info},
         
         'scale=f'               => \$opt{scale},
@@ -141,6 +143,23 @@ if (@ARGV) {  # slicing from command line
         exit;
     }
     
+    if ($opt{split}) {
+        foreach my $file (@ARGV) {
+            my $model = Slic3r::Model->read_from_file($file);
+            $model->add_default_instances;
+            my $mesh = $model->mesh;
+            $mesh->repair;
+            
+            my $part_count = 0;
+            foreach my $new_mesh (@{$mesh->split}) {
+                my $output_file = sprintf '%s_%02d.stl', $file, ++$part_count;
+                printf "Writing to %s\n", basename($output_file);
+                Slic3r::Format::STL->write_file($output_file, $new_mesh, binary => 1);
+            }
+        }
+        exit;
+    }
+    
     while (my $input_file = shift @ARGV) {
         my $model;
         if ($opt{merge}) {
@@ -232,6 +251,7 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
     --repair            Repair given STL files and save them as <name>_fixed.obj
     --cut <z>           Cut given input files at given Z (relative) and export
                         them as <name>_upper.stl and <name>_lower.stl
+    --split             Split the shells contained in given STL file into several STL files
     --info              Output information about the supplied file(s) and exit
     
 $j
