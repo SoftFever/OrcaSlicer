@@ -256,10 +256,6 @@ sub validate {
     # --nozzle-diameter
     die "Invalid value for --nozzle-diameter\n"
         if grep $_ < 0, @{$self->nozzle_diameter};
-    die "--layer-height can't be greater than --nozzle-diameter\n"
-        if grep $self->layer_height > $_, @{$self->nozzle_diameter};
-    die "First layer height can't be greater than --nozzle-diameter\n"
-        if grep $self->get_value('first_layer_height') > $_, @{$self->nozzle_diameter};
     
     # --perimeters
     die "Invalid value for --perimeters\n"

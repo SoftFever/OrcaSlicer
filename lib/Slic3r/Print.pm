@@ -300,6 +300,15 @@ sub validate {
             die "The Spiral Vase option can only be used when printing single material objects.\n";
         }
     }
+    
+    {
+        my $max_layer_height = max(
+            map { $_->config->layer_height, $_->config->get_value('first_layer_height') } @{$self->objects},
+        );
+        my $extruders = $self->extruders;
+        die "Layer height can't be greater than nozzle diameter\n"
+            if grep { $max_layer_height > $self->config->get_at('nozzle_diameter', $_) } @$extruders;
+    }
 }
 
 # 0-based indices of used extruders
