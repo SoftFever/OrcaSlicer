@@ -23,6 +23,7 @@
     void translate(double x, double y);
     double length();
     double atan2_();
+    double orientation();
     double direction();
     bool parallel_to(double angle);
     bool parallel_to_line(Line* line)

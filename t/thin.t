@@ -1,4 +1,4 @@
-use Test::More tests => 13;
+use Test::More tests => 14;
 use strict;
 use warnings;
 
@@ -8,7 +8,7 @@ BEGIN {
 }
 
 use Slic3r;
-use List::Util qw(first);
+use List::Util qw(first sum);
 use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon Y);
 use Slic3r::Test;
 
@@ -119,6 +119,18 @@ if (0) {
     is scalar(@$res), 1, 'medial axis of a L shape is a single polyline';
     my $len = unscale($res->[0]->length) + 20;  # 20 is the thickness of the expolygon, which is subtracted from the ends
     ok $len > 80*2 && $len < 100*2, 'medial axis has reasonable length';
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
+        [-203064906,-51459966],[-219312231,-51459966],[-219335477,-51459962],[-219376095,-51459962],[-219412047,-51459966],
+        [-219572094,-51459966],[-219624814,-51459962],[-219642183,-51459962],[-219656665,-51459966],[-220815482,-51459966],
+        [-220815482,-37738966],[-221117540,-37738966],[-221117540,-51762024],[-203064906,-51762024],
+    ));
+    my $polylines = $expolygon->medial_axis(819998, 102499.75);
+    
+    my $perimeter = $expolygon->contour->split_at_first_point->length;
+    ok sum(map $_->length, @$polylines) > $perimeter/2/4*3, 'medial axis has a reasonable length';
 }
 
 __END__

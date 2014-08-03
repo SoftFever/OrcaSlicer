@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 26;
+plan tests => 34;
 
 BEGIN {
     use FindBin;
@@ -24,6 +24,20 @@ use Slic3r::Geometry qw(rad2deg_dir angle3points PI);
     is line_atan([ [0, 0], [10, 10] ]),  (PI*1/4), 'NE atan2';
     is line_atan([ [0, 10], [10, 0] ]), -(PI*1/4), 'SE atan2';
     is line_atan([ [10, 0], [0, 10] ]),  (PI*3/4), 'NW atan2';
+}
+
+#==========================================================
+
+{
+    is line_orientation([ [0, 0],  [10, 0] ]),  (0),      'E orientation';
+    is line_orientation([ [0, 0],  [0, 10] ]),  (PI/2),   'N orientation';
+    is line_orientation([ [10, 0], [0, 0]  ]),  (PI),     'W orientation';
+    is line_orientation([ [0, 10], [0, 0]  ]),  (PI*3/2), 'S orientation';
+    
+    is line_orientation([ [0, 0], [10, 10] ]),  (PI*1/4), 'NE orientation';
+    is line_orientation([ [10, 0], [0, 10] ]),  (PI*3/4), 'NW orientation';
+    is line_orientation([ [10, 10], [0, 0] ]),  (PI*5/4), 'SW orientation';
+    is line_orientation([ [0, 10], [10, 0] ]),  (PI*7/4), 'SE orientation';
 }
 
 #==========================================================
@@ -65,6 +79,11 @@ use Slic3r::Geometry qw(rad2deg_dir angle3points PI);
 sub line_atan {
     my ($l) = @_;
     return Slic3r::Line->new(@$l)->atan2_;
+}
+
+sub line_orientation {
+    my ($l) = @_;
+    return Slic3r::Line->new(@$l)->orientation;
 }
 
 sub line_direction {

@@ -270,15 +270,14 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
         
         // calculate relative angle between the two boundary segments
-        Vector vec1 = segment1.vector();
-        Vector vec2 = segment2.vector();
-        double angle = atan2(vec1.x*vec2.y - vec1.y*vec2.x, vec1.x*vec2.x + vec1.y*vec2.y);
+        double angle = fabs(segment2.orientation() - segment1.orientation());
         
         // fabs(angle) ranges from 0 (collinear, same direction) to PI (collinear, opposite direction)
         // we're interested only in segments close to the second case (facing segments)
         // so we allow some tolerance (say, 30°)
-        if (fabs(angle) < PI - PI/3) return false;
-        
+        if (angle < PI*2/3 ) {
+            return false;
+        }
         
         // each vertex is equidistant to both cell segments
         // but such distance might differ between the two vertices;

@@ -31,6 +31,7 @@ class Line
     bool parallel_to(double angle) const;
     bool parallel_to(const Line &line) const;
     double atan2_() const;
+    double orientation() const;
     double direction() const;
     Vector vector() const;
     
