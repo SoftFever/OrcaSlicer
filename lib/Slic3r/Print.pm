@@ -247,7 +247,7 @@ sub validate {
                 my $convex_hull = convex_hull([ map @$_, @mesh_convex_hulls ]);
                 
                 # apply the same transformations we apply to the actual meshes when slicing them
-                $object->model_object->instances->[0]->transform_polygon($convex_hull, 1);
+                $object->model_object->instances->[0]->transform_polygon($convex_hull);
         
                 # align object to Z = 0 and apply XY shift
                 $convex_hull->translate(@{$object->_copies_shift});
