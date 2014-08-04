@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 103;
+use Test::More tests => 105;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -63,6 +63,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->serialize('extruder_offset'), '10x20,30x45', 'serialize points';
     $config->set_deserialize('extruder_offset', '20x10');
     is_deeply $config->get('extruder_offset'), [[20,10]], 'deserialize points';
+    $config->set_deserialize('extruder_offset', '0x0');
+    is_deeply $config->get('extruder_offset'), [[0,0]], 'deserialize points';
     {
         my @values = ([10,20]);
         $values[2] = [10,20];  # implicitely extend array; this is not the same as explicitely assigning undef to second item

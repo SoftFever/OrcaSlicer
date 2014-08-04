@@ -58,8 +58,8 @@ class ConfigOptionFloat : public ConfigOption
     };
     
     bool deserialize(std::string str) {
-        this->value = ::atof(str.c_str());
-        return true;
+        std::istringstream iss(str);
+        return iss >> this->value;
     };
 };
 
@@ -81,7 +81,10 @@ class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
-            this->values.push_back(::atof(item_str.c_str()));
+            std::istringstream iss(item_str);
+            double value;
+            iss >> value;
+            this->values.push_back(value);
         }
         return true;
     };
@@ -104,8 +107,8 @@ class ConfigOptionInt : public ConfigOption
     };
     
     bool deserialize(std::string str) {
-        this->value = ::atoi(str.c_str());
-        return true;
+        std::istringstream iss(str);
+        return iss >> this->value;
     };
 };
 
@@ -127,7 +130,10 @@ class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
-            this->values.push_back(::atoi(item_str.c_str()));
+            std::istringstream iss(item_str);
+            int value;
+            iss >> value;
+            this->values.push_back(value);
         }
         return true;
     };
@@ -212,8 +218,8 @@ class ConfigOptionPercent : public ConfigOption
     
     bool deserialize(std::string str) {
         // don't try to parse the trailing % since it's optional
-        int res = sscanf(str.c_str(), "%lf", &this->value);
-        return res == 1;
+        std::istringstream iss(str);
+        return iss >> this->value;
     };
 };
 
@@ -241,15 +247,9 @@ class ConfigOptionFloatOrPercent : public ConfigOption
     };
     
     bool deserialize(std::string str) {
-        if (str.find_first_of("%") != std::string::npos) {
-            int res = sscanf(str.c_str(), "%lf%%", &this->value);
-            if (res == 0) return false;
-            this->percent = true;
-        } else {
-            this->value = ::atof(str.c_str());
-            this->percent = false;
-        }
-        return true;
+        this->percent = str.find_first_of("%") != std::string::npos;
+        std::istringstream iss(str);
+        return iss >> this->value;
     };
 };
 
@@ -270,14 +270,12 @@ class ConfigOptionPoint : public ConfigOption
     };
     
     bool deserialize(std::string str) {
-        if (strncmp(str.c_str(), "0x", 2) == 0) {
-            this->point.x = 0;
-            int res = sscanf(str.c_str()+2, "%lf", &this->point.y);
-            return res == 1;
-        } else {
-            int res = sscanf(str.c_str(), "%lf%*1[,x]%lf", &this->point.x, &this->point.y);
-            return res == 2;
-        }
+        std::istringstream iss(str);
+        iss >> this->point.x;
+        iss.ignore(std::numeric_limits<std::streamsize>::max(), ',');
+        iss.ignore(std::numeric_limits<std::streamsize>::max(), 'x');
+        iss >> this->point.y;
+        return true;
     };
 };
 
@@ -302,16 +300,10 @@ class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
-            if (strncmp(point_str.c_str(), "0x", 2) == 0) {
-                // if string starts with "0x", only apply sscanf() to the second coordinate
-                // otherwise it would parse the string as a hex number
-                point.x = 0;
-                int res = sscanf(point_str.c_str()+2, "%lf", &point.y);
-                if (res != 1) return false;
-            } else {
-                int res = sscanf(point_str.c_str(), "%lfx%lf", &point.x, &point.y);
-                if (res != 2) return false;
-            }
+            std::istringstream iss(point_str);
+            iss >> point.x;
+            iss.ignore(std::numeric_limits<std::streamsize>::max(), 'x');
+            iss >> point.y;
             values.push_back(point);
         }
         this->values = values;
