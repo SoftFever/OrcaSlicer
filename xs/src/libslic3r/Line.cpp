@@ -112,7 +112,7 @@ double
 Line::direction() const
 {
     double atan2 = this->atan2_();
-    return (atan2 == PI) ? 0
+    return (fabs(atan2 - PI) < EPSILON) ? 0
         : (atan2 < 0) ? (atan2 + PI)
         : atan2;
 }
