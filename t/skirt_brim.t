@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 4;
 use strict;
 use warnings;
 
@@ -9,6 +9,7 @@ BEGIN {
 
 use List::Util qw(first);
 use Slic3r;
+use Slic3r::Geometry qw(unscale convex_hull);
 use Slic3r::Test;
 
 {
@@ -76,6 +77,51 @@ use Slic3r::Test;
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     ok Slic3r::Test::gcode($print), 'successful G-code generation when skirt is smaller than brim width';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', 0.4);
+    $config->set('skirts', 1);
+    $config->set('skirt_distance', 0);
+    $config->set('support_material_speed', 99);
+    $config->set('perimeter_extruder', 1);
+    $config->set('support_material_extruder', 2);
+    $config->set('cooling', 0);                     # to prevent speeds to be altered
+    $config->set('first_layer_speed', '100%');      # to prevent speeds to be altered
+    
+    my $print = Slic3r::Test::init_print('overhang', config => $config);
+    $print->process;
+    
+    # we enable support material after skirt has been generated
+    $config->set('support_material', 1);
+    $print->apply_config($config);
+    
+    my $skirt_length = 0;
+    my @extrusion_points = ();
+    my $tool = undef;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif (defined $self->Z && $self->Z == $config->first_layer_height) {
+            # we're on first layer
+            if ($info->{extruding} && $info->{dist_XY} > 0) {
+                my $speed = ($args->{F} // $self->F) / 60;
+                if ($speed == $config->support_material_speed && $tool == $config->perimeter_extruder-1) {
+                    # skirt uses support material speed but first object's extruder
+                    $skirt_length += $info->{dist_XY};
+                } else {
+                    push @extrusion_points, my $point = Slic3r::Point->new_scale($args->{X}, $args->{Y});
+                }
+            }
+        }
+    });
+    my $convex_hull = convex_hull(\@extrusion_points);
+    my $hull_perimeter = unscale($convex_hull->split_at_first_point->length);
+    ok $skirt_length > $hull_perimeter, 'skirt lenght is large enough to contain object with support';
 }
 
 __END__

@@ -206,7 +206,7 @@ sub add_facet {
 package Slic3r::Test::Print;
 use Moo;
 
-has 'print'     => (is => 'ro', required => 1);
+has 'print'     => (is => 'ro', required => 1, handles => [qw(process apply_config)]);
 has 'models'    => (is => 'ro', required => 1);
 
 1;

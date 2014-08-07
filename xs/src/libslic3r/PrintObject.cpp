@@ -228,6 +228,9 @@ PrintObject::invalidate_step(PrintObjectStep step)
     } else if (step == posSlice) {
         this->invalidate_step(posPerimeters);
         this->invalidate_step(posSupportMaterial);
+    } else if (step == posSupportMaterial) {
+        this->_print->invalidate_step(psSkirt);
+        this->_print->invalidate_step(psBrim);
     }
     
     return invalidated;
