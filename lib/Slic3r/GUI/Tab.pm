@@ -220,6 +220,7 @@ sub on_select_preset {
             ? $self->{btn_delete_preset}->Disable
             : $self->{btn_delete_preset}->Enable;
         
+        $self->_update;
         $self->on_preset_loaded;
         $self->reload_config;
         
