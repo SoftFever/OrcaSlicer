@@ -119,7 +119,7 @@ sub new {
     my ($class, %args) = @_;
     
     my $self = $class->_new(
-        @args{qw(width spacing nozzle_diameter)},
+        @args{qw(width height nozzle_diameter)},
     );
     $self->set_bridge($args{bridge} // 0);
     return $self;
