@@ -167,8 +167,10 @@ curveType specifies which lines to print, 1 for vertical lines
 sub makeNormalisedGrid {
     my ($z, $gridWidth, $gridHeight, $curveType) = @_;
     
-    # offset required to create a regular octagram
-    my $octagramGap = 1 / (1 + sqrt(2));
+    ## offset required to create a regular octagram
+    ## my $octagramGap = 1 / (1 + sqrt(2));
+    
+    my $octagramGap = 1;
     
     # sawtooth wave function for range f($z) = [-$octagramGap .. $octagramGap]
     my $offset = (abs((fmod($z * sqrt(2), 4)) - 2) - 1) * $octagramGap;
