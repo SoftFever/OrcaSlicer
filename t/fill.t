@@ -46,7 +46,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     );
     my $flow = Slic3r::Flow->new(
         width           => 0.69,
-        spacing         => 0.69,
+        height          => 0.4,
         nozzle_diameter => 0.50,
     );
     foreach my $angle (0, 45) {
@@ -70,13 +70,13 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         );
         my $flow = Slic3r::Flow->new(
             width           => $flow_spacing,
-            spacing         => $flow_spacing,
+            height          => 0.4,
             nozzle_diameter => $flow_spacing,
         );
         my ($params, @paths) = $filler->fill_surface(
             $surface,
             flow            => $flow,
-            layer_height    => 0.4,
+            layer_height    => $flow->height,
             density         => $density // 1,
         );
         

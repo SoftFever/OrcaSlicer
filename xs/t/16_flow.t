@@ -20,7 +20,7 @@ use Test::More tests => 2;
 {
     my $flow = Slic3r::Flow->new(
         width               => 1,
-        spacing             => 0.95,
+        height              => 0.4,
         nozzle_diameter     => 0.5,
     );
     isa_ok $flow, 'Slic3r::Flow', 'new';
