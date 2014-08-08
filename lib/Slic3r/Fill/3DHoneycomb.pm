@@ -23,7 +23,7 @@ sub fill_surface {
             $distance,
             ceil($size->x / $distance),
             ceil($size->y / $distance),  #//
-            ($self->layer_id % 2) + 1,
+            (($self->layer_id / $surface->thickness_layers) % 2) + 1,
         );
     
     # move pattern in place
