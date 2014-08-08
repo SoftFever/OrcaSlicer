@@ -186,10 +186,11 @@ sub makeNormalisedGrid {
     my ($z, $gridWidth, $gridHeight, $curveType) = @_;
     
     ## offset required to create a regular octagram
-    my $octagramGap = 3/4;
+    my $octagramGap = 0.5;
     
     # sawtooth wave function for range f($z) = [-$octagramGap .. $octagramGap]
-    my $wave = abs(fmod($z, 2) - 1)*2 - 1;
+    my $a = sqrt(2);  # period
+    my $wave = abs(fmod($z, $a) - $a/2)/$a*4 - 1;
     my $offset = $wave * $octagramGap;
     
     my @points = ();
