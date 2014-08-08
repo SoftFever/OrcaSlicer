@@ -10,11 +10,19 @@ use Slic3r::Geometry::Clipper qw(intersection_pl);
 sub fill_surface {
     my ($self, $surface, %params) = @_;
     
+    # use bridge flow since most of this pattern hangs in air
+    my $flow = Slic3r::Flow->new(
+        width               => $params{flow}->width,
+        height              => $params{flow}->height,
+        nozzle_diameter     => $params{flow}->nozzle_diameter,
+        bridge              => 1,
+    );
+    
     my $expolygon = $surface->expolygon;
     my $bb = $expolygon->bounding_box;
     my $size = $bb->size;
     
-    my $distance = $params{flow}->scaled_spacing / $params{density};
+    my $distance = $flow->scaled_spacing / $params{density};
     
     # generate pattern
     my @polylines = map Slic3r::Polyline->new(@$_),
@@ -53,7 +61,7 @@ sub fill_surface {
     }
     
     # TODO: return ExtrusionLoop objects to get better chained paths
-    return { flow => $params{flow} }, @polylines;
+    return { flow => $flow}, @polylines;
 }
 
 
