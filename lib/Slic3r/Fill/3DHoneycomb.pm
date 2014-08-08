@@ -24,6 +24,16 @@ sub fill_surface {
     
     my $distance = $flow->scaled_spacing / $params{density};
     
+    # align bounding box to a multiple of our honeycomb grid
+    {
+        my $min = $bb->min_point;
+        $min->translate(
+            -($bb->x_min % $distance),
+            -($bb->y_min % $distance),
+        );
+        $bb->merge_point($min);
+    }
+    
     # generate pattern
     my @polylines = map Slic3r::Polyline->new(@$_),
         makeGrid(
@@ -176,9 +186,9 @@ sub makeNormalisedGrid {
     my ($z, $gridWidth, $gridHeight, $curveType) = @_;
     
     ## offset required to create a regular octagram
-    ## my $octagramGap = 1 / (1 + sqrt(2));
+    my $octagramGap = 1 / (1 + sqrt(2));
     
-    my $octagramGap = 1;
+    # my $octagramGap = 1;
     
     # sawtooth wave function for range f($z) = [-$octagramGap .. $octagramGap]
     my $offset = (abs((fmod($z * sqrt(2), 4)) - 2) - 1) * $octagramGap;
