@@ -464,10 +464,15 @@ sub retract {
             # TODO: add regression test
             $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $self->extruder->retract_speed_mm_min, $comment);
         }
+        $gcode .= $self->reset_e;
     } elsif ($self->config->use_firmware_retraction) {
         $gcode .= "G10 ; retract\n";
     } else {
         $gcode .= $self->G1(@$retract);
+    
+        # reset extrusion distance during retracts
+        # this makes sure we leave sufficient precision in the firmware
+        $gcode .= $self->reset_e;
     }
     if (!$self->lifted) {
         if (defined $params{move_z} && $self->config->retract_lift->[0] > 0) {
@@ -481,10 +486,6 @@ sub retract {
     $self->extruder->set_retracted($self->extruder->retracted + $length);
     $self->extruder->set_restart_extra($restart_extra);
     $self->lifted($self->config->retract_lift->[0]) if $lift;
-    
-    # reset extrusion distance during retracts
-    # this makes sure we leave sufficient precision in the firmware
-    $gcode .= $self->reset_e;
     
     $gcode .= "M103 ; extruder off\n" if $self->config->gcode_flavor eq 'makerware';
     
@@ -506,6 +507,7 @@ sub unretract {
     if ($to_unretract) {
         if ($self->config->use_firmware_retraction) {
             $gcode .= "G11 ; unretract\n";
+            $gcode .= $self->reset_e;
         } elsif ($self->config->get_extrusion_axis) {
             # use G1 instead of G0 because G0 will blend the restart with the previous travel move
             $gcode .= sprintf "G1 %s%.5f F%.3f",
