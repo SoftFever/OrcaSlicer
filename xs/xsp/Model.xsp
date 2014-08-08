@@ -56,6 +56,7 @@
     // void arrange_objects(coordf_t distance, const BoundingBox &bb);
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances() const;
+    bool add_default_instances();
     // void bounding_box(BoundingBox* bb) const;
     // void center_instances_around_point(const Pointf &point);
     // void align_instances_to_origin();
@@ -163,6 +164,9 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->origin_translation; %};
     void set_origin_translation(Pointf* point)
         %code%{ THIS->origin_translation = *point; %};
+    
+    bool needed_repair() const;
+    int facets_count();
 };
 
 

@@ -38,6 +38,12 @@
             RETVAL = new BoundingBoxf3();
             THIS->bounding_box(RETVAL);
         %};
+    Pointf3* center()
+        %code{%
+            BoundingBoxf3 bb;
+            THIS->bounding_box(&bb);
+            RETVAL = new Pointf3(bb.center());
+        %};
     int facets_count()
         %code{% RETVAL = THIS->stl.stats.number_of_facets; %};
     void reset_repair_stats();

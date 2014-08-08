@@ -158,21 +158,6 @@ sub _arrange {
     );
 }
 
-# makes sure all objects have at least one instance
-sub add_default_instances {
-    my ($self) = @_;
-    
-    # apply a default position to all objects not having one
-    my $added = 0;
-    foreach my $object (@{$self->objects}) {
-        if ($object->instances_count == 0) {
-            $object->add_instance(offset => Slic3r::Pointf->new(0,0));
-            $added = 1;
-        }
-    }
-    return $added;
-}
-
 # this returns the bounding box of the *transformed* instances
 sub bounding_box {
     my $self = shift;
@@ -533,16 +518,6 @@ sub unique_materials {
     $materials{ $_->material_id } = 1
         for grep { defined $_->material_id } @{$self->volumes};
     return sort keys %materials;
-}
-
-sub facets_count {
-    my $self = shift;
-    return sum(map $_->mesh->facets_count, grep !$_->modifier, @{$self->volumes});
-}
-
-sub needed_repair {
-    my $self = shift;
-    return (first { !$_->mesh->needed_repair } grep !$_->modifier, @{$self->volumes}) ? 0 : 1;
 }
 
 sub mesh_stats {

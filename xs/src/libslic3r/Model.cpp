@@ -158,6 +158,21 @@ Model::has_objects_with_no_instances() const
     return false;
 }
 
+// makes sure all objects have at least one instance
+bool
+Model::add_default_instances()
+{
+    bool added = false;
+    // apply a default position to all objects not having one
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        if ((*o)->instances.empty()) {
+            (*o)->add_instance();
+            added = true;
+        }
+    }
+    return true;
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Model, "Model");
 #endif
@@ -319,6 +334,27 @@ ModelObject::raw_mesh(TriangleMesh* mesh) const
         if ((*v)->modifier) continue;
         mesh->merge((*v)->mesh);
     }
+}
+
+size_t
+ModelObject::facets_count() const
+{
+    size_t num = 0;
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        if ((*v)->modifier) continue;
+        num += (*v)->mesh.stl.stats.number_of_facets;
+    }
+    return num;
+}
+
+bool
+ModelObject::needed_repair() const
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        if ((*v)->modifier) continue;
+        if ((*v)->mesh.needed_repair()) return true;
+    }
+    return false;
 }
 
 #ifdef SLIC3RXS

@@ -53,6 +53,7 @@ class Model
     // void arrange_objects(coordf_t distance, const BoundingBox &bb);
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances() const;
+    bool add_default_instances();
     // void bounding_box(BoundingBox* bb) const;
     // void align_to_origin();
     // void center_instances_around_point(const Pointf &point);
@@ -121,8 +122,8 @@ class ModelObject
     //void translate(coordf_t x, coordf_t y, coordf_t z);
     //size_t materials_count() const;
     //void unique_materials(std::vector<t_model_material_id>* materials) const;
-    //size_t facets_count() const;
-    //bool needed_repair() const;
+    size_t facets_count() const;
+    bool needed_repair() const;
     
     private:
     Model* model;

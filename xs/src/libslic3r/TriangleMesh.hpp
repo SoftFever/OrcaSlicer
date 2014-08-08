@@ -45,6 +45,7 @@ class TriangleMesh
     void convex_hull(Polygon* hull);
     void bounding_box(BoundingBoxf3* bb) const;
     void reset_repair_stats();
+    bool needed_repair() const;
     stl_file stl;
     bool repaired;
     
