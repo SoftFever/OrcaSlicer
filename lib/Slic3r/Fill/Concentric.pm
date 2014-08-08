@@ -37,7 +37,7 @@ sub fill_surface {
     # where the perimeter/infill spacing should be equal to any other loop spacing
     my @loops = my @last = @{offset(\@$expolygon, -&Slic3r::INFILL_OVERLAP_OVER_SPACING * $min_spacing / 2)};
     while (@last) {
-        push @loops, @last = @{offset2(\@last, -1.5*$distance,  +0.5*$distance)};
+        push @loops, @last = @{offset2(\@last, -($distance + 0.5*$min_spacing), +0.5*$min_spacing)};
     }
     
     # generate paths from the outermost to the innermost, to avoid 
