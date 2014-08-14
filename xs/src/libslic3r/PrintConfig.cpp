@@ -879,7 +879,7 @@ PrintConfigDef::build_def() {
 
     Options["toolchange_gcode"].type = coString;
     Options["toolchange_gcode"].label = "Tool change G-code";
-    Options["toolchange_gcode"].tooltip = "This custom code is inserted at every extruder change. Note that you can use placeholder variables for all Slic3r settings as well as [previous_extruder] and [next_extruder].";
+    Options["toolchange_gcode"].tooltip = "This custom code is inserted right before every extruder change. Note that you can use placeholder variables for all Slic3r settings as well as [previous_extruder] and [next_extruder].";
     Options["toolchange_gcode"].cli = "toolchange-gcode=s";
     Options["toolchange_gcode"].multiline = true;
     Options["toolchange_gcode"].full_width = true;
