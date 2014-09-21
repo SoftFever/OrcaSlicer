@@ -565,15 +565,19 @@ sub increase {
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled
+    $self->stop_background_process;
     if ($Slic3r::GUI::Settings->{_}{autocenter}) {
         $self->arrange;
     } else {
         $self->update;
     }
+    $self->schedule_background_process;
 }
 
 sub decrease {
     my $self = shift;
+    
+    $self->stop_background_process;
     
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
@@ -590,6 +594,7 @@ sub decrease {
         $self->{list}->Select($obj_idx, 1);
     }
     $self->update;
+    $self->schedule_background_process;
 }
 
 sub rotate {
@@ -695,7 +700,7 @@ sub changescale {
         
         my $versor = [1,1,1];
         $versor->[$axis] = $scale/100;
-        $model_object->scale_xyz($versor);
+        $model_object->scale_xyz(Slic3r::Pointf3->new(@$versor));
         $self->make_thumbnail($obj_idx);
     } else {
         # max scale factor should be above 2540 to allow importing files exported in inches

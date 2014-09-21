@@ -71,7 +71,6 @@ use Slic3r::Print::Object;
 use Slic3r::Print::Simple;
 use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
-use Slic3r::TriangleMesh;
 our $build = eval "use Slic3r::Build; 1";
 use Thread::Semaphore;
 
@@ -178,6 +177,7 @@ sub thread_cleanup {
     *Slic3r::Flow::DESTROY                  = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
+    *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf3::DESTROY = sub {};
     *Slic3r::Line::DESTROY                  = sub {};
     *Slic3r::Model::DESTROY                 = sub {};

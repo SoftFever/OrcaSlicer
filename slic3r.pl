@@ -178,7 +178,7 @@ if (@ARGV) {  # slicing from command line
             $opt{duplicate_grid} = [ split /[,x]/, $opt{duplicate_grid}, 2 ];
         }
         if (defined $opt{print_center}) {
-            $opt{print_center} = [ split /[,x]/, $opt{print_center}, 2 ];
+            $opt{print_center} = Slic3r::Pointf->new(split /[,x]/, $opt{print_center}, 2);
         }
         
         my $sprint = Slic3r::Print::Simple->new(
@@ -186,7 +186,7 @@ if (@ARGV) {  # slicing from command line
             rotate          => $opt{rotate}         // 0,
             duplicate       => $opt{duplicate}      // 1,
             duplicate_grid  => $opt{duplicate_grid} // [1,1],
-            print_center    => $opt{print_center}   // [100,100],
+            print_center    => $opt{print_center}   // Slic3r::Pointf->new(100,100),
             status_cb       => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;

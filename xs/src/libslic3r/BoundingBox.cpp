@@ -16,6 +16,7 @@ BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &poin
         this->max.x = std::max(it->x, this->max.x);
         this->max.y = std::max(it->y, this->max.y);
     }
+    this->defined = true;
 }
 template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
 template BoundingBoxBase<Pointf>::BoundingBoxBase(const std::vector<Pointf> &points);
@@ -80,10 +81,15 @@ template void BoundingBoxBase<Pointf3>::scale(double factor);
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const PointClass &point)
 {
-    this->min.x = std::min(point.x, this->min.x);
-    this->min.y = std::min(point.y, this->min.y);
-    this->max.x = std::max(point.x, this->max.x);
-    this->max.y = std::max(point.y, this->max.y);
+    if (this->defined) {
+        this->min.x = std::min(point.x, this->min.x);
+        this->min.y = std::min(point.y, this->min.y);
+        this->max.x = std::max(point.x, this->max.x);
+        this->max.y = std::max(point.y, this->max.y);
+    } else {
+        this->min = this->max = point;
+        this->defined = true;
+    }
 }
 template void BoundingBoxBase<Point>::merge(const Point &point);
 template void BoundingBoxBase<Pointf>::merge(const Pointf &point);
@@ -91,10 +97,16 @@ template void BoundingBoxBase<Pointf>::merge(const Pointf &point);
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
 {
-    this->min.x = std::min(bb.min.x, this->min.x);
-    this->min.y = std::min(bb.min.y, this->min.y);
-    this->max.x = std::max(bb.max.x, this->max.x);
-    this->max.y = std::max(bb.max.y, this->max.y);
+    if (this->defined) {
+        this->min.x = std::min(bb.min.x, this->min.x);
+        this->min.y = std::min(bb.min.y, this->min.y);
+        this->max.x = std::max(bb.max.x, this->max.x);
+        this->max.y = std::max(bb.max.y, this->max.y);
+    } else {
+        this->min = bb.min;
+        this->max = bb.max;
+        this->defined = true;
+    }
 }
 template void BoundingBoxBase<Point>::merge(const BoundingBoxBase<Point> &bb);
 template void BoundingBoxBase<Pointf>::merge(const BoundingBoxBase<Pointf> &bb);
@@ -102,18 +114,22 @@ template void BoundingBoxBase<Pointf>::merge(const BoundingBoxBase<Pointf> &bb);
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const PointClass &point)
 {
+    if (this->defined) {
+        this->min.z = std::min(point.z, this->min.z);
+        this->max.z = std::max(point.z, this->max.z);
+    }
     BoundingBoxBase<PointClass>::merge(point);
-    this->min.z = std::min(point.z, this->min.z);
-    this->max.z = std::max(point.z, this->max.z);
 }
 template void BoundingBox3Base<Pointf3>::merge(const Pointf3 &point);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const BoundingBox3Base<PointClass> &bb)
 {
+    if (this->defined) {
+        this->min.z = std::min(bb.min.z, this->min.z);
+        this->max.z = std::max(bb.max.z, this->max.z);
+    }
     BoundingBoxBase<PointClass>::merge(bb);
-    this->min.z = std::min(bb.min.z, this->min.z);
-    this->max.z = std::max(bb.max.z, this->max.z);
 }
 template void BoundingBox3Base<Pointf3>::merge(const BoundingBox3Base<Pointf3> &bb);
 

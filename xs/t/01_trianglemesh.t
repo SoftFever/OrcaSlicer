@@ -40,7 +40,7 @@ my $cube = {
     $m->scale(2);
     ok abs($m->stats->{volume} - 40*40*40) < 1E-2, 'scale';
     
-    $m->scale_xyz([2,1,1]);
+    $m->scale_xyz(Slic3r::Pointf3->new(2,1,1));
     ok abs($m->stats->{volume} - 2*40*40*40) < 1E-2, 'scale_xyz';
     
     $m->translate(5,10,0);
@@ -51,7 +51,7 @@ my $cube = {
     
     is_deeply $m->size, [80,40,40], 'size';
     
-    $m->scale_xyz([0.5,1,1]);
+    $m->scale_xyz(Slic3r::Pointf3->new(0.5,1,1));
     $m->rotate(45, Slic3r::Point->new(20,20));
     ok abs($m->size->[0] - sqrt(2)*40) < 1E-4, 'rotate';
     

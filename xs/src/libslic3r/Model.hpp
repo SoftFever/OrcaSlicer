@@ -53,11 +53,13 @@ class Model
     // void arrange_objects(coordf_t distance, const BoundingBox &bb);
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances() const;
-    // void bounding_box(BoundingBox* bb) const;
-    // void align_to_origin();
-    // void center_instances_around_point(const Pointf &point);
-    // void translate(coordf_t x, coordf_t y, coordf_t z);
-    // void mesh(TriangleMesh* mesh) const;
+    bool add_default_instances();
+    void bounding_box(BoundingBoxf3* bb);
+    void center_instances_around_point(const Pointf &point);
+    void align_instances_to_origin();
+    void translate(coordf_t x, coordf_t y, coordf_t z);
+    void mesh(TriangleMesh* mesh) const;
+    void raw_mesh(TriangleMesh* mesh) const;
     // void split_meshes();
     // std::string get_material_name(t_model_material_id material_id);
 
@@ -112,17 +114,21 @@ class ModelObject
     void delete_last_instance();
     void clear_instances();
 
+    void bounding_box(BoundingBoxf3* bb);
     void invalidate_bounding_box();
 
+    void mesh(TriangleMesh* mesh) const;
     void raw_mesh(TriangleMesh* mesh) const;
-    //void mesh(TriangleMesh* mesh) const;
-    //void instance_bounding_box(size_t instance_idx, BoundingBox* bb) const;
-    //void center_around_origin();
-    //void translate(coordf_t x, coordf_t y, coordf_t z);
-    //size_t materials_count() const;
-    //void unique_materials(std::vector<t_model_material_id>* materials) const;
-    //size_t facets_count() const;
-    //bool needed_repair() const;
+    void raw_bounding_box(BoundingBoxf3* bb) const;
+    void instance_bounding_box(size_t instance_idx, BoundingBoxf3* bb) const;
+    void center_around_origin();
+    void translate(coordf_t x, coordf_t y, coordf_t z);
+    void scale(const Pointf3 &versor);
+    size_t materials_count() const;
+    size_t facets_count() const;
+    bool needed_repair() const;
+    void cut(coordf_t z, Model* model) const;
+    void update_bounding_box();   // this is a private method but we expose it until we need to expose it via XS
     
     private:
     Model* model;
@@ -132,7 +138,6 @@ class ModelObject
     ModelObject& operator= (ModelObject other);
     void swap(ModelObject &other);
     ~ModelObject();
-    void update_bounding_box();
 };
 
 class ModelVolume
@@ -148,6 +153,7 @@ class ModelVolume
     t_model_material_id material_id() const;
     void material_id(t_model_material_id material_id);
     ModelMaterial* material() const;
+    void set_material(t_model_material_id material_id, const ModelMaterial &material);
     
     ModelMaterial* assign_unique_material();
     

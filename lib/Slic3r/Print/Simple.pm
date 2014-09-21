@@ -38,7 +38,7 @@ has 'status_cb' => (
 
 has 'print_center' => (
     is      => 'rw',
-    default => sub { [100,100] },
+    default => sub { Slic3r::Pointf->new(100,100) },
 );
 
 has 'output_file' => (

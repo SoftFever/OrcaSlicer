@@ -7,6 +7,7 @@
 %}
 
 %name{Slic3r::Geometry::BoundingBox} class BoundingBox {
+    BoundingBox();
     ~BoundingBox();
     Clone<BoundingBox> clone()
         %code{% RETVAL = THIS; %};
@@ -41,6 +42,7 @@ new_from_points(CLASS, points)
 };
 
 %name{Slic3r::Geometry::BoundingBoxf} class BoundingBoxf {
+    BoundingBoxf();
     ~BoundingBoxf();
     Clone<BoundingBoxf> clone()
         %code{% RETVAL = THIS; %};
@@ -76,6 +78,7 @@ new_from_points(CLASS, points)
 };
 
 %name{Slic3r::Geometry::BoundingBoxf3} class BoundingBoxf3 {
+    BoundingBoxf3();
     ~BoundingBoxf3();
     Clone<BoundingBoxf3> clone()
         %code{% RETVAL = THIS; %};

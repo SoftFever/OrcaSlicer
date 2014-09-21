@@ -148,13 +148,14 @@ sub perform_cut {
     # and cut dialog but ModelObject::cut() needs Z without any instance transformation
     my $z = $self->{cut_options}{z} / $self->{model_object}->instances->[0]->scaling_factor;
     
-    my ($new_model, $upper_object, $lower_object) = $self->{model_object}->cut($z);
+    my ($new_model) = $self->{model_object}->cut($z);
+    my ($upper_object, $lower_object) = @{$new_model->objects};
     $self->{new_model} = $new_model;
     $self->{new_model_objects} = [];
-    if ($self->{cut_options}{keep_upper} && defined $upper_object) {
+    if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
         push @{$self->{new_model_objects}}, $upper_object;
     }
-    if ($self->{cut_options}{keep_lower} && defined $lower_object) {
+    if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
         push @{$self->{new_model_objects}}, $lower_object;
         if ($self->{cut_options}{rotate_lower}) {
             $lower_object->rotate(PI, X);
