@@ -173,6 +173,76 @@ Model::add_default_instances()
     return true;
 }
 
+// this returns the bounding box of the *transformed* instances
+void
+Model::bounding_box(BoundingBoxf3* bb)
+{
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        BoundingBoxf3 obb;
+        (*o)->bounding_box(&obb);
+        bb->merge(obb);
+    }
+}
+
+void
+Model::center_instances_around_point(const Pointf &point)
+{
+    BoundingBoxf3 bb;
+    this->bounding_box(&bb);
+    
+    Sizef3 size = bb.size();
+    double shift_x = -bb.min.x + point.x - size.x/2;
+    double shift_y = -bb.min.y + point.y - size.y/2;
+    
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        for (ModelInstancePtrs::const_iterator i = (*o)->instances.begin(); i != (*o)->instances.end(); ++i) {
+            (*i)->offset.translate(shift_x, shift_y);
+        }
+        (*o)->update_bounding_box();
+    }
+}
+
+void
+Model::align_instances_to_origin()
+{
+    BoundingBoxf3 bb;
+    this->bounding_box(&bb);
+    
+    Pointf new_center = (Pointf)bb.size();
+    new_center.translate(-new_center.x/2, -new_center.y/2);
+    this->center_instances_around_point(new_center);
+}
+
+void
+Model::translate(coordf_t x, coordf_t y, coordf_t z)
+{
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        (*o)->translate(x, y, z);
+    }
+}
+
+// flattens everything to a single mesh
+void
+Model::mesh(TriangleMesh* mesh) const
+{
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        TriangleMesh omesh;
+        (*o)->mesh(&omesh);
+        mesh->merge(omesh);
+    }
+}
+
+// flattens everything to a single mesh
+void
+Model::raw_mesh(TriangleMesh* mesh) const
+{
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        TriangleMesh omesh;
+        (*o)->raw_mesh(&omesh);
+        mesh->merge(omesh);
+    }
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Model, "Model");
 #endif
@@ -321,10 +391,43 @@ ModelObject::clear_instances()
         this->delete_instance(i);
 }
 
+// this returns the bounding box of the *transformed* instances
+void
+ModelObject::bounding_box(BoundingBoxf3* bb)
+{
+    if (!this->_bounding_box_valid) this->update_bounding_box();
+    *bb = this->_bounding_box;
+}
+
 void
 ModelObject::invalidate_bounding_box()
 {
     this->_bounding_box_valid = false;
+}
+
+void
+ModelObject::update_bounding_box()
+{
+    TriangleMesh mesh;
+    this->mesh(&mesh);
+    
+    mesh.bounding_box(&this->_bounding_box);
+    this->_bounding_box_valid = true;
+}
+
+// flattens all volumes and instances into a single mesh
+void
+ModelObject::mesh(TriangleMesh* mesh) const
+{
+    TriangleMesh raw_mesh;
+    this->raw_mesh(&raw_mesh);
+    
+    
+    for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i) {
+        TriangleMesh m = raw_mesh;
+        (*i)->transform_mesh(&m);
+        mesh->merge(m);
+    }
 }
 
 void
@@ -334,6 +437,94 @@ ModelObject::raw_mesh(TriangleMesh* mesh) const
         if ((*v)->modifier) continue;
         mesh->merge((*v)->mesh);
     }
+}
+
+void
+ModelObject::raw_bounding_box(BoundingBoxf3* bb) const
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        if ((*v)->modifier) continue;
+        TriangleMesh mesh = (*v)->mesh;
+        
+        if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
+        this->instances.front()->transform_mesh(&mesh, true);
+        
+        BoundingBoxf3 mbb;
+        mesh.bounding_box(&mbb);
+        bb->merge(mbb);
+    }
+}
+
+// this returns the bounding box of the *transformed* given instance
+void
+ModelObject::instance_bounding_box(size_t instance_idx, BoundingBoxf3* bb) const
+{
+    TriangleMesh mesh;
+    this->raw_mesh(&mesh);
+    
+    this->instances[instance_idx]->transform_mesh(&mesh);
+    
+    mesh.bounding_box(bb);
+}
+
+void
+ModelObject::center_around_origin()
+{
+    // calculate the displacements needed to 
+    // center this object around the origin
+    BoundingBoxf3 bb;
+    {
+        TriangleMesh mesh;
+        this->raw_mesh(&mesh);
+        mesh.bounding_box(&bb);
+    }
+    
+    // first align to origin on XY
+    double shift_x = -bb.min.x;
+    double shift_y = -bb.min.y;
+    
+    // then center it on XY
+    Sizef3 size = bb.size();
+    shift_x -= size.x/2;
+    shift_y -= size.y/2;
+    
+    this->translate(shift_x, shift_y, 0);
+    this->origin_translation.translate(shift_x, shift_y);
+    
+    if (!this->instances.empty()) {
+        for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i) {
+            (*i)->offset.translate(-shift_x, -shift_y);
+        }
+        this->update_bounding_box();
+    }
+}
+
+void
+ModelObject::translate(coordf_t x, coordf_t y, coordf_t z)
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        (*v)->mesh.translate(x, y, z);
+    }
+    if (this->_bounding_box_valid) this->_bounding_box.translate(x, y, z);
+}
+
+void
+ModelObject::scale(const Pointf3 &versor)
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        (*v)->mesh.scale(versor);
+    }
+    this->invalidate_bounding_box();
+}
+
+size_t
+ModelObject::materials_count() const
+{
+    std::set<t_model_material_id> material_ids;
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        material_ids.insert((*v)->material_id());
+    }
+    return material_ids.size();
 }
 
 size_t
@@ -355,6 +546,47 @@ ModelObject::needed_repair() const
         if ((*v)->mesh.needed_repair()) return true;
     }
     return false;
+}
+
+void
+ModelObject::cut(coordf_t z, Model* model) const
+{
+    // clone this one to duplicate instances, materials etc.
+    ModelObject* upper = model->add_object(*this);
+    ModelObject* lower = model->add_object(*this);
+    upper->clear_volumes();
+    lower->clear_volumes();
+    
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        ModelVolume* volume = *v;
+        if (volume->modifier) {
+            // don't cut modifiers
+            upper->add_volume(*volume);
+            lower->add_volume(*volume);
+        } else {
+            TriangleMeshSlicer tms(&volume->mesh);
+            TriangleMesh upper_mesh, lower_mesh;
+            // TODO: shouldn't we use object bounding box instead of per-volume bb?
+            tms.cut(z + volume->mesh.bounding_box().min.z, &upper_mesh, &lower_mesh);
+            upper_mesh.repair();
+            lower_mesh.repair();
+            upper_mesh.reset_repair_stats();
+            lower_mesh.reset_repair_stats();
+            
+            if (upper_mesh.facets_count() > 0) {
+                ModelVolume* vol    = upper->add_volume(upper_mesh);
+                vol->name           = volume->name;
+                vol->config         = volume->config;
+                vol->set_material(volume->material_id(), *volume->material());
+            }
+            if (lower_mesh.facets_count() > 0) {
+                ModelVolume* vol    = lower->add_volume(lower_mesh);
+                vol->name           = volume->name;
+                vol->config         = volume->config;
+                vol->set_material(volume->material_id(), *volume->material());
+            }
+        }
+    }
 }
 
 #ifdef SLIC3RXS
@@ -392,6 +624,13 @@ ModelMaterial*
 ModelVolume::material() const
 {
     return this->object->get_model()->get_material(this->_material_id);
+}
+
+void
+ModelVolume::set_material(t_model_material_id material_id, const ModelMaterial &material)
+{
+    this->_material_id = material_id;
+    (void)this->object->get_model()->add_material(material_id, material);
 }
 
 ModelMaterial*

@@ -497,6 +497,7 @@ sub objects_loaded {
     }
     $self->arrange unless $params{no_arrange};
     $self->update;
+            use XXX; YYY $self->{model}->objects->[0]->instances->[0]->offset->pp;
     $self->{list}->Update;
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
@@ -695,7 +696,7 @@ sub changescale {
         
         my $versor = [1,1,1];
         $versor->[$axis] = $scale/100;
-        $model_object->scale_xyz($versor);
+        $model_object->scale_xyz(Slic3r::Pointf3->new(@$versor));
         $self->make_thumbnail($obj_idx);
     } else {
         # max scale factor should be above 2540 to allow importing files exported in inches

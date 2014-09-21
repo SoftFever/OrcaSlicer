@@ -17,8 +17,8 @@
     void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
-    void scale_xyz(std::vector<double> versor)
-        %code{% THIS->scale(versor); %};
+    void scale_xyz(Pointf3* versor)
+        %code{% THIS->scale(*versor); %};
     void translate(float x, float y, float z);
     void rotate_x(float angle);
     void rotate_y(float angle);
@@ -44,8 +44,7 @@
             THIS->bounding_box(&bb);
             RETVAL = new Pointf3(bb.center());
         %};
-    int facets_count()
-        %code{% RETVAL = THIS->stl.stats.number_of_facets; %};
+    int facets_count();
     void reset_repair_stats();
 %{
 

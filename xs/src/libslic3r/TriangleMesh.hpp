@@ -29,7 +29,7 @@ class TriangleMesh
     void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
-    void scale(std::vector<double> versor);
+    void scale(const Pointf3 &versor);
     void translate(float x, float y, float z);
     void rotate_x(float angle);
     void rotate_y(float angle);
@@ -44,8 +44,10 @@ class TriangleMesh
     void horizontal_projection(ExPolygons &retval) const;
     void convex_hull(Polygon* hull);
     void bounding_box(BoundingBoxf3* bb) const;
+    BoundingBoxf3 bounding_box() const;
     void reset_repair_stats();
     bool needed_repair() const;
+    size_t facets_count() const;
     stl_file stl;
     bool repaired;
     

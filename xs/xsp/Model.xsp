@@ -55,13 +55,21 @@
     // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     // void arrange_objects(coordf_t distance, const BoundingBox &bb);
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
-    bool has_objects_with_no_instances() const;
+    bool has_objects_with_no_instances();
     bool add_default_instances();
-    // void bounding_box(BoundingBox* bb) const;
-    // void center_instances_around_point(const Pointf &point);
-    // void align_instances_to_origin();
-    // void translate(coordf_t x, coordf_t y, coordf_t z);
-    // void mesh(TriangleMesh* mesh) const;
+    BoundingBoxf3* bounding_box()
+        %code%{
+            RETVAL = new BoundingBoxf3();
+            THIS->bounding_box(RETVAL);
+        %};
+    void center_instances_around_point(Pointf* point)
+        %code%{ THIS->center_instances_around_point(*point); %};
+    void align_instances_to_origin();
+    void translate(double x, double y, double z);
+    TriangleMesh* mesh()
+        %code%{ RETVAL = new TriangleMesh(); THIS->mesh(RETVAL); %};
+    TriangleMesh* raw_mesh()
+        %code%{ RETVAL = new TriangleMesh(); THIS->raw_mesh(RETVAL); %};
     // void split_meshes();
     // std::string get_material_name(t_model_material_id material_id);
 
@@ -108,8 +116,21 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->instances; %};
     
     void invalidate_bounding_box();
+    void update_bounding_box();
+    TriangleMesh* mesh()
+        %code%{ RETVAL = new TriangleMesh(); THIS->mesh(RETVAL); %};
     TriangleMesh* raw_mesh()
         %code%{ RETVAL = new TriangleMesh(); THIS->raw_mesh(RETVAL); %};
+    BoundingBoxf3* raw_bounding_box()
+        %code%{
+            RETVAL = new BoundingBoxf3();
+            THIS->raw_bounding_box(RETVAL);
+        %};
+    BoundingBoxf3* instance_bounding_box(int idx)
+        %code%{
+            RETVAL = new BoundingBoxf3();
+            THIS->instance_bounding_box(idx, RETVAL);
+        %};
 
     Ref<BoundingBoxf3> _bounding_box(BoundingBoxf3* new_bbox = NULL)
         %code{%
@@ -124,6 +145,11 @@ ModelMaterial::attributes()
 
             RETVAL = &THIS->_bounding_box;
         %};
+    BoundingBoxf3* bounding_box()
+        %code%{
+            RETVAL = new BoundingBoxf3();
+            THIS->bounding_box(RETVAL);
+        %};
 
     %name{_add_volume} Ref<ModelVolume> add_volume(TriangleMesh* mesh)
         %code%{ RETVAL = THIS->add_volume(*mesh); %};
@@ -132,6 +158,8 @@ ModelMaterial::attributes()
 
     void delete_volume(size_t idx);
     void clear_volumes();
+    int volumes_count()
+        %code%{ RETVAL = THIS->volumes.size(); %};
 
     %name{_add_instance} Ref<ModelInstance> add_instance();
     Ref<ModelInstance> _add_instance_clone(ModelInstance* other)
@@ -166,7 +194,18 @@ ModelMaterial::attributes()
         %code%{ THIS->origin_translation = *point; %};
     
     bool needed_repair() const;
+    int materials_count() const;
     int facets_count();
+    void center_around_origin();
+    void translate(double x, double y, double z);
+    void scale_xyz(Pointf3* versor)
+        %code{% THIS->scale(*versor); %};
+    
+    Model* cut(double z)
+        %code%{
+            RETVAL = new Model();
+            THIS->cut(z, RETVAL);
+        %};
 };
 
 

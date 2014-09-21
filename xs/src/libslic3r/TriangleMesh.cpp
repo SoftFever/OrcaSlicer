@@ -164,6 +164,12 @@ TriangleMesh::needed_repair() const
         || this->stl.stats.backwards_edges      > 0;
 }
 
+size_t
+TriangleMesh::facets_count() const
+{
+    return this->stl.stats.number_of_facets;
+}
+
 void
 TriangleMesh::WriteOBJFile(char* output_file) {
     stl_generate_shared_vertices(&stl);
@@ -175,12 +181,12 @@ void TriangleMesh::scale(float factor)
     stl_scale(&(this->stl), factor);
 }
 
-void TriangleMesh::scale(std::vector<double> versor)
+void TriangleMesh::scale(const Pointf3 &versor)
 {
     float fversor[3];
-    fversor[0] = versor[0];
-    fversor[1] = versor[1];
-    fversor[2] = versor[2];
+    fversor[0] = versor.x;
+    fversor[1] = versor.y;
+    fversor[2] = versor.z;
     stl_scale_versor(&this->stl, fversor);
 }
 
@@ -353,6 +359,14 @@ TriangleMesh::bounding_box(BoundingBoxf3* bb) const
     bb->max.x = this->stl.stats.max.x;
     bb->max.y = this->stl.stats.max.y;
     bb->max.z = this->stl.stats.max.z;
+}
+
+BoundingBoxf3
+TriangleMesh::bounding_box() const
+{
+    BoundingBoxf3 bb;
+    this->bounding_box(&bb);
+    return bb;
 }
 
 void
