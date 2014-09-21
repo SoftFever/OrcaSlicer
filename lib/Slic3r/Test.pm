@@ -118,7 +118,7 @@ sub mesh {
     my $mesh = Slic3r::TriangleMesh->new;
     $mesh->ReadFromPerl($vertices, $facets);
     $mesh->repair;
-    $mesh->scale_xyz($params{scale_xyz}) if $params{scale_xyz};
+    $mesh->scale_xyz(Slic3r::Pointf3->new(@{$params{scale_xyz}})) if $params{scale_xyz};
     $mesh->translate(@{$params{translate}}) if $params{translate};
     return $mesh;
 }
@@ -156,7 +156,7 @@ sub init_print {
             $model->duplicate($params{duplicate} // 1, $print->config->min_object_distance);
         }
         $model->arrange_objects($print->config->min_object_distance);
-        $model->center_instances_around_point($params{print_center} // Slic3r::Pointf->new(100,100));
+        $model->center_instances_around_point(Slic3r::Pointf->new(@{$params{print_center}}) // Slic3r::Pointf->new(100,100));
         foreach my $model_object (@{$model->objects}) {
             $print->auto_assign_extruders($model_object);
             $print->add_model_object($model_object);
