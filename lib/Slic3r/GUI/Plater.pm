@@ -565,15 +565,19 @@ sub increase {
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled
+    $self->stop_background_process;
     if ($Slic3r::GUI::Settings->{_}{autocenter}) {
         $self->arrange;
     } else {
         $self->update;
     }
+    $self->schedule_background_process;
 }
 
 sub decrease {
     my $self = shift;
+    
+    $self->stop_background_process;
     
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
@@ -590,6 +594,7 @@ sub decrease {
         $self->{list}->Select($obj_idx, 1);
     }
     $self->update;
+    $self->schedule_background_process;
 }
 
 sub rotate {
