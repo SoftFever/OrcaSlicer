@@ -85,8 +85,13 @@ sub _init_tabpanel {
         my $tab;
         $tab = $self->{options_tabs}{$tab_name} = ($class_prefix . ucfirst $tab_name)->new($panel);
         $tab->on_value_change(sub {
+            my ($opt_key, $value) = @_;
+            
             my $config = $tab->config;
-            $self->{plater}->on_config_change($config) if $self->{plater}; # propagate config change events to the plater
+            if ($self->{plater}) {
+                $self->{plater}->on_config_change($config); # propagate config change events to the plater
+                $self->{plater}->on_extruders_change($value) if $opt_key eq 'extruders_count';
+            }
             if ($self->{loaded}) {  # don't save while loading for the first time
                 if ($self->{mode} eq 'simple') {
                     # save config

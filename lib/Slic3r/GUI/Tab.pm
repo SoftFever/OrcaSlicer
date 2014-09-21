@@ -405,6 +405,17 @@ sub get_field {
     return undef;
 }
 
+sub set_value {
+    my $self = shift;
+    my ($opt_key, $value) = @_;
+    
+    my $changed = 0;
+    foreach my $page (@{ $self->{pages} }) {
+        $changed = 1 if $page->set_value($opt_key, $value);
+    }
+    return $changed;
+}
+
 package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
@@ -948,9 +959,7 @@ sub build {
             $optgroup->on_change(sub {
                 my ($opt_id) = @_;
                 if ($opt_id eq 'extruders_count') {
-                    $self->{extruders_count} = $optgroup->get_value('extruders_count');
-                    $self->_build_extruder_pages;
-                    $self->_update;
+                    $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                 }
             });
         }
@@ -1002,6 +1011,16 @@ sub build {
     
     $self->{extruder_pages} = [];
     $self->_build_extruder_pages;
+}
+
+sub _extruders_count_changed {
+    my ($self, $extruders_count) = @_;
+    
+    $self->{extruders_count} = $extruders_count;
+    $self->_build_extruder_pages;
+    $self->_update;
+    $self->set_dirty(1);
+    $self->_on_value_change('extruders_count', $extruders_count);
 }
 
 sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_speed retract_restart_extra retract_before_travel wipe
@@ -1110,14 +1129,13 @@ sub _update {
 # this gets executed after preset is loaded and before GUI fields are updated
 sub on_preset_loaded {
     my $self = shift;
-    return;
+    
     # update the extruders count field
     {
         # update the GUI field according to the number of nozzle diameters supplied
-        $self->set_value('extruders_count', scalar @{ $self->{config}->nozzle_diameter });
-        
-        # update extruder page list
-        $self->_on_value_change('extruders_count');
+        my $extruders_count = scalar @{ $self->{config}->nozzle_diameter };
+        $self->set_value('extruders_count', $extruders_count);
+        $self->_extruders_count_changed($extruders_count);
     }
 }
 
