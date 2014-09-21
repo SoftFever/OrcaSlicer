@@ -497,7 +497,6 @@ sub objects_loaded {
     }
     $self->arrange unless $params{no_arrange};
     $self->update;
-            use XXX; YYY $self->{model}->objects->[0]->instances->[0]->offset->pp;
     $self->{list}->Update;
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
