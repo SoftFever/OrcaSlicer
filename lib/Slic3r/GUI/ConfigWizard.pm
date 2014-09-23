@@ -199,8 +199,7 @@ sub append_option {
     my ($full_key) = @_;
     
     # populate repository with the factory default
-    my $opt_key = $full_key;
-    $opt_key =~ s/#.+//;
+    my ($opt_key, $opt_index) = split /#/, $full_key, 2;
     $self->config->apply(Slic3r::Config->new_from_defaults($opt_key));
     
     # draw the control
@@ -208,9 +207,9 @@ sub append_option {
         parent      => $self,
         title       => '',
         config      => $self->config,
-        options     => [$full_key],
         full_labels => 1,
     );
+    $optgroup->append_single_option_line($opt_key, $opt_index);
     $self->{vsizer}->Add($optgroup->sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 }
 

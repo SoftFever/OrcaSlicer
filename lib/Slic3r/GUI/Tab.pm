@@ -146,8 +146,7 @@ sub save_preset {
     $self->config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $name);
     $self->set_dirty(0);
     $self->load_presets;
-    $self->{presets_choice}->SetSelection(first { basename($self->{presets}[$_]{file}) eq $name . ".ini" } 1 .. $#{$self->{presets}});
-    $self->on_select_preset;
+    $self->select_preset(first { basename($self->{presets}[$_]{file}) eq $name . ".ini" } 1 .. $#{$self->{presets}});
     $self->_on_presets_changed;
 }
 
@@ -161,11 +160,12 @@ sub on_presets_changed {
     $self->{on_presets_changed} = $cb;
 }
 
+# This method is supposed to be called whenever new values are loaded
+# or changed by user (so also when a preset is loaded).
 # propagate event to the parent
 sub _on_value_change {
     my $self = shift;
     
-    $self->set_dirty(1);
     $self->{on_value_change}->(@_) if $self->{on_value_change};
     $self->_update;
 }
@@ -357,8 +357,7 @@ sub load_presets {
     {
         # load last used preset
         my $i = first { basename($self->{presets}[$_]{file}) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
-        $self->{presets_choice}->SetSelection($i || 0);
-        $self->on_select_preset;
+        $self->select_preset($i || 0);
     }
     $self->_on_presets_changed;
 }
@@ -830,12 +829,6 @@ sub build {
     }
 }
 
-sub _on_value_change {
-    my $self = shift;
-    my ($opt_key) = @_;
-    $self->SUPER::_on_value_change(@_);
-}
-
 sub _update {
     my ($self) = @_;
     
@@ -959,6 +952,7 @@ sub build {
             $optgroup->on_change(sub {
                 my ($opt_id) = @_;
                 if ($opt_id eq 'extruders_count') {
+                    $self->set_dirty(1);
                     $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                 }
             });
@@ -1018,9 +1012,8 @@ sub _extruders_count_changed {
     
     $self->{extruders_count} = $extruders_count;
     $self->_build_extruder_pages;
-    $self->_update;
-    $self->set_dirty(1);
     $self->_on_value_change('extruders_count', $extruders_count);
+    $self->_update;
 }
 
 sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_speed retract_restart_extra retract_before_travel wipe
@@ -1178,7 +1171,10 @@ sub new_optgroup {
         title           => $title,
         config          => $self->GetParent->{config},
         label_width     => $params{label_width} // 200,
-        on_change       => sub { $self->GetParent->_on_value_change(@_) },
+        on_change       => sub {
+            $self->GetParent->set_dirty(1);
+            $self->GetParent->_on_value_change(@_);
+        },
     );
     
     push @{$self->{optgroups}}, $optgroup;

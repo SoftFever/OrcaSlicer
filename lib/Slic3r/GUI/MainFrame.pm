@@ -580,6 +580,8 @@ sub config_wizard {
             for my $tab (values %{$self->{options_tabs}}) {
                 $tab->select_default_preset;
             }
+        } else {
+            # TODO: select default settings in simple mode
         }
         $self->load_config($config);
         if ($self->{mode} eq 'expert') {
