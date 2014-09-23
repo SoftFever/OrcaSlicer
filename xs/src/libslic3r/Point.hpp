@@ -37,7 +37,7 @@ class Point
     int nearest_point_index(const Points &points) const;
     int nearest_point_index(const PointConstPtrs &points) const;
     int nearest_point_index(const PointPtrs &points) const;
-    void nearest_point(const Points &points, Point* point) const;
+    bool nearest_point(const Points &points, Point* point) const;
     double distance_to(const Point &point) const;
     double distance_to(const Line &line) const;
     double ccw(const Point &p1, const Point &p2) const;

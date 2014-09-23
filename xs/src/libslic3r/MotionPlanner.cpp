@@ -226,6 +226,9 @@ MotionPlannerGraph::find_node(const Point &point) const
 void
 MotionPlannerGraph::shortest_path(size_t from, size_t to, Polyline* polyline)
 {
+    // this prevents a crash in case for some reason we got here with an empty adjacency list
+    if (this->adjacency_list.empty()) return;
+    
     const weight_t max_weight = std::numeric_limits<weight_t>::infinity();
     
     std::vector<weight_t> min_distance;

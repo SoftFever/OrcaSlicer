@@ -107,10 +107,13 @@ Point::nearest_point_index(const PointPtrs &points) const
     return this->nearest_point_index(p);
 }
 
-void
+bool
 Point::nearest_point(const Points &points, Point* point) const
 {
-    *point = points.at(this->nearest_point_index(points));
+    int idx = this->nearest_point_index(points);
+    if (idx == -1) return false;
+    *point = points.at(idx);
+    return true;
 }
 
 double
