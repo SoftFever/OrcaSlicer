@@ -341,7 +341,7 @@ $j
                         to disable; default: $config->{first_layer_acceleration})
     --default-acceleration
                         Acceleration will be reset to this value after the specific settings above
-                        have been applied. (mm/s^2, set zero to disable; default: $config->{travel_speed})
+                        have been applied. (mm/s^2, set zero to disable; default: $config->{default_acceleration})
     
   Accuracy options:
     --layer-height      Layer height in mm (default: $config->{layer_height})

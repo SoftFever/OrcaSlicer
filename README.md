@@ -194,7 +194,7 @@ The author of the Silk icon set is Mark James.
                             to disable; default: 0)
         --default-acceleration
                             Acceleration will be reset to this value after the specific settings above
-                            have been applied. (mm/s^2, set zero to disable; default: 130)
+                            have been applied. (mm/s^2, set zero to disable; default: 0)
     
       Accuracy options:
         --layer-height      Layer height in mm (default: 0.3)
