@@ -281,7 +281,7 @@ sub _extrude_path {
             $acceleration = $self->config->perimeter_acceleration;
         } elsif ($self->config->infill_acceleration && $path->is_fill) {
             $acceleration = $self->config->infill_acceleration;
-        } elsif ($self->config->infill_acceleration && $path->is_bridge) {
+        } elsif ($self->config->bridge_acceleration && $path->is_bridge) {
             $acceleration = $self->config->bridge_acceleration;
         } else {
             $acceleration = $self->config->default_acceleration;
