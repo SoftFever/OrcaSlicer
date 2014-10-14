@@ -22,6 +22,7 @@ class MotionPlanner
     MotionPlanner(const ExPolygons &islands);
     ~MotionPlanner();
     void shortest_path(const Point &from, const Point &to, Polyline* polyline);
+    size_t islands_count() const;
     
     private:
     ExPolygons islands;

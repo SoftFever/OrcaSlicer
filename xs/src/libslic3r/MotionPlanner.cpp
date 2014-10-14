@@ -18,10 +18,17 @@ MotionPlanner::~MotionPlanner()
         delete *graph;
 }
 
+size_t
+MotionPlanner::islands_count() const
+{
+    return this->islands.size();
+}
+
 void
 MotionPlanner::initialize()
 {
     if (this->initialized) return;
+    if (this->islands.empty()) return;  // prevent initialization of empty BoundingBox
     
     ExPolygons expp;
     for (ExPolygons::const_iterator island = this->islands.begin(); island != this->islands.end(); ++island) {
@@ -69,6 +76,12 @@ void
 MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyline)
 {
     if (!this->initialized) this->initialize();
+    
+    if (this->islands.empty()) {
+        polyline->points.push_back(from);
+        polyline->points.push_back(to);
+        return;
+    }
     
     // Are both points in the same island?
     int island_idx = -1;
