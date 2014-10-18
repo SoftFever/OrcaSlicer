@@ -960,6 +960,7 @@ t_optiondef_map PrintConfigDef::def = PrintConfigDef::build_def();
 REGISTER_CLASS(DynamicPrintConfig, "Config");
 REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");
 REGISTER_CLASS(PrintRegionConfig, "Config::PrintRegion");
+REGISTER_CLASS(GCodeConfig, "Config::GCode");
 REGISTER_CLASS(PrintConfig, "Config::Print");
 REGISTER_CLASS(FullPrintConfig, "Config::Full");
 #endif

@@ -40,6 +40,8 @@
 %typemap{Ref<PrintObjectConfig>}{simple};
 %typemap{PrintRegionConfig*};
 %typemap{Ref<PrintRegionConfig>}{simple};
+%typemap{GCodeConfig*};
+%typemap{Ref<GCodeConfig>}{simple};
 %typemap{PrintConfig*};
 %typemap{Ref<PrintConfig>}{simple};
 %typemap{FullPrintConfig*};

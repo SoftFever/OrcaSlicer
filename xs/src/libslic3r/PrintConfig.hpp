@@ -306,7 +306,35 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     };
 };
 
-class PrintConfig : public virtual StaticPrintConfig
+class GCodeConfig : public virtual StaticPrintConfig
+{
+    public:
+    ConfigOptionString              extrusion_axis;
+    ConfigOptionBool                gcode_comments;
+    ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
+    ConfigOptionBool                use_firmware_retraction;
+    ConfigOptionBool                use_relative_e_distances;
+    
+    GCodeConfig() : StaticPrintConfig() {
+        this->extrusion_axis.value                               = "E";
+        this->gcode_comments.value                               = false;
+        this->gcode_flavor.value                                 = gcfRepRap;
+        this->use_firmware_retraction.value                      = false;
+        this->use_relative_e_distances.value                     = false;
+    };
+    
+    ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
+        if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
+        if (opt_key == "gcode_comments")                             return &this->gcode_comments;
+        if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
+        if (opt_key == "use_firmware_retraction")                    return &this->use_firmware_retraction;
+        if (opt_key == "use_relative_e_distances")                   return &this->use_relative_e_distances;
+        
+        return NULL;
+    };
+};
+
+class PrintConfig : public GCodeConfig
 {
     public:
     ConfigOptionBool                avoid_crossing_perimeters;
@@ -324,7 +352,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionFloat               extruder_clearance_height;
     ConfigOptionFloat               extruder_clearance_radius;
     ConfigOptionPoints              extruder_offset;
-    ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
     ConfigOptionBool                fan_always_on;
     ConfigOptionInt                 fan_below_layer_time;
@@ -336,8 +363,6 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionInts                first_layer_temperature;
     ConfigOptionBool                g0;
     ConfigOptionBool                gcode_arcs;
-    ConfigOptionBool                gcode_comments;
-    ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionFloat               infill_acceleration;
     ConfigOptionBool                infill_first;
     ConfigOptionString              layer_gcode;
@@ -372,13 +397,11 @@ class PrintConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 threads;
     ConfigOptionString              toolchange_gcode;
     ConfigOptionFloat               travel_speed;
-    ConfigOptionBool                use_firmware_retraction;
-    ConfigOptionBool                use_relative_e_distances;
     ConfigOptionFloat               vibration_limit;
     ConfigOptionBools               wipe;
     ConfigOptionFloat               z_offset;
     
-    PrintConfig() : StaticPrintConfig() {
+    PrintConfig() : GCodeConfig() {
         this->avoid_crossing_perimeters.value                    = false;
         this->bed_shape.values.push_back(Pointf(0,0));
         this->bed_shape.values.push_back(Pointf(200,0));
@@ -398,7 +421,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->extruder_clearance_radius.value                    = 20;
         this->extruder_offset.values.resize(1);
         this->extruder_offset.values[0]                          = Pointf(0,0);
-        this->extrusion_axis.value                               = "E";
         this->extrusion_multiplier.values.resize(1);
         this->extrusion_multiplier.values[0]                     = 1;
         this->fan_always_on.value                                = false;
@@ -415,8 +437,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->first_layer_temperature.values[0]                  = 200;
         this->g0.value                                           = false;
         this->gcode_arcs.value                                   = false;
-        this->gcode_comments.value                               = false;
-        this->gcode_flavor.value                                 = gcfRepRap;
         this->infill_acceleration.value                          = 0;
         this->infill_first.value                                 = false;
         this->layer_gcode.value                                  = "";
@@ -460,8 +480,6 @@ class PrintConfig : public virtual StaticPrintConfig
         this->threads.value                                      = 2;
         this->toolchange_gcode.value                             = "";
         this->travel_speed.value                                 = 130;
-        this->use_firmware_retraction.value                      = false;
-        this->use_relative_e_distances.value                     = false;
         this->vibration_limit.value                              = 0;
         this->wipe.values.resize(1);
         this->wipe.values[0]                                     = false;
@@ -484,7 +502,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "extruder_clearance_height")                  return &this->extruder_clearance_height;
         if (opt_key == "extruder_clearance_radius")                  return &this->extruder_clearance_radius;
         if (opt_key == "extruder_offset")                            return &this->extruder_offset;
-        if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
         if (opt_key == "extrusion_multiplier")                       return &this->extrusion_multiplier;
         if (opt_key == "fan_always_on")                              return &this->fan_always_on;
         if (opt_key == "fan_below_layer_time")                       return &this->fan_below_layer_time;
@@ -496,8 +513,6 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "first_layer_temperature")                    return &this->first_layer_temperature;
         if (opt_key == "g0")                                         return &this->g0;
         if (opt_key == "gcode_arcs")                                 return &this->gcode_arcs;
-        if (opt_key == "gcode_comments")                             return &this->gcode_comments;
-        if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
         if (opt_key == "infill_acceleration")                        return &this->infill_acceleration;
         if (opt_key == "infill_first")                               return &this->infill_first;
         if (opt_key == "layer_gcode")                                return &this->layer_gcode;
@@ -532,17 +547,20 @@ class PrintConfig : public virtual StaticPrintConfig
         if (opt_key == "threads")                                    return &this->threads;
         if (opt_key == "toolchange_gcode")                           return &this->toolchange_gcode;
         if (opt_key == "travel_speed")                               return &this->travel_speed;
-        if (opt_key == "use_firmware_retraction")                    return &this->use_firmware_retraction;
-        if (opt_key == "use_relative_e_distances")                   return &this->use_relative_e_distances;
         if (opt_key == "vibration_limit")                            return &this->vibration_limit;
         if (opt_key == "wipe")                                       return &this->wipe;
         if (opt_key == "z_offset")                                   return &this->z_offset;
+        
+        // look in parent class
+        ConfigOption* opt;
+        if ((opt = GCodeConfig::option(opt_key, create)) != NULL) return opt;
         
         return NULL;
     };
 };
 
-class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig {
+class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig
+{
     public:
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         ConfigOption* opt;
@@ -551,15 +569,6 @@ class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, publ
         if ((opt = PrintConfig::option(opt_key, create)) != NULL) return opt;
         return NULL;
     };
-    
-    std::string get_extrusion_axis() {
-        if (this->gcode_flavor == gcfMach3) {
-            return std::string("A");
-        } else if (this->gcode_flavor == gcfNoExtrusion) {
-            return std::string("");
-        }
-        return this->extrusion_axis;
-    }
 };
 
 }
