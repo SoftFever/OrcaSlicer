@@ -69,14 +69,7 @@ my %opt = (
     my $vertical_steps = 3;
     
     open my $fh, '>', $opt{output_file};
-    my $gcodegen = Slic3r::GCode->new(
-        layer_count => $vertical_steps,
-    );
-    {
-        my $print_config = Slic3r::Config::Print->new;
-        $gcodegen->set_extruders([0], $print_config);
-        $gcodegen->set_extruder(0);
-    }
+    my $gcodegen = Slic3r::GCode::Base->new;
     
     print $fh "G21 ; set units to millimeters\n";
     print $fh "G90 ; use absolute coordinates\n";
