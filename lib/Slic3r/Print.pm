@@ -842,7 +842,11 @@ sub write_gcode {
                 $s->translate(map scale($_), @{$self->config->get_at('extruder_offset', $extruder_id)});
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
-            $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
+            
+            my $oozeprev = Slic3r::GCode::OozePrevention->new(
+                standby_points => [ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ],
+            );
+            $gcodegen->ooze_prevention($oozeprev);
         }
     }
     

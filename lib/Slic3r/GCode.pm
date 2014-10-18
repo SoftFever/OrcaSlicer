@@ -186,7 +186,7 @@ extends 'Slic3r::GCode::Base';
 
 has 'config'             => (is => 'ro', default => sub { Slic3r::Config::Full->new });
 has 'placeholder_parser' => (is => 'rw', default => sub { Slic3r::GCode::PlaceholderParser->new });
-has 'standby_points'     => (is => 'rw');
+has 'ooze_prevention'    => (is => 'rw');
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_wipe'        => (is => 'rw', default => sub {0});   # at least one extruder has wipe enabled
 has 'layer_count'        => (is => 'ro');
@@ -761,36 +761,17 @@ sub set_extruder {
         });
     }
     
-    # set the current extruder to the standby temperature
-    if ($self->standby_points && defined $self->_extruder) {
-        # move to the nearest standby point
-        {
-            my $last_pos = $self->last_pos->clone;
-            $last_pos->translate(scale +$self->shift_x, scale +$self->shift_y);
-            my $standby_point = $last_pos->nearest_point($self->standby_points);
-            $standby_point->translate(scale -$self->shift_x, scale -$self->shift_y);
-            $gcode .= $self->travel_to($standby_point);
-        }
-        
-        if ($self->config->standby_temperature_delta != 0) {
-            my $temp = defined $self->layer && $self->layer->id == 0
-                ? $self->_extruder->first_layer_temperature
-                : $self->_extruder->temperature;
-            # we assume that heating is always slower than cooling, so no need to block
-            $gcode .= $self->set_temperature($temp + $self->config->standby_temperature_delta, 0);
-        }
-    }
+    # if ooze prevention is enabled, park current extruder in the nearest
+    # standby point and set it to the standby temperature
+    $gcode .= $self->ooze_prevention->pre_toolchange($self)
+        if $self->ooze_prevention && defined $self->_extruder;
     
     # append the toolchange command
     $gcode .= $self->_toolchange($extruder_id);
     
     # set the new extruder to the operating temperature
-    if ($self->config->ooze_prevention && $self->config->standby_temperature_delta != 0) {
-        my $temp = defined $self->layer && $self->layer->id == 0
-            ? $self->_extruder->first_layer_temperature
-            : $self->_extruder->temperature;
-        $gcode .= $self->set_temperature($temp, 1);
-    }
+    $gcode .= $self->ooze_prevention->post_toolchange($self)
+        if $self->ooze_prevention;
     
     return $gcode;
 }
