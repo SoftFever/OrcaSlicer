@@ -459,34 +459,6 @@ sub unretract {
     return $gcode;
 }
 
-sub G0 {
-    my $self = shift;
-    return $self->G1(@_) if !($self->config->g0 || $self->config->gcode_flavor eq 'mach3');
-    return $self->_G0_G1("G0", @_);
-}
-
-sub G1 {
-    my $self = shift;
-    return $self->_G0_G1("G1", @_);
-}
-
-sub _G0_G1 {
-    my ($self, $gcode, $point, $z, $e, $F, $comment) = @_;
-    
-    if ($point) {
-        $gcode .= sprintf " X%.3f Y%.3f", 
-            ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->_extruder->extruder_offset->x,
-            ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->_extruder->extruder_offset->y; #**
-        $self->last_pos($point->clone);
-    }
-    if (defined $z && (!defined $self->z || $z != $self->z)) {
-        $self->z($z);
-        $gcode .= sprintf " Z%.3f", $z;
-    }
-    
-    return $self->_Gx($gcode, $e, $F, $comment);
-}
-
 # convert a model-space scaled point into G-code coordinates
 sub point_to_gcode {
     my ($self, $point) = @_;
@@ -495,20 +467,6 @@ sub point_to_gcode {
         ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->_extruder->extruder_offset->x,
         ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->_extruder->extruder_offset->y, #**
     );
-}
-
-sub _Gx {
-    my ($self, $gcode, $e, $F, $comment) = @_;
-    
-    $gcode .= sprintf " F%.3f", $F;
-    
-    # output extrusion distance
-    if ($e && $self->_extrusion_axis) {
-        $gcode .= sprintf " %s%.5f", $self->_extrusion_axis, $self->_extruder->extrude($e);
-    }
-    
-    $gcode .= " ; $comment" if $comment && $self->config->gcode_comments;
-    return "$gcode\n";
 }
 
 sub set_extruder {

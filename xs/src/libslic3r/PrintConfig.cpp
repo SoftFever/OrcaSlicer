@@ -326,11 +326,6 @@ PrintConfigDef::build_def() {
     Options["first_layer_temperature"].min = 0;
     Options["first_layer_temperature"].max = 400;
 
-    Options["g0"].type = coBool;
-    Options["g0"].label = "Use G0 for travel moves";
-    Options["g0"].tooltip = "Only enable this if your firmware supports G0 properly (thus decouples all axes using their maximum speeds instead of synchronizing them). Travel moves and retractions will be combined in single commands, speeding them print up.";
-    Options["g0"].cli = "g0!";
-
     Options["gap_fill_speed"].type = coFloat;
     Options["gap_fill_speed"].label = "Gap fill";
     Options["gap_fill_speed"].category = "Speed";

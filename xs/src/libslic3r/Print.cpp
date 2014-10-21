@@ -183,7 +183,6 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "first_layer_bed_temperature"
             || *opt_key == "first_layer_speed"
             || *opt_key == "first_layer_temperature"
-            || *opt_key == "g0"
             || *opt_key == "gcode_arcs"
             || *opt_key == "gcode_comments"
             || *opt_key == "gcode_flavor"

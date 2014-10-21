@@ -44,7 +44,7 @@ use Slic3r::Test qw(_eq);
                 # lift move or lift + change layer
                 if (_eq($info->{dist_Z}, $print->print->config->get_at('retract_lift', $tool))
                     || (_eq($info->{dist_Z}, $conf->layer_height + $print->print->config->get_at('retract_lift', $tool)) && $print->print->config->get_at('retract_lift', $tool) > 0)) {
-                    fail 'only lifting while retracted' if !$retracted[$tool] && !($conf->g0 && $info->{retracting});
+                    fail 'only lifting while retracted' if !$retracted[$tool];
                     fail 'double lift' if $lifted;
                     $lifted = 1;
                 }
@@ -67,8 +67,6 @@ use Slic3r::Test qw(_eq);
                 } else {
                     fail 'retracted by the correct amount';
                 }
-                fail 'combining retraction and travel with G0'
-                    if $cmd ne 'G0' && $conf->g0 && ($info->{dist_Z} || $info->{dist_XY});
             }
             if ($info->{extruding}) {
                 fail 'only extruding while not lifted' if $lifted;
@@ -120,11 +118,7 @@ use Slic3r::Test qw(_eq);
     $duplicate = 2;
     $retract_tests->(' (duplicate)');
 
-    $config->set('g0', 1);
-    $retract_tests->(' (G0 and duplicate)');
-
     $duplicate = 1;
-    $config->set('g0', 0);
     $config->set('infill_extruder', 2);
     $config->set('skirts', 4);
     $config->set('skirt_height', 3);

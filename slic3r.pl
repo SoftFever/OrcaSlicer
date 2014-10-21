@@ -283,8 +283,6 @@ $j
     --use-firmware-retraction  Enable firmware-controlled retraction using G10/G11 (default: no)
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
-    --g0                Use G0 commands for retraction (experimental, not supported by all
-                        firmwares)
     --gcode-comments    Make G-code verbose by adding comments (default: no)
     --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
                         default: $config->{vibration_limit})

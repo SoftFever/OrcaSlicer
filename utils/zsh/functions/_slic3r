@@ -26,7 +26,6 @@ _arguments -S \
     '(--use-relative-e-distances --no-use-relative-e-distances)'--{no-,}use-relative-e-distances'[disable/enable relative E values]' \
     '--extrusion-axis[specify letter associated with the extrusion axis]:extrusion axis letter' \
     '(--gcode-arcs --no-gcode-arcs)'--{no-,}gcode-arcs'[disable/enable G2/G3 commands for native arcs]' \
-    '(--g0 --no-g0)'--{no-,}g0'[disable/enable G0 commands for retraction]' \
     '(--gcode-comments --no-gcode-comments)'--{no-,}gcode-comments'[disable/enable verbose G-code comments]' \
     \
     '*--filament-diameter[specify raw filament diameter]:raw filament diameter in mm' \

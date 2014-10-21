@@ -388,7 +388,6 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_speed;
     ConfigOptionInts                first_layer_temperature;
-    ConfigOptionBool                g0;
     ConfigOptionBool                gcode_arcs;
     ConfigOptionFloat               infill_acceleration;
     ConfigOptionBool                infill_first;
@@ -455,7 +454,6 @@ class PrintConfig : public GCodeConfig
         this->first_layer_speed.percent                          = true;
         this->first_layer_temperature.values.resize(1);
         this->first_layer_temperature.values[0]                  = 200;
-        this->g0.value                                           = false;
         this->gcode_arcs.value                                   = false;
         this->infill_acceleration.value                          = 0;
         this->infill_first.value                                 = false;
@@ -518,7 +516,6 @@ class PrintConfig : public GCodeConfig
         if (opt_key == "first_layer_extrusion_width")                return &this->first_layer_extrusion_width;
         if (opt_key == "first_layer_speed")                          return &this->first_layer_speed;
         if (opt_key == "first_layer_temperature")                    return &this->first_layer_temperature;
-        if (opt_key == "g0")                                         return &this->g0;
         if (opt_key == "gcode_arcs")                                 return &this->gcode_arcs;
         if (opt_key == "infill_acceleration")                        return &this->infill_acceleration;
         if (opt_key == "infill_first")                               return &this->infill_first;
