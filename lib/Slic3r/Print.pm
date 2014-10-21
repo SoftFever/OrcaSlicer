@@ -946,9 +946,8 @@ sub write_gcode {
     $self->total_used_filament(0);
     $self->total_extruded_volume(0);
     foreach my $extruder (@{$gcodegen->extruders}) {
-        # the final retraction doesn't really count as "used filament"
-        my $used_filament = $extruder->absolute_E + $extruder->retract_length;
-        my $extruded_volume = $extruder->extruded_volume($used_filament);
+        my $used_filament = $extruder->used_filament;
+        my $extruded_volume = $extruder->extruded_volume;
         
         printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
             $used_filament, $extruded_volume/1000;

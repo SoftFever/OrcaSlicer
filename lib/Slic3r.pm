@@ -38,7 +38,6 @@ use Moo 1.003001;
 use Slic3r::XS;   # import all symbols (constants etc.) before they get parsed
 use Slic3r::Config;
 use Slic3r::ExPolygon;
-use Slic3r::Extruder;
 use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
 use Slic3r::ExtrusionPath::Collection;

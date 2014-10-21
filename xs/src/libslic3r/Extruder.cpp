@@ -7,6 +7,11 @@ Extruder::Extruder(int id, PrintConfig *config)
     config(config)
 {
     reset();
+    
+    // cache values that are going to be called often
+    this->e_per_mm3 = this->extrusion_multiplier()
+        * (4 / ((this->filament_diameter() * this->filament_diameter()) * PI));
+    this->retract_speed_mm_min = this->retract_speed() * 60;
 }
 
 void
@@ -64,6 +69,26 @@ Extruder::unretract()
     this->retracted = 0;
     this->restart_extra = 0;
     return dE;
+}
+
+double
+Extruder::e_per_mm(double mm3_per_mm) const
+{
+    return mm3_per_mm * this->e_per_mm3;
+}
+
+double
+Extruder::extruded_volume() const
+{
+    return this->used_filament() * (this->filament_diameter() * this->filament_diameter()) * PI/4;
+}
+
+double
+Extruder::used_filament() const
+{
+    // Any current amount of retraction should not affect used filament, since
+    // it represents empty volume in the nozzle. We add it back to E.
+    return this->absolute_E + this->retracted;
 }
 
 Pointf

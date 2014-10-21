@@ -16,6 +16,9 @@ class Extruder
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
+    double e_per_mm(double mm3_per_mm) const;
+    double extruded_volume() const;
+    double used_filament() const;
     
     Pointf extruder_offset() const;
     double nozzle_diameter() const;
@@ -38,7 +41,10 @@ class Extruder
     double absolute_E;
     double retracted;
     double restart_extra;
+    double e_per_mm3;
+    double retract_speed_mm_min;
     
+    private:
     PrintConfig *config;
 };
 
