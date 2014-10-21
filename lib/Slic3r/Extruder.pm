@@ -29,16 +29,6 @@ sub retract_speed_mm_min {
     return $self->retract_speed * 60;
 }
 
-sub scaled_wipe_distance {
-    my ($self, $travel_speed) = @_;
-    
-    # how far do we move in XY at travel_speed for the time needed to consume
-    # retract_length at retract_speed?
-    # reduce feedrate a bit; travel speed is often too high to move on existing material
-    # too fast = ripping of existing material; too slow = short wipe path, thus more blob
-    return scale($self->retract_length / $self->retract_speed * $travel_speed * 0.8);
-}
-
 sub extruded_volume {
     my ($self, $E) = @_;
     return $E * ($self->filament_diameter**2) * PI/4;

@@ -312,6 +312,13 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionString              extrusion_axis;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
+    ConfigOptionFloats              retract_length;
+    ConfigOptionFloats              retract_length_toolchange;
+    ConfigOptionFloats              retract_lift;
+    ConfigOptionFloats              retract_restart_extra;
+    ConfigOptionFloats              retract_restart_extra_toolchange;
+    ConfigOptionInts                retract_speed;
+    ConfigOptionFloat               travel_speed;
     ConfigOptionBool                use_firmware_retraction;
     ConfigOptionBool                use_relative_e_distances;
     
@@ -319,6 +326,19 @@ class GCodeConfig : public virtual StaticPrintConfig
         this->extrusion_axis.value                               = "E";
         this->gcode_comments.value                               = false;
         this->gcode_flavor.value                                 = gcfRepRap;
+        this->retract_length.values.resize(1);
+        this->retract_length.values[0]                           = 1;
+        this->retract_length_toolchange.values.resize(1);
+        this->retract_length_toolchange.values[0]                = 10;
+        this->retract_lift.values.resize(1);
+        this->retract_lift.values[0]                             = 0;
+        this->retract_restart_extra.values.resize(1);
+        this->retract_restart_extra.values[0]                    = 0;
+        this->retract_restart_extra_toolchange.values.resize(1);
+        this->retract_restart_extra_toolchange.values[0]         = 0;
+        this->retract_speed.values.resize(1);
+        this->retract_speed.values[0]                            = 30;
+        this->travel_speed.value                                 = 130;
         this->use_firmware_retraction.value                      = false;
         this->use_relative_e_distances.value                     = false;
     };
@@ -327,6 +347,13 @@ class GCodeConfig : public virtual StaticPrintConfig
         if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
         if (opt_key == "gcode_comments")                             return &this->gcode_comments;
         if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
+        if (opt_key == "retract_length")                             return &this->retract_length;
+        if (opt_key == "retract_length_toolchange")                  return &this->retract_length_toolchange;
+        if (opt_key == "retract_lift")                               return &this->retract_lift;
+        if (opt_key == "retract_restart_extra")                      return &this->retract_restart_extra;
+        if (opt_key == "retract_restart_extra_toolchange")           return &this->retract_restart_extra_toolchange;
+        if (opt_key == "retract_speed")                              return &this->retract_speed;
+        if (opt_key == "travel_speed")                               return &this->travel_speed;
         if (opt_key == "use_firmware_retraction")                    return &this->use_firmware_retraction;
         if (opt_key == "use_relative_e_distances")                   return &this->use_relative_e_distances;
         
@@ -380,12 +407,6 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloat               resolution;
     ConfigOptionFloats              retract_before_travel;
     ConfigOptionBools               retract_layer_change;
-    ConfigOptionFloats              retract_length;
-    ConfigOptionFloats              retract_length_toolchange;
-    ConfigOptionFloats              retract_lift;
-    ConfigOptionFloats              retract_restart_extra;
-    ConfigOptionFloats              retract_restart_extra_toolchange;
-    ConfigOptionInts                retract_speed;
     ConfigOptionFloat               skirt_distance;
     ConfigOptionInt                 skirt_height;
     ConfigOptionInt                 skirts;
@@ -396,7 +417,6 @@ class PrintConfig : public GCodeConfig
     ConfigOptionInts                temperature;
     ConfigOptionInt                 threads;
     ConfigOptionString              toolchange_gcode;
-    ConfigOptionFloat               travel_speed;
     ConfigOptionFloat               vibration_limit;
     ConfigOptionBools               wipe;
     ConfigOptionFloat               z_offset;
@@ -456,18 +476,6 @@ class PrintConfig : public GCodeConfig
         this->retract_before_travel.values[0]                    = 2;
         this->retract_layer_change.values.resize(1);
         this->retract_layer_change.values[0]                     = true;
-        this->retract_length.values.resize(1);
-        this->retract_length.values[0]                           = 1;
-        this->retract_length_toolchange.values.resize(1);
-        this->retract_length_toolchange.values[0]                = 10;
-        this->retract_lift.values.resize(1);
-        this->retract_lift.values[0]                             = 0;
-        this->retract_restart_extra.values.resize(1);
-        this->retract_restart_extra.values[0]                    = 0;
-        this->retract_restart_extra_toolchange.values.resize(1);
-        this->retract_restart_extra_toolchange.values[0]         = 0;
-        this->retract_speed.values.resize(1);
-        this->retract_speed.values[0]                            = 30;
         this->skirt_distance.value                               = 6;
         this->skirt_height.value                                 = 1;
         this->skirts.value                                       = 1;
@@ -479,7 +487,6 @@ class PrintConfig : public GCodeConfig
         this->temperature.values[0]                              = 200;
         this->threads.value                                      = 2;
         this->toolchange_gcode.value                             = "";
-        this->travel_speed.value                                 = 130;
         this->vibration_limit.value                              = 0;
         this->wipe.values.resize(1);
         this->wipe.values[0]                                     = false;
@@ -530,12 +537,6 @@ class PrintConfig : public GCodeConfig
         if (opt_key == "resolution")                                 return &this->resolution;
         if (opt_key == "retract_before_travel")                      return &this->retract_before_travel;
         if (opt_key == "retract_layer_change")                       return &this->retract_layer_change;
-        if (opt_key == "retract_length")                             return &this->retract_length;
-        if (opt_key == "retract_length_toolchange")                  return &this->retract_length_toolchange;
-        if (opt_key == "retract_lift")                               return &this->retract_lift;
-        if (opt_key == "retract_restart_extra")                      return &this->retract_restart_extra;
-        if (opt_key == "retract_restart_extra_toolchange")           return &this->retract_restart_extra_toolchange;
-        if (opt_key == "retract_speed")                              return &this->retract_speed;
         if (opt_key == "skirt_distance")                             return &this->skirt_distance;
         if (opt_key == "skirt_height")                               return &this->skirt_height;
         if (opt_key == "skirts")                                     return &this->skirts;
@@ -546,7 +547,6 @@ class PrintConfig : public GCodeConfig
         if (opt_key == "temperature")                                return &this->temperature;
         if (opt_key == "threads")                                    return &this->threads;
         if (opt_key == "toolchange_gcode")                           return &this->toolchange_gcode;
-        if (opt_key == "travel_speed")                               return &this->travel_speed;
         if (opt_key == "vibration_limit")                            return &this->vibration_limit;
         if (opt_key == "wipe")                                       return &this->wipe;
         if (opt_key == "z_offset")                                   return &this->z_offset;

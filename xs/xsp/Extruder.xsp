@@ -12,6 +12,8 @@
     ~Extruder();
     void reset();
     double extrude(double dE);
+    double retract(double length, double restart_extra);
+    double unretract();
     
     int id() const
         %code%{ RETVAL = THIS->id; %};

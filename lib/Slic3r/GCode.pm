@@ -30,7 +30,6 @@ has 'layer_mp'           => (is => 'rw');
 has 'new_object'         => (is => 'rw', default => sub {0});
 has 'straight_once'      => (is => 'rw', default => sub {1});
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
-has 'lifted'             => (is => 'rw', default => sub {0} );
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has 'wipe_path'          => (is => 'rw');
 
@@ -81,49 +80,17 @@ sub change_layer {
     }
     
     my $gcode = "";
-    if ($self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/ && defined $self->layer_count) {
+    if (defined $self->layer_count) {
         # TODO: cap this to 99% and add an explicit M73 P100 in the end G-code
-        $gcode .= sprintf "M73 P%s%s\n",
-            int(99 * ($self->_layer_index / ($self->layer_count - 1))),
-            ($self->config->gcode_comments ? ' ; update progress' : '');
+        $gcode .= $self->update_progress(int(99 * ($self->_layer_index / ($self->layer_count - 1))));
     }
     
-    $gcode .= $self->move_z($layer->print_z);
-    return $gcode;
-}
-
-# this method accepts Z in unscaled coordinates
-sub move_z {
-    my ($self, $z, $comment) = @_;
-    
-    my $gcode = "";
-    
-    $z += $self->config->z_offset;
-    my $current_z = $self->z;
-    my $nominal_z = defined $current_z ? ($current_z - $self->lifted) : undef;
-    
-    if (!defined $current_z || $z > $current_z || $z < $nominal_z) {
-        # we're moving above the current actual Z (so above the lift height of the current
-        # layer if any) or below the current nominal layer
-        
-        # in both cases, we're going to the nominal Z of the next layer
-        $self->lifted(0);
-        
-        if ($self->_extruder->retract_layer_change) {
-            # this retraction may alter $self->z
-            $gcode .= $self->retract(move_z => $z);
-            $current_z = $self->z;  # update current z in case retract() changed it
-            $nominal_z = defined $current_z ? ($current_z - $self->lifted) : undef;
-        }
-        $gcode .= $self->G0(undef, $z, 0, $self->config->travel_speed*60, $comment || ('move to next layer (' . $self->layer->id . ')'))
-            if !defined $current_z || abs($z - $nominal_z) > epsilon;
-    } elsif ($z < $current_z) {
-        # we're moving above the current nominal layer height and below the current actual one.
-        # we're basically advancing to next layer, whose nominal Z is still lower than the previous
-        # layer Z with lift.
-        $self->lifted($current_z - $z);
+    my $z = $layer->print_z + $self->config->z_offset;  # in unscaled coordinates
+    if ($self->_extruder->retract_layer_change && $self->will_move_z($z)) {
+        $gcode .= $self->retract;
+        $gcode .= $self->lift;
     }
-    
+    $gcode .= $self->travel_to_z($z, 'move to next layer (' . $self->layer->id . ')');
     return $gcode;
 }
 
@@ -289,8 +256,8 @@ sub _extrude_path {
     }
     
     # calculate extrusion length per distance unit
-    my $e = $self->_extruder->e_per_mm3 * $path->mm3_per_mm;
-    $e = 0 if !$self->_extrusion_axis;
+    my $e_per_mm = $self->_extruder->e_per_mm3 * $path->mm3_per_mm;
+    $e_per_mm = 0 if !$self->_extrusion_axis;
     
     # set speed
     my $F;
@@ -322,7 +289,7 @@ sub _extrude_path {
     $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge;
     my $path_length = unscale $path->length;
     {
-        $gcode .= $path->gcode($self->_extruder, $e, $F,
+        $gcode .= $path->gcode($self->_extruder, $e_per_mm, $F,
             $self->shift_x - $self->_extruder->extruder_offset->x,
             $self->shift_y - $self->_extruder->extruder_offset->y,  #,,
             $self->_extrusion_axis,
@@ -365,11 +332,11 @@ sub travel_to {
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->contains_line($travel) } @{$self->layer->support_islands}))
         ) {
         $self->straight_once(0);
-        $gcode .= $self->G0($point, undef, 0, $self->config->travel_speed*60, $comment || "");
+        $gcode .= $self->travel_to_xy($self->point_to_gcode($point), $comment);
     } elsif (!$self->config->avoid_crossing_perimeters || $self->straight_once) {
         $self->straight_once(0);
         $gcode .= $self->retract;
-        $gcode .= $self->G0($point, undef, 0, $self->config->travel_speed*60, $comment || "");
+        $gcode .= $self->travel_to_xy($self->point_to_gcode($point), $comment);
     } else {
         if ($self->new_object) {
             $self->new_object(0);
@@ -410,85 +377,75 @@ sub _plan {
         }
     }
     
-    # do the retract (the travel_to argument is broken)
+    # perform the retraction
     $gcode .= $self->retract if $need_retract;
     
     # append the actual path and return
     # use G1 because we rely on paths being straight (G0 may make round paths)
-    $gcode .= join '', map $self->G1($_->b, undef, 0, $self->config->travel_speed*60, $comment || ""), @travel;
+    $gcode .= join '',
+        map $self->travel_to_xy($self->point_to_gcode($_->b), $comment),
+        @travel;
     return $gcode;
 }
 
 sub retract {
-    my ($self, %params) = @_;
+    my ($self, $toolchange) = @_;
     
     return "" if !defined $self->_extruder;
     
-    # get the retraction length and abort if none
-    my ($length, $restart_extra, $comment) = $params{toolchange}
-        ? ($self->_extruder->retract_length_toolchange,  $self->_extruder->retract_restart_extra_toolchange,  "retract for tool change")
-        : ($self->_extruder->retract_length,             $self->_extruder->retract_restart_extra,             "retract");
-    
-    # if we already retracted, reduce the required amount of retraction
-    $length -= $self->_extruder->retracted;
-    return "" unless $length > 0;
     my $gcode = "";
     
-    # wipe
-    my $wipe_path;
+    # wipe (if it's enabled for this extruder and we have a stored wipe path)
     if ($self->_extruder->wipe && $self->wipe_path) {
-        my @points = @{$self->wipe_path};
-        $wipe_path = Slic3r::Polyline->new($self->last_pos, @{$self->wipe_path}[1..$#{$self->wipe_path}]);
-        $wipe_path->clip_end($wipe_path->length - $self->_extruder->scaled_wipe_distance($self->config->travel_speed));
-    }
-    
-    # prepare moves
-    my $retract = [undef, undef, -$length, $self->_extruder->retract_speed_mm_min, $comment];
-    my $lift    = ($self->config->retract_lift->[0] == 0 || defined $params{move_z}) && !$self->lifted
-        ? undef
-        : [undef, $self->z + $self->config->retract_lift->[0], 0, $self->config->travel_speed*60, 'lift plate during travel'];
-    
-    # check that we have a positive wipe length
-    if ($wipe_path) {
-        # subdivide the retraction
+        # Reduce feedrate a bit; travel speed is often too high to move on existing material.
+        # Too fast = ripping of existing material; too slow = short wipe path, thus more blob.
+        my $wipe_speed = $self->gcode_config->travel_speed * 0.8;
+        
+        # get the retraction length
+        my $length = $toolchange
+            ? $self->_extruder->retract_length
+            : $self->_extruder->retract_length_toolchange;
+        
+        # Calculate how long we need to travel in order to consume the required
+        # amount of retraction. In other words, how far do we move in XY at $wipe_speed
+        # for the time needed to consume retract_length at retract_speed?
+        my $wipe_dist = scale($length / $self->_extruder->retract_speed * $wipe_speed);
+        
+        # Take the stored wipe path and replace first point with the current actual position
+        # (they might be different, for example, in case of loop clipping).
+        my $wipe_path = Slic3r::Polyline->new(
+            $self->last_pos,
+            @{$self->wipe_path}[1..$#{$self->wipe_path}],
+        );
+        # 
+        $wipe_path->clip_end($wipe_path->length - $wipe_dist);
+        
+        # subdivide the retraction in segments
         my $retracted = 0;
         foreach my $line (@{$wipe_path->lines}) {
             my $segment_length = $line->length;
-            # reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
-            # due to rounding
-            my $e = $retract->[2] * ($segment_length / $self->_extruder->scaled_wipe_distance($self->config->travel_speed)) * 0.95;
-            $retracted += $e;
-            $gcode .= $self->G1($line->b, undef, $e, $self->config->travel_speed*60*0.8, $retract->[3] . ";_WIPE");
+            # Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
+            # due to rounding (TODO: test and/or better math for this)
+            my $dE = $length * ($segment_length / $wipe_dist) * 0.95;
+            $gcode .= $self->set_speed($wipe_speed*60);
+            $gcode .= $self->extrude_to_xy(
+                $self->point_to_gcode($line->b),
+                -$dE,
+                'retract;_WIPE',
+            );
+            $retracted += $dE;
         }
-        if ($retracted > $retract->[2]) {
-            # if we retracted less than we had to, retract the remainder
-            # TODO: add regression test
-            $gcode .= $self->G1(undef, undef, $retract->[2] - $retracted, $self->_extruder->retract_speed_mm_min, $comment);
-        }
-        $gcode .= $self->reset_e;
-    } elsif ($self->gcode_config->use_firmware_retraction) {
-        $gcode .= "G10 ; retract\n";
-    } else {
-        $gcode .= $self->G1(@$retract);
-    
-        # reset extrusion distance during retracts
-        # this makes sure we leave sufficient precision in the firmware
-        $gcode .= $self->reset_e;
+        $self->_extruder->set_retracted($self->_extruder->retracted + $retracted);
     }
-    if (!$self->lifted) {
-        if (defined $params{move_z} && $self->config->retract_lift->[0] > 0) {
-            my $travel = [undef, $params{move_z} + $self->config->retract_lift->[0], 0, $self->config->travel_speed*60, 'move to next layer (' . $self->layer->id . ') and lift'];
-            $gcode .= $self->G0(@$travel);
-            $self->lifted($self->config->retract_lift->[0]);
-        } elsif ($lift) {
-            $gcode .= $self->G1(@$lift);
-        }
-    }
-    $self->_extruder->set_retracted($self->_extruder->retracted + $length);
-    $self->_extruder->set_restart_extra($restart_extra);
-    $self->lifted($self->config->retract_lift->[0]) if $lift;
     
-    $gcode .= "M103 ; extruder off\n" if $self->config->gcode_flavor eq 'makerware';
+    # The parent class will decide whether we need to perform an actual retraction
+    # (the extruder might be already retracted fully or partially). We call these 
+    # methods even if we performed wipe, since this will ensure the entire retraction
+    # length is honored in case wipe path was too short.p
+    $gcode .= $toolchange ? $self->retract_for_toolchange : $self->SUPER::retract;
+    
+    $gcode .= $self->reset_e;
+    $gcode .= $self->lift;
     
     return $gcode;
 }
@@ -497,31 +454,8 @@ sub unretract {
     my ($self) = @_;
     
     my $gcode = "";
-    $gcode .= "M101 ; extruder on\n" if $self->config->gcode_flavor eq 'makerware';
-    
-    if ($self->lifted) {
-        $gcode .= $self->G0(undef, $self->z - $self->lifted, 0, $self->config->travel_speed*60, 'restore layer Z');
-        $self->lifted(0);
-    }
-    
-    my $to_unretract = $self->_extruder->retracted + $self->_extruder->restart_extra;
-    if ($to_unretract) {
-        if ($self->gcode_config->use_firmware_retraction) {
-            $gcode .= "G11 ; unretract\n";
-            $gcode .= $self->reset_e;
-        } elsif ($self->_extrusion_axis) {
-            # use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            $gcode .= sprintf "G1 %s%.5f F%.3f",
-                $self->_extrusion_axis,
-                $self->_extruder->extrude($to_unretract),
-                $self->_extruder->retract_speed_mm_min;
-            $gcode .= " ; compensate retraction" if $self->config->gcode_comments;
-            $gcode .= "\n";
-        }
-        $self->_extruder->set_retracted(0);
-        $self->_extruder->set_restart_extra(0);
-    }
-    
+    $gcode .= $self->unlift;
+    $gcode .= $self->SUPER::unretract('compensate retraction');
     return $gcode;
 }
 
@@ -553,6 +487,16 @@ sub _G0_G1 {
     return $self->_Gx($gcode, $e, $F, $comment);
 }
 
+# convert a model-space scaled point into G-code coordinates
+sub point_to_gcode {
+    my ($self, $point) = @_;
+    
+    return Slic3r::Pointf->new(
+        ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $self->_extruder->extruder_offset->x,
+        ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $self->_extruder->extruder_offset->y, #**
+    );
+}
+
 sub _Gx {
     my ($self, $gcode, $e, $F, $comment) = @_;
     
@@ -578,7 +522,7 @@ sub set_extruder {
     }
     
     # prepend retraction on the current extruder
-    my $gcode = $self->retract(toolchange => 1);
+    my $gcode = $self->retract(1);
     
     # append custom toolchange G-code
     if (defined $self->_extruder && $self->config->toolchange_gcode) {

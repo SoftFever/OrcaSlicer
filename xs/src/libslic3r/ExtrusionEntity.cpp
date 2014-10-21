@@ -123,7 +123,11 @@ ExtrusionPath::gcode(Extruder* extruder, double e, double F,
         const double line_length = line_it->length() * SCALING_FACTOR;
 
         // calculate extrusion length for this line
-        double E = (e == 0) ? 0 : extruder->extrude(e * line_length);
+        double E = 0;
+        if (e > 0) {
+            extruder->extrude(e * line_length);
+            E = extruder->E;
+        }
 
         // compose G-code line
 

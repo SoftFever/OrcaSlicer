@@ -110,4 +110,10 @@ Point::coincides_with(point_sv)
         %code{% RETVAL = THIS->y; %};
     double z()
         %code{% RETVAL = THIS->z; %};
+    void set_x(double val)
+        %code{% THIS->x = val; %};
+    void set_y(double val)
+        %code{% THIS->y = val; %};
+    void set_z(double val)
+        %code{% THIS->z = val; %};
 };

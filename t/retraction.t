@@ -17,7 +17,7 @@ use Slic3r::Test qw(_eq);
     my $test = sub {
         my ($conf) = @_;
         $conf ||= $config;
-    
+        
         my $print = Slic3r::Test::init_print('20mm_cube', config => $conf, duplicate => $duplicate);
     
         my $tool = 0;
@@ -78,7 +78,7 @@ use Slic3r::Test qw(_eq);
                         $expected_amount = $print->print->config->get_at('retract_length_toolchange', $tool) + $print->print->config->get_at('retract_restart_extra_toolchange', $tool);
                         $changed_tool = 0;
                     }
-                    fail 'unretracted by the correct amount'
+                    fail 'unretracted by the correct amount' && exit
                         if !_eq($info->{dist_E}, $expected_amount);
                     $retracted[$tool] = 0;
                     $retracted_length[$tool] = 0;
