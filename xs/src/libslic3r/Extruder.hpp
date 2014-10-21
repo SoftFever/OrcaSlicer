@@ -14,7 +14,8 @@ class Extruder
     virtual ~Extruder() {}
     void reset();
     double extrude(double dE);
-    
+    double retract(double length, double restart_extra);
+    double unretract();
     
     Pointf extruder_offset() const;
     double nozzle_diameter() const;

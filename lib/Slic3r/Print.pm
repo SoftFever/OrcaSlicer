@@ -773,8 +773,8 @@ sub write_gcode {
         placeholder_parser  => $self->placeholder_parser,
         layer_count         => $layer_count,
     );
-    $gcodegen->config->apply_print_config($self->config);
-    $gcodegen->set_extruders($self->extruders, $self->config);
+    $gcodegen->apply_print_config($self->config);
+    $gcodegen->set_extruders($self->extruders);
     
     print $fh "G21 ; set units to millimeters\n" if $self->config->gcode_flavor ne 'makerware';
     print $fh $gcodegen->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;
@@ -842,7 +842,11 @@ sub write_gcode {
                 $s->translate(map scale($_), @{$self->config->get_at('extruder_offset', $extruder_id)});
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
-            $gcodegen->standby_points([ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]);
+            
+            my $oozeprev = Slic3r::GCode::OozePrevention->new(
+                standby_points => [ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ],
+            );
+            $gcodegen->ooze_prevention($oozeprev);
         }
     }
     
@@ -935,14 +939,13 @@ sub write_gcode {
     }
     
     # write end commands to file
-    print $fh $gcodegen->retract if $gcodegen->extruder;  # empty prints don't even set an extruder
+    print $fh $gcodegen->retract;
     print $fh $gcodegen->set_fan(0);
     printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->end_gcode);
     
     $self->total_used_filament(0);
     $self->total_extruded_volume(0);
-    foreach my $extruder_id (@{$self->extruders}) {
-        my $extruder = $gcodegen->extruders->{$extruder_id};
+    foreach my $extruder (@{$gcodegen->extruders}) {
         # the final retraction doesn't really count as "used filament"
         my $used_filament = $extruder->absolute_E + $extruder->retract_length;
         my $extruded_volume = $extruder->extruded_volume($used_filament);

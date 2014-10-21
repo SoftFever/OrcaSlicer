@@ -63,8 +63,7 @@ sub process_layer {
     $self->gcodegen->enable_loop_clipping(!defined $self->spiralvase || !$self->spiralvase->enable);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
-        for my $extruder_id (sort keys %{$self->extruders}) {
-            my $extruder = $self->extruders->{$extruder_id};
+        for my $extruder (@{$self->extruders}) {
             $gcode .= $self->gcodegen->set_temperature($extruder->temperature, 0, $extruder->id)
                 if $extruder->temperature && $extruder->temperature != $extruder->first_layer_temperature;
         }
@@ -83,7 +82,7 @@ sub process_layer {
     if (((values %{$self->skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
         && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_shift(@{$self->shift});
-        my @extruder_ids = sort keys %{$self->extruders};
+        my @extruder_ids = map { $_->id } @{$self->extruders};
         $gcode .= $self->gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
         if ($layer->id < $self->print->config->skirt_height || $self->print->config->skirt_height == -1) {
@@ -136,7 +135,7 @@ sub process_layer {
         
         # tweak region ordering to save toolchanges
         my @region_ids = 0 .. ($self->print->region_count-1);
-        if ($self->gcodegen->multiple_extruders) {
+        if ($self->gcodegen->has_multiple_extruders) {
             my $last_extruder = $self->gcodegen->extruder;
             my $best_region_id = first { $self->print->regions->[$_]->config->perimeter_extruder-1 eq $last_extruder } @region_ids;
             @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids) if $best_region_id;
@@ -176,7 +175,7 @@ sub process_layer {
                 # give priority to infill if we were already using its extruder and it wouldn't
                 # be good for perimeters
                 if ($self->print->config->infill_first
-                    || ($self->gcodegen->multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
+                    || ($self->gcodegen->has_multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
                     $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
                     $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
                 } else {

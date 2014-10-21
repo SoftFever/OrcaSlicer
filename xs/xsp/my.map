@@ -29,6 +29,9 @@ Ref<PrintObjectConfig>     O_OBJECT_SLIC3R_T
 PrintRegionConfig*         O_OBJECT_SLIC3R
 Ref<PrintRegionConfig>     O_OBJECT_SLIC3R_T
 
+GCodeConfig*               O_OBJECT_SLIC3R
+Ref<GCodeConfig>           O_OBJECT_SLIC3R_T
+
 PrintConfig*               O_OBJECT_SLIC3R
 Ref<PrintConfig>           O_OBJECT_SLIC3R_T
 

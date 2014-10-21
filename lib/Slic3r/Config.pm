@@ -432,6 +432,9 @@ sub read_ini {
     return $ini;
 }
 
+package Slic3r::Config::GCode;
+use parent 'Slic3r::Config';
+
 package Slic3r::Config::Print;
 use parent 'Slic3r::Config';
 

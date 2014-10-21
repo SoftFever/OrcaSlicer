@@ -6,10 +6,14 @@
 %}
 
 %name{Slic3r::Extruder} class Extruder {
-    Extruder(int id, PrintConfig *config);
+    // We don't need a Perl constructor with PrintConfig at the moment
+    //Extruder(int id, PrintConfig *config);
+    Extruder(int id, FullPrintConfig *config);
     ~Extruder();
     void reset();
     double extrude(double dE);
+    double retract(double length, double restart_extra);
+    double unretract();
     
     int id() const
         %code%{ RETVAL = THIS->id; %};
