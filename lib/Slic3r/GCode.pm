@@ -28,16 +28,13 @@ has 'layer'              => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
 has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => pos
-has 'shift_x'            => (is => 'rw', default => sub {0} );
-has 'shift_y'            => (is => 'rw', default => sub {0} );
-has 'z'                  => (is => 'rw');
 has 'external_mp'        => (is => 'rw');
 has 'layer_mp'           => (is => 'rw');
 has 'new_object'         => (is => 'rw', default => sub {0});
 has 'straight_once'      => (is => 'rw', default => sub {1});
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
-has 'wipe_path'          => (is => 'rw');
+has '_wipe_path'         => (is => 'rw');
 
 sub apply_print_config {
     my ($self, $print_config) = @_;
@@ -64,7 +61,7 @@ sub set_origin {
         scale ($self->origin->y - $pointf->y),  #-
     );
     $self->last_pos->translate(@translate);
-    $self->wipe_path->translate(@translate) if $self->wipe_path;
+    $self->_wipe_path->translate(@translate) if $self->_wipe_path;
     
     $self->origin($pointf);
 }
@@ -189,7 +186,7 @@ sub extrude_loop {
     # reset acceleration
     $gcode .= $self->_writer->set_acceleration($self->config->default_acceleration);
     
-    $self->wipe_path($paths[-1]->polyline->clone) if $self->enable_wipe;  # TODO: don't limit wipe to last path
+    $self->_wipe_path($paths[-1]->polyline->clone) if $self->enable_wipe;  # TODO: don't limit wipe to last path
     
     # make a little move inwards before leaving loop
     if ($paths[-1]->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->config->perimeters > 1) {
@@ -301,8 +298,8 @@ sub _extrude_path {
             $self->config->gcode_comments ? " ; $description" : "");
 
         if ($self->enable_wipe) {
-            $self->wipe_path($path->polyline->clone);
-            $self->wipe_path->reverse;
+            $self->_wipe_path($path->polyline->clone);
+            $self->_wipe_path->reverse;
         }
     }
     $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge;
@@ -401,7 +398,7 @@ sub retract {
     my $gcode = "";
     
     # wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if ($self->config->get_at('wipe', $self->_writer->extruder->id) && $self->wipe_path) {
+    if ($self->config->get_at('wipe', $self->_writer->extruder->id) && $self->_wipe_path) {
         # Reduce feedrate a bit; travel speed is often too high to move on existing material.
         # Too fast = ripping of existing material; too slow = short wipe path, thus more blob.
         my $wipe_speed = $self->_writer->config->travel_speed * 0.8;
@@ -420,7 +417,7 @@ sub retract {
         # (they might be different, for example, in case of loop clipping).
         my $wipe_path = Slic3r::Polyline->new(
             $self->last_pos,
-            @{$self->wipe_path}[1..$#{$self->wipe_path}],
+            @{$self->_wipe_path}[1..$#{$self->_wipe_path}],
         );
         # 
         $wipe_path->clip_end($wipe_path->length - $wipe_dist);
