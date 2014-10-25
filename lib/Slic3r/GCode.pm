@@ -9,6 +9,11 @@ use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI 
 use Slic3r::Geometry::Clipper qw(union_ex offset_ex);
 use Slic3r::Surface ':types';
 
+# Origin of print coordinates expressed in unscaled G-code coordinates.
+# This affects the input arguments supplied to the extrude*() and travel_to()
+# methods.
+has 'origin'             => (is => 'rw', default => sub { Slic3r::Pointf->new });
+
 has 'config'             => (is => 'ro', default => sub { Slic3r::Config::Full->new });
 has '_writer'            => (is => 'ro', default => sub { Slic3r::GCode::Writer->new },
                                 handles => [qw(set_fan set_temperature set_bed_temperature
@@ -50,19 +55,18 @@ sub set_extruders {
     $self->enable_wipe(defined first { $self->config->get_at('wipe', $_) } @$extruder_ids);
 }
 
-sub set_shift {
-    my ($self, @shift) = @_;
+sub set_origin {
+    my ($self, $pointf) = @_;
     
-    # if shift increases (goes towards right), last_pos decreases because it goes towards left
+    # if origin increases (goes towards right), last_pos decreases because it goes towards left
     my @translate = (
-        scale ($self->shift_x - $shift[X]),
-        scale ($self->shift_y - $shift[Y]),
+        scale ($self->origin->x - $pointf->x),
+        scale ($self->origin->y - $pointf->y),  #-
     );
     $self->last_pos->translate(@translate);
     $self->wipe_path->translate(@translate) if $self->wipe_path;
     
-    $self->shift_x($shift[X]);
-    $self->shift_y($shift[Y]);
+    $self->origin($pointf);
 }
 
 sub change_layer {
@@ -291,8 +295,8 @@ sub _extrude_path {
     {
         my $extruder_offset = $self->config->get_at('extruder_offset', $self->_writer->extruder->id);
         $gcode .= $path->gcode($self->_writer->extruder, $e_per_mm, $F,
-            $self->shift_x - $extruder_offset->x,
-            $self->shift_y - $extruder_offset->y,  #,,
+            $self->origin->x - $extruder_offset->x,
+            $self->origin->y - $extruder_offset->y,  #-
             $self->_writer->_extrusion_axis,
             $self->config->gcode_comments ? " ; $description" : "");
 
@@ -321,7 +325,7 @@ sub travel_to {
     # move travel back to original layer coordinates for the island check.
     # note that we're only considering the current object's islands, while we should
     # build a more complete configuration space
-    $travel->translate(-$self->shift_x, -$self->shift_y);
+    $travel->translate(scale -$self->origin->x, scale -$self->origin->y);  #;;
     
     # skip retraction if the travel move is contained in an island in the current layer
     # *and* in an island in the upper layer (so that the ooze will not be visible)
@@ -344,13 +348,13 @@ sub travel_to {
             
             # represent $point in G-code coordinates
             $point = $point->clone;
-            my @shift = ($self->shift_x, $self->shift_y);
-            $point->translate(map scale $_, @shift);
+            my $origin = $self->origin;
+            $point->translate(map scale $_, @$origin);
             
             # calculate path (external_mp uses G-code coordinates so we temporary need a null shift)
-            $self->set_shift(0,0);
+            $self->set_origin(Slic3r::Pointf->new(0,0));
             $gcode .= $self->_plan($self->external_mp, $point, $comment);
-            $self->set_shift(@shift);
+            $self->set_origin($origin);
         } else {
             $gcode .= $self->_plan($self->layer_mp, $point, $comment);
         }
@@ -466,8 +470,8 @@ sub point_to_gcode {
     
     my $extruder_offset = $self->config->get_at('extruder_offset', $self->_writer->extruder->id);
     return Slic3r::Pointf->new(
-        ($point->x * &Slic3r::SCALING_FACTOR) + $self->shift_x - $extruder_offset->x,
-        ($point->y * &Slic3r::SCALING_FACTOR) + $self->shift_y - $extruder_offset->y,  #**
+        ($point->x * &Slic3r::SCALING_FACTOR) + $self->origin->x - $extruder_offset->x,
+        ($point->y * &Slic3r::SCALING_FACTOR) + $self->origin->y - $extruder_offset->y,  #**
     );
 }
 

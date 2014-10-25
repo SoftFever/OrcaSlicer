@@ -13,9 +13,9 @@ sub pre_toolchange {
     # move to the nearest standby point
     if (@{$self->standby_points}) {
         my $last_pos = $gcodegen->last_pos->clone;
-        $last_pos->translate(scale +$gcodegen->shift_x, scale +$gcodegen->shift_y);
+        $last_pos->translate(scale +$gcodegen->origin->x, scale +$gcodegen->origin->y);  #))
         my $standby_point = $last_pos->nearest_point($self->standby_points);
-        $standby_point->translate(scale -$gcodegen->shift_x, scale -$gcodegen->shift_y);
+        $standby_point->translate(scale -$gcodegen->origin->x, scale -$gcodegen->origin->y);  #))
         $gcode .= $gcodegen->travel_to($standby_point);
     }
     

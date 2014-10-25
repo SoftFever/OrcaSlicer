@@ -6,7 +6,7 @@ use Slic3r::Geometry qw(X Y unscale);
 
 has 'print'                         => (is => 'ro', required => 1, handles => [qw(config)]);
 has 'gcodegen'                      => (is => 'ro', required => 1, handles => [qw(extruders)]);
-has 'shift'                         => (is => 'ro', default => sub { [0,0] });
+has 'origin'                        => (is => 'ro', default => sub { Slic3r::Pointf->new(0,0) });
 
 has 'spiralvase'                    => (is => 'lazy');
 has 'vibration_limit'               => (is => 'lazy');
@@ -82,7 +82,7 @@ sub process_layer {
     # extrude skirt
     if (((values %{$self->skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
         && !$self->skirt_done->{$layer->print_z}) {
-        $self->gcodegen->set_shift(@{$self->shift});
+        $self->gcodegen->set_origin($self->origin);
         my @extruder_ids = map { $_->id } @{$self->extruders};
         $gcode .= $self->gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
@@ -106,7 +106,7 @@ sub process_layer {
     # extrude brim
     if (!$self->brim_done) {
         $gcode .= $self->gcodegen->set_extruder($self->print->objects->[0]->config->support_material_extruder-1);
-        $self->gcodegen->set_shift(@{$self->shift});
+        $self->gcodegen->set_origin($self->origin);
         $gcode .= $self->gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
             for @{$self->print->brim};
         $self->brim_done(1);
@@ -117,7 +117,7 @@ sub process_layer {
         $self->gcodegen->new_object(1) if ($self->_last_obj_copy // '') ne "$copy";
         $self->_last_obj_copy("$copy");
         
-        $self->gcodegen->set_shift(map $self->shift->[$_] + unscale $copy->[$_], X,Y);
+        $self->gcodegen->set_origin(Slic3r::Pointf->new(map $self->origin->[$_] + unscale $copy->[$_], X,Y));
         
         # extrude support material before other things because it might use a lower Z
         # and also because we avoid travelling on other things when printing it

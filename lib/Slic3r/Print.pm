@@ -873,7 +873,7 @@ sub write_gcode {
                 # this happens before Z goes down to layer 0 again, so that 
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
-                    $gcodegen->set_shift(map unscale $copy->[$_], X,Y);
+                    $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         $object->_copies_shift->negative,
