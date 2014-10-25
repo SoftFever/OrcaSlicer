@@ -6,7 +6,7 @@ use List::Util qw(sum first);
 use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(PI A B scale unscale chained_path points_coincide);
+use Slic3r::Geometry qw(PI A B scale unscale chained_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff_ex intersection_ex 
     offset offset_ex offset2 offset2_ex union_pt diff intersection
     union diff intersection_ppl diff_ppl);

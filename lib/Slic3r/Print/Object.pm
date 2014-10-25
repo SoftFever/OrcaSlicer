@@ -4,7 +4,7 @@ use warnings;
 
 use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(X Y Z PI scale unscale deg2rad rad2deg scaled_epsilon chained_path);
+use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
     offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
 use Slic3r::Print::State ':steps';

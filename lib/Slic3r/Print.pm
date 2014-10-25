@@ -7,9 +7,9 @@ use File::Spec;
 use List::Util qw(min max first sum);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale move_points chained_path
+use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale chained_path
     convex_hull);
-use Slic3r::Geometry::Clipper qw(diff_ex union_ex union_pt intersection_ex intersection offset
+use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex intersection offset
     offset2 union union_pt_chained JT_ROUND JT_SQUARE);
 use Slic3r::Print::State ':steps';
 

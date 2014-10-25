@@ -5,7 +5,7 @@ use List::Util qw(min max first);
 use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon points_coincide PI X Y B);
+use Slic3r::Geometry qw(epsilon scale unscale PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex offset_ex);
 use Slic3r::Surface ':types';
 
