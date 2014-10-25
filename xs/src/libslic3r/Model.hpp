@@ -95,6 +95,11 @@ class ModelObject
     ModelVolumePtrs volumes;
     DynamicPrintConfig config;
     t_layer_height_ranges layer_height_ranges;
+    
+    /* This vector accumulates the total translation applied to the object by the
+        center_around_origin() method. Callers might want to apply the same translation
+        to new volumes before adding them to this object in order to preset alignment
+        when user expects that. */
     Pointf origin_translation;
     
     // these should be private but we need to expose them via XS until all methods are ported
