@@ -6,9 +6,7 @@
 %}
 
 %name{Slic3r::Extruder} class Extruder {
-    // We don't need a Perl constructor with PrintConfig at the moment
-    //Extruder(int id, PrintConfig *config);
-    Extruder(int id, FullPrintConfig *config);
+    Extruder(int id, GCodeConfig *config);
     ~Extruder();
     void reset();
     double extrude(double dE);
@@ -18,43 +16,36 @@
     double extruded_volume();
     double used_filament();
     
-    int id() const
+    int id()
         %code%{ RETVAL = THIS->id; %};
     
-    double E() const
+    double E()
         %code%{ RETVAL = THIS->E; %};
-    double set_E(double val) const
+    double set_E(double val)
         %code%{ RETVAL = THIS->E = val; %};
-    double absolute_E() const
+    double absolute_E()
         %code%{ RETVAL = THIS->absolute_E; %};
-    double set_absolute_E(double val) const
+    double set_absolute_E(double val)
         %code%{ RETVAL = THIS->absolute_E = val; %};
-    double retracted() const
+    double retracted()
         %code%{ RETVAL = THIS->retracted; %};
-    double set_retracted(double val) const
+    double set_retracted(double val)
         %code%{ RETVAL = THIS->retracted = val; %};
-    double restart_extra() const
+    double restart_extra()
         %code%{ RETVAL = THIS->restart_extra; %};
-    double set_restart_extra(double val) const
+    double set_restart_extra(double val)
         %code%{ RETVAL = THIS->restart_extra = val; %};
     double e_per_mm3()
         %code%{ RETVAL = THIS->e_per_mm3; %};
     double retract_speed_mm_min()
         %code%{ RETVAL = THIS->retract_speed_mm_min; %};
     
-    Clone<Pointf> extruder_offset() const;
-    double nozzle_diameter() const;
-    double filament_diameter() const;
-    double extrusion_multiplier() const;
-    int temperature() const;
-    int first_layer_temperature() const;
-    double retract_length() const;
-    double retract_lift() const;
-    int retract_speed() const;
-    double retract_restart_extra() const;
-    double retract_before_travel() const;
-    bool retract_layer_change() const;
-    double retract_length_toolchange() const;
-    double retract_restart_extra_toolchange() const;
-    bool wipe() const;
+    double filament_diameter();
+    double extrusion_multiplier();
+    double retract_length();
+    double retract_lift();
+    int retract_speed();
+    double retract_restart_extra();
+    double retract_length_toolchange();
+    double retract_restart_extra_toolchange();
 };

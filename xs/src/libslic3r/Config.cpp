@@ -123,12 +123,12 @@ ConfigBase::get(t_config_option_key opt_key) {
             av_store(av, it - optv->values.begin(), newSVpvn_utf8(it->c_str(), it->length(), true));
         return newRV_noinc((SV*)av);
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
-        return optv->point.to_SV_pureperl();
+        return perl_to_SV_clone_ref(optv->point);
     } else if (ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt)) {
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
         for (Pointfs::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
-            av_store(av, it - optv->values.begin(), it->to_SV_pureperl());
+            av_store(av, it - optv->values.begin(), perl_to_SV_clone_ref(*it));
         return newRV_noinc((SV*)av);
     } else if (ConfigOptionBool* optv = dynamic_cast<ConfigOptionBool*>(opt)) {
         return newSViv(optv->value ? 1 : 0);
@@ -158,7 +158,7 @@ ConfigBase::get_at(t_config_option_key opt_key, size_t i) {
         std::string val = optv->get_at(i);
         return newSVpvn_utf8(val.c_str(), val.length(), true);
     } else if (ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt)) {
-        return optv->get_at(i).to_SV_pureperl();
+        return perl_to_SV_clone_ref(optv->get_at(i));
     } else if (ConfigOptionBools* optv = dynamic_cast<ConfigOptionBools*>(opt)) {
         return newSViv(optv->get_at(i) ? 1 : 0);
     } else {

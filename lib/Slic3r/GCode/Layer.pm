@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(first);
 use Slic3r::Geometry qw(X Y unscale);
 
-has 'print'                         => (is => 'ro', required => 1);
+has 'print'                         => (is => 'ro', required => 1, handles => [qw(config)]);
 has 'gcodegen'                      => (is => 'ro', required => 1, handles => [qw(extruders)]);
 has 'shift'                         => (is => 'ro', default => sub { [0,0] });
 
@@ -64,8 +64,9 @@ sub process_layer {
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
         for my $extruder (@{$self->extruders}) {
-            $gcode .= $self->gcodegen->set_temperature($extruder->temperature, 0, $extruder->id)
-                if $extruder->temperature && $extruder->temperature != $extruder->first_layer_temperature;
+            my $temperature = $self->config->get_at('temperature', $extruder->id);
+            $gcode .= $self->gcodegen->set_temperature($temperature, 0, $extruder->id)
+                if $temperature && $temperature != $self->config->get_at('first_layer_temperature', $extruder->id);
         }
         $gcode .= $self->gcodegen->set_bed_temperature($self->print->config->bed_temperature)
             if $self->print->config->bed_temperature && $self->print->config->bed_temperature != $self->print->config->first_layer_bed_temperature;
@@ -135,9 +136,9 @@ sub process_layer {
         
         # tweak region ordering to save toolchanges
         my @region_ids = 0 .. ($self->print->region_count-1);
-        if ($self->gcodegen->has_multiple_extruders) {
-            my $last_extruder = $self->gcodegen->extruder;
-            my $best_region_id = first { $self->print->regions->[$_]->config->perimeter_extruder-1 eq $last_extruder } @region_ids;
+        if ($self->gcodegen->multiple_extruders) {
+            my $last_extruder_id = $self->gcodegen->extruder->id;
+            my $best_region_id = first { $self->print->regions->[$_]->config->perimeter_extruder-1 == $last_extruder_id } @region_ids;
             @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids) if $best_region_id;
         }
         
@@ -175,7 +176,7 @@ sub process_layer {
                 # give priority to infill if we were already using its extruder and it wouldn't
                 # be good for perimeters
                 if ($self->print->config->infill_first
-                    || ($self->gcodegen->has_multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
+                    || ($self->gcodegen->multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
                     $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
                     $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
                 } else {

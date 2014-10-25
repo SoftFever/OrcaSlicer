@@ -310,6 +310,8 @@ class GCodeConfig : public virtual StaticPrintConfig
 {
     public:
     ConfigOptionString              extrusion_axis;
+    ConfigOptionFloats              extrusion_multiplier;
+    ConfigOptionFloats              filament_diameter;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionFloats              retract_length;
@@ -324,6 +326,10 @@ class GCodeConfig : public virtual StaticPrintConfig
     
     GCodeConfig() : StaticPrintConfig() {
         this->extrusion_axis.value                               = "E";
+        this->extrusion_multiplier.values.resize(1);
+        this->extrusion_multiplier.values[0]                     = 1;
+        this->filament_diameter.values.resize(1);
+        this->filament_diameter.values[0]                        = 3;
         this->gcode_comments.value                               = false;
         this->gcode_flavor.value                                 = gcfRepRap;
         this->retract_length.values.resize(1);
@@ -345,6 +351,8 @@ class GCodeConfig : public virtual StaticPrintConfig
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
+        if (opt_key == "extrusion_multiplier")                       return &this->extrusion_multiplier;
+        if (opt_key == "filament_diameter")                          return &this->filament_diameter;
         if (opt_key == "gcode_comments")                             return &this->gcode_comments;
         if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
         if (opt_key == "retract_length")                             return &this->retract_length;
@@ -379,10 +387,8 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloat               extruder_clearance_height;
     ConfigOptionFloat               extruder_clearance_radius;
     ConfigOptionPoints              extruder_offset;
-    ConfigOptionFloats              extrusion_multiplier;
     ConfigOptionBool                fan_always_on;
     ConfigOptionInt                 fan_below_layer_time;
-    ConfigOptionFloats              filament_diameter;
     ConfigOptionFloat               first_layer_acceleration;
     ConfigOptionInt                 first_layer_bed_temperature;
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
@@ -440,12 +446,8 @@ class PrintConfig : public GCodeConfig
         this->extruder_clearance_radius.value                    = 20;
         this->extruder_offset.values.resize(1);
         this->extruder_offset.values[0]                          = Pointf(0,0);
-        this->extrusion_multiplier.values.resize(1);
-        this->extrusion_multiplier.values[0]                     = 1;
         this->fan_always_on.value                                = false;
         this->fan_below_layer_time.value                         = 60;
-        this->filament_diameter.values.resize(1);
-        this->filament_diameter.values[0]                        = 3;
         this->first_layer_acceleration.value                     = 0;
         this->first_layer_bed_temperature.value                  = 0;
         this->first_layer_extrusion_width.value                  = 200;
@@ -507,10 +509,8 @@ class PrintConfig : public GCodeConfig
         if (opt_key == "extruder_clearance_height")                  return &this->extruder_clearance_height;
         if (opt_key == "extruder_clearance_radius")                  return &this->extruder_clearance_radius;
         if (opt_key == "extruder_offset")                            return &this->extruder_offset;
-        if (opt_key == "extrusion_multiplier")                       return &this->extrusion_multiplier;
         if (opt_key == "fan_always_on")                              return &this->fan_always_on;
         if (opt_key == "fan_below_layer_time")                       return &this->fan_below_layer_time;
-        if (opt_key == "filament_diameter")                          return &this->filament_diameter;
         if (opt_key == "first_layer_acceleration")                   return &this->first_layer_acceleration;
         if (opt_key == "first_layer_bed_temperature")                return &this->first_layer_bed_temperature;
         if (opt_key == "first_layer_extrusion_width")                return &this->first_layer_extrusion_width;

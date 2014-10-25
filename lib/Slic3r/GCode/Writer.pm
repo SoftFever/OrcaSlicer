@@ -1,14 +1,14 @@
-package Slic3r::GCode::Base;
+package Slic3r::GCode::Writer;
 use Moo;
 
 use List::Util qw(min max first);
 use Slic3r::Geometry qw(X Y epsilon);
 
-has 'gcode_config'          => (is => 'ro', default => sub { Slic3r::Config::GCode->new });
+has 'config'                => (is => 'ro', default => sub { Slic3r::Config::GCode->new });
+has 'multiple_extruders'    => (is => 'rw', default => sub { 0 });
 has '_extrusion_axis'       => (is => 'rw', default => sub { 'E' });
 has '_extruders'            => (is => 'ro', default => sub {{}});
-has '_extruder'             => (is => 'rw');
-has '_multiple_extruders'   => (is => 'rw', default => sub { 0 });
+has '_extruder'             => (is => 'rw', reader => 'extruder');
 has '_last_acceleration'    => (is => 'rw', default => sub { 0 });
 has '_last_fan_speed'       => (is => 'rw', default => sub { 0 });
 has '_lifted'               => (is => 'rw', default => sub { 0 });
@@ -17,14 +17,14 @@ has '_pos'                  => (is => 'rw', default => sub { Slic3r::Pointf3->ne
 sub apply_print_config {
     my ($self, $print_config) = @_;
     
-    $self->gcode_config->apply_print_config($print_config);
+    $self->config->apply_print_config($print_config);
     
-    if ($self->gcode_config->gcode_flavor eq 'mach3') {
+    if ($self->config->gcode_flavor eq 'mach3') {
         $self->_extrusion_axis('A');
-    } elsif ($self->gcode_config->gcode_flavor eq 'no-extrusion') {
+    } elsif ($self->config->gcode_flavor eq 'no-extrusion') {
         $self->_extrusion_axis('');
     } else {
-        $self->_extrusion_axis($self->gcode_config->extrusion_axis);
+        $self->_extrusion_axis($self->config->extrusion_axis);
     }
 }
 
@@ -38,23 +38,23 @@ sub set_extruders {
     # we enable support for multiple extruder if any extruder greater than 0 is used
     # (even if prints only uses that one) since we need to output Tx commands
     # first extruder has index 0
-    $self->_multiple_extruders(max(@$extruder_ids) > 0);
+    $self->multiple_extruders(max(@$extruder_ids) > 0);
 }
 
 sub set_temperature {
     my ($self, $temperature, $wait, $tool) = @_;
     
-    return "" if $wait && $self->gcode_config->gcode_flavor =~ /^(?:makerware|sailfish)$/;
+    return "" if $wait && $self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/;
     
-    my ($code, $comment) = ($wait && $self->gcode_config->gcode_flavor ne 'teacup')
+    my ($code, $comment) = ($wait && $self->config->gcode_flavor ne 'teacup')
         ? ('M109', 'wait for temperature to be reached')
         : ('M104', 'set temperature');
     my $gcode = sprintf "$code %s%d %s; $comment\n",
-        ($self->gcode_config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature,
-        (defined $tool && ($self->_multiple_extruders || $self->gcode_config->gcode_flavor =~ /^(?:makerware|sailfish)$/)) ? "T$tool " : "";
+        ($self->config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature,
+        (defined $tool && ($self->multiple_extruders || $self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/)) ? "T$tool " : "";
     
     $gcode .= "M116 ; wait for temperature to be reached\n"
-        if $self->gcode_config->gcode_flavor eq 'teacup' && $wait;
+        if $self->config->gcode_flavor eq 'teacup' && $wait;
     
     return $gcode;
 }
@@ -62,14 +62,14 @@ sub set_temperature {
 sub set_bed_temperature {
     my ($self, $temperature, $wait) = @_;
     
-    my ($code, $comment) = ($wait && $self->gcode_config->gcode_flavor ne 'teacup')
-        ? (($self->gcode_config->gcode_flavor =~ /^(?:makerware|sailfish)$/ ? 'M109' : 'M190'), 'wait for bed temperature to be reached')
+    my ($code, $comment) = ($wait && $self->config->gcode_flavor ne 'teacup')
+        ? (($self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/ ? 'M109' : 'M190'), 'wait for bed temperature to be reached')
         : ('M140', 'set bed temperature');
     my $gcode = sprintf "$code %s%d ; $comment\n",
-        ($self->gcode_config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
+        ($self->config->gcode_flavor eq 'mach3' ? 'P' : 'S'), $temperature;
     
     $gcode .= "M116 ; wait for bed temperature to be reached\n"
-        if $self->gcode_config->gcode_flavor eq 'teacup' && $wait;
+        if $self->config->gcode_flavor eq 'teacup' && $wait;
     
     return $gcode;
 }
@@ -80,18 +80,18 @@ sub set_fan {
     if ($self->_last_fan_speed != $speed || $dont_save) {
         $self->_last_fan_speed($speed) if !$dont_save;
         if ($speed == 0) {
-            my $code = $self->gcode_config->gcode_flavor eq 'teacup'
+            my $code = $self->config->gcode_flavor eq 'teacup'
                 ? 'M106 S0'
-                : $self->gcode_config->gcode_flavor =~ /^(?:makerware|sailfish)$/
+                : $self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/
                     ? 'M127'
                     : 'M107';
-            return sprintf "$code%s\n", ($self->gcode_config->gcode_comments ? ' ; disable fan' : '');
+            return sprintf "$code%s\n", ($self->config->gcode_comments ? ' ; disable fan' : '');
         } else {
-            if ($self->gcode_config->gcode_flavor =~ /^(?:makerware|sailfish)$/) {
-                return sprintf "M126%s\n", ($self->gcode_config->gcode_comments ? ' ; enable fan' : '');
+            if ($self->config->gcode_flavor =~ /^(?:makerware|sailfish)$/) {
+                return sprintf "M126%s\n", ($self->config->gcode_comments ? ' ; enable fan' : '');
             } else {
-                return sprintf "M106 %s%d%s\n", ($self->gcode_config->gcode_flavor eq 'mach3' ? 'P' : 'S'),
-                    (255 * $speed / 100), ($self->gcode_config->gcode_comments ? ' ; enable fan' : '');
+                return sprintf "M106 %s%d%s\n", ($self->config->gcode_flavor eq 'mach3' ? 'P' : 'S'),
+                    (255 * $speed / 100), ($self->config->gcode_comments ? ' ; enable fan' : '');
             }
         }
     }
@@ -105,13 +105,13 @@ sub set_acceleration {
     
     $self->_last_acceleration($acceleration);
     return sprintf "M204 S%s%s\n",
-        $acceleration, ($self->gcode_config->gcode_comments ? ' ; adjust acceleration' : '');
+        $acceleration, ($self->config->gcode_comments ? ' ; adjust acceleration' : '');
 }
 
 sub update_progress {
     my ($self, $percent) = @_;
     
-    return "" if $self->gcode_config->gcode_flavor !~ /^(?:makerware|sailfish)$/;
+    return "" if $self->config->gcode_flavor !~ /^(?:makerware|sailfish)$/;
     return sprintf "M73 P%s%s\n",
         int($percent),
         $self->_comment('update progress');
@@ -128,10 +128,10 @@ sub set_extruder {
     my ($self, $extruder_id) = @_;
     
     return "" if !$self->need_toolchange;
-    return $self->_toolchange($extruder_id);
+    return $self->toolchange($extruder_id);
 }
 
-sub _toolchange {
+sub toolchange {
     my ($self, $extruder_id) = @_;
     
     # set the new extruder
@@ -140,15 +140,15 @@ sub _toolchange {
     # return the toolchange command
     # if we are running a single-extruder setup, just set the extruder and return nothing
     my $gcode = "";
-    if ($self->_multiple_extruders) {
+    if ($self->multiple_extruders) {
         $gcode .= sprintf "%s%d%s\n",
-            ($self->gcode_config->gcode_flavor eq 'makerware'
+            ($self->config->gcode_flavor eq 'makerware'
                 ? 'M135 T'
-                : $self->gcode_config->gcode_flavor eq 'sailfish'
+                : $self->config->gcode_flavor eq 'sailfish'
                     ? 'M108 T'
                     : 'T'),
             $extruder_id,
-            ($self->gcode_config->gcode_comments ? ' ; change extruder' : '');
+            ($self->config->gcode_comments ? ' ; change extruder' : '');
         
         $gcode .= $self->reset_e(1);
     }
@@ -165,8 +165,8 @@ sub reset_e {
         $self->_extruder->set_E(0) if $self->_extruder;
     }
     
-    if ($self->_extrusion_axis ne '' && !$self->gcode_config->use_relative_e_distances) {
-        return sprintf "G92 %s0%s\n", $self->gcode_config->extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '');
+    if ($self->_extrusion_axis ne '' && !$self->config->use_relative_e_distances) {
+        return sprintf "G92 %s0%s\n", $self->config->extrusion_axis, ($self->config->gcode_comments ? ' ; reset extrusion distance' : '');
     } else {
         return "";
     }
@@ -194,7 +194,7 @@ sub travel_to_xy {
     $self->_pos->set_y($pointf->y);     # ))
     return sprintf "G1 X%.3f Y%.3f F%.3f%s\n",
         @$pointf,
-        $self->gcode_config->travel_speed*60,
+        $self->config->travel_speed*60,
         $self->_comment($comment);
 }
 
@@ -223,7 +223,7 @@ sub _travel_to_xyz {
     $self->_pos($pointf3);
     return sprintf "G1 X%.3f Y%.3f Z%.3f F%.3f%s\n",
         @$pointf3,
-        $self->gcode_config->travel_speed*60,
+        $self->config->travel_speed*60,
         $self->_comment($comment);
 }
 
@@ -251,7 +251,7 @@ sub _travel_to_z {
     $self->_pos->set_z($z);
     return sprintf "G1 Z%.3f F%.3f%s\n",
         $z,
-        $self->gcode_config->travel_speed*60,
+        $self->config->travel_speed*60,
         $self->_comment($comment);
 }
 
@@ -318,7 +318,7 @@ sub retract_for_toolchange {
 sub _retract {
     my ($self, $length, $restart_extra, $comment) = @_;
     
-    if ($self->gcode_config->use_firmware_retraction) {
+    if ($self->config->use_firmware_retraction) {
         return "G10 ; retract\n";
     }
     
@@ -329,11 +329,11 @@ sub _retract {
             $self->_extrusion_axis,
             $self->_extruder->E,
             $self->_extruder->retract_speed_mm_min,
-            $self->_comment($comment . " dE = $dE");
+            $self->_comment($comment);
     }
     
     $gcode .= "M103 ; extruder off\n"
-        if $self->gcode_config->gcode_flavor eq 'makerware';
+        if $self->config->gcode_flavor eq 'makerware';
     
     return $gcode;
 }
@@ -344,9 +344,9 @@ sub unretract {
     my $gcode = "";
     
     $gcode .= "M101 ; extruder on\n"
-        if $self->gcode_config->gcode_flavor eq 'makerware';
+        if $self->config->gcode_flavor eq 'makerware';
     
-    if ($self->gcode_config->use_firmware_retraction) {
+    if ($self->config->use_firmware_retraction) {
         $gcode .= "G11 ; unretract\n";
         $gcode .= $self->reset_e;
         return $gcode;
@@ -371,8 +371,8 @@ sub unretract {
 sub lift {
     my ($self) = @_;
     
-    if ($self->_lifted == 0 && $self->gcode_config->retract_lift->[0] > 0) {
-        my $to_lift = $self->gcode_config->retract_lift->[0];
+    if ($self->_lifted == 0 && $self->config->retract_lift->[0] > 0) {
+        my $to_lift = $self->config->retract_lift->[0];
         $self->_lifted($to_lift);
         return $self->_travel_to_z($self->_pos->z + $to_lift, 'lift Z');
     }
@@ -390,14 +390,9 @@ sub unlift {
     return $gcode;
 }
 
-sub has_multiple_extruders {
+sub hasmultiple_extruders {
     my ($self) = @_;
-    return $self->_multiple_extruders;
-}
-
-sub extruder {
-    my ($self) = @_;
-    return $self->_extruder;
+    return $self->multiple_extruders;
 }
 
 sub extruders {

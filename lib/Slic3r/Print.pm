@@ -875,8 +875,9 @@ sub write_gcode {
                 if ($finished_objects > 0) {
                     $gcodegen->set_shift(map unscale $copy->[$_], X,Y);
                     print $fh $gcodegen->retract;
-                    print $fh $gcodegen->travel_to_xy(
-                        $gcodegen->point_to_gcode($object->_copies_shift->negative),
+                    print $fh $gcodegen->travel_to(
+                        $object->_copies_shift->negative,
+                        undef,
                         'move to origin position for next object',
                     );
                 }

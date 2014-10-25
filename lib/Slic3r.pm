@@ -56,6 +56,7 @@ use Slic3r::GCode::PlaceholderParser;
 use Slic3r::GCode::Reader;
 use Slic3r::GCode::SpiralVase;
 use Slic3r::GCode::VibrationLimit;
+use Slic3r::GCode::Writer;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
