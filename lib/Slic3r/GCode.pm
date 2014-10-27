@@ -28,10 +28,10 @@ has 'layer'              => (is => 'rw');
 has '_layer_islands'     => (is => 'rw');
 has '_upper_layer_islands'  => (is => 'rw');
 has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => pos
-has 'external_mp'        => (is => 'rw');
-has 'layer_mp'           => (is => 'rw');
-has 'new_object'         => (is => 'rw', default => sub {0});
-has 'straight_once'      => (is => 'rw', default => sub {1});
+has '_external_mp'       => (is => 'rw');
+has '_layer_mp'          => (is => 'rw');
+has 'new_object'         => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
+has 'straight_once'      => (is => 'rw', default => sub {1});   # this flag disables avoid_crossing_perimeters just for the next travel move
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
 has '_wipe_path'         => (is => 'rw');
@@ -66,6 +66,11 @@ sub set_origin {
     $self->origin($pointf);
 }
 
+sub init_external_mp {
+    my ($self, $islands) = @_;
+    $self->external_mp(Slic3r::MotionPlanner->new($islands));
+}
+
 sub change_layer {
     my ($self, $layer) = @_;
     
@@ -76,7 +81,7 @@ sub change_layer {
     $self->_layer_islands($layer->islands);
     $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
     if ($self->config->avoid_crossing_perimeters) {
-        $self->layer_mp(Slic3r::MotionPlanner->new(
+        $self->_layer_mp(Slic3r::MotionPlanner->new(
             union_ex([ map @$_, @{$layer->slices} ], 1),
         ));
     }
@@ -317,15 +322,19 @@ sub travel_to {
     my ($self, $point, $role, $comment) = @_;
     
     my $gcode = "";
+    
+    # Define the travel move as a line between current position and the taget point.
+    # This is expressed in print coordinates, so it will need to be translated by
+    # $self->origin in order to get G-code coordinates.
     my $travel = Slic3r::Line->new($self->last_pos, $point);
     
-    # move travel back to original layer coordinates for the island check.
-    # note that we're only considering the current object's islands, while we should
-    # build a more complete configuration space
-    $travel->translate(scale -$self->origin->x, scale -$self->origin->y);  #;;
-    
-    # skip retraction if the travel move is contained in an island in the current layer
-    # *and* in an island in the upper layer (so that the ooze will not be visible)
+    # Skip retraction at all in the following cases:
+    # - travel length is shorter than the configured threshold
+    # - user has enabled "Only retract when crossing perimeters" and the travel move is
+    #   contained in a single island of the current layer *and* a single island in the
+    #   upper layer (so that ooze will not be visible)
+    # - the path that will be extruded after this travel move is a support material
+    #   extrusion and the travel move is contained in a single support material island
     if ($travel->length < scale $self->config->get_at('retract_before_travel', $self->_writer->extruder->id)
         || ($self->config->only_retract_when_crossing_perimeters
             && $self->config->fill_density > 0
@@ -333,14 +342,13 @@ sub travel_to {
             && (first { $_->contains_line($travel) } @{$self->_layer_islands}))
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->contains_line($travel) } @{$self->layer->support_islands}))
         ) {
-        $self->straight_once(0);
+        # Just perform a straight travel move without any retraction.
         $gcode .= $self->_writer->travel_to_xy($self->point_to_gcode($point), $comment);
-    } elsif (!$self->config->avoid_crossing_perimeters || $self->straight_once) {
-        $self->straight_once(0);
-        $gcode .= $self->retract;
-        $gcode .= $self->_writer->travel_to_xy($self->point_to_gcode($point), $comment);
-    } else {
+    } elsif ($self->config->avoid_crossing_perimeters && !$self->straight_once) {
+        # If avoid_crossing_perimeters is enabled and the straight_once flag is not set
+        # we need to plan a multi-segment travel move inside the configuration space.
         if ($self->new_object) {
+            # If we're moving to a new object we need to use the external configuration space.
             $self->new_object(0);
             
             # represent $point in G-code coordinates
@@ -348,14 +356,22 @@ sub travel_to {
             my $origin = $self->origin;
             $point->translate(map scale $_, @$origin);
             
-            # calculate path (external_mp uses G-code coordinates so we temporary need a null shift)
+            # calculate path (external_mp uses G-code coordinates so we set a temporary null origin)
             $self->set_origin(Slic3r::Pointf->new(0,0));
-            $gcode .= $self->_plan($self->external_mp, $point, $comment);
+            $gcode .= $self->_plan($self->_external_mp, $point, $comment);
             $self->set_origin($origin);
         } else {
-            $gcode .= $self->_plan($self->layer_mp, $point, $comment);
+            $gcode .= $self->_plan($self->_layer_mp, $point, $comment);
         }
+    } else {
+        # If avoid_crossing_perimeters is disabled or the straight_once flag is set,
+        # perform a straight move with a retraction.
+        $gcode .= $self->retract;
+        $gcode .= $self->_writer->travel_to_xy($self->point_to_gcode($point), $comment);
     }
+    
+    # Re-allow avoid_crossing_perimeters for the next travel moves
+    $self->straight_once(0);
     
     return $gcode;
 }

@@ -828,7 +828,7 @@ sub write_gcode {
                 }
             }
         }
-        $gcodegen->external_mp(Slic3r::MotionPlanner->new(union_ex([ map @$_, @islands ])));
+        $gcodegen->init_external_mp(union_ex([ map @$_, @islands ]));
     }
     
     # calculate wiping points if needed
