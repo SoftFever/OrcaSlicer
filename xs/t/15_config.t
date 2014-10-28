@@ -59,12 +59,12 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->get('support_material_pattern'), 'pillars', 'deserialize enum (support_material_pattern)';
     
     $config->set('extruder_offset', [[10,20],[30,45]]);
-    is_deeply $config->get('extruder_offset'), [[10,20],[30,45]], 'set/get points';
+    is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [[10,20],[30,45]], 'set/get points';
     is $config->serialize('extruder_offset'), '10x20,30x45', 'serialize points';
     $config->set_deserialize('extruder_offset', '20x10');
-    is_deeply $config->get('extruder_offset'), [[20,10]], 'deserialize points';
+    is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [[20,10]], 'deserialize points';
     $config->set_deserialize('extruder_offset', '0x0');
-    is_deeply $config->get('extruder_offset'), [[0,0]], 'deserialize points';
+    is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [[0,0]], 'deserialize points';
     {
         my @values = ([10,20]);
         $values[2] = [10,20];  # implicitely extend array; this is not the same as explicitely assigning undef to second item
@@ -166,7 +166,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('extruder_offset', [ [0,0], [20,0], [0,20] ]);
     my $config2 = Slic3r::Config->new;
     $config2->apply($config);
-    is_deeply $config->get('extruder_offset'), $config2->get('extruder_offset'), 'apply dynamic over dynamic';
+    is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [ map $_->pp, @{$config2->get('extruder_offset')} ],
+        'apply dynamic over dynamic';
 }
 
 {
