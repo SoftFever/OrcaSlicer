@@ -34,6 +34,7 @@ my $gui     = grep { $_ eq '--gui' } @ARGV;
 my $xs_only = grep { $_ eq '--xs' }  @ARGV;
 if ($gui) {
     %prereqs = qw(
+    Class::Accessor                 0
     Wx                              0.9918
     );
     %recommends = qw(
