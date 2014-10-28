@@ -63,14 +63,14 @@ sub flush {
         }
     }
     $fan_speed = 0 if $self->layer_id < $self->config->disable_fan_first_layers;
-    $gcode = $self->gcodegen->set_fan($fan_speed) . $gcode;
+    $gcode = $self->gcodegen->writer->set_fan($fan_speed) . $gcode;
     
     # bridge fan speed
     if (!$self->config->cooling || $self->config->bridge_fan_speed == 0 || $self->layer_id < $self->config->disable_fan_first_layers) {
         $gcode =~ s/^;_BRIDGE_FAN_(?:START|END)\n//gm;
     } else {
-        $gcode =~ s/^;_BRIDGE_FAN_START\n/ $self->gcodegen->set_fan($self->config->bridge_fan_speed, 1) /gmex;
-        $gcode =~ s/^;_BRIDGE_FAN_END\n/ $self->gcodegen->set_fan($fan_speed, 1) /gmex;
+        $gcode =~ s/^;_BRIDGE_FAN_START\n/ $self->gcodegen->writer->set_fan($self->config->bridge_fan_speed, 1) /gmex;
+        $gcode =~ s/^;_BRIDGE_FAN_END\n/ $self->gcodegen->writer->set_fan($fan_speed, 1) /gmex;
     }
     $gcode =~ s/;_WIPE//g;
     

@@ -772,16 +772,16 @@ sub write_gcode {
     my $gcodegen = Slic3r::GCode->new(
         placeholder_parser  => $self->placeholder_parser,
         layer_count         => $layer_count,
+        enable_cooling_markers => 1,
     );
     $gcodegen->apply_print_config($self->config);
     $gcodegen->set_extruders($self->extruders);
     
-    print $fh "G21 ; set units to millimeters\n" if $self->config->gcode_flavor ne 'makerware';
-    print $fh $gcodegen->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;
+    print $fh $gcodegen->writer->set_fan(0, 1) if $self->config->cooling && $self->config->disable_fan_first_layers;
     
     # set bed temperature
     if ((my $temp = $self->config->first_layer_bed_temperature) && $self->config->start_gcode !~ /M(?:190|140)/i) {
-        printf $fh $gcodegen->set_bed_temperature($temp, 1);
+        printf $fh $gcodegen->writer->set_bed_temperature($temp, 1);
     }
     
     # set extruder(s) temperature before and after start G-code
@@ -792,7 +792,7 @@ sub write_gcode {
         for my $t (@{$self->extruders}) {
             my $temp = $self->config->get_at('first_layer_temperature', $t);
             $temp += $self->config->standby_temperature_delta if $self->config->ooze_prevention;
-            printf $fh $gcodegen->set_temperature($temp, $wait, $t) if $temp > 0;
+            printf $fh $gcodegen->writer->set_temperature($temp, $wait, $t) if $temp > 0;
         }
     };
     $print_first_layer_temperature->(0);
@@ -800,15 +800,7 @@ sub write_gcode {
     $print_first_layer_temperature->(1);
     
     # set other general things
-    print  $fh "G90 ; use absolute coordinates\n" if $self->config->gcode_flavor ne 'makerware';
-    if ($self->config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
-        printf $fh $gcodegen->reset_e;
-        if ($self->config->use_relative_e_distances) {
-            print $fh "M83 ; use relative distances for extrusion\n";
-        } else {
-            print $fh "M82 ; use absolute distances for extrusion\n";
-        }
-    }
+    print $fh $gcodegen->writer->preamble;
     
     # initialize a motion planner for object-to-object travel moves
     if ($self->config->avoid_crossing_perimeters) {
@@ -893,7 +885,7 @@ sub write_gcode {
                     # another one, set first layer temperatures. this happens before the Z move
                     # is triggered, so machine has more time to reach such temperatures
                     if ($layer->id == 0 && $finished_objects > 0) {
-                        printf $fh $gcodegen->set_bed_temperature($self->config->first_layer_bed_temperature),
+                        printf $fh $gcodegen->writer->set_bed_temperature($self->config->first_layer_bed_temperature),
                             if $self->config->first_layer_bed_temperature;
                         $print_first_layer_temperature->();
                     }
@@ -944,12 +936,12 @@ sub write_gcode {
     
     # write end commands to file
     print $fh $gcodegen->retract;
-    print $fh $gcodegen->set_fan(0);
+    print $fh $gcodegen->writer->set_fan(0);
     printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->end_gcode);
     
     $self->total_used_filament(0);
     $self->total_extruded_volume(0);
-    foreach my $extruder (@{$gcodegen->extruders}) {
+    foreach my $extruder (@{$gcodegen->writer->extruders}) {
         my $used_filament = $extruder->used_filament;
         my $extruded_volume = $extruder->extruded_volume;
         

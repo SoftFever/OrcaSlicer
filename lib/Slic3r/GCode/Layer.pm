@@ -5,7 +5,7 @@ use List::Util qw(first);
 use Slic3r::Geometry qw(X Y unscale);
 
 has 'print'                         => (is => 'ro', required => 1, handles => [qw(config)]);
-has 'gcodegen'                      => (is => 'ro', required => 1, handles => [qw(extruders)]);
+has 'gcodegen'                      => (is => 'ro', required => 1);
 has 'origin'                        => (is => 'ro', default => sub { Slic3r::Pointf->new(0,0) });
 
 has 'spiralvase'                    => (is => 'lazy');
@@ -63,12 +63,12 @@ sub process_layer {
     $self->gcodegen->enable_loop_clipping(!defined $self->spiralvase || !$self->spiralvase->enable);
     
     if (!$self->second_layer_things_done && $layer->id == 1) {
-        for my $extruder (@{$self->extruders}) {
+        for my $extruder (@{$self->gcodegen->writer->extruders}) {
             my $temperature = $self->config->get_at('temperature', $extruder->id);
-            $gcode .= $self->gcodegen->set_temperature($temperature, 0, $extruder->id)
+            $gcode .= $self->gcodegen->writer->set_temperature($temperature, 0, $extruder->id)
                 if $temperature && $temperature != $self->config->get_at('first_layer_temperature', $extruder->id);
         }
-        $gcode .= $self->gcodegen->set_bed_temperature($self->print->config->bed_temperature)
+        $gcode .= $self->gcodegen->writer->set_bed_temperature($self->print->config->bed_temperature)
             if $self->print->config->bed_temperature && $self->print->config->bed_temperature != $self->print->config->first_layer_bed_temperature;
         $self->second_layer_things_done(1);
     }
@@ -83,7 +83,7 @@ sub process_layer {
     if (((values %{$self->skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
         && !$self->skirt_done->{$layer->print_z}) {
         $self->gcodegen->set_origin($self->origin);
-        my @extruder_ids = map { $_->id } @{$self->extruders};
+        my @extruder_ids = map { $_->id } @{$self->gcodegen->writer->extruders};
         $gcode .= $self->gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
         if ($layer->id < $self->print->config->skirt_height || $self->print->config->skirt_height == -1) {
@@ -136,8 +136,8 @@ sub process_layer {
         
         # tweak region ordering to save toolchanges
         my @region_ids = 0 .. ($self->print->region_count-1);
-        if ($self->gcodegen->multiple_extruders) {
-            my $last_extruder_id = $self->gcodegen->extruder->id;
+        if ($self->gcodegen->writer->multiple_extruders) {
+            my $last_extruder_id = $self->gcodegen->writer->extruder->id;
             my $best_region_id = first { $self->print->regions->[$_]->config->perimeter_extruder-1 == $last_extruder_id } @region_ids;
             @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids) if $best_region_id;
         }
@@ -176,7 +176,7 @@ sub process_layer {
                 # give priority to infill if we were already using its extruder and it wouldn't
                 # be good for perimeters
                 if ($self->print->config->infill_first
-                    || ($self->gcodegen->multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
+                    || ($self->gcodegen->writer->multiple_extruders && $region->config->infill_extruder-1 == $self->gcodegen->writer->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
                     $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
                     $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
                 } else {

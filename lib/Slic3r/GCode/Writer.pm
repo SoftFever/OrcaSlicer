@@ -41,6 +41,26 @@ sub set_extruders {
     $self->multiple_extruders(max(@$extruder_ids) > 0);
 }
 
+sub preamble {
+    my ($self) = @_;
+    
+    my $gcode = "";
+    
+    if ($self->config->gcode_flavor ne 'makerware') {
+        $gcode .= "G21 ; set units to millimeters\n";
+        $gcode .= "G90 ; use absolute coordinates\n";
+    }
+    if ($self->config->gcode_flavor =~ /^(?:reprap|teacup)$/) {
+        if ($self->config->use_relative_e_distances) {
+            $gcode .= "M83 ; use relative distances for extrusion\n";
+        } else {
+            $gcode .= "M82 ; use absolute distances for extrusion\n";
+        }
+        $gcode .= $self->reset_e(1);
+    }
+    return $gcode;
+}
+
 sub set_temperature {
     my ($self, $temperature, $wait, $tool) = @_;
     
