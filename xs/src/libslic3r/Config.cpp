@@ -209,7 +209,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
             optv->values.push_back(std::string(SvPV_nolen(*elem), SvCUR(*elem)));
         }
     } else if (ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt)) {
-        return optv->point.from_SV(value);
+        return optv->point.from_SV_check(value);
     } else if (ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt)) {
         std::vector<Pointf> values;
         AV* av = (AV*)SvRV(value);
@@ -217,7 +217,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             Pointf point;
-            if (elem == NULL || !point.from_SV(*elem)) return false;
+            if (elem == NULL || !point.from_SV_check(*elem)) return false;
             values.push_back(point);
         }
         optv->values = values;

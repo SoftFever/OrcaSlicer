@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 105;
+use Test::More tests => 107;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -59,6 +59,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->get('support_material_pattern'), 'pillars', 'deserialize enum (support_material_pattern)';
     
     $config->set('extruder_offset', [[10,20],[30,45]]);
+    is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [[10,20],[30,45]], 'set/get points';
+    $config->set('extruder_offset', [Slic3r::Pointf->new(10,20),Slic3r::Pointf->new(30,45)]);
     is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [[10,20],[30,45]], 'set/get points';
     is $config->serialize('extruder_offset'), '10x20,30x45', 'serialize points';
     $config->set_deserialize('extruder_offset', '20x10');
