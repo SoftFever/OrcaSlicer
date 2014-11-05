@@ -192,7 +192,7 @@ sub extrude_loop {
     # reset acceleration
     $gcode .= $self->writer->set_acceleration($self->config->default_acceleration);
     
-    $self->_wipe_path($paths[-1]->polyline->clone) if $self->enable_wipe;  # TODO: don't limit wipe to last path
+    $self->_wipe_path($paths[0]->polyline->clone) if $self->enable_wipe;  # TODO: don't limit wipe to last path
     
     # make a little move inwards before leaving loop
     if ($paths[-1]->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->config->perimeters > 1) {
@@ -422,39 +422,41 @@ sub retract {
         
         # get the retraction length
         my $length = $toolchange
-            ? $self->writer->extruder->retract_length
-            : $self->writer->extruder->retract_length_toolchange;
+            ? $self->writer->extruder->retract_length_toolchange
+            : $self->writer->extruder->retract_length;
         
-        # Calculate how long we need to travel in order to consume the required
-        # amount of retraction. In other words, how far do we move in XY at $wipe_speed
-        # for the time needed to consume retract_length at retract_speed?
-        my $wipe_dist = scale($length / $self->writer->extruder->retract_speed * $wipe_speed);
+        if ($length) {
+            # Calculate how long we need to travel in order to consume the required
+            # amount of retraction. In other words, how far do we move in XY at $wipe_speed
+            # for the time needed to consume retract_length at retract_speed?
+            my $wipe_dist = scale($length / $self->writer->extruder->retract_speed * $wipe_speed);
         
-        # Take the stored wipe path and replace first point with the current actual position
-        # (they might be different, for example, in case of loop clipping).
-        my $wipe_path = Slic3r::Polyline->new(
-            $self->last_pos,
-            @{$self->_wipe_path}[1..$#{$self->_wipe_path}],
-        );
-        # 
-        $wipe_path->clip_end($wipe_path->length - $wipe_dist);
-        
-        # subdivide the retraction in segments
-        my $retracted = 0;
-        foreach my $line (@{$wipe_path->lines}) {
-            my $segment_length = $line->length;
-            # Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
-            # due to rounding (TODO: test and/or better math for this)
-            my $dE = $length * ($segment_length / $wipe_dist) * 0.95;
-            $gcode .= $self->writer->set_speed($wipe_speed*60);
-            $gcode .= $self->writer->extrude_to_xy(
-                $self->point_to_gcode($line->b),
-                -$dE,
-                'retract' . ($self->enable_cooling_markers ? ';_WIPE' : ''),
+            # Take the stored wipe path and replace first point with the current actual position
+            # (they might be different, for example, in case of loop clipping).
+            my $wipe_path = Slic3r::Polyline->new(
+                $self->last_pos,
+                @{$self->_wipe_path}[1..$#{$self->_wipe_path}],
             );
-            $retracted += $dE;
+            # 
+            $wipe_path->clip_end($wipe_path->length - $wipe_dist);
+        
+            # subdivide the retraction in segments
+            my $retracted = 0;
+            foreach my $line (@{$wipe_path->lines}) {
+                my $segment_length = $line->length;
+                # Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
+                # due to rounding (TODO: test and/or better math for this)
+                my $dE = $length * ($segment_length / $wipe_dist) * 0.95;
+                $gcode .= $self->writer->set_speed($wipe_speed*60);
+                $gcode .= $self->writer->extrude_to_xy(
+                    $self->point_to_gcode($line->b),
+                    -$dE,
+                    'retract' . ($self->enable_cooling_markers ? ';_WIPE' : ''),
+                );
+                $retracted += $dE;
+            }
+            $self->writer->extruder->set_retracted($self->writer->extruder->retracted + $retracted);
         }
-        $self->writer->extruder->set_retracted($self->writer->extruder->retracted + $retracted);
     }
     
     # The parent class will decide whether we need to perform an actual retraction
@@ -464,7 +466,8 @@ sub retract {
     $gcode .= $toolchange ? $self->writer->retract_for_toolchange : $self->writer->retract;
     
     $gcode .= $self->writer->reset_e;
-    $gcode .= $self->writer->lift;
+    $gcode .= $self->writer->lift
+        if $self->writer->extruder->retract_length > 0;
     
     return $gcode;
 }

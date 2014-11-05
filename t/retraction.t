@@ -1,4 +1,4 @@
-use Test::More tests => 14;
+use Test::More tests => 16;
 use strict;
 use warnings;
 
@@ -127,16 +127,21 @@ use Slic3r::Test qw(_eq);
 
 {
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('start_gcode', '');  # prevent any default priming Z move from affecting our lift detection
+    $config->set('retract_length', [0]);
     $config->set('retract_layer_change', [0]);
+    $config->set('retract_lift', [0.2]);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my $retracted = 0;
     my $layer_changes_with_retraction = 0;
+    my $retractions = my $z_restores = 0;
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($info->{retracting}) {
             $retracted = 1;
+            $retractions++;
         } elsif ($info->{extruding} && $retracted) {
             $retracted = 0;
         }
@@ -144,9 +149,14 @@ use Slic3r::Test qw(_eq);
         if ($info->{dist_Z} && $retracted) {
             $layer_changes_with_retraction++;
         }
+        if ($info->{dist_Z} && $args->{Z} < $self->Z) {
+            $z_restores++;
+        }
     });
     
     is $layer_changes_with_retraction, 0, 'no retraction on layer change';
+    is $retractions, 0, 'no retractions';
+    is $z_restores, 0, 'no lift';
 }
 
 {
