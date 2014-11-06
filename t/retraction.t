@@ -1,4 +1,4 @@
-use Test::More tests => 16;
+use Test::More tests => 18;
 use strict;
 use warnings;
 
@@ -157,6 +157,29 @@ use Slic3r::Test qw(_eq);
     is $layer_changes_with_retraction, 0, 'no retraction on layer change';
     is $retractions, 0, 'no retractions';
     is $z_restores, 0, 'no lift';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('use_firmware_retraction', 1);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $retracted = 0;
+    my $double_retractions = my $double_unretractions = 0;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'G10') {
+            $double_retractions++ if $retracted;
+            $retracted = 1;
+        } elsif ($cmd eq 'G11') {
+            $double_unretractions++ if !$retracted;
+            $retracted = 0;
+        }
+    });
+    
+    is $double_retractions, 0, 'no double retractions';
+    is $double_unretractions, 0, 'no double unretractions';
 }
 
 {

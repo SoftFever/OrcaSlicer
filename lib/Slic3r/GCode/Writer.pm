@@ -341,18 +341,18 @@ sub retract_for_toolchange {
 sub _retract {
     my ($self, $length, $restart_extra, $comment) = @_;
     
-    if ($self->config->use_firmware_retraction) {
-        return "G10 ; retract\n";
-    }
-    
     my $gcode = "";
     my $dE = $self->_extruder->retract($length, $restart_extra);
     if ($dE != 0) {
-        $gcode = sprintf "G1 %s%.5f F%.3f%s\n",
-            $self->_extrusion_axis,
-            $self->_extruder->E,
-            $self->_extruder->retract_speed_mm_min,
-            $self->_comment($comment);
+        if ($self->config->use_firmware_retraction) {
+            $gcode .= "G10 ; retract\n";
+        } else {
+            $gcode = sprintf "G1 %s%.5f F%.3f%s\n",
+                $self->_extrusion_axis,
+                $self->_extruder->E,
+                $self->_extruder->retract_speed_mm_min,
+                $self->_comment($comment);
+        }
     }
     
     $gcode .= "M103 ; extruder off\n"
@@ -369,20 +369,20 @@ sub unretract {
     $gcode .= "M101 ; extruder on\n"
         if $self->config->gcode_flavor eq 'makerware';
     
-    if ($self->config->use_firmware_retraction) {
-        $gcode .= "G11 ; unretract\n";
-        $gcode .= $self->reset_e;
-        return $gcode;
-    }
-    
     my $dE = $self->_extruder->unretract;
     if ($dE != 0) {
-        # use G1 instead of G0 because G0 will blend the restart with the previous travel move
-        $gcode .= sprintf "G1 %s%.5f F%.3f%s\n",
-            $self->_extrusion_axis,
-            $self->_extruder->E,
-            $self->_extruder->retract_speed_mm_min,
-            $self->_comment($comment);
+        if ($self->config->use_firmware_retraction) {
+            $gcode .= "G11 ; unretract\n";
+            $gcode .= $self->reset_e;
+            return $gcode;
+        } else {
+            # use G1 instead of G0 because G0 will blend the restart with the previous travel move
+            $gcode .= sprintf "G1 %s%.5f F%.3f%s\n",
+                $self->_extrusion_axis,
+                $self->_extruder->E,
+                $self->_extruder->retract_speed_mm_min,
+                $self->_comment($comment);
+        }
     }
     
     return $gcode;
