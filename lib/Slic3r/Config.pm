@@ -424,7 +424,7 @@ sub read_ini {
             $category = $1;
             next;
         }
-        /^(\w+) = (.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
+        /^(\w+) *= *(.*)/ or die "Unreadable configuration file (invalid data at line $.)\n";
         $ini->{$category}{$1} = $2;
     }
     close $fh;
