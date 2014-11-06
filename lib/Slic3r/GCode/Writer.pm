@@ -129,11 +129,14 @@ sub set_acceleration {
 }
 
 sub update_progress {
-    my ($self, $percent) = @_;
+    my ($self, $num, $tot, $allow_100) = @_;
     
     return "" if $self->config->gcode_flavor !~ /^(?:makerware|sailfish)$/;
+    
+    my $percent = int($num/$tot*100);
+    $percent = min($percent, 99) if !$allow_100;
     return sprintf "M73 P%s%s\n",
-        int($percent),
+        $percent,
         $self->_comment('update progress');
 }
 

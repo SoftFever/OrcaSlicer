@@ -90,7 +90,7 @@ sub change_layer {
     my $gcode = "";
     if (defined $self->layer_count) {
         # TODO: cap this to 99% and add an explicit M73 P100 in the end G-code
-        $gcode .= $self->writer->update_progress(int(99 * ($self->_layer_index / ($self->layer_count - 1))));
+        $gcode .= $self->writer->update_progress($self->_layer_index, $self->layer_count);
     }
     
     my $z = $layer->print_z + $self->config->z_offset;  # in unscaled coordinates
