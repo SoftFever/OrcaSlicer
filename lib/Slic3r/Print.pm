@@ -92,10 +92,10 @@ sub apply_config {
                 my $volume = $object->model_object->volumes->[$volume_id];
                 
                 my $new = $self->default_region_config->clone;
-                {
-                    my $model_object_config = $object->model_object->config->clone;
-                    $model_object_config->normalize;
-                    $new->apply_dynamic($model_object_config);
+                foreach my $other_config ($object->model_object->config, $volume->config) {
+                    my $other_config = $other_config->clone;
+                    $other_config->normalize;
+                    $new->apply_dynamic($other_config);
                 }
                 if ($volume->material_id ne '') {
                     my $material_config = $object->model_object->model->get_material($volume->material_id)->config->clone;
@@ -179,10 +179,12 @@ sub add_model_object {
         my $config = Slic3r::Config::PrintRegion->new;
         $config->apply($self->default_region_config);
         
-        # override the defaults with per-object config and then with per-material and per-volume configs
-        $config->apply_dynamic($object_config);
-        $config->apply_dynamic($volume->config);
-        
+        # override the defaults with per-object config and then with per-volume and per-material configs
+        foreach my $other_config ($object_config, $volume->config) {
+            my $other_config = $other_config->clone;
+            $other_config->normalize;
+            $config->apply_dynamic($other_config);
+        }
         if ($volume->material_id ne '') {
             my $material_config = $volume->material->config->clone;
             $material_config->normalize;
