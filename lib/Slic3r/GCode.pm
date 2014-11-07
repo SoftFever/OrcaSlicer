@@ -68,7 +68,7 @@ sub set_origin {
 
 sub init_external_mp {
     my ($self, $islands) = @_;
-    $self->external_mp(Slic3r::MotionPlanner->new($islands));
+    $self->_external_mp(Slic3r::MotionPlanner->new($islands));
 }
 
 sub change_layer {
