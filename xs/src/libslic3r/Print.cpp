@@ -115,6 +115,30 @@ Print::delete_object(size_t idx)
 }
 
 void
+Print::reload_object(size_t idx)
+{
+    /* TODO: this method should check whether the per-object config and per-material configs
+        have changed in such a way that regions need to be rearranged or we can just apply
+        the diff and invalidate something.  Same logic as apply_config()
+        For now we just re-add all objects since we haven't implemented this incremental logic yet.
+        This should also check whether object volumes (parts) have changed. */
+    
+    // collect all current model objects
+    ModelObjectPtrs model_objects;
+    for (PrintObjectPtrs::iterator it = this->objects.begin(); it != this->objects.end(); ++it) {
+        model_objects.push_back(it->model_object());
+    }
+    
+    // remove our print objects
+    this->clear_object();
+    
+    // re-add model objects
+    for (ModelObjectPtrs::iterator it = model_objects.begin(); it != model_objects.end(); ++it) {
+        this->add_model_object(*it);
+    }
+}
+
+void
 Print::clear_regions()
 {
     for (int i = this->regions.size()-1; i >= 0; --i)

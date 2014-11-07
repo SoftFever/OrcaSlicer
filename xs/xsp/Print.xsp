@@ -137,6 +137,7 @@ _constant()
         BoundingBoxf3 *modobj_bbox)
         %code%{ RETVAL = THIS->set_new_object(idx, model_object, *modobj_bbox); %};
     void delete_object(int idx);
+    void reload_object(int idx);
     size_t object_count()
         %code%{ RETVAL = THIS->objects.size(); %};
 

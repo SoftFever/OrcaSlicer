@@ -154,6 +154,7 @@ class Print
     PrintObject* add_object(ModelObject *model_object, const BoundingBoxf3 &modobj_bbox);
     PrintObject* set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox);
     void delete_object(size_t idx);
+    void reload_object(size_t idx);
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx);

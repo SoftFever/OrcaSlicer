@@ -217,20 +217,6 @@ sub add_model_object {
     $o->config->apply_dynamic($object_config);
 }
 
-sub reload_object {
-    my ($self, $obj_idx) = @_;
-    
-    # TODO: this method should check whether the per-object config and per-material configs
-    # have changed in such a way that regions need to be rearranged or we can just apply
-    # the diff and invalidate something.  Same logic as apply_config()
-    # For now we just re-add all objects since we haven't implemented this incremental logic yet.
-    # This should also check whether object volumes (parts) have changed.
-    
-    my @models_objects = map $_->model_object, @{$self->objects};
-    $self->clear_objects;
-    $self->add_model_object($_) for @models_objects;
-}
-
 sub validate {
     my $self = shift;
     
