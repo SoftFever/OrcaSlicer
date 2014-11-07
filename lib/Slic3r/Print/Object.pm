@@ -700,7 +700,14 @@ sub detect_surfaces_type {
                 # if no lower layer, all surfaces of this one are solid
                 # we clone surfaces because we're going to clear the slices collection
                 @bottom = map $_->clone, @{$layerm->slices};
-                $_->surface_type(S_TYPE_BOTTOM) for @bottom;
+                
+                # if we have raft layers, consider bottom layer as a bridge
+                # just like any other bottom surface lying on the void
+                if ($self->config->raft_layers > 0) {
+                    $_->surface_type(S_TYPE_BOTTOMBRIDGE) for @bottom;
+                } else {
+                    $_->surface_type(S_TYPE_BOTTOM) for @bottom;
+                }
             }
             
             # now, if the object contained a thin membrane, we could have overlapping bottom

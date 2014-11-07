@@ -284,7 +284,7 @@ sub make_perimeters {
             
             # detect overhanging/bridging perimeters
             my @paths = ();
-            if ($self->region->config->overhangs && $lower_slices->count > 0) {
+            if ($self->region->config->overhangs) {
                 # get non-overhang paths by intersecting this loop with the grown lower slices
                 foreach my $polyline (@{ intersection_ppl([ $polygon ], $lower_slices_p) }) {
                     push @paths, Slic3r::ExtrusionPath->new(
