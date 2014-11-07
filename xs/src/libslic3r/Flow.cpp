@@ -90,7 +90,7 @@ Flow::_auto_width(FlowRole role, float nozzle_diameter, float height) {
     
     float min = nozzle_diameter * 1.05;
     float max = -1;
-    if (role == frExternalPerimeter || role == frSupportMaterial) {
+    if (role == frExternalPerimeter || role == frSupportMaterial || role == frSupportMaterialInterface) {
         min = max = nozzle_diameter;
     } else if (role != frInfill) {
         // do not limit width for sparse infill so that we use full native flow for it
