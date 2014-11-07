@@ -521,6 +521,12 @@ sub generate_toolpaths {
         my $layer = $object->support_layers->[$layer_id];
         my $z = $layer->print_z;
         
+        # we redefine flows locally by applying this layer's height
+        my $_flow           = $flow->clone;
+        my $_interface_flow = $interface_flow->clone;
+        $_flow->set_height($layer->height);
+        $_interface_flow->set_height($layer->height);
+        
         my $overhang    = $overhang->{$z}           || [];
         my $contact     = $contact->{$z}            || [];
         my $interface   = $interface->{$layer_id}   || [];
@@ -552,7 +558,7 @@ sub generate_toolpaths {
             # generate the outermost loop
             
             # find centerline of the external loop (or any other kind of extrusions should the loop be skipped)
-            $contact = offset($contact, -$interface_flow->scaled_width/2);
+            $contact = offset($contact, -$_interface_flow->scaled_width/2);
             
             my @loops0 = ();
             {
@@ -561,7 +567,7 @@ sub generate_toolpaths {
                 
                 # only consider the loops facing the overhang
                 {
-                    my $overhang_with_margin = offset($overhang, +$interface_flow->scaled_width/2);
+                    my $overhang_with_margin = offset($overhang, +$_interface_flow->scaled_width/2);
                     @external_loops = grep {
                         @{intersection_pl(
                             [ $_->split_at_first_point ],
@@ -581,8 +587,8 @@ sub generate_toolpaths {
             # make more loops
             my @loops = @loops0;
             for my $i (2..$contact_loops) {
-                my $d = ($i-1) * $interface_flow->scaled_spacing;
-                push @loops, @{offset2(\@loops0, -$d -0.5*$interface_flow->scaled_spacing, +0.5*$interface_flow->scaled_spacing)};
+                my $d = ($i-1) * $_interface_flow->scaled_spacing;
+                push @loops, @{offset2(\@loops0, -$d -0.5*$_interface_flow->scaled_spacing, +0.5*$_interface_flow->scaled_spacing)};
             }
             
             # clip such loops to the side oriented towards the object
@@ -602,12 +608,12 @@ sub generate_toolpaths {
             );
             
             # transform loops into ExtrusionPath objects
-            my $mm3_per_mm = $interface_flow->mm3_per_mm;
+            my $mm3_per_mm = $_interface_flow->mm3_per_mm;
             @loops = map Slic3r::ExtrusionPath->new(
                 polyline    => $_,
                 role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                 mm3_per_mm  => $mm3_per_mm,
-                width       => $interface_flow->width,
+                width       => $_interface_flow->width,
                 height      => $layer->height,
             ), @loops;
             
@@ -619,7 +625,7 @@ sub generate_toolpaths {
             $fillers{interface}->angle($interface_angle);
             
             # find centerline of the external loop
-            $interface = offset2($interface, +scaled_epsilon, -(scaled_epsilon + $interface_flow->scaled_width/2));
+            $interface = offset2($interface, +scaled_epsilon, -(scaled_epsilon + $_interface_flow->scaled_width/2));
             
             # join regions by offsetting them to ensure they're merged
             $interface = offset([ @$interface, @$contact_infill ], scaled_epsilon);
@@ -645,7 +651,7 @@ sub generate_toolpaths {
                 my ($params, @p) = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density     => $interface_density,
-                    flow        => $interface_flow,
+                    flow        => $_interface_flow,
                     layer_height => $layer->height,
                     complete    => 1,
                 );
@@ -668,10 +674,10 @@ sub generate_toolpaths {
             my $filler = $fillers{support};
             $filler->angle($angles[ ($layer_id) % @angles ]);
             my $density     = $support_density;
-            my $base_flow   = $flow;
+            my $base_flow   = $_flow;
             
             # find centerline of the external loop/extrusions
-            my $to_infill = offset2_ex($base, +scaled_epsilon, -(scaled_epsilon + $flow->scaled_width/2));
+            my $to_infill = offset2_ex($base, +scaled_epsilon, -(scaled_epsilon + $_flow->scaled_width/2));
             
             my @paths = ();
             
@@ -684,17 +690,17 @@ sub generate_toolpaths {
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
-                my $mm3_per_mm = $flow->mm3_per_mm;
+                my $mm3_per_mm = $_flow->mm3_per_mm;
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => $_->split_at_first_point,
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
-                    width       => $flow->width,
+                    width       => $_flow->width,
                     height      => $layer->height,
                 ), map @$_, @$to_infill;
                 
                 # TODO: use offset2_ex()
-                $to_infill = offset_ex([ map @$_, @$to_infill ], -$flow->scaled_spacing);
+                $to_infill = offset_ex([ map @$_, @$to_infill ], -$_flow->scaled_spacing);
             }
             
             foreach my $expolygon (@$to_infill) {
