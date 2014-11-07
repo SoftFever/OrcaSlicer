@@ -29,7 +29,6 @@ enum ExtrusionRole {
 /* Special flags describing loop */
 enum ExtrusionLoopRole {
     elrDefault,
-    elrExternalPerimeter,
     elrContourInternalPerimeter,
 };
 

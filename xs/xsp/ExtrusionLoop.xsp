@@ -63,7 +63,6 @@ IV
 _constant()
   ALIAS:
     EXTRL_ROLE_DEFAULT                      = elrDefault
-    EXTRL_ROLE_EXTERNAL_PERIMETER           = elrExternalPerimeter
     EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER   = elrContourInternalPerimeter
   PROTOTYPE:
   CODE:

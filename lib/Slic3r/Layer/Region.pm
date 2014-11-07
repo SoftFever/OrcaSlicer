@@ -271,15 +271,18 @@ sub make_perimeters {
             my $no_children = !@{ $polynode->{children} };
             my $is_external = $is_contour ? $root_level : $no_children;
             my $is_internal = $is_contour ? $no_children : $root_level;
+            if ($is_contour && $is_internal) {
+                # internal perimeters are root level in case of holes
+                # and items with no children in case of contours
+                # Note that we set loop role to ContourInternalPerimeter
+                # also when loop is both internal and external (i.e.
+                # there's only one contour loop).
+                $loop_role  = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
+            }
             if ($is_external) {
                 # external perimeters are root level in case of contours
                 # and items with no children in case of holes
                 $role       = EXTR_ROLE_EXTERNAL_PERIMETER;
-                $loop_role  = EXTRL_ROLE_EXTERNAL_PERIMETER;
-            } elsif ($is_contour && $is_internal) {
-                # internal perimeters are root level in case of holes
-                # and items with no children in case of contours
-                $loop_role  = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
             }
             
             # detect overhanging/bridging perimeters
