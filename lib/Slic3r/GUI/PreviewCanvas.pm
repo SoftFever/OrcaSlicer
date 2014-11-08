@@ -37,7 +37,11 @@ use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 sub new {
     my ($class, $parent) = @_;
-    my $self = $class->SUPER::new($parent);
+    
+    # we request a depth buffer explicitely because it looks like it's not created by 
+    # default on Linux, causing transparency issues
+    my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "",
+        [WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0]);
    
     $self->quat((0, 0, 0, 1));
     $self->sphi(45);
@@ -531,7 +535,6 @@ sub Render {
         if ($self->bed_triangles) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_CULL_FACE);
             
             glEnableClientState(GL_VERTEX_ARRAY);
             glColor4f(0.5, 0.5, 0.5, 0.3);
@@ -541,7 +544,6 @@ sub Render {
             glDisableClientState(GL_VERTEX_ARRAY);
             
             glDisable(GL_BLEND);
-            glDisable(GL_CULL_FACE);
         
             # draw grid
             glTranslatef(0, 0, 0.02);
@@ -606,7 +608,6 @@ sub draw_mesh {
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_CULL_FACE);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     
@@ -628,7 +629,6 @@ sub draw_mesh {
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);
-    glDisable(GL_CULL_FACE);
     
     if (defined $self->cutting_plane_z) {
         glLineWidth(2);
