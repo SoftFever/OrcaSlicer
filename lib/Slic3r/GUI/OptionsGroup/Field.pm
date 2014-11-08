@@ -419,10 +419,12 @@ sub BUILD {
     );
     $self->slider($slider);
     
-    my $statictext = Wx::StaticText->new($self->parent, -1, $slider->GetValue/$self->scale);
+    my $statictext = Wx::StaticText->new($self->parent, -1, $slider->GetValue/$self->scale,
+        wxDefaultPosition, [20,-1]);
     $self->statictext($statictext);
     
-    $sizer->Add($_, 0, wxALIGN_CENTER_VERTICAL, 0) for $slider, $statictext;
+    $sizer->Add($slider, 1, wxALIGN_CENTER_VERTICAL, 0);
+    $sizer->Add($statictext, 0, wxALIGN_CENTER_VERTICAL, 0);
     
     EVT_SLIDER($self->parent, $slider, sub {
         $self->_update_statictext;
