@@ -203,6 +203,8 @@ sub BUILD {
         $self->option->labels || $self->option->values, wxCB_READONLY);
     $self->wxWindow($field);
     
+    $self->set_value($self->option->default);
+    
     EVT_COMBOBOX($self->parent, $field, sub {
         $self->_on_change($self->option->opt_id);
     });
