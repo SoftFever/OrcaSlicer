@@ -224,7 +224,7 @@ ExtrusionLoop::length() const
     return len;
 }
 
-void
+bool
 ExtrusionLoop::split_at_vertex(const Point &point)
 {
     for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
@@ -261,10 +261,10 @@ ExtrusionLoop::split_at_vertex(const Point &point)
                 // we can now override the old path list with the new one and stop looping
                 this->paths = new_paths;
             }
-            return;
+            return true;
         }
     }
-    CONFESS("Point not found");
+    return false;
 }
 
 void

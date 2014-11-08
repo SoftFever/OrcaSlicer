@@ -20,7 +20,7 @@
     void append(ExtrusionPath* path)
         %code{% THIS->paths.push_back(*path); %};
     double length();
-    void split_at_vertex(Point* point)
+    bool split_at_vertex(Point* point)
         %code{% THIS->split_at_vertex(*point); %};
     void split_at(Point* point)
         %code{% THIS->split_at(*point); %};

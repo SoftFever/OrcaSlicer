@@ -148,12 +148,19 @@ sub extrude_loop {
         if ($self->config->seam_position eq 'nearest') {
             @candidates = @$polygon if !@candidates;
             $point = $last_pos->nearest_point(\@candidates);
-            $loop->split_at_vertex($point);
+            if (!$loop->split_at_vertex($point)) {
+                # On 32-bit Linux, Clipper will change some point coordinates by 1 unit
+                # while performing simplify_polygons(), thus split_at_vertex() won't 
+                # find them anymore.
+                $loop->split_at($point);
+            }
         } elsif (@candidates) {
             my @non_overhang = grep !$loop->has_overhang_point($_), @candidates;
             @candidates = @non_overhang if @non_overhang;
             $point = $last_pos->nearest_point(\@candidates);
-            $loop->split_at_vertex($point);
+            if (!$loop->split_at_vertex($point)) {
+                $loop->split_at($point);
+            }
         } else {
             $point = $last_pos->projection_onto_polygon($polygon);
             $loop->split_at($point);
