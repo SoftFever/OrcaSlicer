@@ -21,7 +21,7 @@
         %code{% THIS->paths.push_back(*path); %};
     double length();
     bool split_at_vertex(Point* point)
-        %code{% THIS->split_at_vertex(*point); %};
+        %code{% RETVAL = THIS->split_at_vertex(*point); %};
     void split_at(Point* point)
         %code{% THIS->split_at(*point); %};
     ExtrusionPaths clip_end(double distance)
