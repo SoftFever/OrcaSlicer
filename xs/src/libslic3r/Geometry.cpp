@@ -52,6 +52,16 @@ convex_hull(Points points, Polygon* hull)
     hull->points.pop_back();
 }
 
+void
+convex_hull(const Polygons &polygons, Polygon* hull)
+{
+    Points pp;
+    for (Polygons::const_iterator p = polygons.begin(); p != polygons.end(); ++p) {
+        pp.insert(pp.end(), p->points.begin(), p->points.end());
+    }
+    convex_hull(pp, hull);
+}
+
 /* accepts an arrayref of points and returns a list of indices
    according to a nearest-neighbor walk */
 void

@@ -4,6 +4,7 @@
 #include <myinit.h>
 #include <set>
 #include <vector>
+#include <stdexcept>
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
 #include "Point.hpp"
@@ -25,6 +26,11 @@ enum PrintStep {
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
     posInfill, posSupportMaterial,
+};
+
+class PrintValidationException : public std::runtime_error {
+    public:
+    PrintValidationException(const std::string &error) : std::runtime_error(error) {};
 };
 
 template <class StepType>
@@ -171,6 +177,7 @@ class Print
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig config);
     void init_extruders();
+    void validate() const;
     
     std::set<size_t> extruders() const;
     void _simplify_slices(double distance);

@@ -84,11 +84,16 @@ void diff(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &
 template <class SubjectType, class ResultType>
 void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &retval, bool safety_offset_ = false);
 
+template <class SubjectType>
+bool intersects(const SubjectType &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
+
 void xor_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, 
     bool safety_offset_ = false);
 
 template <class T>
 void union_(const Slic3r::Polygons &subject, T &retval, bool safety_offset_ = false);
+
+void union_(const Slic3r::Polygons &subject1, const Slic3r::Polygons &subject2, Slic3r::Polygons &retval, bool safety_offset = false);
 
 void union_pt(const Slic3r::Polygons &subject, ClipperLib::PolyTree &retval, bool safety_offset_ = false);
 void union_pt_chained(const Slic3r::Polygons &subject, Slic3r::Polygons &retval, bool safety_offset_ = false);

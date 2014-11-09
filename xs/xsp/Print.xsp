@@ -171,6 +171,14 @@ _constant()
     bool apply_config(DynamicPrintConfig* config)
         %code%{ RETVAL = THIS->apply_config(*config); %};
     void init_extruders();
+    void validate()
+        %code%{
+            try {
+                THIS->validate();
+            } catch (PrintValidationException &e) {
+                croak(e.what());
+            }
+        %};
 %{
 
 double

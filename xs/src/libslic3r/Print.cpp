@@ -1,5 +1,7 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include "ClipperUtils.hpp"
+#include "Geometry.hpp";
 #include <algorithm>
 
 namespace Slic3r {
@@ -505,6 +507,97 @@ Print::init_extruders()
     }
     
     this->state.set_done(psInitExtruders);
+}
+
+void
+Print::validate() const
+{
+    if (this->config.complete_objects) {
+        // check horizontal clearance
+        {
+            Polygons a;
+            FOREACH_OBJECT(this, i_object) {
+                PrintObject* object = *i_object;
+                
+                // get convex hulls of all meshes assigned to this print object
+                Polygons mesh_convex_hulls;
+                for (size_t i = 0; i < this->regions.size(); ++i) {
+                    for (std::vector<int>::const_iterator it = object->region_volumes[i].begin(); it != object->region_volumes[i].end(); ++it) {
+                        Polygon hull;
+                        object->model_object()->volumes[*it]->mesh.convex_hull(&hull);
+                        mesh_convex_hulls.push_back(hull);
+                    }
+                }
+                
+                // make a single convex hull for all of them
+                Polygon convex_hull;
+                Slic3r::Geometry::convex_hull(mesh_convex_hulls, &convex_hull);
+                
+                // apply the same transformations we apply to the actual meshes when slicing them
+                object->model_object()->instances.front()->transform_polygon(&convex_hull);
+        
+                // align object to Z = 0 and apply XY shift
+                convex_hull.translate(object->_copies_shift);
+                
+                // grow convex hull with the clearance margin
+                {
+                    Polygons grown_hull;
+                    offset(convex_hull, grown_hull, scale_(this->config.extruder_clearance_radius.value)/2, 1, jtRound, scale_(0.1));
+                    convex_hull = grown_hull.front();
+                }
+                
+                // now we check that no instance of convex_hull intersects any of the previously checked object instances
+                for (Points::const_iterator copy = object->_shifted_copies.begin(); copy != object->_shifted_copies.end(); ++copy) {
+                    Polygon p = convex_hull;
+                    p.translate(*copy);
+                    if (intersects(a, p))
+                        throw PrintValidationException("Some objects are too close; your extruder will collide with them.");
+                    
+                    union_(a, p, a);
+                }
+            }
+        }
+        
+        // check vertical clearance
+        {
+            std::vector<coord_t> object_height;
+            FOREACH_OBJECT(this, i_object) {
+                PrintObject* object = *i_object;
+                object_height.insert(object_height.end(), object->copies().size(), object->size.z);
+            }
+            std::sort(object_height.begin(), object_height.end());
+            // ignore the tallest *copy* (this is why we repeat height for all of them):
+            // it will be printed as last one so its height doesn't matter
+            object_height.pop_back();
+            if (!object_height.empty() && object_height.back() > scale_(this->config.extruder_clearance_height.value))
+                throw PrintValidationException("Some objects are too tall and cannot be printed without extruder collisions.");
+        }
+    }
+    
+    if (this->config.spiral_vase) {
+        size_t total_copies_count = 0;
+        FOREACH_OBJECT(this, i_object) total_copies_count += (*i_object)->copies().size();
+        if (total_copies_count > 1)
+            throw PrintValidationException("The Spiral Vase option can only be used when printing a single object.");
+        if (this->regions.size() > 1)
+            throw PrintValidationException("The Spiral Vase option can only be used when printing single material objects.");
+    }
+    
+    {
+        std::vector<double> layer_heights;
+        FOREACH_OBJECT(this, i_object) {
+            PrintObject* object = *i_object;
+            layer_heights.push_back(object->config.layer_height);
+            layer_heights.push_back(object->config.get_abs_value("first_layer_height"));
+        }
+        double max_layer_height = *std::max_element(layer_heights.begin(), layer_heights.end());
+        
+        std::set<size_t> extruders = this->extruders();
+        for (std::set<size_t>::iterator it = extruders.begin(); it != extruders.end(); ++it) {
+            if (max_layer_height > this->config.nozzle_diameter.get_at(*it))
+                throw PrintValidationException("Layer height can't be greater than nozzle diameter");
+        }
+    }
 }
 
 PrintRegionConfig

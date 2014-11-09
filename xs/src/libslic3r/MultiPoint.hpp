@@ -19,6 +19,7 @@ class MultiPoint
     operator Points() const;
     void scale(double factor);
     void translate(double x, double y);
+    void translate(const Point &vector);
     void rotate(double angle, const Point &center);
     void reverse();
     Point first_point() const;

@@ -25,6 +25,12 @@ MultiPoint::translate(double x, double y)
 }
 
 void
+MultiPoint::translate(const Point &vector)
+{
+    this->translate(vector.x, vector.y);
+}
+
+void
 MultiPoint::rotate(double angle, const Point &center)
 {
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
