@@ -176,7 +176,7 @@ _constant()
             try {
                 THIS->validate();
             } catch (PrintValidationException &e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
 %{
