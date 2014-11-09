@@ -546,7 +546,7 @@ sub write_gcode {
     $print_first_layer_temperature->(1);
     
     # set other general things
-    print $fh $gcodegen->writer->preamble;
+    print $fh $gcodegen->preamble;
     
     # initialize a motion planner for object-to-object travel moves
     if ($self->config->avoid_crossing_perimeters) {

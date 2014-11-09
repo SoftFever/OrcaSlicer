@@ -71,6 +71,20 @@ sub init_external_mp {
     $self->_external_mp(Slic3r::MotionPlanner->new($islands));
 }
 
+sub preamble {
+    my ($self) = @_;
+    
+    my $gcode = $self->writer->preamble;
+    
+    # Perform a *silent* move to z_offset: we need this to initialize the Z
+    # position of our writer object so that any initial lift taking place
+    # before the first layer change will raise the extruder from the correct
+    # initial Z instead of 0.
+    $self->writer->travel_to_z($self->config->z_offset, '');
+    
+    return $gcode;
+}
+
 sub change_layer {
     my ($self, $layer) = @_;
     

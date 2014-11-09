@@ -165,6 +165,7 @@ sub thread_cleanup {
     no warnings 'redefine';
     *Slic3r::Config::DESTROY                = sub {};
     *Slic3r::Config::Full::DESTROY          = sub {};
+    *Slic3r::Config::GCode::DESTROY         = sub {};
     *Slic3r::Config::Print::DESTROY         = sub {};
     *Slic3r::Config::PrintObject::DESTROY   = sub {};
     *Slic3r::Config::PrintRegion::DESTROY   = sub {};

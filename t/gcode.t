@@ -1,4 +1,4 @@
-use Test::More tests => 16;
+use Test::More tests => 19;
 use strict;
 use warnings;
 
@@ -39,6 +39,34 @@ use Slic3r::Test;
     
     ok $have_wipe, "wipe";
     ok !defined (first { abs($_ - $config->retract_speed->[0]*60) < 5 } @retract_speeds), 'wipe moves don\'t retract faster than configured speed';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('z_offset', 5);
+    $config->set('start_gcode', '');
+    
+    my $test = sub {
+        my ($comment) = @_;
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        my $moves_below_z_offset = 0;
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+            
+            if ($info->{travel} && exists $args->{Z}) {
+                $moves_below_z_offset++ if $args->{Z} < $config->z_offset;
+            }
+        });
+        is $moves_below_z_offset, 0, "no Z moves below Z offset ($comment)";
+    };
+    
+    $test->("no lift");
+    
+    $config->set('retract_lift', [3]);
+    $test->("lift < z_offset");
+    
+    $config->set('retract_lift', [6]);
+    $test->("lift > z_offset");
 }
 
 {
