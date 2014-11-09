@@ -1,0 +1,63 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "libslic3r/GCodeWriter.hpp"
+%}
+
+%name{Slic3r::GCode::Writer} class GCodeWriter {
+    GCodeWriter();
+    ~GCodeWriter();
+    
+    Ref<GCodeConfig> config()
+        %code%{ RETVAL = &THIS->config; %};
+    bool multiple_extruders()
+        %code{% RETVAL = THIS->multiple_extruders; %};
+    Ref<Extruder> extruder();
+    std::string extrusion_axis();
+    void apply_print_config(PrintConfig* print_config)
+        %code{% THIS->apply_print_config(*print_config); %};
+    void set_extruders(std::vector<unsigned int> extruder_ids);
+    std::string preamble();
+    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1);
+    std::string set_bed_temperature(unsigned int temperature, bool wait = false);
+    std::string set_fan(unsigned int speed, bool dont_save = false);
+    std::string set_acceleration(unsigned int acceleration);
+    std::string reset_e(bool force = false);
+    std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false);
+    bool need_toolchange(unsigned int extruder_id);
+    std::string set_extruder(unsigned int extruder_id);
+    std::string toolchange(unsigned int extruder_id);
+    std::string set_speed(double F, std::string comment = std::string());
+    std::string travel_to_xy(Pointf* point, std::string comment = std::string())
+        %code{% RETVAL = THIS->travel_to_xy(*point, comment); %};
+    std::string travel_to_xyz(Pointf3* point, std::string comment = std::string())
+        %code{% RETVAL = THIS->travel_to_xyz(*point, comment); %};
+    std::string travel_to_z(double z, std::string comment = std::string());
+    bool will_move_z(double z);
+    std::string extrude_to_xy(Pointf* point, double dE, std::string comment = std::string())
+        %code{% RETVAL = THIS->extrude_to_xy(*point, dE, comment); %};
+    std::string extrude_to_xyz(Pointf3* point, double dE, std::string comment = std::string())
+        %code{% RETVAL = THIS->extrude_to_xyz(*point, dE, comment); %};
+    std::string retract();
+    std::string retract_for_toolchange();
+    std::string unretract();
+    std::string lift();
+    std::string unlift();
+%{
+
+SV*
+GCodeWriter::extruders()
+    CODE:
+        AV* av = newAV();
+        av_fill(av, THIS->extruders.size()-1);
+        int i = 0;
+        for (std::map<unsigned int,Extruder>::iterator it = THIS->extruders.begin(); it != THIS->extruders.end(); ++it) {
+            av_store(av, i++, perl_to_SV_ref(it->second));
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+%}
+};

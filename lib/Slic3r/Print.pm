@@ -633,7 +633,7 @@ sub write_gcode {
                     if ($layer->id == 0 && $finished_objects > 0) {
                         printf $fh $gcodegen->writer->set_bed_temperature($self->config->first_layer_bed_temperature),
                             if $self->config->first_layer_bed_temperature;
-                        $print_first_layer_temperature->();
+                        $print_first_layer_temperature->(0);
                     }
                     print $fh $buffer->append(
                         $layer_gcode->process_layer($layer, [$copy]),

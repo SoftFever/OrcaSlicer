@@ -190,6 +190,7 @@ package main;
 for my $class (qw(
         Slic3r::Config
         Slic3r::Config::Full
+        Slic3r::Config::GCode
         Slic3r::Config::Print
         Slic3r::Config::PrintObject
         Slic3r::Config::PrintRegion

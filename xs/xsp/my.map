@@ -111,6 +111,8 @@ SurfaceCollection*         O_OBJECT_SLIC3R
 Ref<SurfaceCollection>     O_OBJECT_SLIC3R_T
 
 Extruder*                  O_OBJECT_SLIC3R
+Ref<Extruder>              O_OBJECT_SLIC3R_T
+Clone<Extruder>            O_OBJECT_SLIC3R_T
 
 Model*                     O_OBJECT_SLIC3R
 Ref<Model>                 O_OBJECT_SLIC3R_T
@@ -158,6 +160,10 @@ Clone<PlaceholderParser>   O_OBJECT_SLIC3R_T
 MotionPlanner*             O_OBJECT_SLIC3R
 Ref<MotionPlanner>         O_OBJECT_SLIC3R_T
 Clone<MotionPlanner>       O_OBJECT_SLIC3R_T
+
+GCodeWriter*               O_OBJECT_SLIC3R
+Ref<GCodeWriter>           O_OBJECT_SLIC3R_T
+Clone<GCodeWriter>         O_OBJECT_SLIC3R_T
 
 ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV

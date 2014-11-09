@@ -271,7 +271,7 @@ sub _extrude_path {
     
     # calculate extrusion length per distance unit
     my $e_per_mm = $self->writer->extruder->e_per_mm3 * $path->mm3_per_mm;
-    $e_per_mm = 0 if !$self->writer->_extrusion_axis;
+    $e_per_mm = 0 if !$self->writer->extrusion_axis;
     
     # set speed
     my $F;
@@ -307,7 +307,7 @@ sub _extrude_path {
         $gcode .= $path->gcode($self->writer->extruder, $e_per_mm, $F,
             $self->origin->x - $extruder_offset->x,
             $self->origin->y - $extruder_offset->y,  #-
-            $self->writer->_extrusion_axis,
+            $self->writer->extrusion_axis,
             $self->config->gcode_comments ? " ; $description" : "");
 
         if ($self->enable_wipe) {
@@ -375,7 +375,7 @@ sub travel_to {
         # If avoid_crossing_perimeters is disabled or the straight_once flag is set,
         # perform a straight move with a retraction.
         $gcode .= $self->retract;
-        $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment);
+        $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment || '');
     }
     
     # Re-allow avoid_crossing_perimeters for the next travel moves
@@ -425,7 +425,7 @@ sub retract {
     if ($self->config->get_at('wipe', $self->writer->extruder->id) && $self->_wipe_path) {
         # Reduce feedrate a bit; travel speed is often too high to move on existing material.
         # Too fast = ripping of existing material; too slow = short wipe path, thus more blob.
-        my $wipe_speed = $self->writer->config->travel_speed * 0.8;
+        my $wipe_speed = $self->writer->config->get('travel_speed') * 0.8;
         
         # get the retraction length
         my $length = $toolchange
@@ -484,7 +484,7 @@ sub unretract {
     
     my $gcode = "";
     $gcode .= $self->writer->unlift;
-    $gcode .= $self->writer->unretract('compensate retraction');
+    $gcode .= $self->writer->unretract;
     return $gcode;
 }
 

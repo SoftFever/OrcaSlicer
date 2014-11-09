@@ -56,7 +56,6 @@ use Slic3r::GCode::PlaceholderParser;
 use Slic3r::GCode::Reader;
 use Slic3r::GCode::SpiralVase;
 use Slic3r::GCode::VibrationLimit;
-use Slic3r::GCode::Writer;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
@@ -177,6 +176,7 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
+    *Slic3r::GCode::Writer::DESTROY         = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf3::DESTROY = sub {};

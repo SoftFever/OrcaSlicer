@@ -9,6 +9,8 @@
 %typemap{std::vector<unsigned int>*};
 %typemap{std::vector<double>};
 %typemap{std::vector<double>*};
+%typemap{std::vector<unsigned int>};
+%typemap{std::vector<unsigned int>*};
 %typemap{std::vector<std::string>};
 %typemap{t_layer_height_ranges};
 %typemap{SV*};
@@ -82,6 +84,9 @@
 %typemap{MotionPlanner*};
 %typemap{Ref<MotionPlanner>}{simple};
 %typemap{Clone<MotionPlanner>}{simple};
+%typemap{GCodeWriter*};
+%typemap{Ref<GCodeWriter>}{simple};
+%typemap{Clone<GCodeWriter>}{simple};
 
 %typemap{Surface*};
 %typemap{Ref<Surface>}{simple};
@@ -127,6 +132,8 @@
 %typemap{TriangleMeshPtrs};
 %typemap{Ref<SurfaceCollection>}{simple};
 %typemap{Extruder*};
+%typemap{Ref<Extruder>}{simple};
+%typemap{Clone<Extruder>}{simple};
 %typemap{Model*};
 %typemap{Ref<Model>}{simple};
 %typemap{Clone<Model>}{simple};
