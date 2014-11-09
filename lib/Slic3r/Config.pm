@@ -174,19 +174,6 @@ sub _handle_legacy {
     return ($opt_key, $value);
 }
 
-sub set_ifndef {
-    my $self = shift;
-    my ($opt_key, $value, $deserialize) = @_;
-    
-    if (!$self->has($opt_key)) {
-        if ($deserialize) {
-            $self->set_deserialize($opt_key, $value);
-        } else {
-            $self->set($opt_key, $value);
-        }
-    }
-}
-
 sub as_ini {
     my ($self) = @_;
     
@@ -211,23 +198,6 @@ sub setenv {
     foreach my $opt_key (@{$self->get_keys}) {
         $ENV{"SLIC3R_" . uc $opt_key} = $self->serialize($opt_key);
     }
-}
-
-sub equals {
-    my ($self, $other) = @_;
-    return @{ $self->diff($other) } == 0;
-}
-
-# this will *ignore* options not present in both configs
-sub diff {
-    my ($self, $other) = @_;
-    
-    my @diff = ();
-    foreach my $opt_key (sort @{$self->get_keys}) {
-        push @diff, $opt_key
-            if $other->has($opt_key) && $other->serialize($opt_key) ne $self->serialize($opt_key);
-    }
-    return [@diff];
 }
 
 # this method is idempotent by design and only applies to ::DynamicConfig or ::Full

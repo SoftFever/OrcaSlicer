@@ -11,9 +11,9 @@ using boost::polygon::voronoi_diagram;
 
 namespace Slic3r { namespace Geometry {
 
-void convex_hull(Points &points, Polygon* hull);
-void chained_path(Points &points, std::vector<Points::size_type> &retval, Point start_near);
-void chained_path(Points &points, std::vector<Points::size_type> &retval);
+void convex_hull(Points points, Polygon* hull);
+void chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near);
+void chained_path(const Points &points, std::vector<Points::size_type> &retval);
 template<class T> void chained_path_items(Points &points, T &items, T &retval);
 bool directions_parallel(double angle1, double angle2, double max_diff = 0);
 

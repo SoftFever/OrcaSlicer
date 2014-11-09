@@ -25,7 +25,7 @@ sort_points (Point a, Point b)
 
 /* This implementation is based on Andrew's monotone chain 2D convex hull algorithm */
 void
-convex_hull(Points &points, Polygon* hull)
+convex_hull(Points points, Polygon* hull)
 {
     assert(points.size() >= 3);
     // sort input points
@@ -55,12 +55,12 @@ convex_hull(Points &points, Polygon* hull)
 /* accepts an arrayref of points and returns a list of indices
    according to a nearest-neighbor walk */
 void
-chained_path(Points &points, std::vector<Points::size_type> &retval, Point start_near)
+chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near)
 {
-    PointPtrs my_points;
-    std::map<Point*,Points::size_type> indices;
+    PointConstPtrs my_points;
+    std::map<const Point*,Points::size_type> indices;
     my_points.reserve(points.size());
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
+    for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
         my_points.push_back(&*it);
         indices[&*it] = it - points.begin();
     }
@@ -75,7 +75,7 @@ chained_path(Points &points, std::vector<Points::size_type> &retval, Point start
 }
 
 void
-chained_path(Points &points, std::vector<Points::size_type> &retval)
+chained_path(const Points &points, std::vector<Points::size_type> &retval)
 {
     if (points.empty()) return;  // can't call front() on empty vector
     chained_path(points, retval, points.front());

@@ -464,8 +464,11 @@ class ConfigBase
     virtual const ConfigOption* option(const t_config_option_key opt_key) const = 0;
     virtual void keys(t_config_option_keys *keys) const = 0;
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
+    bool equals(ConfigBase &other);
+    t_config_option_keys diff(ConfigBase &other);
     std::string serialize(const t_config_option_key opt_key);
     bool set_deserialize(const t_config_option_key opt_key, std::string str);
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
     double get_abs_value(const t_config_option_key opt_key);
     double get_abs_value(const t_config_option_key opt_key, double ratio_over);
     

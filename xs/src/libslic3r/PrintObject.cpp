@@ -1,5 +1,6 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include "Geometry.hpp"
 
 namespace Slic3r {
 
@@ -21,8 +22,6 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         this->_copies_shift = Point(
             scale_(modobj_bbox.min.x), scale_(modobj_bbox.min.y));
 
-        // TODO: $self->_trigger_copies;
-
         // Scale the object size and store it
         Pointf3 size = modobj_bbox.size();
         this->size = Point3(scale_(size.x), scale_(size.y), scale_(size.z));
@@ -43,6 +42,35 @@ ModelObject*
 PrintObject::model_object()
 {
     return this->_model_object;
+}
+
+Points
+PrintObject::copies() const
+{
+    return this->_copies;
+}
+
+void
+PrintObject::set_copies(const Points &points)
+{
+    this->_copies = points;
+    
+    // order copies with a nearest neighbor search and translate them by _copies_shift
+    this->_shifted_copies.clear();
+    this->_shifted_copies.reserve(points.size());
+    
+    // order copies with a nearest-neighbor search
+    std::vector<Points::size_type> ordered_copies;
+    Slic3r::Geometry::chained_path(points, ordered_copies);
+    
+    for (std::vector<Points::size_type>::const_iterator it = ordered_copies.begin(); it != ordered_copies.end(); ++it) {
+        Point copy = points[*it];
+        copy.translate(this->_copies_shift);
+        this->_shifted_copies.push_back(copy);
+    }
+    
+    this->_print->invalidate_step(psSkirt);
+    this->_print->invalidate_step(psBrim);
 }
 
 void

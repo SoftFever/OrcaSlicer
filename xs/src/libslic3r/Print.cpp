@@ -308,6 +308,189 @@ Print::max_allowed_layer_height() const
     return *std::max_element(nozzle_diameter.begin(), nozzle_diameter.end());
 }
 
+/*  Caller is responsible for supplying models whose objects don't collide
+    and have explicit instance positions */
+void
+Print::add_model_object(ModelObject* model_object, int idx)
+{
+    DynamicPrintConfig object_config = model_object->config;  // clone
+    object_config.normalize();
+
+    // initialize print object and store it at the given position
+    PrintObject* o;
+    {
+        BoundingBoxf3 bb;
+        model_object->raw_bounding_box(&bb);
+        o = (idx != -1)
+            ? this->set_new_object(idx, model_object, bb)
+            : this->add_object(model_object, bb);
+    }
+    
+    {
+        Points copies;
+        for (ModelInstancePtrs::const_iterator i = model_object->instances.begin(); i != model_object->instances.end(); ++i) {
+            copies.push_back(Point::new_scale((*i)->offset.x, (*i)->offset.y));
+        }
+        o->set_copies(copies);
+    }
+    o->layer_height_ranges = model_object->layer_height_ranges;
+
+    for (ModelVolumePtrs::const_iterator v_i = model_object->volumes.begin(); v_i != model_object->volumes.end(); ++v_i) {
+        size_t volume_id = v_i - model_object->volumes.begin();
+        ModelVolume* volume = *v_i;
+        
+        // get the config applied to this volume
+        PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
+        
+        // find an existing print region with the same config
+        int region_id = -1;
+        for (PrintRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region) {
+            if (config.equals((*region)->config)) {
+                region_id = region - this->regions.begin();
+                break;
+            }
+        }
+        
+        // if no region exists with the same config, create a new one
+        if (region_id == -1) {
+            PrintRegion* r = this->add_region();
+            r->config.apply(config);
+            region_id = this->regions.size() - 1;
+        }
+        
+        // assign volume to region
+        o->add_region_volume(region_id, volume_id);
+    }
+
+    // apply config to print object
+    o->config.apply(this->default_object_config);
+    o->config.apply(object_config, true);
+}
+
+bool
+Print::apply_config(DynamicPrintConfig config)
+{
+    // we get a copy of the config object so we can modify it safely
+    config.normalize();
+    
+    // apply variables to placeholder parser
+    this->placeholder_parser.apply_config(config);
+    
+    bool invalidated = false;
+    
+    // handle changes to print config
+    t_config_option_keys print_diff = this->config.diff(config);
+    if (!print_diff.empty()) {
+        this->config.apply(config, true);
+        
+        if (this->invalidate_state_by_config_options(print_diff))
+            invalidated = true;
+    }
+    
+    // handle changes to object config defaults
+    this->default_object_config.apply(config, true);
+    FOREACH_OBJECT(this, obj_ptr) {
+        // we don't assume that config contains a full ObjectConfig,
+        // so we base it on the current print-wise default
+        PrintObjectConfig new_config = this->default_object_config;
+        new_config.apply(config, true);
+        
+        // we override the new config with object-specific options
+        {
+            DynamicPrintConfig model_object_config = (*obj_ptr)->model_object()->config;
+            model_object_config.normalize();
+            new_config.apply(model_object_config, true);
+        }
+        
+        // check whether the new config is different from the current one
+        t_config_option_keys diff = (*obj_ptr)->config.diff(new_config);
+        if (!diff.empty()) {
+            (*obj_ptr)->config.apply(new_config, true);
+            
+            if ((*obj_ptr)->invalidate_state_by_config_options(diff))
+                invalidated = true;
+        }
+    }
+    
+    // handle changes to regions config defaults
+    this->default_region_config.apply(config, true);
+    
+    // All regions now have distinct settings.
+    // Check whether applying the new region config defaults we'd get different regions.
+    bool rearrange_regions = false;
+    std::vector<PrintRegionConfig> other_region_configs;
+    FOREACH_REGION(this, it_r) {
+        size_t region_id = it_r - this->regions.begin();
+        PrintRegion* region = *it_r;
+        
+        std::vector<PrintRegionConfig> this_region_configs;
+        FOREACH_OBJECT(this, it_o) {
+            PrintObject* object = *it_o;
+            
+            std::vector<int> &region_volumes = object->region_volumes[region_id];
+            for (std::vector<int>::const_iterator volume_id = region_volumes.begin(); volume_id != region_volumes.end(); ++volume_id) {
+                ModelVolume* volume = object->model_object()->volumes[*volume_id];
+                
+                PrintRegionConfig new_config = this->_region_config_from_model_volume(*volume);
+                
+                for (std::vector<PrintRegionConfig>::iterator it = this_region_configs.begin(); it != this_region_configs.end(); ++it) {
+                    // if the new config for this volume differs from the other
+                    // volume configs currently associated to this region, it means
+                    // the region subdivision does not make sense anymore
+                    if (!it->equals(new_config)) {
+                        rearrange_regions = true;
+                        goto NEXT_REGION;
+                    }
+                }
+                this_region_configs.push_back(new_config);
+                
+                for (std::vector<PrintRegionConfig>::iterator it = other_region_configs.begin(); it != other_region_configs.end(); ++it) {
+                    // if the new config for this volume equals any of the other
+                    // volume configs that are not currently associated to this
+                    // region, it means the region subdivision does not make
+                    // sense anymore
+                    if (it->equals(new_config)) {
+                        rearrange_regions = true;
+                        goto NEXT_REGION;
+                    }
+                }
+                
+                // if we're here and the new region config is different from the old
+                // one, we need to apply the new config and invalidate all objects
+                // (possible optimization: only invalidate objects using this region)
+                t_config_option_keys region_config_diff = region->config.diff(new_config);
+                if (!region_config_diff.empty()) {
+                    region->config.apply(new_config);
+                    FOREACH_OBJECT(this, o) {
+                        if ((*o)->invalidate_state_by_config_options(region_config_diff))
+                            invalidated = true;
+                    }
+                }
+            }
+        }
+        other_region_configs.insert(other_region_configs.end(), this_region_configs.begin(), this_region_configs.end());
+        
+        NEXT_REGION:
+            continue;
+    }
+    
+    if (rearrange_regions) {
+        // the current subdivision of regions does not make sense anymore.
+        // we need to remove all objects and re-add them
+        ModelObjectPtrs model_objects;
+        FOREACH_OBJECT(this, o) {
+            model_objects.push_back((*o)->model_object());
+        }
+        this->clear_objects();
+        for (ModelObjectPtrs::iterator it = model_objects.begin(); it != model_objects.end(); ++it) {
+            this->add_model_object(*it);
+        }
+        invalidated = true;
+    }
+    
+    return invalidated;
+}
+
 void
 Print::init_extruders()
 {
@@ -322,6 +505,28 @@ Print::init_extruders()
     }
     
     this->state.set_done(psInitExtruders);
+}
+
+PrintRegionConfig
+Print::_region_config_from_model_volume(const ModelVolume &volume)
+{
+    PrintRegionConfig config = this->default_region_config;
+    {
+        DynamicPrintConfig other_config = volume.get_object()->config;
+        other_config.normalize();
+        config.apply(other_config, true);
+    }
+    {
+        DynamicPrintConfig other_config = volume.config;
+        other_config.normalize();
+        config.apply(other_config, true);
+    }
+    if (!volume.material_id().empty()) {
+        DynamicPrintConfig material_config = volume.material()->config;
+        material_config.normalize();
+        config.apply(material_config, true);
+    }
+    return config;
 }
 
 bool

@@ -56,8 +56,7 @@ _constant()
     Ref<ModelObject> model_object();
     Ref<PrintObjectConfig> config()
         %code%{ RETVAL = &THIS->config; %};
-    Points copies()
-        %code%{ RETVAL = THIS->copies; %};
+    Points copies();
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     Ref<Point3> size()
@@ -75,8 +74,7 @@ _constant()
     void set_shifted_copies(Points value)
         %code%{ THIS->_shifted_copies = value; %};
 
-    void set_copies(Points copies)
-        %code%{ THIS->copies = copies; %};
+    void set_copies(Points copies);
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
 
@@ -169,6 +167,9 @@ _constant()
     double max_allowed_layer_height() const;
     bool has_support_material() const;
     
+    void add_model_object(ModelObject* model_object, int idx = -1);
+    bool apply_config(DynamicPrintConfig* config)
+        %code%{ RETVAL = THIS->apply_config(*config); %};
     void init_extruders();
 %{
 

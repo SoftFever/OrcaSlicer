@@ -41,6 +41,12 @@ Point::translate(double x, double y)
 }
 
 void
+Point::translate(const Point &vector)
+{
+    this->translate(vector.x, vector.y);
+}
+
+void
 Point::rotate(double angle, const Point &center)
 {
     double cur_x = (double)this->x;

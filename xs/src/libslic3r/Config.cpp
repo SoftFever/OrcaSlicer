@@ -27,6 +27,27 @@ ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent) {
     }
 }
 
+bool
+ConfigBase::equals(ConfigBase &other) {
+    return this->diff(other).empty();
+}
+
+// this will *ignore* options not present in both configs
+t_config_option_keys
+ConfigBase::diff(ConfigBase &other) {
+    t_config_option_keys diff;
+    
+    t_config_option_keys my_keys;
+    this->keys(&my_keys);
+    for (t_config_option_keys::const_iterator opt_key = my_keys.begin(); opt_key != my_keys.end(); ++opt_key) {
+        if (other.has(*opt_key) && other.serialize(*opt_key) != this->serialize(*opt_key)) {
+            diff.push_back(*opt_key);
+        }
+    }
+    
+    return diff;
+}
+
 std::string
 ConfigBase::serialize(const t_config_option_key opt_key) {
     ConfigOption* opt = this->option(opt_key);
@@ -247,6 +268,18 @@ ConfigBase::set_deserialize(const t_config_option_key opt_key, SV* str) {
     std::string value(c, len);
     
     return this->set_deserialize(opt_key, value);
+}
+
+void
+ConfigBase::set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize)
+{
+    if (!this->has(opt_key)) {
+        if (deserialize) {
+            this->set_deserialize(opt_key, value);
+        } else {
+            this->set(opt_key, value);
+        }
+    }
 }
 #endif
 

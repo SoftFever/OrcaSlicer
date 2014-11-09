@@ -32,34 +32,12 @@ sub support_layers {
     return [ map $self->get_support_layer($_), 0..($self->support_layer_count - 1) ];
 }
 
-# TODO: translate to C++, then call it from constructor (see also
-    # Print->add_model_object)
-sub _trigger_copies {
-    my $self = shift;
-    
-    # TODO: should this mean point is 0,0?
-    return if !defined $self->_copies_shift;
-    
-    # order copies with a nearest neighbor search and translate them by _copies_shift
-    $self->set_shifted_copies([
-        map {
-            my $c = $_->clone;
-            $c->translate(@{ $self->_copies_shift });
-            $c;
-        } @{$self->copies}[@{chained_path($self->copies)}]
-    ]);
-    
-    $self->print->invalidate_step(STEP_SKIRT);
-    $self->print->invalidate_step(STEP_BRIM);
-}
-
 # in unscaled coordinates
 sub add_copy {
     my ($self, $x, $y) = @_;
     my @copies = @{$self->copies};
     push @copies, Slic3r::Point->new_scale($x, $y);
     $self->set_copies(\@copies);
-    $self->_trigger_copies;
 }
 
 sub delete_last_copy {
@@ -67,13 +45,11 @@ sub delete_last_copy {
     my @copies = $self->copies;
     pop @copies;
     $self->set_copies(\@copies);
-    $self->_trigger_copies;
 }
 
 sub delete_all_copies {
     my ($self) = @_;
     $self->set_copies([]);
-    $self->_trigger_copies;
 }
 
 # this is the *total* layer count (including support layers)
