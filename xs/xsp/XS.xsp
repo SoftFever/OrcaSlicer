@@ -6,3 +6,14 @@
 %{
 
 %}
+
+%package{Slic3r};
+%{
+
+SV*
+VERSION()
+    CODE:
+        RETVAL = newSVpv(SLIC3R_VERSION, 0);
+    OUTPUT: RETVAL
+
+%}

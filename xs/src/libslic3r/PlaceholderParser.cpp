@@ -1,18 +1,50 @@
 #include "PlaceholderParser.hpp"
-
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 namespace Slic3r {
 
-
 PlaceholderParser::PlaceholderParser()
 {
+    this->_single["version"] = SLIC3R_VERSION;
     // TODO: port these methods to C++, then call them here
     // this->apply_env_variables();
-    // this->update_timestamp();
+    this->update_timestamp();
 }
 
-PlaceholderParser::~PlaceholderParser()
+void
+PlaceholderParser::update_timestamp()
 {
+    time_t rawtime;
+    time(&rawtime);
+    struct tm* timeinfo = localtime(&rawtime);
+    
+    {
+        std::ostringstream ss;
+        ss << (1900 + timeinfo->tm_year);
+        ss << std::setw(2) << std::setfill('0') << (1 + timeinfo->tm_mon);
+        ss << std::setw(2) << std::setfill('0') << timeinfo->tm_mday;
+        ss << "-";
+        ss << std::setw(2) << std::setfill('0') << timeinfo->tm_hour;
+        ss << std::setw(2) << std::setfill('0') << timeinfo->tm_min;
+        ss << std::setw(2) << std::setfill('0') << timeinfo->tm_sec;
+        this->_single["timestamp"] = ss.str();
+    }
+    this->_single["year"]   = this->_int_to_string(1900 + timeinfo->tm_year);
+    this->_single["month"]  = this->_int_to_string(1 + timeinfo->tm_mon);
+    this->_single["day"]    = this->_int_to_string(timeinfo->tm_mday);
+    this->_single["hour"]   = this->_int_to_string(timeinfo->tm_hour);
+    this->_single["minute"] = this->_int_to_string(timeinfo->tm_min);
+    this->_single["second"] = this->_int_to_string(timeinfo->tm_sec);
+}
+
+std::string
+PlaceholderParser::_int_to_string(int value) const
+{
+    std::ostringstream ss;
+    ss << value;
+    return ss.str();
 }
 
 void PlaceholderParser::apply_config(DynamicPrintConfig &config)
@@ -83,6 +115,12 @@ void PlaceholderParser::apply_config(DynamicPrintConfig &config)
             break;
         }
     }
+}
+
+void
+PlaceholderParser::set(const std::string &key, const std::string &value)
+{
+    this->_single[key] = value;
 }
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf)

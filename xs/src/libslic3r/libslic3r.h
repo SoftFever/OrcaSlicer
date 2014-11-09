@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 
+#define SLIC3R_VERSION "1.2.2-dev"
+
 #define EPSILON 1e-4
 #define SCALING_FACTOR 0.000001
 #define PI 3.141592653589793238

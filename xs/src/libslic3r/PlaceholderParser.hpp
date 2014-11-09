@@ -17,14 +17,15 @@ class PlaceholderParser
     std::map<std::string, std::string> _multiple;
 
     PlaceholderParser();
-    ~PlaceholderParser();
-
+    void update_timestamp();
     void apply_config(DynamicPrintConfig &config);
+    void set(const std::string &key, const std::string &value);
 
     private:
     template<class T>
     void set_multiple_from_vector(
         const std::string &key, ConfigOptionVector<T> &opt);
+    std::string _int_to_string(int value) const;
 };
 
 }
