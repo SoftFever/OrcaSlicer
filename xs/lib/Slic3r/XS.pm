@@ -178,6 +178,14 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
+sub new {
+    my ($class, @surfaces) = @_;
+    
+    my $self = $class->_new;
+    $self->append($_) for @surfaces;
+    return $self;
+}
+
 package main;
 for my $class (qw(
         Slic3r::Config

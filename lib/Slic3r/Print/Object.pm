@@ -315,11 +315,10 @@ sub slice {
             );
             
             $layerm->slices->clear;
-            $layerm->slices->append(
-                map Slic3r::Surface->new
+            $layerm->slices->append($_)
+                for map Slic3r::Surface->new
                     (expolygon => $_, surface_type => S_TYPE_INTERNAL),
-                    @$diff
-            );
+                    @$diff;
         }
             
         # update layer slices after repairing the single regions
@@ -542,14 +541,14 @@ sub infill {
                 my ($i, $region_id) = @$obj_layer;
                 my $layerm = $self->get_layer($i)->regions->[$region_id];
                 $layerm->fills->clear;
-                $layerm->fills->append( $self->fill_maker->make_fill($layerm) );
+                $layerm->fills->append($_) for $self->fill_maker->make_fill($layerm);
             }
         },
         collect_cb => sub {},
         no_threads_cb => sub {
             foreach my $layerm (map @{$_->regions}, @{$self->layers}) {
                 $layerm->fills->clear;
-                $layerm->fills->append($self->fill_maker->make_fill($layerm));
+                $layerm->fills->append($_) for $self->fill_maker->make_fill($layerm);
             }
         },
     );
@@ -705,7 +704,7 @@ sub detect_surfaces_type {
             
             # save surfaces to layer
             $layerm->slices->clear;
-            $layerm->slices->append(@bottom, @top, @internal);
+            $layerm->slices->append($_) for (@bottom, @top, @internal);
             
             Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
                 $layerm->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
@@ -725,9 +724,9 @@ sub detect_surfaces_type {
                     [ $surface->p ],
                     $fill_boundaries,
                 );
-                $layerm->fill_surfaces->append(map Slic3r::Surface->new
-                    (expolygon => $_, surface_type => $surface->surface_type),
-                    @$intersection);
+                $layerm->fill_surfaces->append($_)
+                    for map Slic3r::Surface->new(expolygon => $_, surface_type => $surface->surface_type),
+                        @$intersection;
             }
         }
     }
@@ -772,7 +771,7 @@ sub clip_fill_surfaces {
             )};
             
             $layerm->fill_surfaces->clear;
-            $layerm->fill_surfaces->append(@new, @other);
+            $layerm->fill_surfaces->append($_) for (@new, @other);
         }
         
         # get this layer's overhangs defined as the full slice minus the internal infill
@@ -827,7 +826,7 @@ sub bridge_over_infill {
                         1,
                     )};
                 $layerm->fill_surfaces->clear;
-                $layerm->fill_surfaces->append(@new_surfaces);
+                $layerm->fill_surfaces->append($_) for @new_surfaces;
             }
             
             # exclude infill from the layers below if needed
@@ -855,7 +854,7 @@ sub bridge_over_infill {
                             )};
                         }
                         $lower_layerm->fill_surfaces->clear;
-                        $lower_layerm->fill_surfaces->append(@new_surfaces);
+                        $lower_layerm->fill_surfaces->append($_) for @new_surfaces;
                     }
                     
                     $excess -= $self->get_layer($i)->height;
@@ -1001,12 +1000,14 @@ sub discover_horizontal_shells {
                     
                     # assign resulting internal surfaces to layer
                     $neighbor_fill_surfaces->clear;
-                    $neighbor_fill_surfaces->append(map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => S_TYPE_INTERNAL), @$internal);
+                    $neighbor_fill_surfaces->append($_)
+                        for map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),
+                            @$internal;
                     
                     # assign new internal-solid surfaces to layer
-                    $neighbor_fill_surfaces->append(map Slic3r::Surface->new
-                        (expolygon => $_, surface_type => S_TYPE_INTERNALSOLID), @$internal_solid);
+                    $neighbor_fill_surfaces->append($_)
+                        for map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNALSOLID),
+                        @$internal_solid;
                     
                     # assign top and bottom surfaces to layer
                     foreach my $s (@{Slic3r::Surface::Collection->new(grep { ($_->surface_type == S_TYPE_TOP) || $_->is_bottom } @neighbor_fill_surfaces)->group}) {
@@ -1015,7 +1016,8 @@ sub discover_horizontal_shells {
                             [ map @$_, @$internal_solid, @$internal ],
                             1,
                         );
-                        $neighbor_fill_surfaces->append(map $s->[0]->clone(expolygon => $_), @$solid_surfaces);
+                        $neighbor_fill_surfaces->append($_)
+                            for map $s->[0]->clone(expolygon => $_), @$solid_surfaces;
                     }
                 }
             }
@@ -1129,7 +1131,7 @@ sub combine_infill {
                     }
                     
                     $layerm->fill_surfaces->clear;
-                    $layerm->fill_surfaces->append(@new_this_type, @other_types);
+                    $layerm->fill_surfaces->append($_) for (@new_this_type, @other_types);
                 }
             }
         }

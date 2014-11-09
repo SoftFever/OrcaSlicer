@@ -28,17 +28,6 @@ sub print   { return $_[0]->layer->print; }
 
 sub config  { return $_[0]->region->config; }
 
-sub merge_slices {
-    my ($self) = @_;
-    
-    my $expolygons = union_ex([ map $_->p, @{$self->slices} ]);
-    $self->slices->clear;
-    $self->slices->append(Slic3r::Surface->new(
-        expolygon    => $_,
-        surface_type => S_TYPE_INTERNAL,
-    )) for @$expolygons;
-}
-
 sub make_perimeters {
     my ($self, $slices, $fill_surfaces) = @_;
     
@@ -177,7 +166,7 @@ sub make_perimeters {
             );
             foreach my $gap_size (@gap_sizes) {
                 my @gap_fill = $self->_fill_gaps(@$gap_size, \@gaps);
-                $self->thin_fills->append(@gap_fill);
+                $self->thin_fills->append($_) for @gap_fill;
             
                 # Make sure we don't infill narrow parts that are already gap-filled
                 # (we only consider this surface's gaps to reduce the diff() complexity).
@@ -199,14 +188,13 @@ sub make_perimeters {
         # and then we offset back and forth by half the infill spacing to only consider the
         # non-collapsing regions
         my $min_perimeter_infill_spacing = $ispacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
-        $fill_surfaces->append(
-            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
-            @{offset2_ex(
-                [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
-                -($pspacing/2 + $min_perimeter_infill_spacing/2),
-                +$min_perimeter_infill_spacing/2,
-            )}
-        );
+        $fill_surfaces->append($_)
+            for map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
+                @{offset2_ex(
+                    [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
+                    -($pspacing/2 + $min_perimeter_infill_spacing/2),
+                    +$min_perimeter_infill_spacing/2,
+                )};
     }
     
     
@@ -245,9 +233,8 @@ sub make_perimeters {
         # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
         # in the current layer
         my $nozzle_diameter = $self->layer->print->config->get_at('nozzle_diameter', $self->region->config->perimeter_extruder-1);
-        $lower_slices->append(
-            @{offset_ex([ map @$_, @{$self->layer->lower_layer->slices} ], scale +$nozzle_diameter/2)},
-        );
+        $lower_slices->append($_)
+            for @{offset_ex([ map @$_, @{$self->layer->lower_layer->slices} ], scale +$nozzle_diameter/2)};
     }
     my $lower_slices_p = $lower_slices->polygons;
     
@@ -418,7 +405,7 @@ sub make_perimeters {
             || ($self->layer->id == 0 && $self->print->config->brim_width > 0);
     
     # append perimeters
-    $self->perimeters->append(@loops);
+    $self->perimeters->append($_) for @loops;
 }
 
 sub _fill_gaps {
@@ -508,8 +495,8 @@ sub process_external_surfaces {
             $angle = $bridge_detector->detect_angle;
             
             if (defined $angle && $self->object->config->support_material) {
-                $self->bridged->append(@{ $bridge_detector->coverage($angle) });
-                $self->unsupported_bridge_edges->append(@{ $bridge_detector->unsupported_edges }); 
+                $self->bridged->append($_) for @{ $bridge_detector->coverage($angle) };
+                $self->unsupported_bridge_edges->append($_) for @{ $bridge_detector->unsupported_edges }; 
             }
         }
         
@@ -553,7 +540,7 @@ sub process_external_surfaces {
         )};
     }
     $self->fill_surfaces->clear;
-    $self->fill_surfaces->append(@new_surfaces);
+    $self->fill_surfaces->append($_) for @new_surfaces;
 }
 
 1;

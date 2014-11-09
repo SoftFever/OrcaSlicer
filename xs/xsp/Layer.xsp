@@ -28,6 +28,7 @@
     
     Flow* flow(FlowRole role, bool bridge = false, double width = -1)
         %code%{ RETVAL = new Flow(THIS->flow(role, bridge, width)); %};
+    void merge_slices();
 };
 
 %name{Slic3r::Layer} class Layer {

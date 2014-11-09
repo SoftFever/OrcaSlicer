@@ -31,9 +31,7 @@ _new(CLASS, expolygon, surface_type, thickness, thickness_layers, bridge_angle, 
     double          bridge_angle;
     unsigned short  extra_perimeters;
     CODE:
-        RETVAL = new Surface ();
-        RETVAL->expolygon           = *expolygon;
-        RETVAL->surface_type        = surface_type;
+        RETVAL = new Surface (surface_type, *expolygon);
         RETVAL->thickness           = thickness;
         RETVAL->thickness_layers    = thickness_layers;
         RETVAL->bridge_angle        = bridge_angle;

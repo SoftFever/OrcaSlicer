@@ -52,6 +52,7 @@ class LayerRegion
     ExtrusionEntityCollection fills;
     
     Flow flow(FlowRole role, bool bridge = false, double width = -1) const;
+    void merge_slices();
     
     private:
     Layer *_layer;

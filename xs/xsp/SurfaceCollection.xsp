@@ -6,26 +6,16 @@
 %}
 
 %name{Slic3r::Surface::Collection} class SurfaceCollection {
+    %name{_new} SurfaceCollection();
     ~SurfaceCollection();
     void clear()
         %code{% THIS->surfaces.clear(); %};
+    void append(Surface* surface)
+        %code{% THIS->surfaces.push_back(*surface); %};
     int count()
         %code{% RETVAL = THIS->surfaces.size(); %};
     void simplify(double tolerance);
 %{
-
-SurfaceCollection*
-SurfaceCollection::new(...)
-    CODE:
-        RETVAL = new SurfaceCollection;
-        // ST(0) is class name, others are surfaces
-        RETVAL->surfaces.resize(items-1);
-        for (unsigned int i = 1; i < items; i++) {
-            // Note: a COPY of the input is stored
-            RETVAL->surfaces[i-1].from_SV_check(ST(i));
-        }
-    OUTPUT:
-        RETVAL
 
 SV*
 SurfaceCollection::arrayref()
@@ -51,15 +41,6 @@ SurfaceCollection::filter_by_type(surface_type)
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
         RETVAL
-
-void
-SurfaceCollection::append(...)
-    CODE:
-        for (unsigned int i = 1; i < items; i++) {
-            Surface surface;
-            surface.from_SV_check( ST(i) );
-            THIS->surfaces.push_back(surface);
-        }
 
 void
 SurfaceCollection::replace(index, surface)

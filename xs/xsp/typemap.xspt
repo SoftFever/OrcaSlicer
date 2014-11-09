@@ -83,6 +83,10 @@
 %typemap{Ref<MotionPlanner>}{simple};
 %typemap{Clone<MotionPlanner>}{simple};
 
+%typemap{Surface*};
+%typemap{Ref<Surface>}{simple};
+%typemap{Clone<Surface>}{simple};
+
 %typemap{PrintState*};
 %typemap{Ref<PrintState>}{simple};
 

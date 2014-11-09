@@ -1,5 +1,7 @@
 #include "Layer.hpp"
+#include "ClipperUtils.hpp"
 #include "Print.hpp"
+#include "Surface.hpp"
 
 namespace Slic3r {
 
@@ -36,6 +38,18 @@ LayerRegion::flow(FlowRole role, bool bridge, double width) const
         width,
         *this->_layer->object()
     );
+}
+
+void
+LayerRegion::merge_slices()
+{
+    ExPolygons expp;
+    union_(this->slices, expp);
+    this->slices.surfaces.clear();
+    this->slices.surfaces.reserve(expp.size());
+    
+    for (ExPolygons::const_iterator expoly = expp.begin(); expoly != expp.end(); ++expoly)
+        this->slices.surfaces.push_back(Surface(stInternal, *expoly));
 }
 
 #ifdef SLIC3RXS

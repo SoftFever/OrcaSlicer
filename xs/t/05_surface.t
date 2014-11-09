@@ -48,7 +48,8 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
 }
 
 {
-    my $collection = Slic3r::Surface::Collection->new($surface, $surface->clone);
+    my $collection = Slic3r::Surface::Collection->new;
+    $collection->append($_) for $surface, $surface->clone;
     is scalar(@$collection), 2, 'collection has the right number of items';
     is_deeply $collection->[0]->expolygon->pp, [$square, $hole_in_square],
         'collection returns a correct surface expolygon';
@@ -64,12 +65,11 @@ is $surface->extra_perimeters, 2, 'extra_perimeters';
 }
 
 {
-    my @surfaces = (
+    my $collection = Slic3r::Surface::Collection->new;
+    $collection->append($_) for
         Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_BOTTOM),
         Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_BOTTOM),
-        Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_TOP),
-    );
-    my $collection = Slic3r::Surface::Collection->new(@surfaces);
+        Slic3r::Surface->new(expolygon => $expolygon, surface_type => Slic3r::Surface::S_TYPE_TOP);
     is scalar(@{$collection->group}), 2, 'group() returns correct number of groups';
 }
 
