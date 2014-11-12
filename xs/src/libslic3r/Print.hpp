@@ -103,7 +103,8 @@ class PrintObject
     ModelObject* model_object();
     
     Points copies() const;
-    void set_copies(const Points &points);
+    bool set_copies(const Points &points);
+    bool reload_model_instances();
     
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);

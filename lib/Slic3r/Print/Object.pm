@@ -37,19 +37,19 @@ sub add_copy {
     my ($self, $x, $y) = @_;
     my @copies = @{$self->copies};
     push @copies, Slic3r::Point->new_scale($x, $y);
-    $self->set_copies(\@copies);
+    return  $self->set_copies(\@copies);
 }
 
 sub delete_last_copy {
     my ($self) = @_;
     my @copies = $self->copies;
     pop @copies;
-    $self->set_copies(\@copies);
+    return $self->set_copies(\@copies);
 }
 
 sub delete_all_copies {
     my ($self) = @_;
-    $self->set_copies([]);
+    return $self->set_copies([]);
 }
 
 # this is the *total* layer count (including support layers)

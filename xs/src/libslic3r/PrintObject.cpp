@@ -26,6 +26,9 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         Pointf3 size = modobj_bbox.size();
         this->size = Point3(scale_(size.x), scale_(size.y), scale_(size.z));
     }
+    
+    this->reload_model_instances();
+    this->layer_height_ranges = model_object->layer_height_ranges;
 }
 
 PrintObject::~PrintObject()
@@ -50,7 +53,7 @@ PrintObject::copies() const
     return this->_copies;
 }
 
-void
+bool
 PrintObject::set_copies(const Points &points)
 {
     this->_copies = points;
@@ -69,8 +72,20 @@ PrintObject::set_copies(const Points &points)
         this->_shifted_copies.push_back(copy);
     }
     
-    this->_print->invalidate_step(psSkirt);
-    this->_print->invalidate_step(psBrim);
+    bool invalidated = false;
+    if (this->_print->invalidate_step(psSkirt)) invalidated = true;
+    if (this->_print->invalidate_step(psBrim)) invalidated = true;
+    return invalidated;
+}
+
+bool
+PrintObject::reload_model_instances()
+{
+    Points copies;
+    for (ModelInstancePtrs::const_iterator i = this->_model_object->instances.begin(); i != this->_model_object->instances.end(); ++i) {
+        copies.push_back(Point::new_scale((*i)->offset.x, (*i)->offset.y));
+    }
+    return this->set_copies(copies);
 }
 
 void

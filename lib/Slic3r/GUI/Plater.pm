@@ -89,7 +89,17 @@ sub new {
         $menu->Destroy;
     });
     $self->{canvas}->on_instance_moved(sub {
+        my ($obj_idx, $instance_idx) = @_;
+        
         $self->update;
+        
+        $self->pause_background_process;
+        my $invalidated = $self->{print}->objects->[$obj_idx]->reload_model_instances();
+        if ($invalidated) {
+            $self->schedule_background_process;
+        } else {
+            $self->resume_background_process;
+        }
     });
     
     # Initialize 3D preview canvas
@@ -736,6 +746,7 @@ sub arrange {
     my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
     eval {
         $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
+        $_->reload_model_instances for @{$self->{print}->objects};
     };
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
@@ -1126,15 +1137,6 @@ sub update {
     
     if ($Slic3r::GUI::Settings->{_}{autocenter} || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
-    }
-    
-    # sync model and print object instances
-    for my $obj_idx (0..$#{$self->{objects}}) {
-        my $model_object = $self->{model}->objects->[$obj_idx];
-        my $print_object = $self->{print}->objects->[$obj_idx];
-        
-        $print_object->delete_all_copies;
-        $print_object->add_copy(@{$_->offset}) for @{$model_object->instances};
     }
     
     $self->{canvas}->Refresh;

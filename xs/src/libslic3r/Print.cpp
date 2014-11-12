@@ -351,15 +351,6 @@ Print::add_model_object(ModelObject* model_object, int idx)
             ? this->set_new_object(idx, model_object, bb)
             : this->add_object(model_object, bb);
     }
-    
-    {
-        Points copies;
-        for (ModelInstancePtrs::const_iterator i = model_object->instances.begin(); i != model_object->instances.end(); ++i) {
-            copies.push_back(Point::new_scale((*i)->offset.x, (*i)->offset.y));
-        }
-        o->set_copies(copies);
-    }
-    o->layer_height_ranges = model_object->layer_height_ranges;
 
     for (ModelVolumePtrs::const_iterator v_i = model_object->volumes.begin(); v_i != model_object->volumes.end(); ++v_i) {
         size_t volume_id = v_i - model_object->volumes.begin();
