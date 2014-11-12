@@ -743,15 +743,26 @@ sub changescale {
 sub arrange {
     my $self = shift;
     
+    $self->pause_background_process;
+    
     my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
     eval {
         $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
-        $_->reload_model_instances for @{$self->{print}->objects};
     };
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
     
     $self->update(1);
+    
+    my $invalidated = 0;
+    foreach my $object (@{$self->{print}->objects}) {
+        $invalidated = 1 if $object->reload_model_instances;
+    }
+    if ($invalidated) {
+        $self->schedule_background_process;
+    } else {
+        $self->resume_background_process;
+    }
     $self->{canvas}->Refresh;
 }
 
