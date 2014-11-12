@@ -1,7 +1,7 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
-#include "Geometry.hpp";
+#include "Geometry.hpp"
 #include <algorithm>
 
 namespace Slic3r {
