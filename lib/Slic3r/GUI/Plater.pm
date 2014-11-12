@@ -751,49 +751,24 @@ sub split_object {
     my $current_model_object        = $self->{model}->objects->[$obj_idx];
     
     if (@{$current_model_object->volumes} > 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains more than one volume/material.");
-        return;
-    }
-    
-    my @new_meshes = @{$current_model_object->volumes->[0]->mesh->split};
-    if (@new_meshes == 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object can't be split because it contains more than one volume/material.");
         return;
     }
     
     $self->stop_background_process;
     
-    # create a bogus Model object, we only need to instantiate the new Model::Object objects
-    my $new_model = Slic3r::Model->new;
+    my @model_objects = @{$current_model_object->split_object};
+    if (@model_objects == 1) {
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
+        return;
+    }
     
-    my @model_objects = ();
-    foreach my $mesh (@new_meshes) {
-        $mesh->repair;
+    foreach my $object (@model_objects) {
+        $object->instances->[$_]->offset->translate($_ * 10, $_ * 10)
+            for 1..$#{ $object->instances };
         
-        my $model_object = $new_model->add_object(
-            input_file              => $current_model_object->input_file,
-            config                  => $current_model_object->config->clone,
-            layer_height_ranges     => $current_model_object->layer_height_ranges,  # TODO: clone this
-        );
-        $model_object->add_volume(
-            mesh        => $mesh,
-            material_id => $current_model_object->volumes->[0]->material_id,
-        );
-        
-        for my $instance_idx (0..$#{ $current_model_object->instances }) {
-            my $current_instance = $current_model_object->instances->[$instance_idx];
-            $model_object->add_instance(
-                offset          => Slic3r::Pointf->new(
-                    $current_instance->offset->[X] + ($instance_idx * 10),
-                    $current_instance->offset->[Y] + ($instance_idx * 10),
-                ),
-                rotation        => $current_instance->rotation,
-                scaling_factor  => $current_instance->scaling_factor,
-            );
-        }
         # we need to center this single object around origin
-        $model_object->center_around_origin;
-        push @model_objects, $model_object;
+        $object->center_around_origin;
     }
 
     # remove the original object before spawning the object_loaded event, otherwise 
