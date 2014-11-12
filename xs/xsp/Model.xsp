@@ -14,8 +14,8 @@
         %code%{ RETVAL = THIS; %};
     
     %name{_add_object} Ref<ModelObject> add_object();
-    Ref<ModelObject> _add_object_clone(ModelObject* other)
-        %code%{ RETVAL = THIS->add_object(*other); %};
+    Ref<ModelObject> _add_object_clone(ModelObject* other, bool copy_volumes = true)
+        %code%{ RETVAL = THIS->add_object(*other, copy_volumes); %};
     void delete_object(size_t idx);
     void clear_objects();
     size_t objects_count()
@@ -205,6 +205,12 @@ ModelMaterial::attributes()
         %code%{
             RETVAL = new Model();
             THIS->cut(z, RETVAL);
+        %};
+
+    ModelObjectPtrs* split_object()
+        %code%{
+            RETVAL = new ModelObjectPtrs();  // leak?
+            THIS->split(RETVAL);
         %};
 };
 

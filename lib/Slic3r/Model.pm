@@ -259,45 +259,6 @@ sub add_instance {
     }
 }
 
-sub split_object {
-    my ($self) = @_;
-    
-    if (@{$self->volumes} > 1) {
-        # We can't split meshes if there's more than one volume, because
-        # we can't group the resulting meshes by object afterwards
-        my $o = $self->model->_add_object($self);
-        return [$o];
-    }
-    
-    my @new_objects = ();
-    my $volume = $self->volumes->[0];
-    foreach my $mesh (@{$volume->mesh->split}) {
-        $mesh->repair;
-        
-        push @new_objects, my $new_object = $self->model->add_object(
-            input_file          => $self->input_file,
-            config              => $self->config->clone,
-            layer_height_ranges => $self->layer_height_ranges,   # TODO: this needs to be cloned
-            origin_translation  => $self->origin_translation,
-        );
-        $new_object->add_volume(
-            mesh        => $mesh,
-            name        => $volume->name,
-            material_id => $volume->material_id,
-            config      => $volume->config,
-        );
-        
-        # add one instance per original instance
-        $new_object->add_instance(
-            offset          => Slic3r::Pointf->new(@{$_->offset}),
-            rotation        => $_->rotation,
-            scaling_factor  => $_->scaling_factor,
-        ) for @{ $self->instances };
-    }
-    
-    return [@new_objects];
-}
-
 sub rotate {
     my ($self, $angle, $axis) = @_;
     

@@ -44,9 +44,9 @@ Model::add_object()
 }
 
 ModelObject*
-Model::add_object(const ModelObject &other)
+Model::add_object(const ModelObject &other, bool copy_volumes)
 {
-    ModelObject* new_object = new ModelObject(this, other);
+    ModelObject* new_object = new ModelObject(this, other, copy_volumes);
     this->objects.push_back(new_object);
     return new_object;
 }
@@ -269,7 +269,7 @@ ModelObject::ModelObject(Model *model)
     : model(model)
 {}
 
-ModelObject::ModelObject(Model *model, const ModelObject &other)
+ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes)
 :   model(model),
     name(other.name),
     input_file(other.input_file),
@@ -281,11 +281,12 @@ ModelObject::ModelObject(Model *model, const ModelObject &other)
     _bounding_box(other._bounding_box),
     _bounding_box_valid(other._bounding_box_valid)
 {
-
-    this->volumes.reserve(other.volumes.size());
-    for (ModelVolumePtrs::const_iterator i = other.volumes.begin(); i != other.volumes.end(); ++i)
-        this->add_volume(**i);
-
+    if (copy_volumes) {
+        this->volumes.reserve(other.volumes.size());
+        for (ModelVolumePtrs::const_iterator i = other.volumes.begin(); i != other.volumes.end(); ++i)
+            this->add_volume(**i);
+    }
+    
     this->instances.reserve(other.instances.size());
     for (ModelInstancePtrs::const_iterator i = other.instances.begin(); i != other.instances.end(); ++i)
         this->add_instance(**i);
@@ -587,6 +588,34 @@ ModelObject::cut(coordf_t z, Model* model) const
             }
         }
     }
+}
+
+void
+ModelObject::split(ModelObjectPtrs* new_objects)
+{
+    if (this->volumes.size() > 1) {
+        // We can't split meshes if there's more than one volume, because
+        // we can't group the resulting meshes by object afterwards
+        new_objects->push_back(this);
+        return;
+    }
+    
+    ModelVolume* volume = this->volumes.front();
+    TriangleMeshPtrs meshptrs = volume->mesh.split();
+    for (TriangleMeshPtrs::iterator mesh = meshptrs.begin(); mesh != meshptrs.end(); ++mesh) {
+        (*mesh)->repair();
+        
+        ModelObject* new_object = this->model->add_object(*this, false);
+        ModelVolume* new_volume = new_object->add_volume(**mesh);
+        new_volume->name        = volume->name;
+        new_volume->config      = volume->config;
+        new_volume->modifier    = volume->modifier;
+        new_volume->material_id(volume->material_id());
+        
+        new_objects->push_back(new_object);
+    }
+    
+    return;
 }
 
 #ifdef SLIC3RXS
