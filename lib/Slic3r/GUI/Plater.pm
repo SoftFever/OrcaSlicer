@@ -571,7 +571,7 @@ sub increase {
         scaling_factor  => $last_instance->scaling_factor,
         rotation        => $last_instance->rotation,
     );
-    $self->{print}->objects->[$obj_idx]->add_copy(@{$i->offset});
+    $self->{print}->objects->[$obj_idx]->add_copy($i->offset);
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled

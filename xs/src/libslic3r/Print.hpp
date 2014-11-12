@@ -103,6 +103,9 @@ class PrintObject
     ModelObject* model_object();
     
     Points copies() const;
+    bool add_copy(const Pointf &point);
+    bool delete_last_copy();
+    bool delete_all_copies();
     bool set_copies(const Points &points);
     bool reload_model_instances();
     

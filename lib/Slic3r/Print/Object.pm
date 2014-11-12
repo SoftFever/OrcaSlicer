@@ -32,26 +32,6 @@ sub support_layers {
     return [ map $self->get_support_layer($_), 0..($self->support_layer_count - 1) ];
 }
 
-# in unscaled coordinates
-sub add_copy {
-    my ($self, $x, $y) = @_;
-    my @copies = @{$self->copies};
-    push @copies, Slic3r::Point->new_scale($x, $y);
-    return  $self->set_copies(\@copies);
-}
-
-sub delete_last_copy {
-    my ($self) = @_;
-    my @copies = $self->copies;
-    pop @copies;
-    return $self->set_copies(\@copies);
-}
-
-sub delete_all_copies {
-    my ($self) = @_;
-    return $self->set_copies([]);
-}
-
 # this is the *total* layer count (including support layers)
 # this value is not supposed to be compared with $layer->id
 # since they have different semantics

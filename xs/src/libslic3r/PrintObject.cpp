@@ -54,6 +54,29 @@ PrintObject::copies() const
 }
 
 bool
+PrintObject::add_copy(const Pointf &point)
+{
+    Points points = this->_copies;
+    points.push_back(Point::new_scale(point.x, point.y));
+    return this->set_copies(points);
+}
+
+bool
+PrintObject::delete_last_copy()
+{
+    Points points = this->_copies;
+    points.pop_back();
+    return this->set_copies(points);
+}
+
+bool
+PrintObject::delete_all_copies()
+{
+    Points points;
+    return this->set_copies(points);
+}
+
+bool
 PrintObject::set_copies(const Points &points)
 {
     this->_copies = points;
