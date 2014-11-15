@@ -5,15 +5,7 @@ use warnings;
 # a polygon is a closed polyline.
 use parent 'Slic3r::Polyline';
 
-use Slic3r::Geometry qw(
-    polygon_segment_having_point
-    PI X1 X2 Y1 Y2 epsilon scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(intersection_pl);
-
-sub wkt {
-    my $self = shift;
-    return sprintf "POLYGON((%s))", join ',', map "$_->[0] $_->[1]", @$self;
-}
+use Slic3r::Geometry qw(PI);
 
 sub dump_perl {
     my $self = shift;

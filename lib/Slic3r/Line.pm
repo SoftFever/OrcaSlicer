@@ -5,8 +5,6 @@ use warnings;
 # a line is a two-points line
 use parent 'Slic3r::Polyline';
 
-use Slic3r::Geometry qw(A B X Y);
-
 sub intersection {
     my $self = shift;
     my ($line, $require_crossing) = @_;

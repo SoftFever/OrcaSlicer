@@ -34,6 +34,13 @@
     void simplify(double tolerance);
     void split_at(Point* point, Polyline* p1, Polyline* p2)
         %code{% THIS->split_at(*point, p1, p2); %};
+    bool is_straight();
+    BoundingBox* bounding_box()
+        %code{%
+            RETVAL = new BoundingBox();
+            THIS->bounding_box(RETVAL);
+        %};
+    std::string wkt();
 %{
 
 Polyline*
@@ -81,9 +88,7 @@ Polyline::grow(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtSqu
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        Polylines polylines;
-        polylines.push_back(*THIS);
-        offset(polylines, RETVAL, delta, scale, joinType, miterLimit);
+        offset(*THIS, RETVAL, delta, scale, joinType, miterLimit);
     OUTPUT:
         RETVAL
 

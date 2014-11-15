@@ -209,6 +209,19 @@ Polygon::centroid() const
     return Point(x_temp/(6*area_temp), y_temp/(6*area_temp));
 }
 
+std::string
+Polygon::wkt() const
+{
+    std::ostringstream wkt;
+    wkt << "POLYGON((";
+    for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
+        wkt << p->x << " " << p->y;
+        if (p != this->points.end()-1) wkt << ",";
+    }
+    wkt << "))";
+    return wkt.str();
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Polygon, "Polygon");
 

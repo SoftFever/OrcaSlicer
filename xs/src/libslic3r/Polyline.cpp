@@ -1,6 +1,7 @@
 #include "Polyline.hpp"
 #include "Line.hpp"
 #include "Polygon.hpp"
+#include <iostream>
 
 namespace Slic3r {
 
@@ -160,6 +161,34 @@ Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
     for (Lines::const_iterator line = lines.begin() + line_idx; line != lines.end(); ++line) {
         if (!line->b.coincides_with(p)) p2->points.push_back(line->b);
     }
+}
+
+bool
+Polyline::is_straight() const
+{
+    /*  Check that each segment's direction is equal to the line connecting
+        first point and last point. (Checking each line against the previous
+        one would cause the error to accumulate.) */
+    double dir = Line(this->first_point(), this->last_point()).direction();
+    
+    Lines lines = this->lines();
+    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
+        if (!line->parallel_to(dir)) return false;
+    }
+    return true;
+}
+
+std::string
+Polyline::wkt() const
+{
+    std::ostringstream wkt;
+    wkt << "LINESTRING((";
+    for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
+        wkt << p->x << " " << p->y;
+        if (p != this->points.end()-1) wkt << ",";
+    }
+    wkt << "))";
+    return wkt.str();
 }
 
 

@@ -3,6 +3,7 @@
 
 #include <myinit.h>
 #include <vector>
+#include <string>
 #include "Line.hpp"
 #include "MultiPoint.hpp"
 #include "Polyline.hpp"
@@ -36,6 +37,7 @@ class Polygon : public MultiPoint {
     void simplify(double tolerance, Polygons &polygons) const;
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
+    std::string wkt() const;
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);

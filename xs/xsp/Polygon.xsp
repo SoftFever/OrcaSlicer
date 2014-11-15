@@ -46,6 +46,7 @@
             RETVAL = new BoundingBox();
             THIS->bounding_box(RETVAL);
         %};
+    std::string wkt();
 %{
 
 Polygon*
