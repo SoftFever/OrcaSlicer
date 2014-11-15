@@ -1,4 +1,5 @@
 #include "Polyline.hpp"
+#include "Line.hpp"
 #include "Polygon.hpp"
 
 namespace Slic3r {
@@ -8,6 +9,12 @@ Polyline::operator Polylines() const
     Polylines polylines;
     polylines.push_back(*this);
     return polylines;
+}
+
+Polyline::operator Line() const
+{
+    if (this->points.size() > 2) CONFESS("Can't convert polyline with more than two points to a line");
+    return Line(this->points.front(), this->points.back());
 }
 
 Point

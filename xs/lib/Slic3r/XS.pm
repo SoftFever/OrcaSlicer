@@ -188,6 +188,7 @@ sub new {
 
 package main;
 for my $class (qw(
+        Slic3r::BridgeDetector
         Slic3r::Config
         Slic3r::Config::Full
         Slic3r::Config::GCode

@@ -207,23 +207,6 @@ sub polygon_is_convex {
     return 1;
 }
 
-sub deg2rad {
-    my ($degrees) = @_;
-    return PI() * $degrees / 180;
-}
-
-sub rad2deg {
-    my ($rad) = @_;
-    return $rad / PI() * 180;
-}
-
-sub rad2deg_dir {
-    my ($rad) = @_;
-    $rad = ($rad < PI) ? (-$rad + PI/2) : ($rad + PI/2);
-    $rad += PI if $rad < 0;
-    return rad2deg($rad);
-}
-
 sub rotate_points {
     my ($radians, $center, @points) = @_;
     $center //= [0,0];

@@ -486,16 +486,17 @@ sub process_external_surfaces {
         # of very thin (but still working) anchors, the grown expolygon would go beyond them
         my $angle;
         if ($lower_layer) {
-            my $bridge_detector = Slic3r::Layer::BridgeDetector->new(
-                expolygon       => $surface->expolygon,
-                lower_slices    => $lower_layer->slices,
-                extrusion_width => $self->flow(FLOW_ROLE_INFILL, $self->height, 1)->scaled_width,
+            my $bridge_detector = Slic3r::BridgeDetector->new(
+                $surface->expolygon,
+                $lower_layer->slices,
+                $self->flow(FLOW_ROLE_INFILL, $self->height, 1)->scaled_width,
             );
             Slic3r::debugf "Processing bridge at layer %d:\n", $self->id;
-            $angle = $bridge_detector->detect_angle;
+            $bridge_detector->detect_angle;
+            $angle = $bridge_detector->angle;
             
             if (defined $angle && $self->object->config->support_material) {
-                $self->bridged->append($_) for @{ $bridge_detector->coverage($angle) };
+                $self->bridged->append($_) for @{ $bridge_detector->coverage_with_angle($angle) };
                 $self->unsupported_bridge_edges->append($_) for @{ $bridge_detector->unsupported_edges }; 
             }
         }

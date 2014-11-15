@@ -165,6 +165,10 @@ GCodeWriter*               O_OBJECT_SLIC3R
 Ref<GCodeWriter>           O_OBJECT_SLIC3R_T
 Clone<GCodeWriter>         O_OBJECT_SLIC3R_T
 
+BridgeDetector*            O_OBJECT_SLIC3R
+Ref<BridgeDetector>        O_OBJECT_SLIC3R_T
+Clone<BridgeDetector>      O_OBJECT_SLIC3R_T
+
 ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV
 FlowRole     T_UV

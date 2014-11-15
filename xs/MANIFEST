@@ -1652,6 +1652,8 @@ src/clipper.cpp
 src/clipper.hpp
 src/libslic3r/BoundingBox.cpp
 src/libslic3r/BoundingBox.hpp
+src/libslic3r/BridgeDetector.cpp
+src/libslic3r/BridgeDetector.hpp
 src/libslic3r/ClipperUtils.cpp
 src/libslic3r/ClipperUtils.hpp
 src/libslic3r/Config.cpp
@@ -1669,6 +1671,8 @@ src/libslic3r/ExtrusionEntityCollection.hpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
 src/libslic3r/GCode.hpp
+src/libslic3r/GCodeWriter.cpp
+src/libslic3r/GCodeWriter.hpp
 src/libslic3r/Geometry.cpp
 src/libslic3r/Geometry.hpp
 src/libslic3r/Layer.cpp
@@ -1745,6 +1749,7 @@ t/18_motionplanner.t
 t/19_model.t
 t/20_print.t
 xsp/BoundingBox.xsp
+xsp/BridgeDetector.xsp
 xsp/Clipper.xsp
 xsp/Config.xsp
 xsp/ExPolygon.xsp
@@ -1754,6 +1759,7 @@ xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
+xsp/GCodeWriter.xsp
 xsp/Geometry.xsp
 xsp/Layer.xsp
 xsp/Line.xsp

@@ -12,6 +12,7 @@ typedef std::vector<Polyline> Polylines;
 class Polyline : public MultiPoint {
     public:
     operator Polylines() const;
+    operator Line() const;
     Point last_point() const;
     Point leftmost_point() const;
     Lines lines() const;

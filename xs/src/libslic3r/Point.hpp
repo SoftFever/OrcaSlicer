@@ -12,11 +12,13 @@ class Line;
 class MultiPoint;
 class Point;
 class Pointf;
+class Pointf3;
 typedef Point Vector;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
 typedef std::vector<const Point*> PointConstPtrs;
 typedef std::vector<Pointf> Pointfs;
+typedef std::vector<Pointf3> Pointf3s;
 
 class Point
 {

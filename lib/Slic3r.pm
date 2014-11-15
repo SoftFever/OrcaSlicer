@@ -58,7 +58,6 @@ use Slic3r::GCode::VibrationLimit;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
-use Slic3r::Layer::BridgeDetector;
 use Slic3r::Layer::Region;
 use Slic3r::Line;
 use Slic3r::Model;
@@ -162,6 +161,7 @@ sub thread_cleanup {
     
     # prevent destruction of shared objects
     no warnings 'redefine';
+    *Slic3r::BridgeDetector::DESTROY        = sub {};
     *Slic3r::Config::DESTROY                = sub {};
     *Slic3r::Config::Full::DESTROY          = sub {};
     *Slic3r::Config::GCode::DESTROY         = sub {};

@@ -23,6 +23,7 @@ class BoundingBoxBase
     BoundingBoxBase() : defined(false) {};
     BoundingBoxBase(const std::vector<PointClass> &points);
     void merge(const PointClass &point);
+    void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBoxBase<PointClass> &bb);
     void scale(double factor);
     PointClass size() const;
@@ -38,6 +39,7 @@ class BoundingBox3Base : public BoundingBoxBase<PointClass>
     BoundingBox3Base() : BoundingBoxBase<PointClass>() {};
     BoundingBox3Base(const std::vector<PointClass> &points);
     void merge(const PointClass &point);
+    void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBox3Base<PointClass> &bb);
     PointClass size() const;
     void translate(coordf_t x, coordf_t y, coordf_t z);

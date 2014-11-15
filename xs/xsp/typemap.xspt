@@ -87,6 +87,9 @@
 %typemap{GCodeWriter*};
 %typemap{Ref<GCodeWriter>}{simple};
 %typemap{Clone<GCodeWriter>}{simple};
+%typemap{BridgeDetector*};
+%typemap{Ref<BridgeDetector>}{simple};
+%typemap{Clone<BridgeDetector>}{simple};
 
 %typemap{Surface*};
 %typemap{Ref<Surface>}{simple};

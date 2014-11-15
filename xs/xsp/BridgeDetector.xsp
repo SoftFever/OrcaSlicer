@@ -1,0 +1,37 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "libslic3r/BridgeDetector.hpp"
+%}
+
+%name{Slic3r::BridgeDetector} class BridgeDetector {
+    ~BridgeDetector();
+    
+    bool detect_angle();
+    Polygons coverage()
+        %code{% THIS->coverage(&RETVAL); %};
+    Polygons coverage_by_angle(double angle)
+        %code{% THIS->coverage(angle, &RETVAL); %};
+    Polylines unsupported_edges()
+        %code{% THIS->unsupported_edges(&RETVAL); %};
+    Polylines unsupported_edges_by_angle(double angle)
+        %code{% THIS->unsupported_edges(angle, &RETVAL); %};
+    double angle()
+        %code{% RETVAL = THIS->angle; %};
+    double resolution()
+        %code{% RETVAL = THIS->resolution; %};
+%{
+
+BridgeDetector*
+BridgeDetector::new(expolygon, lower_slices, extrusion_width)
+    ExPolygon*              expolygon;
+    ExPolygonCollection*    lower_slices;
+    long                    extrusion_width;
+    CODE:
+        RETVAL = new BridgeDetector(*expolygon, *lower_slices, extrusion_width);
+    OUTPUT:
+        RETVAL
+
+%}
+};

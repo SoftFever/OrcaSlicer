@@ -84,17 +84,18 @@ use Slic3r::Test;
 sub check_angle {
     my ($lower, $bridge, $expected, $tolerance, $expected_coverage) = @_;
     
+    if (ref($lower) eq 'ARRAY') {
+        $lower = Slic3r::ExPolygon::Collection->new(@$lower);
+    }
+    
     $expected_coverage //= -1;
     $expected_coverage = $bridge->area if $expected_coverage == -1;
     
-    my $bd = Slic3r::Layer::BridgeDetector->new(
-        expolygon       => $bridge,
-        lower_slices    => $lower,
-        extrusion_width => scale 0.5,
-    );
+    my $bd = Slic3r::BridgeDetector->new($bridge, $lower, scale 0.5);
     
     $tolerance //= rad2deg($bd->resolution) + epsilon;
-    my $result = $bd->detect_angle;
+    $bd->detect_angle;
+    my $result = $bd->angle;
     my $coverage = $bd->coverage;
     is sum(map $_->area, @$coverage), $expected_coverage, 'correct coverage area';
     

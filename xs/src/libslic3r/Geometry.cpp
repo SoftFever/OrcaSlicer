@@ -1,4 +1,5 @@
 #include "Geometry.hpp"
+#include "ExPolygon.hpp"
 #include "Line.hpp"
 #include "PolylineCollection.hpp"
 #include "clipper.hpp"
@@ -109,6 +110,37 @@ directions_parallel(double angle1, double angle2, double max_diff)
     double diff = fabs(angle1 - angle2);
     max_diff += EPSILON;
     return diff < max_diff || fabs(diff - PI) < max_diff;
+}
+
+template<class T>
+bool
+contains_point(const std::vector<T> &vector, const Point &point)
+{
+    for (typename std::vector<T>::const_iterator it = vector.begin(); it != vector.end(); ++it) {
+        if (it->contains_point(point)) return true;
+    }
+    return false;
+}
+template bool contains_point(const ExPolygons &vector, const Point &point);
+
+double
+rad2deg(double angle)
+{
+    return angle / PI * 180.0;
+}
+
+double
+rad2deg_dir(double angle)
+{
+    angle = (angle < PI) ? (-angle + PI/2.0) : (angle + PI/2.0);
+    if (angle < 0) angle += PI;
+    return rad2deg(angle);
+}
+
+double
+deg2rad(double angle)
+{
+    return PI * angle / 180.0;
 }
 
 Line

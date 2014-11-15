@@ -95,6 +95,14 @@ template void BoundingBoxBase<Point>::merge(const Point &point);
 template void BoundingBoxBase<Pointf>::merge(const Pointf &point);
 
 template <class PointClass> void
+BoundingBoxBase<PointClass>::merge(const std::vector<PointClass> &points)
+{
+    this->merge(BoundingBoxBase(points));
+}
+template void BoundingBoxBase<Point>::merge(const Points &points);
+template void BoundingBoxBase<Pointf>::merge(const Pointfs &points);
+
+template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
 {
     if (this->defined) {
@@ -121,6 +129,13 @@ BoundingBox3Base<PointClass>::merge(const PointClass &point)
     BoundingBoxBase<PointClass>::merge(point);
 }
 template void BoundingBox3Base<Pointf3>::merge(const Pointf3 &point);
+
+template <class PointClass> void
+BoundingBox3Base<PointClass>::merge(const std::vector<PointClass> &points)
+{
+    this->merge(BoundingBox3Base(points));
+}
+template void BoundingBox3Base<Pointf3>::merge(const Pointf3s &points);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const BoundingBox3Base<PointClass> &bb)

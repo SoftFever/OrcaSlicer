@@ -77,6 +77,8 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
     const Slic3r::Polygons &clip, Slic3r::ExPolygons &retval, bool safety_offset_);
 void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
     const Slic3r::Polygons &clip, Slic3r::Polylines &retval);
+void _clipper(ClipperLib::ClipType clipType, const Slic3r::Lines &subject, 
+    const Slic3r::Polygons &clip, Slic3r::Lines &retval);
 
 template <class SubjectType, class ResultType>
 void diff(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType &retval, bool safety_offset_ = false);

@@ -55,4 +55,28 @@ chained_path_from(points, start_from)
     OUTPUT:
         RETVAL
 
+double
+rad2deg(angle)
+    double      angle
+    CODE:
+        RETVAL = Slic3r::Geometry::rad2deg(angle);
+    OUTPUT:
+        RETVAL
+
+double
+rad2deg_dir(angle)
+    double      angle
+    CODE:
+        RETVAL = Slic3r::Geometry::rad2deg_dir(angle);
+    OUTPUT:
+        RETVAL
+
+double
+deg2rad(angle)
+    double      angle
+    CODE:
+        RETVAL = Slic3r::Geometry::deg2rad(angle);
+    OUTPUT:
+        RETVAL
+
 %}
