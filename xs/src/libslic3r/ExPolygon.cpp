@@ -91,7 +91,7 @@ bool
 ExPolygon::contains_polyline(const Polyline &polyline) const
 {
     Polylines pl_out;
-    diff((Polylines)polyline, *this, pl_out);
+    diff((Polylines)polyline, *this, &pl_out);
     return pl_out.empty();
 }
 
@@ -122,7 +122,7 @@ ExPolygon::simplify_p(double tolerance) const
         p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
         pp.push_back(p);
     }
-    simplify_polygons(pp, pp);
+    simplify_polygons(pp, &pp);
     return pp;
 }
 
@@ -131,7 +131,7 @@ ExPolygon::simplify(double tolerance) const
 {
     Polygons pp = this->simplify_p(tolerance);
     ExPolygons expp;
-    union_(pp, expp);
+    union_(pp, &expp);
     return expp;
 }
 
@@ -160,7 +160,7 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     // clip segments to our expolygon area
     // (do this before extending endpoints as external segments coule be extended into
     // expolygon, this leaving wrong things inside)
-    intersection(*polylines, *this, *polylines);
+    intersection(*polylines, *this, polylines);
     
     // extend initial and final segments of each polyline (they will be clipped)
     // unless they represent closed loops
@@ -171,7 +171,7 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     }
     
     // clip again after extending endpoints to prevent them from exceeding the expolygon boundaries
-    intersection(*polylines, *this, *polylines);
+    intersection(*polylines, *this, polylines);
 }
 
 void
@@ -230,7 +230,7 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
         
         // intersect with this expolygon
         Polygons trapezoids;
-        intersection<Polygons,Polygons>(poly, *this, trapezoids);
+        intersection<Polygons,Polygons>(poly, *this, &trapezoids);
         
         // append results to return value
         polygons->insert(polygons->end(), trapezoids.begin(), trapezoids.end());
@@ -268,9 +268,9 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
     std::list<TPPLPoly> input;
     
     Polygons pp = *this;
-    simplify_polygons(pp, pp, true);
+    simplify_polygons(pp, &pp, true);
     ExPolygons expp;
-    union_(pp, expp);
+    union_(pp, &expp);
     
     for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
         // contour
@@ -324,7 +324,7 @@ void
 ExPolygon::triangulate_p2t(Polygons* polygons) const
 {
     ExPolygons expp;
-    simplify_polygons(*this, expp, true);
+    simplify_polygons(*this, &expp, true);
     
     for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
         p2t::CDT* cdt;

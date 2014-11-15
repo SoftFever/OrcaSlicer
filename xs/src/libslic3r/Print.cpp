@@ -557,7 +557,7 @@ Print::validate() const
                 // grow convex hull with the clearance margin
                 {
                     Polygons grown_hull;
-                    offset(convex_hull, grown_hull, scale_(this->config.extruder_clearance_radius.value)/2, 1, jtRound, scale_(0.1));
+                    offset(convex_hull, &grown_hull, scale_(this->config.extruder_clearance_radius.value)/2, 1, jtRound, scale_(0.1));
                     convex_hull = grown_hull.front();
                 }
                 
@@ -568,7 +568,7 @@ Print::validate() const
                     if (intersects(a, p))
                         throw PrintValidationException("Some objects are too close; your extruder will collide with them.");
                     
-                    union_(a, p, a);
+                    union_(a, p, &a);
                 }
             }
         }

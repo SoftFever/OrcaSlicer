@@ -88,7 +88,7 @@ Polyline::grow(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtSqu
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(*THIS, RETVAL, delta, scale, joinType, miterLimit);
+        offset(*THIS, &RETVAL, delta, scale, joinType, miterLimit);
     OUTPUT:
         RETVAL
 

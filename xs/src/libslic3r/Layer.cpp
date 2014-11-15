@@ -98,7 +98,7 @@ Layer::make_slices()
             Polygons region_slices_p = (*layerm)->slices;
             slices_p.insert(slices_p.end(), region_slices_p.begin(), region_slices_p.end());
         }
-        union_(slices_p, slices);
+        union_(slices_p, &slices);
     }
     
     this->slices.expolygons.clear();

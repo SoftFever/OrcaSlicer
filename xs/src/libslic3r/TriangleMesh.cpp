@@ -333,8 +333,8 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
     }
     
     // the offset factor was tuned using groovemount.stl
-    offset(pp, pp, 0.01 / SCALING_FACTOR);
-    union_(pp, retval, true);
+    offset(pp, &pp, 0.01 / SCALING_FACTOR);
+    union_(pp, &retval, true);
 }
 
 void
@@ -813,7 +813,7 @@ TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
         TODO: find a faster algorithm for this, maybe with some sort of binary search.
         If we computed a "nesting tree" we could also just remove the consecutive loops
         having the same winding order, and remove the extra one(s) so that we could just
-        supply everything to offset_ex() instead of performing several union/diff calls.
+        supply everything to offset() instead of performing several union/diff calls.
     
         we sort by area assuming that the outermost loops have larger area;
         the previous sorting method, based on $b->contains_point($a->[0]), failed to nest
@@ -842,14 +842,14 @@ TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
         if (area[*loop_idx] >= 0) {
             p_slices.push_back(*loop);
         } else {
-            diff(p_slices, *loop, p_slices);
+            diff(p_slices, *loop, &p_slices);
         }
     }
 
     // perform a safety offset to merge very close facets (TODO: find test case for this)
     double safety_offset = scale_(0.0499);
     ExPolygons ex_slices;
-    offset2_ex(p_slices, ex_slices, +safety_offset, -safety_offset);
+    offset2(p_slices, &ex_slices, +safety_offset, -safety_offset);
     
     #ifdef SLIC3R_DEBUG
     size_t holes_count = 0;

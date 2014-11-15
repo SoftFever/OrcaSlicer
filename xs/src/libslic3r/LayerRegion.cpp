@@ -44,7 +44,7 @@ void
 LayerRegion::merge_slices()
 {
     ExPolygons expp;
-    union_(this->slices, expp);
+    union_(this->slices, &expp);
     this->slices.surfaces.clear();
     this->slices.surfaces.reserve(expp.size());
     

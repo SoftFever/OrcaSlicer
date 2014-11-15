@@ -88,7 +88,7 @@ Surface::offset(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMi
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(*THIS, RETVAL, delta, scale, joinType, miterLimit);
+        offset(*THIS, &RETVAL, delta, scale, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
