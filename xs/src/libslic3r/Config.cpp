@@ -361,6 +361,7 @@ DynamicConfig::opt(const t_config_option_key opt_key, bool create) {
 template ConfigOptionInt* DynamicConfig::opt<ConfigOptionInt>(const t_config_option_key opt_key, bool create);
 template ConfigOptionBool* DynamicConfig::opt<ConfigOptionBool>(const t_config_option_key opt_key, bool create);
 template ConfigOptionBools* DynamicConfig::opt<ConfigOptionBools>(const t_config_option_key opt_key, bool create);
+template ConfigOptionPercent* DynamicConfig::opt<ConfigOptionPercent>(const t_config_option_key opt_key, bool create);
 
 const ConfigOption*
 DynamicConfig::option(const t_config_option_key opt_key) const {

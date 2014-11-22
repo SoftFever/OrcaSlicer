@@ -99,6 +99,11 @@ class DynamicPrintConfig : public DynamicConfig
                 ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
                 opt->values.assign(opt->values.size(), false);  // set all values to false
             }
+            {
+                this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
+                this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
+                this->opt<ConfigOptionPercent>("fill_density", true)->value  = 0;
+            }
         }
     };
 };
