@@ -44,7 +44,7 @@ my $build = Module::Build::WithXSpp->new(
     
     # Provides extra C typemaps that are auto-merged
     extra_typemap_modules => {
-        'ExtUtils::Typemaps::Default' => '1.03',
+        'ExtUtils::Typemaps::Basic' => '1.05',
     },
     
     # for MSVC builds

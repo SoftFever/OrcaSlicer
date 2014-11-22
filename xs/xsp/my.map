@@ -1,11 +1,20 @@
 coordf_t T_NV
 
-std::vector<Points::size_type>  T_STD_VECTOR_INT
-std::vector<size_t>  T_STD_VECTOR_INT
+std::string                     T_STD_STRING
+t_config_option_key             T_STD_STRING
+t_model_material_id             T_STD_STRING
 
-t_config_option_key T_STD_STRING
-t_model_material_id T_STD_STRING
-t_layer_height_ranges   T_LAYER_HEIGHT_RANGES
+std::vector<std::string>	    T_STD_VECTOR_STD_STRING
+
+std::vector<int>		        T_STD_VECTOR_INT
+std::vector<Points::size_type>  T_STD_VECTOR_INT
+std::vector<size_t>             T_STD_VECTOR_INT
+
+std::vector<unsigned int>	    T_STD_VECTOR_UINT
+
+std::vector<double>	            T_STD_VECTOR_DOUBLE
+
+t_layer_height_ranges           T_LAYER_HEIGHT_RANGES
 
 
 BoundingBox*               O_OBJECT_SLIC3R
@@ -208,6 +217,93 @@ TriangleMeshPtrs T_PTR_ARRAYREF
 
 INPUT
 
+T_STD_STRING
+    {
+      size_t len;
+      const char * c = SvPV($arg, len);
+      $var = std::string(c, len);
+    }
+
+T_STD_VECTOR_STD_STRING
+	if (SvROK($arg) && SvTYPE(SvRV($arg))==SVt_PVAV) {
+	  AV* av = (AV*)SvRV($arg);
+	  const unsigned int alen = av_len(av)+1;
+	  $var = std::vector<std::string>(alen);
+	  STRLEN len;
+	  char* tmp;
+	  SV** elem;
+	  for (unsigned int i = 0; i < alen; i++) {
+	    elem = av_fetch(av, i, 0);
+	    if (elem != NULL) {
+	    tmp = SvPV(*elem, len);
+	      ${var}[i] = std::string(tmp, len);
+	    }
+	    else
+	      ${var}[i] = std::string(\"\");
+	  }
+	}
+	else
+	  Perl_croak(aTHX_ \"%s: %s is not an array reference\",
+	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+	             \"$var\");
+
+T_STD_VECTOR_INT
+	if (SvROK($arg) && SvTYPE(SvRV($arg))==SVt_PVAV) {
+	  AV* av = (AV*)SvRV($arg);
+	  const unsigned int len = av_len(av)+1;
+	  $var = std::vector<int>(len);
+	  SV** elem;
+	  for (unsigned int i = 0; i < len; i++) {
+	    elem = av_fetch(av, i, 0);
+	    if (elem != NULL)
+	      ${var}[i] = SvIV(*elem);
+	    else
+	      ${var}[i] = 0;
+	  }
+	}
+	else
+	  Perl_croak(aTHX_ \"%s: %s is not an array reference\",
+	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+	             \"$var\");
+
+T_STD_VECTOR_UINT
+	if (SvROK($arg) && SvTYPE(SvRV($arg))==SVt_PVAV) {
+	  AV* av = (AV*)SvRV($arg);
+	  const unsigned int len = av_len(av)+1;
+	  $var = std::vector<unsigned int>(len);
+	  SV** elem;
+	  for (unsigned int i = 0; i < len; i++) {
+	    elem = av_fetch(av, i, 0);
+	    if (elem != NULL)
+	      ${var}[i] = SvUV(*elem);
+	    else
+	      ${var}[i] = 0;
+	  }
+	}
+	else
+	  Perl_croak(aTHX_ \"%s: %s is not an array reference\",
+	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+	             \"$var\");
+
+T_STD_VECTOR_DOUBLE
+	if (SvROK($arg) && SvTYPE(SvRV($arg))==SVt_PVAV) {
+	  AV* av = (AV*)SvRV($arg);
+	  const unsigned int len = av_len(av)+1;
+	  $var = std::vector<double>(len);
+	  SV** elem;
+	  for (unsigned int i = 0; i < len; i++) {
+	    elem = av_fetch(av, i, 0);
+	    if (elem != NULL)
+	      ${var}[i] = SvNV(*elem);
+	    else
+	      ${var}[i] = 0.;
+	  }
+	}
+	else
+	  Perl_croak(aTHX_ \"%s: %s is not an array reference\",
+	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+	             \"$var\");
+
 O_OBJECT_SLIC3R
     if( sv_isobject($arg) && (SvTYPE(SvRV($arg)) == SVt_PVMG) ) {
         if ( sv_isa($arg, perl_class_name($var) ) ||  sv_isa($arg, perl_class_name_ref($var) )) {
@@ -285,6 +381,52 @@ T_LAYER_HEIGHT_RANGES
 
 
 OUTPUT
+
+T_STD_STRING
+    $arg = newSVpvn_utf8( $var.c_str(), $var.length(), true );
+
+T_STD_VECTOR_STD_STRING
+	AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	const unsigned int len = $var.size();
+        if (len)
+          av_extend(av, len-1);
+	for (unsigned int i = 0; i < len; i++) {
+	  const std::string& str = ${var}[i];
+	  STRLEN len = str.length();
+	  av_store(av, i, newSVpvn_utf8(str.c_str(), len, true));
+	}
+
+T_STD_VECTOR_INT
+	AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	const unsigned int len = $var.size();
+        if (len)
+          av_extend(av, len-1);
+	for (unsigned int i = 0; i < len; i++) {
+	  av_store(av, i, newSViv(${var}[i]));
+	}
+
+T_STD_VECTOR_UINT
+	AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	const unsigned int len = $var.size();
+        if (len)
+          av_extend(av, len-1);
+	for (unsigned int i = 0; i < len; i++) {
+	  av_store(av, i, newSVuv(${var}[i]));
+	}
+
+T_STD_VECTOR_DOUBLE
+	AV* av = newAV();
+	$arg = newRV_noinc((SV*)av);
+	const unsigned int len = $var.size();
+        if (len)
+          av_extend(av, len-1);
+	for (unsigned int i = 0; i < len; i++) {
+	  av_store(av, i, newSVnv(${var}[i]));
+	}
+
 # return object from pointer
 O_OBJECT_SLIC3R
         if ($var == NULL)

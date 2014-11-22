@@ -149,11 +149,10 @@ TriangleMesh::size()
 
 SV*
 TriangleMesh::slice(z)
-    std::vector<double>* z
+    std::vector<double> z
     CODE:
         // convert doubles to floats
-        std::vector<float> z_f(z->begin(), z->end());
-        delete z;
+        std::vector<float> z_f(z.begin(), z.end());
         
         std::vector<ExPolygons> layers;
         TriangleMeshSlicer mslicer(THIS);
