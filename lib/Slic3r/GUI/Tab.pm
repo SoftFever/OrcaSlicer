@@ -418,6 +418,8 @@ sub set_value {
 package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
+use Wx qw(:icon :dialog :id);
+
 sub name { 'print' }
 sub title { 'Print Settings' }
 
@@ -693,13 +695,21 @@ sub _update {
     
     my $config = $self->{config};
     
-    # we enable spiral vase if other settings are compatible with it
-    # or if it is enabled (this prevents the checkbox from being disabled
-    # when an incompatible setting is set)
-    $self->get_field('spiral_vase')->toggle(
-        ($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0)
-            || $config->spiral_vase
-    );
+    if ($config->spiral_vase && !($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0)) {
+        my $dialog = Wx::MessageDialog->new($self, "The Spiral Vase mode requires one perimeter, no top solid layers and 0% fill density. Shall I adjust those settings in order to enable Spiral Vase?",
+            'Spiral Vase', wxICON_WARNING | wxYES | wxNO);
+        if ($dialog->ShowModal() == wxID_YES) {
+            my $new_conf = Slic3r::Config->new;
+            $new_conf->set("perimeters", 1);
+            $new_conf->set("top_solid_layers", 0);
+            $new_conf->set("fill_density", 0);
+            $self->load_config($new_conf);
+        } else {
+            my $new_conf = Slic3r::Config->new;
+            $new_conf->set("spiral_vase", 0);
+            $self->load_config($new_conf);
+        }
+    }
     
     my $have_perimeters = $config->perimeters > 0;
     $self->get_field($_)->toggle($have_perimeters)
