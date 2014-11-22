@@ -60,6 +60,7 @@ my %cli_options = ();
 my @external_configs = ();
 if ($opt{load}) {
     foreach my $configfile (@{$opt{load}}) {
+        $configfile = Slic3r::decode_path($configfile);
         if (-e $configfile) {
             push @external_configs, Slic3r::Config->load($configfile);
         } elsif (-e "$FindBin::Bin/$configfile") {
@@ -92,7 +93,7 @@ my $gui;
 if (!@ARGV && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
-        $Slic3r::GUI::datadir   = $opt{datadir};
+        $Slic3r::GUI::datadir   = Slic3r::decode_path($opt{datadir});
         $Slic3r::GUI::no_plater = $opt{no_plater};
         $Slic3r::GUI::mode      = $opt{gui_mode};
         $Slic3r::GUI::autosave  = $opt{autosave};
@@ -111,6 +112,7 @@ if (@ARGV) {  # slicing from command line
     
     if ($opt{repair}) {
         foreach my $file (@ARGV) {
+            $file = Slic3r::decode_path($file);
             die "Repair is currently supported only on STL files\n"
                 if $file !~ /\.stl$/i;
             
@@ -126,6 +128,7 @@ if (@ARGV) {  # slicing from command line
     
     if ($opt{cut}) {
         foreach my $file (@ARGV) {
+            $file = Slic3r::decode_path($file);
             my $model = Slic3r::Model->read_from_file($file);
             $model->add_default_instances;
             my $mesh = $model->mesh;
@@ -145,6 +148,7 @@ if (@ARGV) {  # slicing from command line
     
     if ($opt{split}) {
         foreach my $file (@ARGV) {
+            $file = Slic3r::decode_path($file);
             my $model = Slic3r::Model->read_from_file($file);
             $model->add_default_instances;
             my $mesh = $model->mesh;
@@ -161,6 +165,7 @@ if (@ARGV) {  # slicing from command line
     }
     
     while (my $input_file = shift @ARGV) {
+        $input_file = Slic3r::decode_path($input_file);
         my $model;
         if ($opt{merge}) {
             my @models = map Slic3r::Model->read_from_file($_), $input_file, (splice @ARGV, 0);

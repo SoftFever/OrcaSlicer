@@ -77,7 +77,7 @@ sub _init_tabpanel {
     my $simple_config;
     if ($self->{mode} eq 'simple') {
         $simple_config = Slic3r::Config->load("$Slic3r::GUI::datadir/simple.ini")
-            if -e "$Slic3r::GUI::datadir/simple.ini";
+            if -e Slic3r::encode_path("$Slic3r::GUI::datadir/simple.ini");
     }
     
     my $class_prefix = $self->{mode} eq 'simple' ? "Slic3r::GUI::SimpleTab::" : "Slic3r::GUI::Tab::";

@@ -234,6 +234,11 @@ sub encode_path {
     return encode('locale_fs', $filename);
 }
 
+sub decode_path {
+    my ($filename) = @_;
+    return decode('locale_fs', $filename);
+}
+
 sub open {
     my ($fh, $mode, $filename) = @_;
     return CORE::open $$fh, $mode, encode_path($filename);

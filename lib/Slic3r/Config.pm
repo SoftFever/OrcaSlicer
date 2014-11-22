@@ -380,7 +380,8 @@ sub read_ini {
     my ($file) = @_;
     
     local $/ = "\n";
-    Slic3r::open(\my $fh, '<', $file);
+    Slic3r::open(\my $fh, '<', $file)
+        or die "Unable to open $file: $!\n";
     binmode $fh, ':utf8';
     
     my $ini = { _ => {} };
