@@ -211,7 +211,8 @@ sub mouse_event {
         }
         $self->Refresh;
     } elsif ($event->ButtonUp(&Wx::wxMOUSE_BTN_LEFT)) {
-        $self->{on_instance_moved}->(@{ $self->{drag_object} });
+        $self->{on_instance_moved}->(@{ $self->{drag_object} })
+            if $self->{drag_object};
         $self->Refresh;
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
