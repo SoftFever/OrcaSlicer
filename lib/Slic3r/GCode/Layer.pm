@@ -100,7 +100,7 @@ sub process_layer {
             }
         }
         $self->skirt_done->{$layer->print_z} = 1;
-        $self->gcodegen->straight_once(1);
+        $self->gcodegen->avoid_crossing_perimeters->straight_once(1);
     }
     
     # extrude brim
@@ -110,11 +110,11 @@ sub process_layer {
         $gcode .= $self->gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
             for @{$self->print->brim};
         $self->brim_done(1);
-        $self->gcodegen->straight_once(1);
+        $self->gcodegen->avoid_crossing_perimeters->straight_once(1);
     }
     
     for my $copy (@$object_copies) {
-        $self->gcodegen->new_object(1) if ($self->_last_obj_copy // '') ne "$copy";
+        $self->gcodegen->avoid_crossing_perimeters->new_object(1) if ($self->_last_obj_copy // '') ne "$copy";
         $self->_last_obj_copy("$copy");
         
         $self->gcodegen->set_origin(Slic3r::Pointf->new(map $self->origin->[$_] + unscale $copy->[$_], X,Y));

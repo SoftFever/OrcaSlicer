@@ -552,7 +552,7 @@ sub write_gcode {
                 }
             }
         }
-        $gcodegen->init_external_mp(union_ex([ map @$_, @islands ]));
+        $gcodegen->avoid_crossing_perimeters->init_external_mp(union_ex([ map @$_, @islands ]));
     }
     
     # calculate wiping points if needed
@@ -567,10 +567,10 @@ sub write_gcode {
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
             
-            my $oozeprev = Slic3r::GCode::OozePrevention->new(
-                standby_points => [ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ],
+            $gcodegen->ooze_prevention->enable(1);
+            $gcodegen->ooze_prevention->standby_points(
+                [ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]
             );
-            $gcodegen->ooze_prevention($oozeprev);
         }
     }
     

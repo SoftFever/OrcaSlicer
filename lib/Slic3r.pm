@@ -50,7 +50,6 @@ use Slic3r::GCode::ArcFitting;
 use Slic3r::GCode::CoolingBuffer;
 use Slic3r::GCode::Layer;
 use Slic3r::GCode::MotionPlanner;
-use Slic3r::GCode::OozePrevention;
 use Slic3r::GCode::PlaceholderParser;
 use Slic3r::GCode::Reader;
 use Slic3r::GCode::SpiralVase;
