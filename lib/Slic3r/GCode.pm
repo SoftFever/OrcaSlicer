@@ -196,7 +196,6 @@ sub extrude_loop {
     if ($paths[0]->is_perimeter && $loop->length <= &Slic3r::SMALL_PERIMETER_LENGTH) {
         $speed //= $self->config->get_abs_value('small_perimeter_speed');
     }
-    $speed //= -1;
     
     # extrude along the path
     my $gcode = join '', map $self->_extrude_path($_, $description, $speed), @paths;
@@ -279,27 +278,27 @@ sub _extrude_path {
     $e_per_mm = 0 if !$self->writer->extrusion_axis;
     
     # set speed
-    my $F = $speed // -1;
-    if (!defined $F) {
+    $speed //= -1;
+    if ($speed == -1) {
         if ($path->role == EXTR_ROLE_PERIMETER) {
-            $F = $self->config->get_abs_value('perimeter_speed');
+            $speed = $self->config->get_abs_value('perimeter_speed');
         } elsif ($path->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
-            $F = $self->config->get_abs_value('external_perimeter_speed');
+            $speed = $self->config->get_abs_value('external_perimeter_speed');
         } elsif ($path->role == EXTR_ROLE_OVERHANG_PERIMETER || $path->role == EXTR_ROLE_BRIDGE) {
-            $F = $self->config->get_abs_value('bridge_speed');
+            $speed = $self->config->get_abs_value('bridge_speed');
         } elsif ($path->role == EXTR_ROLE_FILL) {
-            $F = $self->config->get_abs_value('infill_speed');
+            $speed = $self->config->get_abs_value('infill_speed');
         } elsif ($path->role == EXTR_ROLE_SOLIDFILL) {
-            $F = $self->config->get_abs_value('solid_infill_speed');
+            $speed = $self->config->get_abs_value('solid_infill_speed');
         } elsif ($path->role == EXTR_ROLE_TOPSOLIDFILL) {
-            $F = $self->config->get_abs_value('top_solid_infill_speed');
+            $speed = $self->config->get_abs_value('top_solid_infill_speed');
         } elsif ($path->role == EXTR_ROLE_GAPFILL) {
-            $F = $self->config->get_abs_value('gap_fill_speed');
+            $speed = $self->config->get_abs_value('gap_fill_speed');
         } else {
             die "Invalid speed";
         }
     }
-    $F *= 60;  # convert mm/sec to mm/min
+    my $F = $speed * 60;  # convert mm/sec to mm/min
     
     if ($self->first_layer) {
         $F = $self->config->get_abs_value_over('first_layer_speed', $F/60) * 60;
