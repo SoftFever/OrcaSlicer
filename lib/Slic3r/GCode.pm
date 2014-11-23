@@ -4,10 +4,8 @@ use Moo;
 use List::Util qw(min max first);
 use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale PI X Y B);
-use Slic3r::Geometry::Clipper qw(union_ex offset_ex);
-use Slic3r::Surface ':types';
+use Slic3r::Geometry::Clipper qw(union_ex);
 
 # Origin of print coordinates expressed in unscaled G-code coordinates.
 # This affects the input arguments supplied to the extrude*() and travel_to()
@@ -90,7 +88,6 @@ sub change_layer {
     
     my $gcode = "";
     if (defined $self->layer_count) {
-        # TODO: cap this to 99% and add an explicit M73 P100 in the end G-code
         $gcode .= $self->writer->update_progress($self->_layer_index, $self->layer_count);
     }
     
