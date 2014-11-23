@@ -417,6 +417,12 @@ std::string
 GCodeWriter::_retract(double length, double restart_extra, const std::string &comment)
 {
     std::ostringstream gcode;
+    
+    /*  If firmware retraction is enabled, we use a fake value of 1
+        since we ignore the actual configured retract_length which 
+        might be 0, in which case the retraction logic gets skipped. */
+    if (this->config.use_firmware_retraction) length = 1;
+    
     double dE = this->_extruder->retract(length, restart_extra);
     if (dE != 0) {
         if (this->config.use_firmware_retraction) {

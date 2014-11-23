@@ -393,7 +393,7 @@ sub retract {
     
     $gcode .= $self->writer->reset_e;
     $gcode .= $self->writer->lift
-        if $self->writer->extruder->retract_length > 0;
+        if $self->writer->extruder->retract_length > 0 || $self->config->use_firmware_retraction;
     
     return $gcode;
 }
