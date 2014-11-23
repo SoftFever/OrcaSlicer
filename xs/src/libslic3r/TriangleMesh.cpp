@@ -788,7 +788,7 @@ TriangleMeshSlicer::make_expolygons_simple(std::vector<IntersectionLine> &lines,
         int slice_idx = -1;
         double current_contour_area = -1;
         for (ExPolygons::iterator slice = slices->begin(); slice != slices->end(); ++slice) {
-            if (slice->contour.contains_point(loop->points.front())) {
+            if (slice->contour.contains(loop->points.front())) {
                 double area = slice->contour.area();
                 if (area < current_contour_area || current_contour_area == -1) {
                     slice_idx = slice - slices->begin();
@@ -816,7 +816,7 @@ TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
         supply everything to offset() instead of performing several union/diff calls.
     
         we sort by area assuming that the outermost loops have larger area;
-        the previous sorting method, based on $b->contains_point($a->[0]), failed to nest
+        the previous sorting method, based on $b->contains($a->[0]), failed to nest
         loops correctly in some edge cases when original model had overlapping facets
     */
 

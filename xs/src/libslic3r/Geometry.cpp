@@ -114,14 +114,14 @@ directions_parallel(double angle1, double angle2, double max_diff)
 
 template<class T>
 bool
-contains_point(const std::vector<T> &vector, const Point &point)
+contains(const std::vector<T> &vector, const Point &point)
 {
     for (typename std::vector<T>::const_iterator it = vector.begin(); it != vector.end(); ++it) {
-        if (it->contains_point(point)) return true;
+        if (it->contains(point)) return true;
     }
     return false;
 }
-template bool contains_point(const ExPolygons &vector, const Point &point);
+template bool contains(const ExPolygons &vector, const Point &point);
 
 double
 rad2deg(double angle)

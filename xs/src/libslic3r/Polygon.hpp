@@ -32,7 +32,7 @@ class Polygon : public MultiPoint {
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid() const;
-    bool contains_point(const Point &point) const;
+    bool contains(const Point &point) const;
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
     void triangulate_convex(Polygons* polygons) const;

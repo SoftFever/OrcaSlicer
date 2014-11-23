@@ -22,9 +22,9 @@ class ExPolygon
     void rotate(double angle, const Point &center);
     double area() const;
     bool is_valid() const;
-    bool contains_line(const Line &line) const;
-    bool contains_polyline(const Polyline &polyline) const;
-    bool contains_point(const Point &point) const;
+    bool contains(const Line &line) const;
+    bool contains(const Polyline &polyline) const;
+    bool contains(const Point &point) const;
     Polygons simplify_p(double tolerance) const;
     ExPolygons simplify(double tolerance) const;
     void simplify(double tolerance, ExPolygons &expolygons) const;

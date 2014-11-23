@@ -55,32 +55,18 @@ ExPolygonCollection::rotate(double angle, const Point &center)
     }
 }
 
+template <class T>
 bool
-ExPolygonCollection::contains_point(const Point &point) const
+ExPolygonCollection::contains(const T &item) const
 {
     for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
-        if (it->contains_point(point)) return true;
+        if (it->contains(item)) return true;
     }
     return false;
 }
-
-bool
-ExPolygonCollection::contains_line(const Line &line) const
-{
-    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
-        if (it->contains_line(line)) return true;
-    }
-    return false;
-}
-
-bool
-ExPolygonCollection::contains_polyline(const Polyline &polyline) const
-{
-    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
-        if (it->contains_polyline(polyline)) return true;
-    }
-    return false;
-}
+template bool ExPolygonCollection::contains<Point>(const Point &item) const;
+template bool ExPolygonCollection::contains<Line>(const Line &item) const;
+template bool ExPolygonCollection::contains<Polyline>(const Polyline &item) const;
 
 void
 ExPolygonCollection::simplify(double tolerance)

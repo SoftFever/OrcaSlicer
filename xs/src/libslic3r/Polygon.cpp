@@ -141,7 +141,7 @@ Polygon::is_valid() const
 }
 
 bool
-Polygon::contains_point(const Point &point) const
+Polygon::contains(const Point &point) const
 {
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     bool result = false;

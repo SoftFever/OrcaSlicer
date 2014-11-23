@@ -145,8 +145,8 @@ BridgeDetector::detect_angle()
         // remove any line not having both endpoints within anchors
         for (size_t i = 0; i < clipped_lines.size(); ++i) {
             Line &line = clipped_lines[i];
-            if (!Slic3r::Geometry::contains_point(my_anchors, line.a)
-                || !Slic3r::Geometry::contains_point(my_anchors, line.b)) {
+            if (!Slic3r::Geometry::contains(my_anchors, line.a)
+                || !Slic3r::Geometry::contains(my_anchors, line.b)) {
                 clipped_lines.erase(clipped_lines.begin() + i);
                 --i;
             }

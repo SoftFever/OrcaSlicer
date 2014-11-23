@@ -22,11 +22,11 @@
     double area();
     bool is_valid();
     bool contains_line(Line* line)
-        %code{% RETVAL = THIS->contains_line(*line); %};
+        %code{% RETVAL = THIS->contains(*line); %};
     bool contains_polyline(Polyline* polyline)
-        %code{% RETVAL = THIS->contains_polyline(*polyline); %};
+        %code{% RETVAL = THIS->contains(*polyline); %};
     bool contains_point(Point* point)
-        %code{% RETVAL = THIS->contains_point(*point); %};
+        %code{% RETVAL = THIS->contains(*point); %};
     ExPolygons simplify(double tolerance);
     Polygons simplify_p(double tolerance);
     Polylines medial_axis(double max_width, double min_width)

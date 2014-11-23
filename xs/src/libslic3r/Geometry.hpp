@@ -17,7 +17,7 @@ void chained_path(const Points &points, std::vector<Points::size_type> &retval, 
 void chained_path(const Points &points, std::vector<Points::size_type> &retval);
 template<class T> void chained_path_items(Points &points, T &items, T &retval);
 bool directions_parallel(double angle1, double angle2, double max_diff = 0);
-template<class T> bool contains_point(const std::vector<T> &vector, const Point &point);
+template<class T> bool contains(const std::vector<T> &vector, const Point &point);
 double rad2deg(double angle);
 double rad2deg_dir(double angle);
 double deg2rad(double angle);
