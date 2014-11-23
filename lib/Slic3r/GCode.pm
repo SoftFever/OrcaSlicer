@@ -25,8 +25,6 @@ has 'enable_cooling_markers' => (is =>'rw', default => sub {0});
 has 'layer_count'        => (is => 'ro');
 has '_layer_index'       => (is => 'rw', default => sub {-1});  # just a counter
 has 'layer'              => (is => 'rw');
-has '_layer_islands'     => (is => 'rw');
-has '_upper_layer_islands'  => (is => 'rw');
 has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => pos
 has 'first_layer'        => (is => 'rw', default => sub {0});   # this flag triggers first layer speeds
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
@@ -84,8 +82,6 @@ sub change_layer {
     $self->first_layer($layer->id == 0);
     
     # avoid computing islands and overhangs if they're not needed
-    $self->_layer_islands($layer->islands);
-    $self->_upper_layer_islands($layer->upper_layer ? $layer->upper_layer->islands : []);
     if ($self->config->avoid_crossing_perimeters) {
         $self->avoid_crossing_perimeters->init_layer_mp(
             union_ex([ map @$_, @{$layer->slices} ], 1),
@@ -351,9 +347,9 @@ sub travel_to {
     if ($travel->length < scale $self->config->get_at('retract_before_travel', $self->writer->extruder->id)
         || ($self->config->only_retract_when_crossing_perimeters
             && $self->config->fill_density > 0
-            && (first { $_->contains_line($travel) } @{$self->_upper_layer_islands})
-            && (first { $_->contains_line($travel) } @{$self->_layer_islands}))
-        || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && (first { $_->contains_line($travel) } @{$self->layer->support_islands}))
+            && $self->layer->slices->contains_line($travel)
+            && (!$self->layer->has_upper_layer || $self->layer->upper_layer->slices->contains_line($travel)))
+        || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel))
         ) {
         # Just perform a straight travel move without any retraction.
         $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment);
@@ -608,29 +604,19 @@ sub _plan {
     my ($self, $gcodegen, $mp, $point, $comment) = @_;
     
     my $gcode = "";
-    my @travel = @{$mp->shortest_path($gcodegen->last_pos, $point)->lines};
+    my $travel = $mp->shortest_path($gcodegen->last_pos, $point);
     
     # if the path is not contained in a single island we need to retract
-    my $need_retract = !$gcodegen->config->only_retract_when_crossing_perimeters;
-    if (!$need_retract) {
-        $need_retract = 1;
-        foreach my $island (@{$gcodegen->_upper_layer_islands}) {
-            # discard the island if at any line is not enclosed in it
-            next if first { !$island->contains_line($_) } @travel;
-            # okay, this island encloses the full travel path
-            $need_retract = 0;
-            last;
-        }
-    }
-    
-    # perform the retraction
-    $gcode .= $gcodegen->retract if $need_retract;
+    $gcode .= $gcodegen->retract
+        if !$gcodegen->config->only_retract_when_crossing_perimeters
+        || !$gcodegen->layer->slices->contains_polyline($travel)
+        || ($gcodegen->layer->has_upper_layer && !$gcodegen->layer->upper_layer->slices->contains_polyline($travel));
     
     # append the actual path and return
     # use G1 because we rely on paths being straight (G0 may make round paths)
     $gcode .= join '',
         map $gcodegen->writer->travel_to_xy($self->point_to_gcode($_->b), $comment),
-        @travel;
+        @{$travel->lines};
     
     return $gcode;
 }

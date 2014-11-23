@@ -19,6 +19,10 @@
         %code{% RETVAL = THIS->expolygons.size(); %};
     bool contains_point(Point* point)
         %code{% RETVAL = THIS->contains_point(*point); %};
+    bool contains_line(Line* line)
+        %code{% RETVAL = THIS->contains_line(*line); %};
+    bool contains_polyline(Polyline* polyline)
+        %code{% RETVAL = THIS->contains_polyline(*polyline); %};
     void simplify(double tolerance);
     Polygons polygons()
         %code{% RETVAL = *THIS; %};

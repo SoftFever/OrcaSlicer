@@ -64,6 +64,24 @@ ExPolygonCollection::contains_point(const Point &point) const
     return false;
 }
 
+bool
+ExPolygonCollection::contains_line(const Line &line) const
+{
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
+        if (it->contains_line(line)) return true;
+    }
+    return false;
+}
+
+bool
+ExPolygonCollection::contains_polyline(const Polyline &polyline) const
+{
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
+        if (it->contains_polyline(polyline)) return true;
+    }
+    return false;
+}
+
 void
 ExPolygonCollection::simplify(double tolerance)
 {

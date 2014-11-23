@@ -53,7 +53,11 @@
         %code%{ THIS->upper_layer = layer; %};
     void set_lower_layer(Layer *layer)
         %code%{ THIS->lower_layer = layer; %};
-
+    bool has_upper_layer()
+        %code%{ RETVAL = (THIS->upper_layer != NULL); %};
+    bool has_lower_layer()
+        %code%{ RETVAL = (THIS->lower_layer != NULL); %};
+    
     size_t region_count();
     Ref<LayerRegion> get_region(int idx);
     Ref<LayerRegion> add_region(PrintRegion* print_region);
@@ -99,6 +103,10 @@
         %code%{ THIS->upper_layer = layer; %};
     void set_lower_layer(SupportLayer *layer)
         %code%{ THIS->lower_layer = layer; %};
+    bool has_upper_layer()
+        %code%{ RETVAL = (THIS->upper_layer != NULL); %};
+    bool has_lower_layer()
+        %code%{ RETVAL = (THIS->lower_layer != NULL); %};
 
     size_t region_count();
     Ref<LayerRegion> get_region(int idx);
