@@ -279,24 +279,25 @@ sub _extrude_path {
     $e_per_mm = 0 if !$self->writer->extrusion_axis;
     
     # set speed
-    my $F;
-    if ($path->role == EXTR_ROLE_PERIMETER) {
-        $F = $self->config->get_abs_value('perimeter_speed');
-    } elsif ($path->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
-        $F = $self->config->get_abs_value('external_perimeter_speed');
-    } elsif ($path->role == EXTR_ROLE_OVERHANG_PERIMETER || $path->role == EXTR_ROLE_BRIDGE) {
-        $F = $self->config->get_abs_value('bridge_speed');
-    } elsif ($path->role == EXTR_ROLE_FILL) {
-        $F = $self->config->get_abs_value('infill_speed');
-    } elsif ($path->role == EXTR_ROLE_SOLIDFILL) {
-        $F = $self->config->get_abs_value('solid_infill_speed');
-    } elsif ($path->role == EXTR_ROLE_TOPSOLIDFILL) {
-        $F = $self->config->get_abs_value('top_solid_infill_speed');
-    } elsif ($path->role == EXTR_ROLE_GAPFILL) {
-        $F = $self->config->get_abs_value('gap_fill_speed');
-    } else {
-        $F = $speed // -1;
-        die "Invalid speed" if $F < 0;   # $speed == -1
+    my $F = $speed // -1;
+    if (!defined $F) {
+        if ($path->role == EXTR_ROLE_PERIMETER) {
+            $F = $self->config->get_abs_value('perimeter_speed');
+        } elsif ($path->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
+            $F = $self->config->get_abs_value('external_perimeter_speed');
+        } elsif ($path->role == EXTR_ROLE_OVERHANG_PERIMETER || $path->role == EXTR_ROLE_BRIDGE) {
+            $F = $self->config->get_abs_value('bridge_speed');
+        } elsif ($path->role == EXTR_ROLE_FILL) {
+            $F = $self->config->get_abs_value('infill_speed');
+        } elsif ($path->role == EXTR_ROLE_SOLIDFILL) {
+            $F = $self->config->get_abs_value('solid_infill_speed');
+        } elsif ($path->role == EXTR_ROLE_TOPSOLIDFILL) {
+            $F = $self->config->get_abs_value('top_solid_infill_speed');
+        } elsif ($path->role == EXTR_ROLE_GAPFILL) {
+            $F = $self->config->get_abs_value('gap_fill_speed');
+        } else {
+            die "Invalid speed";
+        }
     }
     $F *= 60;  # convert mm/sec to mm/min
     
