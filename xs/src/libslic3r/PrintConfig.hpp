@@ -372,6 +372,17 @@ class GCodeConfig : public virtual StaticPrintConfig
         
         return NULL;
     };
+    
+    std::string get_extrusion_axis() const
+    {
+        if (this->gcode_flavor.value == gcfMach3) {
+            return "A";
+        } else if (this->gcode_flavor.value == gcfNoExtrusion) {
+            return "";
+        } else {
+            return this->extrusion_axis.value;
+        }
+    };
 };
 
 class PrintConfig : public GCodeConfig

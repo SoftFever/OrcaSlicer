@@ -7,6 +7,11 @@ has 'reader' => (is => 'ro', default => sub { Slic3r::GCode::Reader->new });
 
 use Slic3r::Geometry qw(unscale);
 
+sub BUILD {
+    my ($self) = @_;
+    $self->reader->apply_print_config($self->config);
+}
+
 sub process_layer {
     my $self = shift;
     my ($gcode) = @_;

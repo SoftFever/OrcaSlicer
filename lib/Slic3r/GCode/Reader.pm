@@ -1,19 +1,28 @@
 package Slic3r::GCode::Reader;
 use Moo;
 
+has 'config'    => (is => 'ro', default => sub { Slic3r::Config::GCode->new });
 has 'X' => (is => 'rw', default => sub {0});
 has 'Y' => (is => 'rw', default => sub {0});
 has 'Z' => (is => 'rw', default => sub {0});
 has 'E' => (is => 'rw', default => sub {0});
 has 'F' => (is => 'rw', default => sub {0});
+has '_extrusion_axis' => (is => 'rw', default => sub {"E"});
 
 our $Verbose = 0;
 my @AXES = qw(X Y Z E);
 
+sub apply_print_config {
+    my ($self, $print_config) = @_;
+    
+    $self->config->apply_print_config($print_config);
+    $self->_extrusion_axis($self->config->get_extrusion_axis);
+}
+
 sub clone {
     my $self = shift;
     return (ref $self)->new(
-        map { $_ => $self->$_ } (@AXES, 'F'),
+        map { $_ => $self->$_ } (@AXES, 'F', '_extrusion_axis'),
     );
 }
 
@@ -31,6 +40,11 @@ sub parse {
         my ($command, @args) = split /\s+/, $line;
         $command //= '';
         my %args = map { /([A-Z])(.*)/; ($1 => $2) } @args;
+        
+        # convert extrusion axis
+        if (exists $args{ $self->_extrusion_axis }) {
+            $args{E} = $args{ $self->_extrusion_axis };
+        }
         
         # check motion
         if ($command =~ /^G[01]$/) {

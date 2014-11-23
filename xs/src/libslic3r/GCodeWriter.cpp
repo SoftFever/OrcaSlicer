@@ -29,14 +29,7 @@ void
 GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
-    
-    if (FLAVOR_IS(gcfMach3)) {
-        this->_extrusion_axis = "A";
-    } else if (FLAVOR_IS(gcfNoExtrusion)) {
-        this->_extrusion_axis = "";
-    } else {
-        this->_extrusion_axis = this->config.extrusion_axis;
-    }
+    this->_extrusion_axis = this->config.get_extrusion_axis();
 }
 
 void
