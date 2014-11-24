@@ -319,6 +319,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionFloats              filament_diameter;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
+    ConfigOptionFloat               pressure_advance;
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
     ConfigOptionFloats              retract_lift;
@@ -337,6 +338,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         this->filament_diameter.values[0]                        = 3;
         this->gcode_comments.value                               = false;
         this->gcode_flavor.value                                 = gcfRepRap;
+        this->pressure_advance.value                             = 0;
         this->retract_length.values.resize(1);
         this->retract_length.values[0]                           = 1;
         this->retract_length_toolchange.values.resize(1);
@@ -360,6 +362,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         if (opt_key == "filament_diameter")                          return &this->filament_diameter;
         if (opt_key == "gcode_comments")                             return &this->gcode_comments;
         if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
+        if (opt_key == "pressure_advance")                           return &this->pressure_advance;
         if (opt_key == "retract_length")                             return &this->retract_length;
         if (opt_key == "retract_length_toolchange")                  return &this->retract_length_toolchange;
         if (opt_key == "retract_lift")                               return &this->retract_lift;

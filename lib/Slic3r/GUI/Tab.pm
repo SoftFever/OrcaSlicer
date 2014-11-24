@@ -894,7 +894,7 @@ sub build {
     $self->init_config_options(qw(
         bed_shape z_offset
         gcode_flavor use_relative_e_distances
-        use_firmware_retraction vibration_limit
+        use_firmware_retraction pressure_advance vibration_limit
         start_gcode end_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
@@ -970,6 +970,7 @@ sub build {
         {
             my $optgroup = $page->new_optgroup('Advanced');
             $optgroup->append_single_option_line('use_firmware_retraction');
+            $optgroup->append_single_option_line('pressure_advance');
             $optgroup->append_single_option_line('vibration_limit');
         }
     }

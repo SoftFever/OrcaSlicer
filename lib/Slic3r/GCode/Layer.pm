@@ -11,6 +11,7 @@ has 'origin'                        => (is => 'ro', default => sub { Slic3r::Poi
 has 'spiralvase'                    => (is => 'lazy');
 has 'vibration_limit'               => (is => 'lazy');
 has 'arc_fitting'                   => (is => 'lazy');
+has 'pressure_regulator'            => (is => 'lazy');
 has 'skirt_done'                    => (is => 'rw', default => sub { {} });  # print_z => 1
 has 'brim_done'                     => (is => 'rw');
 has 'second_layer_things_done'      => (is => 'rw');
@@ -37,6 +38,14 @@ sub _build_arc_fitting {
     
     return $self->print->config->gcode_arcs
         ? Slic3r::GCode::ArcFitting->new(config => $self->print->config)
+        : undef;
+}
+
+sub _build_pressure_regulator {
+    my $self = shift;
+    
+    return $self->print->config->pressure_advance > 0
+        ? Slic3r::GCode::PressureRegulator->new(config => $self->print->config)
         : undef;
 }
 
@@ -196,6 +205,10 @@ sub process_layer {
     # apply vibration limit if enabled
     $gcode = $self->vibration_limit->process($gcode)
         if $self->print->config->vibration_limit != 0;
+    
+    # apply pressure regulation if enabled
+    $gcode = $self->pressure_regulator->process($gcode)
+        if $self->print->config->pressure_advance > 0;
     
     # apply arc fitting if enabled
     $gcode = $self->arc_fitting->process($gcode)

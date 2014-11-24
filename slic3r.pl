@@ -291,6 +291,8 @@ $j
     --gcode-comments    Make G-code verbose by adding comments (default: no)
     --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
                         default: $config->{vibration_limit})
+    --pressure-advance  Adjust pressure using the experimental advance algorithm (K constant,
+                        set zero to disable; default: $config->{pressure_advance})
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $config->{filament_diameter}->[0])

@@ -550,6 +550,12 @@ PrintConfigDef::build_def() {
     Options["post_process"].full_width = true;
     Options["post_process"].height = 60;
 
+    Options["pressure_advance"].type = coFloat;
+    Options["pressure_advance"].label = "Pressure advance";
+    Options["pressure_advance"].tooltip = "When set to a non-zero value, this experimental option enables pressure regulation. It's the K constant for the advance algorithm that pushes more or less filament upon speed changes. It's useful for Bowden-tube extruders. Reasonable values are in range 0-10.";
+    Options["pressure_advance"].cli = "pressure-advance=f";
+    Options["pressure_advance"].min = 0;
+
     Options["raft_layers"].type = coInt;
     Options["raft_layers"].label = "Raft layers";
     Options["raft_layers"].category = "Support material";
