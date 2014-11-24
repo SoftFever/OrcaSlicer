@@ -6,6 +6,7 @@ has 'enable'            => (is => 'rw', default => sub { 0 });
 has 'reader'            => (is => 'ro', default => sub { Slic3r::GCode::Reader->new });
 has '_extrusion_axis'   => (is => 'rw', default => sub { "E" });
 has '_tool'             => (is => 'rw', default => sub { 0 });
+has '_last_print_F'     => (is => 'rw', default => sub { 0 });
 has '_advance'          => (is => 'rw', default => sub { 0 });   # extra E injected
 
 use Slic3r::Geometry qw(epsilon);
@@ -34,7 +35,8 @@ sub process {
             $self->_tool($1);
         } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
             # This is a print move.
-            if (exists $args->{F}) {
+            my $F = $args->{F} // $reader->F;
+            if ($F != $self->_last_print_F) {
                 # We are setting a (potentially) new speed, so we calculate the new advance amount.
             
                 # First calculate relative flow rate (mm of filament over mm of travel)
@@ -54,6 +56,8 @@ sub process {
                         if !$self->config->use_relative_e_distances;
                     $self->_advance($new_advance);
                 }
+                
+                $self->_last_print_F($F);
             }
         } elsif (($info->{retracting} || $cmd eq 'G10') && $self->_advance != 0) {
             # We need to bring pressure to zero when retracting.
