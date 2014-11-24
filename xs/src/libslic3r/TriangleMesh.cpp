@@ -29,6 +29,7 @@ TriangleMesh::TriangleMesh(const TriangleMesh &other)
 {
     this->stl.heads = NULL;
     this->stl.tail  = NULL;
+    this->stl.error = other.stl.error;
     if (other.stl.facet_start != NULL) {
         this->stl.facet_start = (stl_facet*)calloc(other.stl.stats.number_of_facets, sizeof(stl_facet));
         std::copy(other.stl.facet_start, other.stl.facet_start + other.stl.stats.number_of_facets, this->stl.facet_start);
@@ -125,6 +126,7 @@ TriangleMesh::repair() {
     // fill_holes
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
         stl_fill_holes(&stl);
+        stl_clear_error(&stl);
     }
     
     // normal_directions
@@ -280,6 +282,7 @@ TriangleMesh::split() const
         mesh->stl.stats.type = inmemory;
         mesh->stl.stats.number_of_facets = facets.size();
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
+        stl_clear_error(&mesh->stl);
         stl_allocate(&mesh->stl);
         
         int first = 1;
@@ -389,6 +392,7 @@ TriangleMesh::to_SV() {
 
 void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
 {
+    stl.error = 0;
     stl.stats.type = inmemory;
     
     // count facets and allocate memory
