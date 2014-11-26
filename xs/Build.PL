@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 
+use Devel::CheckLib;
 use ExtUtils::CppGuess;
 use Module::Build::WithXSpp;
 
@@ -10,6 +11,39 @@ use Module::Build::WithXSpp;
 # HAS_BOOL         : stops Perl/lib/CORE/handy.h from doing "#  define bool char" for MSVC
 # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
 my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS);
+
+my @INC  = qw();
+my @LIBS = qw();
+
+if (defined $ENV{BOOST_DIR}) {
+    if (-d "$ENV{BOOST_DIR}/include") {
+        push @INC, '-I' . $ENV{BOOST_DIR} . '/include';
+    } else {
+        push @INC, '-I' . $ENV{BOOST_DIR};
+    }
+    push @LIBS, '-L' . $ENV{BOOST_DIR};
+} else {
+    push @INC, map "-I$_", grep { -d $_ }
+        qw(/opt/local/include /usr/local/include /opt/include),
+        qw(/usr/include C:/Boost/include);
+    push @LIBS, map "-L$_", grep { -d $_ }
+        qw(/opt/local/lib /usr/local/lib /opt/lib /usr/lib),
+        qw(C:/Boost/lib /lib);
+}
+
+push @INC, '-Iinclude';
+
+my @boost_libs = qw(thread system);
+for my $pattern ('boost_%s', 'boost_%s-mt') {
+    check_lib(
+        lib     => sprintf($pattern, 'system'),
+        INC     => join(' ', @INC),
+        LIBS    => join(' ', @LIBS),
+    ) or next;
+    push @LIBS, map sprintf("-l$pattern", $_), @boost_libs;
+    push @cflags, '-DBOOST_LIBS';
+    last;
+}
 if ($ENV{SLIC3R_DEBUG}) {
     # only on newer GCCs: -ftemplate-backtrace-limit=0
     push @cflags, qw(-DSLIC3R_DEBUG -g);
@@ -40,7 +74,8 @@ my $build = Module::Build::WithXSpp->new(
         Module::Build               0.38
         Module::Build::WithXSpp     0.13
     )},
-    extra_compiler_flags => \@cflags,
+    extra_compiler_flags => [ @INC, @cflags ],
+    extra_linker_flags => \@LIBS,
     
     # Provides extra C typemaps that are auto-merged
     extra_typemap_modules => {

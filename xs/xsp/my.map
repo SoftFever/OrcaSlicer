@@ -170,6 +170,10 @@ MotionPlanner*             O_OBJECT_SLIC3R
 Ref<MotionPlanner>         O_OBJECT_SLIC3R_T
 Clone<MotionPlanner>       O_OBJECT_SLIC3R_T
 
+GCodeSender*               O_OBJECT_SLIC3R
+Ref<GCodeSender>           O_OBJECT_SLIC3R_T
+Clone<GCodeSender>         O_OBJECT_SLIC3R_T
+
 GCodeWriter*               O_OBJECT_SLIC3R
 Ref<GCodeWriter>           O_OBJECT_SLIC3R_T
 Clone<GCodeWriter>         O_OBJECT_SLIC3R_T
