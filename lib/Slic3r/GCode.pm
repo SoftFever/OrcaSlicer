@@ -560,6 +560,8 @@ has '_layer_mp'          => (is => 'rw');
 has 'new_object'         => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
 has 'straight_once'      => (is => 'rw', default => sub {1});   # this flag disables avoid_crossing_perimeters just for the next travel move
 
+use Slic3r::Geometry qw(scale);
+
 sub init_external_mp {
     my ($self, $islands) = @_;
     $self->_external_mp(Slic3r::MotionPlanner->new($islands));
@@ -612,7 +614,7 @@ sub _plan {
     # append the actual path and return
     # use G1 because we rely on paths being straight (G0 may make round paths)
     $gcode .= join '',
-        map $gcodegen->writer->travel_to_xy($self->point_to_gcode($_->b), $comment),
+        map $gcodegen->writer->travel_to_xy($gcodegen->point_to_gcode($_->b), $comment),
         @{$travel->lines};
     
     return $gcode;
