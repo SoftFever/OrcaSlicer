@@ -14,7 +14,8 @@ Surface::is_solid() const
     return this->surface_type == stTop
         || this->surface_type == stBottom
         || this->surface_type == stBottomBridge
-        || this->surface_type == stInternalSolid;
+        || this->surface_type == stInternalSolid
+        || this->surface_type == stInternalBridge;
 }
 
 bool

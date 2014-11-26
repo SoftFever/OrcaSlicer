@@ -234,9 +234,9 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "infill_extruder"
             || *opt_key == "infill_extrusion_width") {
             steps.insert(posPrepareInfill);
-        } else if (*opt_key == "fill_angle"
+        } else if (*opt_key == "external_fill_pattern"
+            || *opt_key == "fill_angle"
             || *opt_key == "fill_pattern"
-            || *opt_key == "solid_fill_pattern"
             || *opt_key == "infill_every_layers"
             || *opt_key == "solid_infill_every_layers"
             || *opt_key == "top_infill_extrusion_width") {

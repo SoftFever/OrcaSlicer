@@ -171,7 +171,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('fill_pattern', $pattern);
-    $config->set('solid_fill_pattern', $pattern);
+    $config->set('external_fill_pattern', $pattern);
     $config->set('perimeters', 1);
     $config->set('skirts', 0);
     $config->set('fill_density', 20);

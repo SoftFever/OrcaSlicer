@@ -432,7 +432,7 @@ sub build {
         top_solid_layers bottom_solid_layers
         extra_perimeters avoid_crossing_perimeters thin_walls overhangs
         seam_position external_perimeters_first
-        fill_density fill_pattern solid_fill_pattern
+        fill_density fill_pattern external_fill_pattern
         infill_every_layers infill_only_where_needed
         solid_infill_every_layers fill_angle solid_infill_below_area 
         only_retract_when_crossing_perimeters infill_first
@@ -505,7 +505,7 @@ sub build {
             my $optgroup = $page->new_optgroup('Infill');
             $optgroup->append_single_option_line('fill_density');
             $optgroup->append_single_option_line('fill_pattern');
-            $optgroup->append_single_option_line('solid_fill_pattern');
+            $optgroup->append_single_option_line('external_fill_pattern');
         }
         {
             my $optgroup = $page->new_optgroup('Reducing printing time');

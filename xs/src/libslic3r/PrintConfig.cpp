@@ -115,6 +115,24 @@ PrintConfigDef::build_def() {
     Options["end_gcode"].full_width = true;
     Options["end_gcode"].height = 120;
 
+    Options["external_fill_pattern"].type = coEnum;
+    Options["external_fill_pattern"].label = "Top/bottom fill pattern";
+    Options["external_fill_pattern"].category = "Infill";
+    Options["external_fill_pattern"].tooltip = "Fill pattern for top/bottom infill. This only affects the external visible layer, and not its adjacent solid shells.";
+    Options["external_fill_pattern"].cli = "external-fill-pattern=s";
+    Options["external_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    Options["external_fill_pattern"].enum_values.push_back("rectilinear");
+    Options["external_fill_pattern"].enum_values.push_back("concentric");
+    Options["external_fill_pattern"].enum_values.push_back("hilbertcurve");
+    Options["external_fill_pattern"].enum_values.push_back("archimedeanchords");
+    Options["external_fill_pattern"].enum_values.push_back("octagramspiral");
+    Options["external_fill_pattern"].enum_labels.push_back("rectilinear");
+    Options["external_fill_pattern"].enum_labels.push_back("concentric");
+    Options["external_fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
+    Options["external_fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
+    Options["external_fill_pattern"].enum_labels.push_back("octagramspiral (slow)");
+    Options["external_fill_pattern"].aliases.push_back("solid_fill_pattern");
+
     Options["external_perimeter_extrusion_width"].type = coFloatOrPercent;
     Options["external_perimeter_extrusion_width"].label = "External perimeters";
     Options["external_perimeter_extrusion_width"].category = "Extrusion Width";
@@ -667,23 +685,6 @@ PrintConfigDef::build_def() {
     Options["small_perimeter_speed"].sidetext = "mm/s or %";
     Options["small_perimeter_speed"].cli = "small-perimeter-speed=s";
     Options["small_perimeter_speed"].ratio_over = "perimeter_speed";
-
-    Options["solid_fill_pattern"].type = coEnum;
-    Options["solid_fill_pattern"].label = "Top/bottom fill pattern";
-    Options["solid_fill_pattern"].category = "Infill";
-    Options["solid_fill_pattern"].tooltip = "Fill pattern for top/bottom infill.";
-    Options["solid_fill_pattern"].cli = "solid-fill-pattern=s";
-    Options["solid_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
-    Options["solid_fill_pattern"].enum_values.push_back("rectilinear");
-    Options["solid_fill_pattern"].enum_values.push_back("concentric");
-    Options["solid_fill_pattern"].enum_values.push_back("hilbertcurve");
-    Options["solid_fill_pattern"].enum_values.push_back("archimedeanchords");
-    Options["solid_fill_pattern"].enum_values.push_back("octagramspiral");
-    Options["solid_fill_pattern"].enum_labels.push_back("rectilinear");
-    Options["solid_fill_pattern"].enum_labels.push_back("concentric");
-    Options["solid_fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
-    Options["solid_fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
-    Options["solid_fill_pattern"].enum_labels.push_back("octagramspiral (slow)");
 
     Options["solid_infill_below_area"].type = coFloat;
     Options["solid_infill_below_area"].label = "Solid infill threshold area";

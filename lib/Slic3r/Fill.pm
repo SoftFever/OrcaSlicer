@@ -83,7 +83,7 @@ sub make_fill {
                         ? $layerm->flow(FLOW_ROLE_TOP_SOLID_INFILL)->width
                         : $solid_infill_flow->width;
                     $pattern[$i] = $groups[$i][0]->is_external
-                        ? $layerm->config->solid_fill_pattern
+                        ? $layerm->config->external_fill_pattern
                         : 'rectilinear';
                 } else {
                     $is_solid[$i]   = 0;
@@ -190,14 +190,11 @@ sub make_fill {
         my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         
-        # force 100% density and rectilinear fill for external surfaces
-        if ($surface->surface_type != S_TYPE_INTERNAL) {
+        if ($surface->is_solid) {
             $density = 100;
-            $filler = $layerm->config->solid_fill_pattern;
-            if ($is_bridge) {
-                $filler = 'rectilinear';
-            } elsif ($surface->surface_type == S_TYPE_INTERNALSOLID) {
-                $filler = 'rectilinear';
+            $filler = 'rectilinear';
+            if ($surface->is_external) {
+                $filler = $layerm->config->external_fill_pattern;
             }
         } else {
             next SURFACE unless $density > 0;
