@@ -178,6 +178,7 @@ class Print
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintStep step);
     bool invalidate_all_steps();
+    bool step_done(PrintObjectStep step) const;
     
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig config);

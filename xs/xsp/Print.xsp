@@ -156,6 +156,8 @@ _constant()
     bool invalidate_all_steps();
     bool step_done(PrintStep step)
         %code%{ RETVAL = THIS->state.is_done(step); %};
+    bool object_step_done(PrintObjectStep step)
+        %code%{ RETVAL = THIS->step_done(step); %};
     void set_step_done(PrintStep step)
         %code%{ THIS->state.set_done(step); %};
     void set_step_started(PrintStep step)

@@ -290,6 +290,19 @@ Print::invalidate_all_steps()
     return invalidated;
 }
 
+// returns true if an object step is done on all objects
+// and there's at least one object
+bool
+Print::step_done(PrintObjectStep step) const
+{
+    if (this->objects.empty()) return false;
+    FOREACH_OBJECT(this, object) {
+        if (!(*object)->state.is_done(step))
+            return false;
+    }
+    return true;
+}
+
 // returns 0-based indices of used extruders
 std::set<size_t>
 Print::extruders() const

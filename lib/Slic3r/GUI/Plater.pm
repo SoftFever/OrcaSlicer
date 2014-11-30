@@ -102,10 +102,13 @@ sub new {
         }
     });
     
-    # Initialize 3D preview canvas
+    # Initialize 3D preview and toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
+        
+        $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
+        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview');
     }
     
     # toolbar for object manipulation
@@ -169,11 +172,8 @@ sub new {
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_toolpaths_preview} = Wx::Button->new($self, -1, "Toolpaths preview…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
-    $self->{btn_toolpaths_preview}->SetFont($Slic3r::GUI::small_font);
-    $self->{btn_toolpaths_preview}->Disable;
     
     if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
@@ -183,7 +183,6 @@ sub new {
             arrange         bricks.png
             export_gcode    cog_go.png
             export_stl      brick_go.png
-            toolpaths_preview joystick.png
             
             increase        add.png
             decrease        delete.png
@@ -205,7 +204,6 @@ sub new {
         Slic3r::thread_cleanup();
     });
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
-    EVT_BUTTON($self, $self->{btn_toolpaths_preview}, \&toolpaths_preview);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
@@ -346,7 +344,6 @@ sub new {
         my $right_buttons_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_buttons_sizer->Add($presets, 0, wxEXPAND, 0) if defined $presets;
         $right_buttons_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxTOP, 8);
-        $right_buttons_sizer->Add($self->{btn_toolpaths_preview}, 0, wxEXPAND | wxTOP, 2);
         $right_buttons_sizer->Add($self->{btn_export_stl}, 0, wxEXPAND | wxTOP, 2);
         
         my $right_top_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -809,7 +806,7 @@ sub schedule_background_process {
     
     if (defined $self->{apply_config_timer}) {
         $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
-        $self->{btn_toolpaths_preview}->Disable;
+        $self->{toolpaths2D}->reload_print;
     }
 }
 
@@ -885,7 +882,7 @@ sub stop_background_process {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
-    $self->{btn_toolpaths_preview}->Disable;
+    $self->{toolpaths2D}->reload_print;
     
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
@@ -1004,7 +1001,7 @@ sub on_process_completed {
     $self->{process_thread} = undef;
     
     return if !$result;
-    $self->{btn_toolpaths_preview}->Enable;
+    $self->{toolpaths2D}->reload_print;
     
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {
@@ -1279,19 +1276,6 @@ sub object_settings_dialog {
     } else {
         $self->resume_background_process;
     }
-}
-
-sub toolpaths_preview {
-    my ($self) = @_;
-    
-    # TODO: we should check whether steps are done in $print rather then checking the thread
-    if ($self->{process_thread}) {
-        Slic3r::GUI::show_error($self, "Unable to show preview while toolpaths are being generated.");
-        return;
-    }
-    
-    my $dlg = Slic3r::GUI::Plater::2DToolpaths::Dialog->new($self, $self->{print});
-	$dlg->ShowModal;
 }
 
 sub object_list_changed {
