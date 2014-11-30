@@ -767,7 +767,10 @@ sub split_object {
     my $self = shift;
     
     my ($obj_idx, $current_object)  = $self->selected_object;
-    my $current_model_object        = $self->{model}->objects->[$obj_idx];
+    
+    # we clone model object because split_object() adds the split volumes
+    # into the same model object, thus causing duplicated when we call load_model_objects()
+    my $current_model_object        = $self->{model}->clone->objects->[$obj_idx];
     
     if (@{$current_model_object->volumes} > 1) {
         Slic3r::GUI::warning_catcher($self)->("The selected object can't be split because it contains more than one volume/material.");
