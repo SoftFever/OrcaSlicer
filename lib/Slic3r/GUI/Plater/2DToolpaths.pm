@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Slic3r::Print::State ':steps';
-use Wx qw(:misc :sizer :slider :statictext);
+use Wx qw(:misc :sizer :slider :statictext wxWHITE);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN);
 use base qw(Wx::Panel Class::Accessor);
 
@@ -15,6 +15,7 @@ sub new {
     my ($parent, $print) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
+    $self->SetBackgroundColour(wxWHITE);
     
     # init GUI elements
     my $canvas = $self->{canvas} = Slic3r::GUI::Plater::2DToolpaths::Canvas->new($self, $print);
@@ -93,6 +94,7 @@ sub reload_print {
     $self->enabled(1);
     $self->set_z($self->{layers_z}[0]) if @{$self->{layers_z}};
     $self->{slider}->Show;
+    $self->Layout;
 }
 
 sub set_z {
