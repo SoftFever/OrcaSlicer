@@ -222,6 +222,60 @@ Polygon::wkt() const
     return wkt.str();
 }
 
+void
+Polygon::concave_points(double angle, Points* points) const
+{
+    /*  input angle threshold is checked on the internal side of the polygon
+        but ccw() returns 0 for collinear, >0 for ccw and <0 for cw */
+    double ccw_angle = angle - PI;
+    
+    // check whether first point forms a concave angle
+    if (this->points.front().ccw(this->points.back(), *(this->points.begin()+1)) >= ccw_angle)
+        points->push_back(this->points.front());
+    
+    // check whether points 1..(n-1) form concave angles
+    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
+        if (p->ccw(*(p-1), *(p+1)) >= ccw_angle) points->push_back(*p);
+    }
+    
+    // check whether last point forms a concave angle
+    if (this->points.back().ccw(*(this->points.end()-2), this->points.front()) >= ccw_angle)
+        points->push_back(this->points.back());
+}
+
+void
+Polygon::concave_points(Points* points) const
+{
+    this->concave_points(PI, points);
+}
+
+void
+Polygon::convex_points(double angle, Points* points) const
+{
+    /*  input angle threshold is checked on the internal side of the polygon
+        but ccw() returns 0 for collinear, >0 for ccw and <0 for cw */
+    double ccw_angle = angle - PI;
+    
+    // check whether first point forms a convex angle
+    if (this->points.front().ccw(this->points.back(), *(this->points.begin()+1)) <= ccw_angle)
+        points->push_back(this->points.front());
+    
+    // check whether points 1..(n-1) form convex angles
+    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
+        if (p->ccw(*(p-1), *(p+1)) <= ccw_angle) points->push_back(*p);
+    }
+    
+    // check whether last point forms a convex angle
+    if (this->points.back().ccw(*(this->points.end()-2), this->points.front()) <= ccw_angle)
+        points->push_back(this->points.back());
+}
+
+void
+Polygon::convex_points(Points* points) const
+{
+    this->convex_points(PI, points);
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Polygon, "Polygon");
 
