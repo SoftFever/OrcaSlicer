@@ -40,16 +40,6 @@ sub total_layer_count {
     return $self->layer_count + $self->support_layer_count;
 }
 
-sub bounding_box {
-    my $self = shift;
-    
-    # since the object is aligned to origin, bounding box coincides with size
-    return Slic3r::Geometry::BoundingBox->new_from_points([
-        Slic3r::Point->new(0,0),
-        map Slic3r::Point->new($_->x, $_->y), $self->size  #))
-    ]);
-}
-
 # this should be idempotent
 sub slice {
     my $self = shift;

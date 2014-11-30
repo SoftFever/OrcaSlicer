@@ -112,6 +112,16 @@ PrintObject::reload_model_instances()
 }
 
 void
+PrintObject::bounding_box(BoundingBox* bb) const
+{
+    // since the object is aligned to origin, bounding box coincides with size
+    Points pp;
+    pp.push_back(Point(0,0));
+    pp.push_back(this->size);
+    *bb = BoundingBox(pp);
+}
+
+void
 PrintObject::add_region_volume(int region_id, int volume_id)
 {
     if (region_id >= region_volumes.size()) {

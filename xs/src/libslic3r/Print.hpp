@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 #include <stdexcept>
+#include "BoundingBox.hpp"
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
 #include "Point.hpp"
@@ -108,6 +109,7 @@ class PrintObject
     bool delete_all_copies();
     bool set_copies(const Points &points);
     bool reload_model_instances();
+    void bounding_box(BoundingBox* bb) const;
     
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);

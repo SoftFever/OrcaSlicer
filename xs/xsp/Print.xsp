@@ -61,6 +61,11 @@ _constant()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     Ref<Point3> size()
         %code%{ RETVAL = &THIS->size; %};
+    BoundingBox* bounding_box()
+        %code{%
+            RETVAL = new BoundingBox();
+            THIS->bounding_box(RETVAL);
+        %};
     Ref<Point> _copies_shift()
         %code%{ RETVAL = &THIS->_copies_shift; %};
     
