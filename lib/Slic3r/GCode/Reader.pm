@@ -50,7 +50,7 @@ sub parse {
         if ($command =~ /^G[01]$/) {
             foreach my $axis (@AXES) {
                 if (exists $args{$axis}) {
-                    $self->$axis = 0 if $axis eq 'E' && $self->config->use_relative_e_distances;
+                    $self->$axis(0) if $axis eq 'E' && $self->config->use_relative_e_distances;
                     $info{"dist_$axis"} = $args{$axis} - $self->$axis;
                     $info{"new_$axis"}  = $args{$axis};
                 } else {
