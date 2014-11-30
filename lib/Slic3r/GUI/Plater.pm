@@ -853,7 +853,10 @@ sub start_background_process {
         $self->GetFrame->config->validate;
         $self->{print}->validate;
     };
-    return if $@;
+    if ($@) {
+        $self->statusbar->SetStatusText($@);
+        return;
+    }
     
     # apply extra variables
     {
@@ -869,9 +872,9 @@ sub start_background_process {
         };
         if ($@) {
             Slic3r::debugf "Discarding background process error: $@\n";
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, 0));
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, $@));
         } else {
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, 1));
+            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
         }
         Slic3r::thread_cleanup();
     });
@@ -993,17 +996,17 @@ sub export_gcode {
 
 # This gets called only if we have threads.
 sub on_process_completed {
-    my ($self, $result) = @_;
+    my ($self, $error) = @_;
     
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
-    $self->statusbar->SetStatusText("");
+    $self->statusbar->SetStatusText($error // "");
     
     Slic3r::debugf "Background processing completed.\n";
     $self->{process_thread}->detach if $self->{process_thread};
     $self->{process_thread} = undef;
     
-    return if !$result;
+    return if $error;
     $self->{toolpaths2D}->reload_print;
     
     # if we have an export filename, start a new thread for exporting G-code
