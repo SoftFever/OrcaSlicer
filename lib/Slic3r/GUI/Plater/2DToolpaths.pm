@@ -89,7 +89,7 @@ sub reload_print {
         }
     }
     $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
-    ###$self->{slider}->SetMax(scalar(@{$self->{layers_z}})-1);
+    $self->{slider}->SetRange(0, scalar(@{$self->{layers_z}})-1);
     $self->enabled(1);
     $self->set_z($self->{layers_z}[0]) if @{$self->{layers_z}};
     $self->{slider}->Show;
