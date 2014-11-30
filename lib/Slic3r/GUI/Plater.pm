@@ -76,7 +76,7 @@ sub new {
         $self->select_object($obj_idx);
     });
     $self->{canvas}->on_double_click(sub {
-        $self->object_cut_dialog if $self->selected_object;
+        $self->object_settings_dialog if $self->selected_object;
     });
     $self->{canvas}->on_right_click(sub {
         my ($click_pos) = @_;
