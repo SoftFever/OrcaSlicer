@@ -173,6 +173,7 @@ bool
 Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
     std::set<PrintStep> steps;
+    std::set<PrintObjectStep> osteps;
     
     // this method only accepts PrintConfig option keys
     for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
@@ -223,6 +224,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "output_filename_format"
             || *opt_key == "perimeter_acceleration"
             || *opt_key == "post_process"
+            || *opt_key == "pressure_advance"
             || *opt_key == "retract_before_travel"
             || *opt_key == "retract_layer_change"
             || *opt_key == "retract_length"
@@ -245,6 +247,12 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "wipe"
             || *opt_key == "z_offset") {
             // these options only affect G-code export, so nothing to invalidate
+        } else if (*opt_key == "first_layer_extrusion_width") {
+            osteps.insert(posPerimeters);
+            osteps.insert(posInfill);
+            osteps.insert(posSupportMaterial);
+            steps.insert(psSkirt);
+            steps.insert(psBrim);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             return this->invalidate_all_steps();
@@ -254,6 +262,11 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
     bool invalidated = false;
     for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
         if (this->invalidate_step(*step)) invalidated = true;
+    }
+    for (std::set<PrintObjectStep>::const_iterator ostep = osteps.begin(); ostep != osteps.end(); ++ostep) {
+        FOREACH_OBJECT(this, object) {
+            if ((*object)->invalidate_step(*ostep)) invalidated = true;
+        }
     }
     
     return invalidated;

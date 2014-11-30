@@ -203,6 +203,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "extra_perimeters"
             || *opt_key == "gap_fill_speed"
             || *opt_key == "overhangs"
+            || *opt_key == "first_layer_extrusion_width"
             || *opt_key == "perimeter_extrusion_width"
             || *opt_key == "thin_walls"
             || *opt_key == "external_perimeters_first") {
@@ -224,7 +225,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "support_material_pattern"
             || *opt_key == "support_material_spacing"
             || *opt_key == "support_material_threshold"
-            || *opt_key == "dont_support_bridges") {
+            || *opt_key == "dont_support_bridges"
+            || *opt_key == "first_layer_extrusion_width") {
             steps.insert(posSupportMaterial);
         } else if (*opt_key == "interface_shells"
             || *opt_key == "infill_only_where_needed"
@@ -239,7 +241,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "fill_pattern"
             || *opt_key == "infill_every_layers"
             || *opt_key == "solid_infill_every_layers"
-            || *opt_key == "top_infill_extrusion_width") {
+            || *opt_key == "top_infill_extrusion_width"
+            || *opt_key == "first_layer_extrusion_width") {
             steps.insert(posInfill);
         } else if (*opt_key == "fill_density"
             || *opt_key == "solid_infill_extrusion_width") {
