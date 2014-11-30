@@ -88,6 +88,7 @@ _constant()
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
 
+    size_t total_layer_count();
     size_t layer_count();
     void clear_layers();
     Ref<Layer> get_layer(int idx);

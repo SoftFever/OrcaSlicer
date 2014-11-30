@@ -114,13 +114,14 @@ class PrintObject
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);
 
-    size_t layer_count();
+    size_t total_layer_count() const;
+    size_t layer_count() const;
     void clear_layers();
     Layer* get_layer(int idx);
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_layer(int idx);
 
-    size_t support_layer_count();
+    size_t support_layer_count() const;
     void clear_support_layers();
     SupportLayer* get_support_layer(int idx);
     SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);

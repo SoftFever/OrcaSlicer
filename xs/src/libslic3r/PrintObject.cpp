@@ -131,8 +131,17 @@ PrintObject::add_region_volume(int region_id, int volume_id)
     region_volumes[region_id].push_back(volume_id);
 }
 
+/*  This is the *total* layer count (including support layers)
+    this value is not supposed to be compared with Layer::id
+    since they have different semantics */
 size_t
-PrintObject::layer_count()
+PrintObject::total_layer_count() const
+{
+    return this->layer_count() + this->support_layer_count();
+}
+
+size_t
+PrintObject::layer_count() const
 {
     return this->layers.size();
 }
@@ -167,7 +176,7 @@ PrintObject::delete_layer(int idx)
 }
 
 size_t
-PrintObject::support_layer_count()
+PrintObject::support_layer_count() const
 {
     return this->support_layers.size();
 }

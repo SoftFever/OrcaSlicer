@@ -32,14 +32,6 @@ sub support_layers {
     return [ map $self->get_support_layer($_), 0..($self->support_layer_count - 1) ];
 }
 
-# this is the *total* layer count (including support layers)
-# this value is not supposed to be compared with $layer->id
-# since they have different semantics
-sub total_layer_count {
-    my $self = shift;
-    return $self->layer_count + $self->support_layer_count;
-}
-
 # this should be idempotent
 sub slice {
     my $self = shift;
