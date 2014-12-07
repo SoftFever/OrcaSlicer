@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 33;
+plan tests => 38;
 
 BEGIN {
     use FindBin;
@@ -213,3 +213,29 @@ my $polygons = [
     is scalar(@{$square->concave_points(PI*4/3)}), 0, 'no concave vertices detected in convex polygon';
     is scalar(@{$square->convex_points(PI*2/3)}), 4, 'four convex vertices detected in square';
 }
+
+{
+    my $triangle = Slic3r::Polygon->new(
+        [16000170,26257364], [714223,461012], [31286371,461008],
+    );
+    is scalar(@{$triangle->concave_points(PI*4/3)}), 0, 'no concave vertices detected in triangle';
+    is scalar(@{$triangle->convex_points(PI*2/3)}), 3, 'three convex vertices detected in triangle';
+}
+
+{
+    my $triangle = Slic3r::Polygon->new(
+        [16000170,26257364], [714223,461012], [20000000,461012], [31286371,461012],
+    );
+    is scalar(@{$triangle->concave_points(PI*4/3)}), 0, 'no concave vertices detected in triangle having collinear point';
+    is scalar(@{$triangle->convex_points(PI*2/3)}), 3, 'three convex vertices detected in triangle having collinear point';
+}
+
+{
+    my $triangle = Slic3r::Polygon->new(
+        [16000170,26257364], [714223,461012], [31286371,461008],
+    );
+    my $simplified = $triangle->simplify(250000)->[0];
+    is scalar(@$simplified), 3, 'triangle is never simplified to less than 3 points';
+}
+
+__END__

@@ -19,6 +19,9 @@ class Polygon : public MultiPoint {
     operator Polyline() const;
     Point& operator[](Points::size_type idx);
     const Point& operator[](Points::size_type idx) const;
+    
+    Polygon() {};
+    explicit Polygon(const Points &points): MultiPoint(points) {};
     Point last_point() const;
     Lines lines() const;
     void lines(Lines* lines) const;

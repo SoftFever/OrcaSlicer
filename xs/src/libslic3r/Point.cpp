@@ -160,6 +160,13 @@ Point::ccw(const Line &line) const
     return this->ccw(line.a, line.b);
 }
 
+// returns the CCW angle between this-p1 and this-p2
+double
+Point::ccw_angle(const Point &p1, const Point &p2) const
+{
+    return Line(*this, p1).orientation() - Line(*this, p2).orientation();
+}
+
 Point
 Point::projection_onto(const MultiPoint &poly) const
 {

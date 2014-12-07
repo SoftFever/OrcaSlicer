@@ -17,6 +17,8 @@ class MultiPoint
     Points points;
     
     operator Points() const;
+    MultiPoint() {};
+    explicit MultiPoint(const Points &_points): points(_points) {};
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Point &vector);

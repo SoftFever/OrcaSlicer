@@ -158,8 +158,12 @@ Polygon::contains(const Point &point) const
 Polygons
 Polygon::simplify(double tolerance) const
 {
-    Polygon p = *this;
-    p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+    // repeat first point at the end in order to apply Douglas-Peucker
+    // on the whole polygon
+    Points points = this->points;
+    points.push_back(points.front());
+    Polygon p(MultiPoint::_douglas_peucker(points, tolerance));
+    p.points.pop_back();
     
     Polygons pp;
     pp.push_back(p);
@@ -225,21 +229,17 @@ Polygon::wkt() const
 void
 Polygon::concave_points(double angle, Points* points) const
 {
-    /*  input angle threshold is checked on the internal side of the polygon
-        but ccw() returns 0 for collinear, >0 for ccw and <0 for cw */
-    double ccw_angle = angle - PI;
-    
     // check whether first point forms a concave angle
-    if (this->points.front().ccw(this->points.back(), *(this->points.begin()+1)) >= ccw_angle)
+    if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) >= angle)
         points->push_back(this->points.front());
     
     // check whether points 1..(n-1) form concave angles
     for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
-        if (p->ccw(*(p-1), *(p+1)) >= ccw_angle) points->push_back(*p);
+        if (p->ccw_angle(*(p-1), *(p+1)) >= angle) points->push_back(*p);
     }
     
     // check whether last point forms a concave angle
-    if (this->points.back().ccw(*(this->points.end()-2), this->points.front()) >= ccw_angle)
+    if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) >= angle)
         points->push_back(this->points.back());
 }
 
@@ -252,21 +252,17 @@ Polygon::concave_points(Points* points) const
 void
 Polygon::convex_points(double angle, Points* points) const
 {
-    /*  input angle threshold is checked on the internal side of the polygon
-        but ccw() returns 0 for collinear, >0 for ccw and <0 for cw */
-    double ccw_angle = angle - PI;
-    
     // check whether first point forms a convex angle
-    if (this->points.front().ccw(this->points.back(), *(this->points.begin()+1)) <= ccw_angle)
+    if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) <= angle)
         points->push_back(this->points.front());
     
     // check whether points 1..(n-1) form convex angles
     for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
-        if (p->ccw(*(p-1), *(p+1)) <= ccw_angle) points->push_back(*p);
+        if (p->ccw_angle(*(p-1), *(p+1)) <= angle) points->push_back(*p);
     }
     
     // check whether last point forms a convex angle
-    if (this->points.back().ccw(*(this->points.end()-2), this->points.front()) <= ccw_angle)
+    if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) <= angle)
         points->push_back(this->points.back());
 }
 
