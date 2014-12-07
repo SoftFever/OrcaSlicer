@@ -525,6 +525,9 @@ sub remove {
     
     $self->stop_background_process;
     
+    # Prevent toolpaths preview from rendering while we modify the Print object
+    $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
+    
     # if no object index is supplied, remove the selected one
     if (!defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
@@ -546,6 +549,9 @@ sub reset {
     my $self = shift;
     
     $self->stop_background_process;
+    
+    # Prevent toolpaths preview from rendering while we modify the Print object
+    $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
     
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
