@@ -991,39 +991,47 @@ sub discover_horizontal_shells {
 sub combine_infill {
     my $self = shift;
     
-    return unless defined first { $_->config->infill_every_layers > 1 && $_->config->fill_density > 0 } @{$self->print->regions};
-    
-    my @layer_heights = map $_->height, @{$self->layers};
-    
+    # work on each region separately
     for my $region_id (0 .. ($self->print->region_count-1)) {
         my $region = $self->print->regions->[$region_id];
         my $every = $region->config->infill_every_layers;
+        next unless $every > 1 && $region->config->fill_density > 0;
         
         # limit the number of combined layers to the maximum height allowed by this regions' nozzle
         my $nozzle_diameter = $self->print->config->get_at('nozzle_diameter', $region->config->infill_extruder-1);
         
         # define the combinations
-        my @combine = ();   # layer_id => thickness in layers
+        my %combine = ();   # layer_idx => number of additional combined lower layers
         {
             my $current_height = my $layers = 0;
-            for my $layer_id (1 .. $#layer_heights) {
-                my $height = $self->get_layer($layer_id)->height;
+            for my $layer_idx (0 .. ($self->layer_count-1)) {
+                my $layer = $self->get_layer($layer_idx);
+                next if $layer->id == 0;  # skip first print layer (which may not be first layer in array because of raft)
+                my $height = $layer->height;
                 
+                # check whether the combination of this layer with the lower layers' buffer
+                # would exceed max layer height or max combined layer count
                 if ($current_height + $height >= $nozzle_diameter || $layers >= $every) {
-                    $combine[$layer_id-1] = $layers;
+                    # append combination to lower layer
+                    $combine{$layer_idx-1} = $layers;
                     $current_height = $layers = 0;
                 }
                 
                 $current_height += $height;
                 $layers++;
             }
+            
+            # append lower layers (if any) to uppermost layer
+            $combine{$self->layer_count-1} = $layers;
         }
         
-        # skip bottom layer
-        for my $layer_id (1 .. $#combine) {
-            next unless ($combine[$layer_id] // 1) > 1;
+        # loop through layers to which we have assigned layers to combine
+        for my $layer_idx (sort keys %combine) {
+            next unless $combine{$layer_idx} > 1;
+            
+            # get all the LayerRegion objects to be combined
             my @layerms = map $self->get_layer($_)->regions->[$region_id],
-                ($layer_id - ($combine[$layer_id]-1) .. $layer_id);
+                ($layer_idx - ($combine{$layer_idx}-1) .. $layer_idx);
             
             # only combine internal infill
             for my $type (S_TYPE_INTERNAL) {
@@ -1046,7 +1054,7 @@ sub combine_infill {
                 Slic3r::debugf "  combining %d %s regions from layers %d-%d\n",
                     scalar(@$intersection),
                     ($type == S_TYPE_INTERNAL ? 'internal' : 'internal-solid'),
-                    $layer_id-($every-1), $layer_id;
+                    $layer_idx-($every-1), $layer_idx;
                 
                 # $intersection now contains the regions that can be combined across the full amount of layers
                 # so let's remove those areas from all layers
@@ -1073,7 +1081,7 @@ sub combine_infill {
                         )};
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
-                    if ($layerm->id == $layer_id) {
+                    if ($layerm->id == $self->get_layer($layer_idx)->id) {
                         push @new_this_type,
                             map Slic3r::Surface->new(
                                 expolygon        => $_,
