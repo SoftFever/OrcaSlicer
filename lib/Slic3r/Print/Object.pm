@@ -678,7 +678,8 @@ sub detect_surfaces_type {
             
             # Note: this method should be idempotent, but fill_surfaces gets modified 
             # in place. However we're now only using its boundaries (which are invariant)
-            # so we're safe
+            # so we're safe. This guarantees idempotence of prepare_infill() also in case
+            # that combine_infill() turns some fill_surface into VOID surfaces.
             my $fill_boundaries = [ map $_->clone->p, @{$layerm->fill_surfaces} ];
             $layerm->fill_surfaces->clear;
             foreach my $surface (@{$layerm->slices}) {
@@ -988,12 +989,19 @@ sub discover_horizontal_shells {
 }
 
 # combine fill surfaces across layers
+# Idempotence of this method is guaranteed by the fact that we don't remove things from
+# fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 sub combine_infill {
     my $self = shift;
     
+    # define the type used for voids
+    my %voidtype = (
+        &S_TYPE_INTERNAL() => S_TYPE_INTERNALVOID,
+    );
+    
     # work on each region separately
     for my $region_id (0 .. ($self->print->region_count-1)) {
-        my $region = $self->print->regions->[$region_id];
+        my $region = $self->print->get_region($region_id);
         my $every = $region->config->infill_every_layers;
         next unless $every > 1 && $region->config->fill_density > 0;
         
@@ -1030,7 +1038,7 @@ sub combine_infill {
             next unless $combine{$layer_idx} > 1;
             
             # get all the LayerRegion objects to be combined
-            my @layerms = map $self->get_layer($_)->regions->[$region_id],
+            my @layerms = map $self->get_layer($_)->get_region($region_id),
                 ($layer_idx - ($combine{$layer_idx}-1) .. $layer_idx);
             
             # only combine internal infill
@@ -1092,8 +1100,8 @@ sub combine_infill {
                             @$intersection;
                     } else {
                         # save void surfaces
-                        push @this_type,
-                            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNALVOID),
+                        push @new_this_type,
+                            map Slic3r::Surface->new(expolygon => $_, surface_type => $voidtype{$type}),
                             @{intersection_ex(
                                 [ map @{$_->expolygon}, @this_type ],
                                 [ @intersection_with_clearance ],

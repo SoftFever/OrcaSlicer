@@ -9,9 +9,10 @@ BEGIN {
 
 use List::Util qw(first);
 use Slic3r;
+use Slic3r::Surface ':types';
 use Slic3r::Test;
 
-plan tests => 6;
+plan tests => 8;
 
 {
     my $test = sub {
@@ -53,7 +54,6 @@ plan tests => 6;
     };
     
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('gcode_comments', 1);
     $config->set('layer_height', 0.2);
     $config->set('first_layer_height', 0.2);
     $config->set('nozzle_diameter', [0.5]);
@@ -69,6 +69,30 @@ plan tests => 6;
     $config->set('skirts', 0);  # prevent usage of perimeter_extruder in raft layers
     $config->set('raft_layers', 5);
     $test->($config);
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('layer_height', 0.2);
+    $config->set('first_layer_height', 0.2);
+    $config->set('nozzle_diameter', [0.5]);
+    $config->set('infill_every_layers', 2);
+    
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    $print->process;
+    
+    ok defined(first { @{$_->get_region(0)->fill_surfaces->filter_by_type(S_TYPE_INTERNALVOID)} > 0 }
+        @{$print->print->get_object(0)->layers}),
+        'infill combination produces internal void surfaces';
+    
+    # we disable combination after infill has been generated
+    $config->set('infill_every_layers', 1);
+    $print->apply_config($config);
+    $print->process;
+    
+    ok !(defined first { @{$_->get_region(0)->fill_surfaces} == 0 }
+        @{$print->print->get_object(0)->layers}),
+            'infill combination is idempotent';
 }
 
 # the following needs to be adapted to the new API
