@@ -27,6 +27,15 @@ Surface::is_external() const
 }
 
 bool
+Surface::is_internal() const
+{
+    return this->surface_type == stInternal
+        || this->surface_type == stInternalBridge
+        || this->surface_type == stInternalSolid
+        || this->surface_type == stInternalVoid;
+}
+
+bool
 Surface::is_bottom() const
 {
     return this->surface_type == stBottom

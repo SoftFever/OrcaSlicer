@@ -15,6 +15,7 @@ class SurfaceCollection
     operator ExPolygons() const;
     void simplify(double tolerance);
     void group(std::vector<SurfacesPtr> *retval);
+    template <class T> bool any_internal_contains(const T &item) const;
 };
 
 }

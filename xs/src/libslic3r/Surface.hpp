@@ -24,6 +24,7 @@ class Surface
     double area() const;
     bool is_solid() const;
     bool is_external() const;
+    bool is_internal() const;
     bool is_bottom() const;
     bool is_bridge() const;
     
