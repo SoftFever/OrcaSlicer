@@ -26,7 +26,7 @@ use constant TB_45CW    => &Wx::NewId;
 use constant TB_45CCW   => &Wx::NewId;
 use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
-use constant TB_VIEW    => &Wx::NewId;
+use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
 use constant CONFIG_TIMER_ID => &Wx::NewId;
 
@@ -127,7 +127,7 @@ sub new {
         $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_VIEW, "Cut…", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_CUT, "Cut…", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
     } else {
@@ -140,14 +140,13 @@ sub new {
             decrease        => "",
             rotate45ccw     => "",
             rotate45cw      => "",
-            rotate          => "Rotate…",
             changescale     => "Scale…",
             split           => "Split",
-            view            => "View/Cut…",
+            cut             => "Cut…",
             settings        => "Settings…",
         );
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw rotate changescale split view settings)) {
+        for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw changescale split cut settings)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
@@ -190,7 +189,7 @@ sub new {
             rotate45ccw     arrow_rotate_anticlockwise.png
             changescale     arrow_out.png
             split           shape_ungroup.png
-            view            package.png
+            cut             package.png
             settings        cog.png
         );
         for (grep $self->{"btn_$_"}, keys %icons) {
@@ -216,7 +215,7 @@ sub new {
         EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
         EVT_TOOL($self, TB_SCALE, sub { $self->changescale(undef); });
         EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
-        EVT_TOOL($self, TB_VIEW, sub { $_[0]->object_cut_dialog });
+        EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
     } else {
         EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
@@ -229,7 +228,7 @@ sub new {
         EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
         EVT_BUTTON($self, $self->{btn_changescale}, sub { $self->changescale(undef); });
         EVT_BUTTON($self, $self->{btn_split}, sub { $self->split_object; });
-        EVT_BUTTON($self, $self->{btn_view}, sub { $_[0]->object_cut_dialog });
+        EVT_BUTTON($self, $self->{btn_cut}, sub { $_[0]->object_cut_dialog });
         EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
     }
     
@@ -1312,11 +1311,11 @@ sub selection_changed {
     
     my $method = $have_sel ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw changescale split view settings);
+        for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw changescale split cut settings);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_VIEW, TB_SETTINGS);
+            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_CUT, TB_SETTINGS);
     }
     
     if ($self->{object_info_size}) { # have we already loaded the info pane?
