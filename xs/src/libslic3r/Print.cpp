@@ -76,46 +76,20 @@ Print::get_object(size_t idx)
     return objects.at(idx);
 }
 
-PrintObject*
-Print::add_object(ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
-{
-    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
-    objects.push_back(object);
-    
-    // invalidate steps
-    this->invalidate_step(psSkirt);
-    this->invalidate_step(psBrim);
-    
-    return object;
-}
-
-PrintObject*
-Print::set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
-{
-    if (idx >= this->objects.size()) throw "bad idx";
-
-    PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
-    // before deleting object, invalidate all of its steps in order to 
-    // invalidate all of the dependent ones in Print
-    (*old_it)->invalidate_all_steps();
-    delete *old_it;
-
-    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
-    this->objects[idx] = object;
-    return object;
-}
-
 void
 Print::delete_object(size_t idx)
 {
     PrintObjectPtrs::iterator i = this->objects.begin() + idx;
+    
+    // before deleting object, invalidate all of its steps in order to 
+    // invalidate all of the dependent ones in Print
+    (*i)->invalidate_all_steps();
+    
+    // destroy object and remove it from our container
     delete *i;
     this->objects.erase(i);
 
     // TODO: purge unused regions
-
-    this->state.invalidate(psSkirt);
-    this->state.invalidate(psBrim);
 }
 
 void
@@ -375,9 +349,23 @@ Print::add_model_object(ModelObject* model_object, int idx)
     {
         BoundingBoxf3 bb;
         model_object->raw_bounding_box(&bb);
-        o = (idx != -1)
-            ? this->set_new_object(idx, model_object, bb)
-            : this->add_object(model_object, bb);
+        if (idx != -1) {
+            // replacing existing object
+            PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
+            // before deleting object, invalidate all of its steps in order to 
+            // invalidate all of the dependent ones in Print
+            (*old_it)->invalidate_all_steps();
+            delete *old_it;
+            
+            this->objects[idx] = o = new PrintObject(this, model_object, bb);
+        } else {
+            o = new PrintObject(this, model_object, bb);
+            objects.push_back(o);
+    
+            // invalidate steps
+            this->invalidate_step(psSkirt);
+            this->invalidate_step(psBrim);
+        }
     }
 
     for (ModelVolumePtrs::const_iterator v_i = model_object->volumes.begin(); v_i != model_object->volumes.end(); ++v_i) {

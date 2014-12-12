@@ -139,12 +139,6 @@ _constant()
         %code%{ RETVAL = &THIS->objects; %};
     void clear_objects();
     Ref<PrintObject> get_object(int idx);
-    Ref<PrintObject> add_object(ModelObject* model_object,
-        BoundingBoxf3 *modobj_bbox)
-        %code%{ RETVAL = THIS->add_object(model_object, *modobj_bbox); %};
-    Ref<PrintObject> set_new_object(size_t idx, ModelObject* model_object,
-        BoundingBoxf3 *modobj_bbox)
-        %code%{ RETVAL = THIS->set_new_object(idx, model_object, *modobj_bbox); %};
     void delete_object(int idx);
     void reload_object(int idx);
     size_t object_count()
