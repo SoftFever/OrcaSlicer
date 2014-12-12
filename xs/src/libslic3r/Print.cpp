@@ -1,7 +1,9 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "Flow.hpp"
 #include "Geometry.hpp"
+#include "SupportMaterial.hpp"
 #include <algorithm>
 
 namespace Slic3r {
@@ -640,6 +642,76 @@ Print::validate() const
         }
     }
 }
+
+// the bounding box of objects placed in copies position
+// (without taking skirt/brim/support material into account)
+BoundingBox
+Print::bounding_box() const
+{
+    BoundingBox bb;
+    FOREACH_OBJECT(this, object) {
+        for (Points::const_iterator copy = (*object)->_shifted_copies.begin(); copy != (*object)->_shifted_copies.end(); ++copy) {
+            bb.merge(*copy);
+            
+            Point p = *copy;
+            p.translate((*object)->size);
+            bb.merge(p);
+        }
+    }
+    return bb;
+}
+
+// the total bounding box of extrusions, including skirt/brim/support material
+// this methods needs to be called even when no steps were processed, so it should
+// only use configuration values
+BoundingBox
+Print::total_bounding_box() const
+{
+    // get objects bounding box
+    BoundingBox bb = this->bounding_box();
+    
+    // check how much we need to increase it
+    double extra = 0;  // unscaled
+    if (this->has_support_material())
+        extra = SUPPORT_MATERIAL_MARGIN;
+    
+    extra = std::max(extra, this->config.brim_width.value);
+    if (this->config.skirts > 0) {
+        Flow skirt_flow = this->skirt_flow();
+        extra = std::max(
+            extra,
+            this->config.brim_width.value + this->config.skirt_distance.value + (this->config.skirts.value * skirt_flow.spacing())
+        );
+    }
+    
+    if (extra > 0)
+        bb.offset(scale_(extra));
+    
+    return bb;
+}
+
+double
+Print::skirt_first_layer_height() const
+{
+    if (this->objects.empty()) CONFESS("skirt_first_layer_height() can't be called without PrintObjects");
+    return this->objects.front()->config.get_abs_value("first_layer_height");
+}
+
+Flow
+Print::skirt_flow() const
+{
+    ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
+    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
+    
+    return Flow::new_from_config_width(
+        frPerimeter,
+        width, 
+        this->config.nozzle_diameter.get_at(this->objects.front()->config.support_material_extruder-1),
+        this->skirt_first_layer_height(),
+        0
+    );
+}
+
 
 PrintRegionConfig
 Print::_region_config_from_model_volume(const ModelVolume &volume)

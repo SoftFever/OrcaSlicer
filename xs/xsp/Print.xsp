@@ -193,6 +193,10 @@ _constant()
                 croak("%s\n", e.what());
             }
         %};
+    Clone<BoundingBox> bounding_box();
+    Clone<BoundingBox> total_bounding_box();
+    double skirt_first_layer_height();
+    Clone<Flow> skirt_flow();
 %{
 
 double

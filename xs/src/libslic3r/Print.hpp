@@ -187,6 +187,10 @@ class Print
     bool apply_config(DynamicPrintConfig config);
     void init_extruders();
     void validate() const;
+    BoundingBox bounding_box() const;
+    BoundingBox total_bounding_box() const;
+    double skirt_first_layer_height() const;
+    Flow skirt_flow() const;
     
     std::set<size_t> extruders() const;
     void _simplify_slices(double distance);

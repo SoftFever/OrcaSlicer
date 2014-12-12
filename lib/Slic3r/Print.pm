@@ -40,46 +40,6 @@ sub total_layer_count {
     return max(map $_->total_layer_count, @{$self->objects});
 }
 
-# the bounding box of objects placed in copies position
-# (without taking skirt/brim/support material into account)
-sub bounding_box {
-    my $self = shift;
-    
-    my @points = ();
-    foreach my $object (@{$self->objects}) {
-        foreach my $copy (@{$object->_shifted_copies}) {
-            push @points,
-                [ $copy->[X], $copy->[Y] ],
-                [ $copy->[X] + $object->size->[X], $copy->[Y] + $object->size->[Y] ];
-        }
-    }
-    return Slic3r::Geometry::BoundingBox->new_from_points([ map Slic3r::Point->new(@$_), @points ]);
-}
-
-# the total bounding box of extrusions, including skirt/brim/support material
-sub total_bounding_box {
-    my ($self) = @_;
-    
-    # get objects bounding box
-    my $bb = $self->bounding_box;
-    
-    # check how much we need to increase it
-    my $extra = 0;
-    if ($self->has_support_material) {
-        $extra = &Slic3r::Print::SupportMaterial::MARGIN;
-    }
-    $extra = max($extra, $self->config->brim_width);
-    if ($self->config->skirts > 0) {
-        my $skirt_flow = $self->skirt_flow;
-        $extra = max($extra, $self->config->brim_width + $self->config->skirt_distance + ($self->config->skirts * $skirt_flow->spacing));
-    }
-    
-    if ($extra > 0) {
-        $bb->offset(scale $extra);
-    }
-    return $bb;
-}
-
 sub size {
     my $self = shift;
     return $self->bounding_box->size;
@@ -420,23 +380,6 @@ sub make_brim {
     ), reverse @{union_pt_chained(\@loops)});
     
     $self->set_step_done(STEP_BRIM);
-}
-
-sub skirt_first_layer_height {
-    my ($self) = @_;
-    return $self->objects->[0]->config->get_abs_value('first_layer_height');
-}
-
-sub skirt_flow {
-    my ($self) = @_;
-    
-    return Slic3r::Flow->new_from_width(
-        width               => ($self->config->first_layer_extrusion_width || $self->regions->[0]->config->perimeter_extrusion_width),
-        role                => FLOW_ROLE_PERIMETER,
-        nozzle_diameter     => $self->config->get_at('nozzle_diameter', $self->objects->[0]->config->support_material_extruder-1),
-        layer_height        => $self->skirt_first_layer_height,
-        bridge_flow_ratio   => 0,
-    );
 }
 
 sub write_gcode {

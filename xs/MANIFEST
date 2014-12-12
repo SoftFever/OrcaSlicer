@@ -1703,6 +1703,7 @@ src/libslic3r/PrintConfig.cpp
 src/libslic3r/PrintConfig.hpp
 src/libslic3r/PrintObject.cpp
 src/libslic3r/PrintRegion.cpp
+src/libslic3r/SupportMaterial.hpp
 src/libslic3r/Surface.cpp
 src/libslic3r/Surface.hpp
 src/libslic3r/SurfaceCollection.cpp
@@ -1773,6 +1774,7 @@ xsp/Polygon.xsp
 xsp/Polyline.xsp
 xsp/PolylineCollection.xsp
 xsp/Print.xsp
+xsp/SupportMaterial.xsp
 xsp/Surface.xsp
 xsp/SurfaceCollection.xsp
 xsp/TriangleMesh.xsp
