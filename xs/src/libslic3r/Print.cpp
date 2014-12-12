@@ -670,17 +670,27 @@ Print::total_bounding_box() const
     // get objects bounding box
     BoundingBox bb = this->bounding_box();
     
-    // check how much we need to increase it
-    double extra = 0;  // unscaled
-    if (this->has_support_material())
-        extra = SUPPORT_MATERIAL_MARGIN;
+    // we need to offset the objects bounding box by at least half the perimeters extrusion width
+    Flow perimeter_flow = this->objects.front()->get_layer(0)->get_region(0)->flow(frPerimeter);
+    double extra = perimeter_flow.width/2;
     
-    extra = std::max(extra, this->config.brim_width.value);
-    if (this->config.skirts > 0) {
-        Flow skirt_flow = this->skirt_flow();
+    // consider support material
+    if (this->has_support_material()) {
+        extra = std::max(extra, SUPPORT_MATERIAL_MARGIN);
+    }
+    
+    // consider brim and skirt
+    Flow skirt_flow = this->skirt_flow();
+    if (this->config.brim_width.value > 0) {
+        extra = std::max(extra, this->config.brim_width.value + skirt_flow.width/2);
+    }
+    if (this->config.skirts.value > 0) {
         extra = std::max(
             extra,
-            this->config.brim_width.value + this->config.skirt_distance.value + (this->config.skirts.value * skirt_flow.spacing())
+            this->config.brim_width.value
+                + this->config.skirt_distance.value
+                + this->config.skirts.value * skirt_flow.spacing()
+                + skirt_flow.width/2
         );
     }
     
