@@ -22,6 +22,7 @@ my %prereqs = qw(
     Test::More                      0
     Thread::Semaphore               0
     IO::Scalar                      0
+    threads                         1.96
     Time::HiRes                     0
 );
 my %recommends = qw(

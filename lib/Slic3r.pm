@@ -82,17 +82,21 @@ use constant EXTERNAL_INFILL_MARGIN => 3;
 use constant INSET_OVERLAP_TOLERANCE => 0.2;
 
 # keep track of threads we created
-my @threads : shared = ();
+my @threads = ();
 my $sema = Thread::Semaphore->new;
 my $paused = 0;
 
 sub spawn_thread {
     my ($cb) = @_;
     
+    my $parent_tid = threads->tid;
+    
     @_ = ();
     my $thread = threads->create(sub {
+        Slic3r::debugf "Starting thread %d (parent: %d)...\n", threads->tid, $parent_tid;
         local $SIG{'KILL'} = sub {
-            Slic3r::debugf "Exiting thread...\n";
+            Slic3r::debugf "Exiting thread %d...\n", threads->tid;
+            kill_all_threads();
             Slic3r::thread_cleanup();
             threads->exit();
         };
@@ -205,6 +209,7 @@ sub kill_all_threads {
     # detach any running thread created in the current one
     my @killed = ();
     foreach my $thread (get_running_threads()) {
+        Slic3r::debugf "Thread %d killing %d...\n", threads->tid, $thread->tid;
         $thread->kill('KILL');
         push @killed, $thread;
     }
@@ -212,7 +217,11 @@ sub kill_all_threads {
     # unlock semaphore before we block on wait
     # otherwise we'd get a deadlock if threads were paused
     resume_threads();
-    $_->join for @killed;  # block until threads are killed
+    foreach my $thread (@killed) {
+        Slic3r::debugf "  Threads %d waiting for %d...\n", threads->tid, $thread->tid;
+        $thread->join;  # block until threads are killed
+        Slic3r::debugf "    Thread %d finished waiting for %d...\n", threads->tid, $thread->tid;
+    }
     @threads = ();
 }
 
