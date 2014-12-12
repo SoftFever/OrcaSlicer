@@ -1074,7 +1074,15 @@ sub export_stl {
     return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('STL') or return;
-    Slic3r::Format::STL->write_file($output_file, $self->{model}, binary => 1);
+    
+    # In order to allow for consistent positioning in the parts editor,
+    # we never alter the original Z position. Meshes are aligned to zero 
+    # at slice time. So we do the same before exporting.
+    my $model = $self->{model}->clone;
+    foreach my $model_object (@{$model->objects}) {
+        $model_object->translate(0,0,-$model_object->bounding_box->z_min);
+    }
+    Slic3r::Format::STL->write_file($output_file, $model, binary => 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
     
     # this method gets executed in a separate thread by wxWidgets since it's a button handler
