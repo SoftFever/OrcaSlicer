@@ -469,7 +469,7 @@ sub load_model_objects {
             $need_arrange = 1;
         
             # add a default instance and center object around origin
-            $o->center_around_origin;
+            $o->center_around_origin;  # also aligns object to Z = 0
             $o->add_instance(offset => $bed_centerf);
         }
     
@@ -1074,15 +1074,7 @@ sub export_stl {
     return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('STL') or return;
-    
-    # In order to allow for consistent positioning in the parts editor,
-    # we never alter the original Z position. Meshes are aligned to zero 
-    # at slice time. So we do the same before exporting.
-    my $model = $self->{model}->clone;
-    foreach my $model_object (@{$model->objects}) {
-        $model_object->translate(0,0,-$model_object->bounding_box->z_min);
-    }
-    Slic3r::Format::STL->write_file($output_file, $model, binary => 1);
+    Slic3r::Format::STL->write_file($output_file, $self->{model}, binary => 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
     
     # this method gets executed in a separate thread by wxWidgets since it's a button handler
@@ -1282,10 +1274,12 @@ sub object_settings_dialog {
 	$self->pause_background_process;
 	$dlg->ShowModal;
 	
-	# update thumbnail since parts may have changed
-	if ($dlg->PartsChanged) {
-    	$self->make_thumbnail($obj_idx);
-	}
+    # update thumbnail since parts may have changed
+    if ($dlg->PartsChanged) {
+	    # recenter and re-align to Z = 0
+	    $model_object->center_around_origin;
+        $self->make_thumbnail($obj_idx);
+    }
 	
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {

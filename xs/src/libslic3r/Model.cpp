@@ -480,24 +480,29 @@ ModelObject::center_around_origin()
         mesh.bounding_box(&bb);
     }
     
-    // first align to origin on XY
-    double shift_x = -bb.min.x;
-    double shift_y = -bb.min.y;
+    // first align to origin on XYZ
+    Vectorf3 vector(-bb.min.x, -bb.min.y, -bb.min.z);
     
     // then center it on XY
     Sizef3 size = bb.size();
-    shift_x -= size.x/2;
-    shift_y -= size.y/2;
+    vector.x -= size.x/2;
+    vector.y -= size.y/2;
     
-    this->translate(shift_x, shift_y, 0);
-    this->origin_translation.translate(shift_x, shift_y);
+    this->translate(vector);
+    this->origin_translation.translate(vector);
     
     if (!this->instances.empty()) {
         for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i) {
-            (*i)->offset.translate(-shift_x, -shift_y);
+            (*i)->offset.translate(-vector.x, -vector.y);
         }
         this->update_bounding_box();
     }
+}
+
+void
+ModelObject::translate(const Vectorf3 &vector)
+{
+    this->translate(vector.x, vector.y, vector.z);
 }
 
 void

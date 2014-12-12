@@ -41,7 +41,7 @@ Point::translate(double x, double y)
 }
 
 void
-Point::translate(const Point &vector)
+Point::translate(const Vector &vector)
 {
     this->translate(vector.x, vector.y);
 }
@@ -338,6 +338,12 @@ Pointf3::scale(double factor)
 {
     Pointf::scale(factor);
     this->z *= factor;
+}
+
+void
+Pointf3::translate(const Vectorf3 &vector)
+{
+    this->translate(vector.x, vector.y, vector.z);
 }
 
 void

@@ -332,7 +332,7 @@ sub _slice_region {
     # consider the first one
     $self->model_object->instances->[0]->transform_mesh($mesh, 1);
 
-    # align mesh to Z = 0 and apply XY shift
+    # align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
     $mesh->translate((map unscale(-$_), @{$self->_copies_shift}), -$self->model_object->bounding_box->z_min);
     
     # perform actual slicing

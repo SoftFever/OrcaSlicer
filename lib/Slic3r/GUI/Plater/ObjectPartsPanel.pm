@@ -214,7 +214,7 @@ sub on_btn_load {
                 $new_volume->set_name(basename($input_file));
                 
                 # apply the same translation we applied to the object
-                $new_volume->mesh->translate(@{$self->{model_object}->origin_translation}, 0);
+                $new_volume->mesh->translate(@{$self->{model_object}->origin_translation});
                 
                 # set a default extruder value, since user can't add it manually
                 $new_volume->config->set_ifndef('extruder', 0);
@@ -226,7 +226,9 @@ sub on_btn_load {
     
     $self->reload_tree;
     if ($self->{canvas}) {
+        $self->{canvas}->reset_objects;
         $self->{canvas}->load_object($self->{model_object});
+        $self->{canvas}->set_bounding_box($self->{model_object}->bounding_box);
         $self->{canvas}->Render;
     }
 }
