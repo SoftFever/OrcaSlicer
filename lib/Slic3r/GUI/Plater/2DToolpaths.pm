@@ -23,7 +23,9 @@ sub new {
         $self, -1,
         0,                              # default
         0,                              # min
-        0,                              # max
+        # we set max to a bogus non-zero value because the MSW implementation of wxSlider
+        # will skip drawing the slider if max <= min:
+        1,                              # max
         wxDefaultPosition,
         wxDefaultSize,
         wxVERTICAL | wxSL_INVERSE,
