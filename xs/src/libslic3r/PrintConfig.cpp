@@ -664,8 +664,8 @@ PrintConfigDef::build_def() {
     Options["skirt_height"].cli = "skirt-height=i";
 
     Options["skirts"].type = coInt;
-    Options["skirts"].label = "Loops";
-    Options["skirts"].tooltip = "Number of loops for this skirt, in other words its thickness. Set this to zero to disable skirt.";
+    Options["skirts"].label = "Loops (minimum)";
+    Options["skirts"].tooltip = "Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely.";
     Options["skirts"].cli = "skirts=i";
     Options["skirts"].min = 0;
     
