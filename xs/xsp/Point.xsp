@@ -116,4 +116,5 @@ Point::coincides_with(point_sv)
         %code{% THIS->y = val; %};
     void set_z(double val)
         %code{% THIS->z = val; %};
+    void translate(double x, double y, double z);
 };
