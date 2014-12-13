@@ -426,7 +426,6 @@ sub make_perimeters {
                 $self->get_layer($i)->make_perimeters;
             }
         },
-        collect_cb => sub {},
         no_threads_cb => sub {
             $_->make_perimeters for @{$self->layers};
         },
@@ -506,7 +505,6 @@ sub infill {
                 $layerm->fills->append($_) for $self->fill_maker->make_fill($layerm);
             }
         },
-        collect_cb => sub {},
         no_threads_cb => sub {
             foreach my $layerm (map @{$_->regions}, @{$self->layers}) {
                 $layerm->fills->clear;
