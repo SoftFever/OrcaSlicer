@@ -16,7 +16,8 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               object_bounding_box
                               enable_picking
                               enable_moving
-                              on_select_object
+                              on_hover
+                              on_select
                               on_double_click
                               on_right_click
                               on_instance_moved
@@ -27,7 +28,8 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               bed_triangles
                               bed_grid_lines
                               origin
-                              _mouse_gl_pos
+                              _mouse_pos
+                              _hover_volume_idx
                               _drag_volume_idx
                               _drag_start_pos
                               ) );
@@ -90,16 +92,17 @@ sub new {
             $self->on_double_click->()
                 if $self->on_double_click;
         } elsif ($e->LeftDown || $e->RightDown) {
-            my $volume_idx = first { $self->volumes->[$_]->{hover} } 0..$#{$self->volumes};
+            my $volume_idx = first { $self->volumes->[$_]->hover } 0..$#{$self->volumes};
             $volume_idx //= -1;
             
             # select volume in this 3D canvas
+            $self->deselect_volumes;
             $self->select_volume($volume_idx);
             $self->Refresh;
             
             # propagate event through callback
-            $self->on_select_object->($volume_idx)
-                if $self->on_select_object;
+            $self->on_select->($volume_idx)
+                if $self->on_select;
             
             if ($volume_idx != -1) {
                 if ($e->LeftDown && $self->enable_moving) {
@@ -120,8 +123,8 @@ sub new {
             my $vector = $self->_drag_start_pos->vector_to($cur_pos);
             
             # apply new temporary volume origin and ignore Z
-            $volume->{origin}->set_x(-$vector->x);
-            $volume->{origin}->set_y(-$vector->y);  #))
+            $volume->origin->set_x(-$vector->x);
+            $volume->origin->set_y(-$vector->y);  #))
             $self->Refresh;
         } elsif ($e->Dragging) {
             my $volume_idx = first { $self->volumes->[$_]->{hover} } 0..$#{$self->volumes};
@@ -139,14 +142,12 @@ sub new {
             
             if ($self->on_instance_moved && defined $self->_drag_volume_idx) {
                 my $volume = $self->volumes->[$self->_drag_volume_idx];
-                $self->on_instance_moved($self->_drag_volume_idx, $volume->{instance_idx});
+                $self->on_instance_moved($self->_drag_volume_idx, $volume->instance_idx);
             }
             $self->_drag_volume_idx(undef);
             $self->_drag_start_pos(undef);
         } elsif ($e->Moving) {
-            my $glpos = $pos->clone;
-            $glpos->set_y($self->GetSize->GetHeight - $glpos->y);   #))
-            $self->_mouse_gl_pos($glpos);
+            $self->_mouse_pos($pos);
             $self->Refresh;
         } else {
             $e->Skip();
@@ -247,23 +248,23 @@ sub load_object {
         
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
             push @$color, $volume->modifier ? 0.5 : 1;
-            push @{$self->volumes}, my $v = {
+            push @{$self->volumes}, my $v = Slic3r::GUI::PreviewCanvas::Volume->new(
                 instance_idx    => $instance_idx,
                 mesh            => $mesh,
                 color           => $color,
                 origin          => Slic3r::Pointf3->new(0,0,$z_min),
-            };
+            );
             push @volumes_idx, $#{$self->volumes};
         
             {
                 my $vertices = $mesh->vertices;
                 my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
-                $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
+                $v->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
             }
         
             {
                 my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
-                $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
+                $v->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
             }
         }
     }
@@ -271,11 +272,15 @@ sub load_object {
     return @volumes_idx;
 }
 
+sub deselect_volumes {
+    my ($self) = @_;
+    $_->selected(0) for @{$self->volumes};
+}
+
 sub select_volume {
     my ($self, $volume_idx) = @_;
     
-    $_->{selected} = 0 for @{$self->volumes};
-    $self->volumes->[$volume_idx]->{selected} = 1
+    $self->volumes->[$volume_idx]->selected(1)
         if $volume_idx != -1;
 }
 
@@ -288,7 +293,7 @@ sub SetCuttingPlane {
     my @verts = ();
     foreach my $volume (@{$self->volumes}) {
         foreach my $volume (@{$self->volumes}) {
-            my $expolygons = $volume->{mesh}->slice([ $z + $volume->{origin}->z ])->[0];
+            my $expolygons = $volume->mesh->slice([ $z + $volume->origin->z ])->[0];
             $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
             
             foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
@@ -609,12 +614,13 @@ sub Render {
         glFlush();
         glFinish();
         
-        if (my $glpos = $self->_mouse_gl_pos) {
-            my $col = [ glReadPixels_p($glpos->x, $glpos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
+        if (my $pos = $self->_mouse_pos) {
+            my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
             my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
             $_->{hover} = 0 for @{$self->volumes};
             if ($volume_idx <= $#{$self->volumes}) {
-                $self->volumes->[$volume_idx]{hover} = 1;
+                $self->volumes->[$volume_idx]->hover(1);
+                $self->on_hover->($volume_idx) if $self->on_hover;
             }
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -713,27 +719,27 @@ sub draw_volumes {
     
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $volume = $self->volumes->[$volume_idx];
-        glTranslatef(@{$volume->{origin}->negative});
+        glTranslatef(@{$volume->origin->negative});
         
-        glVertexPointer_p(3, $volume->{verts});
+        glVertexPointer_p(3, $volume->verts);
         
         glCullFace(GL_BACK);
-        glNormalPointer_p($volume->{norms});
+        glNormalPointer_p($volume->norms);
         if ($fakecolor) {
             my $r = ($volume_idx & 0x000000FF) >>  0;
             my $g = ($volume_idx & 0x0000FF00) >>  8;
             my $b = ($volume_idx & 0x00FF0000) >> 16;
             glColor4f($r/255.0, $g/255.0, $b/255.0, 1);
-        } elsif ($volume->{selected}) {
+        } elsif ($volume->selected) {
             glColor4f(@{ &SELECTED_COLOR });
-        } elsif ($volume->{hover}) {
+        } elsif ($volume->hover) {
             glColor4f(@{ &HOVER_COLOR });
         } else {
-            glColor4f(@{ $volume->{color} });
+            glColor4f(@{ $volume->color });
         }
-        glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
+        glDrawArrays(GL_TRIANGLES, 0, $volume->verts->elements / 3);
         
-        glTranslatef(@{$volume->{origin}});
+        glTranslatef(@{$volume->origin});
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);
@@ -746,5 +752,17 @@ sub draw_volumes {
     }
     glDisableClientState(GL_VERTEX_ARRAY);
 }
+
+package Slic3r::GUI::PreviewCanvas::Volume;
+use Moo;
+
+has 'mesh'          => (is => 'ro', required => 1);
+has 'color'         => (is => 'ro', required => 1);
+has 'instance_idx'  => (is => 'ro', default => sub { 0 });
+has 'origin'        => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
+has 'verts'         => (is => 'rw');
+has 'norms'         => (is => 'rw');
+has 'selected'      => (is => 'rw', default => sub { 0 });
+has 'hover'         => (is => 'rw', default => sub { 0 });
 
 1;

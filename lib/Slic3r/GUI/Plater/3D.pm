@@ -21,22 +21,32 @@ sub new {
     $self->{model}              = $model;
     $self->{config}             = $config;
     $self->{on_select_object}   = sub {};
-    $self->{on_double_click}    = sub {};
-    $self->{on_right_click}     = sub {};
-    $self->{on_instance_moved}  = sub {};
+    
+    $self->on_select(sub {
+        my ($volume_idx) = @_;
+        
+        my $obj_idx = undef;
+        if ($volume_idx != -1) {
+            $obj_idx = $self->{_volumes_inv}{$volume_idx};
+            $self->volumes->[$_]->selected(1) for @{$self->{_volumes}{$obj_idx}};
+            $self->Refresh;
+        }
+        $self->{on_select_object}->($obj_idx)
+            if $self->{on_select_object};
+    });
+    $self->on_hover(sub {
+        my ($volume_idx) = @_;
+        
+        my $obj_idx = $self->{_volumes_inv}{$volume_idx};
+        $self->volumes->[$_]->hover(1) for @{$self->{_volumes}{$obj_idx}};
+    });
     
     return $self;
 }
 
 sub set_on_select_object {
     my ($self, $cb) = @_;
-    $self->on_select_object(sub {
-        my ($volume_idx) = @_;
-        
-        return $cb->(undef) if $volume_idx == -1;
-        my $obj_idx = $self->{_volumes_inv}{$volume_idx};
-        return $cb->($obj_idx);
-    });
+    $self->{on_select_object} = $cb;
 }
 
 sub set_on_double_click {
@@ -78,7 +88,7 @@ sub update {
         $self->{_volumes}{$obj_idx} = [ @volume_idxs ];
         $self->{_volumes_inv}{$_} = $obj_idx for @volume_idxs;
         
-        if ($self->{objects}[$obj_idx]{selected}) {
+        if ($self->{objects}[$obj_idx]->selected) {
             $self->select_volume($_) for @volume_idxs;
         }
     }
