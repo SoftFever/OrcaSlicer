@@ -218,6 +218,12 @@ Point::negative() const
     return Point(-this->x, -this->y);
 }
 
+Vector
+Point::vector_to(const Point &point) const
+{
+    return Vector(point.x - this->x, point.y - this->y);
+}
+
 Point
 operator+(const Point& point1, const Point& point2)
 {
@@ -351,6 +357,27 @@ Pointf3::translate(double x, double y, double z)
 {
     Pointf::translate(x, y);
     this->z += z;
+}
+
+double
+Pointf3::distance_to(const Pointf3 &point) const
+{
+    double dx = ((double)point.x - this->x);
+    double dy = ((double)point.y - this->y);
+    double dz = ((double)point.z - this->z);
+    return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+Pointf3
+Pointf3::negative() const
+{
+    return Pointf3(-this->x, -this->y, -this->z);
+}
+
+Vectorf3
+Pointf3::vector_to(const Pointf3 &point) const
+{
+    return Vectorf3(point.x - this->x, point.y - this->y, point.z - this->z);
 }
 
 #ifdef SLIC3RXS

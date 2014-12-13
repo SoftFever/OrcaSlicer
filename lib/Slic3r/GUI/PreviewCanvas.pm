@@ -15,6 +15,7 @@ use Wx::GLCanvas qw(:all);
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               object_bounding_box
                               enable_picking
+                              enable_moving
                               on_select_object
                               on_double_click
                               on_right_click
@@ -27,6 +28,8 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               bed_grid_lines
                               origin
                               _mouse_gl_pos
+                              _drag_volume_idx
+                              _drag_start_pos
                               ) );
 
 use constant TRACKBALLSIZE => 0.8;
@@ -74,8 +77,8 @@ sub new {
         
         my $zoom = ($e->GetWheelRotation() / $e->GetWheelDelta() / 10);
         $zoom = $zoom > 0 ?  (1.0 + $zoom) : 1 / (1.0 - $zoom);
-        my @pos3d = $self->mouse_to_3d($e->GetX(), $e->GetY());
-        $self->ZoomTo($zoom, $pos3d[0], $pos3d[1]);
+        my $pos3d = $self->mouse_to_3d($e->GetX(), $e->GetY());
+        $self->ZoomTo($zoom, $pos3d->x, $pos3d->y);  #))
         
         $self->Refresh;
     });
@@ -98,11 +101,28 @@ sub new {
             $self->on_select_object->($volume_idx)
                 if $self->on_select_object;
             
-            if ($e->RightDown && $volume_idx != -1) {
-                # if right clicking on volume, propagate event through callback
-                $self->on_right_click->($e->GetPosition)
-                    if $self->on_right_click;
+            if ($volume_idx != -1) {
+                if ($e->LeftDown && $self->enable_moving) {
+                    $self->_drag_volume_idx($volume_idx);
+                    $self->_drag_start_pos($self->mouse_to_3d(@$pos));
+                } elsif ($e->RightDown) {
+                    # if right clicking on volume, propagate event through callback
+                    $self->on_right_click->($e->GetPosition)
+                        if $self->on_right_click;
+                }
             }
+        } elsif ($e->Dragging && $e->LeftIsDown && defined($self->_drag_volume_idx)) {
+            # get volume being dragged
+            my $volume = $self->volumes->[$self->_drag_volume_idx];
+            
+            # get new position and calculate the move vector
+            my $cur_pos = $self->mouse_to_3d(@$pos);
+            my $vector = $self->_drag_start_pos->vector_to($cur_pos);
+            
+            # apply new temporary volume origin and ignore Z
+            $volume->{origin}->set_x(-$vector->x);
+            $volume->{origin}->set_y(-$vector->y);  #))
+            $self->Refresh;
         } elsif ($e->Dragging) {
             my $volume_idx = first { $self->volumes->[$_]->{hover} } 0..$#{$self->volumes};
             $volume_idx //= -1;
@@ -113,12 +133,16 @@ sub new {
             } elsif ($e->RightIsDown && $volume_idx == -1) {
                 # if dragging over blank area with right button, translate
                 $self->handle_translation($e);
-            } elsif ($e->LeftIsDown && $volume_idx != -1) {
-                # if dragging volume, move it
-                # TODO
             }
         } elsif ($e->LeftUp || $e->RightUp) {
             $self->initpos(undef);
+            
+            if ($self->on_instance_moved && defined $self->_drag_volume_idx) {
+                my $volume = $self->volumes->[$self->_drag_volume_idx];
+                $self->on_instance_moved($self->_drag_volume_idx, $volume->{instance_idx});
+            }
+            $self->_drag_volume_idx(undef);
+            $self->_drag_start_pos(undef);
         } elsif ($e->Moving) {
             my $glpos = $pos->clone;
             $glpos->set_y($self->GetSize->GetHeight - $glpos->y);   #))
@@ -227,7 +251,7 @@ sub load_object {
                 instance_idx    => $instance_idx,
                 mesh            => $mesh,
                 color           => $color,
-                z_min           => $z_min,
+                origin          => Slic3r::Pointf3->new(0,0,$z_min),
             };
             push @volumes_idx, $#{$self->volumes};
         
@@ -264,7 +288,7 @@ sub SetCuttingPlane {
     my @verts = ();
     foreach my $volume (@{$self->volumes}) {
         foreach my $volume (@{$self->volumes}) {
-            my $expolygons = $volume->{mesh}->slice([ $z + $volume->{z_min} ])->[0];
+            my $expolygons = $volume->{mesh}->slice([ $z + $volume->{origin}->z ])->[0];
             $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
             
             foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
@@ -418,9 +442,9 @@ sub handle_translation {
     } else {
         my $new = $e->GetPosition();
         my $orig = $self->initpos;
-        my @orig3d = $self->mouse_to_3d($orig->x, $orig->y);             #)()
-        my @new3d = $self->mouse_to_3d($new->x, $new->y);                #)()
-        glTranslatef($new3d[0] - $orig3d[0], $new3d[1] - $orig3d[1], 0);
+        my $orig3d = $self->mouse_to_3d($orig->x, $orig->y);             #)()
+        my $new3d = $self->mouse_to_3d($new->x, $new->y);                #)()
+        glTranslatef($new3d->x - $orig3d->x, $new3d->y - $orig3d->y, 0); #--
         $self->initpos($new);
         $self->Refresh;
     }
@@ -434,7 +458,7 @@ sub mouse_to_3d {
     my @proj        = glGetDoublev_p(GL_PROJECTION_MATRIX);     # 16 items
 
     my @projected = gluUnProject_p($x, $viewport[3] - $y, 1.0, @mview, @proj, @viewport);
-    return @projected;
+    return Slic3r::Pointf3->new(@projected);
 }
 
 sub ZoomTo {
@@ -581,7 +605,7 @@ sub Render {
     
     if ($self->enable_picking) {
         glDisable(GL_LIGHTING);
-        $self->draw_mesh(1);
+        $self->draw_volumes(1);
         glFlush();
         glFinish();
         
@@ -599,7 +623,7 @@ sub Render {
         glEnable(GL_LIGHTING);
     }
     # draw objects
-    $self->draw_mesh;
+    $self->draw_volumes;
     
     # draw ground and axes
     glDisable(GL_LIGHTING);
@@ -679,7 +703,7 @@ sub Render {
     $self->SwapBuffers();
 }
 
-sub draw_mesh {
+sub draw_volumes {
     my ($self, $fakecolor) = @_;
     
     glEnable(GL_BLEND);
@@ -689,7 +713,7 @@ sub draw_mesh {
     
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $volume = $self->volumes->[$volume_idx];
-        glTranslatef(0, 0, -$volume->{z_min});
+        glTranslatef(@{$volume->{origin}->negative});
         
         glVertexPointer_p(3, $volume->{verts});
         
@@ -709,7 +733,7 @@ sub draw_mesh {
         }
         glDrawArrays(GL_TRIANGLES, 0, $volume->{verts}->elements / 3);
         
-        glTranslatef(0, 0, +$volume->{z_min});
+        glTranslatef(@{$volume->{origin}});
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);

@@ -53,6 +53,7 @@ class Point
     Point projection_onto(const MultiPoint &poly) const;
     Point projection_onto(const Line &line) const;
     Point negative() const;
+    Vector vector_to(const Point &point) const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* point_sv);
@@ -96,6 +97,9 @@ class Pointf3 : public Pointf
     void scale(double factor);
     void translate(const Vectorf3 &vector);
     void translate(double x, double y, double z);
+    double distance_to(const Pointf3 &point) const;
+    Pointf3 negative() const;
+    Vectorf3 vector_to(const Pointf3 &point) const;
 };
 
 }
