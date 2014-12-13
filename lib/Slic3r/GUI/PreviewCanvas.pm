@@ -611,7 +611,7 @@ sub Render {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             
             glEnableClientState(GL_VERTEX_ARRAY);
-            glColor4f(0.5, 0.5, 0.5, 0.3);
+            glColor4f(0.6, 0.7, 0.5, 0.3);
             glNormal3d(0,0,1);
             glVertexPointer_p(3, $self->bed_triangles);
             glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
@@ -622,7 +622,7 @@ sub Render {
             # draw grid
             glTranslatef(0, 0, 0.02);
             glLineWidth(3);
-            glColor3f(1.0, 1.0, 1.0);
+            glColor3f(0.95, 0.95, 0.95);
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer_p(3, $self->bed_grid_lines);
             glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
