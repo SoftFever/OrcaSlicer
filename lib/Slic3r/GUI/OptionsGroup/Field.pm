@@ -231,7 +231,7 @@ use Moo;
 extends 'Slic3r::GUI::OptionsGroup::Field::wxWindow';
 
 use List::Util qw(first);
-use Wx qw(:misc :combobox);
+use Wx qw(wxTheApp :misc :combobox);
 use Wx::Event qw(EVT_COMBOBOX EVT_TEXT);
 
 sub BUILD {
@@ -258,7 +258,17 @@ sub BUILD {
             $label = $value;
         }
         
-        $field->SetValue($label);
+        # The MSW implementation of wxComboBox will leave the field blank if we call
+        # SetValue() in the EVT_COMBOBOX event handler, so we postpone the call.
+        wxTheApp->CallAfter(sub {
+            my $dce = $self->disable_change_event;
+            $self->disable_change_event(1);
+            
+            # ChangeValue() is not exported in wxPerl
+            $field->SetValue($label);
+            
+            $self->disable_change_event($dce);
+        });
         
         $self->disable_change_event($disable_change_event);
         $self->_on_change($self->option->opt_id);
