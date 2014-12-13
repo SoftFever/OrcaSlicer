@@ -68,27 +68,25 @@ sub new {
     # Initialize preview notebook
     $self->{preview_notebook} = Wx::Notebook->new($self, -1, wxDefaultPosition, [335,335], wxNB_BOTTOM);
     
-    # Initialize 2D preview canvas
-    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
-    $self->{preview_notebook}->AddPage($self->{canvas}, '2D');
-    $self->{canvas}->on_select_object(sub {
+    # Initialize handlers for canvases
+    my $on_select_object = sub {
         my ($obj_idx) = @_;
         $self->select_object($obj_idx);
-    });
-    $self->{canvas}->on_double_click(sub {
+    };
+    my $on_double_click = sub {
         $self->object_settings_dialog if $self->selected_object;
-    });
-    $self->{canvas}->on_right_click(sub {
-        my ($click_pos) = @_;
+    };
+    my $on_right_click = sub {
+        my ($canvas, $click_pos) = @_;
         
         my ($obj_idx, $object) = $self->selected_object;
         return if !defined $obj_idx;
         
         my $menu = $self->object_menu;
-        $self->{canvas}->PopupMenu($menu, $click_pos);
+        $canvas->PopupMenu($menu, $click_pos);
         $menu->Destroy;
-    });
-    $self->{canvas}->on_instance_moved(sub {
+    };
+    my $on_instance_moved = sub {
         my ($obj_idx, $instance_idx) = @_;
         
         $self->update;
@@ -100,12 +98,24 @@ sub new {
         } else {
             $self->resume_background_process;
         }
-    });
+    };
+    
+    # Initialize 2D preview canvas
+    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
+    $self->{preview_notebook}->AddPage($self->{canvas}, '2D');
+    $self->{canvas}->on_select_object($on_select_object);
+    $self->{canvas}->on_double_click($on_double_click);
+    $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
+    $self->{canvas}->on_instance_moved($on_instance_moved);
     
     # Initialize 3D preview and toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
+        $self->{canvas3D}->set_on_select_object($on_select_object);
+        $self->{canvas3D}->set_on_double_click($on_double_click);
+        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+        $self->{canvas3D}->set_on_instance_moved($on_instance_moved);
         
         $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
         $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview');
@@ -233,7 +243,7 @@ sub new {
     }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
-        for $self, $self->{canvas}, $self->{list};
+        for grep defined($_), $self, $self->{canvas}, $self->{canvas3D}, $self->{list};
     
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
@@ -655,7 +665,7 @@ sub rotate {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->{canvas}->Refresh;
+    $self->refresh_canvases;
 }
 
 sub flip {
@@ -684,7 +694,7 @@ sub flip {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->{canvas}->Refresh;
+    $self->refresh_canvases;
 }
 
 sub changescale {
@@ -739,7 +749,7 @@ sub changescale {
     
     $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->update;
-    $self->{canvas}->Refresh;
+    $self->refresh_canvases;
 }
 
 sub arrange {
@@ -765,7 +775,7 @@ sub arrange {
     } else {
         $self->resume_background_process;
     }
-    $self->{canvas}->Refresh;
+    $self->refresh_canvases;
 }
 
 sub split_object {
@@ -1146,7 +1156,7 @@ sub on_thumbnail_made {
     
     $self->{objects}[$obj_idx]->transform_thumbnail($self->{model}, $obj_idx);
     $self->update;
-    $self->{canvas}->Refresh;
+    $self->refresh_canvases;
 }
 
 # this method gets called whenever print center is changed or the objects' bounding box changes
@@ -1158,8 +1168,7 @@ sub update {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
-    $self->{canvas}->Refresh;
-    $self->{canvas3D}->update if $self->{canvas3D};
+    $self->refresh_canvases;
 }
 
 sub on_extruders_change {
@@ -1207,7 +1216,7 @@ sub list_item_deselected {
     
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
-        $self->{canvas}->Refresh;
+        $self->refresh_canvases;
     }
 }
 
@@ -1217,7 +1226,7 @@ sub list_item_selected {
     
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
-    $self->{canvas}->Refresh;
+    $self->refresh_canvases;
 }
 
 sub list_item_activated {
@@ -1383,6 +1392,13 @@ sub selected_object {
     my $obj_idx = first { $self->{objects}[$_]->selected } 0..$#{ $self->{objects} };
     return undef if !defined $obj_idx;
     return ($obj_idx, $self->{objects}[$obj_idx]),
+}
+
+sub refresh_canvases {
+    my ($self) = @_;
+    
+    $self->{canvas}->Refresh;
+    $self->{canvas3D}->update if $self->{canvas3D};
 }
 
 sub validate_config {

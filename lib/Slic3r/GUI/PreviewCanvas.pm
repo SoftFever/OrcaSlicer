@@ -14,6 +14,11 @@ use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               object_bounding_box
+                              enable_picking
+                              on_select_object
+                              on_double_click
+                              on_right_click
+                              on_instance_moved
                               volumes initpos
                               sphi stheta
                               cutting_plane_z
@@ -21,12 +26,14 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               bed_triangles
                               bed_grid_lines
                               origin
+                              _mouse_gl_pos
                               ) );
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
 use constant GROUND_Z       => 0.02;
 use constant SELECTED_COLOR => [0,1,0,1];
+use constant HOVER_COLOR    => [0.8,0.8,0,1];
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 # make OpenGL::Array thread-safe
@@ -74,13 +81,49 @@ sub new {
     });
     EVT_MOUSE_EVENTS($self, sub {
         my ($self, $e) = @_;
-
-        if ($e->Dragging() && $e->LeftIsDown()) {
-            $self->handle_rotation($e);
-        } elsif ($e->Dragging() && $e->RightIsDown()) {
-            $self->handle_translation($e);
-        } elsif ($e->LeftUp() || $e->RightUp()) {
+        
+        my $pos = Slic3r::Pointf->new($e->GetPositionXY);
+        if ($e->LeftDClick) {
+            $self->on_double_click->()
+                if $self->on_double_click;
+        } elsif ($e->LeftDown || $e->RightDown) {
+            my $volume_idx = first { $self->volumes->[$_]->{hover} } 0..$#{$self->volumes};
+            $volume_idx //= -1;
+            
+            # select volume in this 3D canvas
+            $self->select_volume($volume_idx);
+            $self->Refresh;
+            
+            # propagate event through callback
+            $self->on_select_object->($volume_idx)
+                if $self->on_select_object;
+            
+            if ($e->RightDown && $volume_idx != -1) {
+                # if right clicking on volume, propagate event through callback
+                $self->on_right_click->($e->GetPosition)
+                    if $self->on_right_click;
+            }
+        } elsif ($e->Dragging) {
+            my $volume_idx = first { $self->volumes->[$_]->{hover} } 0..$#{$self->volumes};
+            $volume_idx //= -1;
+            
+            if ($e->LeftIsDown && $volume_idx == -1) {
+                # if dragging over blank area with left button, rotate
+                $self->handle_rotation($e);
+            } elsif ($e->RightIsDown && $volume_idx == -1) {
+                # if dragging over blank area with right button, translate
+                $self->handle_translation($e);
+            } elsif ($e->LeftIsDown && $volume_idx != -1) {
+                # if dragging volume, move it
+                # TODO
+            }
+        } elsif ($e->LeftUp || $e->RightUp) {
             $self->initpos(undef);
+        } elsif ($e->Moving) {
+            my $glpos = $pos->clone;
+            $glpos->set_y($self->GetSize->GetHeight - $glpos->y);   #))
+            $self->_mouse_gl_pos($glpos);
+            $self->Refresh;
         } else {
             $e->Skip();
         }
@@ -163,9 +206,11 @@ sub load_object {
     
     # sort volumes: non-modifiers first
     my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
+    my @volumes_idx = ();
     foreach my $volume (@volumes) {
-        my @instances = $all_instances ? @{$object->instances} : $object->instances->[0];
-        foreach my $instance (@instances) {
+        my @instance_idxs = $all_instances ? (0..$#{$object->instances}) : (0);
+        foreach my $instance_idx (@instance_idxs) {
+            my $instance = $object->instances->[$instance_idx];
             my $mesh = $volume->mesh->clone;
             $instance->transform_mesh($mesh);
             
@@ -179,10 +224,12 @@ sub load_object {
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
             push @$color, $volume->modifier ? 0.5 : 1;
             push @{$self->volumes}, my $v = {
-                mesh  => $mesh,
-                color => $color,
-                z_min => $z_min,
+                instance_idx    => $instance_idx,
+                mesh            => $mesh,
+                color           => $color,
+                z_min           => $z_min,
             };
+            push @volumes_idx, $#{$self->volumes};
         
             {
                 my $vertices = $mesh->vertices;
@@ -196,6 +243,16 @@ sub load_object {
             }
         }
     }
+    
+    return @volumes_idx;
+}
+
+sub select_volume {
+    my ($self, $volume_idx) = @_;
+    
+    $_->{selected} = 0 for @{$self->volumes};
+    $self->volumes->[$volume_idx]->{selected} = 1
+        if $volume_idx != -1;
 }
 
 sub SetCuttingPlane {
@@ -522,6 +579,23 @@ sub Render {
     my $center = $bb->center;
     glTranslatef(-$center->x, -$center->y, 0); #,,
     
+    if ($self->enable_picking) {
+        glDisable(GL_LIGHTING);
+        $self->draw_mesh(1);
+        glFlush();
+        glFinish();
+        
+        if (my $glpos = $self->_mouse_gl_pos) {
+            my $col = [ glReadPixels_p($glpos->x, $glpos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
+            my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
+            $_->{hover} = 0 for @{$self->volumes};
+            if ($volume_idx <= $#{$self->volumes}) {
+                $self->volumes->[$volume_idx]{hover} = 1;
+            }
+        }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_LIGHTING);
+    }
     # draw objects
     $self->draw_mesh;
     
@@ -604,22 +678,30 @@ sub Render {
 }
 
 sub draw_mesh {
-    my $self = shift;
+    my ($self, $fakecolor) = @_;
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     
-    foreach my $volume (@{$self->volumes}) {
+    foreach my $volume_idx (0..$#{$self->volumes}) {
+        my $volume = $self->volumes->[$volume_idx];
         glTranslatef(0, 0, -$volume->{z_min});
         
         glVertexPointer_p(3, $volume->{verts});
         
         glCullFace(GL_BACK);
         glNormalPointer_p($volume->{norms});
-        if ($volume->{selected}) {
+        if ($fakecolor) {
+            my $r = ($volume_idx & 0x000000FF) >>  0;
+            my $g = ($volume_idx & 0x0000FF00) >>  8;
+            my $b = ($volume_idx & 0x00FF0000) >> 16;
+            glColor4f($r/255.0, $g/255.0, $b/255.0, 1);
+        } elsif ($volume->{selected}) {
             glColor4f(@{ &SELECTED_COLOR });
+        } elsif ($volume->{hover}) {
+            glColor4f(@{ &HOVER_COLOR });
         } else {
             glColor4f(@{ $volume->{color} });
         }

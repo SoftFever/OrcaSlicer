@@ -93,6 +93,10 @@ Point::coincides_with(point_sv)
         %code{% RETVAL = THIS->x; %};
     double y()
         %code{% RETVAL = THIS->y; %};
+    void set_x(double val)
+        %code{% THIS->x = val; %};
+    void set_y(double val)
+        %code{% THIS->y = val; %};
     void translate(double x, double y);
     void scale(double factor);
     void rotate(double angle, Pointf* center)

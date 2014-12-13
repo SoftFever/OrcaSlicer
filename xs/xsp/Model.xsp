@@ -20,6 +20,8 @@
     void clear_objects();
     size_t objects_count()
         %code%{ RETVAL = THIS->objects.size(); %};
+    Ref<ModelObject> get_object(int idx)
+        %code%{ RETVAL = THIS->objects.at(idx); %};
 
     Ref<ModelMaterial> get_material(t_model_material_id material_id)
         %code%{

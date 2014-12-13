@@ -32,6 +32,7 @@ my %opt = ();
     $model->add_default_instances;
     
     my $app = Slic3r::ViewMesh->new;
+    $app->{canvas}->enable_picking(1);
     $app->{canvas}->load_object($model->objects->[0]);
     $app->{canvas}->set_bounding_box($model->objects->[0]->bounding_box);
     $app->{canvas}->set_auto_bed_shape;
