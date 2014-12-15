@@ -32,6 +32,7 @@
     Clone<Point> point_at(double distance);
     Polyline* as_polyline()
         %code{% RETVAL = new Polyline(*THIS); %};
+    Clone<Point> normal();
 %{
 
 Line*

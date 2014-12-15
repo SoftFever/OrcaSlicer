@@ -34,6 +34,7 @@ class Line
     double orientation() const;
     double direction() const;
     Vector vector() const;
+    Vector normal() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* line_sv);

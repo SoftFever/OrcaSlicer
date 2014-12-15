@@ -133,6 +133,12 @@ Line::vector() const
     return Vector(this->b.x - this->a.x, this->b.y - this->a.y);
 }
 
+Vector
+Line::normal() const
+{
+    return Vector((this->b.y - this->a.y), -(this->b.x - this->a.x));
+}
+
 #ifdef SLIC3RXS
 
 REGISTER_CLASS(Line, "Line");

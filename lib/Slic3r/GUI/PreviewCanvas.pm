@@ -4,7 +4,7 @@ use warnings;
 
 use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
 # must load OpenGL *before* Wx::GLCanvas
-use OpenGL qw(:glconstants :glfunctions :glufunctions);
+use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
 use List::Util qw(reduce min max first);
@@ -22,6 +22,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init mview_init
                               on_right_click
                               on_instance_moved
                               volumes
+                              print
                               _sphi _stheta
                               cutting_plane_z
                               cut_lines_vertices
@@ -564,6 +565,11 @@ sub InitGL {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
+    # Set antialiasing/multisampling
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_POLYGON_SMOOTH);
+    glEnable(GL_MULTISAMPLE);
+    
     # ambient lighting
     glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.1, 0.1, 0.1, 1);
     
@@ -728,6 +734,70 @@ sub draw_volumes {
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    if (defined($self->print) && !$fakecolor) {
+        my $tess = gluNewTess();
+        gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_VERTEX,    'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
+        
+        foreach my $object (@{$self->print->objects}) {
+            foreach my $layer (@{$object->layers}) {
+                my $gap = 0;
+                my $top_z = $layer->print_z;
+                my $bottom_z = $layer->print_z - $layer->height + $gap;
+            
+                foreach my $copy (@{ $object->_shifted_copies }) {
+                    glPushMatrix();
+                    glTranslatef(map unscale($_), @$copy, 0);
+                    
+                    foreach my $slice (@{$layer->slices}) {
+                        glColor3f(@{COLORS->[0]});
+                        gluTessBeginPolygon($tess);
+                        glNormal3f(0,0,1);
+                        foreach my $polygon (@$slice) {
+                            gluTessBeginContour($tess);
+                            gluTessVertex_p($tess, (map unscale($_), @$_), $layer->print_z) for @$polygon;
+                            gluTessEndContour($tess);
+                        }
+                        gluTessEndPolygon($tess);
+                        
+                        foreach my $polygon (@$slice) {
+                            foreach my $line (@{$polygon->lines}) {
+                                if (0) {
+                                    glLineWidth(1);
+                                    glColor3f(0,0,0);
+                                    glBegin(GL_LINES);
+                                    glVertex3f((map unscale($_), @{$line->a}), $bottom_z);
+                                    glVertex3f((map unscale($_), @{$line->b}), $bottom_z);
+                                    glEnd();
+                                }
+                                
+                                glLineWidth(0);
+                                glColor3f(@{COLORS->[0]});
+                                glBegin(GL_QUADS);
+                                glNormal3f((map $_/$line->length, @{$line->normal}), 0);
+                                glVertex3f((map unscale($_), @{$line->a}), $bottom_z);
+                                glVertex3f((map unscale($_), @{$line->b}), $bottom_z);
+                                glVertex3f((map unscale($_), @{$line->b}), $top_z);
+                                glVertex3f((map unscale($_), @{$line->a}), $top_z);
+                                glEnd();
+                            }
+                        }
+                    }
+                    
+                    glPopMatrix();  # copy
+                }
+            }
+        }
+        
+        gluDeleteTess($tess);
+        return;
+    }
+    
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     
