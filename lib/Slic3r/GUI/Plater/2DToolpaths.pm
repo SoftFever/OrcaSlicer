@@ -111,7 +111,7 @@ sub set_z {
 package Slic3r::GUI::Plater::2DToolpaths::Canvas;
 
 use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
-use OpenGL qw(:glconstants :glfunctions :glufunctions);
+use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
 use List::Util qw(min first);
@@ -212,11 +212,50 @@ sub Render {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    my $tess = gluNewTess();
+    gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_VERTEX,    'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
+    
     my $skirt_drawn = 0;
     my $brim_drawn = 0;
     foreach my $layer (@{$self->layers}) {
         my $object = $layer->object;
         my $print_z = $layer->print_z;
+        
+        # draw slice contour
+        {
+            glLineWidth(1);
+            foreach my $copy (@{ $object->_shifted_copies }) {
+                glPushMatrix();
+                glTranslatef(@$copy, 0);
+                
+                foreach my $slice (@{$layer->slices}) {
+                    glColor3f(0.95, 0.95, 0.95);
+                    gluTessBeginPolygon($tess);
+                    foreach my $polygon (@$slice) {
+                        gluTessBeginContour($tess);
+                        gluTessVertex_p($tess, @$_, 0) for @$polygon;
+                        gluTessEndContour($tess);
+                    }
+                    gluTessEndPolygon($tess);
+                    
+                    glColor3f(0.9, 0.9, 0.9);
+                    foreach my $polygon (@$slice) {
+                        foreach my $line (@{$polygon->lines}) {
+                            glBegin(GL_LINES);
+                            glVertex2f(@{$line->a});
+                            glVertex2f(@{$line->b});
+                            glEnd();
+                        }
+                    }
+                }
+                glPopMatrix();
+            }
+        }
         
         # draw brim
         if ($self->print->step_done(STEP_BRIM) && $layer->id == 0 && !$brim_drawn) {
@@ -253,6 +292,7 @@ sub Render {
         }
     }
     
+    gluDeleteTess($tess);
     glFlush();
     $self->SwapBuffers;
 }
@@ -282,13 +322,15 @@ sub _draw_path {
     
     if (defined $object) {
         foreach my $copy (@{ $object->_shifted_copies }) {
+            glPushMatrix();
+            glTranslatef(@$copy, 0);
             foreach my $line (@{$path->polyline->lines}) {
-                $line->translate(@$copy);
                 glBegin(GL_LINES);
                 glVertex2f(@{$line->a});
                 glVertex2f(@{$line->b});
                 glEnd();
             }
+            glPopMatrix();
         }
     } else {
         foreach my $line (@{$path->polyline->lines}) {

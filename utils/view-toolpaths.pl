@@ -20,6 +20,7 @@ my %opt = ();
     my %options = (
         'help'                  => sub { usage() },
         'load=s'                => \$opt{load},
+        'duplicate=i'           => \$opt{duplicate},
     );
     GetOptions(%options) or usage(1);
     $ARGV[0] or usage(1);
@@ -38,6 +39,7 @@ my %opt = ();
     
     # init print
     my $sprint = Slic3r::Print::Simple->new;
+    $sprint->duplicate($opt{duplicate} // 1);
     $sprint->apply_config($config);
     $sprint->set_model($model);
     $sprint->process;
