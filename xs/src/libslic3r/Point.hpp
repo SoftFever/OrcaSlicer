@@ -14,6 +14,7 @@ class Point;
 class Pointf;
 class Pointf3;
 typedef Point Vector;
+typedef Pointf Vectorf;
 typedef Pointf3 Vectorf3;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
@@ -81,6 +82,8 @@ class Pointf
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, const Pointf &center);
+    Pointf negative() const;
+    Vectorf vector_to(const Pointf &point) const;
     
     #ifdef SLIC3RXS
     bool from_SV(SV* point_sv);

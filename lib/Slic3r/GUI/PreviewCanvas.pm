@@ -12,7 +12,7 @@ use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scal
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
  
-__PACKAGE__->mk_accessors( qw(quat dirty init mview_init
+__PACKAGE__->mk_accessors( qw(_quat _dirty init mview_init
                               object_bounding_box
                               enable_picking
                               enable_moving
@@ -21,17 +21,18 @@ __PACKAGE__->mk_accessors( qw(quat dirty init mview_init
                               on_double_click
                               on_right_click
                               on_instance_moved
-                              volumes initpos
-                              sphi stheta
+                              volumes
+                              _sphi _stheta
                               cutting_plane_z
                               cut_lines_vertices
                               bed_triangles
                               bed_grid_lines
                               origin
                               _mouse_pos
-                              _hover_volume_idx
                               _drag_volume_idx
                               _drag_start_pos
+                              _camera_target
+                              _zoom
                               ) );
 
 use constant TRACKBALLSIZE => 0.8;
@@ -55,9 +56,11 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "",
         [WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0]);
    
-    $self->quat((0, 0, 0, 1));
-    $self->sphi(45);
-    $self->stheta(-45);
+    $self->_quat((0, 0, 0, 1));
+    $self->_stheta(45);
+    $self->_sphi(45);
+    $self->_zoom(1);
+    $self->_camera_target(Slic3r::Pointf->new(0,0));
     
     $self->reset_objects;
     
@@ -66,9 +69,9 @@ sub new {
         return if !$self->object_bounding_box;
         $self->Render($dc);
     });
-    EVT_SIZE($self, sub { $self->dirty(1) });
+    EVT_SIZE($self, sub { $self->_dirty(1) });
     EVT_IDLE($self, sub {
-        return unless $self->dirty;
+        return unless $self->_dirty;
         return if !$self->IsShownOnScreen;
         return if !$self->object_bounding_box;
         $self->Resize( $self->GetSizeWH );
@@ -77,91 +80,138 @@ sub new {
     EVT_MOUSEWHEEL($self, sub {
         my ($self, $e) = @_;
         
-        my $zoom = ($e->GetWheelRotation() / $e->GetWheelDelta() / 10);
-        $zoom = $zoom > 0 ?  (1.0 + $zoom) : 1 / (1.0 - $zoom);
-        my $pos3d = $self->mouse_to_3d($e->GetX(), $e->GetY());
-        $self->ZoomTo($zoom, $pos3d->x, $pos3d->y);  #))
+        # Calculate the zoom delta and apply it to the current zoom factor
+        my $zoom = 1 - ($e->GetWheelRotation() / $e->GetWheelDelta() / 10);
+        $self->_zoom($self->_zoom * $zoom);
         
+        # In order to zoom around the mouse point we need to translate
+        # the camera target
+        my $size = Slic3r::Pointf->new($self->GetSizeWH);
+        my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
+        $self->_camera_target->translate(
+            # ($pos - $size/2) represents the vector from the viewport center
+            # to the mouse point. By multiplying it by $zoom we get the new,
+            # transformed, length of such vector.
+            # Since we want that point to stay fixed, we move our camera target
+            # in the opposite direction by the delta of the length of such vector
+            # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
+            # $self->_camera_target is expressed in terms of model units.
+            -($pos->x - $size->x/2) * ($zoom - 1) / $self->_zoom,
+            -($pos->y - $size->y/2) * ($zoom - 1) / $self->_zoom,
+        );
+        $self->_dirty(1);
         $self->Refresh;
     });
-    EVT_MOUSE_EVENTS($self, sub {
-        my ($self, $e) = @_;
+    EVT_MOUSE_EVENTS($self, \&mouse_event);
+    
+    return $self;
+}
+
+sub mouse_event {
+    my ($self, $e) = @_;
+    
+    my $pos = Slic3r::Pointf->new($e->GetPositionXY);
+    if ($e->LeftDClick) {
+        $self->on_double_click->()
+            if $self->on_double_click;
+    } elsif ($e->LeftDown || $e->RightDown) {
+        # If user pressed left or right button we first check whether this happened
+        # on a volume or not.
+        my $volume_idx = first { $self->volumes->[$_]->hover } 0..$#{$self->volumes};
+        $volume_idx //= -1;
         
-        my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-        if ($e->LeftDClick) {
-            $self->on_double_click->()
-                if $self->on_double_click;
-        } elsif ($e->LeftDown || $e->RightDown) {
-            my $volume_idx = first { $self->volumes->[$_]->hover } 0..$#{$self->volumes};
-            $volume_idx //= -1;
-            
-            # select volume in this 3D canvas
+        # select volume in this 3D canvas
+        if ($self->enable_picking) {
             $self->deselect_volumes;
             $self->select_volume($volume_idx);
             $self->Refresh;
-            
-            # propagate event through callback
-            $self->on_select->($volume_idx)
-                if $self->on_select;
-            
-            if ($volume_idx != -1) {
-                if ($e->LeftDown && $self->enable_moving) {
-                    $self->_drag_volume_idx($volume_idx);
-                    $self->_drag_start_pos($self->mouse_to_3d(@$pos));
-                } elsif ($e->RightDown) {
-                    # if right clicking on volume, propagate event through callback
-                    $self->on_right_click->($e->GetPosition)
-                        if $self->on_right_click;
-                }
-            }
-        } elsif ($e->Dragging && $e->LeftIsDown && defined($self->_drag_volume_idx)) {
-            # get volume being dragged
-            my $volume = $self->volumes->[$self->_drag_volume_idx];
-            
-            # get new position and calculate the move vector
-            my $cur_pos = $self->mouse_to_3d(@$pos);
-            my $vector = $self->_drag_start_pos->vector_to($cur_pos);
-            
-            # apply new temporary volume origin and ignore Z
-            $volume->origin->set_x(-$vector->x);
-            $volume->origin->set_y(-$vector->y);  #))
-            $self->Refresh;
-        } elsif ($e->Dragging) {
-            my $volume_idx = first { $self->volumes->[$_]->{hover} } 0..$#{$self->volumes};
-            $volume_idx //= -1;
-            
-            if ($e->LeftIsDown && $volume_idx == -1) {
-                # if dragging over blank area with left button, rotate
-                $self->handle_rotation($e);
-            } elsif ($e->RightIsDown && $volume_idx == -1) {
-                # if dragging over blank area with right button, translate
-                $self->handle_translation($e);
-            }
-        } elsif ($e->LeftUp || $e->RightUp) {
-            $self->initpos(undef);
-            
-            if ($self->on_instance_moved && defined $self->_drag_volume_idx) {
-                my $volume = $self->volumes->[$self->_drag_volume_idx];
-                $self->on_instance_moved($self->_drag_volume_idx, $volume->instance_idx);
-            }
-            $self->_drag_volume_idx(undef);
-            $self->_drag_start_pos(undef);
-        } elsif ($e->Moving) {
-            $self->_mouse_pos($pos);
-            $self->Refresh;
-        } else {
-            $e->Skip();
         }
-    });
-    
-    return $self;
+        
+        # propagate event through callback
+        $self->on_select->($volume_idx)
+            if $self->on_select;
+        
+        if ($volume_idx != -1) {
+            if ($e->LeftDown && $self->enable_moving) {
+                $self->_drag_volume_idx($volume_idx);
+                $self->_drag_start_pos($self->mouse_to_3d(@$pos));
+            } elsif ($e->RightDown) {
+                # if right clicking on volume, propagate event through callback
+                $self->on_right_click->($e->GetPosition)
+                    if $self->on_right_click;
+            }
+        }
+    } elsif ($e->Dragging && $e->LeftIsDown && defined($self->_drag_volume_idx)) {
+        # get volume being dragged
+        my $volume = $self->volumes->[$self->_drag_volume_idx];
+        
+        # get new position and calculate the move vector
+        my $cur_pos = $self->mouse_to_3d(@$pos);
+        my $vector = $self->_drag_start_pos->vector_to($cur_pos);
+        
+        # apply new temporary volume origin and ignore Z
+        $volume->origin->set_x(-$vector->x);
+        $volume->origin->set_y(-$vector->y);  #))
+        $self->Refresh;
+    } elsif ($e->Dragging) {
+        my $volume_idx = first { $self->volumes->[$_]->hover } 0..$#{$self->volumes};
+        $volume_idx //= -1;
+        
+        if ($e->LeftIsDown && $volume_idx == -1) {
+            # if dragging over blank area with left button, rotate
+            if (defined $self->_drag_start_pos) {
+                my $orig = $self->_drag_start_pos;
+                if (TURNTABLE_MODE) {
+                    $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
+                    $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
+                } else {
+                    my $size = $self->GetClientSize;
+                    my @quat = trackball(
+                        $orig->x / ($size->width / 2) - 1,
+                        1 - $orig->y / ($size->height / 2),       #/
+                        $pos->x / ($size->width / 2) - 1,
+                        1 - $pos->y / ($size->height / 2),        #/
+                    );
+                    $self->_quat(mulquats($self->_quat, \@quat));
+                }
+                $self->Refresh;
+            }
+            $self->_drag_start_pos($pos);
+        } elsif ($e->RightIsDown && $volume_idx == -1) {
+            # if dragging over blank area with right button, translate
+            if (defined $self->_drag_start_pos) {
+                my $orig = $self->_drag_start_pos;
+                glMatrixMode(GL_MODELVIEW);
+                $self->_camera_target->translate(
+                    ($pos->x - $orig->x) / $self->_zoom,
+                    ($orig->y - $pos->y) / $self->_zoom,  #- (converts to upwards Y)
+                );
+                $self->Refresh;
+            }
+            $self->_drag_start_pos($pos);
+        }
+    } elsif ($e->LeftUp || $e->RightUp) {
+        $self->_drag_start_pos(undef);
+        
+        if ($self->on_instance_moved && defined $self->_drag_volume_idx) {
+            my $volume = $self->volumes->[$self->_drag_volume_idx];
+            $self->on_instance_moved($self->_drag_volume_idx, $volume->instance_idx);
+        }
+        $self->_drag_volume_idx(undef);
+        $self->_drag_start_pos(undef);
+    } elsif ($e->Moving) {
+        $self->_mouse_pos($pos);
+        $self->Refresh;
+    } else {
+        $e->Skip();
+    }
 }
 
 sub reset_objects {
     my ($self) = @_;
     
     $self->volumes([]);
-    $self->dirty(1);
+    $self->_dirty(1);
 }
 
 # this method accepts a Slic3r::BoudingBox3f object
@@ -169,7 +219,22 @@ sub set_bounding_box {
     my ($self, $bb) = @_;
     
     $self->object_bounding_box($bb);
-    $self->dirty(1);
+    $self->zoom_to_bounding_box;
+    $self->_dirty(1);
+}
+
+sub zoom_to_bounding_box {
+    my ($self) = @_;
+    
+    # calculate the zoom factor needed to adjust viewport to
+    # bounding box
+    my $max_size = max(@{$self->object_bounding_box->size}) * sqrt(2);
+    my $min_viewport_size = min($self->GetSizeWH);
+    $self->_zoom($min_viewport_size / $max_size / 1.3);
+    
+    # center view around bounding box center
+    $self->_camera_target->set_x(0);
+    $self->_camera_target->set_y(0);
 }
 
 sub set_auto_bed_shape {
@@ -414,73 +479,17 @@ sub mulquats {
             @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
 }
 
-sub handle_rotation {
-    my ($self, $e) = @_;
-
-    if (not defined $self->initpos) {
-        $self->initpos($e->GetPosition());
-    } else {
-        my $orig = $self->initpos;
-        my $new = $e->GetPosition();
-        my $size = $self->GetClientSize();
-        if (TURNTABLE_MODE) {
-            $self->sphi($self->sphi + ($new->x - $orig->x)*TRACKBALLSIZE);
-            $self->stheta($self->stheta + ($new->y - $orig->y)*TRACKBALLSIZE);        #-
-        } else {
-            my @quat = trackball($orig->x / ($size->width / 2) - 1,
-                            1 - $orig->y / ($size->height / 2),       #/
-                            $new->x / ($size->width / 2) - 1,
-                            1 - $new->y / ($size->height / 2),        #/
-                            );
-            $self->quat(mulquats($self->quat, \@quat));
-        }
-        $self->initpos($new);
-        $self->Refresh;
-    }
-}
-
-sub handle_translation {
-    my ($self, $e) = @_;
-
-    if (not defined $self->initpos) {
-        $self->initpos($e->GetPosition());
-    } else {
-        my $new = $e->GetPosition();
-        my $orig = $self->initpos;
-        my $orig3d = $self->mouse_to_3d($orig->x, $orig->y);             #)()
-        my $new3d = $self->mouse_to_3d($new->x, $new->y);                #)()
-        glTranslatef($new3d->x - $orig3d->x, $new3d->y - $orig3d->y, 0); #--
-        $self->initpos($new);
-        $self->Refresh;
-    }
-}
-
 sub mouse_to_3d {
     my ($self, $x, $y) = @_;
 
     my @viewport    = glGetIntegerv_p(GL_VIEWPORT);             # 4 items
     my @mview       = glGetDoublev_p(GL_MODELVIEW_MATRIX);      # 16 items
     my @proj        = glGetDoublev_p(GL_PROJECTION_MATRIX);     # 16 items
-
-    my @projected = gluUnProject_p($x, $viewport[3] - $y, 1.0, @mview, @proj, @viewport);
+    
+    $y = $viewport[3] - $y;
+    my $z = glReadPixels_p($x, $y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT);
+    my @projected = gluUnProject_p($x, $y, $z, @mview, @proj, @viewport);
     return Slic3r::Pointf3->new(@projected);
-}
-
-sub ZoomTo {
-    my ($self, $factor, $tox, $toy) =  @_;
-    
-    return if !$self->init;
-    glTranslatef($tox, $toy, 0);
-    glMatrixMode(GL_MODELVIEW);
-    $self->Zoom($factor);
-    glTranslatef(-$tox, -$toy, 0);
-}
-
-sub Zoom {
-    my ($self, $factor) =  @_;
-    
-    glMatrixMode(GL_MODELVIEW);
-    glScalef($factor, $factor, 1);
 }
 
 sub GetContext {
@@ -517,11 +526,14 @@ sub Resize {
     my ($self, $x, $y) = @_;
  
     return unless $self->GetContext;
-    $self->dirty(0);
+    $self->_dirty(0);
  
     $self->SetCurrent($self->GetContext);
     glViewport(0, 0, $x, $y);
  
+    $x /= $self->_zoom;
+    $y /= $self->_zoom;
+    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(
@@ -594,15 +606,18 @@ sub Render {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+    glLoadIdentity();
     
     my $bb = $self->object_bounding_box;
     my $object_size = $bb->size;
-    glTranslatef(0, 0, -max(@$object_size[0..1]));
-    my @rotmat = quat_to_rotmatrix($self->quat);
-    glMultMatrixd_p(@rotmat[0..15]);
-    glRotatef($self->stheta, 1, 0, 0);
-    glRotatef($self->sphi, 0, 0, 1);
+    glTranslatef(@{ $self->_camera_target }, 0);
+    if (TURNTABLE_MODE) {
+        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
+        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+    } else {
+        my @rotmat = quat_to_rotmatrix($self->quat);
+        glMultMatrixd_p(@rotmat[0..15]);
+    }
     
     # center everything around 0,0 since that's where we're looking at (glOrtho())
     my $center = $bb->center;
@@ -617,7 +632,7 @@ sub Render {
         if (my $pos = $self->_mouse_pos) {
             my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
             my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
-            $_->{hover} = 0 for @{$self->volumes};
+            $_->hover(0) for @{$self->volumes};
             if ($volume_idx <= $#{$self->volumes}) {
                 $self->volumes->[$volume_idx]->hover(1);
                 $self->on_hover->($volume_idx) if $self->on_hover;
@@ -703,7 +718,6 @@ sub Render {
     
     glEnable(GL_LIGHTING);
     
-    glPopMatrix();
     glFlush();
  
     $self->SwapBuffers();
@@ -719,6 +733,7 @@ sub draw_volumes {
     
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $volume = $self->volumes->[$volume_idx];
+        glPushMatrix();
         glTranslatef(@{$volume->origin->negative});
         
         glVertexPointer_p(3, $volume->verts);
@@ -739,7 +754,7 @@ sub draw_volumes {
         }
         glDrawArrays(GL_TRIANGLES, 0, $volume->verts->elements / 3);
         
-        glTranslatef(@{$volume->origin});
+        glPopMatrix();
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);

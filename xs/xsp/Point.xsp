@@ -101,6 +101,10 @@ Point::coincides_with(point_sv)
     void scale(double factor);
     void rotate(double angle, Pointf* center)
         %code{% THIS->rotate(angle, *center); %};
+    Clone<Pointf> negative()
+        %code{% RETVAL = THIS->negative(); %};
+    Clone<Pointf> vector_to(Pointf* point)
+        %code{% RETVAL = THIS->vector_to(*point); %};
 };
 
 %name{Slic3r::Pointf3} class Pointf3 {

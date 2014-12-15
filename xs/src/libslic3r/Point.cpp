@@ -299,6 +299,18 @@ Pointf::rotate(double angle, const Pointf &center)
     this->y = center.y + cos(angle) * (cur_y - center.y) + sin(angle) * (cur_x - center.x);
 }
 
+Pointf
+Pointf::negative() const
+{
+    return Pointf(-this->x, -this->y);
+}
+
+Vectorf
+Pointf::vector_to(const Pointf &point) const
+{
+    return Vectorf(point.x - this->x, point.y - this->y);
+}
+
 #ifdef SLIC3RXS
 
 REGISTER_CLASS(Pointf, "Pointf");
