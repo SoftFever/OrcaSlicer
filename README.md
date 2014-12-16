@@ -351,11 +351,11 @@ The author of the Silk icon set is Mark James.
         --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
                             (can be specified multiple times, default: 0x0)
         --perimeter-extruder
-                            Extruder to use for perimeters (1+, default: 1)
+                            Extruder to use for perimeters and brim (1+, default: 1)
         --infill-extruder   Extruder to use for infill (1+, default: 1)
         --solid-infill-extruder   Extruder to use for solid infill (1+, default: 1)
         --support-material-extruder
-                            Extruder to use for support material (1+, default: 1)
+                            Extruder to use for support material, raft and skirt (1+, default: 1)
         --support-material-interface-extruder
                             Extruder to use for support material interface (1+, default: 1)
                             --ooze-prevention   Drop temperature and park extruders outside a full skirt for automatic wiping

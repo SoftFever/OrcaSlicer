@@ -188,6 +188,7 @@ class Print
     BoundingBox bounding_box() const;
     BoundingBox total_bounding_box() const;
     double skirt_first_layer_height() const;
+    Flow brim_flow() const;
     Flow skirt_flow() const;
     
     std::set<size_t> extruders() const;

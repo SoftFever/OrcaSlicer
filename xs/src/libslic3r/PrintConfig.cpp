@@ -529,7 +529,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_extruder"].type = coInt;
     Options["perimeter_extruder"].label = "Perimeter extruder";
     Options["perimeter_extruder"].category = "Extruders";
-    Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters. First extruder is 1.";
+    Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters and brim. First extruder is 1.";
     Options["perimeter_extruder"].cli = "perimeter-extruder=i";
     Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
     Options["perimeter_extruder"].min = 1;
@@ -781,7 +781,7 @@ PrintConfigDef::build_def() {
     Options["support_material_extruder"].type = coInt;
     Options["support_material_extruder"].label = "Support material extruder";
     Options["support_material_extruder"].category = "Extruders";
-    Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
+    Options["support_material_extruder"].tooltip = "The extruder to use when printing support material, raft and skirt.";
     Options["support_material_extruder"].cli = "support-material-extruder=i";
     Options["support_material_extruder"].min = 1;
 

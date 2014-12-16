@@ -669,11 +669,12 @@ Print::total_bounding_box() const
     }
     
     // consider brim and skirt
-    Flow skirt_flow = this->skirt_flow();
     if (this->config.brim_width.value > 0) {
-        extra = std::max(extra, this->config.brim_width.value + skirt_flow.width/2);
+        Flow brim_flow = this->brim_flow();
+        extra = std::max(extra, this->config.brim_width.value + brim_flow.width/2);
     }
     if (this->config.skirts.value > 0) {
+        Flow skirt_flow = this->skirt_flow();
         extra = std::max(
             extra,
             this->config.brim_width.value
@@ -697,11 +698,36 @@ Print::skirt_first_layer_height() const
 }
 
 Flow
+Print::brim_flow() const
+{
+    ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
+    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
+    
+    /* We currently use a random region's perimeter extruder.
+       While this works for most cases, we should probably consider all of the perimeter
+       extruders and take the one with, say, the smallest index.
+       The same logic should be applied to the code that selects the extruder during G-code
+       generation as well. */
+    return Flow::new_from_config_width(
+        frPerimeter,
+        width, 
+        this->config.nozzle_diameter.get_at(this->regions.front()->config.perimeter_extruder-1),
+        this->skirt_first_layer_height(),
+        0
+    );
+}
+
+Flow
 Print::skirt_flow() const
 {
     ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
     if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
     
+    /* We currently use a random object's support material extruder.
+       While this works for most cases, we should probably consider all of the support material
+       extruders and take the one with, say, the smallest index;
+       The same logic should be applied to the code that selects the extruder during G-code
+       generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
         width, 

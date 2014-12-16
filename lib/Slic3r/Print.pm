@@ -332,9 +332,9 @@ sub make_brim {
     }
     $self->status_cb->(88, "Generating brim");
     
-    # brim is only printed on first layer and uses support material extruder
+    # brim is only printed on first layer and uses perimeter extruder
     my $first_layer_height = $self->skirt_first_layer_height;
-    my $flow = $self->skirt_flow;
+    my $flow = $self->brim_flow;
     my $mm3_per_mm = $flow->mm3_per_mm;
     
     my $grow_distance = $flow->scaled_width / 2;
