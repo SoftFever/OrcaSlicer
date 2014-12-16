@@ -280,9 +280,9 @@ sub make_skirt {
             Slic3r::ExtrusionPath->new(
                 polyline        => Slic3r::Polygon->new(@$loop)->split_at_first_point,
                 role            => EXTR_ROLE_SKIRT,
-                mm3_per_mm      => $mm3_per_mm,
+                mm3_per_mm      => $mm3_per_mm,         # this will be overridden at G-code export time
                 width           => $flow->width,
-                height          => $first_layer_height,
+                height          => $first_layer_height, # this will be overridden at G-code export time
             ),
         ));
         

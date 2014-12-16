@@ -314,6 +314,8 @@ sub process_layer {
         $gcode .= $self->_gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
         if ($layer->id < $self->print->config->skirt_height || $self->print->config->skirt_height == -1) {
+            my $skirt_flow = $self->print->skirt_flow;
+            
             # distribute skirt loops across all extruders
             my @skirt_loops = @{$self->print->skirt};
             for my $i (0 .. $#skirt_loops) {
@@ -323,7 +325,20 @@ sub process_layer {
                 my $extruder_id = $extruder_ids[($i/@extruder_ids) % @extruder_ids];
                 $gcode .= $self->_gcodegen->set_extruder($extruder_id)
                     if $layer->id == 0;
-                $gcode .= $self->_gcodegen->extrude_loop($skirt_loops[$i], 'skirt', $object->config->support_material_speed);
+                
+                # adjust flow according to this layer's layer height
+                my $loop = $skirt_loops[$i]->clone;
+                {
+                    my $layer_skirt_flow = $skirt_flow->clone;
+                    $layer_skirt_flow->set_height($layer->height);
+                    my $mm3_per_mm = $layer_skirt_flow->mm3_per_mm;
+                    foreach my $path (@$loop) {
+                        $path->height($layer->height);
+                        $path->mm3_per_mm($mm3_per_mm);
+                    }
+                }
+                
+                $gcode .= $self->_gcodegen->extrude_loop($loop, 'skirt', $object->config->support_material_speed);
             }
         }
         $self->_skirt_done->{$layer->print_z} = 1;
