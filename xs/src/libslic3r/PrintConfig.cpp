@@ -694,6 +694,13 @@ PrintConfigDef::build_def() {
     Options["solid_infill_below_area"].cli = "solid-infill-below-area=f";
     Options["solid_infill_below_area"].min = 0;
 
+    Options["solid_infill_extruder"].type = coInt;
+    Options["solid_infill_extruder"].label = "Solid infill extruder";
+    Options["solid_infill_extruder"].category = "Extruders";
+    Options["solid_infill_extruder"].tooltip = "The extruder to use when printing solid infill.";
+    Options["solid_infill_extruder"].cli = "solid-infill-extruder=i";
+    Options["solid_infill_extruder"].min = 1;
+
     Options["solid_infill_every_layers"].type = coInt;
     Options["solid_infill_every_layers"].label = "Solid infill every";
     Options["solid_infill_every_layers"].category = "Infill";

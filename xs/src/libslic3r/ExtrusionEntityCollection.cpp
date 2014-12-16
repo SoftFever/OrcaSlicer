@@ -5,7 +5,7 @@
 namespace Slic3r {
 
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionEntityCollection& collection)
-    : no_sort(collection.no_sort), orig_indices(collection.orig_indices)
+    : no_sort(collection.no_sort), role(collection.role), orig_indices(collection.orig_indices)
 {
     this->entities.reserve(collection.entities.size());
     for (ExtrusionEntitiesPtr::const_iterator it = collection.entities.begin(); it != collection.entities.end(); ++it)
@@ -23,6 +23,7 @@ void
 ExtrusionEntityCollection::swap (ExtrusionEntityCollection &c)
 {
     std::swap(this->entities, c.entities);
+    std::swap(this->role, c.role);
     std::swap(this->orig_indices, c.orig_indices);
     std::swap(this->no_sort, c.no_sort);
 }

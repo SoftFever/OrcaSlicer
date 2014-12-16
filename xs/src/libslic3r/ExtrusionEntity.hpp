@@ -64,7 +64,8 @@ class ExtrusionPath : public ExtrusionEntity
     void simplify(double tolerance);
     double length() const;
     bool is_perimeter() const;
-    bool is_fill() const;
+    bool is_infill() const;
+    bool is_solid_infill() const;
     bool is_bridge() const;
     std::string gcode(Extruder* extruder, double e, double F,
         double xofs, double yofs, std::string extrusion_axis,

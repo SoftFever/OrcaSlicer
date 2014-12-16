@@ -1004,7 +1004,10 @@ sub combine_infill {
         next unless $every > 1 && $region->config->fill_density > 0;
         
         # limit the number of combined layers to the maximum height allowed by this regions' nozzle
-        my $nozzle_diameter = $self->print->config->get_at('nozzle_diameter', $region->config->infill_extruder-1);
+        my $nozzle_diameter = min(
+            $self->print->config->get_at('nozzle_diameter', $region->config->infill_extruder-1),
+            $self->print->config->get_at('nozzle_diameter', $region->config->solid_infill_extruder-1),
+        );
         
         # define the combinations
         my %combine = ();   # layer_idx => number of additional combined lower layers

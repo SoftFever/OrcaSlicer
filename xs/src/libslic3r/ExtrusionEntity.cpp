@@ -76,9 +76,18 @@ ExtrusionPath::is_perimeter() const
 }
 
 bool
-ExtrusionPath::is_fill() const
+ExtrusionPath::is_infill() const
 {
-    return this->role == erInternalInfill
+    return this->role == erBridgeInfill
+        || this->role == erInternalInfill
+        || this->role == erSolidInfill
+        || this->role == erTopSolidInfill;
+}
+
+bool
+ExtrusionPath::is_solid_infill() const
+{
+    return this->role == erBridgeInfill
         || this->role == erSolidInfill
         || this->role == erTopSolidInfill;
 }

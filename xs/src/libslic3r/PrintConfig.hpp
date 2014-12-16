@@ -93,6 +93,10 @@ class DynamicPrintConfig : public DynamicConfig
                     this->option("support_material_interface_extruder", true)->setInt(extruder);
             }
         }
+        
+        if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
+            this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
+        
         if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
             {
                 // this should be actually done only on the spiral layers instead of all
@@ -225,6 +229,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 perimeters;
     ConfigOptionFloatOrPercent      small_perimeter_speed;
     ConfigOptionFloat               solid_infill_below_area;
+    ConfigOptionInt                 solid_infill_extruder;
     ConfigOptionFloatOrPercent      solid_infill_extrusion_width;
     ConfigOptionInt                 solid_infill_every_layers;
     ConfigOptionFloatOrPercent      solid_infill_speed;
@@ -259,6 +264,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         this->perimeter_extrusion_width.percent                  = false;
         this->perimeter_speed.value                              = 30;
         this->perimeters.value                                   = 3;
+        this->solid_infill_extruder.value                        = 1;
         this->small_perimeter_speed.value                        = 30;
         this->small_perimeter_speed.percent                      = false;
         this->solid_infill_below_area.value                      = 70;
@@ -299,6 +305,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         if (opt_key == "perimeters")                                 return &this->perimeters;
         if (opt_key == "small_perimeter_speed")                      return &this->small_perimeter_speed;
         if (opt_key == "solid_infill_below_area")                    return &this->solid_infill_below_area;
+        if (opt_key == "solid_infill_extruder")                      return &this->solid_infill_extruder;
         if (opt_key == "solid_infill_extrusion_width")               return &this->solid_infill_extrusion_width;
         if (opt_key == "solid_infill_every_layers")                  return &this->solid_infill_every_layers;
         if (opt_key == "solid_infill_speed")                         return &this->solid_infill_speed;

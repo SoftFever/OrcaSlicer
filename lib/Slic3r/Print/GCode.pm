@@ -380,54 +380,87 @@ sub process_layer {
             }
         }
         
-        # tweak region ordering to save toolchanges
-        my @region_ids = 0 .. ($self->print->region_count-1);
-        if ($self->_gcodegen->writer->multiple_extruders) {
-            my $last_extruder_id = $self->_gcodegen->writer->extruder->id;
-            my $best_region_id = first { $self->print->regions->[$_]->config->perimeter_extruder-1 == $last_extruder_id } @region_ids;
-            @region_ids = ($best_region_id, grep $_ != $best_region_id, @region_ids) if $best_region_id;
+        # We now define a strategy for building perimeters and fills. The separation 
+        # between regions doesn't matter in terms of printing order, as we follow 
+        # another logic instead:
+        # - we group all extrusions by extruder so that we minimize toolchanges
+        # - we start from the last used extruder
+        # - for each extruder, we group extrusions by island
+        # - for each island, we extrude perimeters first, unless user set the infill_first
+        #   option
+        
+        # group extrusions by extruder and then by island
+        my %by_extruder = ();  # extruder_id => [ { perimeters => \@perimeters, infill => \@infill } ]
+        
+        foreach my $region_id (0..($self->print->region_count-1)) {
+            my $layerm = $layer->regions->[$region_id] or next;
+            my $region = $self->print->get_region($region_id);
+            
+            # process perimeters
+            {
+                my $extruder_id = $region->config->perimeter_extruder-1;
+                foreach my $perimeter (@{$layerm->perimeters}) {
+                    # init by_extruder item only if we actually use the extruder
+                    $by_extruder{$extruder_id} //= [];
+                    
+                    # $perimeter is an ExtrusionLoop or ExtrusionPath object
+                    for my $i (0 .. $#{$layer->slices}) {
+                        if ($i == $#{$layer->slices}
+                            || $layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {
+                            $by_extruder{$extruder_id}[$i] //= { perimeters => {} };
+                            $by_extruder{$extruder_id}[$i]{perimeters}{$region_id} //= [];
+                            push @{ $by_extruder{$extruder_id}[$i]{perimeters}{$region_id} }, $perimeter;
+                            last;
+                        }
+                    }
+                }
+            }
+            
+            # process infill
+            {
+                foreach my $fill (@{$layerm->fills}) {
+                    # init by_extruder item only if we actually use the extruder
+                    my $extruder_id = $fill->[0]->is_solid_infill
+                        ? $region->config->solid_infill_extruder-1
+                        : $region->config->infill_extruder-1;
+                    
+                    $by_extruder{$extruder_id} //= [];
+                    
+                    # $fill is an ExtrusionPath::Collection object
+                    for my $i (0 .. $#{$layer->slices}) {
+                        if ($i == $#{$layer->slices}
+                            || $layer->slices->[$i]->contour->contains_point($fill->first_point)) {
+                            $by_extruder{$extruder_id}[$i] //= { infill => {} };
+                            $by_extruder{$extruder_id}[$i]{infill}{$region_id} //= [];
+                            push @{ $by_extruder{$extruder_id}[$i]{infill}{$region_id} }, $fill;
+                            last;
+                        }
+                    }
+                }
+            }
         }
         
-        foreach my $region_id (@region_ids) {
-            my $layerm = $layer->regions->[$region_id] or next;
-            my $region = $self->print->regions->[$region_id];
-            $self->_gcodegen->config->apply_region_config($region->config);
-            
-            # group extrusions by island
-            my @perimeters_by_island = map [], 0..$#{$layer->slices};   # slice idx => @perimeters
-            my @infill_by_island     = map [], 0..$#{$layer->slices};   # slice idx => @fills
-            
-            # NOTE: we assume $layer->slices was already ordered with chained_path()!
-            
-            PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
-                for my $i (0 .. $#{$layer->slices}-1) {
-                    if ($layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {
-                        push @{ $perimeters_by_island[$i] }, $perimeter;
-                        next PERIMETER;
-                    }
-                }
-                push @{ $perimeters_by_island[-1] }, $perimeter; # optimization
+        # tweak extruder ordering to save toolchanges
+        my @extruders = sort keys %by_extruder;
+        if (@extruders > 1) {
+            my $last_extruder_id = $self->_gcodegen->writer->extruder->id;
+            if (exists $by_extruder{$last_extruder_id}) {
+                @extruders = (
+                    $last_extruder_id,
+                    grep $_ != $last_extruder_id, @extruders,
+                );
             }
-            FILL: foreach my $fill (@{$layerm->fills}) {
-                for my $i (0 .. $#{$layer->slices}-1) {
-                    if ($layer->slices->[$i]->contour->contains_point($fill->first_point)) {
-                        push @{ $infill_by_island[$i] }, $fill;
-                        next FILL;
-                    }
-                }
-                push @{ $infill_by_island[-1] }, $fill; # optimization
-            }
-            
-            for my $i (0 .. $#{$layer->slices}) {
-                # give priority to infill if we were already using its extruder and it wouldn't
-                # be good for perimeters
-                if ($self->print->config->infill_first
-                    || ($self->_gcodegen->writer->multiple_extruders && $region->config->infill_extruder-1 == $self->_gcodegen->writer->extruder->id && $region->config->infill_extruder != $region->config->perimeter_extruder)) {
-                    $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
-                    $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
+        }
+        
+        foreach my $extruder_id (@extruders) {
+            $gcode .= $self->_gcodegen->set_extruder($extruder_id);
+            foreach my $island (@{ $by_extruder{$extruder_id} }) {
+                if ($self->print->config->infill_first) {
+                    $gcode .= $self->_extrude_infill($island->{infill} // {});
+                    $gcode .= $self->_extrude_perimeters($island->{perimeters} // {});
                 } else {
-                    $gcode .= $self->_extrude_perimeters($perimeters_by_island[$i], $region);
-                    $gcode .= $self->_extrude_infill($infill_by_island[$i], $region);
+                    $gcode .= $self->_extrude_perimeters($island->{perimeters} // {});
+                    $gcode .= $self->_extrude_infill($island->{infill} // {});
                 }
             }
         }
@@ -452,31 +485,30 @@ sub process_layer {
 }
 
 sub _extrude_perimeters {
-    my $self = shift;
-    my ($island_perimeters, $region) = @_;
-    
-    return "" if !@$island_perimeters;
+    my ($self, $entities_by_region) = @_;
     
     my $gcode = "";
-    $gcode .= $self->_gcodegen->set_extruder($region->config->perimeter_extruder-1);
-    $gcode .= $self->_gcodegen->extrude($_, 'perimeter') for @$island_perimeters;
+    foreach my $region_id (sort keys %$entities_by_region) {
+        $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
+        $gcode .= $self->_gcodegen->extrude($_, 'perimeter')
+            for @{ $entities_by_region->{$region_id} };
+    }
     return $gcode;
 }
 
 sub _extrude_infill {
-    my $self = shift;
-    my ($island_fills, $region) = @_;
-    
-    return "" if !@$island_fills;
+    my ($self, $entities_by_region) = @_;
     
     my $gcode = "";
-    $gcode .= $self->_gcodegen->set_extruder($region->config->infill_extruder-1);
-    for my $fill (@$island_fills) {
-        if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
-            $gcode .= $self->_gcodegen->extrude($_, 'fill') 
-                for @{$fill->chained_path_from($self->_gcodegen->last_pos, 0)};
-        } else {
-            $gcode .= $self->_gcodegen->extrude($fill, 'fill') ;
+    foreach my $region_id (sort keys %$entities_by_region) {
+        $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
+        for my $fill (@{ $entities_by_region->{$region_id} }) {
+            if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
+                $gcode .= $self->_gcodegen->extrude($_, 'infill') 
+                    for @{$fill->chained_path_from($self->_gcodegen->last_pos, 0)};
+            } else {
+                $gcode .= $self->_gcodegen->extrude($fill, 'infill') ;
+            }
         }
     }
     return $gcode;

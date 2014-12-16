@@ -23,7 +23,8 @@
     void simplify(double tolerance);
     double length();
     bool is_perimeter();
-    bool is_fill();
+    bool is_infill();
+    bool is_solid_infill();
     bool is_bridge();
     std::string gcode(Extruder* extruder, double e, double F,
         double xofs, double yofs, std::string extrusion_axis,

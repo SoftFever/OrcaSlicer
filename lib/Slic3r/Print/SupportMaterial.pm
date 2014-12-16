@@ -262,7 +262,7 @@ sub contact_area {
         {
             # get the average nozzle diameter used on this layer
             my @nozzle_diameters = map $self->print_config->get_at('nozzle_diameter', $_),
-                map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1 }
+                map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1, $_->config->solid_infill_extruder-1 }
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             

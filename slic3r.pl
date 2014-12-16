@@ -505,6 +505,7 @@ $j
     --perimeter-extruder
                         Extruder to use for perimeters (1+, default: $config->{perimeter_extruder})
     --infill-extruder   Extruder to use for infill (1+, default: $config->{infill_extruder})
+    --solid-infill-extruder   Extruder to use for solid infill (1+, default: $config->{solid_infill_extruder})
     --support-material-extruder
                         Extruder to use for support material (1+, default: $config->{support_material_extruder})
     --support-material-interface-extruder

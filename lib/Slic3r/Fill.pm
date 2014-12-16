@@ -225,28 +225,32 @@ sub make_fill {
         my $mm3_per_mm = $flow->mm3_per_mm;
         
         # save into layer
-        push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
-        $collection->no_sort($params->{no_sort});
+        {
+            my $role = $is_bridge ? EXTR_ROLE_BRIDGE
+                : $is_solid ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
+                : EXTR_ROLE_FILL;
+    
+            my $extrusion_height = $is_bridge ? $flow->width : $h;
+            
+            push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new($role);
+            $collection->no_sort($params->{no_sort});
+            $collection->append(
+                map Slic3r::ExtrusionPath->new(
+                    polyline    => $_,
+                    role        => $role,
+                    mm3_per_mm  => $mm3_per_mm,
+                    width       => $flow->width,
+                    height      => $extrusion_height,
+                ), @polylines,
+            );
+        }
         
-        $collection->append(
-            map Slic3r::ExtrusionPath->new(
-                polyline => $_,
-                role => ($is_bridge
-                        ? EXTR_ROLE_BRIDGE
-                        : $is_solid
-                            ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
-                            : EXTR_ROLE_FILL),
-                mm3_per_mm  => $mm3_per_mm,
-                width       => $flow->width,
-                height      => ($is_bridge ? $flow->width : $h),
-            ), @polylines,
-        );
         push @fills_ordering_points, $polylines[0]->first_point;
     }
     
     # add thin fill regions
     foreach my $thin_fill (@{$layerm->thin_fills}) {
-        push @fills, Slic3r::ExtrusionPath::Collection->new($thin_fill);
+        push @fills, Slic3r::ExtrusionPath::Collection->new($thin_fill->role, $thin_fill);
         push @fills_ordering_points, $thin_fill->first_point;
     }
     

@@ -255,6 +255,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "top_solid_layers"
             || *opt_key == "solid_infill_below_area"
             || *opt_key == "infill_extruder"
+            || *opt_key == "solid_infill_extruder"
             || *opt_key == "infill_extrusion_width") {
             steps.insert(posPrepareInfill);
         } else if (*opt_key == "external_fill_pattern"

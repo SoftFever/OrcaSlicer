@@ -454,7 +454,8 @@ sub build {
         complete_objects extruder_clearance_radius extruder_clearance_height
         gcode_comments output_filename_format
         post_process
-        perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder
+        perimeter_extruder infill_extruder solid_infill_extruder
+        support_material_extruder support_material_interface_extruder
         ooze_prevention standby_temperature_delta
         interface_shells
         extrusion_width first_layer_extrusion_width perimeter_extrusion_width 
@@ -648,6 +649,7 @@ sub build {
             my $optgroup = $page->new_optgroup('Extruders');
             $optgroup->append_single_option_line('perimeter_extruder');
             $optgroup->append_single_option_line('infill_extruder');
+            $optgroup->append_single_option_line('solid_infill_extruder');
             $optgroup->append_single_option_line('support_material_extruder');
             $optgroup->append_single_option_line('support_material_interface_extruder');
         }

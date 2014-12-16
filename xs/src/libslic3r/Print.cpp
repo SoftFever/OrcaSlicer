@@ -301,6 +301,7 @@ Print::extruders() const
     FOREACH_REGION(this, region) {
         extruders.insert((*region)->config.perimeter_extruder - 1);
         extruders.insert((*region)->config.infill_extruder - 1);
+        extruders.insert((*region)->config.solid_infill_extruder - 1);
     }
     FOREACH_OBJECT(this, object) {
         extruders.insert((*object)->config.support_material_extruder - 1);

@@ -64,9 +64,9 @@ use overload
     'fallback' => 1;
 
 sub new {
-    my ($class, @paths) = @_;
+    my ($class, $type, @paths) = @_;
     
-    my $self = $class->_new;
+    my $self = $class->_new($type);
     $self->append(@paths);
     return $self;
 }

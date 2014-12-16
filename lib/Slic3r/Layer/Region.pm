@@ -246,7 +246,7 @@ sub make_perimeters {
         my ($polynodes, $depth, $is_contour) = @_;
         
         # convert all polynodes to ExtrusionLoop objects
-        my $collection = Slic3r::ExtrusionPath::Collection->new;
+        my $collection = Slic3r::ExtrusionPath::Collection->new(EXTR_ROLE_PERIMETER);  # temporary collection
         my @children = ();
         foreach my $polynode (@$polynodes) {
             my $polygon = ($polynode->{outer} // $polynode->{hole})->clone;
@@ -303,7 +303,7 @@ sub make_perimeters {
                 # (clone because the collection gets DESTROY'ed)
                 # We allow polyline reversal because Clipper may have randomly
                 # reversed polylines during clipping.
-                my $collection = Slic3r::ExtrusionPath::Collection->new(@paths);
+                my $collection = Slic3r::ExtrusionPath::Collection->new(EXTR_ROLE_PERIMETER, @paths); # temporary collection
                 @paths = map $_->clone, @{$collection->chained_path(0)};
             } else {
                 push @paths, Slic3r::ExtrusionPath->new(

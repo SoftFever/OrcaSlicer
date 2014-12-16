@@ -353,6 +353,7 @@ The author of the Silk icon set is Mark James.
         --perimeter-extruder
                             Extruder to use for perimeters (1+, default: 1)
         --infill-extruder   Extruder to use for infill (1+, default: 1)
+        --solid-infill-extruder   Extruder to use for solid infill (1+, default: 1)
         --support-material-extruder
                             Extruder to use for support material (1+, default: 1)
         --support-material-interface-extruder

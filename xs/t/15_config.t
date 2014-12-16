@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 107;
+use Test::More tests => 108;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -180,6 +180,13 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     ok !$config->has('extruder'), 'extruder option is removed after normalize()';
     is $config->get('infill_extruder'), 2, 'undefined extruder is populated with default extruder';
     is $config->get('perimeter_extruder'), 3, 'defined extruder is not overwritten by default extruder';
+}
+
+{
+    my $config = Slic3r::Config->new;
+    $config->set('infill_extruder', 2);
+    $config->normalize;
+    is $config->get('solid_infill_extruder'), 2, 'undefined solid infill extruder is populated with infill extruder';
 }
 
 {
