@@ -85,13 +85,12 @@ sub OnInit {
         $canvas = Slic3r::GUI::PreviewCanvas->new($panel);
         $canvas->print($print);
         
-        #$canvas->set_bounding_box($print->bounding_box);
         $canvas->set_bed_shape($print->config->bed_shape);
-        $canvas->set_bounding_box($print->objects->[0]->model_object->bounding_box);
         
         foreach my $object (@{$print->objects}) {
             $canvas->load_object($object->model_object);
         }
+        $canvas->zoom_to_volumes;
     } else {
         $canvas = Slic3r::GUI::Plater::2DToolpaths->new($panel, $print);
     }
