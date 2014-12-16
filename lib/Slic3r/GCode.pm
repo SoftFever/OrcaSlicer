@@ -349,17 +349,19 @@ sub travel_to {
         ) {
         # Just perform a straight travel move without any retraction.
         $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment);
-    } elsif ($self->config->avoid_crossing_perimeters && !$self->avoid_crossing_perimeters->straight_once) {
+    } elsif ($self->config->avoid_crossing_perimeters && !$self->avoid_crossing_perimeters->disable_once) {
+        # If avoid_crossing_perimeters is enabled and the disable_once flag is not set
+        # we need to plan a multi-segment travel move inside the configuration space.
         $gcode .= $self->avoid_crossing_perimeters->travel_to($self, $point, $comment);
     } else {
-        # If avoid_crossing_perimeters is disabled or the straight_once flag is set,
+        # If avoid_crossing_perimeters is disabled or the disable_once flag is set,
         # perform a straight move with a retraction.
         $gcode .= $self->retract;
         $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment || '');
     }
     
     # Re-allow avoid_crossing_perimeters for the next travel moves
-    $self->avoid_crossing_perimeters->straight_once(0);
+    $self->avoid_crossing_perimeters->disable_once(0);
     
     return $gcode;
 }
@@ -554,10 +556,11 @@ sub wipe {
 package Slic3r::GCode::AvoidCrossingPerimeters;
 use Moo;
 
-has '_external_mp'       => (is => 'rw');
-has '_layer_mp'          => (is => 'rw');
-has 'new_object'         => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
-has 'straight_once'      => (is => 'rw', default => sub {1});   # this flag disables avoid_crossing_perimeters just for the next travel move
+has '_external_mp'          => (is => 'rw');
+has '_layer_mp'             => (is => 'rw');
+has 'use_external_mp'       => (is => 'rw', default => sub {0});
+has 'use_external_mp_once'  => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
+has 'disable_once'          => (is => 'rw', default => sub {1});   # this flag disables avoid_crossing_perimeters just for the next travel move
 
 use Slic3r::Geometry qw(scale);
 
@@ -576,11 +579,8 @@ sub travel_to {
     
     my $gcode = "";
     
-    # If avoid_crossing_perimeters is enabled and the straight_once flag is not set
-    # we need to plan a multi-segment travel move inside the configuration space.
-    if ($self->new_object) {
-        # If we're moving to a new object we need to use the external configuration space.
-        $self->new_object(0);
+    if ($self->use_external_mp || $self->use_external_mp_once) {
+        $self->use_external_mp_once(0);
         
         # represent $point in G-code coordinates
         $point = $point->clone;

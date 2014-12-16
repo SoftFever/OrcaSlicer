@@ -309,6 +309,7 @@ sub process_layer {
     if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
         && !$self->_skirt_done->{$layer->print_z}) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
+        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
         $gcode .= $self->_gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
@@ -326,21 +327,25 @@ sub process_layer {
             }
         }
         $self->_skirt_done->{$layer->print_z} = 1;
-        $self->_gcodegen->avoid_crossing_perimeters->straight_once(1);
+        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
     }
     
     # extrude brim
     if (!$self->_brim_done) {
         $gcode .= $self->_gcodegen->set_extruder($self->print->objects->[0]->config->support_material_extruder-1);
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
+        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
         $gcode .= $self->_gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
             for @{$self->print->brim};
         $self->_brim_done(1);
-        $self->_gcodegen->avoid_crossing_perimeters->straight_once(1);
+        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
     }
     
     for my $copy (@$object_copies) {
-        $self->_gcodegen->avoid_crossing_perimeters->new_object(1) if ($self->_last_obj_copy // '') ne "$copy";
+        # when starting a new object, use the external motion planner for the first travel move
+        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp_once(1) if ($self->_last_obj_copy // '') ne "$copy";
         $self->_last_obj_copy("$copy");
         
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
