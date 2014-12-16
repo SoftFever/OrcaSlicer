@@ -125,6 +125,7 @@ Point::coincides_with(point_sv)
     void set_z(double val)
         %code{% THIS->z = val; %};
     void translate(double x, double y, double z);
+    void scale(double factor);
     double distance_to(Pointf3* point)
         %code{% RETVAL = THIS->distance_to(*point); %};
     Clone<Pointf3> negative()

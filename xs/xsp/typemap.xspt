@@ -60,6 +60,9 @@
 %typemap{Line*};
 %typemap{Ref<Line>}{simple};
 %typemap{Clone<Line>}{simple};
+%typemap{Linef3*};
+%typemap{Ref<Linef3>}{simple};
+%typemap{Clone<Linef3>}{simple};
 %typemap{Polyline*};
 %typemap{Ref<Polyline>}{simple};
 %typemap{Clone<Polyline>}{simple};

@@ -66,3 +66,17 @@ Line::coincides_with(line_sv)
 
 %}
 };
+
+
+%name{Slic3r::Linef3} class Linef3 {
+    Linef3(Pointf3* a, Pointf3* b)
+        %code{% RETVAL = new Linef3(*a, *b); %};
+    ~Linef3();
+    Clone<Linef3> clone()
+        %code{% RETVAL = THIS; %};
+    Ref<Pointf3> a()
+        %code{% RETVAL = &THIS->a; %};
+    Ref<Pointf3> b()
+        %code{% RETVAL = &THIS->b; %};
+    Clone<Pointf3> intersect_plane(double z);
+};

@@ -281,6 +281,10 @@ sub new {
     });
     
     $self->{canvas}->update_bed_size;
+    if ($self->{canvas3D}) {
+        $self->{canvas3D}->update_bed_size;
+        $self->{canvas3D}->zoom_to_bed;
+    }
     $self->update;
     
     {
@@ -513,6 +517,11 @@ sub objects_loaded {
     }
     $self->arrange unless $params{no_arrange};
     $self->update;
+    
+    # zoom to objects
+    $self->{canvas3D}->zoom_to_volumes
+        if $self->{canvas3D};
+    
     $self->{list}->Update;
     $self->{list}->Select($obj_idxs->[-1], 1);
     $self->object_list_changed;
@@ -665,7 +674,6 @@ sub rotate {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->refresh_canvases;
 }
 
 sub flip {
@@ -1200,6 +1208,7 @@ sub on_config_change {
         $self->{config}->set($opt_key, $config->get($opt_key));
         if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
+            $self->{canvas3D}->update_bed_size if $self->{canvas3D};
             $self->update;
         }
     }

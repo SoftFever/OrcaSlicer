@@ -73,6 +73,10 @@ Line*                      O_OBJECT_SLIC3R
 Ref<Line>                  O_OBJECT_SLIC3R_T
 Clone<Line>                O_OBJECT_SLIC3R_T
 
+Linef3*                    O_OBJECT_SLIC3R
+Ref<Linef3>                O_OBJECT_SLIC3R_T
+Clone<Linef3>              O_OBJECT_SLIC3R_T
+
 Polyline*                  O_OBJECT_SLIC3R
 Ref<Polyline>              O_OBJECT_SLIC3R_T
 Clone<Polyline>            O_OBJECT_SLIC3R_T

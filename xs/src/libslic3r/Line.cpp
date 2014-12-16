@@ -184,4 +184,18 @@ Line::to_SV_pureperl() const {
 }
 #endif
 
+Pointf3
+Linef3::intersect_plane(double z) const
+{
+    return Pointf3(
+        this->a.x + (this->b.x - this->a.x) * (z - this->a.z) / (this->b.z - this->a.z),
+        this->a.y + (this->b.y - this->a.y) * (z - this->a.z) / (this->b.z - this->a.z),
+        z
+    );
+}
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(Linef3, "Linef3");
+#endif
+
 }

@@ -213,7 +213,6 @@ sub mouse_event {
     } elsif ($event->LeftUp) {
         $self->{on_instance_moved}->(@{ $self->{drag_object} })
             if $self->{drag_object};
-        $self->Refresh;
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);
