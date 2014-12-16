@@ -27,7 +27,6 @@ my $loop = Slic3r::ExtrusionLoop->new_from_paths(
 );
 
 my $collection = Slic3r::ExtrusionPath::Collection->new(
-    Slic3r::ExtrusionPath::EXTR_ROLE_FILL,
     $path,
 );
 isa_ok $collection, 'Slic3r::ExtrusionPath::Collection', 'collection object with items in constructor';
@@ -58,7 +57,6 @@ is scalar(@{$collection->[1]}), 1, 'appended collection was duplicated';
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(
-        Slic3r::ExtrusionPath::EXTR_ROLE_FILL,
         map Slic3r::ExtrusionPath->new(polyline => $_, role => 0, mm3_per_mm => 1),
             Slic3r::Polyline->new([0,15], [0,18], [0,20]),
             Slic3r::Polyline->new([0,10], [0,8], [0,5]),
@@ -75,7 +73,6 @@ is scalar(@{$collection->[1]}), 1, 'appended collection was duplicated';
 
 {
     my $collection = Slic3r::ExtrusionPath::Collection->new(
-        Slic3r::ExtrusionPath::EXTR_ROLE_FILL,
         map Slic3r::ExtrusionPath->new(polyline => $_, role => 0, mm3_per_mm => 1),
             Slic3r::Polyline->new([15,0], [10,0], [4,0]),
             Slic3r::Polyline->new([10,5], [15,5], [20,5]),

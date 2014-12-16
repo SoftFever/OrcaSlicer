@@ -13,9 +13,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     ExtrusionEntitiesPtr entities;
     std::vector<size_t> orig_indices;  // handy for XS
     bool no_sort;
-    ExtrusionRole role;
     ExtrusionEntityCollection(): no_sort(false) {};
-    ExtrusionEntityCollection(ExtrusionRole _role): no_sort(false), role(_role) {};
     ExtrusionEntityCollection(const ExtrusionEntityCollection &collection);
     ExtrusionEntityCollection& operator= (const ExtrusionEntityCollection &other);
     void swap (ExtrusionEntityCollection &c);

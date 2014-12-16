@@ -232,7 +232,7 @@ sub make_fill {
     
             my $extrusion_height = $is_bridge ? $flow->width : $h;
             
-            push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new($role);
+            push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
             $collection->no_sort($params->{no_sort});
             $collection->append(
                 map Slic3r::ExtrusionPath->new(
@@ -250,7 +250,7 @@ sub make_fill {
     
     # add thin fill regions
     foreach my $thin_fill (@{$layerm->thin_fills}) {
-        push @fills, Slic3r::ExtrusionPath::Collection->new($thin_fill->role, $thin_fill);
+        push @fills, Slic3r::ExtrusionPath::Collection->new($thin_fill);
         push @fills_ordering_points, $thin_fill->first_point;
     }
     
