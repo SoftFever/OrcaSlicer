@@ -220,13 +220,18 @@ sub Render {
         glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
     }
     
-    my $tess = gluNewTess();
-    gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_VERTEX,    'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
+    my $tess;
+    if (!&Wx::wxMSW) {
+        # We can't use the GLU tesselator on MSW because of an upstream bug:
+        # http://sourceforge.net/p/pogl/bugs/16/
+        $tess = gluNewTess();
+        gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_VERTEX,    'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
+    }
     
     my $skirt_drawn = 0;
     my $brim_drawn = 0;
@@ -243,13 +248,16 @@ sub Render {
                 
                 foreach my $slice (@{$layer->slices}) {
                     glColor3f(0.95, 0.95, 0.95);
-                    gluTessBeginPolygon($tess);
-                    foreach my $polygon (@$slice) {
-                        gluTessBeginContour($tess);
-                        gluTessVertex_p($tess, @$_, 0) for @$polygon;
-                        gluTessEndContour($tess);
+                    
+                    if ($tess) {
+                        gluTessBeginPolygon($tess);
+                        foreach my $polygon (@$slice) {
+                            gluTessBeginContour($tess);
+                            gluTessVertex_p($tess, @$_, 0) for @$polygon;
+                            gluTessEndContour($tess);
+                        }
+                        gluTessEndPolygon($tess);
                     }
-                    gluTessEndPolygon($tess);
                     
                     glColor3f(0.9, 0.9, 0.9);
                     foreach my $polygon (@$slice) {
@@ -300,7 +308,7 @@ sub Render {
         }
     }
     
-    gluDeleteTess($tess);
+    gluDeleteTess($tess) if $tess;
     glFlush();
     $self->SwapBuffers;
 }
