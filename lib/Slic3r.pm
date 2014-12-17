@@ -19,6 +19,7 @@ our $have_threads;
 BEGIN {
     use Config;
     $have_threads = $Config{useithreads} && eval "use threads; use threads::shared; use Thread::Queue; 1";
+    warn "threads.pm >= 1.96 is required, please update\n" if $have_threads && $threads::VERSION < 1.96;
     
     ### temporarily disable threads if using the broken Moo version
     use Moo;
