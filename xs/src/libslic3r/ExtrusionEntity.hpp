@@ -97,6 +97,9 @@ class ExtrusionLoop : public ExtrusionEntity
     void split_at(const Point &point);
     void clip_end(double distance, ExtrusionPaths* paths) const;
     bool has_overhang_point(const Point &point) const;
+    bool is_perimeter() const;
+    bool is_infill() const;
+    bool is_solid_infill() const;
 };
 
 }

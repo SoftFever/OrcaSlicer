@@ -28,6 +28,9 @@
         %code{% THIS->clip_end(distance, &RETVAL); %};
     bool has_overhang_point(Point* point)
         %code{% RETVAL = THIS->has_overhang_point(*point); %};
+    bool is_perimeter();
+    bool is_infill();
+    bool is_solid_infill();
 %{
 
 SV*

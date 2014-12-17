@@ -341,6 +341,31 @@ ExtrusionLoop::has_overhang_point(const Point &point) const
     return false;
 }
 
+bool
+ExtrusionLoop::is_perimeter() const
+{
+    return this->paths.front().role == erPerimeter
+        || this->paths.front().role == erExternalPerimeter
+        || this->paths.front().role == erOverhangPerimeter;
+}
+
+bool
+ExtrusionLoop::is_infill() const
+{
+    return this->paths.front().role == erBridgeInfill
+        || this->paths.front().role == erInternalInfill
+        || this->paths.front().role == erSolidInfill
+        || this->paths.front().role == erTopSolidInfill;
+}
+
+bool
+ExtrusionLoop::is_solid_infill() const
+{
+    return this->paths.front().role == erBridgeInfill
+        || this->paths.front().role == erSolidInfill
+        || this->paths.front().role == erTopSolidInfill;
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
 #endif
