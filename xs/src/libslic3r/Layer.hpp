@@ -40,6 +40,7 @@ class LayerRegion
 
     // collection of expolygons representing the bridged areas (thus not
     // needing support material)
+    // (this could be just a Polygons object)
     ExPolygonCollection bridged;
 
     // collection of polylines representing the unsupported bridge edges

@@ -496,7 +496,8 @@ sub process_external_surfaces {
             $angle = $bridge_detector->angle;
             
             if (defined $angle && $self->object->config->support_material) {
-                $self->bridged->append($_) for @{ $bridge_detector->coverage_by_angle($angle) };
+                $self->bridged->append(Slic3r::ExPolygon->new($_))
+                    for @{ $bridge_detector->coverage_by_angle($angle) };
                 $self->unsupported_bridge_edges->append($_) for @{ $bridge_detector->unsupported_edges }; 
             }
         }
