@@ -417,24 +417,26 @@ sub process_layer {
             }
             
             # process infill
-            {
-                foreach my $fill (@{$layerm->fills}) {
-                    # init by_extruder item only if we actually use the extruder
-                    my $extruder_id = $fill->[0]->is_solid_infill
-                        ? $region->config->solid_infill_extruder-1
-                        : $region->config->infill_extruder-1;
-                    
-                    $by_extruder{$extruder_id} //= [];
-                    
-                    # $fill is an ExtrusionPath::Collection object
-                    for my $i (0 .. $#{$layer->slices}) {
-                        if ($i == $#{$layer->slices}
-                            || $layer->slices->[$i]->contour->contains_point($fill->first_point)) {
-                            $by_extruder{$extruder_id}[$i] //= { infill => {} };
-                            $by_extruder{$extruder_id}[$i]{infill}{$region_id} //= [];
-                            push @{ $by_extruder{$extruder_id}[$i]{infill}{$region_id} }, $fill;
-                            last;
-                        }
+            # $layerm->fills is a collection of ExtrusionPath::Collection objects, each one containing
+            # the ExtrusionPath objects of a certain infill "group" (also called "surface"
+            # throughout the code). We can redefine the order of such Collections but we have to 
+            # do each one completely at once.
+            foreach my $fill (@{$layerm->fills}) {
+                # init by_extruder item only if we actually use the extruder
+                my $extruder_id = $fill->[0]->is_solid_infill
+                    ? $region->config->solid_infill_extruder-1
+                    : $region->config->infill_extruder-1;
+                
+                $by_extruder{$extruder_id} //= [];
+                
+                # $fill is an ExtrusionPath::Collection object
+                for my $i (0 .. $#{$layer->slices}) {
+                    if ($i == $#{$layer->slices}
+                        || $layer->slices->[$i]->contour->contains_point($fill->first_point)) {
+                        $by_extruder{$extruder_id}[$i] //= { infill => {} };
+                        $by_extruder{$extruder_id}[$i]{infill}{$region_id} //= [];
+                        push @{ $by_extruder{$extruder_id}[$i]{infill}{$region_id} }, $fill;
+                        last;
                     }
                 }
             }
@@ -479,7 +481,7 @@ sub process_layer {
         $layer->object->ptr . ref($layer),  # differentiate $obj_id between normal layers and support layers
         $layer->id,
         $layer->print_z,
-    ) if defined $self->_cooling_buffer && defined $layer;
+    ) if defined $self->_cooling_buffer;
     
     print {$self->fh} $self->filter($gcode);
 }
@@ -502,7 +504,9 @@ sub _extrude_infill {
     my $gcode = "";
     foreach my $region_id (sort keys %$entities_by_region) {
         $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
-        for my $fill (@{ $entities_by_region->{$region_id} }) {
+        
+        my $collection = Slic3r::ExtrusionPath::Collection->new(@{ $entities_by_region->{$region_id} });
+        for my $fill (@{$collection->chained_path_from($self->_gcodegen->last_pos, 0)}) {
             if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
                 $gcode .= $self->_gcodegen->extrude($_, 'infill') 
                     for @{$fill->chained_path_from($self->_gcodegen->last_pos, 0)};

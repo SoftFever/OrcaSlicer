@@ -179,7 +179,6 @@ sub make_fill {
     }
     
     my @fills = ();
-    my @fills_ordering_points =  ();
     SURFACE: foreach my $surface (@surfaces) {
         next if $surface->surface_type == S_TYPE_INTERNALVOID;
         my $filler          = $layerm->config->fill_pattern;
@@ -244,18 +243,12 @@ sub make_fill {
                 ), @polylines,
             );
         }
-        
-        push @fills_ordering_points, $polylines[0]->first_point;
     }
     
     # add thin fill regions
     foreach my $thin_fill (@{$layerm->thin_fills}) {
         push @fills, Slic3r::ExtrusionPath::Collection->new($thin_fill);
-        push @fills_ordering_points, $thin_fill->first_point;
     }
-    
-    # organize infill paths using a nearest-neighbor search
-    @fills = @fills[ @{chained_path(\@fills_ordering_points)} ];
     
     return @fills;
 }
