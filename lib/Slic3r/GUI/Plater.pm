@@ -804,7 +804,7 @@ sub split_object {
     
     my @model_objects = @{$current_model_object->split_object};
     if (@model_objects == 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
+        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains only one part.");
         return;
     }
     
