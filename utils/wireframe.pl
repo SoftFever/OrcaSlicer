@@ -18,6 +18,7 @@ use Slic3r::Geometry qw(scale unscale X Y);
 
 my %opt = (
     step_height => 10,
+    first_layer_height => 0.3,
 );
 {
     my %options = (
@@ -25,14 +26,27 @@ my %opt = (
         'output|o=s'            => \$opt{output_file},
         'step-height|h=f'       => \$opt{step_height},
         'nozzle-angle|a=f'      => \$opt{nozzle_angle},
+        'nozzle-width|w=f'      => \$opt{nozzle_width},
+        'first-layer-height=f'  => \$opt{first_layer_height},
     );
     GetOptions(%options) or usage(1);
-    $opt{output_file} or usage(1);
-    ### Input file is not needed until we use hard-coded geometry:
-    ### $ARGV[0] or usage(1);
+    $opt{output_file} or usage(1);ì
+    $ARGV[0] or usage(1);
 }
 
 {
+    # load model
+    my $model = Slic3r::Model->read_from_file($ARGV[0]);
+    my $mesh = $model->mesh;
+    $mesh->translate(0, 0, -$mesh->bounding_box->z_min);
+    
+    # get slices
+    my @z = ();
+    my $z_max = $mesh->bounding_box->z_max;
+    for (my $z = $opt{first_layer_height}; $z <= $z_max; $z += $opt{step_height}) {
+        push @z, $z;
+    }
+    
     my $flow = Slic3r::Flow->new(
         width           => 0.35,
         height          => 0.35,
@@ -94,6 +108,7 @@ Usage: wireframe.pl [ OPTIONS ] file.stl
     --output, -o        Write to the specified file
     --step-height, -h   Use the specified step height
     --nozzle-angle, -a  Max nozzle angle
+    --nozzle-width, -w  External nozzle diameter
     
 EOF
     exit ($exit_code || 0);
