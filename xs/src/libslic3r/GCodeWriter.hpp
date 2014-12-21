@@ -45,6 +45,7 @@ class GCodeWriter {
     std::string unretract();
     std::string lift();
     std::string unlift();
+    Pointf3 get_position() const;
     
     private:
     std::string _extrusion_axis;

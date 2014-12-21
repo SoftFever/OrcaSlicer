@@ -161,10 +161,15 @@ Point::ccw(const Line &line) const
 }
 
 // returns the CCW angle between this-p1 and this-p2
+// i.e. this assumes a CCW rotation from p1 to p2 around this
 double
 Point::ccw_angle(const Point &p1, const Point &p2) const
 {
-    return Line(*this, p1).orientation() - Line(*this, p2).orientation();
+    double angle = atan2(p1.x - this->x, p1.y - this->y)
+                 - atan2(p2.x - this->x, p2.y - this->y);
+    
+    // we only want to return only positive angles
+    return angle <= 0 ? angle + 2*PI : angle;
 }
 
 Point

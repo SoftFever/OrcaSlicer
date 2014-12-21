@@ -31,6 +31,8 @@
         %code{% RETVAL = THIS->distance_to(*line); %};
     double ccw(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw(*p1, *p2); %};
+    double ccw_angle(Point* p1, Point* p2)
+        %code{% RETVAL = THIS->ccw_angle(*p1, *p2); %};
     Clone<Point> projection_onto_polygon(Polygon* polygon)
         %code{% RETVAL = new Point(THIS->projection_onto(*polygon)); %};
     Clone<Point> projection_onto_polyline(Polyline* polyline)
