@@ -58,7 +58,7 @@ sub parse {
                     $info{"new_$axis"}  = $self->$axis;
                 }
             }
-            $info{dist_XY} = Slic3r::Geometry::unscale(Slic3r::Line->new_scale([0,0], [@info{qw(dist_X dist_Y)}])->length);
+            $info{dist_XY} = sqrt(($info{dist_X}**2) + ($info{dist_Y}**2));
             if (exists $args{E}) {
                 if ($info{dist_E} > 0) {
                     $info{extruding} = 1;

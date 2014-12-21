@@ -15,7 +15,7 @@ my $config = Slic3r::Config->new_from_defaults;
 
 # tolerance, in minutes
 # (our time estimation differs from the internal one because of decimals truncation)
-my $epsilon = 0.002;
+my $epsilon = 0.003;
 
 my $test = sub {
     my ($conf) = @_;
