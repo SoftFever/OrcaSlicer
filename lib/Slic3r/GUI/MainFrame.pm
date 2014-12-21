@@ -319,7 +319,14 @@ sub quick_slice {
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
         wxTheApp->save_settings;
         
+        my $print_center;
+        {
+            my $bed_shape = Slic3r::Polygon->new_scale(@{$config->bed_shape});
+            $print_center = Slic3r::Pointf->new_unscale(@{$bed_shape->bounding_box->center});
+        }
+        
         my $sprint = Slic3r::Print::Simple->new(
+            print_center    => $print_center,
             status_cb       => sub {
                 my ($percent, $message) = @_;
                 return if &Wx::wxVERSION_STRING !~ / 2\.(8\.|9\.[2-9])/;
