@@ -9,14 +9,6 @@ use Slic3r::Geometry::Clipper qw(intersection_pl);
 
 sub multiplier () { 1 }
 
-sub get_n {
-    my $self = shift;
-    my ($path, $bounding_box) = @_;
-    
-    my ($n_lo, $n_hi) = $path->rect_to_n_range(@$bounding_box);
-    return ($n_lo .. $n_hi);
-}
-
 sub process_polyline {}
 
 sub fill_surface {
@@ -32,12 +24,21 @@ sub fill_surface {
     my $distance_between_lines = $flow->scaled_spacing / $params{density} * $self->multiplier;
     my $bounding_box = $expolygon->bounding_box;
     
+    # since not all PlanePath infills extend in negative coordinate space,
+    # move expolygon in positive coordinate space
+    $expolygon->translate(-$bounding_box->x_min, -$bounding_box->y_min);
+    
     (ref $self) =~ /::([^:]+)$/;
     my $path = "Math::PlanePath::$1"->new;
-    my @n = $self->get_n($path, [ map +($_ / $distance_between_lines), @{$bounding_box->min_point}, @{$bounding_box->max_point} ]);
+    
+    my ($n_lo, $n_hi) = $path->rect_to_n_range(
+        map { $_ / $distance_between_lines }
+            0, 0,
+            @{$bounding_box->size},
+    );
     
     my $polyline = Slic3r::Polyline->new(
-        map [ map {$_*$distance_between_lines} $path->n_to_xy($_) ], @n,
+        map [ map { $_ * $distance_between_lines } $path->n_to_xy($_) ], ($n_lo..$n_hi)
     );
     return {} if @$polyline <= 1;
     
@@ -48,12 +49,14 @@ sub fill_surface {
     if (0) {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output("fill.svg",
-            polygons => $expolygon,
-            polylines => [map $_->p, @paths],
+            no_arrows   => 1,
+            polygons    => \@$expolygon,
+            polylines   => \@paths,
         );
     }
     
-    # paths must be rotated back
+    # paths must be repositioned and rotated back
+    $_->translate($bounding_box->x_min, $bounding_box->y_min) for @paths;
     $self->rotate_points_back(\@paths, $rotate_vector);
     
     return { flow => $flow }, @paths;
