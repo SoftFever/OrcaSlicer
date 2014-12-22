@@ -91,10 +91,15 @@ sub reload_print {
             $z{$layer->print_z} = 1;
         }
     }
+    $self->enabled(1);
     $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
     $self->{slider}->SetRange(0, scalar(@{$self->{layers_z}})-1);
-    $self->enabled(1);
-    $self->set_z($self->{layers_z}[0]) if @{$self->{layers_z}};
+    if ((my $z_idx = $self->{slider}->GetValue) <= $#{$self->{layers_z}}) {
+        $self->set_z($self->{layers_z}[$z_idx]);
+    } else {
+        $self->{slider}->SetValue(0);
+        $self->set_z($self->{layers_z}[0]) if @{$self->{layers_z}};
+    }
     $self->{slider}->Show;
     $self->Layout;
 }
