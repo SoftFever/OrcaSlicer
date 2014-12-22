@@ -34,6 +34,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _drag_volume_idx
                               _drag_start_pos
                               _drag_start_xy
+                              _dragged
                               _camera_target
                               _zoom
                               ) );
@@ -160,6 +161,7 @@ sub mouse_event {
         # apply new temporary volume origin and ignore Z
         $volume->origin->translate($vector->x, $vector->y, 0); #,,
         $self->_drag_start_pos($cur_pos);
+        $self->_dragged(1);
         $self->Refresh;
     } elsif ($e->Dragging && !defined $self->_hover_volume_idx) {
         if ($e->LeftIsDown) {
@@ -200,11 +202,12 @@ sub mouse_event {
         }
     } elsif ($e->LeftUp || $e->RightUp) {
         if ($self->on_move && defined $self->_drag_volume_idx) {
-            $self->on_move->($self->_drag_volume_idx);
+            $self->on_move->($self->_drag_volume_idx) if $self->_dragged;
         }
         $self->_drag_volume_idx(undef);
         $self->_drag_start_pos(undef);
         $self->_drag_start_xy(undef);
+        $self->_dragged(undef);
     } elsif ($e->Moving) {
         $self->_mouse_pos($pos);
         $self->Refresh;
