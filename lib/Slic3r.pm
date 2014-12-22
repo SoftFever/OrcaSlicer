@@ -99,9 +99,9 @@ sub spawn_thread {
     my $thread = threads->create(sub {
         @my_threads = ();
         
-        printf "Starting thread %d (parent: %d)...\n", threads->tid, $parent_tid;
+        Slic3r::debugf "Starting thread %d (parent: %d)...\n", threads->tid, $parent_tid;
         local $SIG{'KILL'} = sub {
-            printf "Exiting thread %d...\n", threads->tid;
+            Slic3r::debugf "Exiting thread %d...\n", threads->tid;
             $parallel_sema->up if $parallel_sema;
             kill_all_threads();
             Slic3r::thread_cleanup();
@@ -225,7 +225,7 @@ sub kill_all_threads {
     if (threads->tid == 0) {
         lock @threads;
         foreach my $thread (get_running_threads(@threads)) {
-            printf "Thread %d killing %d...\n", threads->tid, $thread->tid;
+            Slic3r::debugf "Thread %d killing %d...\n", threads->tid, $thread->tid;
             $thread->kill('KILL');
         }
         
@@ -236,9 +236,9 @@ sub kill_all_threads {
     
     # in any thread we wait for our children
     foreach my $thread (get_running_threads(@my_threads)) {
-        printf "  Thread %d waiting for %d...\n", threads->tid, $thread->tid;
+        Slic3r::debugf "  Thread %d waiting for %d...\n", threads->tid, $thread->tid;
         $thread->join;  # block until threads are killed
-        printf "    Thread %d finished waiting for %d...\n", threads->tid, $thread->tid;
+        Slic3r::debugf "    Thread %d finished waiting for %d...\n", threads->tid, $thread->tid;
     }
     @my_threads = ();
 }
