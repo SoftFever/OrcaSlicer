@@ -6,7 +6,6 @@ use Slic3r::Fill::3DHoneycomb;
 use Slic3r::Fill::Base;
 use Slic3r::Fill::Concentric;
 use Slic3r::Fill::Honeycomb;
-use Slic3r::Fill::Line;
 use Slic3r::Fill::PlanePath;
 use Slic3r::Fill::Rectilinear;
 use Slic3r::Flow ':roles';
