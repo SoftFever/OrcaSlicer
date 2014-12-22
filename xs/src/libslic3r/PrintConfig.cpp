@@ -298,9 +298,9 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_labels.push_back("concentric");
     Options["fill_pattern"].enum_labels.push_back("honeycomb");
     Options["fill_pattern"].enum_labels.push_back("3D honeycomb");
-    Options["fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
-    Options["fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
-    Options["fill_pattern"].enum_labels.push_back("octagramspiral (slow)");
+    Options["fill_pattern"].enum_labels.push_back("hilbertcurve");
+    Options["fill_pattern"].enum_labels.push_back("archimedeanchords");
+    Options["fill_pattern"].enum_labels.push_back("octagramspiral");
 
     Options["first_layer_acceleration"].type = coFloat;
     Options["first_layer_acceleration"].label = "First layer";
