@@ -23,19 +23,32 @@ sub fill_surface {
     
     my $flow = $params{flow};
     my $distance_between_lines = $flow->scaled_spacing / $params{density} * $self->multiplier;
-    my $bounding_box = $expolygon->bounding_box;
     
-    # since not all PlanePath infills extend in negative coordinate space,
-    # move expolygon in positive coordinate space
-    $expolygon->translate(-$bounding_box->x_min, -$bounding_box->y_min);
+    # align infill across layers using the object's bounding box
+    my $bb_polygon = $self->bounding_box->polygon;
+    $self->rotate_points($bb_polygon, $rotate_vector);
+    my $bounding_box = $bb_polygon->bounding_box;
     
     (ref $self) =~ /::([^:]+)$/;
     my $path = "Math::PlanePath::$1"->new;
     
+    my $translate = Slic3r::Point->new(0,0);  # vector
+    if ($path->x_negative || $path->y_negative) {
+        # if the curve extends on both positive and negative coordinate space,
+        # center our expolygon around origin
+        $translate = $bounding_box->center->negative;
+    } else {
+        # if the curve does not extend in negative coordinate space,
+        # move expolygon entirely in positive coordinate space
+        $translate = $bounding_box->min_point->negative;
+    }
+    $expolygon->translate(@$translate);
+    $bounding_box->translate(@$translate);
+    
     my ($n_lo, $n_hi) = $path->rect_to_n_range(
         map { $_ / $distance_between_lines }
-            0, 0,
-            @{$bounding_box->size},
+            @{$bounding_box->min_point},
+            @{$bounding_box->max_point},
     );
     
     my $polyline = Slic3r::Polyline->new(
@@ -50,14 +63,15 @@ sub fill_surface {
     if (0) {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output("fill.svg",
-            no_arrows   => 1,
-            polygons    => \@$expolygon,
-            polylines   => \@paths,
+            no_arrows       => 1,
+            polygons        => \@$expolygon,
+            red_polygons    => [ $bounding_box->polygon ],
+            polylines       => \@paths,
         );
     }
     
     # paths must be repositioned and rotated back
-    $_->translate($bounding_box->x_min, $bounding_box->y_min) for @paths;
+    $_->translate(@{$translate->negative}) for @paths;
     $self->rotate_points_back(\@paths, $rotate_vector);
     
     return { flow => $flow }, @paths;
