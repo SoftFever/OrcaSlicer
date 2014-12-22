@@ -18,8 +18,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $flow                = $params{flow} or die "No flow supplied to fill_surface()";
-    my $min_spacing         = $flow->scaled_spacing;
+    my $min_spacing         = scale($self->spacing);
     my $line_spacing        = $min_spacing / $params{density};
     my $line_oscillation    = $line_spacing - $min_spacing;
     my $is_line_pattern     = $self->isa('Slic3r::Fill::Line');
@@ -31,12 +30,7 @@ sub fill_surface {
             width       => $bounding_box->size->[X],
             distance    => $line_spacing,
         );
-        $flow = Slic3r::Flow->new_from_spacing(
-            spacing             => unscale($line_spacing),
-            nozzle_diameter     => $flow->nozzle_diameter,
-            layer_height        => ($params{layer_height} or die "No layer_height supplied to fill_surface()"),
-            bridge              => $flow->bridge,
-        );
+        $self->spacing(unscale $line_spacing);
     } else {
         # extend bounding box so that our pattern will be aligned with other layers
         $bounding_box->merge_point(Slic3r::Point->new(
@@ -105,7 +99,7 @@ sub fill_surface {
     # paths must be rotated back
     $self->rotate_points_back(\@polylines, $rotate_vector);
     
-    return { flow => $flow }, @polylines;
+    return @polylines;
 }
 
 1;

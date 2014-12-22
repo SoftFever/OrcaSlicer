@@ -21,8 +21,7 @@ sub fill_surface {
     my $rotate_vector = $self->infill_direction($surface);
     $self->rotate_points($expolygon, $rotate_vector);
     
-    my $flow = $params{flow};
-    my $distance_between_lines = $flow->scaled_spacing / $params{density} * $self->multiplier;
+    my $distance_between_lines = scale($self->spacing) / $params{density} * $self->multiplier;
     
     # align infill across layers using the object's bounding box
     my $bb_polygon = $self->bounding_box->polygon;
@@ -75,7 +74,7 @@ sub fill_surface {
     $_->translate(@{$translate->negative}) for @paths;
     $self->rotate_points_back(\@paths, $rotate_vector);
     
-    return { flow => $flow }, @paths;
+    return @paths;
 }
 
 

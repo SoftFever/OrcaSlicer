@@ -195,28 +195,66 @@ sub make_fill {
             next SURFACE unless $density > 0;
         }
         
+        # get filler object
+        my $f = $self->filler($filler);
+        
+        # calculate the actual flow we'll be using for this infill
         my $h = $surface->thickness == -1 ? $layerm->height : $surface->thickness;
         my $flow = $layerm->region->flow(
             $role,
             $h,
-            $is_bridge,
+            $is_bridge || $f->use_bridge_flow,
             $layerm->id == 0,
             -1,
             $layerm->object,
         );
         
-        my $f = $self->filler($filler);
+        # calculate flow spacing for infill pattern generation
+        my $using_internal_flow = 0;
+        if (!$is_solid && !$is_bridge) {
+            # it's internal infill, so we can calculate a generic flow spacing 
+            # for all layers, for avoiding the ugly effect of
+            # misaligned infill on first layer because of different extrusion width and
+            # layer height
+            my $internal_flow = $layerm->region->flow(
+                FLOW_ROLE_INFILL,
+                $layerm->object->config->layer_height,  # TODO: handle infill_every_layers?
+                0,  # no bridge
+                0,  # no first layer
+                -1, # auto width
+                $layerm->object,
+            );
+            $f->spacing($internal_flow->spacing);
+            $using_internal_flow = 1;
+        } else {
+            $f->spacing($flow->spacing);
+        }
+        
         $f->layer_id($layerm->id);
         $f->z($layerm->print_z);
         $f->angle(deg2rad($layerm->config->fill_angle));
-        my ($params, @polylines) = $f->fill_surface(
+        $f->loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
+        my @polylines = $f->fill_surface(
             $surface,
             density         => $density/100,
-            flow            => $flow,
             layer_height    => $h,
         );
         next unless @polylines;
         
+        # calculate actual flow from spacing (which might have been adjusted by the infill
+        # pattern generator)
+        if ($using_internal_flow) {
+            # if we used the internal flow we're not doing a solid infill
+            # so we can safely ignore the slight variation that might have
+            # been applied to $f->flow_spacing
+        } else {
+            $flow = Slic3r::Flow->new_from_spacing(
+                spacing         => $f->spacing,
+                nozzle_diameter => $flow->nozzle_diameter,
+                layer_height    => $h,
+                bridge          => $is_bridge || $f->use_bridge_flow,
+            );
+        }
         my $mm3_per_mm = $flow->mm3_per_mm;
         
         # save into layer
@@ -224,18 +262,16 @@ sub make_fill {
             my $role = $is_bridge ? EXTR_ROLE_BRIDGE
                 : $is_solid ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
                 : EXTR_ROLE_FILL;
-    
-            my $extrusion_height = $is_bridge ? $flow->width : $h;
             
             push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
-            $collection->no_sort($params->{no_sort});
+            $collection->no_sort($f->no_sort);
             $collection->append(
                 map Slic3r::ExtrusionPath->new(
                     polyline    => $_,
                     role        => $role,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $flow->width,
-                    height      => $extrusion_height,
+                    height      => $flow->height,
                 ), @polylines,
             );
         }

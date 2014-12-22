@@ -7,22 +7,17 @@ use POSIX qw(ceil fmod);
 use Slic3r::Geometry qw(scale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(intersection_pl);
 
+# require bridge flow since most of this pattern hangs in air
+sub use_bridge_flow { 1 }
+
 sub fill_surface {
     my ($self, $surface, %params) = @_;
-    
-    # use bridge flow since most of this pattern hangs in air
-    my $flow = Slic3r::Flow->new(
-        width               => $params{flow}->width,
-        height              => $params{flow}->height,
-        nozzle_diameter     => $params{flow}->nozzle_diameter,
-        bridge              => 1,
-    );
     
     my $expolygon = $surface->expolygon;
     my $bb = $expolygon->bounding_box;
     my $size = $bb->size;
     
-    my $distance = $flow->scaled_spacing / $params{density};
+    my $distance = scale($self->spacing) / $params{density};
     
     # align bounding box to a multiple of our honeycomb grid
     {
@@ -71,7 +66,7 @@ sub fill_surface {
     }
     
     # TODO: return ExtrusionLoop objects to get better chained paths
-    return { flow => $flow}, @polylines;
+    return @polylines;
 }
 
 

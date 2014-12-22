@@ -13,7 +13,7 @@ Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &wid
     float w;
     if (bridge_flow_ratio > 0) {
         // if bridge flow was requested, calculate bridge width
-        w = Flow::_bridge_width(nozzle_diameter, bridge_flow_ratio);
+        height = w = Flow::_bridge_width(nozzle_diameter, bridge_flow_ratio);
     } else if (!width.percent && width.value == 0) {
         // if user left option to 0, calculate a sane default width
         w = Flow::_auto_width(role, nozzle_diameter, height);
