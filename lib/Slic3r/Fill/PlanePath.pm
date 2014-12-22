@@ -7,6 +7,7 @@ with qw(Slic3r::Fill::WithDirection);
 use Slic3r::Geometry qw(scale X1 Y1 X2 Y2);
 use Slic3r::Geometry::Clipper qw(intersection_pl);
 
+sub angles () { [0] }
 sub multiplier () { 1 }
 
 sub process_polyline {}
