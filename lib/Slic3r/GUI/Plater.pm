@@ -933,7 +933,7 @@ sub pause_background_process {
     my ($self) = @_;
     
     if ($self->{process_thread} || $self->{export_thread}) {
-        Slic3r::pause_threads();
+        Slic3r::pause_all_threads();
     } elsif (defined $self->{apply_config_timer} && $self->{apply_config_timer}->IsRunning) {
         $self->{apply_config_timer}->Stop;
     }
@@ -943,7 +943,7 @@ sub resume_background_process {
     my ($self) = @_;
     
     if ($self->{process_thread} || $self->{export_thread}) {
-        Slic3r::resume_threads();
+        Slic3r::resume_all_threads();
     }
 }
 

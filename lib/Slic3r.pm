@@ -99,9 +99,9 @@ sub spawn_thread {
     my $thread = threads->create(sub {
         @my_threads = ();
         
-        Slic3r::debugf "Starting thread %d (parent: %d)...\n", threads->tid, $parent_tid;
+        printf "Starting thread %d (parent: %d)...\n", threads->tid, $parent_tid;
         local $SIG{'KILL'} = sub {
-            Slic3r::debugf "Exiting thread %d...\n", threads->tid;
+            printf "Exiting thread %d...\n", threads->tid;
             $parallel_sema->up if $parallel_sema;
             kill_all_threads();
             Slic3r::thread_cleanup();
@@ -121,6 +121,7 @@ sub spawn_thread {
 sub parallelize {
     my %params = @_;
     
+    lock @threads;
     if (!$params{disable} && $Slic3r::have_threads && $params{threads} > 1) {
         my @items = (ref $params{items} eq 'CODE') ? $params{items}->() : @{$params{items}};
         my $q = Thread::Queue->new;
@@ -224,33 +225,35 @@ sub kill_all_threads {
     if (threads->tid == 0) {
         lock @threads;
         foreach my $thread (get_running_threads(@threads)) {
-            Slic3r::debugf "Thread %d killing %d...\n", threads->tid, $thread->tid;
+            printf "Thread %d killing %d...\n", threads->tid, $thread->tid;
             $thread->kill('KILL');
         }
         
         # unlock semaphore before we block on wait
         # otherwise we'd get a deadlock if threads were paused
-        resume_threads();
+        resume_all_threads();
     }
     
     # in any thread we wait for our children
     foreach my $thread (get_running_threads(@my_threads)) {
-        Slic3r::debugf "  Thread %d waiting for %d...\n", threads->tid, $thread->tid;
+        printf "  Thread %d waiting for %d...\n", threads->tid, $thread->tid;
         $thread->join;  # block until threads are killed
-        Slic3r::debugf "    Thread %d finished waiting for %d...\n", threads->tid, $thread->tid;
+        printf "    Thread %d finished waiting for %d...\n", threads->tid, $thread->tid;
     }
     @my_threads = ();
 }
 
-sub pause_threads {
+sub pause_all_threads {
     return if $paused;
+    lock @threads;
     $paused = 1;
     $pause_sema->down;
     $_->kill('STOP') for get_running_threads(@threads);
 }
 
-sub resume_threads {
+sub resume_all_threads {
     return unless $paused;
+    lock @threads;
     $paused = 0;
     $pause_sema->up;
 }
