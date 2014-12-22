@@ -65,8 +65,9 @@ sub fill_surface {
         Slic3r::SVG::output("fill.svg",
             no_arrows       => 1,
             polygons        => \@$expolygon,
-            red_polygons    => [ $bounding_box->polygon ],
-            polylines       => \@paths,
+            green_polygons  => [ $bounding_box->polygon ],
+            polylines       => [ $polyline ],
+            red_polylines   => \@paths,
         );
     }
     
