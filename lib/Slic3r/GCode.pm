@@ -344,7 +344,7 @@ sub travel_to {
     if ($travel->length < scale $self->config->get_at('retract_before_travel', $self->writer->extruder->id)
         || ($self->config->only_retract_when_crossing_perimeters
             && $self->config->fill_density > 0
-            && defined($self->layer) && $self->layer->any_internal_region_slice_contains_line($travel))
+            && defined($self->layer) && $self->layer->any_internal_region_fill_surface_contains_line($travel))
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel))
         ) {
         # Just perform a straight travel move without any retraction.
@@ -607,7 +607,7 @@ sub _plan {
     # if the path is not contained in a single island we need to retract
     $gcode .= $gcodegen->retract
         if !$gcodegen->config->only_retract_when_crossing_perimeters
-        || !$gcodegen->layer->any_internal_region_slice_contains_polyline($travel);
+        || !$gcodegen->layer->any_internal_region_fill_surface_contains_polyline($travel);
     
     # append the actual path and return
     # use G1 because we rely on paths being straight (G0 may make round paths)
