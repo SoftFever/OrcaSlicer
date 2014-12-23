@@ -26,8 +26,8 @@ BEGIN {
     $have_threads = 0 if $Moo::VERSION == 1.003000;
 }
 
-warn "Running Slic3r under Perl >= 5.16 is not supported nor recommended\n"
-    if $^V >= v5.16;
+warn "Running Slic3r under Perl 5.16 is not supported nor recommended\n"
+    if $^V == v5.16;
 
 use FindBin;
 our $var = "$FindBin::Bin/var";
