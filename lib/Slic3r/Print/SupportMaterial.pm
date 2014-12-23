@@ -339,7 +339,12 @@ sub support_layers_z {
     # layer_height > nozzle_diameter * 0.75
     my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->object_config->support_material_extruder-1);
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
-    my @z = sort { $a <=> $b } @$contact_z, @$top_z, (map $_ + $nozzle_diameter, @$top_z);
+    
+    # initialize known, fixed, support layers
+    my @z = sort { $a <=> $b }
+        @$contact_z,
+        @$top_z,  # TODO: why we have this?
+        (map $_ + contact_distance($nozzle_diameter), @$top_z);
     
     # enforce first layer height
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
