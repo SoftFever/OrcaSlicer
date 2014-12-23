@@ -7,11 +7,6 @@ use parent 'Slic3r::Polyline';
 
 use Slic3r::Geometry qw(PI);
 
-sub dump_perl {
-    my $self = shift;
-    return sprintf "[%s]", join ',', map "[$_->[0],$_->[1]]", @$self;
-}
-
 sub grow {
     my $self = shift;
     return $self->split_at_first_point->grow(@_);
