@@ -524,39 +524,6 @@ sub build {
     }
     
     {
-        my $page = $self->add_options_page('Speed', 'time.png');
-        {
-            my $optgroup = $page->new_optgroup('Speed for print moves');
-            $optgroup->append_single_option_line('perimeter_speed');
-            $optgroup->append_single_option_line('small_perimeter_speed');
-            $optgroup->append_single_option_line('external_perimeter_speed');
-            $optgroup->append_single_option_line('infill_speed');
-            $optgroup->append_single_option_line('solid_infill_speed');
-            $optgroup->append_single_option_line('top_solid_infill_speed');
-            $optgroup->append_single_option_line('support_material_speed');
-            $optgroup->append_single_option_line('support_material_interface_speed');
-            $optgroup->append_single_option_line('bridge_speed');
-            $optgroup->append_single_option_line('gap_fill_speed');
-        }
-        {
-            my $optgroup = $page->new_optgroup('Speed for non-print moves');
-            $optgroup->append_single_option_line('travel_speed');
-        }
-        {
-            my $optgroup = $page->new_optgroup('Modifiers');
-            $optgroup->append_single_option_line('first_layer_speed');
-        }
-        {
-            my $optgroup = $page->new_optgroup('Acceleration control (advanced)');
-            $optgroup->append_single_option_line('perimeter_acceleration');
-            $optgroup->append_single_option_line('infill_acceleration');
-            $optgroup->append_single_option_line('bridge_acceleration');
-            $optgroup->append_single_option_line('first_layer_acceleration');
-            $optgroup->append_single_option_line('default_acceleration');
-        }
-    }
-    
-    {
         my $page = $self->add_options_page('Skirt and brim', 'box.png');
         {
             my $optgroup = $page->new_optgroup('Skirt');
@@ -595,51 +562,35 @@ sub build {
     }
     
     {
-        my $page = $self->add_options_page('Notes', 'note.png');
+        my $page = $self->add_options_page('Speed', 'time.png');
         {
-            my $optgroup = $page->new_optgroup('Notes',
-                label_width => 0,
-            );
-            my $option = $optgroup->get_option('notes');
-            $option->full_width(1);
-            $option->height(250);
-            $optgroup->append_single_option_line($option);
-        }
-    }
-    
-    {
-        my $page = $self->add_options_page('Output options', 'page_white_go.png');
-        {
-            my $optgroup = $page->new_optgroup('Sequential printing');
-            $optgroup->append_single_option_line('complete_objects');
-            my $line = Slic3r::GUI::OptionsGroup::Line->new(
-                label => 'Extruder clearance (mm)',
-            );
-            foreach my $opt_key (qw(extruder_clearance_radius extruder_clearance_height)) {
-                my $option = $optgroup->get_option($opt_key);
-                $option->width(60);
-                $line->append_option($option);
-            }
-            $optgroup->append_line($line);
+            my $optgroup = $page->new_optgroup('Speed for print moves');
+            $optgroup->append_single_option_line('perimeter_speed');
+            $optgroup->append_single_option_line('small_perimeter_speed');
+            $optgroup->append_single_option_line('external_perimeter_speed');
+            $optgroup->append_single_option_line('infill_speed');
+            $optgroup->append_single_option_line('solid_infill_speed');
+            $optgroup->append_single_option_line('top_solid_infill_speed');
+            $optgroup->append_single_option_line('support_material_speed');
+            $optgroup->append_single_option_line('support_material_interface_speed');
+            $optgroup->append_single_option_line('bridge_speed');
+            $optgroup->append_single_option_line('gap_fill_speed');
         }
         {
-            my $optgroup = $page->new_optgroup('Output file');
-            $optgroup->append_single_option_line('gcode_comments');
-            
-            {
-                my $option = $optgroup->get_option('output_filename_format');
-                $option->full_width(1);
-                $optgroup->append_single_option_line($option);
-            }
+            my $optgroup = $page->new_optgroup('Speed for non-print moves');
+            $optgroup->append_single_option_line('travel_speed');
         }
         {
-            my $optgroup = $page->new_optgroup('Post-processing scripts',
-                label_width => 0,
-            );
-            my $option = $optgroup->get_option('post_process');
-            $option->full_width(1);
-            $option->height(50);
-            $optgroup->append_single_option_line($option);
+            my $optgroup = $page->new_optgroup('Modifiers');
+            $optgroup->append_single_option_line('first_layer_speed');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Acceleration control (advanced)');
+            $optgroup->append_single_option_line('perimeter_acceleration');
+            $optgroup->append_single_option_line('infill_acceleration');
+            $optgroup->append_single_option_line('bridge_acceleration');
+            $optgroup->append_single_option_line('first_layer_acceleration');
+            $optgroup->append_single_option_line('default_acceleration');
         }
     }
     
@@ -690,6 +641,55 @@ sub build {
             $optgroup->append_single_option_line('resolution');
         }
     }
+    
+    {
+        my $page = $self->add_options_page('Output options', 'page_white_go.png');
+        {
+            my $optgroup = $page->new_optgroup('Sequential printing');
+            $optgroup->append_single_option_line('complete_objects');
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Extruder clearance (mm)',
+            );
+            foreach my $opt_key (qw(extruder_clearance_radius extruder_clearance_height)) {
+                my $option = $optgroup->get_option($opt_key);
+                $option->width(60);
+                $line->append_option($option);
+            }
+            $optgroup->append_line($line);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Output file');
+            $optgroup->append_single_option_line('gcode_comments');
+            
+            {
+                my $option = $optgroup->get_option('output_filename_format');
+                $option->full_width(1);
+                $optgroup->append_single_option_line($option);
+            }
+        }
+        {
+            my $optgroup = $page->new_optgroup('Post-processing scripts',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('post_process');
+            $option->full_width(1);
+            $option->height(50);
+            $optgroup->append_single_option_line($option);
+        }
+    }
+    
+    {
+        my $page = $self->add_options_page('Notes', 'note.png');
+        {
+            my $optgroup = $page->new_optgroup('Notes',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('notes');
+            $option->full_width(1);
+            $option->height(250);
+            $optgroup->append_single_option_line($option);
+        }
+    }
 }
 
 sub _update {
@@ -715,11 +715,28 @@ sub _update {
     
     my $have_perimeters = $config->perimeters > 0;
     $self->get_field($_)->toggle($have_perimeters)
-        for qw(extra_perimeters thin_walls overhangs seam_position external_perimeters_first);
+        for qw(extra_perimeters thin_walls overhangs seam_position external_perimeters_first
+            external_perimeter_extrusion_width
+            perimeter_speed small_perimeter_speed external_perimeter_speed);
     
     my $have_infill = $config->fill_density > 0;
     $self->get_field($_)->toggle($have_infill)
-        for qw(fill_pattern infill_every_layers infill_only_where_needed solid_infill_every_layers);
+        for qw(fill_pattern infill_every_layers infill_only_where_needed solid_infill_every_layers
+            solid_infill_below_area infill_extruder);
+    
+    my $have_solid_infill = ($config->top_solid_layers > 0) || ($config->bottom_solid_layers > 0);
+    $self->get_field($_)->toggle($have_solid_infill)
+        for qw(external_fill_pattern infill_first solid_infill_extruder solid_infill_extrusion_width
+            solid_infill_speed);
+    
+    $self->get_field($_)->toggle($have_infill || $have_solid_infill)
+        for qw(fill_angle infill_extrusion_width infill_speed bridge_speed);
+    
+    $self->get_field('gap_fill_speed')->toggle($have_perimeters && $have_infill);
+    
+    my $have_top_solid_infill = $config->top_solid_layers > 0;
+    $self->get_field($_)->toggle($have_top_solid_infill)
+        for qw(top_infill_extrusion_width top_solid_infill_speed);
     
     my $have_default_acceleration = $config->default_acceleration > 0;
     $self->get_field($_)->toggle($have_default_acceleration)
@@ -729,15 +746,23 @@ sub _update {
     $self->get_field($_)->toggle($have_skirt)
         for qw(skirt_distance skirt_height);
     
+    my $have_brim = $config->brim_width > 0;
+    $self->get_field('perimeter_extruder')->toggle($have_perimeters || $have_brim);
+    
     my $have_support_material = $config->support_material || $config->raft_layers > 0;
     my $have_support_interface = $config->support_material_interface_layers > 0;
     $self->get_field($_)->toggle($have_support_material)
         for qw(support_material_threshold support_material_enforce_layers
             support_material_pattern support_material_spacing support_material_angle
             support_material_interface_layers dont_support_bridges
-            support_material_extruder);
+            support_material_extrusion_width);
     $self->get_field($_)->toggle($have_support_material && $have_support_interface)
-        for qw(support_material_interface_spacing support_material_interface_extruder);
+        for qw(support_material_interface_spacing support_material_interface_extruder
+            support_material_interface_speed);
+    
+    $self->get_field('perimeter_extrusion_width')->toggle($have_perimeters || $have_skirt || $have_brim);
+    $self->get_field('support_material_extruder')->toggle($have_support_material || $have_skirt);
+    $self->get_field('support_material_speed')->toggle($have_support_material || $have_brim || $have_skirt);
     
     my $have_sequential_printing = $config->complete_objects;
     $self->get_field($_)->toggle($have_sequential_printing)
@@ -1102,7 +1127,8 @@ sub _update {
     
     my $config = $self->{config};
     
-    $self->get_field('toolchange_gcode')->toggle($self->{extruders_count} > 1);
+    my $have_multiple_extruders = $self->{extruders_count} > 1;
+    $self->get_field('toolchange_gcode')->toggle($have_multiple_extruders);
     
     for my $i (0 .. ($self->{extruders_count}-1)) {
         # disable extruder offset for first extruder
@@ -1126,9 +1152,11 @@ sub _update {
         $self->get_field($_, $i)->toggle($retraction && !$config->use_firmware_retraction)
             for qw(retract_speed retract_restart_extra wipe);
         
+        $self->get_field('retract_length_toolchange', $i)->toggle($have_multiple_extruders);
+        
         my $toolchange_retraction = $config->get_at('retract_length_toolchange', $i) > 0;
-        $self->get_field($_, $i)->toggle($toolchange_retraction)
-            for qw(retract_restart_extra_toolchange);
+        $self->get_field('retract_restart_extra_toolchange', $i)->toggle
+            ($have_multiple_extruders && $toolchange_retraction);
     }
 }
 

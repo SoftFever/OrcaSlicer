@@ -779,7 +779,7 @@ PrintConfigDef::build_def() {
     Options["support_material_enforce_layers"].min = 0;
 
     Options["support_material_extruder"].type = coInt;
-    Options["support_material_extruder"].label = "Support material extruder";
+    Options["support_material_extruder"].label = "Support material/raft/skirt extruder";
     Options["support_material_extruder"].category = "Extruders";
     Options["support_material_extruder"].tooltip = "The extruder to use when printing support material, raft and skirt.";
     Options["support_material_extruder"].cli = "support-material-extruder=i";
@@ -793,7 +793,7 @@ PrintConfigDef::build_def() {
     Options["support_material_extrusion_width"].cli = "support-material-extrusion-width=s";
 
     Options["support_material_interface_extruder"].type = coInt;
-    Options["support_material_interface_extruder"].label = "Support material interface extruder";
+    Options["support_material_interface_extruder"].label = "Support material/raft interface extruder";
     Options["support_material_interface_extruder"].category = "Extruders";
     Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
     Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
@@ -879,8 +879,7 @@ PrintConfigDef::build_def() {
 
     Options["threads"].type = coInt;
     Options["threads"].label = "Threads";
-    Options["threads"].tooltip = "Threads are used to parallelize long-running tasks. Optimal threads number is slightly above the number of available cores/processors. Beware that more threads consume more memory.";
-    Options["threads"].sidetext = "(more speed but more memory usage)";
+    Options["threads"].tooltip = "Threads are used to parallelize long-running tasks. Optimal threads number is slightly above the number of available cores/processors.";
     Options["threads"].cli = "threads|j=i";
     Options["threads"].readonly = true;
     Options["threads"].min = 1;
