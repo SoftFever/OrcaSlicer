@@ -1131,9 +1131,6 @@ sub _update {
     $self->get_field('toolchange_gcode')->toggle($have_multiple_extruders);
     
     for my $i (0 .. ($self->{extruders_count}-1)) {
-        # disable extruder offset for first extruder
-        $self->get_field('extruder_offset', $i)->toggle($i != 0);
-        
         my $have_retract_length = $config->get_at('retract_length', $i) > 0;
         
         # when using firmware retraction, firmware decides retraction length
