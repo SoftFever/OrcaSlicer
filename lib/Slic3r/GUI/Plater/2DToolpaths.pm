@@ -226,8 +226,9 @@ sub Render {
     }
     
     my $tess;
-    if (!&Wx::wxMSW) {
-        # We can't use the GLU tesselator on MSW because of an upstream bug:
+    if (!(&Wx::wxMSW && $OpenGL::VERSION < 0.6704)) {
+        # We can't use the GLU tesselator on MSW with older OpenGL versions
+        # because of an upstream bug:
         # http://sourceforge.net/p/pogl/bugs/16/
         $tess = gluNewTess();
         gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
