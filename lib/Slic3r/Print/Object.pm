@@ -693,6 +693,8 @@ sub detect_surfaces_type {
     }
 }
 
+# Idempotence of this method is guaranteed by the fact that we don't remove things from
+# fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 sub clip_fill_surfaces {
     my $self = shift;
     return unless $self->config->infill_only_where_needed;
@@ -710,13 +712,13 @@ sub clip_fill_surfaces {
         
         # clip this layer's internal surfaces to @overhangs
         foreach my $layerm (@{$layer->regions}) {
-            # we assume that this step is run before bridge_over_infill() and combine_infill()
-            # so these are the only internal types we might have
             my (@internal, @other) = ();
             foreach my $surface (map $_->clone, @{$layerm->fill_surfaces}) {
-                $surface->surface_type == S_TYPE_INTERNAL
-                    ? push @internal, $surface
-                    : push @other, $surface;
+                if ($surface->surface_type == S_TYPE_INTERNAL) {
+                    push @internal, $surface;
+                } else {
+                    push @other, $surface;
+                }
             }
             
             # keep all the original internal surfaces to detect overhangs in this layer
@@ -726,10 +728,19 @@ sub clip_fill_surfaces {
                 expolygon       => $_,
                 surface_type    => S_TYPE_INTERNAL,
             ),
-            @{intersection_ex(
-                $overhangs,
-                [ map $_->p, @internal ],
-            )};
+                @{intersection_ex(
+                    [ map $_->p, @internal ],
+                    $overhangs,
+                )};
+            
+            push @new, map Slic3r::Surface->new(
+                expolygon       => $_,
+                surface_type    => S_TYPE_INTERNALVOID,
+            ),
+                @{diff_ex(
+                    [ map $_->p, @internal ],
+                    $overhangs,
+                )};
             
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append($_) for (@new, @other);
