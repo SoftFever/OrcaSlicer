@@ -10,8 +10,6 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     _model_object(model_object),
     typed_slices(false)
 {
-    region_volumes.resize(this->_print->regions.size());
-
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {
         // Translate meshes so that our toolpath generation algorithms work with smaller
@@ -125,10 +123,6 @@ PrintObject::bounding_box(BoundingBox* bb) const
 void
 PrintObject::add_region_volume(int region_id, int volume_id)
 {
-    if (region_id >= region_volumes.size()) {
-        region_volumes.resize(region_id + 1);
-    }
-
     region_volumes[region_id].push_back(volume_id);
 }
 
@@ -369,7 +363,7 @@ PrintObject::bridge_over_infill()
             diff(internal_solid, to_bridge, &not_to_bridge, true);
             
             #ifdef SLIC3R_DEBUG
-            printf "Bridging %d internal areas at layer %d\n", scalar(@$to_bridge), $layer_id;
+            printf("Bridging %zu internal areas at layer %d\n", to_bridge.size(), layer->id());
             #endif
             
             // build the new collection of fill_surfaces

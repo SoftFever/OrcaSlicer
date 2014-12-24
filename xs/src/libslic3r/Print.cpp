@@ -463,7 +463,7 @@ Print::apply_config(DynamicPrintConfig config)
             
             std::vector<int> &region_volumes = object->region_volumes[region_id];
             for (std::vector<int>::const_iterator volume_id = region_volumes.begin(); volume_id != region_volumes.end(); ++volume_id) {
-                ModelVolume* volume = object->model_object()->volumes[*volume_id];
+                ModelVolume* volume = object->model_object()->volumes.at(*volume_id);
                 
                 PrintRegionConfig new_config = this->_region_config_from_model_volume(*volume);
                 

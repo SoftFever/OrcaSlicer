@@ -76,8 +76,10 @@ class PrintObject
     friend class Print;
 
     public:
-    // vector of (vectors of volume ids), indexed by region_id
-    std::vector<std::vector<int> > region_volumes;
+    // map of (vectors of volume ids), indexed by region_id
+    /* (we use map instead of vector so that we don't have to worry about
+       resizing it and the [] operator adds new items automagically) */
+    std::map< size_t,std::vector<int> > region_volumes;
     PrintObjectConfig config;
     t_layer_height_ranges layer_height_ranges;
     
