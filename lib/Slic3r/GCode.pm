@@ -96,6 +96,10 @@ sub change_layer {
         $gcode .= $self->retract;
     }
     $gcode .= $self->writer->travel_to_z($z, 'move to next layer (' . $self->layer->id . ')');
+    
+    # forget last wiping path as wiping after raising Z is pointless
+    $self->wipe->path(undef);
+    
     return $gcode;
 }
 
