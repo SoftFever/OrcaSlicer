@@ -238,11 +238,8 @@ sub Render {
         gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
     }
     
-    my $skirt_drawn = 0;
-    my $brim_drawn = 0;
     foreach my $layer (@{$self->layers}) {
         my $object = $layer->object;
-        my $print_z = $layer->print_z;
         
         # draw slice contour
         {
@@ -277,6 +274,13 @@ sub Render {
                 glPopMatrix();
             }
         }
+    }
+    
+    my $skirt_drawn = 0;
+    my $brim_drawn = 0;
+    foreach my $layer (@{$self->layers}) {
+        my $object = $layer->object;
+        my $print_z = $layer->print_z;
         
         # draw brim
         if ($self->print->step_done(STEP_BRIM) && $layer->id == 0 && !$brim_drawn) {
