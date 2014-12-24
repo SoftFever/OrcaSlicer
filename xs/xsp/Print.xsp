@@ -112,6 +112,8 @@ _constant()
     void set_step_started(PrintObjectStep step)
         %code%{ THIS->state.set_started(step); %};
     
+    void bridge_over_infill();
+    
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
 };

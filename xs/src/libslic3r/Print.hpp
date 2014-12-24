@@ -132,6 +132,8 @@ class PrintObject
     bool invalidate_step(PrintObjectStep step);
     bool invalidate_all_steps();
     
+    void bridge_over_infill();
+    
     private:
     Print* _print;
     ModelObject* _model_object;

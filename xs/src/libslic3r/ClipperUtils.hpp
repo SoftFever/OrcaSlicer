@@ -84,6 +84,9 @@ template <class SubjectType, class ResultType>
 void diff(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType* retval, bool safety_offset_ = false);
 
 template <class SubjectType, class ResultType>
+void diff(const SubjectType &subject, const Slic3r::ExPolygons &clip, ResultType* retval, bool safety_offset_ = false);
+
+template <class SubjectType, class ResultType>
 void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType* retval, bool safety_offset_ = false);
 
 template <class SubjectType>

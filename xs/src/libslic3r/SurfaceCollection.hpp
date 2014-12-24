@@ -16,6 +16,8 @@ class SurfaceCollection
     void simplify(double tolerance);
     void group(std::vector<SurfacesPtr> *retval);
     template <class T> bool any_internal_contains(const T &item) const;
+    SurfacesPtr filter_by_type(SurfaceType type);
+    void filter_by_type(SurfaceType type, Polygons* polygons);
 };
 
 }

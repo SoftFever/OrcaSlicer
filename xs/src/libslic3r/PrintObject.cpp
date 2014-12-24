@@ -1,5 +1,6 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 
 namespace Slic3r {
@@ -336,6 +337,93 @@ PrintObject::invalidate_all_steps()
         if (this->invalidate_step(*step)) invalidated = true;
     }
     return invalidated;
+}
+
+void
+PrintObject::bridge_over_infill()
+{
+    FOREACH_REGION(this->_print, region) {
+        size_t region_id = region - this->_print->regions.begin();
+        
+        double fill_density = (*region)->config.fill_density.value;
+        if (fill_density == 100 || fill_density == 0) continue;
+        
+        FOREACH_LAYER(this, layer_it) {
+            if (layer_it == this->layers.begin()) continue;
+            
+            Layer* layer        = *layer_it;
+            Layer* lower_layer  = *(layer_it - 1);
+            LayerRegion* layerm = layer->get_region(region_id);
+            
+            // compute the areas needing bridge math
+            Polygons internal_solid, lower_internal;
+            layerm->fill_surfaces.filter_by_type(stInternalSolid, &internal_solid);
+            FOREACH_LAYERREGION(lower_layer, lower_layerm_it)
+                (*lower_layerm_it)->fill_surfaces.filter_by_type(stInternal, &lower_internal);
+            
+            ExPolygons to_bridge;
+            intersection(internal_solid, lower_internal, &to_bridge);
+            if (to_bridge.empty()) continue;
+            
+            ExPolygons not_to_bridge;
+            diff(internal_solid, to_bridge, &not_to_bridge, true);
+            
+            #ifdef SLIC3R_DEBUG
+            printf "Bridging %d internal areas at layer %d\n", scalar(@$to_bridge), $layer_id;
+            #endif
+            
+            // build the new collection of fill_surfaces
+            {
+                Surfaces new_surfaces;
+                for (Surfaces::const_iterator surface = layerm->fill_surfaces.surfaces.begin(); surface != layerm->fill_surfaces.surfaces.end(); ++surface) {
+                    if (surface->surface_type != stInternalSolid)
+                        new_surfaces.push_back(*surface);
+                }
+                
+                for (ExPolygons::const_iterator ex = to_bridge.begin(); ex != to_bridge.end(); ++ex)
+                    new_surfaces.push_back(Surface(stInternalBridge, *ex));
+                
+                for (ExPolygons::const_iterator ex = not_to_bridge.begin(); ex != not_to_bridge.end(); ++ex)
+                    new_surfaces.push_back(Surface(stInternalSolid, *ex));
+                
+                layerm->fill_surfaces.surfaces = new_surfaces;
+            }
+            
+            /*
+            # exclude infill from the layers below if needed
+            # see discussion at https://github.com/alexrj/Slic3r/issues/240
+            # Update: do not exclude any infill. Sparse infill is able to absorb the excess material.
+            if (0) {
+                my $excess = $layerm->extruders->{infill}->bridge_flow->width - $layerm->height;
+                for (my $i = $layer_id-1; $excess >= $self->get_layer($i)->height; $i--) {
+                    Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
+                    foreach my $lower_layerm (@{$self->get_layer($i)->regions}) {
+                        my @new_surfaces = ();
+                        # subtract the area from all types of surfaces
+                        foreach my $group (@{$lower_layerm->fill_surfaces->group}) {
+                            push @new_surfaces, map $group->[0]->clone(expolygon => $_),
+                                @{diff_ex(
+                                    [ map $_->p, @$group ],
+                                    [ map @$_, @$to_bridge ],
+                                )};
+                            push @new_surfaces, map Slic3r::Surface->new(
+                                expolygon       => $_,
+                                surface_type    => S_TYPE_INTERNALVOID,
+                            ), @{intersection_ex(
+                                [ map $_->p, @$group ],
+                                [ map @$_, @$to_bridge ],
+                            )};
+                        }
+                        $lower_layerm->fill_surfaces->clear;
+                        $lower_layerm->fill_surfaces->append($_) for @new_surfaces;
+                    }
+                    
+                    $excess -= $self->get_layer($i)->height;
+                }
+            }
+            */
+        }
+    }
 }
 
 
