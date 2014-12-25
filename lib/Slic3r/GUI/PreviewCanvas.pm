@@ -118,7 +118,10 @@ sub mouse_event {
     my ($self, $e) = @_;
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-    if ($e->LeftDClick) {
+    if ($e->Entering && &Wx::wxMSW) {
+        # wxMSW needs focus in order to catch mouse wheel events
+        $self->SetFocus;
+    } elsif ($e->LeftDClick) {
         $self->on_double_click->()
             if $self->on_double_click;
     } elsif ($e->LeftDown || $e->RightDown) {
