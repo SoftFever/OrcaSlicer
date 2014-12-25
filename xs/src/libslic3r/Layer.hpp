@@ -93,6 +93,7 @@ class Layer {
     LayerRegion* add_region(PrintRegion* print_region);
     
     void make_slices();
+    template <class T> bool any_internal_region_slice_contains(const T &item) const;
     template <class T> bool any_internal_region_fill_surface_contains(const T &item) const;
 
     protected:

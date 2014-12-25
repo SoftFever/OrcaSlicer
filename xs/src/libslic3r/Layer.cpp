@@ -122,6 +122,17 @@ Layer::make_slices()
 
 template <class T>
 bool
+Layer::any_internal_region_slice_contains(const T &item) const
+{
+    FOREACH_LAYERREGION(this, layerm) {
+        if ((*layerm)->slices.any_internal_contains(item)) return true;
+    }
+    return false;
+}
+template bool Layer::any_internal_region_slice_contains<Line>(const Line &item) const;
+
+template <class T>
+bool
 Layer::any_internal_region_fill_surface_contains(const T &item) const
 {
     FOREACH_LAYERREGION(this, layerm) {

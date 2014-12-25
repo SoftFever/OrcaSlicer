@@ -341,14 +341,17 @@ sub travel_to {
     # Skip retraction at all in the following cases:
     # - travel length is shorter than the configured threshold
     # - user has enabled "Only retract when crossing perimeters" and the travel move is
-    #   contained in a single island of the current layer *and* a single island in the
-    #   upper layer (so that ooze will not be visible)
+    #   contained in a single internal fill_surface (this includes the bottom layer when
+    #   bottom_solid_layers == 0) or in a single internal slice (this would exclude such
+    #   bottom layer but preserve perimeter-to-infill moves in all the other layers)
     # - the path that will be extruded after this travel move is a support material
     #   extrusion and the travel move is contained in a single support material island
     if ($travel->length < scale $self->config->get_at('retract_before_travel', $self->writer->extruder->id)
         || ($self->config->only_retract_when_crossing_perimeters
             && $self->config->fill_density > 0
-            && defined($self->layer) && $self->layer->any_internal_region_fill_surface_contains_line($travel))
+            && defined($self->layer)
+            && ($self->layer->any_internal_region_slice_contains_line($travel)
+             || $self->layer->any_internal_region_fill_surface_contains_line($travel)))
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel))
         ) {
         # Just perform a straight travel move without any retraction.
