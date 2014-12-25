@@ -291,7 +291,7 @@ sub new {
     {
         my $presets;
         if ($self->GetFrame->{mode} eq 'expert') {
-            $presets = Wx::FlexGridSizer->new(3, 2, 1, 2);
+            $presets = $self->{presets_sizer} = Wx::FlexGridSizer->new(3, 2, 1, 2);
             $presets->AddGrowableCol(1, 1);
             $presets->SetFlexibleDirection(wxHORIZONTAL);
             my %group_labels = (
@@ -1183,13 +1183,15 @@ sub on_extruders_change {
         my @presets = $choices->[0]->GetStrings;
         push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
         $choices->[-1]->SetFont($Slic3r::GUI::small_font);
-        $self->{preset_choosers_sizers}{filament}->Add($choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
+        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
         EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
         my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
         $choices->[-1]->SetSelection($i || 0);
     }
     while (@$choices > $num_extruders) {
-        $self->{preset_choosers_sizers}{filament}->Remove(-1);
+        $self->{presets_sizer}->Remove(4 + ($#$choices-1)*2);  # label
+        $self->{presets_sizer}->Remove(4 + ($#$choices-1)*2);  # wxChoice
         $choices->[-1]->Destroy;
         pop @$choices;
     }
