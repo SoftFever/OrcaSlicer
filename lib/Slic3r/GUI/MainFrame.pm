@@ -435,7 +435,7 @@ sub extra_variables {
     
     my %extra_variables = ();
     if ($self->{mode} eq 'expert') {
-        $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->current_preset->{name}
+        $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->get_current_preset->name
             for qw(print filament printer);
     }
     return { %extra_variables };
