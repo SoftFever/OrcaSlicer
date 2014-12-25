@@ -189,7 +189,7 @@ sub mouse_event {
                 $self->Refresh;
             }
             $self->_drag_start_pos($pos);
-        } elsif ($e->RightIsDown) {
+        } elsif ($e->MiddleIsDown || $e->RightIsDown) {
             # if dragging over blank area with right button, translate
             
             if (defined $self->_drag_start_xy) {
