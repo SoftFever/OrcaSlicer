@@ -307,7 +307,7 @@ sub new {
                 $choice->SetFont($Slic3r::GUI::small_font);
                 $self->{preset_choosers}{$group} = [$choice];
                 EVT_CHOICE($choice, $choice, sub { $self->_on_select_preset($group, @_) });
-                $presets->Add($text, 0, wxALIGN_LEFT | wxRIGHT, 4);
+                $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
                 $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 8);
             }
         }
