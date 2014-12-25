@@ -8,7 +8,9 @@ use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window
     wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
-use base 'Wx::Panel';
+use base qw(Wx::Panel Class::Accessor);
+
+__PACKAGE__->mk_accessors(qw(current_preset));
 
 sub new {
     my $class = shift;
@@ -86,18 +88,17 @@ sub new {
     EVT_BUTTON($self, $self->{btn_save_preset}, sub { $self->save_preset });
     
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
-        my $i = $self->{presets_choice}->GetSelection;
+        my $i = $self->current_preset;
         return if $i == 0;  # this shouldn't happen but let's trap it anyway
         my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         return unless $res == wxID_YES;
-        if (-e $self->{presets}[$i]{file}) {
-            unlink $self->{presets}[$i]{file};
+        if (-e $self->{presets}[$i]->file) {
+            unlink $self->{presets}[$i]->file;
         }
         splice @{$self->{presets}}, $i, 1;
-        $self->set_dirty(0);
         $self->{presets_choice}->Delete($i);
-        $self->{presets_choice}->SetSelection(0);
-        $self->on_select_preset;
+        $self->current_preset(undef);
+        $self->select_preset(0);
         $self->_on_presets_changed;
     });
     
@@ -111,14 +112,14 @@ sub new {
     return $self;
 }
 
-sub current_preset {
+sub get_current_preset {
     my $self = shift;
-    return $self->{presets}[ $self->{presets_choice}->GetSelection ];
+    return $self->get_preset($self->current_preset);
 }
 
 sub get_preset {
-    my $self = shift;
-    return $self->{presets}[ $_[0] ];
+    my ($self, $i) = @_;
+    return $self->{presets}[$i];
 }
 
 sub save_preset {
@@ -130,23 +131,22 @@ sub save_preset {
     $self->{treectrl}->SetFocus;
     
     if (!defined $name) {
-        my $preset = $self->current_preset;
-        my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
+        my $preset = $self->get_current_preset;
+        my $default_name = $preset->default ? 'Untitled' : $preset->name;
         $default_name =~ s/\.ini$//i;
     
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
             title   => lc($self->title),
             default => $default_name,
-            values  => [ map { my $name = $_->{name}; $name =~ s/\.ini$//i; $name } @{$self->{presets}} ],
+            values  => [ map $_->name, grep !$_->default && !$_->external, @{$self->{presets}} ],
         );
         return unless $dlg->ShowModal == wxID_OK;
         $name = $dlg->get_name;
     }
     
     $self->config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $name);
-    $self->set_dirty(0);
     $self->load_presets;
-    $self->select_preset(first { basename($self->{presets}[$_]{file}) eq $name . ".ini" } 1 .. $#{$self->{presets}});
+    $self->select_preset_by_name($name);
     $self->_on_presets_changed;
 }
 
@@ -185,7 +185,7 @@ sub config { $_[0]->{config}->clone }
 
 sub select_default_preset {
     my $self = shift;
-    $self->{presets_choice}->SetSelection(0);
+    $self->select_preset(0);
 }
 
 sub select_preset {
@@ -194,21 +194,30 @@ sub select_preset {
     $self->on_select_preset;
 }
 
+sub select_preset_by_name {
+    my ($self, $name) = @_;
+    $self->select_preset(first { $self->{presets}[$_]->name eq $name } 0 .. $#{$self->{presets}});
+}
+
 sub on_select_preset {
     my $self = shift;
     
-    if ($self->{dirty}) {
-        my $name = $self->{dirty} == 0 ? 'Default preset' : "Preset \"$self->{presets}[$self->{dirty}]{name}\"";
-        my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes. Discard changes and continue anyway?",
+    if ($self->is_dirty) {
+        my $old_preset = $self->get_current_preset;
+        my $name = $old_preset->default ? 'Default preset' : "Preset \"" . $old_preset->name . "\"";
+        my $changes = join "\n",
+            map { "- " . ($Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) }
+            @{$self->dirty_options};
+        my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes:\n$changes\n\nDiscard changes and continue anyway?",
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
-            $self->{presets_choice}->SetSelection($self->{dirty});
+            $self->{presets_choice}->SetSelection($self->current_preset);
             return;
         }
-        $self->set_dirty(0);
     }
     
-    my $preset = $self->current_preset;
+    $self->current_preset($self->{presets_choice}->GetSelection);
+    my $preset = $self->get_current_preset;
     my $preset_config = $self->get_preset_config($preset);
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
@@ -216,51 +225,30 @@ sub on_select_preset {
             $self->{config}->set($opt_key, $preset_config->get($opt_key))
                 if $preset_config->has($opt_key);
         }
-        ($preset->{default} || $preset->{external})
+        ($preset->default || $preset->external)
             ? $self->{btn_delete_preset}->Disable
             : $self->{btn_delete_preset}->Enable;
         
         $self->_update;
         $self->on_preset_loaded;
         $self->reload_config;
-        
-        # use CallAfter because some field triggers schedule on_change calls using CallAfter,
-        # and we don't want them to be called after this set_dirty(0) as they would mark the 
-        # preset dirty again
-        wxTheApp->CallAfter(sub {
-            $self->set_dirty(0);
-        });
-        $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
+        $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->file ? basename($preset->file) : '';
     };
     if ($@) {
         $@ = "I was unable to load the selected config file: $@";
         Slic3r::GUI::catch_error($self);
         $self->select_default_preset;
     }
+        
+    # use CallAfter because some field triggers schedule on_change calls using CallAfter,
+    # and we don't want them to be called after this update_dirty() as they would mark the 
+    # preset dirty again
+    # (not sure this is true anymore now that update_dirty is idempotent)
+    wxTheApp->CallAfter(sub {
+        $self->update_dirty;
+    });
     
     wxTheApp->save_settings;
-}
-
-sub get_preset_config {
-    my $self = shift;
-    my ($preset) = @_;
-    
-    if ($preset->{default}) {
-        return Slic3r::Config->new_from_defaults(@{$self->{config}->get_keys});
-    } else {
-        if (!-e $preset->{file}) {
-            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
-            return;
-        }
-        
-        # apply preset values on top of defaults
-        my $external_config = Slic3r::Config->load($preset->{file});
-        my $config = Slic3r::Config->new;
-        $config->set($_, $external_config->get($_))
-            for grep $external_config->has($_), @{$self->{config}->get_keys};
-        
-        return $config;
-    }
 }
 
 sub init_config_options {
@@ -305,53 +293,52 @@ sub update_tree {
     }
 }
 
-sub set_dirty {
+sub update_dirty {
     my $self = shift;
-    my ($dirty) = @_;
-
-    return if $dirty and $self->is_dirty;
-    return if (not $dirty) and (not $self->is_dirty);
     
-    my $selection = $self->{presets_choice}->GetSelection;
-    my $i = $self->{dirty} // $selection; #/
-    my $text = $self->{presets_choice}->GetString($i);
-    
-    if ($dirty) {
-        $self->{dirty} = $i;
-        if ($text !~ / \(modified\)$/) {
-            $self->{presets_choice}->SetString($i, "$text (modified)");
-            $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
+    foreach my $i (0..$#{$self->{presets}}) {
+        my $preset = $self->get_preset($i);
+        if ($i == $self->current_preset && $self->is_dirty) {
+            $self->{presets_choice}->SetString($i, $preset->name . " (modified)");
+        } else {
+            $self->{presets_choice}->SetString($i, $preset->name);
         }
-    } else {
-        $self->{dirty} = undef;
-        $text =~ s/ \(modified\)$//;
-        $self->{presets_choice}->SetString($i, $text);
-        $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
     }
+    $self->{presets_choice}->SetSelection($self->current_preset);  # http://trac.wxwidgets.org/ticket/13769
     $self->_on_presets_changed;
 }
 
 sub is_dirty {
     my $self = shift;
-    return (defined $self->{dirty});
+    return @{$self->dirty_options} > 0;
+}
+
+sub dirty_options {
+    my $self = shift;
+    
+    return [] if !defined $self->current_preset;  # happens during initialization
+    return $self->get_preset_config($self->get_current_preset)->diff($self->{config});
 }
 
 sub load_presets {
     my $self = shift;
     
-    $self->{presets} = [{
-        default => 1,
-        name    => '- default -',
-    }];
+    $self->{presets} = [
+        Slic3r::GUI::Tab::Preset->new(
+            default => 1,
+            name    => '- default -',
+        ),
+    ];
     
     my %presets = wxTheApp->presets($self->name);
     foreach my $preset_name (sort keys %presets) {
-        push @{$self->{presets}}, {
+        push @{$self->{presets}}, Slic3r::GUI::Tab::Preset->new(
             name => $preset_name,
             file => $presets{$preset_name},
-        };
+        );
     }
     
+    $self->current_preset(undef);
     $self->{presets_choice}->Clear;
     $self->{presets_choice}->Append($_->{name}) for @{$self->{presets}};
     {
@@ -370,11 +357,11 @@ sub load_config_file {
     my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
     if (!$i) {
         my $preset_name = basename($file);  # keep the .ini suffix
-        push @{$self->{presets}}, {
+        push @{$self->{presets}}, Slic3r::GUI::Tab::Preset->new(
             file        => $file,
             name        => $preset_name,
             external    => 1,
-        };
+        );
         $self->{presets_choice}->Append($preset_name);
         $i = $#{$self->{presets}};
     }
@@ -389,9 +376,14 @@ sub load_config {
     
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
         $self->{config}->set($opt_key, $config->get($opt_key));
-        $self->set_dirty(1);
+        $self->update_dirty;
     }
     $self->reload_config;
+}
+
+sub get_preset_config {
+    my ($self, $preset) = @_;
+    return $preset->config($self->{config}->get_keys);
 }
 
 sub get_field {
@@ -945,7 +937,7 @@ sub build {
             if ($dlg->ShowModal == wxID_OK) {
                 my $value = $dlg->GetValue;
                 $self->{config}->set('bed_shape', $value);
-                $self->set_dirty(1);
+                $self->update_dirty;
                 $self->_on_value_change('bed_shape', $value);
             }
         });
@@ -989,7 +981,7 @@ sub build {
             $optgroup->on_change(sub {
                 my ($opt_id) = @_;
                 if ($opt_id eq 'extruders_count') {
-                    $self->set_dirty(1);
+                    $self->update_dirty;
                     $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                 }
             });
@@ -1210,7 +1202,7 @@ sub new_optgroup {
         config          => $self->GetParent->{config},
         label_width     => $params{label_width} // 200,
         on_change       => sub {
-            $self->GetParent->set_dirty(1);
+            $self->GetParent->update_dirty;
             $self->GetParent->_on_value_change(@_);
         },
     );
@@ -1257,7 +1249,7 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Save preset", wxDefaultPosition, wxDefaultSize);
     
-    my @values = grep $_ ne '- default -', @{$params{values}};
+    my @values = @{$params{values}};
     
     my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", wxDefaultPosition, wxDefaultSize);
     $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, wxDefaultPosition, wxDefaultSize, \@values,
@@ -1295,6 +1287,35 @@ sub accept {
 sub get_name {
     my $self = shift;
     return $self->{chosen_name};
+}
+
+package Slic3r::GUI::Tab::Preset;
+use Moo;
+
+has 'default'   => (is => 'ro', default => sub { 0 });
+has 'external'  => (is => 'ro', default => sub { 0 });
+has 'name'      => (is => 'rw', required => 1);
+has 'file'      => (is => 'rw');
+
+sub config {
+    my ($self, $keys) = @_;
+    
+    if ($self->default) {
+        return Slic3r::Config->new_from_defaults(@$keys);
+    } else {
+        if (!-e $self->file) {
+            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore (" . $self->file . ").");
+            return;
+        }
+        
+        # apply preset values on top of defaults
+        my $external_config = Slic3r::Config->load($self->file);
+        my $config = Slic3r::Config->new;
+        $config->set($_, $external_config->get($_))
+            for grep $external_config->has($_), @$keys;
+        
+        return $config;
+    }
 }
 
 1;

@@ -552,9 +552,10 @@ PrintConfigDef::build_def() {
     Options["perimeter_speed"].min = 0;
 
     Options["perimeters"].type = coInt;
-    Options["perimeters"].label = "Perimeters (minimum)";
+    Options["perimeters"].label = "Perimeters";
     Options["perimeters"].category = "Layers and Perimeters";
     Options["perimeters"].tooltip = "This option sets the number of perimeters to generate for each layer. Note that Slic3r may increase this number automatically when it detects sloping surfaces which benefit from a higher number of perimeters if the Extra Perimeters option is enabled.";
+    Options["perimeters"].sidetext = "(minimum)";
     Options["perimeters"].cli = "perimeters=i";
     Options["perimeters"].aliases.push_back("perimeter_offsets");
     Options["perimeters"].min = 0;

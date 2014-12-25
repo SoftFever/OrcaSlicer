@@ -23,6 +23,8 @@
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> diff(DynamicPrintConfig* other)
         %code{% RETVAL = THIS->diff(*other); %};
+    bool equals(DynamicPrintConfig* other)
+        %code{% RETVAL = THIS->equals(*other); %};
     void apply_static(FullPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     std::vector<std::string> get_keys()
