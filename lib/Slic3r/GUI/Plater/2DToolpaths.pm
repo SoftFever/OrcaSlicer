@@ -242,38 +242,39 @@ sub Render {
     foreach my $layer (@{$self->layers}) {
         my $object = $layer->object;
         
+        # only draw the slice for the current layer
+        next unless abs($layer->print_z - $self->z) < epsilon;
+        
         # draw slice contour
-        {
-            glLineWidth(1);
-            foreach my $copy (@{ $object->_shifted_copies }) {
-                glPushMatrix();
-                glTranslatef(@$copy, 0);
+        glLineWidth(1);
+        foreach my $copy (@{ $object->_shifted_copies }) {
+            glPushMatrix();
+            glTranslatef(@$copy, 0);
+            
+            foreach my $slice (@{$layer->slices}) {
+                glColor3f(0.95, 0.95, 0.95);
                 
-                foreach my $slice (@{$layer->slices}) {
-                    glColor3f(0.95, 0.95, 0.95);
-                    
-                    if ($tess) {
-                        gluTessBeginPolygon($tess);
-                        foreach my $polygon (@$slice) {
-                            gluTessBeginContour($tess);
-                            gluTessVertex_p($tess, @$_, 0) for @$polygon;
-                            gluTessEndContour($tess);
-                        }
-                        gluTessEndPolygon($tess);
-                    }
-                    
-                    glColor3f(0.9, 0.9, 0.9);
+                if ($tess) {
+                    gluTessBeginPolygon($tess);
                     foreach my $polygon (@$slice) {
-                        foreach my $line (@{$polygon->lines}) {
-                            glBegin(GL_LINES);
-                            glVertex2f(@{$line->a});
-                            glVertex2f(@{$line->b});
-                            glEnd();
-                        }
+                        gluTessBeginContour($tess);
+                        gluTessVertex_p($tess, @$_, 0) for @$polygon;
+                        gluTessEndContour($tess);
+                    }
+                    gluTessEndPolygon($tess);
+                }
+                
+                glColor3f(0.9, 0.9, 0.9);
+                foreach my $polygon (@$slice) {
+                    foreach my $line (@{$polygon->lines}) {
+                        glBegin(GL_LINES);
+                        glVertex2f(@{$line->a});
+                        glVertex2f(@{$line->b});
+                        glEnd();
                     }
                 }
-                glPopMatrix();
             }
+            glPopMatrix();
         }
     }
     
