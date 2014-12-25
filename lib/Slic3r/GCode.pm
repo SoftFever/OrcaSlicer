@@ -214,10 +214,10 @@ sub extrude_loop {
         # create the destination point along the first segment and rotate it
         # we make sure we don't exceed the segment length because we don't know
         # the rotation of the second segment so we might cross the object boundary
-        my $first_segment = Slic3r::Line->new(@$last_path_polyline[0,1]);
+        my $first_segment = Slic3r::Line->new(@{$paths[0]->polyline}[0,1]);
         my $distance = min(scale($self->config->get_at('nozzle_diameter', $self->writer->extruder->id)), $first_segment->length);
         my $point = $first_segment->point_at($distance);
-        $point->rotate($angle, $last_path_polyline->first_point);
+        $point->rotate($angle, $first_segment->a);
         
         # generate the travel move
         $gcode .= $self->travel_to($point, $paths[-1]->role, "move inwards before travel");
