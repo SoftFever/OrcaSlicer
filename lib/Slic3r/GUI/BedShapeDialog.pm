@@ -82,7 +82,6 @@ sub new {
             tooltip     => 'Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.',
             default     => [0,0],
         ));
-        $optgroup->on_change->($_) for qw(rect_size rect_origin);  # set defaults
     }
     {
         my $optgroup = $self->_init_shape_options_page('Circular');
@@ -94,7 +93,6 @@ sub new {
             sidetext    => 'mm',
             default     => 200,
         ));
-        $optgroup->on_change->($_) for qw(diameter);  # set defaults
     }
     {
         my $optgroup = $self->_init_shape_options_page('Custom');
@@ -162,6 +160,7 @@ sub _set_shape {
             my $optgroup = $self->{optgroups}[SHAPE_RECTANGULAR];
             $optgroup->set_value('rect_size', [ $x_max-$x_min, $y_max-$y_min ]);
             $optgroup->set_value('rect_origin', $origin);
+            $self->_update_shape;
             return;
         }
     }
@@ -172,16 +171,18 @@ sub _set_shape {
         my $center = $polygon->bounding_box->center;
         my @vertex_distances = map $center->distance_to($_), @$polygon;
         my $avg_dist = sum(@vertex_distances)/@vertex_distances;
-        if (!defined first { abs($_ - $avg_dist) > scaled_epsilon } @vertex_distances) {
+        if (!defined first { abs($_ - $avg_dist) > 10*scaled_epsilon } @vertex_distances) {
             # all vertices are equidistant to center
             $self->{shape_options_book}->SetSelection(SHAPE_CIRCULAR);
             my $optgroup = $self->{optgroups}[SHAPE_CIRCULAR];
             $optgroup->set_value('diameter', sprintf("%.0f", unscale($avg_dist*2)));
+            $self->_update_shape;
             return;
         }
     }
     
     $self->{shape_options_book}->SetSelection(SHAPE_CUSTOM);
+    $self->_update_shape;
 }
 
 sub _update_shape {
@@ -189,13 +190,14 @@ sub _update_shape {
     
     my $page_idx = $self->{shape_options_book}->GetSelection;
     if ($page_idx == SHAPE_RECTANGULAR) {
-        return if grep !defined($self->{"_$_"}), qw(rect_size rect_origin);  # not loaded yet
-        my ($x, $y) = @{$self->{_rect_size}};
+        my $rect_size = $self->{optgroups}[SHAPE_RECTANGULAR]->get_value('rect_size');
+        my $rect_origin = $self->{optgroups}[SHAPE_RECTANGULAR]->get_value('rect_origin');
+        my ($x, $y) = @$rect_size;
         return if !$x || !$y;  # empty strings
         my ($x0, $y0) = (0,0);
         my ($x1, $y1) = ($x,$y);
         {
-            my ($dx, $dy) = @{$self->{_rect_origin}};
+            my ($dx, $dy) = @$rect_origin;
             return if $dx eq '' || $dy eq '';  # empty strings
             $x0 -= $dx;
             $x1 -= $dx;
@@ -209,9 +211,9 @@ sub _update_shape {
             [$x0,$y1],
         ];
     } elsif ($page_idx == SHAPE_CIRCULAR) {
-        return if grep !defined($self->{"_$_"}), qw(diameter);  # not loaded yet
-        return if !$self->{_diameter};
-        my $r = $self->{_diameter}/2;
+        my $diameter = $self->{optgroups}[SHAPE_CIRCULAR]->get_value('diameter');
+        return if !$diameter;
+        my $r = $diameter/2;
         my $twopi = 2*PI;
         my $edges = 60;
         my $polygon = Slic3r::Polygon->new_scale(
@@ -366,7 +368,7 @@ sub _init_shape_options_page {
         label_width => 100,
         on_change   => sub {
             my ($opt_id) = @_;
-            $self->{"_$opt_id"} = $optgroup->get_value($opt_id);
+            #$self->{"_$opt_id"} = $optgroup->get_value($opt_id);
             $self->_update_shape;
         },
     );
