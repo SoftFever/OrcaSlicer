@@ -162,7 +162,8 @@ sub new {
         }
     }
 
-    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, [250,-1], wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
+    $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize,
+        wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS );
     $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 145);
     $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 45);
     $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
@@ -181,8 +182,8 @@ sub new {
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
-    $self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
+    #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
+    #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     
     if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
@@ -212,7 +213,7 @@ sub new {
         $self->export_gcode;
         Slic3r::thread_cleanup();
     });
-    EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
+    #EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
@@ -290,27 +291,24 @@ sub new {
     {
         my $presets;
         if ($self->GetFrame->{mode} eq 'expert') {
-            $presets = Wx::BoxSizer->new(wxVERTICAL);
+            $presets = Wx::FlexGridSizer->new(3, 2, 1, 2);
+            $presets->AddGrowableCol(1, 1);
+            $presets->SetFlexibleDirection(wxHORIZONTAL);
             my %group_labels = (
                 print       => 'Print settings',
                 filament    => 'Filament',
                 printer     => 'Printer',
             );
             $self->{preset_choosers} = {};
-            $self->{preset_choosers_sizers} = {};
             for my $group (qw(print filament printer)) {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
-                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, [140, -1], []);
+                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize, []);
                 $choice->SetFont($Slic3r::GUI::small_font);
                 $self->{preset_choosers}{$group} = [$choice];
                 EVT_CHOICE($choice, $choice, sub { $self->_on_select_preset($group, @_) });
-                
-                $self->{preset_choosers_sizers}{$group} = Wx::BoxSizer->new(wxVERTICAL);
-                $self->{preset_choosers_sizers}{$group}->Add($choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-                
                 $presets->Add($text, 0, wxALIGN_LEFT | wxRIGHT, 4);
-                $presets->Add($self->{preset_choosers_sizers}{$group}, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM, 8);
+                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 8);
             }
         }
         
@@ -354,22 +352,20 @@ sub new {
             }
         }
         
-        my $right_buttons_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $right_buttons_sizer->Add($presets, 0, wxEXPAND, 0) if defined $presets;
-        $right_buttons_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxTOP, 8);
-        $right_buttons_sizer->Add($self->{btn_export_stl}, 0, wxEXPAND | wxTOP, 2);
-        
-        my $right_top_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        $right_top_sizer->Add($self->{list}, 1, wxEXPAND | wxLEFT, 5);
-        $right_top_sizer->Add($right_buttons_sizer, 0, wxEXPAND | wxALL, 10);
+        my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $buttons_sizer->AddStretchSpacer(1);
+        $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $right_sizer->Add($right_top_sizer, 1, wxEXPAND | wxBOTTOM, 10);
-        $right_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
+        $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
+        $right_sizer->Add($self->{list}, 1, wxEXPAND, 5);
+        $right_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
-        $hsizer->Add($right_sizer, 0, wxEXPAND | wxBOTTOM, 0);
+        $hsizer->Add($right_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
