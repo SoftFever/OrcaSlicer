@@ -245,6 +245,7 @@ sub on_select_preset {
     # preset dirty again
     # (not sure this is true anymore now that update_dirty is idempotent)
     wxTheApp->CallAfter(sub {
+        $self->_on_presets_changed;
         $self->update_dirty;
     });
     
