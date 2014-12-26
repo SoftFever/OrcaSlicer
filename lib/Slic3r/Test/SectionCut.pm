@@ -84,24 +84,25 @@ sub _plot {
         foreach my $copy (@{$object->_shifted_copies}) {
             foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
                 # get all ExtrusionPath objects
-                my @paths = 
-                    map { $_->isa('Slic3r::ExtrusionLoop') ? $_->split_at_first_point : $_->clone }
-                    map { $_->isa('Slic3r::ExtrusionPath::Collection') ? @$_ : $_ }
+                my @paths = map $_->clone,
+                    map { ($_->isa('Slic3r::ExtrusionLoop') || $_->isa('Slic3r::ExtrusionPath::Collection')) ? @$_ : $_ }
                     grep defined $_,
                     $filter->($layer);
                 
                 $_->polyline->translate(@$copy) for @paths;
                 
-                require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(
-                    "line.svg",
-                    no_arrows => 1,
-                    #polygon => $line->grow(Slic3r::Geometry::scale $path->width/2),
-                    polygons => [ $object->bounding_box->polygon ],
-                    lines => [ $self->line ],
-                    red_polylines => [ map $_->polyline, @paths ],
-                );
-                exit;
+                if (0) {
+                    require "Slic3r/SVG.pm";
+                    Slic3r::SVG::output(
+                        "line.svg",
+                        no_arrows => 1,
+                        #polygon => $line->grow(Slic3r::Geometry::scale $path->width/2),
+                        polygons => [ $object->bounding_box->polygon ],
+                        lines => [ $self->line ],
+                        red_polylines => [ map $_->polyline, @paths ],
+                    );
+                    exit;
+                }
                 
                 foreach my $path (@paths) {
                     foreach my $line (@{$path->lines}) {
