@@ -7,6 +7,7 @@
 namespace Slic3r {
 
 class Line;
+class Linef3;
 class Polyline;
 
 class Line
@@ -34,6 +35,7 @@ class Line
     double orientation() const;
     double direction() const;
     Vector vector() const;
+    Vector normal() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* line_sv);
@@ -44,6 +46,22 @@ class Line
 };
 
 typedef std::vector<Line> Lines;
+
+class Linef3
+{
+    public:
+    Pointf3 a;
+    Pointf3 b;
+    Linef3() {};
+    explicit Linef3(Pointf3 _a, Pointf3 _b): a(_a), b(_b) {};
+    Pointf3 intersect_plane(double z) const;
+    
+    #ifdef SLIC3RXS
+    void from_SV(SV* line_sv);
+    void from_SV_check(SV* line_sv);
+    SV* to_SV_pureperl() const;
+    #endif
+};
 
 }
 

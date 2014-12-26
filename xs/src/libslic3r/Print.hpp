@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 #include <stdexcept>
+#include "BoundingBox.hpp"
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
 #include "Point.hpp"
@@ -75,8 +76,10 @@ class PrintObject
     friend class Print;
 
     public:
-    // vector of (vectors of volume ids), indexed by region_id
-    std::vector<std::vector<int> > region_volumes;
+    // map of (vectors of volume ids), indexed by region_id
+    /* (we use map instead of vector so that we don't have to worry about
+       resizing it and the [] operator adds new items automagically) */
+    std::map< size_t,std::vector<int> > region_volumes;
     PrintObjectConfig config;
     t_layer_height_ranges layer_height_ranges;
     
@@ -108,17 +111,19 @@ class PrintObject
     bool delete_all_copies();
     bool set_copies(const Points &points);
     bool reload_model_instances();
+    void bounding_box(BoundingBox* bb) const;
     
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);
 
-    size_t layer_count();
+    size_t total_layer_count() const;
+    size_t layer_count() const;
     void clear_layers();
     Layer* get_layer(int idx);
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_layer(int idx);
 
-    size_t support_layer_count();
+    size_t support_layer_count() const;
     void clear_support_layers();
     SupportLayer* get_support_layer(int idx);
     SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
@@ -128,6 +133,8 @@ class PrintObject
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintObjectStep step);
     bool invalidate_all_steps();
+    
+    void bridge_over_infill();
     
     private:
     Print* _print;
@@ -165,8 +172,6 @@ class Print
     // methods for handling objects
     void clear_objects();
     PrintObject* get_object(size_t idx);
-    PrintObject* add_object(ModelObject *model_object, const BoundingBoxf3 &modobj_bbox);
-    PrintObject* set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox);
     void delete_object(size_t idx);
     void reload_object(size_t idx);
 
@@ -178,11 +183,17 @@ class Print
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintStep step);
     bool invalidate_all_steps();
+    bool step_done(PrintObjectStep step) const;
     
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig config);
     void init_extruders();
     void validate() const;
+    BoundingBox bounding_box() const;
+    BoundingBox total_bounding_box() const;
+    double skirt_first_layer_height() const;
+    Flow brim_flow() const;
+    Flow skirt_flow() const;
     
     std::set<size_t> extruders() const;
     void _simplify_slices(double distance);

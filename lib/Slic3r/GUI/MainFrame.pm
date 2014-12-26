@@ -38,16 +38,6 @@ sub new {
     
     $self->{loaded} = 1;
     
-    # declare events
-    EVT_CLOSE($self, sub {
-        my (undef, $event) = @_;
-        if ($event->CanVeto && !$self->check_unsaved_changes) {
-            $event->Veto;
-            return;
-        }
-        $event->Skip;
-    });
-    
     # initialize layout
     {
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -56,10 +46,35 @@ sub new {
         $self->SetSizer($sizer);
         $self->Fit;
         $self->SetMinSize([760, 490]);
-        $self->SetSize($self->GetMinSize);
+        if (defined $Slic3r::GUI::Settings->{_}{main_frame_size}) {
+            $self->SetSize([ split ',', $Slic3r::GUI::Settings->{_}{main_frame_size}, 2 ]);
+            $self->Move([ split ',', $Slic3r::GUI::Settings->{_}{main_frame_pos}, 2 ]);
+            $self->Maximize(1) if $Slic3r::GUI::Settings->{_}{main_frame_maximized};
+        } else {
+            $self->SetSize($self->GetMinSize);
+        }
         $self->Show;
         $self->Layout;
     }
+    
+    # declare events
+    EVT_CLOSE($self, sub {
+        my (undef, $event) = @_;
+        
+        if ($event->CanVeto && !$self->check_unsaved_changes) {
+            $event->Veto;
+            return;
+        }
+        
+        # save window size
+        $Slic3r::GUI::Settings->{_}{main_frame_pos}  = join ',', $self->GetScreenPositionXY;
+        $Slic3r::GUI::Settings->{_}{main_frame_size} = join ',', $self->GetSizeWH;
+        $Slic3r::GUI::Settings->{_}{main_frame_maximized} = $self->IsMaximized;
+        wxTheApp->save_settings;
+        
+        # propagate event
+        $event->Skip;
+    });
     
     return $self;
 }
@@ -192,10 +207,6 @@ sub _init_menubar {
         $self->_append_menu_item($self->{plater_menu}, "Export AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
         });
-        $self->{plater_menu}->AppendSeparator();
-        $self->_append_menu_item($self->{plater_menu}, "Toolpaths preview…", 'Open a viewer with toolpaths preview', sub {
-            $plater->toolpaths_preview;
-        });
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
@@ -308,7 +319,14 @@ sub quick_slice {
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
         wxTheApp->save_settings;
         
+        my $print_center;
+        {
+            my $bed_shape = Slic3r::Polygon->new_scale(@{$config->bed_shape});
+            $print_center = Slic3r::Pointf->new_unscale(@{$bed_shape->bounding_box->center});
+        }
+        
         my $sprint = Slic3r::Print::Simple->new(
+            print_center    => $print_center,
             status_cb       => sub {
                 my ($percent, $message) = @_;
                 return if &Wx::wxVERSION_STRING !~ / 2\.(8\.|9\.[2-9])/;
@@ -417,7 +435,7 @@ sub extra_variables {
     
     my %extra_variables = ();
     if ($self->{mode} eq 'expert') {
-        $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->current_preset->{name}
+        $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->get_current_preset->name
             for qw(print filament printer);
     }
     return { %extra_variables };

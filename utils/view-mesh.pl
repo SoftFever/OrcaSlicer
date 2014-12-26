@@ -20,6 +20,7 @@ my %opt = ();
     my %options = (
         'help'                  => sub { usage() },
         'cut=f'                 => \$opt{cut},
+        'enable-moving'         => \$opt{enable_moving},
     );
     GetOptions(%options) or usage(1);
     $ARGV[0] or usage(1);
@@ -32,9 +33,11 @@ my %opt = ();
     $model->add_default_instances;
     
     my $app = Slic3r::ViewMesh->new;
+    $app->{canvas}->enable_picking(1);
+    $app->{canvas}->enable_moving($opt{enable_moving});
     $app->{canvas}->load_object($model->objects->[0]);
-    $app->{canvas}->set_bounding_box($model->objects->[0]->bounding_box);
     $app->{canvas}->set_auto_bed_shape;
+    $app->{canvas}->zoom_to_volumes;
     $app->{canvas}->SetCuttingPlane($opt{cut}) if defined $opt{cut};
     $app->MainLoop;
 }

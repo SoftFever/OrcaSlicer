@@ -20,6 +20,8 @@
     void clear_objects();
     size_t objects_count()
         %code%{ RETVAL = THIS->objects.size(); %};
+    Ref<ModelObject> get_object(int idx)
+        %code%{ RETVAL = THIS->objects.at(idx); %};
 
     Ref<ModelMaterial> get_material(t_model_material_id material_id)
         %code%{
@@ -188,9 +190,9 @@ ModelMaterial::attributes()
     void set_layer_height_ranges(t_layer_height_ranges ranges)
         %code%{ THIS->layer_height_ranges = ranges; %};
 
-    Ref<Pointf> origin_translation()
+    Ref<Pointf3> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};
-    void set_origin_translation(Pointf* point)
+    void set_origin_translation(Pointf3* point)
         %code%{ THIS->origin_translation = *point; %};
     
     bool needed_repair() const;

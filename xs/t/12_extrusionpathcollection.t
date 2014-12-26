@@ -26,7 +26,9 @@ my $loop = Slic3r::ExtrusionLoop->new_from_paths(
     ),
 );
 
-my $collection = Slic3r::ExtrusionPath::Collection->new($path);
+my $collection = Slic3r::ExtrusionPath::Collection->new(
+    $path,
+);
 isa_ok $collection, 'Slic3r::ExtrusionPath::Collection', 'collection object with items in constructor';
 ok !$collection->no_sort, 'no_sort is false by default';
 

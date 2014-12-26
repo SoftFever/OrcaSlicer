@@ -53,8 +53,10 @@ PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_la
     size_t extruder;  // 1-based
     if (role == frPerimeter || role == frExternalPerimeter) {
         extruder = this->config.perimeter_extruder;
-    } else if (role == frInfill || role == frSolidInfill || role == frTopSolidInfill) {
+    } else if (role == frInfill) {
         extruder = this->config.infill_extruder;
+    } else if (role == frSolidInfill || role == frTopSolidInfill) {
+        extruder = this->config.solid_infill_extruder;
     } else {
         CONFESS("Unknown role $role");
     }

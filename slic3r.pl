@@ -364,7 +364,7 @@ $j
     --fill-density      Infill density (range: 0%-100%, default: $config->{fill_density}%)
     --fill-angle        Infill angle in degrees (range: 0-90, default: $config->{fill_angle})
     --fill-pattern      Pattern to use to fill non-solid layers (default: $config->{fill_pattern})
-    --solid-fill-pattern Pattern to use to fill solid layers (default: $config->{solid_fill_pattern})
+    --external-fill-pattern Pattern to use to fill solid layers (default: $config->{external_fill_pattern})
     --start-gcode       Load initial G-code from the supplied file. This will overwrite
                         the default command (home all axes [G28]).
     --end-gcode         Load final G-code from the supplied file. This will overwrite 
@@ -503,10 +503,11 @@ $j
     --extruder-offset   Offset of each extruder, if firmware doesn't handle the displacement
                         (can be specified multiple times, default: 0x0)
     --perimeter-extruder
-                        Extruder to use for perimeters (1+, default: $config->{perimeter_extruder})
+                        Extruder to use for perimeters and brim (1+, default: $config->{perimeter_extruder})
     --infill-extruder   Extruder to use for infill (1+, default: $config->{infill_extruder})
+    --solid-infill-extruder   Extruder to use for solid infill (1+, default: $config->{solid_infill_extruder})
     --support-material-extruder
-                        Extruder to use for support material (1+, default: $config->{support_material_extruder})
+                        Extruder to use for support material, raft and skirt (1+, default: $config->{support_material_extruder})
     --support-material-interface-extruder
                         Extruder to use for support material interface (1+, default: $config->{support_material_interface_extruder})
     --ooze-prevention   Drop temperature and park extruders outside a full skirt for automatic wiping

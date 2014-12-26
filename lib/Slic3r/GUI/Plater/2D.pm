@@ -210,14 +210,13 @@ sub mouse_event {
             }
         }
         $self->Refresh;
-    } elsif ($event->ButtonUp(&Wx::wxMOUSE_BTN_LEFT)) {
+    } elsif ($event->LeftUp) {
         $self->{on_instance_moved}->(@{ $self->{drag_object} })
             if $self->{drag_object};
-        $self->Refresh;
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);
-    } elsif ($event->ButtonDClick) {
+    } elsif ($event->LeftDClick) {
     	$self->{on_double_click}->();
     } elsif ($event->Dragging) {
         return if !$self->{drag_start_pos}; # concurrency problems

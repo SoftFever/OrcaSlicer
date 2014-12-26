@@ -64,7 +64,8 @@ class ExtrusionPath : public ExtrusionEntity
     void simplify(double tolerance);
     double length() const;
     bool is_perimeter() const;
-    bool is_fill() const;
+    bool is_infill() const;
+    bool is_solid_infill() const;
     bool is_bridge() const;
     std::string gcode(Extruder* extruder, double e, double F,
         double xofs, double yofs, std::string extrusion_axis,
@@ -96,6 +97,9 @@ class ExtrusionLoop : public ExtrusionEntity
     void split_at(const Point &point);
     void clip_end(double distance, ExtrusionPaths* paths) const;
     bool has_overhang_point(const Point &point) const;
+    bool is_perimeter() const;
+    bool is_infill() const;
+    bool is_solid_infill() const;
 };
 
 }

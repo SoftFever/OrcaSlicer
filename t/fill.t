@@ -49,9 +49,10 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         height          => 0.4,
         nozzle_diameter => 0.50,
     );
+    $filler->spacing($flow->spacing);
     foreach my $angle (0, 45) {
         $surface->expolygon->rotate(Slic3r::Geometry::deg2rad($angle), [0,0]);
-        my ($params, @paths) = $filler->fill_surface($surface, flow => $flow, layer_height => 0.4, density => 0.4);
+        my @paths = $filler->fill_surface($surface, layer_height => 0.4, density => 0.4);
         is scalar @paths, 1, 'one continuous path';
     }
 }
@@ -73,15 +74,15 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
             height          => 0.4,
             nozzle_diameter => $flow_spacing,
         );
-        my ($params, @paths) = $filler->fill_surface(
+        $filler->spacing($flow->spacing);
+        my @paths = $filler->fill_surface(
             $surface,
-            flow            => $flow,
             layer_height    => $flow->height,
             density         => $density // 1,
         );
         
         # check whether any part was left uncovered
-        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $params->{flow}->spacing/2)}, @paths;
+        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $filler->spacing/2)}, @paths;
         my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ], 1);
         
         # ignore very small dots
@@ -171,7 +172,7 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('fill_pattern', $pattern);
-    $config->set('solid_fill_pattern', $pattern);
+    $config->set('external_fill_pattern', $pattern);
     $config->set('perimeters', 1);
     $config->set('skirts', 0);
     $config->set('fill_density', 20);

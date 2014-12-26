@@ -133,6 +133,12 @@ Line::vector() const
     return Vector(this->b.x - this->a.x, this->b.y - this->a.y);
 }
 
+Vector
+Line::normal() const
+{
+    return Vector((this->b.y - this->a.y), -(this->b.x - this->a.x));
+}
+
 #ifdef SLIC3RXS
 
 REGISTER_CLASS(Line, "Line");
@@ -176,6 +182,20 @@ Line::to_SV_pureperl() const {
     av_store(av, 1, this->b.to_SV_pureperl());
     return newRV_noinc((SV*)av);
 }
+#endif
+
+Pointf3
+Linef3::intersect_plane(double z) const
+{
+    return Pointf3(
+        this->a.x + (this->b.x - this->a.x) * (z - this->a.z) / (this->b.z - this->a.z),
+        this->a.y + (this->b.y - this->a.y) * (z - this->a.z) / (this->b.z - this->a.z),
+        z
+    );
+}
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(Linef3, "Linef3");
 #endif
 
 }

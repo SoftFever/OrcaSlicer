@@ -47,6 +47,10 @@
             THIS->bounding_box(RETVAL);
         %};
     std::string wkt();
+    Points concave_points(double angle)
+        %code{% THIS->concave_points(angle, &RETVAL); %};
+    Points convex_points(double angle)
+        %code{% THIS->convex_points(angle, &RETVAL); %};
 %{
 
 Polygon*

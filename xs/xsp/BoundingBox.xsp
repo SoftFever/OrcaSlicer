@@ -83,6 +83,7 @@ new_from_points(CLASS, points)
     Clone<BoundingBoxf3> clone()
         %code{% RETVAL = THIS; %};
     void merge(BoundingBoxf3* bb) %code{% THIS->merge(*bb); %};
+    void merge_point(Pointf3* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y, double z);
     Clone<Pointf3> size();

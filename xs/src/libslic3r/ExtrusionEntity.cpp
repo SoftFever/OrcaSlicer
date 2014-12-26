@@ -76,9 +76,18 @@ ExtrusionPath::is_perimeter() const
 }
 
 bool
-ExtrusionPath::is_fill() const
+ExtrusionPath::is_infill() const
 {
-    return this->role == erInternalInfill
+    return this->role == erBridgeInfill
+        || this->role == erInternalInfill
+        || this->role == erSolidInfill
+        || this->role == erTopSolidInfill;
+}
+
+bool
+ExtrusionPath::is_solid_infill() const
+{
+    return this->role == erBridgeInfill
         || this->role == erSolidInfill
         || this->role == erTopSolidInfill;
 }
@@ -235,9 +244,6 @@ ExtrusionLoop::split_at_vertex(const Point &point)
                 path->polyline.points.insert(path->polyline.points.end(), path->polyline.points.begin() + 1, path->polyline.points.begin() + idx + 1);
                 path->polyline.points.erase(path->polyline.points.begin(), path->polyline.points.begin() + idx);
             } else {
-                // if we have multiple paths we assume they have different types, so no need to
-                // check for continuity as we do for the single path case above
-                
                 // new paths list starts with the second half of current path
                 ExtrusionPaths new_paths;
                 {
@@ -247,10 +253,10 @@ ExtrusionLoop::split_at_vertex(const Point &point)
                 }
             
                 // then we add all paths until the end of current path list
-                new_paths.insert(new_paths.end(), this->paths.begin(), path);  // not including this path
+                new_paths.insert(new_paths.end(), path+1, this->paths.end());  // not including this path
             
                 // then we add all paths since the beginning of current list up to the previous one
-                new_paths.insert(new_paths.end(), path+1, this->paths.end());  // not including this path
+                new_paths.insert(new_paths.end(), this->paths.begin(), path);  // not including this path
             
                 // finally we add the first half of current path
                 {
@@ -330,6 +336,31 @@ ExtrusionLoop::has_overhang_point(const Point &point) const
         }
     }
     return false;
+}
+
+bool
+ExtrusionLoop::is_perimeter() const
+{
+    return this->paths.front().role == erPerimeter
+        || this->paths.front().role == erExternalPerimeter
+        || this->paths.front().role == erOverhangPerimeter;
+}
+
+bool
+ExtrusionLoop::is_infill() const
+{
+    return this->paths.front().role == erBridgeInfill
+        || this->paths.front().role == erInternalInfill
+        || this->paths.front().role == erSolidInfill
+        || this->paths.front().role == erTopSolidInfill;
+}
+
+bool
+ExtrusionLoop::is_solid_infill() const
+{
+    return this->paths.front().role == erBridgeInfill
+        || this->paths.front().role == erSolidInfill
+        || this->paths.front().role == erTopSolidInfill;
 }
 
 #ifdef SLIC3RXS

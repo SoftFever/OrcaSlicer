@@ -17,9 +17,6 @@ has 'interface_flow'    => (is => 'rw', required => 1);
 
 use constant DEBUG_CONTACT_ONLY => 0;
 
-# how much we extend support around the actual contact area
-use constant MARGIN => 1.5;
-    
 # increment used to reach MARGIN in steps to avoid trespassing thin objects
 use constant MARGIN_STEP => MARGIN/3;
 
@@ -68,6 +65,10 @@ sub generate {
     my ($base) = $self->generate_base_layers($support_z, $contact, $interface, $top);
     $self->clip_with_object($base, $support_z, $object);
     $self->clip_with_shape($base, $shape) if @$shape;
+    
+    # Detect what part of base support layers are "reverse interfaces" because they
+    # lie above object's top surfaces.
+    $self->generate_bottom_interface_layers($support_z, $base, $top, $interface);
     
     # Install support layers into object.
     for my $i (0 .. $#$support_z) {
@@ -265,7 +266,7 @@ sub contact_area {
         {
             # get the average nozzle diameter used on this layer
             my @nozzle_diameters = map $self->print_config->get_at('nozzle_diameter', $_),
-                map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1 }
+                map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1, $_->config->solid_infill_extruder-1 }
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
@@ -338,7 +339,12 @@ sub support_layers_z {
     # layer_height > nozzle_diameter * 0.75
     my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->object_config->support_material_extruder-1);
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
-    my @z = sort { $a <=> $b } @$contact_z, @$top_z, (map $_ + $nozzle_diameter, @$top_z);
+    
+    # initialize known, fixed, support layers
+    my @z = sort { $a <=> $b }
+        @$contact_z,
+        @$top_z,  # TODO: why we have this?
+        (map $_ + contact_distance($nozzle_diameter), @$top_z);
     
     # enforce first layer height
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
@@ -416,6 +422,48 @@ sub generate_interface_layers {
     }
     
     return \%interface;
+}
+
+sub generate_bottom_interface_layers {
+    my ($self, $support_z, $base, $top, $interface) = @_;
+    
+    my $area_threshold = $self->interface_flow->scaled_spacing ** 2;
+    
+    # loop through object's top surfaces
+    foreach my $top_z (sort keys %$top) {
+        my $this = $top->{$top_z};
+        
+        # keep a count of the interface layers we generated for this top surface
+        my $interface_layers = 0;
+        
+        # loop through support layers until we find the one(s) right above the top
+        # surface
+        foreach my $layer_id (0 .. $#$support_z) {
+            my $z = $support_z->[$layer_id];
+            next unless $z > $top_z;
+            
+            # get the support material area that should be considered interface
+            my $interface_area = intersection(
+                $base->{$layer_id},
+                $this,
+            );
+            
+            # discard too small areas
+            $interface_area = [ grep abs($_->area) >= $area_threshold, @$interface_area ];
+            
+            # subtract new interface area from base
+            $base->{$layer_id} = diff(
+                $base->{$layer_id},
+                $interface_area,
+            );
+            
+            # add new interface area to interface
+            push @{$interface->{$layer_id}}, @$interface_area;
+            
+            $interface_layers++;
+            last if $interface_layers == $self->object_config->support_material_interface_layers;
+        }
+    }
 }
 
 sub generate_base_layers {
@@ -623,6 +671,7 @@ sub generate_toolpaths {
         # interface and contact infill
         if (@$interface || @$contact_infill) {
             $fillers{interface}->angle($interface_angle);
+            $fillers{interface}->spacing($_interface_flow->spacing);
             
             # find centerline of the external loop
             $interface = offset2($interface, +scaled_epsilon, -(scaled_epsilon + $_interface_flow->scaled_width/2));
@@ -648,20 +697,19 @@ sub generate_toolpaths {
             
             my @paths = ();
             foreach my $expolygon (@{union_ex($interface)}) {
-                my ($params, @p) = $fillers{interface}->fill_surface(
+                my @p = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
-                    density     => $interface_density,
-                    flow        => $_interface_flow,
+                    density      => $interface_density,
                     layer_height => $layer->height,
-                    complete    => 1,
+                    complete     => 1,
                 );
-                my $mm3_per_mm = $params->{flow}->mm3_per_mm;
+                my $mm3_per_mm = $_interface_flow->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
                     role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                     mm3_per_mm  => $mm3_per_mm,
-                    width       => $params->{flow}->width,
+                    width       => $_interface_flow->width,
                     height      => $layer->height,
                 ), @p;
             }
@@ -702,22 +750,22 @@ sub generate_toolpaths {
                 # TODO: use offset2_ex()
                 $to_infill = offset_ex([ map @$_, @$to_infill ], -$_flow->scaled_spacing);
             }
+            $filler->spacing($base_flow->spacing);
             
             foreach my $expolygon (@$to_infill) {
-                my ($params, @p) = $filler->fill_surface(
+                my @p = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density     => $density,
-                    flow        => $base_flow,
                     layer_height => $layer->height,
                     complete    => 1,
                 );
-                my $mm3_per_mm = $params->{flow}->mm3_per_mm;
+                my $mm3_per_mm = $base_flow->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
-                    width       => $params->{flow}->width,
+                    width       => $base_flow->width,
                     height      => $layer->height,
                 ), @p;
             }

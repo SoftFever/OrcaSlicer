@@ -1,7 +1,9 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "Flow.hpp"
 #include "Geometry.hpp"
+#include "SupportMaterial.hpp"
 #include <algorithm>
 
 namespace Slic3r {
@@ -74,46 +76,20 @@ Print::get_object(size_t idx)
     return objects.at(idx);
 }
 
-PrintObject*
-Print::add_object(ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
-{
-    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
-    objects.push_back(object);
-    
-    // invalidate steps
-    this->invalidate_step(psSkirt);
-    this->invalidate_step(psBrim);
-    
-    return object;
-}
-
-PrintObject*
-Print::set_new_object(size_t idx, ModelObject *model_object, const BoundingBoxf3 &modobj_bbox)
-{
-    if (idx >= this->objects.size()) throw "bad idx";
-
-    PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
-    // before deleting object, invalidate all of its steps in order to 
-    // invalidate all of the dependent ones in Print
-    (*old_it)->invalidate_all_steps();
-    delete *old_it;
-
-    PrintObject *object = new PrintObject(this, model_object, modobj_bbox);
-    this->objects[idx] = object;
-    return object;
-}
-
 void
 Print::delete_object(size_t idx)
 {
     PrintObjectPtrs::iterator i = this->objects.begin() + idx;
+    
+    // before deleting object, invalidate all of its steps in order to 
+    // invalidate all of the dependent ones in Print
+    (*i)->invalidate_all_steps();
+    
+    // destroy object and remove it from our container
     delete *i;
     this->objects.erase(i);
 
     // TODO: purge unused regions
-
-    this->state.invalidate(psSkirt);
-    this->state.invalidate(psBrim);
 }
 
 void
@@ -173,6 +149,7 @@ bool
 Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
     std::set<PrintStep> steps;
+    std::set<PrintObjectStep> osteps;
     
     // this method only accepts PrintConfig option keys
     for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
@@ -223,6 +200,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "output_filename_format"
             || *opt_key == "perimeter_acceleration"
             || *opt_key == "post_process"
+            || *opt_key == "pressure_advance"
             || *opt_key == "retract_before_travel"
             || *opt_key == "retract_layer_change"
             || *opt_key == "retract_length"
@@ -245,6 +223,12 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "wipe"
             || *opt_key == "z_offset") {
             // these options only affect G-code export, so nothing to invalidate
+        } else if (*opt_key == "first_layer_extrusion_width") {
+            osteps.insert(posPerimeters);
+            osteps.insert(posInfill);
+            osteps.insert(posSupportMaterial);
+            steps.insert(psSkirt);
+            steps.insert(psBrim);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             return this->invalidate_all_steps();
@@ -254,6 +238,11 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
     bool invalidated = false;
     for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
         if (this->invalidate_step(*step)) invalidated = true;
+    }
+    for (std::set<PrintObjectStep>::const_iterator ostep = osteps.begin(); ostep != osteps.end(); ++ostep) {
+        FOREACH_OBJECT(this, object) {
+            if ((*object)->invalidate_step(*ostep)) invalidated = true;
+        }
     }
     
     return invalidated;
@@ -290,6 +279,19 @@ Print::invalidate_all_steps()
     return invalidated;
 }
 
+// returns true if an object step is done on all objects
+// and there's at least one object
+bool
+Print::step_done(PrintObjectStep step) const
+{
+    if (this->objects.empty()) return false;
+    FOREACH_OBJECT(this, object) {
+        if (!(*object)->state.is_done(step))
+            return false;
+    }
+    return true;
+}
+
 // returns 0-based indices of used extruders
 std::set<size_t>
 Print::extruders() const
@@ -299,6 +301,7 @@ Print::extruders() const
     FOREACH_REGION(this, region) {
         extruders.insert((*region)->config.perimeter_extruder - 1);
         extruders.insert((*region)->config.infill_extruder - 1);
+        extruders.insert((*region)->config.solid_infill_extruder - 1);
     }
     FOREACH_OBJECT(this, object) {
         extruders.insert((*object)->config.support_material_extruder - 1);
@@ -347,9 +350,23 @@ Print::add_model_object(ModelObject* model_object, int idx)
     {
         BoundingBoxf3 bb;
         model_object->raw_bounding_box(&bb);
-        o = (idx != -1)
-            ? this->set_new_object(idx, model_object, bb)
-            : this->add_object(model_object, bb);
+        if (idx != -1) {
+            // replacing existing object
+            PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
+            // before deleting object, invalidate all of its steps in order to 
+            // invalidate all of the dependent ones in Print
+            (*old_it)->invalidate_all_steps();
+            delete *old_it;
+            
+            this->objects[idx] = o = new PrintObject(this, model_object, bb);
+        } else {
+            o = new PrintObject(this, model_object, bb);
+            objects.push_back(o);
+    
+            // invalidate steps
+            this->invalidate_step(psSkirt);
+            this->invalidate_step(psBrim);
+        }
     }
 
     for (ModelVolumePtrs::const_iterator v_i = model_object->volumes.begin(); v_i != model_object->volumes.end(); ++v_i) {
@@ -446,7 +463,7 @@ Print::apply_config(DynamicPrintConfig config)
             
             std::vector<int> &region_volumes = object->region_volumes[region_id];
             for (std::vector<int>::const_iterator volume_id = region_volumes.begin(); volume_id != region_volumes.end(); ++volume_id) {
-                ModelVolume* volume = object->model_object()->volumes[*volume_id];
+                ModelVolume* volume = object->model_object()->volumes.at(*volume_id);
                 
                 PrintRegionConfig new_config = this->_region_config_from_model_volume(*volume);
                 
@@ -614,6 +631,112 @@ Print::validate() const
         }
     }
 }
+
+// the bounding box of objects placed in copies position
+// (without taking skirt/brim/support material into account)
+BoundingBox
+Print::bounding_box() const
+{
+    BoundingBox bb;
+    FOREACH_OBJECT(this, object) {
+        for (Points::const_iterator copy = (*object)->_shifted_copies.begin(); copy != (*object)->_shifted_copies.end(); ++copy) {
+            bb.merge(*copy);
+            
+            Point p = *copy;
+            p.translate((*object)->size);
+            bb.merge(p);
+        }
+    }
+    return bb;
+}
+
+// the total bounding box of extrusions, including skirt/brim/support material
+// this methods needs to be called even when no steps were processed, so it should
+// only use configuration values
+BoundingBox
+Print::total_bounding_box() const
+{
+    // get objects bounding box
+    BoundingBox bb = this->bounding_box();
+    
+    // we need to offset the objects bounding box by at least half the perimeters extrusion width
+    Flow perimeter_flow = this->objects.front()->get_layer(0)->get_region(0)->flow(frPerimeter);
+    double extra = perimeter_flow.width/2;
+    
+    // consider support material
+    if (this->has_support_material()) {
+        extra = std::max(extra, SUPPORT_MATERIAL_MARGIN);
+    }
+    
+    // consider brim and skirt
+    if (this->config.brim_width.value > 0) {
+        Flow brim_flow = this->brim_flow();
+        extra = std::max(extra, this->config.brim_width.value + brim_flow.width/2);
+    }
+    if (this->config.skirts.value > 0) {
+        Flow skirt_flow = this->skirt_flow();
+        extra = std::max(
+            extra,
+            this->config.brim_width.value
+                + this->config.skirt_distance.value
+                + this->config.skirts.value * skirt_flow.spacing()
+                + skirt_flow.width/2
+        );
+    }
+    
+    if (extra > 0)
+        bb.offset(scale_(extra));
+    
+    return bb;
+}
+
+double
+Print::skirt_first_layer_height() const
+{
+    if (this->objects.empty()) CONFESS("skirt_first_layer_height() can't be called without PrintObjects");
+    return this->objects.front()->config.get_abs_value("first_layer_height");
+}
+
+Flow
+Print::brim_flow() const
+{
+    ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
+    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
+    
+    /* We currently use a random region's perimeter extruder.
+       While this works for most cases, we should probably consider all of the perimeter
+       extruders and take the one with, say, the smallest index.
+       The same logic should be applied to the code that selects the extruder during G-code
+       generation as well. */
+    return Flow::new_from_config_width(
+        frPerimeter,
+        width, 
+        this->config.nozzle_diameter.get_at(this->regions.front()->config.perimeter_extruder-1),
+        this->skirt_first_layer_height(),
+        0
+    );
+}
+
+Flow
+Print::skirt_flow() const
+{
+    ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
+    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
+    
+    /* We currently use a random object's support material extruder.
+       While this works for most cases, we should probably consider all of the support material
+       extruders and take the one with, say, the smallest index;
+       The same logic should be applied to the code that selects the extruder during G-code
+       generation as well. */
+    return Flow::new_from_config_width(
+        frPerimeter,
+        width, 
+        this->config.nozzle_diameter.get_at(this->objects.front()->config.support_material_extruder-1),
+        this->skirt_first_layer_height(),
+        0
+    );
+}
+
 
 PrintRegionConfig
 Print::_region_config_from_model_volume(const ModelVolume &volume)

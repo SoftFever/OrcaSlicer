@@ -266,7 +266,7 @@ use Slic3r::Test;
         my $was_extruding = 0;
         my @seam_points = ();
         my $print = Slic3r::Test::init_print($model_name, config => $config);
-        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        Slic3r::GCode::Reader->new->parse(my $gcode = Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
     
             if ($info->{extruding}) {

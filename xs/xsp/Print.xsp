@@ -61,6 +61,11 @@ _constant()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     Ref<Point3> size()
         %code%{ RETVAL = &THIS->size; %};
+    BoundingBox* bounding_box()
+        %code{%
+            RETVAL = new BoundingBox();
+            THIS->bounding_box(RETVAL);
+        %};
     Ref<Point> _copies_shift()
         %code%{ RETVAL = &THIS->_copies_shift; %};
     
@@ -83,6 +88,7 @@ _constant()
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
 
+    size_t total_layer_count();
     size_t layer_count();
     void clear_layers();
     Ref<Layer> get_layer(int idx);
@@ -105,6 +111,8 @@ _constant()
         %code%{ THIS->state.set_done(step); %};
     void set_step_started(PrintObjectStep step)
         %code%{ THIS->state.set_started(step); %};
+    
+    void bridge_over_infill();
     
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
@@ -133,12 +141,6 @@ _constant()
         %code%{ RETVAL = &THIS->objects; %};
     void clear_objects();
     Ref<PrintObject> get_object(int idx);
-    Ref<PrintObject> add_object(ModelObject* model_object,
-        BoundingBoxf3 *modobj_bbox)
-        %code%{ RETVAL = THIS->add_object(model_object, *modobj_bbox); %};
-    Ref<PrintObject> set_new_object(size_t idx, ModelObject* model_object,
-        BoundingBoxf3 *modobj_bbox)
-        %code%{ RETVAL = THIS->set_new_object(idx, model_object, *modobj_bbox); %};
     void delete_object(int idx);
     void reload_object(int idx);
     size_t object_count()
@@ -156,6 +158,8 @@ _constant()
     bool invalidate_all_steps();
     bool step_done(PrintStep step)
         %code%{ RETVAL = THIS->state.is_done(step); %};
+    bool object_step_done(PrintObjectStep step)
+        %code%{ RETVAL = THIS->step_done(step); %};
     void set_step_done(PrintStep step)
         %code%{ THIS->state.set_done(step); %};
     void set_step_started(PrintStep step)
@@ -185,6 +189,11 @@ _constant()
                 croak("%s\n", e.what());
             }
         %};
+    Clone<BoundingBox> bounding_box();
+    Clone<BoundingBox> total_bounding_box();
+    double skirt_first_layer_height();
+    Clone<Flow> brim_flow();
+    Clone<Flow> skirt_flow();
 %{
 
 double

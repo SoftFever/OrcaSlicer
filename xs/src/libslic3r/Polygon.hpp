@@ -19,6 +19,9 @@ class Polygon : public MultiPoint {
     operator Polyline() const;
     Point& operator[](Points::size_type idx);
     const Point& operator[](Points::size_type idx) const;
+    
+    Polygon() {};
+    explicit Polygon(const Points &points): MultiPoint(points) {};
     Point last_point() const;
     Lines lines() const;
     void lines(Lines* lines) const;
@@ -38,6 +41,10 @@ class Polygon : public MultiPoint {
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
     std::string wkt() const;
+    void concave_points(double angle, Points* points) const;
+    void concave_points(Points* points) const;
+    void convex_points(double angle, Points* points) const;
+    void convex_points(Points* points) const;
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);

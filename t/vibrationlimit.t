@@ -57,8 +57,11 @@ my $test = sub {
         
         my $one_axis_would_trigger_limit_without_pause = 0;
         foreach my $axis (qw(X Y)) {
+            # get the direction by comparing the new $axis coordinate with the current one
+            # 1 = positive, 0 = no change, -1 = negative
+            my $dir = $info->{"new_$axis"} <=> $self->$axis;
+            
             # are we changing direction on this axis?
-            my $dir = $info->{"dist_$axis"} <=> ($args->{$axis} // $self->$axis);
             if ($dir != 0 && $dir{$axis} != $dir) {
                 # this move changes direction on this axis
                 if ($dir{$axis} != 0) {

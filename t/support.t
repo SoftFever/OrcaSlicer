@@ -22,15 +22,15 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
         $print->print->init_extruders;
         my $flow = $print->print->objects->[0]->support_material_flow;
-        my $support_z = Slic3r::Print::SupportMaterial
-            ->new(
-                object_config       => $print->print->objects->[0]->config,
-                print_config        => $print->print->config,
-                flow                => $flow,
-                interface_flow      => $flow,
-                first_layer_flow    => $flow,
-            )
-            ->support_layers_z(\@contact_z, \@top_z, $config->layer_height);
+        my $support = Slic3r::Print::SupportMaterial->new(
+            object_config       => $print->print->objects->[0]->config,
+            print_config        => $print->print->config,
+            flow                => $flow,
+            interface_flow      => $flow,
+            first_layer_flow    => $flow,
+        );
+        my $support_z = $support->support_layers_z(\@contact_z, \@top_z, $config->layer_height);
+        my $expected_top_spacing = Slic3r::Print::SupportMaterial::contact_distance($config->nozzle_diameter->[0]);
         
         is $support_z->[0], $config->first_layer_height,
             'first layer height is honored';
@@ -44,9 +44,10 @@ use Slic3r::Test;
             # find layer index of this top surface
             my $layer_id = first { abs($support_z->[$_] - $top_z) < epsilon } 0..$#$support_z;
             
-            # check that first support layer above this top surface is spaced with nozzle diameter
+            # check that first support layer above this top surface (or the next one) is spaced with nozzle diameter
             $wrong_top_spacing = 1
-                if ($support_z->[$layer_id+1] - $support_z->[$layer_id]) != $config->nozzle_diameter->[0];
+                if ($support_z->[$layer_id+1] - $support_z->[$layer_id]) != $expected_top_spacing
+                && ($support_z->[$layer_id+2] - $support_z->[$layer_id]) != $expected_top_spacing;
         }
         ok !$wrong_top_spacing, 'layers above top surfaces are spaced correctly';
     };
@@ -67,12 +68,12 @@ use Slic3r::Test;
 {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('raft_layers', 3);
-    $config->set('brim_width',  6);
+    $config->set('brim_width',  0);
     $config->set('skirts', 0);
     $config->set('support_material_extruder', 2);
     $config->set('support_material_interface_extruder', 2);
     $config->set('layer_height', 0.4);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', 0.4);
     my $print = Slic3r::Test::init_print('overhang', config => $config);
     ok my $gcode = Slic3r::Test::gcode($print), 'no conflict between raft/support and brim';
     
@@ -84,7 +85,7 @@ use Slic3r::Test;
             $tool = $1;
         } elsif ($info->{extruding}) {
             if ($self->Z <= ($config->raft_layers * $config->layer_height)) {
-                fail 'not extruding raft/brim with support material extruder'
+                fail 'not extruding raft with support material extruder'
                     if $tool != ($config->support_material_extruder-1);
             } else {
                 fail 'support material exceeds raft layers'

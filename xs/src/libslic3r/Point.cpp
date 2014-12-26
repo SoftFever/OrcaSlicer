@@ -41,7 +41,7 @@ Point::translate(double x, double y)
 }
 
 void
-Point::translate(const Point &vector)
+Point::translate(const Vector &vector)
 {
     this->translate(vector.x, vector.y);
 }
@@ -160,6 +160,18 @@ Point::ccw(const Line &line) const
     return this->ccw(line.a, line.b);
 }
 
+// returns the CCW angle between this-p1 and this-p2
+// i.e. this assumes a CCW rotation from p1 to p2 around this
+double
+Point::ccw_angle(const Point &p1, const Point &p2) const
+{
+    double angle = atan2(p1.x - this->x, p1.y - this->y)
+                 - atan2(p2.x - this->x, p2.y - this->y);
+    
+    // we only want to return only positive angles
+    return angle <= 0 ? angle + 2*PI : angle;
+}
+
 Point
 Point::projection_onto(const MultiPoint &poly) const
 {
@@ -209,6 +221,12 @@ Point
 Point::negative() const
 {
     return Point(-this->x, -this->y);
+}
+
+Vector
+Point::vector_to(const Point &point) const
+{
+    return Vector(point.x - this->x, point.y - this->y);
 }
 
 Point
@@ -286,6 +304,18 @@ Pointf::rotate(double angle, const Pointf &center)
     this->y = center.y + cos(angle) * (cur_y - center.y) + sin(angle) * (cur_x - center.x);
 }
 
+Pointf
+Pointf::negative() const
+{
+    return Pointf(-this->x, -this->y);
+}
+
+Vectorf
+Pointf::vector_to(const Pointf &point) const
+{
+    return Vectorf(point.x - this->x, point.y - this->y);
+}
+
 #ifdef SLIC3RXS
 
 REGISTER_CLASS(Pointf, "Pointf");
@@ -334,10 +364,37 @@ Pointf3::scale(double factor)
 }
 
 void
+Pointf3::translate(const Vectorf3 &vector)
+{
+    this->translate(vector.x, vector.y, vector.z);
+}
+
+void
 Pointf3::translate(double x, double y, double z)
 {
     Pointf::translate(x, y);
     this->z += z;
+}
+
+double
+Pointf3::distance_to(const Pointf3 &point) const
+{
+    double dx = ((double)point.x - this->x);
+    double dy = ((double)point.y - this->y);
+    double dz = ((double)point.z - this->z);
+    return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+Pointf3
+Pointf3::negative() const
+{
+    return Pointf3(-this->x, -this->y, -this->z);
+}
+
+Vectorf3
+Pointf3::vector_to(const Pointf3 &point) const
+{
+    return Vectorf3(point.x - this->x, point.y - this->y, point.z - this->z);
 }
 
 #ifdef SLIC3RXS

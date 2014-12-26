@@ -115,6 +115,24 @@ PrintConfigDef::build_def() {
     Options["end_gcode"].full_width = true;
     Options["end_gcode"].height = 120;
 
+    Options["external_fill_pattern"].type = coEnum;
+    Options["external_fill_pattern"].label = "Top/bottom fill pattern";
+    Options["external_fill_pattern"].category = "Infill";
+    Options["external_fill_pattern"].tooltip = "Fill pattern for top/bottom infill. This only affects the external visible layer, and not its adjacent solid shells.";
+    Options["external_fill_pattern"].cli = "external-fill-pattern=s";
+    Options["external_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    Options["external_fill_pattern"].enum_values.push_back("rectilinear");
+    Options["external_fill_pattern"].enum_values.push_back("concentric");
+    Options["external_fill_pattern"].enum_values.push_back("hilbertcurve");
+    Options["external_fill_pattern"].enum_values.push_back("archimedeanchords");
+    Options["external_fill_pattern"].enum_values.push_back("octagramspiral");
+    Options["external_fill_pattern"].enum_labels.push_back("rectilinear");
+    Options["external_fill_pattern"].enum_labels.push_back("concentric");
+    Options["external_fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
+    Options["external_fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
+    Options["external_fill_pattern"].enum_labels.push_back("octagramspiral (slow)");
+    Options["external_fill_pattern"].aliases.push_back("solid_fill_pattern");
+
     Options["external_perimeter_extrusion_width"].type = coFloatOrPercent;
     Options["external_perimeter_extrusion_width"].label = "External perimeters";
     Options["external_perimeter_extrusion_width"].category = "Extrusion Width";
@@ -280,9 +298,9 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_labels.push_back("concentric");
     Options["fill_pattern"].enum_labels.push_back("honeycomb");
     Options["fill_pattern"].enum_labels.push_back("3D honeycomb");
-    Options["fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
-    Options["fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
-    Options["fill_pattern"].enum_labels.push_back("octagramspiral (slow)");
+    Options["fill_pattern"].enum_labels.push_back("hilbertcurve");
+    Options["fill_pattern"].enum_labels.push_back("archimedeanchords");
+    Options["fill_pattern"].enum_labels.push_back("octagramspiral");
 
     Options["first_layer_acceleration"].type = coFloat;
     Options["first_layer_acceleration"].label = "First layer";
@@ -511,7 +529,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_extruder"].type = coInt;
     Options["perimeter_extruder"].label = "Perimeter extruder";
     Options["perimeter_extruder"].category = "Extruders";
-    Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters. First extruder is 1.";
+    Options["perimeter_extruder"].tooltip = "The extruder to use when printing perimeters and brim. First extruder is 1.";
     Options["perimeter_extruder"].cli = "perimeter-extruder=i";
     Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
     Options["perimeter_extruder"].min = 1;
@@ -534,9 +552,10 @@ PrintConfigDef::build_def() {
     Options["perimeter_speed"].min = 0;
 
     Options["perimeters"].type = coInt;
-    Options["perimeters"].label = "Perimeters (minimum)";
+    Options["perimeters"].label = "Perimeters";
     Options["perimeters"].category = "Layers and Perimeters";
     Options["perimeters"].tooltip = "This option sets the number of perimeters to generate for each layer. Note that Slic3r may increase this number automatically when it detects sloping surfaces which benefit from a higher number of perimeters if the Extra Perimeters option is enabled.";
+    Options["perimeters"].sidetext = "(minimum)";
     Options["perimeters"].cli = "perimeters=i";
     Options["perimeters"].aliases.push_back("perimeter_offsets");
     Options["perimeters"].min = 0;
@@ -646,8 +665,8 @@ PrintConfigDef::build_def() {
     Options["skirt_height"].cli = "skirt-height=i";
 
     Options["skirts"].type = coInt;
-    Options["skirts"].label = "Loops";
-    Options["skirts"].tooltip = "Number of loops for this skirt, in other words its thickness. Set this to zero to disable skirt.";
+    Options["skirts"].label = "Loops (minimum)";
+    Options["skirts"].tooltip = "Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely.";
     Options["skirts"].cli = "skirts=i";
     Options["skirts"].min = 0;
     
@@ -668,23 +687,6 @@ PrintConfigDef::build_def() {
     Options["small_perimeter_speed"].cli = "small-perimeter-speed=s";
     Options["small_perimeter_speed"].ratio_over = "perimeter_speed";
 
-    Options["solid_fill_pattern"].type = coEnum;
-    Options["solid_fill_pattern"].label = "Top/bottom fill pattern";
-    Options["solid_fill_pattern"].category = "Infill";
-    Options["solid_fill_pattern"].tooltip = "Fill pattern for top/bottom infill.";
-    Options["solid_fill_pattern"].cli = "solid-fill-pattern=s";
-    Options["solid_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
-    Options["solid_fill_pattern"].enum_values.push_back("rectilinear");
-    Options["solid_fill_pattern"].enum_values.push_back("concentric");
-    Options["solid_fill_pattern"].enum_values.push_back("hilbertcurve");
-    Options["solid_fill_pattern"].enum_values.push_back("archimedeanchords");
-    Options["solid_fill_pattern"].enum_values.push_back("octagramspiral");
-    Options["solid_fill_pattern"].enum_labels.push_back("rectilinear");
-    Options["solid_fill_pattern"].enum_labels.push_back("concentric");
-    Options["solid_fill_pattern"].enum_labels.push_back("hilbertcurve (slow)");
-    Options["solid_fill_pattern"].enum_labels.push_back("archimedeanchords (slow)");
-    Options["solid_fill_pattern"].enum_labels.push_back("octagramspiral (slow)");
-
     Options["solid_infill_below_area"].type = coFloat;
     Options["solid_infill_below_area"].label = "Solid infill threshold area";
     Options["solid_infill_below_area"].category = "Infill";
@@ -692,6 +694,13 @@ PrintConfigDef::build_def() {
     Options["solid_infill_below_area"].sidetext = "mm²";
     Options["solid_infill_below_area"].cli = "solid-infill-below-area=f";
     Options["solid_infill_below_area"].min = 0;
+
+    Options["solid_infill_extruder"].type = coInt;
+    Options["solid_infill_extruder"].label = "Solid infill extruder";
+    Options["solid_infill_extruder"].category = "Extruders";
+    Options["solid_infill_extruder"].tooltip = "The extruder to use when printing solid infill.";
+    Options["solid_infill_extruder"].cli = "solid-infill-extruder=i";
+    Options["solid_infill_extruder"].min = 1;
 
     Options["solid_infill_every_layers"].type = coInt;
     Options["solid_infill_every_layers"].label = "Solid infill every";
@@ -771,9 +780,9 @@ PrintConfigDef::build_def() {
     Options["support_material_enforce_layers"].min = 0;
 
     Options["support_material_extruder"].type = coInt;
-    Options["support_material_extruder"].label = "Support material extruder";
+    Options["support_material_extruder"].label = "Support material/raft/skirt extruder";
     Options["support_material_extruder"].category = "Extruders";
-    Options["support_material_extruder"].tooltip = "The extruder to use when printing support material. This affects brim and raft too.";
+    Options["support_material_extruder"].tooltip = "The extruder to use when printing support material, raft and skirt.";
     Options["support_material_extruder"].cli = "support-material-extruder=i";
     Options["support_material_extruder"].min = 1;
 
@@ -785,7 +794,7 @@ PrintConfigDef::build_def() {
     Options["support_material_extrusion_width"].cli = "support-material-extrusion-width=s";
 
     Options["support_material_interface_extruder"].type = coInt;
-    Options["support_material_interface_extruder"].label = "Support material interface extruder";
+    Options["support_material_interface_extruder"].label = "Support material/raft interface extruder";
     Options["support_material_interface_extruder"].category = "Extruders";
     Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
     Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
@@ -871,8 +880,7 @@ PrintConfigDef::build_def() {
 
     Options["threads"].type = coInt;
     Options["threads"].label = "Threads";
-    Options["threads"].tooltip = "Threads are used to parallelize long-running tasks. Optimal threads number is slightly above the number of available cores/processors. Beware that more threads consume more memory.";
-    Options["threads"].sidetext = "(more speed but more memory usage)";
+    Options["threads"].tooltip = "Threads are used to parallelize long-running tasks. Optimal threads number is slightly above the number of available cores/processors.";
     Options["threads"].cli = "threads|j=i";
     Options["threads"].readonly = true;
     Options["threads"].min = 1;

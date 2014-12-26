@@ -1,5 +1,6 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 
 namespace Slic3r {
@@ -9,8 +10,6 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     _model_object(model_object),
     typed_slices(false)
 {
-    region_volumes.resize(this->_print->regions.size());
-
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {
         // Translate meshes so that our toolpath generation algorithms work with smaller
@@ -112,17 +111,32 @@ PrintObject::reload_model_instances()
 }
 
 void
+PrintObject::bounding_box(BoundingBox* bb) const
+{
+    // since the object is aligned to origin, bounding box coincides with size
+    Points pp;
+    pp.push_back(Point(0,0));
+    pp.push_back(this->size);
+    *bb = BoundingBox(pp);
+}
+
+void
 PrintObject::add_region_volume(int region_id, int volume_id)
 {
-    if (region_id >= region_volumes.size()) {
-        region_volumes.resize(region_id + 1);
-    }
-
     region_volumes[region_id].push_back(volume_id);
 }
 
+/*  This is the *total* layer count (including support layers)
+    this value is not supposed to be compared with Layer::id
+    since they have different semantics */
 size_t
-PrintObject::layer_count()
+PrintObject::total_layer_count() const
+{
+    return this->layer_count() + this->support_layer_count();
+}
+
+size_t
+PrintObject::layer_count() const
 {
     return this->layers.size();
 }
@@ -157,7 +171,7 @@ PrintObject::delete_layer(int idx)
 }
 
 size_t
-PrintObject::support_layer_count()
+PrintObject::support_layer_count() const
 {
     return this->support_layers.size();
 }
@@ -203,6 +217,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "extra_perimeters"
             || *opt_key == "gap_fill_speed"
             || *opt_key == "overhangs"
+            || *opt_key == "first_layer_extrusion_width"
             || *opt_key == "perimeter_extrusion_width"
             || *opt_key == "thin_walls"
             || *opt_key == "external_perimeters_first") {
@@ -224,22 +239,25 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "support_material_pattern"
             || *opt_key == "support_material_spacing"
             || *opt_key == "support_material_threshold"
-            || *opt_key == "dont_support_bridges") {
+            || *opt_key == "dont_support_bridges"
+            || *opt_key == "first_layer_extrusion_width") {
             steps.insert(posSupportMaterial);
         } else if (*opt_key == "interface_shells"
             || *opt_key == "infill_only_where_needed"
+            || *opt_key == "infill_every_layers"
+            || *opt_key == "solid_infill_every_layers"
             || *opt_key == "bottom_solid_layers"
             || *opt_key == "top_solid_layers"
             || *opt_key == "solid_infill_below_area"
             || *opt_key == "infill_extruder"
+            || *opt_key == "solid_infill_extruder"
             || *opt_key == "infill_extrusion_width") {
             steps.insert(posPrepareInfill);
-        } else if (*opt_key == "fill_angle"
+        } else if (*opt_key == "external_fill_pattern"
+            || *opt_key == "fill_angle"
             || *opt_key == "fill_pattern"
-            || *opt_key == "solid_fill_pattern"
-            || *opt_key == "infill_every_layers"
-            || *opt_key == "solid_infill_every_layers"
-            || *opt_key == "top_infill_extrusion_width") {
+            || *opt_key == "top_infill_extrusion_width"
+            || *opt_key == "first_layer_extrusion_width") {
             steps.insert(posInfill);
         } else if (*opt_key == "fill_density"
             || *opt_key == "solid_infill_extrusion_width") {
@@ -313,6 +331,93 @@ PrintObject::invalidate_all_steps()
         if (this->invalidate_step(*step)) invalidated = true;
     }
     return invalidated;
+}
+
+void
+PrintObject::bridge_over_infill()
+{
+    FOREACH_REGION(this->_print, region) {
+        size_t region_id = region - this->_print->regions.begin();
+        
+        double fill_density = (*region)->config.fill_density.value;
+        if (fill_density == 100 || fill_density == 0) continue;
+        
+        FOREACH_LAYER(this, layer_it) {
+            if (layer_it == this->layers.begin()) continue;
+            
+            Layer* layer        = *layer_it;
+            Layer* lower_layer  = *(layer_it - 1);
+            LayerRegion* layerm = layer->get_region(region_id);
+            
+            // compute the areas needing bridge math
+            Polygons internal_solid, lower_internal;
+            layerm->fill_surfaces.filter_by_type(stInternalSolid, &internal_solid);
+            FOREACH_LAYERREGION(lower_layer, lower_layerm_it)
+                (*lower_layerm_it)->fill_surfaces.filter_by_type(stInternal, &lower_internal);
+            
+            ExPolygons to_bridge;
+            intersection(internal_solid, lower_internal, &to_bridge);
+            if (to_bridge.empty()) continue;
+            
+            ExPolygons not_to_bridge;
+            diff(internal_solid, to_bridge, &not_to_bridge, true);
+            
+            #ifdef SLIC3R_DEBUG
+            printf("Bridging %zu internal areas at layer %d\n", to_bridge.size(), layer->id());
+            #endif
+            
+            // build the new collection of fill_surfaces
+            {
+                Surfaces new_surfaces;
+                for (Surfaces::const_iterator surface = layerm->fill_surfaces.surfaces.begin(); surface != layerm->fill_surfaces.surfaces.end(); ++surface) {
+                    if (surface->surface_type != stInternalSolid)
+                        new_surfaces.push_back(*surface);
+                }
+                
+                for (ExPolygons::const_iterator ex = to_bridge.begin(); ex != to_bridge.end(); ++ex)
+                    new_surfaces.push_back(Surface(stInternalBridge, *ex));
+                
+                for (ExPolygons::const_iterator ex = not_to_bridge.begin(); ex != not_to_bridge.end(); ++ex)
+                    new_surfaces.push_back(Surface(stInternalSolid, *ex));
+                
+                layerm->fill_surfaces.surfaces = new_surfaces;
+            }
+            
+            /*
+            # exclude infill from the layers below if needed
+            # see discussion at https://github.com/alexrj/Slic3r/issues/240
+            # Update: do not exclude any infill. Sparse infill is able to absorb the excess material.
+            if (0) {
+                my $excess = $layerm->extruders->{infill}->bridge_flow->width - $layerm->height;
+                for (my $i = $layer_id-1; $excess >= $self->get_layer($i)->height; $i--) {
+                    Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
+                    foreach my $lower_layerm (@{$self->get_layer($i)->regions}) {
+                        my @new_surfaces = ();
+                        # subtract the area from all types of surfaces
+                        foreach my $group (@{$lower_layerm->fill_surfaces->group}) {
+                            push @new_surfaces, map $group->[0]->clone(expolygon => $_),
+                                @{diff_ex(
+                                    [ map $_->p, @$group ],
+                                    [ map @$_, @$to_bridge ],
+                                )};
+                            push @new_surfaces, map Slic3r::Surface->new(
+                                expolygon       => $_,
+                                surface_type    => S_TYPE_INTERNALVOID,
+                            ), @{intersection_ex(
+                                [ map $_->p, @$group ],
+                                [ map @$_, @$to_bridge ],
+                            )};
+                        }
+                        $lower_layerm->fill_surfaces->clear;
+                        $lower_layerm->fill_surfaces->append($_) for @new_surfaces;
+                    }
+                    
+                    $excess -= $self->get_layer($i)->height;
+                }
+            }
+            */
+        }
+    }
 }
 
 

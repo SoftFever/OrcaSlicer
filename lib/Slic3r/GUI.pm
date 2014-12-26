@@ -59,7 +59,7 @@ our $Settings = {
     },
 };
 
-our $have_button_icons = &Wx::wxVERSION_STRING =~ / 2\.9\.[1-9]/;
+our $have_button_icons = &Wx::wxVERSION_STRING =~ / (?:2\.9\.[1-9]|3\.)/;
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);

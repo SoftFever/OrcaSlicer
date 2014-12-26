@@ -32,24 +32,6 @@ sub support_layers {
     return [ map $self->get_support_layer($_), 0..($self->support_layer_count - 1) ];
 }
 
-# this is the *total* layer count (including support layers)
-# this value is not supposed to be compared with $layer->id
-# since they have different semantics
-sub total_layer_count {
-    my $self = shift;
-    return $self->layer_count + $self->support_layer_count;
-}
-
-sub bounding_box {
-    my $self = shift;
-    
-    # since the object is aligned to origin, bounding box coincides with size
-    return Slic3r::Geometry::BoundingBox->new_from_points([
-        Slic3r::Point->new(0,0),
-        map Slic3r::Point->new($_->x, $_->y), $self->size  #))
-    ]);
-}
-
 # this should be idempotent
 sub slice {
     my $self = shift;
@@ -350,7 +332,7 @@ sub _slice_region {
     # consider the first one
     $self->model_object->instances->[0]->transform_mesh($mesh, 1);
 
-    # align mesh to Z = 0 and apply XY shift
+    # align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
     $mesh->translate((map unscale(-$_), @{$self->_copies_shift}), -$self->model_object->bounding_box->z_min);
     
     # perform actual slicing
@@ -444,7 +426,6 @@ sub make_perimeters {
                 $self->get_layer($i)->make_perimeters;
             }
         },
-        collect_cb => sub {},
         no_threads_cb => sub {
             $_->make_perimeters for @{$self->layers};
         },
@@ -524,7 +505,6 @@ sub infill {
                 $layerm->fills->append($_) for $self->fill_maker->make_fill($layerm);
             }
         },
-        collect_cb => sub {},
         no_threads_cb => sub {
             foreach my $layerm (map @{$_->regions}, @{$self->layers}) {
                 $layerm->fills->clear;
@@ -696,7 +676,8 @@ sub detect_surfaces_type {
             
             # Note: this method should be idempotent, but fill_surfaces gets modified 
             # in place. However we're now only using its boundaries (which are invariant)
-            # so we're safe
+            # so we're safe. This guarantees idempotence of prepare_infill() also in case
+            # that combine_infill() turns some fill_surface into VOID surfaces.
             my $fill_boundaries = [ map $_->clone->p, @{$layerm->fill_surfaces} ];
             $layerm->fill_surfaces->clear;
             foreach my $surface (@{$layerm->slices}) {
@@ -712,6 +693,8 @@ sub detect_surfaces_type {
     }
 }
 
+# Idempotence of this method is guaranteed by the fact that we don't remove things from
+# fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 sub clip_fill_surfaces {
     my $self = shift;
     return unless $self->config->infill_only_where_needed;
@@ -729,13 +712,13 @@ sub clip_fill_surfaces {
         
         # clip this layer's internal surfaces to @overhangs
         foreach my $layerm (@{$layer->regions}) {
-            # we assume that this step is run before bridge_over_infill() and combine_infill()
-            # so these are the only internal types we might have
             my (@internal, @other) = ();
             foreach my $surface (map $_->clone, @{$layerm->fill_surfaces}) {
-                $surface->surface_type == S_TYPE_INTERNAL
-                    ? push @internal, $surface
-                    : push @other, $surface;
+                if ($surface->surface_type == S_TYPE_INTERNAL) {
+                    push @internal, $surface;
+                } else {
+                    push @other, $surface;
+                }
             }
             
             # keep all the original internal surfaces to detect overhangs in this layer
@@ -745,10 +728,19 @@ sub clip_fill_surfaces {
                 expolygon       => $_,
                 surface_type    => S_TYPE_INTERNAL,
             ),
-            @{intersection_ex(
-                $overhangs,
-                [ map $_->p, @internal ],
-            )};
+                @{intersection_ex(
+                    [ map $_->p, @internal ],
+                    $overhangs,
+                )};
+            
+            push @new, map Slic3r::Surface->new(
+                expolygon       => $_,
+                surface_type    => S_TYPE_INTERNALVOID,
+            ),
+                @{diff_ex(
+                    [ map $_->p, @internal ],
+                    $overhangs,
+                )};
             
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append($_) for (@new, @other);
@@ -764,82 +756,6 @@ sub clip_fill_surfaces {
             $overhangs = offset($solid, +$additional_margin);
             
             push @$overhangs, map $_->p, @new_internal;  # propagate upper overhangs
-        }
-    }
-}
-
-sub bridge_over_infill {
-    my $self = shift;
-    
-    for my $region_id (0..($self->print->region_count - 1)) {
-        my $fill_density = $self->print->regions->[$region_id]->config->fill_density;
-        next if $fill_density == 100 || $fill_density == 0;
-        
-        for my $layer_id (1..($self->layer_count - 1)) {
-            my $layer       = $self->get_layer($layer_id);
-            my $layerm      = $layer->regions->[$region_id];
-            my $lower_layer = $self->get_layer($layer_id-1);
-            
-            # compute the areas needing bridge math 
-            my @internal_solid = @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNALSOLID)};
-            my @lower_internal = map @{$_->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)}, @{$lower_layer->regions};
-            my $to_bridge = intersection_ex(
-                [ map $_->p, @internal_solid ],
-                [ map $_->p, @lower_internal ],
-            );
-            next unless @$to_bridge;
-            Slic3r::debugf "Bridging %d internal areas at layer %d\n", scalar(@$to_bridge), $layer_id;
-            
-            # build the new collection of fill_surfaces
-            {
-                my @new_surfaces = map $_->clone, grep $_->surface_type != S_TYPE_INTERNALSOLID, @{$layerm->fill_surfaces};
-                push @new_surfaces, map Slic3r::Surface->new(
-                        expolygon       => $_,
-                        surface_type    => S_TYPE_INTERNALBRIDGE,
-                    ), @$to_bridge;
-                push @new_surfaces, map Slic3r::Surface->new(
-                        expolygon       => $_,
-                        surface_type    => S_TYPE_INTERNALSOLID,
-                    ), @{diff_ex(
-                        [ map $_->p, @internal_solid ],
-                        [ map @$_, @$to_bridge ],
-                        1,
-                    )};
-                $layerm->fill_surfaces->clear;
-                $layerm->fill_surfaces->append($_) for @new_surfaces;
-            }
-            
-            # exclude infill from the layers below if needed
-            # see discussion at https://github.com/alexrj/Slic3r/issues/240
-            # Update: do not exclude any infill. Sparse infill is able to absorb the excess material.
-            if (0) {
-                my $excess = $layerm->extruders->{infill}->bridge_flow->width - $layerm->height;
-                for (my $i = $layer_id-1; $excess >= $self->get_layer($i)->height; $i--) {
-                    Slic3r::debugf "  skipping infill below those areas at layer %d\n", $i;
-                    foreach my $lower_layerm (@{$self->get_layer($i)->regions}) {
-                        my @new_surfaces = ();
-                        # subtract the area from all types of surfaces
-                        foreach my $group (@{$lower_layerm->fill_surfaces->group}) {
-                            push @new_surfaces, map $group->[0]->clone(expolygon => $_),
-                                @{diff_ex(
-                                    [ map $_->p, @$group ],
-                                    [ map @$_, @$to_bridge ],
-                                )};
-                            push @new_surfaces, map Slic3r::Surface->new(
-                                expolygon       => $_,
-                                surface_type    => S_TYPE_INTERNALVOID,
-                            ), @{intersection_ex(
-                                [ map $_->p, @$group ],
-                                [ map @$_, @$to_bridge ],
-                            )};
-                        }
-                        $lower_layerm->fill_surfaces->clear;
-                        $lower_layerm->fill_surfaces->append($_) for @new_surfaces;
-                    }
-                    
-                    $excess -= $self->get_layer($i)->height;
-                }
-            }
         }
     }
 }
@@ -1006,42 +922,60 @@ sub discover_horizontal_shells {
 }
 
 # combine fill surfaces across layers
+# Idempotence of this method is guaranteed by the fact that we don't remove things from
+# fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 sub combine_infill {
     my $self = shift;
     
-    return unless defined first { $_->config->infill_every_layers > 1 && $_->config->fill_density > 0 } @{$self->print->regions};
+    # define the type used for voids
+    my %voidtype = (
+        &S_TYPE_INTERNAL() => S_TYPE_INTERNALVOID,
+    );
     
-    my @layer_heights = map $_->height, @{$self->layers};
-    
+    # work on each region separately
     for my $region_id (0 .. ($self->print->region_count-1)) {
-        my $region = $self->print->regions->[$region_id];
+        my $region = $self->print->get_region($region_id);
         my $every = $region->config->infill_every_layers;
+        next unless $every > 1 && $region->config->fill_density > 0;
         
         # limit the number of combined layers to the maximum height allowed by this regions' nozzle
-        my $nozzle_diameter = $self->print->config->get_at('nozzle_diameter', $region->config->infill_extruder-1);
+        my $nozzle_diameter = min(
+            $self->print->config->get_at('nozzle_diameter', $region->config->infill_extruder-1),
+            $self->print->config->get_at('nozzle_diameter', $region->config->solid_infill_extruder-1),
+        );
         
         # define the combinations
-        my @combine = ();   # layer_id => thickness in layers
+        my %combine = ();   # layer_idx => number of additional combined lower layers
         {
             my $current_height = my $layers = 0;
-            for my $layer_id (1 .. $#layer_heights) {
-                my $height = $self->get_layer($layer_id)->height;
+            for my $layer_idx (0 .. ($self->layer_count-1)) {
+                my $layer = $self->get_layer($layer_idx);
+                next if $layer->id == 0;  # skip first print layer (which may not be first layer in array because of raft)
+                my $height = $layer->height;
                 
+                # check whether the combination of this layer with the lower layers' buffer
+                # would exceed max layer height or max combined layer count
                 if ($current_height + $height >= $nozzle_diameter || $layers >= $every) {
-                    $combine[$layer_id-1] = $layers;
+                    # append combination to lower layer
+                    $combine{$layer_idx-1} = $layers;
                     $current_height = $layers = 0;
                 }
                 
                 $current_height += $height;
                 $layers++;
             }
+            
+            # append lower layers (if any) to uppermost layer
+            $combine{$self->layer_count-1} = $layers;
         }
         
-        # skip bottom layer
-        for my $layer_id (1 .. $#combine) {
-            next unless ($combine[$layer_id] // 1) > 1;
-            my @layerms = map $self->get_layer($_)->regions->[$region_id],
-                ($layer_id - ($combine[$layer_id]-1) .. $layer_id);
+        # loop through layers to which we have assigned layers to combine
+        for my $layer_idx (sort keys %combine) {
+            next unless $combine{$layer_idx} > 1;
+            
+            # get all the LayerRegion objects to be combined
+            my @layerms = map $self->get_layer($_)->get_region($region_id),
+                ($layer_idx - ($combine{$layer_idx}-1) .. $layer_idx);
             
             # only combine internal infill
             for my $type (S_TYPE_INTERNAL) {
@@ -1064,7 +998,7 @@ sub combine_infill {
                 Slic3r::debugf "  combining %d %s regions from layers %d-%d\n",
                     scalar(@$intersection),
                     ($type == S_TYPE_INTERNAL ? 'internal' : 'internal-solid'),
-                    $layer_id-($every-1), $layer_id;
+                    $layer_idx-($every-1), $layer_idx;
                 
                 # $intersection now contains the regions that can be combined across the full amount of layers
                 # so let's remove those areas from all layers
@@ -1091,7 +1025,7 @@ sub combine_infill {
                         )};
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
-                    if ($layerm->id == $layer_id) {
+                    if ($layerm->id == $self->get_layer($layer_idx)->id) {
                         push @new_this_type,
                             map Slic3r::Surface->new(
                                 expolygon        => $_,
@@ -1102,8 +1036,8 @@ sub combine_infill {
                             @$intersection;
                     } else {
                         # save void surfaces
-                        push @this_type,
-                            map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNALVOID),
+                        push @new_this_type,
+                            map Slic3r::Surface->new(expolygon => $_, surface_type => $voidtype{$type}),
                             @{intersection_ex(
                                 [ map @{$_->expolygon}, @this_type ],
                                 [ @intersection_with_clearance ],

@@ -10,4 +10,9 @@ sub new_scale {
     return $class->new(map [ Slic3r::Geometry::scale($_->[X]), Slic3r::Geometry::scale($_->[Y]) ], @points);
 }
 
+sub dump_perl {
+    my $self = shift;
+    return sprintf "[%s]", join ',', map "[$_->[0],$_->[1]]", @$self;
+}
+
 1;

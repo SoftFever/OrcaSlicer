@@ -3,7 +3,6 @@ use Moo;
 
 extends 'Slic3r::GCode::Reader';
 
-has 'config'    => (is => 'ro', required => 1);
 has '_min_time' => (is => 'lazy');
 has '_last_dir' => (is => 'ro', default => sub { [0,0] });
 has '_dir_time' => (is => 'ro', default => sub { [0,0] });
@@ -11,7 +10,6 @@ has '_dir_time' => (is => 'ro', default => sub { [0,0] });
 # inspired by http://hydraraptor.blogspot.it/2010/12/frequency-limit.html
 
 use List::Util qw(max);
-use Slic3r::Geometry qw(X Y);
 
 sub _build__min_time {
     my ($self) = @_;
@@ -27,15 +25,16 @@ sub process {
         my ($reader, $cmd, $args, $info) = @_;
         
         if ($cmd eq 'G1' && $info->{dist_XY} > 0) {
-            my $point = Slic3r::Point->new($args->{X} // $reader->X, $args->{Y} // $reader->Y);
+            my $point = Slic3r::Pointf->new($args->{X} // $reader->X, $args->{Y} // $reader->Y);
             my @dir = (
                 ($point->x <=> $reader->X),
                 ($point->y <=> $reader->Y),   #$
             );
             my $time = $info->{dist_XY} / ($args->{F} // $reader->F);  # in minutes
+            
             if ($time > 0) {
                 my @pause = ();
-                foreach my $axis (X,Y) {
+                foreach my $axis (0..$#dir) {
                     if ($dir[$axis] != 0 && $self->_last_dir->[$axis] != $dir[$axis]) {
                         if ($self->_last_dir->[$axis] != 0) {
                             # this axis is changing direction: check whether we need to pause

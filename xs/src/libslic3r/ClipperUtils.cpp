@@ -426,6 +426,18 @@ template void diff<Slic3r::Polylines, Slic3r::Polylines>(const Slic3r::Polylines
 template void diff<Slic3r::Lines, Slic3r::Lines>(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, Slic3r::Lines* retval, bool safety_offset_);
 
 template <class SubjectType, class ResultType>
+void diff(const SubjectType &subject, const Slic3r::ExPolygons &clip, ResultType* retval, bool safety_offset_)
+{
+    Slic3r::Polygons pp;
+    for (Slic3r::ExPolygons::const_iterator ex = clip.begin(); ex != clip.end(); ++ex) {
+        Slic3r::Polygons ppp = *ex;
+        pp.insert(pp.end(), ppp.begin(), ppp.end());
+    }
+    diff(subject, pp, retval, safety_offset_);
+}
+template void diff<Slic3r::Polygons, Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::ExPolygons &clip, Slic3r::ExPolygons* retval, bool safety_offset_);
+
+template <class SubjectType, class ResultType>
 void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType* retval, bool safety_offset_)
 {
     _clipper(ClipperLib::ctIntersection, subject, clip, retval, safety_offset_);

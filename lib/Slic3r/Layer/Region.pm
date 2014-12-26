@@ -246,7 +246,7 @@ sub make_perimeters {
         my ($polynodes, $depth, $is_contour) = @_;
         
         # convert all polynodes to ExtrusionLoop objects
-        my $collection = Slic3r::ExtrusionPath::Collection->new;
+        my $collection = Slic3r::ExtrusionPath::Collection->new;  # temporary collection
         my @children = ();
         foreach my $polynode (@$polynodes) {
             my $polygon = ($polynode->{outer} // $polynode->{hole})->clone;
@@ -303,7 +303,7 @@ sub make_perimeters {
                 # (clone because the collection gets DESTROY'ed)
                 # We allow polyline reversal because Clipper may have randomly
                 # reversed polylines during clipping.
-                my $collection = Slic3r::ExtrusionPath::Collection->new(@paths);
+                my $collection = Slic3r::ExtrusionPath::Collection->new(@paths); # temporary collection
                 @paths = map $_->clone, @{$collection->chained_path(0)};
             } else {
                 push @paths, Slic3r::ExtrusionPath->new(
@@ -350,16 +350,12 @@ sub make_perimeters {
         
         # use a nearest neighbor search to order these children
         # TODO: supply second argument to chained_path() too?
-        # Optimization: since islands are going to be sorted by slice anyway in the 
-        # G-code export process, we skip chained_path here
-        my ($sorted_collection, @orig_indices);
-        if ($is_contour && $depth == 0) {
-            $sorted_collection = $collection;
-            @orig_indices = (0..$#$sorted_collection);
-        } else {
-            $sorted_collection = $collection->chained_path_indices(0);
-            @orig_indices = @{$sorted_collection->orig_indices};
-        }
+        # (We used to skip this chiained_path() when $is_contour &&
+        # $depth == 0 because slices are ordered at G_code export 
+        # time, but multiple top-level perimeters might belong to
+        # the same slice actually, so that was a broken optimization.)
+        my $sorted_collection = $collection->chained_path_indices(0);
+        my @orig_indices = @{$sorted_collection->orig_indices};
         
         my @loops = ();
         foreach my $loop (@$sorted_collection) {
@@ -496,7 +492,8 @@ sub process_external_surfaces {
             $angle = $bridge_detector->angle;
             
             if (defined $angle && $self->object->config->support_material) {
-                $self->bridged->append($_) for @{ $bridge_detector->coverage_with_angle($angle) };
+                $self->bridged->append(Slic3r::ExPolygon->new($_))
+                    for @{ $bridge_detector->coverage_by_angle($angle) };
                 $self->unsupported_bridge_edges->append($_) for @{ $bridge_detector->unsupported_edges }; 
             }
         }

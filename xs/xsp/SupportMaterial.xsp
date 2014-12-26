@@ -1,0 +1,16 @@
+%module{Slic3r::XS};
+
+#include <myinit.h>
+#include "libslic3r/SupportMaterial.hpp"
+
+%package{Slic3r::Print::SupportMaterial};
+%{
+
+SV*
+MARGIN()
+    PROTOTYPE:
+    CODE:
+        RETVAL = newSVnv(SUPPORT_MATERIAL_MARGIN);
+    OUTPUT: RETVAL
+
+%}

@@ -3,21 +3,19 @@ use strict;
 use warnings;
 use utf8;
 
-use List::Util qw();
-use Slic3r::Geometry qw();
-use Wx qw(:misc :sizer :slider :statictext);
+use Slic3r::Print::State ':steps';
+use Wx qw(:misc :sizer :slider :statictext wxWHITE);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN);
-use base 'Wx::Panel';
+use base qw(Wx::Panel Class::Accessor);
+
+__PACKAGE__->mk_accessors(qw(print enabled));
 
 sub new {
     my $class = shift;
     my ($parent, $print) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
-    
-    # init print
-    $self->{print} = $print;
-    $self->reload_print;
+    $self->SetBackgroundColour(wxWHITE);
     
     # init GUI elements
     my $canvas = $self->{canvas} = Slic3r::GUI::Plater::2DToolpaths::Canvas->new($self, $print);
@@ -25,7 +23,9 @@ sub new {
         $self, -1,
         0,                              # default
         0,                              # min
-        scalar(@{$self->{layers_z}})-1,    # max
+        # we set max to a bogus non-zero value because the MSW implementation of wxSlider
+        # will skip drawing the slider if max <= min:
+        1,                              # max
         wxDefaultPosition,
         wxDefaultSize,
         wxVERTICAL | wxSL_INVERSE,
@@ -43,7 +43,8 @@ sub new {
     $sizer->Add($vsizer, 0, wxTOP | wxBOTTOM | wxEXPAND, 5);
     
     EVT_SLIDER($self, $slider, sub {
-        $self->set_z($self->{layers_z}[$slider->GetValue]);
+        $self->set_z($self->{layers_z}[$slider->GetValue])
+            if $self->enabled;
     });
     EVT_KEY_DOWN($canvas, sub {
         my ($s, $event) = @_;
@@ -62,7 +63,9 @@ sub new {
     $self->SetMinSize($self->GetSize);
     $sizer->SetSizeHints($self);
     
-    $self->set_z($self->{layers_z}[0]);
+    # init print
+    $self->{print} = $print;
+    $self->reload_print;
     
     return $self;
 }
@@ -70,18 +73,41 @@ sub new {
 sub reload_print {
     my ($self) = @_;
     
+    # we require that there's at least one object and the posSlice step
+    # is performed on all of them (this ensures that _shifted_copies was
+    # populated and we know the number of layers)
+    if (!$self->print->object_step_done(STEP_SLICE)) {
+        $self->enabled(0);
+        $self->{slider}->Hide;
+        $self->{canvas}->Refresh;  # clears canvas
+        return;
+    }
+    
+    $self->{canvas}->bb($self->print->total_bounding_box);
+    
     my %z = ();  # z => 1
     foreach my $object (@{$self->{print}->objects}) {
         foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
             $z{$layer->print_z} = 1;
         }
     }
+    $self->enabled(1);
     $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
+    $self->{slider}->SetRange(0, scalar(@{$self->{layers_z}})-1);
+    if ((my $z_idx = $self->{slider}->GetValue) <= $#{$self->{layers_z}}) {
+        $self->set_z($self->{layers_z}[$z_idx]);
+    } else {
+        $self->{slider}->SetValue(0);
+        $self->set_z($self->{layers_z}[0]) if @{$self->{layers_z}};
+    }
+    $self->{slider}->Show;
+    $self->Layout;
 }
 
 sub set_z {
     my ($self, $z) = @_;
     
+    return if !$self->enabled;
     $self->{z_label}->SetLabel(sprintf '%.2f', $z);
     $self->{canvas}->set_z($z);
 }
@@ -89,14 +115,15 @@ sub set_z {
 
 package Slic3r::GUI::Plater::2DToolpaths::Canvas;
 
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
-use OpenGL qw(:glconstants :glfunctions :glufunctions);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
+use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
 use List::Util qw(min first);
 use Slic3r::Geometry qw(scale unscale epsilon);
+use Slic3r::Print::State ':steps';
 
-__PACKAGE__->mk_accessors(qw(print z layers color init dirty bb));
+__PACKAGE__->mk_accessors(qw(print z layers color init bb));
 
 # make OpenGL::Array thread-safe
 {
@@ -109,15 +136,12 @@ sub new {
     
     my $self = $class->SUPER::new($parent);
     $self->print($print);
-    $self->bb($self->print->total_bounding_box);
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
         $self->Render($dc);
     });
-    EVT_SIZE($self, sub { $self->dirty(1) });
-    EVT_IDLE($self, sub {
-        return unless $self->dirty;
+    EVT_SIZE($self, sub {
         return if !$self->IsShownOnScreen;
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
@@ -152,7 +176,7 @@ sub set_z {
     
     $self->z($z);
     $self->layers([ @layers ]);
-    $self->dirty(1);
+    $self->Refresh;
 }
 
 sub Render {
@@ -163,6 +187,15 @@ sub Render {
     return unless my $context = $self->GetContext;
     $self->SetCurrent($context);
     $self->InitGL;
+    
+    glClearColor(1, 1, 1, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    if (!$self->GetParent->enabled || !$self->layers) {
+        glFlush();
+        $self->SwapBuffers;
+        return;
+    }
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -184,8 +217,66 @@ sub Render {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    glClearColor(1, 1, 1, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    # anti-alias
+    if (0) {
+        glEnable(GL_LINE_SMOOTH);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+        glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
+    }
+    
+    my $tess;
+    if (!(&Wx::wxMSW && $OpenGL::VERSION < 0.6704)) {
+        # We can't use the GLU tesselator on MSW with older OpenGL versions
+        # because of an upstream bug:
+        # http://sourceforge.net/p/pogl/bugs/16/
+        $tess = gluNewTess();
+        gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_VERTEX,    'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
+        gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
+    }
+    
+    foreach my $layer (@{$self->layers}) {
+        my $object = $layer->object;
+        
+        # only draw the slice for the current layer
+        next unless abs($layer->print_z - $self->z) < epsilon;
+        
+        # draw slice contour
+        glLineWidth(1);
+        foreach my $copy (@{ $object->_shifted_copies }) {
+            glPushMatrix();
+            glTranslatef(@$copy, 0);
+            
+            foreach my $slice (@{$layer->slices}) {
+                glColor3f(0.95, 0.95, 0.95);
+                
+                if ($tess) {
+                    gluTessBeginPolygon($tess);
+                    foreach my $polygon (@$slice) {
+                        gluTessBeginContour($tess);
+                        gluTessVertex_p($tess, @$_, 0) for @$polygon;
+                        gluTessEndContour($tess);
+                    }
+                    gluTessEndPolygon($tess);
+                }
+                
+                glColor3f(0.9, 0.9, 0.9);
+                foreach my $polygon (@$slice) {
+                    foreach my $line (@{$polygon->lines}) {
+                        glBegin(GL_LINES);
+                        glVertex2f(@{$line->a});
+                        glVertex2f(@{$line->b});
+                        glEnd();
+                    }
+                }
+            }
+            glPopMatrix();
+        }
+    }
     
     my $skirt_drawn = 0;
     my $brim_drawn = 0;
@@ -194,32 +285,41 @@ sub Render {
         my $print_z = $layer->print_z;
         
         # draw brim
-        if ($layer->id == 0 && !$brim_drawn) {
+        if ($self->print->step_done(STEP_BRIM) && $layer->id == 0 && !$brim_drawn) {
             $self->color([0, 0, 0]);
             $self->_draw(undef, $print_z, $_) for @{$self->print->brim};
             $brim_drawn = 1;
         }
-        if (($self->print->config->skirt_height == -1 || $self->print->config->skirt_height >= $layer->id) && !$skirt_drawn) {
+        if ($self->print->step_done(STEP_SKIRT)
+            && ($self->print->config->skirt_height == -1 || $self->print->config->skirt_height > $layer->id)
+            && !$skirt_drawn) {
             $self->color([0, 0, 0]);
             $self->_draw(undef, $print_z, $_) for @{$self->print->skirt};
             $skirt_drawn = 1;
         }
         
         foreach my $layerm (@{$layer->regions}) {
-            $self->color([0.7, 0, 0]);
-            $self->_draw($object, $print_z, $_) for @{$layerm->perimeters};
+            if ($object->step_done(STEP_PERIMETERS)) {
+                $self->color([0.7, 0, 0]);
+                $self->_draw($object, $print_z, $_) for @{$layerm->perimeters};
+            }
             
-            $self->color([0, 0, 0.7]);
-            $self->_draw($object, $print_z, $_) for map @$_, @{$layerm->fills};
+            if ($object->step_done(STEP_INFILL)) {
+                $self->color([0, 0, 0.7]);
+                $self->_draw($object, $print_z, $_) for map @$_, @{$layerm->fills};
+            }
         }
         
-        if ($layer->isa('Slic3r::Layer::Support')) {
-            $self->color([0, 0, 0]);
-            $self->_draw($object, $print_z, $_) for @{$layer->support_fills};
-            $self->_draw($object, $print_z, $_) for @{$layer->support_interface_fills};
+        if ($object->step_done(STEP_SUPPORTMATERIAL)) {
+            if ($layer->isa('Slic3r::Layer::Support')) {
+                $self->color([0, 0, 0]);
+                $self->_draw($object, $print_z, $_) for @{$layer->support_fills};
+                $self->_draw($object, $print_z, $_) for @{$layer->support_interface_fills};
+            }
         }
     }
     
+    gluDeleteTess($tess) if $tess;
     glFlush();
     $self->SwapBuffers;
 }
@@ -249,13 +349,15 @@ sub _draw_path {
     
     if (defined $object) {
         foreach my $copy (@{ $object->_shifted_copies }) {
+            glPushMatrix();
+            glTranslatef(@$copy, 0);
             foreach my $line (@{$path->polyline->lines}) {
-                $line->translate(@$copy);
                 glBegin(GL_LINES);
                 glVertex2f(@{$line->a});
                 glVertex2f(@{$line->b});
                 glEnd();
             }
+            glPopMatrix();
         }
     } else {
         foreach my $line (@{$path->polyline->lines}) {
@@ -299,8 +401,7 @@ sub Resize {
     my ($self, $x, $y) = @_;
  
     return unless $self->GetContext;
-    $self->dirty(0);
- 
+    
     $self->SetCurrent($self->GetContext);
     glViewport(0, 0, $x, $y);
 }

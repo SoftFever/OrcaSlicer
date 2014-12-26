@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(sum);
 use Slic3r::XS;
-use Test::More tests => 45;
+use Test::More tests => 46;
 
 {
     my $square = [
@@ -117,6 +117,31 @@ use Test::More tests => 45;
         ok $loop2->[0]->polyline->[0]->coincides_with($expected_start_point), 'expected starting point';
         ok $loop2->[-1]->polyline->[-1]->coincides_with($expected_start_point), 'expected ending point';
     }
+}
+
+{
+    my @polylines = (
+        Slic3r::Polyline->new([59312736,4821067],[64321068,4821067],[64321068,4821067],[64321068,9321068],[59312736,9321068]),
+        Slic3r::Polyline->new([59312736,9321068],[9829401,9321068]),
+        Slic3r::Polyline->new([9829401,9321068],[4821067,9321068],[4821067,4821067],[9829401,4821067]),
+        Slic3r::Polyline->new([9829401,4821067],[59312736,4821067]),
+    );
+    my $loop = Slic3r::ExtrusionLoop->new;
+    $loop->append($_) for (
+        Slic3r::ExtrusionPath->new(polyline => $polylines[0], role => Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER, mm3_per_mm => 1),
+        Slic3r::ExtrusionPath->new(polyline => $polylines[1], role => Slic3r::ExtrusionPath::EXTR_ROLE_OVERHANG_PERIMETER, mm3_per_mm => 1),
+        Slic3r::ExtrusionPath->new(polyline => $polylines[2], role => Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER, mm3_per_mm => 1),
+        Slic3r::ExtrusionPath->new(polyline => $polylines[3], role => Slic3r::ExtrusionPath::EXTR_ROLE_OVERHANG_PERIMETER, mm3_per_mm => 1),
+    );
+    my $point = Slic3r::Point->new(4821067,9321068);
+    $loop->split_at_vertex($point) or $loop->split_at($point);
+    is_deeply [ map $_->role, @$loop ], [
+        Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
+        Slic3r::ExtrusionPath::EXTR_ROLE_OVERHANG_PERIMETER,
+        Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
+        Slic3r::ExtrusionPath::EXTR_ROLE_OVERHANG_PERIMETER,
+        Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER,
+    ], 'order is correctly preserved after splitting';
 }
 
 __END__

@@ -158,8 +158,12 @@ Polygon::contains(const Point &point) const
 Polygons
 Polygon::simplify(double tolerance) const
 {
-    Polygon p = *this;
-    p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+    // repeat first point at the end in order to apply Douglas-Peucker
+    // on the whole polygon
+    Points points = this->points;
+    points.push_back(points.front());
+    Polygon p(MultiPoint::_douglas_peucker(points, tolerance));
+    p.points.pop_back();
     
     Polygons pp;
     pp.push_back(p);
@@ -220,6 +224,58 @@ Polygon::wkt() const
     }
     wkt << "))";
     return wkt.str();
+}
+
+// find all concave vertices (i.e. having an internal angle greater than the supplied angle) */
+void
+Polygon::concave_points(double angle, Points* points) const
+{
+    angle = 2*PI - angle;
+    
+    // check whether first point forms a concave angle
+    if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) <= angle)
+        points->push_back(this->points.front());
+    
+    // check whether points 1..(n-1) form concave angles
+    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
+        if (p->ccw_angle(*(p-1), *(p+1)) <= angle) points->push_back(*p);
+    }
+    
+    // check whether last point forms a concave angle
+    if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) <= angle)
+        points->push_back(this->points.back());
+}
+
+void
+Polygon::concave_points(Points* points) const
+{
+    this->concave_points(PI, points);
+}
+
+// find all convex vertices (i.e. having an internal angle smaller than the supplied angle) */
+void
+Polygon::convex_points(double angle, Points* points) const
+{
+    angle = 2*PI - angle;
+    
+    // check whether first point forms a convex angle
+    if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) >= angle)
+        points->push_back(this->points.front());
+    
+    // check whether points 1..(n-1) form convex angles
+    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
+        if (p->ccw_angle(*(p-1), *(p+1)) >= angle) points->push_back(*p);
+    }
+    
+    // check whether last point forms a convex angle
+    if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) >= angle)
+        points->push_back(this->points.back());
+}
+
+void
+Polygon::convex_points(Points* points) const
+{
+    this->convex_points(PI, points);
 }
 
 #ifdef SLIC3RXS

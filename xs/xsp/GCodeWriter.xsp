@@ -44,6 +44,7 @@
     std::string unretract();
     std::string lift();
     std::string unlift();
+    Clone<Pointf3> get_position() const;
 %{
 
 SV*

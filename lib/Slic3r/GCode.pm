@@ -96,6 +96,10 @@ sub change_layer {
         $gcode .= $self->retract;
     }
     $gcode .= $self->writer->travel_to_z($z, 'move to next layer (' . $self->layer->id . ')');
+    
+    # forget last wiping path as wiping after raising Z is pointless
+    $self->wipe->path(undef);
+    
     return $gcode;
 }
 
@@ -210,10 +214,10 @@ sub extrude_loop {
         # create the destination point along the first segment and rotate it
         # we make sure we don't exceed the segment length because we don't know
         # the rotation of the second segment so we might cross the object boundary
-        my $first_segment = Slic3r::Line->new(@$last_path_polyline[0,1]);
+        my $first_segment = Slic3r::Line->new(@{$paths[0]->polyline}[0,1]);
         my $distance = min(scale($self->config->get_at('nozzle_diameter', $self->writer->extruder->id)), $first_segment->length);
         my $point = $first_segment->point_at($distance);
-        $point->rotate($angle, $last_path_polyline->first_point);
+        $point->rotate($angle, $first_segment->a);
         
         # generate the travel move
         $gcode .= $self->travel_to($point, $paths[-1]->role, "move inwards before travel");
@@ -256,10 +260,10 @@ sub _extrude_path {
             $acceleration = $self->config->first_layer_acceleration;
         } elsif ($self->config->perimeter_acceleration && $path->is_perimeter) {
             $acceleration = $self->config->perimeter_acceleration;
-        } elsif ($self->config->infill_acceleration && $path->is_fill) {
-            $acceleration = $self->config->infill_acceleration;
         } elsif ($self->config->bridge_acceleration && $path->is_bridge) {
             $acceleration = $self->config->bridge_acceleration;
+        } elsif ($self->config->infill_acceleration && $path->is_infill) {
+            $acceleration = $self->config->infill_acceleration;
         } else {
             $acceleration = $self->config->default_acceleration;
         }
@@ -337,30 +341,34 @@ sub travel_to {
     # Skip retraction at all in the following cases:
     # - travel length is shorter than the configured threshold
     # - user has enabled "Only retract when crossing perimeters" and the travel move is
-    #   contained in a single island of the current layer *and* a single island in the
-    #   upper layer (so that ooze will not be visible)
+    #   contained in a single internal fill_surface (this includes the bottom layer when
+    #   bottom_solid_layers == 0) or in a single internal slice (this would exclude such
+    #   bottom layer but preserve perimeter-to-infill moves in all the other layers)
     # - the path that will be extruded after this travel move is a support material
     #   extrusion and the travel move is contained in a single support material island
     if ($travel->length < scale $self->config->get_at('retract_before_travel', $self->writer->extruder->id)
         || ($self->config->only_retract_when_crossing_perimeters
             && $self->config->fill_density > 0
-            && $self->layer->slices->contains_line($travel)
-            && (!$self->layer->has_upper_layer || $self->layer->upper_layer->slices->contains_line($travel)))
+            && defined($self->layer)
+            && ($self->layer->any_internal_region_slice_contains_line($travel)
+             || $self->layer->any_internal_region_fill_surface_contains_line($travel)))
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel))
         ) {
         # Just perform a straight travel move without any retraction.
         $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment);
-    } elsif ($self->config->avoid_crossing_perimeters && !$self->avoid_crossing_perimeters->straight_once) {
+    } elsif ($self->config->avoid_crossing_perimeters && !$self->avoid_crossing_perimeters->disable_once) {
+        # If avoid_crossing_perimeters is enabled and the disable_once flag is not set
+        # we need to plan a multi-segment travel move inside the configuration space.
         $gcode .= $self->avoid_crossing_perimeters->travel_to($self, $point, $comment);
     } else {
-        # If avoid_crossing_perimeters is disabled or the straight_once flag is set,
+        # If avoid_crossing_perimeters is disabled or the disable_once flag is set,
         # perform a straight move with a retraction.
         $gcode .= $self->retract;
         $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment || '');
     }
     
     # Re-allow avoid_crossing_perimeters for the next travel moves
-    $self->avoid_crossing_perimeters->straight_once(0);
+    $self->avoid_crossing_perimeters->disable_once(0);
     
     return $gcode;
 }
@@ -555,10 +563,13 @@ sub wipe {
 package Slic3r::GCode::AvoidCrossingPerimeters;
 use Moo;
 
-has '_external_mp'       => (is => 'rw');
-has '_layer_mp'          => (is => 'rw');
-has 'new_object'         => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
-has 'straight_once'      => (is => 'rw', default => sub {1});   # this flag disables avoid_crossing_perimeters just for the next travel move
+has '_external_mp'          => (is => 'rw');
+has '_layer_mp'             => (is => 'rw');
+has 'use_external_mp'       => (is => 'rw', default => sub {0});
+has 'use_external_mp_once'  => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
+has 'disable_once'          => (is => 'rw', default => sub {1});   # this flag disables avoid_crossing_perimeters just for the next travel move
+
+use Slic3r::Geometry qw(scale);
 
 sub init_external_mp {
     my ($self, $islands) = @_;
@@ -575,11 +586,8 @@ sub travel_to {
     
     my $gcode = "";
     
-    # If avoid_crossing_perimeters is enabled and the straight_once flag is not set
-    # we need to plan a multi-segment travel move inside the configuration space.
-    if ($self->new_object) {
-        # If we're moving to a new object we need to use the external configuration space.
-        $self->new_object(0);
+    if ($self->use_external_mp || $self->use_external_mp_once) {
+        $self->use_external_mp_once(0);
         
         # represent $point in G-code coordinates
         $point = $point->clone;
@@ -606,13 +614,12 @@ sub _plan {
     # if the path is not contained in a single island we need to retract
     $gcode .= $gcodegen->retract
         if !$gcodegen->config->only_retract_when_crossing_perimeters
-        || !$gcodegen->layer->slices->contains_polyline($travel)
-        || ($gcodegen->layer->has_upper_layer && !$gcodegen->layer->upper_layer->slices->contains_polyline($travel));
+        || !$gcodegen->layer->any_internal_region_fill_surface_contains_polyline($travel);
     
     # append the actual path and return
     # use G1 because we rely on paths being straight (G0 may make round paths)
     $gcode .= join '',
-        map $gcodegen->writer->travel_to_xy($self->point_to_gcode($_->b), $comment),
+        map $gcodegen->writer->travel_to_xy($gcodegen->point_to_gcode($_->b), $comment),
         @{$travel->lines};
     
     return $gcode;

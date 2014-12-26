@@ -4,6 +4,8 @@ use Moo;
 has 'layer_id'            => (is => 'rw');
 has 'z'                   => (is => 'rw'); # in unscaled coordinates
 has 'angle'               => (is => 'rw'); # in radians, ccw, 0 = East
+has 'spacing'             => (is => 'rw'); # in unscaled coordinates
+has 'loop_clipping'       => (is => 'rw', default => sub { 0 }); # in scaled coordinates
 has 'bounding_box'        => (is => 'ro', required => 0);  # Slic3r::Geometry::BoundingBox object
 
 sub adjust_solid_spacing {
@@ -16,6 +18,9 @@ sub adjust_solid_spacing {
     my $extra_space = $params{width} % $params{distance};
     return $params{distance} + $extra_space / ($number_of_lines - 1);
 }
+
+sub no_sort { 0 }
+sub use_bridge_flow { 0 }
 
 
 package Slic3r::Fill::WithDirection;

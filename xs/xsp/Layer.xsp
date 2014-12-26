@@ -69,6 +69,12 @@
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
     
     void make_slices();
+    bool any_internal_region_slice_contains_line(Line* line)
+        %code%{ RETVAL = THIS->any_internal_region_slice_contains(*line); %};
+    bool any_internal_region_fill_surface_contains_line(Line* line)
+        %code%{ RETVAL = THIS->any_internal_region_fill_surface_contains(*line); %};
+    bool any_internal_region_fill_surface_contains_polyline(Polyline* polyline)
+        %code%{ RETVAL = THIS->any_internal_region_fill_surface_contains(*polyline); %};
 };
 
 %name{Slic3r::Layer::Support} class SupportLayer {
@@ -114,4 +120,11 @@
 
     Ref<ExPolygonCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
+    
+    bool any_internal_region_slice_contains_line(Line* line)
+        %code%{ RETVAL = THIS->any_internal_region_slice_contains(*line); %};
+    bool any_internal_region_fill_surface_contains_line(Line* line)
+        %code%{ RETVAL = THIS->any_internal_region_fill_surface_contains(*line); %};
+    bool any_internal_region_fill_surface_contains_polyline(Polyline* polyline)
+        %code%{ RETVAL = THIS->any_internal_region_fill_surface_contains(*polyline); %};
 };

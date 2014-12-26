@@ -20,6 +20,8 @@ my %opt = ();
     my %options = (
         'help'                  => sub { usage() },
         'load=s'                => \$opt{load},
+        '3D'                    => \$opt{d3},
+        'duplicate=i'           => \$opt{duplicate},
     );
     GetOptions(%options) or usage(1);
     $ARGV[0] or usage(1);
@@ -38,12 +40,14 @@ my %opt = ();
     
     # init print
     my $sprint = Slic3r::Print::Simple->new;
+    $sprint->duplicate($opt{duplicate} // 1);
     $sprint->apply_config($config);
     $sprint->set_model($model);
     $sprint->process;
     
     # visualize toolpaths
     $Slic3r::ViewToolpaths::print = $sprint->_print;
+    $Slic3r::ViewToolpaths::d3 = $opt{d3};
     my $app = Slic3r::ViewToolpaths->new;
     $app->MainLoop;
 }
@@ -65,9 +69,10 @@ EOF
 
 package Slic3r::ViewToolpaths;
 use Wx qw(:sizer);
-use base qw(Wx::App);
+use base qw(Wx::App Class::Accessor);
 
 our $print;
+our $d3;
 
 sub OnInit {
     my $self = shift;
@@ -75,8 +80,23 @@ sub OnInit {
     my $frame = Wx::Frame->new(undef, -1, 'Toolpaths', [-1, -1], [500, 500]);
     my $panel = Wx::Panel->new($frame, -1);
     
+    my $canvas;
+    if ($d3) {
+        $canvas = Slic3r::GUI::PreviewCanvas->new($panel);
+        $canvas->print($print);
+        
+        $canvas->set_bed_shape($print->config->bed_shape);
+        
+        foreach my $object (@{$print->objects}) {
+            $canvas->load_object($object->model_object);
+        }
+        $canvas->zoom_to_volumes;
+    } else {
+        $canvas = Slic3r::GUI::Plater::2DToolpaths->new($panel, $print);
+    }
+    
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add(Slic3r::GUI::Plater::2DToolpaths->new($panel, $print), 1, wxEXPAND, 0);
+    $sizer->Add($canvas, 1, wxEXPAND, 0);
     $panel->SetSizer($sizer);
     
     $frame->Show(1);

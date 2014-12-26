@@ -68,6 +68,39 @@ SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
     }
 }
 
+template <class T>
+bool
+SurfaceCollection::any_internal_contains(const T &item) const
+{
+    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        if (surface->is_internal() && surface->expolygon.contains(item)) return true;
+    }
+    return false;
+}
+template bool SurfaceCollection::any_internal_contains<Line>(const Line &item) const;
+template bool SurfaceCollection::any_internal_contains<Polyline>(const Polyline &item) const;
+
+SurfacesPtr
+SurfaceCollection::filter_by_type(SurfaceType type)
+{
+    SurfacesPtr ss;
+    for (Surfaces::iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        if (surface->surface_type == type) ss.push_back(&*surface);
+    }
+    return ss;
+}
+
+void
+SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons)
+{
+    for (Surfaces::iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        if (surface->surface_type == type) {
+            Polygons pp = surface->expolygon;
+            polygons->insert(polygons->end(), pp.begin(), pp.end());
+        }
+    }
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(SurfaceCollection, "Surface::Collection");
 #endif

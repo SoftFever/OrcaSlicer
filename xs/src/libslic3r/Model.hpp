@@ -99,7 +99,7 @@ class ModelObject
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preset alignment
         when user expects that. */
-    Pointf origin_translation;
+    Pointf3 origin_translation;
     
     // these should be private but we need to expose them via XS until all methods are ported
     BoundingBoxf3 _bounding_box;
@@ -126,6 +126,7 @@ class ModelObject
     void raw_bounding_box(BoundingBoxf3* bb) const;
     void instance_bounding_box(size_t instance_idx, BoundingBoxf3* bb) const;
     void center_around_origin();
+    void translate(const Vectorf3 &vector);
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
     size_t materials_count() const;
