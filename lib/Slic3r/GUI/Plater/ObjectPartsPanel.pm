@@ -224,13 +224,7 @@ sub on_btn_load {
         }
     }
     
-    $self->reload_tree;
-    if ($self->{canvas}) {
-        $self->{canvas}->reset_objects;
-        $self->{canvas}->load_object($self->{model_object});
-        $self->{canvas}->set_bounding_box($self->{model_object}->bounding_box);
-        $self->{canvas}->Render;
-    }
+    $self->_parts_changed;
 }
 
 sub on_btn_delete {
@@ -250,9 +244,17 @@ sub on_btn_delete {
         $self->{parts_changed} = 1;
     }
     
+    $self->_parts_changed;
+}
+
+sub _parts_changed {
+    my ($self) = @_;
+    
     $self->reload_tree;
     if ($self->{canvas}) {
+        $self->{canvas}->reset_objects;
         $self->{canvas}->load_object($self->{model_object});
+        $self->{canvas}->zoom_to_volumes;
         $self->{canvas}->Render;
     }
 }
