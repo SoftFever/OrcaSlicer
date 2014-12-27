@@ -11,6 +11,9 @@
     GCodeSender(std::string port, unsigned int baud_rate);
     ~GCodeSender();
     
+    bool is_connected() const;
+    int queue_size() const;
+    void disconnect();
     void send(std::string s);
 };
 
