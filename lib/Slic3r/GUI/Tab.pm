@@ -205,9 +205,18 @@ sub on_select_preset {
     if ($self->is_dirty) {
         my $old_preset = $self->get_current_preset;
         my $name = $old_preset->default ? 'Default preset' : "Preset \"" . $old_preset->name . "\"";
-        my $changes = join "\n",
-            map { "- " . ($Slic3r::Config::Options->{$_}{full_label} // $Slic3r::Config::Options->{$_}{label}) }
-            @{$self->dirty_options};
+        
+        my @option_names = ();
+        foreach my $opt_key (@{$self->dirty_options}) {
+            my $opt = $Slic3r::Config::Options->{$opt_key};
+            my $name = $opt->{full_label} // $opt->{label};
+            if ($opt->{category}) {
+                $name = $opt->{category} . " > $name";
+            }
+            push @option_names, $name;
+        }
+        
+        my $changes = join "\n", map "- $_", @option_names;
         my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes:\n$changes\n\nDiscard changes and continue anyway?",
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
