@@ -147,15 +147,26 @@ sub export {
             my $outer_skirt = convex_hull(\@skirt_points);
             my @skirts = ();
             foreach my $extruder_id (@{$self->print->extruders}) {
+                my $extruder_offset = $self->config->get_at('extruder_offset', $extruder_id);
                 push @skirts, my $s = $outer_skirt->clone;
-                $s->translate(map scale($_), @{$self->config->get_at('extruder_offset', $extruder_id)});
+                $s->translate(-scale($extruder_offset->x), -scale($extruder_offset->y));  #)
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
             
             $gcodegen->ooze_prevention->enable(1);
             $gcodegen->ooze_prevention->standby_points(
-                [ map $_->clone, map @$_, map $_->subdivide(scale 10), @{offset([$convex_hull], scale 3)} ]
+                [ map @{$_->equally_spaced_points(scale 10)}, @{offset([$convex_hull], scale 3)} ]
             );
+            
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(
+                    "ooze_prevention.svg",
+                    polygons        => [$outer_skirt],
+                    red_polygons    => \@skirts,
+                    points          => $gcodegen->ooze_prevention->standby_points,
+                );
+            }
         }
     }
     
