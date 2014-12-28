@@ -187,7 +187,7 @@ sub make_fill {
         if ($surface->is_solid) {
             $density = 100;
             $filler = 'rectilinear';
-            if ($surface->is_external) {
+            if ($surface->is_external && !$is_bridge) {
                 $filler = $layerm->config->external_fill_pattern;
             }
         } else {
