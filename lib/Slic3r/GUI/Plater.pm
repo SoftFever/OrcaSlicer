@@ -221,7 +221,7 @@ sub new {
         $self->{send_gcode_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
         Slic3r::thread_cleanup();
     });
-    #EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
+    EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
