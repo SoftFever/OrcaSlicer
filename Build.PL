@@ -27,6 +27,7 @@ my %prereqs = qw(
 );
 my %recommends = qw(
     Class::XSAccessor               0
+    LWP::UserAgent                  0
     XML::SAX::ExpatXS               0
 );
 

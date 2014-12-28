@@ -27,6 +27,7 @@ use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 
 our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
+our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
     :filedialog);
@@ -228,7 +229,7 @@ sub have_version_check {
     my ($self) = @_;
     
     # return an explicit 0
-    return ($Slic3r::have_threads && $Slic3r::build && eval "use LWP::UserAgent; 1") || 0;
+    return ($Slic3r::have_threads && $Slic3r::build && $have_LWP) || 0;
 }
 
 sub check_version {

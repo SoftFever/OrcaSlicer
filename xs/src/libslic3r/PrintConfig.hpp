@@ -582,7 +582,27 @@ class PrintConfig : public GCodeConfig
     };
 };
 
-class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig
+class HostConfig : public virtual StaticPrintConfig
+{
+    public:
+    ConfigOptionString              octoprint_host;
+    ConfigOptionString              octoprint_apikey;
+    
+    HostConfig() : StaticPrintConfig() {
+        this->octoprint_host.value                              = "";
+        this->octoprint_apikey.value                            = "";
+    };
+    
+    ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
+        if (opt_key == "octoprint_host")                        return &this->octoprint_host;
+        if (opt_key == "octoprint_apikey")                      return &this->octoprint_apikey;
+        
+        return NULL;
+    };
+};
+
+class FullPrintConfig
+    : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig, public HostConfig
 {
     public:
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
@@ -590,6 +610,7 @@ class FullPrintConfig : public PrintObjectConfig, public PrintRegionConfig, publ
         if ((opt = PrintObjectConfig::option(opt_key, create)) != NULL) return opt;
         if ((opt = PrintRegionConfig::option(opt_key, create)) != NULL) return opt;
         if ((opt = PrintConfig::option(opt_key, create)) != NULL) return opt;
+        if ((opt = HostConfig::option(opt_key, create)) != NULL) return opt;
         return NULL;
     };
 };

@@ -48,6 +48,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width
+        octoprint_host octoprint_apikey
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
@@ -181,9 +182,11 @@ sub new {
     
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_send_gcode}->Hide;
     
     if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
@@ -192,6 +195,7 @@ sub new {
             reset           cross.png
             arrange         bricks.png
             export_gcode    cog_go.png
+            send_gcode      cog_go.png
             export_stl      brick_go.png
             
             increase        add.png
@@ -211,6 +215,10 @@ sub new {
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_export_gcode}, sub {
         $self->export_gcode;
+        Slic3r::thread_cleanup();
+    });
+    EVT_BUTTON($self, $self->{btn_send_gcode}, sub {
+        $self->{send_gcode_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
         Slic3r::thread_cleanup();
     });
     #EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
@@ -355,6 +363,7 @@ sub new {
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $buttons_sizer->AddStretchSpacer(1);
         $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -944,7 +953,7 @@ sub resume_background_process {
 }
 
 sub export_gcode {
-    my $self = shift;
+    my ($self, $output_file) = @_;
     
     return if !@{$self->{objects}};
     
@@ -976,14 +985,14 @@ sub export_gcode {
     }
     
     # select output file
-    $self->{export_gcode_output_file} = $main::opt{output};
-    {
-        my $default_output_file = $self->{print}->expanded_output_filepath($self->{export_gcode_output_file});
+    if ($output_file) {
+        $self->{export_gcode_output_file} = $self->{print}->expanded_output_filepath($output_file);
+    } else {
+        my $default_output_file = $self->{print}->expanded_output_filepath($main::opt{output});
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
-            $self->{export_gcode_output_file} = undef;
             return;
         }
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
@@ -1011,6 +1020,8 @@ sub export_gcode {
         my $result = !Slic3r::GUI::catch_error($self);
         $self->on_export_completed($result);
     }
+    
+    return $self->{export_gcode_output_file};
 }
 
 # This gets called only if we have threads.
@@ -1072,14 +1083,49 @@ sub on_export_completed {
     $self->{export_thread} = undef;
     
     my $message;
+    my $send_gcode = 0;
     if ($result) {
-        $message = "G-code file exported to " . $self->{export_gcode_output_file};
+        if ($self->{send_gcode_file}) {
+            $message = "Sending G-code file to the Octoprint server...";
+            $send_gcode = 1;
+        } else {
+            $message = "G-code file exported to " . $self->{export_gcode_output_file};
+        }
     } else {
         $message = "Export failed";
     }
     $self->{export_gcode_output_file} = undef;
     $self->statusbar->SetStatusText($message);
     wxTheApp->notify($message);
+    
+    $self->send_gcode if $send_gcode;
+    $self->{send_gcode_file} = undef;
+}
+
+sub send_gcode {
+    my ($self) = @_;
+    
+    $self->statusbar->StartBusy;
+    
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    
+    my $res = $ua->post(
+        "http://" . $self->{config}->octoprint_host . "/api/files/local",
+        Content_Type => 'form-data',
+        'X-Api-Key' => $self->{config}->octoprint_apikey,
+        Content => [
+            fn => [$self->{send_gcode_file}],
+        ],
+    );
+    
+    $self->statusbar->StopBusy;
+    
+    if ($res->is_success) {
+        $self->statusbar->SetStatusText("G-code file successfully uploaded to the Octoprint server");
+    } else {
+        $self->statusbar->SetStatusText("Error while uploading to the Octoprint server: " . $res->status_line);
+    }
 }
 
 sub export_stl {
@@ -1208,6 +1254,13 @@ sub on_config_change {
             $self->{canvas}->update_bed_size;
             $self->{canvas3D}->update_bed_size if $self->{canvas3D};
             $self->update;
+        } elsif ($opt_key eq 'octoprint_host') {
+            if ($config->get('octoprint_host')) {
+                $self->{btn_send_gcode}->Show;
+            } else {
+                $self->{btn_send_gcode}->Hide;
+            }
+            $self->Layout;
         }
     }
     
@@ -1313,7 +1366,7 @@ sub object_list_changed {
     my $have_objects = @{$self->{objects}} ? 1 : 0;
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl);
+        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl send_gcode);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_objects)
