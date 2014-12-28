@@ -83,7 +83,7 @@ sub append_line {
     # if we have a single option with no sidetext just add it directly to the grid sizer
     my @options = @{$line->get_options};
     $self->_options->{$_->opt_id} = $_ for @options;
-    if (@options == 1 && !$options[0]->sidetext) {
+    if (@options == 1 && !$options[0]->sidetext && !@{$line->get_extra_widgets}) {
         my $option = $options[0];
         my $field = $self->_build_field($option);
         $grid_sizer->Add($field, 0, ($option->full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
@@ -114,9 +114,14 @@ sub append_line {
             $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
         }
     }
+        
+    # add extra sizers if any
+    foreach my $extra_widget (@{$line->get_extra_widgets}) {
+        $sizer->Add($extra_widget->($self->parent), 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
+    }
 }
 
-sub append_single_option_line {
+sub create_single_option_line {
     my ($self, $option) = @_;
     
     my $line = Slic3r::GUI::OptionsGroup::Line->new(
@@ -125,9 +130,13 @@ sub append_single_option_line {
     );
     $option->label("");
     $line->append_option($option);
-    $self->append_line($line);
     
     return $line;
+}
+
+sub append_single_option_line {
+    my ($self, $option) = @_;
+    return $self->append_line($self->create_single_option_line($option));
 }
 
 sub _build_field {
@@ -241,6 +250,7 @@ has 'label_tooltip' => (is => 'rw', default => sub { "" });
 has 'sizer'         => (is => 'rw');
 has 'widget'        => (is => 'rw');
 has '_options'      => (is => 'ro', default => sub { [] });
+has '_extra_widgets' => (is => 'ro', default => sub { [] });
 
 # this method accepts a Slic3r::GUI::OptionsGroup::Option object
 sub append_option {
@@ -248,9 +258,19 @@ sub append_option {
     push @{$self->_options}, $option;
 }
 
+sub append_widget {
+    my ($self, $widget) = @_;
+    push @{$self->_extra_widgets}, $widget;
+}
+
 sub get_options {
     my ($self) = @_;
     return [ @{$self->_options} ];
+}
+
+sub get_extra_widgets {
+    my ($self) = @_;
+    return [ @{$self->_extra_widgets} ];
 }
 
 
@@ -320,7 +340,7 @@ sub get_option {
     );
 }
 
-sub append_single_option_line {
+sub create_single_option_line {
     my ($self, $opt_key, $opt_index) = @_;
     
     my $option;
@@ -329,7 +349,12 @@ sub append_single_option_line {
     } else {
         $option = $self->get_option($opt_key, $opt_index);
     }
-    return $self->SUPER::append_single_option_line($option);
+    return $self->SUPER::create_single_option_line($option);
+}
+
+sub append_single_option_line {
+    my ($self, $option, $opt_index) = @_;
+    return $self->append_line($self->create_single_option_line($option, $opt_index));
 }
 
 sub reload_config {

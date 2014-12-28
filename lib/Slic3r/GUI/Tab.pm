@@ -999,7 +999,40 @@ sub build {
         }
         {
             my $optgroup = $page->new_optgroup('Octoprint upload');
-            $optgroup->append_single_option_line('octoprint_host');
+            
+            # append a button to the Host line
+            my $octoprint_host_widget = sub {
+                my ($parent) = @_;
+                
+                my $btn = Wx::Button->new($parent, -1, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+                $btn->SetFont($Slic3r::GUI::small_font);
+                if ($Slic3r::GUI::have_button_icons) {
+                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+                }
+                
+                if (!eval "use Net::Bonjour; 1") {
+                    $btn->Disable;
+                }
+        
+                my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+                $sizer->Add($btn);
+        
+                EVT_BUTTON($self, $btn, sub {
+                    my $dlg = Slic3r::GUI::BonjourBrowser->new($self);
+                    if ($dlg->ShowModal == wxID_OK) {
+                        my $value = $dlg->GetValue;
+                        $self->{config}->set('octoprint_host', $value);
+                        $self->update_dirty;
+                        $self->_on_value_change('octoprint_host', $value);
+                    }
+                });
+                
+                return $sizer;
+            };
+            
+            my $host_line = $optgroup->create_single_option_line('octoprint_host');
+            $host_line->append_widget($octoprint_host_widget);
+            $optgroup->append_line($host_line);
             $optgroup->append_single_option_line('octoprint_apikey');
         }
         {
