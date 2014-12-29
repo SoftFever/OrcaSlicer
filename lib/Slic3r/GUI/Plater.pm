@@ -1086,7 +1086,7 @@ sub on_export_completed {
     my $send_gcode = 0;
     if ($result) {
         if ($self->{send_gcode_file}) {
-            $message = "Sending G-code file to the Octoprint server...";
+            $message = "Sending G-code file to the OctoPrint server...";
             $send_gcode = 1;
         } else {
             $message = "G-code file exported to " . $self->{export_gcode_output_file};
@@ -1122,9 +1122,9 @@ sub send_gcode {
     $self->statusbar->StopBusy;
     
     if ($res->is_success) {
-        $self->statusbar->SetStatusText("G-code file successfully uploaded to the Octoprint server");
+        $self->statusbar->SetStatusText("G-code file successfully uploaded to the OctoPrint server");
     } else {
-        my $message = "Error while uploading to the Octoprint server: " . $res->status_line;
+        my $message = "Error while uploading to the OctoPrint server: " . $res->status_line;
         Slic3r::GUI::show_error($self, $message);
         $self->statusbar->SetStatusText($message);
     }

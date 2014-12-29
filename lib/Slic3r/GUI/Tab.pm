@@ -998,7 +998,7 @@ sub build {
             });
         }
         {
-            my $optgroup = $page->new_optgroup('Octoprint upload');
+            my $optgroup = $page->new_optgroup('OctoPrint upload');
             
             # append a button to the Host line
             my $octoprint_host_widget = sub {

@@ -19,7 +19,7 @@ sub new {
     $self->{devices} = [ $res->entries ];
     
     # label
-    my $text = Wx::StaticText->new($self, -1, "Choose an Octoprint device in your network:", wxDefaultPosition, wxDefaultSize);
+    my $text = Wx::StaticText->new($self, -1, "Choose an OctoPrint device in your network:", wxDefaultPosition, wxDefaultSize);
     
     # selector
     $self->{choice} = my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize,
