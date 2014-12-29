@@ -1115,7 +1115,7 @@ sub send_gcode {
         Content_Type => 'form-data',
         'X-Api-Key' => $self->{config}->octoprint_apikey,
         Content => [
-            fn => [$self->{send_gcode_file}],
+            file => [$self->{send_gcode_file}],
         ],
     );
     
