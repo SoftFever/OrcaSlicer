@@ -110,7 +110,9 @@ EOF
     my %modules = (%prereqs, %recommends);
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
-        my @cmd = ($cpanm, @cpanm_args, "$module~$version");
+        my @cmd = ($cpanm, @cpanm_args);
+        push @cmd, '-f', if $module eq 'OpenGL';  # temporary workaround for upstream bug in test
+        push @cmd, "$module~$version";
         if ($module eq 'XML::SAX::ExpatXS' && $^O eq 'MSWin32') {
             my $mingw = 'C:\dev\CitrusPerl\mingw64';
             $mingw = 'C:\dev\CitrusPerl\mingw32' if !-d $mingw;
