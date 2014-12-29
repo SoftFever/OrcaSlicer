@@ -220,7 +220,7 @@ sub extrude_loop {
         $point->rotate($angle, $first_segment->a);
         
         # generate the travel move
-        $gcode .= $self->travel_to($point, $paths[-1]->role, "move inwards before travel");
+        $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), "move inwards before travel");
     }
     
     return $gcode;
