@@ -195,7 +195,7 @@ sub new {
             reset           cross.png
             arrange         bricks.png
             export_gcode    cog_go.png
-            send_gcode      cog_go.png
+            send_gcode      arrow_up.png
             export_stl      brick_go.png
             
             increase        add.png
@@ -1124,7 +1124,9 @@ sub send_gcode {
     if ($res->is_success) {
         $self->statusbar->SetStatusText("G-code file successfully uploaded to the Octoprint server");
     } else {
-        $self->statusbar->SetStatusText("Error while uploading to the Octoprint server: " . $res->status_line);
+        my $message = "Error while uploading to the Octoprint server: " . $res->status_line;
+        Slic3r::GUI::show_error($self, $message);
+        $self->statusbar->SetStatusText($message);
     }
 }
 

@@ -1007,7 +1007,7 @@ sub build {
                 my $btn = Wx::Button->new($parent, -1, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
                 $btn->SetFont($Slic3r::GUI::small_font);
                 if ($Slic3r::GUI::have_button_icons) {
-                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/zoom.png", wxBITMAP_TYPE_PNG));
                 }
                 
                 if (!eval "use Net::Bonjour; 1") {
@@ -1024,6 +1024,7 @@ sub build {
                         $self->{config}->set('octoprint_host', $value);
                         $self->update_dirty;
                         $self->_on_value_change('octoprint_host', $value);
+                        $self->reload_config;
                     }
                 });
                 
