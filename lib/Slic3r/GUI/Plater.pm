@@ -89,16 +89,7 @@ sub new {
     };
     my $on_instance_moved = sub {
         my ($obj_idx, $instance_idx) = @_;
-        
         $self->update;
-        
-        $self->pause_background_process;
-        my $invalidated = $self->{print}->objects->[$obj_idx]->reload_model_instances();
-        if ($invalidated) {
-            $self->schedule_background_process;
-        } else {
-            $self->resume_background_process;
-        }
     };
     
     # Initialize 2D preview canvas
@@ -564,7 +555,6 @@ sub remove {
     
     $self->select_object(undef);
     $self->update;
-    
     $self->schedule_background_process;
 }
 
@@ -675,10 +665,10 @@ sub rotate {
     $model_object->update_bounding_box;
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);
-    $self->schedule_background_process;
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
+    $self->schedule_background_process;
 }
 
 sub flip {
@@ -703,11 +693,10 @@ sub flip {
     # update print and start background processing
     $self->stop_background_process;
     $self->{print}->add_model_object($model_object, $obj_idx);
-    $self->schedule_background_process;
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->refresh_canvases;
+    $self->schedule_background_process;
 }
 
 sub changescale {
@@ -758,11 +747,10 @@ sub changescale {
     # update print and start background processing
     $self->stop_background_process;
     $self->{print}->add_model_object($model_object, $obj_idx);
-    $self->schedule_background_process;
     
     $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->update;
-    $self->refresh_canvases;
+    $self->schedule_background_process;
 }
 
 sub arrange {
@@ -778,17 +766,6 @@ sub arrange {
     # when parts don't fit in print bed
     
     $self->update(1);
-    
-    my $invalidated = 0;
-    foreach my $object (@{$self->{print}->objects}) {
-        $invalidated = 1 if $object->reload_model_instances;
-    }
-    if ($invalidated) {
-        $self->schedule_background_process;
-    } else {
-        $self->resume_background_process;
-    }
-    $self->refresh_canvases;
 }
 
 sub split_object {
@@ -1207,7 +1184,6 @@ sub on_thumbnail_made {
     my ($obj_idx) = @_;
     
     $self->{objects}[$obj_idx]->transform_thumbnail($self->{model}, $obj_idx);
-    $self->update;
     $self->refresh_canvases;
 }
 
@@ -1220,7 +1196,21 @@ sub update {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
+    $self->pause_background_process;
+    my $invalidated = $self->{print}->reload_model_instances();
+    if ($invalidated) {
+        $self->schedule_background_process;
+    } else {
+        $self->resume_background_process;
+    }
+    
     $self->refresh_canvases;
+}
+
+sub on_model_instances_changed {
+    my ($self) = @_;
+    
+    
 }
 
 sub on_extruders_change {

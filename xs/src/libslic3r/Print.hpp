@@ -174,6 +174,7 @@ class Print
     PrintObject* get_object(size_t idx);
     void delete_object(size_t idx);
     void reload_object(size_t idx);
+    bool reload_model_instances();
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx);
