@@ -36,8 +36,8 @@ sub fill_surface {
         makeGrid(
             scale($self->z),
             $distance,
-            ceil($size->x / $distance),
-            ceil($size->y / $distance),  #//
+            ceil($size->x / $distance) + 1,
+            ceil($size->y / $distance) + 1,  #//
             (($self->layer_id / $surface->thickness_layers) % 2) + 1,
         );
     
