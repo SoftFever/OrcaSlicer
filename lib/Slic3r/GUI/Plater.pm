@@ -789,6 +789,7 @@ sub split_object {
     if (@model_objects == 1) {
         $self->resume_background_process;
         Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains only one part.");
+        $self->resume_background_process;
         return;
     }
     
@@ -1094,7 +1095,8 @@ sub send_gcode {
         Content_Type => 'form-data',
         'X-Api-Key' => $self->{config}->octoprint_apikey,
         Content => [
-            file => [$self->{send_gcode_file}],
+            # OctoPrint doesn't like Windows paths
+            file => [ $self->{send_gcode_file}, basename($self->{send_gcode_file}) ],
         ],
     );
     
