@@ -5,7 +5,7 @@ use base 'Wx::Dialog';
 
 sub new {
     my ($class, $parent) = @_;
-    my $self = $class->SUPER::new($parent, -1, "Preferences", wxDefaultPosition, [500,200]);
+    my $self = $class->SUPER::new($parent, -1, "Preferences", wxDefaultPosition, wxDefaultSize);
     $self->{values} = {};
     
     my $optgroup;
@@ -16,7 +16,7 @@ sub new {
             my ($opt_id) = @_;
             $self->{values}{$opt_id} = $optgroup->get_value($opt_id);
         },
-        label_width => 100,
+        label_width => 200,
     );
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'mode',
@@ -26,6 +26,7 @@ sub new {
         labels      => ['Simple','Expert'],
         values      => ['simple','expert'],
         default     => $Slic3r::GUI::Settings->{_}{mode},
+        width       => 100,
     ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'version_check',
