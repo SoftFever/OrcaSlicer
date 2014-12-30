@@ -151,9 +151,6 @@ sub mouse_event {
             }
         }
     } elsif ($e->Dragging && $e->LeftIsDown && defined($self->_drag_volume_idx)) {
-        # get volume being dragged
-        my $volume = $self->volumes->[$self->_drag_volume_idx];
-        
         # get new position at the same Z of the initial click point
         my $mouse_ray = $self->mouse_ray($e->GetX, $e->GetY);
         my $cur_pos = $mouse_ray->intersect_plane($self->_drag_start_pos->z);
@@ -161,8 +158,14 @@ sub mouse_event {
         # calculate the translation vector
         my $vector = $self->_drag_start_pos->vector_to($cur_pos);
         
+        # get volume being dragged
+        my $volume = $self->volumes->[$self->_drag_volume_idx];
+        
+        # get all volumes belonging to the same group but only having the same instance_idx
+        my @volumes = grep $_->group_id == $volume->group_id && $_->instance_idx == $volume->instance_idx, @{$self->volumes};
+        
         # apply new temporary volume origin and ignore Z
-        $volume->origin->translate($vector->x, $vector->y, 0); #,,
+        $_->origin->translate($vector->x, $vector->y, 0) for @volumes; #,,
         $self->_drag_start_pos($cur_pos);
         $self->_dragged(1);
         $self->Refresh;
@@ -346,6 +349,7 @@ sub load_object {
     # sort volumes: non-modifiers first
     my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
     my @volumes_idx = ();
+    my $group_id = $#{$self->volumes} + 1;
     foreach my $volume (@volumes) {
         my @instance_idxs = $all_instances ? (0..$#{$object->instances}) : (0);
         foreach my $instance_idx (@instance_idxs) {
@@ -363,6 +367,7 @@ sub load_object {
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
             push @$color, $volume->modifier ? 0.5 : 1;
             push @{$self->volumes}, my $v = Slic3r::GUI::PreviewCanvas::Volume->new(
+                group_id        => $group_id,
                 instance_idx    => $instance_idx,
                 mesh            => $mesh,
                 color           => $color,
@@ -888,6 +893,7 @@ use Moo;
 
 has 'mesh'          => (is => 'ro', required => 1);
 has 'color'         => (is => 'ro', required => 1);
+has 'group_id'      => (is => 'ro', required => 1);
 has 'instance_idx'  => (is => 'ro', default => sub { 0 });
 has 'origin'        => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
 has 'verts'         => (is => 'rw');
