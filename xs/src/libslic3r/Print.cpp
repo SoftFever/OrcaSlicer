@@ -116,6 +116,16 @@ Print::reload_object(size_t idx)
     }
 }
 
+bool
+Print::reload_model_instances()
+{
+    bool invalidated = false;
+    FOREACH_OBJECT(this, object) {
+        if ((*object)->reload_model_instances()) invalidated = true;
+    }
+    return invalidated;
+}
+
 void
 Print::clear_regions()
 {

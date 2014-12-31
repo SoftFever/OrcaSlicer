@@ -42,9 +42,9 @@ template <class T>
 class Ref {
     T* val;
 public:
-    Ref() {}
+    Ref() : val(NULL) {}
     Ref(T* t) : val(t) {}
-    operator T*() const {return val; }
+    operator T*() const { return val; }
     static const char* CLASS() { return ClassTraits<T>::name_ref; }
 };
   
@@ -52,10 +52,10 @@ template <class T>
 class Clone {
     T* val;
 public:
-    Clone() : val() {}
+    Clone() : val(NULL) {}
     Clone(T* t) : val(new T(*t)) {}
     Clone(const T& t) : val(new T(t)) {}
-    operator T*() const {return val; }
+    operator T*() const { return val; }
     static const char* CLASS() { return ClassTraits<T>::name; }
 };
 };

@@ -48,6 +48,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width
+        octoprint_host octoprint_apikey
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
@@ -88,16 +89,7 @@ sub new {
     };
     my $on_instance_moved = sub {
         my ($obj_idx, $instance_idx) = @_;
-        
         $self->update;
-        
-        $self->pause_background_process;
-        my $invalidated = $self->{print}->objects->[$obj_idx]->reload_model_instances();
-        if ($invalidated) {
-            $self->schedule_background_process;
-        } else {
-            $self->resume_background_process;
-        }
     };
     
     # Initialize 2D preview canvas
@@ -181,9 +173,11 @@ sub new {
     
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_send_gcode}->Hide;
     
     if ($Slic3r::GUI::have_button_icons) {
         my %icons = qw(
@@ -192,6 +186,7 @@ sub new {
             reset           cross.png
             arrange         bricks.png
             export_gcode    cog_go.png
+            send_gcode      arrow_up.png
             export_stl      brick_go.png
             
             increase        add.png
@@ -213,7 +208,11 @@ sub new {
         $self->export_gcode;
         Slic3r::thread_cleanup();
     });
-    #EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
+    EVT_BUTTON($self, $self->{btn_send_gcode}, sub {
+        $self->{send_gcode_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
+        Slic3r::thread_cleanup();
+    });
+    EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
@@ -355,6 +354,7 @@ sub new {
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $buttons_sizer->AddStretchSpacer(1);
         $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -555,7 +555,6 @@ sub remove {
     
     $self->select_object(undef);
     $self->update;
-    
     $self->schedule_background_process;
 }
 
@@ -666,10 +665,10 @@ sub rotate {
     $model_object->update_bounding_box;
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);
-    $self->schedule_background_process;
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
+    $self->schedule_background_process;
 }
 
 sub flip {
@@ -694,11 +693,10 @@ sub flip {
     # update print and start background processing
     $self->stop_background_process;
     $self->{print}->add_model_object($model_object, $obj_idx);
-    $self->schedule_background_process;
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->refresh_canvases;
+    $self->schedule_background_process;
 }
 
 sub changescale {
@@ -749,11 +747,10 @@ sub changescale {
     # update print and start background processing
     $self->stop_background_process;
     $self->{print}->add_model_object($model_object, $obj_idx);
-    $self->schedule_background_process;
     
     $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->update;
-    $self->refresh_canvases;
+    $self->schedule_background_process;
 }
 
 sub arrange {
@@ -769,17 +766,6 @@ sub arrange {
     # when parts don't fit in print bed
     
     $self->update(1);
-    
-    my $invalidated = 0;
-    foreach my $object (@{$self->{print}->objects}) {
-        $invalidated = 1 if $object->reload_model_instances;
-    }
-    if ($invalidated) {
-        $self->schedule_background_process;
-    } else {
-        $self->resume_background_process;
-    }
-    $self->refresh_canvases;
 }
 
 sub split_object {
@@ -788,19 +774,22 @@ sub split_object {
     my ($obj_idx, $current_object)  = $self->selected_object;
     
     # we clone model object because split_object() adds the split volumes
-    # into the same model object, thus causing duplicated when we call load_model_objects()
-    my $current_model_object        = $self->{model}->clone->objects->[$obj_idx];
+    # into the same model object, thus causing duplicates when we call load_model_objects()
+    my $new_model = $self->{model}->clone;  # store this before calling get_object()
+    my $current_model_object = $new_model->get_object($obj_idx);
     
-    if (@{$current_model_object->volumes} > 1) {
+    if ($current_model_object->volumes_count > 1) {
         Slic3r::GUI::warning_catcher($self)->("The selected object can't be split because it contains more than one volume/material.");
         return;
     }
     
-    $self->stop_background_process;
+    $self->pause_background_process;
     
     my @model_objects = @{$current_model_object->split_object};
     if (@model_objects == 1) {
+        $self->resume_background_process;
         Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains only one part.");
+        $self->resume_background_process;
         return;
     }
     
@@ -944,7 +933,7 @@ sub resume_background_process {
 }
 
 sub export_gcode {
-    my $self = shift;
+    my ($self, $output_file) = @_;
     
     return if !@{$self->{objects}};
     
@@ -976,14 +965,14 @@ sub export_gcode {
     }
     
     # select output file
-    $self->{export_gcode_output_file} = $main::opt{output};
-    {
-        my $default_output_file = $self->{print}->expanded_output_filepath($self->{export_gcode_output_file});
+    if ($output_file) {
+        $self->{export_gcode_output_file} = $self->{print}->expanded_output_filepath($output_file);
+    } else {
+        my $default_output_file = $self->{print}->expanded_output_filepath($main::opt{output});
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
-            $self->{export_gcode_output_file} = undef;
             return;
         }
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
@@ -1011,6 +1000,8 @@ sub export_gcode {
         my $result = !Slic3r::GUI::catch_error($self);
         $self->on_export_completed($result);
     }
+    
+    return $self->{export_gcode_output_file};
 }
 
 # This gets called only if we have threads.
@@ -1072,14 +1063,52 @@ sub on_export_completed {
     $self->{export_thread} = undef;
     
     my $message;
+    my $send_gcode = 0;
     if ($result) {
-        $message = "G-code file exported to " . $self->{export_gcode_output_file};
+        if ($self->{send_gcode_file}) {
+            $message = "Sending G-code file to the OctoPrint server...";
+            $send_gcode = 1;
+        } else {
+            $message = "G-code file exported to " . $self->{export_gcode_output_file};
+        }
     } else {
         $message = "Export failed";
     }
     $self->{export_gcode_output_file} = undef;
     $self->statusbar->SetStatusText($message);
     wxTheApp->notify($message);
+    
+    $self->send_gcode if $send_gcode;
+    $self->{send_gcode_file} = undef;
+}
+
+sub send_gcode {
+    my ($self) = @_;
+    
+    $self->statusbar->StartBusy;
+    
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    
+    my $res = $ua->post(
+        "http://" . $self->{config}->octoprint_host . "/api/files/local",
+        Content_Type => 'form-data',
+        'X-Api-Key' => $self->{config}->octoprint_apikey,
+        Content => [
+            # OctoPrint doesn't like Windows paths
+            file => [ $self->{send_gcode_file}, basename($self->{send_gcode_file}) ],
+        ],
+    );
+    
+    $self->statusbar->StopBusy;
+    
+    if ($res->is_success) {
+        $self->statusbar->SetStatusText("G-code file successfully uploaded to the OctoPrint server");
+    } else {
+        my $message = "Error while uploading to the OctoPrint server: " . $res->status_line;
+        Slic3r::GUI::show_error($self, $message);
+        $self->statusbar->SetStatusText($message);
+    }
 }
 
 sub export_stl {
@@ -1159,7 +1188,6 @@ sub on_thumbnail_made {
     my ($obj_idx) = @_;
     
     $self->{objects}[$obj_idx]->transform_thumbnail($self->{model}, $obj_idx);
-    $self->update;
     $self->refresh_canvases;
 }
 
@@ -1172,7 +1200,21 @@ sub update {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
+    $self->pause_background_process;
+    my $invalidated = $self->{print}->reload_model_instances();
+    if ($invalidated) {
+        $self->schedule_background_process;
+    } else {
+        $self->resume_background_process;
+    }
+    
     $self->refresh_canvases;
+}
+
+sub on_model_instances_changed {
+    my ($self) = @_;
+    
+    
 }
 
 sub on_extruders_change {
@@ -1208,6 +1250,13 @@ sub on_config_change {
             $self->{canvas}->update_bed_size;
             $self->{canvas3D}->update_bed_size if $self->{canvas3D};
             $self->update;
+        } elsif ($opt_key eq 'octoprint_host') {
+            if ($config->get('octoprint_host')) {
+                $self->{btn_send_gcode}->Show;
+            } else {
+                $self->{btn_send_gcode}->Hide;
+            }
+            $self->Layout;
         }
     }
     
@@ -1313,7 +1362,7 @@ sub object_list_changed {
     my $have_objects = @{$self->{objects}} ? 1 : 0;
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl);
+        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl send_gcode);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_objects)

@@ -673,7 +673,11 @@ sub config {
 sub check_unsaved_changes {
     my $self = shift;
     
-    my @dirty = map $_->title, grep $_->is_dirty, values %{$self->{options_tabs}};
+    my @dirty = ();
+    foreach my $tab (values %{$self->{options_tabs}}) {
+        push @dirty, $tab->title if $tab->is_dirty;
+    }
+    
     if (@dirty) {
         my $titles = join ', ', @dirty;
         my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",

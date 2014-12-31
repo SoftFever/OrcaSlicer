@@ -442,23 +442,25 @@ sub generate_bottom_interface_layers {
             my $z = $support_z->[$layer_id];
             next unless $z > $top_z;
             
-            # get the support material area that should be considered interface
-            my $interface_area = intersection(
-                $base->{$layer_id},
-                $this,
-            );
+            if ($base->{$layer_id}) {
+                # get the support material area that should be considered interface
+                my $interface_area = intersection(
+                    $base->{$layer_id},
+                    $this,
+                );
             
-            # discard too small areas
-            $interface_area = [ grep abs($_->area) >= $area_threshold, @$interface_area ];
+                # discard too small areas
+                $interface_area = [ grep abs($_->area) >= $area_threshold, @$interface_area ];
             
-            # subtract new interface area from base
-            $base->{$layer_id} = diff(
-                $base->{$layer_id},
-                $interface_area,
-            );
+                # subtract new interface area from base
+                $base->{$layer_id} = diff(
+                    $base->{$layer_id},
+                    $interface_area,
+                );
             
-            # add new interface area to interface
-            push @{$interface->{$layer_id}}, @$interface_area;
+                # add new interface area to interface
+                push @{$interface->{$layer_id}}, @$interface_area;
+            }
             
             $interface_layers++;
             last if $interface_layers == $self->object_config->support_material_interface_layers;

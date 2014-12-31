@@ -19,12 +19,14 @@ sub fill_surface {
     
     my $distance = scale($self->spacing) / $params{density};
     
-    # align bounding box to a multiple of our honeycomb grid
+    # align bounding box to a multiple of our honeycomb grid module
+    # (a module is 2*$distance since one $distance half-module is 
+    # growing while the other $distance half-module is shrinking)
     {
         my $min = $bb->min_point;
         $min->translate(
-            -($bb->x_min % $distance),
-            -($bb->y_min % $distance),
+            -($bb->x_min % (2*$distance)),
+            -($bb->y_min % (2*$distance)),
         );
         $bb->merge_point($min);
     }
@@ -34,8 +36,8 @@ sub fill_surface {
         makeGrid(
             scale($self->z),
             $distance,
-            ceil($size->x / $distance),
-            ceil($size->y / $distance),  #//
+            ceil($size->x / $distance) + 1,
+            ceil($size->y / $distance) + 1,  #//
             (($self->layer_id / $surface->thickness_layers) % 2) + 1,
         );
     

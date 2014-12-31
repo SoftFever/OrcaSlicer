@@ -220,7 +220,7 @@ sub extrude_loop {
         $point->rotate($angle, $first_segment->a);
         
         # generate the travel move
-        $gcode .= $self->travel_to($point, $paths[-1]->role, "move inwards before travel");
+        $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), "move inwards before travel");
     }
     
     return $gcode;
@@ -328,6 +328,7 @@ sub _extrude_path {
     return $gcode;
 }
 
+# This method accepts $point in print coordinates.
 sub travel_to {
     my ($self, $point, $role, $comment) = @_;
     
@@ -355,11 +356,11 @@ sub travel_to {
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel))
         ) {
         # Just perform a straight travel move without any retraction.
-        $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment);
+        $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), $comment || '');
     } elsif ($self->config->avoid_crossing_perimeters && !$self->avoid_crossing_perimeters->disable_once) {
         # If avoid_crossing_perimeters is enabled and the disable_once flag is not set
         # we need to plan a multi-segment travel move inside the configuration space.
-        $gcode .= $self->avoid_crossing_perimeters->travel_to($self, $point, $comment);
+        $gcode .= $self->avoid_crossing_perimeters->travel_to($self, $point, $comment || '');
     } else {
         # If avoid_crossing_perimeters is disabled or the disable_once flag is set,
         # perform a straight move with a retraction.
@@ -473,7 +474,7 @@ sub pre_toolchange {
         $last_pos->translate(scale +$gcodegen->origin->x, scale +$gcodegen->origin->y);  #))
         my $standby_point = $last_pos->nearest_point($self->standby_points);
         $standby_point->translate(scale -$gcodegen->origin->x, scale -$gcodegen->origin->y);  #))
-        $gcode .= $gcodegen->travel_to($standby_point);
+        $gcode .= $gcodegen->travel_to($standby_point, undef, 'move to standby position');
     }
     
     if ($gcodegen->config->standby_temperature_delta != 0) {

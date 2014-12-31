@@ -219,7 +219,7 @@ sub make_skirt {
     # $skirt_height_z in this case is the highest possible skirt height for safety.
     my $skirt_height_z = -1;
     foreach my $object (@{$self->objects}) {
-        my $skirt_height = ($self->config->skirt_height == -1)
+        my $skirt_height = ($self->config->skirt_height == -1 || $self->config->ooze_prevention)
             ? scalar(@{$object->layers})
             : min($self->config->skirt_height, scalar(@{$object->layers}));
         

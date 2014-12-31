@@ -923,6 +923,7 @@ sub build {
     $self->init_config_options(qw(
         bed_shape z_offset
         gcode_flavor use_relative_e_distances
+        octoprint_host octoprint_apikey
         use_firmware_retraction pressure_advance vibration_limit
         start_gcode end_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
@@ -995,6 +996,45 @@ sub build {
                     $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                 }
             });
+        }
+        {
+            my $optgroup = $page->new_optgroup('OctoPrint upload');
+            
+            # append a button to the Host line
+            my $octoprint_host_widget = sub {
+                my ($parent) = @_;
+                
+                my $btn = Wx::Button->new($parent, -1, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+                $btn->SetFont($Slic3r::GUI::small_font);
+                if ($Slic3r::GUI::have_button_icons) {
+                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/zoom.png", wxBITMAP_TYPE_PNG));
+                }
+                
+                if (!eval "use Net::Bonjour; 1") {
+                    $btn->Disable;
+                }
+        
+                my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+                $sizer->Add($btn);
+        
+                EVT_BUTTON($self, $btn, sub {
+                    my $dlg = Slic3r::GUI::BonjourBrowser->new($self);
+                    if ($dlg->ShowModal == wxID_OK) {
+                        my $value = $dlg->GetValue;
+                        $self->{config}->set('octoprint_host', $value);
+                        $self->update_dirty;
+                        $self->_on_value_change('octoprint_host', $value);
+                        $self->reload_config;
+                    }
+                });
+                
+                return $sizer;
+            };
+            
+            my $host_line = $optgroup->create_single_option_line('octoprint_host');
+            $host_line->append_widget($octoprint_host_widget);
+            $optgroup->append_line($host_line);
+            $optgroup->append_single_option_line('octoprint_apikey');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');
@@ -1128,6 +1168,8 @@ sub _update {
     my ($self) = @_;
     
     my $config = $self->{config};
+    
+    $self->get_field('octoprint_apikey')->toggle($config->get('octoprint_host'));
     
     my $have_multiple_extruders = $self->{extruders_count} > 1;
     $self->get_field('toolchange_gcode')->toggle($have_multiple_extruders);
@@ -1319,8 +1361,8 @@ sub config {
         }
         
         # apply preset values on top of defaults
+        my $config = Slic3r::Config->new_from_defaults(@$keys);
         my $external_config = Slic3r::Config->load($self->file);
-        my $config = Slic3r::Config->new;
         $config->set($_, $external_config->get($_))
             for grep $external_config->has($_), @$keys;
         

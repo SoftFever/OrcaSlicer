@@ -498,6 +498,16 @@ PrintConfigDef::build_def() {
     Options["nozzle_diameter"].sidetext = "mm";
     Options["nozzle_diameter"].cli = "nozzle-diameter=f@";
 
+    Options["octoprint_apikey"].type = coString;
+    Options["octoprint_apikey"].label = "API Key";
+    Options["octoprint_apikey"].tooltip = "Slic3r can upload G-code files to OctoPrint. This field should contain the API Key required for authentication.";
+    Options["octoprint_apikey"].cli = "octoprint-apikey=s";
+
+    Options["octoprint_host"].type = coString;
+    Options["octoprint_host"].label = "Host or IP";
+    Options["octoprint_host"].tooltip = "Slic3r can upload G-code files to OctoPrint. This field should contain the hostname or IP address of the OctoPrint instance.";
+    Options["octoprint_host"].cli = "octoprint-host=s";
+
     Options["only_retract_when_crossing_perimeters"].type = coBool;
     Options["only_retract_when_crossing_perimeters"].label = "Only retract when crossing perimeters";
     Options["only_retract_when_crossing_perimeters"].tooltip = "Disables retraction when the travel path does not exceed the upper layer's perimeters (and thus any ooze will be probably invisible).";

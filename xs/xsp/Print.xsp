@@ -143,6 +143,7 @@ _constant()
     Ref<PrintObject> get_object(int idx);
     void delete_object(int idx);
     void reload_object(int idx);
+    bool reload_model_instances();
     size_t object_count()
         %code%{ RETVAL = THIS->objects.size(); %};
 

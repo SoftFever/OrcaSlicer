@@ -347,6 +347,7 @@ sub BUILD {
     $self->wxSizer($sizer);
     
     my $field_size = Wx::Size->new(40, -1);
+    
     $self->x_textctrl(Wx::TextCtrl->new($self->parent, -1, $self->option->default->[X], wxDefaultPosition, $field_size));
     $self->y_textctrl(Wx::TextCtrl->new($self->parent, -1, $self->option->default->[Y], wxDefaultPosition, $field_size));
     
