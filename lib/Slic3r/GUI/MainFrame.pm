@@ -228,6 +228,10 @@ sub _init_menubar {
         $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
             $self->select_tab($tab_count-1);
         });
+        $windowMenu->AppendSeparator();
+        $self->_append_menu_item($windowMenu, "Printer Controller", 'Show the printer controller', sub {
+            wxTheApp->show_printer_controller;
+        });
     }
     
     # Help menu

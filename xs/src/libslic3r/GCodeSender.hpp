@@ -16,7 +16,9 @@ namespace asio = boost::asio;
 
 class GCodeSender : private boost::noncopyable {
     public:
-    GCodeSender(std::string devname, unsigned int baud_rate);
+    GCodeSender();
+    ~GCodeSender();
+    bool connect(std::string devname, unsigned int baud_rate);
     void send(const std::vector<std::string> &lines);
     void send(const std::string &s);
     void disconnect();
@@ -39,6 +41,7 @@ class GCodeSender : private boost::noncopyable {
     bool can_send;
     size_t sent;
     
+    void set_baud_rate(unsigned int baud_rate);
     void set_error_status(bool e);
     void do_close();
     void do_read();

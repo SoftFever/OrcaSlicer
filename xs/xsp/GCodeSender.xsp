@@ -8,12 +8,13 @@
 %}
 
 %name{Slic3r::GCode::Sender} class GCodeSender {
-    GCodeSender(std::string port, unsigned int baud_rate);
+    GCodeSender();
     ~GCodeSender();
     
+    bool connect(std::string port, unsigned int baud_rate);
+    void disconnect();
     bool is_connected() const;
     int queue_size() const;
-    void disconnect();
     void send(std::string s);
 };
 

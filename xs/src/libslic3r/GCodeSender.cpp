@@ -7,22 +7,53 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 
+#if __APPLE__
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <IOKit/serial/ioss.h>
+#endif
+#ifdef __linux
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <linux/serial.h>
+#endif
+
 namespace Slic3r {
 
 namespace asio = boost::asio;
 
-GCodeSender::GCodeSender(std::string devname, unsigned int baud_rate)
+GCodeSender::GCodeSender()
     : io(), serial(io), can_send(false), sent(0), error(false), connected(false)
+{}
+
+GCodeSender::~GCodeSender()
 {
-    this->serial.open(devname);
-    this->serial.set_option(asio::serial_port_base::baud_rate(baud_rate));
+    this->disconnect();
+}
+
+bool
+GCodeSender::connect(std::string devname, unsigned int baud_rate)
+{
+    
+    try {
+        this->serial.open(devname);
+    } catch (boost::system::system_error &e) {
+        this->error = true;
+        return false;
+    }
+    
     this->serial.set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::odd));
     this->serial.set_option(asio::serial_port_base::character_size(asio::serial_port_base::character_size(8)));
     this->serial.set_option(asio::serial_port_base::flow_control(asio::serial_port_base::flow_control::none));
     this->serial.set_option(asio::serial_port_base::stop_bits(asio::serial_port_base::stop_bits::one));
+    this->set_baud_rate(baud_rate);
+    
     this->serial.close();
     this->serial.open(devname);
     this->serial.set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::none));
+    
+    // set baud rate again because set_option overwrote it
+    this->set_baud_rate(baud_rate);
     this->open = true;
     
     // this gives some work to the io_service before it is started
@@ -32,6 +63,52 @@ GCodeSender::GCodeSender(std::string devname, unsigned int baud_rate)
     // start reading in the background thread
     boost::thread t(boost::bind(&asio::io_service::run, &this->io));
     this->background_thread.swap(t);
+    
+    return true;
+}
+
+void
+GCodeSender::set_baud_rate(unsigned int baud_rate)
+{
+    try {
+        // This does not support speeds > 115200
+        this->serial.set_option(asio::serial_port_base::baud_rate(baud_rate));
+    } catch (boost::system::system_error &e) {
+        boost::asio::serial_port::native_handle_type handle = this->serial.native_handle();
+
+#if __APPLE__
+        termios ios;
+        ::tcgetattr(handle, &ios);
+        ::cfsetspeed(&ios, baud_rate);
+        speed_t newSpeed = baud_rate;
+        ioctl(handle, IOSSIOSPEED, &newSpeed);
+        ::tcsetattr(handle, TCSANOW, &ios);
+#endif
+#ifdef __linux
+        termios ios;
+        ::tcgetattr(handle, &ios);
+        ::cfsetispeed(&ios, B38400);
+        ::cfsetospeed(&ios, B38400);
+        ::tcflush(handle, TCIFLUSH);
+        ::tcsetattr(handle, TCSANOW, &ios);
+
+        struct serial_struct ss;
+        ioctl(handle, TIOCGSERIAL, &ss);
+        ss.flags = (ss.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
+        ss.custom_divisor = (ss.baud_base + (baud_rate / 2)) / baud_rate;
+        //cout << "bbase " << ss.baud_base << " div " << ss.custom_divisor;
+        long closestSpeed = ss.baud_base / ss.custom_divisor;
+        //cout << " Closest speed " << closestSpeed << endl;
+        ss.reserved_char[0] = 0;
+        if (closestSpeed < baud * 98 / 100 || closestSpeed > baud_rate * 102 / 100) {
+            throw std::exception("Failed to set baud rate");
+        }
+
+        ioctl(handle, TIOCSSERIAL, &ss);
+#else
+        //throw invalid_argument ("OS does not currently support custom bauds");
+#endif
+    }
 }
 
 void

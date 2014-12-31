@@ -9,6 +9,8 @@ use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::BedShapeDialog;
 use Slic3r::GUI::BonjourBrowser;
 use Slic3r::GUI::ConfigWizard;
+use Slic3r::GUI::Controller::Frame;
+use Slic3r::GUI::Controller::PrinterPanel;
 use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Notifier;
 use Slic3r::GUI::Plater;
@@ -290,6 +292,14 @@ sub open_model {
 sub CallAfter {
     my ($self, $cb) = @_;
     push @cb, $cb;
+}
+
+sub show_printer_controller {
+    my ($self) = @_;
+    
+    $self->{controller_frame} = Slic3r::GUI::Controller::Frame->new;
+    $self->{controller_frame}->Show;
+    return $self->{controller_frame};
 }
 
 1;
