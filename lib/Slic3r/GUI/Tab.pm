@@ -923,6 +923,7 @@ sub build {
     $self->init_config_options(qw(
         bed_shape z_offset
         gcode_flavor use_relative_e_distances
+        serial_port serial_speed
         octoprint_host octoprint_apikey
         use_firmware_retraction pressure_advance vibration_limit
         start_gcode end_gcode layer_gcode toolchange_gcode
@@ -996,6 +997,11 @@ sub build {
                     $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                 }
             });
+        }
+        {
+            my $optgroup = $page->new_optgroup('USB/Serial connection');
+            $optgroup->append_single_option_line('serial_port');
+            $optgroup->append_single_option_line('serial_speed');
         }
         {
             my $optgroup = $page->new_optgroup('OctoPrint upload');

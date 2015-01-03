@@ -48,7 +48,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width
-        octoprint_host octoprint_apikey
+        serial_port serial_speed octoprint_host octoprint_apikey
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
@@ -173,10 +173,12 @@ sub new {
     
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_print} = Wx::Button->new($self, -1, "Print…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_print}->Hide;
     $self->{btn_send_gcode}->Hide;
     
     if ($Slic3r::GUI::have_button_icons) {
@@ -186,6 +188,7 @@ sub new {
             reset           cross.png
             arrange         bricks.png
             export_gcode    cog_go.png
+            print           arrow_up.png
             send_gcode      arrow_up.png
             export_stl      brick_go.png
             
@@ -206,6 +209,10 @@ sub new {
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_export_gcode}, sub {
         $self->export_gcode;
+        Slic3r::thread_cleanup();
+    });
+    EVT_BUTTON($self, $self->{btn_print}, sub {
+        $self->{print_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
         Slic3r::thread_cleanup();
     });
     EVT_BUTTON($self, $self->{btn_send_gcode}, sub {
@@ -354,6 +361,7 @@ sub new {
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $buttons_sizer->AddStretchSpacer(1);
         $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
@@ -1064,8 +1072,12 @@ sub on_export_completed {
     
     my $message;
     my $send_gcode = 0;
+    my $do_print = 0;
     if ($result) {
-        if ($self->{send_gcode_file}) {
+        if ($self->{print_file}) {
+            $message = "Adding file to print queue...";
+            $do_print = 1;
+        } elsif ($self->{send_gcode_file}) {
             $message = "Sending G-code file to the OctoPrint server...";
             $send_gcode = 1;
         } else {
@@ -1078,8 +1090,30 @@ sub on_export_completed {
     $self->statusbar->SetStatusText($message);
     wxTheApp->notify($message);
     
+    $self->do_print if $do_print;
     $self->send_gcode if $send_gcode;
+    $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
+}
+
+sub do_print {
+    my ($self) = @_;
+    
+    my $printer_tab = $self->GetFrame->{options_tabs}{printer};
+    my $printer_name = $printer_tab->get_current_preset->name;
+    
+    my $controller = wxTheApp->show_printer_controller;
+    my $printer_panel = $controller->add_printer($printer_name, $printer_tab->config);
+    
+    my $filament_stats = $self->{print}->filament_stats;
+    my @filament_names = $self->GetFrame->filament_preset_names;
+    $filament_stats = { map { $filament_names[$_] => $filament_stats->{$_} } keys %$filament_stats };
+    $printer_panel->load_print_job($self->{print_file}, $filament_stats);
+    
+    $controller->Iconize(0);    # restore the window if minimized
+    $controller->SetFocus();    # focus on my window
+    $controller->Raise();       # bring window to front
+    $controller->Show(1);       # show the window
 }
 
 sub send_gcode {
@@ -1250,6 +1284,13 @@ sub on_config_change {
             $self->{canvas}->update_bed_size;
             $self->{canvas3D}->update_bed_size if $self->{canvas3D};
             $self->update;
+        } elsif ($opt_key eq 'serial_port') {
+            if ($config->get('serial_port')) {
+                $self->{btn_print}->Show;
+            } else {
+                $self->{btn_print}->Hide;
+            }
+            $self->Layout;
         } elsif ($opt_key eq 'octoprint_host') {
             if ($config->get('octoprint_host')) {
                 $self->{btn_send_gcode}->Show;
@@ -1362,7 +1403,7 @@ sub object_list_changed {
     my $have_objects = @{$self->{objects}} ? 1 : 0;
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl send_gcode);
+        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl print send_gcode);
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_objects)

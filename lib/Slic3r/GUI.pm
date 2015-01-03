@@ -68,6 +68,7 @@ our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
+our $grey = Wx::Colour->new(100,100,100);
 
 sub OnInit {
     my ($self) = @_;
@@ -297,9 +298,22 @@ sub CallAfter {
 sub show_printer_controller {
     my ($self) = @_;
     
-    $self->{controller_frame} = Slic3r::GUI::Controller::Frame->new;
+    $self->{controller_frame} //= Slic3r::GUI::Controller::Frame->new;
     $self->{controller_frame}->Show;
     return $self->{controller_frame};
+}
+
+sub scan_serial_ports {
+    my ($self) = @_;
+    
+    my @ports = ();
+    
+    # TODO: Windows ports
+    
+    # UNIX and OS X
+    push @ports, glob '/dev/{ttyUSB,ttyACM,tty.,cu.,rfcomm}*';
+    
+    return @ports;
 }
 
 1;

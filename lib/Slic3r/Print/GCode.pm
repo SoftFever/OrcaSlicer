@@ -243,11 +243,14 @@ sub export {
     printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->end_gcode);
     print $fh $gcodegen->writer->update_progress($gcodegen->layer_count, $gcodegen->layer_count, 1);  # 100%
     
+    # get filament stats
+    $self->print->clear_filament_stats;
     $self->print->total_used_filament(0);
     $self->print->total_extruded_volume(0);
     foreach my $extruder (@{$gcodegen->writer->extruders}) {
         my $used_filament = $extruder->used_filament;
         my $extruded_volume = $extruder->extruded_volume;
+        $self->print->set_filament_stats($extruder->id, $used_filament);
         
         printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
             $used_filament, $extruded_volume/1000;

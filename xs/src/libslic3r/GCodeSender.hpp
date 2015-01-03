@@ -25,6 +25,8 @@ class GCodeSender : private boost::noncopyable {
     bool error_status() const;
     bool is_connected() const;
     size_t queue_size() const;
+    void pause_queue();
+    void resume_queue();
     
     private:
     asio::io_service io;
@@ -39,6 +41,7 @@ class GCodeSender : private boost::noncopyable {
     mutable boost::mutex queue_mutex;
     std::queue<std::string> queue;
     bool can_send;
+    bool queue_paused;
     size_t sent;
     
     void set_baud_rate(unsigned int baud_rate);

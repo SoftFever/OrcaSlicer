@@ -194,6 +194,7 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
+    *Slic3r::GCode::Sender::DESTROY         = sub {};
     *Slic3r::GCode::Writer::DESTROY         = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};

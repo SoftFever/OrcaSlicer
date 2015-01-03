@@ -587,15 +587,21 @@ class HostConfig : public virtual StaticPrintConfig
     public:
     ConfigOptionString              octoprint_host;
     ConfigOptionString              octoprint_apikey;
+    ConfigOptionString              serial_port;
+    ConfigOptionInt                 serial_speed;
     
     HostConfig() : StaticPrintConfig() {
         this->octoprint_host.value                              = "";
         this->octoprint_apikey.value                            = "";
+        this->serial_port.value                                 = "";
+        this->serial_speed.value                                = 250000;
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
         if (opt_key == "octoprint_host")                        return &this->octoprint_host;
         if (opt_key == "octoprint_apikey")                      return &this->octoprint_apikey;
+        if (opt_key == "serial_port")                           return &this->serial_port;
+        if (opt_key == "serial_speed")                          return &this->serial_speed;
         
         return NULL;
     };

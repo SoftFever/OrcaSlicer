@@ -661,6 +661,18 @@ PrintConfigDef::build_def() {
     Options["seam_position"].enum_labels.push_back("Nearest");
     Options["seam_position"].enum_labels.push_back("Aligned");
 
+    Options["serial_port"].type = coString;
+    Options["serial_port"].label = "Serial port";
+    Options["serial_port"].tooltip = "USB/serial port for printer connection.";
+    Options["serial_port"].cli = "serial-port=s";
+
+    Options["serial_speed"].type = coInt;
+    Options["serial_speed"].label = "Speed";
+    Options["serial_speed"].tooltip = "Speed (baud) of USB/serial port for printer connection.";
+    Options["serial_speed"].cli = "serial-speed=i";
+    Options["serial_speed"].min = 1;
+    Options["serial_speed"].max = 300000;
+
     Options["skirt_distance"].type = coFloat;
     Options["skirt_distance"].label = "Distance from object";
     Options["skirt_distance"].tooltip = "Distance between skirt and object(s). Set this to zero to attach the skirt to the object(s) and get a brim for better adhesion.";

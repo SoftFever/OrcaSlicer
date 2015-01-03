@@ -16,6 +16,8 @@
     bool is_connected() const;
     int queue_size() const;
     void send(std::string s);
+    void pause_queue();
+    void resume_queue();
 };
 
 #endif

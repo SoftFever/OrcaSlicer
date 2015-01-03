@@ -23,7 +23,8 @@ namespace Slic3r {
 namespace asio = boost::asio;
 
 GCodeSender::GCodeSender()
-    : io(), serial(io), can_send(false), sent(0), error(false), connected(false)
+    : io(), serial(io), can_send(false), sent(0), error(false), connected(false),
+      queue_paused(false)
 {}
 
 GCodeSender::~GCodeSender()
@@ -138,6 +139,23 @@ GCodeSender::queue_size() const
 {
     boost::lock_guard<boost::mutex> l(this->queue_mutex);
     return this->queue.size();
+}
+
+void
+GCodeSender::pause_queue()
+{
+    boost::lock_guard<boost::mutex> l(this->queue_mutex);
+    this->queue_paused = true;
+}
+
+void
+GCodeSender::resume_queue()
+{
+    {
+        boost::lock_guard<boost::mutex> l(this->queue_mutex);
+        this->queue_paused = false;
+    }
+    this->send();
 }
 
 void
@@ -260,6 +278,7 @@ GCodeSender::send()
 {
     // printer is not connected or we're still waiting for the previous ack
     if (!this->can_send) return;
+    if (this->queue_paused) return;
     
     boost::lock_guard<boost::mutex> l(this->queue_mutex);
     if (this->queue.empty()) return;

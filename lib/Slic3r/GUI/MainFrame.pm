@@ -229,7 +229,7 @@ sub _init_menubar {
             $self->select_tab($tab_count-1);
         });
         $windowMenu->AppendSeparator();
-        $self->_append_menu_item($windowMenu, "Printer Controller", 'Show the printer controller', sub {
+        $self->_append_menu_item($windowMenu, "Printer &Controller\tCtrl+T", 'Show the printer controller', sub {
             wxTheApp->show_printer_controller;
         });
     }
@@ -672,6 +672,17 @@ sub config {
     }
     
     return $config;
+}
+
+sub filament_preset_names {
+    my ($self) = @_;
+    
+    if ($self->{mode} eq 'simple') {
+        return '';
+    }
+    
+    return map $self->{options_tabs}{filament}->get_preset($_)->name,
+        $self->{plater}->filament_presets;
 }
 
 sub check_unsaved_changes {
