@@ -1,6 +1,7 @@
 #include "Point.hpp"
 #include "Line.hpp"
 #include "MultiPoint.hpp"
+#include <algorithm>
 #include <cmath>
 #include <sstream>
 
@@ -130,8 +131,31 @@ Point::distance_to(const Point &point) const
     return sqrt(dx*dx + dy*dy);
 }
 
+/* distance to the closest point of line */
 double
 Point::distance_to(const Line &line) const
+{
+    const double dx = line.b.x - line.a.x;
+    const double dy = line.b.y - line.a.y;
+    
+    const double l2 = dx*dx + dy*dy;  // avoid a sqrt
+    if (l2 == 0.0) return this->distance_to(line.a);   // line.a == line.b case
+    
+    // Consider the line extending the segment, parameterized as line.a + t (line.b - line.a).
+    // We find projection of this point onto the line. 
+    // It falls where t = [(this-line.a) . (line.b-line.a)] / |line.b-line.a|^2
+    const double t = ((this->x - line.a.x) * dx + (this->y - line.a.y) * dy) / l2;
+    if (t < 0.0)      return this->distance_to(line.a);  // beyond the 'a' end of the segment
+    else if (t > 1.0) return this->distance_to(line.b);  // beyond the 'b' end of the segment
+    Point projection(
+        line.a.x + t * dx,
+        line.a.y + t * dy
+    );
+    return this->distance_to(projection);
+}
+
+double
+Point::perp_distance_to(const Line &line) const
 {
     if (line.a.coincides_with(line.b)) return this->distance_to(line.a);
     

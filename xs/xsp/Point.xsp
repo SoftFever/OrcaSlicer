@@ -29,6 +29,8 @@
         %code{% RETVAL = THIS->distance_to(*point); %};
     double distance_to_line(Line* line)
         %code{% RETVAL = THIS->distance_to(*line); %};
+    double perp_distance_to_line(Line* line)
+        %code{% RETVAL = THIS->perp_distance_to(*line); %};
     double ccw(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw(*p1, *p2); %};
     double ccw_angle(Point* p1, Point* p2)

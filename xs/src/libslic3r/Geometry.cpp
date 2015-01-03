@@ -328,8 +328,8 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         // our skeleton
         Point v0( edge.vertex0()->x(), edge.vertex0()->y() );
         Point v1( edge.vertex1()->x(), edge.vertex1()->y() );
-        double dist0 = v0.distance_to(segment1);
-        double dist1 = v1.distance_to(segment1);
+        double dist0 = v0.perp_distance_to(segment1);
+        double dist1 = v1.perp_distance_to(segment1);
         
         /*
         double diff = fabs(dist1 - dist0);
