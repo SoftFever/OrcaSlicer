@@ -1124,6 +1124,19 @@ sub export_stl {
     Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
+sub export_object_stl {
+    my $self = shift;
+    
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    
+    my $model_object = $self->{model}->objects->[$obj_idx];
+        
+    my $output_file = $self->_get_export_file('STL') or return;
+    Slic3r::Format::STL->write_file($output_file, $model_object->mesh, binary => 1);
+    $self->statusbar->SetStatusText("STL file exported to $output_file");
+}
+
 sub export_amf {
     my $self = shift;
     
@@ -1542,6 +1555,10 @@ sub object_menu {
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Settings…", 'Open the object editor dialog', sub {
         $self->object_settings_dialog;
+    });
+    $menu->AppendSeparator();
+    $frame->_append_menu_item($menu, "Export object as STL…", 'Export this single object as STL file', sub {
+        $self->export_object_stl;
     });
     
     return $menu;
