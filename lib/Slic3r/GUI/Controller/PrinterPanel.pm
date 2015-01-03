@@ -10,7 +10,8 @@ use base qw(Wx::Panel Class::Accessor);
 __PACKAGE__->mk_accessors(qw(printer_name config sender jobs 
     printing print_status_timer));
 
-use constant PRINT_STATUS_TIMER_INTERVAL => 1000;  # milliseconds
+use constant CONNECTION_TIMEOUT => 3;               # seconds
+use constant PRINT_STATUS_TIMER_INTERVAL => 1000;   # milliseconds
 
 sub new {
     my ($class, $parent, $printer_name, $config) = @_;
@@ -28,7 +29,6 @@ sub new {
             
             return if !$self->printing;
             my $queue_size = $self->sender->queue_size;
-            printf "queue = %d\n", $queue_size;
             $self->{gauge}->SetValue($self->{gauge}->GetRange - $queue_size);
             if ($queue_size == 0) {
                 $self->print_completed;
@@ -167,7 +167,7 @@ sub _update_connection_controls {
     
     if ($self->is_connected) {
         $self->{btn_connect}->Hide;
-        if (!$self->printing) {
+        if (!$self->printing || $self->printing->paused) {
             $self->{btn_disconnect}->Show;
         }
         $self->{serial_port_combobox}->Disable;
@@ -200,8 +200,16 @@ sub connect {
     if (!$res) {
         $self->set_status("Connection failed");
     }
-    1 until $self->sender->is_connected;
-    $self->set_status("Printer is online. You can now start printing from the queue on the right.");
+    {
+        # set up a timeout
+        my $timestamp = time();
+        1 until $self->sender->is_connected || (time - $timestamp) >= CONNECTION_TIMEOUT;
+    }
+    if ($self->sender->is_connected) {
+        $self->set_status("Printer is online. You can now start printing from the queue on the right.");
+    } else {
+        $self->set_status("Connection failed. Check serial port and speed.");
+    }
     $self->_update_connection_controls;
     $self->reload_jobs;
 }
