@@ -1001,6 +1001,9 @@ sub export_gcode {
         $self->on_export_completed($result);
     }
     
+    # this updates buttons status
+    $self->object_list_changed;
+    
     return $self->{export_gcode_output_file};
 }
 
@@ -1080,6 +1083,9 @@ sub on_export_completed {
     
     $self->send_gcode if $send_gcode;
     $self->{send_gcode_file} = undef;
+    
+    # this updates buttons status
+    $self->object_list_changed;
 }
 
 sub send_gcode {
@@ -1376,6 +1382,11 @@ sub object_list_changed {
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl send_gcode);
+    
+    if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
+        $self->{btn_export_gcode}->Disable;
+        $self->{btn_send_gcode}->Disable;
+    }
     
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_objects)
