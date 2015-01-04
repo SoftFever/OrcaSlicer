@@ -18,6 +18,9 @@
     void send(std::string s, bool priority = false);
     void pause_queue();
     void resume_queue();
+    std::vector<std::string> purge_log();
+    std::string getT();
+    std::string getB();
 };
 
 #endif

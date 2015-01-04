@@ -1078,7 +1078,7 @@ sub on_export_completed {
     my $do_print = 0;
     if ($result) {
         if ($self->{print_file}) {
-            $message = "Adding file to print queue...";
+            $message = "File added to print queue";
             $do_print = 1;
         } elsif ($self->{send_gcode_file}) {
             $message = "Sending G-code file to the OctoPrint server...";
@@ -1108,7 +1108,7 @@ sub do_print {
     my $printer_tab = $self->GetFrame->{options_tabs}{printer};
     my $printer_name = $printer_tab->get_current_preset->name;
     
-    my $controller = wxTheApp->show_printer_controller;
+    my $controller = $self->GetFrame->{controller};
     my $printer_panel = $controller->add_printer($printer_name, $printer_tab->config);
     
     my $filament_stats = $self->{print}->filament_stats;
@@ -1116,10 +1116,7 @@ sub do_print {
     $filament_stats = { map { $filament_names[$_] => $filament_stats->{$_} } keys %$filament_stats };
     $printer_panel->load_print_job($self->{print_file}, $filament_stats);
     
-    $controller->Iconize(0);    # restore the window if minimized
-    $controller->SetFocus();    # focus on my window
-    $controller->Raise();       # bring window to front
-    $controller->Show(1);       # show the window
+    $self->GetFrame->select_tab(1);
 }
 
 sub send_gcode {
@@ -1426,6 +1423,7 @@ sub object_list_changed {
     
     if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
         $self->{btn_export_gcode}->Disable;
+        $self->{btn_print}->Disable;
         $self->{btn_send_gcode}->Disable;
     }
     

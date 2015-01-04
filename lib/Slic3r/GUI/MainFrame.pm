@@ -86,6 +86,7 @@ sub _init_tabpanel {
     
     if (!$self->{no_plater}) {
         $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel), "Plater");
+        $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), "Controller");
     }
     $self->{options_tabs} = {};
     
@@ -215,22 +216,25 @@ sub _init_menubar {
     # Window menu
     my $windowMenu = Wx::Menu->new;
     {
-        my $tab_count = $self->{no_plater} ? 3 : 4;
-        $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
-            $self->select_tab(0);
-        }) unless $self->{no_plater};
+        my $tab_offset = 0;
+        if (!$self->{no_plater}) {
+            $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
+                $self->select_tab(0);
+            });
+            $self->_append_menu_item($windowMenu, "Select &Controller Tab\tCtrl+T", 'Show the printer controller', sub {
+                $self->select_tab(1);
+            });
+            $windowMenu->AppendSeparator();
+            $tab_offset += 2;
+        }
         $self->_append_menu_item($windowMenu, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings', sub {
-            $self->select_tab($tab_count-3);
+            $self->select_tab($tab_offset+0);
         });
         $self->_append_menu_item($windowMenu, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings', sub {
-            $self->select_tab($tab_count-2);
+            $self->select_tab($tab_offset+1);
         });
         $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
-            $self->select_tab($tab_count-1);
-        });
-        $windowMenu->AppendSeparator();
-        $self->_append_menu_item($windowMenu, "Printer &Controller\tCtrl+T", 'Show the printer controller', sub {
-            wxTheApp->show_printer_controller;
+            $self->select_tab($tab_offset+2);
         });
     }
     

@@ -27,6 +27,9 @@ class GCodeSender : private boost::noncopyable {
     size_t queue_size() const;
     void pause_queue();
     void resume_queue();
+    std::vector<std::string> purge_log();
+    std::string getT() const;
+    std::string getB() const;
     
     private:
     asio::io_service io;
@@ -45,6 +48,11 @@ class GCodeSender : private boost::noncopyable {
     bool queue_paused;
     size_t sent;
     std::string last_sent;
+    
+    // this mutex guards log, T, B
+    mutable boost::mutex log_mutex;
+    std::queue<std::string> log;
+    std::string T, B;
     
     void set_baud_rate(unsigned int baud_rate);
     void set_error_status(bool e);

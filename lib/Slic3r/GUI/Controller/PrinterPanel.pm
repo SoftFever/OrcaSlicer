@@ -3,15 +3,17 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(wxTheApp :panel :id :misc :sizer :button :bitmap :window :gauge :timer);
+use Wx qw(wxTheApp :panel :id :misc :sizer :button :bitmap :window :gauge :timer
+    :textctrl :font :systemsettings);
 use Wx::Event qw(EVT_BUTTON EVT_MOUSEWHEEL EVT_TIMER);
 use base qw(Wx::Panel Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(printer_name config sender jobs 
-    printing print_status_timer));
+    printing status_timer temp_timer));
 
 use constant CONNECTION_TIMEOUT => 3;               # seconds
-use constant PRINT_STATUS_TIMER_INTERVAL => 1000;   # milliseconds
+use constant STATUS_TIMER_INTERVAL => 1000;         # milliseconds
+use constant TEMP_TIMER_INTERVAL   => 5000;         # milliseconds
 
 sub new {
     my ($class, $parent, $printer_name, $config) = @_;
@@ -21,20 +23,51 @@ sub new {
     $self->config($config);
     $self->jobs([]);
     
+    # set up the timer that polls for updates
     {
         my $timer_id = &Wx::NewId();
-        $self->print_status_timer(Wx::Timer->new($self, $timer_id));
+        $self->status_timer(Wx::Timer->new($self, $timer_id));
         EVT_TIMER($self, $timer_id, sub {
             my ($self, $event) = @_;
             
-            return if !$self->printing;
-            my $queue_size = $self->sender->queue_size;
-            $self->{gauge}->SetValue($self->{gauge}->GetRange - $queue_size);
-            if ($queue_size == 0) {
-                $self->print_completed;
-                return;
+            if ($self->printing) {
+                my $queue_size = $self->sender->queue_size;
+                $self->{gauge}->SetValue($self->{gauge}->GetRange - $queue_size);
+                if ($queue_size == 0) {
+                    $self->print_completed;
+                }
             }
-            # TODO: get temperature messages
+            $self->{log_textctrl}->AppendText("$_\n") for @{$self->sender->purge_log};
+            {
+                my $temp = $self->sender->getT;
+                if ($temp eq '') {
+                    $self->{temp_panel}->Hide;
+                } else {
+                    if (!$self->{temp_panel}->IsShown) {
+                        $self->{temp_panel}->Show;
+                        $self->Layout;
+                    }
+                    $self->{temp_text}->SetLabel($temp . "°C");
+                    
+                    $temp = $self->sender->getB;
+                    if ($temp eq '') {
+                        $self->{bed_temp_text}->SetLabel('n.a.');
+                    } else {
+                        $self->{bed_temp_text}->SetLabel($temp . "°C");
+                    }
+                }
+            }
+        });
+    }
+    
+    # set up the timer that sends temperature requests
+    # (responses are handled by status_timer)
+    {
+        my $timer_id = &Wx::NewId();
+        $self->temp_timer(Wx::Timer->new($self, $timer_id));
+        EVT_TIMER($self, $timer_id, sub {
+            my ($self, $event) = @_;
+            $self->sender->send("M105", 1);  # send it through priority queue
         });
     }
     
@@ -44,7 +77,7 @@ sub new {
     
     # printer name
     {
-        my $text = Wx::StaticText->new($box, -1, $self->printer_name, wxDefaultPosition, [250,-1]);
+        my $text = Wx::StaticText->new($box, -1, $self->printer_name, wxDefaultPosition, [220,-1]);
         my $font = $text->GetFont;
         $font->SetPointSize(20);
         $text->SetFont($font);
@@ -105,7 +138,7 @@ sub new {
     
     # buttons
     {
-        $self->{btn_connect} = my $btn = Wx::Button->new($box, -1, "Connect", wxDefaultPosition, [-1, 40]);
+        $self->{btn_connect} = my $btn = Wx::Button->new($box, -1, "Connect to printer", wxDefaultPosition, [-1, 40]);
         my $font = $btn->GetFont;
         $font->SetPointSize($font->GetPointSize + 2);
         $btn->SetFont($font);
@@ -124,8 +157,40 @@ sub new {
     }
     
     # status
-    $self->{status_text} = Wx::StaticText->new($box, -1, "", wxDefaultPosition, [250,-1]);
-    $left_sizer->Add($self->{status_text}, 0, wxEXPAND | wxTOP, 15);
+    $self->{status_text} = Wx::StaticText->new($box, -1, "", wxDefaultPosition, [200,-1]);
+    $left_sizer->Add($self->{status_text}, 1, wxEXPAND | wxTOP, 15);
+    
+    # temperature
+    {
+        my $temp_panel = $self->{temp_panel} = Wx::Panel->new($box, -1);
+        my $temp_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        
+        my $temp_font = Wx::Font->new($Slic3r::GUI::small_font);
+        $temp_font->SetWeight(wxFONTWEIGHT_BOLD);
+        {
+            my $text = Wx::StaticText->new($temp_panel, -1, "Temperature:", wxDefaultPosition, wxDefaultSize);
+            $text->SetFont($Slic3r::GUI::small_font);
+            $temp_sizer->Add($text, 0, wxALIGN_CENTER_VERTICAL);
+        
+            $self->{temp_text} = Wx::StaticText->new($temp_panel, -1, "", wxDefaultPosition, wxDefaultSize);
+            $self->{temp_text}->SetFont($temp_font);
+            $self->{temp_text}->SetForegroundColour(Wx::wxRED);
+            $temp_sizer->Add($self->{temp_text}, 1, wxALIGN_CENTER_VERTICAL);
+        }
+        {
+            my $text = Wx::StaticText->new($temp_panel, -1, "Bed:", wxDefaultPosition, wxDefaultSize);
+            $text->SetFont($Slic3r::GUI::small_font);
+            $temp_sizer->Add($text, 0, wxALIGN_CENTER_VERTICAL);
+        
+            $self->{bed_temp_text} = Wx::StaticText->new($temp_panel, -1, "", wxDefaultPosition, wxDefaultSize);
+            $self->{bed_temp_text}->SetFont($temp_font);
+            $self->{bed_temp_text}->SetForegroundColour(Wx::wxRED);
+            $temp_sizer->Add($self->{bed_temp_text}, 1, wxALIGN_CENTER_VERTICAL);
+        }
+        $temp_panel->SetSizer($temp_sizer);
+        $temp_panel->Hide;
+        $left_sizer->Add($temp_panel, 0, wxEXPAND | wxTOP, 4);
+    }
     
     # print jobs panel
     my $print_jobs_sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -141,14 +206,27 @@ sub new {
         $print_jobs_sizer->Add($self->{jobs_panel}, 1, wxEXPAND, 0);
     }
     
+    my $log_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    {
+        my $text = Wx::StaticText->new($box, -1, "Log:", wxDefaultPosition, wxDefaultSize);
+        $text->SetFont($Slic3r::GUI::small_font);
+        $log_sizer->Add($text, 0, wxEXPAND, 0);
+        
+        my $log = $self->{log_textctrl} = Wx::TextCtrl->new($box, -1, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxBORDER_SUNKEN);
+        $log->SetBackgroundColour($box->GetBackgroundColour);
+        $log->SetFont($Slic3r::GUI::small_font);
+        $log->SetEditable(0);
+        $log_sizer->Add($self->{log_textctrl}, 1, wxEXPAND, 0);
+    }
+    
     $sizer->Add($left_sizer, 0, wxEXPAND | wxALL, 0);
-    $sizer->Add($print_jobs_sizer, 1, wxEXPAND | wxALL, 0);
+    $sizer->Add($print_jobs_sizer, 2, wxEXPAND | wxALL, 0);
+    $sizer->Add($log_sizer, 1, wxEXPAND | wxLEFT, 15);
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
     
     $self->_update_connection_controls;
-    $self->set_status('Printer is offline. Click the Connect button.');
     
     return $self;
 }
@@ -183,7 +261,7 @@ sub _update_connection_controls {
 sub set_status {
     my ($self, $status) = @_;
     $self->{status_text}->SetLabel($status);
-    $self->{status_text}->Wrap($self->{status_text}->GetSize->GetWidth - 30);
+    $self->{status_text}->Wrap($self->{status_text}->GetSize->GetWidth);
     $self->{status_text}->Refresh;
     $self->Layout;
 }
@@ -209,6 +287,11 @@ sub connect {
     }
     if ($self->sender->is_connected) {
         $self->set_status("Printer is online. You can now start printing from the queue on the right.");
+        $self->status_timer->Start(STATUS_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
+        $self->temp_timer->Start(TEMP_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
+        
+        # request temperature now, without waiting for the timer
+        $self->sender->send("M105", 1);
     } else {
         $self->set_status("Connection failed. Check serial port and speed.");
     }
@@ -219,14 +302,16 @@ sub connect {
 sub disconnect {
     my ($self) = @_;
     
-    $self->print_status_timer->Stop;
+    $self->status_timer->Stop;
+    $self->temp_timer->Stop;
     return if !$self->is_connected;
     
     $self->printing->printing(0) if $self->printing;
     $self->printing(undef);
     $self->{gauge}->Hide;
+    $self->{temp_panel}->Hide;
     $self->sender->disconnect;
-    $self->set_status("Not connected");
+    $self->set_status("");
     $self->_update_connection_controls;
     $self->reload_jobs;
 }
@@ -280,8 +365,11 @@ sub print_job {
     $self->{gauge}->Show;
     $self->Layout;
     
-    $self->print_status_timer->Start(PRINT_STATUS_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
     $self->set_status('Printing...');
+    {
+        my @time = localtime(time);
+        $self->{log_textctrl}->AppendText(sprintf "=====\nPrint started at %02d:%02d:%02d\n", @time[2,1,0]);
+    }
 }
 
 sub print_completed {
@@ -294,9 +382,12 @@ sub print_completed {
     $self->_update_connection_controls;
     $self->{gauge}->Hide;
     $self->Layout;
-    $self->print_status_timer->Stop;
     
     $self->set_status('Print completed.');
+    {
+        my @time = localtime(time);
+        $self->{log_textctrl}->AppendText(sprintf "Print completed at %02d:%02d:%02d\n", @time[2,1,0]);
+    }
     
     # reorder jobs
     @{$self->jobs} = sort { $a->printed <=> $b->printed } @{$self->jobs};

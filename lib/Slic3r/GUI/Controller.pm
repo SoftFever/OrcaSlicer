@@ -1,17 +1,17 @@
-package Slic3r::GUI::Controller::Frame;
+package Slic3r::GUI::Controller;
 use strict;
 use warnings;
 use utf8;
 
 use Wx qw(wxTheApp :frame :id :misc :sizer :bitmap :button);
 use Wx::Event qw(EVT_CLOSE EVT_LEFT_DOWN EVT_MENU);
-use base 'Wx::Frame';
+use base 'Wx::ScrolledWindow';
 
 sub new {
-    my ($class) = @_;
-    my $self = $class->SUPER::new(undef, -1, "Controller", wxDefaultPosition, [600,350],
-        wxDEFAULT_FRAME_STYLE | wxFRAME_EX_METAL);
+    my ($class, $parent) = @_;
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, [600,350]);
     
+    $self->SetScrollbars(0, 1, 0, 1);
     $self->{sizer} = my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     
     {

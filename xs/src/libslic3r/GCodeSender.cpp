@@ -158,6 +158,34 @@ GCodeSender::resume_queue()
     this->send();
 }
 
+// purge log and return its contents
+std::vector<std::string>
+GCodeSender::purge_log()
+{
+    boost::lock_guard<boost::mutex> l(this->log_mutex);
+    std::vector<std::string> retval;
+    retval.reserve(this->log.size());
+    while (!this->log.empty()) {
+        retval.push_back(this->log.front());
+        this->log.pop();
+    }
+    return retval;
+}
+
+std::string
+GCodeSender::getT() const
+{
+    boost::lock_guard<boost::mutex> l(this->log_mutex);
+    return this->T;
+}
+
+std::string
+GCodeSender::getB() const
+{
+    boost::lock_guard<boost::mutex> l(this->log_mutex);
+    return this->B;
+}
+
 void
 GCodeSender::do_close()
 {
@@ -214,8 +242,10 @@ GCodeSender::on_read(const boost::system::error_code& error,
     }
     
     // copy the read buffer into string
-    std::string line((std::istreambuf_iterator<char>(&this->read_buffer)), 
-        std::istreambuf_iterator<char>());
+    std::istream is(&this->read_buffer);
+    std::string line;
+    std::getline(is, line);
+    // note that line might contain \r at its end
     
     // parse incoming line
     if (!this->connected
@@ -236,10 +266,8 @@ GCodeSender::on_read(const boost::system::error_code& error,
     } else if (boost::istarts_with(line, "resend")  // Marlin uses "Resend: "
             || boost::istarts_with(line, "rs")) {
         // extract the first number from line
-        using boost::lexical_cast;
-        using boost::bad_lexical_cast;
         boost::algorithm::trim_left_if(line, !boost::algorithm::is_digit());
-        size_t toresend = lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
+        size_t toresend = boost::lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
         if (toresend == this->sent) {
             {
                 boost::lock_guard<boost::mutex> l(this->queue_mutex);
@@ -249,6 +277,28 @@ GCodeSender::on_read(const boost::system::error_code& error,
             this->send();
         } else {
             printf("Cannot resend %lu (last was %lu)\n", toresend, this->sent);
+        }
+    } else if (boost::starts_with(line, "wait")) {
+        // ignore
+    } else {
+        // push any other line into the log
+        boost::lock_guard<boost::mutex> l(this->log_mutex);
+        this->log.push(line);
+    }
+    
+    // parse temperature info
+    {
+        size_t pos = line.find("T:");
+        if (pos != std::string::npos && line.size() > pos + 2) {
+            // we got temperature info
+            boost::lock_guard<boost::mutex> l(this->log_mutex);
+            this->T = line.substr(pos+2, line.find_first_not_of("0123456789.", pos+2) - (pos+2));
+        
+            pos = line.find("B:");
+            if (pos != std::string::npos && line.size() > pos + 2) {
+                // we got bed temperature info
+                this->B = line.substr(pos+2, line.find_first_not_of("0123456789.", pos+2) - (pos+2));
+            }
         }
     }
     
