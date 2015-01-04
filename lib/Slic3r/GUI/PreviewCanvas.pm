@@ -8,7 +8,7 @@ use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
 use List::Util qw(reduce min max first);
-use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale);
+use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
  
@@ -329,7 +329,9 @@ sub set_bed_shape {
         for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
             push @lines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
         }
-        @lines = @{intersection_pl(\@lines, [ @$expolygon ])};
+        # clip with a slightly grown expolygon because our lines lay on the contours and
+        # may get erroneously clipped
+        @lines = @{intersection_pl(\@lines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
         my @points = ();
         foreach my $polyline (@lines) {
             push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$polyline;  #))
