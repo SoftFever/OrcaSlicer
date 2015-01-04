@@ -28,6 +28,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               bed_shape
                               bed_triangles
                               bed_grid_lines
+                              background
                               origin
                               _mouse_pos
                               _hover_volume_idx
@@ -60,6 +61,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "",
         [WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0]);
    
+    $self->background(1);
     $self->_quat((0, 0, 0, 1));
     $self->_stheta(45);
     $self->_sphi(45);
@@ -580,7 +582,7 @@ sub Resize {
  
     return unless $self->GetContext;
     $self->_dirty(0);
- 
+    
     $self->SetCurrent($self->GetContext);
     glViewport(0, 0, $x, $y);
  
@@ -693,6 +695,30 @@ sub Render {
         glFinish();
         glEnable(GL_LIGHTING);
     }
+    
+    # draw fixed background
+    if ($self->background) {
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glBegin(GL_QUADS);
+        glColor3f(0.0,0.0,0.0);
+        glVertex2f(-1.0,-1.0);
+        glVertex2f(1,-1.0);
+        glColor3f(10/255,98/255,144/255);
+        glVertex2f(1, 1);
+        glVertex2f(-1.0, 1);
+        glEnd();
+        glPopMatrix();
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
+    
     # draw objects
     $self->draw_volumes;
     
