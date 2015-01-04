@@ -300,10 +300,16 @@ sub scan_serial_ports {
     
     my @ports = ();
     
-    # TODO: Windows ports
-    
-    # UNIX and OS X
-    push @ports, glob '/dev/{ttyUSB,ttyACM,tty.,cu.,rfcomm}*';
+    if ($^O eq 'MSWin32') {
+        # Windows
+        my %reg;
+        if (eval "use Win32::TieRegistry (TiedHash => \\%reg); 1") {
+            push @ports, sort values %{$reg{"HKEY_CURRENT_USER\\HARDWARE\\DEVICEMAP\\SERIALCOMM"}};
+        }
+    } else {
+        # UNIX and OS X
+        push @ports, glob '/dev/{ttyUSB,ttyACM,tty.,cu.,rfcomm}*';
+    }
     
     return @ports;
 }
