@@ -42,7 +42,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
-use constant GROUND_Z       => 0.02;
+use constant GROUND_Z       => -0.02;
 use constant SELECTED_COLOR => [0,1,0,1];
 use constant HOVER_COLOR    => [0.8,0.8,0,1];
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
@@ -721,9 +721,6 @@ sub Render {
         glPopMatrix();
     }
     
-    # draw objects
-    $self->draw_volumes;
-    
     # draw ground and axes
     glDisable(GL_LIGHTING);
     my $z0 = 0;
@@ -732,26 +729,29 @@ sub Render {
         # draw ground
         my $ground_z = GROUND_Z;
         if ($self->bed_triangles) {
+            glDisable(GL_DEPTH_TEST);
+            
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             
             glEnableClientState(GL_VERTEX_ARRAY);
-            glColor4f(0.6, 0.7, 0.5, 0.3);
+            glColor4f(0.8, 0.6, 0.5, 0.4);
             glNormal3d(0,0,1);
             glVertexPointer_p(3, $self->bed_triangles);
             glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
             glDisableClientState(GL_VERTEX_ARRAY);
             
-            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
         
             # draw grid
-            glTranslatef(0, 0, 0.02);
             glLineWidth(3);
-            glColor3f(0.95, 0.95, 0.95);
+            glColor4f(0.2, 0.2, 0.2, 0.4);
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer_p(3, $self->bed_grid_lines);
             glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
             glDisableClientState(GL_VERTEX_ARRAY);
+            
+            glDisable(GL_BLEND);
         }
         
         my $volumes_bb = $self->volumes_bounding_box;
@@ -801,6 +801,9 @@ sub Render {
     }
     
     glEnable(GL_LIGHTING);
+    
+    # draw objects
+    $self->draw_volumes;
     
     glFlush();
  
