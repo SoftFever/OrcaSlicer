@@ -1088,7 +1088,7 @@ sub send_gcode {
     $self->statusbar->StartBusy;
     
     my $ua = LWP::UserAgent->new;
-    $ua->timeout(10);
+    $ua->timeout(180);
     
     my $res = $ua->post(
         "http://" . $self->{config}->octoprint_host . "/api/files/local",
