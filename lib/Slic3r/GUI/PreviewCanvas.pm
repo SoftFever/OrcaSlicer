@@ -332,6 +332,12 @@ sub set_bed_shape {
         # clip with a slightly grown expolygon because our lines lay on the contours and
         # may get erroneously clipped
         @lines = @{intersection_pl(\@lines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
+        
+        # append bed contours
+        foreach my $line (map @{$_->lines}, @$expolygon) {
+            push @lines, $line->as_polyline;
+        }
+        
         my @points = ();
         foreach my $polyline (@lines) {
             push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$polyline;  #))
