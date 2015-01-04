@@ -77,8 +77,8 @@ stl_count_facets(stl_file *stl, char *file) {
 
   if (stl->error) return;
 
-  /* Open the file */
-  stl->fp = fopen(file, "r");
+  /* Open the file in binary mode first */
+  stl->fp = fopen(file, "rb");
   if(stl->fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -104,9 +104,6 @@ stl_count_facets(stl_file *stl, char *file) {
   for(s = 0; s < sizeof(chtest); s++) {
     if(chtest[s] > 127) {
       stl->stats.type = binary;
-      /* close and reopen with binary flag (needed on Windows) */
-      fclose(stl->fp);
-      stl->fp = fopen(file, "rb");
       break;
     }
   }
@@ -137,6 +134,9 @@ stl_count_facets(stl_file *stl, char *file) {
   }
   /* Otherwise, if the .STL file is ASCII, then do the following */
   else {
+    /* Reopen the file in text mode (for getting correct newlines on Windows) */
+    freopen(file, "r", stl->fp);
+    
     /* Find the number of facets */
     j = 0;
     for(i = 0; i < file_size ; i++) {

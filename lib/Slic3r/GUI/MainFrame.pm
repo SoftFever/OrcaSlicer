@@ -201,10 +201,10 @@ sub _init_menubar {
         $self->_append_menu_item($self->{plater_menu}, "Export G-code...", 'Export current plate as G-code', sub {
             $plater->export_gcode;
         });
-        $self->_append_menu_item($self->{plater_menu}, "Export STL...", 'Export current plate as STL', sub {
+        $self->_append_menu_item($self->{plater_menu}, "Export plate as STL...", 'Export current plate as STL', sub {
             $plater->export_stl;
         });
-        $self->_append_menu_item($self->{plater_menu}, "Export AMF...", 'Export current plate as AMF', sub {
+        $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
         });
         

@@ -8,7 +8,7 @@ use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
 use List::Util qw(reduce min max first);
-use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale);
+use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
  
@@ -28,6 +28,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               bed_shape
                               bed_triangles
                               bed_grid_lines
+                              background
                               origin
                               _mouse_pos
                               _hover_volume_idx
@@ -41,7 +42,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
 
 use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
-use constant GROUND_Z       => 0.02;
+use constant GROUND_Z       => -0.02;
 use constant SELECTED_COLOR => [0,1,0,1];
 use constant HOVER_COLOR    => [0.8,0.8,0,1];
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
@@ -60,6 +61,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "",
         [WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0]);
    
+    $self->background(1);
     $self->_quat((0, 0, 0, 1));
     $self->_stheta(45);
     $self->_sphi(45);
@@ -327,7 +329,15 @@ sub set_bed_shape {
         for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
             push @lines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
         }
-        @lines = @{intersection_pl(\@lines, [ @$expolygon ])};
+        # clip with a slightly grown expolygon because our lines lay on the contours and
+        # may get erroneously clipped
+        @lines = @{intersection_pl(\@lines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
+        
+        # append bed contours
+        foreach my $line (map @{$_->lines}, @$expolygon) {
+            push @lines, $line->as_polyline;
+        }
+        
         my @points = ();
         foreach my $polyline (@lines) {
             push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$polyline;  #))
@@ -580,7 +590,7 @@ sub Resize {
  
     return unless $self->GetContext;
     $self->_dirty(0);
- 
+    
     $self->SetCurrent($self->GetContext);
     glViewport(0, 0, $x, $y);
  
@@ -693,8 +703,29 @@ sub Render {
         glFinish();
         glEnable(GL_LIGHTING);
     }
-    # draw objects
-    $self->draw_volumes;
+    
+    # draw fixed background
+    if ($self->background) {
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glBegin(GL_QUADS);
+        glColor3f(0.0,0.0,0.0);
+        glVertex2f(-1.0,-1.0);
+        glVertex2f(1,-1.0);
+        glColor3f(10/255,98/255,144/255);
+        glVertex2f(1, 1);
+        glVertex2f(-1.0, 1);
+        glEnd();
+        glPopMatrix();
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
     
     # draw ground and axes
     glDisable(GL_LIGHTING);
@@ -704,26 +735,29 @@ sub Render {
         # draw ground
         my $ground_z = GROUND_Z;
         if ($self->bed_triangles) {
+            glDisable(GL_DEPTH_TEST);
+            
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             
             glEnableClientState(GL_VERTEX_ARRAY);
-            glColor4f(0.6, 0.7, 0.5, 0.3);
+            glColor4f(0.8, 0.6, 0.5, 0.4);
             glNormal3d(0,0,1);
             glVertexPointer_p(3, $self->bed_triangles);
             glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
             glDisableClientState(GL_VERTEX_ARRAY);
             
-            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
         
             # draw grid
-            glTranslatef(0, 0, 0.02);
             glLineWidth(3);
-            glColor3f(0.95, 0.95, 0.95);
+            glColor4f(0.2, 0.2, 0.2, 0.4);
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer_p(3, $self->bed_grid_lines);
             glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
             glDisableClientState(GL_VERTEX_ARRAY);
+            
+            glDisable(GL_BLEND);
         }
         
         my $volumes_bb = $self->volumes_bounding_box;
@@ -773,6 +807,9 @@ sub Render {
     }
     
     glEnable(GL_LIGHTING);
+    
+    # draw objects
+    $self->draw_volumes;
     
     glFlush();
  

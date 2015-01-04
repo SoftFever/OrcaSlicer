@@ -14,6 +14,8 @@ sub BUILD {
             $self->growler(Growl::GNTP->new(AppName => 'Slic3r', AppIcon => $icon));
             $self->growler->register([{Name => 'SKEIN_DONE', DisplayName => 'Slicing Done'}]);
         };
+        # if register() fails (for example because of a timeout), disable growler at all
+        $self->growler(undef) if $@;
     }
 }
 

@@ -1009,6 +1009,9 @@ sub export_gcode {
         $self->on_export_completed($result);
     }
     
+    # this updates buttons status
+    $self->object_list_changed;
+    
     return $self->{export_gcode_output_file};
 }
 
@@ -1094,6 +1097,9 @@ sub on_export_completed {
     $self->send_gcode if $send_gcode;
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
+    
+    # this updates buttons status
+    $self->object_list_changed;
 }
 
 sub do_print {
@@ -1122,7 +1128,7 @@ sub send_gcode {
     $self->statusbar->StartBusy;
     
     my $ua = LWP::UserAgent->new;
-    $ua->timeout(10);
+    $ua->timeout(180);
     
     my $res = $ua->post(
         "http://" . $self->{config}->octoprint_host . "/api/files/local",
@@ -1156,6 +1162,19 @@ sub export_stl {
     
     # this method gets executed in a separate thread by wxWidgets since it's a button handler
     Slic3r::thread_cleanup() if $Slic3r::have_threads;
+}
+
+sub export_object_stl {
+    my $self = shift;
+    
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    
+    my $model_object = $self->{model}->objects->[$obj_idx];
+        
+    my $output_file = $self->_get_export_file('STL') or return;
+    Slic3r::Format::STL->write_file($output_file, $model_object->mesh, binary => 1);
+    $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
 sub export_amf {
@@ -1405,6 +1424,11 @@ sub object_list_changed {
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl print send_gcode);
     
+    if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
+        $self->{btn_export_gcode}->Disable;
+        $self->{btn_send_gcode}->Disable;
+    }
+    
     if ($self->{htoolbar}) {
         $self->{htoolbar}->EnableTool($_, $have_objects)
             for (TB_RESET, TB_ARRANGE);
@@ -1583,6 +1607,10 @@ sub object_menu {
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Settings…", 'Open the object editor dialog', sub {
         $self->object_settings_dialog;
+    });
+    $menu->AppendSeparator();
+    $frame->_append_menu_item($menu, "Export object as STL…", 'Export this single object as STL file', sub {
+        $self->export_object_stl;
     });
     
     return $menu;

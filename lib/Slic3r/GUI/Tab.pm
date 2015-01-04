@@ -6,7 +6,7 @@ use utf8;
 use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window
-    wxTheApp);
+    :button wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
 use base qw(Wx::Panel Class::Accessor);
 
@@ -36,8 +36,10 @@ sub new {
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
-        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG));
-        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
+        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG), 
+            wxDefaultPosition, [16,16], wxBORDER_NONE);
+        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), 
+            wxDefaultPosition, [16,16], wxBORDER_NONE);
         $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
@@ -973,11 +975,6 @@ sub build {
             $optgroup->append_single_option_line('z_offset');
         }
         {
-            my $optgroup = $page->new_optgroup('Firmware');
-            $optgroup->append_single_option_line('gcode_flavor');
-            $optgroup->append_single_option_line('use_relative_e_distances');
-        }
-        {
             my $optgroup = $page->new_optgroup('Capabilities');
             {
                 my $option = Slic3r::GUI::OptionsGroup::Option->new(
@@ -1057,6 +1054,11 @@ sub build {
             $host_line->append_widget($octoprint_host_widget);
             $optgroup->append_line($host_line);
             $optgroup->append_single_option_line('octoprint_apikey');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Firmware');
+            $optgroup->append_single_option_line('gcode_flavor');
+            $optgroup->append_single_option_line('use_relative_e_distances');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');

@@ -182,7 +182,7 @@ my $polygons = [
 {
     my $line = Slic3r::Line->new([0, 0], [20, 0]);
     is +Slic3r::Point->new(10, 10)->distance_to_line($line), 10, 'distance_to';
-    is +Slic3r::Point->new(50, 10)->distance_to_line($line), 10, 'distance_to';
+    is +Slic3r::Point->new(50, 0)->distance_to_line($line), 30, 'distance_to';
     is +Slic3r::Point->new(0, 0)->distance_to_line($line), 0, 'distance_to';
     is +Slic3r::Point->new(20, 0)->distance_to_line($line), 0, 'distance_to';
     is +Slic3r::Point->new(10, 0)->distance_to_line($line), 0, 'distance_to';
