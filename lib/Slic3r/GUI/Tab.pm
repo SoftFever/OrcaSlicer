@@ -974,11 +974,6 @@ sub build {
             $optgroup->append_single_option_line('z_offset');
         }
         {
-            my $optgroup = $page->new_optgroup('Firmware');
-            $optgroup->append_single_option_line('gcode_flavor');
-            $optgroup->append_single_option_line('use_relative_e_distances');
-        }
-        {
             my $optgroup = $page->new_optgroup('Capabilities');
             {
                 my $option = Slic3r::GUI::OptionsGroup::Option->new(
@@ -1037,6 +1032,11 @@ sub build {
             $host_line->append_widget($octoprint_host_widget);
             $optgroup->append_line($host_line);
             $optgroup->append_single_option_line('octoprint_apikey');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Firmware');
+            $optgroup->append_single_option_line('gcode_flavor');
+            $optgroup->append_single_option_line('use_relative_e_distances');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');
