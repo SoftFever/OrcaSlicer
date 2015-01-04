@@ -946,7 +946,7 @@ PrintConfigDef::build_def() {
     Options["use_relative_e_distances"].cli = "use-relative-e-distances!";
 
     Options["vibration_limit"].type = coFloat;
-    Options["vibration_limit"].label = "Vibration limit";
+    Options["vibration_limit"].label = "Vibration limit (deprecated)";
     Options["vibration_limit"].tooltip = "This experimental option will slow down those moves hitting the configured frequency limit. The purpose of limiting vibrations is to avoid mechanical resonance. Set zero to disable.";
     Options["vibration_limit"].sidetext = "Hz";
     Options["vibration_limit"].cli = "vibration-limit=f";
