@@ -662,16 +662,23 @@ PrintConfigDef::build_def() {
     Options["seam_position"].enum_labels.push_back("Aligned");
 
     Options["serial_port"].type = coString;
-    Options["serial_port"].label = "Serial port";
+    Options["serial_port"].gui_type = "select_open";
+    Options["serial_port"].label = "";
+    Options["serial_port"].full_label = "Serial port";
     Options["serial_port"].tooltip = "USB/serial port for printer connection.";
     Options["serial_port"].cli = "serial-port=s";
+    Options["serial_port"].width = 200;
 
     Options["serial_speed"].type = coInt;
+    Options["serial_speed"].gui_type = "i_enum_open";
     Options["serial_speed"].label = "Speed";
+    Options["serial_speed"].full_label = "Serial port speed";
     Options["serial_speed"].tooltip = "Speed (baud) of USB/serial port for printer connection.";
     Options["serial_speed"].cli = "serial-speed=i";
     Options["serial_speed"].min = 1;
     Options["serial_speed"].max = 300000;
+    Options["serial_speed"].enum_values.push_back("115200");
+    Options["serial_speed"].enum_values.push_back("250000");
 
     Options["skirt_distance"].type = coFloat;
     Options["skirt_distance"].label = "Distance from object";

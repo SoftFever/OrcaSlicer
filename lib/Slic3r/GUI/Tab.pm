@@ -911,7 +911,7 @@ sub _update_description {
 
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
-use Wx qw(:sizer :button :bitmap :misc :id);
+use Wx qw(wxTheApp :sizer :button :bitmap :misc :id);
 use Wx::Event qw(EVT_BUTTON);
 
 sub name { 'printer' }
@@ -1000,8 +1000,24 @@ sub build {
         }
         {
             my $optgroup = $page->new_optgroup('USB/Serial connection');
-            $optgroup->append_single_option_line('serial_port');
-            $optgroup->append_single_option_line('serial_speed');
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Serial port',
+            );
+            my $serial_port = $optgroup->get_option('serial_port');
+            $serial_port->side_widget(sub {
+                my ($parent) = @_;
+                
+                my $btn = Wx::BitmapButton->new($parent, -1, Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG),
+                    wxDefaultPosition, wxDefaultSize, &Wx::wxBORDER_NONE);
+                $btn->SetToolTipString("Rescan serial ports")
+                    if $btn->can('SetToolTipString');
+                EVT_BUTTON($self, $btn, \&_update_serial_ports);
+                
+                return $btn;
+            });
+            $line->append_option($serial_port);
+            $line->append_option($optgroup->get_option('serial_speed'));
+            $optgroup->append_line($line);
         }
         {
             my $optgroup = $page->new_optgroup('OctoPrint upload');
@@ -1091,6 +1107,13 @@ sub build {
     
     $self->{extruder_pages} = [];
     $self->_build_extruder_pages;
+    $self->_update_serial_ports;
+}
+
+sub _update_serial_ports {
+    my ($self) = @_;
+    
+    $self->get_field('serial_port')->set_values([ wxTheApp->scan_serial_ports ]);
 }
 
 sub _extruders_count_changed {
@@ -1175,6 +1198,7 @@ sub _update {
     
     my $config = $self->{config};
     
+    $self->get_field('serial_speed')->toggle($config->get('serial_port'));
     $self->get_field('octoprint_apikey')->toggle($config->get('octoprint_host'));
     
     my $have_multiple_extruders = $self->{extruders_count} > 1;

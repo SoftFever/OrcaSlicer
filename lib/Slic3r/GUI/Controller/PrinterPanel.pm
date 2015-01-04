@@ -72,6 +72,8 @@ sub new {
         {
             $self->{btn_rescan_serial} = my $btn = Wx::BitmapButton->new($box, -1, Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG),
                 wxDefaultPosition, wxDefaultSize, &Wx::wxBORDER_NONE);
+            $btn->SetToolTipString("Rescan serial ports")
+                if $btn->can('SetToolTipString');
             $serial_port_sizer->Add($btn, 0, wxALIGN_CENTER_VERTICAL, 0);
             EVT_BUTTON($self, $btn, sub { $self->update_serial_ports });
         }
