@@ -15,7 +15,7 @@
     void disconnect();
     bool is_connected() const;
     int queue_size() const;
-    void send(std::string s);
+    void send(std::string s, bool priority = false);
     void pause_queue();
     void resume_queue();
 };

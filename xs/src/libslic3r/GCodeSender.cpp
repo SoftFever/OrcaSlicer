@@ -222,16 +222,18 @@ GCodeSender::on_read(const boost::system::error_code& error,
         && (boost::starts_with(line, "start")
          || boost::starts_with(line, "Grbl "))) {
         this->connected = true;
-        this->can_send = true;
+        {
+            boost::lock_guard<boost::mutex> l(this->queue_mutex);
+            this->can_send = true;
+        }
         this->send();
     } else if (boost::starts_with(line, "ok")) {
         {
             boost::lock_guard<boost::mutex> l(this->queue_mutex);
-            this->queue.pop();
+            this->can_send = true;
         }
-        this->can_send = true;
         this->send();
-    } else if (boost::istarts_with(line, "resend")
+    } else if (boost::istarts_with(line, "resend")  // Marlin uses "Resend: "
             || boost::istarts_with(line, "rs")) {
         // extract the first number from line
         using boost::lexical_cast;
@@ -239,8 +241,11 @@ GCodeSender::on_read(const boost::system::error_code& error,
         boost::algorithm::trim_left_if(line, !boost::algorithm::is_digit());
         size_t toresend = lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
         if (toresend == this->sent) {
-            this->sent--;
-            this->can_send = true;
+            {
+                boost::lock_guard<boost::mutex> l(this->queue_mutex);
+                this->priqueue.push(this->last_sent);
+                this->can_send = true;
+            }
             this->send();
         } else {
             printf("Cannot resend %lu (last was %lu)\n", toresend, this->sent);
@@ -251,24 +256,33 @@ GCodeSender::on_read(const boost::system::error_code& error,
 }
 
 void
-GCodeSender::send(const std::vector<std::string> &lines)
+GCodeSender::send(const std::vector<std::string> &lines, bool priority)
 {
     // append lines to queue
     {
         boost::lock_guard<boost::mutex> l(this->queue_mutex);
-        for (std::vector<std::string>::const_iterator line = lines.begin(); line != lines.end(); ++line)
-            this->queue.push(*line);
+        for (std::vector<std::string>::const_iterator line = lines.begin(); line != lines.end(); ++line) {
+            if (priority) {
+                this->priqueue.push(*line);
+            } else {
+                this->queue.push(*line);
+            }
+        }
     }
     this->send();
 }
 
 void
-GCodeSender::send(const std::string &line)
+GCodeSender::send(const std::string &line, bool priority)
 {
     // append line to queue
     {
         boost::lock_guard<boost::mutex> l(this->queue_mutex);
-        this->queue.push(line);
+        if (priority) {
+            this->priqueue.push(line);
+        } else {
+            this->queue.push(line);
+        }
     }
     this->send();
 }
@@ -276,25 +290,46 @@ GCodeSender::send(const std::string &line)
 void
 GCodeSender::send()
 {
+    boost::lock_guard<boost::mutex> l(this->queue_mutex);
+    
     // printer is not connected or we're still waiting for the previous ack
     if (!this->can_send) return;
-    if (this->queue_paused) return;
     
-    boost::lock_guard<boost::mutex> l(this->queue_mutex);
-    if (this->queue.empty()) return;
-    
-    // get line and strip any comment
-    std::string line = this->queue.front();
-    if (size_t comment_pos = line.find_first_of(';') != std::string::npos)
+    while (!this->priqueue.empty() || (!this->queue.empty() && !this->queue_paused)) {
+        std::string line;
+        if (!this->priqueue.empty()) {
+            line = this->priqueue.front();
+            this->priqueue.pop();
+        } else {
+            line = this->queue.front();
+            this->queue.pop();
+        }
+        
+        // strip comments
+        if (size_t comment_pos = line.find_first_of(';') != std::string::npos)
         line.erase(comment_pos, std::string::npos);
-    boost::algorithm::trim(line);
-    
+        boost::algorithm::trim(line);
+        
+        // if line is not empty, send it
+        if (!line.empty()) {
+            this->do_send(line);
+            return;
+        }
+        // if line is empty, process next item in queue
+    }
+}
+
+// caller is responsible for holding queue_mutex
+void
+GCodeSender::do_send(const std::string &line)
+{
     // calculate checksum
     int cs = 0;
     for (std::string::const_iterator it = line.begin(); it != line.end(); ++it)
        cs = cs ^ *it;
     
-    sent++;
+    this->sent++;
+    this->last_sent = line;
     asio::streambuf b;
     std::ostream os(&b);
     os << "N" << sent << " " << line

@@ -429,7 +429,7 @@ sub new {
             sort keys %{$job->filament_stats};
         my $text = Wx::StaticText->new($self, -1, $filament_stats, wxDefaultPosition, wxDefaultSize);
         $text->SetFont($Slic3r::GUI::small_font);
-        if ($job->printed) {
+        if ($job->printed && !$job->printing) {
             $text->SetForegroundColour($Slic3r::GUI::grey);
         }
         $left_sizer->Add($text, 1, wxEXPAND | wxTOP | wxBOTTOM, 7);

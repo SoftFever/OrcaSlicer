@@ -68,7 +68,7 @@ our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
-our $grey = Wx::Colour->new(100,100,100);
+our $grey = Wx::Colour->new(200,200,200);
 
 sub OnInit {
     my ($self) = @_;
