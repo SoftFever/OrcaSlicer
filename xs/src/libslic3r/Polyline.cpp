@@ -159,7 +159,7 @@ Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
     p2->points.clear();
     p2->points.push_back(point);
     for (Lines::const_iterator line = lines.begin() + line_idx; line != lines.end(); ++line) {
-        if (!line->b.coincides_with(p)) p2->points.push_back(line->b);
+        p2->points.push_back(line->b);
     }
 }
 

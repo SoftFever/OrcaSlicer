@@ -7,6 +7,11 @@ sub new_scale {
     return $class->new(map Slic3r::Geometry::scale($_), @_);
 }
 
+sub dump_perl {
+    my $self = shift;
+    return sprintf "[%s,%s]", @$self;
+}
+
 package Slic3r::Pointf;
 use strict;
 use warnings;
