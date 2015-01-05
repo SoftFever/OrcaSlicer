@@ -24,7 +24,7 @@ sub BUILD {
 
 sub process {
     my $self = shift;
-    my ($gcode) = @_;
+    my ($gcode, $flush) = @_;
     
     my $new_gcode = "";
     
@@ -51,7 +51,7 @@ sub process {
                 if (abs($new_advance - $self->_advance) > 1E-5) {
                     my $new_E = ($self->config->use_relative_e_distances ? 0 : $reader->E) + ($new_advance - $self->_advance);
                     $new_gcode .= sprintf "G1 %s%.5f F%.3f ; pressure advance\n",
-                        $self->_extrusion_axis, $new_E, $self->unretract_speed;
+                        $self->_extrusion_axis, $new_E, $self->_unretract_speed;
                     $new_gcode .= sprintf "G92 %s%.5f ; restore E\n", $self->_extrusion_axis, $reader->E
                         if !$self->config->use_relative_e_distances;
                     $self->_advance($new_advance);
@@ -61,20 +61,33 @@ sub process {
             }
         } elsif (($info->{retracting} || $cmd eq 'G10') && $self->_advance != 0) {
             # We need to bring pressure to zero when retracting.
-            my $new_E = ($self->config->use_relative_e_distances ? 0 : $reader->E) - $self->_advance;
-            $new_gcode .= sprintf "G1 %s%.5f F%.3f ; pressure discharge\n",
-                $self->_extrusion_axis, $new_E, $args->{F} // $self->unretract_speed;
-            $new_gcode .= sprintf "G92 %s%.5f ; restore E\n", $self->_extrusion_axis, $reader->E
-                if !$self->config->use_relative_e_distances;
+            $new_gcode .= $self->_discharge($args->{F});
         }
         
         $new_gcode .= "$info->{raw}\n";
     });
     
+    if ($flush) {
+        $new_gcode .= $self->_discharge;
+    }
+    
     return $new_gcode;
 }
 
-sub unretract_speed {
+sub _discharge {
+    my ($self, $F) = @_;
+    
+    my $new_E = ($self->config->use_relative_e_distances ? 0 : $self->reader->E) - $self->_advance;
+    my $gcode = sprintf "G1 %s%.5f F%.3f ; pressure discharge\n",
+        $self->_extrusion_axis, $new_E, $F // $self->_unretract_speed;
+    $gcode .= sprintf "G92 %s%.5f ; restore E\n", $self->_extrusion_axis, $self->reader->E
+        if !$self->config->use_relative_e_distances;
+    $self->_advance(0);
+    
+    return $gcode;
+}
+
+sub _unretract_speed {
     my ($self) = @_;
     return $self->config->get_at('retract_speed', $self->_tool) * 60;
 }

@@ -54,7 +54,7 @@ sub BUILD {
         if $self->config->spiral_vase;
     
     $self->_vibration_limit(Slic3r::GCode::VibrationLimit->new(config => $self->config))
-        if $self->config->vibration_limit > 0;
+        if $self->config->vibration_limit != 0;
     
     $self->_arc_fitting(Slic3r::GCode::ArcFitting->new(config => $self->config))
         if $self->config->gcode_arcs;
@@ -208,7 +208,7 @@ sub export {
                     }
                     $self->process_layer($layer, [$copy]);
                 }
-                $self->flush_cooling_buffer;
+                $self->flush_filters;
                 $finished_objects++;
             }
         }
@@ -234,7 +234,7 @@ sub export {
                 }
             }
         }
-        $self->flush_cooling_buffer;
+        $self->flush_filters;
     }
     
     # write end commands to file
@@ -529,28 +529,29 @@ sub _extrude_infill {
     return $gcode;
 }
 
-sub flush_cooling_buffer {
+sub flush_filters {
     my ($self) = @_;
-    print {$self->fh} $self->filter($self->_cooling_buffer->flush);
+    
+    print {$self->fh} $self->filter($self->_cooling_buffer->flush, 1);
 }
 
 sub filter {
-    my ($self, $gcode) = @_;
+    my ($self, $gcode, $flush) = @_;
     
     # apply vibration limit if enabled;
     # this injects pauses according to time (thus depends on actual speeds)
     $gcode = $self->_vibration_limit->process($gcode)
-        if $self->print->config->vibration_limit != 0;
+        if defined $self->_vibration_limit;
     
     # apply pressure regulation if enabled;
     # this depends on actual speeds
-    $gcode = $self->_pressure_regulator->process($gcode)
-        if $self->print->config->pressure_advance > 0;
+    $gcode = $self->_pressure_regulator->process($gcode, $flush)
+        if defined $self->_pressure_regulator;
     
     # apply arc fitting if enabled;
     # this does not depend on speeds but changes G1 XY commands into G2/G2 IJ
     $gcode = $self->_arc_fitting->process($gcode)
-        if $self->print->config->gcode_arcs;
+        if defined $self->_arc_fitting;
     
     return $gcode;
 }

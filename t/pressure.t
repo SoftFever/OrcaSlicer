@@ -9,7 +9,7 @@ BEGIN {
 
 use List::Util qw();
 use Slic3r;
-use Slic3r::Geometry qw();
+use Slic3r::Geometry qw(epsilon);
 use Slic3r::Test;
 
 {
@@ -18,21 +18,18 @@ use Slic3r::Test;
     $config->set('retract_length', [1]);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 2);
-    my $retracted = 0;
-    my $extruding_before_full_unretract = 0;
+    my $retracted = $config->retract_length->[0];
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         
-        if ($info->{extruding} && $info->{dist_XY}) {
-            $extruding_before_full_unretract if $retracted != 0;
-        } elsif ($info->{extruding}) {
-            $retracted += -$info->{dist_E};
+        if ($info->{extruding} && !$info->{dist_XY}) {
+            $retracted += $info->{dist_E};
         } elsif ($info->{retracting}) {
-            $retracted += -$info->{dist_E};
+            $retracted += $info->{dist_E};
         }
     });
     
-    ok !$extruding_before_full_unretract, 'not extruding before complete unretract';
+    ok abs($retracted) < epsilon, 'all retractions are compensated';
 }
 
 
