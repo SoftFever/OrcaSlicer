@@ -44,7 +44,8 @@ void
 LayerRegion::merge_slices()
 {
     ExPolygons expp;
-    union_(this->slices, &expp);
+    // without safety offset, artifacts are generated (GH #2494)
+    union_(this->slices, &expp, true);
     this->slices.surfaces.clear();
     this->slices.surfaces.reserve(expp.size());
     
