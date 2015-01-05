@@ -48,22 +48,32 @@ GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
 std::string
 GCodeWriter::preamble()
 {
-    std::string gcode;
+    std::ostringstream gcode;
     
     if (FLAVOR_IS_NOT(gcfMakerWare)) {
-        gcode += "G21 ; set units to millimeters\n";
-        gcode += "G90 ; use absolute coordinates\n";
+        gcode << "G21 ; set units to millimeters\n";
+        gcode << "G90 ; use absolute coordinates\n";
     }
     if (FLAVOR_IS(gcfRepRap) || FLAVOR_IS(gcfTeacup)) {
         if (this->config.use_relative_e_distances) {
-            gcode += "M83 ; use relative distances for extrusion\n";
+            gcode << "M83 ; use relative distances for extrusion\n";
         } else {
-            gcode += "M82 ; use absolute distances for extrusion\n";
+            gcode << "M82 ; use absolute distances for extrusion\n";
         }
-        gcode += this->reset_e(true);
+        if (this->config.use_volumetric_e && this->config.start_gcode.value.find("M200") == std::string::npos) {
+            for (std::map<unsigned int,Extruder>::const_iterator it = this->extruders.begin(); it != this->extruders.end(); ++it) {
+                unsigned int extruder_id = it->first;
+                gcode << "M200 D" << E_NUM(this->config.filament_diameter.get_at(extruder_id));
+                if (this->multiple_extruders || extruder_id != 0) {
+                    gcode << " T" << extruder_id;
+                }
+                gcode << " ; set filament diameter\n";
+            }
+        }
+        gcode << this->reset_e(true);
     }
     
-    return gcode;
+    return gcode.str();
 }
 
 std::string
@@ -422,6 +432,14 @@ GCodeWriter::_retract(double length, double restart_extra, const std::string &co
         since we ignore the actual configured retract_length which 
         might be 0, in which case the retraction logic gets skipped. */
     if (this->config.use_firmware_retraction) length = 1;
+    
+    // If we use volumetric E values we turn lengths into volumes */
+    if (this->config.use_volumetric_e) {
+        double d = this->_extruder->filament_diameter();
+        double area = d * d * PI/4;
+        length = length * area;
+        restart_extra = restart_extra * area;
+    }
     
     double dE = this->_extruder->retract(length, restart_extra);
     if (dE != 0) {

@@ -927,6 +927,7 @@ sub build {
         gcode_flavor use_relative_e_distances
         octoprint_host octoprint_apikey
         use_firmware_retraction pressure_advance vibration_limit
+        use_volumetric_e
         start_gcode end_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
@@ -1036,11 +1037,12 @@ sub build {
         {
             my $optgroup = $page->new_optgroup('Firmware');
             $optgroup->append_single_option_line('gcode_flavor');
-            $optgroup->append_single_option_line('use_relative_e_distances');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');
+            $optgroup->append_single_option_line('use_relative_e_distances');
             $optgroup->append_single_option_line('use_firmware_retraction');
+            $optgroup->append_single_option_line('use_volumetric_e');
             $optgroup->append_single_option_line('pressure_advance');
             $optgroup->append_single_option_line('vibration_limit');
         }
