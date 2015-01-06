@@ -20,11 +20,11 @@ SVG::SVG(const char* filename)
 }
 
 void
-SVG::AddLine(const Line &line)
+SVG::draw(const Line &line, std::string stroke)
 {
     fprintf(this->f,
-        "   <line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" style=\"stroke: black; stroke-width: 2\"",
-        COORD(line.a.x), COORD(line.a.y), COORD(line.b.x), COORD(line.b.y)
+        "   <line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" style=\"stroke: %s; stroke-width: 1\"",
+        COORD(line.a.x), COORD(line.a.y), COORD(line.b.x), COORD(line.b.y), stroke.c_str()
         );
     if (this->arrows)
         fprintf(this->f, " marker-end=\"url(#endArrow)\"");
@@ -34,30 +34,45 @@ SVG::AddLine(const Line &line)
 void
 SVG::AddLine(const IntersectionLine &line)
 {
-    this->AddLine(Line(line.a, line.b));
+    this->draw(Line(line.a, line.b));
 }
 
 void
-SVG::draw(const ExPolygon &expolygon)
+SVG::draw(const ExPolygon &expolygon, std::string fill)
 {
+    this->fill = fill;
+    
     std::string d;
     Polygons pp = expolygon;
     for (Polygons::const_iterator p = pp.begin(); p != pp.end(); ++p) {
-        d += this->get_path_d(*p) + " ";
+        d += this->get_path_d(*p, true) + " ";
     }
     this->path(d, true);
 }
 
 void
-SVG::draw(const Polygon &polygon)
+SVG::draw(const Polygon &polygon, std::string fill)
 {
-    this->path(this->get_path_d(polygon), true);
+    this->fill = fill;
+    this->path(this->get_path_d(polygon, true), true);
 }
 
 void
-SVG::draw(const Polyline &polyline)
+SVG::draw(const Polyline &polyline, std::string stroke)
 {
-    this->path(this->get_path_d(polyline), false);
+    this->stroke = stroke;
+    this->path(this->get_path_d(polyline, false), false);
+}
+
+void
+SVG::draw(const Point &point, std::string fill, unsigned int radius)
+{
+    std::ostringstream svg;
+    svg << "   <circle cx=\"" << COORD(point.x) << "\" cy=\"" << COORD(point.y)
+        << "\" r=\"" << radius << "\" "
+        << "style=\"stroke: none; fill: " << fill << "\" />";
+    
+    fprintf(this->f, "%s\n", svg.str().c_str());
 }
 
 void
@@ -65,24 +80,25 @@ SVG::path(const std::string &d, bool fill)
 {
     fprintf(
         this->f,
-        "   <path d=\"%s\" style=\"fill: %s; stroke: %s; stroke-width: %s; fill-type: evenodd\" />\n",
+        "   <path d=\"%s\" style=\"fill: %s; stroke: %s; stroke-width: %s; fill-type: evenodd\" %s />\n",
         d.c_str(),
         fill ? this->fill.c_str() : "none",
         this->stroke.c_str(),
-        fill ? "0" : "2"
+        fill ? "0" : "2",
+        (this->arrows && !fill) ? " marker-end=\"url(#endArrow)\"" : ""
     );
 }
 
 std::string
-SVG::get_path_d(const MultiPoint &mp) const
+SVG::get_path_d(const MultiPoint &mp, bool closed) const
 {
     std::ostringstream d;
-    d << "M";
+    d << "M ";
     for (Points::const_iterator p = mp.points.begin(); p != mp.points.end(); ++p) {
-        d << " " << COORD(p->x);
-        d << " " << COORD(p->y);
+        d << COORD(p->x) << " ";
+        d << COORD(p->y) << " ";
     }
-    d << " z";
+    if (closed) d << "z";
     return d.str();
 }
 
