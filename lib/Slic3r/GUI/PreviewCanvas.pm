@@ -90,7 +90,7 @@ sub new {
         my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
         $zoom = max(min($zoom, 4), -4);
         $zoom /= 10;
-        $self->_zoom($self->_zoom * (1-$zoom));
+        $self->_zoom($self->_zoom / (1-$zoom));
         
         # In order to zoom around the mouse point we need to translate
         # the camera target
