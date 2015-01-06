@@ -5,6 +5,7 @@
 #include <admesh/stl.h>
 #include <vector>
 #include "BoundingBox.hpp"
+#include "Line.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
 #include "ExPolygon.hpp"
@@ -71,11 +72,9 @@ class IntersectionPoint : public Point
     IntersectionPoint() : point_id(-1), edge_id(-1) {};
 };
 
-class IntersectionLine
+class IntersectionLine : public Line
 {
     public:
-    Point           a;
-    Point           b;
     int             a_id;
     int             b_id;
     int             edge_a_id;
