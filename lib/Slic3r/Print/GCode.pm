@@ -354,7 +354,12 @@ sub process_layer {
         }
         $self->_skirt_done->{$layer->print_z} = 1;
         $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
-        $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
+        
+        # allow a straight travel move to the first object point if this is the first layer
+        # (but don't in next layers)
+        if ($layer->id == 0) {
+            $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
+        }
     }
     
     # extrude brim
@@ -366,6 +371,8 @@ sub process_layer {
             for @{$self->print->brim};
         $self->_brim_done(1);
         $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        
+        # allow a straight travel move to the first object point
         $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
     }
     

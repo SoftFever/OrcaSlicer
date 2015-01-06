@@ -129,7 +129,7 @@ Layer::any_internal_region_slice_contains(const T &item) const
     }
     return false;
 }
-template bool Layer::any_internal_region_slice_contains<Line>(const Line &item) const;
+template bool Layer::any_internal_region_slice_contains<Polyline>(const Polyline &item) const;
 
 template <class T>
 bool
@@ -140,20 +140,7 @@ Layer::any_bottom_region_slice_contains(const T &item) const
     }
     return false;
 }
-template bool Layer::any_bottom_region_slice_contains<Line>(const Line &item) const;
-
-template <class T>
-bool
-Layer::any_internal_region_fill_surface_contains(const T &item) const
-{
-    FOREACH_LAYERREGION(this, layerm) {
-        if ((*layerm)->fill_surfaces.any_internal_contains(item)) return true;
-    }
-    return false;
-}
-template bool Layer::any_internal_region_fill_surface_contains<Line>(const Line &item) const;
-template bool Layer::any_internal_region_fill_surface_contains<Polyline>(const Polyline &item) const;
-
+template bool Layer::any_bottom_region_slice_contains<Polyline>(const Polyline &item) const;
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(Layer, "Layer");

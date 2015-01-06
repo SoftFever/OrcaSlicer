@@ -77,7 +77,6 @@ SurfaceCollection::any_internal_contains(const T &item) const
     }
     return false;
 }
-template bool SurfaceCollection::any_internal_contains<Line>(const Line &item) const;
 template bool SurfaceCollection::any_internal_contains<Polyline>(const Polyline &item) const;
 
 template <class T>
@@ -89,7 +88,7 @@ SurfaceCollection::any_bottom_contains(const T &item) const
     }
     return false;
 }
-template bool SurfaceCollection::any_bottom_contains<Line>(const Line &item) const;
+template bool SurfaceCollection::any_bottom_contains<Polyline>(const Polyline &item) const;
 
 SurfacesPtr
 SurfaceCollection::filter_by_type(SurfaceType type)
