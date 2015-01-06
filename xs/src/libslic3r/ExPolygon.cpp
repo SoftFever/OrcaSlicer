@@ -105,6 +105,23 @@ ExPolygon::contains(const Point &point) const
     return true;
 }
 
+// inclusive version of contains() that also checks whether point is on boundaries
+bool
+ExPolygon::contains_b(const Point &point) const
+{
+    return this->contains(point) || this->has_boundary_point(point);
+}
+
+bool
+ExPolygon::has_boundary_point(const Point &point) const
+{
+    if (this->contour.has_boundary_point(point)) return true;
+    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h) {
+        if (h->has_boundary_point(point)) return true;
+    }
+    return false;
+}
+
 Polygons
 ExPolygon::simplify_p(double tolerance) const
 {
@@ -362,6 +379,16 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
             polygons->push_back(p);
         }
     }
+}
+
+Lines
+ExPolygon::lines() const
+{
+    Lines lines;
+    this->contour.lines(&lines);
+    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h)
+        h->lines(&lines);
+    return lines;
 }
 
 #ifdef SLIC3RXS

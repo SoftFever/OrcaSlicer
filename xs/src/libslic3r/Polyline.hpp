@@ -7,6 +7,7 @@
 
 namespace Slic3r {
 
+class ExPolygon;
 class Polyline;
 typedef std::vector<Polyline> Polylines;
 
@@ -23,6 +24,7 @@ class Polyline : public MultiPoint {
     void extend_start(double distance);
     void equally_spaced_points(double distance, Points* points) const;
     void simplify(double tolerance);
+    template <class T> void simplify_by_visibility(const T &area);
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
     std::string wkt() const;

@@ -620,12 +620,11 @@ sub travel_to {
         
         # represent last_pos in absolute G-code coordinates
         my $last_pos = $gcodegen->last_pos->clone;
-        $last_pos->translate(@{$gcodegen->origin});
+        $last_pos->translate(@$scaled_origin);
         
         # represent $point in absolute G-code coordinates
         $point = $point->clone;
         $point->translate(@$scaled_origin);
-        
         # calculate path
         my $travel = $self->_external_mp->shortest_path($last_pos, $point);
         

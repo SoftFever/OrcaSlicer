@@ -76,6 +76,13 @@ MultiPoint::find_point(const Point &point) const
     return -1;  // not found
 }
 
+bool
+MultiPoint::has_boundary_point(const Point &point) const
+{
+    double dist = point.distance_to(point.projection_onto(*this));
+    return dist < SCALED_EPSILON;
+}
+
 void
 MultiPoint::bounding_box(BoundingBox* bb) const
 {

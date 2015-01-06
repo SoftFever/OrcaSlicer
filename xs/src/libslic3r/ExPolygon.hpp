@@ -25,6 +25,8 @@ class ExPolygon
     bool contains(const Line &line) const;
     bool contains(const Polyline &polyline) const;
     bool contains(const Point &point) const;
+    bool contains_b(const Point &point) const;
+    bool has_boundary_point(const Point &point) const;
     Polygons simplify_p(double tolerance) const;
     ExPolygons simplify(double tolerance) const;
     void simplify(double tolerance, ExPolygons &expolygons) const;
@@ -36,6 +38,7 @@ class ExPolygon
     void triangulate(Polygons* polygons) const;
     void triangulate_pp(Polygons* polygons) const;
     void triangulate_p2t(Polygons* polygons) const;
+    Lines lines() const;
     
     #ifdef SLIC3RXS
     void from_SV(SV* poly_sv);
