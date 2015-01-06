@@ -130,11 +130,8 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
     MotionPlannerGraph* graph = this->init_graph(island_idx);
     graph->shortest_path(graph->find_node(inner_from), graph->find_node(inner_to), polyline);
     
-    if (!from_is_inside)
-        polyline->points.insert(polyline->points.begin(), from);
-    
-    if (!to_is_inside)
-        polyline->points.push_back(to);
+    polyline->points.insert(polyline->points.begin(), from);
+    polyline->points.push_back(to);
     
     {
         // grow our environment slightly in order for simplify_by_visibility()
