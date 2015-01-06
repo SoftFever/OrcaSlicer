@@ -121,23 +121,30 @@ sub export {
     
     # initialize a motion planner for object-to-object travel moves
     if ($self->config->avoid_crossing_perimeters) {
-        my $distance_from_objects = 1;
+        my $distance_from_objects = scale 1;
+        
         # compute the offsetted convex hull for each object and repeat it for each copy.
-        my @islands = ();
-        foreach my $obj_idx (0 .. ($self->print->object_count - 1)) {
+        my @islands_p = ();
+        foreach my $object (@{$self->objects}) {
+            # compute the convex hull of the entire object
             my $convex_hull = convex_hull([
-                map @{$_->contour}, map @{$_->slices}, @{$self->objects->[$obj_idx]->layers},
+                map @{$_->contour}, map @{$_->slices}, @{$object->layers},
             ]);
-            # discard layers only containing thin walls (offset would fail on an empty polygon)
-            if (@$convex_hull) {
-                my $expolygon = Slic3r::ExPolygon->new($convex_hull);
-                my @island = @{$expolygon->offset_ex(scale $distance_from_objects, 1, JT_SQUARE)};
-                foreach my $copy (@{ $self->objects->[$obj_idx]->_shifted_copies }) {
-                    push @islands, map { my $c = $_->clone; $c->translate(@$copy); $c } @island;
-                }
+            
+            # discard objects only containing thin walls (offset would fail on an empty polygon)
+            next if !@$convex_hull;
+            
+            # grow convex hull by the wanted clearance
+            my @obj_islands_p = @{offset([$convex_hull], $distance_from_objects, 1, JT_SQUARE)};
+            
+            # translate convex hull for each object copy and append it to the islands array
+            foreach my $copy (@{ $object->_shifted_copies }) {
+                my @copy_islands_p = map $_->clone, @obj_islands_p;
+                $_->translate(@$copy) for @copy_islands_p;
+                push @islands_p, @copy_islands_p;
             }
         }
-        $gcodegen->avoid_crossing_perimeters->init_external_mp(union_ex([ map @$_, @islands ]));
+        $gcodegen->avoid_crossing_perimeters->init_external_mp(union_ex(\@islands_p));
     }
     
     # calculate wiping points if needed
