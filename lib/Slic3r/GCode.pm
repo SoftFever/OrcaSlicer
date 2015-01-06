@@ -352,7 +352,8 @@ sub travel_to {
             && $self->config->fill_density > 0
             && defined($self->layer)
             && ($self->layer->any_internal_region_slice_contains_line($travel)
-             || $self->layer->any_internal_region_fill_surface_contains_line($travel)))
+                || ($self->layer->any_bottom_region_slice_contains_line($travel)
+                    && (!defined $self->layer->upper_layer || $self->layer->upper_layer->slices->contains_line($travel)))))
         || (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel))
         ) {
         # Just perform a straight travel move without any retraction.
