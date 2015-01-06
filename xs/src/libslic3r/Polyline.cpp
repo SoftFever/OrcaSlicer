@@ -157,6 +157,7 @@ Polyline::simplify_by_visibility(const T &area)
         }
     }
 }
+template void Polyline::simplify_by_visibility<ExPolygon>(const ExPolygon &area);
 template void Polyline::simplify_by_visibility<ExPolygonCollection>(const ExPolygonCollection &area);
 
 void
