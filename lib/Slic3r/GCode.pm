@@ -374,7 +374,7 @@ sub needs_retraction {
         return 0;
     }
     
-    if (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_line($travel)) {
+    if (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_polyline($travel)) {
         # skip retraction if this is a travel move inside a support material island
         return 0;
     }
