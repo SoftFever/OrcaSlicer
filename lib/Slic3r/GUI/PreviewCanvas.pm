@@ -874,9 +874,13 @@ sub draw_volumes {
                                 glLineWidth(0);
                                 glColor3f(@{COLORS->[0]});
                                 glBegin(GL_QUADS);
-                                glNormal3f((map $_/$line->length, @{$line->normal}), 0);
+                                # We'll use this for the middle normal when using 4 quads:
+                                #my $xy_normal = $line->normal;
+                                #$_xynormal->scale(1/$line->length);
+                                glNormal3f(0,0,-1);
                                 glVertex3f((map unscale($_), @{$line->a}), $bottom_z);
                                 glVertex3f((map unscale($_), @{$line->b}), $bottom_z);
+                                glNormal3f(0,0,1);
                                 glVertex3f((map unscale($_), @{$line->b}), $top_z);
                                 glVertex3f((map unscale($_), @{$line->a}), $top_z);
                                 glEnd();
