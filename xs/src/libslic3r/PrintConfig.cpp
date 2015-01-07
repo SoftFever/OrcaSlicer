@@ -380,12 +380,14 @@ PrintConfigDef::build_def() {
     Options["gcode_flavor"].enum_values.push_back("makerware");
     Options["gcode_flavor"].enum_values.push_back("sailfish");
     Options["gcode_flavor"].enum_values.push_back("mach3");
+    Options["gcode_flavor"].enum_values.push_back("machinekit");
     Options["gcode_flavor"].enum_values.push_back("no-extrusion");
     Options["gcode_flavor"].enum_labels.push_back("RepRap (Marlin/Sprinter/Repetier)");
     Options["gcode_flavor"].enum_labels.push_back("Teacup");
     Options["gcode_flavor"].enum_labels.push_back("MakerWare (MakerBot)");
     Options["gcode_flavor"].enum_labels.push_back("Sailfish (MakerBot)");
     Options["gcode_flavor"].enum_labels.push_back("Mach3/LinuxCNC");
+    Options["gcode_flavor"].enum_labels.push_back("Machinekit");
     Options["gcode_flavor"].enum_labels.push_back("No extrusion");
 
     Options["infill_acceleration"].type = coFloat;
