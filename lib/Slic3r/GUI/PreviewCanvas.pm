@@ -208,7 +208,7 @@ sub mouse_event {
             }
             $self->_drag_start_xy($pos);
         }
-    } elsif ($e->LeftUp || $e->RightUp) {
+    } elsif ($e->LeftUp || $e->MiddleUp || $e->RightUp) {
         if ($self->on_move && defined $self->_drag_volume_idx) {
             $self->on_move->($self->_drag_volume_idx) if $self->_dragged;
         }
