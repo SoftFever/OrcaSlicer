@@ -561,25 +561,26 @@ Print::validate() const
             FOREACH_OBJECT(this, i_object) {
                 PrintObject* object = *i_object;
                 
-                // get convex hulls of all meshes assigned to this print object
-                Polygons mesh_convex_hulls;
-                for (size_t i = 0; i < this->regions.size(); ++i) {
-                    for (std::vector<int>::const_iterator it = object->region_volumes[i].begin(); it != object->region_volumes[i].end(); ++it) {
-                        Polygon hull;
-                        object->model_object()->volumes[*it]->mesh.convex_hull(&hull);
-                        mesh_convex_hulls.push_back(hull);
-                    }
-                }
-                
-                // make a single convex hull for all of them
+                /*  get convex hull of all meshes assigned to this print object
+                    (this is the same as model_object()->raw_mesh.convex_hull()
+                    but probably more efficient */
                 Polygon convex_hull;
-                Slic3r::Geometry::convex_hull(mesh_convex_hulls, &convex_hull);
+                {
+                    Polygons mesh_convex_hulls;
+                    for (size_t i = 0; i < this->regions.size(); ++i) {
+                        for (std::vector<int>::const_iterator it = object->region_volumes[i].begin(); it != object->region_volumes[i].end(); ++it) {
+                            Polygon hull;
+                            object->model_object()->volumes[*it]->mesh.convex_hull(&hull);
+                            mesh_convex_hulls.push_back(hull);
+                        }
+                    }
+                
+                    // make a single convex hull for all of them
+                    Slic3r::Geometry::convex_hull(mesh_convex_hulls, &convex_hull);
+                }
                 
                 // apply the same transformations we apply to the actual meshes when slicing them
                 object->model_object()->instances.front()->transform_polygon(&convex_hull);
-        
-                // align object to Z = 0 and apply XY shift
-                convex_hull.translate(object->_copies_shift);
                 
                 // grow convex hull with the clearance margin
                 {
