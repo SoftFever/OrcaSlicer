@@ -44,7 +44,7 @@ use constant TRACKBALLSIZE => 0.8;
 use constant TURNTABLE_MODE => 1;
 use constant GROUND_Z       => -0.02;
 use constant SELECTED_COLOR => [0,1,0,1];
-use constant HOVER_COLOR    => [0.8,0.8,0,1];
+use constant HOVER_COLOR    => [0.4,0.9,0,1];
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 # make OpenGL::Array thread-safe
@@ -629,17 +629,16 @@ sub InitGL {
     glEnable(GL_MULTISAMPLE);
     
     # ambient lighting
-    glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.1, 0.1, 0.1, 1);
+    glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
     
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHT1);
-    glLightfv_p(GL_LIGHT0, GL_POSITION, 0.5, 0.5, 1, 0);
-    glLightfv_p(GL_LIGHT0, GL_SPECULAR, 0.5, 0.5, 0.5, 1);
-    glLightfv_p(GL_LIGHT0, GL_DIFFUSE,  0.8, 0.8, 0.8, 1);
-    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 0.5, 0);
-    glLightfv_p(GL_LIGHT1, GL_SPECULAR, 0.5, 0.5, 0.5, 1);
-    glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  1, 1, 1, 1);
+    
+    # light from camera
+    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
+    glLightfv_p(GL_LIGHT1, GL_SPECULAR, 0.3, 0.3, 0.3, 1);
+    glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  0.2, 0.2, 0.2, 1);
     
     # Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
     glShadeModel(GL_SMOOTH);
@@ -681,6 +680,11 @@ sub Render {
     }
     glTranslatef(@{ $self->_camera_target->negative });
     
+    # light from above
+    glLightfv_p(GL_LIGHT0, GL_POSITION, -0.5, -0.5, 1, 0);
+    glLightfv_p(GL_LIGHT0, GL_SPECULAR, 0.2, 0.2, 0.2, 1);
+    glLightfv_p(GL_LIGHT0, GL_DIFFUSE,  0.5, 0.5, 0.5, 1);
+    
     if ($self->enable_picking) {
         glDisable(GL_LIGHTING);
         $self->draw_volumes(1);
@@ -706,6 +710,7 @@ sub Render {
     
     # draw fixed background
     if ($self->background) {
+        glDisable(GL_LIGHTING);
         glPushMatrix();
         glLoadIdentity();
         
@@ -725,6 +730,7 @@ sub Render {
         
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
+        glEnable(GL_LIGHTING);
     }
     
     # draw ground and axes
