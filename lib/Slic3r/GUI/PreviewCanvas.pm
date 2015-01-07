@@ -729,87 +729,85 @@ sub Render {
     
     # draw ground and axes
     glDisable(GL_LIGHTING);
-    my $z0 = 0;
+    
+    # draw ground
+    my $ground_z = GROUND_Z;
+    if ($self->bed_triangles) {
+        glDisable(GL_DEPTH_TEST);
+        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glColor4f(0.8, 0.6, 0.5, 0.4);
+        glNormal3d(0,0,1);
+        glVertexPointer_p(3, $self->bed_triangles);
+        glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        
+        glEnable(GL_DEPTH_TEST);
+    
+        # draw grid
+        glLineWidth(3);
+        glColor4f(0.2, 0.2, 0.2, 0.4);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer_p(3, $self->bed_grid_lines);
+        glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        
+        glDisable(GL_BLEND);
+    }
+    
+    my $volumes_bb = $self->volumes_bounding_box;
     
     {
-        # draw ground
-        my $ground_z = GROUND_Z;
-        if ($self->bed_triangles) {
-            glDisable(GL_DEPTH_TEST);
-            
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glColor4f(0.8, 0.6, 0.5, 0.4);
-            glNormal3d(0,0,1);
-            glVertexPointer_p(3, $self->bed_triangles);
-            glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
-            glDisableClientState(GL_VERTEX_ARRAY);
-            
-            glEnable(GL_DEPTH_TEST);
-        
-            # draw grid
-            glLineWidth(3);
-            glColor4f(0.2, 0.2, 0.2, 0.4);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer_p(3, $self->bed_grid_lines);
-            glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
-            glDisableClientState(GL_VERTEX_ARRAY);
-            
-            glDisable(GL_BLEND);
-        }
-        
-        my $volumes_bb = $self->volumes_bounding_box;
-        
-        {
-            # draw axes
-            $ground_z += 0.02;
-            my $origin = $self->origin;
-            my $axis_len = max(
-                0.3 * max(@{ $self->bed_bounding_box->size }),
-                  2 * max(@{ $volumes_bb->size }),
-            );
-            glLineWidth(2);
-            glBegin(GL_LINES);
-            # draw line for x axis
-            glColor3f(1, 0, 0);
-            glVertex3f(@$origin, $ground_z);
-            glVertex3f($origin->x + $axis_len, $origin->y, $ground_z);  #,,
-            # draw line for y axis
-            glColor3f(0, 1, 0);
-            glVertex3f(@$origin, $ground_z);
-            glVertex3f($origin->x, $origin->y + $axis_len, $ground_z);  #++
-            # draw line for Z axis
-            glColor3f(0, 0, 1);
-            glVertex3f(@$origin, $ground_z);
-            glVertex3f(@$origin, $ground_z+$axis_len);
-            glEnd();
-        }
-        
-        # draw cutting plane
-        if (defined $self->cutting_plane_z) {
-            my $plane_z = $z0 + $self->cutting_plane_z;
-            my $bb = $volumes_bb;
-            glDisable(GL_CULL_FACE);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBegin(GL_QUADS);
-            glColor4f(0.8, 0.8, 0.8, 0.5);
-            glVertex3f($bb->x_min-20, $bb->y_min-20, $plane_z);
-            glVertex3f($bb->x_max+20, $bb->y_min-20, $plane_z);
-            glVertex3f($bb->x_max+20, $bb->y_max+20, $plane_z);
-            glVertex3f($bb->x_min-20, $bb->y_max+20, $plane_z);
-            glEnd();
-            glEnable(GL_CULL_FACE);
-            glDisable(GL_BLEND);
-        }
+        # draw axes
+        $ground_z += 0.02;
+        my $origin = $self->origin;
+        my $axis_len = max(
+            0.3 * max(@{ $self->bed_bounding_box->size }),
+              2 * max(@{ $volumes_bb->size }),
+        );
+        glLineWidth(2);
+        glBegin(GL_LINES);
+        # draw line for x axis
+        glColor3f(1, 0, 0);
+        glVertex3f(@$origin, $ground_z);
+        glVertex3f($origin->x + $axis_len, $origin->y, $ground_z);  #,,
+        # draw line for y axis
+        glColor3f(0, 1, 0);
+        glVertex3f(@$origin, $ground_z);
+        glVertex3f($origin->x, $origin->y + $axis_len, $ground_z);  #++
+        # draw line for Z axis
+        glColor3f(0, 0, 1);
+        glVertex3f(@$origin, $ground_z);
+        glVertex3f(@$origin, $ground_z+$axis_len);
+        glEnd();
     }
     
     glEnable(GL_LIGHTING);
     
     # draw objects
     $self->draw_volumes;
+    
+    # draw cutting plane
+    if (defined $self->cutting_plane_z) {
+        my $plane_z = $self->cutting_plane_z;
+        my $bb = $volumes_bb;
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_LIGHTING);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(0.8, 0.8, 0.8, 0.5);
+        glVertex3f($bb->x_min-20, $bb->y_min-20, $plane_z);
+        glVertex3f($bb->x_max+20, $bb->y_min-20, $plane_z);
+        glVertex3f($bb->x_max+20, $bb->y_max+20, $plane_z);
+        glVertex3f($bb->x_min-20, $bb->y_max+20, $plane_z);
+        glEnd();
+        glEnable(GL_CULL_FACE);
+        glDisable(GL_BLEND);
+    }
     
     glFlush();
  
