@@ -745,6 +745,8 @@ sub Render {
         glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
         glDisableClientState(GL_VERTEX_ARRAY);
         
+        # we need depth test for grid, otherwise it would disappear when looking
+        # the object from below
         glEnable(GL_DEPTH_TEST);
     
         # draw grid
@@ -762,7 +764,8 @@ sub Render {
     
     {
         # draw axes
-        $ground_z += 0.02;
+        #$ground_z += 0.02;
+        glDisable(GL_DEPTH_TEST);
         my $origin = $self->origin;
         my $axis_len = max(
             0.3 * max(@{ $self->bed_bounding_box->size }),
@@ -783,6 +786,7 @@ sub Render {
         glVertex3f(@$origin, $ground_z);
         glVertex3f(@$origin, $ground_z+$axis_len);
         glEnd();
+        glEnable(GL_DEPTH_TEST);
     }
     
     glEnable(GL_LIGHTING);
