@@ -171,7 +171,7 @@ sub mouse_event {
         $self->_drag_start_pos($cur_pos);
         $self->_dragged(1);
         $self->Refresh;
-    } elsif ($e->Dragging && !defined $self->_hover_volume_idx) {
+    } elsif ($e->Dragging) {
         if ($e->LeftIsDown) {
             # if dragging over blank area with left button, rotate
             if (defined $self->_drag_start_pos) {
