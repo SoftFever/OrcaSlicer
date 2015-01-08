@@ -97,7 +97,7 @@ class ModelObject
     
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation
-        to new volumes before adding them to this object in order to preset alignment
+        to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
     Pointf3 origin_translation;
     

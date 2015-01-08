@@ -272,6 +272,7 @@ sub rotate {
     } elsif ($axis == Z) {
         $_->mesh->rotate_z($angle) for @{$self->volumes};
     }
+    $self->set_origin_translation(Slic3r::Pointf3->new(0,0,0));
     $self->invalidate_bounding_box;
 }
 
@@ -285,6 +286,7 @@ sub flip {
     } elsif ($axis == Z) {
         $_->mesh->flip_z for @{$self->volumes};
     }
+    $self->set_origin_translation(Slic3r::Pointf3->new(0,0,0));
     $self->invalidate_bounding_box;
 }
 

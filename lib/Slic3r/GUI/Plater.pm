@@ -659,6 +659,9 @@ sub rotate {
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         $model_object->rotate(deg2rad($angle), $axis);
+        
+        # realign object to Z = 0
+        $model_object->center_around_origin;
         $self->make_thumbnail($obj_idx);
     }
     
@@ -688,6 +691,9 @@ sub flip {
     
     $model_object->flip($axis);
     $model_object->update_bounding_box;
+    
+    # realign object to Z = 0
+    $model_object->center_around_origin;
     $self->make_thumbnail($obj_idx);
         
     # update print and start background processing
@@ -725,6 +731,7 @@ sub changescale {
         my $versor = [1,1,1];
         $versor->[$axis] = $scale/100;
         $model_object->scale_xyz(Slic3r::Pointf3->new(@$versor));
+        # object was already aligned to Z = 0, so no need to realign it
         $self->make_thumbnail($obj_idx);
     } else {
         # max scale factor should be above 2540 to allow importing files exported in inches

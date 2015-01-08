@@ -351,8 +351,6 @@ sub set_bed_shape {
 sub load_object {
     my ($self, $object, $all_instances) = @_;
     
-    my $z_min = $object->raw_bounding_box->z_min;
-    
     # color mesh(es) by material
     my @materials = ();
     
@@ -381,7 +379,6 @@ sub load_object {
                 instance_idx    => $instance_idx,
                 mesh            => $mesh,
                 color           => $color,
-                origin          => Slic3r::Pointf3->new(0,0,-$z_min),
             );
             push @volumes_idx, $#{$self->volumes};
         

@@ -520,6 +520,9 @@ ModelObject::scale(const Pointf3 &versor)
     for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
         (*v)->mesh.scale(versor);
     }
+    
+    // reset origin translation since it doesn't make sense anymore
+    this->origin_translation = Pointf3(0,0,0);
     this->invalidate_bounding_box();
 }
 
