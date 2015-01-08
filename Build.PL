@@ -47,7 +47,7 @@ if ($gui) {
     OpenGL                          0
     );
     if ($^O eq 'MSWin32') {
-        $recommends{Win32::TieRegistry} = 0;
+        $recommends{"Win32::TieRegistry"} = 0;
     }
 } elsif ($xs_only) {
     %prereqs = %recommends = ();
