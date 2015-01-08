@@ -111,12 +111,21 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
         }
     }
     
+    // get environment
+    ExPolygonCollection env = this->get_env(island_idx);
+    if (env.expolygons.empty()) {
+        // if this environment is empty (probably because it's too small), perform straight move
+        // and avoid running the algorithms on empty dataset
+        polyline->points.push_back(from);
+        polyline->points.push_back(to);
+        return; // bye bye
+    }
+    
     // Now check whether points are inside the environment.
     Point inner_from    = from;
     Point inner_to      = to;
     bool from_is_inside, to_is_inside;
     
-    ExPolygonCollection env = this->get_env(island_idx);
     if (!(from_is_inside = env.contains(from))) {
         // Find the closest inner point to start from.
         inner_from = this->nearest_env_point(env, from, to);
@@ -210,8 +219,12 @@ MotionPlanner::nearest_env_point(const ExPolygonCollection &env, const Point &fr
         }
     }
     
-    // if we're here, return last point (better than nothing)
-    return pp.front();
+    // if we're here, return last point if any (better than nothing)
+    if (!pp.empty()) return pp.front();
+    
+    // if we have no points at all, then we have an empty environment and we
+    // make this method behave as a no-op (we shouldn't get here by the way)
+    return from;
 }
 
 MotionPlannerGraph*
