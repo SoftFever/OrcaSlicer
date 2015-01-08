@@ -770,7 +770,7 @@ sub Render {
     
     {
         # draw axes
-        #$ground_z += 0.02;
+        # disable depth testing so that axes are not covered by ground
         glDisable(GL_DEPTH_TEST);
         my $origin = $self->origin;
         my $axis_len = max(
@@ -787,12 +787,15 @@ sub Render {
         glColor3f(0, 1, 0);
         glVertex3f(@$origin, $ground_z);
         glVertex3f($origin->x, $origin->y + $axis_len, $ground_z);  #++
+        glEnd();
         # draw line for Z axis
+        # (re-enable depth test so that axis is correctly shown when objects are behind it)
+        glEnable(GL_DEPTH_TEST);
+        glBegin(GL_LINES);
         glColor3f(0, 0, 1);
         glVertex3f(@$origin, $ground_z);
         glVertex3f(@$origin, $ground_z+$axis_len);
         glEnd();
-        glEnable(GL_DEPTH_TEST);
     }
     
     glEnable(GL_LIGHTING);
