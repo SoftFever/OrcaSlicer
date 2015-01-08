@@ -37,7 +37,9 @@ void
 ExtrusionEntityCollection::reverse()
 {
     for (ExtrusionEntitiesPtr::iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
-        (*it)->reverse();
+        // Don't reverse it if it's a loop, as it doesn't change anything in terms of elements ordering
+        // and caller might rely on winding order
+        if (!(*it)->is_loop()) (*it)->reverse();
     }
     std::reverse(this->entities.begin(), this->entities.end());
 }
@@ -96,7 +98,8 @@ ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCo
         int start_index = start_near.nearest_point_index(endpoints);
         int path_index = start_index/2;
         ExtrusionEntity* entity = my_paths.at(path_index);
-        if (start_index % 2 && !no_reverse) {
+        // never reverse loops, since it's pointless for chained path and callers might depend on orientation
+        if (start_index % 2 && !no_reverse && !entity->is_loop()) {
             entity->reverse();
         }
         retval->entities.push_back(my_paths.at(path_index));

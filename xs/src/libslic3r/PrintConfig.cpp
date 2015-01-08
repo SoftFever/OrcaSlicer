@@ -964,6 +964,11 @@ PrintConfigDef::build_def() {
     Options["use_relative_e_distances"].tooltip = "If your firmware requires relative E values, check this, otherwise leave it unchecked. Most firmwares use absolute values.";
     Options["use_relative_e_distances"].cli = "use-relative-e-distances!";
 
+    Options["use_volumetric_e"].type = coBool;
+    Options["use_volumetric_e"].label = "Use volumetric E";
+    Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. The M200 command is prepended to the generated G-code, unless it is found in the configured start G-code. This is only supported in recent Marlin.";
+    Options["use_volumetric_e"].cli = "use-volumetric-e!";
+
     Options["vibration_limit"].type = coFloat;
     Options["vibration_limit"].label = "Vibration limit (deprecated)";
     Options["vibration_limit"].tooltip = "This experimental option will slow down those moves hitting the configured frequency limit. The purpose of limiting vibrations is to avoid mechanical resonance. Set zero to disable.";

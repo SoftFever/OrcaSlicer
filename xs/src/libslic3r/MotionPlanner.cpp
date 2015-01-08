@@ -72,11 +72,23 @@ MotionPlanner::initialize()
     this->initialized = true;
 }
 
+ExPolygonCollection
+MotionPlanner::get_env(size_t island_idx) const
+{
+    if (island_idx == -1) {
+        return ExPolygonCollection(this->outer);
+    } else {
+        return this->inner[island_idx];
+    }
+}
+
 void
 MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyline)
 {
+    // lazy generation of configuration space
     if (!this->initialized) this->initialize();
     
+    // if we have an empty configuration space, return a straight move
     if (this->islands.empty()) {
         polyline->points.push_back(from);
         polyline->points.push_back(to);
@@ -99,28 +111,28 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
         }
     }
     
+    // get environment
+    ExPolygonCollection env = this->get_env(island_idx);
+    if (env.expolygons.empty()) {
+        // if this environment is empty (probably because it's too small), perform straight move
+        // and avoid running the algorithms on empty dataset
+        polyline->points.push_back(from);
+        polyline->points.push_back(to);
+        return; // bye bye
+    }
+    
     // Now check whether points are inside the environment.
     Point inner_from    = from;
     Point inner_to      = to;
     bool from_is_inside, to_is_inside;
-    if (island_idx == -1) {
-        if (!(from_is_inside = this->outer.contains(from))) {
-            // Find the closest inner point to start from.
-            from.nearest_point(this->outer, &inner_from);
-        }
-        if (!(to_is_inside = this->outer.contains(to))) {
-            // Find the closest inner point to start from.
-            to.nearest_point(this->outer, &inner_to);
-        }
-    } else {
-        if (!(from_is_inside = this->inner[island_idx].contains(from))) {
-            // Find the closest inner point to start from.
-            from.nearest_point(this->inner[island_idx], &inner_from);
-        }
-        if (!(to_is_inside = this->inner[island_idx].contains(to))) {
-            // Find the closest inner point to start from.
-            to.nearest_point(this->inner[island_idx], &inner_to);
-        }
+    
+    if (!(from_is_inside = env.contains(from))) {
+        // Find the closest inner point to start from.
+        inner_from = this->nearest_env_point(env, from, to);
+    }
+    if (!(to_is_inside = env.contains(to))) {
+        // Find the closest inner point to start from.
+        inner_to = this->nearest_env_point(env, to, inner_from);
     }
     
     // perform actual path search
@@ -129,85 +141,147 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
     
     polyline->points.insert(polyline->points.begin(), from);
     polyline->points.push_back(to);
+    
+    {
+        // grow our environment slightly in order for simplify_by_visibility()
+        // to work best by considering moves on boundaries valid as well
+        ExPolygonCollection grown_env;
+        offset(env, &grown_env.expolygons, +SCALED_EPSILON);
+        
+        // remove unnecessary vertices
+        polyline->simplify_by_visibility(grown_env);
+    }
+    
+    /*
+        SVG svg("shortest_path.svg");
+        svg.draw(this->outer);
+        svg.arrows = false;
+        for (MotionPlannerGraph::adjacency_list_t::const_iterator it = graph->adjacency_list.begin(); it != graph->adjacency_list.end(); ++it) {
+            Point a = graph->nodes[it - graph->adjacency_list.begin()];
+            for (std::vector<MotionPlannerGraph::neighbor>::const_iterator n = it->begin(); n != it->end(); ++n) {
+                Point b = graph->nodes[n->target];
+                svg.draw(Line(a, b));
+            }
+        }
+        svg.arrows = true;
+        svg.draw(from);
+        svg.draw(inner_from, "red");
+        svg.draw(to);
+        svg.draw(inner_to, "red");
+        svg.draw(*polyline, "red");
+        svg.Close();
+    */
+}
+
+Point
+MotionPlanner::nearest_env_point(const ExPolygonCollection &env, const Point &from, const Point &to) const
+{
+    /*  In order to ensure that the move between 'from' and the initial env point does
+        not violate any of the configuration space boundaries, we limit our search to
+        the points that satisfy this condition. */
+    
+    /*  Assume that this method is never called when 'env' contains 'from';
+        so 'from' is either inside a hole or outside all contours */
+    
+    // get the points of the hole containing 'from', if any
+    Points pp;
+    for (ExPolygons::const_iterator ex = env.expolygons.begin(); ex != env.expolygons.end(); ++ex) {
+        for (Polygons::const_iterator h = ex->holes.begin(); h != ex->holes.end(); ++h) {
+            if (h->contains(from)) {
+                pp = *h;
+            }
+        }
+        if (!pp.empty()) break;
+    }
+    
+    /*  If 'from' is not inside a hole, it's outside of all contours, so take all
+        contours' points */
+    if (pp.empty()) {
+        for (ExPolygons::const_iterator ex = env.expolygons.begin(); ex != env.expolygons.end(); ++ex) {
+            Points contour_pp = ex->contour;
+            pp.insert(pp.end(), contour_pp.begin(), contour_pp.end());
+        }
+    }
+    
+    /*  Find the candidate result and check that it doesn't cross any boundary.
+        (We could skip all of the above polygon finding logic and directly test all points
+        in env, but this way we probably reduce complexity). */
+    Polygons env_pp = env;
+    while (pp.size() >= 2) {
+        // find the point in pp that is closest to both 'from' and 'to'
+        size_t result = from.nearest_waypoint_index(pp, to);
+        
+        if (intersects((Lines)Line(from, pp[result]), env_pp)) {
+            // discard result
+            pp.erase(pp.begin() + result);
+        } else {
+            return pp[result];
+        }
+    }
+    
+    // if we're here, return last point if any (better than nothing)
+    if (!pp.empty()) return pp.front();
+    
+    // if we have no points at all, then we have an empty environment and we
+    // make this method behave as a no-op (we shouldn't get here by the way)
+    return from;
 }
 
 MotionPlannerGraph*
 MotionPlanner::init_graph(int island_idx)
 {
     if (this->graphs[island_idx + 1] == NULL) {
-        Polygons pp;
-        if (island_idx == -1) {
-            pp = this->outer;
-        } else {
-            pp = this->inner[island_idx];
-        }
-        
+        // if this graph doesn't exist, initialize it
         MotionPlannerGraph* graph = this->graphs[island_idx + 1] = new MotionPlannerGraph();
         
-        // add polygon boundaries as edges
-        size_t node_idx = 0;
-        Lines lines;
-        for (Polygons::const_iterator polygon = pp.begin(); polygon != pp.end(); ++polygon) {
-            graph->nodes.push_back(polygon->points.back());
-            node_idx++;
-            for (Points::const_iterator p = polygon->points.begin(); p != polygon->points.end(); ++p) {
-                graph->nodes.push_back(*p);
-                double dist = graph->nodes[node_idx-1].distance_to(*p);
-                graph->add_edge(node_idx-1, node_idx, dist);
-                graph->add_edge(node_idx, node_idx-1, dist);
-                node_idx++;
-            }
-            polygon->lines(&lines);
-        }
+        /*  We don't add polygon boundaries as graph edges, because we'd need to connect
+            them to the Voronoi-generated edges by recognizing coinciding nodes. */
         
-        // add Voronoi edges as internal edges
-        {
-            typedef voronoi_diagram<double> VD;
-            typedef std::map<const VD::vertex_type*,size_t> t_vd_vertices;
-            VD vd;
-            t_vd_vertices vd_vertices;
+        typedef voronoi_diagram<double> VD;
+        VD vd;
+        
+        // mapping between Voronoi vertices and graph nodes
+        typedef std::map<const VD::vertex_type*,size_t> t_vd_vertices;
+        t_vd_vertices vd_vertices;
+        
+        // get boundaries as lines
+        ExPolygonCollection env = this->get_env(island_idx);
+        Lines lines = env.lines();
+        boost::polygon::construct_voronoi(lines.begin(), lines.end(), &vd);
+        
+        // traverse the Voronoi diagram and generate graph nodes and edges
+        for (VD::const_edge_iterator edge = vd.edges().begin(); edge != vd.edges().end(); ++edge) {
+            if (edge->is_infinite()) continue;
             
-            boost::polygon::construct_voronoi(lines.begin(), lines.end(), &vd);
-            for (VD::const_edge_iterator edge = vd.edges().begin(); edge != vd.edges().end(); ++edge) {
-                if (edge->is_infinite()) continue;
-                
-                const VD::vertex_type* v0 = edge->vertex0();
-                const VD::vertex_type* v1 = edge->vertex1();
-                Point p0 = Point(v0->x(), v0->y());
-                Point p1 = Point(v1->x(), v1->y());
-                // contains() should probably be faster than contains(),
-                // and should it fail on any boundary points it's not a big problem
-                if (island_idx == -1) {
-                    if (!this->outer.contains(p0) || !this->outer.contains(p1)) continue;
-                } else {
-                    if (!this->inner[island_idx].contains(p0) || !this->inner[island_idx].contains(p1)) continue;
-                }
-                
-                t_vd_vertices::const_iterator i_v0 = vd_vertices.find(v0);
-                size_t v0_idx;
-                if (i_v0 == vd_vertices.end()) {
-                    graph->nodes.push_back(p0);
-                    v0_idx = node_idx;
-                    vd_vertices[v0] = node_idx;
-                    node_idx++;
-                } else {
-                    v0_idx = i_v0->second;
-                }
-                
-                t_vd_vertices::const_iterator i_v1 = vd_vertices.find(v1);
-                size_t v1_idx;
-                if (i_v1 == vd_vertices.end()) {
-                    graph->nodes.push_back(p1);
-                    v1_idx = node_idx;
-                    vd_vertices[v1] = node_idx;
-                    node_idx++;
-                } else {
-                    v1_idx = i_v1->second;
-                }
-                
-                double dist = graph->nodes[v0_idx].distance_to(graph->nodes[v1_idx]);
-                graph->add_edge(v0_idx, v1_idx, dist);
+            const VD::vertex_type* v0 = edge->vertex0();
+            const VD::vertex_type* v1 = edge->vertex1();
+            Point p0 = Point(v0->x(), v0->y());
+            Point p1 = Point(v1->x(), v1->y());
+            
+            // skip edge if any of its endpoints is outside our configuration space
+            if (!env.contains_b(p0) || !env.contains_b(p1)) continue;
+            
+            t_vd_vertices::const_iterator i_v0 = vd_vertices.find(v0);
+            size_t v0_idx;
+            if (i_v0 == vd_vertices.end()) {
+                graph->nodes.push_back(p0);
+                vd_vertices[v0] = v0_idx = graph->nodes.size()-1;
+            } else {
+                v0_idx = i_v0->second;
             }
+            
+            t_vd_vertices::const_iterator i_v1 = vd_vertices.find(v1);
+            size_t v1_idx;
+            if (i_v1 == vd_vertices.end()) {
+                graph->nodes.push_back(p1);
+                vd_vertices[v1] = v1_idx = graph->nodes.size()-1;
+            } else {
+                v1_idx = i_v1->second;
+            }
+            
+            // Euclidean distance is used as weight for the graph edge
+            double dist = graph->nodes[v0_idx].distance_to(graph->nodes[v1_idx]);
+            graph->add_edge(v0_idx, v1_idx, dist);
         }
         
         return graph;
@@ -244,38 +318,61 @@ MotionPlannerGraph::shortest_path(size_t from, size_t to, Polyline* polyline)
     
     const weight_t max_weight = std::numeric_limits<weight_t>::infinity();
     
-    std::vector<weight_t> min_distance;
+    std::vector<weight_t> dist;
     std::vector<node_t> previous;
     {
-        int n = this->adjacency_list.size();
-        min_distance.clear();
-        min_distance.resize(n, max_weight);
-        min_distance[from] = 0;
+        // number of nodes
+        size_t n = this->adjacency_list.size();
+        
+        // initialize dist and previous
+        dist.clear();
+        dist.resize(n, max_weight);
+        dist[from] = 0;  // distance from 'from' to itself
         previous.clear();
         previous.resize(n, -1);
-        std::set<std::pair<weight_t, node_t> > vertex_queue;
-        vertex_queue.insert(std::make_pair(min_distance[from], from));
- 
-        while (!vertex_queue.empty()) 
+        
+        // initialize the Q with all nodes
+        std::set<node_t> Q;
+        for (node_t i = 0; i < n; ++i) Q.insert(i);
+        
+        while (!Q.empty()) 
         {
-            weight_t dist = vertex_queue.begin()->first;
-            node_t u = vertex_queue.begin()->second;
-            vertex_queue.erase(vertex_queue.begin());
- 
-            // Visit each edge exiting u
+            // get node in Q having the minimum dist ('from' in the first loop)
+            node_t u;
+            {
+                double min_dist = -1;
+                for (std::set<node_t>::const_iterator n = Q.begin(); n != Q.end(); ++n) {
+                    if (dist[*n] < min_dist || min_dist == -1) {
+                        u = *n;
+                        min_dist = dist[*n];
+                    }
+                }
+            }
+            Q.erase(u);
+            
+            // stop searching if we reached our destination
+            if (u == to) break;
+            
+            // Visit each edge starting from node u
             const std::vector<neighbor> &neighbors = this->adjacency_list[u];
             for (std::vector<neighbor>::const_iterator neighbor_iter = neighbors.begin();
                  neighbor_iter != neighbors.end();
                  neighbor_iter++)
             {
+                // neighbor node is v
                 node_t v = neighbor_iter->target;
-                weight_t weight = neighbor_iter->weight;
-                weight_t distance_through_u = dist + weight;
-                if (distance_through_u < min_distance[v]) {
-                    vertex_queue.erase(std::make_pair(min_distance[v], v));
-                    min_distance[v] = distance_through_u;
+                
+                // skip if we already visited this
+                if (Q.find(v) == Q.end()) continue;
+                
+                // calculate total distance
+                weight_t alt = dist[u] + neighbor_iter->weight;
+                
+                // if total distance through u is shorter than the previous
+                // distance (if any) between 'from' and 'v', replace it
+                if (alt < dist[v]) {
+                    dist[v]     = alt;
                     previous[v] = u;
-                    vertex_queue.insert(std::make_pair(min_distance[v], v));
                 }
 
             }
@@ -284,6 +381,7 @@ MotionPlannerGraph::shortest_path(size_t from, size_t to, Polyline* polyline)
     
     for (node_t vertex = to; vertex != -1; vertex = previous[vertex])
         polyline->points.push_back(this->nodes[vertex]);
+    polyline->points.push_back(this->nodes[from]);
     polyline->reverse();
 }
 

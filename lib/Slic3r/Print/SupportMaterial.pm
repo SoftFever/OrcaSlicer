@@ -178,7 +178,7 @@ sub contact_area {
                         # TODO: split_at_first_point() could split a bridge mid-way
                         my @overhang_perimeters =
                             map { $_->isa('Slic3r::ExtrusionLoop') ? $_->polygon->split_at_first_point : $_->polyline->clone }
-                            @{$layerm->perimeters};
+                            map @$_, @{$layerm->perimeters};
                         
                         # workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
                         $_->[0]->translate(1,0) for @overhang_perimeters;

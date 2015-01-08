@@ -3,6 +3,11 @@
 
 namespace Slic3r {
 
+ExPolygonCollection::ExPolygonCollection(const ExPolygon &expolygon)
+{
+    this->expolygons.push_back(expolygon);
+}
+
 ExPolygonCollection::operator Points() const
 {
     Points points;
@@ -68,6 +73,15 @@ template bool ExPolygonCollection::contains<Point>(const Point &item) const;
 template bool ExPolygonCollection::contains<Line>(const Line &item) const;
 template bool ExPolygonCollection::contains<Polyline>(const Polyline &item) const;
 
+bool
+ExPolygonCollection::contains_b(const Point &point) const
+{
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
+        if (it->contains_b(point)) return true;
+    }
+    return false;
+}
+
 void
 ExPolygonCollection::simplify(double tolerance)
 {
@@ -85,6 +99,17 @@ ExPolygonCollection::convex_hull(Polygon* hull) const
     for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it)
         pp.insert(pp.end(), it->contour.points.begin(), it->contour.points.end());
     Slic3r::Geometry::convex_hull(pp, hull);
+}
+
+Lines
+ExPolygonCollection::lines() const
+{
+    Lines lines;
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
+        Lines ex_lines = it->lines();
+        lines.insert(lines.end(), ex_lines.begin(), ex_lines.end());
+    }
+    return lines;
 }
 
 #ifdef SLIC3RXS

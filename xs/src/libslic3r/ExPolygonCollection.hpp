@@ -17,6 +17,7 @@ class ExPolygonCollection
     ExPolygons expolygons;
     
     ExPolygonCollection() {};
+    ExPolygonCollection(const ExPolygon &expolygon);
     ExPolygonCollection(const ExPolygons &expolygons) : expolygons(expolygons) {};
     operator Points() const;
     operator Polygons() const;
@@ -25,8 +26,10 @@ class ExPolygonCollection
     void translate(double x, double y);
     void rotate(double angle, const Point &center);
     template <class T> bool contains(const T &item) const;
+    bool contains_b(const Point &point) const;
     void simplify(double tolerance);
     void convex_hull(Polygon* hull) const;
+    Lines lines() const;
 };
 
 }

@@ -301,7 +301,7 @@ sub Render {
         foreach my $layerm (@{$layer->regions}) {
             if ($object->step_done(STEP_PERIMETERS)) {
                 $self->color([0.7, 0, 0]);
-                $self->_draw($object, $print_z, $_) for @{$layerm->perimeters};
+                $self->_draw($object, $print_z, $_) for map @$_, @{$layerm->perimeters};
             }
             
             if ($object->step_done(STEP_INFILL)) {

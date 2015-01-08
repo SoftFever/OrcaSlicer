@@ -928,6 +928,7 @@ sub build {
         serial_port serial_speed
         octoprint_host octoprint_apikey
         use_firmware_retraction pressure_advance vibration_limit
+        use_volumetric_e
         start_gcode end_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
@@ -1019,8 +1020,8 @@ sub build {
         {
             my $optgroup = $page->new_optgroup('OctoPrint upload');
             
-            # append a button to the Host line
-            my $octoprint_host_widget = sub {
+            # append two buttons to the Host line
+            my $octoprint_host_browse = sub {
                 my ($parent) = @_;
                 
                 my $btn = Wx::Button->new($parent, -1, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
@@ -1032,10 +1033,7 @@ sub build {
                 if (!eval "use Net::Bonjour; 1") {
                     $btn->Disable;
                 }
-        
-                my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-                $sizer->Add($btn);
-        
+                
                 EVT_BUTTON($self, $btn, sub {
                     my $dlg = Slic3r::GUI::BonjourBrowser->new($self);
                     if ($dlg->ShowModal == wxID_OK) {
@@ -1047,22 +1045,51 @@ sub build {
                     }
                 });
                 
-                return $sizer;
+                return $btn;
+            };
+            my $octoprint_host_test = sub {
+                my ($parent) = @_;
+                
+                my $btn = $self->{octoprint_host_test_btn} = Wx::Button->new($parent, -1, "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+                $btn->SetFont($Slic3r::GUI::small_font);
+                if ($Slic3r::GUI::have_button_icons) {
+                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/wrench.png", wxBITMAP_TYPE_PNG));
+                }
+                
+                EVT_BUTTON($self, $btn, sub {
+                    my $ua = LWP::UserAgent->new;
+                    $ua->timeout(10);
+    
+                    my $res = $ua->post(
+                        "http://" . $self->{config}->octoprint_host . "/api/version",
+                        'X-Api-Key' => $self->{config}->octoprint_apikey,
+                    );
+                    if ($res->is_success) {
+                        Slic3r::GUI::show_info($self, "Connection to OctoPrint works correctly.", "Success!");
+                    } else {
+                        Slic3r::GUI::show_error($self,
+                            "I wasn't able to connect to OctoPrint (" . $res->status_line . "). "
+                            . "Check hostname and OctoPrint version (at least 1.1.0 is required).");
+                    }
+                });
+                return $btn;
             };
             
             my $host_line = $optgroup->create_single_option_line('octoprint_host');
-            $host_line->append_widget($octoprint_host_widget);
+            $host_line->append_widget($octoprint_host_browse);
+            $host_line->append_widget($octoprint_host_test);
             $optgroup->append_line($host_line);
             $optgroup->append_single_option_line('octoprint_apikey');
         }
         {
             my $optgroup = $page->new_optgroup('Firmware');
             $optgroup->append_single_option_line('gcode_flavor');
-            $optgroup->append_single_option_line('use_relative_e_distances');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');
+            $optgroup->append_single_option_line('use_relative_e_distances');
             $optgroup->append_single_option_line('use_firmware_retraction');
+            $optgroup->append_single_option_line('use_volumetric_e');
             $optgroup->append_single_option_line('pressure_advance');
             $optgroup->append_single_option_line('vibration_limit');
         }
@@ -1201,6 +1228,11 @@ sub _update {
     my $config = $self->{config};
     
     $self->get_field('serial_speed')->toggle($config->get('serial_port'));
+    if ($config->get('octoprint_host') && eval "use LWP::UserAgent; 1") {
+        $self->{octoprint_host_test_btn}->Enable;
+    } else {
+        $self->{octoprint_host_test_btn}->Disable;
+    }
     $self->get_field('octoprint_apikey')->toggle($config->get('octoprint_host'));
     
     my $have_multiple_extruders = $self->{extruders_count} > 1;

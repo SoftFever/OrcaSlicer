@@ -9,8 +9,12 @@ Extruder::Extruder(int id, GCodeConfig *config)
     reset();
     
     // cache values that are going to be called often
-    this->e_per_mm3 = this->extrusion_multiplier()
-        * (4 / ((this->filament_diameter() * this->filament_diameter()) * PI));
+    if (config->use_volumetric_e) {
+        this->e_per_mm3 = this->extrusion_multiplier();
+    } else {
+        this->e_per_mm3 = this->extrusion_multiplier()
+            * (4 / ((this->filament_diameter() * this->filament_diameter()) * PI));
+    }
     this->retract_speed_mm_min = this->retract_speed() * 60;
 }
 
@@ -80,12 +84,22 @@ Extruder::e_per_mm(double mm3_per_mm) const
 double
 Extruder::extruded_volume() const
 {
+    if (this->config->use_volumetric_e) {
+        // Any current amount of retraction should not affect used filament, since
+        // it represents empty volume in the nozzle. We add it back to E.
+        return this->absolute_E + this->retracted;
+    }
+    
     return this->used_filament() * (this->filament_diameter() * this->filament_diameter()) * PI/4;
 }
 
 double
 Extruder::used_filament() const
 {
+    if (this->config->use_volumetric_e) {
+        return this->extruded_volume() / (this->filament_diameter() * this->filament_diameter() * PI/4);
+    }
+    
     // Any current amount of retraction should not affect used filament, since
     // it represents empty volume in the nozzle. We add it back to E.
     return this->absolute_E + this->retracted;

@@ -1,4 +1,6 @@
 #include "Polyline.hpp"
+#include "ExPolygon.hpp"
+#include "ExPolygonCollection.hpp"
 #include "Line.hpp"
 #include "Polygon.hpp"
 #include <iostream>
@@ -127,6 +129,37 @@ Polyline::simplify(double tolerance)
     this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
 }
 
+/* This method simplifies all *lines* contained in the supplied area */
+template <class T>
+void
+Polyline::simplify_by_visibility(const T &area)
+{
+    Points &pp = this->points;
+    
+    // find first point in area
+    size_t start = 0;
+    while (start < pp.size() && !area.contains(pp[start])) {
+        start++;
+    }
+    
+    for (size_t s = start; s < pp.size() && !pp.empty(); ++s) {
+        // find the farthest point to which we can build
+        // a line that is contained in the supplied area
+        // a binary search would be more efficient for this
+        for (size_t e = pp.size()-1; e > (s + 1); --e) {
+            if (area.contains(Line(pp[s], pp[e]))) {
+                // we can suppress points between s and e
+                pp.erase(pp.begin() + s + 1, pp.begin() + e);
+                
+                // repeat recursively until no further simplification is possible
+                return this->simplify_by_visibility(area);
+            }
+        }
+    }
+}
+template void Polyline::simplify_by_visibility<ExPolygon>(const ExPolygon &area);
+template void Polyline::simplify_by_visibility<ExPolygonCollection>(const ExPolygonCollection &area);
+
 void
 Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
 {
@@ -159,7 +192,7 @@ Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
     p2->points.clear();
     p2->points.push_back(point);
     for (Lines::const_iterator line = lines.begin() + line_idx; line != lines.end(); ++line) {
-        if (!line->b.coincides_with(p)) p2->points.push_back(line->b);
+        p2->points.push_back(line->b);
     }
 }
 

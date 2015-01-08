@@ -16,6 +16,13 @@ Line::wkt() const
     return ss.str();
 }
 
+Line::operator Lines() const
+{
+    Lines lines;
+    lines.push_back(*this);
+    return lines;
+}
+
 Line::operator Polyline() const
 {
     Polyline pl;

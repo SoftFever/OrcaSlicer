@@ -9,6 +9,7 @@ namespace Slic3r {
 class Line;
 class Linef3;
 class Polyline;
+typedef std::vector<Line> Lines;
 
 class Line
 {
@@ -18,6 +19,7 @@ class Line
     Line() {};
     explicit Line(Point _a, Point _b): a(_a), b(_b) {};
     std::string wkt() const;
+    operator Lines() const;
     operator Polyline() const;
     void scale(double factor);
     void translate(double x, double y);
@@ -44,8 +46,6 @@ class Line
     SV* to_SV_pureperl() const;
     #endif
 };
-
-typedef std::vector<Line> Lines;
 
 class Linef3
 {

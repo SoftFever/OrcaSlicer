@@ -1,4 +1,4 @@
-use Test::More tests => 19;
+use Test::More tests => 18;
 use strict;
 use warnings;
 
@@ -198,31 +198,6 @@ use Slic3r::Test qw(_eq);
     });
     
     ok $retracted, 'retracting also when --retract-length is 0 but --use-firmware-retraction is enabled';
-}
-
-{
-    my $config = Slic3r::Config->new_from_defaults;
-    $config->set('only_retract_when_crossing_perimeters', 1);
-    $config->set('fill_density', 0);
-    
-    my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
-    my $retracted = 0;
-    my $traveling_without_retraction = 0;
-    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-        my ($self, $cmd, $args, $info) = @_;
-        
-        if ($info->{retracting}) {
-            $retracted = 1;
-        } elsif ($info->{extruding} && $retracted) {
-            $retracted = 0;
-        } elsif ($info->{travel} && !$retracted) {
-            if ($info->{dist_XY} > $config->retract_before_travel->[0]) {
-                $traveling_without_retraction = 1;
-            }
-        }
-    });
-    
-    ok !$traveling_without_retraction, 'always retract when using only_retract_when_crossing_perimeters and fill_density = 0';
 }
 
 __END__

@@ -278,7 +278,7 @@ ExtrusionLoop::split_at(const Point &point)
 {
     if (this->paths.empty()) return;
     
-    // find the closest path and closest point
+    // find the closest path and closest point belonging to that path
     size_t path_idx = 0;
     Point p = this->paths.front().first_point();
     double min = point.distance_to(p);
