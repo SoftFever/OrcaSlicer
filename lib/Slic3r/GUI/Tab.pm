@@ -1034,10 +1034,6 @@ sub build {
                     $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/wrench.png", wxBITMAP_TYPE_PNG));
                 }
                 
-                if (!eval "use LWP::UserAgent; 1") {
-                    $btn->Disable;
-                }
-                
                 EVT_BUTTON($self, $btn, sub {
                     my $ua = LWP::UserAgent->new;
                     $ua->timeout(10);
@@ -1202,7 +1198,7 @@ sub _update {
     
     my $config = $self->{config};
     
-    if ($config->get('octoprint_host')) {
+    if ($config->get('octoprint_host') && eval "use LWP::UserAgent; 1") {
         $self->{octoprint_host_test_btn}->Enable;
     } else {
         $self->{octoprint_host_test_btn}->Disable;
