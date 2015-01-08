@@ -424,17 +424,17 @@ sub process_layer {
             # process perimeters
             {
                 my $extruder_id = $region->config->perimeter_extruder-1;
-                foreach my $perimeter (@{$layerm->perimeters}) {
+                foreach my $perimeter_coll (@{$layerm->perimeters}) {
                     # init by_extruder item only if we actually use the extruder
                     $by_extruder{$extruder_id} //= [];
                     
-                    # $perimeter is an ExtrusionLoop or ExtrusionPath object
+                    # $perimeter_coll is an ExtrusionPath::Collection object representing a single slice
                     for my $i (0 .. $#{$layer->slices}) {
                         if ($i == $#{$layer->slices}
-                            || $layer->slices->[$i]->contour->contains_point($perimeter->first_point)) {
+                            || $layer->slices->[$i]->contour->contains_point($perimeter_coll->first_point)) {
                             $by_extruder{$extruder_id}[$i] //= { perimeters => {} };
                             $by_extruder{$extruder_id}[$i]{perimeters}{$region_id} //= [];
-                            push @{ $by_extruder{$extruder_id}[$i]{perimeters}{$region_id} }, $perimeter;
+                            push @{ $by_extruder{$extruder_id}[$i]{perimeters}{$region_id} }, @$perimeter_coll;
                             last;
                         }
                     }

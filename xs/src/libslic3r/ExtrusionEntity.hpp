@@ -35,6 +35,9 @@ enum ExtrusionLoopRole {
 class ExtrusionEntity
 {
     public:
+    virtual bool is_loop() const {
+        return false;
+    };
     virtual ExtrusionEntity* clone() const = 0;
     virtual ~ExtrusionEntity() {};
     virtual void reverse() = 0;
@@ -84,6 +87,9 @@ class ExtrusionLoop : public ExtrusionEntity
     ExtrusionLoopRole role;
     
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
+    bool is_loop() const {
+        return true;
+    };
     operator Polygon() const;
     ExtrusionLoop* clone() const;
     bool make_clockwise();

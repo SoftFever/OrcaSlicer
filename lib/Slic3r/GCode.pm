@@ -207,8 +207,11 @@ sub extrude_loop {
         my $last_path_polyline = $paths[-1]->polyline;
         # detect angle between last and first segment
         # the side depends on the original winding order of the polygon (left for contours, right for holes)
-        my @points = $was_clockwise ? (-2, 1) : (1, -2);
-        my $angle = Slic3r::Geometry::angle3points(@$last_path_polyline[0, @points]) / 3;
+        my @points = ($paths[0][1], $paths[-1][-2]);
+        @points = reverse @points if $was_clockwise;
+        my $angle = $paths[0]->first_point->ccw_angle(@points) / 3;
+        
+        # turn left if contour, turn right if hole
         $angle *= -1 if $was_clockwise;
         
         # create the destination point along the first segment and rotate it

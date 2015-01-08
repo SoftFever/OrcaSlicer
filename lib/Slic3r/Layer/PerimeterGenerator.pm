@@ -8,7 +8,7 @@ use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset of
     offset_ex offset2_ex union_pt intersection_ppl diff_ppl);
 use Slic3r::Surface ':types';
 
-has 'slices'                => (is => 'ro', required => 1);
+has 'slices'                => (is => 'ro', required => 1);  # SurfaceCollection
 has 'lower_slices'          => (is => 'ro', required => 0);
 has 'layer_height'          => (is => 'ro', required => 1);
 has 'layer_id'              => (is => 'ro', required => 0, default => sub { -1 });
@@ -16,9 +16,9 @@ has 'perimeter_flow'        => (is => 'ro', required => 1);
 has 'ext_perimeter_flow'    => (is => 'ro', required => 1);
 has 'overhang_flow'         => (is => 'ro', required => 1);
 has 'solid_infill_flow'     => (is => 'ro', required => 1);
-has 'config'                => (is => 'ro', default => sub { Slic3r::Config::Region->new });
+has 'config'                => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new });
 has 'print_config'          => (is => 'ro', default => sub { Slic3r::Config::Print->new });
-has '_lower_slices_p'       => (is => 'rw');
+has '_lower_slices_p'       => (is => 'rw', default => sub { [] });
 has '_holes_pt'             => (is => 'rw');
 has '_ext_mm3_per_mm'       => (is => 'rw');
 has '_mm3_per_mm'           => (is => 'rw');
@@ -33,6 +33,19 @@ has 'gap_fill'      => (is => 'ro', default => sub { Slic3r::ExtrusionPath::Coll
 
 # generated fill surfaces will be put here
 has 'fill_surfaces' => (is => 'ro', default => sub { Slic3r::Surface::Collection->new });
+
+sub BUILDARGS {
+    my ($class, %args) = @_;
+    
+    if (my $flow = delete $args{flow}) {
+        $args{perimeter_flow}       //= $flow;
+        $args{ext_perimeter_flow}   //= $flow;
+        $args{overhang_flow}        //= $flow;
+        $args{solid_infill_flow}    //= $flow;
+    }
+    
+    return { %args };
+}
 
 sub process {
     my ($self) = @_;
@@ -62,13 +75,25 @@ sub process {
     my $min_spacing         = $pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
     my $ext_min_spacing     = $ext_pspacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
     
-    my @contours    = ();    # array of Polygons with ccw orientation
-    my @holes       = ();    # array of Polygons with cw orientation
-    my @thin_walls  = ();    # array of ExPolygons
+    # prepare grown lower layer slices for overhang detection
+    if ($self->lower_slices && $self->config->overhangs) {
+        # We consider overhang any part where the entire nozzle diameter is not supported by the
+        # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
+        # in the current layer
+        my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->config->perimeter_extruder-1);
+        
+        $self->_lower_slices_p(
+            offset([ map @$_, @{$self->lower_slices} ], scale +$nozzle_diameter/2)
+        );
+    }
     
     # we need to process each island separately because we might have different
     # extra perimeters for each one
     foreach my $surface (@{$self->slices}) {
+        my @contours    = ();    # array of Polygons with ccw orientation
+        my @holes       = ();    # array of Polygons with cw orientation
+        my @thin_walls  = ();    # array of ExPolygons
+        
         # detect how many perimeters must be generated for this island
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         
@@ -194,60 +219,48 @@ sub process {
                     -($pspacing/2 + $min_perimeter_infill_spacing/2),
                     +$min_perimeter_infill_spacing/2,
                 )};
-    }
     
     
-    # process thin walls by collapsing slices to single passes
-    if (@thin_walls) {
-        # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
-        # (actually, something larger than that still may exist due to mitering or other causes)
-        my $min_width = $pwidth / 4;
-        @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -$min_width/2, +$min_width/2)};
+        # process thin walls by collapsing slices to single passes
+        if (@thin_walls) {
+            # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
+            # (actually, something larger than that still may exist due to mitering or other causes)
+            my $min_width = $pwidth / 4;
+            @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -$min_width/2, +$min_width/2)};
         
-        # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-        $self->_thin_wall_polylines([ map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls ]);
-        Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->_thin_wall_polylines}) if $Slic3r::debug;
+            # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
+            $self->_thin_wall_polylines([ map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls ]);
+            Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->_thin_wall_polylines}) if $Slic3r::debug;
         
-        if (0) {
-            require "Slic3r/SVG.pm";
-            Slic3r::SVG::output(
-                "medial_axis.svg",
-                no_arrows => 1,
-                expolygons      => \@thin_walls,
-                green_polylines => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
-                red_polylines   => $self->_thin_wall_polylines,
-            );
+            if (0) {
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(
+                    "medial_axis.svg",
+                    no_arrows => 1,
+                    expolygons      => \@thin_walls,
+                    green_polylines => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
+                    red_polylines   => $self->_thin_wall_polylines,
+                );
+            }
         }
+        
+        # find nesting hierarchies separately for contours and holes
+        my $contours_pt = union_pt(\@contours);
+        $self->_holes_pt(union_pt(\@holes));
+    
+        # order loops from inner to outer (in terms of object slices)
+        my @loops = $self->_traverse_pt($contours_pt, 0, 1);
+    
+        # if brim will be printed, reverse the order of perimeters so that
+        # we continue inwards after having finished the brim
+        # TODO: add test for perimeter order
+        @loops = reverse @loops
+            if $self->config->external_perimeters_first
+                || ($self->layer_id == 0 && $self->print_config->brim_width > 0);
+        
+        # append perimeters for this slice as a collection
+        $self->loops->append(Slic3r::ExtrusionPath::Collection->new(@loops));
     }
-    
-    # find nesting hierarchies separately for contours and holes
-    my $contours_pt = union_pt(\@contours);
-    $self->_holes_pt(union_pt(\@holes));
-    
-    # prepare grown lower layer slices for overhang detection
-    my $lower_slices = Slic3r::ExPolygon::Collection->new;
-    if ($self->lower_slices && $self->config->overhangs) {
-        # We consider overhang any part where the entire nozzle diameter is not supported by the
-        # lower layer, so we take lower slices and offset them by half the nozzle diameter used 
-        # in the current layer
-        my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->config->perimeter_extruder-1);
-        $lower_slices->append($_)
-            for @{offset_ex([ map @$_, @{$self->lower_slices} ], scale +$nozzle_diameter/2)};
-    }
-    $self->_lower_slices_p($lower_slices->polygons);
-    
-    # order loops from inner to outer (in terms of object slices)
-    my @loops = $self->_traverse_pt($contours_pt, 0, 1);
-    
-    # if brim will be printed, reverse the order of perimeters so that
-    # we continue inwards after having finished the brim
-    # TODO: add test for perimeter order
-    @loops = reverse @loops
-        if $self->config->external_perimeters_first
-            || ($self->layer_id == 0 && $self->print_config->brim_width > 0);
-    
-    # append perimeters
-    $self->loops->append($_) for @loops;
 }
 
 sub _traverse_pt {
@@ -328,9 +341,8 @@ sub _traverse_pt {
         # return ccw contours and cw holes
         # GCode.pm will convert all of them to ccw, but it needs to know
         # what the holes are in order to compute the correct inwards move
-        # We do this on the final Loop object instead of the polygon because
-        # overhang clipping might have reversed its order since Clipper does
-        # not preserve polyline orientation.
+        # We do this on the final Loop object because overhang clipping
+        # does not keep orientation.
         if ($is_contour) {
             $loop->make_counter_clockwise;
         } else {
@@ -358,10 +370,13 @@ sub _traverse_pt {
     
     # use a nearest neighbor search to order these children
     # TODO: supply second argument to chained_path() too?
-    # (We used to skip this chiained_path() when $is_contour &&
+    # (We used to skip this chained_path() when $is_contour &&
     # $depth == 0 because slices are ordered at G_code export 
     # time, but multiple top-level perimeters might belong to
     # the same slice actually, so that was a broken optimization.)
+    # We supply no_reverse = false because we want to permit reversal
+    # of thin walls, but we rely on the fact that loops will never
+    # be reversed anyway.
     my $sorted_collection = $collection->chained_path_indices(0);
     my @orig_indices = @{$sorted_collection->orig_indices};
     
@@ -407,7 +422,6 @@ sub _fill_gaps {
         1,
     );
     my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
-    
     return if !@polylines;
     
     Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @$this, $w

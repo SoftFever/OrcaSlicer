@@ -1,4 +1,4 @@
-use Test::More tests => 11;
+use Test::More tests => 29;
 use strict;
 use warnings;
 
@@ -7,6 +7,8 @@ BEGIN {
     use lib "$FindBin::Bin/../lib";
 }
 
+use Slic3r::ExtrusionLoop ':roles';
+use Slic3r::ExtrusionPath ':roles';
 use List::Util qw(first);
 use Slic3r;
 use Slic3r::Flow ':roles';
@@ -188,7 +190,7 @@ use Slic3r::Test;
     my $pflow = $layerm->flow(FLOW_ROLE_PERIMETER);
     my $iflow = $layerm->flow(FLOW_ROLE_INFILL);
     my $covered_by_perimeters = union_ex([
-        (map @{$_->polygon->split_at_first_point->grow($pflow->scaled_width/2)}, @{$layerm->perimeters}),
+        (map @{$_->polygon->split_at_first_point->grow($pflow->scaled_width/2)}, map @$_, @{$layerm->perimeters}),
     ]);
     my $covered_by_infill = union_ex([
         (map $_->p, @{$layerm->fill_surfaces}),
@@ -283,6 +285,91 @@ use Slic3r::Test;
     };
     $test->('20mm_cube');
     $test->('small_dorito');
+}
+
+{
+    my $flow = Slic3r::Flow->new(
+        width           => 1,
+        height          => 1,
+        nozzle_diameter => 1,
+    );
+    
+    my $config = Slic3r::Config->new;
+    my $test = sub {
+        my ($expolygons, %expected) = @_;
+        
+        my $slices = Slic3r::Surface::Collection->new;
+        $slices->append(Slic3r::Surface->new(
+            surface_type => S_TYPE_INTERNAL,
+            expolygon => $_,
+        )) for @$expolygons;
+    
+        my $g = Slic3r::Layer::PerimeterGenerator->new(
+            # input:
+            layer_height    => 1,
+            slices          => $slices,
+            flow            => $flow,
+        );
+        $g->config->apply_dynamic($config);
+        $g->process;
+        
+        is scalar(@{$g->loops}),
+            scalar(@$expolygons), 'expected number of collections';
+        ok !defined(first { !$_->isa('Slic3r::ExtrusionPath::Collection') } @{$g->loops}),
+            'everything is returned as collections';
+        is scalar(map @$_, @{$g->loops}),
+            $expected{total}, 'expected number of loops';
+        is scalar(grep $_->role == EXTR_ROLE_EXTERNAL_PERIMETER, map @$_, map @$_, @{$g->loops}),
+            $expected{external}, 'expected number of external loops';
+        is scalar(grep $_->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER, map @$_, @{$g->loops}),
+            $expected{cinternal}, 'expected number of internal contour loops';
+        is scalar(grep $_->polygon->is_counter_clockwise, map @$_, @{$g->loops}),
+            $expected{ccw}, 'expected number of ccw loops';
+        
+        return $g;
+    };
+    
+    $config->set('perimeters', 3);
+    $test->(
+        [
+            Slic3r::ExPolygon->new(
+                Slic3r::Polygon->new_scale([0,0], [100,0], [100,100], [0,100]),
+            ),
+        ],
+        total       => 3,
+        external    => 1,
+        cinternal   => 1,
+        ccw         => 3,
+    );
+    $test->(
+        [
+            Slic3r::ExPolygon->new(
+                Slic3r::Polygon->new_scale([0,0], [100,0], [100,100], [0,100]),
+                Slic3r::Polygon->new_scale([40,40], [40,60], [60,60], [60,40]),
+            ),
+        ],
+        total       => 6,
+        external    => 2,
+        cinternal   => 1,
+        ccw         => 3,
+    );
+    $test->(
+        [
+            Slic3r::ExPolygon->new(
+                Slic3r::Polygon->new_scale([0,0], [200,0], [200,200], [0,200]),
+                Slic3r::Polygon->new_scale([20,20], [20,180], [180,180], [180,20]),
+            ),
+            # nested:
+            Slic3r::ExPolygon->new(
+                Slic3r::Polygon->new_scale([50,50], [150,50], [150,150], [50,150]),
+                Slic3r::Polygon->new_scale([80,80], [80,120], [120,120], [120,80]),
+            ),
+        ],
+        total       => 4*3,
+        external    => 4,
+        cinternal   => 2,
+        ccw         => 2*3,
+    );
 }
 
 __END__
