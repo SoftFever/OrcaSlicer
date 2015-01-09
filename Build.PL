@@ -18,7 +18,6 @@ my %prereqs = qw(
     Moo                             1.003001
     POSIX                           0
     Scalar::Util                    0
-    Test::Harness                   0
     Test::More                      0
     Thread::Semaphore               0
     IO::Scalar                      0
@@ -30,6 +29,7 @@ my %recommends = qw(
     LWP::UserAgent                  0
     Net::Bonjour                    0
     XML::SAX::ExpatXS               0
+    Test::Harness                   0
 );
 
 my $sudo    = grep { $_ eq '--sudo' } @ARGV;
