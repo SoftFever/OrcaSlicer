@@ -12,7 +12,7 @@ BEGIN {
 use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
 use Slic3r::GUI;
-use Slic3r::GUI::PreviewCanvas;
+use Slic3r::GUI::3DScene;
 $|++;
 
 my %opt = ();
@@ -82,7 +82,7 @@ sub OnInit {
     
     my $canvas;
     if ($d3) {
-        $canvas = Slic3r::GUI::PreviewCanvas->new($panel);
+        $canvas = Slic3r::GUI::3DScene->new($panel);
         $canvas->print($print);
         
         $canvas->set_bed_shape($print->config->bed_shape);

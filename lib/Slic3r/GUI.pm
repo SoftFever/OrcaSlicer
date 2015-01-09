@@ -26,7 +26,7 @@ use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 
-our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
+our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow

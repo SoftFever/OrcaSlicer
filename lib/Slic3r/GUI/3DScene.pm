@@ -1,4 +1,4 @@
-package Slic3r::GUI::PreviewCanvas;
+package Slic3r::GUI::3DScene;
 use strict;
 use warnings;
 
@@ -375,7 +375,7 @@ sub load_object {
         
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
             push @$color, $volume->modifier ? 0.5 : 1;
-            push @{$self->volumes}, my $v = Slic3r::GUI::PreviewCanvas::Volume->new(
+            push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
                 bounding_box    => $mesh->bounding_box,
                 group_id        => $group_id,
                 instance_idx    => $instance_idx,
@@ -940,7 +940,7 @@ sub draw_volumes {
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-package Slic3r::GUI::PreviewCanvas::Volume;
+package Slic3r::GUI::3DScene::Volume;
 use Moo;
 
 has 'mesh'          => (is => 'rw', required => 0);  # only required for cut contours

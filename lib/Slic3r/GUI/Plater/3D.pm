@@ -8,7 +8,7 @@ use Slic3r::Geometry qw();
 use Slic3r::Geometry::Clipper qw();
 use Wx qw(:misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
 use Wx::Event qw();
-use base qw(Slic3r::GUI::PreviewCanvas Class::Accessor);
+use base qw(Slic3r::GUI::3DScene Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(_volumes _volumes_inv));
 

@@ -12,7 +12,7 @@ BEGIN {
 use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
 use Slic3r::GUI;
-use Slic3r::GUI::PreviewCanvas;
+use Slic3r::GUI::3DScene;
 $|++;
 
 my %opt = ();
@@ -66,7 +66,7 @@ sub OnInit {
     my $frame = Wx::Frame->new(undef, -1, 'Mesh Viewer', [-1, -1], [500, 400]);
     my $panel = Wx::Panel->new($frame, -1);
     
-    $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($panel);
+    $self->{canvas} = Slic3r::GUI::3DScene->new($panel);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($self->{canvas}, 1, wxEXPAND, 0);
