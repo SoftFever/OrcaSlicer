@@ -947,7 +947,7 @@ PrintConfigDef::build_def() {
 
     Options["use_volumetric_e"].type = coBool;
     Options["use_volumetric_e"].label = "Use volumetric E";
-    Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. The M200 command is prepended to the generated G-code, unless it is found in the configured start G-code. This is only supported in recent Marlin.";
+    Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin.";
     Options["use_volumetric_e"].cli = "use-volumetric-e!";
 
     Options["vibration_limit"].type = coFloat;
