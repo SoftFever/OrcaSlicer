@@ -13,6 +13,7 @@ use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(_quat _dirty init
+                              enable_cutting
                               enable_picking
                               enable_moving
                               on_hover
@@ -256,7 +257,7 @@ sub zoom_to_volume {
     my ($self, $volume_idx) = @_;
     
     my $volume = $self->volumes->[$volume_idx];
-    my $bb = $volume->bounding_box;
+    my $bb = $volume->transformed_bounding_box;
     $self->zoom_to_bounding_box($bb);
 }
 
@@ -269,7 +270,7 @@ sub volumes_bounding_box {
     my ($self) = @_;
     
     my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    $bb->merge($_->bounding_box) for @{$self->volumes};
+    $bb->merge($_->transformed_bounding_box) for @{$self->volumes};
     return $bb;
 }
 
@@ -375,11 +376,12 @@ sub load_object {
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
             push @$color, $volume->modifier ? 0.5 : 1;
             push @{$self->volumes}, my $v = Slic3r::GUI::PreviewCanvas::Volume->new(
+                bounding_box    => $mesh->bounding_box,
                 group_id        => $group_id,
                 instance_idx    => $instance_idx,
-                mesh            => $mesh,
                 color           => $color,
             );
+            $v->mesh($mesh) if $self->enable_cutting;
             push @volumes_idx, $#{$self->volumes};
         
             {
@@ -419,6 +421,7 @@ sub SetCuttingPlane {
     my @verts = ();
     foreach my $volume (@{$self->volumes}) {
         foreach my $volume (@{$self->volumes}) {
+            next if !$volume->mesh;
             my $expolygons = $volume->mesh->slice([ $z - $volume->origin->z ])->[0];
             $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
             
@@ -940,7 +943,8 @@ sub draw_volumes {
 package Slic3r::GUI::PreviewCanvas::Volume;
 use Moo;
 
-has 'mesh'          => (is => 'ro', required => 1);
+has 'mesh'          => (is => 'rw', required => 0);  # only required for cut contours
+has 'bounding_box'  => (is => 'ro', required => 1);
 has 'color'         => (is => 'ro', required => 1);
 has 'group_id'      => (is => 'ro', required => 1);
 has 'instance_idx'  => (is => 'ro', default => sub { 0 });
@@ -950,10 +954,10 @@ has 'norms'         => (is => 'rw');
 has 'selected'      => (is => 'rw', default => sub { 0 });
 has 'hover'         => (is => 'rw', default => sub { 0 });
 
-sub bounding_box {
+sub transformed_bounding_box {
     my ($self) = @_;
     
-    my $bb = $self->mesh->bounding_box;
+    my $bb = $self->bounding_box;
     $bb->translate(@{$self->origin});
     return $bb;
 }

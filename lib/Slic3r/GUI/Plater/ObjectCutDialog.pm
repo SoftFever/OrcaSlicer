@@ -87,6 +87,7 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self);
+        $canvas->enable_cutting(1);
         $canvas->load_object($self->{model_object});
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
