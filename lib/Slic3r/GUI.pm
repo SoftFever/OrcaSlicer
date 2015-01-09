@@ -82,9 +82,13 @@ sub OnInit {
     # just checking for existence of $datadir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
     my $run_wizard = (-d $enc_datadir && -e "$enc_datadir/slic3r.ini") ? 0 : 1;
-    for ($enc_datadir, "$enc_datadir/print", "$enc_datadir/filament", "$enc_datadir/printer") {
-        mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
-            unless -d $_;
+    foreach my $dir ($enc_datadir, "$enc_datadir/print", "$enc_datadir/filament", "$enc_datadir/printer") {
+        next if -d $dir;
+        if (!mkdir $dir) {
+            my $error = "Slic3r was unable to create its data directory at $dir ($!).";
+            warn "$error\n";
+            fatal_error(undef, $error);
+        }
     }
     
     # load settings
@@ -161,22 +165,19 @@ sub catch_error {
 
 # static method accepting a wxWindow object as first parameter
 sub show_error {
-    my $self = shift;
-    my ($message) = @_;
-    Wx::MessageDialog->new($self, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+    my ($parent, $message) = @_;
+    Wx::MessageDialog->new($parent, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
 }
 
 # static method accepting a wxWindow object as first parameter
 sub show_info {
-    my $self = shift;
-    my ($message, $title) = @_;
-    Wx::MessageDialog->new($self, $message, $title || 'Notice', wxOK | wxICON_INFORMATION)->ShowModal;
+    my ($parent, $message, $title) = @_;
+    Wx::MessageDialog->new($parent, $message, $title || 'Notice', wxOK | wxICON_INFORMATION)->ShowModal;
 }
 
 # static method accepting a wxWindow object as first parameter
 sub fatal_error {
-    my $self = shift;
-    $self->show_error(@_);
+    show_error(@_);
     exit 1;
 }
 
