@@ -1038,7 +1038,7 @@ sub build {
                     my $ua = LWP::UserAgent->new;
                     $ua->timeout(10);
     
-                    my $res = $ua->post(
+                    my $res = $ua->get(
                         "http://" . $self->{config}->octoprint_host . "/api/version",
                         'X-Api-Key' => $self->{config}->octoprint_apikey,
                     );
