@@ -1015,7 +1015,7 @@ sub build {
                 EVT_BUTTON($self, $btn, sub {
                     my $dlg = Slic3r::GUI::BonjourBrowser->new($self);
                     if ($dlg->ShowModal == wxID_OK) {
-                        my $value = $dlg->GetValue;
+                        my $value = $dlg->GetValue . ":" . $dlg->GetPort;
                         $self->{config}->set('octoprint_host', $value);
                         $self->update_dirty;
                         $self->_on_value_change('octoprint_host', $value);
