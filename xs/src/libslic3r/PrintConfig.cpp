@@ -119,7 +119,7 @@ PrintConfigDef::build_def() {
     Options["external_fill_pattern"].label = "Top/bottom fill pattern";
     Options["external_fill_pattern"].category = "Infill";
     Options["external_fill_pattern"].tooltip = "Fill pattern for top/bottom infill. This only affects the external visible layer, and not its adjacent solid shells.";
-    Options["external_fill_pattern"].cli = "external-fill-pattern=s";
+    Options["external_fill_pattern"].cli = "external-fill-pattern|solid-fill-pattern=s";
     Options["external_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     Options["external_fill_pattern"].enum_values.push_back("rectilinear");
     Options["external_fill_pattern"].enum_values.push_back("concentric");
