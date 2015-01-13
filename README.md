@@ -280,7 +280,7 @@ The author of the Silk icon set is Mark James.
        Retraction options for multi-extruder setups:
         --retract-length-toolchange
                             Length of retraction in mm when disabling tool (default: 1)
-        --retract-restart-extra-toolchnage
+        --retract-restart-extra-toolchange
                             Additional amount of filament in mm to push after
                             switching tool (default: 0)
     
