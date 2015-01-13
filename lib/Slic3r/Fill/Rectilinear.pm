@@ -54,10 +54,21 @@ sub fill_surface {
     # the minimum offset for preventing edge lines from being clipped is scaled_epsilon;
     # however we use a larger offset to support expolygons with slightly skewed sides and 
     # not perfectly straight
-    my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset(scale 0.02))};
+    my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset(+scale 0.02))};
+    
+    my $extra = $self->_min_spacing * &Slic3r::INFILL_OVERLAP_OVER_SPACING;
+    foreach my $polyline (@polylines) {
+        my ($first_point, $last_point) = @$polyline[0,-1];
+        if ($first_point->y > $last_point->y) { #>
+            ($first_point, $last_point) = ($last_point, $first_point);
+        }
+        $first_point->set_y($first_point->y - $extra);  #--
+        $last_point->set_y($last_point->y + $extra);    #++
+    }
     
     # connect lines
     unless ($params{dont_connect} || !@polylines) {  # prevent calling leftmost_point() on empty collections
+        # offset the expolygon by max(min_spacing/2, extra)
         my ($expolygon_off) = @{$expolygon->offset_ex($self->_min_spacing/2)};
         my $collection = Slic3r::Polyline::Collection->new(@polylines);
         @polylines = ();

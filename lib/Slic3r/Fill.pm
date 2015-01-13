@@ -142,7 +142,7 @@ sub make_fill {
     # we are going to grow such regions by overlapping them with the void (if any)
     # TODO: detect and investigate whether there could be narrow regions without
     # any void neighbors
-    my $distance_between_surfaces = $infill_flow->scaled_spacing * &Slic3r::INFILL_OVERLAP_OVER_SPACING;
+    my $distance_between_surfaces = $infill_flow->scaled_spacing;
     {
         my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],

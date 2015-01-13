@@ -26,9 +26,7 @@ sub fill_surface {
         $self->spacing(unscale $distance);
     }
     
-    # compensate the overlap which is good for rectilinear but harmful for concentric
-    # where the perimeter/infill spacing should be equal to any other loop spacing
-    my @loops = my @last = @{offset(\@$expolygon, -&Slic3r::INFILL_OVERLAP_OVER_SPACING * $min_spacing / 2)};
+    my @loops = my @last = map $_->clone, @$expolygon;
     while (@last) {
         push @loops, @last = @{offset2(\@last, -($distance + 0.5*$min_spacing), +0.5*$min_spacing)};
     }
