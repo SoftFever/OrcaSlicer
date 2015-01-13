@@ -1390,8 +1390,8 @@ sub config {
         return Slic3r::Config->new_from_defaults(@$keys);
     } else {
         if (!-e $self->file) {
-            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore (" . $self->file . ").");
-            return;
+            Slic3r::GUI::show_error(undef, "The selected preset does not exist anymore (" . $self->file . ").");
+            return undef;
         }
         
         # apply preset values on top of defaults

@@ -217,6 +217,7 @@ sub presets {
     opendir my $dh, Slic3r::encode_path("$Slic3r::GUI::datadir/$section")
         or die "Failed to read directory $Slic3r::GUI::datadir/$section (errno: $!)\n";
     foreach my $file (grep /\.ini$/i, readdir $dh) {
+        $file = Slic3r::decode_path($file);
         my $name = basename($file);
         $name =~ s/\.ini$//;
         $presets{$name} = "$Slic3r::GUI::datadir/$section/$file";
