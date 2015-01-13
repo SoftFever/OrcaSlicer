@@ -31,11 +31,12 @@ my %opt = ();
     
     # make sure all objects have at least one defined instance
     $model->add_default_instances;
+    $_->center_around_origin for @{$model->objects};  # and align to Z = 0
     
     my $app = Slic3r::ViewMesh->new;
     $app->{canvas}->enable_picking(1);
     $app->{canvas}->enable_moving($opt{enable_moving});
-    $app->{canvas}->load_object($model->objects->[0]);
+    $app->{canvas}->load_object($model, 0);
     $app->{canvas}->set_auto_bed_shape;
     $app->{canvas}->zoom_to_volumes;
     $app->{canvas}->SetCuttingPlane($opt{cut}) if defined $opt{cut};

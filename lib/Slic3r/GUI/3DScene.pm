@@ -1,4 +1,4 @@
-package Slic3r::GUI::3DScene;
+package Slic3r::GUI::3DScene::Base;
 use strict;
 use warnings;
 
@@ -7,7 +7,7 @@ use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
-use List::Util qw(reduce min max first);
+use List::Util qw(reduce min max);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
@@ -41,12 +41,12 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _zoom
                               ) );
 
-use constant TRACKBALLSIZE => 0.8;
+use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
 use constant GROUND_Z       => -0.02;
+use constant DEFAULT_COLOR  => [1,1,0];
 use constant SELECTED_COLOR => [0,1,0,1];
 use constant HOVER_COLOR    => [0.4,0.9,0,1];
-use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 # make OpenGL::Array thread-safe
 {
@@ -164,8 +164,13 @@ sub mouse_event {
         # get volume being dragged
         my $volume = $self->volumes->[$self->_drag_volume_idx];
         
-        # get all volumes belonging to the same group but only having the same instance_idx
-        my @volumes = grep $_->group_id == $volume->group_id && $_->instance_idx == $volume->instance_idx, @{$self->volumes};
+        # get all volumes belonging to the same group, if any
+        my @volumes;
+        if ($volume->drag_group_id == -1) {
+            @volumes = ($volume);
+        } else {
+            @volumes = grep $_->drag_group_id == $volume->drag_group_id, @{$self->volumes};
+        }
         
         # apply new temporary volume origin and ignore Z
         $_->origin->translate($vector->x, $vector->y, 0) for @volumes; #,,
@@ -347,57 +352,6 @@ sub set_bed_shape {
     }
     
     $self->origin(Slic3r::Pointf->new(0,0));
-}
-
-sub load_object {
-    my ($self, $object, $all_instances) = @_;
-    
-    # color mesh(es) by material
-    my @materials = ();
-    
-    # sort volumes: non-modifiers first
-    my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) } @{$object->volumes};
-    my @volumes_idx = ();
-    my $group_id = $#{$self->volumes} + 1;
-    foreach my $volume (@volumes) {
-        my @instance_idxs = $all_instances ? (0..$#{$object->instances}) : (0);
-        foreach my $instance_idx (@instance_idxs) {
-            my $instance = $object->instances->[$instance_idx];
-            my $mesh = $volume->mesh->clone;
-            $instance->transform_mesh($mesh);
-            
-            my $material_id = $volume->material_id // '_';
-            my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
-            if (!defined $color_idx) {
-                push @materials, $material_id;
-                $color_idx = $#materials;
-            }
-        
-            my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
-            push @$color, $volume->modifier ? 0.5 : 1;
-            push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
-                bounding_box    => $mesh->bounding_box,
-                group_id        => $group_id,
-                instance_idx    => $instance_idx,
-                color           => $color,
-            );
-            $v->mesh($mesh) if $self->enable_cutting;
-            push @volumes_idx, $#{$self->volumes};
-        
-            {
-                my $vertices = $mesh->vertices;
-                my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
-                $v->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
-            }
-        
-            {
-                my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
-                $v->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
-            }
-        }
-    }
-    
-    return @volumes_idx;
 }
 
 sub deselect_volumes {
@@ -853,7 +807,7 @@ sub draw_volumes {
                     glTranslatef(map unscale($_), @$copy, 0);
                     
                     foreach my $slice (@{$layer->slices}) {
-                        glColor3f(@{COLORS->[0]});
+                        glColor3f(@{&DEFAULT_COLOR});
                         gluTessBeginPolygon($tess);
                         glNormal3f(0,0,1);
                         foreach my $polygon (@$slice) {
@@ -875,7 +829,7 @@ sub draw_volumes {
                                 }
                                 
                                 glLineWidth(0);
-                                glColor3f(@{COLORS->[0]});
+                                glColor3f(@{&DEFAULT_COLOR});
                                 glBegin(GL_QUADS);
                                 # We'll use this for the middle normal when using 4 quads:
                                 #my $xy_normal = $line->normal;
@@ -943,16 +897,16 @@ sub draw_volumes {
 package Slic3r::GUI::3DScene::Volume;
 use Moo;
 
-has 'mesh'          => (is => 'rw', required => 0);  # only required for cut contours
-has 'bounding_box'  => (is => 'ro', required => 1);
-has 'color'         => (is => 'ro', required => 1);
-has 'group_id'      => (is => 'ro', required => 1);
-has 'instance_idx'  => (is => 'ro', default => sub { 0 });
-has 'origin'        => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
-has 'verts'         => (is => 'rw');
-has 'norms'         => (is => 'rw');
-has 'selected'      => (is => 'rw', default => sub { 0 });
-has 'hover'         => (is => 'rw', default => sub { 0 });
+has 'mesh'              => (is => 'rw', required => 0);  # only required for cut contours
+has 'bounding_box'      => (is => 'ro', required => 1);
+has 'color'             => (is => 'ro', required => 1);
+has 'hover_group_id'    => (is => 'ro', default => sub { -1 });
+has 'drag_group_id'     => (is => 'ro', default => sub { -1 });
+has 'origin'            => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
+has 'verts'             => (is => 'rw');
+has 'norms'             => (is => 'rw');
+has 'selected'          => (is => 'rw', default => sub { 0 });
+has 'hover'             => (is => 'rw', default => sub { 0 });
 
 sub transformed_bounding_box {
     my ($self) = @_;
@@ -960,6 +914,102 @@ sub transformed_bounding_box {
     my $bb = $self->bounding_box;
     $bb->translate(@{$self->origin});
     return $bb;
+}
+
+package Slic3r::GUI::3DScene;
+use base qw(Slic3r::GUI::3DScene::Base);
+
+use OpenGL qw(:glconstants);
+use List::Util qw(first);
+
+use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
+
+__PACKAGE__->mk_accessors(qw(
+    volumes_by_object
+    _objects_by_volumes
+));
+
+sub new {
+    my $class = shift;
+    
+    my $self = $class->SUPER::new(@_);
+    $self->volumes_by_object({});  # obj_idx => [ volume_idx, volume_idx ... ]
+    $self->_objects_by_volumes({}); # volume_idx => [ obj_idx, instance_idx ]
+    
+    return $self;
+}
+
+sub load_object {
+    my ($self, $model, $obj_idx, $instance_idxs) = @_;
+    
+    my $model_object;
+    if ($model->isa('Slic3r::Model::Object')) {
+        $model_object = $model;
+        $model = $model_object->model;
+        $obj_idx = 0;
+    } else {
+        $model_object = $model->get_object($obj_idx);
+    }
+    
+    $instance_idxs ||= [0..$#{$model_object->instances}];
+    
+    # color mesh(es) by material
+    my @materials = ();
+    
+    # sort volumes: non-modifiers first
+    my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) }
+        @{$model_object->volumes};
+    my @volumes_idx = ();
+    my $group_id = $#{$self->volumes} + 1;
+    foreach my $volume (@volumes) {
+        foreach my $instance_idx (@$instance_idxs) {
+            my $instance = $model_object->instances->[$instance_idx];
+            my $mesh = $volume->mesh->clone;
+            $instance->transform_mesh($mesh);
+            
+            my $material_id = $volume->material_id // '_';
+            my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
+            if (!defined $color_idx) {
+                push @materials, $material_id;
+                $color_idx = $#materials;
+            }
+        
+            my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
+            push @$color, $volume->modifier ? 0.5 : 1;
+            push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
+                bounding_box    => $mesh->bounding_box,
+                drag_group_id   => $group_id * 1000 + $instance_idx,
+                color           => $color,
+            );
+            $v->mesh($mesh) if $self->enable_cutting;
+            push @volumes_idx, my $scene_volume_idx = $#{$self->volumes};
+            $self->_objects_by_volumes->{$scene_volume_idx} = [ $obj_idx, $instance_idx ];
+        
+            {
+                my $vertices = $mesh->vertices;
+                my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
+                $v->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
+            }
+        
+            {
+                my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
+                $v->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
+            }
+        }
+    }
+    
+    $self->volumes_by_object->{$obj_idx} = [@volumes_idx];
+    return @volumes_idx;
+}
+
+sub object_idx {
+    my ($self, $volume_idx) = @_;
+    return $self->_objects_by_volumes->{$volume_idx}[0];
+}
+
+sub instance_idx {
+    my ($self, $volume_idx) = @_;
+    return $self->_objects_by_volumes->{$volume_idx}[1];
 }
 
 1;
