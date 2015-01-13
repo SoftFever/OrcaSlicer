@@ -34,7 +34,8 @@ use Slic3r::Test;
         }
     });
     my $E_per_mm_avg = sum(@E_per_mm) / @E_per_mm;
-    ok !(defined first { abs($_ - $E_per_mm_avg) > 0.01 } @E_per_mm),
+    # allow some tolerance because solid rectilinear infill might be adjusted/stretched
+    ok !(defined first { abs($_ - $E_per_mm_avg) > 0.015 } @E_per_mm),
         'first_layer_extrusion_width applies to everything on first layer';
 }
 

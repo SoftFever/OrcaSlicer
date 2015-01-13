@@ -143,6 +143,7 @@ use Slic3r::Test;
     $config->set('top_solid_layers', 3);
     $config->set('solid_infill_speed', 99);
     $config->set('top_solid_infill_speed', 99);
+    $config->set('bridge_speed', 99);
     
     my $print = Slic3r::Test::init_print('sloping_hole', config => $config);
     my %solid_layers = ();  # Z => 1
