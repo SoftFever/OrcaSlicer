@@ -87,8 +87,7 @@ sub new {
         $canvas->PopupMenu($menu, $click_pos);
         $menu->Destroy;
     };
-    my $on_instance_moved = sub {
-        my ($obj_idx, $instance_idx) = @_;
+    my $on_instances_moved = sub {
         $self->update;
     };
     
@@ -98,7 +97,7 @@ sub new {
     $self->{canvas}->on_select_object($on_select_object);
     $self->{canvas}->on_double_click($on_double_click);
     $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
-    $self->{canvas}->on_instance_moved($on_instance_moved);
+    $self->{canvas}->on_instances_moved($on_instances_moved);
     
     # Initialize 3D preview and toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
@@ -107,7 +106,7 @@ sub new {
         $self->{canvas3D}->set_on_select_object($on_select_object);
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
-        $self->{canvas3D}->set_on_instance_moved($on_instance_moved);
+        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
         
         $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
         $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview');

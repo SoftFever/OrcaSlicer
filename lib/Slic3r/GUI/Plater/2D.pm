@@ -27,7 +27,7 @@ sub new {
     $self->{on_select_object}   = sub {};
     $self->{on_double_click}    = sub {};
     $self->{on_right_click}     = sub {};
-    $self->{on_instance_moved}  = sub {};
+    $self->{on_instances_moved} = sub {};
     
     $self->{objects_brush}      = Wx::Brush->new(Wx::Colour->new(210,210,210), wxSOLID);
     $self->{selected_brush}     = Wx::Brush->new(Wx::Colour->new(255,128,128), wxSOLID);
@@ -63,9 +63,9 @@ sub on_right_click {
     $self->{on_right_click} = $cb;
 }
 
-sub on_instance_moved {
+sub on_instances_moved {
     my ($self, $cb) = @_;
-    $self->{on_instance_moved} = $cb;
+    $self->{on_instances_moved} = $cb;
 }
 
 sub repaint {
@@ -211,7 +211,7 @@ sub mouse_event {
         }
         $self->Refresh;
     } elsif ($event->LeftUp) {
-        $self->{on_instance_moved}->(@{ $self->{drag_object} })
+        $self->{on_instances_moved}->()
             if $self->{drag_object};
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;

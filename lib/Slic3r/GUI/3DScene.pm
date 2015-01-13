@@ -136,6 +136,17 @@ sub mouse_event {
         if ($self->enable_picking) {
             $self->deselect_volumes;
             $self->select_volume($volume_idx);
+            
+            if ($volume_idx != -1) {
+                my $group_id = $self->volumes->[$volume_idx]->select_group_id;
+                my @volumes;
+                if ($group_id != -1) {
+                    $self->select_volume($_)
+                        for grep $self->volumes->[$_]->select_group_id == $group_id,
+                        0..$#{$self->volumes};
+                }
+            }
+            
             $self->Refresh;
         }
         
@@ -215,8 +226,17 @@ sub mouse_event {
             $self->_drag_start_xy($pos);
         }
     } elsif ($e->LeftUp || $e->MiddleUp || $e->RightUp) {
-        if ($self->on_move && defined $self->_drag_volume_idx) {
-            $self->on_move->($self->_drag_volume_idx) if $self->_dragged;
+        if ($self->on_move && defined($self->_drag_volume_idx) && $self->_dragged) {
+            # get all volumes belonging to the same group, if any
+            my @volume_idxs;
+            my $group_id = $self->volumes->[$self->_drag_volume_idx]->drag_group_id;
+            if ($group_id == -1) {
+                @volume_idxs = ($self->_drag_volume_idx);
+            } else {
+                @volume_idxs = grep $self->volumes->[$_]->drag_group_id == $group_id,
+                    0..$#{$self->volumes};
+            }
+            $self->on_move->(@volume_idxs);
         }
         $self->_drag_volume_idx(undef);
         $self->_drag_start_pos(undef);
@@ -652,7 +672,13 @@ sub Render {
             $_->hover(0) for @{$self->volumes};
             if ($volume_idx <= $#{$self->volumes}) {
                 $self->_hover_volume_idx($volume_idx);
+                
                 $self->volumes->[$volume_idx]->hover(1);
+                my $group_id = $self->volumes->[$volume_idx]->select_group_id;
+                if ($group_id != -1) {
+                    $_->hover(1) for grep { $_->select_group_id == $group_id } @{$self->volumes};
+                }
+                
                 $self->on_hover->($volume_idx) if $self->on_hover;
             }
         }
@@ -900,8 +926,8 @@ use Moo;
 has 'mesh'              => (is => 'rw', required => 0);  # only required for cut contours
 has 'bounding_box'      => (is => 'ro', required => 1);
 has 'color'             => (is => 'ro', required => 1);
-has 'hover_group_id'    => (is => 'ro', default => sub { -1 });
-has 'drag_group_id'     => (is => 'ro', default => sub { -1 });
+has 'select_group_id'   => (is => 'rw', default => sub { -1 });
+has 'drag_group_id'     => (is => 'rw', default => sub { -1 });
 has 'origin'            => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
 has 'verts'             => (is => 'rw');
 has 'norms'             => (is => 'rw');
@@ -925,6 +951,8 @@ use List::Util qw(first);
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 __PACKAGE__->mk_accessors(qw(
+    select_by
+    drag_by
     volumes_by_object
     _objects_by_volumes
 ));
@@ -933,7 +961,9 @@ sub new {
     my $class = shift;
     
     my $self = $class->SUPER::new(@_);
-    $self->volumes_by_object({});  # obj_idx => [ volume_idx, volume_idx ... ]
+    $self->select_by('object');     # object | instance
+    $self->drag_by('instance');     # object | instance
+    $self->volumes_by_object({});   # obj_idx => [ volume_idx, volume_idx ... ]
     $self->_objects_by_volumes({}); # volume_idx => [ obj_idx, instance_idx ]
     
     return $self;
@@ -960,7 +990,6 @@ sub load_object {
     my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) }
         @{$model_object->volumes};
     my @volumes_idx = ();
-    my $group_id = $#{$self->volumes} + 1;
     foreach my $volume (@volumes) {
         foreach my $instance_idx (@$instance_idxs) {
             my $instance = $model_object->instances->[$instance_idx];
@@ -978,10 +1007,19 @@ sub load_object {
             push @$color, $volume->modifier ? 0.5 : 1;
             push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
                 bounding_box    => $mesh->bounding_box,
-                drag_group_id   => $group_id * 1000 + $instance_idx,
                 color           => $color,
             );
             $v->mesh($mesh) if $self->enable_cutting;
+            if ($self->select_by eq 'object') {
+                $v->select_group_id($obj_idx*1000);
+            } elsif ($self->select_by eq 'instance') {
+                $v->select_group_id($obj_idx*1000 + $instance_idx);
+            }
+            if ($self->drag_by eq 'object') {
+                $v->drag_group_id($obj_idx*1000);
+            } elsif ($self->drag_by eq 'instance') {
+                $v->drag_group_id($obj_idx*1000 + $instance_idx);
+            }
             push @volumes_idx, my $scene_volume_idx = $#{$self->volumes};
             $self->_objects_by_volumes->{$scene_volume_idx} = [ $obj_idx, $instance_idx ];
         
