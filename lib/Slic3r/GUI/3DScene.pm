@@ -951,6 +951,7 @@ use List::Util qw(first);
 use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
 
 __PACKAGE__->mk_accessors(qw(
+    color_by
     select_by
     drag_by
     volumes_by_object
@@ -961,7 +962,8 @@ sub new {
     my $class = shift;
     
     my $self = $class->SUPER::new(@_);
-    $self->select_by('object');     # object | instance
+    $self->color_by('volume');      # object | volume
+    $self->select_by('object');     # object | volume | instance
     $self->drag_by('instance');     # object | instance
     $self->volumes_by_object({});   # obj_idx => [ volume_idx, volume_idx ... ]
     $self->_objects_by_volumes({}); # volume_idx => [ obj_idx, instance_idx ]
@@ -983,24 +985,19 @@ sub load_object {
     
     $instance_idxs ||= [0..$#{$model_object->instances}];
     
-    # color mesh(es) by material
-    my @materials = ();
-    
-    # sort volumes: non-modifiers first
-    my @volumes = sort { ($a->modifier // 0) <=> ($b->modifier // 0) }
-        @{$model_object->volumes};
     my @volumes_idx = ();
-    foreach my $volume (@volumes) {
+    foreach my $volume_idx (0..$#{$model_object->volumes}) {
+        my $volume = $model_object->volumes->[$volume_idx];
         foreach my $instance_idx (@$instance_idxs) {
             my $instance = $model_object->instances->[$instance_idx];
             my $mesh = $volume->mesh->clone;
             $instance->transform_mesh($mesh);
             
-            my $material_id = $volume->material_id // '_';
-            my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
-            if (!defined $color_idx) {
-                push @materials, $material_id;
-                $color_idx = $#materials;
+            my $color_idx;
+            if ($self->color_by eq 'volume') {
+                $color_idx = $volume_idx;
+            } elsif ($self->color_by eq 'object') {
+                $color_idx = $obj_idx;
             }
         
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
@@ -1011,9 +1008,11 @@ sub load_object {
             );
             $v->mesh($mesh) if $self->enable_cutting;
             if ($self->select_by eq 'object') {
-                $v->select_group_id($obj_idx*1000);
+                $v->select_group_id($obj_idx*1000000);
+            } elsif ($self->select_by eq 'volume') {
+                $v->select_group_id($obj_idx*1000000 + $volume_idx*1000);
             } elsif ($self->select_by eq 'instance') {
-                $v->select_group_id($obj_idx*1000 + $instance_idx);
+                $v->select_group_id($obj_idx*1000000 + $volume_idx*1000 + $instance_idx);
             }
             if ($self->drag_by eq 'object') {
                 $v->drag_group_id($obj_idx*1000);
@@ -1021,7 +1020,7 @@ sub load_object {
                 $v->drag_group_id($obj_idx*1000 + $instance_idx);
             }
             push @volumes_idx, my $scene_volume_idx = $#{$self->volumes};
-            $self->_objects_by_volumes->{$scene_volume_idx} = [ $obj_idx, $instance_idx ];
+            $self->_objects_by_volumes->{$scene_volume_idx} = [ $obj_idx, $volume_idx, $instance_idx ];
         
             {
                 my $vertices = $mesh->vertices;
@@ -1045,9 +1044,14 @@ sub object_idx {
     return $self->_objects_by_volumes->{$volume_idx}[0];
 }
 
-sub instance_idx {
+sub volume_idx {
     my ($self, $volume_idx) = @_;
     return $self->_objects_by_volumes->{$volume_idx}[1];
+}
+
+sub instance_idx {
+    my ($self, $volume_idx) = @_;
+    return $self->_objects_by_volumes->{$volume_idx}[2];
 }
 
 1;
