@@ -79,7 +79,7 @@ sub new {
             $self->reload_tree($canvas->volume_idx($volume_idx));
         });
         
-        $canvas->load_object($self->{model_object});
+        $canvas->load_object($self->{model_object}, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->zoom_to_volumes;
