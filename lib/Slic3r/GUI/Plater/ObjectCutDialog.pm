@@ -154,6 +154,7 @@ sub perform_cut {
     $self->{new_model} = $new_model;
     $self->{new_model_objects} = [];
     if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
+        $upper_object->center_around_origin;  # align to Z = 0
         push @{$self->{new_model_objects}}, $upper_object;
     }
     if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
