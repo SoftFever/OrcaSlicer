@@ -1342,7 +1342,7 @@ sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
     
     $obj_idx //= $event->GetIndex;
-	$self->object_cut_dialog($obj_idx);
+	$self->object_settings_dialog($obj_idx);
 }
 
 sub object_cut_dialog {
