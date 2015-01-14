@@ -576,17 +576,20 @@ sub reset {
 }
 
 sub increase {
-    my $self = shift;
+    my ($self, $copies) = @_;
     
+    $copies //= 1;
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
-    my $last_instance = $model_object->instances->[-1];
-    my $i = $model_object->add_instance(
-        offset          => Slic3r::Pointf->new(map 10+$_, @{$last_instance->offset}),
-        scaling_factor  => $last_instance->scaling_factor,
-        rotation        => $last_instance->rotation,
-    );
-    $self->{print}->objects->[$obj_idx]->add_copy($i->offset);
+    my $instance = $model_object->instances->[-1];
+    for my $i (1..$copies) {
+        $instance = $model_object->add_instance(
+            offset          => Slic3r::Pointf->new(map 10+$_, @{$instance->offset}),
+            scaling_factor  => $instance->scaling_factor,
+            rotation        => $instance->rotation,
+        );
+        $self->{print}->objects->[$obj_idx]->add_copy($instance->offset);
+    }
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled
@@ -600,15 +603,18 @@ sub increase {
 }
 
 sub decrease {
-    my $self = shift;
+    my ($self, $copies) = @_;
     
+    $copies //= 1;
     $self->stop_background_process;
     
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
-    if ($model_object->instances_count >= 2) {
-        $model_object->delete_last_instance;
-        $self->{print}->objects->[$obj_idx]->delete_last_copy;
+    if ($model_object->instances_count > $copies) {
+        for my $i (1..$copies) {
+            $model_object->delete_last_instance;
+            $self->{print}->objects->[$obj_idx]->delete_last_copy;
+        }
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     } else {
         $self->remove;
@@ -620,6 +626,28 @@ sub decrease {
     }
     $self->update;
     $self->schedule_background_process;
+}
+
+sub set_number_of_copies {
+    my ($self) = @_;
+    
+    $self->pause_background_process;
+    
+    # get current number of copies
+    my ($obj_idx, $object) = $self->selected_object;
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    
+    # prompt user
+    my $copies = Wx::GetNumberFromUser("", "Enter the number of copies of the selected object:", "Copies", $model_object->instances_count, 0, 1000, $self);
+    my $diff = $copies - $model_object->instances_count;
+    if ($diff == 0) {
+        # no variation
+        $self->resume_background_process;
+    } elsif ($diff > 0) {
+        $self->increase($diff);
+    } elsif ($diff < 0) {
+        $self->decrease(-$diff);
+    }
 }
 
 sub rotate {
@@ -1515,6 +1543,9 @@ sub object_menu {
     });
     $frame->_append_menu_item($menu, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
         $self->decrease;
+    });
+    $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
+        $self->set_number_of_copies;
     });
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
