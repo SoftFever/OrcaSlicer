@@ -425,6 +425,8 @@ sub process_layer {
             {
                 my $extruder_id = $region->config->perimeter_extruder-1;
                 foreach my $perimeter_coll (@{$layerm->perimeters}) {
+                    next if $perimeter_coll->empty;  # this shouldn't happen but first_point() would fail
+                    
                     # init by_extruder item only if we actually use the extruder
                     $by_extruder{$extruder_id} //= [];
                     
@@ -447,6 +449,8 @@ sub process_layer {
             # throughout the code). We can redefine the order of such Collections but we have to 
             # do each one completely at once.
             foreach my $fill (@{$layerm->fills}) {
+                next if $fill->empty;  # this shouldn't happen but first_point() would fail
+                
                 # init by_extruder item only if we actually use the extruder
                 my $extruder_id = $fill->[0]->is_solid_infill
                     ? $region->config->solid_infill_extruder-1

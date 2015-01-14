@@ -259,7 +259,8 @@ sub process {
                 || ($self->layer_id == 0 && $self->print_config->brim_width > 0);
         
         # append perimeters for this slice as a collection
-        $self->loops->append(Slic3r::ExtrusionPath::Collection->new(@loops));
+        $self->loops->append(Slic3r::ExtrusionPath::Collection->new(@loops))
+            if @loops;
     }
 }
 
