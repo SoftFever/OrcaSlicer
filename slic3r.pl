@@ -431,10 +431,10 @@ $j
     
    Retraction options for multi-extruder setups:
     --retract-length-toolchange
-                        Length of retraction in mm when disabling tool (default: $config->{retract_length}[0])
+                        Length of retraction in mm when disabling tool (default: $config->{retract_length_toolchange}[0])
     --retract-restart-extra-toolchange
                         Additional amount of filament in mm to push after
-                        switching tool (default: $config->{retract_restart_extra}[0])
+                        switching tool (default: $config->{retract_restart_extra_toolchange}[0])
    
    Cooling options:
     --cooling           Enable fan and cooling control
