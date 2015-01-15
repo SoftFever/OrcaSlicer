@@ -164,6 +164,14 @@ ExtrusionPath::gcode(Extruder* extruder, double e, double F,
     return stream.str();
 }
 
+Polygons
+ExtrusionPath::grow() const
+{
+    Polygons pp;
+    offset(this->polyline, &pp, +this->width/2);
+    return pp;
+}
+
 ExtrusionLoop::operator Polygon() const
 {
     Polygon polygon;
@@ -361,6 +369,17 @@ ExtrusionLoop::is_solid_infill() const
     return this->paths.front().role == erBridgeInfill
         || this->paths.front().role == erSolidInfill
         || this->paths.front().role == erTopSolidInfill;
+}
+
+Polygons
+ExtrusionLoop::grow() const
+{
+    Polygons pp;
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+        Polygons path_pp = path->grow();
+        pp.insert(pp.end(), path_pp.begin(), path_pp.end());
+    }
+    return pp;
 }
 
 #ifdef SLIC3RXS

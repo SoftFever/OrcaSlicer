@@ -33,6 +33,7 @@
     Polyline* as_polyline()
         %code{% RETVAL = new Polyline(*THIS); %};
     Clone<Point> normal();
+    Clone<Point> vector();
 %{
 
 Line*
@@ -79,4 +80,5 @@ Line::coincides_with(line_sv)
     Ref<Pointf3> b()
         %code{% RETVAL = &THIS->b; %};
     Clone<Pointf3> intersect_plane(double z);
+    void scale(double factor);
 };

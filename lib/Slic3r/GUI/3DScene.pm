@@ -891,7 +891,7 @@ use base qw(Slic3r::GUI::3DScene::Base);
 
 use OpenGL qw(:glconstants :gluconstants :glufunctions);
 use List::Util qw(first);
-use Slic3r::Geometry qw(unscale);
+use Slic3r::Geometry qw(scale unscale);
 
 use constant COLORS => [ [1,1,0,1], [1,0.5,0.5,1], [0.5,1,0.5,1], [0.5,0.5,1,1] ];
 
@@ -1038,6 +1038,41 @@ sub load_print_object_slices {
     );
 }
 
+sub load_print_object_toolpaths {
+    my ($self, $object) = @_;
+    
+    my @quad_verts = ();
+    my @quad_norms = ();
+    foreach my $layer (@{$object->layers}) {
+        my $top_z = $layer->print_z;
+        my $bottom_z = $layer->print_z - $layer->height;
+    
+        foreach my $copy (@{ $object->_shifted_copies }) {
+            foreach my $layerm (@{$layer->regions}) {
+                foreach my $entity (map @$_, @{$layerm->perimeters}) {
+                    if ($entity->isa('Slic3r::ExtrusionPath')) {
+                        $self->_extrusionpath_to_verts($entity, $top_z, $copy, \@quad_verts, \@quad_norms);
+                    } else {
+                        $self->_extrusionpath_to_verts($_, $top_z, $copy, \@quad_verts, \@quad_norms) for @$entity;
+                    }
+                }
+            }
+        }
+    }
+    
+    my $obb = $object->bounding_box;
+    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
+    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->min_point}, 0));
+    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->max_point}, $object->size->z));
+    
+    push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
+        bounding_box    => $bb,
+        color           => COLORS->[0],
+        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @quad_verts),
+        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @quad_norms),
+    );
+}
+
 sub _expolygons_to_verts {
     my ($self, $expolygons, $z, $verts, $norms) = @_;
     
@@ -1064,6 +1099,87 @@ sub _expolygons_to_verts {
     }
     
     gluDeleteTess($tess);
+}
+
+sub _extrusionpath_to_verts {
+    my ($self, $path, $top_z, $copy, $verts, $norms) = @_;
+    
+    my $bottom_z = $top_z - $path->height;
+    my $middle_z = ($top_z + $bottom_z) / 2;
+    my $dist = scale $path->width/2;
+    
+    foreach my $line (@{$path->polyline->lines}) {
+        my $len = $line->length;
+        next if $len == 0;
+        $line->translate(@$copy);
+        
+        my $v = Slic3r::Pointf3->new_unscale(@{$line->vector});
+        $v->scale(1/unscale $len);
+        
+        my $a = $line->a;
+        my $b = $line->b;
+        my $a1 = $a->clone;
+        my $a2 = $a->clone;
+        $a1->translate(+$dist*$v->y, -$dist*$v->x);  #,,
+        $a2->translate(-$dist*$v->y, +$dist*$v->x);  #,,
+        my $b1 = $b->clone;
+        my $b2 = $b->clone;
+        $b1->translate(+$dist*$v->y, -$dist*$v->x);  #,,
+        $b2->translate(-$dist*$v->y, +$dist*$v->x);  #,,
+        
+        # calculate normal going to the right
+        my $xy_normal = Slic3r::Pointf3->new_unscale(@{$line->normal}, 0);
+        $xy_normal->scale(1/unscale $len);
+        
+        # bottom-right face
+        {
+            # normal going downwards
+            push @$norms, (0,0,-1), (0,0,-1);
+            push @$verts, (map unscale($_), @$a), $bottom_z;
+            push @$verts, (map unscale($_), @$b), $bottom_z;
+            
+            push @$norms, @$xy_normal, @$xy_normal;
+            push @$verts, (map unscale($_), @$b1), $middle_z;
+            push @$verts, (map unscale($_), @$a1), $middle_z;
+        }
+        
+        # top-right face
+        {
+            push @$norms, @$xy_normal, @$xy_normal;
+            push @$verts, (map unscale($_), @$a1), $middle_z;
+            push @$verts, (map unscale($_), @$b1), $middle_z;
+            
+            # normal going upwards
+            push @$norms, (0,0,1), (0,0,1);
+            push @$verts, (map unscale($_), @$b), $top_z;
+            push @$verts, (map unscale($_), @$a), $top_z;
+        }
+         
+        # top-left face
+        {
+            push @$norms, (0,0,1), (0,0,1);
+            push @$verts, (map unscale($_), @$a), $top_z;
+            push @$verts, (map unscale($_), @$b), $top_z;
+        
+            # calculate normal going to the left
+            $xy_normal->scale(-1);
+            push @$norms, @$xy_normal, @$xy_normal;
+            push @$verts, (map unscale($_), @$b2), $middle_z;
+            push @$verts, (map unscale($_), @$a2), $middle_z;
+        }
+        
+        # bottom-left face
+        {
+            push @$norms, @$xy_normal, @$xy_normal;
+            push @$verts, (map unscale($_), @$a2), $middle_z;
+            push @$verts, (map unscale($_), @$b2), $middle_z;
+            
+            # normal going downwards
+            push @$norms, (0,0,-1), (0,0,-1);
+            push @$verts, (map unscale($_), @$b), $bottom_z;
+            push @$verts, (map unscale($_), @$a), $bottom_z;
+        }
+    }
 }
 
 sub object_idx {

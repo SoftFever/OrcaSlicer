@@ -43,6 +43,7 @@ class ExtrusionEntity
     virtual void reverse() = 0;
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;
+    virtual Polygons grow() const = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -73,6 +74,7 @@ class ExtrusionPath : public ExtrusionEntity
     std::string gcode(Extruder* extruder, double e, double F,
         double xofs, double yofs, std::string extrusion_axis,
         std::string gcode_line_suffix) const;
+    Polygons grow() const;
 
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
@@ -106,6 +108,7 @@ class ExtrusionLoop : public ExtrusionEntity
     bool is_perimeter() const;
     bool is_infill() const;
     bool is_solid_infill() const;
+    Polygons grow() const;
 };
 
 }

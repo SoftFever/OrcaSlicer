@@ -201,6 +201,13 @@ Linef3::intersect_plane(double z) const
     );
 }
 
+void
+Linef3::scale(double factor)
+{
+    this->a.scale(factor);
+    this->b.scale(factor);
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Linef3, "Linef3");
 #endif

@@ -86,7 +86,8 @@ sub OnInit {
         $canvas->set_bed_shape($print->config->bed_shape);
         
         foreach my $object (@{$print->objects}) {
-            $canvas->load_print_object_slices($object);
+            #$canvas->load_print_object_slices($object);
+            $canvas->load_print_object_toolpaths($object);
             #$canvas->load_object($object->model_object);
         }
         $canvas->zoom_to_volumes;
