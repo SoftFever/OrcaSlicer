@@ -83,12 +83,11 @@ sub OnInit {
     my $canvas;
     if ($d3) {
         $canvas = Slic3r::GUI::3DScene->new($panel);
-        $canvas->print($print);
-        
         $canvas->set_bed_shape($print->config->bed_shape);
         
         foreach my $object (@{$print->objects}) {
-            $canvas->load_object($object->model_object);
+            $canvas->load_print_object_slices($object);
+            #$canvas->load_object($object->model_object);
         }
         $canvas->zoom_to_volumes;
     } else {

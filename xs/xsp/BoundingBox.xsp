@@ -88,6 +88,8 @@ new_from_points(CLASS, points)
     void translate(double x, double y, double z);
     Clone<Pointf3> size();
     Clone<Pointf3> center();
+    Clone<Pointf3> min_point() %code{% RETVAL = THIS->min; %};
+    Clone<Pointf3> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min.x; %};
     double x_max() %code{% RETVAL = THIS->max.x; %};
     double y_min() %code{% RETVAL = THIS->min.y; %};

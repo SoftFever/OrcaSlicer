@@ -22,7 +22,6 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               on_right_click
                               on_move
                               volumes
-                              print
                               _sphi _stheta
                               cutting_plane_z
                               cut_lines_vertices
@@ -813,73 +812,6 @@ sub draw_volumes {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    if (defined($self->print) && !$fakecolor) {
-        my $tess = gluNewTess();
-        gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
-        gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
-        gluTessCallback($tess, GLU_TESS_VERTEX,    'DEFAULT');
-        gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
-        gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
-        gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
-        
-        foreach my $object (@{$self->print->objects}) {
-            foreach my $layer (@{$object->layers}) {
-                my $gap = 0;
-                my $top_z = $layer->print_z;
-                my $bottom_z = $layer->print_z - $layer->height + $gap;
-            
-                foreach my $copy (@{ $object->_shifted_copies }) {
-                    glPushMatrix();
-                    glTranslatef(map unscale($_), @$copy, 0);
-                    
-                    foreach my $slice (@{$layer->slices}) {
-                        glColor3f(@{&DEFAULT_COLOR});
-                        gluTessBeginPolygon($tess);
-                        glNormal3f(0,0,1);
-                        foreach my $polygon (@$slice) {
-                            gluTessBeginContour($tess);
-                            gluTessVertex_p($tess, (map unscale($_), @$_), $layer->print_z) for @$polygon;
-                            gluTessEndContour($tess);
-                        }
-                        gluTessEndPolygon($tess);
-                        
-                        foreach my $polygon (@$slice) {
-                            foreach my $line (@{$polygon->lines}) {
-                                if (0) {
-                                    glLineWidth(1);
-                                    glColor3f(0,0,0);
-                                    glBegin(GL_LINES);
-                                    glVertex3f((map unscale($_), @{$line->a}), $bottom_z);
-                                    glVertex3f((map unscale($_), @{$line->b}), $bottom_z);
-                                    glEnd();
-                                }
-                                
-                                glLineWidth(0);
-                                glColor3f(@{&DEFAULT_COLOR});
-                                glBegin(GL_QUADS);
-                                # We'll use this for the middle normal when using 4 quads:
-                                #my $xy_normal = $line->normal;
-                                #$_xynormal->scale(1/$line->length);
-                                glNormal3f(0,0,-1);
-                                glVertex3f((map unscale($_), @{$line->a}), $bottom_z);
-                                glVertex3f((map unscale($_), @{$line->b}), $bottom_z);
-                                glNormal3f(0,0,1);
-                                glVertex3f((map unscale($_), @{$line->b}), $top_z);
-                                glVertex3f((map unscale($_), @{$line->a}), $top_z);
-                                glEnd();
-                            }
-                        }
-                    }
-                    
-                    glPopMatrix();  # copy
-                }
-            }
-        }
-        
-        gluDeleteTess($tess);
-        return;
-    }
-    
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     
@@ -888,10 +820,6 @@ sub draw_volumes {
         glPushMatrix();
         glTranslatef(@{$volume->origin});
         
-        glVertexPointer_p(3, $volume->verts);
-        
-        glCullFace(GL_BACK);
-        glNormalPointer_p($volume->norms);
         if ($fakecolor) {
             my $r = ($volume_idx & 0x000000FF) >>  0;
             my $g = ($volume_idx & 0x0000FF00) >>  8;
@@ -904,7 +832,19 @@ sub draw_volumes {
         } else {
             glColor4f(@{ $volume->color });
         }
-        glDrawArrays(GL_TRIANGLES, 0, $volume->verts->elements / 3);
+        
+        glCullFace(GL_BACK);
+        if ($volume->verts) {
+            glVertexPointer_p(3, $volume->verts);
+            glNormalPointer_p($volume->norms);
+            glDrawArrays(GL_TRIANGLES, 0, $volume->verts->elements / 3);
+        }
+        
+        if ($volume->quad_verts) {
+            glVertexPointer_p(3, $volume->quad_verts);
+            glNormalPointer_p($volume->quad_norms);
+            glDrawArrays(GL_QUADS, 0, $volume->quad_verts->elements / 3);
+        }
         
         glPopMatrix();
     }
@@ -923,16 +863,20 @@ sub draw_volumes {
 package Slic3r::GUI::3DScene::Volume;
 use Moo;
 
-has 'mesh'              => (is => 'rw', required => 0);  # only required for cut contours
 has 'bounding_box'      => (is => 'ro', required => 1);
+has 'origin'            => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
 has 'color'             => (is => 'ro', required => 1);
 has 'select_group_id'   => (is => 'rw', default => sub { -1 });
 has 'drag_group_id'     => (is => 'rw', default => sub { -1 });
-has 'origin'            => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
-has 'verts'             => (is => 'rw');
-has 'norms'             => (is => 'rw');
 has 'selected'          => (is => 'rw', default => sub { 0 });
 has 'hover'             => (is => 'rw', default => sub { 0 });
+
+# geometric data
+has 'verts'             => (is => 'rw');
+has 'norms'             => (is => 'rw');
+has 'quad_verts'        => (is => 'rw');
+has 'quad_norms'        => (is => 'rw');
+has 'mesh'              => (is => 'rw');  # only required for cut contours
 
 sub transformed_bounding_box {
     my ($self) = @_;
@@ -945,10 +889,11 @@ sub transformed_bounding_box {
 package Slic3r::GUI::3DScene;
 use base qw(Slic3r::GUI::3DScene::Base);
 
-use OpenGL qw(:glconstants);
+use OpenGL qw(:glconstants :gluconstants :glufunctions);
 use List::Util qw(first);
+use Slic3r::Geometry qw(unscale);
 
-use constant COLORS => [ [1,1,0], [1,0.5,0.5], [0.5,1,0.5], [0.5,0.5,1] ];
+use constant COLORS => [ [1,1,0,1], [1,0.5,0.5,1], [0.5,1,0.5,1], [0.5,0.5,1,1] ];
 
 __PACKAGE__->mk_accessors(qw(
     color_by
@@ -1001,7 +946,7 @@ sub load_object {
             }
         
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
-            push @$color, $volume->modifier ? 0.5 : 1;
+            $color->[3] = $volume->modifier ? 0.5 : 1;
             push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
                 bounding_box    => $mesh->bounding_box,
                 color           => $color,
@@ -1037,6 +982,88 @@ sub load_object {
     
     $self->volumes_by_object->{$obj_idx} = [@volumes_idx];
     return @volumes_idx;
+}
+
+sub load_print_object_slices {
+    my ($self, $object) = @_;
+    
+    my @verts = ();
+    my @norms = ();
+    my @quad_verts = ();
+    my @quad_norms = ();
+    foreach my $layer (@{$object->layers}) {
+        my $gap = 0;
+        my $top_z = $layer->print_z;
+        my $bottom_z = $layer->print_z - $layer->height + $gap;
+    
+        foreach my $copy (@{ $object->_shifted_copies }) {
+            {
+                my @expolygons = map $_->clone, @{$layer->slices};
+                $_->translate(@$copy) for @expolygons;
+                $self->_expolygons_to_verts(\@expolygons, $layer->print_z, \@verts, \@norms);
+            }
+            foreach my $slice (@{$layer->slices}) {
+                foreach my $polygon (@$slice) {
+                    foreach my $line (@{$polygon->lines}) {
+                        $line->translate(@$copy);
+                        
+                        push @quad_norms, (0,0,-1), (0,0,-1);
+                        push @quad_verts, (map unscale($_), @{$line->a}), $bottom_z;
+                        push @quad_verts, (map unscale($_), @{$line->b}), $bottom_z;
+                        push @quad_norms, (0,0,1), (0,0,1);
+                        push @quad_verts, (map unscale($_), @{$line->b}), $top_z;
+                        push @quad_verts, (map unscale($_), @{$line->a}), $top_z;
+                        
+                        # We'll use this for the middle normal when using 4 quads:
+                        #my $xy_normal = $line->normal;
+                        #$_xynormal->scale(1/$line->length);
+                    }
+                }
+            }
+        }
+    }
+    
+    my $obb = $object->bounding_box;
+    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
+    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->min_point}, 0));
+    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->max_point}, $object->size->z));
+    
+    push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
+        bounding_box    => $bb,
+        color           => COLORS->[0],
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @verts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @norms),
+        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @quad_verts),
+        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @quad_norms),
+    );
+}
+
+sub _expolygons_to_verts {
+    my ($self, $expolygons, $z, $verts, $norms) = @_;
+    
+    my $tess = gluNewTess();
+    gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_VERTEX, sub {
+        my ($x, $y, $z) = @_;
+        push @$verts, $x, $y, $z;
+        push @$norms, (0,0,1), (0,0,1), (0,0,1);
+    });
+    gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
+    gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
+    
+    foreach my $expolygon (@$expolygons) {
+        gluTessBeginPolygon($tess);
+        foreach my $polygon (@$expolygon) {
+            gluTessBeginContour($tess);
+            gluTessVertex_p($tess, (map unscale($_), @$_), $z) for @$polygon;
+            gluTessEndContour($tess);
+        }
+        gluTessEndPolygon($tess);
+    }
+    
+    gluDeleteTess($tess);
 }
 
 sub object_idx {
