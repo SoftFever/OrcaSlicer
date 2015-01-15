@@ -136,7 +136,8 @@ sub process {
                         @thin_walls = @{offset2_ex($diff, -$min_width/2, +$min_width/2)};
         
                         # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-                        @thin_walls = map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls;
+                        @thin_walls = grep $_->length > $pwidth*2,
+                            map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls;
                         Slic3r::debugf "  %d thin walls detected\n", scalar(@thin_walls) if $Slic3r::debug;
         
                         if (0) {
