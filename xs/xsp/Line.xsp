@@ -30,6 +30,13 @@
         %code{% RETVAL = THIS->parallel_to(*line); %};
     Point* midpoint();
     Clone<Point> point_at(double distance);
+    Clone<Point> intersection_infinite(Line* other)
+        %code{%
+            Point p;
+            bool res = THIS->intersection_infinite(*other, &p);
+            if (!res) CONFESS("Intersection failed");
+            RETVAL = p;
+        %};
     Polyline* as_polyline()
         %code{% RETVAL = new Polyline(*THIS); %};
     Clone<Point> normal();

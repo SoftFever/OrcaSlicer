@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 39;
+use Test::More tests => 40;
 
 use constant PI         => 4 * atan2(1, 1);
 use constant EPSILON    => 1E-4;
@@ -69,6 +69,13 @@ foreach my $base_angle (0, PI/4, PI/2, PI) {
         $line2->rotate(-(EPSILON)/2, [0,0]);
         ok $line->parallel_to_line($line2), 'line is parallel within epsilon';
     }
+}
+
+{
+    my $a = Slic3r::Line->new([100, 0], [200, 0]);
+    my $b = Slic3r::Line->new([300, 300], [300, 100]);
+    my $r = $a->intersection_infinite($b);
+    is_deeply $r->pp, [300, 0], 'intersection_infinite';
 }
 
 __END__

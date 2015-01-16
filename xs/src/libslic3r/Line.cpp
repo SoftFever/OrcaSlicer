@@ -90,6 +90,23 @@ Line::point_at(double distance) const
 }
 
 bool
+Line::intersection_infinite(const Line &other, Point* point) const
+{
+    Vector x = this->a.vector_to(other.a);
+    Vector d1 = this->vector();
+    Vector d2 = other.vector();
+
+    double cross = d1.x * d2.y - d1.y * d2.x;
+    if (std::fabs(cross) < EPSILON)
+        return false;
+
+    double t1 = (x.x * d2.y - x.y * d2.x)/cross;
+    point->x = this->a.x + d1.x * t1;
+    point->y = this->a.y + d1.y * t1;
+    return true;
+}
+
+bool
 Line::coincides_with(const Line &line) const
 {
     return this->a.coincides_with(line.a) && this->b.coincides_with(line.b);

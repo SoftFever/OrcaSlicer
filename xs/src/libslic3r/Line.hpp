@@ -29,6 +29,7 @@ class Line
     Point* midpoint() const;
     void point_at(double distance, Point* point) const;
     Point point_at(double distance) const;
+    bool intersection_infinite(const Line &other, Point* point) const;
     bool coincides_with(const Line &line) const;
     double distance_to(const Point &point) const;
     bool parallel_to(double angle) const;
