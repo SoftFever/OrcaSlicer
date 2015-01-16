@@ -61,8 +61,8 @@ If you want to compile the source yourself just do the following (checkout
 ```
 $ git clone https://github.com/alexrj/Slic3r.git
 $ cd Slic3r
-$ sudo perl Build.PL
-$ sudo perl Build.PL --gui
+$ perl Build.PL --sudo
+$ perl Build.PL --sudo --gui
 $ ./slic3r.pl
 ```
 
