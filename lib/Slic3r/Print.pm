@@ -443,7 +443,7 @@ sub expanded_output_filepath {
 }
 
 # This method assigns extruders to the volumes having a material
-# but not having extruders set in the material config.
+# but not having extruders set in the volume config.
 sub auto_assign_extruders {
     my ($self, $model_object) = @_;
     
@@ -454,10 +454,8 @@ sub auto_assign_extruders {
     foreach my $i (0..$#{$model_object->volumes}) {
         my $volume = $model_object->volumes->[$i];
         if ($volume->material_id ne '') {
-            my $material = $model_object->model->get_material($volume->material_id);
-            my $config = $material->config;
             my $extruder_id = $i + 1;
-            $config->set_ifndef('extruder', $extruder_id);
+            $volume->config->set_ifndef('extruder', $extruder_id);
         }
     }
 }
