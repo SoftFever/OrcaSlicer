@@ -891,7 +891,7 @@ use base qw(Slic3r::GUI::3DScene::Base);
 
 use OpenGL qw(:glconstants :gluconstants :glufunctions);
 use List::Util qw(first);
-use Slic3r::Geometry qw(scale unscale);
+use Slic3r::Geometry qw(scale unscale epsilon);
 
 use constant COLORS => [ [1,1,0,1], [1,0.5,0.5,1], [0.5,1,0.5,1], [0.5,0.5,1,1] ];
 
@@ -1041,20 +1041,28 @@ sub load_print_object_slices {
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
     
-    my (@qverts, @qnorms, @tverts, @tnorms) = ();
-    foreach my $layer (@{$object->layers}) {
-        my $top_z = $layer->print_z;
-        my $bottom_z = $layer->print_z - $layer->height;
+    my (@perim_qverts, @perim_qnorms, @perim_tverts, @perim_tnorms) = ();
+    my (@infill_qverts, @infill_qnorms, @infill_tverts, @infill_tnorms) = ();
+    my (@support_qverts, @support_qnorms, @support_tverts, @support_tnorms) = ();
     
+    foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
+        my $top_z = $layer->print_z;
+        
         foreach my $copy (@{ $object->_shifted_copies }) {
             foreach my $layerm (@{$layer->regions}) {
-                foreach my $entity (map @$_, @{$layerm->perimeters}) {
-                    if ($entity->isa('Slic3r::ExtrusionPath')) {
-                        $self->_extrusionpath_to_verts($entity, $top_z, $copy, \@qverts, \@qnorms, \@tverts, \@tnorms);
-                    } else {
-                        $self->_extrusionloop_to_verts($entity, $top_z, $copy, \@qverts, \@qnorms, \@tverts, \@tnorms);
-                    }
-                }
+                $self->_extrusionentity_to_verts($layerm->perimeters, $top_z, $copy,
+                    \@perim_qverts, \@perim_qnorms, \@perim_tverts, \@perim_tnorms);
+                
+                $self->_extrusionentity_to_verts($layerm->fills, $top_z, $copy,
+                    \@infill_qverts, \@infill_qnorms, \@infill_tverts, \@infill_tnorms);
+            }
+            
+            if ($layer->isa('Slic3r::Layer::Support')) {
+                $self->_extrusionentity_to_verts($layer->support_fills, $top_z, $copy,
+                    \@support_qverts, \@support_qnorms, \@support_tverts, \@support_tnorms);
+                
+                $self->_extrusionentity_to_verts($layer->support_interface_fills, $top_z, $copy,
+                    \@support_qverts, \@support_qnorms, \@support_tverts, \@support_tnorms);
             }
         }
     }
@@ -1064,13 +1072,31 @@ sub load_print_object_toolpaths {
     $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->min_point}, 0));
     $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->max_point}, $object->size->z));
     
-    push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
+    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
         bounding_box    => $bb,
         color           => COLORS->[0],
-        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @qverts),
-        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @qnorms),
-        verts           => OpenGL::Array->new_list(GL_FLOAT, @tverts),
-        norms           => OpenGL::Array->new_list(GL_FLOAT, @tnorms),
+        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @perim_qverts),
+        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @perim_qnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @perim_tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @perim_tnorms),
+    );
+    
+    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+        bounding_box    => $bb,
+        color           => COLORS->[1],
+        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @infill_qverts),
+        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @infill_qnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @infill_tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @infill_tnorms),
+    );
+    
+    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+        bounding_box    => $bb,
+        color           => COLORS->[2],
+        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @support_qverts),
+        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @support_qnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @support_tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @support_tnorms),
     );
 }
 
@@ -1102,36 +1128,35 @@ sub _expolygons_to_verts {
     gluDeleteTess($tess);
 }
 
-sub _extrusionpath_to_verts {
-    my ($self, $path, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms) = @_;
-    
-    my $polyline = $path->polyline->clone;
-    $polyline->translate(@$copy);
-    my $lines = $polyline->lines;
-    my $widths = [ map scale($path->width), 0..$#$lines ];
-    my $heights = [ map $path->height, 0..$#$lines ];
-    $self->_extrusionentity_to_verts($lines, $widths, $heights, 0, $top_z, $qverts, $qnorms, $tverts, $tnorms);
-}
-
-sub _extrusionloop_to_verts {
-    my ($self, $loop, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms) = @_;
-    
-    my $lines   = [];
-    my $widths  = [];
-    my $heights = [];
-    foreach my $path (@$loop) {
-        my $polyline = $path->polyline->clone;
-        $polyline->translate(@$copy);
-        my $path_lines = $polyline->lines;
-        push @$lines, @$path_lines;
-        push @$widths, map scale($path->width), 0..$#$path_lines;
-        push @$heights, map $path->height, 0..$#$path_lines;
-    }
-    $self->_extrusionentity_to_verts($lines, $widths, $heights, 1, $top_z, $qverts, $qnorms, $tverts, $tnorms);
-}
-
 sub _extrusionentity_to_verts {
-    my ($self, $lines, $widths, $heights, $closed, $top_z, $qverts, $qnorms, $tverts, $tnorms) = @_;
+    my ($self, $entity, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms) = @_;
+    
+    my ($lines, $widths, $heights, $closed);
+    if ($entity->isa('Slic3r::ExtrusionPath::Collection')) {
+        $self->_extrusionentity_to_verts($_, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms)
+            for @$entity;
+        return;
+    } elsif ($entity->isa('Slic3r::ExtrusionPath')) {
+        my $polyline = $entity->polyline->clone;
+        $polyline->translate(@$copy);
+        $lines = $polyline->lines;
+        $widths = [ map scale($entity->width), 0..$#$lines ];
+        $heights = [ map $entity->height, 0..$#$lines ];
+        $closed = 0;
+    } else {
+        $lines   = [];
+        $widths  = [];
+        $heights = [];
+        $closed  = 1;
+        foreach my $path (@$entity) {
+            my $polyline = $path->polyline->clone;
+            $polyline->translate(@$copy);
+            my $path_lines = $polyline->lines;
+            push @$lines, @$path_lines;
+            push @$widths, map scale($path->width), 0..$#$path_lines;
+            push @$heights, map $path->height, 0..$#$path_lines;
+        }
+    }
     
     my ($prev_line, $prev_b1, $prev_b2, $prev_xy_left_normal, $prev_xy_right_normal);
     
@@ -1171,7 +1196,8 @@ sub _extrusionentity_to_verts {
         
         if ($first_done) {
             # if we're making a ccw turn, draw the triangles on the right side, otherwise draw them on the left side
-            if ($b->ccw(@$prev_line) > 0) {
+            my $ccw = $b->ccw(@$prev_line);
+            if ($ccw > epsilon) {
                 # top-right vertex triangle between previous line and this one
                 {
                     # use the normal going to the right calculated for the previous line
@@ -1200,7 +1226,7 @@ sub _extrusionentity_to_verts {
                     push @$tnorms, @$xy_right_normal;
                     push @$tverts, (map unscale($_), @$a1), $middle_z;
                 }
-            } else {
+            } elsif ($ccw < -&epsilon) {
                 # top-left vertex triangle between previous line and this one
                 {
                     # use the normal going to the left calculated for the previous line
