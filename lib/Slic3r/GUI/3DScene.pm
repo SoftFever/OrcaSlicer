@@ -1041,8 +1041,7 @@ sub load_print_object_slices {
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
     
-    my @quad_verts = ();
-    my @quad_norms = ();
+    my (@qverts, @qnorms, @tverts, @tnorms) = ();
     foreach my $layer (@{$object->layers}) {
         my $top_z = $layer->print_z;
         my $bottom_z = $layer->print_z - $layer->height;
@@ -1051,9 +1050,9 @@ sub load_print_object_toolpaths {
             foreach my $layerm (@{$layer->regions}) {
                 foreach my $entity (map @$_, @{$layerm->perimeters}) {
                     if ($entity->isa('Slic3r::ExtrusionPath')) {
-                        $self->_extrusionpath_to_verts($entity, $top_z, $copy, \@quad_verts, \@quad_norms);
+                        $self->_extrusionpath_to_verts($entity, $top_z, $copy, \@qverts, \@qnorms, \@tverts, \@tnorms);
                     } else {
-                        $self->_extrusionpath_to_verts($_, $top_z, $copy, \@quad_verts, \@quad_norms) for @$entity;
+                        $self->_extrusionloop_to_verts($entity, $top_z, $copy, \@qverts, \@qnorms, \@tverts, \@tnorms);
                     }
                 }
             }
@@ -1068,8 +1067,10 @@ sub load_print_object_toolpaths {
     push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
         bounding_box    => $bb,
         color           => COLORS->[0],
-        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @quad_verts),
-        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @quad_norms),
+        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @qverts),
+        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @qnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @tnorms),
     );
 }
 
@@ -1102,19 +1103,54 @@ sub _expolygons_to_verts {
 }
 
 sub _extrusionpath_to_verts {
-    my ($self, $path, $top_z, $copy, $verts, $norms) = @_;
+    my ($self, $path, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms) = @_;
     
-    my $bottom_z = $top_z - $path->height;
-    my $middle_z = ($top_z + $bottom_z) / 2;
-    my $dist = scale $path->width/2;
+    my $polyline = $path->polyline->clone;
+    $polyline->translate(@$copy);
+    my $lines = $polyline->lines;
+    my $widths = [ map scale($path->width), 0..$#$lines ];
+    my $heights = [ map $path->height, 0..$#$lines ];
+    $self->_extrusionentity_to_verts($lines, $widths, $heights, 0, $top_z, $qverts, $qnorms, $tverts, $tnorms);
+}
+
+sub _extrusionloop_to_verts {
+    my ($self, $loop, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms) = @_;
     
-    foreach my $line (@{$path->polyline->lines}) {
+    my $lines   = [];
+    my $widths  = [];
+    my $heights = [];
+    foreach my $path (@$loop) {
+        my $polyline = $path->polyline->clone;
+        $polyline->translate(@$copy);
+        my $path_lines = $polyline->lines;
+        push @$lines, @$path_lines;
+        push @$widths, map scale($path->width), 0..$#$path_lines;
+        push @$heights, map $path->height, 0..$#$path_lines;
+    }
+    $self->_extrusionentity_to_verts($lines, $widths, $heights, 1, $top_z, $qverts, $qnorms, $tverts, $tnorms);
+}
+
+sub _extrusionentity_to_verts {
+    my ($self, $lines, $widths, $heights, $closed, $top_z, $qverts, $qnorms, $tverts, $tnorms) = @_;
+    
+    my ($prev_line, $prev_b1, $prev_b2, $prev_xy_left_normal, $prev_xy_right_normal);
+    
+    # loop once more in case of closed loops
+    my $first_done = 0;
+    for my $i (0..$#$lines, 0) {
+        my $line = $lines->[$i];
+        last if $i == 0 && $first_done && !$closed;
+        
         my $len = $line->length;
+        my $unscaled_len = unscale $len;
         next if $len == 0;
-        $line->translate(@$copy);
+        
+        my $bottom_z = $top_z - $heights->[$i];
+        my $middle_z = ($top_z + $bottom_z) / 2;
+        my $dist = $widths->[$i]/2;  # scaled
         
         my $v = Slic3r::Pointf3->new_unscale(@{$line->vector});
-        $v->scale(1/unscale $len);
+        $v->scale(1/$unscaled_len);
         
         my $a = $line->a;
         my $b = $line->b;
@@ -1127,58 +1163,169 @@ sub _extrusionpath_to_verts {
         $b1->translate(+$dist*$v->y, -$dist*$v->x);  #,,
         $b2->translate(-$dist*$v->y, +$dist*$v->x);  #,,
         
-        # calculate normal going to the right
-        my $xy_normal = Slic3r::Pointf3->new_unscale(@{$line->normal}, 0);
-        $xy_normal->scale(1/unscale $len);
+        # calculate new XY normals
+        my $xy_right_normal = Slic3r::Pointf3->new_unscale(@{$line->normal}, 0);
+        $xy_right_normal->scale(1/$unscaled_len);
+        my $xy_left_normal = $xy_right_normal->clone;
+        $xy_left_normal->scale(-1);
+        
+        if ($first_done) {
+            # if we're making a ccw turn, draw the triangles on the right side, otherwise draw them on the left side
+            if ($b->ccw(@$prev_line) > 0) {
+                # top-right vertex triangle between previous line and this one
+                {
+                    # use the normal going to the right calculated for the previous line
+                    push @$tnorms, @$prev_xy_right_normal;
+                    push @$tverts, (map unscale($_), @$prev_b1), $middle_z;
+            
+                    # use the normal going to the right calculated for this line
+                    push @$tnorms, @$xy_right_normal;
+                    push @$tverts, (map unscale($_), @$a1), $middle_z;
+            
+                    # normal going upwards
+                    push @$tnorms, (0,0,1);
+                    push @$tverts, (map unscale($_), @$a), $top_z;
+                }
+                # bottom-right vertex triangle between previous line and this one
+                {
+                    # use the normal going to the right calculated for the previous line
+                    push @$tnorms, @$prev_xy_right_normal;
+                    push @$tverts, (map unscale($_), @$prev_b1), $middle_z;
+            
+                    # normal going downwards
+                    push @$tnorms, (0,0,-1);
+                    push @$tverts, (map unscale($_), @$a), $bottom_z;
+            
+                    # use the normal going to the right calculated for this line
+                    push @$tnorms, @$xy_right_normal;
+                    push @$tverts, (map unscale($_), @$a1), $middle_z;
+                }
+            } else {
+                # top-left vertex triangle between previous line and this one
+                {
+                    # use the normal going to the left calculated for the previous line
+                    push @$tnorms, @$prev_xy_left_normal;
+                    push @$tverts, (map unscale($_), @$prev_b2), $middle_z;
+            
+                    # normal going upwards
+                    push @$tnorms, (0,0,1);
+                    push @$tverts, (map unscale($_), @$a), $top_z;
+            
+                    # use the normal going to the right calculated for this line
+                    push @$tnorms, @$xy_left_normal;
+                    push @$tverts, (map unscale($_), @$a2), $middle_z;
+                }
+                # bottom-left vertex triangle between previous line and this one
+                {
+                    # use the normal going to the left calculated for the previous line
+                    push @$tnorms, @$prev_xy_left_normal;
+                    push @$tverts, (map unscale($_), @$prev_b2), $middle_z;
+            
+                    # use the normal going to the right calculated for this line
+                    push @$tnorms, @$xy_left_normal;
+                    push @$tverts, (map unscale($_), @$a2), $middle_z;
+            
+                    # normal going downwards
+                    push @$tnorms, (0,0,-1);
+                    push @$tverts, (map unscale($_), @$a), $bottom_z;
+                }
+            }
+        }
+        
+        # if this was the extra iteration we were only interested in the triangles
+        last if $first_done && $i == 0;
+        
+        $prev_line = $line;
+        $prev_b1 = $b1;
+        $prev_b2 = $b2;
+        $prev_xy_right_normal = $xy_right_normal;
+        $prev_xy_left_normal  = $xy_left_normal;
+        
+        if (!$closed) {
+            # terminate open paths with caps
+            if ($i == 0) {
+                # normal pointing downwards
+                push @$qnorms, (0,0,-1);
+                push @$qverts, (map unscale($_), @$a), $bottom_z;
+            
+                # normal pointing to the right
+                push @$qnorms, @$xy_right_normal;
+                push @$qverts, (map unscale($_), @$a1), $middle_z;
+            
+                # normal pointing upwards
+                push @$qnorms, (0,0,1);
+                push @$qverts, (map unscale($_), @$a), $top_z;
+            
+                # normal pointing to the left
+                push @$qnorms, @$xy_left_normal;
+                push @$qverts, (map unscale($_), @$a2), $middle_z;
+            } elsif ($i == $#$lines) {
+                # normal pointing downwards
+                push @$qnorms, (0,0,-1);
+                push @$qverts, (map unscale($_), @$b), $bottom_z;
+            
+                # normal pointing to the left
+                push @$qnorms, @$xy_left_normal;
+                push @$qverts, (map unscale($_), @$b2), $middle_z;
+            
+                # normal pointing upwards
+                push @$qnorms, (0,0,1);
+                push @$qverts, (map unscale($_), @$b), $top_z;
+            
+                # normal pointing to the right
+                push @$qnorms, @$xy_right_normal;
+                push @$qverts, (map unscale($_), @$b1), $middle_z;
+            }
+        }
         
         # bottom-right face
         {
             # normal going downwards
-            push @$norms, (0,0,-1), (0,0,-1);
-            push @$verts, (map unscale($_), @$a), $bottom_z;
-            push @$verts, (map unscale($_), @$b), $bottom_z;
+            push @$qnorms, (0,0,-1), (0,0,-1);
+            push @$qverts, (map unscale($_), @$a), $bottom_z;
+            push @$qverts, (map unscale($_), @$b), $bottom_z;
             
-            push @$norms, @$xy_normal, @$xy_normal;
-            push @$verts, (map unscale($_), @$b1), $middle_z;
-            push @$verts, (map unscale($_), @$a1), $middle_z;
+            push @$qnorms, @$xy_right_normal, @$xy_right_normal;
+            push @$qverts, (map unscale($_), @$b1), $middle_z;
+            push @$qverts, (map unscale($_), @$a1), $middle_z;
         }
         
         # top-right face
         {
-            push @$norms, @$xy_normal, @$xy_normal;
-            push @$verts, (map unscale($_), @$a1), $middle_z;
-            push @$verts, (map unscale($_), @$b1), $middle_z;
+            push @$qnorms, @$xy_right_normal, @$xy_right_normal;
+            push @$qverts, (map unscale($_), @$a1), $middle_z;
+            push @$qverts, (map unscale($_), @$b1), $middle_z;
             
             # normal going upwards
-            push @$norms, (0,0,1), (0,0,1);
-            push @$verts, (map unscale($_), @$b), $top_z;
-            push @$verts, (map unscale($_), @$a), $top_z;
+            push @$qnorms, (0,0,1), (0,0,1);
+            push @$qverts, (map unscale($_), @$b), $top_z;
+            push @$qverts, (map unscale($_), @$a), $top_z;
         }
          
         # top-left face
         {
-            push @$norms, (0,0,1), (0,0,1);
-            push @$verts, (map unscale($_), @$a), $top_z;
-            push @$verts, (map unscale($_), @$b), $top_z;
-        
-            # calculate normal going to the left
-            $xy_normal->scale(-1);
-            push @$norms, @$xy_normal, @$xy_normal;
-            push @$verts, (map unscale($_), @$b2), $middle_z;
-            push @$verts, (map unscale($_), @$a2), $middle_z;
+            push @$qnorms, (0,0,1), (0,0,1);
+            push @$qverts, (map unscale($_), @$a), $top_z;
+            push @$qverts, (map unscale($_), @$b), $top_z;
+            
+            push @$qnorms, @$xy_left_normal, @$xy_left_normal;
+            push @$qverts, (map unscale($_), @$b2), $middle_z;
+            push @$qverts, (map unscale($_), @$a2), $middle_z;
         }
         
         # bottom-left face
         {
-            push @$norms, @$xy_normal, @$xy_normal;
-            push @$verts, (map unscale($_), @$a2), $middle_z;
-            push @$verts, (map unscale($_), @$b2), $middle_z;
+            push @$qnorms, @$xy_left_normal, @$xy_left_normal;
+            push @$qverts, (map unscale($_), @$a2), $middle_z;
+            push @$qverts, (map unscale($_), @$b2), $middle_z;
             
             # normal going downwards
-            push @$norms, (0,0,-1), (0,0,-1);
-            push @$verts, (map unscale($_), @$b), $bottom_z;
-            push @$verts, (map unscale($_), @$a), $bottom_z;
+            push @$qnorms, (0,0,-1), (0,0,-1);
+            push @$qverts, (map unscale($_), @$b), $bottom_z;
+            push @$qverts, (map unscale($_), @$a), $bottom_z;
         }
+        
+        $first_done++;
     }
 }
 
