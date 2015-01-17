@@ -91,6 +91,16 @@ sub new {
         $self->update;
     };
     
+    # Initialize 3D preview
+    if ($Slic3r::GUI::have_OpenGL) {
+        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
+        $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
+        $self->{canvas3D}->set_on_select_object($on_select_object);
+        $self->{canvas3D}->set_on_double_click($on_double_click);
+        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+    }
+    
     # Initialize 2D preview canvas
     $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
     $self->{preview_notebook}->AddPage($self->{canvas}, '2D');
@@ -99,15 +109,8 @@ sub new {
     $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
     $self->{canvas}->on_instances_moved($on_instances_moved);
     
-    # Initialize 3D preview and toolpaths preview
+    # Initialize toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
-        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
-        $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
-        $self->{canvas3D}->set_on_select_object($on_select_object);
-        $self->{canvas3D}->set_on_double_click($on_double_click);
-        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
-        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
-        
         $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
         $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview');
     }
