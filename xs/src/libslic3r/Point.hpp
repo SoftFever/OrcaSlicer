@@ -9,6 +9,7 @@
 namespace Slic3r {
 
 class Line;
+class Linef;
 class MultiPoint;
 class Point;
 class Pointf;
@@ -82,6 +83,12 @@ class Pointf
     coordf_t x;
     coordf_t y;
     explicit Pointf(coordf_t _x = 0, coordf_t _y = 0): x(_x), y(_y) {};
+    static Pointf new_unscale(coord_t x, coord_t y) {
+        return Pointf(unscale(x), unscale(y));
+    };
+    static Pointf new_unscale(const Point &p) {
+        return Pointf(unscale(p.x), unscale(p.y));
+    };
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, const Pointf &center);
@@ -100,6 +107,9 @@ class Pointf3 : public Pointf
     public:
     coordf_t z;
     explicit Pointf3(coordf_t _x = 0, coordf_t _y = 0, coordf_t _z = 0): Pointf(_x, _y), z(_z) {};
+    static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) {
+        return Pointf3(unscale(x), unscale(y), unscale(z));
+    };
     void scale(double factor);
     void translate(const Vectorf3 &vector);
     void translate(double x, double y, double z);

@@ -48,6 +48,15 @@ class Line
     #endif
 };
 
+class Linef
+{
+    public:
+    Pointf a;
+    Pointf b;
+    Linef() {};
+    explicit Linef(Pointf _a, Pointf _b): a(_a), b(_b) {};
+};
+
 class Linef3
 {
     public:

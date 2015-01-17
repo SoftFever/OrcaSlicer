@@ -1,0 +1,49 @@
+%module{Slic3r::XS};
+
+#include <myinit.h>
+#include "libslic3r/GUI/3DScene.hpp"
+
+%package{Slic3r::GUI::_3DScene};
+%{
+
+void
+_extrusionentity_to_verts_do(Lines lines, std::vector<double> widths, std::vector<double> heights, bool closed, double top_z, Point* copy, SV* qverts, SV* qnorms, SV* tverts, SV* tnorms)
+    CODE:
+        Pointf3s _qverts, _qnorms, _tverts, _tnorms;
+        _3DScene::_extrusionentity_to_verts_do(lines, widths, heights, closed,
+            top_z, *copy, &_qverts, &_qnorms, &_tverts, &_tnorms);
+        
+        {
+            AV* av = (AV*)SvRV(qverts);
+            for (Pointf3s::const_iterator it = _qverts.begin(); it != _qverts.end(); ++it) {
+                av_push(av, newSVnv(it->x));
+                av_push(av, newSVnv(it->y));
+                av_push(av, newSVnv(it->z));
+            }
+        }
+        {
+            AV* av = (AV*)SvRV(qnorms);
+            for (Pointf3s::const_iterator it = _qnorms.begin(); it != _qnorms.end(); ++it) {
+                av_push(av, newSVnv(it->x));
+                av_push(av, newSVnv(it->y));
+                av_push(av, newSVnv(it->z));
+            }
+        }
+        {
+            AV* av = (AV*)SvRV(tverts);
+            for (Pointf3s::const_iterator it = _tverts.begin(); it != _tverts.end(); ++it) {
+                av_push(av, newSVnv(it->x));
+                av_push(av, newSVnv(it->y));
+                av_push(av, newSVnv(it->z));
+            }
+        }
+        {
+            AV* av = (AV*)SvRV(tnorms);
+            for (Pointf3s::const_iterator it = _tnorms.begin(); it != _tnorms.end(); ++it) {
+                av_push(av, newSVnv(it->x));
+                av_push(av, newSVnv(it->y));
+                av_push(av, newSVnv(it->z));
+            }
+        }
+
+%}
