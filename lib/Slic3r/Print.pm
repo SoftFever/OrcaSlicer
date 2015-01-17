@@ -87,9 +87,12 @@ sub export_gcode {
     if (@{$self->config->post_process}) {
         $self->status_cb->(95, "Running post-processing scripts");
         $self->config->setenv;
-        for (@{$self->config->post_process}) {
-            Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
-            system($_, $output_file);
+        for my $script (@{$self->config->post_process}) {
+            Slic3r::debugf "  '%s' '%s'\n", $script, $output_file;
+            if (!-x $script) {
+                die "The configured post-processing script is not executable: check permissions. ($script)\n";
+            }
+            system($script, $output_file);
         }
     }
 }
