@@ -169,6 +169,7 @@ use Slic3r::Test;
 
 {
     my $model = stacked_cubes();
+    my $object = $model->objects->[0];
     
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('layer_height', 0.4);
@@ -176,8 +177,8 @@ use Slic3r::Test;
     $config->set('skirts', 0);
     my $print = Slic3r::Test::init_print($model, config => $config);
     
-    is $model->get_material('lower')->config->extruder, 1, 'auto_assign_extruders() assigned correct extruder to first volume';
-    is $model->get_material('upper')->config->extruder, 2, 'auto_assign_extruders() assigned correct extruder to second volume';
+    is $object->volumes->[0]->config->extruder, 1, 'auto_assign_extruders() assigned correct extruder to first volume';
+    is $object->volumes->[1]->config->extruder, 2, 'auto_assign_extruders() assigned correct extruder to second volume';
     
     my $tool = undef;
     my %T0 = my %T1 = ();  # Z => 1
