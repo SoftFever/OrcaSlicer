@@ -32,6 +32,7 @@ Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, bool 
     if (height <= 0 && !bridge) CONFESS("Invalid flow height supplied to new_from_spacing()");
 
     float w = Flow::_width_from_spacing(spacing, nozzle_diameter, height, bridge);
+    if (bridge) height = w;
     return Flow(w, height, nozzle_diameter, bridge);
 }
 
