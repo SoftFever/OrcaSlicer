@@ -203,7 +203,7 @@ sub make_skirt {
     # checking whether we need to generate them
     $self->skirt->clear;
     
-    if ($self->config->skirts == 0
+    if (($self->config->skirts == 0 || $self->config->skirt_height == 0)
         && (!$self->config->ooze_prevention || @{$self->extruders} == 1)) {
         $self->set_step_done(STEP_SKIRT);
         return;
