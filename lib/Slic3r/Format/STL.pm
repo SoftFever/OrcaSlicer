@@ -14,6 +14,9 @@ sub read_file {
     $mesh->ReadSTLFile($path);
     $mesh->repair;
     
+    die "This STL file couldn't be read because it's empty.\n"
+        if $mesh->facets_count == 0;
+    
     my $model = Slic3r::Model->new;
     
     my $basename = basename($file);

@@ -12,6 +12,9 @@ sub read_from_file {
               : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
               : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
     
+    die "The supplied file couldn't be read because it's empty.\n"
+        if $model->objects_count == 0;
+    
     $_->set_input_file($input_file) for @{$model->objects};
     return $model;
 }
