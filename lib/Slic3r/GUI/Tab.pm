@@ -702,13 +702,20 @@ sub _update {
     my $config = $self->{config};
     
     if ($config->spiral_vase && !($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0)) {
-        my $dialog = Wx::MessageDialog->new($self, "The Spiral Vase mode requires one perimeter, no top solid layers and 0% fill density. Shall I adjust those settings in order to enable Spiral Vase?",
+        my $dialog = Wx::MessageDialog->new($self,
+            "The Spiral Vase mode requires:\n"
+            . "- one perimeter\n"
+            . "- no top solid layers\n"
+            . "- 0% fill density\n"
+            . "- no support material\n"
+            . "\nShall I adjust those settings in order to enable Spiral Vase?",
             'Spiral Vase', wxICON_WARNING | wxYES | wxNO);
         if ($dialog->ShowModal() == wxID_YES) {
             my $new_conf = Slic3r::Config->new;
             $new_conf->set("perimeters", 1);
             $new_conf->set("top_solid_layers", 0);
             $new_conf->set("fill_density", 0);
+            $new_conf->set("support_material", 0);
             $self->load_config($new_conf);
         } else {
             my $new_conf = Slic3r::Config->new;
