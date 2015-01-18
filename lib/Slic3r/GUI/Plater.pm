@@ -28,7 +28,6 @@ use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
-use constant CONFIG_TIMER_ID => &Wx::NewId;
 
 # package variables to avoid passing lexicals to threads
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
@@ -53,8 +52,6 @@ sub new {
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
     $self->{objects} = [];
-    $self->{apply_config_timer} = Wx::Timer->new($self, CONFIG_TIMER_ID)
-        if $Slic3r::have_threads;
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
@@ -291,10 +288,14 @@ sub new {
         Slic3r::thread_cleanup();
     });
     
-    EVT_TIMER($self, CONFIG_TIMER_ID, sub {
-        my ($self, $event) = @_;
-        $self->async_apply_config;
-    });
+    if ($Slic3r::have_threads) {
+        my $timer_id = Wx::NewId();
+        $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
+        EVT_TIMER($self, $timer_id, sub {
+            my ($self, $event) = @_;
+            $self->async_apply_config;
+        });
+    }
     
     $self->{canvas}->update_bed_size;
     if ($self->{canvas3D}) {

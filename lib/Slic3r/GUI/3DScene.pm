@@ -924,6 +924,7 @@ use base qw(Slic3r::GUI::3DScene::Base);
 use OpenGL qw(:glconstants :gluconstants :glufunctions);
 use List::Util qw(first);
 use Slic3r::Geometry qw(scale unscale epsilon);
+use Slic3r::Print::State ':steps';
 
 use constant COLORS => [ [1,1,0,1], [1,0.5,0.5,1], [0.5,1,0.5,1], [0.5,0.5,1,1] ];
 
@@ -1102,14 +1103,18 @@ sub load_print_object_toolpaths {
         
         foreach my $copy (@{ $object->_shifted_copies }) {
             foreach my $layerm (@{$layer->regions}) {
-                $self->_extrusionentity_to_verts($layerm->perimeters, $top_z, $copy,
-                    \@perim_qverts, \@perim_qnorms, \@perim_tverts, \@perim_tnorms);
+                if ($object->step_done(STEP_PERIMETERS)) {
+                    $self->_extrusionentity_to_verts($layerm->perimeters, $top_z, $copy,
+                        \@perim_qverts, \@perim_qnorms, \@perim_tverts, \@perim_tnorms);
+                }
                 
-                $self->_extrusionentity_to_verts($layerm->fills, $top_z, $copy,
-                    \@infill_qverts, \@infill_qnorms, \@infill_tverts, \@infill_tnorms);
+                if ($object->step_done(STEP_INFILL)) {
+                    $self->_extrusionentity_to_verts($layerm->fills, $top_z, $copy,
+                        \@infill_qverts, \@infill_qnorms, \@infill_tverts, \@infill_tnorms);
+                }
             }
             
-            if ($layer->isa('Slic3r::Layer::Support')) {
+            if ($layer->isa('Slic3r::Layer::Support') && $object->step_done(STEP_SUPPORTMATERIAL)) {
                 $self->_extrusionentity_to_verts($layer->support_fills, $top_z, $copy,
                     \@support_qverts, \@support_qnorms, \@support_tverts, \@support_tnorms);
                 
