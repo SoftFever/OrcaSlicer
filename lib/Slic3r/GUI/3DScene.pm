@@ -7,7 +7,7 @@ use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin);
-use List::Util qw(reduce min max);
+use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
@@ -833,17 +833,47 @@ sub draw_volumes {
             glColor4f(@{ $volume->color });
         }
         
-        glCullFace(GL_BACK);
-        if ($volume->verts) {
-            glVertexPointer_p(3, $volume->verts);
-            glNormalPointer_p($volume->norms);
-            glDrawArrays(GL_TRIANGLES, 0, $volume->verts->elements / 3);
+        my @sorted_z = ();
+        my ($min_z, $max_z);
+        if ($volume->range) {
+            @sorted_z = sort { $a <=> $b } keys %{$volume->offsets};
+            
+            ($min_z, $max_z) = @{$volume->range};
+            $min_z = first { $_ >= $min_z } @sorted_z;
+            $max_z = first { $_ > $max_z }  @sorted_z;
         }
         
+        glCullFace(GL_BACK);
         if ($volume->quad_verts) {
+            my ($min_offset, $max_offset);
+            if (defined $min_z) {
+                $min_offset = $volume->offsets->{$min_z}->[0];
+            }
+            if (defined $max_z) {
+                $max_offset = $volume->offsets->{$max_z}->[0];
+            }
+            $min_offset //= 0;
+            $max_offset //= $volume->quad_verts->elements;
+            
             glVertexPointer_p(3, $volume->quad_verts);
             glNormalPointer_p($volume->quad_norms);
-            glDrawArrays(GL_QUADS, 0, $volume->quad_verts->elements / 3);
+            glDrawArrays(GL_QUADS, $min_offset / 3, ($max_offset-$min_offset) / 3);
+        }
+        
+        if ($volume->verts) {
+            my ($min_offset, $max_offset);
+            if (defined $min_z) {
+                $min_offset = $volume->offsets->{$min_z}->[1];
+            }
+            if (defined $max_z) {
+                $max_offset = $volume->offsets->{$max_z}->[1];
+            }
+            $min_offset //= 0;
+            $max_offset //= $volume->verts->elements;
+            
+            glVertexPointer_p(3, $volume->verts);
+            glNormalPointer_p($volume->norms);
+            glDrawArrays(GL_TRIANGLES, $min_offset / 3, ($max_offset-$min_offset) / 3);
         }
         
         glPopMatrix();
@@ -870,13 +900,15 @@ has 'select_group_id'   => (is => 'rw', default => sub { -1 });
 has 'drag_group_id'     => (is => 'rw', default => sub { -1 });
 has 'selected'          => (is => 'rw', default => sub { 0 });
 has 'hover'             => (is => 'rw', default => sub { 0 });
+has 'range'             => (is => 'rw');
 
 # geometric data
-has 'verts'             => (is => 'rw');
-has 'norms'             => (is => 'rw');
-has 'quad_verts'        => (is => 'rw');
-has 'quad_norms'        => (is => 'rw');
+has 'quad_verts'        => (is => 'rw');  # OpenGL::Array object
+has 'quad_norms'        => (is => 'rw');  # OpenGL::Array object
+has 'verts'             => (is => 'rw');  # OpenGL::Array object
+has 'norms'             => (is => 'rw');  # OpenGL::Array object
 has 'mesh'              => (is => 'rw');  # only required for cut contours
+has 'offsets'           => (is => 'rw');  # [ z => [ quad_verts_idx, verts_idx ] ]
 
 sub transformed_bounding_box {
     my ($self) = @_;
@@ -1045,8 +1077,28 @@ sub load_print_object_toolpaths {
     my (@infill_qverts, @infill_qnorms, @infill_tverts, @infill_tnorms) = ();
     my (@support_qverts, @support_qnorms, @support_tverts, @support_tnorms) = ();
     
-    foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
+    my %perim_offsets   = ();  # print_z => [ qverts, tverts ]
+    my %infill_offsets  = ();
+    my %support_offsets = ();
+    
+    # order layers by print_z
+    my @layers = sort { $a->print_z <=> $b->print_z }
+        @{$object->layers}, @{$object->support_layers};
+    
+    foreach my $layer (@layers) {
         my $top_z = $layer->print_z;
+        
+        if (!exists $perim_offsets{$top_z}) {
+            $perim_offsets{$top_z} = [
+                scalar(@perim_qverts), scalar(@perim_tverts),
+            ];
+            $infill_offsets{$top_z} = [
+                scalar(@infill_qverts), scalar(@infill_tverts),
+            ];
+            $support_offsets{$top_z} = [
+                scalar(@support_qverts), scalar(@support_tverts),
+            ];
+        }
         
         foreach my $copy (@{ $object->_shifted_copies }) {
             foreach my $layerm (@{$layer->regions}) {
@@ -1083,6 +1135,7 @@ sub load_print_object_toolpaths {
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @perim_qnorms),
         verts           => OpenGL::Array->new_list(GL_FLOAT, @perim_tverts),
         norms           => OpenGL::Array->new_list(GL_FLOAT, @perim_tnorms),
+        offsets         => { %perim_offsets },
     );
     
     push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
@@ -1092,6 +1145,7 @@ sub load_print_object_toolpaths {
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @infill_qnorms),
         verts           => OpenGL::Array->new_list(GL_FLOAT, @infill_tverts),
         norms           => OpenGL::Array->new_list(GL_FLOAT, @infill_tnorms),
+        offsets         => { %infill_offsets },
     );
     
     push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
@@ -1101,7 +1155,16 @@ sub load_print_object_toolpaths {
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @support_qnorms),
         verts           => OpenGL::Array->new_list(GL_FLOAT, @support_tverts),
         norms           => OpenGL::Array->new_list(GL_FLOAT, @support_tnorms),
+        offsets         => { %support_offsets },
     );
+}
+
+sub set_toolpaths_range {
+    my ($self, $min_z, $max_z) = @_;
+    
+    foreach my $volume (@{$self->volumes}) {
+        $volume->range([ $min_z, $max_z ]);
+    }
 }
 
 sub _expolygons_to_verts {

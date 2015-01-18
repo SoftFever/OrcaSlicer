@@ -76,7 +76,7 @@ sub reload_print {
         return;
     }
     
-    if (0) {
+    {
         my %z = ();  # z => 1
         foreach my $object (@{$self->{print}->objects}) {
             foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
@@ -85,14 +85,14 @@ sub reload_print {
         }
         $self->enabled(1);
         $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
-        $self->{slider}->SetRange(0, scalar(@{$self->{layers_z}})-1);
-        if ((my $z_idx = $self->{slider}->GetValue) <= $#{$self->{layers_z}}) {
+        $self->slider->SetRange(0, scalar(@{$self->{layers_z}})-1);
+        if ((my $z_idx = $self->slider->GetValue) <= $#{$self->{layers_z}} && $self->slider->GetValue != 0) {
             $self->set_z($self->{layers_z}[$z_idx]);
         } else {
-            $self->{slider}->SetValue(0);
-            $self->set_z($self->{layers_z}[0]) if @{$self->{layers_z}};
+            $self->slider->SetValue(scalar(@{$self->{layers_z}})-1);
+            $self->set_z($self->{layers_z}[-1]) if @{$self->{layers_z}};
         }
-        $self->{slider}->Show;
+        $self->slider->Show;
         $self->Layout;
     }
     
@@ -102,6 +102,15 @@ sub reload_print {
         }
         $self->canvas->zoom_to_volumes;
     }
+}
+
+sub set_z {
+    my ($self, $z) = @_;
+    
+    return if !$self->enabled;
+    $self->{z_label}->SetLabel(sprintf '%.2f', $z);
+    $self->canvas->set_toolpaths_range(0, $z);
+    $self->canvas->Refresh if $self->IsShown;
 }
 
 sub set_bed_shape {
