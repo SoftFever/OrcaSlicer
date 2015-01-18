@@ -197,7 +197,7 @@ sub export {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
-                        $object->_copies_shift->negative,
+                        Slic3r::Point->new(0,0),
                         undef,
                         'move to origin position for next object',
                     );
