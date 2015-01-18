@@ -1675,6 +1675,8 @@ src/libslic3r/GCodeWriter.cpp
 src/libslic3r/GCodeWriter.hpp
 src/libslic3r/Geometry.cpp
 src/libslic3r/Geometry.hpp
+src/libslic3r/GUI/3DScene.cpp
+src/libslic3r/GUI/3DScene.hpp
 src/libslic3r/Layer.cpp
 src/libslic3r/Layer.hpp
 src/libslic3r/LayerRegion.cpp
@@ -1762,6 +1764,7 @@ xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
 xsp/GCodeWriter.xsp
 xsp/Geometry.xsp
+xsp/GUI_3DScene.xsp
 xsp/Layer.xsp
 xsp/Line.xsp
 xsp/Model.xsp
