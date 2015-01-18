@@ -35,6 +35,7 @@
     // owned by PrintObject, no constructor/destructor
 
     int id();
+    void set_id(int id);
     Ref<PrintObject> object();
     Ref<Layer> upper_layer()
         %code%{ RETVAL = THIS->upper_layer; %};
@@ -89,6 +90,7 @@
     // copies of some Layer methods, because the parameter wrapper code
     // gets confused about getting a Layer::Support instead of a Layer
     int id();
+    void set_id(int id);
     Ref<PrintObject> object();
     Ref<SupportLayer> upper_layer()
         %code%{ RETVAL = (SupportLayer*)THIS->upper_layer; %};

@@ -6,7 +6,7 @@
 
 namespace Slic3r {
 
-Layer::Layer(int id, PrintObject *object, coordf_t height, coordf_t print_z,
+Layer::Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z)
 :   _id(id),
     _object(object),
@@ -35,10 +35,16 @@ Layer::~Layer()
     this->clear_regions();
 }
 
-int
-Layer::id()
+size_t
+Layer::id() const
 {
     return this->_id;
+}
+
+void
+Layer::set_id(size_t id)
+{
+    this->_id = id;
 }
 
 PrintObject*
@@ -147,7 +153,7 @@ REGISTER_CLASS(Layer, "Layer");
 #endif
 
 
-SupportLayer::SupportLayer(int id, PrintObject *object, coordf_t height,
+SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
         coordf_t print_z, coordf_t slice_z)
 :   Layer(id, object, height, print_z, slice_z)
 {

@@ -72,7 +72,8 @@ class Layer {
     friend class PrintObject;
 
     public:
-    int id();
+    size_t id() const;
+    void set_id(size_t id);
     PrintObject* object();
 
     Layer *upper_layer;
@@ -97,11 +98,11 @@ class Layer {
     template <class T> bool any_bottom_region_slice_contains(const T &item) const;
     
     protected:
-    int _id;     // sequential number of layer, 0-based
+    size_t _id;     // sequential number of layer, 0-based
     PrintObject *_object;
 
 
-    Layer(int id, PrintObject *object, coordf_t height, coordf_t print_z,
+    Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
     virtual ~Layer();
 
@@ -119,7 +120,7 @@ class SupportLayer : public Layer {
     ExtrusionEntityCollection support_interface_fills;
 
     protected:
-    SupportLayer(int id, PrintObject *object, coordf_t height, coordf_t print_z,
+    SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
     virtual ~SupportLayer();
 };

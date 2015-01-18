@@ -291,7 +291,7 @@ sub slice {
     while (@{$self->layers} && !@{$self->get_layer(0)->slices}) {
         shift @{$self->layers};
         for (my $i = 0; $i <= $#{$self->layers}; $i++) {
-            $self->get_layer($i)->id( $self->get_layer($i)->id-1 );
+            $self->get_layer($i)->set_id( $self->get_layer($i)->id-1 );
         }
     }
     
