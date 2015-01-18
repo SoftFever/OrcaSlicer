@@ -1,10 +1,10 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.2.7                                                           *
-* Date      :  17 January 2015                                                 *
+* Version   :  6.2.1                                                           *
+* Date      :  31 October 2014                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2015                                         *
+* Copyright :  Angus Johnson 2010-2014                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
@@ -381,6 +381,13 @@ Int128 Int128Mul (long64 lhs, long64 rhs)
 // Miscellaneous global functions
 //------------------------------------------------------------------------------
 
+void Swap(cInt& val1, cInt& val2)
+{
+  cInt tmp = val1;
+  val1 = val2;
+  val2 = tmp;
+}
+//------------------------------------------------------------------------------
 bool Orientation(const Path &poly)
 {
     return Area(poly) >= 0;
@@ -751,9 +758,9 @@ inline void ReverseHorizontal(TEdge &e)
   //swap horizontal edges' Top and Bottom x's so they follow the natural
   //progression of the bounds - ie so their xbots will align with the
   //adjoining lower edge. [Helpful in the ProcessHorizontal() method.]
-  std::swap(e.Top.X, e.Bot.X);
+  Swap(e.Top.X, e.Bot.X);
 #ifdef use_xyz  
-  std::swap(e.Top.Z, e.Bot.Z);
+  Swap(e.Top.Z, e.Bot.Z);
 #endif
 }
 //------------------------------------------------------------------------------
@@ -859,8 +866,8 @@ bool Pt2IsBetweenPt1AndPt3(const IntPoint pt1,
 
 bool HorzSegmentsOverlap(cInt seg1a, cInt seg1b, cInt seg2a, cInt seg2b)
 {
-  if (seg1a > seg1b) std::swap(seg1a, seg1b);
-  if (seg2a > seg2b) std::swap(seg2a, seg2b);
+  if (seg1a > seg1b) Swap(seg1a, seg1b);
+  if (seg2a > seg2b) Swap(seg2a, seg2b);
   return (seg1a < seg2b) && (seg2a < seg1b);
 }
 
@@ -993,7 +1000,11 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
       //unless a Skip edge is encountered when that becomes the top divide
       Horz = Result;
       while (IsHorizontal(*Horz->Prev)) Horz = Horz->Prev;
-      if (Horz->Prev->Top.X > Result->Next->Top.X) Result = Horz->Prev;
+      if (Horz->Prev->Top.X == Result->Next->Top.X) 
+      {
+        if (!NextIsForward) Result = Horz->Prev;
+      }
+      else if (Horz->Prev->Top.X > Result->Next->Top.X) Result = Horz->Prev;
     }
     while (E != Result) 
     {
@@ -1013,8 +1024,11 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
     {
       Horz = Result;
       while (IsHorizontal(*Horz->Next)) Horz = Horz->Next;
-      if (Horz->Next->Top.X == Result->Prev->Top.X ||
-          Horz->Next->Top.X > Result->Prev->Top.X) Result = Horz->Next;
+      if (Horz->Next->Top.X == Result->Prev->Top.X) 
+      {
+        if (!NextIsForward) Result = Horz->Next;
+      }
+      else if (Horz->Next->Top.X > Result->Prev->Top.X) Result = Horz->Next;
     }
 
     while (E != Result)
@@ -1141,17 +1155,17 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
       return false;
     }
     E->Prev->OutIdx = Skip;
+    if (E->Prev->Bot.X < E->Prev->Top.X) ReverseHorizontal(*E->Prev);
     MinimaList::value_type locMin;
     locMin.Y = E->Bot.Y;
     locMin.LeftBound = 0;
     locMin.RightBound = E;
     locMin.RightBound->Side = esRight;
     locMin.RightBound->WindDelta = 0;
-    for (;;)
+    while (E->Next->OutIdx != Skip)
     {
-      if (E->Bot.X != E->Prev->Top.X) ReverseHorizontal(*E);
-      if (E->Next->OutIdx == Skip) break;
       E->NextInLML = E->Next;
+      if (E->Bot.X != E->Prev->Top.X) ReverseHorizontal(*E);
       E = E->Next;
     }
     m_MinimaList.push_back(locMin);
@@ -1357,23 +1371,10 @@ void Clipper::Reset()
 {
   ClipperBase::Reset();
   m_Scanbeam = ScanbeamList();
-  m_Maxima = MaximaList();
   m_ActiveEdges = 0;
   m_SortedEdges = 0;
   for (MinimaList::iterator lm = m_MinimaList.begin(); lm != m_MinimaList.end(); ++lm)
     InsertScanbeam(lm->Y);
-}
-//------------------------------------------------------------------------------
-
-bool Clipper::Execute(ClipType clipType, Paths &solution, PolyFillType fillType)
-{
-    return Execute(clipType, solution, fillType, fillType);
-}
-//------------------------------------------------------------------------------
-
-bool Clipper::Execute(ClipType clipType, PolyTree &polytree, PolyFillType fillType)
-{
-    return Execute(clipType, polytree, fillType, fillType);
 }
 //------------------------------------------------------------------------------
 
@@ -1382,7 +1383,7 @@ bool Clipper::Execute(ClipType clipType, Paths &solution,
 {
   if( m_ExecuteLocked ) return false;
   if (m_HasOpenPaths)
-    throw clipperException("Error: PolyTree struct is needed for open path clipping.");
+    throw clipperException("Error: PolyTree struct is need for open path clipping.");
   m_ExecuteLocked = true;
   solution.resize(0);
   m_SubjFillType = subjFillType;
@@ -1438,9 +1439,9 @@ bool Clipper::ExecuteInternal()
     cInt botY = PopScanbeam();
     do {
       InsertLocalMinimaIntoAEL(botY);
-      ProcessHorizontals();
-	  ClearGhostJoins();
-	  if (m_Scanbeam.empty()) break;
+      ClearGhostJoins();
+      ProcessHorizontals(false);
+      if (m_Scanbeam.empty()) break;
       cInt topY = PopScanbeam();
       succeeded = ProcessIntersections(topY);
       if (!succeeded) break;
@@ -1485,16 +1486,17 @@ bool Clipper::ExecuteInternal()
 
 void Clipper::InsertScanbeam(const cInt Y)
 {
-    m_Scanbeam.push(Y);
+  //if (!m_Scanbeam.empty() && Y == m_Scanbeam.top()) return;// avoid duplicates.
+  m_Scanbeam.push(Y);
 }
 //------------------------------------------------------------------------------
 
 cInt Clipper::PopScanbeam()
 {
-    const cInt Y = m_Scanbeam.top();
-    m_Scanbeam.pop();
-    while (!m_Scanbeam.empty() && Y == m_Scanbeam.top()) { m_Scanbeam.pop(); } // Pop duplicates.
-    return Y;
+  const cInt Y = m_Scanbeam.top();
+  m_Scanbeam.pop();
+  while (!m_Scanbeam.empty() && Y == m_Scanbeam.top()) { m_Scanbeam.pop(); } // Pop duplicates.
+  return Y;
 }
 //------------------------------------------------------------------------------
 
@@ -2354,6 +2356,7 @@ OutRec* Clipper::CreateOutRec()
 
 OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
 {
+  bool ToFront = (e->Side == esLeft);
   if(  e->OutIdx < 0 )
   {
     OutRec *outRec = CreateOutRec();
@@ -2374,8 +2377,7 @@ OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
     //OutRec.Pts is the 'Left-most' point & OutRec.Pts.Prev is the 'Right-most'
     OutPt* op = outRec->Pts;
 
-	bool ToFront = (e->Side == esLeft);
-	if (ToFront && (pt == op->Pt)) return op;
+    if (ToFront && (pt == op->Pt)) return op;
     else if (!ToFront && (pt == op->Prev->Pt)) return op->Prev;
 
     OutPt* newOp = new OutPt;
@@ -2391,23 +2393,13 @@ OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
 }
 //------------------------------------------------------------------------------
 
-OutPt* Clipper::GetLastOutPt(TEdge *e)
-{
-	OutRec *outRec = m_PolyOuts[e->OutIdx];
-	if (e->Side == esLeft)
-		return outRec->Pts;
-	else
-		return outRec->Pts->Prev;
-}
-//------------------------------------------------------------------------------
-
-void Clipper::ProcessHorizontals()
+void Clipper::ProcessHorizontals(bool IsTopOfScanbeam)
 {
   TEdge* horzEdge = m_SortedEdges;
   while(horzEdge)
   {
     DeleteFromSEL(horzEdge);
-    ProcessHorizontal(horzEdge);
+    ProcessHorizontal(horzEdge, IsTopOfScanbeam);
     horzEdge = m_SortedEdges;
   }
 }
@@ -2572,7 +2564,7 @@ void GetHorzDirection(TEdge& HorzEdge, Direction& Dir, cInt& Left, cInt& Right)
 * the AEL. These 'promoted' edges may in turn intersect [%] with other HEs.    *
 *******************************************************************************/
 
-void Clipper::ProcessHorizontal(TEdge *horzEdge)
+void Clipper::ProcessHorizontal(TEdge *horzEdge, bool isTopOfScanbeam)
 {
   Direction dir;
   cInt horzLeft, horzRight;
@@ -2585,100 +2577,50 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
   if (!eLastHorz->NextInLML)
     eMaxPair = GetMaximaPair(eLastHorz);
 
-  MaximaList::const_iterator maxIt;
-  MaximaList::const_reverse_iterator maxRit;
-  if (m_Maxima.size() > 0)
+  for (;;)
   {
-      //get the first maxima in range (X) ...
-      if (dir == dLeftToRight)
-      {
-          maxIt = m_Maxima.begin();
-          while (maxIt != m_Maxima.end() && *maxIt <= horzEdge->Bot.X) maxIt++;
-          if (maxIt != m_Maxima.end() && *maxIt >= eLastHorz->Top.X)
-              maxIt = m_Maxima.end();
-      }
-      else
-      {
-          maxRit = m_Maxima.rbegin();
-          while (maxRit != m_Maxima.rend() && *maxRit > horzEdge->Bot.X) maxRit++;
-          if (maxRit != m_Maxima.rend() && *maxRit <= eLastHorz->Top.X)
-              maxRit = m_Maxima.rend();
-      }
-  }
-
-  OutPt* op1 = 0;
-
-  for (;;) //loop through consec. horizontal edges
-  {
-		  
     bool IsLastHorz = (horzEdge == eLastHorz);
     TEdge* e = GetNextInAEL(horzEdge, dir);
     while(e)
     {
+      //Break if we've got to the end of an intermediate horizontal edge ...
+      //nb: Smaller Dx's are to the right of larger Dx's ABOVE the horizontal.
+      if (e->Curr.X == horzEdge->Top.X && horzEdge->NextInLML && 
+        e->Dx < horzEdge->NextInLML->Dx) break;
 
-        //this code block inserts extra coords into horizontal edges (in output
-        //polygons) whereever maxima touch these horizontal edges. This helps
-        //'simplifying' polygons (ie if the Simplify property is set).
-        if (m_Maxima.size() > 0)
-        {
-            if (dir == dLeftToRight)
-            {
-                while (maxIt != m_Maxima.end() && *maxIt < e->Curr.X) 
-                {
-                    if (horzEdge->OutIdx >= 0)
-                        AddOutPt(horzEdge, IntPoint(*maxIt, horzEdge->Bot.Y));
-                    maxIt++;
-                }
-            }
-            else
-            {
-                while (maxRit != m_Maxima.rend() && *maxRit > e->Curr.X)
-                {
-                    if (horzEdge->OutIdx >= 0)
-                        AddOutPt(horzEdge, IntPoint(*maxRit, horzEdge->Bot.Y));
-                    maxRit++;
-                }
-            }
-        };
+      TEdge* eNext = GetNextInAEL(e, dir); //saves eNext for later
 
-        if ((dir == dLeftToRight && e->Curr.X > horzRight) ||
-			(dir == dRightToLeft && e->Curr.X < horzLeft)) break;
-
-		//Also break if we've got to the end of an intermediate horizontal edge ...
-		//nb: Smaller Dx's are to the right of larger Dx's ABOVE the horizontal.
-		if (e->Curr.X == horzEdge->Top.X && horzEdge->NextInLML && 
-			e->Dx < horzEdge->NextInLML->Dx) break;
-
-		if (horzEdge->OutIdx >= 0)  //note: may be done multiple times
-		{
-            op1 = AddOutPt(horzEdge, e->Curr);
-			TEdge* eNextHorz = m_SortedEdges;
-			while (eNextHorz)
-			{
-				if (eNextHorz->OutIdx >= 0 &&
-					HorzSegmentsOverlap(horzEdge->Bot.X,
-					horzEdge->Top.X, eNextHorz->Bot.X, eNextHorz->Top.X))
-				{
-                    OutPt* op2 = GetLastOutPt(eNextHorz);
-                    AddJoin(op2, op1, eNextHorz->Top);
-				}
-				eNextHorz = eNextHorz->NextInSEL;
-			}
-			AddGhostJoin(op1, horzEdge->Bot); //also may be done multiple times
-		}
-		
-		//OK, so far we're still in range of the horizontal Edge  but make sure
+      if ((dir == dLeftToRight && e->Curr.X <= horzRight) ||
+        (dir == dRightToLeft && e->Curr.X >= horzLeft))
+      {
+        //so far we're still in range of the horizontal Edge  but make sure
         //we're at the last of consec. horizontals when matching with eMaxPair
         if(e == eMaxPair && IsLastHorz)
         {
+
           if (horzEdge->OutIdx >= 0)
+          {
+            OutPt* op1 = AddOutPt(horzEdge, horzEdge->Top);
+            TEdge* eNextHorz = m_SortedEdges;
+            while (eNextHorz)
+            {
+              if (eNextHorz->OutIdx >= 0 &&
+                HorzSegmentsOverlap(horzEdge->Bot.X,
+                horzEdge->Top.X, eNextHorz->Bot.X, eNextHorz->Top.X))
+              {
+                OutPt* op2 = AddOutPt(eNextHorz, eNextHorz->Bot);
+                AddJoin(op2, op1, eNextHorz->Top);
+              }
+              eNextHorz = eNextHorz->NextInSEL;
+            }
+            AddGhostJoin(op1, horzEdge->Bot);
             AddLocalMaxPoly(horzEdge, eMaxPair, horzEdge->Top);
+          }
           DeleteFromAEL(horzEdge);
           DeleteFromAEL(eMaxPair);
           return;
         }
-        
-		if(dir == dLeftToRight)
+        else if(dir == dLeftToRight)
         {
           IntPoint Pt = IntPoint(e->Curr.X, horzEdge->Curr.Y);
           IntersectEdges(horzEdge, e, Pt);
@@ -2688,43 +2630,28 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
           IntPoint Pt = IntPoint(e->Curr.X, horzEdge->Curr.Y);
           IntersectEdges( e, horzEdge, Pt);
         }
-        TEdge* eNext = GetNextInAEL(e, dir);
         SwapPositionsInAEL( horzEdge, e );
-        e = eNext;
-    } //end while(e)
+      }
+      else if( (dir == dLeftToRight && e->Curr.X >= horzRight) ||
+       (dir == dRightToLeft && e->Curr.X <= horzLeft) ) break;
+      e = eNext;
+    } //end while
 
-	//Break out of loop if HorzEdge.NextInLML is not also horizontal ...
-	if (!horzEdge->NextInLML || !IsHorizontal(*horzEdge->NextInLML)) break;
-
-	UpdateEdgeIntoAEL(horzEdge);
-    if (horzEdge->OutIdx >= 0) AddOutPt(horzEdge, horzEdge->Bot);
-    GetHorzDirection(*horzEdge, dir, horzLeft, horzRight);
-
+    if (horzEdge->NextInLML && IsHorizontal(*horzEdge->NextInLML))
+    {
+      UpdateEdgeIntoAEL(horzEdge);
+      if (horzEdge->OutIdx >= 0) AddOutPt(horzEdge, horzEdge->Bot);
+      GetHorzDirection(*horzEdge, dir, horzLeft, horzRight);
+    } else
+      break;
   } //end for (;;)
 
-  if (horzEdge->OutIdx >= 0 && !op1)
-  {
-      op1 = GetLastOutPt(horzEdge);
-      TEdge* eNextHorz = m_SortedEdges;
-      while (eNextHorz)
-      {
-          if (eNextHorz->OutIdx >= 0 &&
-              HorzSegmentsOverlap(horzEdge->Bot.X,
-              horzEdge->Top.X, eNextHorz->Bot.X, eNextHorz->Top.X))
-          {
-              OutPt* op2 = GetLastOutPt(eNextHorz);
-              AddJoin(op2, op1, eNextHorz->Top);
-          }
-          eNextHorz = eNextHorz->NextInSEL;
-      }
-      AddGhostJoin(op1, horzEdge->Top);
-  }
-
-  if (horzEdge->NextInLML)
+  if(horzEdge->NextInLML)
   {
     if(horzEdge->OutIdx >= 0)
     {
-      op1 = AddOutPt( horzEdge, horzEdge->Top);
+      OutPt* op1 = AddOutPt( horzEdge, horzEdge->Top);
+      if (isTopOfScanbeam) AddGhostJoin(op1, horzEdge->Bot);
       UpdateEdgeIntoAEL(horzEdge);
       if (horzEdge->WindDelta == 0) return;
       //nb: HorzEdge is no longer horizontal here
@@ -2979,7 +2906,6 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
 
     if(IsMaximaEdge)
     {
-      if (m_StrictSimple) m_Maxima.push_back(e->Top.X);
       TEdge* ePrev = e->PrevInAEL;
       DoMaxima(e);
       if( !ePrev ) e = m_ActiveEdges;
@@ -3001,8 +2927,6 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
         e->Curr.Y = topY;
       }
 
-      //When StrictlySimple and 'e' is being touched by another edge, then
-      //make sure both edges have a vertex here ...
       if (m_StrictSimple)
       {  
         TEdge* ePrev = e->PrevInAEL;
@@ -3024,9 +2948,7 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
   }
 
   //3. Process horizontals at the Top of the scanbeam ...
-  m_Maxima.sort();
-  ProcessHorizontals();
-  m_Maxima.clear();
+  ProcessHorizontals(true);
 
   //4. Promote intermediate vertices ...
   e = m_ActiveEdges;
@@ -3073,7 +2995,6 @@ void Clipper::FixupOutPolygon(OutRec &outrec)
   OutPt *lastOK = 0;
   outrec.BottomPt = 0;
   OutPt *pp = outrec.Pts;
-  bool preserveCol = m_PreserveCollinear || m_StrictSimple;
 
   for (;;)
   {
@@ -3087,7 +3008,8 @@ void Clipper::FixupOutPolygon(OutRec &outrec)
     //test for duplicate points and collinear edges ...
     if ((pp->Pt == pp->Next->Pt) || (pp->Pt == pp->Prev->Pt) || 
       (SlopesEqual(pp->Prev->Pt, pp->Pt, pp->Next->Pt, m_UseFullRange) &&
-      (!preserveCol || !Pt2IsBetweenPt1AndPt3(pp->Prev->Pt, pp->Pt, pp->Next->Pt))))
+      (!m_PreserveCollinear || 
+      !Pt2IsBetweenPt1AndPt3(pp->Prev->Pt, pp->Pt, pp->Next->Pt))))
     {
       lastOK = 0;
       OutPt *tmp = pp;
@@ -3387,7 +3309,7 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
   OutPt *op2 = j->OutPt2, *op2b;
 
   //There are 3 kinds of joins for output polygons ...
-  //1. Horizontal joins where Join.OutPt1 & Join.OutPt2 are vertices anywhere
+  //1. Horizontal joins where Join.OutPt1 & Join.OutPt2 are a vertices anywhere
   //along (horizontal) collinear edges (& Join.OffPt is on the same horizontal).
   //2. Non-horizontal joins where Join.OutPt1 & Join.OutPt2 are at the same
   //location at the Bottom of the overlapping segment (& Join.OffPt is above).
@@ -3586,7 +3508,6 @@ void Clipper::JoinCommonEdges()
     OutRec *outRec2 = GetOutRec(join->OutPt2->Idx);
 
     if (!outRec1->Pts || !outRec2->Pts) continue;
-    if (outRec1->IsOpen || outRec2->IsOpen) continue;
 
     //get the polygon fragment with the correct hole state (FirstLeft)
     //before calling JoinPoints() ...
@@ -4434,7 +4355,7 @@ void MinkowskiSum(const Path& pattern, const Path& path, Paths& solution, bool p
 }
 //------------------------------------------------------------------------------
 
-void TranslatePath(const Path& input, Path& output, const IntPoint delta)
+void TranslatePath(const Path& input, Path& output, IntPoint delta) 
 {
   //precondition: input != output
   output.resize(input.size());

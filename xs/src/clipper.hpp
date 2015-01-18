@@ -1,10 +1,10 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.2.7                                                           *
-* Date      :  17 January 2015                                                 *
+* Version   :  6.2.1                                                           *
+* Date      :  31 October 2014                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2015                                         *
+* Copyright :  Angus Johnson 2010-2014                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
@@ -34,7 +34,7 @@
 #ifndef clipper_hpp
 #define clipper_hpp
 
-#define CLIPPER_VERSION "6.2.6"
+#define CLIPPER_VERSION "6.2.0"
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
@@ -50,7 +50,6 @@
 //#define use_deprecated  
 
 #include <vector>
-#include <list>
 #include <set>
 #include <stdexcept>
 #include <cstring>
@@ -201,6 +200,7 @@ enum EdgeSide { esLeft = 1, esRight = 2};
 struct TEdge;
 struct IntersectNode;
 struct LocalMinimum;
+struct Scanbeam;
 struct OutPt;
 struct OutRec;
 struct Join;
@@ -232,6 +232,7 @@ protected:
   void PopLocalMinima();
   virtual void Reset();
   TEdge* ProcessBound(TEdge* E, bool IsClockwise);
+  void DoMinimaLML(TEdge* E1, TEdge* E2, bool IsClosed);
   TEdge* DescendToMin(TEdge *&E);
   void AscendToMax(TEdge *&E, bool Appending, bool IsClosed);
 
@@ -252,20 +253,14 @@ public:
   Clipper(int initOptions = 0);
   ~Clipper();
   bool Execute(ClipType clipType,
-      Paths &solution,
-      PolyFillType fillType = pftEvenOdd);
+    Paths &solution,
+    PolyFillType subjFillType = pftEvenOdd,
+    PolyFillType clipFillType = pftEvenOdd);
   bool Execute(ClipType clipType,
-      Paths &solution,
-      PolyFillType subjFillType,
-      PolyFillType clipFillType);
-  bool Execute(ClipType clipType,
-      PolyTree &polytree,
-      PolyFillType fillType = pftEvenOdd);
-  bool Execute(ClipType clipType,
-      PolyTree &polytree,
-      PolyFillType subjFillType,
-      PolyFillType clipFillType);
-  bool ReverseSolution() { return m_ReverseOutput; };
+    PolyTree &polytree,
+    PolyFillType subjFillType = pftEvenOdd,
+    PolyFillType clipFillType = pftEvenOdd);
+  bool ReverseSolution() {return m_ReverseOutput;};
   void ReverseSolution(bool value) {m_ReverseOutput = value;};
   bool StrictlySimple() {return m_StrictSimple;};
   void StrictlySimple(bool value) {m_StrictSimple = value;};
@@ -277,15 +272,13 @@ protected:
   void Reset();
   virtual bool ExecuteInternal();
 private:
-  PolyOutList      m_PolyOuts;
-  JoinList         m_Joins;
-  JoinList         m_GhostJoins;
-  IntersectList    m_IntersectList;
-  ClipType         m_ClipType;
+  PolyOutList       m_PolyOuts;
+  JoinList          m_Joins;
+  JoinList          m_GhostJoins;
+  IntersectList     m_IntersectList;
+  ClipType          m_ClipType;
   typedef std::priority_queue<cInt> ScanbeamList;
-  ScanbeamList     m_Scanbeam;
-  typedef std::list<cInt> MaximaList;
-  MaximaList       m_Maxima;
+  ScanbeamList      m_Scanbeam;
   TEdge           *m_ActiveEdges;
   TEdge           *m_SortedEdges;
   bool             m_ExecuteLocked;
@@ -314,8 +307,8 @@ private:
   bool IsTopHorz(const cInt XPos);
   void SwapPositionsInAEL(TEdge *edge1, TEdge *edge2);
   void DoMaxima(TEdge *e);
-  void ProcessHorizontals();
-  void ProcessHorizontal(TEdge *horzEdge);
+  void ProcessHorizontals(bool IsTopOfScanbeam);
+  void ProcessHorizontal(TEdge *horzEdge, bool isTopOfScanbeam);
   void AddLocalMaxPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutPt* AddLocalMinPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutRec* GetOutRec(int idx);
@@ -323,7 +316,6 @@ private:
   void IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &pt);
   OutRec* CreateOutRec();
   OutPt* AddOutPt(TEdge *e, const IntPoint &pt);
-  OutPt* GetLastOutPt(TEdge *e);
   void DisposeAllOutRecs();
   void DisposeOutRec(PolyOutList::size_type index);
   bool ProcessIntersections(const cInt topY);
