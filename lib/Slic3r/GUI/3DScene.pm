@@ -1069,8 +1069,12 @@ sub load_print_object_toolpaths {
     
     my $obb = $object->bounding_box;
     my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->min_point}, 0));
-    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->max_point}, $object->size->z));
+    foreach my $copy (@{ $object->_shifted_copies }) {
+        my $cbb = $obb->clone;
+        $cbb->translate(@$copy);
+        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->min_point}, 0));
+        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->max_point}, $object->size->z));
+    }
     
     push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
         bounding_box    => $bb,

@@ -11,7 +11,7 @@ use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl
     :panel :sizer :toolbar :window wxTheApp :notebook);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
-    EVT_CHOICE EVT_TIMER);
+    EVT_CHOICE EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -91,7 +91,7 @@ sub new {
         $self->update;
     };
     
-    # Initialize 3D preview
+    # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
@@ -112,8 +112,21 @@ sub new {
     # Initialize toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview');
+        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview 2D');
     }
+    
+    # Initialize 3D plater
+    if ($Slic3r::GUI::have_OpenGL) {
+        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print});
+        $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview 3D');
+        $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
+    }
+    
+    EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
+        if ($self->{preview_notebook}->GetSelection == $self->{preview3D_page_idx}) {
+            $self->{preview3D}->reload_print;
+        }
+    });
     
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
@@ -245,7 +258,8 @@ sub new {
     }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
-        for grep defined($_), $self, $self->{canvas}, $self->{canvas3D}, $self->{list};
+        for grep defined($_),
+            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D}, $self->{list};
     
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
@@ -286,6 +300,9 @@ sub new {
     if ($self->{canvas3D}) {
         $self->{canvas3D}->update_bed_size;
         $self->{canvas3D}->zoom_to_bed;
+    }
+    if ($self->{preview3D}) {
+        $self->{preview3D}->set_bed_shape($self->{config}->bed_shape);
     }
     $self->update;
     
@@ -543,6 +560,7 @@ sub remove {
     
     # Prevent toolpaths preview from rendering while we modify the Print object
     $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
+    $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     # if no object index is supplied, remove the selected one
     if (!defined $obj_idx) {
@@ -567,6 +585,7 @@ sub reset {
     
     # Prevent toolpaths preview from rendering while we modify the Print object
     $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
+    $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
@@ -855,6 +874,7 @@ sub schedule_background_process {
     if (defined $self->{apply_config_timer}) {
         $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
         $self->{toolpaths2D}->reload_print;
+        $self->{preview3D}->reload_print;
     }
 }
 
@@ -934,6 +954,7 @@ sub stop_background_process {
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
     $self->{toolpaths2D}->reload_print;
+    $self->{preview3D}->reload_print;
     
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
@@ -1058,6 +1079,7 @@ sub on_process_completed {
     
     return if $error;
     $self->{toolpaths2D}->reload_print;
+    $self->{preview3D}->reload_print;
     
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {
@@ -1516,6 +1538,7 @@ sub refresh_canvases {
     
     $self->{canvas}->Refresh;
     $self->{canvas3D}->update if $self->{canvas3D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 sub validate_config {
