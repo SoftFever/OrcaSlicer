@@ -109,17 +109,17 @@ sub new {
     $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
     $self->{canvas}->on_instances_moved($on_instances_moved);
     
+    # Initialize 3D toolpaths preview
+    if ($Slic3r::GUI::have_OpenGL) {
+        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print});
+        $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview');
+        $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
+    }
+    
     # Initialize toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview 2D');
-    }
-    
-    # Initialize 3D plater
-    if ($Slic3r::GUI::have_OpenGL) {
-        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview 3D');
-        $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
+        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Layers');
     }
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {

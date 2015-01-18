@@ -48,6 +48,18 @@ sub new {
         $self->set_z($self->{layers_z}[$slider->GetValue])
             if $self->enabled;
     });
+    EVT_KEY_DOWN($canvas, sub {
+        my ($s, $event) = @_;
+        
+        my $key = $event->GetKeyCode;
+        if ($key == 85 || $key == 315) {
+            $slider->SetValue($slider->GetValue + 1);
+            $self->set_z($self->{layers_z}[$slider->GetValue]);
+        } elsif ($key == 68 || $key == 317) {
+            $slider->SetValue($slider->GetValue - 1);
+            $self->set_z($self->{layers_z}[$slider->GetValue]);
+        }
+    });
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
