@@ -169,8 +169,8 @@ sub export {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output(
                     "ooze_prevention.svg",
-                    polygons        => [$outer_skirt],
                     red_polygons    => \@skirts,
+                    polygons        => [$outer_skirt],
                     points          => $gcodegen->ooze_prevention->standby_points,
                 );
             }
