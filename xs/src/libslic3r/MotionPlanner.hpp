@@ -21,7 +21,7 @@ class MotionPlanner
     public:
     MotionPlanner(const ExPolygons &islands);
     ~MotionPlanner();
-    void shortest_path(const Point &from, const Point &to, Polyline* polyline);
+    Polyline shortest_path(const Point &from, const Point &to);
     size_t islands_count() const;
     
     private:
@@ -58,7 +58,7 @@ class MotionPlannerGraph
     //std::map<std::pair<size_t,size_t>, double> edges;
     void add_edge(size_t from, size_t to, double weight);
     size_t find_node(const Point &point) const;
-    void shortest_path(size_t from, size_t to, Polyline* polyline);
+    Polyline shortest_path(size_t from, size_t to);
 };
 
 }

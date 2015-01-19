@@ -10,6 +10,6 @@
     ~MotionPlanner();
     
     int islands_count();
-    Polyline* shortest_path(Point* from, Point* to)
-        %code%{ RETVAL = new Polyline(); THIS->shortest_path(*from, *to, RETVAL); %};
+    Clone<Polyline> shortest_path(Point* from, Point* to)
+        %code%{ RETVAL = THIS->shortest_path(*from, *to); %};
 };

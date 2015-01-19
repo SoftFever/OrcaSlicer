@@ -110,14 +110,14 @@ PrintObject::reload_model_instances()
     return this->set_copies(copies);
 }
 
-void
-PrintObject::bounding_box(BoundingBox* bb) const
+BoundingBox
+PrintObject::bounding_box() const
 {
     // since the object is aligned to origin, bounding box coincides with size
     Points pp;
     pp.push_back(Point(0,0));
     pp.push_back(this->size);
-    *bb = BoundingBox(pp);
+    return BoundingBox(pp);
 }
 
 void

@@ -31,7 +31,7 @@ class MultiPoint
     bool is_valid() const;
     int find_point(const Point &point) const;
     bool has_boundary_point(const Point &point) const;
-    void bounding_box(BoundingBox* bb) const;
+    BoundingBox bounding_box() const;
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
     

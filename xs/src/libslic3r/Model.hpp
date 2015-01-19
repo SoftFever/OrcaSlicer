@@ -54,12 +54,12 @@ class Model
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances() const;
     bool add_default_instances();
-    void bounding_box(BoundingBoxf3* bb);
+    BoundingBoxf3 bounding_box() const;
     void center_instances_around_point(const Pointf &point);
     void align_instances_to_origin();
     void translate(coordf_t x, coordf_t y, coordf_t z);
-    void mesh(TriangleMesh* mesh) const;
-    void raw_mesh(TriangleMesh* mesh) const;
+    TriangleMesh mesh() const;
+    TriangleMesh raw_mesh() const;
     // std::string get_material_name(t_model_material_id material_id);
 
     
@@ -118,13 +118,13 @@ class ModelObject
     void delete_last_instance();
     void clear_instances();
 
-    void bounding_box(BoundingBoxf3* bb);
+    BoundingBoxf3 bounding_box();
     void invalidate_bounding_box();
 
-    void mesh(TriangleMesh* mesh) const;
-    void raw_mesh(TriangleMesh* mesh) const;
-    void raw_bounding_box(BoundingBoxf3* bb) const;
-    void instance_bounding_box(size_t instance_idx, BoundingBoxf3* bb) const;
+    TriangleMesh mesh() const;
+    TriangleMesh raw_mesh() const;
+    BoundingBoxf3 raw_bounding_box() const;
+    BoundingBoxf3 instance_bounding_box(size_t instance_idx) const;
     void center_around_origin();
     void translate(const Vectorf3 &vector);
     void translate(coordf_t x, coordf_t y, coordf_t z);

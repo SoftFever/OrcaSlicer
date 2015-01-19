@@ -59,19 +59,13 @@
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances();
     bool add_default_instances();
-    BoundingBoxf3* bounding_box()
-        %code%{
-            RETVAL = new BoundingBoxf3();
-            THIS->bounding_box(RETVAL);
-        %};
+    Clone<BoundingBoxf3> bounding_box();
     void center_instances_around_point(Pointf* point)
         %code%{ THIS->center_instances_around_point(*point); %};
     void align_instances_to_origin();
     void translate(double x, double y, double z);
-    TriangleMesh* mesh()
-        %code%{ RETVAL = new TriangleMesh(); THIS->mesh(RETVAL); %};
-    TriangleMesh* raw_mesh()
-        %code%{ RETVAL = new TriangleMesh(); THIS->raw_mesh(RETVAL); %};
+    Clone<TriangleMesh> mesh();
+    Clone<TriangleMesh> raw_mesh();
     // void split_meshes();
     // std::string get_material_name(t_model_material_id material_id);
 
@@ -119,20 +113,10 @@ ModelMaterial::attributes()
     
     void invalidate_bounding_box();
     void update_bounding_box();
-    TriangleMesh* mesh()
-        %code%{ RETVAL = new TriangleMesh(); THIS->mesh(RETVAL); %};
-    TriangleMesh* raw_mesh()
-        %code%{ RETVAL = new TriangleMesh(); THIS->raw_mesh(RETVAL); %};
-    BoundingBoxf3* raw_bounding_box()
-        %code%{
-            RETVAL = new BoundingBoxf3();
-            THIS->raw_bounding_box(RETVAL);
-        %};
-    BoundingBoxf3* instance_bounding_box(int idx)
-        %code%{
-            RETVAL = new BoundingBoxf3();
-            THIS->instance_bounding_box(idx, RETVAL);
-        %};
+    Clone<TriangleMesh> mesh();
+    Clone<TriangleMesh> raw_mesh();
+    Clone<BoundingBoxf3> raw_bounding_box();
+    Clone<BoundingBoxf3> instance_bounding_box(int idx);
 
     Ref<BoundingBoxf3> _bounding_box(BoundingBoxf3* new_bbox = NULL)
         %code{%
@@ -147,11 +131,7 @@ ModelMaterial::attributes()
 
             RETVAL = &THIS->_bounding_box;
         %};
-    BoundingBoxf3* bounding_box()
-        %code%{
-            RETVAL = new BoundingBoxf3();
-            THIS->bounding_box(RETVAL);
-        %};
+    Clone<BoundingBoxf3> bounding_box();
 
     %name{_add_volume} Ref<ModelVolume> add_volume(TriangleMesh* mesh)
         %code%{ RETVAL = THIS->add_volume(*mesh); %};

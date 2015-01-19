@@ -319,8 +319,8 @@ TriangleMesh::merge(const TriangleMesh &mesh)
 }
 
 /* this will return scaled ExPolygons */
-void
-TriangleMesh::horizontal_projection(ExPolygons &retval) const
+ExPolygons
+TriangleMesh::horizontal_projection() const
 {
     Polygons pp;
     pp.reserve(this->stl.stats.number_of_facets);
@@ -337,11 +337,13 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
     
     // the offset factor was tuned using groovemount.stl
     offset(pp, &pp, 0.01 / SCALING_FACTOR);
+    ExPolygons retval;
     union_(pp, &retval, true);
+    return retval;
 }
 
-void
-TriangleMesh::convex_hull(Polygon* hull)
+Polygon
+TriangleMesh::convex_hull()
 {
     this->require_shared_vertices();
     Points pp;
@@ -350,25 +352,19 @@ TriangleMesh::convex_hull(Polygon* hull)
         stl_vertex* v = &this->stl.v_shared[i];
         pp.push_back(Point(v->x / SCALING_FACTOR, v->y / SCALING_FACTOR));
     }
-    Slic3r::Geometry::convex_hull(pp, hull);
-}
-
-void
-TriangleMesh::bounding_box(BoundingBoxf3* bb) const
-{
-    bb->min.x = this->stl.stats.min.x;
-    bb->min.y = this->stl.stats.min.y;
-    bb->min.z = this->stl.stats.min.z;
-    bb->max.x = this->stl.stats.max.x;
-    bb->max.y = this->stl.stats.max.y;
-    bb->max.z = this->stl.stats.max.z;
+    return Slic3r::Geometry::convex_hull(pp);
 }
 
 BoundingBoxf3
 TriangleMesh::bounding_box() const
 {
     BoundingBoxf3 bb;
-    this->bounding_box(&bb);
+    bb.min.x = this->stl.stats.min.x;
+    bb.min.y = this->stl.stats.min.y;
+    bb.min.z = this->stl.stats.min.z;
+    bb.max.x = this->stl.stats.max.x;
+    bb.max.y = this->stl.stats.max.y;
+    bb.max.z = this->stl.stats.max.z;
     return bb;
 }
 

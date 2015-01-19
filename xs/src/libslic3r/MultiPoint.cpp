@@ -83,10 +83,10 @@ MultiPoint::has_boundary_point(const Point &point) const
     return dist < SCALED_EPSILON;
 }
 
-void
-MultiPoint::bounding_box(BoundingBox* bb) const
+BoundingBox
+MultiPoint::bounding_box() const
 {
-    *bb = BoundingBox(this->points);
+    return BoundingBox(this->points);
 }
 
 Points

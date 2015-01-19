@@ -28,7 +28,7 @@ class ExPolygonCollection
     template <class T> bool contains(const T &item) const;
     bool contains_b(const Point &point) const;
     void simplify(double tolerance);
-    void convex_hull(Polygon* hull) const;
+    Polygon convex_hull() const;
     Lines lines() const;
 };
 

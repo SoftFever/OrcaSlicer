@@ -31,19 +31,11 @@
     TriangleMeshPtrs split();
     void merge(TriangleMesh* mesh)
         %code{% THIS->merge(*mesh); %};
-    ExPolygons horizontal_projection()
-        %code{% THIS->horizontal_projection(RETVAL); %};
-    BoundingBoxf3* bounding_box()
-        %code{%
-            RETVAL = new BoundingBoxf3();
-            THIS->bounding_box(RETVAL);
-        %};
-    Pointf3* center()
-        %code{%
-            BoundingBoxf3 bb;
-            THIS->bounding_box(&bb);
-            RETVAL = new Pointf3(bb.center());
-        %};
+    ExPolygons horizontal_projection();
+    Clone<Polygon> convex_hull();
+    Clone<BoundingBoxf3> bounding_box();
+    Clone<Pointf3> center()
+        %code{% RETVAL = THIS->bounding_box().center(); %};
     int facets_count();
     void reset_repair_stats();
 %{
@@ -193,14 +185,6 @@ TriangleMesh::bb3()
         RETVAL.push_back(THIS->stl.stats.max.y);
         RETVAL.push_back(THIS->stl.stats.min.z);
         RETVAL.push_back(THIS->stl.stats.max.z);
-    OUTPUT:
-        RETVAL
-
-Polygon*
-TriangleMesh::convex_hull()
-    CODE:
-        RETVAL = new Polygon ();
-        THIS->convex_hull(RETVAL);
     OUTPUT:
         RETVAL
 

@@ -19,14 +19,11 @@
     void translate(double x, double y);
     void reverse();
     Lines lines();
-    Polyline* split_at_vertex(Point* point)
-        %code{% RETVAL = new Polyline(); THIS->split_at_vertex(*point, RETVAL); %};
-    Polyline* split_at_index(int index)
-        %code{% RETVAL = new Polyline(); THIS->split_at_index(index, RETVAL); %};
-    Polyline* split_at_first_point()
-        %code{% RETVAL = new Polyline(); THIS->split_at_first_point(RETVAL); %};
-    Points equally_spaced_points(double distance)
-        %code{% THIS->equally_spaced_points(distance, &RETVAL); %};
+    Clone<Polyline> split_at_vertex(Point* point)
+        %code{% RETVAL = THIS->split_at_vertex(*point); %};
+    Clone<Polyline> split_at_index(int index);
+    Clone<Polyline> split_at_first_point();
+    Points equally_spaced_points(double distance);
     double length();
     double area();
     bool is_counter_clockwise();
@@ -41,16 +38,10 @@
     Polygons triangulate_convex()
         %code{% THIS->triangulate_convex(&RETVAL); %};
     Clone<Point> centroid();
-    BoundingBox* bounding_box()
-        %code{%
-            RETVAL = new BoundingBox();
-            THIS->bounding_box(RETVAL);
-        %};
+    Clone<BoundingBox> bounding_box();
     std::string wkt();
-    Points concave_points(double angle)
-        %code{% THIS->concave_points(angle, &RETVAL); %};
-    Points convex_points(double angle)
-        %code{% THIS->convex_points(angle, &RETVAL); %};
+    Points concave_points(double angle);
+    Points convex_points(double angle);
 %{
 
 Polygon*

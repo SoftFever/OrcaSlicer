@@ -874,8 +874,8 @@ sub schedule_background_process {
     
     if (defined $self->{apply_config_timer}) {
         $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
-        $self->{toolpaths2D}->reload_print;
-        $self->{preview3D}->reload_print;
+        $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+        $self->{preview3D}->reload_print if $self->{preview3D};
     }
 }
 
@@ -954,8 +954,8 @@ sub stop_background_process {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
-    $self->{toolpaths2D}->reload_print;
-    $self->{preview3D}->reload_print;
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
     
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
@@ -1079,8 +1079,8 @@ sub on_process_completed {
     $self->{process_thread} = undef;
     
     return if $error;
-    $self->{toolpaths2D}->reload_print;
-    $self->{preview3D}->reload_print;
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
     
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {

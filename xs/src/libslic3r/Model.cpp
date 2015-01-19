@@ -130,8 +130,7 @@ Model::duplicate_objects_grid(unsigned int x, unsigned int y, coordf_t distance)
     ModelObject* object = this->objects.front();
     object->clear_instances();
 
-    BoundingBoxf3 bb;
-    object->bounding_box(&bb);
+    BoundingBoxf3 bb = object->bounding_box();
     Sizef3 size = bb.size();
 
     for (unsigned int x_copy = 1; x_copy <= x; ++x_copy) {
@@ -174,21 +173,20 @@ Model::add_default_instances()
 }
 
 // this returns the bounding box of the *transformed* instances
-void
-Model::bounding_box(BoundingBoxf3* bb)
+BoundingBoxf3
+Model::bounding_box() const
 {
+    BoundingBoxf3 bb;
     for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
-        BoundingBoxf3 obb;
-        (*o)->bounding_box(&obb);
-        bb->merge(obb);
+        bb.merge((*o)->bounding_box());
     }
+    return bb;
 }
 
 void
 Model::center_instances_around_point(const Pointf &point)
 {
-    BoundingBoxf3 bb;
-    this->bounding_box(&bb);
+    BoundingBoxf3 bb = this->bounding_box();
     
     Sizef3 size = bb.size();
     double shift_x = -bb.min.x + point.x - size.x/2;
@@ -205,8 +203,7 @@ Model::center_instances_around_point(const Pointf &point)
 void
 Model::align_instances_to_origin()
 {
-    BoundingBoxf3 bb;
-    this->bounding_box(&bb);
+    BoundingBoxf3 bb = this->bounding_box();
     
     Pointf new_center = (Pointf)bb.size();
     new_center.translate(-new_center.x/2, -new_center.y/2);
@@ -222,25 +219,25 @@ Model::translate(coordf_t x, coordf_t y, coordf_t z)
 }
 
 // flattens everything to a single mesh
-void
-Model::mesh(TriangleMesh* mesh) const
+TriangleMesh
+Model::mesh() const
 {
+    TriangleMesh mesh;
     for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
-        TriangleMesh omesh;
-        (*o)->mesh(&omesh);
-        mesh->merge(omesh);
+        mesh.merge((*o)->mesh());
     }
+    return mesh;
 }
 
 // flattens everything to a single mesh
-void
-Model::raw_mesh(TriangleMesh* mesh) const
+TriangleMesh
+Model::raw_mesh() const
 {
+    TriangleMesh mesh;
     for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
-        TriangleMesh omesh;
-        (*o)->raw_mesh(&omesh);
-        mesh->merge(omesh);
+        mesh.merge((*o)->raw_mesh());
     }
+    return mesh;
 }
 
 #ifdef SLIC3RXS
@@ -393,11 +390,11 @@ ModelObject::clear_instances()
 }
 
 // this returns the bounding box of the *transformed* instances
-void
-ModelObject::bounding_box(BoundingBoxf3* bb)
+BoundingBoxf3
+ModelObject::bounding_box()
 {
     if (!this->_bounding_box_valid) this->update_bounding_box();
-    *bb = this->_bounding_box;
+    return this->_bounding_box;
 }
 
 void
@@ -409,40 +406,40 @@ ModelObject::invalidate_bounding_box()
 void
 ModelObject::update_bounding_box()
 {
-    TriangleMesh mesh;
-    this->mesh(&mesh);
-    
-    mesh.bounding_box(&this->_bounding_box);
+    this->_bounding_box = this->mesh().bounding_box();
     this->_bounding_box_valid = true;
 }
 
 // flattens all volumes and instances into a single mesh
-void
-ModelObject::mesh(TriangleMesh* mesh) const
+TriangleMesh
+ModelObject::mesh() const
 {
-    TriangleMesh raw_mesh;
-    this->raw_mesh(&raw_mesh);
-    
+    TriangleMesh mesh;
+    TriangleMesh raw_mesh = this->raw_mesh();
     
     for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i) {
         TriangleMesh m = raw_mesh;
         (*i)->transform_mesh(&m);
-        mesh->merge(m);
+        mesh.merge(m);
     }
+    return mesh;
 }
 
-void
-ModelObject::raw_mesh(TriangleMesh* mesh) const
+TriangleMesh
+ModelObject::raw_mesh() const
 {
+    TriangleMesh mesh;
     for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
         if ((*v)->modifier) continue;
-        mesh->merge((*v)->mesh);
+        mesh.merge((*v)->mesh);
     }
+    return mesh;
 }
 
-void
-ModelObject::raw_bounding_box(BoundingBoxf3* bb) const
+BoundingBoxf3
+ModelObject::raw_bounding_box() const
 {
+    BoundingBoxf3 bb;
     for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
         if ((*v)->modifier) continue;
         TriangleMesh mesh = (*v)->mesh;
@@ -450,22 +447,18 @@ ModelObject::raw_bounding_box(BoundingBoxf3* bb) const
         if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
         this->instances.front()->transform_mesh(&mesh, true);
         
-        BoundingBoxf3 mbb;
-        mesh.bounding_box(&mbb);
-        bb->merge(mbb);
+        bb.merge(mesh.bounding_box());
     }
+    return bb;
 }
 
 // this returns the bounding box of the *transformed* given instance
-void
-ModelObject::instance_bounding_box(size_t instance_idx, BoundingBoxf3* bb) const
+BoundingBoxf3
+ModelObject::instance_bounding_box(size_t instance_idx) const
 {
-    TriangleMesh mesh;
-    this->raw_mesh(&mesh);
-    
+    TriangleMesh mesh = this->raw_mesh();
     this->instances[instance_idx]->transform_mesh(&mesh);
-    
-    mesh.bounding_box(bb);
+    return mesh.bounding_box();
 }
 
 void
@@ -473,12 +466,7 @@ ModelObject::center_around_origin()
 {
     // calculate the displacements needed to 
     // center this object around the origin
-    BoundingBoxf3 bb;
-    {
-        TriangleMesh mesh;
-        this->raw_mesh(&mesh);
-        mesh.bounding_box(&bb);
-    }
+    BoundingBoxf3 bb = this->raw_mesh().bounding_box();
     
     // first align to origin on XYZ
     Vectorf3 vector(-bb.min.x, -bb.min.y, -bb.min.z);

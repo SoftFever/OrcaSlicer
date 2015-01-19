@@ -89,8 +89,7 @@ BridgeDetector::detect_angle()
     {
         Polygons pp = this->expolygon;
         for (Polygons::const_iterator p = pp.begin(); p != pp.end(); ++p) {
-            Lines lines;
-            p->lines(&lines);
+            Lines lines = p->lines();
             for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line)
                 angles.push_back(line->direction());
         }

@@ -26,7 +26,7 @@ class Line
     void rotate(double angle, const Point &center);
     void reverse();
     double length() const;
-    Point* midpoint() const;
+    Point midpoint() const;
     void point_at(double distance, Point* point) const;
     Point point_at(double distance) const;
     bool intersection_infinite(const Line &other, Point* point) const;

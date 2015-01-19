@@ -92,13 +92,13 @@ ExPolygonCollection::simplify(double tolerance)
     this->expolygons = expp;
 }
 
-void
-ExPolygonCollection::convex_hull(Polygon* hull) const
+Polygon
+ExPolygonCollection::convex_hull() const
 {
     Points pp;
     for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it)
         pp.insert(pp.end(), it->contour.points.begin(), it->contour.points.end());
-    Slic3r::Geometry::convex_hull(pp, hull);
+    return Slic3r::Geometry::convex_hull(pp);
 }
 
 Lines

@@ -111,7 +111,7 @@ class PrintObject
     bool delete_all_copies();
     bool set_copies(const Points &points);
     bool reload_model_instances();
-    void bounding_box(BoundingBox* bb) const;
+    BoundingBox bounding_box() const;
     
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);

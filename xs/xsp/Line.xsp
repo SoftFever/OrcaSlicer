@@ -28,7 +28,7 @@
     bool parallel_to(double angle);
     bool parallel_to_line(Line* line)
         %code{% RETVAL = THIS->parallel_to(*line); %};
-    Point* midpoint();
+    Clone<Point> midpoint();
     Clone<Point> point_at(double distance);
     Clone<Point> intersection_infinite(Line* other)
         %code{%
@@ -37,8 +37,8 @@
             if (!res) CONFESS("Intersection failed");
             RETVAL = p;
         %};
-    Polyline* as_polyline()
-        %code{% RETVAL = new Polyline(*THIS); %};
+    Clone<Polyline> as_polyline()
+        %code{% RETVAL = Polyline(*THIS); %};
     Clone<Point> normal();
     Clone<Point> vector();
 %{

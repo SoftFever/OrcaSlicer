@@ -64,10 +64,10 @@ Line::length() const
     return this->a.distance_to(this->b);
 }
 
-Point*
+Point
 Line::midpoint() const
 {
-    return new Point ((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
+    return Point((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
 }
 
 void

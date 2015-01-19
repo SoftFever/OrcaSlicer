@@ -454,7 +454,6 @@ T_ARRAYREF
     for (${type}::const_iterator it = $var.begin(); it != $var.end(); ++it) {
         av_store(av, i++, perl_to_SV_clone_ref(*it));
 	}
-	$var.clear();
 
 T_ARRAYREF_PTR
     AV* av = newAV();
