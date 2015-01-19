@@ -405,6 +405,8 @@ $j
                         Spacing between pattern lines (mm, default: $config->{support_material_spacing})
     --support-material-angle
                         Support material angle in degrees (range: 0-90, default: $config->{support_material_angle})
+    --support-material-contact-distance
+                        Vertical distance between object and support material (0+, default: $config->{support_material_contact_distance})
     --support-material-interface-layers
                         Number of perpendicular layers between support material and object (0+, default: $config->{support_material_interface_layers})
     --support-material-interface-spacing

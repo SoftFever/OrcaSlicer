@@ -270,8 +270,7 @@ sub contact_area {
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
-            my $contact_z = $layer->print_z - contact_distance($nozzle_diameter);
-            ###$contact_z = $layer->print_z - $layer->height;
+            my $contact_z = $layer->print_z - $self->contact_distance($layer->height, $nozzle_diameter);
             
             # ignore this contact area if it's too low
             next if $contact_z < $self->object_config->get_value('first_layer_height');
@@ -339,12 +338,13 @@ sub support_layers_z {
     # layer_height > nozzle_diameter * 0.75
     my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->object_config->support_material_extruder-1);
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
+    my $contact_distance = $self->contact_distance($support_material_height, $nozzle_diameter);
     
     # initialize known, fixed, support layers
     my @z = sort { $a <=> $b }
         @$contact_z,
         @$top_z,  # TODO: why we have this?
-        (map $_ + contact_distance($nozzle_diameter), @$top_z);
+        (map $_ + $contact_distance, @$top_z);
     
     # enforce first layer height
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
@@ -906,10 +906,15 @@ sub overlapping_layers {
     } 0..$#$support_z;
 }
 
-# class method
 sub contact_distance {
-    my ($nozzle_diameter) = @_;
-    return $nozzle_diameter * 1.5;
+    my ($self, $layer_height, $nozzle_diameter) = @_;
+    
+    my $extra = $self->object_config->support_material_contact_distance;
+    if ($extra == 0) {
+        return $layer_height;
+    } else {
+        return $nozzle_diameter + $extra;
+    }
 }
 
 1;

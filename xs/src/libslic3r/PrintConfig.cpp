@@ -780,6 +780,19 @@ PrintConfigDef::build_def() {
     Options["support_material_angle"].min = 0;
     Options["support_material_angle"].max = 359;
 
+    Options["support_material_contact_distance"].type = coFloat;
+    Options["support_material_contact_distance"].gui_type = "f_enum_open";
+    Options["support_material_contact_distance"].label = "Contact Z distance";
+    Options["support_material_contact_distance"].category = "Support material";
+    Options["support_material_contact_distance"].tooltip = "The vertical distance between object and support material interface. Setting this to 0 will also prevent Slic3r from using bridge flow and speed for the first object layer.";
+    Options["support_material_contact_distance"].sidetext = "mm";
+    Options["support_material_contact_distance"].cli = "support-material-contact-distance=f";
+    Options["support_material_contact_distance"].min = 0;
+    Options["support_material_contact_distance"].enum_values.push_back("0");
+    Options["support_material_contact_distance"].enum_values.push_back("0.2");
+    Options["support_material_contact_distance"].enum_labels.push_back("0 (soluble)");
+    Options["support_material_contact_distance"].enum_labels.push_back("0.2 (detachable)");
+
     Options["support_material_enforce_layers"].type = coInt;
     Options["support_material_enforce_layers"].label = "Enforce support for the first";
     Options["support_material_enforce_layers"].category = "Support material";

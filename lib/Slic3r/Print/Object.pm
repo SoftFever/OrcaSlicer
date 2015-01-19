@@ -55,13 +55,14 @@ sub slice {
         
             # raise first object layer Z by the thickness of the raft itself
             # plus the extra distance required by the support material logic
-            $print_z += $self->config->get_value('first_layer_height');
+            my $first_layer_height = $self->config->get_value('first_layer_height');
+            $print_z += $first_layer_height;
             $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
         
             # at this stage we don't know which nozzles are actually used for the first layer
             # so we compute the average of all of them
             my $nozzle_diameter = sum(@{$self->print->config->nozzle_diameter})/@{$self->print->config->nozzle_diameter};
-            my $distance = Slic3r::Print::SupportMaterial::contact_distance($nozzle_diameter);
+            my $distance = $self->_support_material->contact_distance($first_layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance
             # (the loop below will raise print_z by such height)
@@ -537,6 +538,14 @@ sub generate_support_material {
     }
     $self->print->status_cb->(85, "Generating support material");
     
+    $self->_support_material->generate($self);
+    
+    $self->set_step_done(STEP_SUPPORTMATERIAL);
+}
+
+sub _support_material {
+    my ($self) = @_;
+    
     my $first_layer_flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
         role                => FLOW_ROLE_SUPPORT_MATERIAL,
@@ -546,16 +555,13 @@ sub generate_support_material {
         bridge_flow_ratio   => 0,
     );
     
-    my $s = Slic3r::Print::SupportMaterial->new(
+    return Slic3r::Print::SupportMaterial->new(
         print_config        => $self->print->config,
         object_config       => $self->config,
         first_layer_flow    => $first_layer_flow,
         flow                => $self->support_material_flow,
         interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
     );
-    $s->generate($self);
-    
-    $self->set_step_done(STEP_SUPPORTMATERIAL);
 }
 
 sub detect_surfaces_type {
@@ -615,6 +621,11 @@ sub detect_surfaces_type {
                     $lower_layer->slices,
                     S_TYPE_BOTTOMBRIDGE,
                 );
+                
+                # if we have soluble support material, don't bridge
+                if ($self->config->support_material && $self->config->support_material_contact_distance == 0) {
+                    $_->surface_type(S_TYPE_BOTTOM) for @bottom;
+                }
                 
                 # if user requested internal shells, we need to identify surfaces
                 # lying on other slices not belonging to this region

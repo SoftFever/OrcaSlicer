@@ -17,6 +17,7 @@ has 'ext_perimeter_flow'    => (is => 'ro', required => 1);
 has 'overhang_flow'         => (is => 'ro', required => 1);
 has 'solid_infill_flow'     => (is => 'ro', required => 1);
 has 'config'                => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new });
+has 'object_config'         => (is => 'ro', default => sub { Slic3r::Config::PrintObject->new });
 has 'print_config'          => (is => 'ro', default => sub { Slic3r::Config::Print->new });
 has '_lower_slices_p'       => (is => 'rw', default => sub { [] });
 has '_holes_pt'             => (is => 'rw');
@@ -347,7 +348,8 @@ sub _traverse_loops {
         
         # detect overhanging/bridging perimeters
         my @paths = ();
-        if ($self->config->overhangs && $self->layer_id > 0) {
+        if ($self->config->overhangs && $self->layer_id > 0
+            && !($self->object_config->support_material && $self->object_config->support_material_contact_distance == 0)) {
             # get non-overhang paths by intersecting this loop with the grown lower slices
             foreach my $polyline (@{ intersection_ppl([ $loop->polygon ], $self->_lower_slices_p) }) {
                 push @paths, Slic3r::ExtrusionPath->new(

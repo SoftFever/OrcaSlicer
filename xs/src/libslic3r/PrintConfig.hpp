@@ -133,6 +133,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionEnum<SeamPosition>  seam_position;
     ConfigOptionBool                support_material;
     ConfigOptionInt                 support_material_angle;
+    ConfigOptionFloat               support_material_contact_distance;
     ConfigOptionInt                 support_material_enforce_layers;
     ConfigOptionInt                 support_material_extruder;
     ConfigOptionFloatOrPercent      support_material_extrusion_width;
@@ -159,6 +160,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->seam_position.value                                = spAligned;
         this->support_material.value                             = false;
         this->support_material_angle.value                       = 0;
+        this->support_material_contact_distance.value            = 0.2;
         this->support_material_enforce_layers.value              = 0;
         this->support_material_extruder.value                    = 1;
         this->support_material_extrusion_width.value             = 0;
@@ -186,6 +188,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         if (opt_key == "seam_position")                              return &this->seam_position;
         if (opt_key == "support_material")                           return &this->support_material;
         if (opt_key == "support_material_angle")                     return &this->support_material_angle;
+        if (opt_key == "support_material_contact_distance")          return &this->support_material_contact_distance;
         if (opt_key == "support_material_enforce_layers")            return &this->support_material_enforce_layers;
         if (opt_key == "support_material_extruder")                  return &this->support_material_extruder;
         if (opt_key == "support_material_extrusion_width")           return &this->support_material_extrusion_width;

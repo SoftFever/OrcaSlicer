@@ -30,7 +30,7 @@ use Slic3r::Test;
             first_layer_flow    => $flow,
         );
         my $support_z = $support->support_layers_z(\@contact_z, \@top_z, $config->layer_height);
-        my $expected_top_spacing = Slic3r::Print::SupportMaterial::contact_distance($config->nozzle_diameter->[0]);
+        my $expected_top_spacing = $support->contact_distance($config->layer_height, $config->nozzle_diameter->[0]);
         
         is $support_z->[0], $config->first_layer_height,
             'first layer height is honored';

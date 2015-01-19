@@ -34,6 +34,7 @@ sub make_perimeters {
     my $generator = Slic3r::Layer::PerimeterGenerator->new(
         # input:
         config              => $self->config,
+        object_config       => $self->layer->object->config,
         print_config        => $self->layer->print->config,
         layer_height        => $self->height,
         layer_id            => $self->layer->id,

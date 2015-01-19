@@ -453,7 +453,7 @@ sub build {
         raft_layers
         support_material_pattern support_material_spacing support_material_angle
         support_material_interface_layers support_material_interface_spacing
-        dont_support_bridges
+        support_material_contact_distance dont_support_bridges
         notes
         complete_objects extruder_clearance_radius extruder_clearance_height
         gcode_comments output_filename_format
@@ -556,6 +556,7 @@ sub build {
         }
         {
             my $optgroup = $page->new_optgroup('Options for support material and raft');
+            $optgroup->append_single_option_line('support_material_contact_distance');
             $optgroup->append_single_option_line('support_material_pattern');
             $optgroup->append_single_option_line('support_material_spacing');
             $optgroup->append_single_option_line('support_material_angle');
@@ -766,7 +767,7 @@ sub _update {
         for qw(support_material_threshold support_material_enforce_layers
             support_material_pattern support_material_spacing support_material_angle
             support_material_interface_layers dont_support_bridges
-            support_material_extrusion_width);
+            support_material_extrusion_width support_material_contact_distance);
     $self->get_field($_)->toggle($have_support_material && $have_support_interface)
         for qw(support_material_interface_spacing support_material_interface_extruder
             support_material_interface_speed);
