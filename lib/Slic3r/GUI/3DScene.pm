@@ -1138,8 +1138,8 @@ sub load_print_object_toolpaths {
         color           => COLORS->[0],
         quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @perim_qverts),
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @perim_qnorms),
-        #verts           => OpenGL::Array->new_list(GL_FLOAT, @perim_tverts),
-        #norms           => OpenGL::Array->new_list(GL_FLOAT, @perim_tnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @perim_tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @perim_tnorms),
         offsets         => { %perim_offsets },
     );
     
@@ -1148,8 +1148,8 @@ sub load_print_object_toolpaths {
         color           => COLORS->[1],
         quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @infill_qverts),
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @infill_qnorms),
-        #verts           => OpenGL::Array->new_list(GL_FLOAT, @infill_tverts),
-        #norms           => OpenGL::Array->new_list(GL_FLOAT, @infill_tnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @infill_tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @infill_tnorms),
         offsets         => { %infill_offsets },
     );
     
@@ -1158,8 +1158,8 @@ sub load_print_object_toolpaths {
         color           => COLORS->[2],
         quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @support_qverts),
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @support_qnorms),
-        #verts           => OpenGL::Array->new_list(GL_FLOAT, @support_tverts),
-        #norms           => OpenGL::Array->new_list(GL_FLOAT, @support_tnorms),
+        verts           => OpenGL::Array->new_list(GL_FLOAT, @support_tverts),
+        norms           => OpenGL::Array->new_list(GL_FLOAT, @support_tnorms),
         offsets         => { %support_offsets },
     );
 }
