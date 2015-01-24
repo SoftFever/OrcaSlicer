@@ -66,7 +66,6 @@ sub new {
     $sizer->SetSizeHints($self);
     
     # init canvas
-    $canvas->set_bed_shape($print->config->bed_shape);
     $self->print($print);
     $self->reload_print;
     

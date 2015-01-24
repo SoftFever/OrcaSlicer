@@ -1328,6 +1328,8 @@ sub on_config_change {
         if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
             $self->{canvas3D}->update_bed_size if $self->{canvas3D};
+            $self->{preview3D}->set_bed_shape($self->{config}->bed_shape)
+                if $self->{preview3D};
             $self->update;
         } elsif ($opt_key eq 'octoprint_host') {
             if ($config->get('octoprint_host')) {
