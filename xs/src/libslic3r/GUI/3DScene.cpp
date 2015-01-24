@@ -5,7 +5,7 @@ namespace Slic3r {
 void
 _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<double> &widths,
         const std::vector<double> &heights, bool closed, double top_z, const Point &copy,
-        Pointf3s* qverts, Pointf3s* qnorms, Pointf3s* tverts, Pointf3s* tnorms)
+        GLVertexArray* qverts, GLVertexArray* tverts)
 {
     Line prev_line;
     Pointf prev_b1, prev_b2;
@@ -52,62 +52,64 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
             // if we're making a ccw turn, draw the triangles on the right side, otherwise draw them on the left side
             double ccw = line.b.ccw(prev_line);
             if (ccw > EPSILON) {
+                tverts->reserve_more(6);
                 // top-right vertex triangle between previous line and this one
                 {
                     // use the normal going to the right calculated for the previous line
-                    tnorms->push_back(prev_xy_right_normal);
-                    tverts->push_back(Pointf3(prev_b1.x, prev_b1.y, middle_z));
+                    tverts->push_norm(prev_xy_right_normal);
+                    tverts->push_vert(prev_b1.x, prev_b1.y, middle_z);
             
                     // use the normal going to the right calculated for this line
-                    tnorms->push_back(xy_right_normal);
-                    tverts->push_back(Pointf3(a1.x, a1.y, middle_z));
+                    tverts->push_norm(xy_right_normal);
+                    tverts->push_vert(a1.x, a1.y, middle_z);
             
                     // normal going upwards
-                    tnorms->push_back(Pointf3(0,0,1));
-                    tverts->push_back(Pointf3(a.x, a.y, top_z));
+                    tverts->push_norm(0,0,1);
+                    tverts->push_vert(a.x, a.y, top_z);
                 }
                 // bottom-right vertex triangle between previous line and this one
                 {
                     // use the normal going to the right calculated for the previous line
-                    tnorms->push_back(prev_xy_right_normal);
-                    tverts->push_back(Pointf3(prev_b1.x, prev_b1.y, middle_z));
+                    tverts->push_norm(prev_xy_right_normal);
+                    tverts->push_vert(prev_b1.x, prev_b1.y, middle_z);
             
                     // normal going downwards
-                    tnorms->push_back(Pointf3(0,0,-1));
-                    tverts->push_back(Pointf3(a.x, a.y, bottom_z));
+                    tverts->push_norm(0,0,-1);
+                    tverts->push_vert(a.x, a.y, bottom_z);
             
                     // use the normal going to the right calculated for this line
-                    tnorms->push_back(xy_right_normal);
-                    tverts->push_back(Pointf3(a1.x, a1.y, middle_z));
+                    tverts->push_norm(xy_right_normal);
+                    tverts->push_vert(a1.x, a1.y, middle_z);
                 }
             } else if (ccw < -EPSILON) {
+                tverts->reserve_more(6);
                 // top-left vertex triangle between previous line and this one
                 {
                     // use the normal going to the left calculated for the previous line
-                    tnorms->push_back(prev_xy_left_normal);
-                    tverts->push_back(Pointf3(prev_b2.x, prev_b2.y, middle_z));
+                    tverts->push_norm(prev_xy_left_normal);
+                    tverts->push_vert(prev_b2.x, prev_b2.y, middle_z);
             
                     // normal going upwards
-                    tnorms->push_back(Pointf3(0,0,1));
-                    tverts->push_back(Pointf3(a.x, a.y, top_z));
+                    tverts->push_norm(0,0,1);
+                    tverts->push_vert(a.x, a.y, top_z);
             
                     // use the normal going to the right calculated for this line
-                    tnorms->push_back(xy_left_normal);
-                    tverts->push_back(Pointf3(a2.x, a2.y, middle_z));
+                    tverts->push_norm(xy_left_normal);
+                    tverts->push_vert(a2.x, a2.y, middle_z);
                 }
                 // bottom-left vertex triangle between previous line and this one
                 {
                     // use the normal going to the left calculated for the previous line
-                    tnorms->push_back(prev_xy_left_normal);
-                    tverts->push_back(Pointf3(prev_b2.x, prev_b2.y, middle_z));
+                    tverts->push_norm(prev_xy_left_normal);
+                    tverts->push_vert(prev_b2.x, prev_b2.y, middle_z);
             
                     // use the normal going to the right calculated for this line
-                    tnorms->push_back(xy_left_normal);
-                    tverts->push_back(Pointf3(a2.x, a2.y, middle_z));
+                    tverts->push_norm(xy_left_normal);
+                    tverts->push_vert(a2.x, a2.y, middle_z);
             
                     // normal going downwards
-                    tnorms->push_back(Pointf3(0,0,-1));
-                    tverts->push_back(Pointf3(a.x, a.y, bottom_z));
+                    tverts->push_norm(0,0,-1);
+                    tverts->push_vert(a.x, a.y, bottom_z);
                 }
             }
         }
@@ -124,97 +126,121 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
         if (!closed) {
             // terminate open paths with caps
             if (i == 0) {
+                qverts->reserve_more(4);
+                
                 // normal pointing downwards
-                qnorms->push_back(Pointf3(0,0,-1));
-                qverts->push_back(Pointf3(a.x, a.y, bottom_z));
+                qverts->push_norm(0,0,-1);
+                qverts->push_vert(a.x, a.y, bottom_z);
             
                 // normal pointing to the right
-                qnorms->push_back(xy_right_normal);
-                qverts->push_back(Pointf3(a1.x, a1.y, middle_z));
+                qverts->push_norm(xy_right_normal);
+                qverts->push_vert(a1.x, a1.y, middle_z);
             
                 // normal pointing upwards
-                qnorms->push_back(Pointf3(0,0,1));
-                qverts->push_back(Pointf3(a.x, a.y, top_z));
+                qverts->push_norm(0,0,1);
+                qverts->push_vert(a.x, a.y, top_z);
             
                 // normal pointing to the left
-                qnorms->push_back(xy_left_normal);
-                qverts->push_back(Pointf3(a2.x, a2.y, middle_z));
+                qverts->push_norm(xy_left_normal);
+                qverts->push_vert(a2.x, a2.y, middle_z);
             } else if (i == lines.size()-1) {
+                qverts->reserve_more(4);
+                
                 // normal pointing downwards
-                qnorms->push_back(Pointf3(0,0,-1));
-                qverts->push_back(Pointf3(b.x, b.y, bottom_z));
+                qverts->push_norm(0,0,-1);
+                qverts->push_vert(b.x, b.y, bottom_z);
             
                 // normal pointing to the left
-                qnorms->push_back(xy_left_normal);
-                qverts->push_back(Pointf3(b2.x, b2.y, middle_z));
+                qverts->push_norm(xy_left_normal);
+                qverts->push_vert(b2.x, b2.y, middle_z);
             
                 // normal pointing upwards
-                qnorms->push_back(Pointf3(0,0,1));
-                qverts->push_back(Pointf3(b.x, b.y, top_z));
+                qverts->push_norm(0,0,1);
+                qverts->push_vert(b.x, b.y, top_z);
             
                 // normal pointing to the right
-                qnorms->push_back(xy_right_normal);
-                qverts->push_back(Pointf3(b1.x, b1.y, middle_z));
+                qverts->push_norm(xy_right_normal);
+                qverts->push_vert(b1.x, b1.y, middle_z);
             }
         }
+        
+        qverts->reserve_more(16);
         
         // bottom-right face
         {
             // normal going downwards
-            qnorms->push_back(Pointf3(0,0,-1));
-            qnorms->push_back(Pointf3(0,0,-1));
-            qverts->push_back(Pointf3(a.x, a.y, bottom_z));
-            qverts->push_back(Pointf3(b.x, b.y, bottom_z));
+            qverts->push_norm(0,0,-1);
+            qverts->push_norm(0,0,-1);
+            qverts->push_vert(a.x, a.y, bottom_z);
+            qverts->push_vert(b.x, b.y, bottom_z);
             
-            qnorms->push_back(xy_right_normal);
-            qnorms->push_back(xy_right_normal);
-            qverts->push_back(Pointf3(b1.x, b1.y, middle_z));
-            qverts->push_back(Pointf3(a1.x, a1.y, middle_z));
+            qverts->push_norm(xy_right_normal);
+            qverts->push_norm(xy_right_normal);
+            qverts->push_vert(b1.x, b1.y, middle_z);
+            qverts->push_vert(a1.x, a1.y, middle_z);
         }
         
         // top-right face
         {
-            qnorms->push_back(xy_right_normal);
-            qnorms->push_back(xy_right_normal);
-            qverts->push_back(Pointf3(a1.x, a1.y, middle_z));
-            qverts->push_back(Pointf3(b1.x, b1.y, middle_z));
+            qverts->push_norm(xy_right_normal);
+            qverts->push_norm(xy_right_normal);
+            qverts->push_vert(a1.x, a1.y, middle_z);
+            qverts->push_vert(b1.x, b1.y, middle_z);
             
             // normal going upwards
-            qnorms->push_back(Pointf3(0,0,1));
-            qnorms->push_back(Pointf3(0,0,1));
-            qverts->push_back(Pointf3(b.x, b.y, top_z));
-            qverts->push_back(Pointf3(a.x, a.y, top_z));
+            qverts->push_norm(0,0,1);
+            qverts->push_norm(0,0,1);
+            qverts->push_vert(b.x, b.y, top_z);
+            qverts->push_vert(a.x, a.y, top_z);
         }
          
         // top-left face
         {
-            qnorms->push_back(Pointf3(0,0,1));
-            qnorms->push_back(Pointf3(0,0,1));
-            qverts->push_back(Pointf3(a.x, a.y, top_z));
-            qverts->push_back(Pointf3(b.x, b.y, top_z));
+            qverts->push_norm(0,0,1);
+            qverts->push_norm(0,0,1);
+            qverts->push_vert(a.x, a.y, top_z);
+            qverts->push_vert(b.x, b.y, top_z);
             
-            qnorms->push_back(xy_left_normal);
-            qnorms->push_back(xy_left_normal);
-            qverts->push_back(Pointf3(b2.x, b2.y, middle_z));
-            qverts->push_back(Pointf3(a2.x, a2.y, middle_z));
+            qverts->push_norm(xy_left_normal);
+            qverts->push_norm(xy_left_normal);
+            qverts->push_vert(b2.x, b2.y, middle_z);
+            qverts->push_vert(a2.x, a2.y, middle_z);
         }
         
         // bottom-left face
         {
-            qnorms->push_back(xy_left_normal);
-            qnorms->push_back(xy_left_normal);
-            qverts->push_back(Pointf3(a2.x, a2.y, middle_z));
-            qverts->push_back(Pointf3(b2.x, b2.y, middle_z));
+            qverts->push_norm(xy_left_normal);
+            qverts->push_norm(xy_left_normal);
+            qverts->push_vert(a2.x, a2.y, middle_z);
+            qverts->push_vert(b2.x, b2.y, middle_z);
             
             // normal going downwards
-            qnorms->push_back(Pointf3(0,0,-1));
-            qnorms->push_back(Pointf3(0,0,-1));
-            qverts->push_back(Pointf3(b.x, b.y, bottom_z));
-            qverts->push_back(Pointf3(a.x, a.y, bottom_z));
+            qverts->push_norm(0,0,-1);
+            qverts->push_norm(0,0,-1);
+            qverts->push_vert(b.x, b.y, bottom_z);
+            qverts->push_vert(a.x, a.y, bottom_z);
         }
         
         first_done = true;
     }
 }
+
+void
+GLVertexArray::load_mesh(const TriangleMesh &mesh)
+{
+    this->reserve_more(3 * mesh.facets_count());
+    
+    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+        stl_facet &facet = mesh.stl.facet_start[i];
+        for (int j = 0; j <= 2; ++j) {
+            this->push_norm(facet.normal.x, facet.normal.y, facet.normal.z);
+            this->push_vert(facet.vertex[j].x, facet.vertex[j].y, facet.vertex[j].z);
+        }
+    }
+}
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(GLVertexArray, "GUI::_3DScene::GLVertexArray");
+#endif
 
 }

@@ -210,6 +210,7 @@ sub thread_cleanup {
     *Slic3r::Polyline::DESTROY              = sub {};
     *Slic3r::Polyline::Collection::DESTROY  = sub {};
     *Slic3r::Print::DESTROY                 = sub {};
+    *Slic3r::Print::Object::DESTROY         = sub {};
     *Slic3r::Print::Region::DESTROY         = sub {};
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};

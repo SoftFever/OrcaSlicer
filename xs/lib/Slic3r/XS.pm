@@ -196,6 +196,9 @@ sub new {
     return $self;
 }
 
+package Slic3r::GUI::_3DScene::GLVertexArray;
+sub CLONE_SKIP { 1 }
+
 package main;
 for my $class (qw(
         Slic3r::BridgeDetector

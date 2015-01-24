@@ -844,7 +844,7 @@ sub draw_volumes {
         }
         
         glCullFace(GL_BACK);
-        if ($volume->quad_verts) {
+        if ($volume->qverts) {
             my ($min_offset, $max_offset);
             if (defined $min_z) {
                 $min_offset = $volume->offsets->{$min_z}->[0];
@@ -853,14 +853,14 @@ sub draw_volumes {
                 $max_offset = $volume->offsets->{$max_z}->[0];
             }
             $min_offset //= 0;
-            $max_offset //= $volume->quad_verts->elements;
+            $max_offset //= $volume->qverts->size;
             
-            glVertexPointer_p(3, $volume->quad_verts);
-            glNormalPointer_p($volume->quad_norms);
+            glVertexPointer_c(3, GL_FLOAT, 0, $volume->qverts->verts_ptr);
+            glNormalPointer_c(GL_FLOAT, 0, $volume->qverts->norms_ptr);
             glDrawArrays(GL_QUADS, $min_offset / 3, ($max_offset-$min_offset) / 3);
         }
         
-        if ($volume->verts) {
+        if ($volume->tverts) {
             my ($min_offset, $max_offset);
             if (defined $min_z) {
                 $min_offset = $volume->offsets->{$min_z}->[1];
@@ -869,10 +869,10 @@ sub draw_volumes {
                 $max_offset = $volume->offsets->{$max_z}->[1];
             }
             $min_offset //= 0;
-            $max_offset //= $volume->verts->elements;
+            $max_offset //= $volume->tverts->size;
             
-            glVertexPointer_p(3, $volume->verts);
-            glNormalPointer_p($volume->norms);
+            glVertexPointer_c(3, GL_FLOAT, 0, $volume->tverts->verts_ptr);
+            glNormalPointer_c(GL_FLOAT, 0, $volume->tverts->norms_ptr);
             glDrawArrays(GL_TRIANGLES, $min_offset / 3, ($max_offset-$min_offset) / 3);
         }
         
@@ -903,12 +903,10 @@ has 'hover'             => (is => 'rw', default => sub { 0 });
 has 'range'             => (is => 'rw');
 
 # geometric data
-has 'quad_verts'        => (is => 'rw');  # OpenGL::Array object
-has 'quad_norms'        => (is => 'rw');  # OpenGL::Array object
-has 'verts'             => (is => 'rw');  # OpenGL::Array object
-has 'norms'             => (is => 'rw');  # OpenGL::Array object
+has 'qverts'            => (is => 'rw');  # GLVertexArray object
+has 'tverts'            => (is => 'rw');  # GLVertexArray object
 has 'mesh'              => (is => 'rw');  # only required for cut contours
-has 'offsets'           => (is => 'rw');  # [ z => [ quad_verts_idx, verts_idx ] ]
+has 'offsets'           => (is => 'rw');  # [ z => [ qverts_idx, tverts_idx ] ]
 
 sub transformed_bounding_box {
     my ($self) = @_;
@@ -999,17 +997,10 @@ sub load_object {
             }
             push @volumes_idx, my $scene_volume_idx = $#{$self->volumes};
             $self->_objects_by_volumes->{$scene_volume_idx} = [ $obj_idx, $volume_idx, $instance_idx ];
-        
-            {
-                my $vertices = $mesh->vertices;
-                my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
-                $v->verts(OpenGL::Array->new_list(GL_FLOAT, @verts));
-            }
-        
-            {
-                my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
-                $v->norms(OpenGL::Array->new_list(GL_FLOAT, @norms));
-            }
+            
+            my $verts = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            $verts->load_mesh($mesh);
+            $v->tverts($verts);
         }
     }
     
@@ -1074,9 +1065,12 @@ sub load_print_object_slices {
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
     
-    my (@perim_qverts, @perim_qnorms, @perim_tverts, @perim_tnorms) = ();
-    my (@infill_qverts, @infill_qnorms, @infill_tverts, @infill_tnorms) = ();
-    my (@support_qverts, @support_qnorms, @support_tverts, @support_tnorms) = ();
+    my $perim_qverts    = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my $perim_tverts    = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my $infill_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my $infill_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my $support_qverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my $support_tverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
     
     my %perim_offsets   = ();  # print_z => [ qverts, tverts ]
     my %infill_offsets  = ();
@@ -1091,13 +1085,13 @@ sub load_print_object_toolpaths {
         
         if (!exists $perim_offsets{$top_z}) {
             $perim_offsets{$top_z} = [
-                scalar(@perim_qverts), scalar(@perim_tverts),
+                $perim_qverts->size, $perim_tverts->size,
             ];
             $infill_offsets{$top_z} = [
-                scalar(@infill_qverts), scalar(@infill_tverts),
+                $infill_qverts->size, $infill_tverts->size,
             ];
             $support_offsets{$top_z} = [
-                scalar(@support_qverts), scalar(@support_tverts),
+                $support_qverts->size, $support_tverts->size,
             ];
         }
         
@@ -1105,21 +1099,21 @@ sub load_print_object_toolpaths {
             foreach my $layerm (@{$layer->regions}) {
                 if ($object->step_done(STEP_PERIMETERS)) {
                     $self->_extrusionentity_to_verts($layerm->perimeters, $top_z, $copy,
-                        \@perim_qverts, \@perim_qnorms, \@perim_tverts, \@perim_tnorms);
+                        $perim_qverts, $perim_tverts);
                 }
                 
                 if ($object->step_done(STEP_INFILL)) {
                     $self->_extrusionentity_to_verts($layerm->fills, $top_z, $copy,
-                        \@infill_qverts, \@infill_qnorms, \@infill_tverts, \@infill_tnorms);
+                        $infill_qverts, $infill_tverts);
                 }
             }
             
             if ($layer->isa('Slic3r::Layer::Support') && $object->step_done(STEP_SUPPORTMATERIAL)) {
                 $self->_extrusionentity_to_verts($layer->support_fills, $top_z, $copy,
-                    \@support_qverts, \@support_qnorms, \@support_tverts, \@support_tnorms);
+                    $support_qverts, $support_tverts);
                 
                 $self->_extrusionentity_to_verts($layer->support_interface_fills, $top_z, $copy,
-                    \@support_qverts, \@support_qnorms, \@support_tverts, \@support_tnorms);
+                    $support_qverts, $support_tverts);
             }
         }
     }
@@ -1136,30 +1130,24 @@ sub load_print_object_toolpaths {
     push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
         bounding_box    => $bb,
         color           => COLORS->[0],
-        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @perim_qverts),
-        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @perim_qnorms),
-        verts           => OpenGL::Array->new_list(GL_FLOAT, @perim_tverts),
-        norms           => OpenGL::Array->new_list(GL_FLOAT, @perim_tnorms),
+        qverts          => $perim_qverts,
+        tverts          => $perim_tverts,
         offsets         => { %perim_offsets },
     );
     
     push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
         bounding_box    => $bb,
         color           => COLORS->[1],
-        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @infill_qverts),
-        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @infill_qnorms),
-        verts           => OpenGL::Array->new_list(GL_FLOAT, @infill_tverts),
-        norms           => OpenGL::Array->new_list(GL_FLOAT, @infill_tnorms),
+        qverts          => $infill_qverts,
+        tverts          => $infill_tverts,
         offsets         => { %infill_offsets },
     );
     
     push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
         bounding_box    => $bb,
         color           => COLORS->[2],
-        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @support_qverts),
-        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @support_qnorms),
-        verts           => OpenGL::Array->new_list(GL_FLOAT, @support_tverts),
-        norms           => OpenGL::Array->new_list(GL_FLOAT, @support_tnorms),
+        qverts          => $support_qverts,
+        tverts          => $support_tverts,
         offsets         => { %support_offsets },
     );
 }
@@ -1201,11 +1189,11 @@ sub _expolygons_to_verts {
 }
 
 sub _extrusionentity_to_verts {
-    my ($self, $entity, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms) = @_;
+    my ($self, $entity, $top_z, $copy, $qverts, $tverts) = @_;
     
     my ($lines, $widths, $heights, $closed);
     if ($entity->isa('Slic3r::ExtrusionPath::Collection')) {
-        $self->_extrusionentity_to_verts($_, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms)
+        $self->_extrusionentity_to_verts($_, $top_z, $copy, $qverts, $tverts)
             for @$entity;
         return;
     } elsif ($entity->isa('Slic3r::ExtrusionPath')) {
@@ -1231,7 +1219,7 @@ sub _extrusionentity_to_verts {
     }
     
     Slic3r::GUI::_3DScene::_extrusionentity_to_verts_do($lines, $widths, $heights,
-        $closed, $top_z, $copy, $qverts, $qnorms, $tverts, $tnorms);
+        $closed, $top_z, $copy, $qverts, $tverts);
 }
 
 sub object_idx {

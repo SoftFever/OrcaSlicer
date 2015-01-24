@@ -13,6 +13,7 @@
 %typemap{std::vector<unsigned int>*};
 %typemap{std::vector<std::string>};
 %typemap{t_layer_height_ranges};
+%typemap{void*};
 %typemap{SV*};
 %typemap{AV*};
 %typemap{Point*};
@@ -164,6 +165,7 @@
 %typemap{ModelInstancePtrs*};
 %typemap{Ref<ModelInstancePtrs>}{simple};
 %typemap{Clone<ModelInstancePtrs>}{simple};
+%typemap{GLVertexArray*};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};
