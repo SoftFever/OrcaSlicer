@@ -118,6 +118,9 @@ sub load_print {
     if ($self->IsShown) {
         foreach my $object (@{$self->print->objects}) {
             $self->canvas->load_print_object_toolpaths($object);
+            
+            #my @volume_ids = $self->canvas->load_object($object->model_object);
+            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
         }
         $self->canvas->zoom_to_volumes;
         $self->_loaded(1);

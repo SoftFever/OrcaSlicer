@@ -835,7 +835,7 @@ sub draw_volumes {
         
         my @sorted_z = ();
         my ($min_z, $max_z);
-        if ($volume->range) {
+        if ($volume->range && $volume->offsets) {
             @sorted_z = sort { $a <=> $b } keys %{$volume->offsets};
             
             ($min_z, $max_z) = @{$volume->range};
