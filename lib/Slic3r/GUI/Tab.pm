@@ -292,16 +292,24 @@ sub reload_config {
 }
 
 sub update_tree {
-    my $self = shift;
-    my ($select) = @_;
+    my ($self) = @_;
     
-    $select //= 0; #/
+    # get label of the currently selected item
+    my $selected = $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection);
     
     my $rootItem = $self->{treectrl}->GetRootItem;
     $self->{treectrl}->DeleteChildren($rootItem);
+    my $have_selection = 0;
     foreach my $page (@{$self->{pages}}) {
         my $itemId = $self->{treectrl}->AppendItem($rootItem, $page->{title}, $page->{iconID});
-        $self->{treectrl}->SelectItem($itemId) if $self->{treectrl}->GetChildrenCount($rootItem) == $select + 1;
+        if ($page->{title} eq $selected) {
+            $self->{treectrl}->SelectItem($itemId);
+            $have_selection = 1;
+        }
+    }
+    
+    if (!$have_selection) {
+        $self->{treectrl}->SelectItem($self->{treectrl}->GetFirstChild($rootItem));
     }
 }
 
@@ -1182,6 +1190,7 @@ sub _build_extruder_pages {
     
     # remove extra pages
     if ($self->{extruders_count} <= $#{$self->{extruder_pages}}) {
+        $_->Destroy for @{$self->{extruder_pages}}[$self->{extruders_count}..$#{$self->{extruder_pages}}];
         splice @{$self->{extruder_pages}}, $self->{extruders_count};
     }
     
@@ -1198,7 +1207,7 @@ sub _build_extruder_pages {
         (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}}),
         @{$self->{extruder_pages}}[ 0 .. $self->{extruders_count}-1 ],
     );
-    $self->update_tree(0);
+    $self->update_tree;
 }
 
 sub _update {
