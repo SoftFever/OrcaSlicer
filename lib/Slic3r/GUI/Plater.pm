@@ -121,7 +121,7 @@ sub new {
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         if ($self->{preview_notebook}->GetSelection == $self->{preview3D_page_idx}) {
-            $self->{preview3D}->reload_print;
+            $self->{preview3D}->load_print;
         }
     });
     
@@ -874,13 +874,15 @@ sub schedule_background_process {
     
     if (defined $self->{apply_config_timer}) {
         $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
-        $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-        $self->{preview3D}->reload_print if $self->{preview3D};
     }
 }
 
 sub async_apply_config {
     my ($self) = @_;
+    
+    # reset preview canvases
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
     
     # pause process thread before applying new config
     # since we don't want to touch data that is being used by the threads

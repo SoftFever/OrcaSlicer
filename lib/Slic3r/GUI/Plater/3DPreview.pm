@@ -8,7 +8,7 @@ use Wx qw(:misc :sizer :slider :statictext wxWHITE);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled canvas slider));
+__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider));
 
 sub new {
     my $class = shift;
@@ -76,6 +76,14 @@ sub reload_print {
     my ($self) = @_;
     
     $self->canvas->reset_objects;
+    $self->_loaded(0);
+    $self->load_print;
+}
+
+sub load_print {
+    my ($self) = @_;
+    
+    return if $self->_loaded;
     
     # we require that there's at least one object and the posSlice step
     # is performed on all of them (this ensures that _shifted_copies was
@@ -112,6 +120,7 @@ sub reload_print {
             $self->canvas->load_print_object_toolpaths($object);
         }
         $self->canvas->zoom_to_volumes;
+        $self->_loaded(1);
     }
 }
 
