@@ -206,6 +206,8 @@ sub build {
 
 package Slic3r::GUI::SimpleTab::Printer;
 use base 'Slic3r::GUI::SimpleTab';
+use Wx qw(:sizer :button :bitmap :misc :id);
+use Wx::Event qw(EVT_BUTTON);
 
 sub name { 'printer' }
 sub title { 'Printer Settings' }
@@ -214,6 +216,7 @@ sub build {
     my $self = shift;
     
     $self->init_config_options(qw(
+        bed_shape
         z_offset
         gcode_flavor
         nozzle_diameter
@@ -223,8 +226,36 @@ sub build {
     ));
     
     {
+        my $bed_shape_widget = sub {
+            my ($parent) = @_;
+        
+            my $btn = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+            $btn->SetFont($Slic3r::GUI::small_font);
+            if ($Slic3r::GUI::have_button_icons) {
+                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+            }
+        
+            my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+            $sizer->Add($btn);
+        
+            EVT_BUTTON($self, $btn, sub {
+                my $dlg = Slic3r::GUI::BedShapeDialog->new($self, $self->{config}->bed_shape);
+                if ($dlg->ShowModal == wxID_OK) {
+                    my $value = $dlg->GetValue;
+                    $self->{config}->set('bed_shape', $value);
+                    $self->_on_value_change('bed_shape', $value);
+                }
+            });
+        
+            return $sizer;
+        };
+    
         my $optgroup = $self->new_optgroup('Size and coordinates');
-        # TODO: add bed_shape
+        my $line = Slic3r::GUI::OptionsGroup::Line->new(
+            label       => 'Bed shape',
+            widget      => $bed_shape_widget,
+        );
+        $optgroup->append_line($line);
         $optgroup->append_single_option_line('z_offset');
     }
     
