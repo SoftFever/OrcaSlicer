@@ -2,25 +2,33 @@
 
 namespace Slic3r {
 
+// caller is responsible for supplying NO lines with zero length
 void
 _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<double> &widths,
         const std::vector<double> &heights, bool closed, double top_z, const Point &copy,
         GLVertexArray* qverts, GLVertexArray* tverts)
 {
+    /* It looks like it's faster without reserving capacity...
+    // each segment has 4 quads, thus 16 vertices; + 2 caps
+    qverts->reserve_more(3 * 4 * (4 * lines.size() + 2));
+    
+    // two triangles for each corner
+    tverts->reserve_more(3 * 3 * 2 * (lines.size() + 1));
+    */
+    
     Line prev_line;
     Pointf prev_b1, prev_b2;
     Vectorf3 prev_xy_left_normal, prev_xy_right_normal;
     
     // loop once more in case of closed loops
     bool first_done = false;
-    for (int i = 0; i <= lines.size(); ++i) {
+    for (size_t i = 0; i <= lines.size(); ++i) {
         if (i == lines.size()) i = 0;
         
         const Line &line = lines.at(i);
         if (i == 0 && first_done && !closed) break;
         
         double len = line.length();
-        if (len == 0) continue;
         double unscaled_len = unscale(len);
         
         double bottom_z = top_z - heights.at(i);
@@ -52,7 +60,6 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
             // if we're making a ccw turn, draw the triangles on the right side, otherwise draw them on the left side
             double ccw = line.b.ccw(prev_line);
             if (ccw > EPSILON) {
-                tverts->reserve_more(6);
                 // top-right vertex triangle between previous line and this one
                 {
                     // use the normal going to the right calculated for the previous line
@@ -82,7 +89,6 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
                     tverts->push_vert(a1.x, a1.y, middle_z);
                 }
             } else if (ccw < -EPSILON) {
-                tverts->reserve_more(6);
                 // top-left vertex triangle between previous line and this one
                 {
                     // use the normal going to the left calculated for the previous line
@@ -126,8 +132,6 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
         if (!closed) {
             // terminate open paths with caps
             if (i == 0) {
-                qverts->reserve_more(4);
-                
                 // normal pointing downwards
                 qverts->push_norm(0,0,-1);
                 qverts->push_vert(a.x, a.y, bottom_z);
@@ -144,8 +148,6 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
                 qverts->push_norm(xy_left_normal);
                 qverts->push_vert(a2.x, a2.y, middle_z);
             } else if (i == lines.size()-1) {
-                qverts->reserve_more(4);
-                
                 // normal pointing downwards
                 qverts->push_norm(0,0,-1);
                 qverts->push_vert(b.x, b.y, bottom_z);
@@ -163,8 +165,6 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
                 qverts->push_vert(b1.x, b1.y, middle_z);
             }
         }
-        
-        qverts->reserve_more(16);
         
         // bottom-right face
         {
@@ -228,7 +228,7 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
 void
 GLVertexArray::load_mesh(const TriangleMesh &mesh)
 {
-    this->reserve_more(3 * mesh.facets_count());
+    this->reserve_more(3 * 3 * mesh.facets_count());
     
     for (int i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
         stl_facet &facet = mesh.stl.facet_start[i];

@@ -92,14 +92,13 @@ class ExtrusionLoop : public ExtrusionEntity
     bool is_loop() const {
         return true;
     };
-    operator Polygon() const;
     ExtrusionLoop* clone() const;
     bool make_clockwise();
     bool make_counter_clockwise();
     void reverse();
     Point first_point() const;
     Point last_point() const;
-    void polygon(Polygon* polygon) const;
+    Polygon polygon() const;
     double length() const;
     bool split_at_vertex(const Point &point);
     void split_at(const Point &point);

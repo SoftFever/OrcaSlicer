@@ -37,6 +37,7 @@
         %code{% THIS->split_at(*point, p1, p2); %};
     bool is_straight();
     Clone<BoundingBox> bounding_box();
+    void remove_duplicate_points();
     std::string wkt();
 %{
 

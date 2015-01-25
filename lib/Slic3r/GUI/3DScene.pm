@@ -1198,6 +1198,7 @@ sub _extrusionentity_to_verts {
         return;
     } elsif ($entity->isa('Slic3r::ExtrusionPath')) {
         my $polyline = $entity->polyline->clone;
+        $polyline->remove_duplicate_points;
         $polyline->translate(@$copy);
         $lines = $polyline->lines;
         $widths = [ map $entity->width, 0..$#$lines ];
@@ -1210,6 +1211,7 @@ sub _extrusionentity_to_verts {
         $closed  = 1;
         foreach my $path (@$entity) {
             my $polyline = $path->polyline->clone;
+            $polyline->remove_duplicate_points;
             $polyline->translate(@$copy);
             my $path_lines = $polyline->lines;
             push @$lines, @$path_lines;
@@ -1217,7 +1219,6 @@ sub _extrusionentity_to_verts {
             push @$heights, map $path->height, 0..$#$path_lines;
         }
     }
-    
     Slic3r::GUI::_3DScene::_extrusionentity_to_verts_do($lines, $widths, $heights,
         $closed, $top_z, $copy, $qverts, $tverts);
 }

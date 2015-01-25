@@ -172,13 +172,6 @@ ExtrusionPath::grow() const
     return pp;
 }
 
-ExtrusionLoop::operator Polygon() const
-{
-    Polygon polygon;
-    this->polygon(&polygon);
-    return polygon;
-}
-
 ExtrusionLoop*
 ExtrusionLoop::clone() const
 {
@@ -188,8 +181,7 @@ ExtrusionLoop::clone() const
 bool
 ExtrusionLoop::make_clockwise()
 {
-    Polygon polygon = *this;
-    bool was_ccw = polygon.is_counter_clockwise();
+    bool was_ccw = this->polygon().is_counter_clockwise();
     if (was_ccw) this->reverse();
     return was_ccw;
 }
@@ -197,8 +189,7 @@ ExtrusionLoop::make_clockwise()
 bool
 ExtrusionLoop::make_counter_clockwise()
 {
-    Polygon polygon = *this;
-    bool was_cw = polygon.is_clockwise();
+    bool was_cw = this->polygon().is_clockwise();
     if (was_cw) this->reverse();
     return was_cw;
 }
@@ -223,13 +214,15 @@ ExtrusionLoop::last_point() const
     return this->paths.back().polyline.points.back();  // which coincides with first_point(), by the way
 }
 
-void
-ExtrusionLoop::polygon(Polygon* polygon) const
+Polygon
+ExtrusionLoop::polygon() const
 {
+    Polygon polygon;
     for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
         // for each polyline, append all points except the last one (because it coincides with the first one of the next polyline)
-        polygon->points.insert(polygon->points.end(), path->polyline.points.begin(), path->polyline.points.end()-1);
+        polygon.points.insert(polygon.points.end(), path->polyline.points.begin(), path->polyline.points.end()-1);
     }
+    return polygon;
 }
 
 double

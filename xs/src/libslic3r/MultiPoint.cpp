@@ -89,6 +89,17 @@ MultiPoint::bounding_box() const
     return BoundingBox(this->points);
 }
 
+void
+MultiPoint::remove_duplicate_points()
+{
+    for (size_t i = 1; i < this->points.size(); ++i) {
+        if (this->points.at(i).coincides_with(this->points.at(i-1))) {
+            this->points.erase(this->points.begin() + i);
+            --i;
+        }
+    }
+}
+
 Points
 MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {

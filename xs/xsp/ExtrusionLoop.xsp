@@ -15,8 +15,7 @@
     bool make_counter_clockwise();
     Clone<Point> first_point();
     Clone<Point> last_point();
-    Clone<Polygon> polygon()
-        %code{% RETVAL = Polygon(*THIS); %};
+    Clone<Polygon> polygon();
     void append(ExtrusionPath* path)
         %code{% THIS->paths.push_back(*path); %};
     double length();

@@ -32,6 +32,7 @@ class MultiPoint
     int find_point(const Point &point) const;
     bool has_boundary_point(const Point &point) const;
     BoundingBox bounding_box() const;
+    void remove_duplicate_points();
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
     
