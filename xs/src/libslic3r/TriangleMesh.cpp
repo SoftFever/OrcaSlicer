@@ -700,16 +700,16 @@ TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* l
             // find a line starting where last one finishes
             IntersectionLine* next_line = NULL;
             if (loop.back()->edge_b_id != -1) {
-                IntersectionLinePtrs* candidates = &(by_edge_a_id[loop.back()->edge_b_id]);
-                for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                IntersectionLinePtrs &candidates = by_edge_a_id[loop.back()->edge_b_id];
+                for (IntersectionLinePtrs::iterator lineptr = candidates.begin(); lineptr != candidates.end(); ++lineptr) {
                     if ((*lineptr)->skip) continue;
                     next_line = *lineptr;
                     break;
                 }
             }
             if (next_line == NULL && loop.back()->b_id != -1) {
-                IntersectionLinePtrs* candidates = &(by_a_id[loop.back()->b_id]);
-                for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                IntersectionLinePtrs &candidates = by_a_id[loop.back()->b_id];
+                for (IntersectionLinePtrs::iterator lineptr = candidates.begin(); lineptr != candidates.end(); ++lineptr) {
                     if ((*lineptr)->skip) continue;
                     next_line = *lineptr;
                     break;
