@@ -399,6 +399,7 @@ sub load_config {
         $self->update_dirty;
     }
     $self->reload_config;
+    $self->_update;
 }
 
 sub get_preset_config {
