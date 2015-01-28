@@ -147,7 +147,9 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
                 // normal pointing to the left
                 qverts->push_norm(xy_left_normal);
                 qverts->push_vert(a2.x, a2.y, middle_z);
-            } else if (i == lines.size()-1) {
+            }
+            // we don't use 'else' because both cases are true if we have only one line
+            if (i == lines.size()-1) {
                 // normal pointing downwards
                 qverts->push_norm(0,0,-1);
                 qverts->push_vert(b.x, b.y, bottom_z);
