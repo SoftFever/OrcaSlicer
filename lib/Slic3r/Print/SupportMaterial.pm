@@ -752,8 +752,12 @@ sub generate_toolpaths {
                 # TODO: use offset2_ex()
                 $to_infill = offset_ex([ map @$_, @$to_infill ], -$_flow->scaled_spacing);
             }
-            $filler->spacing($base_flow->spacing);
             
+            # We don't use $base_flow->spacing because we need a constant spacing
+            # value that guarantees that all layers are correctly aligned.
+            $filler->spacing($flow->spacing);
+            
+            my $mm3_per_mm = $base_flow->mm3_per_mm;
             foreach my $expolygon (@$to_infill) {
                 my @p = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
@@ -761,7 +765,6 @@ sub generate_toolpaths {
                     layer_height => $layer->height,
                     complete    => 1,
                 );
-                my $mm3_per_mm = $base_flow->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
