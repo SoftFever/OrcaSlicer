@@ -295,18 +295,21 @@ class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf
     };
     
     bool deserialize(std::string str) {
-        std::vector<Pointf> values;
+        this->values.clear();
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
             Pointf point;
             std::istringstream iss(point_str);
-            iss >> point.x;
-            iss.ignore(std::numeric_limits<std::streamsize>::max(), 'x');
-            iss >> point.y;
-            values.push_back(point);
+            std::string coord_str;
+            if (std::getline(iss, coord_str, 'x')) {
+                std::istringstream(coord_str) >> point.x;
+                if (std::getline(iss, coord_str, 'x')) {
+                    std::istringstream(coord_str) >> point.y;
+                }
+            }
+            this->values.push_back(point);
         }
-        this->values = values;
         return true;
     };
 };
