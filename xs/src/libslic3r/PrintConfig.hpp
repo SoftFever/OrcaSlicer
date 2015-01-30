@@ -324,6 +324,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
 class GCodeConfig : public virtual StaticPrintConfig
 {
     public:
+    ConfigOptionString              before_layer_gcode;
     ConfigOptionString              end_gcode;
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
@@ -346,6 +347,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionBool                use_volumetric_e;
     
     GCodeConfig() : StaticPrintConfig() {
+        this->before_layer_gcode.value                           = "";
         this->end_gcode.value                                    = "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n";
         this->extrusion_axis.value                               = "E";
         this->extrusion_multiplier.values.resize(1);
@@ -377,6 +379,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
+        if (opt_key == "before_layer_gcode")                         return &this->before_layer_gcode;
         if (opt_key == "end_gcode")                                  return &this->end_gcode;
         if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
         if (opt_key == "extrusion_multiplier")                       return &this->extrusion_multiplier;

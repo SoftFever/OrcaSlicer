@@ -22,6 +22,14 @@ PrintConfigDef::build_def() {
     Options["bed_temperature"].min = 0;
     Options["bed_temperature"].max = 300;
 
+    Options["before_layer_gcode"].type = coString;
+    Options["before_layer_gcode"].label = "Before layer change G-code";
+    Options["before_layer_gcode"].tooltip = "This custom code is inserted at every layer change, right before the Z move. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z].";
+    Options["before_layer_gcode"].cli = "before-layer-gcode=s";
+    Options["before_layer_gcode"].multiline = true;
+    Options["before_layer_gcode"].full_width = true;
+    Options["before_layer_gcode"].height = 50;
+
     Options["bottom_solid_layers"].type = coInt;
     Options["bottom_solid_layers"].label = "Bottom";
     Options["bottom_solid_layers"].category = "Layers and Perimeters";
@@ -438,9 +446,9 @@ PrintConfigDef::build_def() {
     Options["interface_shells"].category = "Layers and Perimeters";
 
     Options["layer_gcode"].type = coString;
-    Options["layer_gcode"].label = "Layer change G-code";
-    Options["layer_gcode"].tooltip = "This custom code is inserted at every layer change, right after the Z move and before the extruder moves to the first layer point. Note that you can use placeholder variables for all Slic3r settings.";
-    Options["layer_gcode"].cli = "layer-gcode=s";
+    Options["layer_gcode"].label = "After layer change G-code";
+    Options["layer_gcode"].tooltip = "This custom code is inserted at every layer change, right after the Z move and before the extruder moves to the first layer point. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z].";
+    Options["layer_gcode"].cli = "after-layer-gcode|layer-gcode=s";
     Options["layer_gcode"].multiline = true;
     Options["layer_gcode"].full_width = true;
     Options["layer_gcode"].height = 50;

@@ -219,7 +219,8 @@ The author of the Silk icon set is Mark James.
         --end-gcode         Load final G-code from the supplied file. This will overwrite
                             the default commands (turn off temperature [M104 S0],
                             home X axis [G28 X], disable motors [M84]).
-        --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
+        --before-layer-gcode  Load before-layer-change G-code from the supplied file (default: nothing).
+        --layer-gcode       Load after-layer-change G-code from the supplied file (default: nothing).
         --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
         --seam-position     Position of loop starting points (random/nearest/aligned, default: aligned).
         --external-perimeters-first Reverse perimeter order. (default: no)
