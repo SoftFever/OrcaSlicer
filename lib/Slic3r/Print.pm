@@ -114,7 +114,8 @@ sub export_svg {
         print "Exporting to $output_file..." unless $params{quiet};
     }
     
-    my $print_size = $self->size;
+    my $print_bb = $self->bounding_box;
+    my $print_size = $print_bb->size;
     print $fh sprintf <<"EOF", unscale($print_size->[X]), unscale($print_size->[Y]);
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
@@ -148,11 +149,12 @@ EOF
         
         my @current_layer_slices = ();
         # sort slices so that the outermost ones come first
-        my @slices = sort { $a->contour->contains_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
-        foreach my $copy (@{$layer->object->copies}) {
+        my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
+        foreach my $copy (@{$layer->object->_shifted_copies}) {
             foreach my $slice (@slices) {
                 my $expolygon = $slice->clone;
                 $expolygon->translate(@$copy);
+                $expolygon->translate(-$print_bb->x_min, -$print_bb->y_min);
                 $print_polygon->($expolygon->contour, 'contour');
                 $print_polygon->($_, 'hole') for @{$expolygon->holes};
                 push @current_layer_slices, $expolygon;
