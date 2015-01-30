@@ -140,8 +140,11 @@ EOF
     my @previous_layer_slices = ();
     for my $layer (@layers) {
         $layer_id++;
-        # TODO: remove slic3r:z for raft layers
-        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
+        if ($layer->slice_z == -1) {
+            printf $fh qq{  <g id="layer%d">\n}, $layer_id;
+        } else {
+            printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
+        }
         
         my @current_layer_slices = ();
         # sort slices so that the outermost ones come first

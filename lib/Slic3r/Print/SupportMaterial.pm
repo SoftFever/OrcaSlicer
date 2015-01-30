@@ -76,7 +76,7 @@ sub generate {
             $i, # id
             ($i == 0) ? $support_z->[$i] : ($support_z->[$i] - $support_z->[$i-1]), # height
             $support_z->[$i], # print_z
-            -1); # slice_z
+        );
         if ($i >= 1) {
             $object->support_layers->[-2]->set_upper_layer($object->support_layers->[-1]);
             $object->support_layers->[-1]->set_lower_layer($object->support_layers->[-2]);

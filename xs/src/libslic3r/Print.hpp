@@ -126,7 +126,7 @@ class PrintObject
     size_t support_layer_count() const;
     void clear_support_layers();
     SupportLayer* get_support_layer(int idx);
-    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z);
     void delete_support_layer(int idx);
     
     // methods for handling state

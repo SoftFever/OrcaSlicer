@@ -190,10 +190,9 @@ PrintObject::get_support_layer(int idx)
 }
 
 SupportLayer*
-PrintObject::add_support_layer(int id, coordf_t height, coordf_t print_z,
-    coordf_t slice_z)
+PrintObject::add_support_layer(int id, coordf_t height, coordf_t print_z)
 {
-    SupportLayer* layer = new SupportLayer(id, this, height, print_z, slice_z);
+    SupportLayer* layer = new SupportLayer(id, this, height, print_z, -1);
     support_layers.push_back(layer);
     return layer;
 }

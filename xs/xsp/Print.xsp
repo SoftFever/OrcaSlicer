@@ -95,7 +95,7 @@ _constant()
     size_t support_layer_count();
     void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
-    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z);
     void delete_support_layer(int idx);
     
     bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
