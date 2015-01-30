@@ -129,14 +129,20 @@ ExPolygon::simplify_p(double tolerance) const
     pp.reserve(this->holes.size() + 1);
     
     // contour
-    Polygon p = this->contour;
-    p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
-    pp.push_back(p);
+    {
+        Polygon p = this->contour;
+        p.points.push_back(p.points.front());
+        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points.pop_back();
+        pp.push_back(p);
+    }
     
     // holes
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        p = *it;
+        Polygon p = *it;
+        p.points.push_back(p.points.front());
         p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points.pop_back();
         pp.push_back(p);
     }
     simplify_polygons(pp, &pp);

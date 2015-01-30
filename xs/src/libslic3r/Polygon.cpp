@@ -147,6 +147,7 @@ Polygon::contains(const Point &point) const
     return result;
 }
 
+// this only works on CCW polygons as CW will be ripped out by Clipper's simplify_polygons()
 Polygons
 Polygon::simplify(double tolerance) const
 {

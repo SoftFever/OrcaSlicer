@@ -78,4 +78,13 @@ deg2rad(angle)
     OUTPUT:
         RETVAL
 
+Polygons
+simplify_polygons(polygons, tolerance)
+    Polygons    polygons
+    double      tolerance
+    CODE:
+        Slic3r::Geometry::simplify_polygons(polygons, tolerance, &RETVAL);
+    OUTPUT:
+        RETVAL
+
 %}

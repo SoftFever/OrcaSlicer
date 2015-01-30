@@ -21,6 +21,7 @@ template<class T> bool contains(const std::vector<T> &vector, const Point &point
 double rad2deg(double angle);
 double rad2deg_dir(double angle);
 double deg2rad(double angle);
+void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
 class MedialAxis {
     public:
