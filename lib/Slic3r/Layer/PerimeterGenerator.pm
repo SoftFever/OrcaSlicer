@@ -97,7 +97,7 @@ sub process {
         
         my @gaps = ();   # ExPolygons
         
-        my @last = @{$surface->expolygon};
+        my @last = @{$surface->expolygon->simplify_p(&Slic3r::SCALED_RESOLUTION)};
         if ($loop_number >= 0) {  # no loops = -1
         
             my @contours    = ();   # depth => [ Polygon, Polygon ... ]
