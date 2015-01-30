@@ -578,6 +578,7 @@ sub detect_surfaces_type {
                 my $diff = diff(
                     [ map @$_, @$subject ],
                     [ map @$_, @$clip ],
+                    1,
                 );
                 
                 # collapse very narrow parts (using the safety offset in the diff is not enough)
