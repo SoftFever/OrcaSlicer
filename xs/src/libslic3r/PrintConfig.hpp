@@ -274,7 +274,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         this->solid_infill_extrusion_width.value                 = 0;
         this->solid_infill_extrusion_width.percent               = false;
         this->solid_infill_every_layers.value                    = 0;
-        this->solid_infill_speed.value                           = 0;
+        this->solid_infill_speed.value                           = 20;
         this->solid_infill_speed.percent                         = false;
         this->thin_walls.value                                   = true;
         this->top_infill_extrusion_width.value                   = 0;
