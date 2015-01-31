@@ -141,7 +141,7 @@ sub extrude_loop {
         my $obj_ptr = 0;
         if (defined $self->layer) {
             $obj_ptr = $self->layer->object->ptr;
-            if (defined $self->_seam_position->{$self->layer->object}) {
+            if (defined $self->_seam_position->{$obj_ptr}) {
                 $last_pos = $self->_seam_position->{$obj_ptr};
             }
         }
