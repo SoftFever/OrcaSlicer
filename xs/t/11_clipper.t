@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 my $square = Slic3r::Polygon->new(  # ccw
     [200, 100],
@@ -155,8 +155,8 @@ if (0) {  # Clipper does not preserve polyline orientation
     }
 }
 
-# Disabled until Clipper bug #96 (our issue #2028) is fixed
-if (0) {
+{
+    # Clipper bug #96 (our issue #2028)
     my $subject = Slic3r::Polyline->new(
         [44735000,31936670],[55270000,31936670],[55270000,25270000],[74730000,25270000],[74730000,44730000],[68063296,44730000],[68063296,55270000],[74730000,55270000],[74730000,74730000],[55270000,74730000],[55270000,68063296],[44730000,68063296],[44730000,74730000],[25270000,74730000],[25270000,55270000],[31936670,55270000],[31936670,44730000],[25270000,44730000],[25270000,25270000],[44730000,25270000],[44730000,31936670]
     );
@@ -176,6 +176,21 @@ if (0) {
     ];
     my $result = Slic3r::Geometry::Clipper::intersection_ppl([$subject], $clip);
     is scalar(@$result), 1, 'intersection_ppl - result is not empty';
+}
+
+if (0) {
+    # Disabled until Clipper bug #122 is fixed
+    my $subject = [
+        Slic3r::Polyline->new([1975,1975],[25,1975],[25,25],[1975,25],[1975,1975]),
+    ];
+    my $clip = [
+        Slic3r::Polygon->new([2025,2025],[-25,2025],[-25,-25],[2025,-25]),
+        Slic3r::Polygon->new([525,525],[525,1475],[1475,1475],[1475,525]),
+    ];
+    my $result = Slic3r::Geometry::Clipper::intersection_pl($subject, $clip);
+    ###use XXX; YYY $subject->[0]->wkt, [map $_->wkt, @$clip], $result->[0]->wkt;
+    is scalar(@$result), 1, 'intersection_pl - result is not empty';
+    is scalar(@{$result->[0]}), 5, 'intersection_pl - result is not empty';
 }
 
 __END__

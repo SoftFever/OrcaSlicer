@@ -15,8 +15,7 @@
     bool make_counter_clockwise();
     Clone<Point> first_point();
     Clone<Point> last_point();
-    Polygon* polygon()
-        %code{% RETVAL = new Polygon (*THIS); %};
+    Clone<Polygon> polygon();
     void append(ExtrusionPath* path)
         %code{% THIS->paths.push_back(*path); %};
     double length();
@@ -31,6 +30,7 @@
     bool is_perimeter();
     bool is_infill();
     bool is_solid_infill();
+    Polygons grow();
 %{
 
 SV*

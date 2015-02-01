@@ -110,14 +110,14 @@ PrintObject::reload_model_instances()
     return this->set_copies(copies);
 }
 
-void
-PrintObject::bounding_box(BoundingBox* bb) const
+BoundingBox
+PrintObject::bounding_box() const
 {
     // since the object is aligned to origin, bounding box coincides with size
     Points pp;
     pp.push_back(Point(0,0));
     pp.push_back(this->size);
-    *bb = BoundingBox(pp);
+    return BoundingBox(pp);
 }
 
 void
@@ -190,10 +190,9 @@ PrintObject::get_support_layer(int idx)
 }
 
 SupportLayer*
-PrintObject::add_support_layer(int id, coordf_t height, coordf_t print_z,
-    coordf_t slice_z)
+PrintObject::add_support_layer(int id, coordf_t height, coordf_t print_z)
 {
-    SupportLayer* layer = new SupportLayer(id, this, height, print_z, slice_z);
+    SupportLayer* layer = new SupportLayer(id, this, height, print_z, -1);
     support_layers.push_back(layer);
     return layer;
 }
@@ -219,6 +218,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "overhangs"
             || *opt_key == "first_layer_extrusion_width"
             || *opt_key == "perimeter_extrusion_width"
+            || *opt_key == "infill_overlap"
             || *opt_key == "thin_walls"
             || *opt_key == "external_perimeters_first") {
             steps.insert(posPerimeters);

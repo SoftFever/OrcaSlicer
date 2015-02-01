@@ -133,6 +133,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionEnum<SeamPosition>  seam_position;
     ConfigOptionBool                support_material;
     ConfigOptionInt                 support_material_angle;
+    ConfigOptionFloat               support_material_contact_distance;
     ConfigOptionInt                 support_material_enforce_layers;
     ConfigOptionInt                 support_material_extruder;
     ConfigOptionFloatOrPercent      support_material_extrusion_width;
@@ -159,6 +160,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         this->seam_position.value                                = spAligned;
         this->support_material.value                             = false;
         this->support_material_angle.value                       = 0;
+        this->support_material_contact_distance.value            = 0.2;
         this->support_material_enforce_layers.value              = 0;
         this->support_material_extruder.value                    = 1;
         this->support_material_extrusion_width.value             = 0;
@@ -186,6 +188,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         if (opt_key == "seam_position")                              return &this->seam_position;
         if (opt_key == "support_material")                           return &this->support_material;
         if (opt_key == "support_material_angle")                     return &this->support_material_angle;
+        if (opt_key == "support_material_contact_distance")          return &this->support_material_contact_distance;
         if (opt_key == "support_material_enforce_layers")            return &this->support_material_enforce_layers;
         if (opt_key == "support_material_extruder")                  return &this->support_material_extruder;
         if (opt_key == "support_material_extrusion_width")           return &this->support_material_extrusion_width;
@@ -221,6 +224,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
+    ConfigOptionFloatOrPercent      infill_overlap;
     ConfigOptionFloat               infill_speed;
     ConfigOptionBool                overhangs;
     ConfigOptionInt                 perimeter_extruder;
@@ -245,38 +249,40 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         this->external_fill_pattern.value                        = ipRectilinear;
         this->external_perimeter_extrusion_width.value           = 0;
         this->external_perimeter_extrusion_width.percent         = false;
-        this->external_perimeter_speed.value                     = 70;
+        this->external_perimeter_speed.value                     = 50;
         this->external_perimeter_speed.percent                   = true;
         this->external_perimeters_first.value                    = false;
         this->extra_perimeters.value                             = true;
         this->fill_angle.value                                   = 45;
-        this->fill_density.value                                 = 40;
+        this->fill_density.value                                 = 20;
         this->fill_pattern.value                                 = ipHoneycomb;
         this->gap_fill_speed.value                               = 20;
         this->infill_extruder.value                              = 1;
         this->infill_extrusion_width.value                       = 0;
         this->infill_extrusion_width.percent                     = false;
         this->infill_every_layers.value                          = 1;
-        this->infill_speed.value                                 = 60;
+        this->infill_overlap.value                               = 15;
+        this->infill_overlap.percent                             = true;
+        this->infill_speed.value                                 = 80;
         this->overhangs.value                                    = true;
         this->perimeter_extruder.value                           = 1;
         this->perimeter_extrusion_width.value                    = 0;
         this->perimeter_extrusion_width.percent                  = false;
-        this->perimeter_speed.value                              = 30;
+        this->perimeter_speed.value                              = 60;
         this->perimeters.value                                   = 3;
         this->solid_infill_extruder.value                        = 1;
-        this->small_perimeter_speed.value                        = 30;
+        this->small_perimeter_speed.value                        = 15;
         this->small_perimeter_speed.percent                      = false;
         this->solid_infill_below_area.value                      = 70;
         this->solid_infill_extrusion_width.value                 = 0;
         this->solid_infill_extrusion_width.percent               = false;
         this->solid_infill_every_layers.value                    = 0;
-        this->solid_infill_speed.value                           = 60;
+        this->solid_infill_speed.value                           = 20;
         this->solid_infill_speed.percent                         = false;
         this->thin_walls.value                                   = true;
         this->top_infill_extrusion_width.value                   = 0;
         this->top_infill_extrusion_width.percent                 = false;
-        this->top_solid_infill_speed.value                       = 50;
+        this->top_solid_infill_speed.value                       = 15;
         this->top_solid_infill_speed.percent                     = false;
         this->top_solid_layers.value                             = 3;
     };
@@ -297,6 +303,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         if (opt_key == "infill_extruder")                            return &this->infill_extruder;
         if (opt_key == "infill_extrusion_width")                     return &this->infill_extrusion_width;
         if (opt_key == "infill_every_layers")                        return &this->infill_every_layers;
+        if (opt_key == "infill_overlap")                             return &this->infill_overlap;
         if (opt_key == "infill_speed")                               return &this->infill_speed;
         if (opt_key == "overhangs")                                  return &this->overhangs;
         if (opt_key == "perimeter_extruder")                         return &this->perimeter_extruder;
@@ -321,6 +328,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
 class GCodeConfig : public virtual StaticPrintConfig
 {
     public:
+    ConfigOptionString              before_layer_gcode;
     ConfigOptionString              end_gcode;
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
@@ -343,6 +351,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionBool                use_volumetric_e;
     
     GCodeConfig() : StaticPrintConfig() {
+        this->before_layer_gcode.value                           = "";
         this->end_gcode.value                                    = "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n";
         this->extrusion_axis.value                               = "E";
         this->extrusion_multiplier.values.resize(1);
@@ -354,7 +363,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         this->layer_gcode.value                                  = "";
         this->pressure_advance.value                             = 0;
         this->retract_length.values.resize(1);
-        this->retract_length.values[0]                           = 1;
+        this->retract_length.values[0]                           = 2;
         this->retract_length_toolchange.values.resize(1);
         this->retract_length_toolchange.values[0]                = 10;
         this->retract_lift.values.resize(1);
@@ -364,7 +373,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         this->retract_restart_extra_toolchange.values.resize(1);
         this->retract_restart_extra_toolchange.values[0]         = 0;
         this->retract_speed.values.resize(1);
-        this->retract_speed.values[0]                            = 30;
+        this->retract_speed.values[0]                            = 40;
         this->start_gcode.value                                  = "G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n";
         this->toolchange_gcode.value                             = "";
         this->travel_speed.value                                 = 130;
@@ -374,6 +383,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
+        if (opt_key == "before_layer_gcode")                         return &this->before_layer_gcode;
         if (opt_key == "end_gcode")                                  return &this->end_gcode;
         if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
         if (opt_key == "extrusion_multiplier")                       return &this->extrusion_multiplier;
@@ -476,7 +486,7 @@ class PrintConfig : public GCodeConfig
         this->complete_objects.value                             = false;
         this->cooling.value                                      = true;
         this->default_acceleration.value                         = 0;
-        this->disable_fan_first_layers.value                     = 1;
+        this->disable_fan_first_layers.value                     = 3;
         this->duplicate_distance.value                           = 6;
         this->extruder_clearance_height.value                    = 20;
         this->extruder_clearance_radius.value                    = 20;
@@ -489,7 +499,7 @@ class PrintConfig : public GCodeConfig
         this->first_layer_extrusion_width.value                  = 200;
         this->first_layer_extrusion_width.percent                = true;
         this->first_layer_speed.value                            = 30;
-        this->first_layer_speed.percent                          = true;
+        this->first_layer_speed.percent                          = false;
         this->first_layer_temperature.values.resize(1);
         this->first_layer_temperature.values[0]                  = 200;
         this->gcode_arcs.value                                   = false;
@@ -510,11 +520,11 @@ class PrintConfig : public GCodeConfig
         this->retract_before_travel.values.resize(1);
         this->retract_before_travel.values[0]                    = 2;
         this->retract_layer_change.values.resize(1);
-        this->retract_layer_change.values[0]                     = true;
+        this->retract_layer_change.values[0]                     = false;
         this->skirt_distance.value                               = 6;
         this->skirt_height.value                                 = 1;
         this->skirts.value                                       = 1;
-        this->slowdown_below_layer_time.value                    = 30;
+        this->slowdown_below_layer_time.value                    = 5;
         this->spiral_vase.value                                  = false;
         this->standby_temperature_delta.value                    = -5;
         this->temperature.values.resize(1);

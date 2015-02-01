@@ -87,9 +87,12 @@ sub export_gcode {
     if (@{$self->config->post_process}) {
         $self->status_cb->(95, "Running post-processing scripts");
         $self->config->setenv;
-        for (@{$self->config->post_process}) {
-            Slic3r::debugf "  '%s' '%s'\n", $_, $output_file;
-            system($_, $output_file);
+        for my $script (@{$self->config->post_process}) {
+            Slic3r::debugf "  '%s' '%s'\n", $script, $output_file;
+            if (!-x $script) {
+                die "The configured post-processing script is not executable: check permissions. ($script)\n";
+            }
+            system($script, $output_file);
         }
     }
 }
@@ -111,7 +114,8 @@ sub export_svg {
         print "Exporting to $output_file..." unless $params{quiet};
     }
     
-    my $print_size = $self->size;
+    my $print_bb = $self->bounding_box;
+    my $print_size = $print_bb->size;
     print $fh sprintf <<"EOF", unscale($print_size->[X]), unscale($print_size->[Y]);
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
@@ -137,16 +141,20 @@ EOF
     my @previous_layer_slices = ();
     for my $layer (@layers) {
         $layer_id++;
-        # TODO: remove slic3r:z for raft layers
-        printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
+        if ($layer->slice_z == -1) {
+            printf $fh qq{  <g id="layer%d">\n}, $layer_id;
+        } else {
+            printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
+        }
         
         my @current_layer_slices = ();
         # sort slices so that the outermost ones come first
-        my @slices = sort { $a->contour->contains_point($b->contour->[0]) ? 0 : 1 } @{$layer->slices};
-        foreach my $copy (@{$layer->object->copies}) {
+        my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
+        foreach my $copy (@{$layer->object->_shifted_copies}) {
             foreach my $slice (@slices) {
                 my $expolygon = $slice->clone;
                 $expolygon->translate(@$copy);
+                $expolygon->translate(-$print_bb->x_min, -$print_bb->y_min);
                 $print_polygon->($expolygon->contour, 'contour');
                 $print_polygon->($_, 'hole') for @{$expolygon->holes};
                 push @current_layer_slices, $expolygon;
@@ -200,7 +208,7 @@ sub make_skirt {
     # checking whether we need to generate them
     $self->skirt->clear;
     
-    if ($self->config->skirts == 0
+    if (($self->config->skirts == 0 || $self->config->skirt_height == 0)
         && (!$self->config->ooze_prevention || @{$self->extruders} == 1)) {
         $self->set_step_done(STEP_SKIRT);
         return;
@@ -443,7 +451,7 @@ sub expanded_output_filepath {
 }
 
 # This method assigns extruders to the volumes having a material
-# but not having extruders set in the material config.
+# but not having extruders set in the volume config.
 sub auto_assign_extruders {
     my ($self, $model_object) = @_;
     
@@ -454,10 +462,8 @@ sub auto_assign_extruders {
     foreach my $i (0..$#{$model_object->volumes}) {
         my $volume = $model_object->volumes->[$i];
         if ($volume->material_id ne '') {
-            my $material = $model_object->model->get_material($volume->material_id);
-            my $config = $material->config;
             my $extruder_id = $i + 1;
-            $config->set_ifndef('extruder', $extruder_id);
+            $volume->config->set_ifndef('extruder', $extruder_id);
         }
     }
 }

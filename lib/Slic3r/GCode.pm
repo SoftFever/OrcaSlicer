@@ -141,7 +141,7 @@ sub extrude_loop {
         my $obj_ptr = 0;
         if (defined $self->layer) {
             $obj_ptr = $self->layer->object->ptr;
-            if (defined $self->_seam_position->{$self->layer->object}) {
+            if (defined $self->_seam_position->{$obj_ptr}) {
                 $last_pos = $self->_seam_position->{$obj_ptr};
             }
         }
@@ -500,11 +500,14 @@ sub pre_toolchange {
     
     # move to the nearest standby point
     if (@{$self->standby_points}) {
-        my $last_pos = $gcodegen->last_pos->clone;
-        $last_pos->translate(scale +$gcodegen->origin->x, scale +$gcodegen->origin->y);  #))
-        my $standby_point = $last_pos->nearest_point($self->standby_points);
-        $standby_point->translate(scale -$gcodegen->origin->x, scale -$gcodegen->origin->y);  #))
-        $gcode .= $gcodegen->travel_to($standby_point, undef, 'move to standby position');
+        # get current position in print coordinates
+        my $pos = Slic3r::Point->new_scale(@{$gcodegen->writer->get_position}[0,1]);
+        
+        my $standby_point = Slic3r::Pointf->new_unscale(@{$pos->nearest_point($self->standby_points)});
+        # We don't call $gcodegen->travel_to() because we don't need retraction (it was already
+        # triggered by the caller) nor avoid_crossing_perimeters and also because the coordinates
+        # of the destination point must not be transformed by origin nor current extruder offset.
+        $gcode .= $gcodegen->writer->travel_to_xy($standby_point, 'move to standby position');
     }
     
     if ($gcodegen->config->standby_temperature_delta != 0) {

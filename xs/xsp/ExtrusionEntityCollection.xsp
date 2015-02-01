@@ -24,8 +24,11 @@
     Clone<Point> last_point();
     int count()
         %code{% RETVAL = THIS->entities.size(); %};
+    bool empty()
+        %code{% RETVAL = THIS->entities.empty(); %};
     std::vector<size_t> orig_indices()
         %code{% RETVAL = THIS->orig_indices; %};
+    Polygons grow();
 %{
 
 void

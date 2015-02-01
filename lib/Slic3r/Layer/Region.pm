@@ -34,6 +34,7 @@ sub make_perimeters {
     my $generator = Slic3r::Layer::PerimeterGenerator->new(
         # input:
         config              => $self->config,
+        object_config       => $self->layer->object->config,
         print_config        => $self->layer->print->config,
         layer_height        => $self->height,
         layer_id            => $self->layer->id,
@@ -50,30 +51,6 @@ sub make_perimeters {
         fill_surfaces       => $fill_surfaces,
     );
     $generator->process;
-}
-
-sub prepare_fill_surfaces {
-    my $self = shift;
-    
-    # Note: in order to make the psPrepareInfill step idempotent, we should never
-    # alter fill_surfaces boundaries on which our idempotency relies since that's
-    # the only meaningful information returned by psPerimeters.
-    
-    # if no solid layers are requested, turn top/bottom surfaces to internal
-    if ($self->config->top_solid_layers == 0) {
-        $_->surface_type(S_TYPE_INTERNAL) for @{$self->fill_surfaces->filter_by_type(S_TYPE_TOP)};
-    }
-    if ($self->config->bottom_solid_layers == 0) {
-        $_->surface_type(S_TYPE_INTERNAL)
-            for @{$self->fill_surfaces->filter_by_type(S_TYPE_BOTTOM)}, @{$self->fill_surfaces->filter_by_type(S_TYPE_BOTTOMBRIDGE)};
-    }
-        
-    # turn too small internal regions into solid regions according to the user setting
-    if ($self->config->fill_density > 0) {
-        my $min_area = scale scale $self->config->solid_infill_below_area; # scaling an area requires two calls!
-        $_->surface_type(S_TYPE_INTERNALSOLID)
-            for grep { $_->area <= $min_area } @{$self->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
-    }
 }
 
 sub process_external_surfaces {

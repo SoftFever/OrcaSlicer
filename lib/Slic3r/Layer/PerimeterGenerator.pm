@@ -5,7 +5,7 @@ use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(scale unscale chained_path);
 use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset offset2
-    offset_ex offset2_ex union_pt intersection_ppl diff_ppl);
+    offset_ex offset2_ex intersection_ppl diff_ppl);
 use Slic3r::Surface ':types';
 
 has 'slices'                => (is => 'ro', required => 1);  # SurfaceCollection
@@ -17,6 +17,7 @@ has 'ext_perimeter_flow'    => (is => 'ro', required => 1);
 has 'overhang_flow'         => (is => 'ro', required => 1);
 has 'solid_infill_flow'     => (is => 'ro', required => 1);
 has 'config'                => (is => 'ro', default => sub { Slic3r::Config::PrintRegion->new });
+has 'object_config'         => (is => 'ro', default => sub { Slic3r::Config::PrintObject->new });
 has 'print_config'          => (is => 'ro', default => sub { Slic3r::Config::Print->new });
 has '_lower_slices_p'       => (is => 'rw', default => sub { [] });
 has '_holes_pt'             => (is => 'rw');
@@ -90,20 +91,23 @@ sub process {
     # we need to process each island separately because we might have different
     # extra perimeters for each one
     foreach my $surface (@{$self->slices}) {
-        my @contours    = ();    # array of Polygons with ccw orientation
-        my @holes       = ();    # array of Polygons with cw orientation
-        my @thin_walls  = ();    # array of ExPolygons
-        
         # detect how many perimeters must be generated for this island
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
+        $loop_number--;  # 0-indexed loops
         
-        my @last = @{$surface->expolygon};
-        my @gaps = ();    # array of ExPolygons
-        if ($loop_number > 0) {
+        my @gaps = ();   # ExPolygons
+        
+        my @last = @{$surface->expolygon->simplify_p(&Slic3r::SCALED_RESOLUTION)};
+        if ($loop_number >= 0) {  # no loops = -1
+        
+            my @contours    = ();   # depth => [ Polygon, Polygon ... ]
+            my @holes       = ();   # depth => [ Polygon, Polygon ... ]
+            my @thin_walls  = ();   # Polylines
+        
             # we loop one time more than needed in order to find gaps after the last perimeter was applied
-            for my $i (1 .. ($loop_number+1)) {  # outer loop is 1
+            for my $i (0..($loop_number+1)) {  # outer loop is 0
                 my @offsets = ();
-                if ($i == 1) {
+                if ($i == 0) {
                     # the minimum thickness of a single loop is:
                     # ext_width/2 + ext_spacing/2 + spacing/2 + width/2
                     if ($self->config->thin_walls) {
@@ -121,15 +125,35 @@ sub process {
                     
                     # look for thin walls
                     if ($self->config->thin_walls) {
-                        my $diff = diff_ex(
+                        my $diff = diff(
                             \@last,
                             offset(\@offsets, +0.5*$ext_pwidth),
                             1,  # medial axis requires non-overlapping geometry
                         );
-                        push @thin_walls, @$diff;
+                        
+                        # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
+                        # (actually, something larger than that still may exist due to mitering or other causes)
+                        my $min_width = $pwidth / 4;
+                        @thin_walls = @{offset2_ex($diff, -$min_width/2, +$min_width/2)};
+        
+                        # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
+                        @thin_walls = grep $_->length > $pwidth*2,
+                            map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls;
+                        Slic3r::debugf "  %d thin walls detected\n", scalar(@thin_walls) if $Slic3r::debug;
+        
+                        if (0) {
+                            require "Slic3r/SVG.pm";
+                            Slic3r::SVG::output(
+                                "medial_axis.svg",
+                                no_arrows => 1,
+                                expolygons      => union_ex($diff),
+                                green_polylines => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
+                                red_polylines   => $self->_thin_wall_polylines,
+                            );
+                        }
                     }
                 } else {
-                    my $distance = ($i == 2) ? $ext_pspacing : $pspacing;
+                    my $distance = ($i == 1) ? $ext_pspacing : $pspacing;
                     
                     if ($self->config->thin_walls) {
                         @offsets = @{offset2(
@@ -159,17 +183,93 @@ sub process {
             
                 last if !@offsets;
                 last if $i > $loop_number; # we were only looking for gaps this time
-            
-                # clone polygons because these ExPolygons will go out of scope very soon
+                
                 @last = @offsets;
+                
+                $contours[$i]   = [];
+                $holes[$i]      = [];
                 foreach my $polygon (@offsets) {
-                    if ($polygon->is_counter_clockwise) {
-                        push @contours, $polygon;
+                    my $loop = Slic3r::Layer::PerimeterGenerator::Loop->new(
+                        polygon     => $polygon,
+                        is_contour  => $polygon->is_counter_clockwise,
+                        depth       => $i,
+                    );
+                    if ($loop->is_contour) {
+                        push @{$contours[$i]}, $loop;
                     } else {
-                        push @holes, $polygon;
+                        push @{$holes[$i]}, $loop;
                     }
                 }
             }
+            
+            # nest loops: holes first
+            for my $d (0..$loop_number) {
+                # loop through all holes having depth $d
+                LOOP: for (my $i = 0; $i <= $#{$holes[$d]}; ++$i) {
+                    my $loop = $holes[$d][$i];
+                
+                    # find the hole loop that contains this one, if any
+                    for my $t (($d+1)..$loop_number) {
+                        for (my $j = 0; $j <= $#{$holes[$t]}; ++$j) {
+                            my $candidate_parent = $holes[$t][$j];
+                            if ($candidate_parent->polygon->contains_point($loop->polygon->first_point)) {
+                                $candidate_parent->add_child($loop);
+                                splice @{$holes[$d]}, $i, 1;
+                                --$i;
+                                next LOOP;
+                            }
+                        }
+                    }
+                
+                    # if no hole contains this hole, find the contour loop that contains it
+                    for my $t (reverse 0..$loop_number) {
+                        for (my $j = 0; $j <= $#{$contours[$t]}; ++$j) {
+                            my $candidate_parent = $contours[$t][$j];
+                            if ($candidate_parent->polygon->contains_point($loop->polygon->first_point)) {
+                                $candidate_parent->add_child($loop);
+                                splice @{$holes[$d]}, $i, 1;
+                                --$i;
+                                next LOOP;
+                            }
+                        }
+                    }
+                }
+            }
+        
+            # nest contour loops
+            for my $d (reverse 1..$loop_number) {
+                # loop through all contours having depth $d
+                LOOP: for (my $i = 0; $i <= $#{$contours[$d]}; ++$i) {
+                    my $loop = $contours[$d][$i];
+                
+                    # find the contour loop that contains it
+                    for my $t (reverse 0..($d-1)) {
+                        for (my $j = 0; $j <= $#{$contours[$t]}; ++$j) {
+                            my $candidate_parent = $contours[$t][$j];
+                            if ($candidate_parent->polygon->contains_point($loop->polygon->first_point)) {
+                                $candidate_parent->add_child($loop);
+                                splice @{$contours[$d]}, $i, 1;
+                                --$i;
+                                next LOOP;
+                            }
+                        }
+                    }
+                }
+            }
+        
+            # at this point, all loops should be in $contours[0]
+            my @entities = $self->_traverse_loops($contours[0], \@thin_walls);
+            
+            # if brim will be printed, reverse the order of perimeters so that
+            # we continue inwards after having finished the brim
+            # TODO: add test for perimeter order
+            @entities = reverse @entities
+                if $self->config->external_perimeters_first
+                    || ($self->layer_id == 0 && $self->print_config->brim_width > 0);
+        
+            # append perimeters for this slice as a collection
+            $self->loops->append(Slic3r::ExtrusionPath::Collection->new(@entities))
+                if @entities;
         }
         
         # fill gaps
@@ -216,88 +316,42 @@ sub process {
             for map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
                 @{offset2_ex(
                     [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
-                    -($pspacing/2 + $min_perimeter_infill_spacing/2),
+                    -($pspacing/2 - $self->config->get_abs_value_over('infill_overlap', $pwidth) + $min_perimeter_infill_spacing/2),
                     +$min_perimeter_infill_spacing/2,
                 )};
-    
-    
-        # process thin walls by collapsing slices to single passes
-        if (@thin_walls) {
-            # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
-            # (actually, something larger than that still may exist due to mitering or other causes)
-            my $min_width = $pwidth / 4;
-            @thin_walls = @{offset2_ex([ map @$_, @thin_walls ], -$min_width/2, +$min_width/2)};
-        
-            # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-            $self->_thin_wall_polylines([ map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls ]);
-            Slic3r::debugf "  %d thin walls detected\n", scalar(@{$self->_thin_wall_polylines}) if $Slic3r::debug;
-        
-            if (0) {
-                require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(
-                    "medial_axis.svg",
-                    no_arrows => 1,
-                    expolygons      => \@thin_walls,
-                    green_polylines => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
-                    red_polylines   => $self->_thin_wall_polylines,
-                );
-            }
-        }
-        
-        # find nesting hierarchies separately for contours and holes
-        my $contours_pt = union_pt(\@contours);
-        $self->_holes_pt(union_pt(\@holes));
-    
-        # order loops from inner to outer (in terms of object slices)
-        my @loops = $self->_traverse_pt($contours_pt, 0, 1);
-    
-        # if brim will be printed, reverse the order of perimeters so that
-        # we continue inwards after having finished the brim
-        # TODO: add test for perimeter order
-        @loops = reverse @loops
-            if $self->config->external_perimeters_first
-                || ($self->layer_id == 0 && $self->print_config->brim_width > 0);
-        
-        # append perimeters for this slice as a collection
-        $self->loops->append(Slic3r::ExtrusionPath::Collection->new(@loops));
     }
 }
 
-sub _traverse_pt {
-    my ($self, $polynodes, $depth, $is_contour) = @_;
+sub _traverse_loops {
+    my ($self, $loops, $thin_walls) = @_;
     
-    # convert all polynodes to ExtrusionLoop objects
-    my $collection = Slic3r::ExtrusionPath::Collection->new;  # temporary collection
-    my @children = ();
-    foreach my $polynode (@$polynodes) {
-        my $polygon = ($polynode->{outer} // $polynode->{hole})->clone;
+    # loops is an arrayref of ::Loop objects
+    # turn each one into an ExtrusionLoop object
+    my $coll = Slic3r::ExtrusionPath::Collection->new;
+    foreach my $loop (@$loops) {
+        my $is_external = $loop->is_external;
         
-        my $role        = EXTR_ROLE_PERIMETER;
-        my $loop_role   = EXTRL_ROLE_DEFAULT;
-        
-        my $root_level  = $depth == 0;
-        my $no_children = !@{ $polynode->{children} };
-        my $is_external = $is_contour ? $root_level : $no_children;
-        my $is_internal = $is_contour ? $no_children : $root_level;
-        if ($is_contour && $is_internal) {
-            # internal perimeters are root level in case of holes
-            # and items with no children in case of contours
+        my ($role, $loop_role);
+        if ($is_external) {
+            $role = EXTR_ROLE_EXTERNAL_PERIMETER;
+        } else {
+            $role = EXTR_ROLE_PERIMETER;
+        }
+        if ($loop->is_internal_contour) {
             # Note that we set loop role to ContourInternalPerimeter
             # also when loop is both internal and external (i.e.
             # there's only one contour loop).
-            $loop_role  = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
-        }
-        if ($is_external) {
-            # external perimeters are root level in case of contours
-            # and items with no children in case of holes
-            $role       = EXTR_ROLE_EXTERNAL_PERIMETER;
+            $loop_role = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
+        } else {
+            $loop_role = EXTR_ROLE_PERIMETER;
         }
         
         # detect overhanging/bridging perimeters
         my @paths = ();
-        if ($self->config->overhangs && $self->layer_id > 0) {
+        if ($self->config->overhangs && $self->layer_id > 0
+            && !($self->object_config->support_material && $self->object_config->support_material_contact_distance == 0)) {
             # get non-overhang paths by intersecting this loop with the grown lower slices
-            foreach my $polyline (@{ intersection_ppl([ $polygon ], $self->_lower_slices_p) }) {
+            foreach my $polyline (@{ intersection_ppl([ $loop->polygon ], $self->_lower_slices_p) }) {
                 push @paths, Slic3r::ExtrusionPath->new(
                     polyline        => $polyline,
                     role            => $role,
@@ -310,13 +364,13 @@ sub _traverse_pt {
             # get overhang paths by checking what parts of this loop fall 
             # outside the grown lower slices (thus where the distance between
             # the loop centerline and original lower slices is >= half nozzle diameter
-            foreach my $polyline (@{ diff_ppl([ $polygon ], $self->_lower_slices_p) }) {
+            foreach my $polyline (@{ diff_ppl([ $loop->polygon ], $self->_lower_slices_p) }) {
                 push @paths, Slic3r::ExtrusionPath->new(
                     polyline        => $polyline,
                     role            => EXTR_ROLE_OVERHANG_PERIMETER,
                     mm3_per_mm      => $self->_mm3_per_mm_overhang,
                     width           => $self->overhang_flow->width,
-                    height          => $self->layer_height,
+                    height          => $self->overhang_flow->height,
                 );
             }
             
@@ -328,37 +382,22 @@ sub _traverse_pt {
             @paths = map $_->clone, @{$collection->chained_path(0)};
         } else {
             push @paths, Slic3r::ExtrusionPath->new(
-                polyline        => $polygon->split_at_first_point,
+                polyline        => $loop->polygon->split_at_first_point,
                 role            => $role,
                 mm3_per_mm      => $self->_mm3_per_mm,
                 width           => $self->perimeter_flow->width,
                 height          => $self->layer_height,
             );
         }
-        my $loop = Slic3r::ExtrusionLoop->new_from_paths(@paths);
-        $loop->role($loop_role);
-        
-        # return ccw contours and cw holes
-        # GCode.pm will convert all of them to ccw, but it needs to know
-        # what the holes are in order to compute the correct inwards move
-        # We do this on the final Loop object because overhang clipping
-        # does not keep orientation.
-        if ($is_contour) {
-            $loop->make_counter_clockwise;
-        } else {
-            $loop->make_clockwise;
-        }
-        $collection->append($loop);
-        
-        # save the children
-        push @children, $polynode->{children};
+        my $eloop = Slic3r::ExtrusionLoop->new_from_paths(@paths);
+        $eloop->role($loop_role);
+        $coll->append($eloop);
     }
-
-    # if we're handling the top-level contours, add thin walls as candidates too
-    # in order to include them in the nearest-neighbor search
-    if ($is_contour && $depth == 0) {
-        foreach my $polyline (@{$self->_thin_wall_polylines}) {
-            $collection->append(Slic3r::ExtrusionPath->new(
+    
+    # append thin walls to the nearest-neighbor search (only for first iteration)
+    if (@$thin_walls) {
+        foreach my $polyline (@$thin_walls) {
+            $coll->append(Slic3r::ExtrusionPath->new(
                 polyline        => $polyline,
                 role            => EXTR_ROLE_EXTERNAL_PERIMETER,
                 mm3_per_mm      => $self->_mm3_per_mm,
@@ -366,51 +405,37 @@ sub _traverse_pt {
                 height          => $self->layer_height,
             ));
         }
+        
+        @$thin_walls = ();
     }
     
-    # use a nearest neighbor search to order these children
-    # TODO: supply second argument to chained_path() too?
-    # (We used to skip this chained_path() when $is_contour &&
-    # $depth == 0 because slices are ordered at G_code export 
-    # time, but multiple top-level perimeters might belong to
-    # the same slice actually, so that was a broken optimization.)
-    # We supply no_reverse = false because we want to permit reversal
-    # of thin walls, but we rely on the fact that loops will never
-    # be reversed anyway.
-    my $sorted_collection = $collection->chained_path_indices(0);
-    my @orig_indices = @{$sorted_collection->orig_indices};
+    # sort entities
+    my $sorted_coll = $coll->chained_path_indices(0);
+    my @indices = @{$sorted_coll->orig_indices};
     
-    my @loops = ();
-    foreach my $loop (@$sorted_collection) {
-        my $orig_index = shift @orig_indices;
-        
-        if ($loop->isa('Slic3r::ExtrusionPath')) {
-            push @loops, $loop->clone;
+    # traverse children
+    my @entities = ();
+    for my $i (0..$#indices) {
+        my $idx = $indices[$i];
+        if ($idx > $#$loops) {
+            # this is a thin wall
+            # let's get it from the sorted collection as it might have been reversed
+            push @entities, $sorted_coll->[$i]->clone;
         } else {
-            # if this is an external contour find all holes belonging to this contour(s)
-            # and prepend them
-            if ($is_contour && $depth == 0) {
-                # $loop is the outermost loop of an island
-                my @holes = ();
-                for (my $i = 0; $i <= $#{$self->_holes_pt}; $i++) {
-                    if ($loop->polygon->contains_point($self->_holes_pt->[$i]{outer}->first_point)) {
-                        push @holes, splice @{$self->_holes_pt}, $i, 1;  # remove from candidates to reduce complexity
-                        $i--;
-                    }
-                }
-                
-                # order holes efficiently
-                @holes = @holes[@{chained_path([ map {($_->{outer} // $_->{hole})->first_point} @holes ])}];
-                
-                push @loops, reverse map $self->_traverse_pt([$_], 0, 0), @holes;
+            my $loop = $loops->[$idx];
+            my $eloop = $coll->[$idx]->clone;
+        
+            my @children = $self->_traverse_loops($loop->children, $thin_walls);
+            if ($loop->is_contour) {
+                $eloop->make_counter_clockwise;
+                push @entities, @children, $eloop;
+            } else {
+                $eloop->make_clockwise;
+                push @entities, $eloop, @children;
             }
-            
-            # traverse children and prepend them to this loop
-            push @loops, $self->_traverse_pt($children[$orig_index], $depth+1, $is_contour);
-            push @loops, $loop->clone;
         }
     }
-    return @loops;
+    return @entities;
 }
 
 sub _fill_gaps {
@@ -457,6 +482,37 @@ sub _fill_gaps {
     }
     
     return @entities;
+}
+
+
+package Slic3r::Layer::PerimeterGenerator::Loop;
+use Moo;
+
+has 'polygon'       => (is => 'ro', required => 1);
+has 'is_contour'    => (is => 'ro', required => 1);
+has 'depth'         => (is => 'ro', required => 1);
+has 'children'      => (is => 'ro', default => sub { [] });
+
+use List::Util qw(first);
+
+sub add_child {
+    my ($self, $child) = @_;
+    push @{$self->children}, $child;
+}
+
+sub is_external {
+    my ($self) = @_;
+    return $self->depth == 0;
+}
+
+sub is_internal_contour {
+    my ($self) = @_;
+    
+    if ($self->is_contour) {
+        # an internal contour is a contour containing no other contours
+        return !defined first { $_->is_contour } @{$self->children};
+    }
+    return 0;
 }
 
 1;

@@ -218,6 +218,8 @@ sub validate {
     # --first-layer-height
     die "Invalid value for --first-layer-height\n"
         if $self->first_layer_height !~ /^(?:\d*(?:\.\d+)?)%?$/;
+    die "Invalid value for --first-layer-height\n"
+        if $self->get_value('first_layer_height') <= 0;
     
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"

@@ -81,7 +81,7 @@ sub fill_surface {
     }
     
     my @paths;
-    if ($params{complete}) {
+    if ($params{complete} || 1) {
         # we were requested to complete each loop;
         # in this case we don't try to make more continuous paths
         @paths = map $_->split_at_first_point,

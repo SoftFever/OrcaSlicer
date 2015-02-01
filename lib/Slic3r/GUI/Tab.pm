@@ -292,16 +292,24 @@ sub reload_config {
 }
 
 sub update_tree {
-    my $self = shift;
-    my ($select) = @_;
+    my ($self) = @_;
     
-    $select //= 0; #/
+    # get label of the currently selected item
+    my $selected = $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection);
     
     my $rootItem = $self->{treectrl}->GetRootItem;
     $self->{treectrl}->DeleteChildren($rootItem);
+    my $have_selection = 0;
     foreach my $page (@{$self->{pages}}) {
         my $itemId = $self->{treectrl}->AppendItem($rootItem, $page->{title}, $page->{iconID});
-        $self->{treectrl}->SelectItem($itemId) if $self->{treectrl}->GetChildrenCount($rootItem) == $select + 1;
+        if ($page->{title} eq $selected) {
+            $self->{treectrl}->SelectItem($itemId);
+            $have_selection = 1;
+        }
+    }
+    
+    if (!$have_selection) {
+        $self->{treectrl}->SelectItem($self->{treectrl}->GetFirstChild($rootItem));
     }
 }
 
@@ -391,6 +399,7 @@ sub load_config {
         $self->update_dirty;
     }
     $self->reload_config;
+    $self->_update;
 }
 
 sub get_preset_config {
@@ -453,7 +462,7 @@ sub build {
         raft_layers
         support_material_pattern support_material_spacing support_material_angle
         support_material_interface_layers support_material_interface_spacing
-        dont_support_bridges
+        support_material_contact_distance dont_support_bridges
         notes
         complete_objects extruder_clearance_radius extruder_clearance_height
         gcode_comments output_filename_format
@@ -465,7 +474,7 @@ sub build {
         extrusion_width first_layer_extrusion_width perimeter_extrusion_width 
         external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width 
         top_infill_extrusion_width support_material_extrusion_width
-        bridge_flow_ratio
+        infill_overlap bridge_flow_ratio
         xy_size_compensation threads resolution
     ));
     
@@ -556,6 +565,7 @@ sub build {
         }
         {
             my $optgroup = $page->new_optgroup('Options for support material and raft');
+            $optgroup->append_single_option_line('support_material_contact_distance');
             $optgroup->append_single_option_line('support_material_pattern');
             $optgroup->append_single_option_line('support_material_spacing');
             $optgroup->append_single_option_line('support_material_angle');
@@ -635,6 +645,10 @@ sub build {
             $optgroup->append_single_option_line('support_material_extrusion_width');
         }
         {
+            my $optgroup = $page->new_optgroup('Overlap');
+            $optgroup->append_single_option_line('infill_overlap');
+        }
+        {
             my $optgroup = $page->new_optgroup('Flow');
             $optgroup->append_single_option_line('bridge_flow_ratio');
         }
@@ -702,13 +716,20 @@ sub _update {
     my $config = $self->{config};
     
     if ($config->spiral_vase && !($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0)) {
-        my $dialog = Wx::MessageDialog->new($self, "The Spiral Vase mode requires one perimeter, no top solid layers and 0% fill density. Shall I adjust those settings in order to enable Spiral Vase?",
+        my $dialog = Wx::MessageDialog->new($self,
+            "The Spiral Vase mode requires:\n"
+            . "- one perimeter\n"
+            . "- no top solid layers\n"
+            . "- 0% fill density\n"
+            . "- no support material\n"
+            . "\nShall I adjust those settings in order to enable Spiral Vase?",
             'Spiral Vase', wxICON_WARNING | wxYES | wxNO);
         if ($dialog->ShowModal() == wxID_YES) {
             my $new_conf = Slic3r::Config->new;
             $new_conf->set("perimeters", 1);
             $new_conf->set("top_solid_layers", 0);
             $new_conf->set("fill_density", 0);
+            $new_conf->set("support_material", 0);
             $self->load_config($new_conf);
         } else {
             my $new_conf = Slic3r::Config->new;
@@ -759,7 +780,7 @@ sub _update {
         for qw(support_material_threshold support_material_enforce_layers
             support_material_pattern support_material_spacing support_material_angle
             support_material_interface_layers dont_support_bridges
-            support_material_extrusion_width);
+            support_material_extrusion_width support_material_contact_distance);
     $self->get_field($_)->toggle($have_support_material && $have_support_interface)
         for qw(support_material_interface_spacing support_material_interface_extruder
             support_material_interface_speed);
@@ -929,7 +950,7 @@ sub build {
         octoprint_host octoprint_apikey
         use_firmware_retraction pressure_advance vibration_limit
         use_volumetric_e
-        start_gcode end_gcode layer_gcode toolchange_gcode
+        start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
         retract_length_toolchange retract_restart_extra_toolchange
@@ -1037,7 +1058,7 @@ sub build {
                 EVT_BUTTON($self, $btn, sub {
                     my $dlg = Slic3r::GUI::BonjourBrowser->new($self);
                     if ($dlg->ShowModal == wxID_OK) {
-                        my $value = $dlg->GetValue;
+                        my $value = $dlg->GetValue . ":" . $dlg->GetPort;
                         $self->{config}->set('octoprint_host', $value);
                         $self->update_dirty;
                         $self->_on_value_change('octoprint_host', $value);
@@ -1060,7 +1081,7 @@ sub build {
                     my $ua = LWP::UserAgent->new;
                     $ua->timeout(10);
     
-                    my $res = $ua->post(
+                    my $res = $ua->get(
                         "http://" . $self->{config}->octoprint_host . "/api/version",
                         'X-Api-Key' => $self->{config}->octoprint_apikey,
                     );
@@ -1115,7 +1136,16 @@ sub build {
             $optgroup->append_single_option_line($option);
         }
         {
-            my $optgroup = $page->new_optgroup('Layer change G-code',
+            my $optgroup = $page->new_optgroup('Before layer change G-code',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('before_layer_gcode');
+            $option->full_width(1);
+            $option->height(150);
+            $optgroup->append_single_option_line($option);
+        }
+        {
+            my $optgroup = $page->new_optgroup('After layer change G-code',
                 label_width => 0,
             );
             my $option = $optgroup->get_option('layer_gcode');
@@ -1203,6 +1233,7 @@ sub _build_extruder_pages {
     
     # remove extra pages
     if ($self->{extruders_count} <= $#{$self->{extruder_pages}}) {
+        $_->Destroy for @{$self->{extruder_pages}}[$self->{extruders_count}..$#{$self->{extruder_pages}}];
         splice @{$self->{extruder_pages}}, $self->{extruders_count};
     }
     
@@ -1219,7 +1250,7 @@ sub _build_extruder_pages {
         (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}}),
         @{$self->{extruder_pages}}[ 0 .. $self->{extruders_count}-1 ],
     );
-    $self->update_tree(0);
+    $self->update_tree;
 }
 
 sub _update {
@@ -1420,8 +1451,8 @@ sub config {
         return Slic3r::Config->new_from_defaults(@$keys);
     } else {
         if (!-e $self->file) {
-            Slic3r::GUI::show_error($self, "The selected preset does not exist anymore (" . $self->file . ").");
-            return;
+            Slic3r::GUI::show_error(undef, "The selected preset does not exist anymore (" . $self->file . ").");
+            return undef;
         }
         
         # apply preset values on top of defaults

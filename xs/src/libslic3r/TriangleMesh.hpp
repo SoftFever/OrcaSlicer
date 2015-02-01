@@ -42,9 +42,8 @@ class TriangleMesh
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
-    void horizontal_projection(ExPolygons &retval) const;
-    void convex_hull(Polygon* hull);
-    void bounding_box(BoundingBoxf3* bb) const;
+    ExPolygons horizontal_projection() const;
+    Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
     void reset_repair_stats();
     bool needed_repair() const;

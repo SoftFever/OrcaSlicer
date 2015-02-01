@@ -23,8 +23,7 @@
     Lines lines();
     Clone<Point> first_point();
     Clone<Point> last_point();
-    Points equally_spaced_points(double distance)
-        %code{% THIS->equally_spaced_points(distance, &RETVAL); %};
+    Points equally_spaced_points(double distance);
     double length();
     bool is_valid();
     void clip_end(double distance);
@@ -37,11 +36,8 @@
     void split_at(Point* point, Polyline* p1, Polyline* p2)
         %code{% THIS->split_at(*point, p1, p2); %};
     bool is_straight();
-    BoundingBox* bounding_box()
-        %code{%
-            RETVAL = new BoundingBox();
-            THIS->bounding_box(RETVAL);
-        %};
+    Clone<BoundingBox> bounding_box();
+    void remove_duplicate_points();
     std::string wkt();
 %{
 

@@ -186,6 +186,8 @@ BridgeDetector*            O_OBJECT_SLIC3R
 Ref<BridgeDetector>        O_OBJECT_SLIC3R_T
 Clone<BridgeDetector>      O_OBJECT_SLIC3R_T
 
+GLVertexArray*             O_OBJECT_SLIC3R
+
 ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV
 FlowRole     T_UV
@@ -329,13 +331,11 @@ T_ARRAYREF
     if (SvROK($arg) && SvTYPE(SvRV($arg)) == SVt_PVAV) {
         AV* av = (AV*)SvRV($arg);
         const unsigned int len = av_len(av)+1;
-        $type* tmp = new $type(len);
+        $var.resize(len);
         for (unsigned int i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
-            (*tmp)[i].from_SV_check(*elem);
+            $var\[i].from_SV_check(*elem);
         }
-        $var = *tmp;
-	    delete tmp;
     } else
         Perl_croak(aTHX_ \"%s: %s is not an array reference\",
 	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
@@ -396,6 +396,7 @@ T_STD_STRING
 T_STD_VECTOR_STD_STRING
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
+	sv_2mortal($arg);
 	const unsigned int len = $var.size();
         if (len)
           av_extend(av, len-1);
@@ -408,6 +409,7 @@ T_STD_VECTOR_STD_STRING
 T_STD_VECTOR_INT
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
+	sv_2mortal($arg);
 	const unsigned int len = $var.size();
         if (len)
           av_extend(av, len-1);
@@ -418,6 +420,7 @@ T_STD_VECTOR_INT
 T_STD_VECTOR_UINT
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
+	sv_2mortal($arg);
 	const unsigned int len = $var.size();
         if (len)
           av_extend(av, len-1);
@@ -428,6 +431,7 @@ T_STD_VECTOR_UINT
 T_STD_VECTOR_DOUBLE
 	AV* av = newAV();
 	$arg = newRV_noinc((SV*)av);
+	sv_2mortal($arg);
 	const unsigned int len = $var.size();
         if (len)
           av_extend(av, len-1);
@@ -458,7 +462,6 @@ T_ARRAYREF
     for (${type}::const_iterator it = $var.begin(); it != $var.end(); ++it) {
         av_store(av, i++, perl_to_SV_clone_ref(*it));
 	}
-	$var.clear();
 
 T_ARRAYREF_PTR
     AV* av = newAV();

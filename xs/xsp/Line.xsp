@@ -28,11 +28,19 @@
     bool parallel_to(double angle);
     bool parallel_to_line(Line* line)
         %code{% RETVAL = THIS->parallel_to(*line); %};
-    Point* midpoint();
+    Clone<Point> midpoint();
     Clone<Point> point_at(double distance);
-    Polyline* as_polyline()
-        %code{% RETVAL = new Polyline(*THIS); %};
+    Clone<Point> intersection_infinite(Line* other)
+        %code{%
+            Point p;
+            bool res = THIS->intersection_infinite(*other, &p);
+            if (!res) CONFESS("Intersection failed");
+            RETVAL = p;
+        %};
+    Clone<Polyline> as_polyline()
+        %code{% RETVAL = Polyline(*THIS); %};
     Clone<Point> normal();
+    Clone<Point> vector();
 %{
 
 Line*
@@ -79,4 +87,5 @@ Line::coincides_with(line_sv)
     Ref<Pointf3> b()
         %code{% RETVAL = &THIS->b; %};
     Clone<Pointf3> intersect_plane(double z);
+    void scale(double factor);
 };

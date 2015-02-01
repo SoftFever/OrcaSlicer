@@ -181,6 +181,7 @@ TriangleMesh::WriteOBJFile(char* output_file) {
 void TriangleMesh::scale(float factor)
 {
     stl_scale(&(this->stl), factor);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::scale(const Pointf3 &versor)
@@ -190,41 +191,49 @@ void TriangleMesh::scale(const Pointf3 &versor)
     fversor[1] = versor.y;
     fversor[2] = versor.z;
     stl_scale_versor(&this->stl, fversor);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::translate(float x, float y, float z)
 {
     stl_translate_relative(&(this->stl), x, y, z);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::rotate_x(float angle)
 {
     stl_rotate_x(&(this->stl), angle);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::rotate_y(float angle)
 {
     stl_rotate_y(&(this->stl), angle);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::rotate_z(float angle)
 {
     stl_rotate_z(&(this->stl), angle);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::flip_x()
 {
     stl_mirror_yz(&this->stl);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::flip_y()
 {
     stl_mirror_xz(&this->stl);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::flip_z()
 {
     stl_mirror_xy(&this->stl);
+    stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::align_to_origin()
@@ -319,8 +328,8 @@ TriangleMesh::merge(const TriangleMesh &mesh)
 }
 
 /* this will return scaled ExPolygons */
-void
-TriangleMesh::horizontal_projection(ExPolygons &retval) const
+ExPolygons
+TriangleMesh::horizontal_projection() const
 {
     Polygons pp;
     pp.reserve(this->stl.stats.number_of_facets);
@@ -337,11 +346,13 @@ TriangleMesh::horizontal_projection(ExPolygons &retval) const
     
     // the offset factor was tuned using groovemount.stl
     offset(pp, &pp, 0.01 / SCALING_FACTOR);
+    ExPolygons retval;
     union_(pp, &retval, true);
+    return retval;
 }
 
-void
-TriangleMesh::convex_hull(Polygon* hull)
+Polygon
+TriangleMesh::convex_hull()
 {
     this->require_shared_vertices();
     Points pp;
@@ -350,25 +361,19 @@ TriangleMesh::convex_hull(Polygon* hull)
         stl_vertex* v = &this->stl.v_shared[i];
         pp.push_back(Point(v->x / SCALING_FACTOR, v->y / SCALING_FACTOR));
     }
-    Slic3r::Geometry::convex_hull(pp, hull);
-}
-
-void
-TriangleMesh::bounding_box(BoundingBoxf3* bb) const
-{
-    bb->min.x = this->stl.stats.min.x;
-    bb->min.y = this->stl.stats.min.y;
-    bb->min.z = this->stl.stats.min.z;
-    bb->max.x = this->stl.stats.max.x;
-    bb->max.y = this->stl.stats.max.y;
-    bb->max.z = this->stl.stats.max.z;
+    return Slic3r::Geometry::convex_hull(pp);
 }
 
 BoundingBoxf3
 TriangleMesh::bounding_box() const
 {
     BoundingBoxf3 bb;
-    this->bounding_box(&bb);
+    bb.min.x = this->stl.stats.min.x;
+    bb.min.y = this->stl.stats.min.y;
+    bb.min.z = this->stl.stats.min.z;
+    bb.max.x = this->stl.stats.max.x;
+    bb.max.y = this->stl.stats.max.y;
+    bb.max.z = this->stl.stats.max.z;
     return bb;
 }
 
@@ -511,7 +516,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
     for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
         #ifdef SLIC3R_DEBUG
         size_t layer_id = loops - layers_p.begin();
-        printf("Layer %zu (slice_z = %.2f): ", layer_id, z[layer_id]);
+        printf("Layer %zu (slice_z = %.2f):\n", layer_id, z[layer_id]);
         #endif
         
         this->make_expolygons(*loops, &(*layers)[ loops - layers_p.begin() ]);
@@ -546,15 +551,19 @@ TriangleMeshSlicer::slice_facet(float slice_z, const stl_facet &facet, const int
         if (a->z == b->z && a->z == slice_z) {
             // edge is horizontal and belongs to the current layer
             
-            /* We assume that this method is never being called for horizontal
-               facets, so no other edge is going to be on this layer. */
-            stl_vertex* v0 = &this->v_scaled_shared[ this->mesh->stl.v_indices[facet_idx].vertex[0] ];
-            stl_vertex* v1 = &this->v_scaled_shared[ this->mesh->stl.v_indices[facet_idx].vertex[1] ];
-            stl_vertex* v2 = &this->v_scaled_shared[ this->mesh->stl.v_indices[facet_idx].vertex[2] ];
+            stl_vertex &v0 = this->v_scaled_shared[ this->mesh->stl.v_indices[facet_idx].vertex[0] ];
+            stl_vertex &v1 = this->v_scaled_shared[ this->mesh->stl.v_indices[facet_idx].vertex[1] ];
+            stl_vertex &v2 = this->v_scaled_shared[ this->mesh->stl.v_indices[facet_idx].vertex[2] ];
             IntersectionLine line;
             if (min_z == max_z) {
                 line.edge_type = feHorizontal;
-            } else if (v0->z < slice_z || v1->z < slice_z || v2->z < slice_z) {
+                if (this->mesh->stl.facet_start[facet_idx].normal.z < 0) {
+                    /*  if normal points downwards this is a bottom horizontal facet so we reverse
+                        its point order */
+                    std::swap(a, b);
+                    std::swap(a_id, b_id);
+                }
+            } else if (v0.z < slice_z || v1.z < slice_z || v2.z < slice_z) {
                 line.edge_type = feTop;
                 std::swap(a, b);
                 std::swap(a_id, b_id);
@@ -628,12 +637,9 @@ TriangleMeshSlicer::slice_facet(float slice_z, const stl_facet &facet, const int
 void
 TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* loops)
 {
-        
     /*
     SVG svg("lines.svg");
-    for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++line) {
-            svg.AddLine(*line);
-    }
+    svg.draw(lines);
     svg.Close();
     */
     
@@ -704,16 +710,16 @@ TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* l
             // find a line starting where last one finishes
             IntersectionLine* next_line = NULL;
             if (loop.back()->edge_b_id != -1) {
-                IntersectionLinePtrs* candidates = &(by_edge_a_id[loop.back()->edge_b_id]);
-                for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                IntersectionLinePtrs &candidates = by_edge_a_id[loop.back()->edge_b_id];
+                for (IntersectionLinePtrs::iterator lineptr = candidates.begin(); lineptr != candidates.end(); ++lineptr) {
                     if ((*lineptr)->skip) continue;
                     next_line = *lineptr;
                     break;
                 }
             }
             if (next_line == NULL && loop.back()->b_id != -1) {
-                IntersectionLinePtrs* candidates = &(by_a_id[loop.back()->b_id]);
-                for (IntersectionLinePtrs::iterator lineptr = candidates->begin(); lineptr != candidates->end(); ++lineptr) {
+                IntersectionLinePtrs &candidates = by_a_id[loop.back()->b_id];
+                for (IntersectionLinePtrs::iterator lineptr = candidates.begin(); lineptr != candidates.end(); ++lineptr) {
                     if ((*lineptr)->skip) continue;
                     next_line = *lineptr;
                     break;
@@ -841,9 +847,9 @@ TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
            of the loops, since the Orientation() function provided by Clipper
            would do the same, thus repeating the calculation */
         Polygons::const_iterator loop = loops.begin() + *loop_idx;
-        if (area[*loop_idx] >= 0) {
+        if (area[*loop_idx] > +EPSILON) {
             p_slices.push_back(*loop);
-        } else {
+        } else if (area[*loop_idx] < -EPSILON) {
             diff(p_slices, *loop, &p_slices);
         }
     }

@@ -19,7 +19,6 @@ my %prereqs = qw(
     Moo                             1.003001
     POSIX                           0
     Scalar::Util                    0
-    Test::Harness                   0
     Test::More                      0
     Thread::Semaphore               0
     IO::Scalar                      0
@@ -28,9 +27,8 @@ my %prereqs = qw(
 );
 my %recommends = qw(
     Class::XSAccessor               0
-    LWP::UserAgent                  0
-    Net::Bonjour                    0
     XML::SAX::ExpatXS               0
+    Test::Harness                   0
 );
 
 my $sudo    = grep { $_ eq '--sudo' } @ARGV;
@@ -40,14 +38,20 @@ if ($gui) {
     %prereqs = qw(
     Class::Accessor                 0
     Wx                              0.9918
+    Socket                          2.016
     );
     %recommends = qw(
     Growl::GNTP                     0.15
     Wx::GLCanvas                    0
     OpenGL                          0
+    LWP::UserAgent                  0
+    Net::Bonjour                    0
     );
     if ($^O eq 'MSWin32') {
         $recommends{"Win32::TieRegistry"} = 0;
+        
+        # we need an up-to-date Win32::API because older aren't thread-safe (GH #2517)
+        $prereqs{'Win32::API'} = 0.79;
     }
 } elsif ($xs_only) {
     %prereqs = %recommends = ();
@@ -115,7 +119,7 @@ EOF
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
         my @cmd = ($cpanm, @cpanm_args);
-        push @cmd, '-f', if $module eq 'OpenGL';  # temporary workaround for upstream bug in test
+        push @cmd, '--notest', if $module eq 'OpenGL';  # temporary workaround for upstream bug in test
         push @cmd, "$module~$version";
         if ($module eq 'XML::SAX::ExpatXS' && $^O eq 'MSWin32') {
             my $mingw = 'C:\dev\CitrusPerl\mingw64';

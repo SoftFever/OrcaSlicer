@@ -11,7 +11,7 @@ use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl
     :panel :sizer :toolbar :window wxTheApp :notebook);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
-    EVT_CHOICE EVT_TIMER);
+    EVT_CHOICE EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -28,7 +28,6 @@ use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
-use constant CONFIG_TIMER_ID => &Wx::NewId;
 
 # package variables to avoid passing lexicals to threads
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
@@ -53,8 +52,6 @@ sub new {
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
     $self->{objects} = [];
-    $self->{apply_config_timer} = Wx::Timer->new($self, CONFIG_TIMER_ID)
-        if $Slic3r::have_threads;
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
@@ -87,10 +84,19 @@ sub new {
         $canvas->PopupMenu($menu, $click_pos);
         $menu->Destroy;
     };
-    my $on_instance_moved = sub {
-        my ($obj_idx, $instance_idx) = @_;
+    my $on_instances_moved = sub {
         $self->update;
     };
+    
+    # Initialize 3D plater
+    if ($Slic3r::GUI::have_OpenGL) {
+        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
+        $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
+        $self->{canvas3D}->set_on_select_object($on_select_object);
+        $self->{canvas3D}->set_on_double_click($on_double_click);
+        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+    }
     
     # Initialize 2D preview canvas
     $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
@@ -98,20 +104,26 @@ sub new {
     $self->{canvas}->on_select_object($on_select_object);
     $self->{canvas}->on_double_click($on_double_click);
     $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
-    $self->{canvas}->on_instance_moved($on_instance_moved);
+    $self->{canvas}->on_instances_moved($on_instances_moved);
     
-    # Initialize 3D preview and toolpaths preview
+    # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
-        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
-        $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
-        $self->{canvas3D}->set_on_select_object($on_select_object);
-        $self->{canvas3D}->set_on_double_click($on_double_click);
-        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
-        $self->{canvas3D}->set_on_instance_moved($on_instance_moved);
-        
-        $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Preview');
+        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print});
+        $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview');
+        $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }
+    
+    # Initialize toolpaths preview
+    if ($Slic3r::GUI::have_OpenGL) {
+        $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
+        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Layers');
+    }
+    
+    EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
+        if ($self->{preview_notebook}->GetSelection == $self->{preview3D_page_idx}) {
+            $self->{preview3D}->load_print;
+        }
+    });
     
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
@@ -250,7 +262,8 @@ sub new {
     }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
-        for grep defined($_), $self, $self->{canvas}, $self->{canvas3D}, $self->{list};
+        for grep defined($_),
+            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D}, $self->{list};
     
     EVT_COMMAND($self, -1, $THUMBNAIL_DONE_EVENT, sub {
         my ($self, $event) = @_;
@@ -282,15 +295,22 @@ sub new {
         Slic3r::thread_cleanup();
     });
     
-    EVT_TIMER($self, CONFIG_TIMER_ID, sub {
-        my ($self, $event) = @_;
-        $self->async_apply_config;
-    });
+    if ($Slic3r::have_threads) {
+        my $timer_id = Wx::NewId();
+        $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
+        EVT_TIMER($self, $timer_id, sub {
+            my ($self, $event) = @_;
+            $self->async_apply_config;
+        });
+    }
     
     $self->{canvas}->update_bed_size;
     if ($self->{canvas3D}) {
         $self->{canvas3D}->update_bed_size;
         $self->{canvas3D}->zoom_to_bed;
+    }
+    if ($self->{preview3D}) {
+        $self->{preview3D}->set_bed_shape($self->{config}->bed_shape);
     }
     $self->update;
     
@@ -549,6 +569,7 @@ sub remove {
     
     # Prevent toolpaths preview from rendering while we modify the Print object
     $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
+    $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     # if no object index is supplied, remove the selected one
     if (!defined $obj_idx) {
@@ -573,6 +594,7 @@ sub reset {
     
     # Prevent toolpaths preview from rendering while we modify the Print object
     $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
+    $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
@@ -585,17 +607,20 @@ sub reset {
 }
 
 sub increase {
-    my $self = shift;
+    my ($self, $copies) = @_;
     
+    $copies //= 1;
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
-    my $last_instance = $model_object->instances->[-1];
-    my $i = $model_object->add_instance(
-        offset          => Slic3r::Pointf->new(map 10+$_, @{$last_instance->offset}),
-        scaling_factor  => $last_instance->scaling_factor,
-        rotation        => $last_instance->rotation,
-    );
-    $self->{print}->objects->[$obj_idx]->add_copy($i->offset);
+    my $instance = $model_object->instances->[-1];
+    for my $i (1..$copies) {
+        $instance = $model_object->add_instance(
+            offset          => Slic3r::Pointf->new(map 10+$_, @{$instance->offset}),
+            scaling_factor  => $instance->scaling_factor,
+            rotation        => $instance->rotation,
+        );
+        $self->{print}->objects->[$obj_idx]->add_copy($instance->offset);
+    }
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled
@@ -609,15 +634,18 @@ sub increase {
 }
 
 sub decrease {
-    my $self = shift;
+    my ($self, $copies) = @_;
     
+    $copies //= 1;
     $self->stop_background_process;
     
     my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
-    if ($model_object->instances_count >= 2) {
-        $model_object->delete_last_instance;
-        $self->{print}->objects->[$obj_idx]->delete_last_copy;
+    if ($model_object->instances_count > $copies) {
+        for my $i (1..$copies) {
+            $model_object->delete_last_instance;
+            $self->{print}->objects->[$obj_idx]->delete_last_copy;
+        }
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     } else {
         $self->remove;
@@ -629,6 +657,28 @@ sub decrease {
     }
     $self->update;
     $self->schedule_background_process;
+}
+
+sub set_number_of_copies {
+    my ($self) = @_;
+    
+    $self->pause_background_process;
+    
+    # get current number of copies
+    my ($obj_idx, $object) = $self->selected_object;
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    
+    # prompt user
+    my $copies = Wx::GetNumberFromUser("", "Enter the number of copies of the selected object:", "Copies", $model_object->instances_count, 0, 1000, $self);
+    my $diff = $copies - $model_object->instances_count;
+    if ($diff == 0) {
+        # no variation
+        $self->resume_background_process;
+    } elsif ($diff > 0) {
+        $self->increase($diff);
+    } elsif ($diff < 0) {
+        $self->decrease(-$diff);
+    }
 }
 
 sub rotate {
@@ -667,6 +717,9 @@ sub rotate {
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         $model_object->rotate(deg2rad($angle), $axis);
+        
+        # realign object to Z = 0
+        $model_object->center_around_origin;
         $self->make_thumbnail($obj_idx);
     }
     
@@ -696,6 +749,9 @@ sub flip {
     
     $model_object->flip($axis);
     $model_object->update_bounding_box;
+    
+    # realign object to Z = 0
+    $model_object->center_around_origin;
     $self->make_thumbnail($obj_idx);
         
     # update print and start background processing
@@ -733,6 +789,7 @@ sub changescale {
         my $versor = [1,1,1];
         $versor->[$axis] = $scale/100;
         $model_object->scale_xyz(Slic3r::Pointf3->new(@$versor));
+        # object was already aligned to Z = 0, so no need to realign it
         $self->make_thumbnail($obj_idx);
     } else {
         # max scale factor should be above 2540 to allow importing files exported in inches
@@ -825,12 +882,15 @@ sub schedule_background_process {
     
     if (defined $self->{apply_config_timer}) {
         $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
-        $self->{toolpaths2D}->reload_print;
     }
 }
 
 sub async_apply_config {
     my ($self) = @_;
+    
+    # reset preview canvases
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
     
     # pause process thread before applying new config
     # since we don't want to touch data that is being used by the threads
@@ -904,7 +964,8 @@ sub stop_background_process {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
-    $self->{toolpaths2D}->reload_print;
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
     
     if ($self->{process_thread}) {
         Slic3r::debugf "Killing background process.\n";
@@ -1028,7 +1089,8 @@ sub on_process_completed {
     $self->{process_thread} = undef;
     
     return if $error;
-    $self->{toolpaths2D}->reload_print;
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
     
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {
@@ -1299,6 +1361,8 @@ sub on_config_change {
         if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
             $self->{canvas3D}->update_bed_size if $self->{canvas3D};
+            $self->{preview3D}->set_bed_shape($self->{config}->bed_shape)
+                if $self->{preview3D};
             $self->update;
         } elsif ($opt_key eq 'serial_port') {
             if ($config->get('serial_port')) {
@@ -1346,7 +1410,7 @@ sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
     
     $obj_idx //= $event->GetIndex;
-	$self->object_cut_dialog($obj_idx);
+	$self->object_settings_dialog($obj_idx);
 }
 
 sub object_cut_dialog {
@@ -1518,6 +1582,7 @@ sub refresh_canvases {
     
     $self->{canvas}->Refresh;
     $self->{canvas3D}->update if $self->{canvas3D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 sub validate_config {
@@ -1548,6 +1613,9 @@ sub object_menu {
     });
     $frame->_append_menu_item($menu, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
         $self->decrease;
+    });
+    $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
+        $self->set_number_of_copies;
     });
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {

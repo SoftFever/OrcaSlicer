@@ -22,6 +22,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     void reverse();
     Point first_point() const;
     Point last_point() const;
+    Polygons grow() const;
 };
 
 }

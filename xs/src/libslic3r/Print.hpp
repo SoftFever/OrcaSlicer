@@ -111,7 +111,7 @@ class PrintObject
     bool delete_all_copies();
     bool set_copies(const Points &points);
     bool reload_model_instances();
-    void bounding_box(BoundingBox* bb) const;
+    BoundingBox bounding_box() const;
     
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);
@@ -126,7 +126,7 @@ class PrintObject
     size_t support_layer_count() const;
     void clear_support_layers();
     SupportLayer* get_support_layer(int idx);
-    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z);
     void delete_support_layer(int idx);
     
     // methods for handling state

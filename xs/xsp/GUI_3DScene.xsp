@@ -1,0 +1,28 @@
+%module{Slic3r::XS};
+
+#include <myinit.h>
+#include "libslic3r/GUI/3DScene.hpp"
+
+%name{Slic3r::GUI::_3DScene::GLVertexArray} class GLVertexArray {
+    GLVertexArray();
+    ~GLVertexArray();
+    void load_mesh(TriangleMesh* mesh) const
+        %code%{ THIS->load_mesh(*mesh); %};
+    size_t size() const
+        %code%{ RETVAL = THIS->verts.size(); %};
+    void* verts_ptr() const
+        %code%{ RETVAL = THIS->verts.empty() ? 0 : &THIS->verts.front(); %};
+    void* norms_ptr() const
+        %code%{ RETVAL = THIS->verts.empty() ? 0 : &THIS->norms.front(); %};
+};
+
+%package{Slic3r::GUI::_3DScene};
+%{
+
+void
+_extrusionentity_to_verts_do(Lines lines, std::vector<double> widths, std::vector<double> heights, bool closed, double top_z, Point* copy, GLVertexArray* qverts, GLVertexArray* tverts)
+    CODE:
+        _3DScene::_extrusionentity_to_verts_do(lines, widths, heights, closed,
+            top_z, *copy, qverts, tverts);
+
+%}

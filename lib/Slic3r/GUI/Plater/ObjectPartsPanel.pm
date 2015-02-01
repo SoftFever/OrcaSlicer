@@ -68,8 +68,18 @@ sub new {
     # right pane with preview canvas
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
-        $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self);
-        $canvas->load_object($self->{model_object});
+        $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
+        $canvas->enable_picking(1);
+        $canvas->select_by('volume');
+        
+        $canvas->on_select(sub {
+            my ($volume_idx) = @_;
+            
+            # convert scene volume to model object volume
+            $self->reload_tree($canvas->volume_idx($volume_idx));
+        });
+        
+        $canvas->load_object($self->{model_object}, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->zoom_to_volumes;
@@ -101,20 +111,24 @@ sub new {
 }
 
 sub reload_tree {
-    my ($self) = @_;
+    my ($self, $selected_volume_idx) = @_;
     
+    $selected_volume_idx //= -1;
     my $object  = $self->{model_object};
     my $tree    = $self->{tree};
     my $rootId  = $tree->GetRootItem;
     
     $tree->DeleteChildren($rootId);
     
-    my $itemId;
+    my $selectedId = $rootId;
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
         
         my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
-        $itemId = $tree->AppendItem($rootId, $volume->name || $volume_id, $icon);
+        my $itemId = $tree->AppendItem($rootId, $volume->name || $volume_id, $icon);
+        if ($volume_id == $selected_volume_idx) {
+            $selectedId = $itemId;
+        }
         $tree->SetPlData($itemId, {
             type        => 'volume',
             volume_id   => $volume_id,
@@ -122,10 +136,9 @@ sub reload_tree {
     }
     $tree->ExpandAll;
     
-    # select last appended part
     # This will trigger the selection_changed() event
     Slic3r::GUI->CallAfter(sub {
-        $self->{tree}->SelectItem($itemId);
+        $self->{tree}->SelectItem($selectedId);
     });
 }
 
@@ -144,7 +157,7 @@ sub selection_changed {
     
     # deselect all meshes
     if ($self->{canvas}) {
-        $_->{selected} = 0 for @{$self->{canvas}->volumes};
+        $_->selected(0) for @{$self->{canvas}->volumes};
     }
     
     # disable things as if nothing is selected
@@ -169,10 +182,7 @@ sub selection_changed {
             # get default values
             @opt_keys = @{Slic3r::Config::PrintRegion->new->get_keys};
         } elsif ($itemData->{type} eq 'object') {
-            # select all object volumes in 3D preview
-            if ($self->{canvas}) {
-                $_->{selected} = 1 for @{$self->{canvas}->volumes};
-            }
+            # select nothing in 3D preview
             
             # attach object config to settings panel
             $self->{staticbox}->SetLabel('Object Settings');

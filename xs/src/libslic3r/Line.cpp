@@ -64,10 +64,10 @@ Line::length() const
     return this->a.distance_to(this->b);
 }
 
-Point*
+Point
 Line::midpoint() const
 {
-    return new Point ((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
+    return Point((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
 }
 
 void
@@ -87,6 +87,23 @@ Line::point_at(double distance) const
     Point p;
     this->point_at(distance, &p);
     return p;
+}
+
+bool
+Line::intersection_infinite(const Line &other, Point* point) const
+{
+    Vector x = this->a.vector_to(other.a);
+    Vector d1 = this->vector();
+    Vector d2 = other.vector();
+
+    double cross = d1.x * d2.y - d1.y * d2.x;
+    if (std::fabs(cross) < EPSILON)
+        return false;
+
+    double t1 = (x.x * d2.y - x.y * d2.x)/cross;
+    point->x = this->a.x + d1.x * t1;
+    point->y = this->a.y + d1.y * t1;
+    return true;
 }
 
 bool
@@ -199,6 +216,13 @@ Linef3::intersect_plane(double z) const
         this->a.y + (this->b.y - this->a.y) * (z - this->a.z) / (this->b.z - this->a.z),
         z
     );
+}
+
+void
+Linef3::scale(double factor)
+{
+    this->a.scale(factor);
+    this->b.scale(factor);
 }
 
 #ifdef SLIC3RXS

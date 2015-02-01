@@ -79,7 +79,7 @@ use constant RESOLUTION             => 0.0125;
 use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
 use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
-use constant INFILL_OVERLAP_OVER_SPACING  => 0.45;
+use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
 use constant EXTERNAL_INFILL_MARGIN => 3;
 use constant INSET_OVERLAP_TOLERANCE => 0.4;
 
@@ -211,6 +211,7 @@ sub thread_cleanup {
     *Slic3r::Polyline::DESTROY              = sub {};
     *Slic3r::Polyline::Collection::DESTROY  = sub {};
     *Slic3r::Print::DESTROY                 = sub {};
+    *Slic3r::Print::Object::DESTROY         = sub {};
     *Slic3r::Print::Region::DESTROY         = sub {};
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};

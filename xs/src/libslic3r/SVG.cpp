@@ -32,9 +32,17 @@ SVG::draw(const Line &line, std::string stroke)
 }
 
 void
-SVG::AddLine(const IntersectionLine &line)
+SVG::draw(const Lines &lines, std::string stroke)
 {
-    this->draw(Line(line.a, line.b));
+    for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++it)
+        this->draw(*it, stroke);
+}
+
+void
+SVG::draw(const IntersectionLines &lines, std::string stroke)
+{
+    for (IntersectionLines::const_iterator it = lines.begin(); it != lines.end(); ++it)
+        this->draw((Line)*it, stroke);
 }
 
 void
@@ -51,10 +59,24 @@ SVG::draw(const ExPolygon &expolygon, std::string fill)
 }
 
 void
+SVG::draw(const ExPolygons &expolygons, std::string fill)
+{
+    for (ExPolygons::const_iterator it = expolygons.begin(); it != expolygons.end(); ++it)
+        this->draw(*it, fill);
+}
+
+void
 SVG::draw(const Polygon &polygon, std::string fill)
 {
     this->fill = fill;
-    this->path(this->get_path_d(polygon, true), true);
+    this->path(this->get_path_d(polygon, true), !fill.empty());
+}
+
+void
+SVG::draw(const Polygons &polygons, std::string fill)
+{
+    for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++it)
+        this->draw(*it, fill);
 }
 
 void
@@ -62,6 +84,13 @@ SVG::draw(const Polyline &polyline, std::string stroke)
 {
     this->stroke = stroke;
     this->path(this->get_path_d(polyline, false), false);
+}
+
+void
+SVG::draw(const Polylines &polylines, std::string stroke)
+{
+    for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
+        this->draw(*it, fill);
 }
 
 void
@@ -73,6 +102,13 @@ SVG::draw(const Point &point, std::string fill, unsigned int radius)
         << "style=\"stroke: none; fill: " << fill << "\" />";
     
     fprintf(this->f, "%s\n", svg.str().c_str());
+}
+
+void
+SVG::draw(const Points &points, std::string fill, unsigned int radius)
+{
+    for (Points::const_iterator it = points.begin(); it != points.end(); ++it)
+        this->draw(*it, fill, radius);
 }
 
 void

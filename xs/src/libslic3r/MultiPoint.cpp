@@ -83,10 +83,21 @@ MultiPoint::has_boundary_point(const Point &point) const
     return dist < SCALED_EPSILON;
 }
 
-void
-MultiPoint::bounding_box(BoundingBox* bb) const
+BoundingBox
+MultiPoint::bounding_box() const
 {
-    *bb = BoundingBox(this->points);
+    return BoundingBox(this->points);
+}
+
+void
+MultiPoint::remove_duplicate_points()
+{
+    for (size_t i = 1; i < this->points.size(); ++i) {
+        if (this->points.at(i).coincides_with(this->points.at(i-1))) {
+            this->points.erase(this->points.begin() + i);
+            --i;
+        }
+    }
 }
 
 Points

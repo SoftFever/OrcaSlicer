@@ -29,12 +29,11 @@ directions_parallel_within(angle1, angle2, max_diff)
     OUTPUT:
         RETVAL
 
-Polygon*
+Clone<Polygon>
 convex_hull(points)
     Points      points
     CODE:
-        RETVAL = new Polygon ();
-        Slic3r::Geometry::convex_hull(points, RETVAL);
+        RETVAL = Slic3r::Geometry::convex_hull(points);
     OUTPUT:
         RETVAL
 
@@ -76,6 +75,15 @@ deg2rad(angle)
     double      angle
     CODE:
         RETVAL = Slic3r::Geometry::deg2rad(angle);
+    OUTPUT:
+        RETVAL
+
+Polygons
+simplify_polygons(polygons, tolerance)
+    Polygons    polygons
+    double      tolerance
+    CODE:
+        Slic3r::Geometry::simplify_polygons(polygons, tolerance, &RETVAL);
     OUTPUT:
         RETVAL
 

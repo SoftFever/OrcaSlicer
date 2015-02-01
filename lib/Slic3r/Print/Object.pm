@@ -55,13 +55,14 @@ sub slice {
         
             # raise first object layer Z by the thickness of the raft itself
             # plus the extra distance required by the support material logic
-            $print_z += $self->config->get_value('first_layer_height');
+            my $first_layer_height = $self->config->get_value('first_layer_height');
+            $print_z += $first_layer_height;
             $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
         
             # at this stage we don't know which nozzles are actually used for the first layer
             # so we compute the average of all of them
             my $nozzle_diameter = sum(@{$self->print->config->nozzle_diameter})/@{$self->print->config->nozzle_diameter};
-            my $distance = Slic3r::Print::SupportMaterial::contact_distance($nozzle_diameter);
+            my $distance = $self->_support_material->contact_distance($first_layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance
             # (the loop below will raise print_z by such height)
@@ -291,7 +292,7 @@ sub slice {
     while (@{$self->layers} && !@{$self->get_layer(0)->slices}) {
         shift @{$self->layers};
         for (my $i = 0; $i <= $#{$self->layers}; $i++) {
-            $self->get_layer($i)->id( $self->get_layer($i)->id-1 );
+            $self->get_layer($i)->set_id( $self->get_layer($i)->id-1 );
         }
     }
     
@@ -537,6 +538,14 @@ sub generate_support_material {
     }
     $self->print->status_cb->(85, "Generating support material");
     
+    $self->_support_material->generate($self);
+    
+    $self->set_step_done(STEP_SUPPORTMATERIAL);
+}
+
+sub _support_material {
+    my ($self) = @_;
+    
     my $first_layer_flow = Slic3r::Flow->new_from_width(
         width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
         role                => FLOW_ROLE_SUPPORT_MATERIAL,
@@ -546,16 +555,13 @@ sub generate_support_material {
         bridge_flow_ratio   => 0,
     );
     
-    my $s = Slic3r::Print::SupportMaterial->new(
+    return Slic3r::Print::SupportMaterial->new(
         print_config        => $self->print->config,
         object_config       => $self->config,
         first_layer_flow    => $first_layer_flow,
         flow                => $self->support_material_flow,
         interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
     );
-    $s->generate($self);
-    
-    $self->set_step_done(STEP_SUPPORTMATERIAL);
 }
 
 sub detect_surfaces_type {
@@ -572,6 +578,7 @@ sub detect_surfaces_type {
                 my $diff = diff(
                     [ map @$_, @$subject ],
                     [ map @$_, @$clip ],
+                    1,
                 );
                 
                 # collapse very narrow parts (using the safety offset in the diff is not enough)
@@ -615,6 +622,11 @@ sub detect_surfaces_type {
                     $lower_layer->slices,
                     S_TYPE_BOTTOMBRIDGE,
                 );
+                
+                # if we have soluble support material, don't bridge
+                if ($self->config->support_material && $self->config->support_material_contact_distance == 0) {
+                    $_->surface_type(S_TYPE_BOTTOM) for @bottom;
+                }
                 
                 # if user requested internal shells, we need to identify surfaces
                 # lying on other slices not belonging to this region
@@ -1009,7 +1021,7 @@ sub combine_infill {
                      # Because fill areas for rectilinear and honeycomb are grown 
                      # later to overlap perimeters, we need to counteract that too.
                      + (($type == S_TYPE_INTERNALSOLID || $region->config->fill_pattern =~ /(rectilinear|honeycomb)/)
-                       ? $layerms[-1]->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width * &Slic3r::INFILL_OVERLAP_OVER_SPACING
+                       ? $layerms[-1]->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width
                        : 0)
                      )}, @$intersection;
 

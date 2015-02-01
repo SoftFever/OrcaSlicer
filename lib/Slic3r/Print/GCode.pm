@@ -169,8 +169,8 @@ sub export {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output(
                     "ooze_prevention.svg",
-                    polygons        => [$outer_skirt],
                     red_polygons    => \@skirts,
+                    polygons        => [$outer_skirt],
                     points          => $gcodegen->ooze_prevention->standby_points,
                 );
             }
@@ -197,7 +197,7 @@ sub export {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
-                        $object->_copies_shift->negative,
+                        Slic3r::Point->new(0,0),
                         undef,
                         'move to origin position for next object',
                     );
@@ -321,9 +321,14 @@ sub process_layer {
     }
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
+    $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->before_layer_gcode, {
+        layer_num => $layer->id,
+        layer_z   => $layer->print_z,
+    }) . "\n" if $self->print->config->before_layer_gcode;
     $gcode .= $self->_gcodegen->change_layer($layer);
     $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->layer_gcode, {
         layer_num => $layer->id,
+        layer_z   => $layer->print_z,
     }) . "\n" if $self->print->config->layer_gcode;
     
     # extrude skirt
@@ -428,6 +433,8 @@ sub process_layer {
             {
                 my $extruder_id = $region->config->perimeter_extruder-1;
                 foreach my $perimeter_coll (@{$layerm->perimeters}) {
+                    next if $perimeter_coll->empty;  # this shouldn't happen but first_point() would fail
+                    
                     # init by_extruder item only if we actually use the extruder
                     $by_extruder{$extruder_id} //= [];
                     
@@ -450,6 +457,8 @@ sub process_layer {
             # throughout the code). We can redefine the order of such Collections but we have to 
             # do each one completely at once.
             foreach my $fill (@{$layerm->fills}) {
+                next if $fill->empty;  # this shouldn't happen but first_point() would fail
+                
                 # init by_extruder item only if we actually use the extruder
                 my $extruder_id = $fill->[0]->is_solid_infill
                     ? $region->config->solid_infill_extruder-1

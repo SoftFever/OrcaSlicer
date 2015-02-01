@@ -22,9 +22,13 @@
         %code{% RETVAL = THIS->x; %};
     long y()
         %code{% RETVAL = THIS->y; %};
+    void set_x(long val)
+        %code{% THIS->x = val; %};
+    void set_y(long val)
+        %code{% THIS->y = val; %};
     int nearest_point_index(Points points);
-    Point* nearest_point(Points points)
-        %code{% RETVAL = new Point(); THIS->nearest_point(points, RETVAL); %};
+    Clone<Point> nearest_point(Points points)
+        %code{% Point p; THIS->nearest_point(points, &p); RETVAL = p; %};
     double distance_to(Point* point)
         %code{% RETVAL = THIS->distance_to(*point); %};
     double distance_to_line(Line* line)

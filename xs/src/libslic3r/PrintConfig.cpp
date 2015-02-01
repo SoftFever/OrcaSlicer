@@ -22,6 +22,14 @@ PrintConfigDef::build_def() {
     Options["bed_temperature"].min = 0;
     Options["bed_temperature"].max = 300;
 
+    Options["before_layer_gcode"].type = coString;
+    Options["before_layer_gcode"].label = "Before layer change G-code";
+    Options["before_layer_gcode"].tooltip = "This custom code is inserted at every layer change, right before the Z move. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z].";
+    Options["before_layer_gcode"].cli = "before-layer-gcode=s";
+    Options["before_layer_gcode"].multiline = true;
+    Options["before_layer_gcode"].full_width = true;
+    Options["before_layer_gcode"].height = 50;
+
     Options["bottom_solid_layers"].type = coInt;
     Options["bottom_solid_layers"].label = "Bottom";
     Options["bottom_solid_layers"].category = "Layers and Perimeters";
@@ -119,7 +127,7 @@ PrintConfigDef::build_def() {
     Options["external_fill_pattern"].label = "Top/bottom fill pattern";
     Options["external_fill_pattern"].category = "Infill";
     Options["external_fill_pattern"].tooltip = "Fill pattern for top/bottom infill. This only affects the external visible layer, and not its adjacent solid shells.";
-    Options["external_fill_pattern"].cli = "external-fill-pattern=s";
+    Options["external_fill_pattern"].cli = "external-fill-pattern|solid-fill-pattern=s";
     Options["external_fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     Options["external_fill_pattern"].enum_values.push_back("rectilinear");
     Options["external_fill_pattern"].enum_values.push_back("concentric");
@@ -318,7 +326,7 @@ PrintConfigDef::build_def() {
 
     Options["first_layer_extrusion_width"].type = coFloatOrPercent;
     Options["first_layer_extrusion_width"].label = "First layer";
-    Options["first_layer_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) it will be computed over first layer height.";
+    Options["first_layer_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) it will be computed over first layer height. If set to zero, it will use the Default Extrusion Width.";
     Options["first_layer_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["first_layer_extrusion_width"].cli = "first-layer-extrusion-width=s";
     Options["first_layer_extrusion_width"].ratio_over = "first_layer_height";
@@ -421,6 +429,14 @@ PrintConfigDef::build_def() {
     Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material).";
     Options["infill_only_where_needed"].cli = "infill-only-where-needed!";
 
+    Options["infill_overlap"].type = coFloatOrPercent;
+    Options["infill_overlap"].label = "Infill/perimeters overlap";
+    Options["infill_overlap"].category = "Advanced";
+    Options["infill_overlap"].tooltip = "This setting applies an additional overlap between infill and perimeters for better bonding. Theoretically this shouldn't be needed, but backlash might cause gaps. If expressed as percentage (example: 15%) it is calculated over perimeter extrusion width.";
+    Options["infill_overlap"].sidetext = "mm or %";
+    Options["infill_overlap"].cli = "infill-overlap=s";
+    Options["infill_overlap"].ratio_over = "perimeter_extrusion_width";
+
     Options["infill_speed"].type = coFloat;
     Options["infill_speed"].label = "Infill";
     Options["infill_speed"].category = "Speed";
@@ -438,9 +454,9 @@ PrintConfigDef::build_def() {
     Options["interface_shells"].category = "Layers and Perimeters";
 
     Options["layer_gcode"].type = coString;
-    Options["layer_gcode"].label = "Layer change G-code";
-    Options["layer_gcode"].tooltip = "This custom code is inserted at every layer change, right after the Z move and before the extruder moves to the first layer point. Note that you can use placeholder variables for all Slic3r settings.";
-    Options["layer_gcode"].cli = "layer-gcode=s";
+    Options["layer_gcode"].label = "After layer change G-code";
+    Options["layer_gcode"].tooltip = "This custom code is inserted at every layer change, right after the Z move and before the extruder moves to the first layer point. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z].";
+    Options["layer_gcode"].cli = "after-layer-gcode|layer-gcode=s";
     Options["layer_gcode"].multiline = true;
     Options["layer_gcode"].full_width = true;
     Options["layer_gcode"].height = 50;
@@ -799,6 +815,19 @@ PrintConfigDef::build_def() {
     Options["support_material_angle"].min = 0;
     Options["support_material_angle"].max = 359;
 
+    Options["support_material_contact_distance"].type = coFloat;
+    Options["support_material_contact_distance"].gui_type = "f_enum_open";
+    Options["support_material_contact_distance"].label = "Contact Z distance";
+    Options["support_material_contact_distance"].category = "Support material";
+    Options["support_material_contact_distance"].tooltip = "The vertical distance between object and support material interface. Setting this to 0 will also prevent Slic3r from using bridge flow and speed for the first object layer.";
+    Options["support_material_contact_distance"].sidetext = "mm";
+    Options["support_material_contact_distance"].cli = "support-material-contact-distance=f";
+    Options["support_material_contact_distance"].min = 0;
+    Options["support_material_contact_distance"].enum_values.push_back("0");
+    Options["support_material_contact_distance"].enum_values.push_back("0.2");
+    Options["support_material_contact_distance"].enum_labels.push_back("0 (soluble)");
+    Options["support_material_contact_distance"].enum_labels.push_back("0.2 (detachable)");
+
     Options["support_material_enforce_layers"].type = coInt;
     Options["support_material_enforce_layers"].label = "Enforce support for the first";
     Options["support_material_enforce_layers"].category = "Support material";
@@ -966,7 +995,7 @@ PrintConfigDef::build_def() {
 
     Options["use_volumetric_e"].type = coBool;
     Options["use_volumetric_e"].label = "Use volumetric E";
-    Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. The M200 command is prepended to the generated G-code, unless it is found in the configured start G-code. This is only supported in recent Marlin.";
+    Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin.";
     Options["use_volumetric_e"].cli = "use-volumetric-e!";
 
     Options["vibration_limit"].type = coFloat;

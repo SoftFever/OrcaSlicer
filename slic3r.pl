@@ -371,6 +371,7 @@ $j
     --end-gcode         Load final G-code from the supplied file. This will overwrite 
                         the default commands (turn off temperature [M104 S0],
                         home X axis [G28 X], disable motors [M84]).
+    --before-layer-gcode  Load before-layer-change G-code from the supplied file (default: nothing).
     --layer-gcode       Load layer-change G-code from the supplied file (default: nothing).
     --toolchange-gcode  Load tool-change G-code from the supplied file (default: nothing).
     --seam-position     Position of loop starting points (random/nearest/aligned, default: $config->{seam_position}).
@@ -405,6 +406,8 @@ $j
                         Spacing between pattern lines (mm, default: $config->{support_material_spacing})
     --support-material-angle
                         Support material angle in degrees (range: 0-90, default: $config->{support_material_angle})
+    --support-material-contact-distance
+                        Vertical distance between object and support material (0+, default: $config->{support_material_contact_distance})
     --support-material-interface-layers
                         Number of perpendicular layers between support material and object (0+, default: $config->{support_material_interface_layers})
     --support-material-interface-spacing
@@ -431,10 +434,10 @@ $j
     
    Retraction options for multi-extruder setups:
     --retract-length-toolchange
-                        Length of retraction in mm when disabling tool (default: $config->{retract_length}[0])
-    --retract-restart-extra-toolchnage
+                        Length of retraction in mm when disabling tool (default: $config->{retract_length_toolchange}[0])
+    --retract-restart-extra-toolchange
                         Additional amount of filament in mm to push after
-                        switching tool (default: $config->{retract_restart_extra}[0])
+                        switching tool (default: $config->{retract_restart_extra_toolchange}[0])
    
    Cooling options:
     --cooling           Enable fan and cooling control
@@ -498,6 +501,7 @@ $j
                         Set a different extrusion width for top infill
     --support-material-extrusion-width
                         Set a different extrusion width for support material
+    --infill-overlap    Overlap between infill and perimeters (default: $config->{infill_overlap})
     --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: $config->{bridge_flow_ratio})
   
    Multiple extruder options:

@@ -29,7 +29,7 @@ use Slic3r::Test;
         }
     });
     
-    ok abs($retracted) < epsilon, 'all retractions are compensated';
+    ok abs($retracted) < 0.01, 'all retractions are compensated';
 }
 
 

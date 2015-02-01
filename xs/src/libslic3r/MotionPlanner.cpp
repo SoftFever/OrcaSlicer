@@ -82,17 +82,18 @@ MotionPlanner::get_env(size_t island_idx) const
     }
 }
 
-void
-MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyline)
+Polyline
+MotionPlanner::shortest_path(const Point &from, const Point &to)
 {
     // lazy generation of configuration space
     if (!this->initialized) this->initialize();
     
     // if we have an empty configuration space, return a straight move
     if (this->islands.empty()) {
-        polyline->points.push_back(from);
-        polyline->points.push_back(to);
-        return;
+        Polyline p;
+        p.points.push_back(from);
+        p.points.push_back(to);
+        return p;
     }
     
     // Are both points in the same island?
@@ -102,9 +103,10 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
             // since both points are in the same island, is a direct move possible?
             // if so, we avoid generating the visibility environment
             if (island->contains(Line(from, to))) {
-                polyline->points.push_back(from);
-                polyline->points.push_back(to);
-                return;
+                Polyline p;
+                p.points.push_back(from);
+                p.points.push_back(to);
+                return p;
             }
             island_idx = island - this->islands.begin();
             break;
@@ -116,9 +118,10 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
     if (env.expolygons.empty()) {
         // if this environment is empty (probably because it's too small), perform straight move
         // and avoid running the algorithms on empty dataset
-        polyline->points.push_back(from);
-        polyline->points.push_back(to);
-        return; // bye bye
+        Polyline p;
+        p.points.push_back(from);
+        p.points.push_back(to);
+        return p; // bye bye
     }
     
     // Now check whether points are inside the environment.
@@ -137,10 +140,10 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
     
     // perform actual path search
     MotionPlannerGraph* graph = this->init_graph(island_idx);
-    graph->shortest_path(graph->find_node(inner_from), graph->find_node(inner_to), polyline);
+    Polyline polyline = graph->shortest_path(graph->find_node(inner_from), graph->find_node(inner_to));
     
-    polyline->points.insert(polyline->points.begin(), from);
-    polyline->points.push_back(to);
+    polyline.points.insert(polyline.points.begin(), from);
+    polyline.points.push_back(to);
     
     {
         // grow our environment slightly in order for simplify_by_visibility()
@@ -149,7 +152,7 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
         offset(env, &grown_env.expolygons, +SCALED_EPSILON);
         
         // remove unnecessary vertices
-        polyline->simplify_by_visibility(grown_env);
+        polyline.simplify_by_visibility(grown_env);
     }
     
     /*
@@ -171,6 +174,8 @@ MotionPlanner::shortest_path(const Point &from, const Point &to, Polyline* polyl
         svg.draw(*polyline, "red");
         svg.Close();
     */
+    
+    return polyline;
 }
 
 Point
@@ -310,11 +315,11 @@ MotionPlannerGraph::find_node(const Point &point) const
     return point.nearest_point_index(this->nodes);
 }
 
-void
-MotionPlannerGraph::shortest_path(size_t from, size_t to, Polyline* polyline)
+Polyline
+MotionPlannerGraph::shortest_path(size_t from, size_t to)
 {
     // this prevents a crash in case for some reason we got here with an empty adjacency list
-    if (this->adjacency_list.empty()) return;
+    if (this->adjacency_list.empty()) return Polyline();
     
     const weight_t max_weight = std::numeric_limits<weight_t>::infinity();
     
@@ -379,10 +384,12 @@ MotionPlannerGraph::shortest_path(size_t from, size_t to, Polyline* polyline)
         }
     }
     
+    Polyline polyline;
     for (node_t vertex = to; vertex != -1; vertex = previous[vertex])
-        polyline->points.push_back(this->nodes[vertex]);
-    polyline->points.push_back(this->nodes[from]);
-    polyline->reverse();
+        polyline.points.push_back(this->nodes[vertex]);
+    polyline.points.push_back(this->nodes[from]);
+    polyline.reverse();
+    return polyline;
 }
 
 #ifdef SLIC3RXS

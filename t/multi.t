@@ -44,7 +44,6 @@ use Slic3r::Test;
                     if $tool_temp[$tool] != $expected_temp + $config->standby_temperature_delta;
                 
                 push @toolchange_points, my $point = Slic3r::Point->new_scale($self->X, $self->Y);
-                $point->translate(map +scale($_), @{ $config->extruder_offset->[$tool] });
             }
             $tool = $1;
         } elsif ($cmd eq 'M104' || $cmd eq 'M109') {
@@ -73,11 +72,11 @@ use Slic3r::Test;
     if (0) {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output(
-            "ooze_prevention.svg",
+            "ooze_prevention_test.svg",
             no_arrows   => 1,
             polygons    => [$convex_hull],
-            points      => \@toolchange_points,
             red_points  => \@t,
+            points      => \@toolchange_points,
         );
     }
     
@@ -169,6 +168,7 @@ use Slic3r::Test;
 
 {
     my $model = stacked_cubes();
+    my $object = $model->objects->[0];
     
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('layer_height', 0.4);
@@ -176,8 +176,8 @@ use Slic3r::Test;
     $config->set('skirts', 0);
     my $print = Slic3r::Test::init_print($model, config => $config);
     
-    is $model->get_material('lower')->config->extruder, 1, 'auto_assign_extruders() assigned correct extruder to first volume';
-    is $model->get_material('upper')->config->extruder, 2, 'auto_assign_extruders() assigned correct extruder to second volume';
+    is $object->volumes->[0]->config->extruder, 1, 'auto_assign_extruders() assigned correct extruder to first volume';
+    is $object->volumes->[1]->config->extruder, 2, 'auto_assign_extruders() assigned correct extruder to second volume';
     
     my $tool = undef;
     my %T0 = my %T1 = ();  # Z => 1

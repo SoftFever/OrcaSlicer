@@ -47,5 +47,9 @@ sub GetValue {
     my ($self) = @_;
     return $self->{devices}[ $self->{choice}->GetSelection ]->address;
 }
+sub GetPort {
+    my ($self) = @_;
+    return $self->{devices}[ $self->{choice}->GetSelection ]->port;
+}
 
 1;

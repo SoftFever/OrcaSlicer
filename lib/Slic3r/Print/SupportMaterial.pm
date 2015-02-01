@@ -76,7 +76,7 @@ sub generate {
             $i, # id
             ($i == 0) ? $support_z->[$i] : ($support_z->[$i] - $support_z->[$i-1]), # height
             $support_z->[$i], # print_z
-            -1); # slice_z
+        );
         if ($i >= 1) {
             $object->support_layers->[-2]->set_upper_layer($object->support_layers->[-1]);
             $object->support_layers->[-1]->set_lower_layer($object->support_layers->[-2]);
@@ -270,8 +270,7 @@ sub contact_area {
                 @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
-            my $contact_z = $layer->print_z - contact_distance($nozzle_diameter);
-            ###$contact_z = $layer->print_z - $layer->height;
+            my $contact_z = $layer->print_z - $self->contact_distance($layer->height, $nozzle_diameter);
             
             # ignore this contact area if it's too low
             next if $contact_z < $self->object_config->get_value('first_layer_height');
@@ -339,12 +338,13 @@ sub support_layers_z {
     # layer_height > nozzle_diameter * 0.75
     my $nozzle_diameter = $self->print_config->get_at('nozzle_diameter', $self->object_config->support_material_extruder-1);
     my $support_material_height = max($max_object_layer_height, $nozzle_diameter * 0.75);
+    my $contact_distance = $self->contact_distance($support_material_height, $nozzle_diameter);
     
     # initialize known, fixed, support layers
     my @z = sort { $a <=> $b }
         @$contact_z,
         @$top_z,  # TODO: why we have this?
-        (map $_ + contact_distance($nozzle_diameter), @$top_z);
+        (map $_ + $contact_distance, @$top_z);
     
     # enforce first layer height
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
@@ -752,8 +752,12 @@ sub generate_toolpaths {
                 # TODO: use offset2_ex()
                 $to_infill = offset_ex([ map @$_, @$to_infill ], -$_flow->scaled_spacing);
             }
-            $filler->spacing($base_flow->spacing);
             
+            # We don't use $base_flow->spacing because we need a constant spacing
+            # value that guarantees that all layers are correctly aligned.
+            $filler->spacing($flow->spacing);
+            
+            my $mm3_per_mm = $base_flow->mm3_per_mm;
             foreach my $expolygon (@$to_infill) {
                 my @p = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
@@ -761,7 +765,6 @@ sub generate_toolpaths {
                     layer_height => $layer->height,
                     complete    => 1,
                 );
-                my $mm3_per_mm = $base_flow->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
                     polyline    => Slic3r::Polyline->new(@$_),
@@ -906,10 +909,15 @@ sub overlapping_layers {
     } 0..$#$support_z;
 }
 
-# class method
 sub contact_distance {
-    my ($nozzle_diameter) = @_;
-    return $nozzle_diameter * 1.5;
+    my ($self, $layer_height, $nozzle_diameter) = @_;
+    
+    my $extra = $self->object_config->support_material_contact_distance;
+    if ($extra == 0) {
+        return $layer_height;
+    } else {
+        return $nozzle_diameter + $extra;
+    }
 }
 
 1;

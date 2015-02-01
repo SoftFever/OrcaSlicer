@@ -17,9 +17,9 @@ use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::2D;
 use Slic3r::GUI::Plater::2DToolpaths;
 use Slic3r::GUI::Plater::3D;
+use Slic3r::GUI::Plater::3DPreview;
 use Slic3r::GUI::Plater::ObjectPartsPanel;
 use Slic3r::GUI::Plater::ObjectCutDialog;
-use Slic3r::GUI::Plater::ObjectPreviewDialog;
 use Slic3r::GUI::Plater::ObjectSettingsDialog;
 use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::Preferences;
@@ -29,7 +29,7 @@ use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::Tab;
 
-our $have_OpenGL = eval "use Slic3r::GUI::PreviewCanvas; 1";
+our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
@@ -86,9 +86,13 @@ sub OnInit {
     # just checking for existence of $datadir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
     my $run_wizard = (-d $enc_datadir && -e "$enc_datadir/slic3r.ini") ? 0 : 1;
-    for ($enc_datadir, "$enc_datadir/print", "$enc_datadir/filament", "$enc_datadir/printer") {
-        mkdir or $self->fatal_error("Slic3r was unable to create its data directory at $_ (errno: $!).")
-            unless -d $_;
+    foreach my $dir ($enc_datadir, "$enc_datadir/print", "$enc_datadir/filament", "$enc_datadir/printer") {
+        next if -d $dir;
+        if (!mkdir $dir) {
+            my $error = "Slic3r was unable to create its data directory at $dir ($!).";
+            warn "$error\n";
+            fatal_error(undef, $error);
+        }
     }
     
     # load settings
@@ -165,22 +169,19 @@ sub catch_error {
 
 # static method accepting a wxWindow object as first parameter
 sub show_error {
-    my $self = shift;
-    my ($message) = @_;
-    Wx::MessageDialog->new($self, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+    my ($parent, $message) = @_;
+    Wx::MessageDialog->new($parent, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
 }
 
 # static method accepting a wxWindow object as first parameter
 sub show_info {
-    my $self = shift;
-    my ($message, $title) = @_;
-    Wx::MessageDialog->new($self, $message, $title || 'Notice', wxOK | wxICON_INFORMATION)->ShowModal;
+    my ($parent, $message, $title) = @_;
+    Wx::MessageDialog->new($parent, $message, $title || 'Notice', wxOK | wxICON_INFORMATION)->ShowModal;
 }
 
 # static method accepting a wxWindow object as first parameter
 sub fatal_error {
-    my $self = shift;
-    $self->show_error(@_);
+    show_error(@_);
     exit 1;
 }
 
@@ -220,6 +221,7 @@ sub presets {
     opendir my $dh, Slic3r::encode_path("$Slic3r::GUI::datadir/$section")
         or die "Failed to read directory $Slic3r::GUI::datadir/$section (errno: $!)\n";
     foreach my $file (grep /\.ini$/i, readdir $dh) {
+        $file = Slic3r::decode_path($file);
         my $name = basename($file);
         $name =~ s/\.ini$//;
         $presets{$name} = "$Slic3r::GUI::datadir/$section/$file";

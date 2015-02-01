@@ -26,6 +26,7 @@
     void simplify(double tolerance);
     Polygons polygons()
         %code{% RETVAL = *THIS; %};
+    Clone<Polygon> convex_hull();
 %{
 
 ExPolygonCollection*
@@ -75,14 +76,6 @@ ExPolygonCollection::append(...)
             expolygon.from_SV_check( ST(i) );
             THIS->expolygons.push_back(expolygon);
         }
-
-Polygon*
-ExPolygonCollection::convex_hull()
-    CODE:
-        RETVAL = new Polygon ();
-        THIS->convex_hull(RETVAL);
-    OUTPUT:
-        RETVAL
 
 %}
 };

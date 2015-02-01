@@ -60,16 +60,6 @@ GCodeWriter::preamble()
         } else {
             gcode << "M82 ; use absolute distances for extrusion\n";
         }
-        if (this->config.use_volumetric_e && this->config.start_gcode.value.find("M200") == std::string::npos) {
-            for (std::map<unsigned int,Extruder>::const_iterator it = this->extruders.begin(); it != this->extruders.end(); ++it) {
-                unsigned int extruder_id = it->first;
-                gcode << "M200 D" << E_NUM(this->config.filament_diameter.get_at(extruder_id));
-                if (this->multiple_extruders || extruder_id != 0) {
-                    gcode << " T" << extruder_id;
-                }
-                gcode << " ; set filament diameter\n";
-            }
-        }
         gcode << this->reset_e(true);
     }
     

@@ -1,4 +1,5 @@
 #include "Geometry.hpp"
+#include "ClipperUtils.hpp"
 #include "ExPolygon.hpp"
 #include "Line.hpp"
 #include "PolylineCollection.hpp"
@@ -25,42 +26,45 @@ sort_points (Point a, Point b)
 }
 
 /* This implementation is based on Andrew's monotone chain 2D convex hull algorithm */
-void
-convex_hull(Points points, Polygon* hull)
+Polygon
+convex_hull(Points points)
 {
     assert(points.size() >= 3);
     // sort input points
     std::sort(points.begin(), points.end(), sort_points);
     
     int n = points.size(), k = 0;
-    hull->points.resize(2*n);
+    Polygon hull;
+    hull.points.resize(2*n);
 
     // Build lower hull
     for (int i = 0; i < n; i++) {
-        while (k >= 2 && points[i].ccw(hull->points[k-2], hull->points[k-1]) <= 0) k--;
-        hull->points[k++] = points[i];
+        while (k >= 2 && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
+        hull.points[k++] = points[i];
     }
 
     // Build upper hull
     for (int i = n-2, t = k+1; i >= 0; i--) {
-        while (k >= t && points[i].ccw(hull->points[k-2], hull->points[k-1]) <= 0) k--;
-        hull->points[k++] = points[i];
+        while (k >= t && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
+        hull.points[k++] = points[i];
     }
 
-    hull->points.resize(k);
+    hull.points.resize(k);
     
-    assert( hull->points.front().coincides_with(hull->points.back()) );
-    hull->points.pop_back();
+    assert( hull.points.front().coincides_with(hull.points.back()) );
+    hull.points.pop_back();
+    
+    return hull;
 }
 
-void
-convex_hull(const Polygons &polygons, Polygon* hull)
+Polygon
+convex_hull(const Polygons &polygons)
 {
     Points pp;
     for (Polygons::const_iterator p = polygons.begin(); p != polygons.end(); ++p) {
         pp.insert(pp.end(), p->points.begin(), p->points.end());
     }
-    convex_hull(pp, hull);
+    return convex_hull(pp);
 }
 
 /* accepts an arrayref of points and returns a list of indices
@@ -141,6 +145,20 @@ double
 deg2rad(double angle)
 {
     return PI * angle / 180.0;
+}
+
+void
+simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
+{
+    Polygons pp;
+    for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++it) {
+        Polygon p = *it;
+        p.points.push_back(p.points.front());
+        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points.pop_back();
+        pp.push_back(p);
+    }
+    Slic3r::simplify_polygons(pp, retval);
 }
 
 Line

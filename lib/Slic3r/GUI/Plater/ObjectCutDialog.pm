@@ -86,8 +86,9 @@ sub new {
     # right pane with preview canvas
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
-        $canvas = $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($self);
-        $canvas->load_object($self->{model_object});
+        $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
+        $canvas->enable_cutting(1);
+        $canvas->load_object($self->{model_object}, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
@@ -153,6 +154,7 @@ sub perform_cut {
     $self->{new_model} = $new_model;
     $self->{new_model_objects} = [];
     if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
+        $upper_object->center_around_origin;  # align to Z = 0
         push @{$self->{new_model_objects}}, $upper_object;
     }
     if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {

@@ -22,6 +22,7 @@ sub new {
     $self->{vsizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->SetSizer($self->{vsizer});
     $self->build;
+    $self->_update;
     
     {
         my $label = Wx::StaticText->new($self, -1, "Want more options? Switch to the Expert Mode.", wxDefaultPosition, wxDefaultSize);
@@ -71,12 +72,14 @@ sub load_config {
         $self->{config}->set($opt_key, $config->get($opt_key));
     }
     $_->reload_config for @{$self->{optgroups}};
+    $self->_update;
 }
 
 sub load_presets {}
 
 sub is_dirty { 0 }
 sub config { $_[0]->{config}->clone }
+sub _update {}
 
 sub on_value_change {
     my ($self, $cb) = @_;
@@ -88,7 +91,19 @@ sub on_presets_changed {}
 # propagate event to the parent
 sub _on_value_change {
     my $self = shift;
+    
     $self->{on_value_change}->(@_) if $self->{on_value_change};
+    $self->_update;
+}
+
+sub get_field {
+    my ($self, $opt_key, $opt_index) = @_;
+    
+    foreach my $optgroup (@{ $self->{optgroups} }) {
+        my $field = $optgroup->get_fieldc($opt_key, $opt_index);
+        return $field if defined $field;
+    }
+    return undef;
 }
 
 package Slic3r::GUI::SimpleTab::Print;
@@ -104,10 +119,12 @@ sub build {
     
     $self->init_config_options(qw(
         layer_height perimeters top_solid_layers bottom_solid_layers 
-        fill_density fill_pattern support_material support_material_spacing raft_layers
+        fill_density fill_pattern external_fill_pattern
+        support_material support_material_spacing raft_layers
+        support_material_contact_distance dont_support_bridges
         perimeter_speed infill_speed travel_speed
         brim_width
-        complete_objects extruder_clearance_radius extruder_clearance_height
+        xy_size_compensation
     ));
     
     {
@@ -127,12 +144,15 @@ sub build {
         my $optgroup = $self->new_optgroup('Infill');
         $optgroup->append_single_option_line('fill_density');
         $optgroup->append_single_option_line('fill_pattern');
+        $optgroup->append_single_option_line('external_fill_pattern');
     }
     
     {
         my $optgroup = $self->new_optgroup('Support material');
         $optgroup->append_single_option_line('support_material');
         $optgroup->append_single_option_line('support_material_spacing');
+        $optgroup->append_single_option_line('support_material_contact_distance');
+        $optgroup->append_single_option_line('dont_support_bridges');
         $optgroup->append_single_option_line('raft_layers');
     }
     
@@ -149,16 +169,33 @@ sub build {
     }
     
     {
-        my $optgroup = $self->new_optgroup('Sequential printing');
-        $optgroup->append_single_option_line('complete_objects');
-        
-        my $line = Slic3r::GUI::OptionsGroup::Line->new(
-            label => 'Extruder clearance (mm)',
-        );
-        $line->append_option($optgroup->get_option('extruder_clearance_radius'));
-        $line->append_option($optgroup->get_option('extruder_clearance_height'));
-        $optgroup->append_line($line);
+        my $optgroup = $self->new_optgroup('Other');
+        $optgroup->append_single_option_line('xy_size_compensation');
     }
+}
+
+sub _update {
+    my ($self) = @_;
+    
+    my $config = $self->{config};
+    
+    my $have_perimeters = $config->perimeters > 0;
+    $self->get_field($_)->toggle($have_perimeters)
+        for qw(perimeter_speed);
+    
+    my $have_infill = $config->fill_density > 0;
+    my $have_solid_infill = $config->top_solid_layers > 0 || $config->bottom_solid_layers > 0;
+    $self->get_field($_)->toggle($have_infill)
+        for qw(fill_pattern);
+    $self->get_field($_)->toggle($have_solid_infill)
+        for qw(external_fill_pattern);
+    $self->get_field($_)->toggle($have_infill || $have_solid_infill)
+        for qw(infill_speed);
+    
+    my $have_support_material = $config->support_material || $config->raft_layers > 0;
+    $self->get_field($_)->toggle($have_support_material)
+        for qw(support_material_spacing dont_support_bridges
+            support_material_contact_distance);
 }
 
 package Slic3r::GUI::SimpleTab::Filament;
@@ -206,6 +243,8 @@ sub build {
 
 package Slic3r::GUI::SimpleTab::Printer;
 use base 'Slic3r::GUI::SimpleTab';
+use Wx qw(:sizer :button :bitmap :misc :id);
+use Wx::Event qw(EVT_BUTTON);
 
 sub name { 'printer' }
 sub title { 'Printer Settings' }
@@ -214,17 +253,46 @@ sub build {
     my $self = shift;
     
     $self->init_config_options(qw(
+        bed_shape
         z_offset
         gcode_flavor
         nozzle_diameter
-        retract_length retract_lift
+        retract_length retract_lift wipe
         start_gcode
         end_gcode
     ));
     
     {
+        my $bed_shape_widget = sub {
+            my ($parent) = @_;
+        
+            my $btn = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+            $btn->SetFont($Slic3r::GUI::small_font);
+            if ($Slic3r::GUI::have_button_icons) {
+                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+            }
+        
+            my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+            $sizer->Add($btn);
+        
+            EVT_BUTTON($self, $btn, sub {
+                my $dlg = Slic3r::GUI::BedShapeDialog->new($self, $self->{config}->bed_shape);
+                if ($dlg->ShowModal == wxID_OK) {
+                    my $value = $dlg->GetValue;
+                    $self->{config}->set('bed_shape', $value);
+                    $self->_on_value_change('bed_shape', $value);
+                }
+            });
+        
+            return $sizer;
+        };
+    
         my $optgroup = $self->new_optgroup('Size and coordinates');
-        # TODO: add bed_shape
+        my $line = Slic3r::GUI::OptionsGroup::Line->new(
+            label       => 'Bed shape',
+            widget      => $bed_shape_widget,
+        );
+        $optgroup->append_line($line);
         $optgroup->append_single_option_line('z_offset');
     }
     
@@ -242,6 +310,7 @@ sub build {
         my $optgroup = $self->new_optgroup('Retraction');
         $optgroup->append_single_option_line('retract_length', 0);
         $optgroup->append_single_option_line('retract_lift', 0);
+        $optgroup->append_single_option_line('wipe', 0);
     }
     
     {
@@ -263,6 +332,16 @@ sub build {
         $option->height(150);
         $optgroup->append_single_option_line($option);
     }
+}
+
+sub _update {
+    my ($self) = @_;
+    
+    my $config = $self->{config};
+    
+    my $have_retraction = $config->retract_length->[0] > 0;
+    $self->get_field($_, 0)->toggle($have_retraction)
+        for qw(retract_lift wipe);
 }
 
 1;

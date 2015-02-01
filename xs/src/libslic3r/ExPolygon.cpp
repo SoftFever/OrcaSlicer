@@ -129,14 +129,20 @@ ExPolygon::simplify_p(double tolerance) const
     pp.reserve(this->holes.size() + 1);
     
     // contour
-    Polygon p = this->contour;
-    p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
-    pp.push_back(p);
+    {
+        Polygon p = this->contour;
+        p.points.push_back(p.points.front());
+        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points.pop_back();
+        pp.push_back(p);
+    }
     
     // holes
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        p = *it;
+        Polygon p = *it;
+        p.points.push_back(p.points.front());
         p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points.pop_back();
         pp.push_back(p);
     }
     simplify_polygons(pp, &pp);
@@ -167,9 +173,11 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     Slic3r::Geometry::MedialAxis ma(max_width, min_width);
     
     // populate list of segments for the Voronoi diagram
-    this->contour.lines(&ma.lines);
-    for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole)
-        hole->lines(&ma.lines);
+    ma.lines = this->contour.lines();
+    for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole) {
+        Lines lines = hole->lines();
+        ma.lines.insert(ma.lines.end(), lines.begin(), lines.end());
+    }
     
     // compute the Voronoi diagram
     ma.build(polylines);
@@ -384,10 +392,11 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
 Lines
 ExPolygon::lines() const
 {
-    Lines lines;
-    this->contour.lines(&lines);
-    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h)
-        h->lines(&lines);
+    Lines lines = this->contour.lines();
+    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h) {
+        Lines hole_lines = h->lines();
+        lines.insert(lines.end(), hole_lines.begin(), hole_lines.end());
+    }
     return lines;
 }
 

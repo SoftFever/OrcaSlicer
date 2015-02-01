@@ -358,8 +358,7 @@ Print::add_model_object(ModelObject* model_object, int idx)
     // initialize print object and store it at the given position
     PrintObject* o;
     {
-        BoundingBoxf3 bb;
-        model_object->raw_bounding_box(&bb);
+        BoundingBoxf3 bb = model_object->raw_bounding_box();
         if (idx != -1) {
             // replacing existing object
             PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
@@ -569,14 +568,13 @@ Print::validate() const
                     Polygons mesh_convex_hulls;
                     for (size_t i = 0; i < this->regions.size(); ++i) {
                         for (std::vector<int>::const_iterator it = object->region_volumes[i].begin(); it != object->region_volumes[i].end(); ++it) {
-                            Polygon hull;
-                            object->model_object()->volumes[*it]->mesh.convex_hull(&hull);
+                            Polygon hull = object->model_object()->volumes[*it]->mesh.convex_hull();
                             mesh_convex_hulls.push_back(hull);
                         }
                     }
                 
                     // make a single convex hull for all of them
-                    Slic3r::Geometry::convex_hull(mesh_convex_hulls, &convex_hull);
+                    convex_hull = Slic3r::Geometry::convex_hull(mesh_convex_hulls);
                 }
                 
                 // apply the same transformations we apply to the actual meshes when slicing them

@@ -12,7 +12,7 @@ BEGIN {
 use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
 use Slic3r::GUI;
-use Slic3r::GUI::PreviewCanvas;
+use Slic3r::GUI::3DScene;
 $|++;
 
 my %opt = ();
@@ -31,11 +31,12 @@ my %opt = ();
     
     # make sure all objects have at least one defined instance
     $model->add_default_instances;
+    $_->center_around_origin for @{$model->objects};  # and align to Z = 0
     
     my $app = Slic3r::ViewMesh->new;
     $app->{canvas}->enable_picking(1);
     $app->{canvas}->enable_moving($opt{enable_moving});
-    $app->{canvas}->load_object($model->objects->[0]);
+    $app->{canvas}->load_object($model, 0);
     $app->{canvas}->set_auto_bed_shape;
     $app->{canvas}->zoom_to_volumes;
     $app->{canvas}->SetCuttingPlane($opt{cut}) if defined $opt{cut};
@@ -66,7 +67,7 @@ sub OnInit {
     my $frame = Wx::Frame->new(undef, -1, 'Mesh Viewer', [-1, -1], [500, 400]);
     my $panel = Wx::Panel->new($frame, -1);
     
-    $self->{canvas} = Slic3r::GUI::PreviewCanvas->new($panel);
+    $self->{canvas} = Slic3r::GUI::3DScene->new($panel);
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($self->{canvas}, 1, wxEXPAND, 0);

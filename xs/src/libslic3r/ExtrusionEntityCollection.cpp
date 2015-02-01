@@ -110,6 +110,17 @@ ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCo
     }
 }
 
+Polygons
+ExtrusionEntityCollection::grow() const
+{
+    Polygons pp;
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        Polygons entity_pp = (*it)->grow();
+        pp.insert(pp.end(), entity_pp.begin(), entity_pp.end());
+    }
+    return pp;
+}
+
 #ifdef SLIC3RXS
 // there is no ExtrusionLoop::Collection or ExtrusionEntity::Collection
 REGISTER_CLASS(ExtrusionEntityCollection, "ExtrusionPath::Collection");

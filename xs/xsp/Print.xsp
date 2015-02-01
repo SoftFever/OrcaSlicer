@@ -35,8 +35,8 @@ _constant()
         %code%{ RETVAL = &THIS->config; %};
     Ref<Print> print();
     
-    Flow* flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, PrintObject* object)
-        %code%{ RETVAL = new Flow(THIS->flow(role, layer_height, bridge, first_layer, width, *object)); %};
+    Clone<Flow> flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, PrintObject* object)
+        %code%{ RETVAL = THIS->flow(role, layer_height, bridge, first_layer, width, *object); %};
 };
 
 
@@ -61,11 +61,7 @@ _constant()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     Ref<Point3> size()
         %code%{ RETVAL = &THIS->size; %};
-    BoundingBox* bounding_box()
-        %code{%
-            RETVAL = new BoundingBox();
-            THIS->bounding_box(RETVAL);
-        %};
+    Clone<BoundingBox> bounding_box();
     Ref<Point> _copies_shift()
         %code%{ RETVAL = &THIS->_copies_shift; %};
     
@@ -99,7 +95,7 @@ _constant()
     size_t support_layer_count();
     void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
-    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z);
     void delete_support_layer(int idx);
     
     bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);

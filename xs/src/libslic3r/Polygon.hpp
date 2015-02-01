@@ -24,11 +24,10 @@ class Polygon : public MultiPoint {
     explicit Polygon(const Points &points): MultiPoint(points) {};
     Point last_point() const;
     Lines lines() const;
-    void lines(Lines* lines) const;
-    void split_at_vertex(const Point &point, Polyline* polyline) const;
-    void split_at_index(int index, Polyline* polyline) const;
-    void split_at_first_point(Polyline* polyline) const;
-    void equally_spaced_points(double distance, Points* points) const;
+    Polyline split_at_vertex(const Point &point) const;
+    Polyline split_at_index(int index) const;
+    Polyline split_at_first_point() const;
+    Points equally_spaced_points(double distance) const;
     double area() const;
     bool is_counter_clockwise() const;
     bool is_clockwise() const;
@@ -41,10 +40,8 @@ class Polygon : public MultiPoint {
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
     std::string wkt() const;
-    void concave_points(double angle, Points* points) const;
-    void concave_points(Points* points) const;
-    void convex_points(double angle, Points* points) const;
-    void convex_points(Points* points) const;
+    Points concave_points(double angle = PI) const;
+    Points convex_points(double angle = PI) const;
     
     #ifdef SLIC3RXS
     void from_SV_check(SV* poly_sv);
