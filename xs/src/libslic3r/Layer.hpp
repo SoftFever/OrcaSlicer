@@ -56,6 +56,7 @@ class LayerRegion
     
     Flow flow(FlowRole role, bool bridge = false, double width = -1) const;
     void merge_slices();
+    void prepare_fill_surfaces();
     
     private:
     Layer *_layer;
