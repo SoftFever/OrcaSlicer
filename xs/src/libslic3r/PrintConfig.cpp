@@ -429,6 +429,14 @@ PrintConfigDef::build_def() {
     Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material).";
     Options["infill_only_where_needed"].cli = "infill-only-where-needed!";
 
+    Options["infill_overlap"].type = coFloatOrPercent;
+    Options["infill_overlap"].label = "Infill/perimeters overlap";
+    Options["infill_overlap"].category = "Advanced";
+    Options["infill_overlap"].tooltip = "This setting applies an additional overlap between infill and perimeters for better bonding. Theoretically this shouldn't be needed, but backlash might cause gaps. If expressed as percentage (example: 15%) it is calculated over perimeter extrusion width.";
+    Options["infill_overlap"].sidetext = "mm or %";
+    Options["infill_overlap"].cli = "infill-overlap=s";
+    Options["infill_overlap"].ratio_over = "perimeter_extrusion_width";
+
     Options["infill_speed"].type = coFloat;
     Options["infill_speed"].label = "Infill";
     Options["infill_speed"].category = "Speed";

@@ -350,6 +350,7 @@ The author of the Silk icon set is Mark James.
                             Set a different extrusion width for top infill
         --support-material-extrusion-width
                             Set a different extrusion width for support material
+        --infill-overlap    Overlap between infill and perimeters (default: 15%)
         --bridge-flow-ratio Multiplier for extrusion when bridging (> 0, default: 1)
     
        Multiple extruder options:

@@ -474,7 +474,7 @@ sub build {
         extrusion_width first_layer_extrusion_width perimeter_extrusion_width 
         external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width 
         top_infill_extrusion_width support_material_extrusion_width
-        bridge_flow_ratio
+        infill_overlap bridge_flow_ratio
         xy_size_compensation threads resolution
     ));
     
@@ -643,6 +643,10 @@ sub build {
             $optgroup->append_single_option_line('solid_infill_extrusion_width');
             $optgroup->append_single_option_line('top_infill_extrusion_width');
             $optgroup->append_single_option_line('support_material_extrusion_width');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Overlap');
+            $optgroup->append_single_option_line('infill_overlap');
         }
         {
             my $optgroup = $page->new_optgroup('Flow');

@@ -316,7 +316,7 @@ sub process {
             for map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
                 @{offset2_ex(
                     [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
-                    -($pspacing/2 + $min_perimeter_infill_spacing/2),
+                    -($pspacing/2 - $self->config->get_abs_value_over('infill_overlap', $pwidth) + $min_perimeter_infill_spacing/2),
                     +$min_perimeter_infill_spacing/2,
                 )};
     }

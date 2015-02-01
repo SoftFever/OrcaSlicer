@@ -218,6 +218,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "overhangs"
             || *opt_key == "first_layer_extrusion_width"
             || *opt_key == "perimeter_extrusion_width"
+            || *opt_key == "infill_overlap"
             || *opt_key == "thin_walls"
             || *opt_key == "external_perimeters_first") {
             steps.insert(posPerimeters);

@@ -224,6 +224,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
+    ConfigOptionFloatOrPercent      infill_overlap;
     ConfigOptionFloat               infill_speed;
     ConfigOptionBool                overhangs;
     ConfigOptionInt                 perimeter_extruder;
@@ -260,6 +261,8 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         this->infill_extrusion_width.value                       = 0;
         this->infill_extrusion_width.percent                     = false;
         this->infill_every_layers.value                          = 1;
+        this->infill_overlap.value                               = 15;
+        this->infill_overlap.percent                             = true;
         this->infill_speed.value                                 = 80;
         this->overhangs.value                                    = true;
         this->perimeter_extruder.value                           = 1;
@@ -300,6 +303,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         if (opt_key == "infill_extruder")                            return &this->infill_extruder;
         if (opt_key == "infill_extrusion_width")                     return &this->infill_extrusion_width;
         if (opt_key == "infill_every_layers")                        return &this->infill_every_layers;
+        if (opt_key == "infill_overlap")                             return &this->infill_overlap;
         if (opt_key == "infill_speed")                               return &this->infill_speed;
         if (opt_key == "overhangs")                                  return &this->overhangs;
         if (opt_key == "perimeter_extruder")                         return &this->perimeter_extruder;
