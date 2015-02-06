@@ -434,7 +434,10 @@ GCodeWriter::_retract(double length, double restart_extra, const std::string &co
     double dE = this->_extruder->retract(length, restart_extra);
     if (dE != 0) {
         if (this->config.use_firmware_retraction) {
-            gcode << "G10 ; retract\n";
+            if (FLAVOR_IS(gcfMachinekit))
+                gcode << "G22 ; retract\n";
+            else
+                gcode << "G10 ; retract\n";
         } else {
             gcode << "G1 " << this->_extrusion_axis << E_NUM(this->_extruder->E)
                            << " F" << this->_extruder->retract_speed_mm_min;
@@ -460,7 +463,10 @@ GCodeWriter::unretract()
     double dE = this->_extruder->unretract();
     if (dE != 0) {
         if (this->config.use_firmware_retraction) {
-            gcode << "G11 ; unretract\n";
+            if (FLAVOR_IS(gcfMachinekit))
+                 gcode << "G23 ; unretract\n";
+            else
+                 gcode << "G11 ; unretract\n";
             gcode << this->reset_e();
         } else {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
