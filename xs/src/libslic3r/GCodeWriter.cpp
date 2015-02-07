@@ -511,6 +511,15 @@ GCodeWriter::get_position() const
     return this->_pos;
 }
 
+std::string
+GCodeWriter::end_program()
+{
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfMachinekit))
+          gcode << "M2 ; end of program\n";
+    return gcode.str();
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(GCodeWriter, "GCode::Writer");
 #endif
