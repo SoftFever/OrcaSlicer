@@ -251,7 +251,7 @@ sub presets {
 
 sub have_version_check {
     my ($self) = @_;
-    $Slic3r::build = 1;
+    
     # return an explicit 0
     return ($Slic3r::have_threads && $Slic3r::build && $have_LWP) || 0;
 }
