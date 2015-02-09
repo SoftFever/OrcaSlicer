@@ -247,7 +247,7 @@ sub _init_menubar {
             Wx::LaunchDefaultBrowser('http://slic3r.org/');
         });
         my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", 'Check for new Slic3r versions', sub {
-            wxTheApp->check_version(manual => 1);
+            wxTheApp->check_version(1);
         });
         $versioncheck->Enable(wxTheApp->have_version_check);
         $self->_append_menu_item($helpMenu, "Slic3r &Manual", 'Open the Slic3r manual in your browser', sub {
