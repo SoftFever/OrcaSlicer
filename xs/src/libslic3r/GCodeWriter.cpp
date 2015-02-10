@@ -83,7 +83,7 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
     
     std::ostringstream gcode;
     gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3)) {
+    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {
         gcode << "S";
@@ -118,7 +118,7 @@ GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait)
     
     std::ostringstream gcode;
     gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3)) {
+    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {
         gcode << "S";
@@ -153,7 +153,7 @@ GCodeWriter::set_fan(unsigned int speed, bool dont_save)
                 gcode << "M126";
             } else {
                 gcode << "M106 ";
-                if (FLAVOR_IS(gcfMach3)) {
+                if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
                     gcode << "P";
                 } else {
                     gcode << "S";
