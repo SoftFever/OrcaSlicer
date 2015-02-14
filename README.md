@@ -109,6 +109,8 @@ The author of the Silk icon set is Mark James.
         -j, --threads <num> Number of threads to use (1+, default: 2)
     
       GUI options:
+        --gui               Forces the GUI launch instead of command line slicing (if you
+                            supply a model file, it will be loaded into the plater)
         --no-plater         Disable the plater tab
         --gui-mode          Overrides the configured mode (simple/expert)
         --autosave <file>   Automatically export current configuration to the specified file
