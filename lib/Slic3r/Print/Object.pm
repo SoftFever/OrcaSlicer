@@ -650,7 +650,7 @@ sub detect_surfaces_type {
                 
                 # if we have raft layers, consider bottom layer as a bridge
                 # just like any other bottom surface lying on the void
-                if ($self->config->raft_layers > 0) {
+                if ($self->config->raft_layers > 0 && $self->config->support_material_contact_distance > 0) {
                     $_->surface_type(S_TYPE_BOTTOMBRIDGE) for @bottom;
                 } else {
                     $_->surface_type(S_TYPE_BOTTOM) for @bottom;
