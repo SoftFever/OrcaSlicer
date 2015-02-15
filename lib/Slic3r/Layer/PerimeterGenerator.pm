@@ -286,7 +286,7 @@ sub process {
             # where 0.5*$pwidth < thickness < $pwidth, infill with width = 0.5*$pwidth
             my @gap_sizes = (
                 [ $pwidth, 2*$pspacing, unscale 1.5*$pwidth ],
-                [ 0.5*$pwidth, $pwidth, unscale 0.5*$pwidth ],
+                [ 0.1*$pwidth, $pwidth, unscale 0.5*$pwidth ],
             );
             foreach my $gap_size (@gap_sizes) {
                 my @gap_fill = $self->_fill_gaps(@$gap_size, \@gaps);
@@ -384,8 +384,8 @@ sub _traverse_loops {
             push @paths, Slic3r::ExtrusionPath->new(
                 polyline        => $loop->polygon->split_at_first_point,
                 role            => $role,
-                mm3_per_mm      => $self->_mm3_per_mm,
-                width           => $self->perimeter_flow->width,
+                mm3_per_mm      => ($is_external ? $self->_ext_mm3_per_mm : $self->_mm3_per_mm),
+                width           => ($is_external ? $self->ext_perimeter_flow->width : $self->perimeter_flow->width),
                 height          => $self->layer_height,
             );
         }
@@ -441,11 +441,14 @@ sub _traverse_loops {
 sub _fill_gaps {
     my ($self, $min, $max, $w, $gaps) = @_;
     
+    $min *= (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
+    
     my $this = diff_ex(
         offset2([ map @$_, @$gaps ], -$min/2, +$min/2),
         offset2([ map @$_, @$gaps ], -$max/2, +$max/2),
         1,
     );
+    
     my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
     return if !@polylines;
     
