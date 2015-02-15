@@ -249,7 +249,7 @@ sub export {
     print $fh $gcodegen->writer->set_fan(0);
     printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->end_gcode);
     print $fh $gcodegen->writer->update_progress($gcodegen->layer_count, $gcodegen->layer_count, 1);  # 100%
-    print $fh $gcodegen->writer->end_program();
+    print $fh $gcodegen->writer->postamble;
     
     $self->print->total_used_filament(0);
     $self->print->total_extruded_volume(0);

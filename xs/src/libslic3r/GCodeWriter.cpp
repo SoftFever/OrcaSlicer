@@ -67,6 +67,15 @@ GCodeWriter::preamble()
 }
 
 std::string
+GCodeWriter::postamble()
+{
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfMachinekit))
+          gcode << "M2 ; end of program\n";
+    return gcode.str();
+}
+
+std::string
 GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
@@ -509,15 +518,6 @@ Pointf3
 GCodeWriter::get_position() const
 {
     return this->_pos;
-}
-
-std::string
-GCodeWriter::end_program()
-{
-    std::ostringstream gcode;
-    if (FLAVOR_IS(gcfMachinekit))
-          gcode << "M2 ; end of program\n";
-    return gcode.str();
 }
 
 #ifdef SLIC3RXS
