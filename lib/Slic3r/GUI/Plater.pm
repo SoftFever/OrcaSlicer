@@ -980,9 +980,13 @@ sub pause_background_process {
     
     if ($self->{process_thread} || $self->{export_thread}) {
         Slic3r::pause_all_threads();
+        return 1;
     } elsif (defined $self->{apply_config_timer} && $self->{apply_config_timer}->IsRunning) {
         $self->{apply_config_timer}->Stop;
+        return 1;
     }
+    
+    return 0;
 }
 
 sub resume_background_process {
@@ -1281,21 +1285,20 @@ sub update {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
-    $self->pause_background_process;
+    my $running = $self->pause_background_process;
     my $invalidated = $self->{print}->reload_model_instances();
-    if ($invalidated) {
+    
+    # The mere fact that no steps were invalidated when reloading model instances 
+    # doesn't mean that all steps were done: for example, validation might have 
+    # failed upon previous instance move, so we have no running thread and no steps
+    # are invalidated on this move, thus we need to schedule a new run.
+    if ($invalidated || !$running) {
         $self->schedule_background_process;
     } else {
         $self->resume_background_process;
     }
     
     $self->refresh_canvases;
-}
-
-sub on_model_instances_changed {
-    my ($self) = @_;
-    
-    
 }
 
 sub on_extruders_change {
