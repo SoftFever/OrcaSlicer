@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 19;
+use Test::More tests => 21;
 
 my $square = Slic3r::Polygon->new(  # ccw
     [200, 100],
@@ -178,7 +178,7 @@ if (0) {  # Clipper does not preserve polyline orientation
     is scalar(@$result), 1, 'intersection_ppl - result is not empty';
 }
 
-if (0) {
+{
     # Disabled until Clipper bug #122 is fixed
     my $subject = [
         Slic3r::Polyline->new([1975,1975],[25,1975],[25,25],[1975,25],[1975,1975]),
@@ -188,7 +188,6 @@ if (0) {
         Slic3r::Polygon->new([525,525],[525,1475],[1475,1475],[1475,525]),
     ];
     my $result = Slic3r::Geometry::Clipper::intersection_pl($subject, $clip);
-    ###use XXX; YYY $subject->[0]->wkt, [map $_->wkt, @$clip], $result->[0]->wkt;
     is scalar(@$result), 1, 'intersection_pl - result is not empty';
     is scalar(@{$result->[0]}), 5, 'intersection_pl - result is not empty';
 }
