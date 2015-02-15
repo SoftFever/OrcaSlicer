@@ -6,7 +6,7 @@ use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
-    offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
+    offset offset_ex offset2 offset2_ex intersection_ppl CLIPPER_OFFSET_SCALE JT_MITER);
 use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
@@ -369,51 +369,48 @@ sub make_perimeters {
         my $region = $self->print->regions->[$region_id];
         my $region_perimeters = $region->config->perimeters;
         
-        if ($region->config->extra_perimeters && $region_perimeters > 0 && $region->config->fill_density > 0) {
-            for my $i (0 .. ($self->layer_count - 2)) {
-                my $layerm          = $self->get_layer($i)->regions->[$region_id];
-                my $upper_layerm    = $self->get_layer($i+1)->regions->[$region_id];
-                my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
-                my $ext_perimeter_spacing   = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_spacing;
-                
-                my $overlap = $perimeter_spacing;  # one perimeter
-                
-                my $diff = diff(
-                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($ext_perimeter_spacing + ($region_perimeters-1) * $perimeter_spacing)),
-                    offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap),
-                );
-                next if !@$diff;
-                # if we need more perimeters, $diff should contain a narrow region that we can collapse
-                
-                # we use a higher miterLimit here to handle areas with acute angles
-                # in those cases, the default miterLimit would cut the corner and we'd
-                # get a triangle that would trigger a non-needed extra perimeter
-                $diff = diff(
-                    $diff,
-                    offset2($diff, -$perimeter_spacing, +$perimeter_spacing, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
-                    1,
-                );
-                next if !@$diff;
-                # diff contains the collapsed area
-                
-                foreach my $slice (@{$layerm->slices}) {
-                    my $extra_perimeters = 0;
-                    CYCLE: while (1) {
-                        # compute polygons representing the thickness of the hypotetical new internal perimeter
-                        # of our slice
-                        $extra_perimeters++;
-                        my $hypothetical_perimeter = diff(
-                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($region_perimeters + $extra_perimeters-1))),
-                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($region_perimeters + $extra_perimeters))),
-                        );
-                        last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
-                        
-                        # only add the perimeter if there's an intersection with the collapsed area
-                        last CYCLE if !@{ intersection($diff, $hypothetical_perimeter) };
-                        Slic3r::debugf "  adding one more perimeter at layer %d\n", $layerm->id;
-                        $slice->extra_perimeters($extra_perimeters);
-                    }
+        next if !$region->config->extra_perimeters;
+        next if $region_perimeters == 0;
+        next if $region->config->fill_density == 0;
+        
+        for my $i (0 .. ($self->layer_count - 2)) {
+            my $layerm                  = $self->get_layer($i)->get_region($region_id);
+            my $upper_layerm            = $self->get_layer($i+1)->get_region($region_id);
+            
+            my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
+            my $ext_perimeter_flow      = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
+            my $ext_perimeter_width     = $ext_perimeter_flow->scaled_width;
+            my $ext_perimeter_spacing   = $ext_perimeter_flow->scaled_spacing;
+            
+            foreach my $slice (@{$layerm->slices}) {
+                while (1) {
+                    # compute the total thickness of perimeters
+                    my $perimeters_thickness = $ext_perimeter_width/2 + $ext_perimeter_spacing/2
+                        + ($region_perimeters-1 + $slice->extra_perimeters) * $perimeter_spacing;
+                    
+                    # define a critical area where we don't want the upper slice to fall into
+                    # (it should either lay over our perimeters or outside this area)
+                    my $critical_area_depth = $perimeter_spacing*1.5;
+                    my $critical_area = diff(
+                        offset($slice->expolygon->arrayref, -$perimeters_thickness),
+                        offset($slice->expolygon->arrayref, -($perimeters_thickness + $critical_area_depth)),
+                    );
+                    
+                    # check whether a portion of the upper slices falls inside the critical area
+                    my $intersection = intersection_ppl(
+                        [ map @{$_->expolygon}, @{$upper_layerm->slices} ],
+                        $critical_area,
+                    );
+                    
+                    # ignore any intersection line that is shorter than three times the critical area depth
+                    last if !defined first { $_->length > $critical_area_depth * 3 } @$intersection;
+                    
+                    $slice->extra_perimeters($slice->extra_perimeters + 1);
+                    
                 }
+                Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
+                    $slice->extra_perimeters, $layerm->id
+                    if $slice->extra_perimeters > 0;
             }
         }
     }
