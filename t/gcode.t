@@ -1,4 +1,4 @@
-use Test::More tests => 20;
+use Test::More tests => 21;
 use strict;
 use warnings;
 
@@ -182,6 +182,14 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config, scale_xyz => [1,1, 1/(20/$config->layer_height) ]);
         $test->($print, 'one layer object');
     }
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('start_gcode', 'START:[input_filename]');
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $gcode = Slic3r::Test::gcode($print);
+    like $gcode, qr/START:20mm_cube/, '[input_filename] is also available in custom G-code';
 }
 
 __END__

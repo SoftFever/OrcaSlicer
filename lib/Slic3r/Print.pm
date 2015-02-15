@@ -428,10 +428,10 @@ sub expanded_output_filepath {
     
     my $filename = my $filename_base = basename($input_file);
     $filename_base =~ s/\.[^.]+$//;  # without suffix
-    my $extra = {
-        input_filename      => $filename,
-        input_filename_base => $filename_base,
-    };
+    
+    # set filename in placeholder parser so that it's available also in custom G-code
+    $self->placeholder_parser->set(input_filename => $filename);
+    $self->placeholder_parser->set(input_filename_base => $filename_base);
     
     if ($path && -d $path) {
         # if output path is an existing directory, we take that and append
@@ -447,7 +447,7 @@ sub expanded_output_filepath {
     
     # make sure we use an up-to-date timestamp
     $self->placeholder_parser->update_timestamp;
-    return $self->placeholder_parser->process($path, $extra);
+    return $self->placeholder_parser->process($path);
 }
 
 # This method assigns extruders to the volumes having a material
