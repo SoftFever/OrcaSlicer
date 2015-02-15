@@ -16,6 +16,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               enable_cutting
                               enable_picking
                               enable_moving
+                              on_viewport_changed
                               on_hover
                               on_select
                               on_double_click
@@ -108,6 +109,7 @@ sub new {
             -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
             0,
         ) if 0;
+        $self->on_viewport_changed->() if $self->on_viewport_changed;
         $self->_dirty(1);
         $self->Refresh;
     });
@@ -207,6 +209,7 @@ sub mouse_event {
                     );
                     $self->_quat(mulquats($self->_quat, \@quat));
                 }
+                $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
             }
             $self->_drag_start_pos($pos);
@@ -220,6 +223,7 @@ sub mouse_event {
                 $self->_camera_target->translate(
                     @{$orig->vector_to($cur_pos)->negative},
                 );
+                $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
             }
             $self->_drag_start_xy($pos);
@@ -256,6 +260,17 @@ sub reset_objects {
     $self->_dirty(1);
 }
 
+sub set_viewport_from_scene {
+    my ($self, $scene) = @_;
+    
+    $self->_sphi($scene->_sphi);
+    $self->_stheta($scene->_stheta);
+    $self->_camera_target($scene->_camera_target);
+    $self->_zoom($scene->_zoom);
+    $self->_quat($scene->_quat);
+    $self->_dirty(1);
+}
+
 sub zoom_to_bounding_box {
     my ($self, $bb) = @_;
     
@@ -267,6 +282,8 @@ sub zoom_to_bounding_box {
     
     # center view around bounding box center
     $self->_camera_target($bb->center);
+    
+    $self->on_viewport_changed->() if $self->on_viewport_changed;
 }
 
 sub zoom_to_bed {

@@ -96,6 +96,9 @@ sub new {
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->on_viewport_changed(sub {
+            $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
+        });
     }
     
     # Initialize 2D preview canvas
@@ -109,6 +112,9 @@ sub new {
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print});
+        $self->{preview3D}->canvas->on_viewport_changed(sub {
+            $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
+        });
         $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview');
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }
