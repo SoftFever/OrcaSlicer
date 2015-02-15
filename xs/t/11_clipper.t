@@ -179,7 +179,7 @@ if (0) {  # Clipper does not preserve polyline orientation
 }
 
 {
-    # Disabled until Clipper bug #122 is fixed
+    # Clipper bug #122
     my $subject = [
         Slic3r::Polyline->new([1975,1975],[25,1975],[25,25],[1975,25],[1975,1975]),
     ];
@@ -190,6 +190,19 @@ if (0) {  # Clipper does not preserve polyline orientation
     my $result = Slic3r::Geometry::Clipper::intersection_pl($subject, $clip);
     is scalar(@$result), 1, 'intersection_pl - result is not empty';
     is scalar(@{$result->[0]}), 5, 'intersection_pl - result is not empty';
+}
+
+if (0) {
+    # Disabled until Clipper bug ### is fixed
+    my $subject = Slic3r::Polyline->new(
+        [200000,19799999],[200000,200000],[24304692,200000],[15102879,17506106],[13883200,19799999],[200000,19799999],
+    );
+    my $clip = [
+        Slic3r::Polygon->new([15257205,18493894],[14350057,20200000],[-200000,20200000],[-200000,-200000],[25196917,-200000]),
+    ];
+    my $result = Slic3r::Geometry::Clipper::intersection_pl([$subject], $clip);
+    is scalar(@$result), 1, 'intersection_pl - result is not empty';
+    is $result->[0]->length, $subject->length, 'intersection_pl - result has same length as subject polyline';
 }
 
 __END__
