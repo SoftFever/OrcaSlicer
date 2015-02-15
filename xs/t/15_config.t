@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 108;
+use Test::More tests => 110;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     $config->set('layer_height', 0.3);
@@ -51,6 +51,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->serialize('gcode_flavor'), 'teacup', 'serialize enum';
     $config->set_deserialize('gcode_flavor', 'mach3');
     is $config->get('gcode_flavor'), 'mach3', 'deserialize enum (gcode_flavor)';
+    $config->set_deserialize('gcode_flavor', 'machinekit');
+    is $config->get('gcode_flavor'), 'machinekit', 'deserialize enum (gcode_flavor)';
     
     $config->set_deserialize('fill_pattern', 'line');
     is $config->get('fill_pattern'), 'line', 'deserialize enum (fill_pattern)';

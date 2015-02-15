@@ -6,7 +6,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor {
-    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
+    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfMachinekit, gcfNoExtrusion,
 };
 
 enum InfillPattern {
@@ -29,6 +29,7 @@ template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_v
     keys_map["makerware"]       = gcfMakerWare;
     keys_map["sailfish"]        = gcfSailfish;
     keys_map["mach3"]           = gcfMach3;
+    keys_map["machinekit"]      = gcfMachinekit;
     keys_map["no-extrusion"]    = gcfNoExtrusion;
     return keys_map;
 }
@@ -410,7 +411,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     
     std::string get_extrusion_axis() const
     {
-        if (this->gcode_flavor.value == gcfMach3) {
+        if ((this->gcode_flavor.value == gcfMach3) || (this->gcode_flavor.value == gcfMachinekit)) {
             return "A";
         } else if (this->gcode_flavor.value == gcfNoExtrusion) {
             return "";
