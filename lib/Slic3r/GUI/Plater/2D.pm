@@ -276,7 +276,7 @@ sub update_bed_size {
             push @polylines, Slic3r::Polyline->new([$bb->x_min, $y], [$bb->x_max, $y]);
         }
         @polylines = @{intersection_pl(\@polylines, [$polygon])};
-        $self->{grid} = [ map $self->scaled_points_to_pixel(\@$_, 1), @polylines ];
+        $self->{grid} = [ map $self->scaled_points_to_pixel([ @$_[0,-1] ], 1), @polylines ];
     }
 }
 

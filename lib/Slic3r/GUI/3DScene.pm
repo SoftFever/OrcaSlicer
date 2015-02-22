@@ -364,25 +364,24 @@ sub set_bed_shape {
     }
     
     {
-        my @lines = ();
+        my @polylines = ();
         for (my $x = $bed_bb->x_min; $x <= $bed_bb->x_max; $x += scale 10) {
-            push @lines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
+            push @polylines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
         }
         for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
-            push @lines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
+            push @polylines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
         }
         # clip with a slightly grown expolygon because our lines lay on the contours and
         # may get erroneously clipped
-        @lines = @{intersection_pl(\@lines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
+        my @lines = map Slic3r::Line->new(@$_[0,-1]),
+            @{intersection_pl(\@polylines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
         
         # append bed contours
-        foreach my $line (map @{$_->lines}, @$expolygon) {
-            push @lines, $line->as_polyline;
-        }
+        push @lines, map @{$_->lines}, @$expolygon;
         
         my @points = ();
-        foreach my $polyline (@lines) {
-            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$polyline;  #))
+        foreach my $line (@lines) {
+            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$line;  #))
         }
         $self->bed_grid_lines(OpenGL::Array->new_list(GL_FLOAT, @points));
     }
