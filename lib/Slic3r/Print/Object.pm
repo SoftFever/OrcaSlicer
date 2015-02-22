@@ -544,7 +544,7 @@ sub _support_material {
     my ($self) = @_;
     
     my $first_layer_flow = Slic3r::Flow->new_from_width(
-        width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
+        width               => ($self->print->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
         role                => FLOW_ROLE_SUPPORT_MATERIAL,
         nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ]
                                 // $self->print->config->nozzle_diameter->[0],
