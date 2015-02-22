@@ -307,16 +307,6 @@ sub _repaint_canvas {
         @polylines = @{intersection_pl(\@polylines, [$bed_polygon])};
         
         $dc->SetPen(Wx::Pen->new(Wx::Colour->new(230,230,230), 1, wxSOLID));
-        use Slic3r::SVG;
-        Slic3r::SVG::output(
-            "grid.svg",
-            no_arrows => 1,
-            polylines => \@polylines,
-        );
-        use XXX; YYY [
-            [map $_->dump_perl, @orig],
-            $bed_polygon->dump_perl,
-        ];
         $dc->DrawLine(map @{$to_pixel->([map unscale($_), @$_])}, @$_) for @polylines;
     }
     
