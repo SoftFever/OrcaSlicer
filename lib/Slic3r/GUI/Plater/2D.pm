@@ -77,7 +77,7 @@ sub repaint {
     
     # draw grid
     $dc->SetPen($self->{grid_pen});
-    $dc->DrawLines([map $_, @$_]) for @{$self->{grid}};
+    $dc->DrawLine(map @$_, @$_) for @{$self->{grid}};
     
     # draw bed
     {
