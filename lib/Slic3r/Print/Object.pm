@@ -792,7 +792,11 @@ sub clip_fill_surfaces {
                     $new_internal,
                     1,
                 )};
-        
+            
+            # If there are voids it means that our internal infill is not adjacent to
+            # perimeters. In this case it would be nice to add a loop around infill to
+            # make it more robust and nicer. TODO.
+            
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append($_) for (@new, @other);
         }

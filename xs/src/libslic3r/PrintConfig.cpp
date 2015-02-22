@@ -428,7 +428,7 @@ PrintConfigDef::build_def() {
     Options["infill_only_where_needed"].type = coBool;
     Options["infill_only_where_needed"].label = "Only infill where needed";
     Options["infill_only_where_needed"].category = "Infill";
-    Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material).";
+    Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material). If enabled, slows down the G-code generation due to the multiple checks involved.";
     Options["infill_only_where_needed"].cli = "infill-only-where-needed!";
 
     Options["infill_overlap"].type = coFloatOrPercent;
