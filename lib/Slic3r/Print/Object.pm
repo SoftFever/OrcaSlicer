@@ -711,60 +711,90 @@ sub clip_fill_surfaces {
     # We only want infill under ceilings; this is almost like an
     # internal support material.
     
-    my $additional_margin = scale 3*0;
-    
-    my $overhangs = [];  # arrayref of polygons
-    for my $layer_id (reverse 0..($self->layer_count - 1)) {
-        my $layer = $self->get_layer($layer_id);
-        my @layer_internal = ();  # arrayref of Surface objects
-        my @new_internal = ();    # arrayref of Surface objects
+    # proceed top-down skipping bottom layer
+    my $upper_internal = [];
+    for my $layer_id (reverse 1..($self->layer_count - 1)) {
+        my $layer       = $self->get_layer($layer_id);
+        my $lower_layer = $self->get_layer($layer_id-1);
         
-        # clip this layer's internal surfaces to @overhangs
-        foreach my $layerm (@{$layer->regions}) {
+        # detect things that we need to support
+        my $overhangs = [];  # Polygons
+        
+        # we need to support any solid surface
+        push @$overhangs, map $_->p,
+            grep $_->is_solid, map @{$_->fill_surfaces}, @{$layer->regions};
+        
+        # we also need to support perimeters when there's at least one full
+        # unsupported loop
+        {
+            # get perimeters area as the difference between slices and fill_surfaces
+            my $perimeters = diff(
+                [ map @$_, @{$layer->slices} ],
+                [ map $_->p, map @{$_->fill_surfaces}, @{$layer->regions} ],
+            );
+            
+            # only consider the area that is not supported by lower perimeters
+            $perimeters = intersection(
+                $perimeters,
+                [ map $_->p, map @{$_->fill_surfaces}, @{$lower_layer->regions} ],
+                1,
+            );
+            
+            # only consider perimeter areas that are at least one extrusion width thick
+            my $pw = min(map $_->flow(FLOW_ROLE_PERIMETER)->scaled_width, @{$layer->regions});
+            $perimeters = offset2($perimeters, -$pw, +$pw);
+            
+            # append such thick perimeters to the areas that need support
+            push @$overhangs, @$perimeters;
+        }
+        
+        # find new internal infill
+        $upper_internal = my $new_internal = intersection(
+            [
+                @$overhangs,
+                @$upper_internal,
+            ],
+            [
+                # our current internal fill boundaries
+                map $_->p,
+                    grep $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALVOID,
+                        map @{$_->fill_surfaces}, @{$lower_layer->regions}
+            ],
+        );
+        
+        # apply new internal infill to regions
+        foreach my $layerm (@{$lower_layer->regions}) {
             my (@internal, @other) = ();
             foreach my $surface (map $_->clone, @{$layerm->fill_surfaces}) {
-                if ($surface->surface_type == S_TYPE_INTERNAL) {
+                if ($surface->surface_type == S_TYPE_INTERNAL || $surface->surface_type == S_TYPE_INTERNALVOID) {
                     push @internal, $surface;
                 } else {
                     push @other, $surface;
                 }
             }
             
-            # keep all the original internal surfaces to detect overhangs in this layer
-            push @layer_internal, @internal;
-            
-            push @new_internal, my @new = map Slic3r::Surface->new(
+            my @new = map Slic3r::Surface->new(
                 expolygon       => $_,
                 surface_type    => S_TYPE_INTERNAL,
             ),
                 @{intersection_ex(
                     [ map $_->p, @internal ],
-                    $overhangs,
+                    $new_internal,
+                    1,
                 )};
             
-            push @new, map Slic3r::Surface->new(
+            push @other, map Slic3r::Surface->new(
                 expolygon       => $_,
                 surface_type    => S_TYPE_INTERNALVOID,
             ),
                 @{diff_ex(
                     [ map $_->p, @internal ],
-                    $overhangs,
+                    $new_internal,
+                    1,
                 )};
-            
+        
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append($_) for (@new, @other);
-        }
-        
-        # get this layer's overhangs defined as the full slice minus the internal infill
-        # (thus we also consider perimeters)
-        if ($layer_id > 0) {
-            my $solid = diff(
-                [ map $_->p, map @{$_->fill_surfaces}, @{$layer->regions} ],
-                [ map $_->p, @layer_internal ],
-            );
-            $overhangs = offset($solid, +$additional_margin);
-            
-            push @$overhangs, map $_->p, @new_internal;  # propagate upper overhangs
         }
     }
 }
