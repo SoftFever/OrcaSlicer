@@ -299,14 +299,24 @@ sub _repaint_canvas {
         my $step = 10;  # 1cm grid
         my @polylines = ();
         for (my $x = $bb->x_min - ($bb->x_min % $step) + $step; $x < $bb->x_max; $x += $step) {
-            push @polylines, Slic3r::Polyline->new_scale([$x, $bb->y_min], [$x, $bb->y_max]);
+            push @polylines, Slic3r::Polyline->new_scale([$x, $bb->y_min], [$x, $bb->y_max]);last;
         }
         for (my $y = $bb->y_min - ($bb->y_min % $step) + $step; $y < $bb->y_max; $y += $step) {
             push @polylines, Slic3r::Polyline->new_scale([$bb->x_min, $y], [$bb->x_max, $y]);
-        }
+        }my @orig = @polylines;
         @polylines = @{intersection_pl(\@polylines, [$bed_polygon])};
         
         $dc->SetPen(Wx::Pen->new(Wx::Colour->new(230,230,230), 1, wxSOLID));
+        use Slic3r::SVG;
+        Slic3r::SVG::output(
+            "grid.svg",
+            no_arrows => 1,
+            polylines => \@polylines,
+        );
+        use XXX; YYY [
+            [map $_->dump_perl, @orig],
+            $bed_polygon->dump_perl,
+        ];
         $dc->DrawLine(map @{$to_pixel->([map unscale($_), @$_])}, @$_) for @polylines;
     }
     
