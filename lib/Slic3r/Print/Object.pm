@@ -398,15 +398,26 @@ sub make_perimeters {
                     
                     # check whether a portion of the upper slices falls inside the critical area
                     my $intersection = intersection_ppl(
-                        [ map @{$_->expolygon}, @{$upper_layerm->slices} ],
+                        [ map $_->p, @{$upper_layerm->slices} ],
                         $critical_area,
                     );
                     
-                    # ignore any intersection line that is shorter than three times the critical area depth
-                    last if !defined first { $_->length > $critical_area_depth * 3 } @$intersection;
+                    # only add an additional loop if at least 30% of the slice loop would benefit from it
+                    my $total_loop_length = sum(map $_->length, map $_->p, @{$upper_layerm->slices}) // 0;
+                    my $total_intersection_length = sum(map $_->length, @$intersection) // 0;
+                    last unless $total_intersection_length > $total_loop_length*0.3;
+                    
+                    if (0) {
+                        require "Slic3r/SVG.pm";
+                        Slic3r::SVG::output(
+                            "extra.svg",
+                            no_arrows   => 1,
+                            expolygons  => union_ex($critical_area),
+                            polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
+                        );
+                    }
                     
                     $slice->extra_perimeters($slice->extra_perimeters + 1);
-                    
                 }
                 Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
                     $slice->extra_perimeters, $layerm->id
