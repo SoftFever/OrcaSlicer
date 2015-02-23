@@ -311,12 +311,22 @@ sub process {
         # we offset by half the perimeter spacing (to get to the actual infill boundary)
         # and then we offset back and forth by half the infill spacing to only consider the
         # non-collapsing regions
+        my $inset = 0;
+        if ($loop_number == 0) {
+            # one loop
+            $inset += $ext_pspacing/2;
+        } elsif ($loop_number > 0) {
+            # two or more loops
+            $inset += $pspacing/2;
+        }
+        $inset -= $self->config->get_abs_value_over('infill_overlap', $pwidth);
+        
         my $min_perimeter_infill_spacing = $ispacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
         $self->fill_surfaces->append($_)
             for map Slic3r::Surface->new(expolygon => $_, surface_type => S_TYPE_INTERNAL),  # use a bogus surface type
                 @{offset2_ex(
                     [ map @{$_->simplify_p(&Slic3r::SCALED_RESOLUTION)}, @{union_ex(\@last)} ],
-                    -($pspacing/2 - $self->config->get_abs_value_over('infill_overlap', $pwidth) + $min_perimeter_infill_spacing/2),
+                    -$inset -$min_perimeter_infill_spacing/2,
                     +$min_perimeter_infill_spacing/2,
                 )};
     }
