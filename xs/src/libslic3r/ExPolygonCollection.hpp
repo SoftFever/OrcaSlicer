@@ -30,6 +30,7 @@ class ExPolygonCollection
     void simplify(double tolerance);
     Polygon convex_hull() const;
     Lines lines() const;
+    Polygons contours() const;
 };
 
 }

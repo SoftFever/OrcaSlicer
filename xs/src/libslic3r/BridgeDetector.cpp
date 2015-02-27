@@ -37,14 +37,10 @@ BridgeDetector::BridgeDetector(const ExPolygon &_expolygon, const ExPolygonColle
     Polygons grown;
     offset((Polygons)this->expolygon, &grown, this->extrusion_width);
     
-    // detect what edges lie on lower slices
-    for (ExPolygons::const_iterator lower = this->lower_slices.expolygons.begin();
-        lower != this->lower_slices.expolygons.end();
-        ++lower) {
-        /*  turn bridge contour and holes into polylines and then clip them
-            with each lower slice's contour */
-        intersection(grown, lower->contour, &this->_edges);
-    }
+    // detect what edges lie on lower slices by turning bridge contour and holes
+    // into polylines and then clipping them with each lower slice's contour
+    intersection(grown, this->lower_slices.contours(), &this->_edges);
+    
     #ifdef SLIC3R_DEBUG
     printf("  bridge has %zu support(s)\n", this->_edges.size());
     #endif
