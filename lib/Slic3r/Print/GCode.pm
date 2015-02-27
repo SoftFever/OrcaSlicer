@@ -331,7 +331,8 @@ sub process_layer {
     
     # extrude skirt
     if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
-        && !$self->_skirt_done->{$layer->print_z}) {
+        && !$self->_skirt_done->{$layer->print_z}
+        && !$layer->isa('Slic3r::Layer::Support')) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
         $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
