@@ -588,9 +588,10 @@ sub Resize {
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    my $depth = 10 * max(@{ $self->max_bounding_box->size });
     glOrtho(
         -$x/2, $x/2, -$y/2, $y/2,
-        -200, 10 * max(@{ $self->max_bounding_box->size }),
+        -$depth, 2*$depth,
     );
  
     glMatrixMode(GL_MODELVIEW);
