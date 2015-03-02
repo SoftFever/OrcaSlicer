@@ -89,7 +89,8 @@ sub export_gcode {
         $self->config->setenv;
         for my $script (@{$self->config->post_process}) {
             Slic3r::debugf "  '%s' '%s'\n", $script, $output_file;
-            if (!-x $script) {
+            # -x doesn't return true on Windows except for .exe files
+            if (($^O eq 'MSWin32') ? !(-e $script) : !(-x $script)) {
                 die "The configured post-processing script is not executable: check permissions. ($script)\n";
             }
             system($script, $output_file);
