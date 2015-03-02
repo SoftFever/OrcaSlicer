@@ -217,6 +217,7 @@ sub export {
                 }
                 $self->flush_filters;
                 $finished_objects++;
+                $self->_second_layer_things_done(0);
             }
         }
     } else {
