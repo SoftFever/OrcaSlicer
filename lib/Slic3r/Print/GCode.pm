@@ -195,12 +195,14 @@ sub export {
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
+                    $gcodegen->enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         Slic3r::Point->new(0,0),
                         undef,
                         'move to origin position for next object',
                     );
+                    $gcodegen->enable_cooling_markers(1);
                 }
                 
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};

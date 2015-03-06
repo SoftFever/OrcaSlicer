@@ -584,7 +584,7 @@ sub wipe {
             $gcode .= $gcodegen->writer->extrude_to_xy(
                 $gcodegen->point_to_gcode($line->b),
                 -$dE,
-                'retract' . ($gcodegen->enable_cooling_markers ? ';_WIPE' : ''),
+                'wipe and retract' . ($gcodegen->enable_cooling_markers ? ';_WIPE' : ''),
             );
             $retracted += $dE;
         }
