@@ -1011,6 +1011,40 @@ PrintConfigDef::build_def() {
 
 t_optiondef_map PrintConfigDef::def = PrintConfigDef::build_def();
 
+void
+DynamicPrintConfig::normalize() {
+    if (this->has("extruder")) {
+        int extruder = this->option("extruder")->getInt();
+        this->erase("extruder");
+        if (extruder != 0) {
+            if (!this->has("infill_extruder"))
+                this->option("infill_extruder", true)->setInt(extruder);
+            if (!this->has("perimeter_extruder"))
+                this->option("perimeter_extruder", true)->setInt(extruder);
+            if (!this->has("support_material_extruder"))
+                this->option("support_material_extruder", true)->setInt(extruder);
+            if (!this->has("support_material_interface_extruder"))
+                this->option("support_material_interface_extruder", true)->setInt(extruder);
+        }
+    }
+    
+    if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
+        this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
+    
+    if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
+        {
+            // this should be actually done only on the spiral layers instead of all
+            ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
+            opt->values.assign(opt->values.size(), false);  // set all values to false
+        }
+        {
+            this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
+            this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
+            this->opt<ConfigOptionPercent>("fill_density", true)->value  = 0;
+        }
+    }
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(DynamicPrintConfig, "Config");
 REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");

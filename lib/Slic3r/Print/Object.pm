@@ -344,7 +344,6 @@ sub make_perimeters {
     my $self = shift;
     
     # prerequisites
-    $self->print->init_extruders;
     $self->slice;
     
     return if $self->step_done(STEP_PERIMETERS);
@@ -532,7 +531,6 @@ sub generate_support_material {
     my $self = shift;
     
     # prerequisites
-    $self->print->init_extruders;
     $self->slice;
     
     return if $self->step_done(STEP_SUPPORTMATERIAL);

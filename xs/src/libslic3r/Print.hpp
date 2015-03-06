@@ -22,7 +22,7 @@ class ModelObject;
 
 
 enum PrintStep {
-    psInitExtruders, psSkirt, psBrim,
+    psSkirt, psBrim,
 };
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
@@ -134,6 +134,7 @@ class PrintObject
     bool invalidate_step(PrintObjectStep step);
     bool invalidate_all_steps();
     
+    bool has_support_material() const;
     void bridge_over_infill();
     
     private:
@@ -188,7 +189,8 @@ class Print
     
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig config);
-    void init_extruders();
+    bool has_infinite_skirt() const;
+    bool has_skirt() const;
     void validate() const;
     BoundingBox bounding_box() const;
     BoundingBox total_bounding_box() const;

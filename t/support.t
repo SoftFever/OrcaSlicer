@@ -20,7 +20,6 @@ use Slic3r::Test;
     
     my $test = sub {
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-        $print->print->init_extruders;
         my $flow = $print->print->objects->[0]->support_material_flow;
         my $support = Slic3r::Print::SupportMaterial->new(
             object_config       => $print->print->objects->[0]->config,

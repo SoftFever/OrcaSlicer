@@ -102,9 +102,6 @@ sub export_svg {
     my $self = shift;
     my %params = @_;
     
-    # is this needed?
-    $self->init_extruders;
-    
     $_->slice for @{$self->objects};
     
     my $fh = $params{output_fh};
@@ -209,8 +206,7 @@ sub make_skirt {
     # checking whether we need to generate them
     $self->skirt->clear;
     
-    if (($self->config->skirts == 0 || $self->config->skirt_height == 0)
-        && (!$self->config->ooze_prevention || @{$self->extruders} == 1)) {
+    if (!$self->has_skirt) {
         $self->set_step_done(STEP_SKIRT);
         return;
     }
@@ -220,7 +216,7 @@ sub make_skirt {
     # The skirt_height option from config is expressed in layers, but our
     # object might have different layer heights, so we need to find the print_z
     # of the highest layer involved.
-    # Note that unless skirt_height == -1 (which means it's printed on all layers)
+    # Note that unless has_infinite_skirt() == true
     # the actual skirt might not reach this $skirt_height_z value since the print
     # order of objects on each layer is not guaranteed and will not generally
     # include the thickest object first. It is just guaranteed that a skirt is
@@ -228,10 +224,9 @@ sub make_skirt {
     # $skirt_height_z in this case is the highest possible skirt height for safety.
     my $skirt_height_z = -1;
     foreach my $object (@{$self->objects}) {
-        my $skirt_height = ($self->config->skirt_height == -1 || $self->config->ooze_prevention)
+        my $skirt_height = $self->has_infinite_skirt
             ? scalar(@{$object->layers})
             : min($self->config->skirt_height, scalar(@{$object->layers}));
-        
         my $highest_layer = $object->get_layer($skirt_height - 1);
         $skirt_height_z = max($skirt_height_z, $highest_layer->print_z);
     }
@@ -279,10 +274,13 @@ sub make_skirt {
     my @extruders_e_per_mm = ();
     my $extruder_idx = 0;
     
+    my $skirts = $self->config->skirts;
+    $skirts ||= 1 if $self->has_infinite_skirt;
+    
     # draw outlines from outside to inside
     # loop while we have less skirts than required or any extruder hasn't reached the min length if any
     my $distance = scale max($self->config->skirt_distance, $self->config->brim_width);
-    for (my $i = $self->config->skirts; $i > 0; $i--) {
+    for (my $i = $skirts; $i > 0; $i--) {
         $distance += scale $spacing;
         my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
         $self->skirt->append(Slic3r::ExtrusionLoop->new_from_paths(

@@ -333,6 +333,14 @@ PrintObject::invalidate_all_steps()
     return invalidated;
 }
 
+bool
+PrintObject::has_support_material() const
+{
+    return this->config.support_material
+        || this->config.raft_layers > 0
+        || this->config.support_material_enforce_layers > 0;
+}
+
 void
 PrintObject::bridge_over_infill()
 {

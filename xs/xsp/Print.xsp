@@ -12,7 +12,6 @@
 IV
 _constant()
   ALIAS:
-    STEP_INIT_EXTRUDERS     = psInitExtruders
     STEP_SLICE              = posSlice
     STEP_PERIMETERS         = posPerimeters
     STEP_PREPARE_INFILL     = posPrepareInfill
@@ -177,7 +176,8 @@ _constant()
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig* config)
         %code%{ RETVAL = THIS->apply_config(*config); %};
-    void init_extruders();
+    bool has_infinite_skirt();
+    bool has_skirt();
     void validate()
         %code%{
             try {

@@ -124,7 +124,6 @@ if (0) {
                 
         # copy of Print::export_gcode() up to the point 
         # after fill surfaces are combined
-        $self->init_extruders;
         $_->slice for @{$self->objects};
         $_->make_perimeters for @{$self->objects};
         $_->detect_surfaces_type for @{$self->objects};

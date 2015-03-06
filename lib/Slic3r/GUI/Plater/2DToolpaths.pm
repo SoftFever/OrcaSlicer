@@ -291,7 +291,7 @@ sub Render {
             $brim_drawn = 1;
         }
         if ($self->print->step_done(STEP_SKIRT)
-            && ($self->print->config->skirt_height == -1 || $self->print->config->skirt_height > $layer->id)
+            && ($self->print->has_infinite_skirt() || $self->print->config->skirt_height > $layer->id)
             && !$skirt_drawn) {
             $self->color([0, 0, 0]);
             $self->_draw(undef, $print_z, $_) for @{$self->print->skirt};

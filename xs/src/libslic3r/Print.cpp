@@ -166,13 +166,14 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
         if (*opt_key == "skirts"
             || *opt_key == "skirt_height"
             || *opt_key == "skirt_distance"
-            || *opt_key == "min_skirt_length") {
+            || *opt_key == "min_skirt_length"
+            || *opt_key == "ooze_prevention") {
             steps.insert(psSkirt);
         } else if (*opt_key == "brim_width") {
             steps.insert(psBrim);
             steps.insert(psSkirt);
         } else if (*opt_key == "nozzle_diameter") {
-            steps.insert(psInitExtruders);
+            osteps.insert(posSlice);
         } else if (*opt_key == "avoid_crossing_perimeters"
             || *opt_key == "bed_shape"
             || *opt_key == "bed_temperature"
@@ -266,11 +267,6 @@ Print::invalidate_step(PrintStep step)
     // propagate to dependent steps
     if (step == psSkirt) {
         this->invalidate_step(psBrim);
-    } else if (step == psInitExtruders) {
-        FOREACH_OBJECT(this, object) {
-            (*object)->invalidate_step(posPerimeters);
-            (*object)->invalidate_step(posSupportMaterial);
-        }
     }
     
     return invalidated;
@@ -314,8 +310,10 @@ Print::extruders() const
         extruders.insert((*region)->config.solid_infill_extruder - 1);
     }
     FOREACH_OBJECT(this, object) {
-        extruders.insert((*object)->config.support_material_extruder - 1);
-        extruders.insert((*object)->config.support_material_interface_extruder - 1);
+        if ((*object)->has_support_material()) {
+            extruders.insert((*object)->config.support_material_extruder - 1);
+            extruders.insert((*object)->config.support_material_interface_extruder - 1);
+        }
     }
     
     return extruders;
@@ -534,20 +532,16 @@ Print::apply_config(DynamicPrintConfig config)
     return invalidated;
 }
 
-void
-Print::init_extruders()
+bool Print::has_infinite_skirt() const
 {
-    if (this->state.is_done(psInitExtruders)) return;
-    this->state.set_done(psInitExtruders);
-    
-    // enforce tall skirt if using ooze_prevention
-    // FIXME: this is not idempotent (i.e. switching ooze_prevention off will not revert skirt settings)
-    if (this->config.ooze_prevention && this->extruders().size() > 1) {
-        this->config.skirt_height.value = -1;
-        if (this->config.skirts == 0) this->config.skirts.value = 1;
-    }
-    
-    this->state.set_done(psInitExtruders);
+    return (this->config.skirt_height == -1 && this->config.skirts > 0)
+        || (this->config.ooze_prevention && this->extruders().size() > 1);
+}
+
+bool Print::has_skirt() const
+{
+    return (this->config.skirt_height > 0 && this->config.skirts > 0)
+        || this->has_infinite_skirt();
 }
 
 void
@@ -682,13 +676,15 @@ Print::total_bounding_box() const
         Flow brim_flow = this->brim_flow();
         extra = std::max(extra, this->config.brim_width.value + brim_flow.width/2);
     }
-    if (this->config.skirts.value > 0) {
+    if (this->has_skirt()) {
+        int skirts = this->config.skirts.value;
+        if (skirts == 0 && this->has_infinite_skirt()) skirts = 1;
         Flow skirt_flow = this->skirt_flow();
         extra = std::max(
             extra,
             this->config.brim_width.value
                 + this->config.skirt_distance.value
-                + this->config.skirts.value * skirt_flow.spacing()
+                + skirts * skirt_flow.spacing()
                 + skirt_flow.width/2
         );
     }
@@ -773,9 +769,7 @@ bool
 Print::has_support_material() const
 {
     FOREACH_OBJECT(this, object) {
-        PrintObjectConfig &config = (*object)->config;
-        if (config.support_material || config.raft_layers > 0 || config.support_material_enforce_layers > 0)
-            return true;
+        if ((*object)->has_support_material()) return true;
     }
     return false;
 }

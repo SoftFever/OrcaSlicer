@@ -298,7 +298,7 @@ sub process_layer {
     if (defined $self->_spiral_vase) {
         $self->_spiral_vase->enable(
             ($layer->id > 0 || $self->print->config->brim_width == 0)
-                && ($layer->id >= $self->print->config->skirt_height && $self->print->config->skirt_height != -1)
+                && ($layer->id >= $self->print->config->skirt_height && !$self->print->has_infinite_skirt)
                 && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions})
                 && !defined(first { @{$_->perimeters} > 1 } @{$layer->regions})
                 && !defined(first { @{$_->fills} > 0 } @{$layer->regions})
@@ -331,7 +331,7 @@ sub process_layer {
     }) . "\n" if $self->print->config->layer_gcode;
     
     # extrude skirt
-    if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->config->skirt_height == -1)
+    if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->has_infinite_skirt)
         && !$self->_skirt_done->{$layer->print_z}
         && !$layer->isa('Slic3r::Layer::Support')) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
@@ -339,7 +339,7 @@ sub process_layer {
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
         $gcode .= $self->_gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
-        if ($layer->id < $self->print->config->skirt_height || $self->print->config->skirt_height == -1) {
+        if ($layer->id < $self->print->config->skirt_height || $self->print->has_infinite_skirt) {
             my $skirt_flow = $self->print->skirt_flow;
             
             # distribute skirt loops across all extruders

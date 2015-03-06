@@ -670,7 +670,7 @@ sub config {
     } else {
         my $extruders_count = $self->{options_tabs}{printer}{extruders_count};
         $config->set("${_}_extruder", min($config->get("${_}_extruder"), $extruders_count))
-            for qw(perimeter infill support_material support_material_interface);
+            for qw(perimeter infill solid_infill support_material support_material_interface);
     }
     
     return $config;
