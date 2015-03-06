@@ -589,6 +589,9 @@ sub wipe {
             $retracted += $dE;
         }
         $gcodegen->writer->extruder->set_retracted($gcodegen->writer->extruder->retracted + $retracted);
+        
+        # prevent wiping again on same path
+        $self->path(undef);
     }
     
     return $gcode;
