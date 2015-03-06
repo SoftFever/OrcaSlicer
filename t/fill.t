@@ -12,7 +12,7 @@ BEGIN {
 use List::Util qw(first sum);
 use Slic3r;
 use Slic3r::Geometry qw(X Y scale unscale convex_hull);
-use Slic3r::Geometry::Clipper qw(union diff_ex offset);
+use Slic3r::Geometry::Clipper qw(union diff diff_ex offset offset2_ex);
 use Slic3r::Surface qw(:types);
 use Slic3r::Test;
 
@@ -248,18 +248,27 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
 {
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('skirts', 0);
-    $config->set('perimeters', 0);
+    $config->set('perimeters', 1);
     $config->set('fill_density', 0);
     $config->set('top_solid_layers', 0);
     $config->set('bottom_solid_layers', 0);
     $config->set('solid_infill_below_area', 20000000);
     $config->set('solid_infill_every_layers', 2);
+    $config->set('perimeter_speed', 99);
+    $config->set('external_perimeter_speed', 99);
+    $config->set('cooling', 0);
+    $config->set('first_layer_speed', '100%');
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my %layers_with_extrusion = ();
     Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
-        $layers_with_extrusion{$self->Z} = 1 if $info->{extruding};
+        
+        if ($cmd eq 'G1' && $info->{dist_XY} > 0 && $info->{extruding}) {
+            if (($args->{F} // $self->F) != $config->perimeter_speed*60) {
+                $layers_with_extrusion{$self->Z} = ($args->{F} // $self->F);
+            }
+        }
     });
     
     ok !%layers_with_extrusion,
@@ -275,6 +284,7 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     $config->set('first_layer_height', 0.2);
     $config->set('nozzle_diameter', [0.35]);
     $config->set('infill_extruder', 2);
+    $config->set('solid_infill_extruder', 2);
     $config->set('infill_extrusion_width', 0.52);
     $config->set('solid_infill_extrusion_width', 0.52);
     $config->set('first_layer_extrusion_width', 0);
@@ -301,7 +311,9 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $grow_d = scale($config->infill_extrusion_width)/2;
     my $layer0_infill = union([ map @{$_->grow($grow_d)}, @{ $infill{0.2} } ]);
     my $layer1_infill = union([ map @{$_->grow($grow_d)}, @{ $infill{0.4} } ]);
-    my $diff = [ grep { $_->area > 2*(($grow_d*2)**2) } @{diff_ex($layer0_infill, $layer1_infill)} ];
+    my $diff = diff($layer0_infill, $layer1_infill);
+    $diff = offset2_ex($diff, -$grow_d, +$grow_d);
+    $diff = [ grep { $_->area > 2*(($grow_d*2)**2) } @$diff ];
     is scalar(@$diff), 0, 'no missing parts in solid shell when fill_density is 0';
 }
 

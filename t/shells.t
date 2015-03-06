@@ -72,6 +72,9 @@ use Slic3r::Test;
     $config->set('bottom_solid_layers', 0);
     ok $test->(), "no shells are applied when both top and bottom are set to zero";
     
+    $config->set('perimeters', 1);
+    $config->set('top_solid_layers', 3);
+    $config->set('bottom_solid_layers', 3);
     $config->set('fill_density', 0);
     ok $test->(), "proper number of shells is applied even when fill density is none";
 }

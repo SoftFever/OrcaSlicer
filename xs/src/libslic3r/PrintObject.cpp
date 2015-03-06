@@ -348,7 +348,7 @@ PrintObject::bridge_over_infill()
         size_t region_id = region - this->_print->regions.begin();
         
         double fill_density = (*region)->config.fill_density.value;
-        if (fill_density == 100 || fill_density == 0) continue;
+        if (fill_density == 100) continue;
         
         FOREACH_LAYER(this, layer_it) {
             if (layer_it == this->layers.begin()) continue;

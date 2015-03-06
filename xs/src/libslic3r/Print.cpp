@@ -305,9 +305,16 @@ Print::extruders() const
     std::set<size_t> extruders;
     
     FOREACH_REGION(this, region) {
-        extruders.insert((*region)->config.perimeter_extruder - 1);
-        extruders.insert((*region)->config.infill_extruder - 1);
-        extruders.insert((*region)->config.solid_infill_extruder - 1);
+        // these checks reflect the same logic used in the GUI for enabling/disabling
+        // extruder selection fields
+        if ((*region)->config.perimeters.value > 0 || this->config.brim_width.value > 0)
+            extruders.insert((*region)->config.perimeter_extruder - 1);
+        
+        if ((*region)->config.fill_density.value > 0)
+            extruders.insert((*region)->config.infill_extruder - 1);
+        
+        if ((*region)->config.top_solid_layers.value > 0 || (*region)->config.bottom_solid_layers.value > 0)
+            extruders.insert((*region)->config.solid_infill_extruder - 1);
     }
     FOREACH_OBJECT(this, object) {
         if ((*object)->has_support_material()) {
@@ -619,17 +626,37 @@ Print::validate() const
     }
     
     {
-        std::vector<double> layer_heights;
+        // find the smallest nozzle diameter
+        std::set<size_t> extruders = this->extruders();
+        if (extruders.empty())
+            throw PrintValidationException("The supplied settings will cause an empty print.");
+        
+        std::set<double> nozzle_diameters;
+        for (std::set<size_t>::iterator it = extruders.begin(); it != extruders.end(); ++it)
+            nozzle_diameters.insert(this->config.nozzle_diameter.get_at(*it));
+        double min_nozzle_diameter = *std::min_element(nozzle_diameters.begin(), nozzle_diameters.end());
+        
         FOREACH_OBJECT(this, i_object) {
             PrintObject* object = *i_object;
-            layer_heights.push_back(object->config.layer_height);
-            layer_heights.push_back(object->config.get_abs_value("first_layer_height"));
-        }
-        double max_layer_height = *std::max_element(layer_heights.begin(), layer_heights.end());
-        
-        std::set<size_t> extruders = this->extruders();
-        for (std::set<size_t>::iterator it = extruders.begin(); it != extruders.end(); ++it) {
-            if (max_layer_height > this->config.nozzle_diameter.get_at(*it))
+            
+            // validate first_layer_height
+            double first_layer_height = object->config.get_abs_value("first_layer_height");
+            double first_layer_min_nozzle_diameter;
+            if (object->config.raft_layers > 0) {
+                // if we have raft layers, only support material extruder is used on first layer
+                size_t first_layer_extruder = object->config.raft_layers == 1
+                    ? object->config.support_material_interface_extruder-1
+                    : object->config.support_material_extruder-1;
+                first_layer_min_nozzle_diameter = this->config.nozzle_diameter.get_at(first_layer_extruder);
+            } else {
+                // if we don't have raft layers, any nozzle diameter is potentially used in first layer
+                first_layer_min_nozzle_diameter = min_nozzle_diameter;
+            }
+            if (first_layer_height > first_layer_min_nozzle_diameter)
+                throw PrintValidationException("First layer height can't be greater than nozzle diameter");
+            
+            // validate layer_height
+            if (object->config.layer_height.value > min_nozzle_diameter)
                 throw PrintValidationException("Layer height can't be greater than nozzle diameter");
         }
     }

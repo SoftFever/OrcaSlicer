@@ -229,19 +229,19 @@ use Slic3r::Test;
     
     my $test = sub {
         my ($print) = @_;
-        my $has_bridges = 0;
+        my %z_with_bridges = ();  # z => 1
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
         
             if ($info->{extruding} && $info->{dist_XY} > 0) {
-                $has_bridges++ if ($args->{F} // $self->F) == $config->bridge_speed*60;
+                $z_with_bridges{$self->Z} = 1 if ($args->{F} // $self->F) == $config->bridge_speed*60;
             }
         });
-        return $has_bridges;
+        return scalar keys %z_with_bridges;
     };
-    ok !$test->(Slic3r::Test::init_print('V', config => $config)),
-        'no overhangs printed with bridge speed';
-    ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])),
+    ok $test->(Slic3r::Test::init_print('V', config => $config)) == 1,
+        'no overhangs printed with bridge speed';  # except for the first internal solid layers above void
+    ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])) > 1,
         'overhangs printed with bridge speed';
 }
 

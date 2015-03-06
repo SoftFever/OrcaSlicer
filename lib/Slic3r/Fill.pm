@@ -49,9 +49,10 @@ sub make_fill {
     
     Slic3r::debugf "Filling layer %d:\n", $layerm->id;
     
-    my $fill_density        = $layerm->config->fill_density;
-    my $infill_flow         = $layerm->flow(FLOW_ROLE_INFILL);
-    my $solid_infill_flow   = $layerm->flow(FLOW_ROLE_SOLID_INFILL);
+    my $fill_density            = $layerm->config->fill_density;
+    my $infill_flow             = $layerm->flow(FLOW_ROLE_INFILL);
+    my $solid_infill_flow       = $layerm->flow(FLOW_ROLE_SOLID_INFILL);
+    my $top_solid_infill_flow   = $layerm->flow(FLOW_ROLE_TOP_SOLID_INFILL);
     
     my @surfaces = ();
     
@@ -75,7 +76,7 @@ sub make_fill {
                 if ($groups[$i][0]->is_solid && (!$groups[$i][0]->is_bridge || $layerm->id == 0)) {
                     $is_solid[$i] = 1;
                     $fw[$i] = ($groups[$i][0]->surface_type == S_TYPE_TOP)
-                        ? $layerm->flow(FLOW_ROLE_TOP_SOLID_INFILL)->width
+                        ? $top_solid_infill_flow->width
                         : $solid_infill_flow->width;
                     $pattern[$i] = $groups[$i][0]->is_external
                         ? $layerm->config->external_fill_pattern

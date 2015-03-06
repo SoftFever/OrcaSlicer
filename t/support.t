@@ -1,4 +1,4 @@
-use Test::More tests => 24;
+use Test::More tests => 25;
 use strict;
 use warnings;
 
@@ -179,7 +179,7 @@ use Slic3r::Test;
     $test->(70);
 }
 
-TTT: {
+{
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('brim_width',  0);
     $config->set('skirts', 0);
@@ -217,6 +217,16 @@ TTT: {
     
     $config->set('support_material_contact_distance', 0);
     ok !$test->(), 'bridge speed is not used when raft_layers > 0 and support_material_contact_distance == 0';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('raft_layers', 3);
+    $config->set('nozzle_diameter', [0.4, 1]);
+    $config->set('first_layer_height', 0.8);
+    $config->set('support_material_extruder', 2);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'first_layer_height is validated with support material extruder nozzle diameter when using raft layers';
 }
 
 __END__
