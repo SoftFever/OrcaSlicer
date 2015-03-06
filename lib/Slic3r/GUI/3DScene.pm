@@ -16,6 +16,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               enable_cutting
                               enable_picking
                               enable_moving
+                              on_viewport_changed
                               on_hover
                               on_select
                               on_double_click
@@ -108,6 +109,7 @@ sub new {
             -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
             0,
         ) if 0;
+        $self->on_viewport_changed->() if $self->on_viewport_changed;
         $self->_dirty(1);
         $self->Refresh;
     });
@@ -207,6 +209,7 @@ sub mouse_event {
                     );
                     $self->_quat(mulquats($self->_quat, \@quat));
                 }
+                $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
             }
             $self->_drag_start_pos($pos);
@@ -220,6 +223,7 @@ sub mouse_event {
                 $self->_camera_target->translate(
                     @{$orig->vector_to($cur_pos)->negative},
                 );
+                $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
             }
             $self->_drag_start_xy($pos);
@@ -256,6 +260,17 @@ sub reset_objects {
     $self->_dirty(1);
 }
 
+sub set_viewport_from_scene {
+    my ($self, $scene) = @_;
+    
+    $self->_sphi($scene->_sphi);
+    $self->_stheta($scene->_stheta);
+    $self->_camera_target($scene->_camera_target);
+    $self->_zoom($scene->_zoom);
+    $self->_quat($scene->_quat);
+    $self->_dirty(1);
+}
+
 sub zoom_to_bounding_box {
     my ($self, $bb) = @_;
     
@@ -267,6 +282,8 @@ sub zoom_to_bounding_box {
     
     # center view around bounding box center
     $self->_camera_target($bb->center);
+    
+    $self->on_viewport_changed->() if $self->on_viewport_changed;
 }
 
 sub zoom_to_bed {
@@ -347,25 +364,24 @@ sub set_bed_shape {
     }
     
     {
-        my @lines = ();
+        my @polylines = ();
         for (my $x = $bed_bb->x_min; $x <= $bed_bb->x_max; $x += scale 10) {
-            push @lines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
+            push @polylines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
         }
         for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
-            push @lines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
+            push @polylines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
         }
         # clip with a slightly grown expolygon because our lines lay on the contours and
         # may get erroneously clipped
-        @lines = @{intersection_pl(\@lines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
+        my @lines = map Slic3r::Line->new(@$_[0,-1]),
+            @{intersection_pl(\@polylines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
         
         # append bed contours
-        foreach my $line (map @{$_->lines}, @$expolygon) {
-            push @lines, $line->as_polyline;
-        }
+        push @lines, map @{$_->lines}, @$expolygon;
         
         my @points = ();
-        foreach my $polyline (@lines) {
-            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$polyline;  #))
+        foreach my $line (@lines) {
+            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$line;  #))
         }
         $self->bed_grid_lines(OpenGL::Array->new_list(GL_FLOAT, @points));
     }
@@ -572,9 +588,10 @@ sub Resize {
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    my $depth = 10 * max(@{ $self->max_bounding_box->size });
     glOrtho(
         -$x/2, $x/2, -$y/2, $y/2,
-        -200, 10 * max(@{ $self->max_bounding_box->size }),
+        -$depth, 2*$depth,
     );
  
     glMatrixMode(GL_MODELVIEW);

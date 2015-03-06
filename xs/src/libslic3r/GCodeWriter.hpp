@@ -24,6 +24,7 @@ class GCodeWriter {
     void apply_print_config(const PrintConfig &print_config);
     void set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string preamble();
+    std::string postamble();
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1);
     std::string set_bed_temperature(unsigned int temperature, bool wait = false);
     std::string set_fan(unsigned int speed, bool dont_save = false);

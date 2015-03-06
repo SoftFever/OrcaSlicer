@@ -6,7 +6,7 @@ use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
-    offset offset_ex offset2 offset2_ex CLIPPER_OFFSET_SCALE JT_MITER);
+    offset offset_ex offset2 offset2_ex intersection_ppl CLIPPER_OFFSET_SCALE JT_MITER);
 use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
@@ -344,7 +344,6 @@ sub make_perimeters {
     my $self = shift;
     
     # prerequisites
-    $self->print->init_extruders;
     $self->slice;
     
     return if $self->step_done(STEP_PERIMETERS);
@@ -369,51 +368,59 @@ sub make_perimeters {
         my $region = $self->print->regions->[$region_id];
         my $region_perimeters = $region->config->perimeters;
         
-        if ($region->config->extra_perimeters && $region_perimeters > 0 && $region->config->fill_density > 0) {
-            for my $i (0 .. ($self->layer_count - 2)) {
-                my $layerm          = $self->get_layer($i)->regions->[$region_id];
-                my $upper_layerm    = $self->get_layer($i+1)->regions->[$region_id];
-                my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
-                my $ext_perimeter_spacing   = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_spacing;
-                
-                my $overlap = $perimeter_spacing;  # one perimeter
-                
-                my $diff = diff(
-                    offset([ map @{$_->expolygon}, @{$layerm->slices} ], -($ext_perimeter_spacing + ($region_perimeters-1) * $perimeter_spacing)),
-                    offset([ map @{$_->expolygon}, @{$upper_layerm->slices} ], -$overlap),
-                );
-                next if !@$diff;
-                # if we need more perimeters, $diff should contain a narrow region that we can collapse
-                
-                # we use a higher miterLimit here to handle areas with acute angles
-                # in those cases, the default miterLimit would cut the corner and we'd
-                # get a triangle that would trigger a non-needed extra perimeter
-                $diff = diff(
-                    $diff,
-                    offset2($diff, -$perimeter_spacing, +$perimeter_spacing, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
-                    1,
-                );
-                next if !@$diff;
-                # diff contains the collapsed area
-                
-                foreach my $slice (@{$layerm->slices}) {
-                    my $extra_perimeters = 0;
-                    CYCLE: while (1) {
-                        # compute polygons representing the thickness of the hypotetical new internal perimeter
-                        # of our slice
-                        $extra_perimeters++;
-                        my $hypothetical_perimeter = diff(
-                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($region_perimeters + $extra_perimeters-1))),
-                            offset($slice->expolygon->arrayref, -($perimeter_spacing * ($region_perimeters + $extra_perimeters))),
+        next if !$region->config->extra_perimeters;
+        next if $region_perimeters == 0;
+        next if $region->config->fill_density == 0;
+        
+        for my $i (0 .. ($self->layer_count - 2)) {
+            my $layerm                  = $self->get_layer($i)->get_region($region_id);
+            my $upper_layerm            = $self->get_layer($i+1)->get_region($region_id);
+            
+            my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
+            my $ext_perimeter_flow      = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
+            my $ext_perimeter_width     = $ext_perimeter_flow->scaled_width;
+            my $ext_perimeter_spacing   = $ext_perimeter_flow->scaled_spacing;
+            
+            foreach my $slice (@{$layerm->slices}) {
+                while (1) {
+                    # compute the total thickness of perimeters
+                    my $perimeters_thickness = $ext_perimeter_width/2 + $ext_perimeter_spacing/2
+                        + ($region_perimeters-1 + $slice->extra_perimeters) * $perimeter_spacing;
+                    
+                    # define a critical area where we don't want the upper slice to fall into
+                    # (it should either lay over our perimeters or outside this area)
+                    my $critical_area_depth = $perimeter_spacing*1.5;
+                    my $critical_area = diff(
+                        offset($slice->expolygon->arrayref, -$perimeters_thickness),
+                        offset($slice->expolygon->arrayref, -($perimeters_thickness + $critical_area_depth)),
+                    );
+                    
+                    # check whether a portion of the upper slices falls inside the critical area
+                    my $intersection = intersection_ppl(
+                        [ map $_->p, @{$upper_layerm->slices} ],
+                        $critical_area,
+                    );
+                    
+                    # only add an additional loop if at least 30% of the slice loop would benefit from it
+                    my $total_loop_length = sum(map $_->length, map $_->p, @{$upper_layerm->slices}) // 0;
+                    my $total_intersection_length = sum(map $_->length, @$intersection) // 0;
+                    last unless $total_intersection_length > $total_loop_length*0.3;
+                    
+                    if (0) {
+                        require "Slic3r/SVG.pm";
+                        Slic3r::SVG::output(
+                            "extra.svg",
+                            no_arrows   => 1,
+                            expolygons  => union_ex($critical_area),
+                            polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
                         );
-                        last CYCLE if !@$hypothetical_perimeter;  # no extra perimeter is possible
-                        
-                        # only add the perimeter if there's an intersection with the collapsed area
-                        last CYCLE if !@{ intersection($diff, $hypothetical_perimeter) };
-                        Slic3r::debugf "  adding one more perimeter at layer %d\n", $layerm->id;
-                        $slice->extra_perimeters($extra_perimeters);
                     }
+                    
+                    $slice->extra_perimeters($slice->extra_perimeters + 1);
                 }
+                Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
+                    $slice->extra_perimeters, $layerm->id
+                    if $slice->extra_perimeters > 0;
             }
         }
     }
@@ -524,7 +531,6 @@ sub generate_support_material {
     my $self = shift;
     
     # prerequisites
-    $self->print->init_extruders;
     $self->slice;
     
     return if $self->step_done(STEP_SUPPORTMATERIAL);
@@ -547,7 +553,7 @@ sub _support_material {
     my ($self) = @_;
     
     my $first_layer_flow = Slic3r::Flow->new_from_width(
-        width               => ($self->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
+        width               => ($self->print->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
         role                => FLOW_ROLE_SUPPORT_MATERIAL,
         nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ]
                                 // $self->print->config->nozzle_diameter->[0],
@@ -650,7 +656,7 @@ sub detect_surfaces_type {
                 
                 # if we have raft layers, consider bottom layer as a bridge
                 # just like any other bottom surface lying on the void
-                if ($self->config->raft_layers > 0) {
+                if ($self->config->raft_layers > 0 && $self->config->support_material_contact_distance > 0) {
                     $_->surface_type(S_TYPE_BOTTOMBRIDGE) for @bottom;
                 } else {
                     $_->surface_type(S_TYPE_BOTTOM) for @bottom;
@@ -714,60 +720,94 @@ sub clip_fill_surfaces {
     # We only want infill under ceilings; this is almost like an
     # internal support material.
     
-    my $additional_margin = scale 3*0;
-    
-    my $overhangs = [];  # arrayref of polygons
-    for my $layer_id (reverse 0..($self->layer_count - 1)) {
-        my $layer = $self->get_layer($layer_id);
-        my @layer_internal = ();  # arrayref of Surface objects
-        my @new_internal = ();    # arrayref of Surface objects
+    # proceed top-down skipping bottom layer
+    my $upper_internal = [];
+    for my $layer_id (reverse 1..($self->layer_count - 1)) {
+        my $layer       = $self->get_layer($layer_id);
+        my $lower_layer = $self->get_layer($layer_id-1);
         
-        # clip this layer's internal surfaces to @overhangs
-        foreach my $layerm (@{$layer->regions}) {
+        # detect things that we need to support
+        my $overhangs = [];  # Polygons
+        
+        # we need to support any solid surface
+        push @$overhangs, map $_->p,
+            grep $_->is_solid, map @{$_->fill_surfaces}, @{$layer->regions};
+        
+        # we also need to support perimeters when there's at least one full
+        # unsupported loop
+        {
+            # get perimeters area as the difference between slices and fill_surfaces
+            my $perimeters = diff(
+                [ map @$_, @{$layer->slices} ],
+                [ map $_->p, map @{$_->fill_surfaces}, @{$layer->regions} ],
+            );
+            
+            # only consider the area that is not supported by lower perimeters
+            $perimeters = intersection(
+                $perimeters,
+                [ map $_->p, map @{$_->fill_surfaces}, @{$lower_layer->regions} ],
+                1,
+            );
+            
+            # only consider perimeter areas that are at least one extrusion width thick
+            my $pw = min(map $_->flow(FLOW_ROLE_PERIMETER)->scaled_width, @{$layer->regions});
+            $perimeters = offset2($perimeters, -$pw, +$pw);
+            
+            # append such thick perimeters to the areas that need support
+            push @$overhangs, @$perimeters;
+        }
+        
+        # find new internal infill
+        $upper_internal = my $new_internal = intersection(
+            [
+                @$overhangs,
+                @$upper_internal,
+            ],
+            [
+                # our current internal fill boundaries
+                map $_->p,
+                    grep $_->surface_type == S_TYPE_INTERNAL || $_->surface_type == S_TYPE_INTERNALVOID,
+                        map @{$_->fill_surfaces}, @{$lower_layer->regions}
+            ],
+        );
+        
+        # apply new internal infill to regions
+        foreach my $layerm (@{$lower_layer->regions}) {
             my (@internal, @other) = ();
             foreach my $surface (map $_->clone, @{$layerm->fill_surfaces}) {
-                if ($surface->surface_type == S_TYPE_INTERNAL) {
+                if ($surface->surface_type == S_TYPE_INTERNAL || $surface->surface_type == S_TYPE_INTERNALVOID) {
                     push @internal, $surface;
                 } else {
                     push @other, $surface;
                 }
             }
             
-            # keep all the original internal surfaces to detect overhangs in this layer
-            push @layer_internal, @internal;
-            
-            push @new_internal, my @new = map Slic3r::Surface->new(
+            my @new = map Slic3r::Surface->new(
                 expolygon       => $_,
                 surface_type    => S_TYPE_INTERNAL,
             ),
                 @{intersection_ex(
                     [ map $_->p, @internal ],
-                    $overhangs,
+                    $new_internal,
+                    1,
                 )};
             
-            push @new, map Slic3r::Surface->new(
+            push @other, map Slic3r::Surface->new(
                 expolygon       => $_,
                 surface_type    => S_TYPE_INTERNALVOID,
             ),
                 @{diff_ex(
                     [ map $_->p, @internal ],
-                    $overhangs,
+                    $new_internal,
+                    1,
                 )};
+            
+            # If there are voids it means that our internal infill is not adjacent to
+            # perimeters. In this case it would be nice to add a loop around infill to
+            # make it more robust and nicer. TODO.
             
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append($_) for (@new, @other);
-        }
-        
-        # get this layer's overhangs defined as the full slice minus the internal infill
-        # (thus we also consider perimeters)
-        if ($layer_id > 0) {
-            my $solid = diff(
-                [ map $_->p, map @{$_->fill_surfaces}, @{$layer->regions} ],
-                [ map $_->p, @layer_internal ],
-            );
-            $overhangs = offset($solid, +$additional_margin);
-            
-            push @$overhangs, map $_->p, @new_internal;  # propagate upper overhangs
         }
     }
 }

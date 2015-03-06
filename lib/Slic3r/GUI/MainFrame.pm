@@ -255,7 +255,7 @@ sub _init_menubar {
             Wx::LaunchDefaultBrowser('http://slic3r.org/');
         });
         my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", 'Check for new Slic3r versions', sub {
-            wxTheApp->check_version(manual => 1);
+            wxTheApp->check_version(1);
         });
         $versioncheck->Enable(wxTheApp->have_version_check);
         $self->_append_menu_item($helpMenu, "Slic3r &Manual", 'Open the Slic3r manual in your browser', sub {
@@ -678,7 +678,7 @@ sub config {
     } else {
         my $extruders_count = $self->{options_tabs}{printer}{extruders_count};
         $config->set("${_}_extruder", min($config->get("${_}_extruder"), $extruders_count))
-            for qw(perimeter infill support_material support_material_interface);
+            for qw(perimeter infill solid_infill support_material support_material_interface);
     }
     
     return $config;

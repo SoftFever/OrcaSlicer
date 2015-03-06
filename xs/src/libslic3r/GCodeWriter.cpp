@@ -67,6 +67,15 @@ GCodeWriter::preamble()
 }
 
 std::string
+GCodeWriter::postamble()
+{
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfMachinekit))
+          gcode << "M2 ; end of program\n";
+    return gcode.str();
+}
+
+std::string
 GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
@@ -83,7 +92,7 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
     
     std::ostringstream gcode;
     gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3)) {
+    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {
         gcode << "S";
@@ -118,7 +127,7 @@ GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait)
     
     std::ostringstream gcode;
     gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3)) {
+    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {
         gcode << "S";
@@ -153,7 +162,7 @@ GCodeWriter::set_fan(unsigned int speed, bool dont_save)
                 gcode << "M126";
             } else {
                 gcode << "M106 ";
-                if (FLAVOR_IS(gcfMach3)) {
+                if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
                     gcode << "P";
                 } else {
                     gcode << "S";
@@ -434,7 +443,10 @@ GCodeWriter::_retract(double length, double restart_extra, const std::string &co
     double dE = this->_extruder->retract(length, restart_extra);
     if (dE != 0) {
         if (this->config.use_firmware_retraction) {
-            gcode << "G10 ; retract\n";
+            if (FLAVOR_IS(gcfMachinekit))
+                gcode << "G22 ; retract\n";
+            else
+                gcode << "G10 ; retract\n";
         } else {
             gcode << "G1 " << this->_extrusion_axis << E_NUM(this->_extruder->E)
                            << " F" << this->_extruder->retract_speed_mm_min;
@@ -460,7 +472,10 @@ GCodeWriter::unretract()
     double dE = this->_extruder->unretract();
     if (dE != 0) {
         if (this->config.use_firmware_retraction) {
-            gcode << "G11 ; unretract\n";
+            if (FLAVOR_IS(gcfMachinekit))
+                 gcode << "G23 ; unretract\n";
+            else
+                 gcode << "G11 ; unretract\n";
             gcode << this->reset_e();
         } else {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move

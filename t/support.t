@@ -1,4 +1,4 @@
-use Test::More tests => 20;
+use Test::More tests => 25;
 use strict;
 use warnings;
 
@@ -20,7 +20,6 @@ use Slic3r::Test;
     
     my $test = sub {
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-        $print->print->init_extruders;
         my $flow = $print->print->objects->[0]->support_material_flow;
         my $support = Slic3r::Print::SupportMaterial->new(
             object_config       => $print->print->objects->[0]->config,
@@ -178,6 +177,56 @@ use Slic3r::Test;
     $config->set('first_layer_height', 0.35);
     $test->(3);
     $test->(70);
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('brim_width',  0);
+    $config->set('skirts', 0);
+    $config->set('support_material', 1);
+    $config->set('top_solid_layers', 0); # so that we don't have the internal bridge over infill
+    $config->set('bridge_speed', 99);
+    $config->set('cooling', 0);
+    $config->set('first_layer_speed', '100%');
+    
+    my $test = sub {
+        my $print = Slic3r::Test::init_print('overhang', config => $config);
+    
+        my $has_bridge_speed = 0;
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+        
+            if ($info->{extruding}) {
+                if (($args->{F} // $self->F) == $config->bridge_speed*60) {
+                    $has_bridge_speed = 1;
+                }
+            }
+        });
+        return $has_bridge_speed;
+    };
+    
+    $config->set('support_material_contact_distance', 0.2);
+    ok $test->(), 'bridge speed is used when support_material_contact_distance > 0';
+    
+    $config->set('support_material_contact_distance', 0);
+    ok !$test->(), 'bridge speed is not used when support_material_contact_distance == 0';
+    
+    $config->set('raft_layers', 5);
+    $config->set('support_material_contact_distance', 0.2);
+    ok $test->(), 'bridge speed is used when raft_layers > 0 and support_material_contact_distance > 0';
+    
+    $config->set('support_material_contact_distance', 0);
+    ok !$test->(), 'bridge speed is not used when raft_layers > 0 and support_material_contact_distance == 0';
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('raft_layers', 3);
+    $config->set('nozzle_diameter', [0.4, 1]);
+    $config->set('first_layer_height', 0.8);
+    $config->set('support_material_extruder', 2);
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    ok Slic3r::Test::gcode($print), 'first_layer_height is validated with support material extruder nozzle diameter when using raft layers';
 }
 
 __END__

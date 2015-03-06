@@ -1,4 +1,4 @@
-use Test::More tests => 20;
+use Test::More tests => 22;
 use strict;
 use warnings;
 
@@ -86,6 +86,7 @@ use Slic3r::Test;
     # - no hard-coded "E" are generated
     # - Z moves are correctly generated for both objects
     # - no travel moves go outside skirt
+    # - temperatures are set correctly
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('gcode_comments', 1);
     $config->set('complete_objects', 1);
@@ -93,11 +94,14 @@ use Slic3r::Test;
     $config->set('start_gcode', '');  # prevent any default extra Z move
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', 0.4);
+    $config->set('temperature', [200]);
+    $config->set('first_layer_temperature', [210]);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 2);
     ok my $gcode = Slic3r::Test::gcode($print), "complete_objects";
     my @z_moves = ();
     my @travel_moves = ();  # array of scaled points
     my @extrusions = ();    # array of scaled points
+    my @temps = ();
     Slic3r::GCode::Reader->new->parse($gcode, sub {
         my ($self, $cmd, $args, $info) = @_;
         fail 'unexpected E argument' if defined $args->{E};
@@ -112,6 +116,8 @@ use Slic3r::Test;
                 push @travel_moves, Slic3r::Point->new_scale($info->{new_X}, $info->{new_Y})
                     if @extrusions;  # skip initial travel move to first skirt point
             }
+        } elsif ($cmd eq 'M104' || $cmd eq 'M109') {
+            push @temps, $args->{S} if !@temps || $args->{S} != $temps[-1];
         }
     });
     my $layer_count = 20/0.4;  # cube is 20mm tall
@@ -120,6 +126,8 @@ use Slic3r::Test;
     
     my $convex_hull = convex_hull(\@extrusions);
     ok !(defined first { !$convex_hull->contains_point($_) } @travel_moves), 'all travel moves happen within skirt';
+
+    is_deeply \@temps, [210, 200, 210, 200, 0], 'expected temperature changes';
 }
 
 {
@@ -182,6 +190,14 @@ use Slic3r::Test;
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config, scale_xyz => [1,1, 1/(20/$config->layer_height) ]);
         $test->($print, 'one layer object');
     }
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('start_gcode', 'START:[input_filename]');
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+    my $gcode = Slic3r::Test::gcode($print);
+    like $gcode, qr/START:20mm_cube/, '[input_filename] is also available in custom G-code';
 }
 
 __END__

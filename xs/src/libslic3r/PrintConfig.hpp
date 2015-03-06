@@ -6,7 +6,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor {
-    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfNoExtrusion,
+    gcfRepRap, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfMachinekit, gcfNoExtrusion,
 };
 
 enum InfillPattern {
@@ -29,6 +29,7 @@ template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_v
     keys_map["makerware"]       = gcfMakerWare;
     keys_map["sailfish"]        = gcfSailfish;
     keys_map["mach3"]           = gcfMach3;
+    keys_map["machinekit"]      = gcfMachinekit;
     keys_map["no-extrusion"]    = gcfNoExtrusion;
     return keys_map;
 }
@@ -78,38 +79,7 @@ class DynamicPrintConfig : public DynamicConfig
         this->def = &PrintConfigDef::def;
     };
     
-    void normalize() {
-        if (this->has("extruder")) {
-            int extruder = this->option("extruder")->getInt();
-            this->erase("extruder");
-            if (extruder != 0) {
-                if (!this->has("infill_extruder"))
-                    this->option("infill_extruder", true)->setInt(extruder);
-                if (!this->has("perimeter_extruder"))
-                    this->option("perimeter_extruder", true)->setInt(extruder);
-                if (!this->has("support_material_extruder"))
-                    this->option("support_material_extruder", true)->setInt(extruder);
-                if (!this->has("support_material_interface_extruder"))
-                    this->option("support_material_interface_extruder", true)->setInt(extruder);
-            }
-        }
-        
-        if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
-            this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
-        
-        if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
-            {
-                // this should be actually done only on the spiral layers instead of all
-                ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
-                opt->values.assign(opt->values.size(), false);  // set all values to false
-            }
-            {
-                this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
-                this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
-                this->opt<ConfigOptionPercent>("fill_density", true)->value  = 0;
-            }
-        }
-    };
+    void normalize();
 };
 
 class StaticPrintConfig : public virtual StaticConfig
@@ -410,7 +380,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     
     std::string get_extrusion_axis() const
     {
-        if (this->gcode_flavor.value == gcfMach3) {
+        if ((this->gcode_flavor.value == gcfMach3) || (this->gcode_flavor.value == gcfMachinekit)) {
             return "A";
         } else if (this->gcode_flavor.value == gcfNoExtrusion) {
             return "";

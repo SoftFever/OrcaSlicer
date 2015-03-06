@@ -723,6 +723,11 @@ sub generate_toolpaths {
         if (@$base) {
             my $filler = $fillers{support};
             $filler->angle($angles[ ($layer_id) % @angles ]);
+            
+            # We don't use $base_flow->spacing because we need a constant spacing
+            # value that guarantees that all layers are correctly aligned.
+            $filler->spacing($flow->spacing);
+            
             my $density     = $support_density;
             my $base_flow   = $_flow;
             
@@ -737,6 +742,10 @@ sub generate_toolpaths {
                 $filler->angle($self->object_config->support_material_angle + 90);
                 $density        = 0.5;
                 $base_flow      = $self->first_layer_flow;
+                
+                # use the proper spacing for first layer as we don't need to align
+                # its pattern to the other layers
+                $filler->spacing($base_flow->spacing);
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
@@ -752,10 +761,6 @@ sub generate_toolpaths {
                 # TODO: use offset2_ex()
                 $to_infill = offset_ex([ map @$_, @$to_infill ], -$_flow->scaled_spacing);
             }
-            
-            # We don't use $base_flow->spacing because we need a constant spacing
-            # value that guarantees that all layers are correctly aligned.
-            $filler->spacing($flow->spacing);
             
             my $mm3_per_mm = $base_flow->mm3_per_mm;
             foreach my $expolygon (@$to_infill) {

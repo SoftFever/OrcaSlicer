@@ -61,13 +61,18 @@ LayerRegion::prepare_fill_surfaces()
         the only meaningful information returned by psPerimeters. */
     
     // if no solid layers are requested, turn top/bottom surfaces to internal
-    if (this->_region->config.top_solid_layers == 0) {
+    if (this->region()->config.top_solid_layers == 0) {
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
-            if (surface->surface_type == stTop)
-                surface->surface_type = stInternal;
+            if (surface->surface_type == stTop) {
+                if (this->layer()->object()->config.infill_only_where_needed) {
+                    surface->surface_type = stInternalVoid;
+                } else {
+                    surface->surface_type = stInternal;
+                }
+            }
         }
     }
-    if (this->_region->config.bottom_solid_layers == 0) {
+    if (this->region()->config.bottom_solid_layers == 0) {
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
             if (surface->surface_type == stBottom || surface->surface_type == stBottomBridge)
                 surface->surface_type = stInternal;
@@ -75,9 +80,9 @@ LayerRegion::prepare_fill_surfaces()
     }
         
     // turn too small internal regions into solid regions according to the user setting
-    if (this->_region->config.fill_density.value > 0) {
+    if (this->region()->config.fill_density.value > 0) {
         // scaling an area requires two calls!
-        double min_area = scale_(scale_(this->_region->config.solid_infill_below_area.value));
+        double min_area = scale_(scale_(this->region()->config.solid_infill_below_area.value));
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
             if (surface->surface_type == stInternal && surface->area() <= min_area)
                 surface->surface_type = stInternalSolid;

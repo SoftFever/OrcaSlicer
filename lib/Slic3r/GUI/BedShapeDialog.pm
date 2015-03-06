@@ -307,7 +307,7 @@ sub _repaint_canvas {
         @polylines = @{intersection_pl(\@polylines, [$bed_polygon])};
         
         $dc->SetPen(Wx::Pen->new(Wx::Colour->new(230,230,230), 1, wxSOLID));
-        $dc->DrawLine(map @{$to_pixel->([map unscale($_), @$_])}, @$_) for @polylines;
+        $dc->DrawLine(map @{$to_pixel->([map unscale($_), @$_])}, @$_[0,-1]) for @polylines;
     }
     
     # draw bed contour

@@ -37,9 +37,9 @@ sub new {
         
         # buttons
         $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG), 
-            wxDefaultPosition, [16,16], wxBORDER_NONE);
+            wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), 
-            wxDefaultPosition, [16,16], wxBORDER_NONE);
+            wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
@@ -745,11 +745,13 @@ sub _update {
             perimeter_speed small_perimeter_speed external_perimeter_speed);
     
     my $have_infill = $config->fill_density > 0;
+    # infill_extruder uses the same logic as in Print::extruders()
     $self->get_field($_)->toggle($have_infill)
         for qw(fill_pattern infill_every_layers infill_only_where_needed solid_infill_every_layers
             solid_infill_below_area infill_extruder);
     
     my $have_solid_infill = ($config->top_solid_layers > 0) || ($config->bottom_solid_layers > 0);
+    # solid_infill_extruder uses the same logic as in Print::extruders()
     $self->get_field($_)->toggle($have_solid_infill)
         for qw(external_fill_pattern infill_first solid_infill_extruder solid_infill_extrusion_width
             solid_infill_speed);
@@ -772,6 +774,7 @@ sub _update {
         for qw(skirt_distance skirt_height);
     
     my $have_brim = $config->brim_width > 0;
+    # perimeter_extruder uses the same logic as in Print::extruders()
     $self->get_field('perimeter_extruder')->toggle($have_perimeters || $have_brim);
     
     my $have_support_material = $config->support_material || $config->raft_layers > 0;

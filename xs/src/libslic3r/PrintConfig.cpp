@@ -380,12 +380,14 @@ PrintConfigDef::build_def() {
     Options["gcode_flavor"].enum_values.push_back("makerware");
     Options["gcode_flavor"].enum_values.push_back("sailfish");
     Options["gcode_flavor"].enum_values.push_back("mach3");
+    Options["gcode_flavor"].enum_values.push_back("machinekit");
     Options["gcode_flavor"].enum_values.push_back("no-extrusion");
     Options["gcode_flavor"].enum_labels.push_back("RepRap (Marlin/Sprinter/Repetier)");
     Options["gcode_flavor"].enum_labels.push_back("Teacup");
     Options["gcode_flavor"].enum_labels.push_back("MakerWare (MakerBot)");
     Options["gcode_flavor"].enum_labels.push_back("Sailfish (MakerBot)");
     Options["gcode_flavor"].enum_labels.push_back("Mach3/LinuxCNC");
+    Options["gcode_flavor"].enum_labels.push_back("Machinekit");
     Options["gcode_flavor"].enum_labels.push_back("No extrusion");
 
     Options["infill_acceleration"].type = coFloat;
@@ -426,7 +428,7 @@ PrintConfigDef::build_def() {
     Options["infill_only_where_needed"].type = coBool;
     Options["infill_only_where_needed"].label = "Only infill where needed";
     Options["infill_only_where_needed"].category = "Infill";
-    Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material).";
+    Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material). If enabled, slows down the G-code generation due to the multiple checks involved.";
     Options["infill_only_where_needed"].cli = "infill-only-where-needed!";
 
     Options["infill_overlap"].type = coFloatOrPercent;
@@ -1027,6 +1029,40 @@ PrintConfigDef::build_def() {
 };
 
 t_optiondef_map PrintConfigDef::def = PrintConfigDef::build_def();
+
+void
+DynamicPrintConfig::normalize() {
+    if (this->has("extruder")) {
+        int extruder = this->option("extruder")->getInt();
+        this->erase("extruder");
+        if (extruder != 0) {
+            if (!this->has("infill_extruder"))
+                this->option("infill_extruder", true)->setInt(extruder);
+            if (!this->has("perimeter_extruder"))
+                this->option("perimeter_extruder", true)->setInt(extruder);
+            if (!this->has("support_material_extruder"))
+                this->option("support_material_extruder", true)->setInt(extruder);
+            if (!this->has("support_material_interface_extruder"))
+                this->option("support_material_interface_extruder", true)->setInt(extruder);
+        }
+    }
+    
+    if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
+        this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
+    
+    if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
+        {
+            // this should be actually done only on the spiral layers instead of all
+            ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
+            opt->values.assign(opt->values.size(), false);  // set all values to false
+        }
+        {
+            this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
+            this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
+            this->opt<ConfigOptionPercent>("fill_density", true)->value  = 0;
+        }
+    }
+}
 
 #ifdef SLIC3RXS
 REGISTER_CLASS(DynamicPrintConfig, "Config");

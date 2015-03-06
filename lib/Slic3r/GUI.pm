@@ -34,7 +34,7 @@ our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
     :filedialog);
-use Wx::Event qw(EVT_IDLE);
+use Wx::Event qw(EVT_IDLE EVT_COMMAND);
 use base 'Wx::App';
 
 use constant FILE_WILDCARDS => {
@@ -69,6 +69,8 @@ $small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
 our $grey = Wx::Colour->new(200,200,200);
+
+our $VERSION_CHECK_EVENT : shared = Wx::NewEventType;
 
 sub OnInit {
     my ($self) = @_;
@@ -140,6 +142,25 @@ sub OnInit {
     EVT_IDLE($frame, sub {
         while (my $cb = shift @cb) {
             $cb->();
+        }
+    });
+    
+    EVT_COMMAND($self, -1, $VERSION_CHECK_EVENT, sub {
+        my ($self, $event) = @_;
+        my ($success, $response, $manual_check) = @{$event->GetData};
+        
+        if ($success) {
+            if ($response =~ /^obsolete ?= ?([a-z0-9.-]+,)*\Q$Slic3r::VERSION\E(?:,|$)/) {
+                my $res = Wx::MessageDialog->new(undef, "A new version is available. Do you want to open the Slic3r website now?",
+                    'Update', wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxICON_INFORMATION | wxICON_ERROR)->ShowModal;
+                Wx::LaunchDefaultBrowser('http://slic3r.org/') if $res == wxID_YES;
+            } else {
+                Slic3r::GUI::show_info(undef, "You're using the latest version. No updates are available.") if $manual_check;
+            }
+            $Settings->{_}{last_version_check} = time();
+            $self->save_settings;
+        } else {
+            Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $manual_check;
         }
     });
     
@@ -239,7 +260,7 @@ sub have_version_check {
 }
 
 sub check_version {
-    my ($self, %p) = @_;
+    my ($self, $manual_check) = @_;
     
     Slic3r::debugf "Checking for updates...\n";
     
@@ -248,19 +269,9 @@ sub check_version {
         my $ua = LWP::UserAgent->new;
         $ua->timeout(10);
         my $response = $ua->get('http://slic3r.org/updatecheck');
-        if ($response->is_success) {
-            if ($response->decoded_content =~ /^obsolete ?= ?([a-z0-9.-]+,)*\Q$Slic3r::VERSION\E(?:,|$)/) {
-                my $res = Wx::MessageDialog->new(undef, "A new version is available. Do you want to open the Slic3r website now?",
-                    'Update', wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxICON_INFORMATION | wxICON_ERROR)->ShowModal;
-                Wx::LaunchDefaultBrowser('http://slic3r.org/') if $res == wxID_YES;
-            } else {
-                Slic3r::GUI::show_info(undef, "You're using the latest version. No updates are available.") if $p{manual};
-            }
-            $Settings->{_}{last_version_check} = time();
-            $self->save_settings;
-        } else {
-            Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $p{manual};
-        }
+        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $VERSION_CHECK_EVENT,
+            threads::shared::shared_clone([ $response->is_success, $response->decoded_content, $manual_check ])));
+        
         Slic3r::thread_cleanup();
     })->detach;
 }

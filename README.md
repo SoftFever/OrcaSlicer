@@ -8,7 +8,7 @@ Slic3r [![Build Status](https://travis-ci.org/alexrj/Slic3r.png?branch=master)](
 Slic3r takes 3D models (STL, OBJ, AMF) and converts them into G-code instructions for 
 3D printers. It's compatible with any modern printer based on the RepRap toolchain,
 including all those based on the Marlin, Sprinter and Repetier firmware. It also works
-with Mach3 and LinuxCNC controllers.
+with Mach3, LinuxCNC and Machinekit controllers.
 
 See the [project homepage](http://slic3r.org/) at slic3r.org and the
 [manual](http://manual.slic3r.org/) for more information.
@@ -30,7 +30,7 @@ Key features are:
 * **multi-platform** (Linux/Mac/Win) and packaged as standalone-app with no dependencies required
 * complete **command-line interface** to use it with no GUI
 * multi-material **(multiple extruders)** object printing
-* multiple G-code flavors supported (RepRap, Makerbot, Mach3 etc.)
+* multiple G-code flavors supported (RepRap, Makerbot, Mach3, Machinekit etc.)
 * ability to plate **multiple objects having distinct print settings**
 * **multithread** processing
 * **STL auto-repair** (tolerance for broken models)
@@ -109,6 +109,8 @@ The author of the Silk icon set is Mark James.
         -j, --threads <num> Number of threads to use (1+, default: 2)
     
       GUI options:
+        --gui               Forces the GUI launch instead of command line slicing (if you
+                            supply a model file, it will be loaded into the plater)
         --no-plater         Disable the plater tab
         --gui-mode          Overrides the configured mode (simple/expert)
         --autosave <file>   Automatically export current configuration to the specified file
@@ -130,7 +132,7 @@ The author of the Silk icon set is Mark James.
                             (default: 100,100)
         --z-offset          Additional height in mm to add to vertical coordinates
                             (+/-, default: 0)
-        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerware/sailfish/mach3/no-extrusion,
+        --gcode-flavor      The type of G-code to generate (reprap/teacup/makerware/sailfish/mach3/machinekit/no-extrusion,
                             default: reprap)
         --use-relative-e-distances Enable this to get relative E values (default: no)
         --use-firmware-retraction  Enable firmware-controlled retraction using G10/G11 (default: no)

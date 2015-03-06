@@ -96,6 +96,9 @@ sub new {
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->on_viewport_changed(sub {
+            $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
+        });
     }
     
     # Initialize 2D preview canvas
@@ -109,6 +112,9 @@ sub new {
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print});
+        $self->{preview3D}->canvas->on_viewport_changed(sub {
+            $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
+        });
         $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview');
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }
@@ -988,9 +994,13 @@ sub pause_background_process {
     
     if ($self->{process_thread} || $self->{export_thread}) {
         Slic3r::pause_all_threads();
+        return 1;
     } elsif (defined $self->{apply_config_timer} && $self->{apply_config_timer}->IsRunning) {
         $self->{apply_config_timer}->Stop;
+        return 1;
     }
+    
+    return 0;
 }
 
 sub resume_background_process {
@@ -1312,21 +1322,20 @@ sub update {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
-    $self->pause_background_process;
+    my $running = $self->pause_background_process;
     my $invalidated = $self->{print}->reload_model_instances();
-    if ($invalidated) {
+    
+    # The mere fact that no steps were invalidated when reloading model instances 
+    # doesn't mean that all steps were done: for example, validation might have 
+    # failed upon previous instance move, so we have no running thread and no steps
+    # are invalidated on this move, thus we need to schedule a new run.
+    if ($invalidated || !$running) {
         $self->schedule_background_process;
     } else {
         $self->resume_background_process;
     }
     
     $self->refresh_canvases;
-}
-
-sub on_model_instances_changed {
-    my ($self) = @_;
-    
-    
 }
 
 sub on_extruders_change {
