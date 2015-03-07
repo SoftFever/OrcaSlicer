@@ -15,6 +15,7 @@ use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
 use Time::HiRes qw(gettimeofday tv_interval);
 $|++;
+binmode STDOUT, ':utf8';
 
 our %opt = ();
 my %cli_options = ();
