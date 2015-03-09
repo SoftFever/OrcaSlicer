@@ -86,7 +86,7 @@ ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCo
     Points endpoints;
     for (ExtrusionEntitiesPtr::iterator it = my_paths.begin(); it != my_paths.end(); ++it) {
         endpoints.push_back((*it)->first_point());
-        if (no_reverse) {
+        if (no_reverse || !(*it)->can_reverse()) {
             endpoints.push_back((*it)->first_point());
         } else {
             endpoints.push_back((*it)->last_point());
@@ -99,7 +99,7 @@ ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCo
         int path_index = start_index/2;
         ExtrusionEntity* entity = my_paths.at(path_index);
         // never reverse loops, since it's pointless for chained path and callers might depend on orientation
-        if (start_index % 2 && !no_reverse && !entity->is_loop()) {
+        if (start_index % 2 && !no_reverse && entity->can_reverse()) {
             entity->reverse();
         }
         retval->entities.push_back(my_paths.at(path_index));

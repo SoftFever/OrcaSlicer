@@ -16,6 +16,9 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     ExtrusionEntityCollection(): no_sort(false) {};
     ExtrusionEntityCollection(const ExtrusionEntityCollection &collection);
     ExtrusionEntityCollection& operator= (const ExtrusionEntityCollection &other);
+    bool can_reverse() const {
+        return !this->no_sort;
+    };
     void swap (ExtrusionEntityCollection &c);
     void chained_path(ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;

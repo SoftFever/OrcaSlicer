@@ -38,6 +38,9 @@ class ExtrusionEntity
     virtual bool is_loop() const {
         return false;
     };
+    virtual bool can_reverse() const {
+        return true;
+    };
     virtual ExtrusionEntity* clone() const = 0;
     virtual ~ExtrusionEntity() {};
     virtual void reverse() = 0;
@@ -91,6 +94,9 @@ class ExtrusionLoop : public ExtrusionEntity
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
     bool is_loop() const {
         return true;
+    };
+    bool can_reverse() const {
+        return false;
     };
     ExtrusionLoop* clone() const;
     bool make_clockwise();

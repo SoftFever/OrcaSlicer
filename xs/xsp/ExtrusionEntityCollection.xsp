@@ -7,6 +7,8 @@
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
     %name{_new} ExtrusionEntityCollection();
+    Clone<ExtrusionEntityCollection> clone()
+        %code{% RETVAL = THIS->clone(); %};
     void reverse();
     void clear()
         %code{% THIS->entities.clear(); %};
