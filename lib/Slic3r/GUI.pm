@@ -294,7 +294,7 @@ sub open_model {
         $dialog->Destroy;
         return;
     }
-    my @input_files = $dialog->GetPaths;
+    my @input_files = map Slic3r::decode_path($_), $dialog->GetPaths;
     $dialog->Destroy;
     
     return @input_files;

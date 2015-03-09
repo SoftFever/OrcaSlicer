@@ -7,7 +7,6 @@ use Config;
 use File::Spec;
 
 my %prereqs = qw(
-    Encode::Locale                  0
     ExtUtils::MakeMaker             6.80
     ExtUtils::ParseXS               3.22
     File::Basename                  0

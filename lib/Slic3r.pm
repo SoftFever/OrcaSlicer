@@ -32,8 +32,6 @@ warn "Running Slic3r under Perl 5.16 is not supported nor recommended\n"
 use FindBin;
 our $var = "$FindBin::Bin/var";
 
-use Encode;
-use Encode::Locale;
 use Moo 1.003001;
 
 use Slic3r::XS;   # import all symbols (constants etc.) before they get parsed
@@ -261,13 +259,17 @@ sub resume_all_threads {
 }
 
 sub encode_path {
-    my ($filename) = @_;
-    return encode('locale_fs', $filename);
+    my ($path) = @_;
+    
+    utf8::downgrade($path) if $^O eq 'MSWin32';
+    return $path;
 }
 
 sub decode_path {
-    my ($filename) = @_;
-    return decode('locale_fs', $filename);
+    my ($path) = @_;
+    
+    utf8::upgrade($path) if $^O eq 'MSWin32';
+    return $path;
 }
 
 sub open {

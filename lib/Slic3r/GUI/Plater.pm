@@ -1046,9 +1046,10 @@ sub export_gcode {
             $dlg->Destroy;
             return;
         }
-        $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
+        my $path = Slic3r::decode_path($dlg->GetPath);
+        $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($path);
         wxTheApp->save_settings;
-        $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
+        $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $path;
         $dlg->Destroy;
     }
     
@@ -1244,7 +1245,7 @@ sub _get_export_file {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
+        $output_file = $Slic3r::GUI::MainFrame::last_output_file = Slic3r::decode_path($dlg->GetPath);
         $dlg->Destroy;
     }
     return $output_file;
