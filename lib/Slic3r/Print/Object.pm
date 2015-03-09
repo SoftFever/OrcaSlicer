@@ -59,9 +59,14 @@ sub slice {
             $print_z += $first_layer_height;
             $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
         
-            # at this stage we don't know which nozzles are actually used for the first layer
-            # so we compute the average of all of them
-            my $nozzle_diameter = sum(@{$self->print->config->nozzle_diameter})/@{$self->print->config->nozzle_diameter};
+            # compute the average of all nozzles used for printing the object
+            my $nozzle_diameter;
+            {
+                my @nozzle_diameters = (
+                    map $self->print->config->get_at('nozzle_diameter', $_), @{$self->print->object_extruders}
+                );
+                $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
+            }
             my $distance = $self->_support_material->contact_distance($first_layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance

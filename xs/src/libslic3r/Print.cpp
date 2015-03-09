@@ -300,7 +300,7 @@ Print::step_done(PrintObjectStep step) const
 
 // returns 0-based indices of used extruders
 std::set<size_t>
-Print::extruders() const
+Print::object_extruders() const
 {
     std::set<size_t> extruders;
     
@@ -316,6 +316,17 @@ Print::extruders() const
         if ((*region)->config.top_solid_layers.value > 0 || (*region)->config.bottom_solid_layers.value > 0)
             extruders.insert((*region)->config.solid_infill_extruder - 1);
     }
+    
+    return extruders;
+}
+
+// returns 0-based indices of used extruders
+std::set<size_t>
+Print::extruders() const
+{
+    std::set<size_t> extruders = this->object_extruders();
+    
+    // add support material extruder(s)
     FOREACH_OBJECT(this, object) {
         if ((*object)->has_support_material()) {
             extruders.insert((*object)->config.support_material_extruder - 1);

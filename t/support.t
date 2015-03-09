@@ -1,4 +1,4 @@
-use Test::More tests => 25;
+use Test::More tests => 26;
 use strict;
 use warnings;
 
@@ -221,12 +221,37 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new_from_defaults;
+    $config->set('skirts', 0);
+    $config->set('start_gcode', '');
     $config->set('raft_layers', 3);
     $config->set('nozzle_diameter', [0.4, 1]);
+    $config->set('layer_height', 0.3);
     $config->set('first_layer_height', 0.8);
     $config->set('support_material_extruder', 2);
+    $config->set('support_material_interface_extruder', 2);
+    $config->set('support_material_contact_distance', 0);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    ok Slic3r::Test::gcode($print), 'first_layer_height is validated with support material extruder nozzle diameter when using raft layers';
+    ok my $gcode = Slic3r::Test::gcode($print), 'first_layer_height is validated with support material extruder nozzle diameter when using raft layers';
+    
+    my $tool = undef;
+    my @z = (0);
+    my %layer_heights_by_tool = ();  # tool => [ lh, lh... ]
+    Slic3r::GCode::Reader->new->parse($gcode, sub {
+        my ($self, $cmd, $args, $info) = @_;
+    
+        if ($cmd =~ /^T(\d+)/) {
+            $tool = $1;
+        } elsif ($cmd eq 'G1' && exists $args->{Z} && $args->{Z} != $self->Z) {
+            push @z, $args->{Z};
+        } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
+            $layer_heights_by_tool{$tool} ||= [];
+            push @{ $layer_heights_by_tool{$tool} }, $z[-1] - $z[-2] if $tool == 0;
+        }
+    });
+    
+    ok !defined(first { $_ > $config->nozzle_diameter->[0] + epsilon }
+        @{ $layer_heights_by_tool{$config->perimeter_extruder-1} }),
+        'no object layer is thicker than nozzle diameter';
 }
 
 __END__
