@@ -78,7 +78,7 @@ sub OnInit {
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     
     # locate or create data directory
-    $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
+    $datadir ||= Slic3r::decode_path(Wx::StandardPaths::Get->GetUserDataDir);
     my $enc_datadir = Slic3r::encode_path($datadir);
     Slic3r::debugf "Data directory: %s\n", $datadir;
     
