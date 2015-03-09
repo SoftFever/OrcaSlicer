@@ -115,7 +115,7 @@ sub set_z {
 
 package Slic3r::GUI::Plater::2DToolpaths::Canvas;
 
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
@@ -123,7 +123,7 @@ use List::Util qw(min first);
 use Slic3r::Geometry qw(scale unscale epsilon);
 use Slic3r::Print::State ':steps';
 
-__PACKAGE__->mk_accessors(qw(print z layers color init bb));
+__PACKAGE__->mk_accessors(qw(print z layers color init bb _dirty));
 
 # make OpenGL::Array thread-safe
 {
@@ -141,7 +141,9 @@ sub new {
         my $dc = Wx::PaintDC->new($self);
         $self->Render($dc);
     });
-    EVT_SIZE($self, sub {
+    EVT_SIZE($self, sub { $self->_dirty(1) });
+    EVT_IDLE($self, sub {
+        return unless $self->_dirty;
         return if !$self->IsShownOnScreen;
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
