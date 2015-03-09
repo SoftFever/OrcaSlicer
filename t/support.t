@@ -1,4 +1,4 @@
-use Test::More tests => 26;
+use Test::More tests => 27;
 use strict;
 use warnings;
 
@@ -223,9 +223,9 @@ use Slic3r::Test;
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('skirts', 0);
     $config->set('start_gcode', '');
-    $config->set('raft_layers', 3);
+    $config->set('raft_layers', 8);
     $config->set('nozzle_diameter', [0.4, 1]);
-    $config->set('layer_height', 0.3);
+    $config->set('layer_height', 0.1);
     $config->set('first_layer_height', 0.8);
     $config->set('support_material_extruder', 2);
     $config->set('support_material_interface_extruder', 2);
@@ -245,13 +245,17 @@ use Slic3r::Test;
             push @z, $args->{Z};
         } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
             $layer_heights_by_tool{$tool} ||= [];
-            push @{ $layer_heights_by_tool{$tool} }, $z[-1] - $z[-2] if $tool == 0;
+            push @{ $layer_heights_by_tool{$tool} }, $z[-1] - $z[-2];
         }
     });
     
     ok !defined(first { $_ > $config->nozzle_diameter->[0] + epsilon }
         @{ $layer_heights_by_tool{$config->perimeter_extruder-1} }),
         'no object layer is thicker than nozzle diameter';
+    
+    ok !defined(first { abs($_ - $config->layer_height) < epsilon }
+        @{ $layer_heights_by_tool{$config->support_material_extruder-1} }),
+        'no support material layer is as thin as object layers';
 }
 
 __END__

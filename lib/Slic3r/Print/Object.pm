@@ -62,7 +62,9 @@ sub slice {
             my $support_material_layer_height;
             {
                 my @nozzle_diameters = (
-                    map $self->print->config->get_at('nozzle_diameter', $_), @{$self->print->support_material_extruders}
+                    map $self->print->config->get_at('nozzle_diameter', $_),
+                        $self->config->support_material_extruder,
+                        $self->config->support_material_interface_extruder,
                 );
                 $support_material_layer_height = 0.75 * min(@nozzle_diameters);
             }
@@ -76,11 +78,15 @@ sub slice {
                 );
                 $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             }
-            my $distance = $self->_support_material->contact_distance($first_layer_height, $nozzle_diameter);
+            my $distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance
             # (the loop below will raise print_z by such height)
-            $first_object_layer_height = $nozzle_diameter;
+            if ($self->config->support_material_contact_distance == 0) {
+                $first_object_layer_height = $distance;
+            } else {
+                $first_object_layer_height = $nozzle_diameter;
+            }
             $first_object_layer_distance = $distance;
         }
     
