@@ -322,17 +322,28 @@ Print::object_extruders() const
 
 // returns 0-based indices of used extruders
 std::set<size_t>
-Print::extruders() const
+Print::support_material_extruders() const
 {
-    std::set<size_t> extruders = this->object_extruders();
+    std::set<size_t> extruders;
     
-    // add support material extruder(s)
     FOREACH_OBJECT(this, object) {
         if ((*object)->has_support_material()) {
             extruders.insert((*object)->config.support_material_extruder - 1);
             extruders.insert((*object)->config.support_material_interface_extruder - 1);
         }
     }
+    
+    return extruders;
+}
+
+// returns 0-based indices of used extruders
+std::set<size_t>
+Print::extruders() const
+{
+    std::set<size_t> extruders = this->object_extruders();
+    
+    std::set<size_t> s_extruders = this->support_material_extruders();
+    extruders.insert(s_extruders.begin(), s_extruders.end());
     
     return extruders;
 }

@@ -199,6 +199,7 @@ class Print
     Flow skirt_flow() const;
     
     std::set<size_t> object_extruders() const;
+    std::set<size_t> support_material_extruders() const;
     std::set<size_t> extruders() const;
     void _simplify_slices(double distance);
     double max_allowed_layer_height() const;

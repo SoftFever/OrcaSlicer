@@ -57,7 +57,16 @@ sub slice {
             # plus the extra distance required by the support material logic
             my $first_layer_height = $self->config->get_value('first_layer_height');
             $print_z += $first_layer_height;
-            $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
+            
+            # use a large height
+            my $support_material_layer_height;
+            {
+                my @nozzle_diameters = (
+                    map $self->print->config->get_at('nozzle_diameter', $_), @{$self->print->support_material_extruders}
+                );
+                $support_material_layer_height = 0.75 * min(@nozzle_diameters);
+            }
+            $print_z += $support_material_layer_height * ($self->config->raft_layers - 1);
         
             # compute the average of all nozzles used for printing the object
             my $nozzle_diameter;

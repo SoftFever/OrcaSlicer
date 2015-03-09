@@ -169,6 +169,14 @@ _constant()
                 RETVAL.push_back(*e);
             }
         %};
+    std::vector<int> support_material_extruders()
+        %code%{
+            std::set<size_t> extruders = THIS->support_material_extruders();
+            RETVAL.reserve(extruders.size());
+            for (std::set<size_t>::const_iterator e = extruders.begin(); e != extruders.end(); ++e) {
+                RETVAL.push_back(*e);
+            }
+        %};
     std::vector<int> extruders()
         %code%{
             std::set<size_t> extruders = THIS->extruders();
