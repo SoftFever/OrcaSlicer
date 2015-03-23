@@ -635,13 +635,19 @@ sub config {
     if (!$self->{plater} || $self->{plater}->filament_presets == 1 || $self->{mode} eq 'simple') {
         $filament_config = $self->{options_tabs}{filament}->config;
     } else {
-        # TODO: handle dirty presets.
-        # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
         my $i = -1;
         foreach my $preset_idx ($self->{plater}->filament_presets) {
             $i++;
-            my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
-            my $config = $self->{options_tabs}{filament}->get_preset_config($preset);
+            my $config;
+            if ($preset_idx == $self->{options_tabs}{filament}->current_preset) {
+                # the selected preset for this extruder is the one in the tab
+                # use the tab's config instead of the preset in case it is dirty
+                # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
+                $config = $self->{options_tabs}{filament}->config;
+            } else {
+                my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
+                $config = $self->{options_tabs}{filament}->get_preset_config($preset);
+            }
             if (!$filament_config) {
                 $filament_config = $config->clone;
                 next;
