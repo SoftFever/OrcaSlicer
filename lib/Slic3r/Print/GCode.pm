@@ -196,6 +196,7 @@ sub export {
                 if ($finished_objects > 0) {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
                     $gcodegen->enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
+                    $gcodegen->avoid_crossing_perimeters->use_external_mp_once(1);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         Slic3r::Point->new(0,0),
@@ -203,6 +204,9 @@ sub export {
                         'move to origin position for next object',
                     );
                     $gcodegen->enable_cooling_markers(1);
+                    
+                    # disable motion planner when traveling to first object point
+                    $gcodegen->avoid_crossing_perimeters->disable_once(1);
                 }
                 
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
