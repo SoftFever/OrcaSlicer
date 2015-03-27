@@ -234,6 +234,9 @@ use List::Util qw(first);
 use Wx qw(wxTheApp :misc :combobox);
 use Wx::Event qw(EVT_COMBOBOX EVT_TEXT);
 
+# if option has no 'values', indices are values
+# if option has no 'labels', values are labels
+
 sub BUILD {
     my ($self) = @_;
     
@@ -247,15 +250,15 @@ sub BUILD {
         my $disable_change_event = $self->disable_change_event;
         $self->disable_change_event(1);
         
-        my $value = $field->GetSelection;
+        my $idx = $field->GetSelection;  # get index of selected value
         my $label;
         
-        if ($self->option->values) {
-            $label = $value = $self->option->values->[$value];
-        } elsif ($value <= $#{$self->option->labels}) {
-            $label = $self->option->labels->[$value];
+        if ($self->option->labels && $idx <= $#{$self->option->labels}) {
+            $label = $self->option->labels->[$idx];
+        } elsif ($self->option->values && $idx <= $#{$self->option->values}) {
+            $label = $self->option->values->[$idx];
         } else {
-            $label = $value;
+            $label = $idx;
         }
         
         # The MSW implementation of wxComboBox will leave the field blank if we call
@@ -295,8 +298,8 @@ sub set_value {
                 $self->disable_change_event(0);
                 return;
             }
-        }
-        if ($self->option->labels && $value <= $#{$self->option->labels}) {
+        } elsif ($self->option->labels && $value <= $#{$self->option->labels}) {
+            # if we have no values, we expect value to be an index
             $field->SetValue($self->option->labels->[$value]);
             $self->disable_change_event(0);
             return;
