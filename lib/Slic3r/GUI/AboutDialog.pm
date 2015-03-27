@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(:font :html :misc :sizer :systemsettings);
+use Wx qw(:font :html :misc :dialog :sizer :systemsettings);
 use Wx::Event qw(EVT_HTML_LINK_CLICKED);
 use Wx::Print;
 use Wx::Html;
@@ -12,7 +12,7 @@ use base 'Wx::Dialog';
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1, 'About Slic3r', wxDefaultPosition, [600, 300]);
+    my $self = $class->SUPER::new($parent, -1, 'About Slic3r', wxDefaultPosition, [600, 300], &Wx::wxCLOSE_BOX);
 
     $self->SetBackgroundColour(Wx::wxWHITE);
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
