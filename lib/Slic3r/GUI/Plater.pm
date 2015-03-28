@@ -1059,6 +1059,11 @@ sub export_gcode {
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Export cancelled");
+            $self->{export_gcode_output_file} = undef;
+            $self->{send_gcode_file} = undef;
+            
+            # this updates buttons status
+            $self->object_list_changed;
         });
         
         # start background process, whose completion event handler
