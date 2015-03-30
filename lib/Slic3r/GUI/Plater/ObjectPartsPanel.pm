@@ -136,9 +136,13 @@ sub reload_tree {
     }
     $tree->ExpandAll;
     
-    # This will trigger the selection_changed() event
     Slic3r::GUI->CallAfter(sub {
         $self->{tree}->SelectItem($selectedId);
+        
+        # SelectItem() should trigger EVT_TREE_SEL_CHANGED as per wxWidgets docs,
+        # but in fact it doesn't if the given item is already selected (this happens
+        # on first load)
+        $self->selection_changed;
     });
 }
 
