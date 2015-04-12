@@ -121,6 +121,22 @@ ExtrusionEntityCollection::grow() const
     return pp;
 }
 
+/* Recursively count paths and loops contained in this collection */
+size_t
+ExtrusionEntityCollection::items_count() const
+{
+    size_t count = 0;
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        if ((*it)->is_collection()) {
+            ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(*it);
+            count += collection->items_count();
+        } else {
+            ++count;
+        }
+    }
+    return count;
+}
+
 #ifdef SLIC3RXS
 // there is no ExtrusionLoop::Collection or ExtrusionEntity::Collection
 REGISTER_CLASS(ExtrusionEntityCollection, "ExtrusionPath::Collection");

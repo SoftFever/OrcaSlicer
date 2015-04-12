@@ -47,7 +47,7 @@ class LayerRegion
     PolylineCollection unsupported_bridge_edges;
 
     // ordered collection of extrusion paths/loops to build all perimeters
-    // (this collection contains both ExtrusionPath and ExtrusionLoop objects)
+    // (this collection contains only ExtrusionEntityCollection objects)
     ExtrusionEntityCollection perimeters;
 
     // ordered collection of extrusion paths to fill surfaces

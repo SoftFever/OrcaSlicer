@@ -306,8 +306,8 @@ sub process_layer {
             ($layer->id > 0 || $self->print->config->brim_width == 0)
                 && ($layer->id >= $self->print->config->skirt_height && !$self->print->has_infinite_skirt)
                 && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions})
-                && !defined(first { @{$_->perimeters} > 1 } @{$layer->regions})
-                && !defined(first { @{$_->fills} > 0 } @{$layer->regions})
+                && !defined(first { $_->perimeters->items_count > 1 } @{$layer->regions})
+                && !defined(first { $_->fills->items_count > 0 } @{$layer->regions})
         );
     }
     

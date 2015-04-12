@@ -26,6 +26,8 @@
     Clone<Point> last_point();
     int count()
         %code{% RETVAL = THIS->entities.size(); %};
+    int items_count()
+        %code{% RETVAL = THIS->items_count(); %};
     bool empty()
         %code{% RETVAL = THIS->entities.empty(); %};
     std::vector<size_t> orig_indices()

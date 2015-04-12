@@ -35,6 +35,9 @@ enum ExtrusionLoopRole {
 class ExtrusionEntity
 {
     public:
+    virtual bool is_collection() const {
+        return false;
+    };
     virtual bool is_loop() const {
         return false;
     };
