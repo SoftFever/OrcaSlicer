@@ -126,6 +126,14 @@ Layer::make_slices()
     }
 }
 
+void
+Layer::merge_slices()
+{
+    FOREACH_LAYERREGION(this, layerm) {
+        (*layerm)->merge_slices();
+    }
+}
+
 template <class T>
 bool
 Layer::any_internal_region_slice_contains(const T &item) const

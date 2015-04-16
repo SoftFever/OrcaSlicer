@@ -71,6 +71,7 @@
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
     
     void make_slices();
+    void merge_slices();
     bool any_internal_region_slice_contains_polyline(Polyline* polyline)
         %code%{ RETVAL = THIS->any_internal_region_slice_contains(*polyline); %};
     bool any_bottom_region_slice_contains_polyline(Polyline* polyline)
