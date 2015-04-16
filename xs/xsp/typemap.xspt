@@ -173,6 +173,12 @@
 %typemap{SupportLayerPtrs*};
 
 
+%typemap{Axis}{parsed}{
+  %cpp_type{Axis};
+  %precall_code{%
+    $CVar = (Axis)SvUV($PerlVar);
+  %};
+};
 %typemap{SurfaceType}{parsed}{
   %cpp_type{SurfaceType};
   %precall_code{%

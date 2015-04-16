@@ -87,4 +87,16 @@ simplify_polygons(polygons, tolerance)
     OUTPUT:
         RETVAL
 
+IV
+_constant()
+  ALIAS:
+    X           = X
+    Y           = Y
+    Z           = Z
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
 %}
+

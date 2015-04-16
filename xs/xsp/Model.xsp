@@ -182,6 +182,8 @@ ModelMaterial::attributes()
     void translate(double x, double y, double z);
     void scale_xyz(Pointf3* versor)
         %code{% THIS->scale(*versor); %};
+    void rotate(float angle, Axis axis);
+    void flip(Axis axis);
     
     Model* cut(double z)
         %code%{

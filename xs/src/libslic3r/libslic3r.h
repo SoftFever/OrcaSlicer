@@ -17,7 +17,12 @@
 typedef long coord_t;
 typedef double coordf_t;
 
-namespace Slic3r {}
+namespace Slic3r {
+
+// TODO: make sure X = 0
+enum Axis { X, Y, Z };
+
+}
 using namespace Slic3r;
 
 /* Implementation of CONFESS("foo"): */

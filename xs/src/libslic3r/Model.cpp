@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include "Geometry.hpp"
 
 namespace Slic3r {
 
@@ -510,6 +511,29 @@ ModelObject::scale(const Pointf3 &versor)
     }
     
     // reset origin translation since it doesn't make sense anymore
+    this->origin_translation = Pointf3(0,0,0);
+    this->invalidate_bounding_box();
+}
+
+void
+ModelObject::rotate(float angle, const Axis &axis)
+{
+    // we accept angle in radians but mesh currently uses degrees
+    angle = Slic3r::Geometry::rad2deg(angle);
+    
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        (*v)->mesh.rotate(angle, axis);
+    }
+    this->origin_translation = Pointf3(0,0,0);
+    this->invalidate_bounding_box();
+}
+
+void
+ModelObject::flip(const Axis &axis)
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        (*v)->mesh.flip(axis);
+    }
     this->origin_translation = Pointf3(0,0,0);
     this->invalidate_bounding_box();
 }
