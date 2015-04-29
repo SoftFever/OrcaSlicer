@@ -152,13 +152,15 @@ sub _arrange {
     my ($self, $sizes, $distance, $bb) = @_;
     
     # we supply unscaled data to arrange()
-    return Slic3r::Geometry::arrange(
+    return @{Slic3r::Geometry::arrange(
         scalar(@$sizes),                # number of parts
-        max(map $_->x, @$sizes),        # cell width
-        max(map $_->y, @$sizes),        # cell height ,
+        Slic3r::Pointf->new(
+            max(map $_->x, @$sizes),        # cell width
+            max(map $_->y, @$sizes),        # cell height  ,
+        ),
         $distance,                      # distance between cells
         $bb,                            # bounding box of the area to fill (can be undef)
-    );
+    )};
 }
 
 sub print_info {

@@ -161,6 +161,133 @@ simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
     Slic3r::simplify_polygons(pp, retval);
 }
 
+double
+linint(double value, double oldmin, double oldmax, double newmin, double newmax)
+{
+    return (value - oldmin) * (newmax - newmin) / (oldmax - oldmin) + newmin;
+}
+
+Pointfs
+arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf &bb)
+{
+    // use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
+    part.x += dist;
+    part.y += dist;
+    
+    Pointf area;
+    if (bb.defined) {
+        area = bb.size();
+    } else {
+        // bogus area size, large enough not to trigger the error below
+        area.x = part.x * total_parts;
+        area.y = part.y * total_parts;
+    }
+    
+    // this is how many cells we have available into which to put parts
+    size_t cellw = floor((area.x + dist) / part.x);
+    size_t cellh = floor((area.x + dist) / part.x);
+    
+    if (total_parts > (cellw * cellh))
+        CONFESS("%zu parts won't fit in your print area!\n", total_parts);
+    
+    // total space used by cells
+    Pointf cells(cellw * part.x, cellh * part.y);
+    
+    // bounding box of total space used by cells
+    BoundingBoxf cells_bb;
+    cells_bb.merge(Pointf(0,0)); // min
+    cells_bb.merge(cells);  // max
+    
+    // center bounding box to area
+    cells_bb.translate(
+        -(area.x - cells.x) / 2,
+        -(area.y - cells.y) / 2
+    );
+    
+    // list of cells, sorted by distance from center
+    std::vector<ArrangeItemIndex> cellsorder;
+    
+    // work out distance for all cells, sort into list
+    for (size_t i = 0; i <= cellw-1; ++i) {
+        for (size_t j = 0; j <= cellh-1; ++j) {
+            coordf_t cx = linint(i + 0.5, 0, cellw, cells_bb.min.x, cells_bb.max.x);
+            coordf_t cy = linint(j + 0.5, 0, cellh, cells_bb.max.y, cells_bb.min.y);
+            
+            coordf_t xd = fabs((area.x / 2) - cx);
+            coordf_t yd = fabs((area.y / 2) - cy);
+            
+            ArrangeItem c;
+            c.pos.x = cx;
+            c.pos.y = cy;
+            c.index_x = i;
+            c.index_y = j;
+            c.dist = xd * xd + yd * yd - fabs((cellw / 2) - (i + 0.5));
+            
+            // binary insertion sort
+            {
+                coordf_t index = c.dist;
+                size_t low = 0;
+                size_t high = cellsorder.size();
+                while (low < high) {
+                    size_t mid = (low + ((high - low) / 2)) | 0;
+                    coordf_t midval = cellsorder[mid].index;
+                    
+                    if (midval < index) {
+                        low = mid + 1;
+                    } else if (midval > index) {
+                        high = mid;
+                    } else {
+                        cellsorder.insert(cellsorder.begin() + mid, ArrangeItemIndex(index, c));
+                        goto ENDSORT;
+                    }
+                }
+                cellsorder.insert(cellsorder.begin() + low, ArrangeItemIndex(index, c));
+            }
+            ENDSORT: true;
+        }
+    }
+    
+    // the extents of cells actually used by objects
+    coordf_t lx = 0;
+    coordf_t ty = 0;
+    coordf_t rx = 0;
+    coordf_t by = 0;
+
+    // now find cells actually used by objects, map out the extents so we can position correctly
+    for (size_t i = 1; i <= total_parts; ++i) {
+        ArrangeItemIndex c = cellsorder[i - 1];
+        coordf_t cx = c.item.index_x;
+        coordf_t cy = c.item.index_y;
+        if (i == 1) {
+            lx = rx = cx;
+            ty = by = cy;
+        } else {
+            if (cx > rx) rx = cx;
+            if (cx < lx) lx = cx;
+            if (cy > by) by = cy;
+            if (cy < ty) ty = cy;
+        }
+    }
+    // now we actually place objects into cells, positioned such that the left and bottom borders are at 0
+    Pointfs positions;
+    for (size_t i = 1; i <= total_parts; ++i) {
+        ArrangeItemIndex c = cellsorder.front();
+        cellsorder.erase(cellsorder.begin());
+        coordf_t cx = c.item.index_x - lx;
+        coordf_t cy = c.item.index_y - ty;
+        
+        positions.push_back(Pointf(cx * part.x, cy * part.y));
+    }
+    
+    if (bb.defined) {
+        for (Pointfs::iterator p = positions.begin(); p != positions.end(); ++p) {
+            p->x += bb.min.x;
+            p->y += bb.min.y;
+        }
+    }
+    return positions;
+}
+
 Line
 MedialAxis::edge_to_line(const VD::edge_type &edge) const
 {

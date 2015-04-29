@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -31,4 +31,11 @@ use constant PI => 4 * atan2(1, 1);
     ok !Slic3r::Geometry::directions_parallel_within(PI/2, PI, 0), 'directions_parallel_within';
     ok !Slic3r::Geometry::directions_parallel_within(PI/2, PI, PI/180), 'directions_parallel_within';
 }
+
+{
+    my $positions = Slic3r::Geometry::arrange(4, Slic3r::Pointf->new(20, 20),
+        5, Slic3r::Geometry::BoundingBoxf->new);
+    is scalar(@$positions), 4, 'arrange() returns expected number of positions';
+}
+
 __END__
