@@ -222,8 +222,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "thin_walls"
             || *opt_key == "external_perimeters_first") {
             steps.insert(posPerimeters);
-        } else if (*opt_key == "resolution"
-            || *opt_key == "layer_height"
+        } else if (*opt_key == "layer_height"
             || *opt_key == "first_layer_height"
             || *opt_key == "xy_size_compensation"
             || *opt_key == "raft_layers") {
