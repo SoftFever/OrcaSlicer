@@ -432,6 +432,11 @@ sub expanded_output_filepath {
     $self->placeholder_parser->set(input_filename => $filename);
     $self->placeholder_parser->set(input_filename_base => $filename_base);
     
+    # set other variables from model object
+    $self->placeholder_parser->set_multiple(
+        scale => [ map $_->model_object->instances->[0]->scaling_factor * 100 . "%", @{$self->objects} ],
+    );
+    
     if ($path && -d $path) {
         # if output path is an existing directory, we take that and append
         # the specified filename format
