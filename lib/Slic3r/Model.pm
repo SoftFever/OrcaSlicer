@@ -150,6 +150,8 @@ sub duplicate {
 
 sub _arrange {
     my ($self, $sizes, $distance, $bb) = @_;
+
+    $bb //= Slic3r::Geometry::BoundingBoxf->new;
     
     # we supply unscaled data to arrange()
     return @{Slic3r::Geometry::arrange(
