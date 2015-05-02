@@ -3,7 +3,6 @@
 #include "MultiPoint.hpp"
 #include <algorithm>
 #include <cmath>
-#include <sstream>
 
 namespace Slic3r {
 
@@ -339,6 +338,12 @@ Point::from_SV_check(SV* point_sv)
 REGISTER_CLASS(Point3, "Point3");
 
 #endif
+
+std::ostream&
+operator<<(std::ostream &stm, const Pointf &pointf)
+{
+    return stm << pointf.x << "," << pointf.y;
+}
 
 void
 Pointf::scale(double factor)

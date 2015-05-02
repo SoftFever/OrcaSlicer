@@ -29,22 +29,14 @@ PlaceholderParser::update_timestamp()
         ss << std::setw(2) << std::setfill('0') << timeinfo->tm_hour;
         ss << std::setw(2) << std::setfill('0') << timeinfo->tm_min;
         ss << std::setw(2) << std::setfill('0') << timeinfo->tm_sec;
-        this->_single["timestamp"] = ss.str();
+        this->set("timestamp", ss.str());
     }
-    this->_single["year"]   = this->_int_to_string(1900 + timeinfo->tm_year);
-    this->_single["month"]  = this->_int_to_string(1 + timeinfo->tm_mon);
-    this->_single["day"]    = this->_int_to_string(timeinfo->tm_mday);
-    this->_single["hour"]   = this->_int_to_string(timeinfo->tm_hour);
-    this->_single["minute"] = this->_int_to_string(timeinfo->tm_min);
-    this->_single["second"] = this->_int_to_string(timeinfo->tm_sec);
-}
-
-std::string
-PlaceholderParser::_int_to_string(int value) const
-{
-    std::ostringstream ss;
-    ss << value;
-    return ss.str();
+    this->set("year",   1900 + timeinfo->tm_year);
+    this->set("month",  1 + timeinfo->tm_mon);
+    this->set("day",    timeinfo->tm_mday);
+    this->set("hour",   timeinfo->tm_hour);
+    this->set("minute", timeinfo->tm_min);
+    this->set("second", timeinfo->tm_sec);
 }
 
 void PlaceholderParser::apply_config(DynamicPrintConfig &config)
@@ -66,53 +58,20 @@ void PlaceholderParser::apply_config(DynamicPrintConfig &config)
         i != opt_keys.end(); ++i)
     {
         const t_config_option_key &key = *i;
-
-        // set placeholders for options with multiple values
-        const ConfigOptionDef &def = (*config.def)[key];
-        switch (def.type) {
-        case coFloats:
-            this->set_multiple_from_vector(key,
-                        *(ConfigOptionFloats*)config.option(key));
-            break;
-
-        case coInts:
-            this->set_multiple_from_vector(key,
-                        *(ConfigOptionInts*)config.option(key));
-            break;
-
-        case coStrings:
-            this->set_multiple_from_vector(key,
-                        *(ConfigOptionStrings*)config.option(key));
-            break;
-
-        case coPoints:
-            this->set_multiple_from_vector(key,
-                        *(ConfigOptionPoints*)config.option(key));
-            break;
-
-        case coBools:
-            this->set_multiple_from_vector(key,
-                        *(ConfigOptionBools*)config.option(key));
-            break;
-
-        case coPoint:
-            {
-                const ConfigOptionPoint &opt =
-                    *(ConfigOptionPoint*)config.option(key);
-
-                this->_single[key] = opt.serialize();
-
-                Pointf val = opt;
-                this->_multiple[key + "_X"] = val.x;
-                this->_multiple[key + "_Y"] = val.y;
-            }
-
-            break;
-
-        default:
+        const ConfigOption* opt = config.option(key);
+        
+        if (const ConfigOptionVectorBase* optv = dynamic_cast<const ConfigOptionVectorBase*>(opt)) {
+            // set placeholders for options with multiple values
+            this->set(key, optv->vserialize());
+        } else if (const ConfigOptionPoint* optp = dynamic_cast<const ConfigOptionPoint*>(opt)) {
+            this->_single[key] = optp->serialize();
+            
+            Pointf val = *optp;
+            this->_multiple[key + "_X"] = val.x;
+            this->_multiple[key + "_Y"] = val.y;
+        } else {
             // set single-value placeholders
-            this->_single[key] = config.serialize(key);
-            break;
+            this->_single[key] = opt->serialize();
         }
     }
 }
@@ -121,34 +80,30 @@ void
 PlaceholderParser::set(const std::string &key, const std::string &value)
 {
     this->_single[key] = value;
+    this->_multiple.erase(key);
 }
 
-std::ostream& operator<<(std::ostream &stm, const Pointf &pointf)
+void
+PlaceholderParser::set(const std::string &key, int value)
 {
-    return stm << pointf.x << "," << pointf.y;
+    std::ostringstream ss;
+    ss << value;
+    this->set(key, ss.str());
 }
 
-template<class T>
-void PlaceholderParser::set_multiple_from_vector(const std::string &key,
-    ConfigOptionVector<T> &opt)
+void
+PlaceholderParser::set(const std::string &key, const std::vector<std::string> &values)
 {
-    const std::vector<T> &vals = opt.values;
-
-    for (size_t i = 0; i < vals.size(); ++i) {
-        std::stringstream multikey_stm;
-        multikey_stm << key << "_" << i;
-
-        std::stringstream val_stm;
-        val_stm << vals[i];
-
-        this->_multiple[multikey_stm.str()] = val_stm.str();
+    for (std::vector<std::string>::const_iterator v = values.begin(); v != values.end(); ++v) {
+        std::stringstream ss;
+        ss << key << "_" << (v - values.begin());
+        
+        this->_multiple[ ss.str() ] = *v;
+        if (v == values.begin()) {
+            this->_multiple[key] = *v;
+        }
     }
-
-    if (vals.size() > 0) {
-        std::stringstream val_stm;
-        val_stm << vals[0];
-        this->_multiple[key] = val_stm.str();
-    }
+    this->_single.erase(key);
 }
 
 #ifdef SLIC3RXS
