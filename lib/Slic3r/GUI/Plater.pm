@@ -704,14 +704,14 @@ sub rotate {
     $self->stop_background_process;
     
     if ($axis == Z) {
-        my $new_angle = $model_instance->rotation + $angle;
+        my $new_angle = $model_instance->rotation + deg2rad($angle);
         $_->set_rotation($new_angle) for @{ $model_object->instances };
         $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
         # rotation around X and Y needs to be performed on mesh
         # so we first apply any Z rotation
         if ($model_instance->rotation != 0) {
-            $model_object->rotate(deg2rad($model_instance->rotation), Z);
+            $model_object->rotate($model_instance->rotation, Z);
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         $model_object->rotate(deg2rad($angle), $axis);
@@ -741,7 +741,7 @@ sub flip {
     
     # apply Z rotation before flipping
     if ($model_instance->rotation != 0) {
-        $model_object->rotate(deg2rad($model_instance->rotation), Z);
+        $model_object->rotate($model_instance->rotation, Z);
         $_->set_rotation(0) for @{ $model_object->instances };
     }
     
@@ -780,7 +780,7 @@ sub changescale {
         
         # apply Z rotation before scaling
         if ($model_instance->rotation != 0) {
-            $model_object->rotate(deg2rad($model_instance->rotation), Z);
+            $model_object->rotate($model_instance->rotation, Z);
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         
@@ -1730,7 +1730,7 @@ sub transform_thumbnail {
     # the order of these transformations MUST be the same everywhere, including
     # in Slic3r::Print->add_model_object()
     my $t = $self->thumbnail->clone;
-    $t->rotate(deg2rad($model_instance->rotation), Slic3r::Point->new(0,0));
+    $t->rotate($model_instance->rotation, Slic3r::Point->new(0,0));
     $t->scale($model_instance->scaling_factor);
     
     $self->transformed_thumbnail($t);

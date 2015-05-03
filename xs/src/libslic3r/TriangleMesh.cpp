@@ -202,6 +202,9 @@ void TriangleMesh::translate(float x, float y, float z)
 
 void TriangleMesh::rotate(float angle, const Axis &axis)
 {
+    // admesh uses degrees
+    angle = Slic3r::Geometry::rad2deg(angle);
+    
     if (axis == X) {
         stl_rotate_x(&(this->stl), angle);
     } else if (axis == Y) {

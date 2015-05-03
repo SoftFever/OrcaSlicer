@@ -485,7 +485,7 @@ ModelObject::center_around_origin()
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
             Vectorf3 v = vector.negative();
-            v.rotate(Slic3r::Geometry::deg2rad((*i)->rotation), (*i)->offset);
+            v.rotate((*i)->rotation, (*i)->offset);
             v.scale((*i)->scaling_factor);
             (*i)->offset.translate(v.x, v.y);
         }
@@ -523,9 +523,6 @@ ModelObject::scale(const Pointf3 &versor)
 void
 ModelObject::rotate(float angle, const Axis &axis)
 {
-    // we accept angle in radians but mesh currently uses degrees
-    angle = Slic3r::Geometry::rad2deg(angle);
-    
     for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
         (*v)->mesh.rotate(angle, axis);
     }

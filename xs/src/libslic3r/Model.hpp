@@ -177,7 +177,7 @@ class ModelInstance
 {
     friend class ModelObject;
     public:
-    double rotation;            // around mesh center point
+    double rotation;            // in radians around mesh center point
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
     
