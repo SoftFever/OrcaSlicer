@@ -327,12 +327,12 @@ sub process_layer {
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
     $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->before_layer_gcode, {
-        layer_num => $layer->id,
+        layer_num => $self->_gcodegen->layer_index + 1,
         layer_z   => $layer->print_z,
     }) . "\n" if $self->print->config->before_layer_gcode;
-    $gcode .= $self->_gcodegen->change_layer($layer);
+    $gcode .= $self->_gcodegen->change_layer($layer);  # this will increase $self->_gcodegen->layer_index
     $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->layer_gcode, {
-        layer_num => $layer->id,
+        layer_num => $self->_gcodegen->layer_index,
         layer_z   => $layer->print_z,
     }) . "\n" if $self->print->config->layer_gcode;
     

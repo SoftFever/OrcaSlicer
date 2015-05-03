@@ -21,7 +21,7 @@ has 'avoid_crossing_perimeters' => (is => 'rw', default => sub { Slic3r::GCode::
 has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
 has 'enable_cooling_markers' => (is =>'rw', default => sub {0});
 has 'layer_count'        => (is => 'ro');
-has '_layer_index'       => (is => 'rw', default => sub {-1});  # just a counter
+has 'layer_index'        => (is => 'rw', default => sub {-1});  # just a counter
 has 'layer'              => (is => 'rw');
 has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => pos
 has 'first_layer'        => (is => 'rw', default => sub {0});   # this flag triggers first layer speeds
@@ -76,7 +76,7 @@ sub change_layer {
     my ($self, $layer) = @_;
     
     $self->layer($layer);
-    $self->_layer_index($self->_layer_index + 1);
+    $self->layer_index($self->layer_index + 1);
     $self->first_layer($layer->id == 0);
     
     # avoid computing islands and overhangs if they're not needed
@@ -88,14 +88,14 @@ sub change_layer {
     
     my $gcode = "";
     if (defined $self->layer_count) {
-        $gcode .= $self->writer->update_progress($self->_layer_index, $self->layer_count);
+        $gcode .= $self->writer->update_progress($self->layer_index, $self->layer_count);
     }
     
     my $z = $layer->print_z + $self->config->z_offset;  # in unscaled coordinates
     if ($self->config->get_at('retract_layer_change', $self->writer->extruder->id) && $self->writer->will_move_z($z)) {
         $gcode .= $self->retract;
     }
-    $gcode .= $self->writer->travel_to_z($z, 'move to next layer (' . $self->layer->id . ')');
+    $gcode .= $self->writer->travel_to_z($z, 'move to next layer (' . $self->layer_index . ')');
     
     # forget last wiping path as wiping after raising Z is pointless
     $self->wipe->path(undef);
