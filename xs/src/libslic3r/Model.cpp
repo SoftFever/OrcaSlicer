@@ -482,7 +482,12 @@ ModelObject::center_around_origin()
     
     if (!this->instances.empty()) {
         for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i) {
-            (*i)->offset.translate(-vector.x, -vector.y);
+            // apply rotation and scaling to vector as well before translating instance,
+            // in order to leave final position unaltered
+            Vectorf3 v = vector.negative();
+            v.rotate(Slic3r::Geometry::deg2rad((*i)->rotation), (*i)->offset);
+            v.scale((*i)->scaling_factor);
+            (*i)->offset.translate(v.x, v.y);
         }
         this->update_bounding_box();
     }
