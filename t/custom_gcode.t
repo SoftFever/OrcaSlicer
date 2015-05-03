@@ -1,4 +1,4 @@
-use Test::More tests => 13;
+use Test::More tests => 15;
 use strict;
 use warnings;
 
@@ -7,6 +7,7 @@ BEGIN {
     use lib "$FindBin::Bin/../lib";
 }
 
+use List::Util qw(first);
 use Slic3r;
 use Slic3r::Test;
 
@@ -102,6 +103,31 @@ use Slic3r::Test;
         ok $gcode =~ /temp1:205/, 'temperature placeholder for second extruder correctly populated';
         ok $gcode =~ /temp2:200/, 'temperature placeholder for unused extruder populated with first value';
     }
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('before_layer_gcode', ';BEFORE [layer_num]');
+    $config->set('layer_gcode', ';CHANGE [layer_num]');
+    $config->set('support_material', 1);
+    $config->set('layer_height', 0.2);
+    my $print = Slic3r::Test::init_print('overhang', config => $config);
+    my $gcode = Slic3r::Test::gcode($print);
+    
+    my @before = ();
+    my @change = ();
+    foreach my $line (split /\R+/, $gcode) {
+        if ($line =~ /;BEFORE (\d+)/) {
+            push @before, $1;
+        } elsif ($line =~ /;CHANGE (\d+)/) {
+            push @change, $1;
+            fail 'inconsistent layer_num before and after layer change'
+                if $1 != $before[-1];
+        }
+    }
+    is_deeply \@before, \@change, 'layer_num is consistent before and after layer changes';
+    ok !defined(first { $change[$_] != $change[$_-1]+1 } 1..$#change),
+        'layer_num grows continously';  # i.e. no duplicates or regressions
 }
 
 __END__
