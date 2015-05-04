@@ -99,6 +99,7 @@ sub new {
     });
     EVT_TREE_SEL_CHANGED($self, $tree, sub {
         my ($self, $event) = @_;
+        return if $self->{disable_tree_sel_changed_event};
         $self->selection_changed;
     });
     EVT_BUTTON($self, $self->{btn_load_part}, sub { $self->on_btn_load(0) });
@@ -118,7 +119,14 @@ sub reload_tree {
     my $tree    = $self->{tree};
     my $rootId  = $tree->GetRootItem;
     
+    # despite wxWidgets states that DeleteChildren "will not generate any events unlike Delete() method",
+    # the MSW implementation of DeleteChildren actually calls Delete() for each item, so
+    # EVT_TREE_SEL_CHANGED is being called, with bad effects (the event handler is called; this 
+    # subroutine is never continued; an invisible EndModal is called on the dialog causing Plater
+    # to continue its logic and rescheduling the background process etc. GH #2774)
+    $self->{disable_tree_sel_changed_event} = 1;
     $tree->DeleteChildren($rootId);
+    $self->{disable_tree_sel_changed_event} = 0;
     
     my $selectedId = $rootId;
     foreach my $volume_id (0..$#{$object->volumes}) {
