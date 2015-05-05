@@ -170,15 +170,21 @@ sub _init_menubar {
         $fileMenu->AppendSeparator();
         my $repeat;
         $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice file', sub {
-            $self->quick_slice;
-            $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+            wxTheApp->CallAfter(sub {
+                $self->quick_slice;
+                $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+            });
         });
         $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as', sub {
-            $self->quick_slice(save_as => 1);
-            $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+            wxTheApp->CallAfter(sub {
+                $self->quick_slice(save_as => 1);
+                $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+            });
         });
         $repeat = $self->_append_menu_item($fileMenu, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice', sub {
-            $self->quick_slice(reslice => 1);
+            wxTheApp->CallAfter(sub {
+                $self->quick_slice(reslice => 1);
+            });
         });
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();

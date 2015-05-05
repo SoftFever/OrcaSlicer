@@ -683,6 +683,7 @@ sub rotate {
     my $self = shift;
     my ($angle, $axis) = @_;
     
+    # angle is in degrees
     $axis //= Z;
     
     my ($obj_idx, $object) = $self->selected_object;
