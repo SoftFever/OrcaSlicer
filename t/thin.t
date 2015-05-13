@@ -1,4 +1,4 @@
-use Test::More tests => 14;
+use Test::More tests => 16;
 use strict;
 use warnings;
 
@@ -131,6 +131,17 @@ if (0) {
     
     my $perimeter = $expolygon->contour->split_at_first_point->length;
     ok sum(map $_->length, @$polylines) > $perimeter/2/4*3, 'medial axis has a reasonable length';
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
+        [50, 100],
+        [300, 102],
+        [50, 104],
+    ));
+    my $res = $expolygon->medial_axis(scale 4, scale 0.5);
+    is scalar(@$res), 1, 'medial axis of a narrow triangle is a single line';
+    ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
 }
 
 __END__

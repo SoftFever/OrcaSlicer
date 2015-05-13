@@ -54,7 +54,7 @@ class MedialAxis {
     Line edge_to_line(const VD::edge_type &edge) const;
     void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge, Points* points);
     bool is_valid_edge(const voronoi_diagram<double>::edge_type& edge) const;
-    Line retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
+    const Line& retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
 };
 
 } }

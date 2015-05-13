@@ -133,12 +133,12 @@ sub process {
                         
                         # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         # (actually, something larger than that still may exist due to mitering or other causes)
-                        my $min_width = $pwidth / 4;
+                        my $min_width = $ext_pwidth / 4;
                         @thin_walls = @{offset2_ex($diff, -$min_width/2, +$min_width/2)};
-        
+                        
                         # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-                        @thin_walls = grep $_->length > $pwidth*2,
-                            map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls;
+                        @thin_walls = grep $_->length > $ext_pwidth*2,
+                            map @{$_->medial_axis($ext_pwidth + $ext_pspacing, $min_width)}, @thin_walls;
                         Slic3r::debugf "  %d thin walls detected\n", scalar(@thin_walls) if $Slic3r::debug;
         
                         if (0) {

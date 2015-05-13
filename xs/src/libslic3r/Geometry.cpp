@@ -449,69 +449,67 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
        "thin" nature of our input, these edges will be very short and not part of
        our wanted output. */
     
+    // retrieve the original line segments which generated the edge we're checking
     const VD::cell_type &cell1 = *edge.cell();
     const VD::cell_type &cell2 = *edge.twin()->cell();
-    if (cell1.contains_segment() && cell2.contains_segment()) {
-        Line segment1 = this->retrieve_segment(cell1);
-        Line segment2 = this->retrieve_segment(cell2);
-        if (segment1.a == segment2.b || segment1.b == segment2.a) return false;
-        
-        // calculate relative angle between the two boundary segments
-        double angle = fabs(segment2.orientation() - segment1.orientation());
-        
-        // fabs(angle) ranges from 0 (collinear, same direction) to PI (collinear, opposite direction)
-        // we're interested only in segments close to the second case (facing segments)
-        // so we allow some tolerance (say, 30°)
-        if (angle < PI*2/3 ) {
-            return false;
-        }
-        
-        // each vertex is equidistant to both cell segments
-        // but such distance might differ between the two vertices;
-        // in this case it means the shape is getting narrow (like a corner)
-        // and we might need to skip the edge since it's not really part of
-        // our skeleton
-        Point v0( edge.vertex0()->x(), edge.vertex0()->y() );
-        Point v1( edge.vertex1()->x(), edge.vertex1()->y() );
-        double dist0 = v0.perp_distance_to(segment1);
-        double dist1 = v1.perp_distance_to(segment1);
-        
-        /*
-        double diff = fabs(dist1 - dist0);
-        double dist_between_segments1 = segment1.a.distance_to(segment2);
-        double dist_between_segments2 = segment1.b.distance_to(segment2);
-        printf("w = %f/%f, dist0 = %f, dist1 = %f, diff = %f, seg1len = %f, seg2len = %f, edgelen = %f, s2s = %f / %f\n",
-            unscale(this->max_width), unscale(this->min_width),
-            unscale(dist0), unscale(dist1), unscale(diff),
-            unscale(segment1.length()), unscale(segment2.length()),
-            unscale(this->edge_to_line(edge).length()),
-            unscale(dist_between_segments1), unscale(dist_between_segments2)
-            );
-        */
-        
-        // if this segment is the centerline for a very thin area, we might want to skip it
-        // in case the area is too thin
-        if (dist0 < this->min_width/2 || dist1 < this->min_width/2) {
-            //printf(" => too thin, skipping\n");
-            return false;
-        }
-        
-        /*
-        // if distance between this edge and the thin area boundary is greater
-        // than half the max width, then it's not a true medial axis segment
-        if (dist1 > this->width*2) {
-            printf(" => too fat, skipping\n");
-            //return false;
-        }
-        */
-        
-        return true;
+    if (!cell1.contains_segment() || !cell2.contains_segment()) return false;
+    const Line &segment1 = this->retrieve_segment(cell1);
+    const Line &segment2 = this->retrieve_segment(cell2);
+    
+    // calculate the relative angle between the two boundary segments
+    double angle = fabs(segment2.orientation() - segment1.orientation());
+    if (angle > PI) angle -= PI;
+    
+    // fabs(angle) ranges from 0 (collinear, same direction) to PI (collinear, opposite direction)
+    // we're interested only in segments close to the second case (facing segments)
+    // so we allow some tolerance (say, 30°)
+    if (angle < PI*2/3) {
+        return false;
     }
     
-    return false;
+    // each edge vertex is equidistant to both cell segments
+    // but such distance might differ between the two vertices;
+    // in this case it means the shape is getting narrow (like a corner)
+    // and we might need to skip the edge since it's not really part of
+    // our skeleton
+    
+    // get perpendicular distance of each edge vertex to the segment(s)
+    Line line = this->edge_to_line(edge);
+    double dist0 = line.a.perp_distance_to(segment1);
+    double dist1 = line.b.perp_distance_to(segment1);
+    
+    /*
+    double diff = fabs(dist1 - dist0);
+    double dist_between_segments1 = segment1.a.distance_to(segment2);
+    double dist_between_segments2 = segment1.b.distance_to(segment2);
+    printf("w = %f/%f, dist0 = %f, dist1 = %f, diff = %f, seg1len = %f, seg2len = %f, edgelen = %f, s2s = %f / %f\n",
+        unscale(this->max_width), unscale(this->min_width),
+        unscale(dist0), unscale(dist1), unscale(diff),
+        unscale(segment1.length()), unscale(segment2.length()),
+        unscale(line.length()),
+        unscale(dist_between_segments1), unscale(dist_between_segments2)
+        );
+    */
+
+    // if this edge is the centerline for a very thin area, we might want to skip it
+    // in case the area is too thin
+    if (dist0 < this->min_width/2 && dist1 < this->min_width/2) {
+        //printf(" => too thin, skipping\n");
+        return false;
+    }
+    
+    // if only one of the two edge vertices is the centerline of a very narrow area,
+    // it means the shape is shrinking on that size (dist0 or dist1 might be even 0
+    // when we have a narrow triangle), so in this case we only keep the edge if it's
+    // long enough, otherwise it's an artifact
+    if (dist0 < this->min_width/2 || dist1 < this->min_width/2) {
+        if (line.length() < this->max_width) return false;
+    }
+
+    return true;
 }
 
-Line
+const Line&
 MedialAxis::retrieve_segment(const VD::cell_type& cell) const
 {
     VD::cell_type::source_index_type index = cell.source_index() - this->points.size();
