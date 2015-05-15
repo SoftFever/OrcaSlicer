@@ -593,7 +593,7 @@ sub Resize {
         -$x/2, $x/2, -$y/2, $y/2,
         -$depth, 2*$depth,
     );
- 
+    
     glMatrixMode(GL_MODELVIEW);
 }
  
