@@ -225,8 +225,8 @@ sub make_skirt {
     my $skirt_height_z = -1;
     foreach my $object (@{$self->objects}) {
         my $skirt_height = $self->has_infinite_skirt
-            ? scalar(@{$object->layers})
-            : min($self->config->skirt_height, scalar(@{$object->layers}));
+            ? $object->layer_count
+            : min($self->config->skirt_height, $object->layer_count);
         my $highest_layer = $object->get_layer($skirt_height - 1);
         $skirt_height_z = max($skirt_height_z, $highest_layer->print_z);
     }
