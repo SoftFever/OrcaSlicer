@@ -84,7 +84,7 @@ sub reload_print {
     }
     
     $self->{canvas}->bb($self->print->total_bounding_box);
-    $self->{canvas}->Resize;
+    $self->{canvas}->_dirty(1);
     
     my %z = ();  # z => 1
     foreach my $object (@{$self->{print}->objects}) {
@@ -169,14 +169,18 @@ sub new {
         $zoom = max(min($zoom, 4), -4);
         $zoom /= 10;
         $self->_zoom($self->_zoom / (1-$zoom));
-        $self->_zoom(1) if $self->_zoom > 1;
+        $self->_zoom(1) if $self->_zoom > 1;  # prevent from zooming out too much
         
-        # In order to zoom around the mouse point we need to translate
-        # the camera target
-        my $size = Slic3r::Pointf->new($self->GetSizeWH);
-        my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
+        if (0) {
+            # In order to zoom around the mouse point we need to translate
+            # the camera target
+            my $camera_bb_size = $self->_camera_bb->size;
+            my $size = Slic3r::Pointf->new($self->GetSizeWH);
+            my $pos = Slic3r::Pointf->new($e->GetPositionXY);
+            # TODO...
+        }
+        
         $self->_dirty(1);
-        $self->Resize;
         $self->Refresh;
     });
     EVT_MOUSE_EVENTS($self, \&mouse_event);
@@ -202,28 +206,13 @@ sub mouse_event {
                 my ($x, $y) = $self->GetSizeWH;
                 my $camera_bb_size = $self->_camera_bb->size;
                 
-                my @translate = (
+                # compute translation in model units
+                $self->_camera_target->translate(
                     -$move->x * $camera_bb_size->x / $x,
                      $move->y * $camera_bb_size->y / $y,   # /**
                 );
                 
-                # keep camera_bb within total bb
-                if ($self->_camera_bb->x_min < $self->bb->x_min) {
-                    $translate[X] += $self->bb->x_min - $self->_camera_bb->x_min;
-                }
-                if ($self->_camera_bb->y_min < $self->bb->y_min) {
-                    $translate[Y] += $self->bb->y_min - $self->_camera_bb->y_min;
-                }
-                if ($self->_camera_bb->x_max > $self->bb->x_max) {
-                    $translate[X] -= $self->_camera_bb->x_max - $self->bb->x_max;
-                }
-                if ($self->_camera_bb->y_max > $self->bb->y_max) {
-                    $translate[Y] -= $self->_camera_bb->y_max - $self->bb->y_max;
-                }
-                
-                $self->_camera_target->translate(@translate);
-                
-                $self->Resize;
+                $self->_dirty(1);
                 $self->Refresh;
             }
             $self->_drag_start_xy($pos);
@@ -494,6 +483,26 @@ sub Resize {
     
     # translate camera
     $bb->translate(@{$self->_camera_target});
+    
+    # keep camera_bb within total bb
+    # (i.e. prevent user from panning outside the bounding box)
+    {
+        my @translate = (0,0);
+        if ($bb->x_min < $self->bb->x_min) {
+            $translate[X] += $self->bb->x_min - $bb->x_min;
+        }
+        if ($bb->y_min < $self->bb->y_min) {
+            $translate[Y] += $self->bb->y_min - $bb->y_min;
+        }
+        if ($bb->x_max > $self->bb->x_max) {
+            $translate[X] -= $bb->x_max - $self->bb->x_max;
+        }
+        if ($bb->y_max > $self->bb->y_max) {
+            $translate[Y] -= $bb->y_max - $self->bb->y_max;
+        }
+        $self->_camera_target->translate(@translate);
+        $bb->translate(@translate);
+    }
     
     # save camera
     $self->_camera_bb($bb);
