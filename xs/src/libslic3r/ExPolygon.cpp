@@ -191,12 +191,25 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     // unless they represent closed loops
     for (Polylines::iterator polyline = polylines->begin(); polyline != polylines->end(); ++polyline) {
         if (polyline->points.front().distance_to(polyline->points.back()) < min_width) continue;
+        // TODO: we should *not* extend endpoints where other polylines start/end
+        // (such as T joints, which are returned as three polylines by MedialAxis)
         polyline->extend_start(max_width);
         polyline->extend_end(max_width);
     }
     
     // clip again after extending endpoints to prevent them from exceeding the expolygon boundaries
     intersection(*polylines, *this, polylines);
+    
+    // remove too short polylines
+    // (we can't do this check before endpoints extension and clipping because we don't
+    // know how long will the endpoints be extended since it depends on polygon thickness
+    // which is variable - extension will be <= max_width/2 on each side)
+    for (size_t i = 0; i < polylines->size(); ++i) {
+        if ((*polylines)[i].length() < max_width) {
+            polylines->erase(polylines->begin() + i);
+            --i;
+        }
+    }
 }
 
 void

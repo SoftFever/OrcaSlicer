@@ -325,8 +325,11 @@ MedialAxis::build(Polylines* polylines)
     }
     */
     
+    typedef const VD::vertex_type vert_t;
+    typedef const VD::edge_type   edge_t;
+    
     // collect valid edges (i.e. prune those not belonging to MAT)
-    // note: this keeps twins, so it contains twice the number of the valid edges
+    // note: this keeps twins, so it inserts twice the number of the valid edges
     this->edges.clear();
     for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge) {
         // if we only process segments representing closed loops, none if the
@@ -336,61 +339,64 @@ MedialAxis::build(Polylines* polylines)
     }
     
     // count valid segments for each vertex
-    std::map< const VD::vertex_type*,std::set<const VD::edge_type*> > vertex_edges;
-    std::set<const VD::vertex_type*> entry_nodes;
-    for (VD::const_vertex_iterator vertex = this->vd.vertices().begin(); vertex != this->vd.vertices().end(); ++vertex) {
-        // get a reference to the list of valid edges originating from this vertex
-        std::set<const VD::edge_type*>& edges = vertex_edges[&*vertex];
+    std::map< vert_t*,std::set<edge_t*> > vertex_edges;  // collects edges connected for each vertex
+    std::set<vert_t*> startpoints;                       // collects all vertices having a single starting edge
+    for (VD::const_vertex_iterator it = this->vd.vertices().begin(); it != this->vd.vertices().end(); ++it) {
+        vert_t* vertex = &*it;
         
-        // get one random edge originating from this vertex
-        const VD::edge_type* edge = vertex->incident_edge();
+        // loop through all edges originating from this vertex
+        // starting from a random one
+        edge_t* edge = vertex->incident_edge();
         do {
-            if (this->edges.count(edge) > 0)    // only count valid edges
-                edges.insert(edge);
-            edge = edge->rot_next();            // next edge originating from this vertex
+            // if this edge was not pruned by our filter above,
+            // add it to vertex_edges
+            if (this->edges.count(edge) > 0)
+                vertex_edges[vertex].insert(edge);
+            
+            // continue looping next edge originating from this vertex
+            edge = edge->rot_next();
         } while (edge != vertex->incident_edge());
         
-        // if there's only one edge starting at this vertex then it's a leaf
-        size_t edge_count = edges.size();
-        if (edge_count == 1) {
-            entry_nodes.insert(&*vertex);
+        // if there's only one edge starting at this vertex then it's an endpoint
+        if (vertex_edges[vertex].size() == 1) {
+            startpoints.insert(vertex);
         }
     }
     
-    // prune recursively
-    while (!entry_nodes.empty()) {
+    // prune startpoints recursively if extreme segments are not valid
+    while (!startpoints.empty()) {
         // get a random entry node
-        const VD::vertex_type* v = *entry_nodes.begin();
+        vert_t* v = *startpoints.begin();
     
         // get edge starting from v
-        assert(!vertex_edges[v].empty());
-        const VD::edge_type* edge = *vertex_edges[v].begin();
+        assert(vertex_edges[v].size() == 1);
+        edge_t* edge = *vertex_edges[v].begin();
         
         if (!this->is_valid_edge(*edge)) {
-            // if edge is not valid, erase it from edge list
+            // if edge is not valid, erase it and its twin from edge list
             (void)this->edges.erase(edge);
             (void)this->edges.erase(edge->twin());
             
             // decrement edge counters for the affected nodes
-            const VD::vertex_type* v1 = edge->vertex1();
+            vert_t* v1 = edge->vertex1();
             (void)vertex_edges[v].erase(edge);
             (void)vertex_edges[v1].erase(edge->twin());
             
             // also, check whether the end vertex is a new leaf
             if (vertex_edges[v1].size() == 1) {
-                entry_nodes.insert(v1);
+                startpoints.insert(v1);
             } else if (vertex_edges[v1].empty()) {
-                entry_nodes.erase(v1);
+                startpoints.erase(v1);
             }
         }
         
         // remove node from the set to prevent it from being visited again
-        entry_nodes.erase(v);
+        startpoints.erase(v);
     }
     
     // iterate through the valid edges to build polylines
     while (!this->edges.empty()) {
-        const VD::edge_type& edge = **this->edges.begin();
+        edge_t &edge = **this->edges.begin();
         
         // start a polyline
         Polyline polyline;
@@ -405,13 +411,14 @@ MedialAxis::build(Polylines* polylines)
         this->process_edge_neighbors(edge, &polyline.points);
         
         // get previous points
-        Points pp;
-        this->process_edge_neighbors(*edge.twin(), &pp);
-        polyline.points.insert(polyline.points.begin(), pp.rbegin(), pp.rend());
+        {
+            Points pp;
+            this->process_edge_neighbors(*edge.twin(), &pp);
+            polyline.points.insert(polyline.points.begin(), pp.rbegin(), pp.rend());
+        }
         
-        // append polyline to result if it's not too small
-        if (polyline.length() > this->max_width)
-            polylines->push_back(polyline);
+        // append polyline to result
+        polylines->push_back(polyline);
     }
 }
 
@@ -458,12 +465,12 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
     
     // calculate the relative angle between the two boundary segments
     double angle = fabs(segment2.orientation() - segment1.orientation());
-    if (angle > PI) angle -= PI;
     
     // fabs(angle) ranges from 0 (collinear, same direction) to PI (collinear, opposite direction)
     // we're interested only in segments close to the second case (facing segments)
-    // so we allow some tolerance (say, 30°)
-    if (angle < PI*2/3) {
+    // so we allow some tolerance.
+    // this filter ensures that we're dealing with a narrow/oriented area (longer than thick)
+    if (fabs(angle - PI) > PI/5) {
         return false;
     }
     
@@ -474,11 +481,11 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
     // our skeleton
     
     // get perpendicular distance of each edge vertex to the segment(s)
-    Line line = this->edge_to_line(edge);
-    double dist0 = line.a.perp_distance_to(segment1);
-    double dist1 = line.b.perp_distance_to(segment1);
+    double dist0 = segment1.a.distance_to(segment2.b);
+    double dist1 = segment1.b.distance_to(segment2.a);
     
     /*
+    Line line = this->edge_to_line(edge);
     double diff = fabs(dist1 - dist0);
     double dist_between_segments1 = segment1.a.distance_to(segment2);
     double dist_between_segments2 = segment1.b.distance_to(segment2);
@@ -493,17 +500,9 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
 
     // if this edge is the centerline for a very thin area, we might want to skip it
     // in case the area is too thin
-    if (dist0 < this->min_width/2 && dist1 < this->min_width/2) {
+    if (dist0 < this->min_width && dist1 < this->min_width) {
         //printf(" => too thin, skipping\n");
         return false;
-    }
-    
-    // if only one of the two edge vertices is the centerline of a very narrow area,
-    // it means the shape is shrinking on that size (dist0 or dist1 might be even 0
-    // when we have a narrow triangle), so in this case we only keep the edge if it's
-    // long enough, otherwise it's an artifact
-    if (dist0 < this->min_width/2 || dist1 < this->min_width/2) {
-        if (line.length() < this->max_width) return false;
     }
 
     return true;
