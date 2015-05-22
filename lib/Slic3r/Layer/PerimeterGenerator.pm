@@ -95,7 +95,7 @@ sub process {
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         $loop_number--;  # 0-indexed loops
         
-        my @gaps = ();   # ExPolygons
+        my @gaps = ();   # Polygons
         
         my @last = @{$surface->expolygon->simplify_p(&Slic3r::SCALED_RESOLUTION)};
         if ($loop_number >= 0) {  # no loops = -1
@@ -177,7 +177,7 @@ sub process {
                             offset(\@last, -0.5*$pspacing),
                             offset(\@offsets, +0.5*$pspacing + 10),  # safety offset
                         );
-                        push @gaps, grep abs($_->area) >= $gap_area_threshold, @$diff;
+                        push @gaps, map $_->clone, map @$_, grep abs($_->area) >= $gap_area_threshold, @$diff;
                     }
                 }
             
@@ -278,7 +278,7 @@ sub process {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output(
                     "gaps.svg",
-                    expolygons => \@gaps,
+                    expolygons => union_ex(\@gaps),
                 );
             }
             
@@ -291,7 +291,7 @@ sub process {
             foreach my $gap_size (@gap_sizes) {
                 my @gap_fill = $self->_fill_gaps(@$gap_size, \@gaps);
                 $self->gap_fill->append($_) for @gap_fill;
-            
+                
                 # Make sure we don't infill narrow parts that are already gap-filled
                 # (we only consider this surface's gaps to reduce the diff() complexity).
                 # Growing actual extrusions ensures that gaps not filled by medial axis
@@ -304,6 +304,7 @@ sub process {
                         ->grow(scale $w/2)};
                 } @gap_fill;
                 @last = @{diff(\@last, \@filled)};
+                @gaps = @{diff(\@gaps, \@filled)};  # prevent more gap fill here
             }
         }
         
@@ -454,8 +455,8 @@ sub _fill_gaps {
     $min *= (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
     
     my $this = diff_ex(
-        offset2([ map @$_, @$gaps ], -$min/2, +$min/2),
-        offset2([ map @$_, @$gaps ], -$max/2, +$max/2),
+        offset2($gaps, -$min/2, +$min/2),
+        offset2($gaps, -$max/2, +$max/2),
         1,
     );
     
