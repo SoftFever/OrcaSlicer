@@ -436,7 +436,7 @@ $j
                         Only retract before travel moves of this length in mm (default: $config->{retract_before_travel}[0])
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $config->{retract_lift}[0])
     --retract-layer-change
-                        Enforce a retraction before each Z move (default: yes)
+                        Enforce a retraction before each Z move (default: no)
     --wipe              Wipe the nozzle while doing a retraction (default: no)
     
    Retraction options for multi-extruder setups:
