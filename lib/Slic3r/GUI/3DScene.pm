@@ -1096,9 +1096,18 @@ sub load_print_toolpaths {
     } else {
         $skirt_height = min($print->config->skirt_height, $print->total_layer_count);
     }
-    foreach my $i (0..max(0, $skirt_height-1)) {
-        my $layer = $print->get_object(0)->get_layer($i);
-        my $top_z = $layer->print_z;
+    $skirt_height ||= 1 if $print->config->brim_width > 0;
+    
+    # get first $skirt_height layers (maybe this should be moved to a PrintObject method?)
+    my $object0 = $print->get_object(0);
+    my @layers = ();
+    push @layers, map $object0->get_layer($_-1), 1..min($skirt_height, $object0->layer_count);
+    push @layers, map $object0->get_support_layer($_-1), 1..min($skirt_height, $object0->support_layer_count);
+    @layers = sort { $a->print_z <=> $b->print_z } @layers;
+    @layers = @layers[0..($skirt_height-1)];
+    
+    foreach my $i (0..($skirt_height-1)) {
+        my $top_z = $layers[$i]->print_z;
         $offsets{$top_z} = [$qverts->size, $tverts->size];
         
         if ($i == 0) {
