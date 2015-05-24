@@ -336,10 +336,11 @@ sub process_layer {
         layer_z   => $layer->print_z,
     }) . "\n" if $self->print->config->layer_gcode;
     
-    # extrude skirt
+    # extrude skirt along raft layers and normal object layers
+    # (not along interlaced support material layers)
     if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->has_infinite_skirt)
         && !$self->_skirt_done->{$layer->print_z}
-        && !$layer->isa('Slic3r::Layer::Support')) {
+        && (!$layer->isa('Slic3r::Layer::Support') || $layer->id < $object->config->raft_layers)) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
         $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
