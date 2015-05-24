@@ -164,6 +164,8 @@ sub new {
     EVT_MOUSEWHEEL($self, sub {
         my ($self, $e) = @_;
         
+        my $old_zoom = $self->_zoom;
+        
         # Calculate the zoom delta and apply it to the current zoom factor
         my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
         $zoom = max(min($zoom, 4), -4);
@@ -171,13 +173,25 @@ sub new {
         $self->_zoom($self->_zoom / (1-$zoom));
         $self->_zoom(1) if $self->_zoom > 1;  # prevent from zooming out too much
         
-        if (0) {
+        {
             # In order to zoom around the mouse point we need to translate
-            # the camera target
+            # the camera target. This math is almost there but not perfect yet...
             my $camera_bb_size = $self->_camera_bb->size;
             my $size = Slic3r::Pointf->new($self->GetSizeWH);
             my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-            # TODO...
+            
+            # calculate the zooming center in pixel coordinates relative to the viewport center
+            my $vec = Slic3r::Pointf->new($pos->x - $size->x/2, $pos->y - $size->y/2);  #-
+            
+            # calculate where this point will end up after applying the new zoom
+            my $vec2 = $vec->clone;
+            $vec2->scale($old_zoom / $self->_zoom);
+            
+            # move the camera target by the difference of the two positions
+            $self->_camera_target->translate(
+                -($vec->x - $vec2->x) * $camera_bb_size->x / $size->x,
+                 ($vec->y - $vec2->y) * $camera_bb_size->y / $size->y,  #//
+            );
         }
         
         $self->_dirty(1);
