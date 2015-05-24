@@ -174,8 +174,8 @@ sub process {
                         # (but still long enough to escape the area threshold) that gap fill
                         # won't be able to fill but we'd still remove from infill area
                         my $diff = diff_ex(
-                            offset(\@last, -0.5*$pspacing),
-                            offset(\@offsets, +0.5*$pspacing + 10),  # safety offset
+                            offset(\@last, -0.5*$distance),
+                            offset(\@offsets, +0.5*$distance + 10),  # safety offset
                         );
                         push @gaps, map $_->clone, map @$_, grep abs($_->area) >= $gap_area_threshold, @$diff;
                     }
@@ -282,11 +282,11 @@ sub process {
                 );
             }
             
-            # where $pwidth < thickness < 2*$pspacing, infill with width = 1.5*$pwidth
-            # where 0.5*$pwidth < thickness < $pwidth, infill with width = 0.5*$pwidth
+            # where $pwidth < thickness < 2*$pspacing, infill with width = 2*$pwidth
+            # where 0.1*$pwidth < thickness < $pwidth, infill with width = 1*$pwidth
             my @gap_sizes = (
-                [ $pwidth, 2*$pspacing, unscale 1.5*$pwidth ],
-                [ 0.1*$pwidth, $pwidth, unscale 0.5*$pwidth ],
+                [ $pwidth, 2*$pspacing, unscale 2*$pwidth ],
+                [ 0.1*$pwidth, $pwidth, unscale 1*$pwidth ],
             );
             foreach my $gap_size (@gap_sizes) {
                 my @gap_fill = $self->_fill_gaps(@$gap_size, \@gaps);
