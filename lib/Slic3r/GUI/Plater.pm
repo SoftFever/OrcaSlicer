@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
-use List::Util qw(sum first);
+use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
@@ -489,8 +489,11 @@ sub load_model_objects {
     my ($self, @model_objects) = @_;
     
     my $bed_centerf = $self->bed_centerf;
+    my $bed_shape = Slic3r::Polygon->new_scale(@{$self->{config}->bed_shape});
+    my $bed_size = $bed_shape->bounding_box->size;
     
     my $need_arrange = 0;
+    my $scaled_down = 0;
     my @obj_idx = ();
     foreach my $model_object (@model_objects) {
         my $o = $self->{model}->add_object($model_object);
@@ -508,6 +511,16 @@ sub load_model_objects {
             $o->center_around_origin;  # also aligns object to Z = 0
             $o->add_instance(offset => $bed_centerf);
         }
+        
+        {
+            # if the object is too large (more than 5 times the bed), scale it down
+            my $size = $o->bounding_box->size;
+            my $ratio = max(@$size[X,Y]) / unscale(max(@$bed_size[X,Y]));
+            if ($ratio > 5) {
+                $_->set_scaling_factor(1/$ratio) for @{$o->instances};
+                $scaled_down = 1;
+            }
+        }
     
         $self->{print}->auto_assign_extruders($o);
         $self->{print}->add_model_object($o);
@@ -518,14 +531,15 @@ sub load_model_objects {
         $need_arrange = 0;
     }
     
-    $self->objects_loaded(\@obj_idx, no_arrange => !$need_arrange);
-}
-
-sub objects_loaded {
-    my $self = shift;
-    my ($obj_idxs, %params) = @_;
+    if ($scaled_down) {
+        Slic3r::GUI::show_info(
+            $self,
+            'Your object appears to be too large, so it was automatically scaled down to fit your print bed.',
+            'Object too large?',
+        );
+    }
     
-    foreach my $obj_idx (@$obj_idxs) {
+    foreach my $obj_idx (@obj_idx) {
         my $object = $self->{objects}[$obj_idx];
         my $model_object = $self->{model}->objects->[$obj_idx];
         $self->{list}->InsertStringItem($obj_idx, $object->name);
@@ -537,7 +551,7 @@ sub objects_loaded {
     
         $self->make_thumbnail($obj_idx);
     }
-    $self->arrange unless $params{no_arrange};
+    $self->arrange if $need_arrange;
     $self->update;
     
     # zoom to objects
@@ -545,7 +559,7 @@ sub objects_loaded {
         if $self->{canvas3D};
     
     $self->{list}->Update;
-    $self->{list}->Select($obj_idxs->[-1], 1);
+    $self->{list}->Select($obj_idx[-1], 1);
     $self->object_list_changed;
     
     $self->schedule_background_process;
