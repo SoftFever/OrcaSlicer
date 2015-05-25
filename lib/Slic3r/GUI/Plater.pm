@@ -1598,26 +1598,27 @@ sub object_menu {
     my $menu = Wx::Menu->new;
     $frame->_append_menu_item($menu, "Delete\tCtrl+Del", 'Remove the selected object', sub {
         $self->remove;
-    });
+    }, undef, 'brick_delete.png');
     $frame->_append_menu_item($menu, "Increase copies\tCtrl++", 'Place one more copy of the selected object', sub {
         $self->increase;
-    });
+    }, undef, 'add.png');
     $frame->_append_menu_item($menu, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
         $self->decrease;
-    });
+    }, undef, 'delete.png');
     $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
         $self->set_number_of_copies;
-    });
+    }, undef, 'textfield.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
         $self->rotate(-45);
-    });
+    }, undef, 'arrow_rotate_clockwise.png');
     $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
         $self->rotate(+45);
-    });
+    }, undef, 'arrow_rotate_anticlockwise.png');
     
     my $rotateMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($rotateMenu, "Rotate", 'Rotate the selected object by an arbitrary angle');
+    my $rotateMenuItem = $menu->AppendSubMenu($rotateMenu, "Rotate", 'Rotate the selected object by an arbitrary angle');
+    $frame->_set_menu_item_icon($rotateMenuItem, 'textfield.png');
     $frame->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
         $self->rotate(undef, X);
     });
@@ -1629,7 +1630,8 @@ sub object_menu {
     });
     
     my $flipMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($flipMenu, "Flip", 'Mirror the selected object');
+    my $flipMenuItem = $menu->AppendSubMenu($flipMenu, "Flip", 'Mirror the selected object');
+    $frame->_set_menu_item_icon($flipMenuItem, 'shape_flip_horizontal.png');
     $frame->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
         $self->flip(X);
     });
@@ -1641,7 +1643,8 @@ sub object_menu {
     });
     
     my $scaleMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
+    my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
+    $frame->_set_menu_item_icon($scaleMenuItem, 'arrow_out.png');
     $frame->_append_menu_item($scaleMenu, "Uniformly…", 'Scale the selected object along the XYZ axes', sub {
         $self->changescale(undef);
     });
@@ -1657,18 +1660,18 @@ sub object_menu {
     
     $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
         $self->split_object;
-    });
+    }, undef, 'shape_ungroup.png');
     $frame->_append_menu_item($menu, "Cut…", 'Open the 3D cutting tool', sub {
         $self->object_cut_dialog;
-    });
+    }, undef, 'package.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Settings…", 'Open the object editor dialog', sub {
         $self->object_settings_dialog;
-    });
+    }, undef, 'cog.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Export object as STL…", 'Export this single object as STL file', sub {
         $self->export_object_stl;
-    });
+    }, undef, 'brick_go.png');
     
     return $menu;
 }

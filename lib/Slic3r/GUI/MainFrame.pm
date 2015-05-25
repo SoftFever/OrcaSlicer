@@ -157,16 +157,16 @@ sub _init_menubar {
     {
         $self->_append_menu_item($fileMenu, "&Load Config…\tCtrl+L", 'Load exported configuration file', sub {
             $self->load_config_file;
-        });
+        }, undef, 'plugin_add.png');
         $self->_append_menu_item($fileMenu, "&Export Config…\tCtrl+E", 'Export current configuration to file', sub {
             $self->export_config;
-        });
+        }, undef, 'plugin_go.png');
         $self->_append_menu_item($fileMenu, "&Load Config Bundle…", 'Load presets from a bundle', sub {
             $self->load_configbundle;
-        });
+        }, undef, 'lorry_add.png');
         $self->_append_menu_item($fileMenu, "&Export Config Bundle…", 'Export all presets to file', sub {
             $self->export_configbundle;
-        });
+        }, undef, 'lorry_go.png');
         $fileMenu->AppendSeparator();
         my $repeat;
         $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice file', sub {
@@ -174,27 +174,27 @@ sub _init_menubar {
                 $self->quick_slice;
                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
             });
-        });
+        }, undef, 'cog_go.png');
         $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as', sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice(save_as => 1);
                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
             });
-        });
+        }, undef, 'cog_go.png');
         $repeat = $self->_append_menu_item($fileMenu, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice', sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice(reslice => 1);
             });
-        });
+        }, undef, 'cog_go.png');
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG', sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
-        });
+        }, undef, 'shape_handles.png');
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Repair STL file…", 'Automatically repair an STL file', sub {
             $self->repair_stl;
-        });
+        }, undef, 'wrench.png');
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Preferences…", 'Application preferences', sub {
             Slic3r::GUI::Preferences->new($self)->ShowModal;
@@ -212,13 +212,13 @@ sub _init_menubar {
         $self->{plater_menu} = Wx::Menu->new;
         $self->_append_menu_item($self->{plater_menu}, "Export G-code...", 'Export current plate as G-code', sub {
             $plater->export_gcode;
-        });
+        }, undef, 'cog_go.png');
         $self->_append_menu_item($self->{plater_menu}, "Export plate as STL...", 'Export current plate as STL', sub {
             $plater->export_stl;
-        });
+        }, undef, 'brick_go.png');
         $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
-        });
+        }, undef, 'brick_go.png');
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
@@ -230,16 +230,16 @@ sub _init_menubar {
         my $tab_count = $self->{no_plater} ? 3 : 4;
         $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
             $self->select_tab(0);
-        }) unless $self->{no_plater};
+        }, undef, 'application_view_tile.png') unless $self->{no_plater};
         $self->_append_menu_item($windowMenu, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings', sub {
             $self->select_tab($tab_count-3);
-        });
+        }, undef, 'cog.png');
         $self->_append_menu_item($windowMenu, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings', sub {
             $self->select_tab($tab_count-2);
-        });
+        }, undef, 'spool.png');
         $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
             $self->select_tab($tab_count-1);
-        });
+        }, undef, 'printer_empty.png');
     }
     
     # Help menu
@@ -712,12 +712,22 @@ sub select_tab {
 }
 
 sub _append_menu_item {
-    my ($self, $menu, $string, $description, $cb, $id) = @_;
+    my ($self, $menu, $string, $description, $cb, $id, $icon) = @_;
     
     $id //= &Wx::NewId();
     my $item = $menu->Append($id, $string, $description);
+    $self->_set_menu_item_icon($item, $icon);
+    
     EVT_MENU($self, $id, $cb);
     return $item;
+}
+
+sub _set_menu_item_icon {
+    my ($self, $menuItem, $icon) = @_;
+    
+    if ($icon && $Wx::VERSION >= 0.9927) {
+        $menuItem->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG));
+    }
 }
 
 1;
