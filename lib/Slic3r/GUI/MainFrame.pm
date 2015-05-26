@@ -599,6 +599,9 @@ sub load_config {
     foreach my $tab (values %{$self->{options_tabs}}) {
         $tab->load_config($config);
     }
+    if ($self->{plater}) {
+        $self->{plater}->on_config_change($config);
+    }
 }
 
 sub config_wizard {
