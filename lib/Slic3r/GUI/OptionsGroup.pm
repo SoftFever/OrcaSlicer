@@ -167,6 +167,11 @@ sub _build_field {
             parent => $self->parent,
             option => $opt,
         );
+    } elsif ($type eq 'color') {
+        $field = Slic3r::GUI::OptionsGroup::Field::ColourPicker->new(
+            parent => $self->parent,
+            option => $opt,
+        );
     } elsif ($type =~ /^(f|s|s@|percent)$/) {
         $field = Slic3r::GUI::OptionsGroup::Field::TextCtrl->new(
             parent => $self->parent,

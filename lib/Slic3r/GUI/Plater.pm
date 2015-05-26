@@ -8,10 +8,10 @@ use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
-    :panel :sizer :toolbar :window wxTheApp :notebook);
+    :panel :sizer :toolbar :window wxTheApp :notebook :combobox);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
-    EVT_CHOICE EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
+    EVT_CHOICE EVT_COMBOBOX EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -36,7 +36,7 @@ our $ERROR_EVENT             : shared = Wx::NewEventType;
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
-use constant FILAMENT_CHOOSERS_SPACING => 3;
+use constant FILAMENT_CHOOSERS_SPACING => 0;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
 my $PreventListEvents = 0;
@@ -328,12 +328,11 @@ sub new {
             for my $group (qw(print filament printer)) {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
-                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize, []);
-                $choice->SetFont($Slic3r::GUI::small_font);
+                my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 $self->{preset_choosers}{$group} = [$choice];
-                EVT_CHOICE($choice, $choice, sub { $self->_on_select_preset($group, @_) });
+                EVT_COMBOBOX($choice, $choice, sub { $self->_on_select_preset($group, @_) });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 8);
+                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 0);
             }
         }
         
@@ -438,13 +437,33 @@ sub GetFrame {
 
 sub update_presets {
     my $self = shift;
-    my ($group, $items, $selected) = @_;
+    my ($group, $presets, $selected) = @_;
     
     foreach my $choice (@{ $self->{preset_choosers}{$group} }) {
         my $sel = $choice->GetSelection;
         $choice->Clear;
-        $choice->Append($_) for @$items;
-        $choice->SetSelection($sel) if $sel <= $#$items;
+        foreach my $preset (@$presets) {
+            my $bitmap;
+            if ($group eq 'filament') {
+                my $config = $preset->config(['filament_colour']);
+                my $rgb_hex = $config->filament_colour->[0];
+                if ($preset->default) {
+                    $bitmap = Wx::Bitmap->new("$Slic3r::var/spool.png", wxBITMAP_TYPE_PNG);
+                } else {
+                    $rgb_hex =~ s/^#//;
+                    my @rgb = unpack 'C*', pack 'H*', $rgb_hex;
+                    my $image = Wx::Image->new(16,16);
+                    $image->SetRGB(Wx::Rect->new(0,0,16,16), @rgb);
+                    $bitmap = Wx::Bitmap->new($image);
+                }
+            } elsif ($group eq 'print') {
+                $bitmap = Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG);
+            } elsif ($group eq 'printer') {
+                $bitmap = Wx::Bitmap->new("$Slic3r::var/printer_empty.png", wxBITMAP_TYPE_PNG);
+            }
+            $choice->AppendString($preset->name, $bitmap);
+        }
+        $choice->SetSelection($sel) if $sel <= $#$presets;
     }
     $self->{preset_choosers}{$group}[0]->SetSelection($selected);
 }
@@ -1334,11 +1353,10 @@ sub on_extruders_change {
     my $choices = $self->{preset_choosers}{filament};
     while (@$choices < $num_extruders) {
         my @presets = $choices->[0]->GetStrings;
-        push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
-        $choices->[-1]->SetFont($Slic3r::GUI::small_font);
+        push @$choices, Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
         $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-        EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
+        EVT_COMBOBOX($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
         my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
         $choices->[-1]->SetSelection($i || 0);
     }

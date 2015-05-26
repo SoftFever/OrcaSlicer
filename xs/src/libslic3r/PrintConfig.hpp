@@ -409,6 +409,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionPoints              extruder_offset;
     ConfigOptionBool                fan_always_on;
     ConfigOptionInt                 fan_below_layer_time;
+    ConfigOptionStrings             filament_colour;
     ConfigOptionFloat               first_layer_acceleration;
     ConfigOptionInt                 first_layer_bed_temperature;
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
@@ -464,6 +465,8 @@ class PrintConfig : public GCodeConfig
         this->extruder_offset.values[0]                          = Pointf(0,0);
         this->fan_always_on.value                                = false;
         this->fan_below_layer_time.value                         = 60;
+        this->filament_colour.values.resize(1);
+        this->filament_colour.values[0]                          = "#FFFFFF";
         this->first_layer_acceleration.value                     = 0;
         this->first_layer_bed_temperature.value                  = 0;
         this->first_layer_extrusion_width.value                  = 200;
@@ -523,6 +526,7 @@ class PrintConfig : public GCodeConfig
         if (opt_key == "extruder_offset")                            return &this->extruder_offset;
         if (opt_key == "fan_always_on")                              return &this->fan_always_on;
         if (opt_key == "fan_below_layer_time")                       return &this->fan_below_layer_time;
+        if (opt_key == "filament_colour")                             return &this->filament_colour;
         if (opt_key == "first_layer_acceleration")                   return &this->first_layer_acceleration;
         if (opt_key == "first_layer_bed_temperature")                return &this->first_layer_bed_temperature;
         if (opt_key == "first_layer_extrusion_width")                return &this->first_layer_extrusion_width;

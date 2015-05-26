@@ -177,7 +177,7 @@ sub _update {}
 sub _on_presets_changed {
     my $self = shift;
     
-    $self->{on_presets_changed}->([$self->{presets_choice}->GetStrings], $self->{presets_choice}->GetSelection)
+    $self->{on_presets_changed}->($self->{presets}, $self->{presets_choice}->GetSelection)
         if $self->{on_presets_changed};
 }
 
@@ -360,10 +360,10 @@ sub load_presets {
     
     $self->current_preset(undef);
     $self->{presets_choice}->Clear;
-    $self->{presets_choice}->Append($_->{name}) for @{$self->{presets}};
+    $self->{presets_choice}->Append($_->name) for @{$self->{presets}};
     {
         # load last used preset
-        my $i = first { basename($self->{presets}[$_]{file}) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
+        my $i = first { basename($self->{presets}[$_]->file) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
         $self->select_preset($i || 0);
     }
     $self->_on_presets_changed;
@@ -813,7 +813,7 @@ sub build {
     my $self = shift;
     
     $self->init_config_options(qw(
-        filament_diameter extrusion_multiplier
+        filament_colour filament_diameter extrusion_multiplier
         temperature first_layer_temperature bed_temperature first_layer_bed_temperature
         fan_always_on cooling
         min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
@@ -824,6 +824,7 @@ sub build {
         my $page = $self->add_options_page('Filament', 'spool.png');
         {
             my $optgroup = $page->new_optgroup('Filament');
+            $optgroup->append_single_option_line('filament_colour', 0);
             $optgroup->append_single_option_line('filament_diameter', 0);
             $optgroup->append_single_option_line('extrusion_multiplier', 0);
         }

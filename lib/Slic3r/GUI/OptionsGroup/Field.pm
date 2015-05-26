@@ -340,6 +340,47 @@ sub get_value {
 }
 
 
+package Slic3r::GUI::OptionsGroup::Field::ColourPicker;
+use Moo;
+extends 'Slic3r::GUI::OptionsGroup::Field::wxWindow';
+
+use Wx qw(:misc :colour);
+use Wx::Event qw(EVT_COLOURPICKER_CHANGED);
+
+sub BUILD {
+    my ($self) = @_;
+    
+    my $field = Wx::ColourPickerCtrl->new($self->parent, -1, 
+        $self->_string_to_colour($self->option->default), wxDefaultPosition, 
+        $self->_default_size);
+    $self->wxWindow($field);
+    
+    EVT_COLOURPICKER_CHANGED($self->parent, $field, sub {
+        $self->_on_change($self->option->opt_id);
+    });
+}
+
+sub set_value {
+    my ($self, $value) = @_;
+    
+    $self->disable_change_event(1);
+    $self->wxWindow->SetColour($self->_string_to_colour($value));
+    $self->disable_change_event(0);
+}
+
+sub get_value {
+    my ($self) = @_;
+    return $self->wxWindow->GetColour->GetAsString(wxC2S_HTML_SYNTAX);
+}
+
+sub _string_to_colour {
+    my ($self, $string) = @_;
+    
+    $string =~ s/^#//;
+    return Wx::Colour->new(unpack 'C*', pack 'H*', $string);
+}
+
+
 package Slic3r::GUI::OptionsGroup::Field::wxSizer;
 use Moo;
 extends 'Slic3r::GUI::OptionsGroup::Field';

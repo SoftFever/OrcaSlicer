@@ -140,8 +140,8 @@ sub _init_tabpanel {
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
-            my ($group, $preset) = @_;
-	        $self->{options_tabs}{$group}->select_preset($preset);
+            my ($group, $i) = @_;
+	        $self->{options_tabs}{$group}->select_preset($i);
         });
         
         # load initial config
