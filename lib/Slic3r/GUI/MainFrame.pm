@@ -725,7 +725,8 @@ sub _append_menu_item {
 sub _set_menu_item_icon {
     my ($self, $menuItem, $icon) = @_;
     
-    if ($icon && $Wx::VERSION >= 0.9927) {
+    # SetBitmap was not available on OS X before Wx 0.9927
+    if ($icon && $menuItem->can('SetBitmap')) {
         $menuItem->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG));
     }
 }
