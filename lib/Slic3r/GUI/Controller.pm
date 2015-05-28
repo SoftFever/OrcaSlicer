@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(wxTheApp :frame :id :misc :sizer :bitmap :button);
+use Wx qw(wxTheApp :frame :id :misc :sizer :bitmap :button :icon :dialog);
 use Wx::Event qw(EVT_CLOSE EVT_LEFT_DOWN EVT_MENU);
 use base 'Wx::ScrolledWindow';
 
@@ -46,6 +46,20 @@ sub new {
     EVT_CLOSE($self, sub {
         my (undef, $event) = @_;
         
+        if ($event->CanVeto) {
+            foreach my $panel ($self->print_panels) {
+                if ($panel->printing) {
+                    my $confirm = Wx::MessageDialog->new(
+                        $self, "Printer '" . $panel->printer_name . "' is printing.\n\nDo you want to stop printing?",
+                        'Unfinished Print', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION,
+                    );
+                    if ($confirm->ShowModal == wxID_NO) {
+                        $event->Veto;
+                        return;
+                    }
+                }
+            }
+        }
         foreach my $panel ($self->print_panels) {
             $panel->disconnect;
         }
@@ -54,12 +68,13 @@ sub new {
         $event->Skip;
     });
     
-    # if only one preset exists, load it
     {
         my %presets = wxTheApp->presets('printer');
         my %configs = map { my $name = $_; $name => Slic3r::Config->load($presets{$name}) } keys %presets;
         my @presets_with_printer = grep $configs{$_}->serial_port, keys %presets;
+        
         if (@presets_with_printer == 1) {
+            # if only one preset exists, load it
             my $name = $presets_with_printer[0];
             $self->add_printer($name, $configs{$name});
         }
