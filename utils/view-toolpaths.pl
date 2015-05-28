@@ -33,7 +33,6 @@ my %opt = ();
     
     # load config
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('skirts', 0);
     if ($opt{load}) {
         $config->apply(Slic3r::Config->load($opt{load}));
     }
@@ -84,6 +83,7 @@ sub OnInit {
     if ($d3) {
         $canvas = Slic3r::GUI::3DScene->new($panel);
         $canvas->set_bed_shape($print->config->bed_shape);
+        $canvas->load_print_toolpaths($print);
         
         foreach my $object (@{$print->objects}) {
             #$canvas->load_print_object_slices($object);

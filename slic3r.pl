@@ -15,6 +15,7 @@ use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
 use Time::HiRes qw(gettimeofday tv_interval);
 $|++;
+binmode STDOUT, ':utf8';
 
 our %opt = ();
 my %cli_options = ();
@@ -93,7 +94,7 @@ my $gui;
 if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
-        $Slic3r::GUI::datadir   = Slic3r::decode_path($opt{datadir});
+        $Slic3r::GUI::datadir   = Slic3r::decode_path($opt{datadir} // '');
         $Slic3r::GUI::no_plater = $opt{no_plater};
         $Slic3r::GUI::mode      = $opt{gui_mode};
         $Slic3r::GUI::autosave  = $opt{autosave};
@@ -103,6 +104,7 @@ if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     $gui->{mainframe}->load_config_file($_) for @{$opt{load}};
     $gui->{mainframe}->load_config($cli_config);
     foreach my $input_file (@ARGV) {
+        $input_file = Slic3r::decode_path($input_file);
         $gui->{mainframe}{plater}->load_file($input_file) unless $opt{no_plater};
     }
     $gui->MainLoop;
@@ -434,7 +436,7 @@ $j
                         Only retract before travel moves of this length in mm (default: $config->{retract_before_travel}[0])
     --retract-lift      Lift Z by the given distance in mm when retracting (default: $config->{retract_lift}[0])
     --retract-layer-change
-                        Enforce a retraction before each Z move (default: yes)
+                        Enforce a retraction before each Z move (default: no)
     --wipe              Wipe the nozzle while doing a retraction (default: no)
     
    Retraction options for multi-extruder setups:

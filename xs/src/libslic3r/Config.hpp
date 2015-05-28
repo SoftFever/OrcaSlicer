@@ -26,8 +26,14 @@ class ConfigOption {
     virtual void setInt(int val) {};
 };
 
+class ConfigOptionVectorBase : public ConfigOption {
+    public:
+    virtual ~ConfigOptionVectorBase() {};
+    virtual std::vector<std::string> vserialize() const = 0;
+};
+
 template <class T>
-class ConfigOptionVector
+class ConfigOptionVector : public ConfigOptionVectorBase
 {
     public:
     virtual ~ConfigOptionVector() {};
@@ -63,7 +69,7 @@ class ConfigOptionFloat : public ConfigOption
     };
 };
 
-class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double>
+class ConfigOptionFloats : public ConfigOptionVector<double>
 {
     public:
     
@@ -74,6 +80,16 @@ class ConfigOptionFloats : public ConfigOption, public ConfigOptionVector<double
             ss << *it;
         }
         return ss.str();
+    };
+    
+    std::vector<std::string> vserialize() const {
+        std::vector<std::string> vv;
+        for (std::vector<double>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            std::ostringstream ss;
+            ss << *it;
+            vv.push_back(ss.str());
+        }
+        return vv;
     };
     
     bool deserialize(std::string str) {
@@ -112,7 +128,7 @@ class ConfigOptionInt : public ConfigOption
     };
 };
 
-class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
+class ConfigOptionInts : public ConfigOptionVector<int>
 {
     public:
     
@@ -123,6 +139,16 @@ class ConfigOptionInts : public ConfigOption, public ConfigOptionVector<int>
             ss << *it;
         }
         return ss.str();
+    };
+    
+    std::vector<std::string> vserialize() const {
+        std::vector<std::string> vv;
+        for (std::vector<int>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            std::ostringstream ss;
+            ss << *it;
+            vv.push_back(ss.str());
+        }
+        return vv;
     };
     
     bool deserialize(std::string str) {
@@ -174,7 +200,7 @@ class ConfigOptionString : public ConfigOption
 };
 
 // semicolon-separated strings
-class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::string>
+class ConfigOptionStrings : public ConfigOptionVector<std::string>
 {
     public:
     
@@ -185,6 +211,10 @@ class ConfigOptionStrings : public ConfigOption, public ConfigOptionVector<std::
             ss << *it;
         }
         return ss.str();
+    };
+    
+    std::vector<std::string> vserialize() const {
+        return this->values;
     };
     
     bool deserialize(std::string str) {
@@ -279,7 +309,7 @@ class ConfigOptionPoint : public ConfigOption
     };
 };
 
-class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf>
+class ConfigOptionPoints : public ConfigOptionVector<Pointf>
 {
     public:
     
@@ -292,6 +322,16 @@ class ConfigOptionPoints : public ConfigOption, public ConfigOptionVector<Pointf
             ss << it->y;
         }
         return ss.str();
+    };
+    
+    std::vector<std::string> vserialize() const {
+        std::vector<std::string> vv;
+        for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            std::ostringstream ss;
+            ss << *it;
+            vv.push_back(ss.str());
+        }
+        return vv;
     };
     
     bool deserialize(std::string str) {
@@ -332,7 +372,7 @@ class ConfigOptionBool : public ConfigOption
     };
 };
 
-class ConfigOptionBools : public ConfigOption, public ConfigOptionVector<bool>
+class ConfigOptionBools : public ConfigOptionVector<bool>
 {
     public:
     
@@ -343,6 +383,16 @@ class ConfigOptionBools : public ConfigOption, public ConfigOptionVector<bool>
             ss << (*it ? "1" : "0");
         }
         return ss.str();
+    };
+    
+    std::vector<std::string> vserialize() const {
+        std::vector<std::string> vv;
+        for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+            std::ostringstream ss;
+            ss << (*it ? "1" : "0");
+            vv.push_back(ss.str());
+        }
+        return vv;
     };
     
     bool deserialize(std::string str) {

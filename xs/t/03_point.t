@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 22;
+use Test::More tests => 24;
 
 my $point = Slic3r::Point->new(10, 15);
 is_deeply [ @$point ], [10, 15], 'point roundtrip';
@@ -32,12 +32,14 @@ ok !$point->coincides_with($point2), 'coincides_with';
 
 {
     my $line = Slic3r::Line->new([0,0], [100,0]);
-    is +Slic3r::Point->new(0,0)->distance_to_line($line),    0, 'distance_to_line()';
+    is +Slic3r::Point->new(0,0)  ->distance_to_line($line),  0, 'distance_to_line()';
     is +Slic3r::Point->new(100,0)->distance_to_line($line),  0, 'distance_to_line()';
-    is +Slic3r::Point->new(50,0)->distance_to_line($line),   0, 'distance_to_line()';
+    is +Slic3r::Point->new(50,0) ->distance_to_line($line),  0, 'distance_to_line()';
     is +Slic3r::Point->new(150,0)->distance_to_line($line), 50, 'distance_to_line()';
-    is +Slic3r::Point->new(0,50)->distance_to_line($line),  50, 'distance_to_line()';
+    is +Slic3r::Point->new(0,50) ->distance_to_line($line), 50, 'distance_to_line()';
     is +Slic3r::Point->new(50,50)->distance_to_line($line), 50, 'distance_to_line()';
+    is +Slic3r::Point->new(50,50) ->perp_distance_to_line($line), 50, 'perp_distance_to_line()';
+    is +Slic3r::Point->new(150,50)->perp_distance_to_line($line), 50, 'perp_distance_to_line()';
 }
 
 {

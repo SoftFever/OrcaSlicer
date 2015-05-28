@@ -5,6 +5,7 @@
 #include <vector>
 #include <math.h>
 #include <string>
+#include <sstream>
 
 namespace Slic3r {
 
@@ -76,6 +77,8 @@ class Point3 : public Point
     coord_t z;
     explicit Point3(coord_t _x = 0, coord_t _y = 0, coord_t _z = 0): Point(_x, _y), z(_z) {};
 };
+
+std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
 
 class Pointf
 {

@@ -161,6 +161,7 @@ sub perform_cut {
         push @{$self->{new_model_objects}}, $lower_object;
         if ($self->{cut_options}{rotate_lower}) {
             $lower_object->rotate(PI, X);
+            $lower_object->center_around_origin;  # align to Z = 0
         }
     }
     

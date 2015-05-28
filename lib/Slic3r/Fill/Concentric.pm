@@ -6,6 +6,8 @@ extends 'Slic3r::Fill::Base';
 use Slic3r::Geometry qw(scale unscale X);
 use Slic3r::Geometry::Clipper qw(offset offset2 union_pt_chained);
 
+sub no_sort { 1 }
+
 sub fill_surface {
     my $self = shift;
     my ($surface, %params) = @_;
@@ -36,7 +38,7 @@ sub fill_surface {
     @loops = map Slic3r::Polygon->new(@$_),
         reverse @{union_pt_chained(\@loops)};
     
-    # order paths using a nearest neighbor search
+    # split paths using a nearest neighbor search
     my @paths = ();
     my $last_pos = Slic3r::Point->new(0,0);
     foreach my $loop (@loops) {

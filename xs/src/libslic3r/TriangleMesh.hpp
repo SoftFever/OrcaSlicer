@@ -32,9 +32,11 @@ class TriangleMesh
     void scale(float factor);
     void scale(const Pointf3 &versor);
     void translate(float x, float y, float z);
+    void rotate(float angle, const Axis &axis);
     void rotate_x(float angle);
     void rotate_y(float angle);
     void rotate_z(float angle);
+    void flip(const Axis &axis);
     void flip_x();
     void flip_y();
     void flip_z();

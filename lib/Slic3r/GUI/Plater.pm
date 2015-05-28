@@ -4,14 +4,14 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
-use List::Util qw(sum first);
+use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
-    :panel :sizer :toolbar :window wxTheApp :notebook);
+    :panel :sizer :toolbar :window wxTheApp :notebook :combobox);
 use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
-    EVT_CHOICE EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
+    EVT_CHOICE EVT_COMBOBOX EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -36,7 +36,7 @@ our $ERROR_EVENT             : shared = Wx::NewEventType;
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
-use constant FILAMENT_CHOOSERS_SPACING => 3;
+use constant FILAMENT_CHOOSERS_SPACING => 0;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
 my $PreventListEvents = 0;
@@ -335,12 +335,11 @@ sub new {
             for my $group (qw(print filament printer)) {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
-                my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize, []);
-                $choice->SetFont($Slic3r::GUI::small_font);
+                my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 $self->{preset_choosers}{$group} = [$choice];
-                EVT_CHOICE($choice, $choice, sub { $self->_on_select_preset($group, @_) });
+                EVT_COMBOBOX($choice, $choice, sub { $self->_on_select_preset($group, @_) });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 8);
+                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 0);
             }
         }
         
@@ -446,13 +445,33 @@ sub GetFrame {
 
 sub update_presets {
     my $self = shift;
-    my ($group, $items, $selected) = @_;
+    my ($group, $presets, $selected) = @_;
     
     foreach my $choice (@{ $self->{preset_choosers}{$group} }) {
         my $sel = $choice->GetSelection;
         $choice->Clear;
-        $choice->Append($_) for @$items;
-        $choice->SetSelection($sel) if $sel <= $#$items;
+        foreach my $preset (@$presets) {
+            my $bitmap;
+            if ($group eq 'filament') {
+                my $config = $preset->config(['filament_colour']);
+                my $rgb_hex = $config->filament_colour->[0];
+                if ($preset->default) {
+                    $bitmap = Wx::Bitmap->new("$Slic3r::var/spool.png", wxBITMAP_TYPE_PNG);
+                } else {
+                    $rgb_hex =~ s/^#//;
+                    my @rgb = unpack 'C*', pack 'H*', $rgb_hex;
+                    my $image = Wx::Image->new(16,16);
+                    $image->SetRGB(Wx::Rect->new(0,0,16,16), @rgb);
+                    $bitmap = Wx::Bitmap->new($image);
+                }
+            } elsif ($group eq 'print') {
+                $bitmap = Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG);
+            } elsif ($group eq 'printer') {
+                $bitmap = Wx::Bitmap->new("$Slic3r::var/printer_empty.png", wxBITMAP_TYPE_PNG);
+            }
+            $choice->AppendString($preset->name, $bitmap);
+        }
+        $choice->SetSelection($sel) if $sel <= $#$presets;
     }
     $self->{preset_choosers}{$group}[0]->SetSelection($selected);
 }
@@ -497,8 +516,11 @@ sub load_model_objects {
     my ($self, @model_objects) = @_;
     
     my $bed_centerf = $self->bed_centerf;
+    my $bed_shape = Slic3r::Polygon->new_scale(@{$self->{config}->bed_shape});
+    my $bed_size = $bed_shape->bounding_box->size;
     
     my $need_arrange = 0;
+    my $scaled_down = 0;
     my @obj_idx = ();
     foreach my $model_object (@model_objects) {
         my $o = $self->{model}->add_object($model_object);
@@ -516,6 +538,16 @@ sub load_model_objects {
             $o->center_around_origin;  # also aligns object to Z = 0
             $o->add_instance(offset => $bed_centerf);
         }
+        
+        {
+            # if the object is too large (more than 5 times the bed), scale it down
+            my $size = $o->bounding_box->size;
+            my $ratio = max(@$size[X,Y]) / unscale(max(@$bed_size[X,Y]));
+            if ($ratio > 5) {
+                $_->set_scaling_factor(1/$ratio) for @{$o->instances};
+                $scaled_down = 1;
+            }
+        }
     
         $self->{print}->auto_assign_extruders($o);
         $self->{print}->add_model_object($o);
@@ -526,14 +558,15 @@ sub load_model_objects {
         $need_arrange = 0;
     }
     
-    $self->objects_loaded(\@obj_idx, no_arrange => !$need_arrange);
-}
-
-sub objects_loaded {
-    my $self = shift;
-    my ($obj_idxs, %params) = @_;
+    if ($scaled_down) {
+        Slic3r::GUI::show_info(
+            $self,
+            'Your object appears to be too large, so it was automatically scaled down to fit your print bed.',
+            'Object too large?',
+        );
+    }
     
-    foreach my $obj_idx (@$obj_idxs) {
+    foreach my $obj_idx (@obj_idx) {
         my $object = $self->{objects}[$obj_idx];
         my $model_object = $self->{model}->objects->[$obj_idx];
         $self->{list}->InsertStringItem($obj_idx, $object->name);
@@ -545,7 +578,7 @@ sub objects_loaded {
     
         $self->make_thumbnail($obj_idx);
     }
-    $self->arrange unless $params{no_arrange};
+    $self->arrange if $need_arrange;
     $self->update;
     
     # zoom to objects
@@ -553,7 +586,7 @@ sub objects_loaded {
         if $self->{canvas3D};
     
     $self->{list}->Update;
-    $self->{list}->Select($obj_idxs->[-1], 1);
+    $self->{list}->Select($obj_idx[-1], 1);
     $self->object_list_changed;
     
     $self->schedule_background_process;
@@ -691,6 +724,7 @@ sub rotate {
     my $self = shift;
     my ($angle, $axis) = @_;
     
+    # angle is in degrees
     $axis //= Z;
     
     my ($obj_idx, $object) = $self->selected_object;
@@ -712,14 +746,14 @@ sub rotate {
     $self->stop_background_process;
     
     if ($axis == Z) {
-        my $new_angle = $model_instance->rotation + $angle;
+        my $new_angle = $model_instance->rotation + deg2rad($angle);
         $_->set_rotation($new_angle) for @{ $model_object->instances };
         $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
         # rotation around X and Y needs to be performed on mesh
         # so we first apply any Z rotation
         if ($model_instance->rotation != 0) {
-            $model_object->rotate(deg2rad($model_instance->rotation), Z);
+            $model_object->rotate($model_instance->rotation, Z);
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         $model_object->rotate(deg2rad($angle), $axis);
@@ -749,7 +783,7 @@ sub flip {
     
     # apply Z rotation before flipping
     if ($model_instance->rotation != 0) {
-        $model_object->rotate(deg2rad($model_instance->rotation), Z);
+        $model_object->rotate($model_instance->rotation, Z);
         $_->set_rotation(0) for @{ $model_object->instances };
     }
     
@@ -788,7 +822,7 @@ sub changescale {
         
         # apply Z rotation before scaling
         if ($model_instance->rotation != 0) {
-            $model_object->rotate(deg2rad($model_instance->rotation), Z);
+            $model_object->rotate($model_instance->rotation, Z);
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         
@@ -1054,9 +1088,10 @@ sub export_gcode {
             $dlg->Destroy;
             return;
         }
-        $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($dlg->GetPath);
+        my $path = Slic3r::decode_path($dlg->GetPath);
+        $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($path);
         wxTheApp->save_settings;
-        $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
+        $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $path;
         $dlg->Destroy;
     }
     
@@ -1066,6 +1101,11 @@ sub export_gcode {
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Export cancelled");
+            $self->{export_gcode_output_file} = undef;
+            $self->{send_gcode_file} = undef;
+            
+            # this updates buttons status
+            $self->object_list_changed;
         });
         
         # start background process, whose completion event handler
@@ -1275,7 +1315,7 @@ sub _get_export_file {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = $Slic3r::GUI::MainFrame::last_output_file = $dlg->GetPath;
+        $output_file = $Slic3r::GUI::MainFrame::last_output_file = Slic3r::decode_path($dlg->GetPath);
         $dlg->Destroy;
     }
     return $output_file;
@@ -1344,11 +1384,10 @@ sub on_extruders_change {
     my $choices = $self->{preset_choosers}{filament};
     while (@$choices < $num_extruders) {
         my @presets = $choices->[0]->GetStrings;
-        push @$choices, Wx::Choice->new($self, -1, wxDefaultPosition, [150, -1], [@presets]);
-        $choices->[-1]->SetFont($Slic3r::GUI::small_font);
+        push @$choices, Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
         $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-        EVT_CHOICE($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
+        EVT_COMBOBOX($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
         my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
         $choices->[-1]->SetSelection($i || 0);
     }
@@ -1616,26 +1655,27 @@ sub object_menu {
     my $menu = Wx::Menu->new;
     $frame->_append_menu_item($menu, "Delete\tCtrl+Del", 'Remove the selected object', sub {
         $self->remove;
-    });
+    }, undef, 'brick_delete.png');
     $frame->_append_menu_item($menu, "Increase copies\tCtrl++", 'Place one more copy of the selected object', sub {
         $self->increase;
-    });
+    }, undef, 'add.png');
     $frame->_append_menu_item($menu, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
         $self->decrease;
-    });
+    }, undef, 'delete.png');
     $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
         $self->set_number_of_copies;
-    });
+    }, undef, 'textfield.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
         $self->rotate(-45);
-    });
+    }, undef, 'arrow_rotate_clockwise.png');
     $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
         $self->rotate(+45);
-    });
+    }, undef, 'arrow_rotate_anticlockwise.png');
     
     my $rotateMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($rotateMenu, "Rotate", 'Rotate the selected object by an arbitrary angle');
+    my $rotateMenuItem = $menu->AppendSubMenu($rotateMenu, "Rotate", 'Rotate the selected object by an arbitrary angle');
+    $frame->_set_menu_item_icon($rotateMenuItem, 'textfield.png');
     $frame->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
         $self->rotate(undef, X);
     });
@@ -1647,7 +1687,8 @@ sub object_menu {
     });
     
     my $flipMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($flipMenu, "Flip", 'Mirror the selected object');
+    my $flipMenuItem = $menu->AppendSubMenu($flipMenu, "Flip", 'Mirror the selected object');
+    $frame->_set_menu_item_icon($flipMenuItem, 'shape_flip_horizontal.png');
     $frame->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
         $self->flip(X);
     });
@@ -1659,7 +1700,8 @@ sub object_menu {
     });
     
     my $scaleMenu = Wx::Menu->new;
-    $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
+    my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
+    $frame->_set_menu_item_icon($scaleMenuItem, 'arrow_out.png');
     $frame->_append_menu_item($scaleMenu, "Uniformly…", 'Scale the selected object along the XYZ axes', sub {
         $self->changescale(undef);
     });
@@ -1675,18 +1717,18 @@ sub object_menu {
     
     $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
         $self->split_object;
-    });
+    }, undef, 'shape_ungroup.png');
     $frame->_append_menu_item($menu, "Cut…", 'Open the 3D cutting tool', sub {
         $self->object_cut_dialog;
-    });
+    }, undef, 'package.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Settings…", 'Open the object editor dialog', sub {
         $self->object_settings_dialog;
-    });
+    }, undef, 'cog.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Export object as STL…", 'Export this single object as STL file', sub {
         $self->export_object_stl;
-    });
+    }, undef, 'brick_go.png');
     
     return $menu;
 }
@@ -1763,7 +1805,7 @@ sub transform_thumbnail {
     # the order of these transformations MUST be the same everywhere, including
     # in Slic3r::Print->add_model_object()
     my $t = $self->thumbnail->clone;
-    $t->rotate(deg2rad($model_instance->rotation), Slic3r::Point->new(0,0));
+    $t->rotate($model_instance->rotation, Slic3r::Point->new(0,0));
     $t->scale($model_instance->scaling_factor);
     
     $self->transformed_thumbnail($t);

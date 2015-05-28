@@ -47,7 +47,7 @@ class LayerRegion
     PolylineCollection unsupported_bridge_edges;
 
     // ordered collection of extrusion paths/loops to build all perimeters
-    // (this collection contains both ExtrusionPath and ExtrusionLoop objects)
+    // (this collection contains only ExtrusionEntityCollection objects)
     ExtrusionEntityCollection perimeters;
 
     // ordered collection of extrusion paths to fill surfaces
@@ -95,6 +95,7 @@ class Layer {
     LayerRegion* add_region(PrintRegion* print_region);
     
     void make_slices();
+    void merge_slices();
     template <class T> bool any_internal_region_slice_contains(const T &item) const;
     template <class T> bool any_bottom_region_slice_contains(const T &item) const;
     

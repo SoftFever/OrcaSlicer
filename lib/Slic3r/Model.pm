@@ -150,15 +150,19 @@ sub duplicate {
 
 sub _arrange {
     my ($self, $sizes, $distance, $bb) = @_;
+
+    $bb //= Slic3r::Geometry::BoundingBoxf->new;
     
     # we supply unscaled data to arrange()
-    return Slic3r::Geometry::arrange(
+    return @{Slic3r::Geometry::arrange(
         scalar(@$sizes),                # number of parts
-        max(map $_->x, @$sizes),        # cell width
-        max(map $_->y, @$sizes),        # cell height ,
+        Slic3r::Pointf->new(
+            max(map $_->x, @$sizes),        # cell width
+            max(map $_->y, @$sizes),        # cell height  ,
+        ),
         $distance,                      # distance between cells
         $bb,                            # bounding box of the area to fill (can be undef)
-    );
+    )};
 }
 
 sub print_info {
@@ -260,37 +264,6 @@ sub add_instance {
         
         return $new_instance;
     }
-}
-
-sub rotate {
-    my ($self, $angle, $axis) = @_;
-    
-    # we accept angle in radians but mesh currently uses degrees
-    $angle = rad2deg($angle);
-    
-    if ($axis == X) {
-        $_->mesh->rotate_x($angle) for @{$self->volumes};
-    } elsif ($axis == Y) {
-        $_->mesh->rotate_y($angle) for @{$self->volumes};
-    } elsif ($axis == Z) {
-        $_->mesh->rotate_z($angle) for @{$self->volumes};
-    }
-    $self->set_origin_translation(Slic3r::Pointf3->new(0,0,0));
-    $self->invalidate_bounding_box;
-}
-
-sub flip {
-    my ($self, $axis) = @_;
-    
-    if ($axis == X) {
-        $_->mesh->flip_x for @{$self->volumes};
-    } elsif ($axis == Y) {
-        $_->mesh->flip_y for @{$self->volumes};
-    } elsif ($axis == Z) {
-        $_->mesh->flip_z for @{$self->volumes};
-    }
-    $self->set_origin_translation(Slic3r::Pointf3->new(0,0,0));
-    $self->invalidate_bounding_box;
 }
 
 sub mesh_stats {

@@ -84,6 +84,7 @@ sub reload_print {
     }
     
     $self->{canvas}->bb($self->print->total_bounding_box);
+    $self->{canvas}->_dirty(1);
     
     my %z = ();  # z => 1
     foreach my $object (@{$self->{print}->objects}) {
@@ -115,15 +116,23 @@ sub set_z {
 
 package Slic3r::GUI::Plater::2DToolpaths::Canvas;
 
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
-use List::Util qw(min first);
-use Slic3r::Geometry qw(scale unscale epsilon);
+use List::Util qw(min max first);
+use Slic3r::Geometry qw(scale unscale epsilon X Y);
 use Slic3r::Print::State ':steps';
 
-__PACKAGE__->mk_accessors(qw(print z layers color init bb));
+__PACKAGE__->mk_accessors(qw(
+    print z layers color init
+    bb
+    _camera_bb
+    _dirty
+    _zoom
+    _camera_target
+    _drag_start_xy
+));
 
 # make OpenGL::Array thread-safe
 {
@@ -136,18 +145,97 @@ sub new {
     
     my $self = $class->SUPER::new($parent);
     $self->print($print);
+    $self->_zoom(1);
+    
+    # 2D point in model space
+    $self->_camera_target(Slic3r::Pointf->new(0,0));
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
         $self->Render($dc);
     });
-    EVT_SIZE($self, sub {
+    EVT_SIZE($self, sub { $self->_dirty(1) });
+    EVT_IDLE($self, sub {
+        return unless $self->_dirty;
         return if !$self->IsShownOnScreen;
-        $self->Resize( $self->GetSizeWH );
+        $self->Resize;
         $self->Refresh;
     });
+    EVT_MOUSEWHEEL($self, sub {
+        my ($self, $e) = @_;
+        
+        my $old_zoom = $self->_zoom;
+        
+        # Calculate the zoom delta and apply it to the current zoom factor
+        my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
+        $zoom = max(min($zoom, 4), -4);
+        $zoom /= 10;
+        $self->_zoom($self->_zoom / (1-$zoom));
+        $self->_zoom(1) if $self->_zoom > 1;  # prevent from zooming out too much
+        
+        {
+            # In order to zoom around the mouse point we need to translate
+            # the camera target. This math is almost there but not perfect yet...
+            my $camera_bb_size = $self->_camera_bb->size;
+            my $size = Slic3r::Pointf->new($self->GetSizeWH);
+            my $pos = Slic3r::Pointf->new($e->GetPositionXY);
+            
+            # calculate the zooming center in pixel coordinates relative to the viewport center
+            my $vec = Slic3r::Pointf->new($pos->x - $size->x/2, $pos->y - $size->y/2);  #-
+            
+            # calculate where this point will end up after applying the new zoom
+            my $vec2 = $vec->clone;
+            $vec2->scale($old_zoom / $self->_zoom);
+            
+            # move the camera target by the difference of the two positions
+            $self->_camera_target->translate(
+                -($vec->x - $vec2->x) * $camera_bb_size->x / $size->x,
+                 ($vec->y - $vec2->y) * $camera_bb_size->y / $size->y,  #//
+            );
+        }
+        
+        $self->_dirty(1);
+        $self->Refresh;
+    });
+    EVT_MOUSE_EVENTS($self, \&mouse_event);
     
     return $self;
+}
+
+sub mouse_event {
+    my ($self, $e) = @_;
+    
+    my $pos = Slic3r::Pointf->new($e->GetPositionXY);
+    if ($e->Entering && &Wx::wxMSW) {
+        # wxMSW needs focus in order to catch mouse wheel events
+        $self->SetFocus;
+    } elsif ($e->Dragging) {
+        if ($e->LeftIsDown || $e->MiddleIsDown || $e->RightIsDown) {
+            # if dragging, translate view
+            
+            if (defined $self->_drag_start_xy) {
+                my $move = $self->_drag_start_xy->vector_to($pos);  # in pixels
+                
+                # get viewport and camera size in order to convert pixel to model units
+                my ($x, $y) = $self->GetSizeWH;
+                my $camera_bb_size = $self->_camera_bb->size;
+                
+                # compute translation in model units
+                $self->_camera_target->translate(
+                    -$move->x * $camera_bb_size->x / $x,
+                     $move->y * $camera_bb_size->y / $y,   # /**
+                );
+                
+                $self->_dirty(1);
+                $self->Refresh;
+            }
+            $self->_drag_start_xy($pos);
+        }
+    } elsif ($e->LeftUp || $e->MiddleUp || $e->RightUp) {
+        $self->_drag_start_xy(undef);
+    } else {
+        $e->Skip();
+    }
 }
 
 sub set_z {
@@ -197,22 +285,6 @@ sub Render {
         return;
     }
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    my $bb = $self->bb;
-    my ($x1, $y1, $x2, $y2) = ($bb->x_min, $bb->y_min, $bb->x_max, $bb->y_max);
-    my ($x, $y) = $self->GetSizeWH;
-    if (($x2 - $x1)/($y2 - $y1) > $x/$y) {
-        # adjust Y
-        my $new_y = $y * ($x2 - $x1) / $x;
-        $y1 = ($y2 + $y1)/2 - $new_y/2;
-        $y2 = $y1 + $new_y;
-    } else {
-        my $new_x = $x * ($y2 - $y1) / $y;
-        $x1 = ($x2 + $x1)/2 - $new_x/2;
-        $x2 = $x1 + $new_x;
-    }
-    glOrtho($x1, $x2, $y1, $y2, 0, 1);
     glDisable(GL_DEPTH_TEST);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -398,12 +470,71 @@ sub SetCurrent {
 }
 
 sub Resize {
-    my ($self, $x, $y) = @_;
+    my ($self) = @_;
  
     return unless $self->GetContext;
+    return unless $self->bb;
+    $self->_dirty(0);
     
     $self->SetCurrent($self->GetContext);
+    my ($x, $y) = $self->GetSizeWH;
     glViewport(0, 0, $x, $y);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    
+    my $bb = $self->bb->clone;
+    
+    # center bounding box around origin before scaling it
+    my $bb_center = $bb->center;
+    $bb->translate(@{$bb_center->negative});
+    
+    # scale bounding box according to zoom factor
+    $bb->scale($self->_zoom);
+    
+    # reposition bounding box around original center
+    $bb->translate(@{$bb_center});
+    
+    # translate camera
+    $bb->translate(@{$self->_camera_target});
+    
+    # keep camera_bb within total bb
+    # (i.e. prevent user from panning outside the bounding box)
+    {
+        my @translate = (0,0);
+        if ($bb->x_min < $self->bb->x_min) {
+            $translate[X] += $self->bb->x_min - $bb->x_min;
+        }
+        if ($bb->y_min < $self->bb->y_min) {
+            $translate[Y] += $self->bb->y_min - $bb->y_min;
+        }
+        if ($bb->x_max > $self->bb->x_max) {
+            $translate[X] -= $bb->x_max - $self->bb->x_max;
+        }
+        if ($bb->y_max > $self->bb->y_max) {
+            $translate[Y] -= $bb->y_max - $self->bb->y_max;
+        }
+        $self->_camera_target->translate(@translate);
+        $bb->translate(@translate);
+    }
+    
+    # save camera
+    $self->_camera_bb($bb);
+    
+    my ($x1, $y1, $x2, $y2) = ($bb->x_min, $bb->y_min, $bb->x_max, $bb->y_max);
+    if (($x2 - $x1)/($y2 - $y1) > $x/$y) {
+        # adjust Y
+        my $new_y = $y * ($x2 - $x1) / $x;
+        $y1 = ($y2 + $y1)/2 - $new_y/2;
+        $y2 = $y1 + $new_y;
+    } else {
+        my $new_x = $x * ($y2 - $y1) / $y;
+        $x1 = ($x2 + $x1)/2 - $new_x/2;
+        $x2 = $x1 + $new_x;
+    }
+    glOrtho($x1, $x2, $y1, $y2, 0, 1);
+    
+    glMatrixMode(GL_MODELVIEW);
 }
 
 sub line {

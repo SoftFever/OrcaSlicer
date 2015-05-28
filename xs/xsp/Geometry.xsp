@@ -8,6 +8,9 @@
 
 %package{Slic3r::Geometry};
 
+Pointfs arrange(size_t total_parts, Pointf* part, coordf_t dist, BoundingBoxf* bb)
+    %code{% RETVAL = Slic3r::Geometry::arrange(total_parts, *part, dist, *bb); %};
+
 %{
 
 bool
@@ -87,4 +90,17 @@ simplify_polygons(polygons, tolerance)
     OUTPUT:
         RETVAL
 
+
+IV
+_constant()
+  ALIAS:
+    X           = X
+    Y           = Y
+    Z           = Z
+  PROTOTYPE:
+  CODE:
+    RETVAL = ix;
+  OUTPUT: RETVAL
+
 %}
+

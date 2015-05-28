@@ -196,6 +196,7 @@ sub export {
                 if ($finished_objects > 0) {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
                     $gcodegen->enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
+                    $gcodegen->avoid_crossing_perimeters->use_external_mp_once(1);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         Slic3r::Point->new(0,0),
@@ -203,6 +204,9 @@ sub export {
                         'move to origin position for next object',
                     );
                     $gcodegen->enable_cooling_markers(1);
+                    
+                    # disable motion planner when traveling to first object point
+                    $gcodegen->avoid_crossing_perimeters->disable_once(1);
                 }
                 
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
@@ -305,8 +309,8 @@ sub process_layer {
             ($layer->id > 0 || $self->print->config->brim_width == 0)
                 && ($layer->id >= $self->print->config->skirt_height && !$self->print->has_infinite_skirt)
                 && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions})
-                && !defined(first { @{$_->perimeters} > 1 } @{$layer->regions})
-                && !defined(first { @{$_->fills} > 0 } @{$layer->regions})
+                && !defined(first { $_->perimeters->items_count > 1 } @{$layer->regions})
+                && !defined(first { $_->fills->items_count > 0 } @{$layer->regions})
         );
     }
     
@@ -326,19 +330,20 @@ sub process_layer {
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
     $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->before_layer_gcode, {
-        layer_num => $layer->id,
+        layer_num => $self->_gcodegen->layer_index + 1,
         layer_z   => $layer->print_z,
     }) . "\n" if $self->print->config->before_layer_gcode;
-    $gcode .= $self->_gcodegen->change_layer($layer);
+    $gcode .= $self->_gcodegen->change_layer($layer);  # this will increase $self->_gcodegen->layer_index
     $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->layer_gcode, {
-        layer_num => $layer->id,
+        layer_num => $self->_gcodegen->layer_index,
         layer_z   => $layer->print_z,
     }) . "\n" if $self->print->config->layer_gcode;
     
-    # extrude skirt
+    # extrude skirt along raft layers and normal object layers
+    # (not along interlaced support material layers)
     if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->has_infinite_skirt)
         && !$self->_skirt_done->{$layer->print_z}
-        && !$layer->isa('Slic3r::Layer::Support')) {
+        && (!$layer->isa('Slic3r::Layer::Support') || $layer->id < $object->config->raft_layers)) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
         $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};

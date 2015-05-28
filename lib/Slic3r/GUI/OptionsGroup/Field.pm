@@ -7,7 +7,6 @@ has 'parent'                => (is => 'ro', required => 1);
 has 'option'                => (is => 'ro', required => 1);     # Slic3r::GUI::OptionsGroup::Option
 has 'on_change'             => (is => 'rw', default => sub { sub {} });
 has 'on_kill_focus'         => (is => 'rw', default => sub { sub {} });
-has 'wxSsizer'              => (is => 'rw');                    # alternatively, wxSizer object
 has 'disable_change_event'  => (is => 'rw', default => sub { 0 });
 
 # This method should not fire the on_change event
@@ -128,6 +127,8 @@ extends 'Slic3r::GUI::OptionsGroup::Field::wxWindow';
 use Wx qw(:misc);
 use Wx::Event qw(EVT_SPINCTRL EVT_TEXT EVT_KILL_FOCUS);
 
+has 'tmp_value' => (is => 'rw');
+
 sub BUILD {
     my ($self) = @_;
     
@@ -139,11 +140,25 @@ sub BUILD {
         $self->_on_change($self->option->opt_id);
     });
     EVT_TEXT($self->parent, $field, sub {
+        my ($s, $event) = @_;
+        
+        # On OSX/Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
+        # when it was changed from the text control, so the on_change callback
+        # gets the old one, and on_kill_focus resets the control to the old value.
+        # As a workaround, we get the new value from $event->GetString and store
+        # here temporarily so that we can return it from $self->get_value
+        $self->tmp_value($event->GetString);
         $self->_on_change($self->option->opt_id);
+        $self->tmp_value(undef);
     });
     EVT_KILL_FOCUS($field, sub {
         $self->_on_kill_focus($self->option->opt_id, @_);
     });
+}
+
+sub get_value {
+    my ($self) = @_;
+    return $self->tmp_value // $self->wxWindow->GetValue;
 }
 
 
@@ -261,6 +276,9 @@ use List::Util qw(first);
 use Wx qw(wxTheApp :misc :combobox);
 use Wx::Event qw(EVT_COMBOBOX EVT_TEXT);
 
+# if option has no 'values', indices are values
+# if option has no 'labels', values are labels
+
 sub BUILD {
     my ($self) = @_;
     
@@ -274,15 +292,15 @@ sub BUILD {
         my $disable_change_event = $self->disable_change_event;
         $self->disable_change_event(1);
         
-        my $value = $field->GetSelection;
+        my $idx = $field->GetSelection;  # get index of selected value
         my $label;
         
-        if ($self->option->values) {
-            $label = $value = $self->option->values->[$value];
-        } elsif ($value <= $#{$self->option->labels}) {
-            $label = $self->option->labels->[$value];
+        if ($self->option->labels && $idx <= $#{$self->option->labels}) {
+            $label = $self->option->labels->[$idx];
+        } elsif ($self->option->values && $idx <= $#{$self->option->values}) {
+            $label = $self->option->values->[$idx];
         } else {
-            $label = $value;
+            $label = $idx;
         }
         
         # The MSW implementation of wxComboBox will leave the field blank if we call
@@ -322,8 +340,8 @@ sub set_value {
                 $self->disable_change_event(0);
                 return;
             }
-        }
-        if ($self->option->labels && $value <= $#{$self->option->labels}) {
+        } elsif ($self->option->labels && $value <= $#{$self->option->labels}) {
+            # if we have no values, we expect value to be an index
             $field->SetValue($self->option->labels->[$value]);
             $self->disable_change_event(0);
             return;
@@ -348,6 +366,47 @@ sub get_value {
         }
     }
     return $label;
+}
+
+
+package Slic3r::GUI::OptionsGroup::Field::ColourPicker;
+use Moo;
+extends 'Slic3r::GUI::OptionsGroup::Field::wxWindow';
+
+use Wx qw(:misc :colour);
+use Wx::Event qw(EVT_COLOURPICKER_CHANGED);
+
+sub BUILD {
+    my ($self) = @_;
+    
+    my $field = Wx::ColourPickerCtrl->new($self->parent, -1, 
+        $self->_string_to_colour($self->option->default), wxDefaultPosition, 
+        $self->_default_size);
+    $self->wxWindow($field);
+    
+    EVT_COLOURPICKER_CHANGED($self->parent, $field, sub {
+        $self->_on_change($self->option->opt_id);
+    });
+}
+
+sub set_value {
+    my ($self, $value) = @_;
+    
+    $self->disable_change_event(1);
+    $self->wxWindow->SetColour($self->_string_to_colour($value));
+    $self->disable_change_event(0);
+}
+
+sub get_value {
+    my ($self) = @_;
+    return $self->wxWindow->GetColour->GetAsString(wxC2S_HTML_SYNTAX);
+}
+
+sub _string_to_colour {
+    my ($self, $string) = @_;
+    
+    $string =~ s/^#//;
+    return Wx::Colour->new(unpack 'C*', pack 'H*', $string);
 }
 
 

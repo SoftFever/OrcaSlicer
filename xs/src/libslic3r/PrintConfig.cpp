@@ -232,6 +232,12 @@ PrintConfigDef::build_def() {
     Options["fan_below_layer_time"].min = 0;
     Options["fan_below_layer_time"].max = 1000;
 
+    Options["filament_colour"].type = coStrings;
+    Options["filament_colour"].label = "Color";
+    Options["filament_colour"].tooltip = "This is only used in the Slic3r interface as a visual help.";
+    Options["filament_colour"].cli = "filament-color=s@";
+    Options["filament_colour"].gui_type = "color";
+
     Options["filament_diameter"].type = coFloats;
     Options["filament_diameter"].label = "Diameter";
     Options["filament_diameter"].tooltip = "Enter your filament diameter here. Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.";

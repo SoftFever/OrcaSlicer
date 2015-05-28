@@ -593,7 +593,7 @@ sub Resize {
         -$x/2, $x/2, -$y/2, $y/2,
         -$depth, 2*$depth,
     );
- 
+    
     glMatrixMode(GL_MODELVIEW);
 }
  
@@ -937,7 +937,7 @@ package Slic3r::GUI::3DScene;
 use base qw(Slic3r::GUI::3DScene::Base);
 
 use OpenGL qw(:glconstants :gluconstants :glufunctions);
-use List::Util qw(first);
+use List::Util qw(first min max);
 use Slic3r::Geometry qw(scale unscale epsilon);
 use Slic3r::Print::State ':steps';
 
@@ -1076,6 +1076,59 @@ sub load_print_object_slices {
         norms           => OpenGL::Array->new_list(GL_FLOAT, @norms),
         quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @quad_verts),
         quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @quad_norms),
+    );
+}
+
+sub load_print_toolpaths {
+    my ($self, $print) = @_;
+    
+    return if !$print->step_done(STEP_SKIRT);
+    return if !$print->step_done(STEP_BRIM);
+    return if !$print->has_skirt && $print->config->brim_width == 0;
+    
+    my $qverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my $tverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
+    my %offsets = ();  # print_z => [ qverts, tverts ]
+    
+    my $skirt_height = 0;  # number of layers
+    if ($print->has_infinite_skirt) {
+        $skirt_height = $print->total_layer_count;
+    } else {
+        $skirt_height = min($print->config->skirt_height, $print->total_layer_count);
+    }
+    $skirt_height ||= 1 if $print->config->brim_width > 0;
+    
+    # get first $skirt_height layers (maybe this should be moved to a PrintObject method?)
+    my $object0 = $print->get_object(0);
+    my @layers = ();
+    push @layers, map $object0->get_layer($_-1), 1..min($skirt_height, $object0->layer_count);
+    push @layers, map $object0->get_support_layer($_-1), 1..min($skirt_height, $object0->support_layer_count);
+    @layers = sort { $a->print_z <=> $b->print_z } @layers;
+    @layers = @layers[0..($skirt_height-1)];
+    
+    foreach my $i (0..($skirt_height-1)) {
+        my $top_z = $layers[$i]->print_z;
+        $offsets{$top_z} = [$qverts->size, $tverts->size];
+        
+        if ($i == 0) {
+            $self->_extrusionentity_to_verts($print->brim, $top_z, Slic3r::Point->new(0,0), $qverts, $tverts);
+        }
+        
+        $self->_extrusionentity_to_verts($print->skirt, $top_z, Slic3r::Point->new(0,0), $qverts, $tverts);
+    }
+    
+    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
+    {
+        my $pbb = $print->bounding_box;
+        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$pbb->min_point}));
+        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$pbb->max_point}));
+    }
+    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+        bounding_box    => $bb,
+        color           => COLORS->[2],
+        qverts          => $qverts,
+        tverts          => $tverts,
+        offsets         => { %offsets },
     );
 }
 

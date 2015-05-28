@@ -225,8 +225,8 @@ sub make_skirt {
     my $skirt_height_z = -1;
     foreach my $object (@{$self->objects}) {
         my $skirt_height = $self->has_infinite_skirt
-            ? scalar(@{$object->layers})
-            : min($self->config->skirt_height, scalar(@{$object->layers}));
+            ? $object->layer_count
+            : min($self->config->skirt_height, $object->layer_count);
         my $highest_layer = $object->get_layer($skirt_height - 1);
         $skirt_height_z = max($skirt_height_z, $highest_layer->print_z);
     }
@@ -431,6 +431,11 @@ sub expanded_output_filepath {
     # set filename in placeholder parser so that it's available also in custom G-code
     $self->placeholder_parser->set(input_filename => $filename);
     $self->placeholder_parser->set(input_filename_base => $filename_base);
+    
+    # set other variables from model object
+    $self->placeholder_parser->set_multiple(
+        scale => [ map $_->model_object->instances->[0]->scaling_factor * 100 . "%", @{$self->objects} ],
+    );
     
     if ($path && -d $path) {
         # if output path is an existing directory, we take that and append

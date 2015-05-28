@@ -27,9 +27,6 @@ our @EXPORT_OK = qw(
 use constant PI => 4 * atan2(1, 1);
 use constant A => 0;
 use constant B => 1;
-use constant X => 0;
-use constant Y => 1;
-use constant Z => 2;
 use constant X1 => 0;
 use constant Y1 => 1;
 use constant X2 => 2;
@@ -603,121 +600,6 @@ sub douglas_peucker2 {
     }
     
     return [ map $points->[$_], sort keys %keep ];
-}
-
-sub arrange {
-    my ($total_parts, $partx, $party, $dist, $bb) = @_;
-    
-    my $linint = sub {
-        my ($value, $oldmin, $oldmax, $newmin, $newmax) = @_;
-        return ($value - $oldmin) * ($newmax - $newmin) / ($oldmax - $oldmin) + $newmin;
-    };
-    
-    # use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
-    $partx += $dist;
-    $party += $dist;
-    
-    my ($areax, $areay);
-    if (defined $bb) {
-        my $size = $bb->size;
-        ($areax, $areay) = @$size[X,Y];
-    } else {
-        # bogus area size, large enough not to trigger the error below
-        $areax = $partx * $total_parts;
-        $areay = $party * $total_parts;
-    }
-    
-    # this is how many cells we have available into which to put parts
-    my $cellw = int(($areax + $dist) / $partx);
-    my $cellh = int(($areay + $dist) / $party);
-    
-    die "$total_parts parts won't fit in your print area!\n" if $total_parts > ($cellw * $cellh);
-    
-    # width and height of space used by cells
-    my $w = $cellw * $partx;
-    my $h = $cellh * $party;
-    
-    # left and right border positions of space used by cells
-    my $l = ($areax - $w) / 2;
-    my $r = $l + $w;
-    
-    # top and bottom border positions
-    my $t = ($areay - $h) / 2;
-    my $b = $t + $h;
-    
-    # list of cells, sorted by distance from center
-    my @cellsorder;
-    
-    # work out distance for all cells, sort into list
-    for my $i (0..$cellw-1) {
-        for my $j (0..$cellh-1) {
-            my $cx = $linint->($i + 0.5, 0, $cellw, $l, $r);
-            my $cy = $linint->($j + 0.5, 0, $cellh, $t, $b);
-            
-            my $xd = abs(($areax / 2) - $cx);
-            my $yd = abs(($areay / 2) - $cy);
-            
-            my $c = {
-                location => [$cx, $cy],
-                index => [$i, $j],
-                distance => $xd * $xd + $yd * $yd - abs(($cellw / 2) - ($i + 0.5)),
-            };
-            
-            BINARYINSERTIONSORT: {
-                my $index = $c->{distance};
-                my $low = 0;
-                my $high = @cellsorder;
-                while ($low < $high) {
-                    my $mid = ($low + (($high - $low) / 2)) | 0;
-                    my $midval = $cellsorder[$mid]->[0];
-                    
-                    if ($midval < $index) {
-                        $low = $mid + 1;
-                    } elsif ($midval > $index) {
-                        $high = $mid;
-                    } else {
-                        splice @cellsorder, $mid, 0, [$index, $c];
-                        last BINARYINSERTIONSORT;
-                    }
-                }
-                splice @cellsorder, $low, 0, [$index, $c];
-            }
-        }
-    }
-    
-    # the extents of cells actually used by objects
-    my ($lx, $ty, $rx, $by) = (0, 0, 0, 0);
-
-    # now find cells actually used by objects, map out the extents so we can position correctly
-    for my $i (1..$total_parts) {
-        my $c = $cellsorder[$i - 1];
-        my $cx = $c->[1]->{index}->[0];
-        my $cy = $c->[1]->{index}->[1];
-        if ($i == 1) {
-            $lx = $rx = $cx;
-            $ty = $by = $cy;
-        } else {
-            $rx = $cx if $cx > $rx;
-            $lx = $cx if $cx < $lx;
-            $by = $cy if $cy > $by;
-            $ty = $cy if $cy < $ty;
-        }
-    }
-    # now we actually place objects into cells, positioned such that the left and bottom borders are at 0
-    my @positions = ();
-    for (1..$total_parts) {
-        my $c = shift @cellsorder;
-        my $cx = $c->[1]->{index}->[0] - $lx;
-        my $cy = $c->[1]->{index}->[1] - $ty;
-
-        push @positions, [$cx * $partx, $cy * $party];
-    }
-    
-    if (defined $bb) {
-        $_->[X] += $bb->x_min for @positions;
-        $_->[Y] += $bb->y_min for @positions;
-    }
-    return @positions;
 }
 
 1;

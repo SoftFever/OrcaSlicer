@@ -200,40 +200,61 @@ void TriangleMesh::translate(float x, float y, float z)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
+void TriangleMesh::rotate(float angle, const Axis &axis)
+{
+    // admesh uses degrees
+    angle = Slic3r::Geometry::rad2deg(angle);
+    
+    if (axis == X) {
+        stl_rotate_x(&(this->stl), angle);
+    } else if (axis == Y) {
+        stl_rotate_y(&(this->stl), angle);
+    } else if (axis == Z) {
+        stl_rotate_z(&(this->stl), angle);
+    }
+    stl_invalidate_shared_vertices(&this->stl);
+}
+
 void TriangleMesh::rotate_x(float angle)
 {
-    stl_rotate_x(&(this->stl), angle);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->rotate(angle, X);
 }
 
 void TriangleMesh::rotate_y(float angle)
 {
-    stl_rotate_y(&(this->stl), angle);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->rotate(angle, Y);
 }
 
 void TriangleMesh::rotate_z(float angle)
 {
-    stl_rotate_z(&(this->stl), angle);
+    this->rotate(angle, Z);
+}
+
+void TriangleMesh::flip(const Axis &axis)
+{
+    if (axis == X) {
+        stl_mirror_yz(&this->stl);
+    } else if (axis == Y) {
+        stl_mirror_xz(&this->stl);
+    } else if (axis == Z) {
+        stl_mirror_xy(&this->stl);
+    }
     stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::flip_x()
 {
-    stl_mirror_yz(&this->stl);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->flip(X);
 }
 
 void TriangleMesh::flip_y()
 {
-    stl_mirror_xz(&this->stl);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->flip(Y);
 }
 
 void TriangleMesh::flip_z()
 {
-    stl_mirror_xy(&this->stl);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->flip(Z);
 }
 
 void TriangleMesh::align_to_origin()

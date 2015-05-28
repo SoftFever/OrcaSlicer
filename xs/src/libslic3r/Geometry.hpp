@@ -23,6 +23,21 @@ double rad2deg_dir(double angle);
 double deg2rad(double angle);
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
+class ArrangeItem {
+    public:
+    Pointf pos;
+    size_t index_x, index_y;
+    coordf_t dist;
+};
+class ArrangeItemIndex {
+    public:
+    coordf_t index;
+    ArrangeItem item;
+    ArrangeItemIndex(coordf_t _index, ArrangeItem _item) : index(_index), item(_item) {};
+};
+double linint(double value, double oldmin, double oldmax, double newmin, double newmax);
+Pointfs arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf &bb = BoundingBoxf());
+
 class MedialAxis {
     public:
     Points points;
@@ -39,7 +54,7 @@ class MedialAxis {
     Line edge_to_line(const VD::edge_type &edge) const;
     void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge, Points* points);
     bool is_valid_edge(const voronoi_diagram<double>::edge_type& edge) const;
-    Line retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
+    const Line& retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
 };
 
 } }

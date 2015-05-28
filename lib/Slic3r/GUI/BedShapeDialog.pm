@@ -386,7 +386,7 @@ sub _load_stl {
         $dialog->Destroy;
         return;
     }
-    my $input_file = $dialog->GetPaths;
+    my $input_file = Slic3r::decode_path($dialog->GetPaths);
     $dialog->Destroy;
     
     my $model = Slic3r::Model->read_from_file($input_file);

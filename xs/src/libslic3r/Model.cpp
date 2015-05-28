@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include "Geometry.hpp"
 
 namespace Slic3r {
 
@@ -481,7 +482,12 @@ ModelObject::center_around_origin()
     
     if (!this->instances.empty()) {
         for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i) {
-            (*i)->offset.translate(-vector.x, -vector.y);
+            // apply rotation and scaling to vector as well before translating instance,
+            // in order to leave final position unaltered
+            Vectorf3 v = vector.negative();
+            v.rotate((*i)->rotation, (*i)->offset);
+            v.scale((*i)->scaling_factor);
+            (*i)->offset.translate(v.x, v.y);
         }
         this->update_bounding_box();
     }
@@ -510,6 +516,26 @@ ModelObject::scale(const Pointf3 &versor)
     }
     
     // reset origin translation since it doesn't make sense anymore
+    this->origin_translation = Pointf3(0,0,0);
+    this->invalidate_bounding_box();
+}
+
+void
+ModelObject::rotate(float angle, const Axis &axis)
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        (*v)->mesh.rotate(angle, axis);
+    }
+    this->origin_translation = Pointf3(0,0,0);
+    this->invalidate_bounding_box();
+}
+
+void
+ModelObject::flip(const Axis &axis)
+{
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        (*v)->mesh.flip(axis);
+    }
     this->origin_translation = Pointf3(0,0,0);
     this->invalidate_bounding_box();
 }

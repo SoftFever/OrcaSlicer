@@ -57,16 +57,36 @@ sub slice {
             # plus the extra distance required by the support material logic
             my $first_layer_height = $self->config->get_value('first_layer_height');
             $print_z += $first_layer_height;
-            $print_z += $self->config->layer_height * ($self->config->raft_layers - 1);
+            
+            # use a large height
+            my $support_material_layer_height;
+            {
+                my @nozzle_diameters = (
+                    map $self->print->config->get_at('nozzle_diameter', $_),
+                        $self->config->support_material_extruder,
+                        $self->config->support_material_interface_extruder,
+                );
+                $support_material_layer_height = 0.75 * min(@nozzle_diameters);
+            }
+            $print_z += $support_material_layer_height * ($self->config->raft_layers - 1);
         
-            # at this stage we don't know which nozzles are actually used for the first layer
-            # so we compute the average of all of them
-            my $nozzle_diameter = sum(@{$self->print->config->nozzle_diameter})/@{$self->print->config->nozzle_diameter};
-            my $distance = $self->_support_material->contact_distance($first_layer_height, $nozzle_diameter);
+            # compute the average of all nozzles used for printing the object
+            my $nozzle_diameter;
+            {
+                my @nozzle_diameters = (
+                    map $self->print->config->get_at('nozzle_diameter', $_), @{$self->print->object_extruders}
+                );
+                $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
+            }
+            my $distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance
             # (the loop below will raise print_z by such height)
-            $first_object_layer_height = $nozzle_diameter;
+            if ($self->config->support_material_contact_distance == 0) {
+                $first_object_layer_height = $distance;
+            } else {
+                $first_object_layer_height = $nozzle_diameter;
+            }
             $first_object_layer_distance = $distance;
         }
     

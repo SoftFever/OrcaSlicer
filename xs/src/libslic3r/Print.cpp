@@ -172,7 +172,8 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
         } else if (*opt_key == "brim_width") {
             steps.insert(psBrim);
             steps.insert(psSkirt);
-        } else if (*opt_key == "nozzle_diameter") {
+        } else if (*opt_key == "nozzle_diameter"
+            || *opt_key == "resolution") {
             osteps.insert(posSlice);
         } else if (*opt_key == "avoid_crossing_perimeters"
             || *opt_key == "bed_shape"
@@ -300,7 +301,7 @@ Print::step_done(PrintObjectStep step) const
 
 // returns 0-based indices of used extruders
 std::set<size_t>
-Print::extruders() const
+Print::object_extruders() const
 {
     std::set<size_t> extruders;
     
@@ -316,12 +317,34 @@ Print::extruders() const
         if ((*region)->config.top_solid_layers.value > 0 || (*region)->config.bottom_solid_layers.value > 0)
             extruders.insert((*region)->config.solid_infill_extruder - 1);
     }
+    
+    return extruders;
+}
+
+// returns 0-based indices of used extruders
+std::set<size_t>
+Print::support_material_extruders() const
+{
+    std::set<size_t> extruders;
+    
     FOREACH_OBJECT(this, object) {
         if ((*object)->has_support_material()) {
             extruders.insert((*object)->config.support_material_extruder - 1);
             extruders.insert((*object)->config.support_material_interface_extruder - 1);
         }
     }
+    
+    return extruders;
+}
+
+// returns 0-based indices of used extruders
+std::set<size_t>
+Print::extruders() const
+{
+    std::set<size_t> extruders = this->object_extruders();
+    
+    std::set<size_t> s_extruders = this->support_material_extruders();
+    extruders.insert(s_extruders.begin(), s_extruders.end());
     
     return extruders;
 }

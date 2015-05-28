@@ -14,6 +14,8 @@
     void apply_config(DynamicPrintConfig *config)
         %code%{ THIS->apply_config(*config); %};
     void set(std::string key, std::string value);
+    void set_multiple(std::string key, std::vector<std::string> values)
+        %code%{ THIS->set(key, values); %};
 
     void _single_set(std::string k, std::string v)
         %code%{ THIS->_single[k] = v; %};

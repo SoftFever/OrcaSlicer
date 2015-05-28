@@ -129,6 +129,8 @@ class ModelObject
     void translate(const Vectorf3 &vector);
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
+    void rotate(float angle, const Axis &axis);
+    void flip(const Axis &axis);
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
@@ -175,7 +177,7 @@ class ModelInstance
 {
     friend class ModelObject;
     public:
-    double rotation;            // around mesh center point
+    double rotation;            // in radians around mesh center point
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
     

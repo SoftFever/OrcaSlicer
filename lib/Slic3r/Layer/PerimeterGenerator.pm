@@ -95,7 +95,7 @@ sub process {
         my $loop_number = $self->config->perimeters + ($surface->extra_perimeters || 0);
         $loop_number--;  # 0-indexed loops
         
-        my @gaps = ();   # ExPolygons
+        my @gaps = ();   # Polygons
         
         my @last = @{$surface->expolygon->simplify_p(&Slic3r::SCALED_RESOLUTION)};
         if ($loop_number >= 0) {  # no loops = -1
@@ -133,12 +133,12 @@ sub process {
                         
                         # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         # (actually, something larger than that still may exist due to mitering or other causes)
-                        my $min_width = $pwidth / 4;
+                        my $min_width = $ext_pwidth / 4;
                         @thin_walls = @{offset2_ex($diff, -$min_width/2, +$min_width/2)};
-        
+                        
                         # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-                        @thin_walls = grep $_->length > $pwidth*2,
-                            map @{$_->medial_axis($pwidth + $pspacing, $min_width)}, @thin_walls;
+                        @thin_walls = grep $_->length > $ext_pwidth*2,
+                            map @{$_->medial_axis($ext_pwidth + $ext_pspacing, $min_width)}, @thin_walls;
                         Slic3r::debugf "  %d thin walls detected\n", scalar(@thin_walls) if $Slic3r::debug;
         
                         if (0) {
@@ -174,10 +174,10 @@ sub process {
                         # (but still long enough to escape the area threshold) that gap fill
                         # won't be able to fill but we'd still remove from infill area
                         my $diff = diff_ex(
-                            offset(\@last, -0.5*$pspacing),
-                            offset(\@offsets, +0.5*$pspacing + 10),  # safety offset
+                            offset(\@last, -0.5*$distance),
+                            offset(\@offsets, +0.5*$distance + 10),  # safety offset
                         );
-                        push @gaps, grep abs($_->area) >= $gap_area_threshold, @$diff;
+                        push @gaps, map $_->clone, map @$_, grep abs($_->area) >= $gap_area_threshold, @$diff;
                     }
                 }
             
@@ -278,20 +278,20 @@ sub process {
                 require "Slic3r/SVG.pm";
                 Slic3r::SVG::output(
                     "gaps.svg",
-                    expolygons => \@gaps,
+                    expolygons => union_ex(\@gaps),
                 );
             }
             
-            # where $pwidth < thickness < 2*$pspacing, infill with width = 1.5*$pwidth
-            # where 0.5*$pwidth < thickness < $pwidth, infill with width = 0.5*$pwidth
+            # where $pwidth < thickness < 2*$pspacing, infill with width = 2*$pwidth
+            # where 0.1*$pwidth < thickness < $pwidth, infill with width = 1*$pwidth
             my @gap_sizes = (
-                [ $pwidth, 2*$pspacing, unscale 1.5*$pwidth ],
-                [ 0.1*$pwidth, $pwidth, unscale 0.5*$pwidth ],
+                [ $pwidth, 2*$pspacing, unscale 2*$pwidth ],
+                [ 0.1*$pwidth, $pwidth, unscale 1*$pwidth ],
             );
             foreach my $gap_size (@gap_sizes) {
                 my @gap_fill = $self->_fill_gaps(@$gap_size, \@gaps);
                 $self->gap_fill->append($_) for @gap_fill;
-            
+                
                 # Make sure we don't infill narrow parts that are already gap-filled
                 # (we only consider this surface's gaps to reduce the diff() complexity).
                 # Growing actual extrusions ensures that gaps not filled by medial axis
@@ -304,6 +304,7 @@ sub process {
                         ->grow(scale $w/2)};
                 } @gap_fill;
                 @last = @{diff(\@last, \@filled)};
+                @gaps = @{diff(\@gaps, \@filled)};  # prevent more gap fill here
             }
         }
         
@@ -454,8 +455,8 @@ sub _fill_gaps {
     $min *= (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
     
     my $this = diff_ex(
-        offset2([ map @$_, @$gaps ], -$min/2, +$min/2),
-        offset2([ map @$_, @$gaps ], -$max/2, +$max/2),
+        offset2($gaps, -$min/2, +$min/2),
+        offset2($gaps, -$max/2, +$max/2),
         1,
     );
     

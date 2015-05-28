@@ -141,8 +141,8 @@ sub _init_tabpanel {
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
-            my ($group, $preset) = @_;
-	        $self->{options_tabs}{$group}->select_preset($preset);
+            my ($group, $i) = @_;
+	        $self->{options_tabs}{$group}->select_preset($i);
         });
         
         # load initial config
@@ -158,38 +158,44 @@ sub _init_menubar {
     {
         $self->_append_menu_item($fileMenu, "&Load Config…\tCtrl+L", 'Load exported configuration file', sub {
             $self->load_config_file;
-        });
+        }, undef, 'plugin_add.png');
         $self->_append_menu_item($fileMenu, "&Export Config…\tCtrl+E", 'Export current configuration to file', sub {
             $self->export_config;
-        });
+        }, undef, 'plugin_go.png');
         $self->_append_menu_item($fileMenu, "&Load Config Bundle…", 'Load presets from a bundle', sub {
             $self->load_configbundle;
-        });
+        }, undef, 'lorry_add.png');
         $self->_append_menu_item($fileMenu, "&Export Config Bundle…", 'Export all presets to file', sub {
             $self->export_configbundle;
-        });
+        }, undef, 'lorry_go.png');
         $fileMenu->AppendSeparator();
         my $repeat;
         $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice file', sub {
-            $self->quick_slice;
-            $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
-        });
+            wxTheApp->CallAfter(sub {
+                $self->quick_slice;
+                $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+            });
+        }, undef, 'cog_go.png');
         $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as', sub {
-            $self->quick_slice(save_as => 1);
-            $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
-        });
+            wxTheApp->CallAfter(sub {
+                $self->quick_slice(save_as => 1);
+                $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
+            });
+        }, undef, 'cog_go.png');
         $repeat = $self->_append_menu_item($fileMenu, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice', sub {
-            $self->quick_slice(reslice => 1);
-        });
+            wxTheApp->CallAfter(sub {
+                $self->quick_slice(reslice => 1);
+            });
+        }, undef, 'cog_go.png');
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG', sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
-        });
+        }, undef, 'shape_handles.png');
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Repair STL file…", 'Automatically repair an STL file', sub {
             $self->repair_stl;
-        });
+        }, undef, 'wrench.png');
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Preferences…", 'Application preferences', sub {
             Slic3r::GUI::Preferences->new($self)->ShowModal;
@@ -207,13 +213,13 @@ sub _init_menubar {
         $self->{plater_menu} = Wx::Menu->new;
         $self->_append_menu_item($self->{plater_menu}, "Export G-code...", 'Export current plate as G-code', sub {
             $plater->export_gcode;
-        });
+        }, undef, 'cog_go.png');
         $self->_append_menu_item($self->{plater_menu}, "Export plate as STL...", 'Export current plate as STL', sub {
             $plater->export_stl;
-        });
+        }, undef, 'brick_go.png');
         $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
-        });
+        }, undef, 'brick_go.png');
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
@@ -226,22 +232,22 @@ sub _init_menubar {
         if (!$self->{no_plater}) {
             $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
                 $self->select_tab(0);
-            });
+            }, undef, 'application_view_tile.png');
             $self->_append_menu_item($windowMenu, "Select &Controller Tab\tCtrl+T", 'Show the printer controller', sub {
                 $self->select_tab(1);
-            });
+            }, undef, 'printer_empty.png');
             $windowMenu->AppendSeparator();
             $tab_offset += 2;
         }
         $self->_append_menu_item($windowMenu, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings', sub {
             $self->select_tab($tab_offset+0);
-        });
+        }, undef, 'cog.png');
         $self->_append_menu_item($windowMenu, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings', sub {
             $self->select_tab($tab_offset+1);
-        });
+        }, undef, 'spool.png');
         $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
             $self->select_tab($tab_offset+2);
-        });
+        }, undef, 'printer_empty.png');
     }
     
     # Help menu
@@ -313,7 +319,7 @@ sub quick_slice {
                 $dialog->Destroy;
                 return;
             }
-            $input_file = $dialog->GetPaths;
+            $input_file = Slic3r::decode_path($dialog->GetPaths);
             $dialog->Destroy;
             $last_input_file = $input_file unless $params{export_svg};
         } else {
@@ -373,7 +379,7 @@ sub quick_slice {
                 $dlg->Destroy;
                 return;
             }
-            $output_file = $dlg->GetPath;
+            $output_file = Slic3r::decode_path($dlg->GetPath);
             $last_output_file = $output_file unless $params{export_svg};
             $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($output_file);
             wxTheApp->save_settings;
@@ -420,7 +426,7 @@ sub repair_stl {
             $dialog->Destroy;
             return;
         }
-        $input_file = $dialog->GetPaths;
+        $input_file = Slic3r::decode_path($dialog->GetPaths);
         $dialog->Destroy;
     }
     
@@ -433,7 +439,7 @@ sub repair_stl {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = $dlg->GetPath;
+        $output_file = Slic3r::decode_path($dlg->GetPath);
         $dlg->Destroy;
     }
     
@@ -470,7 +476,7 @@ sub export_config {
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
-        my $file = $dlg->GetPath;
+        my $file = Slic3r::decode_path($dlg->GetPath);
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
         wxTheApp->save_settings;
         $last_config = $file;
@@ -489,7 +495,7 @@ sub load_config_file {
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
                 &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
-        ($file) = $dlg->GetPaths;
+        $file = Slic3r::decode_path($dlg->GetPaths);
         $dlg->Destroy;
     }
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
@@ -514,7 +520,7 @@ sub export_configbundle {
     my $dlg = Wx::FileDialog->new($self, 'Save presets bundle as:', $dir, $filename, 
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
-        my $file = $dlg->GetPath;
+        my $file = Slic3r::decode_path($dlg->GetPath);
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
         wxTheApp->save_settings;
         
@@ -547,7 +553,7 @@ sub load_configbundle {
     my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
             &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     return unless $dlg->ShowModal == wxID_OK;
-    my ($file) = $dlg->GetPaths;
+    my $file = Slic3r::decode_path($dlg->GetPaths);
     $dlg->Destroy;
     
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
@@ -601,6 +607,9 @@ sub load_config {
     foreach my $tab (values %{$self->{options_tabs}}) {
         $tab->load_config($config);
     }
+    if ($self->{plater}) {
+        $self->{plater}->on_config_change($config);
+    }
 }
 
 sub config_wizard {
@@ -643,13 +652,19 @@ sub config {
     if (!$self->{plater} || $self->{plater}->filament_presets == 1 || $self->{mode} eq 'simple') {
         $filament_config = $self->{options_tabs}{filament}->config;
     } else {
-        # TODO: handle dirty presets.
-        # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
         my $i = -1;
         foreach my $preset_idx ($self->{plater}->filament_presets) {
             $i++;
-            my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
-            my $config = $self->{options_tabs}{filament}->get_preset_config($preset);
+            my $config;
+            if ($preset_idx == $self->{options_tabs}{filament}->current_preset) {
+                # the selected preset for this extruder is the one in the tab
+                # use the tab's config instead of the preset in case it is dirty
+                # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
+                $config = $self->{options_tabs}{filament}->config;
+            } else {
+                my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
+                $config = $self->{options_tabs}{filament}->get_preset_config($preset);
+            }
             if (!$filament_config) {
                 $filament_config = $config->clone;
                 next;
@@ -719,12 +734,23 @@ sub select_tab {
 }
 
 sub _append_menu_item {
-    my ($self, $menu, $string, $description, $cb, $id) = @_;
+    my ($self, $menu, $string, $description, $cb, $id, $icon) = @_;
     
     $id //= &Wx::NewId();
     my $item = $menu->Append($id, $string, $description);
+    $self->_set_menu_item_icon($item, $icon);
+    
     EVT_MENU($self, $id, $cb);
     return $item;
+}
+
+sub _set_menu_item_icon {
+    my ($self, $menuItem, $icon) = @_;
+    
+    # SetBitmap was not available on OS X before Wx 0.9927
+    if ($icon && $menuItem->can('SetBitmap')) {
+        $menuItem->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icon", wxBITMAP_TYPE_PNG));
+    }
 }
 
 1;

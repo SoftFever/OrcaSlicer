@@ -81,7 +81,7 @@ sub OnInit {
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     
     # locate or create data directory
-    $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
+    $datadir ||= Slic3r::decode_path(Wx::StandardPaths::Get->GetUserDataDir);
     my $enc_datadir = Slic3r::encode_path($datadir);
     Slic3r::debugf "Data directory: %s\n", $datadir;
     
@@ -297,7 +297,7 @@ sub open_model {
         $dialog->Destroy;
         return;
     }
-    my @input_files = $dialog->GetPaths;
+    my @input_files = map Slic3r::decode_path($_), $dialog->GetPaths;
     $dialog->Destroy;
     
     return @input_files;
