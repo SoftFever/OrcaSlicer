@@ -431,6 +431,7 @@ sub set_value {
 package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
+use List::Util qw(first);
 use Wx qw(:icon :dialog :id);
 
 sub name { 'print' }
@@ -736,6 +737,22 @@ sub _update {
             $new_conf->set("spiral_vase", 0);
             $self->load_config($new_conf);
         }
+    }
+    
+    if ($config->fill_density == 100
+        && !first { $_ eq $config->fill_pattern } @{$Slic3r::Config::Options->{external_fill_pattern}{values}}) {
+        my $dialog = Wx::MessageDialog->new($self,
+            "The " . $config->fill_pattern . " infill pattern is not supposed to work at 100% density.\n"
+            . "\nShall I switch to rectilinear fill pattern?",
+            'Infill', wxICON_WARNING | wxYES | wxNO);
+        
+        my $new_conf = Slic3r::Config->new;
+        if ($dialog->ShowModal() == wxID_YES) {
+            $new_conf->set("fill_pattern", 1);
+        } else {
+            $new_conf->set("fill_density", 40);
+        }
+        $self->load_config($new_conf);
     }
     
     my $have_perimeters = $config->perimeters > 0;
@@ -1295,7 +1312,7 @@ sub load_config_file {
 }
 
 package Slic3r::GUI::Tab::Page;
-use Wx qw(:misc :panel :sizer);
+use Wx qw(wxTheApp :misc :panel :sizer);
 use base 'Wx::ScrolledWindow';
 
 sub new {
@@ -1323,8 +1340,11 @@ sub new_optgroup {
         config          => $self->GetParent->{config},
         label_width     => $params{label_width} // 200,
         on_change       => sub {
-            $self->GetParent->update_dirty;
-            $self->GetParent->_on_value_change(@_);
+            my ($opt_key, $value) = @_;
+            wxTheApp->CallAfter(sub {
+                $self->GetParent->update_dirty;
+                $self->GetParent->_on_value_change($opt_key, $value);
+            });
         },
     );
     
