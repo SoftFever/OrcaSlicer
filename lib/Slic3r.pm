@@ -268,7 +268,11 @@ sub encode_path {
 sub decode_path {
     my ($path) = @_;
     
-    utf8::upgrade($path) if $^O eq 'MSWin32';
+    if ($^O eq 'MSWin32') {
+        utf8::upgrade($path);
+    } else {
+        utf8::decode($path);
+    }
     return $path;
 }
 
