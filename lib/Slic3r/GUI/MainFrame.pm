@@ -196,6 +196,7 @@ sub _init_menubar {
             $self->repair_stl;
         }, undef, 'wrench.png');
         $fileMenu->AppendSeparator();
+        # Cmd+, is standard on OS X - what about other operating systems?
         $self->_append_menu_item($fileMenu, "Preferences…\tCtrl+,", 'Application preferences', sub {
             Slic3r::GUI::Preferences->new($self)->ShowModal;
         }, wxID_PREFERENCES);
