@@ -61,7 +61,7 @@ class PrintRegion
 
     private:
     Print* _print;
-
+    
     PrintRegion(Print* print);
     ~PrintRegion();
 };

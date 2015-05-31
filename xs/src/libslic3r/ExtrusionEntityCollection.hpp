@@ -30,6 +30,8 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     Point last_point() const;
     Polygons grow() const;
     size_t items_count() const;
+    void flatten(ExtrusionEntityCollection* retval) const;
+    double min_mm3_per_mm() const;
 };
 
 }

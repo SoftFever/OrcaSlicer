@@ -501,6 +501,22 @@ PrintConfigDef::build_def() {
     Options["min_print_speed"].min = 0;
     Options["min_print_speed"].max = 1000;
 
+    Options["max_print_speed"].type = coFloat;
+    Options["max_print_speed"].label = "Max print speed";
+    Options["max_print_speed"].tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the highest print speed you want to allow.";
+    Options["max_print_speed"].sidetext = "mm/s";
+    Options["max_print_speed"].cli = "max-print-speed=f";
+    Options["max_print_speed"].min = 1;
+    Options["max_print_speed"].max = 1000;
+
+    Options["max_volumetric_speed"].type = coFloat;
+    Options["max_volumetric_speed"].label = "Max volumetric speed";
+    Options["max_volumetric_speed"].tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the maximum volumetric speed your extruder supports.";
+    Options["max_volumetric_speed"].sidetext = "mm³/s";
+    Options["max_volumetric_speed"].cli = "max-volumetric-speed=f";
+    Options["max_volumetric_speed"].min = 0;
+    Options["max_volumetric_speed"].max = 1000;
+
     Options["min_skirt_length"].type = coFloat;
     Options["min_skirt_length"].label = "Minimum extrusion length";
     Options["min_skirt_length"].tooltip = "Generate no less than the number of skirt loops required to consume the specified amount of filament on the bottom layer. For multi-extruder machines, this minimum applies to each extruder.";

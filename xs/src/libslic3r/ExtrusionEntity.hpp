@@ -50,6 +50,7 @@ class ExtrusionEntity
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;
     virtual Polygons grow() const = 0;
+    virtual double min_mm3_per_mm() const = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -81,6 +82,9 @@ class ExtrusionPath : public ExtrusionEntity
         double xofs, double yofs, std::string extrusion_axis,
         std::string gcode_line_suffix) const;
     Polygons grow() const;
+    double min_mm3_per_mm() const {
+        return this->mm3_per_mm;
+    };
 
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
@@ -117,6 +121,7 @@ class ExtrusionLoop : public ExtrusionEntity
     bool is_infill() const;
     bool is_solid_infill() const;
     Polygons grow() const;
+    double min_mm3_per_mm() const;
 };
 
 }

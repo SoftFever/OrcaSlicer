@@ -3,6 +3,7 @@
 #include "ExPolygonCollection.hpp"
 #include "ClipperUtils.hpp"
 #include "Extruder.hpp"
+#include <cmath>
 #include <sstream>
 
 namespace Slic3r {
@@ -373,6 +374,20 @@ ExtrusionLoop::grow() const
         pp.insert(pp.end(), path_pp.begin(), path_pp.end());
     }
     return pp;
+}
+
+double
+ExtrusionLoop::min_mm3_per_mm() const
+{
+    double min_mm3_per_mm = 0;
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+        if (min_mm3_per_mm == 0) {
+            min_mm3_per_mm = path->mm3_per_mm;
+        } else {
+            min_mm3_per_mm = fmin(min_mm3_per_mm, path->mm3_per_mm);
+        }
+    }
+    return min_mm3_per_mm;
 }
 
 #ifdef SLIC3RXS

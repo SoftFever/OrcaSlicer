@@ -450,6 +450,7 @@ sub build {
         infill_every_layers infill_only_where_needed
         solid_infill_every_layers fill_angle solid_infill_below_area 
         only_retract_when_crossing_perimeters infill_first
+        max_print_speed max_volumetric_speed
         perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed 
         solid_infill_speed top_solid_infill_speed support_material_speed 
         support_material_interface_speed bridge_speed gap_fill_speed
@@ -606,6 +607,11 @@ sub build {
             $optgroup->append_single_option_line('bridge_acceleration');
             $optgroup->append_single_option_line('first_layer_acceleration');
             $optgroup->append_single_option_line('default_acceleration');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Autospeed (advanced)');
+            $optgroup->append_single_option_line('max_print_speed');
+            $optgroup->append_single_option_line('max_volumetric_speed');
         }
     }
     

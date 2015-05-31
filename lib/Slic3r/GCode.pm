@@ -27,6 +27,7 @@ has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => p
 has 'first_layer'        => (is => 'rw', default => sub {0});   # this flag triggers first layer speeds
 has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
 has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
+has 'volumetric_speed'   => (is => 'rw', default => sub {0});
 
 sub apply_print_config {
     my ($self, $print_config) = @_;
@@ -298,11 +299,13 @@ sub _extrude_path {
             die "Invalid speed";
         }
     }
-    my $F = $speed * 60;  # convert mm/sec to mm/min
-    
     if ($self->first_layer) {
-        $F = $self->config->get_abs_value_over('first_layer_speed', $F/60) * 60;
+        $speed = $self->config->get_abs_value_over('first_layer_speed', $speed);
     }
+    if ($self->volumetric_speed != 0) {
+        $speed ||= $self->volumetric_speed / $path->mm3_per_mm;
+    }
+    my $F = $speed * 60;  # convert mm/sec to mm/min
     
     # extrude arc or line
     $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge && $self->enable_cooling_markers;

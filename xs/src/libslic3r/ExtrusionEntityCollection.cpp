@@ -1,5 +1,6 @@
 #include "ExtrusionEntityCollection.hpp"
 #include <algorithm>
+#include <cmath>
 #include <map>
 
 namespace Slic3r {
@@ -135,6 +136,37 @@ ExtrusionEntityCollection::items_count() const
         }
     }
     return count;
+}
+
+/* Returns a single vector of pointers to all non-collection items contained in this one */
+void
+ExtrusionEntityCollection::flatten(ExtrusionEntityCollection* retval) const
+{
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        if ((*it)->is_collection()) {
+            ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(*it);
+            ExtrusionEntityCollection contents;
+            collection->flatten(&contents);
+            retval->entities.insert(retval->entities.end(), contents.entities.begin(), contents.entities.end());
+        } else {
+            retval->entities.push_back((*it)->clone());
+        }
+    }
+}
+
+double
+ExtrusionEntityCollection::min_mm3_per_mm() const
+{
+    double min_mm3_per_mm = 0;
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        double mm3_per_mm = (*it)->min_mm3_per_mm();
+        if (min_mm3_per_mm == 0) {
+            min_mm3_per_mm = mm3_per_mm;
+        } else {
+            min_mm3_per_mm = fmin(min_mm3_per_mm, mm3_per_mm);
+        }
+    }
+    return min_mm3_per_mm;
 }
 
 #ifdef SLIC3RXS

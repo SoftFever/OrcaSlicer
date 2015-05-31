@@ -28,6 +28,12 @@
         %code{% RETVAL = THIS->entities.size(); %};
     int items_count()
         %code{% RETVAL = THIS->items_count(); %};
+    ExtrusionEntityCollection* flatten()
+        %code{%
+            RETVAL = new ExtrusionEntityCollection();
+            THIS->flatten(RETVAL);
+        %};
+    double min_mm3_per_mm();
     bool empty()
         %code{% RETVAL = THIS->entities.empty(); %};
     std::vector<size_t> orig_indices()

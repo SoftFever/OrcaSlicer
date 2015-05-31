@@ -306,6 +306,8 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionString              layer_gcode;
+    ConfigOptionFloat               max_print_speed;
+    ConfigOptionFloat               max_volumetric_speed;
     ConfigOptionFloat               pressure_advance;
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
@@ -331,6 +333,8 @@ class GCodeConfig : public virtual StaticPrintConfig
         this->gcode_comments.value                               = false;
         this->gcode_flavor.value                                 = gcfRepRap;
         this->layer_gcode.value                                  = "";
+        this->max_print_speed.value                              = 80;
+        this->max_volumetric_speed.value                         = 0;
         this->pressure_advance.value                             = 0;
         this->retract_length.values.resize(1);
         this->retract_length.values[0]                           = 2;
@@ -361,6 +365,8 @@ class GCodeConfig : public virtual StaticPrintConfig
         if (opt_key == "gcode_comments")                             return &this->gcode_comments;
         if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
         if (opt_key == "layer_gcode")                                return &this->layer_gcode;
+        if (opt_key == "max_print_speed")                            return &this->max_print_speed;
+        if (opt_key == "max_volumetric_speed")                       return &this->max_volumetric_speed;
         if (opt_key == "pressure_advance")                           return &this->pressure_advance;
         if (opt_key == "retract_length")                             return &this->retract_length;
         if (opt_key == "retract_length_toolchange")                  return &this->retract_length_toolchange;
