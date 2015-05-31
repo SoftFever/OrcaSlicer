@@ -455,6 +455,7 @@ sub point_to_gcode {
 sub set_extruder {
     my ($self, $extruder_id) = @_;
     
+    $self->placeholder_parser->set('current_extruder', $extruder_id);
     return "" if !$self->writer->need_toolchange($extruder_id);
     
     # if we are running a single-extruder setup, just set the extruder and return nothing
