@@ -196,7 +196,7 @@ sub _init_menubar {
             $self->repair_stl;
         }, undef, 'wrench.png');
         $fileMenu->AppendSeparator();
-        $self->_append_menu_item($fileMenu, "Preferences…", 'Application preferences', sub {
+        $self->_append_menu_item($fileMenu, "Preferences…\tCtrl+,", 'Application preferences', sub {
             Slic3r::GUI::Preferences->new($self)->ShowModal;
         }, wxID_PREFERENCES);
         $fileMenu->AppendSeparator();
