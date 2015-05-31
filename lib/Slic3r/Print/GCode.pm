@@ -75,7 +75,7 @@ sub BUILD {
                     }
                 }
             }
-            my $min_mm3_per_mm = min(@mm3_per_mm);
+            my $min_mm3_per_mm = min(@mm3_per_mm) // 0;
             if ($min_mm3_per_mm > 0) {
                 # In order to honor max_print_speed we need to find a target volumetric
                 # speed that we can use throughout the print. So we define this target 
