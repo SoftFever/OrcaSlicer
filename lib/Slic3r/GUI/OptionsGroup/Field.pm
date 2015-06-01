@@ -137,6 +137,7 @@ sub BUILD {
     $self->wxWindow($field);
     
     EVT_SPINCTRL($self->parent, $field, sub {
+        $self->tmp_value(undef);
         $self->_on_change($self->option->opt_id);
     });
     EVT_TEXT($self->parent, $field, sub {
@@ -147,11 +148,14 @@ sub BUILD {
         # gets the old one, and on_kill_focus resets the control to the old value.
         # As a workaround, we get the new value from $event->GetString and store
         # here temporarily so that we can return it from $self->get_value
-        $self->tmp_value($event->GetString);
+        $self->tmp_value($event->GetString) if $event->GetString =~ /^\d+$/;
         $self->_on_change($self->option->opt_id);
-        $self->tmp_value(undef);
+        # We don't reset tmp_value here because _on_change might put callbacks
+        # in the CallAfter queue, and we want the tmp value to be available from
+        # them as well.
     });
     EVT_KILL_FOCUS($field, sub {
+        $self->tmp_value(undef);
         $self->_on_kill_focus($self->option->opt_id, @_);
     });
 }
