@@ -152,18 +152,19 @@ stl_count_facets(stl_file *stl, char *file) {
     }
     
     /* Find the number of facets */
-    j = 0;
-    for(i = 0; i < file_size ; i++) {
-      j++;
-      if(getc(stl->fp) == '\n') {
-        if(j > 4) { /* don't count short lines */
-          num_lines++;
-        }
-        j = 0;
-      }
+    char linebuf[100];
+    while (fgets(linebuf, 100, stl->fp) != NULL) {
+        /* don't count short lines */
+        if (strlen(linebuf) <= 4) continue;
+        
+        /* skip solid/endsolid lines as broken STL file generators may put several of them */
+        if (strncmp(linebuf, "solid", 5) == 0 || strncmp(linebuf, "endsolid", 8) == 0) continue;
+        
+        ++num_lines;
     }
+    
     rewind(stl->fp);
-
+    
     /* Get the header */
     for(i = 0;
         (i < 80) && (stl->stats.header[i] = getc(stl->fp)) != '\n'; i++);
@@ -269,8 +270,6 @@ stl_read(stl_file *stl, int first_facet, int first) {
     fseek(stl->fp, HEADER_SIZE, SEEK_SET);
   } else {
     rewind(stl->fp);
-    /* Skip the first line of the file */
-    while(getc(stl->fp) != '\n');
   }
 
   for(i = first_facet; i < stl->stats.number_of_facets; i++) {
@@ -288,13 +287,18 @@ stl_read(stl_file *stl, int first_facet, int first) {
     } else
       /* Read a single facet from an ASCII .STL file */
     {
-      if((fscanf(stl->fp, "%*s %*s %f %f %f\n", &facet.normal.x, &facet.normal.y, &facet.normal.z) + \
-          fscanf(stl->fp, "%*s %*s") + \
-          fscanf(stl->fp, "%*s %f %f %f\n", &facet.vertex[0].x, &facet.vertex[0].y,  &facet.vertex[0].z) + \
-          fscanf(stl->fp, "%*s %f %f %f\n", &facet.vertex[1].x, &facet.vertex[1].y,  &facet.vertex[1].z) + \
-          fscanf(stl->fp, "%*s %f %f %f\n", &facet.vertex[2].x, &facet.vertex[2].y,  &facet.vertex[2].z) + \
-          fscanf(stl->fp, "%*s") + \
-          fscanf(stl->fp, "%*s")) != 12) {
+      // skip solid/endsolid
+      // (in this order, otherwise it won't work when they are paired in the middle of a file)
+      fscanf(stl->fp, "endsolid\n");
+      fscanf(stl->fp, "solid %*s\n");
+      
+      if((fscanf(stl->fp, " facet normal %f %f %f\n", &facet.normal.x, &facet.normal.y, &facet.normal.z) + \
+          fscanf(stl->fp, " outer loop\n") + \
+          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[0].x, &facet.vertex[0].y,  &facet.vertex[0].z) + \
+          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[1].x, &facet.vertex[1].y,  &facet.vertex[1].z) + \
+          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[2].x, &facet.vertex[2].y,  &facet.vertex[2].z) + \
+          fscanf(stl->fp, " endloop\n") + \
+          fscanf(stl->fp, " endfacet\n")) != 12) {
         perror("Something is syntactically very wrong with this ASCII STL!");
         stl->error = 1;
         return;
