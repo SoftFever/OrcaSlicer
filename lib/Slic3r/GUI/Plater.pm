@@ -437,7 +437,7 @@ sub GetFrame {
 
 sub update_presets {
     my $self = shift;
-    my ($group, $presets, $selected) = @_;
+    my ($group, $presets, $selected, $is_dirty) = @_;
     
     foreach my $choice (@{ $self->{preset_choosers}{$group} }) {
         my $sel = $choice->GetSelection;
@@ -463,7 +463,13 @@ sub update_presets {
             }
             $choice->AppendString($preset->name, $bitmap);
         }
-        $choice->SetSelection($sel) if $sel <= $#$presets;
+        
+        if ($sel <= $#$presets) {
+            $choice->SetSelection($sel);
+            if ($is_dirty) {
+                $choice->SetString($sel, $choice->GetString($sel) . " (modified)");
+            }
+        }
     }
     $self->{preset_choosers}{$group}[0]->SetSelection($selected);
 }

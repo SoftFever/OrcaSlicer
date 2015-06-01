@@ -180,8 +180,11 @@ sub _update {}
 sub _on_presets_changed {
     my $self = shift;
     
-    $self->{on_presets_changed}->($self->{presets}, $self->{presets_choice}->GetSelection)
-        if $self->{on_presets_changed};
+    $self->{on_presets_changed}->(
+        $self->{presets},
+        scalar($self->{presets_choice}->GetSelection),
+        $self->is_dirty,
+    ) if $self->{on_presets_changed};
 }
 
 sub on_preset_loaded {}
@@ -1043,10 +1046,10 @@ sub build {
             $optgroup->on_change(sub {
                 my ($opt_id) = @_;
                 if ($opt_id eq 'extruders_count') {
-                    $self->update_dirty;
                     wxTheApp->CallAfter(sub {
                         $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                     });
+                    $self->update_dirty;
                 }
             });
         }
