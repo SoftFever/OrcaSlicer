@@ -65,7 +65,9 @@ sub new {
     $self->{treectrl}->AddRoot("root");
     $self->{pages} = [];
     $self->{treectrl}->SetIndent(0);
+    $self->{disable_tree_sel_changed_event} = 0;
     EVT_TREE_SEL_CHANGED($parent, $self->{treectrl}, sub {
+        return if $self->{disable_tree_sel_changed_event};
         my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
             or return;
         $_->Hide for @{$self->{pages}};
@@ -303,12 +305,15 @@ sub update_tree {
     foreach my $page (@{$self->{pages}}) {
         my $itemId = $self->{treectrl}->AppendItem($rootItem, $page->{title}, $page->{iconID});
         if ($page->{title} eq $selected) {
+            $self->{disable_tree_sel_changed_event} = 1;
             $self->{treectrl}->SelectItem($itemId);
+            $self->{disable_tree_sel_changed_event} = 0;
             $have_selection = 1;
         }
     }
     
     if (!$have_selection) {
+        # this is triggered on first load, so we don't disable the sel change event
         $self->{treectrl}->SelectItem($self->{treectrl}->GetFirstChild($rootItem));
     }
 }
