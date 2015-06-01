@@ -653,12 +653,14 @@ PrintConfigDef::build_def() {
 
     Options["retract_length"].type = coFloats;
     Options["retract_length"].label = "Length";
+    Options["retract_length"].full_label = "Retraction Length";
     Options["retract_length"].tooltip = "When retraction is triggered, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     Options["retract_length"].sidetext = "mm (zero to disable)";
     Options["retract_length"].cli = "retract-length=f@";
 
     Options["retract_length_toolchange"].type = coFloats;
     Options["retract_length_toolchange"].label = "Length";
+    Options["retract_length_toolchange"].full_label = "Retraction Length (Toolchange)";
     Options["retract_length_toolchange"].tooltip = "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     Options["retract_length_toolchange"].sidetext = "mm (zero to disable)";
     Options["retract_length_toolchange"].cli = "retract-length-toolchange=f@";
@@ -683,6 +685,7 @@ PrintConfigDef::build_def() {
 
     Options["retract_speed"].type = coInts;
     Options["retract_speed"].label = "Speed";
+    Options["retract_speed"].full_label = "Retraction Speed";
     Options["retract_speed"].tooltip = "The speed for retractions (it only applies to the extruder motor).";
     Options["retract_speed"].sidetext = "mm/s";
     Options["retract_speed"].cli = "retract-speed=f@";
@@ -716,6 +719,7 @@ PrintConfigDef::build_def() {
 
     Options["skirts"].type = coInt;
     Options["skirts"].label = "Loops (minimum)";
+    Options["skirts"].full_label = "Skirt Loops";
     Options["skirts"].tooltip = "Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely.";
     Options["skirts"].cli = "skirts=i";
     Options["skirts"].min = 0;
