@@ -1,4 +1,4 @@
-use Test::More tests => 29;
+use Test::More tests => 33;
 use strict;
 use warnings;
 
@@ -47,14 +47,14 @@ use Slic3r::Test;
         ok !$has_cw_loops, 'all perimeters extruded ccw';
     }
     
-    {
+    foreach my $model (qw(cube_with_hole cube_with_concave_hole)) {
         $config->set('external_perimeter_speed', 68);
         my $print = Slic3r::Test::init_print(
-            'cube_with_hole',
+            $model,
             config      => $config,
             duplicate   => 2,  # we test two copies to make sure ExtrusionLoop objects are not modified in-place (the second object would not detect cw loops and thus would calculate wrong inwards moves)
         );
-        my $has_cw_loops = my $has_outwards_move = 0;
+        my $has_cw_loops = my $has_outwards_move = my $starts_on_convex_point = 0;
         my $cur_loop;
         my %external_loops = ();  # print_z => count of external loops
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
@@ -74,10 +74,22 @@ use Slic3r::Test;
                             if defined($external_loops{$self->Z}) && $external_loops{$self->Z} == 2;
                         
                         $external_loops{$self->Z}++;
-                        my $loop_contains_point = Slic3r::Polygon->new_scale(@$cur_loop)->contains_point($move_dest);
+                        my $is_contour  = $external_loops{$self->Z} == 2;
+                        my $is_hole     = $external_loops{$self->Z} == 1;
+                        
+                        my $loop = Slic3r::Polygon->new_scale(@$cur_loop);
+                        my $loop_contains_point = $loop->contains_point($move_dest);
                         $has_outwards_move = 1
-                            if (!$loop_contains_point && $external_loops{$self->Z} == 2)  # contour should include destination
-                             || ($loop_contains_point && $external_loops{$self->Z} == 1); # hole should not
+                            if (!$loop_contains_point && $is_contour)  # contour should include destination
+                             || ($loop_contains_point && $is_hole);    # hole should not
+                        
+                        if ($model eq 'cube_with_concave_hole') {
+                            # check that loop starts at a concave vertex
+                            my $ccw_angle = $loop->first_point->ccw_angle(@$loop[-2,1]);
+                            my $convex = ($ccw_angle > PI);  # whether the angle on the *right* side is convex
+                            $starts_on_convex_point = 1
+                                if ($convex && $is_contour) || (!$convex && $is_hole);
+                        }
                     }
                     $cur_loop = undef;
                 }
@@ -85,6 +97,7 @@ use Slic3r::Test;
         });
         ok !$has_cw_loops, 'all perimeters extruded ccw';
         ok !$has_outwards_move, 'move inwards after completing external loop';
+        ok !$starts_on_convex_point, 'loops start on concave point if any';
     }
     
     {

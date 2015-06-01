@@ -2,7 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 38;
+plan tests => 42;
 
 BEGIN {
     use FindBin;
@@ -189,6 +189,21 @@ my $polygons = [
 }
 
 #==========================================================
+
+{
+    my $square = Slic3r::Polygon->new_scale(
+        [100,100],
+        [200,100],
+        [200,200],
+        [100,200],
+    );
+    is scalar(@{$square->concave_points(PI*4/3)}), 0, 'no concave vertices detected in ccw square';
+    is scalar(@{$square->convex_points(PI*2/3)}), 4, 'four convex vertices detected in ccw square';
+    
+    $square->make_clockwise;
+    is scalar(@{$square->concave_points(PI*4/3)}), 4, 'fuor concave vertices detected in cw square';
+    is scalar(@{$square->convex_points(PI*2/3)}), 0, 'no convex vertices detected in cw square';
+}
 
 {
     my $square = Slic3r::Polygon->new_scale(

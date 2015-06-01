@@ -129,8 +129,15 @@ sub extrude_loop {
         $loop->split_at($last_pos);
     } elsif ($self->config->seam_position eq 'nearest' || $self->config->seam_position eq 'aligned') {
         # simplify polygon in order to skip false positives in concave/convex detection
+        # ($loop is always ccw as $polygon->simplify only works on ccw polygons)
         my $polygon = $loop->polygon;
         my @simplified = @{$polygon->simplify(scale $self->config->get_at('nozzle_diameter', $self->writer->extruder->id)/2)};
+        
+        # restore original winding order so that concave and convex detection always happens
+        # on the right/outer side of the polygon
+        if ($was_clockwise) {
+            $_->reverse for @simplified;
+        }
         
         # concave vertices have priority
         my @candidates = map @{$_->concave_points(PI*4/3)}, @simplified;
