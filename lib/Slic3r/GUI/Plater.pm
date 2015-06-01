@@ -1366,14 +1366,29 @@ sub on_extruders_change {
     
     my $choices = $self->{preset_choosers}{filament};
     while (@$choices < $num_extruders) {
+        # copy strings from first choice
         my @presets = $choices->[0]->GetStrings;
-        push @$choices, Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+        
+        # initialize new choice
+        my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+        push @$choices, $choice;
+        
+        # copy icons from first choice
+        $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
+        
+        # insert new choice into sizer
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
-        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-        EVT_COMBOBOX($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
-        my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
-        $choices->[-1]->SetSelection($i || 0);
+        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        
+        # setup the listener
+        EVT_COMBOBOX($choice, $choice, sub { $self->_on_select_preset('filament', @_) });
+        
+        # initialize selection
+        my $i = first { $choice->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
+        $choice->SetSelection($i || 0);
     }
+    
+    # remove unused choices if any
     while (@$choices > $num_extruders) {
         $self->{presets_sizer}->Remove(4 + ($#$choices-1)*2);  # label
         $self->{presets_sizer}->Remove(4 + ($#$choices-1)*2);  # wxChoice
