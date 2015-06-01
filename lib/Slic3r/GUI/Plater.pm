@@ -471,6 +471,7 @@ sub update_presets {
 sub filament_presets {
     my $self = shift;
     
+    # force scalar context for GetSelection() as it's context-aware
     return map scalar($_->GetSelection), @{ $self->{preset_choosers}{filament} };
 }
 
