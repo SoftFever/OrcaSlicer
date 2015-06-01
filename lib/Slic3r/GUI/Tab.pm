@@ -229,6 +229,10 @@ sub on_select_preset {
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
             $self->{presets_choice}->SetSelection($self->current_preset);
+            
+            # trigger the on_presets_changed event so that we also restore the previous value
+            # in the plater selector
+            $self->_on_presets_changed;
             return;
         }
     }

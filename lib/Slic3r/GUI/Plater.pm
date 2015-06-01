@@ -439,8 +439,14 @@ sub update_presets {
     my $self = shift;
     my ($group, $presets, $selected, $is_dirty) = @_;
     
-    foreach my $choice (@{ $self->{preset_choosers}{$group} }) {
-        my $sel = $choice->GetSelection;
+    my @choosers = @{ $self->{preset_choosers}{$group} };
+    foreach my $choice (@choosers) {
+        if ($group eq 'filament' && @choosers > 1) {
+            # if we have more than one filament chooser, keep our selection
+            # instead of importing the one from the tab
+            $selected = $choice->GetSelection;
+            $is_dirty = 0;
+        }
         $choice->Clear;
         foreach my $preset (@$presets) {
             my $bitmap;
@@ -464,14 +470,15 @@ sub update_presets {
             $choice->AppendString($preset->name, $bitmap);
         }
         
-        if ($sel <= $#$presets) {
-            $choice->SetSelection($sel);
+        if ($selected <= $#$presets) {
             if ($is_dirty) {
-                $choice->SetString($sel, $choice->GetString($sel) . " (modified)");
+                $choice->SetString($selected, $choice->GetString($selected) . " (modified)");
             }
+            # call SetSelection() only after SetString() otherwise the new string
+            # won't be picked up as the visible string
+            $choice->SetSelection($selected);
         }
     }
-    $self->{preset_choosers}{$group}[0]->SetSelection($selected);
 }
 
 sub filament_presets {
