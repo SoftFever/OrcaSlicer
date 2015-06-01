@@ -471,7 +471,7 @@ sub update_presets {
 sub filament_presets {
     my $self = shift;
     
-    return map $_->GetSelection, @{ $self->{preset_choosers}{filament} };
+    return map scalar($_->GetSelection), @{ $self->{preset_choosers}{filament} };
 }
 
 sub add {
