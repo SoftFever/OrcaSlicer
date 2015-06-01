@@ -36,7 +36,9 @@ sub write_file {
     printf $fh qq{<amf unit="millimeter">\n};
     printf $fh qq{  <metadata type="cad">Slic3r %s</metadata>\n}, $Slic3r::VERSION;
     for my $material_id (sort @{ $model->material_names }) {
+        next if $material_id eq '';
         my $material = $model->get_material($material_id);
+        # note that material-id must never be 0 since it's reserved by the AMF spec
         printf $fh qq{  <material id="%s">\n}, $material_id;
         for (keys %{$material->attributes}) {
              printf $fh qq{    <metadata type=\"%s\">%s</metadata>\n}, $_, $material->attributes->{$_};
