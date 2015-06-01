@@ -106,6 +106,7 @@ sub new {
     
     $self->{config} = Slic3r::Config->new;
     $self->build;
+    $self->update_tree;
     $self->_update;
     if ($self->hidden_options) {
         $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
@@ -282,7 +283,6 @@ sub add_options_page {
     $page->Hide;
     $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
-    $self->update_tree;
     return $page;
 }
 
@@ -961,7 +961,7 @@ sub _update_description {
 
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
-use Wx qw(:sizer :button :bitmap :misc :id);
+use Wx qw(wxTheApp :sizer :button :bitmap :misc :id);
 use Wx::Event qw(EVT_BUTTON);
 
 sub name { 'printer' }
@@ -1039,7 +1039,9 @@ sub build {
                 my ($opt_id) = @_;
                 if ($opt_id eq 'extruders_count') {
                     $self->update_dirty;
-                    $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
+                    wxTheApp->CallAfter(sub {
+                        $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
+                    });
                 }
             });
         }
@@ -1225,8 +1227,6 @@ sub _build_extruder_pages {
             $optgroup->append_single_option_line($_, $extruder_idx)
                 for qw(retract_length_toolchange retract_restart_extra_toolchange);
         }
-        
-        $self->{extruder_pages}[$extruder_idx]{disabled} = 0;
     }
     
     # remove extra pages
