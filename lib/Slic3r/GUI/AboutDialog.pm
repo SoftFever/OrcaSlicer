@@ -3,8 +3,8 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(:font :html :misc :dialog :sizer :systemsettings);
-use Wx::Event qw(EVT_HTML_LINK_CLICKED);
+use Wx qw(:font :html :misc :dialog :sizer :systemsettings :frame :id);
+use Wx::Event qw(EVT_HTML_LINK_CLICKED EVT_LEFT_DOWN EVT_BUTTON);
 use Wx::Print;
 use Wx::Html;
 use base 'Wx::Dialog';
@@ -12,7 +12,7 @@ use base 'Wx::Dialog';
 sub new {
     my $class = shift;
     my ($parent) = @_;
-    my $self = $class->SUPER::new($parent, -1, 'About Slic3r', wxDefaultPosition, [600, 300], &Wx::wxCLOSE_BOX);
+    my $self = $class->SUPER::new($parent, -1, 'About Slic3r', wxDefaultPosition, [600, 300], wxCAPTION);
 
     $self->SetBackgroundColour(Wx::wxWHITE);
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -65,7 +65,18 @@ sub new {
     $html->SetPage($text);
     $vsizer->Add($html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 20);
     EVT_HTML_LINK_CLICKED($self, $html, \&link_clicked);
-
+    
+    my $buttons = $self->CreateStdDialogButtonSizer(wxCLOSE);
+    $self->SetEscapeId(wxID_CLOSE);
+    EVT_BUTTON($self, wxID_CLOSE, sub {
+        $self->EndModal(wxID_CLOSE);
+        $self->Close;
+    });
+    $vsizer->Add($buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
+    
+    EVT_LEFT_DOWN($self, sub { $self->Close });
+    EVT_LEFT_DOWN($logo, sub { $self->Close });
+    
     return $self;
 }
 
