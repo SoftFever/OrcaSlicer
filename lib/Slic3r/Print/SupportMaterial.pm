@@ -350,16 +350,18 @@ sub support_layers_z {
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
     shift @z while @z && $z[0] <= $first_layer_height;
     unshift @z, $first_layer_height;
-    
+    use XXX; YYY \@z;
     # add raft layers by dividing the space between first layer and
     # first contact layer evenly
     if ($self->object_config->raft_layers > 1 && @z >= 2) {
         # $z[1] is last raft layer (contact layer for the first layer object)
         my $height = ($z[1] - $z[0]) / ($self->object_config->raft_layers - 1);
+        # since we already have two raft layers ($z[0] and $z[1]) we need to insert
+        # raft_layers-2 more
         splice @z, 1, 0,
             map { sprintf "%.2f", $_ }
             map { $z[0] + $height * $_ }
-            0..($self->object_config->raft_layers - 1);
+            1..($self->object_config->raft_layers - 2);
     }
     
     for (my $i = $#z; $i >= 0; $i--) {
