@@ -312,6 +312,13 @@ sub _extrude_path {
     if ($self->volumetric_speed != 0) {
         $speed ||= $self->volumetric_speed / $path->mm3_per_mm;
     }
+    if ($self->config->max_volumetric_speed > 0) {
+        # Cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
+        $speed = min(
+            $speed,
+            $self->config->max_volumetric_speed / $path->mm3_per_mm,
+        );
+    }
     my $F = $speed * 60;  # convert mm/sec to mm/min
     
     # extrude arc or line

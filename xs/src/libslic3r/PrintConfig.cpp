@@ -151,7 +151,7 @@ PrintConfigDef::build_def() {
     Options["external_perimeter_speed"].type = coFloatOrPercent;
     Options["external_perimeter_speed"].label = "External perimeters";
     Options["external_perimeter_speed"].category = "Speed";
-    Options["external_perimeter_speed"].tooltip = "This separate setting will affect the speed of external perimeters (the visible ones). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above.";
+    Options["external_perimeter_speed"].tooltip = "This separate setting will affect the speed of external perimeters (the visible ones). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above. Set to zero for auto.";
     Options["external_perimeter_speed"].sidetext = "mm/s or %";
     Options["external_perimeter_speed"].cli = "external-perimeter-speed=s";
     Options["external_perimeter_speed"].ratio_over = "perimeter_speed";
@@ -448,7 +448,7 @@ PrintConfigDef::build_def() {
     Options["infill_speed"].type = coFloat;
     Options["infill_speed"].label = "Infill";
     Options["infill_speed"].category = "Speed";
-    Options["infill_speed"].tooltip = "Speed for printing the internal fill.";
+    Options["infill_speed"].tooltip = "Speed for printing the internal fill. Set to zero for auto.";
     Options["infill_speed"].sidetext = "mm/s";
     Options["infill_speed"].cli = "infill-speed=f";
     Options["infill_speed"].aliases.push_back("print_feed_rate");
@@ -511,7 +511,7 @@ PrintConfigDef::build_def() {
 
     Options["max_volumetric_speed"].type = coFloat;
     Options["max_volumetric_speed"].label = "Max volumetric speed";
-    Options["max_volumetric_speed"].tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the maximum volumetric speed your extruder supports.";
+    Options["max_volumetric_speed"].tooltip = "This experimental setting is used to set the maximum volumetric speed your extruder supports.";
     Options["max_volumetric_speed"].sidetext = "mm³/s";
     Options["max_volumetric_speed"].cli = "max-volumetric-speed=f";
     Options["max_volumetric_speed"].min = 0;
@@ -595,7 +595,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_speed"].type = coFloat;
     Options["perimeter_speed"].label = "Perimeters";
     Options["perimeter_speed"].category = "Speed";
-    Options["perimeter_speed"].tooltip = "Speed for perimeters (contours, aka vertical shells).";
+    Options["perimeter_speed"].tooltip = "Speed for perimeters (contours, aka vertical shells). Set to zero for auto.";
     Options["perimeter_speed"].sidetext = "mm/s";
     Options["perimeter_speed"].cli = "perimeter-speed=f";
     Options["perimeter_speed"].aliases.push_back("perimeter_feed_rate");
@@ -736,7 +736,7 @@ PrintConfigDef::build_def() {
     Options["small_perimeter_speed"].type = coFloatOrPercent;
     Options["small_perimeter_speed"].label = "Small perimeters";
     Options["small_perimeter_speed"].category = "Speed";
-    Options["small_perimeter_speed"].tooltip = "This separate setting will affect the speed of perimeters having radius <= 6.5mm (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above.";
+    Options["small_perimeter_speed"].tooltip = "This separate setting will affect the speed of perimeters having radius <= 6.5mm (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above. Set to zero for auto.";
     Options["small_perimeter_speed"].sidetext = "mm/s or %";
     Options["small_perimeter_speed"].cli = "small-perimeter-speed=s";
     Options["small_perimeter_speed"].ratio_over = "perimeter_speed";
@@ -774,7 +774,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_speed"].type = coFloatOrPercent;
     Options["solid_infill_speed"].label = "Solid infill";
     Options["solid_infill_speed"].category = "Speed";
-    Options["solid_infill_speed"].tooltip = "Speed for printing solid regions (top/bottom/internal horizontal shells). This can be expressed as a percentage (for example: 80%) over the default infill speed above.";
+    Options["solid_infill_speed"].tooltip = "Speed for printing solid regions (top/bottom/internal horizontal shells). This can be expressed as a percentage (for example: 80%) over the default infill speed above. Set to zero for auto.";
     Options["solid_infill_speed"].sidetext = "mm/s or %";
     Options["solid_infill_speed"].cli = "solid-infill-speed=s";
     Options["solid_infill_speed"].ratio_over = "infill_speed";
@@ -971,7 +971,7 @@ PrintConfigDef::build_def() {
     Options["top_solid_infill_speed"].type = coFloatOrPercent;
     Options["top_solid_infill_speed"].label = "Top solid infill";
     Options["top_solid_infill_speed"].category = "Speed";
-    Options["top_solid_infill_speed"].tooltip = "Speed for printing top solid layers (it only applies to the uppermost external layers and not to their internal solid layers). You may want to slow down this to get a nicer surface finish. This can be expressed as a percentage (for example: 80%) over the solid infill speed above.";
+    Options["top_solid_infill_speed"].tooltip = "Speed for printing top solid layers (it only applies to the uppermost external layers and not to their internal solid layers). You may want to slow down this to get a nicer surface finish. This can be expressed as a percentage (for example: 80%) over the solid infill speed above. Set to zero for auto.";
     Options["top_solid_infill_speed"].sidetext = "mm/s or %";
     Options["top_solid_infill_speed"].cli = "top-solid-infill-speed=s";
     Options["top_solid_infill_speed"].ratio_over = "solid_infill_speed";
