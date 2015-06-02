@@ -82,7 +82,11 @@ foreach my $c (@external_configs, Slic3r::Config->new_from_cli(%cli_options)) {
 
 # save configuration
 if ($opt{save}) {
-    $cli_config->save($opt{save});
+    if (@{$cli_config->get_keys} > 0) {
+        $cli_config->save($opt{save});
+    } else {
+        Slic3r::Config->new_from_defaults->save($opt{save});
+    }
 }
 
 # apply command line config on top of default config
