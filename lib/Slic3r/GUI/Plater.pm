@@ -1230,13 +1230,15 @@ sub send_gcode {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(180);
     
+    my $path = Slic3r::encode_path($self->{send_gcode_file});
     my $res = $ua->post(
         "http://" . $self->{config}->octoprint_host . "/api/files/local",
         Content_Type => 'form-data',
         'X-Api-Key' => $self->{config}->octoprint_apikey,
         Content => [
-            # OctoPrint doesn't like Windows paths
-            file => [ $self->{send_gcode_file}, basename($self->{send_gcode_file}) ],
+            # OctoPrint doesn't like Windows paths so we use basename()
+            # Also, since we need to read from filesystem we process it through encode_path()
+            file => [ $path, basename($path) ],
         ],
     );
     
