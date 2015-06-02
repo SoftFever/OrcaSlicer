@@ -350,7 +350,7 @@ sub support_layers_z {
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
     shift @z while @z && $z[0] <= $first_layer_height;
     unshift @z, $first_layer_height;
-    use XXX; YYY \@z;
+    
     # add raft layers by dividing the space between first layer and
     # first contact layer evenly
     if ($self->object_config->raft_layers > 1 && @z >= 2) {
