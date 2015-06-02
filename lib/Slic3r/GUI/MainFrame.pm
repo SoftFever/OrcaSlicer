@@ -11,8 +11,8 @@ use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedi
 use Wx::Event qw(EVT_CLOSE EVT_MENU);
 use base 'Wx::Frame';
 
-our $last_input_file;
-our $last_output_file;
+our $qs_last_input_file;
+our $qs_last_output_file;
 our $last_config;
 
 sub new {
@@ -314,19 +314,19 @@ sub quick_slice {
             }
             $input_file = Slic3r::decode_path($dialog->GetPaths);
             $dialog->Destroy;
-            $last_input_file = $input_file unless $params{export_svg};
+            $qs_last_input_file = $input_file unless $params{export_svg};
         } else {
-            if (!defined $last_input_file) {
+            if (!defined $qs_last_input_file) {
                 Wx::MessageDialog->new($self, "No previously sliced file.",
                                        'Error', wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
-            if (! -e $last_input_file) {
-                Wx::MessageDialog->new($self, "Previously sliced file ($last_input_file) not found.",
+            if (! -e $qs_last_input_file) {
+                Wx::MessageDialog->new($self, "Previously sliced file ($qs_last_input_file) not found.",
                                        'File Not Found', wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
-            $input_file = $last_input_file;
+            $input_file = $qs_last_input_file;
         }
         my $input_file_basename = basename($input_file);
         $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
@@ -361,7 +361,7 @@ sub quick_slice {
         # select output file
         my $output_file;
         if ($params{reslice}) {
-            $output_file = $last_output_file if defined $last_output_file;
+            $output_file = $qs_last_output_file if defined $qs_last_output_file;
         } elsif ($params{save_as}) {
             $output_file = $sprint->expanded_output_filepath;
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
@@ -373,7 +373,7 @@ sub quick_slice {
                 return;
             }
             $output_file = Slic3r::decode_path($dlg->GetPath);
-            $last_output_file = $output_file unless $params{export_svg};
+            $qs_last_output_file = $output_file unless $params{export_svg};
             $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($output_file);
             wxTheApp->save_settings;
             $dlg->Destroy;
