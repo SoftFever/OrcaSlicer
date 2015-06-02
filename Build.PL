@@ -22,6 +22,7 @@ my %prereqs = qw(
     IO::Scalar                      0
     threads                         1.96
     Time::HiRes                     0
+    Unicode::Normalize              0
 );
 my %recommends = qw(
     Class::XSAccessor               0

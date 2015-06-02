@@ -204,6 +204,8 @@ sub select_preset {
 
 sub select_preset_by_name {
     my ($self, $name) = @_;
+    
+    $name = Unicode::Normalize::NFC($name);
     $self->select_preset(first { $self->{presets}[$_]->name eq $name } 0 .. $#{$self->{presets}});
 }
 
@@ -1462,7 +1464,7 @@ sub config {
     if ($self->default) {
         return Slic3r::Config->new_from_defaults(@$keys);
     } else {
-        if (!-e $self->file) {
+        if (!-e Slic3r::encode_path($self->file)) {
             Slic3r::GUI::show_error(undef, "The selected preset does not exist anymore (" . $self->file . ").");
             return undef;
         }

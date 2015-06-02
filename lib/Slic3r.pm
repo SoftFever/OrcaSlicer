@@ -71,6 +71,7 @@ use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
 our $build = eval "use Slic3r::Build; 1";
 use Thread::Semaphore;
+use Unicode::Normalize;
 
 use constant SCALING_FACTOR         => 0.000001;
 use constant RESOLUTION             => 0.0125;
@@ -261,7 +262,13 @@ sub resume_all_threads {
 sub encode_path {
     my ($path) = @_;
     
-    utf8::downgrade($path) if $^O eq 'MSWin32';
+    $path = Unicode::Normalize::NFC($path);
+    if ($^O eq 'MSWin32') {
+        utf8::downgrade($path);
+    } else {
+        utf8::encode($path);
+    }
+    
     return $path;
 }
 
@@ -273,6 +280,12 @@ sub decode_path {
     } else {
         utf8::decode($path);
     }
+    
+    # The filesystem might force a normalization form (like HFS+ does) so 
+    # if we rely on the filename being comparable after the open() + readdir()
+    # roundtrip (like when creating and then selecting a preset), we need to 
+    # restore our normalization form.
+    $path = Unicode::Normalize::NFC($path);
     return $path;
 }
 
