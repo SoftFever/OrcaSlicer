@@ -330,7 +330,13 @@ sub new {
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 $self->{preset_choosers}{$group} = [$choice];
-                EVT_COMBOBOX($choice, $choice, sub { $self->_on_select_preset($group, @_) });
+                # setup the listener
+                EVT_COMBOBOX($choice, $choice, sub {
+                    my ($choice) = @_;
+                    wxTheApp->CallAfter(sub {
+                        $self->_on_select_preset($group, $choice);
+                    });
+                });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
                 $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 0);
             }
@@ -423,7 +429,9 @@ sub _on_select_preset {
 		wxTheApp->save_settings;
 		return;
 	}
-	$self->{on_select_preset}->($group, $choice->GetSelection)
+	
+	# call GetSelection() in scalar context as it's context-aware
+	$self->{on_select_preset}->($group, scalar $choice->GetSelection)
 	    if $self->{on_select_preset};
 	
 	# get new config and generate on_config_change() event for updating plater and other things
@@ -1381,7 +1389,12 @@ sub on_extruders_change {
         $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
         
         # setup the listener
-        EVT_COMBOBOX($choice, $choice, sub { $self->_on_select_preset('filament', @_) });
+        EVT_COMBOBOX($choice, $choice, sub {
+            my ($choice) = @_;
+            wxTheApp->CallAfter(sub {
+                $self->_on_select_preset('filament', $choice);
+            });
+        });
         
         # initialize selection
         my $i = first { $choice->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
