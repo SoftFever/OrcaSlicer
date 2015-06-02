@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(sum min max);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad convex_hull);
+use Slic3r::Geometry qw(epsilon scale scaled_epsilon PI rad2deg deg2rad convex_hull);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
     intersection_pl offset2_ex diff_pl);
 use Slic3r::Surface ':types';
@@ -273,7 +273,7 @@ sub contact_area {
             my $contact_z = $layer->print_z - $self->contact_distance($layer->height, $nozzle_diameter);
             
             # ignore this contact area if it's too low
-            next if $contact_z < $self->object_config->get_value('first_layer_height');
+            next if $contact_z < $self->object_config->get_value('first_layer_height') - epsilon;
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];

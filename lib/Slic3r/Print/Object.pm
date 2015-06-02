@@ -45,8 +45,9 @@ sub slice {
         $self->clear_layers;
     
         # make layers taking custom heights into account
-        my $print_z = my $slice_z = my $height = my $id = 0;
-        my $first_object_layer_height = -1;
+        my $id      = 0;
+        my $print_z = 0;
+        my $first_object_layer_height   = -1;
         my $first_object_layer_distance = -1;
     
         # add raft layers
@@ -63,8 +64,8 @@ sub slice {
             {
                 my @nozzle_diameters = (
                     map $self->print->config->get_at('nozzle_diameter', $_),
-                        $self->config->support_material_extruder,
-                        $self->config->support_material_interface_extruder,
+                        $self->config->support_material_extruder-1,
+                        $self->config->support_material_interface_extruder-1,
                 );
                 $support_material_layer_height = 0.75 * min(@nozzle_diameters);
             }
@@ -78,20 +79,17 @@ sub slice {
                 );
                 $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             }
-            my $distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
+            $first_object_layer_distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance
             # (the loop below will raise print_z by such height)
-            if ($self->config->support_material_contact_distance == 0) {
-                $first_object_layer_height = $distance;
-            } else {
-                $first_object_layer_height = $nozzle_diameter;
-            }
-            $first_object_layer_distance = $distance;
+            $first_object_layer_height = $first_object_layer_distance - $self->config->support_material_contact_distance;
         }
     
         # loop until we have at least one layer and the max slice_z reaches the object height
-        my $max_z = unscale($self->size->z);
+        my $slice_z = 0;
+        my $height  = 0;
+        my $max_z   = unscale($self->size->z);
         while (($slice_z - $height) <= $max_z) {
             # assign the default height to the layer according to the general settings
             $height = ($id == 0)
