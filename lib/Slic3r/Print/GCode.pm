@@ -75,8 +75,9 @@ sub BUILD {
                     }
                 }
             }
-            my $min_mm3_per_mm = min(@mm3_per_mm) // 0;
-            if ($min_mm3_per_mm > 0) {
+            @mm3_per_mm = grep $_ != 0, @mm3_per_mm;
+            if (@mm3_per_mm) {
+                my $min_mm3_per_mm = min(@mm3_per_mm);
                 # In order to honor max_print_speed we need to find a target volumetric
                 # speed that we can use throughout the print. So we define this target 
                 # volumetric speed as the volumetric speed produced by printing the 
