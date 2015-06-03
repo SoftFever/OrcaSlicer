@@ -1097,7 +1097,7 @@ sub export_gcode {
     } else {
         my $default_output_file = $self->{print}->expanded_output_filepath($main::opt{output});
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
-            basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
+            basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;

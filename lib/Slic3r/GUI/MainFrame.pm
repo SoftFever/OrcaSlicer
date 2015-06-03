@@ -367,7 +367,7 @@ sub quick_slice {
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
                 wxTheApp->output_path(dirname($output_file)),
-                basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
+                basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if ($dlg->ShowModal != wxID_OK) {
                 $dlg->Destroy;
                 return;
