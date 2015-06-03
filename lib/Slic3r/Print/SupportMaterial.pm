@@ -364,7 +364,8 @@ sub support_layers_z {
             1..($self->object_config->raft_layers - 2);
     }
     
-    for (my $i = $#z; $i >= 0; $i--) {
+    # create other layers (skip raft layers as they're already done and use thicker layers)
+    for (my $i = $#z; $i >= $self->object_config->raft_layers; $i--) {
         my $target_height = $support_material_height;
         if ($i > 0 && $top{ $z[$i-1] }) {
             $target_height = $nozzle_diameter;
