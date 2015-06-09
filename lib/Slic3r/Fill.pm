@@ -1,6 +1,7 @@
 package Slic3r::Fill;
 use Moo;
 
+use List::Util qw(max);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Fill::3DHoneycomb;
 use Slic3r::Fill::Base;
@@ -143,8 +144,12 @@ sub make_fill {
     # we are going to grow such regions by overlapping them with the void (if any)
     # TODO: detect and investigate whether there could be narrow regions without
     # any void neighbors
-    my $distance_between_surfaces = $infill_flow->scaled_spacing;
     {
+        my $distance_between_surfaces = max(
+            $infill_flow->scaled_spacing,
+            $solid_infill_flow->scaled_spacing,
+            $top_solid_infill_flow->scaled_spacing,
+        );
         my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],
             offset2([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2, +$distance_between_surfaces/2),
@@ -162,9 +167,6 @@ sub make_fill {
             1,
         )};
     }
-    
-    # add spacing between surfaces
-    @surfaces = map @{$_->offset(-$distance_between_surfaces / 2)}, @surfaces;
     
     if (0) {
         require "Slic3r/SVG.pm";
@@ -234,11 +236,14 @@ sub make_fill {
         $f->z($layerm->print_z);
         $f->angle(deg2rad($layerm->config->fill_angle));
         $f->loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
-        my @polylines = $f->fill_surface(
-            $surface,
+        
+        # apply half spacing using this flow's own spacing and generate infill
+        my @polylines = map $f->fill_surface(
+            $_,
             density         => $density/100,
             layer_height    => $h,
-        );
+        ), @{ $surface->offset(-scale($f->spacing)/2) };
+        
         next unless @polylines;
         
         # calculate actual flow from spacing (which might have been adjusted by the infill
