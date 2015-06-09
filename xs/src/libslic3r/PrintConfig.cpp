@@ -155,6 +155,7 @@ PrintConfigDef::build_def() {
     Options["external_perimeter_speed"].sidetext = "mm/s or %";
     Options["external_perimeter_speed"].cli = "external-perimeter-speed=s";
     Options["external_perimeter_speed"].ratio_over = "perimeter_speed";
+    Options["external_perimeter_speed"].min = 0;
 
     Options["external_perimeters_first"].type = coBool;
     Options["external_perimeters_first"].label = "External perimeters first";
@@ -350,6 +351,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_speed"].tooltip = "If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds.";
     Options["first_layer_speed"].sidetext = "mm/s or %";
     Options["first_layer_speed"].cli = "first-layer-speed=s";
+    Options["first_layer_speed"].min = 0;
 
     Options["first_layer_temperature"].type = coInts;
     Options["first_layer_temperature"].label = "First layer";
@@ -499,7 +501,6 @@ PrintConfigDef::build_def() {
     Options["min_print_speed"].sidetext = "mm/s";
     Options["min_print_speed"].cli = "min-print-speed=f";
     Options["min_print_speed"].min = 0;
-    Options["min_print_speed"].max = 1000;
 
     Options["max_print_speed"].type = coFloat;
     Options["max_print_speed"].label = "Max print speed";
@@ -507,7 +508,6 @@ PrintConfigDef::build_def() {
     Options["max_print_speed"].sidetext = "mm/s";
     Options["max_print_speed"].cli = "max-print-speed=f";
     Options["max_print_speed"].min = 1;
-    Options["max_print_speed"].max = 1000;
 
     Options["max_volumetric_speed"].type = coFloat;
     Options["max_volumetric_speed"].label = "Max volumetric speed";
@@ -515,7 +515,6 @@ PrintConfigDef::build_def() {
     Options["max_volumetric_speed"].sidetext = "mm³/s";
     Options["max_volumetric_speed"].cli = "max-volumetric-speed=f";
     Options["max_volumetric_speed"].min = 0;
-    Options["max_volumetric_speed"].max = 1000;
 
     Options["min_skirt_length"].type = coFloat;
     Options["min_skirt_length"].label = "Minimum extrusion length";
@@ -689,7 +688,6 @@ PrintConfigDef::build_def() {
     Options["retract_speed"].tooltip = "The speed for retractions (it only applies to the extruder motor).";
     Options["retract_speed"].sidetext = "mm/s";
     Options["retract_speed"].cli = "retract-speed=f@";
-    Options["retract_speed"].max = 1000;
 
     Options["seam_position"].type = coEnum;
     Options["seam_position"].label = "Seam position";
@@ -740,6 +738,7 @@ PrintConfigDef::build_def() {
     Options["small_perimeter_speed"].sidetext = "mm/s or %";
     Options["small_perimeter_speed"].cli = "small-perimeter-speed=s";
     Options["small_perimeter_speed"].ratio_over = "perimeter_speed";
+    Options["small_perimeter_speed"].min = 0;
 
     Options["solid_infill_below_area"].type = coFloat;
     Options["solid_infill_below_area"].label = "Solid infill threshold area";
@@ -779,6 +778,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_speed"].cli = "solid-infill-speed=s";
     Options["solid_infill_speed"].ratio_over = "infill_speed";
     Options["solid_infill_speed"].aliases.push_back("solid_infill_feed_rate");
+    Options["solid_infill_speed"].min = 0;
 
     Options["solid_layers"].type = coInt;
     Options["solid_layers"].label = "Solid layers";
@@ -890,6 +890,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_speed"].sidetext = "mm/s or %";
     Options["support_material_interface_speed"].cli = "support-material-interface-speed=s";
     Options["support_material_interface_speed"].ratio_over = "support_material_speed";
+    Options["support_material_interface_speed"].min = 0;
 
     Options["support_material_pattern"].type = coEnum;
     Options["support_material_pattern"].label = "Pattern";
@@ -975,6 +976,7 @@ PrintConfigDef::build_def() {
     Options["top_solid_infill_speed"].sidetext = "mm/s or %";
     Options["top_solid_infill_speed"].cli = "top-solid-infill-speed=s";
     Options["top_solid_infill_speed"].ratio_over = "solid_infill_speed";
+    Options["top_solid_infill_speed"].min = 0;
 
     Options["top_solid_layers"].type = coInt;
     Options["top_solid_layers"].label = "Top";
@@ -990,7 +992,7 @@ PrintConfigDef::build_def() {
     Options["travel_speed"].sidetext = "mm/s";
     Options["travel_speed"].cli = "travel-speed=f";
     Options["travel_speed"].aliases.push_back("travel_feed_rate");
-    Options["travel_speed"].min = 0;
+    Options["travel_speed"].min = 1;
 
     Options["use_firmware_retraction"].type = coBool;
     Options["use_firmware_retraction"].label = "Use firmware retraction";
