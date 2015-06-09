@@ -290,7 +290,7 @@ stl_read(stl_file *stl, int first_facet, int first) {
       // skip solid/endsolid
       // (in this order, otherwise it won't work when they are paired in the middle of a file)
       fscanf(stl->fp, "endsolid\n");
-      fscanf(stl->fp, "solid %*s\n");
+      fscanf(stl->fp, "solid %*[^\n]\n");  // name might contain spaces so %*s doesn't work
       
       if((fscanf(stl->fp, " facet normal %f %f %f\n", &facet.normal.x, &facet.normal.y, &facet.normal.z) + \
           fscanf(stl->fp, " outer loop\n") + \
