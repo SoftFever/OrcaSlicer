@@ -30,7 +30,7 @@ warn "Running Slic3r under Perl 5.16 is not supported nor recommended\n"
     if $^V == v5.16;
 
 use FindBin;
-our $var = "$FindBin::Bin/var";
+our $var = decode_path($FindBin::Bin) . "/var";
 
 use Moo 1.003001;
 
@@ -71,6 +71,8 @@ use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
 our $build = eval "use Slic3r::Build; 1";
 use Thread::Semaphore;
+use Encode::Locale 1.05;
+use Encode;
 use Unicode::Normalize;
 
 use constant SCALING_FACTOR         => 0.000001;
@@ -263,11 +265,7 @@ sub encode_path {
     my ($path) = @_;
     
     $path = Unicode::Normalize::NFC($path);
-    if ($^O eq 'MSWin32') {
-        utf8::downgrade($path);
-    } else {
-        utf8::encode($path);
-    }
+    $path = Encode::encode(locale_fs => $path);
     
     return $path;
 }
@@ -275,17 +273,15 @@ sub encode_path {
 sub decode_path {
     my ($path) = @_;
     
-    if ($^O eq 'MSWin32') {
-        utf8::upgrade($path);
-    } else {
-        utf8::decode($path);
-    }
+    $path = Encode::decode(locale_fs => $path)
+        unless utf8::is_utf8($path);
     
     # The filesystem might force a normalization form (like HFS+ does) so 
     # if we rely on the filename being comparable after the open() + readdir()
     # roundtrip (like when creating and then selecting a preset), we need to 
     # restore our normalization form.
     $path = Unicode::Normalize::NFC($path);
+    
     return $path;
 }
 
