@@ -349,29 +349,69 @@ PrintObject::bridge_over_infill()
         double fill_density = (*region)->config.fill_density.value;
         if (fill_density == 100) continue;
         
+        // get bridge flow
+        Flow bridge_flow = (*region)->flow(
+            frSolidInfill,
+            -1,     // layer height, not relevant for bridge flow
+            true,   // bridge
+            false,  // first layer
+            -1,     // custom width, not relevant for bridge flow
+            *this
+        );
+        
         FOREACH_LAYER(this, layer_it) {
             if (layer_it == this->layers.begin()) continue;
             
             Layer* layer        = *layer_it;
-            Layer* lower_layer  = *(layer_it - 1);
             LayerRegion* layerm = layer->get_region(region_id);
             
-            // compute the areas needing bridge math
-            Polygons internal_solid, lower_internal;
+            // extract the stInternalSolid surfaces that might be transformed into bridges
+            Polygons internal_solid;
             layerm->fill_surfaces.filter_by_type(stInternalSolid, &internal_solid);
-            FOREACH_LAYERREGION(lower_layer, lower_layerm_it)
-                (*lower_layerm_it)->fill_surfaces.filter_by_type(stInternal, &lower_internal);
             
+            // check whether the lower area is deep enough for absorbing the extra flow
+            // (for obvious physical reasons but also for preventing the bridge extrudates
+            // from overflowing in 3D preview)
             ExPolygons to_bridge;
-            intersection(internal_solid, lower_internal, &to_bridge);
-            if (to_bridge.empty()) continue;
-            
-            ExPolygons not_to_bridge;
-            diff(internal_solid, to_bridge, &not_to_bridge, true);
+            {
+                Polygons to_bridge_pp = internal_solid;
+                
+                // iterate through lower layers spanned by bridge_flow
+                double bottom_z = layer->print_z - bridge_flow.height;
+                for (int i = (layer_it - this->layers.begin()) - 1; i >= 0; --i) {
+                    Layer* lower_layer = this->layers[i];
+                    
+                    // stop iterating if layer is lower than bottom_z
+                    if (lower_layer->print_z < bottom_z) break;
+                    
+                    // iterate through regions and collect internal surfaces
+                    Polygons lower_internal;
+                    FOREACH_LAYERREGION(lower_layer, lower_layerm_it)
+                        (*lower_layerm_it)->fill_surfaces.filter_by_type(stInternal, &lower_internal);
+                    
+                    // intersect such lower internal surfaces with the candidate solid surfaces
+                    intersection(to_bridge_pp, lower_internal, &to_bridge_pp);
+                }
+                
+                // there's no point in bridging too thin/short regions
+                {
+                    double min_width = bridge_flow.scaled_width() * 3;
+                    offset2(to_bridge_pp, &to_bridge_pp, -min_width, +min_width);
+                }
+                
+                if (to_bridge_pp.empty()) continue;
+                
+                // convert into ExPolygons
+                union_(to_bridge_pp, &to_bridge);
+            }
             
             #ifdef SLIC3R_DEBUG
-            printf("Bridging %zu internal areas at layer %d\n", to_bridge.size(), layer->id());
+            printf("Bridging %zu internal areas at layer %zu\n", to_bridge.size(), layer->id());
             #endif
+            
+            // compute the remaning internal solid surfaces as difference
+            ExPolygons not_to_bridge;
+            diff(internal_solid, to_bridge, &not_to_bridge, true);
             
             // build the new collection of fill_surfaces
             {
