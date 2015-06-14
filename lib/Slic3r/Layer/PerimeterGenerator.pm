@@ -320,7 +320,10 @@ sub process {
             # two or more loops
             $inset += $pspacing/2;
         }
-        $inset -= $self->config->get_abs_value_over('infill_overlap', $pwidth);
+        
+        # only apply infill overlap if we actually have one perimeter
+        $inset -= $self->config->get_abs_value_over('infill_overlap', $inset + $ispacing/2)
+            if $inset > 0;
         
         my $min_perimeter_infill_spacing = $ispacing * (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
         $self->fill_surfaces->append($_)
