@@ -145,7 +145,7 @@ sub process {
                             Slic3r::SVG::output(
                                 "medial_axis.svg",
                                 no_arrows       => 1,
-                                expolygons      => \@expp,
+                                #expolygons      => \@expp,
                                 polylines       => \@thin_walls,
                             );
                         }
