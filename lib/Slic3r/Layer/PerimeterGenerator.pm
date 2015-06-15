@@ -24,7 +24,6 @@ has '_holes_pt'             => (is => 'rw');
 has '_ext_mm3_per_mm'       => (is => 'rw');
 has '_mm3_per_mm'           => (is => 'rw');
 has '_mm3_per_mm_overhang'  => (is => 'rw');
-has '_thin_wall_polylines'  => (is => 'rw', default => sub { [] });
 
 # generated loops will be put here
 has 'loops'         => (is => 'ro', default => sub { Slic3r::ExtrusionPath::Collection->new });
@@ -133,7 +132,7 @@ sub process {
                         
                         # the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         # (actually, something larger than that still may exist due to mitering or other causes)
-                        my $min_width = $ext_pwidth / 4;
+                        my $min_width = $ext_pwidth / 2;
                         @thin_walls = @{offset2_ex($diff, -$min_width/2, +$min_width/2)};
                         
                         # the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
@@ -145,10 +144,9 @@ sub process {
                             require "Slic3r/SVG.pm";
                             Slic3r::SVG::output(
                                 "medial_axis.svg",
-                                no_arrows => 1,
-                                expolygons      => union_ex($diff),
-                                green_polylines => [ map $_->polygon->split_at_first_point, @{$self->perimeters} ],
-                                red_polylines   => $self->_thin_wall_polylines,
+                                no_arrows       => 1,
+                                expolygons      => \@expp,
+                                polylines       => \@thin_walls,
                             );
                         }
                     }

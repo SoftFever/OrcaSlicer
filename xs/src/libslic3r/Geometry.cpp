@@ -504,7 +504,7 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
         //printf(" => too thin, skipping\n");
         return false;
     }
-
+    
     return true;
 }
 
