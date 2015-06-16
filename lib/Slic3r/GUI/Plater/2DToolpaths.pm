@@ -262,8 +262,9 @@ sub set_z {
         }
     }
     
+    # reverse layers so that we draw the lowermost (i.e. current) on top
     $self->z($z);
-    $self->layers([ @layers ]);
+    $self->layers([ reverse @layers ]);
     $self->Refresh;
 }
 
