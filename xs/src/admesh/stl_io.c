@@ -269,7 +269,7 @@ stl_write_binary(stl_file *stl, const char *file, const char *label) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = fopen(file, "wb");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
