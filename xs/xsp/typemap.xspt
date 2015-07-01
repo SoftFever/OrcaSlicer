@@ -133,6 +133,14 @@
 %typemap{Ref<Wipe>}{simple};
 %typemap{Clone<Wipe>}{simple};
 
+%typemap{OozePrevention*};
+%typemap{Ref<OozePrevention>}{simple};
+%typemap{Clone<OozePrevention>}{simple};
+
+%typemap{GCode*};
+%typemap{Ref<GCode>}{simple};
+%typemap{Clone<GCode>}{simple};
+
 
 %typemap{Points};
 %typemap{Pointfs};

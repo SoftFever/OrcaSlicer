@@ -3,7 +3,13 @@
 
 #include <myinit.h>
 #include "ExPolygon.hpp"
+#include "GCodeWriter.hpp"
+#include "Layer.hpp"
 #include "MotionPlanner.hpp"
+#include "Point.hpp"
+#include "PlaceholderParser.hpp"
+#include "Print.hpp"
+#include "PrintConfig.hpp"
 #include <string>
 
 namespace Slic3r {
@@ -52,6 +58,34 @@ class Wipe {
     bool has_path();
     void reset_path();
     //std::string wipe(GCode &gcodegen, bool toolchange = false);
+};
+
+class GCode {
+    public:
+    
+    /* Origin of print coordinates expressed in unscaled G-code coordinates.
+       This affects the input arguments supplied to the extrude*() and travel_to()
+       methods. */
+    Pointf origin;
+    FullPrintConfig config;
+    GCodeWriter writer;
+    PlaceholderParser* placeholder_parser;
+    OozePrevention ooze_prevention;
+    Wipe wipe;
+    AvoidCrossingPerimeters avoid_crossing_perimeters;
+    bool enable_loop_clipping;
+    bool enable_cooling_markers;
+    size_t layer_count;
+    int layer_index; // just a counter
+    Layer* layer;
+    std::map<PrintObject*,Point> _seam_position;
+    bool first_layer; // this flag triggers first layer speeds
+    unsigned int elapsed_time; // seconds
+    Point last_pos;
+    bool last_pos_defined;
+    double volumetric_speed;
+    
+    GCode();
 };
 
 }

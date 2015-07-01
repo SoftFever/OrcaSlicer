@@ -27,7 +27,7 @@ sub append {
     $self->last_z->{$obj_id} = $print_z;
     $self->gcode($self->gcode . $gcode);
     $self->elapsed_time($self->elapsed_time + $self->gcodegen->elapsed_time);
-    $self->gcodegen->elapsed_time(0);
+    $self->gcodegen->set_elapsed_time(0);
     
     return $return;
 }

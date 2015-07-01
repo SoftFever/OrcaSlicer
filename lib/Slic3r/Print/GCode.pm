@@ -35,12 +35,11 @@ sub BUILD {
         }
     
         # set up our helper object
-        my $gcodegen = Slic3r::GCode->new(
-            placeholder_parser  => $self->placeholder_parser,
-            layer_count         => $layer_count,
-            enable_cooling_markers => 1,
-        );
+        my $gcodegen = Slic3r::GCode->new;
         $self->_gcodegen($gcodegen);
+        $gcodegen->set_placeholder_parser($self->placeholder_parser);
+        $gcodegen->set_layer_count($layer_count);
+        $gcodegen->set_enable_cooling_markers(1);
         $gcodegen->apply_print_config($self->config);
         $gcodegen->set_extruders($self->print->extruders);
         
@@ -92,7 +91,7 @@ sub BUILD {
                         $self->config->max_volumetric_speed,
                     );
                 }
-                $gcodegen->volumetric_speed($volumetric_speed);
+                $gcodegen->set_volumetric_speed($volumetric_speed);
             }
         }
     }
@@ -247,7 +246,7 @@ sub export {
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
-                    $gcodegen->enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
+                    $gcodegen->set_enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
                     $gcodegen->avoid_crossing_perimeters->set_use_external_mp_once(1);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
@@ -255,7 +254,7 @@ sub export {
                         undef,
                         'move to origin position for next object',
                     );
-                    $gcodegen->enable_cooling_markers(1);
+                    $gcodegen->set_enable_cooling_markers(1);
                     
                     # disable motion planner when traveling to first object point
                     $gcodegen->avoid_crossing_perimeters->set_disable_once(1);
@@ -364,7 +363,7 @@ sub process_layer {
     }
     
     # if we're going to apply spiralvase to this layer, disable loop clipping
-    $self->_gcodegen->enable_loop_clipping(!defined $self->_spiral_vase || !$self->_spiral_vase->enable);
+    $self->_gcodegen->set_enable_loop_clipping(!defined $self->_spiral_vase || !$self->_spiral_vase->enable);
     
     if (!$self->_second_layer_things_done && $layer->id == 1) {
         for my $extruder (@{$self->_gcodegen->writer->extruders}) {

@@ -182,6 +182,10 @@ OozePrevention*             O_OBJECT_SLIC3R
 Ref<OozePrevention>         O_OBJECT_SLIC3R_T
 Clone<OozePrevention>       O_OBJECT_SLIC3R_T
 
+GCode*                      O_OBJECT_SLIC3R
+Ref<GCode>                  O_OBJECT_SLIC3R_T
+Clone<GCode>                O_OBJECT_SLIC3R_T
+
 MotionPlanner*             O_OBJECT_SLIC3R
 Ref<MotionPlanner>         O_OBJECT_SLIC3R_T
 Clone<MotionPlanner>       O_OBJECT_SLIC3R_T

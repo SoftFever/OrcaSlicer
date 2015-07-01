@@ -1,33 +1,12 @@
 package Slic3r::GCode;
-use Moo;
+use strict;
+use warnings;
 
 use List::Util qw(min max first);
 use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
-
-# Origin of print coordinates expressed in unscaled G-code coordinates.
-# This affects the input arguments supplied to the extrude*() and travel_to()
-# methods.
-has 'origin'             => (is => 'rw', default => sub { Slic3r::Pointf->new });
-
-has 'config'             => (is => 'ro', default => sub { Slic3r::Config::Full->new });
-has 'writer'             => (is => 'ro', default => sub { Slic3r::GCode::Writer->new });
-has 'placeholder_parser' => (is => 'rw', default => sub { Slic3r::GCode::PlaceholderParser->new });
-has 'ooze_prevention'    => (is => 'rw', default => sub { Slic3r::GCode::OozePrevention->new });
-has 'wipe'               => (is => 'rw', default => sub { Slic3r::GCode::Wipe->new });
-has 'avoid_crossing_perimeters' => (is => 'rw', default => sub { Slic3r::GCode::AvoidCrossingPerimeters->new });
-has 'enable_loop_clipping' => (is => 'rw', default => sub {1});
-has 'enable_cooling_markers' => (is =>'rw', default => sub {0});
-has 'layer_count'        => (is => 'ro');
-has 'layer_index'        => (is => 'rw', default => sub {-1});  # just a counter
-has 'layer'              => (is => 'rw');
-has '_seam_position'     => (is => 'ro', default => sub { {} });  # $object => pos
-has 'first_layer'        => (is => 'rw', default => sub {0});   # this flag triggers first layer speeds
-has 'elapsed_time'       => (is => 'rw', default => sub {0} );  # seconds
-has 'last_pos'           => (is => 'rw', default => sub { Slic3r::Point->new(0,0) } );
-has 'volumetric_speed'   => (is => 'rw', default => sub {0});
 
 sub apply_print_config {
     my ($self, $print_config) = @_;
@@ -56,7 +35,7 @@ sub set_origin {
     $self->last_pos->translate(@translate);
     $self->wipe->path->translate(@translate) if $self->wipe->has_path;
     
-    $self->origin($pointf);
+    $self->_set_origin($pointf);
 }
 
 sub preamble {
@@ -76,9 +55,14 @@ sub preamble {
 sub change_layer {
     my ($self, $layer) = @_;
     
-    $self->layer($layer);
-    $self->layer_index($self->layer_index + 1);
-    $self->first_layer($layer->id == 0);
+    {
+        my $l = $layer->isa('Slic3r::Layer::Support')
+            ? $layer->as_layer
+            : $layer;
+        $self->set_layer($l);
+    }
+    $self->set_layer_index($self->layer_index + 1);
+    $self->set_first_layer($layer->id == 0);
     
     # avoid computing islands and overhangs if they're not needed
     if ($self->config->avoid_crossing_perimeters) {
@@ -88,7 +72,7 @@ sub change_layer {
     }
     
     my $gcode = "";
-    if (defined $self->layer_count) {
+    if ($self->layer_count > 0) {
         $gcode .= $self->writer->update_progress($self->layer_index, $self->layer_count);
     }
     
@@ -146,11 +130,9 @@ sub extrude_loop {
         @candidates = map @{$_->convex_points(PI*2/3)}, @simplified if !@candidates;
         
         # retrieve the last start position for this object
-        my $obj_ptr = 0;
-        if (defined $self->layer) {
-            $obj_ptr = $self->layer->object->ptr;
-            if (defined $self->_seam_position->{$obj_ptr}) {
-                $last_pos = $self->_seam_position->{$obj_ptr};
+        if ($self->has_layer) {
+            if ($self->_has_seam_position($self->layer->object)) {
+                $last_pos = $self->_seam_position($self->layer->object);
             }
         }
         
@@ -175,7 +157,8 @@ sub extrude_loop {
             $point = $last_pos->projection_onto_polygon($polygon);
             $loop->split_at($point);
         }
-        $self->_seam_position->{$obj_ptr} = $point;
+        $self->_set_seam_position($self->layer->object, $point)
+            if $self->has_layer;
     } elsif ($self->config->seam_position eq 'random') {
         if ($loop->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER) {
             my $polygon = $loop->polygon;
@@ -211,7 +194,7 @@ sub extrude_loop {
     $self->wipe->set_path($paths[0]->polyline->clone) if $self->wipe->enable;  # TODO: don't limit wipe to last path
     
     # make a little move inwards before leaving loop
-    if ($paths[-1]->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->config->perimeters > 1) {
+    if ($paths[-1]->role == EXTR_ROLE_EXTERNAL_PERIMETER && $self->has_layer && $self->config->perimeters > 1) {
         my $last_path_polyline = $paths[-1]->polyline;
         # detect angle between last and first segment
         # the side depends on the original winding order of the polygon (left for contours, right for holes)
@@ -258,7 +241,7 @@ sub _extrude_path {
     {
         my $first_point = $path->first_point;
         $gcode .= $self->travel_to($first_point, $path->role, "move to first $description point")
-            if !defined $self->last_pos || !$self->last_pos->coincides_with($first_point);
+            if !$self->last_pos_defined || !$self->last_pos->coincides_with($first_point);
     }
     
     # compensate retraction
@@ -338,11 +321,11 @@ sub _extrude_path {
         }
     }
     $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge && $self->enable_cooling_markers;
-    $self->last_pos($path->last_point);
+    $self->set_last_pos($path->last_point);
     
     if ($self->config->cooling) {
         my $path_time = $path_length / $F * 60;
-        $self->elapsed_time($self->elapsed_time + $path_time);
+        $self->set_elapsed_time($self->elapsed_time + $path_time);
     }
     
     return $gcode;
@@ -394,12 +377,12 @@ sub needs_retraction {
         return 0;
     }
     
-    if (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->support_islands->contains_polyline($travel)) {
+    if (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->as_support_layer->support_islands->contains_polyline($travel)) {
         # skip retraction if this is a travel move inside a support material island
         return 0;
     }
     
-    if ($self->config->only_retract_when_crossing_perimeters && defined $self->layer) {
+    if ($self->config->only_retract_when_crossing_perimeters && $self->has_layer) {
         if ($self->config->fill_density > 0
             && $self->layer->any_internal_region_slice_contains_polyline($travel)) {
             # skip retraction if travel is contained in an internal slice *and*
@@ -527,7 +510,7 @@ sub pre_toolchange {
     }
     
     if ($gcodegen->config->standby_temperature_delta != 0) {
-        my $temp = defined $gcodegen->layer && $gcodegen->layer->id == 0
+        my $temp = $gcodegen->has_layer && $gcodegen->layer->id == 0
             ? $gcodegen->config->get_at('first_layer_temperature', $gcodegen->writer->extruder->id)
             : $gcodegen->config->get_at('temperature', $gcodegen->writer->extruder->id);
         # we assume that heating is always slower than cooling, so no need to block
@@ -543,7 +526,7 @@ sub post_toolchange {
     my $gcode = "";
     
     if ($gcodegen->config->standby_temperature_delta != 0) {
-        my $temp = defined $gcodegen->layer && $gcodegen->layer->id == 0
+        my $temp = $gcodegen->has_layer && $gcodegen->layer->id == 0
             ? $gcodegen->config->get_at('first_layer_temperature', $gcodegen->writer->extruder->id)
             : $gcodegen->config->get_at('temperature', $gcodegen->writer->extruder->id);
         $gcode .= $gcodegen->writer->set_temperature($temp, 1);

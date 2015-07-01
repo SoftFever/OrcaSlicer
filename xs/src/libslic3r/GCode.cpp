@@ -97,4 +97,15 @@ Wipe::reset_path()
 REGISTER_CLASS(Wipe, "GCode::Wipe");
 #endif
 
+GCode::GCode()
+    : enable_loop_clipping(true), enable_cooling_markers(false), layer_count(0),
+        layer_index(-1), first_layer(false), elapsed_time(0), volumetric_speed(0),
+        last_pos_defined(false)
+{
+}
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(GCode, "GCode");
+#endif
+
 }

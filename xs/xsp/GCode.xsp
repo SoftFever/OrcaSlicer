@@ -62,3 +62,89 @@
     void set_path(Polyline* value)
         %code{% THIS->path = *value; %};
 };
+
+%name{Slic3r::GCode} class GCode {
+    GCode();
+    ~GCode();
+    
+    Ref<Pointf> origin()
+        %code{% RETVAL = &(THIS->origin); %};
+    void _set_origin(Pointf* value)
+        %code{% THIS->origin = *value; %};
+    
+    Ref<FullPrintConfig> config()
+        %code{% RETVAL = &(THIS->config); %};
+    
+    Ref<GCodeWriter> writer()
+        %code{% RETVAL = &(THIS->writer); %};
+    
+    Ref<PlaceholderParser> placeholder_parser()
+        %code{% RETVAL = THIS->placeholder_parser; %};
+    void set_placeholder_parser(PlaceholderParser* ptr)
+        %code{% THIS->placeholder_parser = ptr; %};
+    
+    Ref<OozePrevention> ooze_prevention()
+        %code{% RETVAL = &(THIS->ooze_prevention); %};
+    
+    Ref<Wipe> wipe()
+        %code{% RETVAL = &(THIS->wipe); %};
+    
+    Ref<AvoidCrossingPerimeters> avoid_crossing_perimeters()
+        %code{% RETVAL = &(THIS->avoid_crossing_perimeters); %};
+    
+    bool enable_loop_clipping()
+        %code{% RETVAL = THIS->enable_loop_clipping; %};
+    void set_enable_loop_clipping(bool value)
+        %code{% THIS->enable_loop_clipping = value; %};
+    
+    bool enable_cooling_markers()
+        %code{% RETVAL = THIS->enable_cooling_markers; %};
+    void set_enable_cooling_markers(bool value)
+        %code{% THIS->enable_cooling_markers = value; %};
+    
+    int layer_count()
+        %code{% RETVAL = THIS->layer_count; %};
+    void set_layer_count(int value)
+        %code{% THIS->layer_count = value; %};
+    
+    int layer_index()
+        %code{% RETVAL = THIS->layer_index; %};
+    void set_layer_index(int value)
+        %code{% THIS->layer_index = value; %};
+    
+    bool has_layer()
+        %code{% RETVAL = THIS->layer != NULL; %};
+    Ref<Layer> layer()
+        %code{% RETVAL = THIS->layer; %};
+    void set_layer(Layer* ptr)
+        %code{% THIS->layer = ptr; %};
+    
+    bool _has_seam_position(PrintObject* ptr)
+        %code{% RETVAL = THIS->_seam_position.count(ptr) > 0; %};
+    Clone<Point> _seam_position(PrintObject* ptr)
+        %code{% RETVAL = THIS->_seam_position[ptr]; %};
+    void _set_seam_position(PrintObject* ptr, Point* pos)
+        %code{% THIS->_seam_position[ptr] = *pos; %};
+    
+    bool first_layer()
+        %code{% RETVAL = THIS->first_layer; %};
+    void set_first_layer(bool value)
+        %code{% THIS->first_layer = value; %};
+    
+    unsigned int elapsed_time()
+        %code{% RETVAL = THIS->elapsed_time; %};
+    void set_elapsed_time(unsigned int value)
+        %code{% THIS->elapsed_time = value; %};
+    
+    bool last_pos_defined()
+        %code{% RETVAL = THIS->last_pos_defined; %};
+    Ref<Point> last_pos()
+        %code{% RETVAL = &(THIS->last_pos); %};
+    void set_last_pos(Point* value)
+        %code{% THIS->last_pos = *value; THIS->last_pos_defined = true; %};
+    
+    double volumetric_speed()
+        %code{% RETVAL = THIS->volumetric_speed; %};
+    void set_volumetric_speed(double value)
+        %code{% THIS->volumetric_speed = value; %};
+};

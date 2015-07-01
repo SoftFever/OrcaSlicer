@@ -70,6 +70,9 @@
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
     
+    Ref<SupportLayer> as_support_layer()
+        %code%{ RETVAL = dynamic_cast<SupportLayer*>(THIS); %};
+    
     void make_slices();
     void merge_slices();
     bool any_internal_region_slice_contains_polyline(Polyline* polyline)
@@ -80,7 +83,10 @@
 
 %name{Slic3r::Layer::Support} class SupportLayer {
     // owned by PrintObject, no constructor/destructor
-
+    
+    Ref<Layer> as_layer()
+        %code%{ RETVAL = THIS; %};
+    
     Ref<ExPolygonCollection> support_islands()
         %code%{ RETVAL = &THIS->support_islands; %};
     Ref<ExtrusionEntityCollection> support_fills()
