@@ -2,14 +2,16 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <unistd.h>  // provides **environ
+
+extern char **environ;
 
 namespace Slic3r {
 
 PlaceholderParser::PlaceholderParser()
 {
     this->_single["version"] = SLIC3R_VERSION;
-    // TODO: port these methods to C++, then call them here
-    // this->apply_env_variables();
+    this->apply_env_variables();
     this->update_timestamp();
 }
 
@@ -72,6 +74,21 @@ void PlaceholderParser::apply_config(DynamicPrintConfig &config)
         } else {
             // set single-value placeholders
             this->_single[key] = opt->serialize();
+        }
+    }
+}
+
+void
+PlaceholderParser::apply_env_variables()
+{
+    for (char** env = environ; *env; env++) {
+        if (strncmp(*env, "SLIC3R_", 7) == 0) {
+            std::stringstream ss(*env);
+            std::string key, value;
+            std::getline(ss, key, '=');
+            ss >> value;
+            
+            this->set(key, value);
         }
     }
 }

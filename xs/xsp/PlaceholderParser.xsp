@@ -7,10 +7,11 @@
 %}
 
 %name{Slic3r::GCode::PlaceholderParser} class PlaceholderParser {
-    %name{_new} PlaceholderParser();
+    PlaceholderParser();
     ~PlaceholderParser();
     
     void update_timestamp();
+    void apply_env_variables();
     void apply_config(DynamicPrintConfig *config)
         %code%{ THIS->apply_config(*config); %};
     void set(std::string key, std::string value);

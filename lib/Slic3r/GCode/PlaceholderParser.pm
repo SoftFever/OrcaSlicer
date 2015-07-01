@@ -2,20 +2,6 @@ package Slic3r::GCode::PlaceholderParser;
 use strict;
 use warnings;
 
-sub new {
-    # TODO: move this code to C++ constructor, remove this method
-    my ($class) = @_;
-    
-    my $self = $class->_new;
-    $self->apply_env_variables;
-    return $self;
-}
-
-sub apply_env_variables {
-    my ($self) = @_;
-    $self->_single_set($_, $ENV{$_}) for grep /^SLIC3R_/, keys %ENV;
-}
-
 sub process {
     my ($self, $string, $extra) = @_;
     
