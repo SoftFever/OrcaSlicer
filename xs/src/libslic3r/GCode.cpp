@@ -67,6 +67,15 @@ AvoidCrossingPerimeters::travel_to(Point point, const Pointf &gcodegen_origin,
 REGISTER_CLASS(AvoidCrossingPerimeters, "GCode::AvoidCrossingPerimeters");
 #endif
 
+OozePrevention::OozePrevention()
+    : enable(false)
+{
+}
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(OozePrevention, "GCode::OozePrevention");
+#endif
+
 Wipe::Wipe()
     : enable(false)
 {

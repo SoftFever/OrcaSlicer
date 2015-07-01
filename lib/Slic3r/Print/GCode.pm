@@ -212,8 +212,8 @@ sub export {
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
             
-            $gcodegen->ooze_prevention->enable(1);
-            $gcodegen->ooze_prevention->standby_points(
+            $gcodegen->ooze_prevention->set_enable(1);
+            $gcodegen->ooze_prevention->set_standby_points(
                 [ map @{$_->equally_spaced_points(scale 10)}, @{offset([$convex_hull], scale 3)} ]
             );
             

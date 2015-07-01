@@ -504,12 +504,10 @@ sub set_extruder {
 }
 
 package Slic3r::GCode::OozePrevention;
-use Moo;
+use strict;
+use warnings;
 
 use Slic3r::Geometry qw(scale);
-
-has 'enable'            => (is => 'rw', default => sub { 0 });
-has 'standby_points'    => (is => 'rw');
 
 sub pre_toolchange {
     my ($self, $gcodegen) = @_;

@@ -35,6 +35,14 @@ class AvoidCrossingPerimeters {
     MotionPlanner* _layer_mp;
 };
 
+class OozePrevention {
+    public:
+    bool enable;
+    Points standby_points;
+    
+    OozePrevention();
+};
+
 class Wipe {
     public:
     bool enable;

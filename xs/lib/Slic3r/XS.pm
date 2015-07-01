@@ -216,6 +216,7 @@ for my $class (qw(
         Slic3r::ExtrusionPath::Collection
         Slic3r::Flow
         Slic3r::GCode::AvoidCrossingPerimeters
+        Slic3r::GCode::OozePrevention
         Slic3r::GCode::PlaceholderParser
         Slic3r::GCode::Wipe
         Slic3r::Geometry::BoundingBox

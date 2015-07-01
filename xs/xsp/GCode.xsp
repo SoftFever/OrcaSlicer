@@ -30,6 +30,21 @@
         %code{% THIS->disable_once = value; %};
 };
 
+%name{Slic3r::GCode::OozePrevention} class OozePrevention {
+    OozePrevention();
+    ~OozePrevention();
+    
+    bool enable()
+        %code{% RETVAL = THIS->enable; %};
+    void set_enable(bool value)
+        %code{% THIS->enable = value; %};
+    
+    Points standby_points()
+        %code{% RETVAL = THIS->standby_points; %};
+    void set_standby_points(Points points)
+        %code{% THIS->standby_points = points; %};
+};
+
 %name{Slic3r::GCode::Wipe} class Wipe {
     Wipe();
     ~Wipe();
