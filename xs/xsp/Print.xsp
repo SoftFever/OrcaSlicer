@@ -115,7 +115,7 @@ _constant()
 
 
 %name{Slic3r::Print} class Print {
-    %name{_new} Print();
+    Print();
     ~Print();
 
     Ref<PrintConfig> config()

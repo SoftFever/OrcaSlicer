@@ -482,10 +482,10 @@ sub set_extruder {
     
     # append custom toolchange G-code
     if (defined $self->writer->extruder && $self->config->toolchange_gcode) {
-        $gcode .= sprintf "%s\n", $self->placeholder_parser->process($self->config->toolchange_gcode, {
-            previous_extruder   => $self->writer->extruder->id,
-            next_extruder       => $extruder_id,
-        });
+        my $pp = $self->placeholder_parser->clone;
+        $pp->set('previous_extruder' => $self->writer->extruder->id);
+        $pp->set('next_extruder'     => $extruder_id);
+        $gcode .= sprintf "%s\n", $pp->process($self->config->toolchange_gcode);
     }
     
     # if ooze prevention is enabled, park current extruder in the nearest
