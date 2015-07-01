@@ -27,10 +27,10 @@
         %code{% RETVAL = THIS->equals(*other); %};
     void apply_static(FullPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
-    std::vector<std::string> get_keys()
-        %code{% THIS->keys(&RETVAL); %};
+    %name{get_keys} std::vector<std::string> keys();
     void erase(t_config_option_key opt_key);
     void normalize();
+    %name{setenv} void setenv_();
 };
 
 %name{Slic3r::Config::GCode} class GCodeConfig {
@@ -51,9 +51,9 @@
         %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
-    std::vector<std::string> get_keys()
-        %code{% THIS->keys(&RETVAL); %};
+    %name{get_keys} std::vector<std::string> keys();
     std::string get_extrusion_axis();
+    %name{setenv} void setenv_();
 };
 
 %name{Slic3r::Config::Print} class PrintConfig {
@@ -72,9 +72,9 @@
         double get_abs_value(t_config_option_key opt_key, double ratio_over);
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
-    std::vector<std::string> get_keys()
-        %code{% THIS->keys(&RETVAL); %};
+    %name{get_keys} std::vector<std::string> keys();
     std::string get_extrusion_axis();
+    %name{setenv} void setenv_();
 };
 
 %name{Slic3r::Config::PrintRegion} class PrintRegionConfig {
@@ -95,8 +95,8 @@
         %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
-    std::vector<std::string> get_keys()
-        %code{% THIS->keys(&RETVAL); %};
+    %name{get_keys} std::vector<std::string> keys();
+    %name{setenv} void setenv_();
 };
 
 %name{Slic3r::Config::PrintObject} class PrintObjectConfig {
@@ -117,8 +117,8 @@
         %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
-    std::vector<std::string> get_keys()
-        %code{% THIS->keys(&RETVAL); %};
+    %name{get_keys} std::vector<std::string> keys();
+    %name{setenv} void setenv_();
 };
 
 %name{Slic3r::Config::Full} class FullPrintConfig {
@@ -143,9 +143,9 @@
         %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
-    std::vector<std::string> get_keys()
-        %code{% THIS->keys(&RETVAL); %};
+    %name{get_keys} std::vector<std::string> keys();
     std::string get_extrusion_axis();
+    %name{setenv} void setenv_();
 };
 
 %package{Slic3r::Config};
