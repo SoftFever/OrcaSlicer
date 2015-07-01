@@ -192,7 +192,7 @@ use Slic3r::Test;
                 push @z_steps, $info->{dist_Z}
                     if $started_extruding && $info->{dist_Z} > 0;
                 $travel_moves_after_first_extrusion++
-                    if $info->{travel} && $started_extruding && !exists $args->{Z};
+                    if $info->{travel} && $info->{dist_XY} > 0 && $started_extruding && !exists $args->{Z};
             } elsif ($cmd eq 'M104') {
                 $first_layer_temperature_set = 1 if $args->{S} == 205;
                 $temperature_set = 1 if $args->{S} == 200;
@@ -271,7 +271,7 @@ use Slic3r::Test;
                 foreach my $segment (@this_layer) {
                     # check that segment's dist_Z is proportioned to its dist_XY
                     $all_layer_segments_have_same_slope = 1
-                        if abs($segment->[0]*$total_dist_XY/$config->layer_height - $segment->[1]) > 0.1;
+                        if abs($segment->[0]*$total_dist_XY/$config->layer_height - $segment->[1]) > 0.2;
                 }
                 
                 @this_layer = ();

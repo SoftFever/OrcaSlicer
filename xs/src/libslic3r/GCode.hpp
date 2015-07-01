@@ -14,7 +14,7 @@
 
 namespace Slic3r {
 
-// draft for a binary representation of a G-code line
+class GCode;
 
 class AvoidCrossingPerimeters {
     public:
@@ -31,10 +31,7 @@ class AvoidCrossingPerimeters {
     ~AvoidCrossingPerimeters();
     void init_external_mp(const ExPolygons &islands);
     void init_layer_mp(const ExPolygons &islands);
-    
-    //Polyline travel_to(GCode &gcodegen, const Point &point);
-    Polyline travel_to(Point point, const Pointf &gcodegen_origin,
-        const Point &gcodegen_last_pos);
+    Polyline travel_to(GCode &gcodegen, Point point);
     
     private:
     MotionPlanner* _external_mp;
@@ -57,7 +54,7 @@ class Wipe {
     Wipe();
     bool has_path();
     void reset_path();
-    //std::string wipe(GCode &gcodegen, bool toolchange = false);
+    std::string wipe(GCode &gcodegen, bool toolchange = false);
 };
 
 class GCode {
@@ -81,11 +78,22 @@ class GCode {
     std::map<PrintObject*,Point> _seam_position;
     bool first_layer; // this flag triggers first layer speeds
     unsigned int elapsed_time; // seconds
-    Point last_pos;
-    bool last_pos_defined;
     double volumetric_speed;
     
     GCode();
+    Point& last_pos();
+    void set_last_pos(const Point &pos);
+    bool last_pos_defined() const;
+    void apply_print_config(const PrintConfig &print_config);
+    void set_origin(const Pointf &pointf);
+    std::string preamble();
+    std::string retract(bool toolchange = false);
+    std::string unretract();
+    Pointf point_to_gcode(const Point &point);
+    
+    private:
+    Point _last_pos;
+    bool _last_pos_defined;
 };
 
 }

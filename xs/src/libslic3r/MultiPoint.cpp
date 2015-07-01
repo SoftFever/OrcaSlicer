@@ -100,6 +100,24 @@ MultiPoint::remove_duplicate_points()
     }
 }
 
+void
+MultiPoint::append(const Point &point)
+{
+    this->points.push_back(point);
+}
+
+void
+MultiPoint::append(const Points &points)
+{
+    this->append(points.begin(), points.end());
+}
+
+void
+MultiPoint::append(const Points::const_iterator &begin, const Points::const_iterator &end)
+{
+    this->points.insert(this->points.end(), begin, end);
+}
+
 Points
 MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {

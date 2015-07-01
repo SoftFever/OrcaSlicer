@@ -8,13 +8,6 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
-sub apply_print_config {
-    my ($self, $print_config) = @_;
-    
-    $self->writer->apply_print_config($print_config);
-    $self->config->apply_print_config($print_config);
-}
-
 sub set_extruders {
     my ($self, $extruder_ids) = @_;
     
@@ -22,34 +15,6 @@ sub set_extruders {
     
     # enable wipe path generation if any extruder has wipe enabled
     $self->wipe->set_enable(defined first { $self->config->get_at('wipe', $_) } @$extruder_ids);
-}
-
-sub set_origin {
-    my ($self, $pointf) = @_;
-    
-    # if origin increases (goes towards right), last_pos decreases because it goes towards left
-    my @translate = (
-        scale ($self->origin->x - $pointf->x),
-        scale ($self->origin->y - $pointf->y),  #-
-    );
-    $self->last_pos->translate(@translate);
-    $self->wipe->path->translate(@translate) if $self->wipe->has_path;
-    
-    $self->_set_origin($pointf);
-}
-
-sub preamble {
-    my ($self) = @_;
-    
-    my $gcode = $self->writer->preamble;
-    
-    # Perform a *silent* move to z_offset: we need this to initialize the Z
-    # position of our writer object so that any initial lift taking place
-    # before the first layer change will raise the extruder from the correct
-    # initial Z instead of 0.
-    $self->writer->travel_to_z($self->config->z_offset, '');
-    
-    return $gcode;
 }
 
 sub change_layer {
@@ -348,7 +313,7 @@ sub travel_to {
     if ($needs_retraction
         && $self->config->avoid_crossing_perimeters
         && !$self->avoid_crossing_perimeters->disable_once) {
-        $travel = $self->avoid_crossing_perimeters->travel_to($point, $self->origin, $self->last_pos);
+        $travel = $self->avoid_crossing_perimeters->travel_to($self, $point);
         
         # check again whether the new travel path still needs a retraction
         $needs_retraction = $self->needs_retraction($travel, $role);
@@ -402,51 +367,6 @@ sub needs_retraction {
     
     # retract if only_retract_when_crossing_perimeters is disabled or doesn't apply
     return 1;
-}
-
-sub retract {
-    my ($self, $toolchange) = @_;
-    
-    return "" if !defined $self->writer->extruder;
-    
-    my $gcode = "";
-    
-    # wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if ($self->config->get_at('wipe', $self->writer->extruder->id) && $self->wipe->has_path) {
-        $gcode .= $self->wipe->wipe($self, $toolchange);
-    }
-    
-    # The parent class will decide whether we need to perform an actual retraction
-    # (the extruder might be already retracted fully or partially). We call these 
-    # methods even if we performed wipe, since this will ensure the entire retraction
-    # length is honored in case wipe path was too short.p
-    $gcode .= $toolchange ? $self->writer->retract_for_toolchange : $self->writer->retract;
-    
-    $gcode .= $self->writer->reset_e;
-    $gcode .= $self->writer->lift
-        if $self->writer->extruder->retract_length > 0 || $self->config->use_firmware_retraction;
-    
-    return $gcode;
-}
-
-sub unretract {
-    my ($self) = @_;
-    
-    my $gcode = "";
-    $gcode .= $self->writer->unlift;
-    $gcode .= $self->writer->unretract;
-    return $gcode;
-}
-
-# convert a model-space scaled point into G-code coordinates
-sub point_to_gcode {
-    my ($self, $point) = @_;
-    
-    my $extruder_offset = $self->config->get_at('extruder_offset', $self->writer->extruder->id);
-    return Slic3r::Pointf->new(
-        ($point->x * &Slic3r::SCALING_FACTOR) + $self->origin->x - $extruder_offset->x,
-        ($point->y * &Slic3r::SCALING_FACTOR) + $self->origin->y - $extruder_offset->y,  #**
-    );
 }
 
 sub set_extruder {
@@ -530,65 +450,6 @@ sub post_toolchange {
             ? $gcodegen->config->get_at('first_layer_temperature', $gcodegen->writer->extruder->id)
             : $gcodegen->config->get_at('temperature', $gcodegen->writer->extruder->id);
         $gcode .= $gcodegen->writer->set_temperature($temp, 1);
-    }
-    
-    return $gcode;
-}
-
-package Slic3r::GCode::Wipe;
-use strict;
-use warnings;
-
-use Slic3r::Geometry qw(scale);
-
-sub wipe {
-    my ($self, $gcodegen, $toolchange) = @_;
-    
-    my $gcode = "";
-    
-    # Reduce feedrate a bit; travel speed is often too high to move on existing material.
-    # Too fast = ripping of existing material; too slow = short wipe path, thus more blob.
-    my $wipe_speed = $gcodegen->writer->config->get('travel_speed') * 0.8;
-    
-    # get the retraction length
-    my $length = $toolchange
-        ? $gcodegen->writer->extruder->retract_length_toolchange
-        : $gcodegen->writer->extruder->retract_length;
-    
-    if ($length) {
-        # Calculate how long we need to travel in order to consume the required
-        # amount of retraction. In other words, how far do we move in XY at $wipe_speed
-        # for the time needed to consume retract_length at retract_speed?
-        my $wipe_dist = scale($length / $gcodegen->writer->extruder->retract_speed * $wipe_speed);
-    
-        # Take the stored wipe path and replace first point with the current actual position
-        # (they might be different, for example, in case of loop clipping).
-        my $wipe_path = Slic3r::Polyline->new(
-            $gcodegen->last_pos,
-            @{$self->path}[1..$#{$self->path}],
-        );
-        # 
-        $wipe_path->clip_end($wipe_path->length - $wipe_dist);
-    
-        # subdivide the retraction in segments
-        my $retracted = 0;
-        foreach my $line (@{$wipe_path->lines}) {
-            my $segment_length = $line->length;
-            # Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
-            # due to rounding (TODO: test and/or better math for this)
-            my $dE = $length * ($segment_length / $wipe_dist) * 0.95;
-            $gcode .= $gcodegen->writer->set_speed($wipe_speed*60);
-            $gcode .= $gcodegen->writer->extrude_to_xy(
-                $gcodegen->point_to_gcode($line->b),
-                -$dE,
-                'wipe and retract' . ($gcodegen->enable_cooling_markers ? ';_WIPE' : ''),
-            );
-            $retracted += $dE;
-        }
-        $gcodegen->writer->extruder->set_retracted($gcodegen->writer->extruder->retracted + $retracted);
-        
-        # prevent wiping again on same path
-        $self->reset_path;
     }
     
     return $gcode;
