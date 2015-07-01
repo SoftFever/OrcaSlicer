@@ -334,41 +334,6 @@ sub travel_to {
     return $gcode;
 }
 
-sub needs_retraction {
-    my ($self, $travel, $role) = @_;
-    
-    if ($travel->length < scale $self->config->get_at('retract_before_travel', $self->writer->extruder->id)) {
-        # skip retraction if the move is shorter than the configured threshold
-        return 0;
-    }
-    
-    if (defined $role && $role == EXTR_ROLE_SUPPORTMATERIAL && $self->layer->as_support_layer->support_islands->contains_polyline($travel)) {
-        # skip retraction if this is a travel move inside a support material island
-        return 0;
-    }
-    
-    if ($self->config->only_retract_when_crossing_perimeters && $self->has_layer) {
-        if ($self->config->fill_density > 0
-            && $self->layer->any_internal_region_slice_contains_polyline($travel)) {
-            # skip retraction if travel is contained in an internal slice *and*
-            # internal infill is enabled (so that stringing is entirely not visible)
-            return 0;
-        } elsif ($self->layer->any_bottom_region_slice_contains_polyline($travel)
-            && defined $self->layer->upper_layer
-            && $self->layer->upper_layer->slices->contains_polyline($travel)
-            && ($self->config->bottom_solid_layers >= 2 || $self->config->fill_density > 0)) {
-            # skip retraction if travel is contained in an *infilled* bottom slice
-            # but only if it's also covered by an *infilled* upper layer's slice
-            # so that it's not visible from above (a bottom surface might not have an
-            # upper slice in case of a thin membrane)
-            return 0;
-        }
-    }
-    
-    # retract if only_retract_when_crossing_perimeters is disabled or doesn't apply
-    return 1;
-}
-
 sub set_extruder {
     my ($self, $extruder_id) = @_;
     

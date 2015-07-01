@@ -1,4 +1,5 @@
 #include "GCode.hpp"
+#include "ExtrusionEntity.hpp"
 
 namespace Slic3r {
 
@@ -211,6 +212,44 @@ GCode::preamble()
     this->writer.travel_to_z(this->config.z_offset.value);
     
     return gcode;
+}
+
+bool
+GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
+{
+    if (travel.length() < scale_(this->config.retract_before_travel.get_at(this->writer.extruder()->id))) {
+        // skip retraction if the move is shorter than the configured threshold
+        return false;
+    }
+    
+    if (role == erSupportMaterial) {
+        SupportLayer* support_layer = dynamic_cast<SupportLayer*>(this->layer);
+        if (support_layer->support_islands.contains(travel)) {
+            // skip retraction if this is a travel move inside a support material island
+            return false;
+        }
+    }
+    
+    if (this->config.only_retract_when_crossing_perimeters && this->layer != NULL) {
+        if (this->config.fill_density.value > 0
+            && this->layer->any_internal_region_slice_contains(travel)) {
+            /*  skip retraction if travel is contained in an internal slice *and*
+                internal infill is enabled (so that stringing is entirely not visible)  */
+            return false;
+        } else if (this->layer->any_bottom_region_slice_contains(travel)
+            && this->layer->upper_layer != NULL
+            && this->layer->upper_layer->slices.contains(travel)
+            && (this->config.bottom_solid_layers.value >= 2 || this->config.fill_density.value > 0)) {
+            /*  skip retraction if travel is contained in an *infilled* bottom slice
+                but only if it's also covered by an *infilled* upper layer's slice
+                so that it's not visible from above (a bottom surface might not have an
+                upper slice in case of a thin membrane)  */
+            return false;
+        }
+    }
+    
+    // retract if only_retract_when_crossing_perimeters is disabled or doesn't apply
+    return true;
 }
 
 std::string
