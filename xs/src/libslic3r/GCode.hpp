@@ -35,6 +35,17 @@ class AvoidCrossingPerimeters {
     MotionPlanner* _layer_mp;
 };
 
+class Wipe {
+    public:
+    bool enable;
+    Polyline path;
+    
+    Wipe();
+    bool has_path();
+    void reset_path();
+    //std::string wipe(GCode &gcodegen, bool toolchange = false);
+};
+
 }
 
 #endif

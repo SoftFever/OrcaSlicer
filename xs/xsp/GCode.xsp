@@ -29,3 +29,21 @@
     void set_disable_once(bool value)
         %code{% THIS->disable_once = value; %};
 };
+
+%name{Slic3r::GCode::Wipe} class Wipe {
+    Wipe();
+    ~Wipe();
+    
+    bool has_path();
+    void reset_path();
+    
+    bool enable()
+        %code{% RETVAL = THIS->enable; %};
+    void set_enable(bool value)
+        %code{% THIS->enable = value; %};
+    
+    Ref<Polyline> path()
+        %code{% RETVAL = &(THIS->path); %};
+    void set_path(Polyline* value)
+        %code{% THIS->path = *value; %};
+};

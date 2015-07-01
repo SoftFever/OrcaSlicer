@@ -42,7 +42,7 @@ sub set_extruders {
     $self->writer->set_extruders($extruder_ids);
     
     # enable wipe path generation if any extruder has wipe enabled
-    $self->wipe->enable(defined first { $self->config->get_at('wipe', $_) } @$extruder_ids);
+    $self->wipe->set_enable(defined first { $self->config->get_at('wipe', $_) } @$extruder_ids);
 }
 
 sub set_origin {
@@ -54,7 +54,7 @@ sub set_origin {
         scale ($self->origin->y - $pointf->y),  #-
     );
     $self->last_pos->translate(@translate);
-    $self->wipe->path->translate(@translate) if $self->wipe->path;
+    $self->wipe->path->translate(@translate) if $self->wipe->has_path;
     
     $self->origin($pointf);
 }
@@ -99,7 +99,7 @@ sub change_layer {
     $gcode .= $self->writer->travel_to_z($z, 'move to next layer (' . $self->layer_index . ')');
     
     # forget last wiping path as wiping after raising Z is pointless
-    $self->wipe->path(undef);
+    $self->wipe->reset_path;
     
     return $gcode;
 }
@@ -208,7 +208,7 @@ sub extrude_loop {
     # reset acceleration
     $gcode .= $self->writer->set_acceleration($self->config->default_acceleration);
     
-    $self->wipe->path($paths[0]->polyline->clone) if $self->wipe->enable;  # TODO: don't limit wipe to last path
+    $self->wipe->set_path($paths[0]->polyline->clone) if $self->wipe->enable;  # TODO: don't limit wipe to last path
     
     # make a little move inwards before leaving loop
     if ($paths[-1]->role == EXTR_ROLE_EXTERNAL_PERIMETER && defined $self->layer && $self->config->perimeters > 1) {
@@ -333,7 +333,7 @@ sub _extrude_path {
             $self->config->gcode_comments ? " ; $description" : "");
 
         if ($self->wipe->enable) {
-            $self->wipe->path($path->polyline->clone);
+            $self->wipe->set_path($path->polyline->clone);
             $self->wipe->path->reverse;
         }
     }
@@ -429,7 +429,7 @@ sub retract {
     my $gcode = "";
     
     # wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if ($self->config->get_at('wipe', $self->writer->extruder->id) && $self->wipe->path) {
+    if ($self->config->get_at('wipe', $self->writer->extruder->id) && $self->wipe->has_path) {
         $gcode .= $self->wipe->wipe($self, $toolchange);
     }
     
@@ -555,12 +555,10 @@ sub post_toolchange {
 }
 
 package Slic3r::GCode::Wipe;
-use Moo;
+use strict;
+use warnings;
 
 use Slic3r::Geometry qw(scale);
-
-has 'enable'            => (is => 'rw', default => sub { 0 });
-has 'path'              => (is => 'rw');
 
 sub wipe {
     my ($self, $gcodegen, $toolchange) = @_;
@@ -609,7 +607,7 @@ sub wipe {
         $gcodegen->writer->extruder->set_retracted($gcodegen->writer->extruder->retracted + $retracted);
         
         # prevent wiping again on same path
-        $self->path(undef);
+        $self->reset_path;
     }
     
     return $gcode;

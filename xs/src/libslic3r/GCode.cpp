@@ -67,4 +67,25 @@ AvoidCrossingPerimeters::travel_to(Point point, const Pointf &gcodegen_origin,
 REGISTER_CLASS(AvoidCrossingPerimeters, "GCode::AvoidCrossingPerimeters");
 #endif
 
+Wipe::Wipe()
+    : enable(false)
+{
+}
+
+bool
+Wipe::has_path()
+{
+    return !this->path.points.empty();
+}
+
+void
+Wipe::reset_path()
+{
+    this->path = Polyline();
+}
+
+#ifdef SLIC3RXS
+REGISTER_CLASS(Wipe, "GCode::Wipe");
+#endif
+
 }

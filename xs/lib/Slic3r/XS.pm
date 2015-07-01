@@ -217,6 +217,7 @@ for my $class (qw(
         Slic3r::Flow
         Slic3r::GCode::AvoidCrossingPerimeters
         Slic3r::GCode::PlaceholderParser
+        Slic3r::GCode::Wipe
         Slic3r::Geometry::BoundingBox
         Slic3r::Geometry::BoundingBoxf
         Slic3r::Geometry::BoundingBoxf3

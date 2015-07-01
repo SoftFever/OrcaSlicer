@@ -129,6 +129,10 @@
 %typemap{Ref<AvoidCrossingPerimeters>}{simple};
 %typemap{Clone<AvoidCrossingPerimeters>}{simple};
 
+%typemap{Wipe*};
+%typemap{Ref<Wipe>}{simple};
+%typemap{Clone<Wipe>}{simple};
+
 
 %typemap{Points};
 %typemap{Pointfs};
