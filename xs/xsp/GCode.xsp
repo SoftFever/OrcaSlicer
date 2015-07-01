@@ -1,0 +1,31 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "libslic3r/GCode.hpp"
+%}
+
+%name{Slic3r::GCode::AvoidCrossingPerimeters} class AvoidCrossingPerimeters {
+    AvoidCrossingPerimeters();
+    ~AvoidCrossingPerimeters();
+    
+    void init_external_mp(ExPolygons islands);
+    void init_layer_mp(ExPolygons islands);
+    Clone<Polyline> travel_to(Point* point, Pointf* gcodegen_origin, Point* gcodegen_last_pos)
+        %code{% RETVAL = THIS->travel_to(*point, *gcodegen_origin, *gcodegen_last_pos); %};
+    
+    bool use_external_mp()
+        %code{% RETVAL = THIS->use_external_mp; %};
+    void set_use_external_mp(bool value)
+        %code{% THIS->use_external_mp = value; %};
+    
+    bool use_external_mp_once()
+        %code{% RETVAL = THIS->use_external_mp_once; %};
+    void set_use_external_mp_once(bool value)
+        %code{% THIS->use_external_mp_once = value; %};
+    
+    bool disable_once()
+        %code{% RETVAL = THIS->disable_once; %};
+    void set_disable_once(bool value)
+        %code{% THIS->disable_once = value; %};
+};

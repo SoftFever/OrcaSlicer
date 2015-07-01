@@ -1670,6 +1670,7 @@ src/libslic3r/ExtrusionEntityCollection.cpp
 src/libslic3r/ExtrusionEntityCollection.hpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
+src/libslic3r/GCode.cpp
 src/libslic3r/GCode.hpp
 src/libslic3r/GCodeWriter.cpp
 src/libslic3r/GCodeWriter.hpp
@@ -1762,6 +1763,7 @@ xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
+xsp/GCode.xsp
 xsp/GCodeWriter.xsp
 xsp/Geometry.xsp
 xsp/GUI_3DScene.xsp

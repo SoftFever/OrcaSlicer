@@ -125,6 +125,10 @@
 %typemap{Ref<PlaceholderParser>}{simple};
 %typemap{Clone<PlaceholderParser>}{simple};
 
+%typemap{AvoidCrossingPerimeters*};
+%typemap{Ref<AvoidCrossingPerimeters>}{simple};
+%typemap{Clone<AvoidCrossingPerimeters>}{simple};
+
 
 %typemap{Points};
 %typemap{Pointfs};

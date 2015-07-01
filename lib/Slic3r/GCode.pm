@@ -365,15 +365,15 @@ sub travel_to {
     if ($needs_retraction
         && $self->config->avoid_crossing_perimeters
         && !$self->avoid_crossing_perimeters->disable_once) {
-        $travel = $self->avoid_crossing_perimeters->travel_to($self, $point);
+        $travel = $self->avoid_crossing_perimeters->travel_to($point, $self->origin, $self->last_pos);
         
         # check again whether the new travel path still needs a retraction
         $needs_retraction = $self->needs_retraction($travel, $role);
     }
     
     # Re-allow avoid_crossing_perimeters for the next travel moves
-    $self->avoid_crossing_perimeters->disable_once(0);
-    $self->avoid_crossing_perimeters->use_external_mp_once(0);
+    $self->avoid_crossing_perimeters->set_disable_once(0);
+    $self->avoid_crossing_perimeters->set_use_external_mp_once(0);
     
     # generate G-code for the travel move
     my $gcode = "";
@@ -613,55 +613,6 @@ sub wipe {
     }
     
     return $gcode;
-}
-
-package Slic3r::GCode::AvoidCrossingPerimeters;
-use Moo;
-
-has '_external_mp'          => (is => 'rw');
-has '_layer_mp'             => (is => 'rw');
-has 'use_external_mp'       => (is => 'rw', default => sub {0});
-has 'use_external_mp_once'  => (is => 'rw', default => sub {0});   # this flag triggers the use of the external configuration space for avoid_crossing_perimeters for the next travel move
-
-# this flag disables avoid_crossing_perimeters just for the next travel move
-# we enable it by default for the first travel move in print
-has 'disable_once'          => (is => 'rw', default => sub {1});
-
-sub init_external_mp {
-    my ($self, $islands) = @_;
-    $self->_external_mp(Slic3r::MotionPlanner->new($islands));
-}
-
-sub init_layer_mp {
-    my ($self, $islands) = @_;
-    $self->_layer_mp(Slic3r::MotionPlanner->new($islands));
-}
-
-sub travel_to {
-    my ($self, $gcodegen, $point) = @_;
-    
-    if ($self->use_external_mp || $self->use_external_mp_once) {
-        # get current origin set in $gcodegen
-        # (the one that will be used to translate the G-code coordinates by)
-        my $scaled_origin = Slic3r::Point->new_scale(@{$gcodegen->origin});
-        
-        # represent last_pos in absolute G-code coordinates
-        my $last_pos = $gcodegen->last_pos->clone;
-        $last_pos->translate(@$scaled_origin);
-        
-        # represent $point in absolute G-code coordinates
-        $point = $point->clone;
-        $point->translate(@$scaled_origin);
-        # calculate path
-        my $travel = $self->_external_mp->shortest_path($last_pos, $point);
-        
-        # translate the path back into the shifted coordinate system that $gcodegen
-        # is currently using for writing coordinates
-        $travel->translate(@{$scaled_origin->negative});
-        return $travel;
-    } else {
-        return $self->_layer_mp->shortest_path($gcodegen->last_pos, $point);
-    }
 }
 
 1;

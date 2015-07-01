@@ -248,7 +248,7 @@ sub export {
                 if ($finished_objects > 0) {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
                     $gcodegen->enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
-                    $gcodegen->avoid_crossing_perimeters->use_external_mp_once(1);
+                    $gcodegen->avoid_crossing_perimeters->set_use_external_mp_once(1);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         Slic3r::Point->new(0,0),
@@ -258,7 +258,7 @@ sub export {
                     $gcodegen->enable_cooling_markers(1);
                     
                     # disable motion planner when traveling to first object point
-                    $gcodegen->avoid_crossing_perimeters->disable_once(1);
+                    $gcodegen->avoid_crossing_perimeters->set_disable_once(1);
                 }
                 
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
@@ -398,7 +398,7 @@ sub process_layer {
         && !$self->_skirt_done->{$layer->print_z}
         && (!$layer->isa('Slic3r::Layer::Support') || $layer->id < $object->config->raft_layers)) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
         $gcode .= $self->_gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
@@ -431,12 +431,12 @@ sub process_layer {
             }
         }
         $self->_skirt_done->{$layer->print_z} = 1;
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(0);
         
         # allow a straight travel move to the first object point if this is the first layer
         # (but don't in next layers)
         if ($layer->id == 0) {
-            $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
+            $self->_gcodegen->avoid_crossing_perimeters->set_disable_once(1);
         }
     }
     
@@ -444,19 +444,19 @@ sub process_layer {
     if (!$self->_brim_done) {
         $gcode .= $self->_gcodegen->set_extruder($self->print->regions->[0]->config->perimeter_extruder-1);
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(1);
         $gcode .= $self->_gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
             for @{$self->print->brim};
         $self->_brim_done(1);
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(0);
         
         # allow a straight travel move to the first object point
-        $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
+        $self->_gcodegen->avoid_crossing_perimeters->set_disable_once(1);
     }
     
     for my $copy (@$object_copies) {
         # when starting a new object, use the external motion planner for the first travel move
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp_once(1) if ($self->_last_obj_copy // '') ne "$copy";
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp_once(1) if ($self->_last_obj_copy // '') ne "$copy";
         $self->_last_obj_copy("$copy");
         
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
