@@ -43,6 +43,11 @@
         %code{% RETVAL = THIS->standby_points; %};
     void set_standby_points(Points points)
         %code{% THIS->standby_points = points; %};
+    
+    std::string pre_toolchange(GCode* gcodegen)
+        %code{% RETVAL = THIS->pre_toolchange(*gcodegen); %};
+    std::string post_toolchange(GCode* gcodegen)
+        %code{% RETVAL = THIS->post_toolchange(*gcodegen); %};
 };
 
 %name{Slic3r::GCode::Wipe} class Wipe {
@@ -156,6 +161,7 @@
         %code{% RETVAL = THIS->needs_retraction(*travel, role); %};
     std::string retract(bool toolchange = false);
     std::string unretract();
+    std::string set_extruder(unsigned int extruder_id);
     Clone<Pointf> point_to_gcode(Point* point)
         %code{% RETVAL = THIS->point_to_gcode(*point); %};
 };

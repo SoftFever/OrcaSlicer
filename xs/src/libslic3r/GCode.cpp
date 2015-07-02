@@ -72,6 +72,57 @@ OozePrevention::OozePrevention()
 {
 }
 
+std::string
+OozePrevention::pre_toolchange(GCode &gcodegen)
+{
+    std::string gcode;
+    
+    // move to the nearest standby point
+    if (!this->standby_points.empty()) {
+        // get current position in print coordinates
+        Pointf3 writer_pos = gcodegen.writer.get_position();
+        Point pos = Point::new_scale(writer_pos.x, writer_pos.y);
+        
+        // find standby point
+        Point standby_point;
+        pos.nearest_point(this->standby_points, &standby_point);
+        
+        /*  We don't call gcodegen.travel_to() because we don't need retraction (it was already
+            triggered by the caller) nor avoid_crossing_perimeters and also because the coordinates
+            of the destination point must not be transformed by origin nor current extruder offset.  */
+        gcode += gcodegen.writer.travel_to_xy(Pointf::new_unscale(standby_point), 
+            "move to standby position");
+    }
+    
+    if (gcodegen.config.standby_temperature_delta.value != 0) {
+        // we assume that heating is always slower than cooling, so no need to block
+        gcode += gcodegen.writer.set_temperature
+            (this->_get_temp(gcodegen) + gcodegen.config.standby_temperature_delta.value, false);
+    }
+    
+    return gcode;
+}
+
+std::string
+OozePrevention::post_toolchange(GCode &gcodegen)
+{
+    std::string gcode;
+    
+    if (gcodegen.config.standby_temperature_delta.value != 0) {
+        gcode += gcodegen.writer.set_temperature(this->_get_temp(gcodegen), true);
+    }
+    
+    return gcode;
+}
+
+int
+OozePrevention::_get_temp(GCode &gcodegen)
+{
+    return (gcodegen.layer != NULL && gcodegen.layer->id() == 0)
+        ? gcodegen.config.first_layer_temperature.get_at(gcodegen.writer.extruder()->id)
+        : gcodegen.config.temperature.get_at(gcodegen.writer.extruder()->id);
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(OozePrevention, "GCode::OozePrevention");
 #endif
@@ -286,6 +337,44 @@ GCode::unretract()
     std::string gcode;
     gcode += this->writer.unlift();
     gcode += this->writer.unretract();
+    return gcode;
+}
+
+std::string
+GCode::set_extruder(unsigned int extruder_id)
+{
+    this->placeholder_parser->set("current_extruder", extruder_id);
+    if (!this->writer.need_toolchange(extruder_id))
+        return "";
+    
+    // if we are running a single-extruder setup, just set the extruder and return nothing
+    if (!this->writer.multiple_extruders) {
+        return this->writer.toolchange(extruder_id);
+    }
+    
+    // prepend retraction on the current extruder
+    std::string gcode = this->retract(true);
+    
+    // append custom toolchange G-code
+    if (this->writer.extruder() != NULL && !this->config.toolchange_gcode.value.empty()) {
+        PlaceholderParser pp = *this->placeholder_parser;
+        pp.set("previous_extruder", this->writer.extruder()->id);
+        pp.set("next_extruder",     extruder_id);
+        gcode += pp.process(this->config.toolchange_gcode.value) + '\n';
+    }
+    
+    // if ooze prevention is enabled, park current extruder in the nearest
+    // standby point and set it to the standby temperature
+    if (this->ooze_prevention.enable && this->writer.extruder() != NULL)
+        gcode += this->ooze_prevention.pre_toolchange(*this);
+    
+    // append the toolchange command
+    gcode += this->writer.toolchange(extruder_id);
+    
+    // set the new extruder to the operating temperature
+    if (this->ooze_prevention.enable)
+        gcode += this->ooze_prevention.post_toolchange(*this);
+    
     return gcode;
 }
 

@@ -44,6 +44,11 @@ class OozePrevention {
     Points standby_points;
     
     OozePrevention();
+    std::string pre_toolchange(GCode &gcodegen);
+    std::string post_toolchange(GCode &gcodegen);
+    
+    private:
+    int _get_temp(GCode &gcodegen);
 };
 
 class Wipe {
@@ -90,6 +95,7 @@ class GCode {
     bool needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
     std::string retract(bool toolchange = false);
     std::string unretract();
+    std::string set_extruder(unsigned int extruder_id);
     Pointf point_to_gcode(const Point &point);
     
     private:
