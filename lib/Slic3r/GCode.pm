@@ -296,42 +296,4 @@ sub _extrude_path {
     return $gcode;
 }
 
-# This method accepts $point in print coordinates.
-sub travel_to {
-    my ($self, $point, $role, $comment) = @_;
-    
-    # Define the travel move as a line between current position and the taget point.
-    # This is expressed in print coordinates, so it will need to be translated by
-    # $self->origin in order to get G-code coordinates.
-    my $travel = Slic3r::Polyline->new($self->last_pos, $point);
-    
-    # check whether a straight travel move would need retraction
-    my $needs_retraction = $self->needs_retraction($travel, $role // EXTR_ROLE_NONE);
-    
-    # if a retraction would be needed, try to use avoid_crossing_perimeters to plan a
-    # multi-hop travel path inside the configuration space
-    if ($needs_retraction
-        && $self->config->avoid_crossing_perimeters
-        && !$self->avoid_crossing_perimeters->disable_once) {
-        $travel = $self->avoid_crossing_perimeters->travel_to($self, $point);
-        
-        # check again whether the new travel path still needs a retraction
-        $needs_retraction = $self->needs_retraction($travel, $role // EXTR_ROLE_NONE);
-    }
-    
-    # Re-allow avoid_crossing_perimeters for the next travel moves
-    $self->avoid_crossing_perimeters->set_disable_once(0);
-    $self->avoid_crossing_perimeters->set_use_external_mp_once(0);
-    
-    # generate G-code for the travel move
-    my $gcode = "";
-    $gcode .= $self->retract if $needs_retraction;
-    
-    # use G1 because we rely on paths being straight (G0 may make round paths)
-    $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($_->b), $comment)
-        for @{$travel->lines};
-    
-    return $gcode;
-}
-
 1;

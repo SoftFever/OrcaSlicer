@@ -267,6 +267,47 @@ GCode::preamble()
     return gcode;
 }
 
+// This method accepts &point in print coordinates.
+std::string
+GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
+{    
+    /*  Define the travel move as a line between current position and the taget point.
+        This is expressed in print coordinates, so it will need to be translated by
+        $self->origin in order to get G-code coordinates.  */
+    Polyline travel;
+    travel.append(this->last_pos());
+    travel.append(point);
+    
+    // check whether a straight travel move would need retraction
+    bool needs_retraction = this->needs_retraction(travel, role);
+    
+    // if a retraction would be needed, try to use avoid_crossing_perimeters to plan a
+    // multi-hop travel path inside the configuration space
+    if (needs_retraction
+        && this->config.avoid_crossing_perimeters
+        && !this->avoid_crossing_perimeters.disable_once) {
+        travel = this->avoid_crossing_perimeters.travel_to(*this, point);
+        
+        // check again whether the new travel path still needs a retraction
+        needs_retraction = this->needs_retraction(travel, role);
+    }
+    
+    // Re-allow avoid_crossing_perimeters for the next travel moves
+    this->avoid_crossing_perimeters.disable_once = false;
+    this->avoid_crossing_perimeters.use_external_mp_once = false;
+    
+    // generate G-code for the travel move
+    std::string gcode;
+    if (needs_retraction) gcode += this->retract();
+    
+    // use G1 because we rely on paths being straight (G0 may make round paths)
+    Lines lines = travel.lines();
+    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line)
+        gcode += this->writer.travel_to_xy(this->point_to_gcode(line->b), comment);
+    
+    return gcode;
+}
+
 bool
 GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
 {
