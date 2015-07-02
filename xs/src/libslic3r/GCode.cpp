@@ -153,6 +153,8 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
 REGISTER_CLASS(Wipe, "GCode::Wipe");
 #endif
 
+#define EXTRUDER_CONFIG(OPT) this->config.OPT.get_at(this->writer.extruder()->id)
+
 GCode::GCode()
     : enable_loop_clipping(true), enable_cooling_markers(false), layer_count(0),
         layer_index(-1), first_layer(false), elapsed_time(0), volumetric_speed(0),
@@ -217,7 +219,7 @@ GCode::preamble()
 bool
 GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
 {
-    if (travel.length() < scale_(this->config.retract_before_travel.get_at(this->writer.extruder()->id))) {
+    if (travel.length() < scale_(EXTRUDER_CONFIG(retract_before_travel))) {
         // skip retraction if the move is shorter than the configured threshold
         return false;
     }
@@ -261,7 +263,7 @@ GCode::retract(bool toolchange)
         return gcode;
     
     // wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if (this->config.wipe.get_at(this->writer.extruder()->id) && this->wipe.has_path()) {
+    if (EXTRUDER_CONFIG(wipe) && this->wipe.has_path()) {
         gcode += this->wipe.wipe(*this, toolchange);
     }
     
@@ -291,7 +293,7 @@ GCode::unretract()
 Pointf
 GCode::point_to_gcode(const Point &point)
 {
-    Pointf extruder_offset = this->config.extruder_offset.get_at(this->writer.extruder()->id);
+    Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Pointf(
         unscale(point.x) + this->origin.x - extruder_offset.x,
         unscale(point.y) + this->origin.y - extruder_offset.y
